@@ -28,15 +28,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const view = await resolveMemberPage(supabase, { handle, viaDirectLink: true })
 
   if (view.kind === 'notfound') {
-    return { title: 'Not found — Movers, Makers & Shakers', robots: NOINDEX }
+    return { title: 'Not found — SocialUs', robots: NOINDEX }
   }
   if (view.kind === 'tombstone') {
-    return { title: 'Private profile — Movers, Makers & Shakers', robots: NOINDEX }
+    return { title: 'Private profile — SocialUs', robots: NOINDEX }
   }
   const { page, indexable } = view
   return {
-    title: `${page.displayName} (@${page.handle}) — Movers, Makers & Shakers`,
-    description: page.bio || `${page.displayName} on Movers, Makers & Shakers`,
+    title: `${page.displayName} (@${page.handle}) — SocialUs`,
+    description: page.bio || `${page.displayName} on SocialUs`,
     // Indexable only when the Member opted into discoverability AND is public.
     ...(indexable ? {} : { robots: NOINDEX }),
   }

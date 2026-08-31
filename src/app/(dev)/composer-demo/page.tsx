@@ -25,7 +25,7 @@ const STEPS: StepDef<DemoState>[] = [
     helper: 'What should your shop be called?',
     render: (state, setState) => (
       <label className="block">
-        <span className="text-sm font-medium text-[--color-fg]">Name</span>
+        <span className="text-sm font-medium text-[var(--color-fg)]">Name</span>
         <input
           className="input mt-1 w-full"
           value={state.brand}
@@ -45,7 +45,7 @@ const STEPS: StepDef<DemoState>[] = [
     helper: 'Where are you primarily based?',
     render: (state, setState) => (
       <label className="block">
-        <span className="text-sm font-medium text-[--color-fg]">City</span>
+        <span className="text-sm font-medium text-[var(--color-fg)]">City</span>
         <input
           className="input mt-1 w-full"
           value={state.city}
@@ -66,7 +66,7 @@ const STEPS: StepDef<DemoState>[] = [
     isOptional: true,
     render: (state, setState) => (
       <label className="block">
-        <span className="text-sm font-medium text-[--color-fg]">About</span>
+        <span className="text-sm font-medium text-[var(--color-fg)]">About</span>
         <textarea
           className="input mt-1 w-full min-h-[6rem]"
           value={state.about}
@@ -84,7 +84,7 @@ const STEPS: StepDef<DemoState>[] = [
       <ul className="text-sm space-y-1">
         <li><b>Brand:</b> {state.brand}</li>
         <li><b>City:</b> {state.city}</li>
-        <li><b>About:</b> {state.about || <em className="text-[--color-fg-muted]">(skipped)</em>}</li>
+        <li><b>About:</b> {state.about || <em className="text-[var(--color-fg-muted)]">(skipped)</em>}</li>
       </ul>
     ),
     validate: () => ({ ok: true }),
@@ -99,7 +99,7 @@ export default function ComposerDemoPage() {
   return (
     <main className="min-h-screen p-8">
       <h1 className="text-2xl font-semibold mb-4">MultiStepComposer demo</h1>
-      <p className="text-sm text-[--color-fg-muted] mb-6">
+      <p className="text-sm text-[var(--color-fg-muted)] mb-6">
         Dev surface for verifying the composer recipe in isolation. Per
         T071 acceptance — not for production use.
       </p>

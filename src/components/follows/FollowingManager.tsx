@@ -136,7 +136,7 @@ function FollowRow({
           type="button"
           data-testid={`undo-${entry.kind}-${entry.entityId}`}
           aria-label={`Undo — keep following ${entry.displayName}`}
-          className="shrink-0 text-sm font-medium text-[--color-accent] hover:underline"
+          className="shrink-0 text-sm font-medium text-[var(--color-accent)] hover:underline"
           onClick={onUndo}
         >
           Undo
@@ -172,7 +172,7 @@ export function FollowingManager({
         <p className="text-sm text-neutral-600">Nothing followed yet — start exploring.</p>
         <Link
           href="/explore"
-          className="mt-4 inline-flex items-center justify-center rounded-full bg-[--color-accent] px-4 py-2 text-sm font-medium text-white"
+          className="mt-4 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white"
         >
           Explore →
         </Link>

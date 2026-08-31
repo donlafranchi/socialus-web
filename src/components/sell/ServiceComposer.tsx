@@ -123,7 +123,7 @@ export function ServiceComposer({
       render: (state, setState) => (
         <div className="space-y-4">
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">Title</span>
+            <span className="text-sm font-medium text-[var(--color-fg)]">Title</span>
             <input
               data-testid="service-title-input"
               className="input mt-1 w-full"
@@ -133,7 +133,7 @@ export function ServiceComposer({
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">
+            <span className="text-sm font-medium text-[var(--color-fg)]">
               Description
             </span>
             <textarea
@@ -170,7 +170,7 @@ export function ServiceComposer({
         return (
           <div className="space-y-4">
             <label className="block">
-              <span className="text-sm font-medium text-[--color-fg]">
+              <span className="text-sm font-medium text-[var(--color-fg)]">
                 Pricing model
               </span>
               <select
@@ -204,7 +204,7 @@ export function ServiceComposer({
             </div>
             {showRate && (
               <label className="block">
-                <span className="text-sm font-medium text-[--color-fg]">
+                <span className="text-sm font-medium text-[var(--color-fg)]">
                   Rate
                 </span>
                 <input
@@ -377,13 +377,13 @@ function CenterLocationStep({
                 }
                 className={`w-full text-left rounded-lg border px-4 py-3 text-sm ${
                   selected
-                    ? 'border-[--color-accent] bg-[--color-accent-tint]'
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-tint)]'
                     : 'border-neutral-200 hover:bg-neutral-50'
                 }`}
               >
                 <div className="font-medium">{loc.label}</div>
                 {loc.sublabel && (
-                  <div className="text-xs text-[--color-fg-muted]">
+                  <div className="text-xs text-[var(--color-fg-muted)]">
                     {loc.sublabel}
                   </div>
                 )}
@@ -396,7 +396,7 @@ function CenterLocationStep({
             type="button"
             data-testid="service-center-add-new"
             onClick={() => setDrawerOpen(true)}
-            className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[--color-accent] hover:bg-neutral-50"
+            className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[var(--color-accent)] hover:bg-neutral-50"
           >
             + Add a new Location
           </button>
@@ -404,7 +404,7 @@ function CenterLocationStep({
       </ul>
 
       <label className="block">
-        <span className="text-sm font-medium text-[--color-fg]">
+        <span className="text-sm font-medium text-[var(--color-fg)]">
           How far do you travel? (miles)
         </span>
         <input
@@ -424,7 +424,7 @@ function CenterLocationStep({
           initialState={{ label: '' }}
           render={(s, set) => (
             <label className="block">
-              <span className="text-sm font-medium text-[--color-fg]">
+              <span className="text-sm font-medium text-[var(--color-fg)]">
                 Location name
               </span>
               <input

@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const business = await getBusiness(slug)
 
   if (!business) {
-    return { title: 'Business Not Found — Movers, Makers & Shakers' }
+    return { title: 'Business Not Found — SocialUs' }
   }
 
   const tierLabel = OWNERSHIP_TIERS[business.ownership_tier]?.label ?? business.ownership_tier
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/og-default.png`
 
   return {
-    title: `${business.name} — Movers, Makers & Shakers`,
+    title: `${business.name} — SocialUs`,
     description,
     openGraph: {
       title: business.name,

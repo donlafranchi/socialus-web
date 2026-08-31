@@ -158,12 +158,12 @@ export function GatheringComposer({
                   onClick={() => setState({ ...state, gatheringKind: opt.kind })}
                   className={`w-full text-left rounded-lg border px-4 py-3 text-sm ${
                     selected
-                      ? 'border-[--color-accent] bg-[--color-accent-tint]'
+                      ? 'border-[var(--color-accent)] bg-[var(--color-accent-tint)]'
                       : 'border-neutral-200 hover:bg-neutral-50'
                   }`}
                 >
                   <div className="font-medium">{opt.label}</div>
-                  <div className="text-xs text-[--color-fg-muted]">{opt.sub}</div>
+                  <div className="text-xs text-[var(--color-fg-muted)]">{opt.sub}</div>
                 </button>
               </li>
             )
@@ -184,7 +184,7 @@ export function GatheringComposer({
       render: (state, setState) => (
         <div className="space-y-4">
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">Title</span>
+            <span className="text-sm font-medium text-[var(--color-fg)]">Title</span>
             <input
               data-testid="gathering-title-input"
               className="input mt-1 w-full"
@@ -194,7 +194,7 @@ export function GatheringComposer({
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">Description</span>
+            <span className="text-sm font-medium text-[var(--color-fg)]">Description</span>
             <textarea
               data-testid="gathering-description-input"
               aria-label="Description"
@@ -227,7 +227,7 @@ export function GatheringComposer({
           {state.gatheringKind === 'open_meetup' ? (
             <p
               data-testid="gathering-open-meetup-note"
-              className="rounded-lg border border-dashed border-neutral-300 p-4 text-sm text-[--color-fg-muted]"
+              className="rounded-lg border border-dashed border-neutral-300 p-4 text-sm text-[var(--color-fg-muted)]"
             >
               Open meetups have no fixed schedule — people drop in whenever.
               You can add specific times later from the gathering page.
@@ -236,7 +236,7 @@ export function GatheringComposer({
             <div className="space-y-3">
               <div className="flex gap-3">
                 <label className="block flex-1">
-                  <span className="text-sm font-medium text-[--color-fg]">Date</span>
+                  <span className="text-sm font-medium text-[var(--color-fg)]">Date</span>
                   <input
                     type="date"
                     data-testid="gathering-date-input"
@@ -249,7 +249,7 @@ export function GatheringComposer({
                   />
                 </label>
                 <label className="block flex-1">
-                  <span className="text-sm font-medium text-[--color-fg]">Time</span>
+                  <span className="text-sm font-medium text-[var(--color-fg)]">Time</span>
                   <input
                     type="time"
                     data-testid="gathering-time-input"
@@ -265,7 +265,7 @@ export function GatheringComposer({
               {state.gatheringKind === 'recurring' && state.startDate && (
                 <p
                   data-testid="gathering-recurrence-preview"
-                  className="text-sm text-[--color-accent]"
+                  className="text-sm text-[var(--color-accent)]"
                 >
                   Every {weekdayName(state.startDate)}
                 </p>
@@ -274,7 +274,7 @@ export function GatheringComposer({
           )}
 
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">
+            <span className="text-sm font-medium text-[var(--color-fg)]">
               Capacity (optional)
             </span>
             <input
@@ -288,7 +288,7 @@ export function GatheringComposer({
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">
+            <span className="text-sm font-medium text-[var(--color-fg)]">
               Cost (optional — leave blank if free)
             </span>
             <input
@@ -302,7 +302,7 @@ export function GatheringComposer({
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-[--color-fg]">
+            <span className="text-sm font-medium text-[var(--color-fg)]">
               What to bring (optional)
             </span>
             <input

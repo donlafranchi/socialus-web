@@ -41,7 +41,7 @@ export function FollowingSummary({ memberId }: { memberId: string }) {
         <Link
           href="/you/following"
           data-testid="following-more"
-          className="text-sm font-medium text-[--color-accent] hover:underline"
+          className="text-sm font-medium text-[var(--color-accent)] hover:underline"
         >
           More
         </Link>

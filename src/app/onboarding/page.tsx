@@ -9,7 +9,7 @@ export default async function OnboardingPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/auth/signup?next=/onboarding')
+  if (!user) redirect('/auth/login?next=/onboarding')
 
   // Idempotent re-entry: a Member who already set a home locality is done.
   const { data: home } = await supabase

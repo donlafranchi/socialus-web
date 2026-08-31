@@ -133,7 +133,7 @@ export function HomeFeed() {
       {/* Mobile top header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200 md:hidden">
         <div className="px-3 py-2 flex items-center justify-between gap-2">
-          <Link href="/" className="font-semibold text-[--color-accent]">Main Street</Link>
+          <Link href="/" className="font-semibold text-[var(--color-accent)]">SocialUs</Link>
           {isAuth ? (
             <Link href="/you" aria-label="You" className="p-2">
               <User size={20} className="text-neutral-700" />
@@ -180,7 +180,7 @@ export function HomeFeed() {
               onClick={() => setFilter(f.id)}
               className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                 active
-                  ? 'bg-[--color-accent] text-white'
+                  ? 'bg-[var(--color-accent)] text-white'
                   : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
@@ -225,7 +225,7 @@ export function HomeFeed() {
             </p>
             <Link
               href="/explore"
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-[--color-accent] text-white px-4 py-2 text-sm font-medium"
+              className="mt-4 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] text-white px-4 py-2 text-sm font-medium"
             >
               Explore vendors →
             </Link>

@@ -84,7 +84,7 @@ function OpenSpotCard({ type, emoji }: { type: string; emoji: string }) {
         <p className="text-[11px] text-neutral-400 leading-snug">No one listed yet in Sacramento</p>
         <Link
           href="/join"
-          className="mt-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[--color-accent] hover:text-[--color-accent]"
+          className="mt-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent)]"
         >
           <Plus size={11} />
           List here — it's free
@@ -100,7 +100,7 @@ function ExampleCard({ name, tagline, emoji }: { name: string; tagline: string; 
       <div className="absolute top-2 right-2 z-10 bg-amber-100 text-amber-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
         Example
       </div>
-      <div className="h-28 bg-gradient-to-br from-[--color-accent-tint] to-amber-100 flex items-center justify-center text-3xl">
+      <div className="h-28 bg-gradient-to-br from-[var(--color-accent-tint)] to-amber-100 flex items-center justify-center text-3xl">
         {emoji}
       </div>
       <div className="p-3 flex-1 flex flex-col">
@@ -108,7 +108,7 @@ function ExampleCard({ name, tagline, emoji }: { name: string; tagline: string; 
         <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">{tagline}</p>
         <Link
           href="/join"
-          className="mt-auto pt-2 block text-center text-[11px] font-semibold bg-[--color-accent] text-white rounded-lg py-1.5 hover:bg-[--color-accent-hover]"
+          className="mt-auto pt-2 block text-center text-[11px] font-semibold bg-[var(--color-accent)] text-white rounded-lg py-1.5 hover:bg-[var(--color-accent-hover)]"
         >
           Sign up like this
         </Link>
@@ -124,7 +124,7 @@ function FeaturedExampleCard() {
         Example listing
       </div>
       <div className="md:flex">
-        <div className="h-40 md:h-auto md:w-56 bg-gradient-to-br from-[--color-accent-tint] via-amber-50 to-amber-100 flex items-center justify-center text-6xl shrink-0">
+        <div className="h-40 md:h-auto md:w-56 bg-gradient-to-br from-[var(--color-accent-tint)] via-amber-50 to-amber-100 flex items-center justify-center text-6xl shrink-0">
           🍞
         </div>
         <div className="p-4 md:p-5 flex-1">
@@ -145,7 +145,7 @@ function FeaturedExampleCard() {
           <div className="mt-3 flex items-center gap-2">
             <Link
               href="/join"
-              className="inline-flex items-center gap-1 bg-[--color-accent] hover:bg-[--color-accent-hover] text-white text-sm font-semibold rounded-lg px-3 py-2"
+              className="inline-flex items-center gap-1 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-semibold rounded-lg px-3 py-2"
             >
               <Plus size={14} />
               Create your listing

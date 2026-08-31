@@ -147,16 +147,15 @@ function YouPageInner() {
     return (
       <main className="p-6 pb-24 max-w-md mx-auto text-center">
         <h1 className="text-xl font-semibold">You</h1>
-        <p className="mt-3 text-neutral-600 text-sm">Sign in or create an account to follow vendors and save your market.</p>
+        <p className="mt-3 text-neutral-600 text-sm">Sign in to follow vendors and save your market. We email you a link — no password.</p>
         <div className="mt-4 flex flex-col gap-2">
-          <Link href="/auth/signup" className="btn-primary">Create account</Link>
-          <Link href="/auth/login" className="btn-secondary">Log in</Link>
+          <Link href="/auth/login" className="btn-primary">Sign in</Link>
         </div>
         <div className="mt-8 pt-6 border-t border-neutral-200">
           <p className="text-xs uppercase tracking-wider text-neutral-500 font-semibold">Are you a business owner?</p>
           <Link
             href="/join"
-            className="mt-3 inline-flex items-center justify-center rounded-full border border-[--color-accent] text-[--color-accent] px-4 py-2 text-sm font-medium hover:bg-[--color-accent-tint]"
+            className="mt-3 inline-flex items-center justify-center rounded-full border border-[var(--color-accent)] text-[var(--color-accent)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-accent-tint)]"
           >
             List your business →
           </Link>
@@ -176,7 +175,7 @@ function YouPageInner() {
           <Link
             href="/you/vendor"
             data-testid="vendor-mode-link"
-            className="text-sm font-medium text-[--color-accent] hover:underline whitespace-nowrap"
+            className="text-sm font-medium text-[var(--color-accent)] hover:underline whitespace-nowrap"
           >
             Switch to vendor mode →
           </Link>
@@ -201,7 +200,7 @@ function YouPageInner() {
           type="button"
           onClick={() => setMarketSelectorOpen(true)}
           data-testid="change-market"
-          className="text-sm font-medium text-[--color-accent] hover:underline"
+          className="text-sm font-medium text-[var(--color-accent)] hover:underline"
         >
           Change
         </button>
@@ -225,7 +224,7 @@ function YouPageInner() {
               onClick={() => setTab(t)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition-colors ${
                 active
-                  ? 'bg-[--color-accent] text-white'
+                  ? 'bg-[var(--color-accent)] text-white'
                   : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
@@ -329,7 +328,7 @@ function EmptyState({ message }: { message: string }) {
       <p className="text-sm text-neutral-600">{message}</p>
       <Link
         href="/explore"
-        className="mt-4 inline-flex items-center justify-center rounded-full bg-[--color-accent] text-white px-4 py-2 text-sm font-medium"
+        className="mt-4 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] text-white px-4 py-2 text-sm font-medium"
       >
         Explore →
       </Link>

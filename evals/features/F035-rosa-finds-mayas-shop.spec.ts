@@ -158,7 +158,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
       const signup = page.getByTestId("follow-shop-signup");
       await expect(signup).toBeVisible();
       await expect(signup).toHaveText(/sign up to follow/i);
-      await expect(signup).toHaveAttribute("href", "/auth/signup");
+      await expect(signup).toHaveAttribute("href", "/auth/login");
       await expect(page.getByTestId("follow-shop")).toHaveCount(0);
     });
   });

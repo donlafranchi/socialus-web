@@ -42,24 +42,19 @@ export function AuthGateModal({ open, onClose, headline, subtext, intent }: Prop
         {subtext && <p className="text-sm text-neutral-600 mt-2">{subtext}</p>}
         <div className="mt-5 flex flex-col gap-2">
           <Link
-            href={`/auth/signup?next=${next}`}
+            href={`/auth/login?next=${next}`}
             data-testid="auth-gate-signup"
             className="btn-primary w-full"
           >
-            Sign up
+            Sign in
           </Link>
-          <p className="text-xs text-neutral-500 text-center">Free, takes 30 seconds.</p>
-          <Link
-            href={`/auth/login?next=${next}`}
-            data-testid="auth-gate-login"
-            className="btn-secondary w-full mt-1"
-          >
-            Log in
-          </Link>
+          <p className="text-xs text-neutral-500 text-center">
+            We email you a link — no password, takes 30 seconds.
+          </p>
         </div>
         <p className="text-xs text-neutral-500 text-center mt-5 border-t border-neutral-200 pt-3">
           Are you a business owner?{' '}
-          <Link href="/join" className="text-[--color-accent] font-medium hover:underline">
+          <Link href="/join" className="text-[var(--color-accent)] font-medium hover:underline">
             List your business →
           </Link>
         </p>

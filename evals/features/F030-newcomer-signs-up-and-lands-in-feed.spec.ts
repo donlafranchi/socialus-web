@@ -19,11 +19,11 @@ import {
 //   3. Feed re-renders against the chosen scope.
 //   4. Empty-state widen-locality when no Items match.
 //
-// Auth-method note (b1): email/password is the primary method via the
-// email-first signup page (/auth/signup) — a single email step that detects
-// new vs returning users. Local dev auto-confirms (config.toml
-// enable_confirmations=false) so signUp yields a live session. Magic-link is a
-// secondary option (not exercised headless — a link can't be clicked).
+// Auth-method note (b1): the public flow is magic-link only (/auth/login),
+// which can't be exercised headless — a link can't be clicked. These tests
+// drive /auth/password, the unlinked password route kept for evals. Local dev
+// auto-confirms (config.toml enable_confirmations=false) so signUp yields a
+// live session.
 
 let SEEDED: SeededF030Fixture
 test.beforeAll(async () => {

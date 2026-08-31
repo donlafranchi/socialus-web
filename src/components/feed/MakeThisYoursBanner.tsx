@@ -11,11 +11,11 @@ export function MakeThisYoursBanner({ isAuthenticated }: { isAuthenticated: bool
       <div>
         <p className="text-sm font-semibold text-neutral-900">Make this yours</p>
         <p className="text-xs text-neutral-600">
-          Sign up to set your home locality and follow what you love.
+          Sign in to set your home locality and follow what you love.
         </p>
       </div>
-      <Link href="/auth/signup?next=/onboarding" className="btn-primary whitespace-nowrap">
-        Sign up
+      <Link href="/auth/login?next=/onboarding" className="btn-primary whitespace-nowrap">
+        Sign in
       </Link>
     </div>
   )

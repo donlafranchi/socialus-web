@@ -57,7 +57,7 @@ export function GatheringPublicPage({
             <Link
               href={groupHref}
               data-testid="gathering-attribution-link"
-              className="text-[--color-accent] hover:underline"
+              className="text-[var(--color-accent)] hover:underline"
             >
               {gathering.attribution.name}
             </Link>
@@ -69,7 +69,7 @@ export function GatheringPublicPage({
               <Link
                 href={`/m/${gathering.attribution.handle}`}
                 data-testid="gathering-attribution-link"
-                className="text-[--color-accent] hover:underline"
+                className="text-[var(--color-accent)] hover:underline"
               >
                 {gathering.attribution.displayName}
               </Link>
@@ -84,7 +84,7 @@ export function GatheringPublicPage({
         <section className="mt-4 space-y-1.5 text-sm">
           {nextOccurrenceLabel ? (
             <p
-              className="flex items-center gap-1.5 font-medium text-[--color-fg]"
+              className="flex items-center gap-1.5 font-medium text-[var(--color-fg)]"
               data-testid="gathering-next-occurrence"
             >
               <CalendarClock size={16} aria-hidden="true" />
@@ -93,7 +93,7 @@ export function GatheringPublicPage({
           ) : null}
           {recurrence ? (
             <p
-              className="text-[--color-fg-muted]"
+              className="text-[var(--color-fg-muted)]"
               data-testid="gathering-recurrence"
             >
               {recurrence}
@@ -103,7 +103,7 @@ export function GatheringPublicPage({
 
         {gathering.description ? (
           <p
-            className="mt-4 whitespace-pre-line text-[--color-fg]"
+            className="mt-4 whitespace-pre-line text-[var(--color-fg)]"
             data-testid="gathering-description"
           >
             {gathering.description}
@@ -115,8 +115,8 @@ export function GatheringPublicPage({
             className="mt-6 rounded-xl border border-neutral-200 p-4"
             data-testid="gathering-location"
           >
-            <h2 className="text-sm font-semibold text-[--color-fg]">Where</h2>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-[--color-fg-muted]">
+            <h2 className="text-sm font-semibold text-[var(--color-fg)]">Where</h2>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-[var(--color-fg-muted)]">
               <MapPin size={16} aria-hidden="true" />
               {gathering.location.label}
             </p>
@@ -125,17 +125,17 @@ export function GatheringPublicPage({
 
         <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
           <div>
-            <dt className="font-semibold text-[--color-fg]">Cost</dt>
-            <dd data-testid="gathering-cost" className="text-[--color-fg-muted]">
+            <dt className="font-semibold text-[var(--color-fg)]">Cost</dt>
+            <dd data-testid="gathering-cost" className="text-[var(--color-fg-muted)]">
               {formatCost(gathering.costCents)}
             </dd>
           </div>
           {gathering.capacity !== null ? (
             <div>
-              <dt className="font-semibold text-[--color-fg]">Capacity</dt>
+              <dt className="font-semibold text-[var(--color-fg)]">Capacity</dt>
               <dd
                 data-testid="gathering-capacity"
-                className="flex items-center gap-1.5 text-[--color-fg-muted]"
+                className="flex items-center gap-1.5 text-[var(--color-fg-muted)]"
               >
                 <Users size={16} aria-hidden="true" />
                 {gathering.capacity}
@@ -146,8 +146,8 @@ export function GatheringPublicPage({
 
         {gathering.whatToBring ? (
           <section className="mt-4" data-testid="gathering-what-to-bring">
-            <h2 className="text-sm font-semibold text-[--color-fg]">What to bring</h2>
-            <p className="mt-1 whitespace-pre-line text-sm text-[--color-fg-muted]">
+            <h2 className="text-sm font-semibold text-[var(--color-fg)]">What to bring</h2>
+            <p className="mt-1 whitespace-pre-line text-sm text-[var(--color-fg-muted)]">
               {gathering.whatToBring}
             </p>
           </section>

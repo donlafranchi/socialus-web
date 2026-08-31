@@ -100,13 +100,13 @@ function VendorDashboardInner() {
 
   return (
     <main className="pb-24 max-w-4xl mx-auto p-4" data-testid="vendor-dashboard">
-      <Link href="/you" className="text-sm text-[--color-accent] hover:underline">← Back to You</Link>
+      <Link href="/you" className="text-sm text-[var(--color-accent)] hover:underline">← Back to You</Link>
       <header className="mt-3 flex items-baseline justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{data.vendor.name}</h1>
           <p className="text-sm text-neutral-600 mt-0.5">Vendor mode</p>
         </div>
-        <Link href="/you/vendor/bulletins" className="text-sm font-medium text-[--color-accent] hover:underline">
+        <Link href="/you/vendor/bulletins" className="text-sm font-medium text-[var(--color-accent)] hover:underline">
           Bulletins →
         </Link>
       </header>
@@ -123,7 +123,7 @@ function VendorDashboardInner() {
               data-testid={`vendor-tab-${t}`}
               onClick={() => setTab(t)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize ${
-                active ? 'bg-[--color-accent] text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                active ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
               }`}
             >
               {t}
@@ -246,9 +246,9 @@ function MetricCard({
       <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">{label}</p>
       <div className="mt-1 flex items-end justify-between gap-2">
         <p className="text-2xl font-semibold text-neutral-900">{value}</p>
-        <Sparkline values={spark} className={positive ? 'text-[--color-accent]' : 'text-neutral-400'} />
+        <Sparkline values={spark} className={positive ? 'text-[var(--color-accent)]' : 'text-neutral-400'} />
       </div>
-      <p className={`text-xs mt-1 ${positive ? 'text-[--color-accent]' : 'text-neutral-500'}`}>
+      <p className={`text-xs mt-1 ${positive ? 'text-[var(--color-accent)]' : 'text-neutral-500'}`}>
         {deltaLabel}
       </p>
     </div>
@@ -293,15 +293,15 @@ function ListingHealth({ data }: { data: DashboardData }) {
     <div className="card p-4" data-testid="listing-health">
       <div className="flex items-baseline justify-between">
         <h2 className="font-semibold text-neutral-900">Listing health</h2>
-        <p className="text-2xl font-semibold text-[--color-accent]">{score}<span className="text-sm text-neutral-500">/100</span></p>
+        <p className="text-2xl font-semibold text-[var(--color-accent)]">{score}<span className="text-sm text-neutral-500">/100</span></p>
       </div>
       <div className="mt-2 h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
-        <div className="h-full bg-[--color-accent]" style={{ width: `${score}%` }} />
+        <div className="h-full bg-[var(--color-accent)]" style={{ width: `${score}%` }} />
       </div>
       <ul className="mt-3 space-y-1 text-sm">
         {checks.map((c) => (
           <li key={c.key} className="flex items-center gap-2">
-            <span className={c.done ? 'text-[--color-accent]' : 'text-neutral-400'}>{c.done ? '✓' : '○'}</span>
+            <span className={c.done ? 'text-[var(--color-accent)]' : 'text-neutral-400'}>{c.done ? '✓' : '○'}</span>
             <span className={c.done ? 'text-neutral-500 line-through' : 'text-neutral-700'}>{c.label}</span>
           </li>
         ))}
@@ -312,7 +312,7 @@ function ListingHealth({ data }: { data: DashboardData }) {
           <div className="mt-1 flex items-center justify-between gap-2">
             <p className="text-sm text-neutral-800">{suggestion.label}</p>
             {suggestion.fixHref && (
-              <Link href={suggestion.fixHref} className="text-sm font-medium text-[--color-accent] hover:underline">
+              <Link href={suggestion.fixHref} className="text-sm font-medium text-[var(--color-accent)] hover:underline">
                 Fix it →
               </Link>
             )}
@@ -347,7 +347,7 @@ function FollowersTab({ data }: { data: DashboardData }) {
           <h2 className="font-semibold text-neutral-900">Total followers</h2>
           <p className="text-2xl font-semibold">{data.follows.length}</p>
         </div>
-        <Sparkline values={points} width={400} height={60} className="text-[--color-accent] mt-3 w-full" />
+        <Sparkline values={points} width={400} height={60} className="text-[var(--color-accent)] mt-3 w-full" />
         <p className="text-xs text-neutral-500 mt-1">Last 90 days</p>
       </div>
 
@@ -385,7 +385,7 @@ function FollowersTab({ data }: { data: DashboardData }) {
                   type="button"
                   disabled={page === 0}
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  className="text-[--color-accent] disabled:opacity-30"
+                  className="text-[var(--color-accent)] disabled:opacity-30"
                 >
                   ← Prev
                 </button>
@@ -396,7 +396,7 @@ function FollowersTab({ data }: { data: DashboardData }) {
                   type="button"
                   disabled={start + PAGE_SIZE >= data.follows.length}
                   onClick={() => setPage((p) => p + 1)}
-                  className="text-[--color-accent] disabled:opacity-30"
+                  className="text-[var(--color-accent)] disabled:opacity-30"
                 >
                   Next →
                 </button>
@@ -463,7 +463,7 @@ function ActivityTab({ data }: { data: DashboardData }) {
                 <span className="text-neutral-700">{r.label}</span>
                 <div className="flex items-center gap-3">
                   <span className="font-semibold text-neutral-900">{r.curr}</span>
-                  <span className={`text-xs ${diff >= 0 ? 'text-[--color-accent]' : 'text-red-600'}`}>
+                  <span className={`text-xs ${diff >= 0 ? 'text-[var(--color-accent)]' : 'text-red-600'}`}>
                     {diff >= 0 ? '↑' : '↓'} {Math.abs(diff)}
                   </span>
                 </div>
@@ -554,12 +554,12 @@ function TopTasks({ data }: { data: DashboardData }) {
           {tasks.map((t) => (
             <li key={t.key} className="text-sm">
               <div className="flex items-start gap-2">
-                <span className={t.done ? 'text-[--color-accent]' : 'text-neutral-400'}>{t.done ? '✓' : '○'}</span>
+                <span className={t.done ? 'text-[var(--color-accent)]' : 'text-neutral-400'}>{t.done ? '✓' : '○'}</span>
                 <div className="flex-1 min-w-0">
                   {t.done ? (
                     <p className="text-neutral-500 line-through">{t.label}</p>
                   ) : (
-                    <Link href={t.href} className="text-neutral-900 font-medium hover:text-[--color-accent]">
+                    <Link href={t.href} className="text-neutral-900 font-medium hover:text-[var(--color-accent)]">
                       {t.label}
                     </Link>
                   )}

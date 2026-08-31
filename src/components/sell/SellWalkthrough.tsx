@@ -130,7 +130,7 @@ export function SellWalkthrough({
       helper: "What should your shop be called?",
       render: (state, setState) => (
         <label className="block">
-          <span className="text-sm font-medium text-[--color-fg]">Brand name</span>
+          <span className="text-sm font-medium text-[var(--color-fg)]">Brand name</span>
           <input
             data-testid="sell-brand-input"
             className="input mt-1 w-full"
@@ -173,7 +173,7 @@ export function SellWalkthrough({
       isOptional: true,
       render: (state, setState) => (
         <label className="block">
-          <span className="text-sm font-medium text-[--color-fg]">About</span>
+          <span className="text-sm font-medium text-[var(--color-fg)]">About</span>
           <textarea
             data-testid="sell-about-input"
             aria-label="Public description"
@@ -196,7 +196,7 @@ export function SellWalkthrough({
       isOptional: true,
       render: (state, setState) => (
         <label className="block">
-          <span className="text-sm font-medium text-[--color-fg]">ZIP code</span>
+          <span className="text-sm font-medium text-[var(--color-fg)]">ZIP code</span>
           <input
             data-testid="sell-locality-zip-input"
             aria-label="ZIP code"
@@ -210,7 +210,7 @@ export function SellWalkthrough({
               setState({ ...state, localityZip: e.target.value })
             }
           />
-          <p className="mt-1 text-xs text-[--color-fg-muted]">
+          <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
             Tier 0 is self-attested — the badge reads <em>Claimed</em>. Upgrade
             to <em>Verified</em> or <em>Documented</em> later if you choose.
           </p>
@@ -246,7 +246,7 @@ export function SellWalkthrough({
             {state.about ? (
               state.about
             ) : (
-              <em className="text-[--color-fg-muted]">(none)</em>
+              <em className="text-[var(--color-fg-muted)]">(none)</em>
             )}
           </li>
           <li>
@@ -254,7 +254,7 @@ export function SellWalkthrough({
             {state.localityZip ? (
               state.localityZip
             ) : (
-              <em className="text-[--color-fg-muted]">(skipped)</em>
+              <em className="text-[var(--color-fg-muted)]">(skipped)</em>
             )}
           </li>
         </ul>
@@ -429,13 +429,13 @@ function AnchorLocationStep({
                 }
                 className={`w-full text-left rounded-lg border px-4 py-3 text-sm ${
                   selected
-                    ? 'border-[--color-accent] bg-[--color-accent-tint]'
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-tint)]'
                     : 'border-neutral-200 hover:bg-neutral-50'
                 }`}
               >
                 <div className="font-medium">{loc.label}</div>
                 {loc.sublabel && (
-                  <div className="text-xs text-[--color-fg-muted]">
+                  <div className="text-xs text-[var(--color-fg-muted)]">
                     {loc.sublabel}
                   </div>
                 )}
@@ -448,7 +448,7 @@ function AnchorLocationStep({
             type="button"
             data-testid="sell-anchor-add-new"
             onClick={() => setDrawerOpen(true)}
-            className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[--color-accent] hover:bg-neutral-50"
+            className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[var(--color-accent)] hover:bg-neutral-50"
           >
             + Add a new Location
           </button>
@@ -461,7 +461,7 @@ function AnchorLocationStep({
           initialState={{ label: '' }}
           render={(s, set) => (
             <label className="block">
-              <span className="text-sm font-medium text-[--color-fg]">
+              <span className="text-sm font-medium text-[var(--color-fg)]">
                 Location name
               </span>
               <input

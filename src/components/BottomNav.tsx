@@ -64,8 +64,8 @@ export function TopNavDesktop() {
       data-testid="top-nav-desktop"
       className="hidden md:flex sticky top-0 z-40 w-full items-center gap-6 border-b border-neutral-200 bg-white px-6 h-14"
     >
-      <Link href="/" className="font-semibold text-[--color-accent]">
-        Main Street
+      <Link href="/" className="font-semibold text-[var(--color-accent)]">
+        SocialUs
       </Link>
       <div className="flex items-center gap-4 text-sm">
         {TABS.map((t) => {

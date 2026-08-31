@@ -132,7 +132,7 @@ describe('FollowShopButton — Beats 4 & 5', () => {
     render(<FollowShopButton loggedIn={false} shopName="Oak Park Sourdough" />)
     const cta = screen.getByTestId('follow-shop-signup')
     expect(cta).toHaveTextContent('Sign up to follow')
-    expect(cta).toHaveAttribute('href', '/auth/signup')
+    expect(cta).toHaveAttribute('href', '/auth/login')
     expect(screen.queryByTestId('follow-shop')).not.toBeInTheDocument()
   })
 

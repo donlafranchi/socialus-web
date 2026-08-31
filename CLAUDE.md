@@ -1,4 +1,4 @@
-# web — Movers, Makers & Shakers
+# web — SocialUs
 
 The deployable application. **Separate git repo** pushed to GitHub.
 

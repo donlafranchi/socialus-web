@@ -41,35 +41,35 @@ export function BusinessDetailCard({ business, onClose }: BusinessDetailCardProp
     >
       <button
         onClick={onClose}
-        className="absolute top-3 right-4 text-[--color-fg-muted] hover:text-[--color-fg] text-2xl leading-none transition-colors"
+        className="absolute top-3 right-4 text-[var(--color-fg-muted)] hover:text-[var(--color-fg)] text-2xl leading-none transition-colors"
         aria-label="Close"
       >
         ×
       </button>
 
-      <h2 data-testid="business-name" className="text-[22px] font-bold pr-8 leading-tight text-[--color-fg]">
+      <h2 data-testid="business-name" className="text-[22px] font-bold pr-8 leading-tight text-[var(--color-fg)]">
         {business.name}
       </h2>
 
       <OwnershipBadge tier={business.ownership_tier} className="mt-2" />
 
-      <p data-testid="business-address" className="text-sm text-[--color-fg-muted] mt-3">
+      <p data-testid="business-address" className="text-sm text-[var(--color-fg-muted)] mt-3">
         {business.street_address}, {business.city}, {business.state} {business.zip}
       </p>
 
-      <p data-testid="business-category" className="text-sm text-[--color-fg-muted] mt-1">
+      <p data-testid="business-category" className="text-sm text-[var(--color-fg-muted)] mt-1">
         {business.category}
       </p>
 
       {business.ownership_tier === 'pe-corporate' && (
         <>
           {business.parent_company && (
-            <p data-testid="parent-company" className="text-sm text-[--color-fg-muted] mt-1">
+            <p data-testid="parent-company" className="text-sm text-[var(--color-fg-muted)] mt-1">
               Parent: {business.parent_company}
             </p>
           )}
           {business.location_count != null && (
-            <p data-testid="location-count" className="text-sm text-[--color-fg-muted]">
+            <p data-testid="location-count" className="text-sm text-[var(--color-fg-muted)]">
               {business.location_count.toLocaleString()} locations
             </p>
           )}
@@ -77,14 +77,14 @@ export function BusinessDetailCard({ business, onClose }: BusinessDetailCardProp
       )}
 
       {business.ownership_tier === 'mission-driven' && business.certification_type && (
-        <p data-testid="certification-type" className="text-sm text-[--color-fg-muted] mt-1">
+        <p data-testid="certification-type" className="text-sm text-[var(--color-fg-muted)] mt-1">
           {business.certification_type}
         </p>
       )}
 
       {hasStory && (
-        <div data-testid="business-story" className="mt-4 pt-4 border-t border-[--color-border]">
-          <p className="text-[15px] leading-relaxed text-[--color-fg]">
+        <div data-testid="business-story" className="mt-4 pt-4 border-t border-[var(--color-border)]">
+          <p className="text-[15px] leading-relaxed text-[var(--color-fg)]">
             {storyIsLong && !storyExpanded
               ? business.story!.slice(0, STORY_TRUNCATE_LENGTH) + '...'
               : business.story}
@@ -93,7 +93,7 @@ export function BusinessDetailCard({ business, onClose }: BusinessDetailCardProp
             <button
               data-testid="read-more"
               onClick={() => setStoryExpanded(true)}
-              className="text-sm text-[--color-fg] underline mt-2"
+              className="text-sm text-[var(--color-fg)] underline mt-2"
             >
               Read more
             </button>

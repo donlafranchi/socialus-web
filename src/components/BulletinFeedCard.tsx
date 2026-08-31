@@ -72,7 +72,7 @@ export function BulletinFeedCard({ bulletin, vendor, userId, onMute }: Props) {
     <article ref={ref} data-testid="bulletin-feed-card" className="card card-hover p-4 relative">
       <div className="flex items-start justify-between gap-2">
         <Link href={`/vendors/${vendor.slug}`} onClick={recordClick} className="min-w-0 flex-1 hover:no-underline">
-          <p className="text-xs font-semibold text-[--color-accent]">{vendor.name}</p>
+          <p className="text-xs font-semibold text-[var(--color-accent)]">{vendor.name}</p>
           {bulletin.title && (
             <h3 className="text-sm font-semibold text-neutral-900 mt-1">{bulletin.title}</h3>
           )}
