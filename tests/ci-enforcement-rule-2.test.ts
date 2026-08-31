@@ -89,9 +89,13 @@ describe('T051 Rule 2 — non-GET route handler imports', () => {
   it('positive: exempt annotation with valid ledger entry passes', () => {
     const original = readLedger()
     const future = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+    // Append to the real ledger rather than replacing it — the tree may carry
+    // legitimate exemptions, and dropping them would make the script report
+    // their annotated routes as unpaired and fail this positive case.
     writeLedger(
       JSON.stringify(
         [
+          ...(JSON.parse(original) as unknown[]),
           {
             path: 'src/app/api/__probe__/route.ts',
             reason: 'temporary probe used by Rule 2 positive-annotated test',

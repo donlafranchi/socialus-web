@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "path": "src/app/api/internal/auth-before-user-created/route.ts",
+    "reason": "Supabase before-user-created hook receiver. POST performs no database writes — it verifies the webhook signature and returns an admit/reject verdict, so there is no action-layer call to route through. Revisit when Rule 2 gains a read-only route classification.",
+    "expires_at": "2027-03-01T00:00:00Z",
+    "follow_up_ticket": "T110"
+  }
+]
