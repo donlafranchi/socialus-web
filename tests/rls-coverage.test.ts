@@ -17,8 +17,12 @@ const DATABASE_URL =
   process.env.POSTGRES_URL_NON_POOLING ??
   process.env.POSTGRES_URL
 
-// Tables that may legitimately have RLS disabled. None at Phase 0.
-const ALLOWLIST: readonly string[] = []
+// Tables that may legitimately have RLS disabled.
+// spatial_ref_sys is PostGIS reference data (coordinate-system definitions),
+// owned by supabase_admin — `alter table` fails as postgres, and there is no
+// privacy surface to protect. Every other public table must opt in to RLS;
+// event-log partitions are covered by 035_partition_rls.sql.
+const ALLOWLIST: readonly string[] = ['spatial_ref_sys']
 
 describe.skipIf(!DATABASE_URL)('T051 Rule 3 — RLS coverage on public schema', () => {
   it('every public table has rowsecurity = true', async () => {
