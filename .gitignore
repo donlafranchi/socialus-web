@@ -18,3 +18,5 @@ src/app/api/__probe__/
 # T065 — Stryker mutation testing
 reports/mutation/
 .stryker-tmp/
+.vercel
+.env*
