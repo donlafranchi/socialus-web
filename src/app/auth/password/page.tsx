@@ -7,11 +7,12 @@
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { EmailFirstSignup } from '@/components/auth/EmailFirstSignup'
+import { safeNext } from '@/lib/safe-next'
 
 function PasswordInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') ?? '/onboarding'
+  const next = safeNext(searchParams.get('next'), '/onboarding')
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
@@ -21,7 +22,7 @@ function PasswordInner() {
         </h1>
         <EmailFirstSignup
           next={next}
-          onAuthenticated={(to) => router.push(to.startsWith('/') ? to : '/onboarding')}
+          onAuthenticated={(to) => router.push(safeNext(to, '/onboarding'))}
         />
       </div>
     </div>

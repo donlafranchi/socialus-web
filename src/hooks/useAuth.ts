@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
+import { authRedirectUrl } from '@/lib/site-url'
 import type { User } from '@supabase/supabase-js'
 
 export function useAuth() {
@@ -23,8 +24,14 @@ export function useAuth() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+  const signUp = useCallback(async (email: string, password: string, next?: string) => {
+    // Without emailRedirectTo, Supabase falls back to the dashboard Site URL
+    // for the confirmation link — which is how these end up on localhost.
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: authRedirectUrl(next) },
+    })
     return { data, error }
   }, [])
 
@@ -39,8 +46,7 @@ export function useAuth() {
   }, [])
 
   const signInWithOtp = useCallback(async (email: string, next?: string) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const redirectTo = `${origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
+    const redirectTo = authRedirectUrl(next)
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       // shouldCreateUser (default true) is what makes one link serve both
@@ -51,8 +57,7 @@ export function useAuth() {
   }, [])
 
   const signInWithGoogle = useCallback(async (next?: string) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const redirectTo = `${origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ''}`
+    const redirectTo = authRedirectUrl(next)
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },

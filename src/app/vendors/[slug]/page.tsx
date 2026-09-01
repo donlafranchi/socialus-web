@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import type { Vendor, Market, VendorCategory } from '@/lib/types'
+import { siteOrigin } from '@/lib/site-url'
 import { VendorProfilePage } from './VendorProfilePage'
 
 interface Props {
@@ -42,8 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) return { title: 'Vendor Not Found — SocialUs' }
   const { vendor } = result
   const description = vendor.tagline || vendor.story?.slice(0, 160) || `${vendor.city}, ${vendor.state}`
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/vendors/${slug}`
-  const ogImage = vendor.cover_photo_url || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/og-default.png`
+  const url = `${siteOrigin()}/vendors/${slug}`
+  const ogImage = vendor.cover_photo_url || `${siteOrigin()}/og-default.png`
   return {
     title: `${vendor.name} — SocialUs`,
     description,

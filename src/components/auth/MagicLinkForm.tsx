@@ -5,12 +5,13 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { safeNext } from '@/lib/safe-next'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function MagicLinkForm({ next }: { next?: string | null }) {
   const { signInWithOtp } = useAuth()
-  const nextSafe = next && next.startsWith('/') ? next : '/'
+  const nextSafe = safeNext(next)
 
   const [email, setEmail] = useState('')
   const [sentTo, setSentTo] = useState<string | null>(null)

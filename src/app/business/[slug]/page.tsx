@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import { OWNERSHIP_TIERS } from '@/lib/types'
 import type { Business } from '@/lib/types'
+import { siteOrigin } from '@/lib/site-url'
 import { BusinessListingPage } from './BusinessListingPage'
 
 interface Props {
@@ -33,8 +34,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? business.story.slice(0, 160)
     : `${tierLabel} · ${business.category} · ${business.city}, ${business.state}`
 
-  const url = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/business/${slug}`
-  const ogImage = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/og-default.png`
+  const url = `${siteOrigin()}/business/${slug}`
+  const ogImage = `${siteOrigin()}/og-default.png`
 
   return {
     title: `${business.name} — SocialUs`,

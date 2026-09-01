@@ -11,6 +11,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
+import { siteOrigin } from '@/lib/site-url'
 import { itemQrCardRequest, ActionError } from '@/actions'
 
 export interface RequestQrCardResult {
@@ -28,8 +29,7 @@ export async function requestQrCardAction(input: {
     throw new Error('You must be signed in to generate a QR card.')
   }
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'
+  const baseUrl = siteOrigin()
   const ctx = resolveActionContext({ actingMemberId: data.user.id })
   try {
     const result = await itemQrCardRequest(ctx, { itemId: input.itemId, baseUrl })

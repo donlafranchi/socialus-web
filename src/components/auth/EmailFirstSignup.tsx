@@ -14,6 +14,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { safeNext } from '@/lib/safe-next'
 
 type Phase = 'email' | 'new' | 'returning' | 'magic-sent' | 'confirm-email'
 
@@ -24,7 +25,7 @@ interface AuthResult {
 
 export interface EmailFirstDeps {
   checkEmailRegistered: (email: string) => Promise<boolean>
-  signUp: (email: string, password: string) => Promise<AuthResult>
+  signUp: (email: string, password: string, next?: string) => Promise<AuthResult>
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>
   signInWithOtp: (email: string, next?: string) => Promise<{ error: { message: string } | null }>
   signInWithGoogle: (next?: string) => Promise<{ error: { message: string } | null }>
@@ -57,7 +58,7 @@ export function EmailFirstSignup({
     ...deps,
   }
 
-  const nextSafe = next && next.startsWith('/') ? next : '/onboarding'
+  const nextSafe = safeNext(next, '/onboarding')
 
   const [phase, setPhase] = useState<Phase>('email')
   const [email, setEmail] = useState('')
@@ -98,7 +99,7 @@ export function EmailFirstSignup({
       return
     }
     setSubmitting(true)
-    const { data, error: err } = await d.signUp(email.trim(), password)
+    const { data, error: err } = await d.signUp(email.trim(), password, nextSafe)
     setSubmitting(false)
     if (err) {
       // Race: the email was registered between the check and submit.

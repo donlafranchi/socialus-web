@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { safeNext } from '@/lib/safe-next'
+import type { EmailOtpType } from '@supabase/supabase-js'
+
+const OTP_TYPES: EmailOtpType[] = [
+  'signup',
+  'invite',
+  'magiclink',
+  'recovery',
+  'email_change',
+  'email',
+]
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
-  const nextParam = url.searchParams.get('next')
-  const next = nextParam && nextParam.startsWith('/') ? nextParam : '/'
+  const next = safeNext(url.searchParams.get('next'))
 
   const fail = (message: string) =>
     NextResponse.redirect(
@@ -25,7 +35,13 @@ export async function GET(request: Request) {
     if (error) return fail(error.message)
   } else if (tokenHash) {
     // Non-PKCE magic links land here (opened where no code verifier is stored).
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'email' })
+    // The type must come off the link: a first-time link is `signup`, a
+    // returning one `magiclink`. Hardcoding either rejects the other.
+    const raw = url.searchParams.get('type')
+    const type = OTP_TYPES.includes(raw as EmailOtpType)
+      ? (raw as EmailOtpType)
+      : 'magiclink'
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
     if (error) return fail(error.message)
   } else {
     return fail('That sign-in link is missing its token. Request a new one.')
