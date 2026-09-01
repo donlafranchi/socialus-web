@@ -68,7 +68,7 @@ describe('T088 — MakeThisYoursBanner', () => {
     render(<MakeThisYoursBanner isAuthenticated={false} />)
     const cta = screen.getByTestId('signup-cta')
     const link = cta.querySelector('a') as HTMLAnchorElement
-    expect(link.getAttribute('href')).toBe('/auth/signup?next=/onboarding')
+    expect(link.getAttribute('href')).toBe('/auth/login?next=/onboarding')
   })
 
   it('hides when authenticated', () => {

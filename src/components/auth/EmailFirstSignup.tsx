@@ -163,7 +163,7 @@ export function EmailFirstSignup({
         <p className="mb-6 text-sm text-neutral-600">
           We sent a sign-in link to <strong>{email}</strong>. Click it to finish — no password needed.
         </p>
-        <button type="button" onClick={() => reset('email')} className="text-sm text-[--color-accent] underline">
+        <button type="button" onClick={() => reset('email')} className="text-sm text-[var(--color-accent)] underline">
           Use a different email
         </button>
       </div>
@@ -177,7 +177,7 @@ export function EmailFirstSignup({
         <p className="mb-6 text-sm text-neutral-600">
           We sent a confirmation link to <strong>{email}</strong>. Confirm it, then come back to finish setting up.
         </p>
-        <button type="button" onClick={() => reset('email')} className="text-sm text-[--color-accent] underline">
+        <button type="button" onClick={() => reset('email')} className="text-sm text-[var(--color-accent)] underline">
           Use a different email
         </button>
       </div>
@@ -225,7 +225,7 @@ export function EmailFirstSignup({
               type="submit"
               disabled={submitting}
               data-testid="submit-button"
-              className="w-full rounded-full bg-[--color-accent] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[--color-accent-hover] disabled:opacity-50"
+              className="w-full rounded-full bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
               {submitting ? 'Working…' : 'Continue'}
             </button>
@@ -271,7 +271,7 @@ export function EmailFirstSignup({
               type="submit"
               disabled={submitting}
               data-testid="submit-button"
-              className="w-full rounded-full bg-[--color-accent] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[--color-accent-hover] disabled:opacity-50"
+              className="w-full rounded-full bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
               {submitting ? 'Working…' : phase === 'new' ? 'Create account' : 'Log in'}
             </button>

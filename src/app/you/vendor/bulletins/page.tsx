@@ -71,7 +71,7 @@ export default function BulletinsListPage() {
 
   return (
     <main className="pb-24 max-w-3xl mx-auto p-4" data-testid="bulletins-list-page">
-      <Link href="/you/vendor" className="text-sm text-[--color-accent] hover:underline">
+      <Link href="/you/vendor" className="text-sm text-[var(--color-accent)] hover:underline">
         ← Back to vendor mode
       </Link>
       <header className="mt-3 flex items-center justify-between gap-3">

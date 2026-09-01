@@ -17,7 +17,7 @@ function locationRender(
 ) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-[--color-fg]">Location name</span>
+      <span className="text-sm font-medium text-[var(--color-fg)]">Location name</span>
       <input
         className="input mt-1 w-full"
         aria-label="Location name"
@@ -42,7 +42,7 @@ export default function AddEntityDemoPage() {
   return (
     <main className="min-h-screen p-8">
       <h1 className="text-2xl font-semibold mb-4">AddEntityDrawer demo</h1>
-      <p className="text-sm text-[--color-fg-muted] mb-6">
+      <p className="text-sm text-[var(--color-fg-muted)] mb-6">
         Dev surface for verifying the secondary-drawer sub-flow recipe in
         isolation. Per T072 acceptance — not for production use.
       </p>

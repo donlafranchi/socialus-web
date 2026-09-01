@@ -64,7 +64,7 @@ export default function BulletinDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="pb-24 max-w-2xl mx-auto p-4" data-testid="bulletin-detail-page">
-      <Link href="/you/vendor/bulletins" className="text-sm text-[--color-accent] hover:underline">
+      <Link href="/you/vendor/bulletins" className="text-sm text-[var(--color-accent)] hover:underline">
         ← Back to bulletins
       </Link>
 

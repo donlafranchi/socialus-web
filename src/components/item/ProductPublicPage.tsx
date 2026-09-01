@@ -66,7 +66,7 @@ export function ProductPublicPage({ product, groupHref, isOwner = false }: Produ
             <Link
               href={groupHref}
               data-testid="product-attribution-link"
-              className="text-[--color-accent] hover:underline"
+              className="text-[var(--color-accent)] hover:underline"
             >
               {product.attribution.name}
             </Link>
@@ -78,7 +78,7 @@ export function ProductPublicPage({ product, groupHref, isOwner = false }: Produ
               <Link
                 href={`/m/${product.attribution.handle}`}
                 data-testid="product-attribution-link"
-                className="text-[--color-accent] hover:underline"
+                className="text-[var(--color-accent)] hover:underline"
               >
                 {product.attribution.displayName}
               </Link>
@@ -95,7 +95,7 @@ export function ProductPublicPage({ product, groupHref, isOwner = false }: Produ
         {product.madeAtPlaceId ? (
           <span
             data-testid="product-made-badge"
-            className="ml-2 mt-3 inline-flex items-center rounded-full bg-[--color-accent-tint] px-2 py-0.5 text-xs font-medium text-[--color-accent]"
+            className="ml-2 mt-3 inline-flex items-center rounded-full bg-[var(--color-accent-tint)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]"
           >
             Locally Made
           </span>
@@ -103,7 +103,7 @@ export function ProductPublicPage({ product, groupHref, isOwner = false }: Produ
 
         {product.description ? (
           <p
-            className="mt-4 whitespace-pre-line text-[--color-fg]"
+            className="mt-4 whitespace-pre-line text-[var(--color-fg)]"
             data-testid="product-description"
           >
             {product.description}
@@ -115,8 +115,8 @@ export function ProductPublicPage({ product, groupHref, isOwner = false }: Produ
             className="mt-6 rounded-xl border border-neutral-200 p-4"
             data-testid="product-pickup"
           >
-            <h2 className="text-sm font-semibold text-[--color-fg]">Pickup point</h2>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-[--color-fg-muted]">
+            <h2 className="text-sm font-semibold text-[var(--color-fg)]">Pickup point</h2>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-[var(--color-fg-muted)]">
               <MapPin size={16} aria-hidden="true" />
               {product.pickup.label}
             </p>

@@ -39,13 +39,13 @@ async function getVendor(slug: string): Promise<{
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const result = await getVendor(slug)
-  if (!result) return { title: 'Vendor Not Found — Movers, Makers & Shakers' }
+  if (!result) return { title: 'Vendor Not Found — SocialUs' }
   const { vendor } = result
   const description = vendor.tagline || vendor.story?.slice(0, 160) || `${vendor.city}, ${vendor.state}`
   const url = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/vendors/${slug}`
   const ogImage = vendor.cover_photo_url || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://movers-makers-shakers.com'}/og-default.png`
   return {
-    title: `${vendor.name} — Movers, Makers & Shakers`,
+    title: `${vendor.name} — SocialUs`,
     description,
     openGraph: {
       title: vendor.name,

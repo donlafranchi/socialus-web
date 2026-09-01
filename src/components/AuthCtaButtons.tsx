@@ -51,15 +51,12 @@ export function AuthCtaButtons({ variant = 'default' }: { variant?: 'default' | 
   if (variant === 'compact') {
     return (
       <div className="flex items-center gap-2">
-        <Link href="/auth/login" className="text-sm text-neutral-700 hover:text-neutral-900 px-2">
-          Log in
-        </Link>
         <Link
-          href="/auth/signup"
+          href="/auth/login"
           data-testid="signup-link"
-          className="inline-flex items-center rounded-full bg-[--color-accent] px-3 py-1.5 text-sm font-medium text-white hover:bg-[--color-accent-hover]"
+          className="inline-flex items-center rounded-full bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
         >
-          Sign up
+          Sign in
         </Link>
       </div>
     )
@@ -73,15 +70,12 @@ export function AuthCtaButtons({ variant = 'default' }: { variant?: 'default' | 
       >
         List your business <span aria-hidden>→</span>
       </Link>
-      <Link href="/auth/login" className="text-sm font-medium text-neutral-700 hover:text-neutral-900">
-        Log in
-      </Link>
       <Link
-        href="/auth/signup"
+        href="/auth/login"
         data-testid="signup-link"
-        className="inline-flex items-center rounded-full bg-[--color-accent] px-4 py-2 text-sm font-semibold text-white hover:bg-[--color-accent-hover] shadow-sm"
+        className="inline-flex items-center rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] shadow-sm"
       >
-        Sign up
+        Sign in
       </Link>
     </div>
   )

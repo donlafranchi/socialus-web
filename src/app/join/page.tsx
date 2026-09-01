@@ -39,19 +39,19 @@ export default function JoinPage() {
     <main className="min-h-screen bg-white pb-32 md:pb-24">
       {/* Hero */}
       <section className="px-6 pt-12 md:pt-20 pb-10 max-w-3xl mx-auto text-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-[--color-accent] font-semibold">For vendors</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] font-semibold">For vendors</p>
         <h1 className="mt-3 text-4xl md:text-5xl font-semibold text-neutral-900 leading-tight">
           Sell at a farmers market? Get listed free.
         </h1>
         <p className="mt-4 text-lg text-neutral-700 max-w-xl mx-auto">
-          Main Street helps the customers you meet at the market find you the other six days of the week.
+          SocialUs helps the customers you meet at the market find you the other six days of the week.
           No fees. No middlemen. Just visibility for independent makers and farmers.
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/register-vendor"
-            className="inline-flex items-center justify-center rounded-full bg-[--color-accent] px-6 py-3 text-base font-semibold text-white hover:bg-[--color-accent-hover] shadow-sm"
+            className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)] shadow-sm"
           >
             {authed ? 'List my booth →' : 'Sign up as a vendor →'}
           </Link>
@@ -79,7 +79,7 @@ export default function JoinPage() {
           />
           <Benefit
             title="Local-first audience"
-            body="People on Main Street already want to spend locally. You're not marketing to strangers — you're being introduced."
+            body="People on SocialUs already want to spend locally. You're not marketing to strangers — you're being introduced."
           />
         </div>
       </section>
@@ -109,7 +109,7 @@ export default function JoinPage() {
         <div className="mt-8 text-center">
           <Link
             href="/register-vendor"
-            className="inline-flex items-center justify-center rounded-full bg-[--color-accent] px-6 py-3 text-base font-semibold text-white hover:bg-[--color-accent-hover]"
+            className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)]"
           >
             {authed ? 'List my booth →' : 'Start my listing →'}
           </Link>
@@ -131,7 +131,7 @@ export default function JoinPage() {
               <div className="w-56 h-56 bg-neutral-100 animate-pulse rounded-lg" />
             )}
 
-            <a href={url || '#'} className="text-sm text-[--color-accent] underline break-all max-w-full">
+            <a href={url || '#'} className="text-sm text-[var(--color-accent)] underline break-all max-w-full">
               {url || 'Loading…'}
             </a>
 
@@ -162,7 +162,7 @@ function Benefit({ title, body }: { title: string; body: string }) {
 function Step({ n, title, body }: { n: number; title: string; body: string }) {
   return (
     <li className="flex gap-4">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[--color-accent] text-white text-sm font-semibold flex items-center justify-center">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--color-accent)] text-white text-sm font-semibold flex items-center justify-center">
         {n}
       </div>
       <div>

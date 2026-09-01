@@ -92,7 +92,7 @@ export function VenuePublicPage({
           </p>
         )}
 
-        <hr className="mt-3 border-t border-[--color-border]" />
+        <hr className="mt-3 border-t border-[var(--color-border)]" />
       </header>
 
       {/* CTAs — Follow primary, Host secondary (DLS § Venue page). */}
@@ -117,7 +117,7 @@ export function VenuePublicPage({
             <p
               data-testid="venue-here-empty"
               aria-live="polite"
-              className="mt-3 rounded border border-dashed border-[--color-border] p-6 text-sm text-gray-500"
+              className="mt-3 rounded border border-dashed border-[var(--color-border)] p-6 text-sm text-gray-500"
             >
               Nothing scheduled yet.
             </p>

@@ -63,7 +63,7 @@ export default function NewBulletinPage() {
 
   return (
     <main className="pb-24 max-w-2xl mx-auto p-4" data-testid="new-bulletin-page">
-      <Link href="/you/vendor/bulletins" className="text-sm text-[--color-accent] hover:underline">
+      <Link href="/you/vendor/bulletins" className="text-sm text-[var(--color-accent)] hover:underline">
         ← Back to bulletins
       </Link>
       <h1 className="text-2xl font-semibold mt-3">New Bulletin</h1>
@@ -80,7 +80,7 @@ export default function NewBulletinPage() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What's the headline?"
             data-testid="bulletin-title"
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[--color-accent]"
+            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
         <div>
@@ -91,7 +91,7 @@ export default function NewBulletinPage() {
             rows={8}
             placeholder="What do you want followers to know? Plain text only — markdown is coming later."
             data-testid="bulletin-body"
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[--color-accent]"
+            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
           />
         </div>
 
@@ -99,7 +99,7 @@ export default function NewBulletinPage() {
           <div data-testid="bulletin-preview">
             <p className="text-xs uppercase tracking-wide font-semibold text-neutral-500">Preview</p>
             <div className="mt-2 card p-4">
-              <p className="text-xs font-semibold text-[--color-accent]">{vendorName}</p>
+              <p className="text-xs font-semibold text-[var(--color-accent)]">{vendorName}</p>
               {title.trim() && <h3 className="text-sm font-semibold text-neutral-900 mt-1">{title}</h3>}
               <p className="text-sm text-neutral-700 mt-1 whitespace-pre-wrap">{body}</p>
             </div>

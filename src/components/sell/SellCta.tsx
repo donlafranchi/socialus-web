@@ -171,7 +171,7 @@ export function SellCta({
               ? 'List a product or service.'
               : signal?.draftGroup
                 ? 'Pick up where you left off.'
-                : 'Open a shop on Movers, Makers & Shakers.'}
+                : 'Open a shop on SocialUs.'}
           </p>
         </div>
         {ctaButton}

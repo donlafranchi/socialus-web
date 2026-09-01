@@ -53,7 +53,7 @@ export default function RegisterVendorPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push(`/auth/signup?next=${encodeURIComponent('/register-vendor')}`)
+      router.push(`/auth/login?next=${encodeURIComponent('/register-vendor')}`)
       return
     }
     if (!user) return
@@ -192,7 +192,7 @@ export default function RegisterVendorPage() {
           </p>
           <a
             href={`/vendors/${existingVendorSlug}`}
-            className="mt-6 inline-flex items-center justify-center bg-[--color-accent] text-white rounded-md px-4 py-2 text-sm font-medium"
+            className="mt-6 inline-flex items-center justify-center bg-[var(--color-accent)] text-white rounded-md px-4 py-2 text-sm font-medium"
           >
             View my listing
           </a>
@@ -247,7 +247,7 @@ export default function RegisterVendorPage() {
                     onClick={() => toggleCategory(slug)}
                     data-selected={on}
                     className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-1 p-2 border transition ${
-                      on ? 'bg-[--color-accent-tint] border-[--color-accent]' : 'bg-neutral-50 border-neutral-200'
+                      on ? 'bg-[var(--color-accent-tint)] border-[var(--color-accent)]' : 'bg-neutral-50 border-neutral-200'
                     }`}
                   >
                     <span className="text-2xl">{meta.emoji}</span>
@@ -268,7 +268,7 @@ export default function RegisterVendorPage() {
                       type="button"
                       onClick={() => setPrimaryCategory(slug)}
                       className={`rounded-full px-2 py-0.5 ${
-                        primaryCategory === slug ? 'bg-[--color-accent] text-white' : 'bg-neutral-100 text-neutral-700'
+                        primaryCategory === slug ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
                       }`}
                     >
                       {CATEGORIES[slug].label}
@@ -292,7 +292,7 @@ export default function RegisterVendorPage() {
                     key={m.id}
                     data-selected={on}
                     className={`block cursor-pointer rounded-lg border p-3 transition ${
-                      on ? 'bg-[--color-accent-tint] border-[--color-accent]' : 'bg-white border-neutral-200'
+                      on ? 'bg-[var(--color-accent-tint)] border-[var(--color-accent)]' : 'bg-white border-neutral-200'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -432,7 +432,7 @@ export default function RegisterVendorPage() {
             type="submit"
             disabled={submitting}
             data-testid="submit-registration"
-            className="w-full rounded-full bg-[--color-accent] text-white py-3 font-medium disabled:opacity-50"
+            className="w-full rounded-full bg-[var(--color-accent)] text-white py-3 font-medium disabled:opacity-50"
           >
             {submitting ? 'Publishing…' : 'Publish my listing'}
           </button>

@@ -23,7 +23,7 @@ export function FollowShopButton({ loggedIn, shopName }: Props) {
     return (
       <a
         data-testid="follow-shop-signup"
-        href="/auth/signup"
+        href="/auth/login"
         className="btn-primary"
       >
         Sign up to follow

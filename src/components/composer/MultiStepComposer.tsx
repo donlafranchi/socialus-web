@@ -205,7 +205,7 @@ export function MultiStepComposer<S>({
             {step.title}
           </h3>
           {step.helper && (
-            <p className="mt-1 text-sm text-[--color-fg-muted]">{step.helper}</p>
+            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">{step.helper}</p>
           )}
           <div className="mt-5">
             {step.render(state, (next) => {
@@ -243,7 +243,7 @@ export function MultiStepComposer<S>({
                 type="button"
                 onClick={handleBack}
                 disabled={submitting}
-                className="text-sm text-[--color-fg] hover:underline disabled:opacity-50"
+                className="text-sm text-[var(--color-fg)] hover:underline disabled:opacity-50"
               >
                 ← Back
               </button>
@@ -261,7 +261,7 @@ export function MultiStepComposer<S>({
                 role="link"
                 onClick={handleSkip}
                 disabled={submitting}
-                className="text-sm text-[--color-fg-muted] hover:underline disabled:opacity-50"
+                className="text-sm text-[var(--color-fg-muted)] hover:underline disabled:opacity-50"
               >
                 Skip this step
               </button>
@@ -315,13 +315,13 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
               key={n}
               data-testid={`step-dot-${n}${filled ? '-filled' : ''}`}
               className={`block w-2 h-2 rounded-full ${
-                filled ? 'bg-[--color-fg]' : 'border border-[--color-border]'
+                filled ? 'bg-[var(--color-fg)]' : 'border border-[var(--color-border)]'
               }`}
             />
           )
         })}
       </div>
-      <span className="text-xs text-[--color-fg-muted] font-medium">
+      <span className="text-xs text-[var(--color-fg-muted)] font-medium">
         Step {current} of {total}
       </span>
     </div>

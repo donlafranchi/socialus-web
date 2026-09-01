@@ -83,7 +83,7 @@ export function FollowButton({ vendorId, vendorName, size = 'md' }: Props) {
       : 'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium border transition-colors'
 
   const classes = following
-    ? `${base} bg-[--color-accent] text-white border-[--color-accent]`
+    ? `${base} bg-[var(--color-accent)] text-white border-[var(--color-accent)]`
     : `${base} bg-white text-neutral-900 border-neutral-300 hover:border-neutral-400`
 
   return (

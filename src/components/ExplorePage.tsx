@@ -139,7 +139,7 @@ export function ExplorePage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               data-testid="search-input-desktop"
-              className="w-full pl-9 pr-9 py-2.5 text-sm border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[--color-accent]"
+              className="w-full pl-9 pr-9 py-2.5 text-sm border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
           </div>
           <div className="mt-3 flex gap-2 items-center">
@@ -169,7 +169,7 @@ export function ExplorePage() {
                 type="button"
                 onClick={() => setView('list')}
                 className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md ${
-                  view === 'list' ? 'bg-[--color-accent] text-white' : 'bg-neutral-100 text-neutral-700'
+                  view === 'list' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
                 }`}
               >
                 <List size={14} /> List
@@ -178,7 +178,7 @@ export function ExplorePage() {
                 type="button"
                 onClick={() => setView('map')}
                 className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md ${
-                  view === 'map' ? 'bg-[--color-accent] text-white' : 'bg-neutral-100 text-neutral-700'
+                  view === 'map' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
                 }`}
               >
                 <MapIcon size={14} /> Map
@@ -201,7 +201,7 @@ export function ExplorePage() {
             onClick={() => setView('list')}
             data-active={view === 'list'}
             className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 text-sm rounded-md ${
-              view === 'list' ? 'bg-[--color-accent] text-white' : 'bg-neutral-100 text-neutral-700'
+              view === 'list' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
             }`}
           >
             <List size={14} /> List
@@ -211,7 +211,7 @@ export function ExplorePage() {
             onClick={() => setView('map')}
             data-active={view === 'map'}
             className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 text-sm rounded-md ${
-              view === 'map' ? 'bg-[--color-accent] text-white' : 'bg-neutral-100 text-neutral-700'
+              view === 'map' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
             }`}
           >
             <MapIcon size={14} /> Map
@@ -264,7 +264,7 @@ export function ExplorePage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               data-testid="search-input"
-              className="w-full pl-9 pr-9 py-2.5 text-sm border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[--color-accent]"
+              className="w-full pl-9 pr-9 py-2.5 text-sm border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
             {query && (
               <button
@@ -297,7 +297,7 @@ export function ExplorePage() {
           {filtered.length === 0 && loaded ? (
             <div className="text-center py-12 text-sm text-neutral-600">
               <p>No vendors match your filters.</p>
-              <button onClick={clearAll} className="mt-2 text-[--color-accent] underline">
+              <button onClick={clearAll} className="mt-2 text-[var(--color-accent)] underline">
                 Clear filters
               </button>
             </div>
@@ -338,7 +338,7 @@ function FilterChip({ label, active, onClear, menuItems, placement = 'bottom' }:
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors whitespace-nowrap ${
-          active ? 'bg-[--color-accent] text-white border-[--color-accent]' : 'bg-white text-neutral-700 border-neutral-300'
+          active ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]' : 'bg-white text-neutral-700 border-neutral-300'
         }`}
       >
         {label}
@@ -369,7 +369,7 @@ function FilterChip({ label, active, onClear, menuItems, placement = 'bottom' }:
                   setOpen(false)
                 }}
                 className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-100 ${
-                  item.selected ? 'font-medium text-[--color-accent]' : 'text-neutral-700'
+                  item.selected ? 'font-medium text-[var(--color-accent)]' : 'text-neutral-700'
                 }`}
               >
                 {item.label}

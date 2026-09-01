@@ -58,7 +58,7 @@ export function ServicePublicPage({ service, groupHref, isOwner = false }: Servi
             <Link
               href={groupHref}
               data-testid="service-attribution-link"
-              className="text-[--color-accent] hover:underline"
+              className="text-[var(--color-accent)] hover:underline"
             >
               {service.attribution.name}
             </Link>
@@ -70,7 +70,7 @@ export function ServicePublicPage({ service, groupHref, isOwner = false }: Servi
               <Link
                 href={`/m/${service.attribution.handle}`}
                 data-testid="service-attribution-link"
-                className="text-[--color-accent] hover:underline"
+                className="text-[var(--color-accent)] hover:underline"
               >
                 {service.attribution.displayName}
               </Link>
@@ -84,7 +84,7 @@ export function ServicePublicPage({ service, groupHref, isOwner = false }: Servi
 
         {service.description ? (
           <p
-            className="mt-4 whitespace-pre-line text-[--color-fg]"
+            className="mt-4 whitespace-pre-line text-[var(--color-fg)]"
             data-testid="service-description"
           >
             {service.description}
@@ -96,8 +96,8 @@ export function ServicePublicPage({ service, groupHref, isOwner = false }: Servi
             className="mt-6 rounded-xl border border-neutral-200 p-4"
             data-testid="service-area"
           >
-            <h2 className="text-sm font-semibold text-[--color-fg]">Service area</h2>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-[--color-fg-muted]">
+            <h2 className="text-sm font-semibold text-[var(--color-fg)]">Service area</h2>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-[var(--color-fg-muted)]">
               <MapPin size={16} aria-hidden="true" />
               {service.anchor
                 ? `Available around ${service.anchor.label} and the surrounding area.`

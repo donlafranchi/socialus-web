@@ -22,7 +22,7 @@ function formatDays(days: string[]): string {
 export function VendorProfilePage({ vendor, markets, categories }: Props) {
   return (
     <main className="pb-24" data-vendor-slug={vendor.slug}>
-      <div className="h-48 md:h-64 w-full bg-gradient-to-br from-[--color-accent-tint] to-amber-100 relative overflow-hidden">
+      <div className="h-48 md:h-64 w-full bg-gradient-to-br from-[var(--color-accent-tint)] to-amber-100 relative overflow-hidden">
         {vendor.cover_photo_url ? (
           <img src={vendor.cover_photo_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
@@ -82,7 +82,7 @@ export function VendorProfilePage({ vendor, markets, categories }: Props) {
                         <p className="text-xs text-neutral-500 mt-1">{m.city}, {m.state}</p>
                       </div>
                       {next && (
-                        <span className="text-xs font-medium text-[--color-accent] whitespace-nowrap">
+                        <span className="text-xs font-medium text-[var(--color-accent)] whitespace-nowrap">
                           Next: {next}
                         </span>
                       )}
@@ -107,7 +107,7 @@ export function VendorProfilePage({ vendor, markets, categories }: Props) {
             <ul className="mt-2 space-y-1 text-sm">
               {vendor.website_url && (
                 <li>
-                  <a href={vendor.website_url} className="text-[--color-accent] hover:underline" target="_blank" rel="noreferrer">
+                  <a href={vendor.website_url} className="text-[var(--color-accent)] hover:underline" target="_blank" rel="noreferrer">
                     {vendor.website_url.replace(/^https?:\/\//, '')}
                   </a>
                 </li>
@@ -116,7 +116,7 @@ export function VendorProfilePage({ vendor, markets, categories }: Props) {
                 <li>
                   <a
                     href={`https://instagram.com/${vendor.instagram_handle}`}
-                    className="text-[--color-accent] hover:underline"
+                    className="text-[var(--color-accent)] hover:underline"
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -126,7 +126,7 @@ export function VendorProfilePage({ vendor, markets, categories }: Props) {
               )}
               {vendor.contact_email && (
                 <li>
-                  <a href={`mailto:${vendor.contact_email}`} className="text-[--color-accent] hover:underline">
+                  <a href={`mailto:${vendor.contact_email}`} className="text-[var(--color-accent)] hover:underline">
                     {vendor.contact_email}
                   </a>
                 </li>

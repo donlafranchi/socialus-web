@@ -212,7 +212,7 @@ export function AddEntityDrawer<S>({
               type="button"
               onClick={onCancel}
               disabled={submitting}
-              className="text-sm text-[--color-fg] hover:underline disabled:opacity-50"
+              className="text-sm text-[var(--color-fg)] hover:underline disabled:opacity-50"
             >
               Cancel
             </button>

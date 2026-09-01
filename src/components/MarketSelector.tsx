@@ -84,7 +84,7 @@ export function MarketSelector({ open, onClose, userLocation }: Props) {
         data-market-slug={a.market.slug}
         data-selected={isSelected ? 'true' : 'false'}
         className={`w-full text-left border rounded-lg p-3 transition-colors ${
-          isSelected ? 'border-[--color-accent] bg-[--color-accent-tint]' : 'border-neutral-200 hover:border-neutral-400'
+          isSelected ? 'border-[var(--color-accent)] bg-[var(--color-accent-tint)]' : 'border-neutral-200 hover:border-neutral-400'
         }`}
       >
         <div className="flex items-start justify-between gap-3">
@@ -135,7 +135,7 @@ export function MarketSelector({ open, onClose, userLocation }: Props) {
               placeholder="Search markets by name or city"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[--color-accent]"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
           </div>
         </div>

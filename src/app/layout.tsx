@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Movers, Makers & Shakers",
+  title: "SocialUs",
   description: "Follow the makers you meet at your local farmers market. Every dollar you spend here stays here.",
 }
 

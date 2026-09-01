@@ -92,10 +92,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       itemSlug: itemSplit.itemSlug,
     })
     if (!product) {
-      return { title: 'Not found — Movers, Makers & Shakers' }
+      return { title: 'Not found — SocialUs' }
     }
     return {
-      title: `${product.title} — Movers, Makers & Shakers`,
+      title: `${product.title} — SocialUs`,
       description:
         product.description ||
         `${product.title}${product.brandLabel ? ` from ${product.brandLabel}` : ''}.`,
@@ -112,10 +112,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       itemSlug: serviceSplit.itemSlug,
     })
     if (!service) {
-      return { title: 'Not found — Movers, Makers & Shakers' }
+      return { title: 'Not found — SocialUs' }
     }
     return {
-      title: `${service.title} — Movers, Makers & Shakers`,
+      title: `${service.title} — SocialUs`,
       description:
         service.description ||
         `${service.title}${service.brandLabel ? ` from ${service.brandLabel}` : ''}.`,
@@ -132,10 +132,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       itemSlug: gatheringSplit.itemSlug,
     })
     if (!gathering) {
-      return { title: 'Not found — Movers, Makers & Shakers' }
+      return { title: 'Not found — SocialUs' }
     }
     return {
-      title: `${gathering.title} — Movers, Makers & Shakers`,
+      title: `${gathering.title} — SocialUs`,
       description:
         gathering.description ||
         `${gathering.title}${gathering.brandLabel ? ` at ${gathering.brandLabel}` : ''}.`,
@@ -149,12 +149,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (locationSplit) {
     const venue = await resolveVenue(supabase, locationSplit.locationSlug)
     if (!venue) {
-      return { title: 'Not found — Movers, Makers & Shakers' }
+      return { title: 'Not found — SocialUs' }
     }
     return {
-      title: `${venue.label} — Movers, Makers & Shakers`,
+      title: `${venue.label} — SocialUs`,
       description:
-        venue.description || `${venue.label} — a venue on Movers, Makers & Shakers.`,
+        venue.description || `${venue.label} — a venue on SocialUs.`,
     }
   }
 
@@ -165,24 +165,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (groupSplit) {
     const shop = await resolveShop(supabase, groupSplit.groupSlug)
     if (!shop) {
-      return { title: 'Not found — Movers, Makers & Shakers' }
+      return { title: 'Not found — SocialUs' }
     }
     return {
-      title: `${shop.displayName} — Movers, Makers & Shakers`,
+      title: `${shop.displayName} — SocialUs`,
       description:
-        shop.publicDescription || `${shop.displayName} on Movers, Makers & Shakers.`,
+        shop.publicDescription || `${shop.displayName} on SocialUs.`,
     }
   }
 
   const resolved = await resolvePlacePath(supabase, slug)
   if (!resolved) {
-    return { title: 'Place not found — Movers, Makers & Shakers' }
+    return { title: 'Place not found — SocialUs' }
   }
   const rootDisplay = resolved.ancestors[0]?.display_name ?? resolved.place.display_name
   return {
     title:
       resolved.ancestors.length === 0
-        ? `${resolved.place.display_name} — Movers, Makers & Shakers`
+        ? `${resolved.place.display_name} — SocialUs`
         : `${resolved.place.display_name} — ${rootDisplay}`,
     description: `Browse what's happening in ${resolved.place.display_name}.`,
   }
