@@ -63,16 +63,50 @@ a:hover {
 
 /* Component recipes */
 
+/* Token colors are written as plain declarations, not @apply: Tailwind v4
+   silently drops arbitrary-value color utilities inside @apply, which left
+   every recipe below transparent. @apply stays for layout and spacing. */
+
 .input {
-  @apply block w-full rounded-lg border border-[var(--color-border)] bg-white px-3 py-2.5 text-sm text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-fg)] focus:border-transparent;
+  @apply block w-full rounded-lg border px-3 py-2.5 text-sm;
+  border-color: var(--color-border);
+  background-color: #fff;
+  color: var(--color-fg);
+}
+.input::placeholder {
+  color: var(--color-fg-muted);
+}
+.input:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px var(--color-fg);
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl bg-[var(--color-accent)] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] hover:no-underline focus:outline-none;
+  @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium transition-colors;
+  background-color: var(--color-accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: var(--color-accent-hover);
+  text-decoration: none;
+}
+.btn-primary:focus {
+  outline: none;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-white px-5 py-3 text-sm font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-surface)] hover:no-underline focus:outline-none;
+  @apply inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-medium transition-colors;
+  border-color: var(--color-border);
+  background-color: #fff;
+  color: var(--color-fg);
+}
+.btn-secondary:hover {
+  background-color: var(--color-surface);
+  text-decoration: none;
+}
+.btn-secondary:focus {
+  outline: none;
 }
 
 .card {
@@ -84,11 +118,22 @@ a:hover {
 }
 
 .chip {
-  @apply inline-flex items-center rounded-full border border-[var(--color-border)] bg-white px-3.5 py-2 text-sm text-[var(--color-fg)] transition-colors hover:bg-[var(--color-surface)];
+  @apply inline-flex items-center rounded-full border px-3.5 py-2 text-sm transition-colors;
+  border-color: var(--color-border);
+  background-color: #fff;
+  color: var(--color-fg);
+}
+.chip:hover {
+  background-color: var(--color-surface);
 }
 
 .chip-selected {
-  @apply border-transparent bg-[var(--color-fg)] text-white hover:bg-[var(--color-fg)];
+  border-color: transparent;
+  background-color: var(--color-fg);
+  color: #fff;
+}
+.chip-selected:hover {
+  background-color: var(--color-fg);
 }
 
 /* Extractive listings render visually muted — Wall Street fades into the background */

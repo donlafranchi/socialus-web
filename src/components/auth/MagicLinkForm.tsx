@@ -57,7 +57,14 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="magic-link-form">
+    <>
+      <h1 className="mb-2 text-2xl font-semibold" data-testid="login-heading">
+        Sign in to SocialUs
+      </h1>
+      <p className="mb-5 text-sm text-neutral-600">
+        Enter your email and we’ll send you a link. No password — new here or not, this is the way in.
+      </p>
+      <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="magic-link-form">
       <input
         type="email"
         required
@@ -83,6 +90,7 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
       >
         {submitting ? 'Sending…' : 'Email me a sign-in link'}
       </button>
-    </form>
+      </form>
+    </>
   )
 }
