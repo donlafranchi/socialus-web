@@ -40,6 +40,21 @@ Run the SQL scripts from `web/scripts/` in order in the Supabase SQL Editor:
 
 Or see `web/scripts/001-create-tables.sql` for the full schema.
 
+### Showcase data — "The Good Place"
+
+`web/supabase/seeds/the-good-place.sql` populates a wholly fictional locality
+(6 places, 8 members, 4 venues, 3 groups, 16 items, plus memberships, tags,
+responses and event-log rows) so every public surface has something real-looking
+to render. Run it in the SQL Editor, or:
+
+```bash
+psql "$SUPABASE_DB_URL" -f supabase/seeds/the-good-place.sql
+```
+
+It is idempotent — re-running refreshes the demo calendar rather than
+duplicating rows. Entry point: `/?place=the-good-place`. A teardown block is
+commented out at the bottom of the file.
+
 ### Auth Setup
 
 1. Authentication > Providers: Email is enabled by default
