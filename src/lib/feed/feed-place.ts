@@ -9,7 +9,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 /** b1 launch locality. Stands in for IP geolocation until that lands. */
-export const LAUNCH_PLACE_SLUG = 'sacramento'
+export const LAUNCH_PLACE_SLUG = 'the-good-place'
 
 export interface FeedPlace {
   placeId: string

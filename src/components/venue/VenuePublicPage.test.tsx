@@ -27,6 +27,7 @@ function feedItem(over: Partial<FeedItem> = {}): FeedItem {
     nearestLocationLabel: null,
     responseCount: 0,
     primaryTag: null,
+    photoUrl: null,
     publishedAt: '2026-06-10T00:00:00Z',
     ...over,
   }

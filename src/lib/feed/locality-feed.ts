@@ -18,6 +18,8 @@ export interface FeedItem {
   nearestLocationLabel: string | null
   responseCount: number
   primaryTag: string | null
+  /** Hero image for the feed card. items.photo_url, else item_products.photo_urls[1]. */
+  photoUrl: string | null
   publishedAt: string
 }
 
@@ -50,6 +52,7 @@ interface LocalityFeedRow {
   nearest_location_label: string | null
   response_count: number | string
   primary_tag: string | null
+  photo_url: string | null
   published_at: string
 }
 
@@ -78,6 +81,7 @@ export async function getLocalityFeed(
     nearestLocationLabel: r.nearest_location_label,
     responseCount: Number(r.response_count ?? 0),
     primaryTag: r.primary_tag,
+    photoUrl: r.photo_url ?? null,
     publishedAt: r.published_at,
   }))
 }

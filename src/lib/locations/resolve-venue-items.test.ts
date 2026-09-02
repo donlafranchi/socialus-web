@@ -48,6 +48,7 @@ const FEED_ROW = {
   response_count: 3,
   primary_tag: null,
   published_at: '2026-06-10T00:00:00Z',
+  photo_url: 'https://cdn.test/trivia.jpg',
 }
 
 describe('resolveOwningGroup', () => {
@@ -95,6 +96,7 @@ describe('getVenueHostedItems', () => {
       ownerHandle: 'drakes',
       groupId: 'grp-owning',
       responseCount: 3,
+      photoUrl: 'https://cdn.test/trivia.jpg',
     })
   })
 
@@ -121,6 +123,7 @@ describe('getVenueNearbyItems', () => {
       p_radius_m: 5000,
     })
     expect(items[0].groupId).toBe('grp-other')
+    expect(items[0].photoUrl).toBe('https://cdn.test/trivia.jpg')
   })
 
   it('passes a null owning group through (minimal-page nearby still works)', async () => {

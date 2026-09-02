@@ -1,222 +1,110 @@
-// T089 — Newcomer onboarding (F030). Three steps on MultiStepComposer:
-// profile · home locality (required) · interest tags (skippable). Each step's
-// row writes on its Continue so a back-out leaves a partial record.
+// T089 — Newcomer onboarding (F030). One field, one button.
+// The display name is the only thing we ask for; the home locality is
+// defaulted server-side by completeOnboardingAction.
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MultiStepComposer, type StepDef } from '@/components/composer/MultiStepComposer'
-import {
-  saveProfileAction,
-  setHomeLocalityAction,
-  addInterestsAction,
-  type SaveProfileInput,
-} from '@/app/onboarding/actions'
-import { INTEREST_VOCAB, INTEREST_MIN, INTEREST_MAX } from '@/lib/onboarding/interest-vocab'
-
-export interface LocalityOption {
-  placeId: string
-  displayName: string
-}
-
-interface OnboardingState {
-  displayName: string
-  handle: string
-  bio: string
-  pronouns: string
-  placeId: string
-  tags: string[]
-  handleSuggestions: string[]
-}
+import { Loader2 } from 'lucide-react'
+import { completeOnboardingAction, type SaveProfileInput } from '@/app/onboarding/actions'
 
 export interface OnboardingActions {
-  saveProfile: (input: SaveProfileInput) => Promise<
-    | { ok: true }
-    | { ok: false; field: 'handle' | 'displayName'; message: string; suggestions?: string[] }
-  >
-  setHomeLocality: (input: { placeId: string }) => Promise<{ ok: true }>
-  addInterests: (input: { tags: string[] }) => Promise<{ ok: true; addedTags: string[] }>
+  completeOnboarding: (
+    input: SaveProfileInput,
+  ) => Promise<{ ok: true } | { ok: false; field: 'displayName'; message: string }>
 }
 
-const DEFAULT_ACTIONS: OnboardingActions = {
-  saveProfile: saveProfileAction,
-  setHomeLocality: setHomeLocalityAction,
-  addInterests: addInterestsAction,
-}
+const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction }
 
 export function OnboardingFlow({
   initialDisplayName = '',
-  initialHandle = '',
-  localityOptions,
   actions = DEFAULT_ACTIONS,
   onNavigate,
 }: {
   initialDisplayName?: string
-  initialHandle?: string
-  localityOptions: LocalityOption[]
   actions?: OnboardingActions
   onNavigate?: (url: string) => void
 }) {
   const router = useRouter()
   const navigate = onNavigate ?? ((url: string) => router.push(url))
 
-  const initialState: OnboardingState = {
-    displayName: initialDisplayName,
-    handle: initialHandle,
-    bio: '',
-    pronouns: '',
-    placeId: '',
-    tags: [],
-    handleSuggestions: [],
+  const [displayName, setDisplayName] = useState(initialDisplayName)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (busy) return
+    const name = displayName.trim()
+    if (!name) {
+      setError('Add your name.')
+      return
+    }
+    setError(null)
+    setBusy(true)
+    try {
+      const res = await actions.completeOnboarding({ displayName: name })
+      if (!res.ok) {
+        setError(res.message)
+        return
+      }
+      navigate('/')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const steps: StepDef<OnboardingState>[] = [
-    {
-      id: 'profile',
-      title: 'Tell us who you are',
-      helper: 'Your name and handle are public. The rest is optional.',
-      validate: (s) => {
-        const errors: Record<string, string> = {}
-        if (!s.displayName.trim()) errors.name = 'Add your name.'
-        const h = s.handle.trim().toLowerCase()
-        if (!(h.length >= 4 && h.length <= 30 && /^[a-z0-9-]+$/.test(h)))
-          errors.handle = 'Handles are 4–30 lowercase letters, numbers, or hyphens.'
-        return Object.keys(errors).length ? { ok: false, errors } : { ok: true }
-      },
-      render: (s, set) => (
-        <div className="space-y-3">
+  return (
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
+      <form data-testid="onboarding-form" onSubmit={submit} className="card space-y-4 p-6">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold">What should we call you?</h1>
+          <p className="text-sm text-[var(--color-fg-muted)]">This is the name your neighbors will see.</p>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="onboarding-name" className="sr-only">
+            Your name
+          </label>
           <input
+            id="onboarding-name"
             data-testid="onboarding-name"
             className="card w-full p-2 text-sm"
             placeholder="Your name"
-            value={s.displayName}
-            onChange={(e) => set({ ...s, displayName: e.target.value })}
+            autoFocus
+            maxLength={60}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'onboarding-name-error' : undefined}
+            value={displayName}
+            onChange={(e) => {
+              setDisplayName(e.target.value)
+              setError(null)
+            }}
           />
-          <input
-            data-testid="onboarding-handle"
-            className="card w-full p-2 text-sm"
-            placeholder="handle"
-            value={s.handle}
-            onChange={(e) => set({ ...s, handle: e.target.value, handleSuggestions: [] })}
-          />
-          <input
-            data-testid="onboarding-bio"
-            className="card w-full p-2 text-sm"
-            placeholder="A line about you (optional)"
-            value={s.bio}
-            onChange={(e) => set({ ...s, bio: e.target.value })}
-          />
-          <input
-            data-testid="onboarding-pronouns"
-            className="card w-full p-2 text-sm"
-            placeholder="Pronouns (optional)"
-            value={s.pronouns}
-            onChange={(e) => set({ ...s, pronouns: e.target.value })}
-          />
-          {s.handleSuggestions.length > 0 && (
-            <div data-testid="handle-suggestions" className="flex flex-wrap gap-2">
-              {s.handleSuggestions.map((sug) => (
-                <button
-                  key={sug}
-                  type="button"
-                  className="chip"
-                  onClick={() => set({ ...s, handle: sug, handleSuggestions: [] })}
-                >
-                  {sug}
-                </button>
-              ))}
-            </div>
+          {error && (
+            <p
+              id="onboarding-name-error"
+              data-testid="onboarding-error"
+              role="alert"
+              className="text-sm text-red-600"
+            >
+              {error}
+            </p>
           )}
         </div>
-      ),
-    },
-    {
-      id: 'locality',
-      title: 'Where’s home?',
-      helper: 'We’ll show you what’s happening nearby. You can change this later.',
-      // NOT optional — the feed needs a locality.
-      validate: (s) => (s.placeId ? { ok: true } : { ok: false, errors: { place: 'Pick your home locality.' } }),
-      render: (s, set) => (
-        <select
-          data-testid="onboarding-locality"
-          aria-label="Home locality"
-          className="card w-full p-2 text-sm"
-          value={s.placeId}
-          onChange={(e) => set({ ...s, placeId: e.target.value })}
-        >
-          <option value="">Choose a locality…</option>
-          {localityOptions.map((o) => (
-            <option key={o.placeId} value={o.placeId}>
-              {o.displayName}
-            </option>
-          ))}
-        </select>
-      ),
-    },
-    {
-      id: 'interests',
-      title: 'What are you into?',
-      helper: `Pick ${INTEREST_MIN}–${INTEREST_MAX}, or skip — your feed leans on your locality either way.`,
-      isOptional: true,
-      finalLabel: 'Show me my feed',
-      validate: (s) => {
-        if (s.tags.length === 0) return { ok: true }
-        if (s.tags.length < INTEREST_MIN || s.tags.length > INTEREST_MAX)
-          return { ok: false, errors: { tags: `Pick ${INTEREST_MIN}–${INTEREST_MAX} interests, or none.` } }
-        return { ok: true }
-      },
-      render: (s, set) => (
-        <div data-testid="onboarding-interests" className="flex flex-wrap gap-2">
-          {INTEREST_VOCAB.map((t) => {
-            const selected = s.tags.includes(t.tag)
-            return (
-              <button
-                key={t.tag}
-                type="button"
-                aria-pressed={selected}
-                className={selected ? 'chip-selected' : 'chip'}
-                onClick={() =>
-                  set({
-                    ...s,
-                    tags: selected ? s.tags.filter((x) => x !== t.tag) : [...s.tags, t.tag],
-                  })
-                }
-              >
-                {t.label}
-              </button>
-            )
-          })}
-        </div>
-      ),
-    },
-  ]
 
-  return (
-    <MultiStepComposer<OnboardingState>
-      dialogLabel="Set up your account"
-      steps={steps}
-      initialState={initialState}
-      onAdvance={async (stepId, state) => {
-        if (stepId === 'profile') {
-          const res = await actions.saveProfile({
-            displayName: state.displayName,
-            handle: state.handle.trim().toLowerCase(),
-            bio: state.bio,
-            pronouns: state.pronouns,
-          })
-          if (!res.ok) {
-            if (res.field === 'handle' && res.suggestions) state.handleSuggestions = res.suggestions
-            throw new Error(res.message)
-          }
-        } else if (stepId === 'locality') {
-          await actions.setHomeLocality({ placeId: state.placeId })
-        }
-      }}
-      onComplete={async (state) => {
-        await actions.addInterests({ tags: state.tags })
-        navigate('/')
-        return { destinationUrl: '/' }
-      }}
-      onAbandon={() => navigate('/')}
-    />
+        <button
+          type="submit"
+          data-testid="onboarding-continue"
+          disabled={busy}
+          className="btn-primary inline-flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-75"
+        >
+          {busy && <Loader2 data-testid="onboarding-spinner" className="h-4 w-4 animate-spin" />}
+          Continue
+        </button>
+      </form>
+    </main>
   )
 }

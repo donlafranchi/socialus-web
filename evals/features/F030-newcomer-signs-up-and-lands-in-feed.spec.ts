@@ -63,8 +63,8 @@ test.describe('F030 — A newcomer signs up and lands in the feed', () => {
     })
   })
 
-  test.describe('AC2 + AC3 — Email/password signup → onboarding → feed re-renders against the chosen scope', () => {
-    test('Given a new visitor signs up with email + password | When they finish the three-step onboarding | Then each step writes and they land on a feed scoped to their chosen locality', async ({
+  test.describe('AC2 + AC3 — Email/password signup → onboarding → feed', () => {
+    test('Given a new visitor signs up with email + password | When they set a display name | Then onboarding completes and they land on the feed', async ({
       page,
     }) => {
       // A genuinely new email → the signup page routes to "set a password",
@@ -73,33 +73,20 @@ test.describe('F030 — A newcomer signs up and lands in the feed', () => {
       await signUpWithPassword(page, email, 'F030-newcomer-pass')
       await page.waitForURL((url) => url.pathname === '/onboarding')
 
-      // Step 1 — Profile. Name + handle required.
-      await expect(page.getByText('Tell us who you are')).toBeVisible()
+      // One field, one button. No handle / locality / interests steps — the
+      // home locality is defaulted to The Good Place server-side.
+      await expect(page.getByTestId('onboarding-name')).toBeVisible()
+      await expect(page.getByTestId('onboarding-handle')).toHaveCount(0)
+      await expect(page.getByTestId('onboarding-locality')).toHaveCount(0)
+      await expect(page.getByTestId('onboarding-interests')).toHaveCount(0)
       await page.getByTestId('onboarding-name').fill('New Comer')
-      await page.getByTestId('onboarding-handle').fill(`newcomer-${Date.now().toString().slice(-6)}`)
       await page.getByRole('button', { name: /Continue/i }).click()
 
-      // Step 2 — Home locality (required). Pick the seeded Oak Park place.
-      await expect(page.getByText('Where’s home?')).toBeVisible()
-      await page
-        .getByTestId('onboarding-locality')
-        .selectOption({ label: OAK_PARK_F030.displayName })
-      await page.getByRole('button', { name: /Continue/i }).click()
-
-      // Step 3 — Interests (skippable). Pick two, finish.
-      await expect(page.getByTestId('onboarding-interests')).toBeVisible()
-      await page.getByRole('button', { name: 'Food & drink' }).click()
-      await page.getByRole('button', { name: 'Crafts & makers' }).click()
-      await page.getByRole('button', { name: /Show me my feed/i }).click()
-
-      // Lands on / — the feed re-renders against the chosen primary_home scope.
+      // Lands on / — the feed renders against the defaulted primary_home.
       await page.waitForURL((url) => url.pathname === '/')
       await expect(page.getByTestId('locality-feed')).toBeVisible()
       // The signup CTA is gone now they're authenticated.
       await expect(page.getByTestId('signup-cta')).toHaveCount(0)
-      // The Items near their chosen locality are present.
-      await expect(page.getByText(PRODUCT.title)).toBeVisible()
-      await expect(page.getByText(GATHERING.title)).toBeVisible()
 
       // Idempotent re-entry: now onboarded, revisiting /onboarding → /.
       await page.goto('/onboarding')

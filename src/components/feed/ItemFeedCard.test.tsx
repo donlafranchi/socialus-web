@@ -20,6 +20,7 @@ const baseItem: FeedItem = {
   responseCount: 2,
   primaryTag: 'crafts',
   publishedAt: '2026-06-01T00:00:00Z',
+  photoUrl: null,
 }
 
 describe('T088 — ItemFeedCard', () => {
@@ -40,6 +41,24 @@ describe('T088 — ItemFeedCard', () => {
   it('prefers the brand label over the owner name when present', () => {
     render(<ItemFeedCard item={{ ...baseItem, brandLabel: 'Oak Park Pottery' }} />)
     expect(screen.getByText('Oak Park Pottery')).toBeTruthy()
+  })
+
+  it('renders no hero image when photoUrl is null', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    expect(screen.queryByTestId('feed-item-photo')).toBeNull()
+  })
+
+  it('renders a hero image when photoUrl is present', () => {
+    render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
+    const img = screen.getByTestId('feed-item-photo') as HTMLImageElement
+    expect(img.getAttribute('src')).toBe('https://cdn.test/a.jpg')
+    expect(img.getAttribute('alt')).toBe('')
+    expect(img.getAttribute('loading')).toBe('lazy')
+  })
+
+  it('ignores a blank photoUrl', () => {
+    render(<ItemFeedCard item={{ ...baseItem, photoUrl: '   ' }} />)
+    expect(screen.queryByTestId('feed-item-photo')).toBeNull()
   })
 
   it('uses the product segment for a product', () => {

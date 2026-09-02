@@ -50,6 +50,7 @@ describe('T087 — getLocalityFeed', () => {
     response_count: '3',
     primary_tag: 'crafts',
     published_at: '2026-06-01T00:00:00Z',
+    photo_url: 'https://cdn.test/pottery.jpg',
   }
 
   it('passes normalized args and maps rows', async () => {
@@ -73,7 +74,15 @@ describe('T087 — getLocalityFeed', () => {
       ownerHandle: 'maya',
       responseCount: 3,
       nearestLocationLabel: 'Drake’s',
+      photoUrl: 'https://cdn.test/pottery.jpg',
     })
+  })
+
+  it('maps a missing photo_url to null', async () => {
+    const { photo_url: _omit, ...noPhoto } = row
+    const fake = { rpc: async () => ({ data: [noPhoto], error: null }) }
+    const feed = await getLocalityFeed(fake as never, { placeId: 'p1' })
+    expect(feed[0].photoUrl).toBeNull()
   })
 
   it('returns [] when data is null', async () => {

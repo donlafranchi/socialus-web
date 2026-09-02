@@ -50,6 +50,7 @@ interface FeedRow {
   nearest_location_label: string | null
   response_count: number | string
   primary_tag: string | null
+  photo_url: string | null
   published_at: string
 }
 
@@ -66,6 +67,7 @@ function mapFeedRow(r: FeedRow): FeedItem {
     nearestLocationLabel: r.nearest_location_label,
     responseCount: Number(r.response_count ?? 0),
     primaryTag: r.primary_tag,
+    photoUrl: r.photo_url ?? null,
     publishedAt: r.published_at,
   }
 }
