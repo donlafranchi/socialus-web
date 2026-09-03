@@ -9,9 +9,13 @@ import type { Vendor, Market, VendorCategory, WeekdaySlug } from '@/lib/types'
 import { CATEGORIES, CATEGORY_ORDER, type CategorySlug } from '@/lib/categories'
 import { WEEKDAYS } from '@/lib/types'
 import { useMarket } from './MarketContext'
+import { useNavVisible } from './NavVisibilityProvider'
 import { VendorCard } from './VendorCard'
 import { MarketPill } from './MarketPill'
 import { RecruitmentGrid } from './RecruitmentGrid'
+import { KindFilterPills, EXPLORE_RESULTS_ID, KIND_PILL_ROW_HEIGHT } from './explore/KindFilterPills'
+import { parseKindParam, kindTabId } from '@/lib/explore/kinds'
+import { exploreQueryString } from '@/lib/explore/query'
 
 const ExploreMap = dynamic(() => import('./ExploreMap').then((m) => m.ExploreMap), { ssr: false })
 
@@ -33,8 +37,10 @@ export function ExplorePage() {
   const router = useRouter()
   const params = useSearchParams()
   const { selectedMarket, allMarkets } = useMarket()
+  const navVisible = useNavVisible()
 
   const [query, setQuery] = useState(params.get('q') ?? '')
+  const [kindFilter, setKindFilter] = useState(() => parseKindParam(params.get('kind')))
   const [view, setView] = useState<'list' | 'map'>((params.get('view') as 'list' | 'map') ?? 'list')
   const [categoryFilter, setCategoryFilter] = useState<string | null>(params.get('category'))
   const [marketSlugFilter, setMarketSlugFilter] = useState<string | null>(params.get('market'))
@@ -76,15 +82,16 @@ export function ExplorePage() {
   }, [])
 
   useEffect(() => {
-    const sp = new URLSearchParams()
-    if (query) sp.set('q', query)
-    if (categoryFilter) sp.set('category', categoryFilter)
-    if (marketSlugFilter) sp.set('market', marketSlugFilter)
-    if (dayFilter) sp.set('day', dayFilter)
-    if (view !== 'list') sp.set('view', view)
-    const qs = sp.toString()
+    const qs = exploreQueryString({
+      q: query,
+      kind: kindFilter,
+      category: categoryFilter,
+      market: marketSlugFilter,
+      day: dayFilter,
+      view,
+    })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [query, categoryFilter, marketSlugFilter, dayFilter, view, router])
+  }, [query, kindFilter, categoryFilter, marketSlugFilter, dayFilter, view, router])
 
   const effectiveMarketSlug = marketSlugFilter ?? selectedMarket?.slug ?? null
   const effectiveMarket = effectiveMarketSlug ? marketBySlug.get(effectiveMarketSlug) ?? null : null
@@ -92,6 +99,10 @@ export function ExplorePage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return vendors.filter((row) => {
+      // Explore still lists vendors (`businesses`), which carry no `items.kind`.
+      // The pill selection narrows the result set here; until these results are
+      // items-backed, every non-All kind resolves to zero rows — see DEVIATIONS (T114).
+      if (kindFilter) return false
       if (categoryFilter && row.primaryCategory !== categoryFilter) {
         const cats = vendors.find((v) => v.vendor.id === row.vendor.id)
         if (!cats) return false
@@ -113,21 +124,26 @@ export function ExplorePage() {
       }
       return true
     })
-  }, [vendors, query, categoryFilter, effectiveMarket, dayFilter, marketById])
+  }, [vendors, query, kindFilter, categoryFilter, effectiveMarket, dayFilter, marketById])
 
-  const showEmptyState = !query && !categoryFilter && !marketSlugFilter && !dayFilter
+  const showEmptyState = !query && !kindFilter && !categoryFilter && !marketSlugFilter && !dayFilter
 
   const clearAll = () => {
     setQuery('')
+    setKindFilter(null)
     setCategoryFilter(null)
     setMarketSlugFilter(null)
     setDayFilter(null)
   }
 
-  const anyFilter = !!(query || categoryFilter || marketSlugFilter || dayFilter)
-
+  // The main padding reserves the whole bottom stack: nav + kind pills + the 116px
+  // mobile control cluster (view toggle + search). T115/T116 move those two rows.
   return (
-    <main className="pb-64 md:pb-24" data-testid="explore-page">
+    <main
+      className="pb-[calc(var(--nav-height)+var(--kind-pill-row)+116px+env(safe-area-inset-bottom))] md:pb-24"
+      style={{ '--kind-pill-row': `${KIND_PILL_ROW_HEIGHT}px` } as React.CSSProperties}
+      data-testid="explore-page"
+    >
       {/* Desktop top header */}
       <header className="hidden md:block sticky top-14 z-20 bg-white border-b border-neutral-200">
         <div className="max-w-5xl mx-auto p-3">
@@ -188,10 +204,13 @@ export function ExplorePage() {
         </div>
       </header>
 
-      {/* Mobile bottom-anchored controls — order from bottom up: nav, search, filters, view toggle */}
+      {/* Mobile bottom-anchored controls — stacked above the kind pills, riding the
+          same nav-height shift so the cluster stays glued to the pill row. */}
       <div
-        className="fixed inset-x-0 z-40 md:hidden bg-white/95 backdrop-blur border-t border-neutral-200"
-        style={{ bottom: 'calc(64px + env(safe-area-inset-bottom))' }}
+        className={`fixed inset-x-0 z-30 md:hidden bg-white/95 backdrop-blur border-t border-neutral-200 transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none ${
+          navVisible ? '-translate-y-[var(--nav-height)]' : 'translate-y-0'
+        }`}
+        style={{ bottom: `calc(${KIND_PILL_ROW_HEIGHT}px + env(safe-area-inset-bottom))` }}
         data-testid="bottom-controls"
       >
         {/* View toggle row (top of stack) */}
@@ -216,42 +235,6 @@ export function ExplorePage() {
           >
             <MapIcon size={14} /> Map
           </button>
-        </div>
-
-        {/* Filter chips row */}
-        <div className="px-3 py-2 flex gap-2 overflow-x-auto">
-          <MarketPill />
-          <FilterChip
-            label={categoryFilter ? CATEGORIES[categoryFilter as CategorySlug]?.label ?? 'Category' : 'Category'}
-            active={!!categoryFilter}
-            onClear={categoryFilter ? () => setCategoryFilter(null) : undefined}
-            menuItems={CATEGORY_ORDER.map((slug) => ({
-              label: `${CATEGORIES[slug].emoji} ${CATEGORIES[slug].label}`,
-              onSelect: () => setCategoryFilter(slug),
-              selected: categoryFilter === slug,
-            }))}
-            placement="top"
-          />
-          <FilterChip
-            label={dayFilter ? WEEKDAYS.find((w) => w.slug === dayFilter)?.short ?? 'Day' : 'Day'}
-            active={!!dayFilter}
-            onClear={dayFilter ? () => setDayFilter(null) : undefined}
-            menuItems={WEEKDAYS.map((w) => ({
-              label: w.long,
-              onSelect: () => setDayFilter(w.slug),
-              selected: dayFilter === w.slug,
-            }))}
-            placement="top"
-          />
-          {anyFilter && (
-            <button
-              type="button"
-              onClick={clearAll}
-              className="text-xs text-neutral-600 whitespace-nowrap px-2"
-            >
-              Clear all
-            </button>
-          )}
         </div>
 
         {/* Search input row (closest to nav, easiest thumb reach) */}
@@ -280,42 +263,46 @@ export function ExplorePage() {
         </div>
       </div>
 
-      {showEmptyState ? (
-        <RecruitmentGrid />
-      ) : view === 'list' ? (
-        <section className="px-3 md:px-6 py-4">
-          <p className="text-sm text-neutral-600 mb-3" data-testid="result-count">
-            {loaded ? (
-              <>
-                {filtered.length} vendor{filtered.length === 1 ? '' : 's'}
-                {query && <> match &ldquo;{query}&rdquo;</>}
-              </>
+      <div id={EXPLORE_RESULTS_ID} role="tabpanel" aria-labelledby={kindTabId(kindFilter)}>
+        {showEmptyState ? (
+          <RecruitmentGrid />
+        ) : view === 'list' ? (
+          <section className="px-3 md:px-6 py-4">
+            <p className="text-sm text-neutral-600 mb-3" data-testid="result-count">
+              {loaded ? (
+                <>
+                  {filtered.length} vendor{filtered.length === 1 ? '' : 's'}
+                  {query && <> match &ldquo;{query}&rdquo;</>}
+                </>
+              ) : (
+                'Loading…'
+              )}
+            </p>
+            {filtered.length === 0 && loaded ? (
+              <div className="text-center py-12 text-sm text-neutral-600">
+                <p>No vendors match your filters.</p>
+                <button onClick={clearAll} className="mt-2 text-[var(--color-accent)] underline">
+                  Clear filters
+                </button>
+              </div>
             ) : (
-              'Loading…'
+              <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {filtered.map((row) => (
+                  <li key={row.vendor.id}>
+                    <VendorCard vendor={row.vendor} primaryCategory={row.primaryCategory} compact />
+                  </li>
+                ))}
+              </ul>
             )}
-          </p>
-          {filtered.length === 0 && loaded ? (
-            <div className="text-center py-12 text-sm text-neutral-600">
-              <p>No vendors match your filters.</p>
-              <button onClick={clearAll} className="mt-2 text-[var(--color-accent)] underline">
-                Clear filters
-              </button>
-            </div>
-          ) : (
-            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filtered.map((row) => (
-                <li key={row.vendor.id}>
-                  <VendorCard vendor={row.vendor} primaryCategory={row.primaryCategory} compact />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ) : (
-        <section className="h-[calc(100vh-260px)]">
-          <ExploreMap vendors={filtered.map((r) => ({ vendor: r.vendor, primaryCategory: r.primaryCategory }))} />
-        </section>
-      )}
+          </section>
+        ) : (
+          <section className="h-[calc(100vh-260px)]">
+            <ExploreMap vendors={filtered.map((r) => ({ vendor: r.vendor, primaryCategory: r.primaryCategory }))} />
+          </section>
+        )}
+      </div>
+
+      <KindFilterPills selected={kindFilter} onSelect={setKindFilter} />
     </main>
   )
 }

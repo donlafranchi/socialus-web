@@ -18,8 +18,12 @@
   --color-fg-muted: #6b6b6b;
   --color-border: #e5e3dd;
 
-  /* Charcoal anchor — thesis §2/§3. Structural weight; never a CTA fill. */
+  /* Charcoal anchor — thesis §2/§3. Structural weight; never a CTA fill.
+     Ramp values per thesis §3; only the steps in use are declared. */
   --color-charcoal: #3c3c3c;
+  --color-charcoal-900: #2b2b2b;
+  --color-charcoal-700: #3c3c3c;
+  --color-charcoal-100: #e8e8e8;
   --color-nav-inactive: #717171;
   --color-nav-border: #ebebeb;
 
