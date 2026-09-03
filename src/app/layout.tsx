@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
-import { MarketProvider } from "@/components/MarketContext"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 
 const inter = Inter({
@@ -27,13 +26,11 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="h-full font-sans">
-        <MarketProvider>
-          <NavVisibilityProvider>
-            <TopNavDesktop />
-            {children}
-            <BottomNav />
-          </NavVisibilityProvider>
-        </MarketProvider>
+        <NavVisibilityProvider>
+          <TopNavDesktop />
+          {children}
+          <BottomNav />
+        </NavVisibilityProvider>
       </body>
     </html>
   )
