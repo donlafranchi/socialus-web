@@ -1,21 +1,22 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, X, MapIcon, List } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
-import type { Vendor, Market, VendorCategory, WeekdaySlug } from '@/lib/types'
-import { CATEGORIES, CATEGORY_ORDER, type CategorySlug } from '@/lib/categories'
-import { WEEKDAYS } from '@/lib/types'
-import { useMarket } from './MarketContext'
 import { useNavVisible } from './NavVisibilityProvider'
-import { VendorCard } from './VendorCard'
-import { MarketPill } from './MarketPill'
-import { RecruitmentGrid } from './RecruitmentGrid'
+import { ItemFeedCard } from './feed/ItemFeedCard'
 import { KindFilterPills, EXPLORE_RESULTS_ID, KIND_PILL_ROW_HEIGHT } from './explore/KindFilterPills'
 import { parseKindParam, kindTabId } from '@/lib/explore/kinds'
 import { exploreQueryString } from '@/lib/explore/query'
+import {
+  fetchExploreItems,
+  searchExploreItems,
+  exploreCategoryOptions,
+  categoryLabel,
+  type ExploreItem,
+} from '@/lib/explore/items'
 
 const ExploreMap = dynamic(() => import('./ExploreMap').then((m) => m.ExploreMap), { ssr: false })
 
@@ -26,114 +27,54 @@ function supabase() {
   )
 }
 
-
-interface VendorRow {
-  vendor: Vendor
-  primaryCategory: string | null
-  marketIds: string[]
-}
-
 export function ExplorePage() {
   const router = useRouter()
   const params = useSearchParams()
-  const { selectedMarket, allMarkets } = useMarket()
   const navVisible = useNavVisible()
 
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [kindFilter, setKindFilter] = useState(() => parseKindParam(params.get('kind')))
   const [view, setView] = useState<'list' | 'map'>((params.get('view') as 'list' | 'map') ?? 'list')
   const [categoryFilter, setCategoryFilter] = useState<string | null>(params.get('category'))
-  const [marketSlugFilter, setMarketSlugFilter] = useState<string | null>(params.get('market'))
-  const [dayFilter, setDayFilter] = useState<WeekdaySlug | null>((params.get('day') as WeekdaySlug) ?? null)
 
-  const [vendors, setVendors] = useState<VendorRow[]>([])
+  const [items, setItems] = useState<ExploreItem[]>([])
   const [loaded, setLoaded] = useState(false)
 
-  const marketBySlug = useMemo(() => new Map(allMarkets.map((m) => [m.slug, m])), [allMarkets])
-  const marketById = useMemo(() => new Map(allMarkets.map((m) => [m.id, m])), [allMarkets])
-
+  // Kind is filtered server-side on the MV's indexed `item_kind`, so each pill
+  // tap refetches. The previous page stays on screen until the next resolves —
+  // a pill tap should read as a filter, not a page load (T114 AC "instantly").
+  const requestRef = useRef(0)
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const client = supabase()
-      const [{ data: vRows }, { data: cRows }, { data: mvRows }] = await Promise.all([
-        client.from('businesses').select('*'),
-        client.from('vendor_categories').select('*'),
-        client.from('market_vendors').select('vendor_id, market_id'),
-      ])
-      if (cancelled) return
-      const allVendors = (vRows ?? []) as Vendor[]
-      const allCats = (cRows ?? []) as VendorCategory[]
-      const allLinks = (mvRows ?? []) as { vendor_id: string; market_id: string }[]
-
-      const rows = allVendors.map((v) => {
-        const myCats = allCats.filter((c) => c.vendor_id === v.id)
-        const primary = myCats.find((c) => c.is_primary)?.category_slug ?? myCats[0]?.category_slug ?? null
-        const marketIds = allLinks.filter((l) => l.vendor_id === v.id).map((l) => l.market_id)
-        return { vendor: v, primaryCategory: primary, marketIds }
+    const request = ++requestRef.current
+    fetchExploreItems(supabase(), { kind: kindFilter })
+      .catch(() => [] as ExploreItem[])
+      .then((rows) => {
+        if (requestRef.current !== request) return
+        setItems(rows)
+        setLoaded(true)
       })
-      setVendors(rows)
-      setLoaded(true)
-    }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  }, [kindFilter])
 
   useEffect(() => {
     const qs = exploreQueryString({
       q: query,
       kind: kindFilter,
       category: categoryFilter,
-      market: marketSlugFilter,
-      day: dayFilter,
       view,
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [query, kindFilter, categoryFilter, marketSlugFilter, dayFilter, view, router])
+  }, [query, kindFilter, categoryFilter, view, router])
 
-  const effectiveMarketSlug = marketSlugFilter ?? selectedMarket?.slug ?? null
-  const effectiveMarket = effectiveMarketSlug ? marketBySlug.get(effectiveMarketSlug) ?? null : null
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return vendors.filter((row) => {
-      // Explore still lists vendors (`businesses`), which carry no `items.kind`.
-      // The pill selection narrows the result set here; until these results are
-      // items-backed, every non-All kind resolves to zero rows — see DEVIATIONS (T114).
-      if (kindFilter) return false
-      if (categoryFilter && row.primaryCategory !== categoryFilter) {
-        const cats = vendors.find((v) => v.vendor.id === row.vendor.id)
-        if (!cats) return false
-      }
-      if (categoryFilter) {
-        const cat = row.primaryCategory
-        if (cat !== categoryFilter) return false
-      }
-      if (effectiveMarket) {
-        if (!row.marketIds.includes(effectiveMarket.id)) return false
-      }
-      if (dayFilter) {
-        const matchedAny = row.marketIds.some((id) => marketById.get(id)?.schedule_days.includes(dayFilter))
-        if (!matchedAny) return false
-      }
-      if (q) {
-        const hay = `${row.vendor.name} ${row.vendor.tagline ?? ''} ${row.primaryCategory ?? ''}`.toLowerCase()
-        if (!hay.includes(q)) return false
-      }
-      return true
-    })
-  }, [vendors, query, kindFilter, categoryFilter, effectiveMarket, dayFilter, marketById])
-
-  const showEmptyState = !query && !kindFilter && !categoryFilter && !marketSlugFilter && !dayFilter
+  const filtered = useMemo(
+    () => searchExploreItems(items, { q: query, category: categoryFilter }),
+    [items, query, categoryFilter]
+  )
+  const categories = useMemo(() => exploreCategoryOptions(items), [items])
 
   const clearAll = () => {
     setQuery('')
     setKindFilter(null)
     setCategoryFilter(null)
-    setMarketSlugFilter(null)
-    setDayFilter(null)
   }
 
   // The main padding reserves the whole bottom stack: nav + kind pills + the 116px
@@ -151,7 +92,7 @@ export function ExplorePage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               type="search"
-              placeholder="Search vendors, products, markets"
+              placeholder="Search events, products, services, ideas"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               data-testid="search-input-desktop"
@@ -159,25 +100,14 @@ export function ExplorePage() {
             />
           </div>
           <div className="mt-3 flex gap-2 items-center">
-            <MarketPill />
             <FilterChip
-              label={categoryFilter ? CATEGORIES[categoryFilter as CategorySlug]?.label ?? 'Category' : 'Category'}
+              label={categoryFilter ? categoryLabel(categoryFilter) : 'Category'}
               active={!!categoryFilter}
               onClear={categoryFilter ? () => setCategoryFilter(null) : undefined}
-              menuItems={CATEGORY_ORDER.map((slug) => ({
-                label: `${CATEGORIES[slug].emoji} ${CATEGORIES[slug].label}`,
+              menuItems={categories.map((slug) => ({
+                label: categoryLabel(slug),
                 onSelect: () => setCategoryFilter(slug),
                 selected: categoryFilter === slug,
-              }))}
-            />
-            <FilterChip
-              label={dayFilter ? WEEKDAYS.find((w) => w.slug === dayFilter)?.short ?? 'Day' : 'Day'}
-              active={!!dayFilter}
-              onClear={dayFilter ? () => setDayFilter(null) : undefined}
-              menuItems={WEEKDAYS.map((w) => ({
-                label: w.long,
-                onSelect: () => setDayFilter(w.slug),
-                selected: dayFilter === w.slug,
               }))}
             />
             <div className="ml-auto flex gap-1">
@@ -243,7 +173,7 @@ export function ExplorePage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               type="search"
-              placeholder="Search vendors, products, markets"
+              placeholder="Search events, products, services, ideas"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               data-testid="search-input"
@@ -264,14 +194,12 @@ export function ExplorePage() {
       </div>
 
       <div id={EXPLORE_RESULTS_ID} role="tabpanel" aria-labelledby={kindTabId(kindFilter)}>
-        {showEmptyState ? (
-          <RecruitmentGrid />
-        ) : view === 'list' ? (
+        {view === 'list' ? (
           <section className="px-3 md:px-6 py-4">
-            <p className="text-sm text-neutral-600 mb-3" data-testid="result-count">
+            <p className="text-sm text-neutral-600 mb-3" data-testid="result-count" aria-live="polite">
               {loaded ? (
                 <>
-                  {filtered.length} vendor{filtered.length === 1 ? '' : 's'}
+                  {filtered.length} item{filtered.length === 1 ? '' : 's'}
                   {query && <> match &ldquo;{query}&rdquo;</>}
                 </>
               ) : (
@@ -279,17 +207,21 @@ export function ExplorePage() {
               )}
             </p>
             {filtered.length === 0 && loaded ? (
-              <div className="text-center py-12 text-sm text-neutral-600">
-                <p>No vendors match your filters.</p>
-                <button onClick={clearAll} className="mt-2 text-[var(--color-accent)] underline">
+              <div className="text-center py-12 text-sm text-neutral-600" data-testid="explore-empty">
+                <p>Nothing here yet — try another filter.</p>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="mt-2 text-[var(--color-accent)] underline"
+                >
                   Clear filters
                 </button>
               </div>
             ) : (
               <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filtered.map((row) => (
-                  <li key={row.vendor.id}>
-                    <VendorCard vendor={row.vendor} primaryCategory={row.primaryCategory} compact />
+                {filtered.map((item) => (
+                  <li key={item.itemId}>
+                    <ItemFeedCard item={item} />
                   </li>
                 ))}
               </ul>
@@ -297,7 +229,7 @@ export function ExplorePage() {
           </section>
         ) : (
           <section className="h-[calc(100vh-260px)]">
-            <ExploreMap vendors={filtered.map((r) => ({ vendor: r.vendor, primaryCategory: r.primaryCategory }))} />
+            <ExploreMap items={filtered} />
           </section>
         )}
       </div>

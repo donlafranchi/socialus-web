@@ -4,20 +4,21 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import type { Vendor } from '@/lib/types'
-import { getCategoryPinColor } from '@/lib/categories'
 import { MAP_DEFAULTS } from '@/lib/map-config'
+import { itemHref, kindLabel } from '@/lib/feed/item-url'
+import type { ExploreItem } from '@/lib/explore/items'
 
-interface Item {
-  vendor: Vendor
-  primaryCategory: string | null
-}
+// T117 — one accent pin per Item. A per-kind colour ramp is a design decision
+// the DLS does not carry yet, and PIN_COLORS is reserved for ownership tiers
+// (web/CLAUDE.md § Design System); the kind is carried by the popup label.
+// The marker is a real DOM node in the document, so the DLS token resolves.
+const PIN_COLOR = 'var(--color-accent)'
 
-export function ExploreMap({ vendors }: { vendors: Item[] }) {
+export function ExploreMap({ items }: { items: ExploreItem[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
-  const [selected, setSelected] = useState<Item | null>(null)
+  const [selected, setSelected] = useState<ExploreItem | null>(null)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -45,22 +46,22 @@ export function ExploreMap({ vendors }: { vendors: Item[] }) {
     const bounds = new mapboxgl.LngLatBounds()
     let hasAny = false
 
-    for (const item of vendors) {
-      const v = item.vendor
-      if (v.latitude == null || v.longitude == null) continue
+    for (const item of items) {
+      if (item.longitude == null || item.latitude == null) continue
       const el = document.createElement('div')
-      el.style.cssText = `width:18px;height:18px;border-radius:50%;background:${getCategoryPinColor(item.primaryCategory ?? '')};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);cursor:pointer`
+      el.style.cssText = `width:18px;height:18px;border-radius:50%;background:${PIN_COLOR};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);cursor:pointer`
       el.setAttribute('data-testid', 'map-pin')
-      el.setAttribute('data-vendor-slug', v.slug)
+      el.setAttribute('data-item-id', item.itemId)
+      el.setAttribute('data-item-kind', item.kind)
       el.addEventListener('click', () => setSelected(item))
-      const marker = new mapboxgl.Marker(el).setLngLat([v.longitude, v.latitude]).addTo(map)
+      const marker = new mapboxgl.Marker(el).setLngLat([item.longitude, item.latitude]).addTo(map)
       markersRef.current.push(marker)
-      bounds.extend([v.longitude, v.latitude])
+      bounds.extend([item.longitude, item.latitude])
       hasAny = true
     }
 
     if (hasAny) map.fitBounds(bounds, { padding: 60, maxZoom: 13, duration: 0 })
-  }, [vendors])
+  }, [items])
 
   return (
     <div className="relative w-full h-full">
@@ -69,13 +70,20 @@ export function ExploreMap({ vendors }: { vendors: Item[] }) {
         <div className="absolute bottom-4 left-4 right-4 bg-white rounded-xl shadow-lg p-3 border border-neutral-200">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-medium text-neutral-900 truncate">{selected.vendor.name}</p>
-              {selected.vendor.tagline && (
-                <p className="text-xs text-neutral-600 truncate">{selected.vendor.tagline}</p>
-              )}
+              <span className="chip text-[11px]">{kindLabel(selected.kind)}</span>
+              <p className="font-medium text-neutral-900 truncate">{selected.title}</p>
+              <p className="text-xs text-neutral-600 truncate">
+                {selected.brandLabel ?? selected.ownerDisplayName}
+                {selected.nearestLocationLabel && <> · {selected.nearestLocationLabel}</>}
+              </p>
             </div>
             <Link
-              href={`/vendors/${selected.vendor.slug}`}
+              href={itemHref({
+                kind: selected.kind,
+                ownerHandle: selected.ownerHandle,
+                title: selected.title,
+                itemId: selected.itemId,
+              })}
               className="text-sm font-medium text-[var(--color-accent)] whitespace-nowrap"
             >
               View →
