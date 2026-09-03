@@ -13,47 +13,6 @@ npm run eval       # Playwright evals
 
 ## Manual Smoke Tests
 
-### F001: Map View
-
-- [ ] Map loads with colored pins (green=independent, yellow=franchise, red=PE/corporate)
-- [ ] Pins cluster at low zoom, expand on zoom in
-- [ ] Map pans and zooms smoothly on mobile
-- [ ] Search by category returns filtered results
-- [ ] Search by location re-centers map
-- [ ] Empty search state shows helpful message
-
-### F002: Business Detail Card
-
-- [ ] Tapping a pin opens the detail card
-- [ ] Card shows: name, address, category, ownership badge, story
-- [ ] Ownership badge color matches pin color
-- [ ] Card dismisses on close/back tap
-- [ ] Card links to shareable listing page
-
-### F003: Business Registration
-
-- [ ] Unauthenticated user is redirected to login
-- [ ] Registration form validates required fields
-- [ ] Ownership tier selector works (independent / franchise / PE-owned / corporate)
-- [ ] Successful submission creates a pin on the map
-- [ ] Duplicate address handling works gracefully
-
-### F004: Shareable Listing
-
-- [ ] `/business/[id]` renders SSR detail page
-- [ ] Page has correct OG meta tags (title, description, image)
-- [ ] Sharing URL on social media shows preview card
-- [ ] Non-existent ID shows 404
-
-### F005: Community Signals
-
-- [ ] Heart/support button toggles on/off
-- [ ] Heart count increments/decrements
-- [ ] Unauthenticated user is prompted to log in
-- [ ] "Report a concern" form opens
-- [ ] Report requires selecting a pillar and reason
-- [ ] Submitted report is stored in database
-
 ### Auth
 
 - [ ] Sign up with email works
@@ -72,14 +31,25 @@ npm run eval       # Playwright evals
 
 ## Playwright Eval Coverage
 
+### Features
+
 | Feature | Spec File | What It Tests |
 |---------|-----------|---------------|
-| F001 | `F001-map-view-colored-pins.spec.ts` | Pin rendering, colors |
-| F001 | `F001-map-view-pin-clustering.spec.ts` | Cluster behavior |
-| F001 | `F001-map-view-search.spec.ts` | Search by category/location |
-| F002 | `F002-business-detail-card.spec.ts` | Card content, open/close |
-| F003 | `F003-business-registration.spec.ts` | Form submission, validation |
-| F003 | `F003-registration-auth.spec.ts` | Auth gating for registration |
-| F004 | `F004-shareable-listing.spec.ts` | SSR page, OG tags |
-| F005 | `F005-support-button.spec.ts` | Heart toggle |
-| F005 | `F005-report-concern.spec.ts` | Report form |
+| F030 | `features/F030-newcomer-signs-up-and-lands-in-feed.spec.ts` | Locality-defaulted feed, signup, empty-state widen |
+| F032 | `features/F032-viewer-finds-member-page-and-follows.spec.ts` | Member page read, follow routing through sign-in |
+| F033 | `features/F033-viewer-finds-venue-page.spec.ts` | Anonymous venue page read |
+| F034 | `features/F034-member-hosts-recurring-gathering.spec.ts` | Recurring gathering Item page, Group and Member-hosted paths |
+| F035 | `features/F035-rosa-finds-mayas-shop.spec.ts` | Shop page header, "Claimed local owner" badge |
+| F036 | `features/F036-member-creates-business-group-via-sell-walkthrough.spec.ts` | Sell CTA on `/you`, Group + founder membership in one transaction |
+| F037 | `features/F037-maya-claims-locally-owned.spec.ts` | Locally-owned jurisdiction claim |
+| F038 | `features/F038-producer-lists-product.spec.ts` | Product Item page, Group attribution, pickup |
+| F040 | `features/F040-producer-lists-service.spec.ts` | Service Item page, brand resolve-up, service area, rate |
+| F041 | `features/F041-producer-generates-qr-card.spec.ts` | QR card affordance, owner-only gating |
+| F042 | `features/F042-member-follows-producer-group-venue.spec.ts` | Following summary on `/you`, full list at `/you/following` |
+
+### Substrate floor
+
+`phase-0/floor.spec.ts` and the thirteen `phase-1/*.spec.ts` specs assert the schema
+floor — places, items, groups, locations, members, follows, saved searches,
+agent-assistance, place routing, reverse geocode, and the `discoverable_items`
+materialized view. They gate every migration; run them with the feature specs.
