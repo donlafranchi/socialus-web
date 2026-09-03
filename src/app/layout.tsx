@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { MarketProvider } from "@/components/MarketContext"
+import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,9 +28,11 @@ export default function RootLayout({
     >
       <body className="h-full font-sans">
         <MarketProvider>
-          <TopNavDesktop />
-          {children}
-          <BottomNav />
+          <NavVisibilityProvider>
+            <TopNavDesktop />
+            {children}
+            <BottomNav />
+          </NavVisibilityProvider>
         </MarketProvider>
       </body>
     </html>

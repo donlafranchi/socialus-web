@@ -5,6 +5,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BottomNav } from './BottomNav'
+import { NavVisibilityContext } from './NavVisibilityProvider'
 
 const pathname = { current: '/' }
 vi.mock('next/navigation', () => ({
@@ -122,5 +123,65 @@ describe('BottomNav — thesis §2 visual spec', () => {
     screen.getByRole('link', { name: 'Home' }).click()
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     vi.unstubAllGlobals()
+  })
+})
+
+// T113 — scroll-to-hide behavior. Trace: scenario F046.
+describe('BottomNav — scroll-to-hide', () => {
+  const renderWithVisibility = (visible: boolean) =>
+    render(
+      <NavVisibilityContext.Provider value={visible}>
+        <BottomNav />
+      </NavVisibilityContext.Provider>,
+    )
+
+  it('sits at rest on screen when the nav is visible', () => {
+    renderWithVisibility(true)
+    const nav = screen.getByTestId('bottom-nav')
+    expect(nav.className).toContain('translate-y-0')
+    expect(nav.className).not.toContain('translate-y-full')
+    expect(nav).toHaveAttribute('data-nav-visible', 'true')
+  })
+
+  it('slides fully off-screen when the nav is hidden', () => {
+    renderWithVisibility(false)
+    const nav = screen.getByTestId('bottom-nav')
+    expect(nav.className).toContain('translate-y-full')
+    expect(nav).toHaveAttribute('data-nav-visible', 'false')
+  })
+
+  it('is visible by default with no provider — no flash of hidden nav on load', () => {
+    render(<BottomNav />)
+    expect(screen.getByTestId('bottom-nav')).toHaveAttribute('data-nav-visible', 'true')
+  })
+
+  it('transitions the transform over ~200ms ease-out', () => {
+    renderWithVisibility(true)
+    const cls = screen.getByTestId('bottom-nav').className
+    expect(cls).toContain('transition-transform')
+    expect(cls).toContain('duration-200')
+    expect(cls).toContain('ease-out')
+  })
+
+  it('drops the animation under prefers-reduced-motion', () => {
+    renderWithVisibility(true)
+    expect(screen.getByTestId('bottom-nav').className).toContain('motion-reduce:transition-none')
+  })
+
+  it('stays out of the document flow so content never jumps', () => {
+    renderWithVisibility(false)
+    const cls = screen.getByTestId('bottom-nav').className
+    expect(cls).toContain('fixed')
+    expect(cls).toContain('bottom-0')
+  })
+
+  it('does not translate at the desktop breakpoint', () => {
+    renderWithVisibility(false)
+    expect(screen.getByTestId('bottom-nav').className).toContain('md:translate-y-0')
+  })
+
+  it('returns to screen when a nav link takes keyboard focus', () => {
+    renderWithVisibility(false)
+    expect(screen.getByTestId('bottom-nav').className).toContain('focus-within:translate-y-0')
   })
 })
