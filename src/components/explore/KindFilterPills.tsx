@@ -83,7 +83,10 @@ export function KindFilterPills({ selected, onSelect }: KindFilterPillsProps) {
             onClick={() => onSelect(k.value)}
             // The 32px pill is centred in the 44px row; ::before grows the hit
             // area to the full row height without changing what's drawn.
-            className={`relative inline-flex h-8 shrink-0 items-center rounded-full px-4 text-sm font-medium transition-colors before:absolute before:inset-x-0 before:-top-1.5 before:-bottom-1.5 before:content-[''] ${
+            // Ring colour set unconditionally (T116) — the UA default is
+            // `currentColor`, which on the selected pill is white, drawn
+            // against the white row. See ListMapToggle for the full note.
+            className={`relative inline-flex h-8 shrink-0 items-center rounded-full px-4 text-sm font-medium transition-colors before:absolute before:inset-x-0 before:-top-1.5 before:-bottom-1.5 before:content-[''] outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
               isSelected
                 ? 'border border-transparent bg-[var(--color-charcoal-700)] text-white'
                 : 'border border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'

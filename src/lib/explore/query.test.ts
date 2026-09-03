@@ -18,13 +18,13 @@ describe('exploreQueryString', () => {
   })
 
   it('composes kind with the secondary filters', () => {
-    expect(
-      exploreQueryString({ q: 'honey', kind: 'product', categories: ['food'], view: 'map' }),
-    ).toBe('q=honey&kind=product&category=food&view=map')
+    expect(exploreQueryString({ q: 'honey', kind: 'product', categories: ['food'] })).toBe(
+      'q=honey&kind=product&category=food',
+    )
   })
 
-  it('leaves the list view implicit', () => {
-    expect(exploreQueryString({ view: 'list' })).toBe('')
+  it('never carries the list/map view — F044 makes it ephemeral session state', () => {
+    expect(exploreQueryString({ kind: 'product' })).not.toContain('view')
   })
 
   it('writes every secondary filter the bottom sheet can set', () => {

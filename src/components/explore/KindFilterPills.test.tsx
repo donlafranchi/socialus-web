@@ -143,3 +143,12 @@ describe('KindFilterPills', () => {
     expect(screen.getByRole('tab', { name: 'All' })).toHaveAttribute('id', 'kind-tab-all')
   })
 })
+
+describe('T116 — the selected pill gets a visible focus ring', () => {
+  it('sets an explicit ring colour rather than inheriting the white label colour', () => {
+    render(<KindFilterPills selected={null} onSelect={vi.fn()} />)
+    for (const tab of screen.getAllByRole('tab')) {
+      expect(tab.className).toContain('outline-[var(--color-accent)]')
+    }
+  })
+})
