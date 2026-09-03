@@ -33,12 +33,20 @@ Settings > API:
 
 ### Database Schema
 
-Run the SQL scripts from `web/scripts/` in order in the Supabase SQL Editor:
+The schema is the migration set in `web/supabase/migrations/`, applied in numeric
+order. Do not hand-run SQL in the dashboard editor.
 
-1. `001-create-tables.sql` — creates all tables, RLS policies, and indexes
-2. `seed-folsom-coffee.sql` — populates 22 coffee shops in Folsom, CA for testing
+```bash
+cd web
+supabase link --project-ref <project-ref>   # once, for a remote project
+supabase db push                            # applies migrations in order
+```
 
-Or see `web/scripts/001-create-tables.sql` for the full schema.
+Locally, `supabase start` (or `supabase db reset`) applies the same set.
+
+> ⚠️ **Do not run anything in `web/scripts/*.sql`.** Those are pre-rebuild artifacts.
+> `001-create-tables.sql` opens with `drop table … cascade` and then builds a schema
+> that contradicts the current model. It is scheduled for deletion.
 
 ### Showcase data — "The Good Place"
 
@@ -67,16 +75,8 @@ commented out at the bottom of the file.
 
 - [ ] Enable email confirmation (Authentication > Settings)
 - [ ] Set up rate limiting (Database > Extensions > enable `pg_rate_limiter`)
-- [ ] Add database indexes:
-
-```sql
-create index idx_businesses_location on businesses using gist (
-  point(lng, lat)
-);
-create index idx_businesses_category on businesses (category);
-create index idx_businesses_ownership on businesses (ownership_type);
-create index idx_supports_business on supports (business_id);
-```
+- [ ] Confirm the migration set applied cleanly (`supabase migration list`) — indexes
+      ship with their migrations; there are none to add by hand.
 
 ---
 
