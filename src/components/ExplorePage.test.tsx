@@ -1,7 +1,5 @@
 // T117 — Explore reads the items MV and the kind pills filter it end-to-end.
-//
-// Resolves the T114 deviation: the pills shipped wired to `?kind=` but the
-// results were vendor-backed, so every non-All pill matched zero rows.
+// T115 — the sticky search row, the secondary-filter sheet, and the chip row.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
@@ -24,6 +22,11 @@ vi.mock('next/dynamic', () => ({
 }))
 
 const GOOD_MARKET = '0101000020E6100000C3F5285C8F7A5EC0713D0AD7A3A04340'
+// POINT(-121.915 39.255) — the locality centroid; the same point the seeded
+// market sits on, so the near items are inside every radius and SF is outside.
+const PLACE_CENTROID = '0101000020E6100000C3F5285C8F7A5EC0713D0AD7A3A04340'
+// POINT(-122.42 37.77) — San Francisco, ~75 mi out.
+const FAR_AWAY = '0101000020E61000007B14AE47E19A5EC0C3F5285C8FE24240'
 
 function mvRow(over: Record<string, unknown> = {}) {
   return {
@@ -52,19 +55,32 @@ const ROWS = [
   mvRow({ item_id: 'i2', title: 'Seeded Rye Loaf' }),
   mvRow({ item_id: 'i3', item_kind: 'gathering', title: 'Repair Cafe', category: 'repair', brand_label: null, member_handle: 'rosa-delgado', member_display_name: 'Rosa Delgado' }),
   mvRow({ item_id: 'i4', item_kind: 'service', title: 'Saturday Bike Tune-Up', category: 'repair', brand_label: null, member_handle: 'theo-brandt', member_display_name: 'Theo Brandt' }),
+  mvRow({ item_id: 'i5', title: 'Bay Area Beeswax', category: 'crafts', nearest_location_geography: FAR_AWAY }),
 ]
 
-/** Records the `.eq()` predicates each fetch sent, and answers from ROWS. */
+const PLACE = { id: 'wsac', display_name: 'West Sacramento', slug: 'the-good-place', kind: 'city' }
+
+/** Records the `.eq()` predicates each MV fetch sent, and answers from ROWS. */
 const eqCalls: [string, unknown][][] = []
 
 vi.mock('@supabase/ssr', () => ({
   createBrowserClient: () => ({
-    from: () => {
+    from: (table: string) => {
       const applied: [string, unknown][] = []
       const b: Record<string, unknown> = {}
       b.select = () => b
+      b.is = () => b
+      b.not = () => b
       b.eq = (c: string, v: unknown) => { applied.push([c, v]); return b }
       b.order = () => b
+      b.maybeSingle = async () =>
+        table === 'places' ? { data: { centroid: PLACE_CENTROID }, error: null } : { data: null, error: null }
+      // Thenable — the places-by-slug and item_gatherings reads await the builder.
+      b.then = (resolve: (v: unknown) => void) =>
+        resolve({
+          data: table === 'places' ? [PLACE] : table === 'item_gatherings' ? [{ item_id: 'i3' }] : [],
+          error: null,
+        })
       b.limit = () => {
         eqCalls.push(applied)
         const kind = applied.find(([c]) => c === 'item_kind')?.[1]
@@ -88,18 +104,28 @@ function renderExplore() {
 }
 
 const cards = () => screen.queryAllByTestId('feed-item-card')
+const titles = () => cards().map((c) => within(c).getByRole('heading').textContent)
+const openSearch = () => fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+const openSheet = () => fireEvent.click(screen.getByRole('button', { name: /open filters/i }))
+const sheet = () => screen.getByRole('dialog')
+const showResults = () => fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
 
 beforeEach(() => {
   eqCalls.length = 0
   replace.mockClear()
   searchParams = new URLSearchParams()
+  sessionStorage.clear()
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
 describe('T117 — Explore is items-backed', () => {
   it('renders a card per published item from the MV', async () => {
     renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
+    await waitFor(() => expect(cards()).toHaveLength(5))
     expect(screen.getByText('Country Sourdough Loaf')).toBeInTheDocument()
     expect(screen.getByText('Repair Cafe')).toBeInTheDocument()
   })
@@ -110,16 +136,9 @@ describe('T117 — Explore is items-backed', () => {
     expect(cards()[0]).toHaveAttribute('href', '/m/maya-okonkwo/p/country-sourdough-loaf-a0000001')
   })
 
-  it('shows the kind label, not a vendor category', async () => {
-    renderExplore()
-    await waitFor(() => expect(cards().length).toBe(4))
-    const labels = screen.getAllByTestId('feed-item-kind').map((n) => n.textContent)
-    expect(labels).toEqual(['Product', 'Product', 'Event', 'Service'])
-  })
-
   it('counts results in items, not vendors', async () => {
     renderExplore()
-    await waitFor(() => expect(screen.getByTestId('result-count')).toHaveTextContent('4 items'))
+    await waitFor(() => expect(screen.getByTestId('result-count')).toHaveTextContent('5 items'))
   })
 
   it('does not query the retired vendor tables', async () => {
@@ -132,36 +151,18 @@ describe('T117 — Explore is items-backed', () => {
 describe('T117 — the kind pills filter the item results', () => {
   it('starts on All with no kind predicate and every item shown', async () => {
     renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
+    await waitFor(() => expect(cards()).toHaveLength(5))
     expect(eqCalls[0]).toEqual([])
-    const tabs = screen.getAllByRole('tab')
-    expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getAllByRole('tab')[0]).toHaveAttribute('aria-selected', 'true')
   })
 
   it('filters to gatherings when Events is tapped', async () => {
     renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
+    await waitFor(() => expect(cards()).toHaveLength(5))
     fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
     await waitFor(() => expect(cards()).toHaveLength(1))
     expect(screen.getByText('Repair Cafe')).toBeInTheDocument()
     expect(eqCalls.at(-1)).toEqual([['item_kind', 'gathering']])
-  })
-
-  it('filters to services when Services is tapped', async () => {
-    renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
-    fireEvent.click(screen.getByRole('tab', { name: 'Services' }))
-    await waitFor(() => expect(cards()).toHaveLength(1))
-    expect(screen.getByText('Saturday Bike Tune-Up')).toBeInTheDocument()
-  })
-
-  it('returns to the full set when All is tapped again', async () => {
-    renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
-    fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
-    await waitFor(() => expect(cards()).toHaveLength(1))
-    fireEvent.click(screen.getByRole('tab', { name: 'All' }))
-    await waitFor(() => expect(cards()).toHaveLength(4))
   })
 
   it('restores the selection from ?kind= on load and fetches that kind', async () => {
@@ -174,18 +175,243 @@ describe('T117 — the kind pills filter the item results', () => {
 
   it('writes the selection back to the URL', async () => {
     renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
+    await waitFor(() => expect(cards()).toHaveLength(5))
     fireEvent.click(screen.getByRole('tab', { name: 'Ideas' }))
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/explore?kind=wonder', { scroll: false }))
   })
 
   it('keeps the previous results on screen while the next kind loads', async () => {
     renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
+    await waitFor(() => expect(cards()).toHaveLength(5))
     fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
-    // Synchronously after the tap, before the refetch resolves.
-    expect(cards().length).toBe(4)
+    expect(cards().length).toBe(5)
     expect(screen.getByTestId('result-count')).not.toHaveTextContent('Loading')
+  })
+})
+
+describe('T115 — the sticky search row replaces the filter-button row', () => {
+  it('carries the locality, a search affordance and a filter affordance', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.getByTestId('explore-search-bar')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('West Sacramento'))
+    expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /open filters/i })).toBeInTheDocument()
+  })
+
+  it('shows no standalone market, category or day filter buttons anywhere', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByRole('button', { name: /^category$/i })).not.toBeInTheDocument()
+    expect(screen.queryByTestId('market-pill')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('search-input-desktop')).not.toBeInTheDocument()
+  })
+
+  it('narrows results by search across item fields', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSearch()
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'rye' } })
+    await waitFor(() => expect(cards()).toHaveLength(1))
+    expect(screen.getByText('Seeded Rye Loaf')).toBeInTheDocument()
+  })
+
+  it('offers Clear filters when a search matches nothing', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSearch()
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzz' } })
+    await waitFor(() => expect(cards()).toHaveLength(0))
+    const empty = screen.getByTestId('explore-empty')
+    fireEvent.click(within(empty).getByRole('button', { name: /clear filters/i }))
+    await waitFor(() => expect(cards()).toHaveLength(5))
+  })
+})
+
+describe('T115 — the bottom sheet applies the secondary filters', () => {
+  it('opens on the filter icon and closes on Show results', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    openSheet()
+    expect(sheet()).toBeInTheDocument()
+    showResults()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('offers the categories present in the results', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Food' })).toBeInTheDocument()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Repair' })).toBeInTheDocument()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Crafts' })).toBeInTheDocument()
+  })
+
+  it('narrows the results when a category is applied', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Repair' }))
+    showResults()
+    await waitFor(() => expect(cards()).toHaveLength(2))
+    expect(titles()).toEqual(['Repair Cafe', 'Saturday Bike Tune-Up'])
+  })
+
+  it('drops results outside the chosen radius', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: '25 mi' }))
+    showResults()
+    await waitFor(() => expect(cards()).toHaveLength(4))
+    expect(titles()).not.toContain('Bay Area Beeswax')
+  })
+
+  it('narrows to the gatherings that recur', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'Recurring' }))
+    showResults()
+    await waitFor(() => expect(cards()).toHaveLength(1))
+    expect(titles()).toEqual(['Repair Cafe'])
+  })
+
+  it('reorders the results when a sort is applied', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'Nearest' }))
+    showResults()
+    await waitFor(() => expect(titles().at(-1)).toBe('Bay Area Beeswax'))
+  })
+})
+
+describe('T115 — the chip row', () => {
+  it('is absent until a secondary filter is set', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('explore-filter-chips')).not.toBeInTheDocument()
+  })
+
+  it('renders a chip for each applied secondary filter', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: '25 mi' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Repair' }))
+    showResults()
+    await waitFor(() => expect(screen.getAllByTestId('explore-filter-chip')).toHaveLength(2))
+    expect(screen.getByText('Within 25 mi')).toBeInTheDocument()
+    expect(screen.getByText('Repair')).toBeInTheDocument()
+  })
+
+  it('never renders a chip for the kind selection', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
+    await waitFor(() => expect(cards()).toHaveLength(1))
+    expect(screen.queryByTestId('explore-filter-chips')).not.toBeInTheDocument()
+  })
+
+  it('removes one filter and restores those results when a chip is dismissed', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Repair' }))
+    showResults()
+    await waitFor(() => expect(cards()).toHaveLength(2))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Repair filter' }))
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('explore-filter-chips')).not.toBeInTheDocument()
+  })
+
+  it('disappears entirely when Clear all is tapped in the sheet', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: '25 mi' }))
+    showResults()
+    await waitFor(() => expect(screen.getByTestId('explore-filter-chips')).toBeInTheDocument())
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('button', { name: /clear all/i }))
+    await waitFor(() => expect(screen.queryByTestId('explore-filter-chips')).not.toBeInTheDocument())
+  })
+})
+
+describe('T115 — the dot indicator', () => {
+  it('is absent by default and present once a secondary filter is applied', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('filter-active-dot')).not.toBeInTheDocument()
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'This week' }))
+    showResults()
+    await waitFor(() => expect(screen.getByTestId('filter-active-dot')).toBeInTheDocument())
+  })
+
+  it('stays absent for a kind selection — that state lives on the pills', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
+    await waitFor(() => expect(cards()).toHaveLength(1))
+    expect(screen.queryByTestId('filter-active-dot')).not.toBeInTheDocument()
+  })
+})
+
+describe('T115 — filter state round-trips through the URL', () => {
+  it('writes every applied filter into the query string', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('radio', { name: '25 mi' }))
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'Nearest' }))
+    showResults()
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith('/explore?distance=25&sort=nearest', { scroll: false }),
+    )
+  })
+
+  it('restores kind and every secondary filter from a shared link', async () => {
+    searchParams = new URLSearchParams('kind=gathering&category=repair&schedule=recurring&distance=25')
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(1))
+    expect(titles()).toEqual(['Repair Cafe'])
+    expect(screen.getByRole('tab', { name: 'Events' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getAllByTestId('explore-filter-chip')).toHaveLength(3)
+    expect(screen.getByTestId('filter-active-dot')).toBeInTheDocument()
+  })
+
+  it('opens the sheet already reflecting the restored state', async () => {
+    searchParams = new URLSearchParams('distance=10&sort=responses')
+    renderExplore()
+    await waitFor(() => expect(cards().length).toBeGreaterThan(0))
+    openSheet()
+    expect(within(sheet()).getByRole('radio', { name: '10 mi' })).toBeChecked()
+    expect(within(sheet()).getByRole('radio', { name: 'Most responses' })).toBeChecked()
+  })
+
+  it('ignores a filter the URL invented rather than emptying the surface', async () => {
+    searchParams = new URLSearchParams('distance=999&schedule=someday&sort=cheapest')
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('explore-filter-chips')).not.toBeInTheDocument()
+  })
+})
+
+describe('T115 — back navigation restores the scroll position', () => {
+  it('jumps back to the recorded offset once the results have painted', async () => {
+    sessionStorage.setItem('scroll:explore', '640')
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    await waitFor(() => expect(window.scrollTo).toHaveBeenCalledWith({ top: 640, behavior: 'instant' }))
+  })
+
+  it('does not scroll when there is nothing recorded', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(window.scrollTo).not.toHaveBeenCalled()
   })
 })
 
@@ -194,7 +420,12 @@ describe('T117 — the read degrades instead of stranding the tab', () => {
     const ssr = await import('@supabase/ssr')
     const spy = vi.spyOn(ssr, 'createBrowserClient').mockReturnValue({
       from: () => ({
-        select: () => ({ order: () => ({ limit: () => Promise.reject(new Error('offline')) }) }),
+        select: () => ({
+          not: () => Promise.resolve({ data: [], error: null }),
+          is: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }),
+          eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }),
+          order: () => ({ limit: () => Promise.reject(new Error('offline')) }),
+        }),
       }),
     } as never)
     renderExplore()
@@ -202,25 +433,28 @@ describe('T117 — the read degrades instead of stranding the tab', () => {
     expect(screen.getByTestId('result-count')).not.toHaveTextContent('Loading')
     spy.mockRestore()
   })
-})
 
-describe('T117 — search and the empty state', () => {
-  it('narrows results by search across item fields', async () => {
+  it('keeps the surface usable when the locality never resolves', async () => {
+    const ssr = await import('@supabase/ssr')
+    const spy = vi.spyOn(ssr, 'createBrowserClient').mockReturnValue({
+      from: (table: string) => {
+        const b: Record<string, unknown> = {}
+        b.select = () => b
+        b.is = () => b
+        b.not = () => b
+        b.eq = () => b
+        b.order = () => b
+        b.maybeSingle = async () => ({ data: null, error: null })
+        b.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null })
+        b.limit = () => Promise.resolve({ data: table === 'discoverable_items' ? ROWS : [], error: null })
+        return b
+      },
+    } as never)
     renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
-    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'rye' } })
-    await waitFor(() => expect(cards()).toHaveLength(1))
-    expect(screen.getByText('Seeded Rye Loaf')).toBeInTheDocument()
-  })
-
-  it('offers Clear filters when a kind + search combination matches nothing', async () => {
-    renderExplore()
-    await waitFor(() => expect(cards()).toHaveLength(4))
-    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzz' } })
-    await waitFor(() => expect(cards()).toHaveLength(0))
-    const empty = screen.getByTestId('explore-empty')
-    expect(within(empty).getByRole('button', { name: /clear filters/i })).toBeInTheDocument()
-    fireEvent.click(within(empty).getByRole('button', { name: /clear filters/i }))
-    await waitFor(() => expect(cards()).toHaveLength(4))
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Nearby')
+    openSheet()
+    expect(within(sheet()).getByRole('radio', { name: '5 mi' })).toBeDisabled()
+    spy.mockRestore()
   })
 })

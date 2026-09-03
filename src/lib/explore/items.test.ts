@@ -7,6 +7,7 @@ import {
   fetchExploreItems,
   searchExploreItems,
   exploreCategoryOptions,
+  fetchRecurringGatheringIds,
   type ExploreItem,
 } from './items'
 
@@ -169,5 +170,40 @@ describe('T117 — exploreCategoryOptions', () => {
 
   it('is empty for an empty result set', () => {
     expect(exploreCategoryOptions([])).toEqual([])
+  })
+})
+
+describe('T115 — fetchRecurringGatheringIds', () => {
+  function client(rows: unknown, error: unknown = null) {
+    return {
+      from: (table: string) => {
+        expect(table).toBe('item_gatherings')
+        const b: Record<string, unknown> = {}
+        b.select = () => b
+        b.not = () => b
+        b.then = (resolve: (v: unknown) => void) => resolve({ data: rows, error })
+        return b
+      },
+    }
+  }
+
+  it('collects the ids of gatherings that carry a recurrence rule', async () => {
+    const out = await fetchRecurringGatheringIds(
+      client([{ item_id: 'a' }, { item_id: 'b' }]) as never,
+    )
+    expect([...out].sort()).toEqual(['a', 'b'])
+  })
+
+  it('yields an empty set on a read error rather than throwing', async () => {
+    expect((await fetchRecurringGatheringIds(client(null, { message: 'nope' }) as never)).size).toBe(0)
+  })
+
+  it('yields an empty set when the read rejects', async () => {
+    const throwing = {
+      from: () => {
+        throw new Error('offline')
+      },
+    }
+    expect((await fetchRecurringGatheringIds(throwing as never)).size).toBe(0)
   })
 })
