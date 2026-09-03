@@ -28,26 +28,27 @@ export function BottomNav() {
   return (
     <nav
       data-testid="bottom-nav"
-      className="fixed bottom-0 inset-x-0 z-40 border-t border-neutral-200 bg-white md:hidden"
+      aria-label="Primary"
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-[var(--color-nav-border)] bg-white md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="mx-auto flex h-16 w-full max-w-[420px] items-stretch justify-around">
+      <ul className="mx-auto flex h-11 w-full max-w-[420px] items-stretch justify-around">
         {TABS.map((t) => {
           const active = t.match(pathname ?? '/')
           const Icon = t.icon
           return (
-            <li key={t.href} className="flex flex-1 items-center">
+            <li key={t.href} className="flex flex-1 items-stretch">
               <Link
                 href={t.href}
                 onClick={handleClick(t.href, active)}
                 data-active={active ? 'true' : 'false'}
                 aria-current={active ? 'page' : undefined}
-                className={`flex w-full flex-col items-center justify-center gap-0.5 px-3 text-[11px] ${
-                  active ? 'text-[var(--color-accent)]' : 'text-neutral-500'
+                className={`flex h-full w-full flex-col items-center justify-center gap-[3px] px-3 text-[9px] font-medium ${
+                  active ? 'text-[var(--color-charcoal)]' : 'text-[var(--color-nav-inactive)]'
                 }`}
               >
-                <Icon size={20} strokeWidth={active ? 2.25 : 1.75} />
-                <span className={active ? 'font-medium' : ''}>{t.label}</span>
+                <Icon size={20} strokeWidth={1.5} fill={active ? 'currentColor' : 'none'} />
+                <span>{t.label}</span>
               </Link>
             </li>
           )
@@ -62,6 +63,7 @@ export function TopNavDesktop() {
   return (
     <nav
       data-testid="top-nav-desktop"
+      aria-label="Primary"
       className="hidden md:flex sticky top-0 z-40 w-full items-center gap-6 border-b border-neutral-200 bg-white px-6 h-14"
     >
       <Link href="/" className="font-semibold text-[var(--color-accent)]">
