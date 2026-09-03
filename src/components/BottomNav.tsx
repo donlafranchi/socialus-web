@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Home, Search, User } from 'lucide-react'
 import { AuthCtaButtons } from './AuthCtaButtons'
+import { useNavVisible } from './NavVisibilityProvider'
 
 const TABS = [
   { href: '/', label: 'Home', icon: Home, match: (p: string) => p === '/' },
@@ -14,6 +15,7 @@ const TABS = [
 export function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
+  const navVisible = useNavVisible()
 
   const handleClick = (href: string, isActive: boolean) => (e: React.MouseEvent) => {
     if (isActive) {
@@ -29,7 +31,10 @@ export function BottomNav() {
     <nav
       data-testid="bottom-nav"
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-40 border-t border-[var(--color-nav-border)] bg-white md:hidden"
+      data-nav-visible={navVisible ? 'true' : 'false'}
+      className={`fixed bottom-0 inset-x-0 z-40 border-t border-[var(--color-nav-border)] bg-white transition-transform duration-200 ease-out will-change-transform focus-within:translate-y-0 motion-reduce:transition-none md:hidden md:translate-y-0 ${
+        navVisible ? 'translate-y-0' : 'translate-y-full'
+      }`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="mx-auto flex h-11 w-full max-w-[420px] items-stretch justify-around">
