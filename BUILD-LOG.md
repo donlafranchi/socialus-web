@@ -13,10 +13,11 @@ Development agent's build progress tracker. Use JOURNAL.md for product/strategy 
 **Target:** b1 MVP — Producer Marketplace
 **Bundle:** [planning/now/bundle-1.md](../planning/now/bundle-1.md)
 
-**This week:** [2026-W32](build-log/2026-W32.md)
+**This week:** [2026-W36](build-log/2026-W36.md)
 
 ## History
 
 | Week | Notes |
 |------|-------|
+| 2026-W32 | [Week 32](build-log/2026-W32.md) — rotation policy introduced, no tickets |
 | pre-rotation | [Full archive](build-log/archive-pre-rotation.md) — all entries through 2026-06-18 |

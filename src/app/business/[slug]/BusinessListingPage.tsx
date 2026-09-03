@@ -190,7 +190,7 @@ export function BusinessListingPage({ business }: BusinessListingPageProps) {
       {/* Sticky mobile primary CTA */}
       <div
         className="md:hidden fixed inset-x-0 z-30 bg-white border-t border-neutral-200 px-4 py-3"
-        style={{ bottom: 'calc(64px + env(safe-area-inset-bottom))' }}
+        style={{ bottom: 'calc(var(--nav-height) + env(safe-area-inset-bottom))' }}
         data-testid="sticky-mobile-cta"
       >
         {user ? (

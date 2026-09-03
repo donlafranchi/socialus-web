@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #1a1a1a;
+  /* Bottom-nav bar height (thesis §2). Sticky elements clear it via calc().
+     Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys. */
+  --nav-height: 44px;
 }
 
 @theme inline {
@@ -14,6 +17,11 @@
   --color-fg: #1a1a1a;
   --color-fg-muted: #6b6b6b;
   --color-border: #e5e3dd;
+
+  /* Charcoal anchor — thesis §2/§3. Structural weight; never a CTA fill. */
+  --color-charcoal: #3c3c3c;
+  --color-nav-inactive: #717171;
+  --color-nav-border: #ebebeb;
 
   /* Single brand accent — Tide */
   --color-accent: #0fab8e;
