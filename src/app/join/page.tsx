@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import QRCode from 'qrcode'
 import { createBrowserClient } from '@supabase/ssr'
 
 function supabase() {
@@ -12,21 +11,32 @@ function supabase() {
   )
 }
 
+// INTERIM TARGET — the seller entry point is `/you` until the You rebuild lands.
+// `/register-vendor` is being retired with the vendor/market sweep. `/you` is the
+// ratified producer/organizing surface, and its SellCta already handles all three
+// routing branches (no shop → walkthrough, draft → resume, active shop → /you/sell).
+// Anonymous visitors go through the magic-link flow first: /you renders an empty
+// signed-out shell and SellCta hides without a memberId, so landing a stranger
+// there directly would show them nothing. Revisit when /you is rebuilt.
+const SELLER_ENTRY = '/you'
+const SELLER_ENTRY_SIGNED_OUT = `/auth/login?next=${encodeURIComponent(SELLER_ENTRY)}`
+
 export default function JoinPage() {
   const [url, setUrl] = useState('')
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [authed, setAuthed] = useState<boolean | null>(null)
 
+  // Share the pitch page itself, not the signup form — the recipient is not yet
+  // a Member and needs the explanation before the form.
   useEffect(() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const target = `${origin}/register-vendor`
-    setUrl(target)
-    QRCode.toDataURL(target, { width: 600, margin: 2, color: { dark: '#064e3b' } }).then(setQrDataUrl)
+    setUrl(`${origin}/join`)
 
     const client = supabase()
     client.auth.getUser().then(({ data }) => setAuthed(!!data.user))
   }, [])
+
+  const primaryHref = authed ? SELLER_ENTRY : SELLER_ENTRY_SIGNED_OUT
 
   async function copy() {
     if (!url) return
@@ -50,14 +60,14 @@ export default function JoinPage() {
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/register-vendor"
+            href={primaryHref}
             className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)] shadow-sm"
           >
             {authed ? 'List my booth →' : 'Sign up as a vendor →'}
           </Link>
           {!authed && (
             <Link
-              href="/auth/login?next=/register-vendor"
+              href={SELLER_ENTRY_SIGNED_OUT}
               className="inline-flex items-center justify-center rounded-full border border-neutral-300 bg-white px-6 py-3 text-base font-semibold text-neutral-800 hover:bg-neutral-50"
             >
               Already a member? Log in
@@ -108,7 +118,7 @@ export default function JoinPage() {
 
         <div className="mt-8 text-center">
           <Link
-            href="/register-vendor"
+            href={primaryHref}
             className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)]"
           >
             {authed ? 'List my booth →' : 'Start my listing →'}
@@ -121,16 +131,10 @@ export default function JoinPage() {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-semibold text-neutral-900">Share with another vendor</h2>
           <p className="mt-2 text-neutral-700">
-            Know someone at the market who should be on here? Send them this link or let them scan the code.
+            Know someone at the market who should be on here? Send them this link.
           </p>
 
           <div className="mt-6 flex flex-col items-center gap-4">
-            {qrDataUrl ? (
-              <img src={qrDataUrl} alt="Scan to sign up as a vendor" className="w-56 h-56" />
-            ) : (
-              <div className="w-56 h-56 bg-neutral-100 animate-pulse rounded-lg" />
-            )}
-
             <a href={url || '#'} className="text-sm text-[var(--color-accent)] underline break-all max-w-full">
               {url || 'Loading…'}
             </a>

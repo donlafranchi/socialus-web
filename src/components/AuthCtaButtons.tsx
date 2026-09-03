@@ -25,10 +25,9 @@ type SellerStatus = 'unknown' | 'seller' | 'not-seller'
  * showing to every signed-in Member — see
  * planning/backlog/audit-vendor-market-retirement.md § 1.3.
  *
- * NOTE: the CTA still points at /join → /register-vendor, a funnel that is
- * itself being retired. Where it points next is an open PM decision (audit
- * § 3.4, blocked on the printed-QR durability question); only the audience
- * bug is fixed here.
+ * The CTA points at /join, which now routes to /you (the ratified producer
+ * surface) rather than the retired /register-vendor. /join's target is marked
+ * interim there — revisit both when the You rebuild lands.
  */
 export function AuthCtaButtons({
   variant = 'default',
