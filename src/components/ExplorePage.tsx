@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { MapIcon, List } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
-import { useNavVisible } from './NavVisibilityProvider'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { ItemFeedCard } from './feed/ItemFeedCard'
 import { KindFilterPills, EXPLORE_RESULTS_ID, KIND_PILL_ROW_HEIGHT } from './explore/KindFilterPills'
 import { ExploreSearchBar } from './explore/ExploreSearchBar'
+import { ListMapToggle, type ExploreView } from './explore/ListMapToggle'
 import { ExploreFilterSheet } from './explore/ExploreFilterSheet'
 import { ActiveFilterChips } from './explore/ActiveFilterChips'
 import { parseKindParam, kindTabId } from '@/lib/explore/kinds'
@@ -33,11 +32,10 @@ import {
 
 const ExploreMap = dynamic(() => import('./ExploreMap').then((m) => m.ExploreMap), { ssr: false })
 
-/** Height of the fixed mobile view-toggle row — a 44px touch target plus the
- *  8px band above and below it and the 1px hairline. `main` reserves this much
- *  so the last card clears it. T116 takes the row inline, and the reservation
- *  goes with it. */
-const MOBILE_CONTROLS_HEIGHT = 61
+/** Cards to show before the inline toggle interrupts the grid (F044: "after
+ *  cards 3-5"). Four completes a row at both 2 and 4 columns, so the toggle
+ *  never lands beside a half-empty row. */
+const TOGGLE_AFTER_CARDS = 4
 
 const NO_RECURRING: ReadonlySet<string> = new Set()
 
@@ -51,11 +49,12 @@ function supabase() {
 export function ExplorePage() {
   const router = useRouter()
   const params = useSearchParams()
-  const navVisible = useNavVisible()
 
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [kindFilter, setKindFilter] = useState(() => parseKindParam(params.get('kind')))
-  const [view, setView] = useState<'list' | 'map'>((params.get('view') as 'list' | 'map') ?? 'list')
+  // Ephemeral per F044 § Out of Scope — not in the URL, resets to List on the
+  // next visit. Persisting the preference across sessions is b2.
+  const [view, setView] = useState<ExploreView>('list')
   const [secondary, setSecondary] = useState(() => parseSecondaryFilters(params))
   const [sheetOpen, setSheetOpen] = useState(false)
 
@@ -98,10 +97,9 @@ export function ExplorePage() {
       distance: secondary.distance,
       schedule: secondary.schedule,
       sort: secondary.sort,
-      view,
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [query, kindFilter, secondary, view, router])
+  }, [query, kindFilter, secondary, router])
 
   const originPoint = origin?.point ?? null
 
@@ -125,16 +123,11 @@ export function ExplorePage() {
     setSecondary(DEFAULT_SECONDARY)
   }
 
-  // The bottom stack is nav + kind pills + the mobile view-toggle row.
+  // The bottom stack is nav + kind pills. The view toggle is inline (T116).
   return (
     <main
-      className="pb-[calc(var(--nav-height)+var(--kind-pill-row)+var(--explore-controls)+env(safe-area-inset-bottom))] md:pb-24"
-      style={
-        {
-          '--kind-pill-row': `${KIND_PILL_ROW_HEIGHT}px`,
-          '--explore-controls': `${MOBILE_CONTROLS_HEIGHT}px`,
-        } as React.CSSProperties
-      }
+      className="pb-[calc(var(--nav-height)+var(--kind-pill-row)+env(safe-area-inset-bottom))] md:pb-24"
+      style={{ '--kind-pill-row': `${KIND_PILL_ROW_HEIGHT}px` } as React.CSSProperties}
       data-testid="explore-page"
     >
       <ExploreSearchBar
@@ -153,59 +146,71 @@ export function ExplorePage() {
       />
 
       <div id={EXPLORE_RESULTS_ID} role="tabpanel" aria-labelledby={kindTabId(kindFilter)}>
-        {view === 'list' ? (
-          <section className="px-3 md:px-6 py-4">
-            <p className="text-sm text-neutral-600 mb-3" data-testid="result-count" aria-live="polite">
-              {loaded ? (
-                <>
-                  {filtered.length} item{filtered.length === 1 ? '' : 's'}
-                  {query && <> match &ldquo;{query}&rdquo;</>}
-                </>
+        {/* Keyed on the view so the fade replays on each switch — a 200ms
+            opacity ease, not a navigation. */}
+        <div key={view} data-testid="explore-view-pane" className="explore-fade-in">
+          {view === 'list' ? (
+            <section className="px-3 md:px-6 py-4">
+              <p className="text-sm text-neutral-600 mb-3" data-testid="result-count" aria-live="polite">
+                {loaded ? (
+                  <>
+                    {filtered.length} item{filtered.length === 1 ? '' : 's'}
+                    {query && <> match &ldquo;{query}&rdquo;</>}
+                  </>
+                ) : (
+                  'Loading…'
+                )}
+              </p>
+              {filtered.length === 0 && loaded ? (
+                <div className="text-center py-12 text-sm text-neutral-600" data-testid="explore-empty">
+                  <p>Nothing here yet — try another filter.</p>
+                  <button
+                    type="button"
+                    onClick={clearAll}
+                    className="mt-2 text-[var(--color-accent)] underline"
+                  >
+                    Clear filters
+                  </button>
+                </div>
               ) : (
-                'Loading…'
+                <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {filtered.slice(0, TOGGLE_AFTER_CARDS).map((item) => (
+                    <li key={item.itemId}>
+                      <ItemFeedCard item={item} />
+                    </li>
+                  ))}
+                  {/* The toggle interrupts the grid rather than following it, so
+                      it lands where the member is already scrolling. `presentation`
+                      keeps it out of the list's item count. Held back until the
+                      first page lands — rendering it against an empty grid puts
+                      it at the top of the page, then shoves it down four cards
+                      when the results arrive. */}
+                  {loaded && (
+                    <li role="presentation" className="col-span-full">
+                      <ListMapToggle view={view} onChange={setView} />
+                    </li>
+                  )}
+                  {filtered.slice(TOGGLE_AFTER_CARDS).map((item) => (
+                    <li key={item.itemId}>
+                      <ItemFeedCard item={item} />
+                    </li>
+                  ))}
+                </ul>
               )}
-            </p>
-            {filtered.length === 0 && loaded ? (
-              <div className="text-center py-12 text-sm text-neutral-600" data-testid="explore-empty">
-                <p>Nothing here yet — try another filter.</p>
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className="mt-2 text-[var(--color-accent)] underline"
-                >
-                  Clear filters
-                </button>
+              {/* No cards to interrupt — the toggle still renders, because the
+                  map shows the search area even with nothing in it. */}
+              {filtered.length === 0 && loaded && <ListMapToggle view={view} onChange={setView} />}
+            </section>
+          ) : (
+            <section className="px-3 md:px-6 py-4">
+              {/* 70vh leaves the toggle below the map on screen without a
+                  scroll, at every viewport height. */}
+              <div className="h-[70vh] overflow-hidden rounded-xl">
+                <ExploreMap items={filtered} />
               </div>
-            ) : (
-              <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {filtered.map((item) => (
-                  <li key={item.itemId}>
-                    <ItemFeedCard item={item} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : (
-          <section className="h-[calc(100vh-260px)]">
-            <ExploreMap items={filtered} />
-          </section>
-        )}
-      </div>
-
-      {/* View toggle. Fixed above the kind pills on mobile — riding the same
-          nav-height shift so the bottom stack moves as one — and a plain inline
-          row on desktop. T116 takes the mobile half inline too. */}
-      <div
-        className={`fixed inset-x-0 z-30 border-t border-neutral-200 bg-white/95 px-3 py-2 backdrop-blur transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none md:static md:mx-auto md:max-w-5xl md:translate-y-0 md:border-0 md:bg-transparent md:px-6 md:pb-6 md:backdrop-blur-none ${
-          navVisible ? '-translate-y-[var(--nav-height)]' : 'translate-y-0'
-        }`}
-        style={{ bottom: `calc(${KIND_PILL_ROW_HEIGHT}px + env(safe-area-inset-bottom))` }}
-        data-testid="bottom-controls"
-      >
-        <div className="flex gap-2 md:justify-end">
-          <ViewToggleButton icon={<List size={14} />} label="List" active={view === 'list'} onClick={() => setView('list')} />
-          <ViewToggleButton icon={<MapIcon size={14} />} label="Map" active={view === 'map'} onClick={() => setView('map')} />
+              <ListMapToggle view={view} onChange={setView} />
+            </section>
+          )}
         </div>
       </div>
 
@@ -220,28 +225,5 @@ export function ExplorePage() {
         onApply={setSecondary}
       />
     </main>
-  )
-}
-
-interface ViewToggleButtonProps {
-  icon: React.ReactNode
-  label: string
-  active: boolean
-  onClick: () => void
-}
-
-function ViewToggleButton({ icon, label, active, onClick }: ViewToggleButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      data-active={active}
-      aria-pressed={active}
-      className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md text-sm md:flex-none md:px-4 ${
-        active ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
-      }`}
-    >
-      {icon} {label}
-    </button>
   )
 }

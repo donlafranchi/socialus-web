@@ -16,8 +16,8 @@ vi.mock('next/navigation', () => ({
 // The map is dynamically imported and needs a real GL context; the list view is
 // what this suite exercises.
 vi.mock('next/dynamic', () => ({
-  default: () => function StubMap() {
-    return <div data-testid="explore-map" />
+  default: () => function StubMap({ items }: { items: unknown[] }) {
+    return <div data-testid="explore-map" data-item-count={items.length} />
   },
 }))
 
@@ -456,5 +456,149 @@ describe('T117 — the read degrades instead of stranding the tab', () => {
     openSheet()
     expect(within(sheet()).getByRole('radio', { name: '5 mi' })).toBeDisabled()
     spy.mockRestore()
+  })
+})
+
+describe('T116 — the List/Map toggle is inline in the results', () => {
+  const toggle = () => screen.getByTestId('list-map-toggle')
+
+  it('no longer renders a fixed control cluster', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('bottom-controls')).not.toBeInTheDocument()
+  })
+
+  it('sits inside the results region, in the document flow', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(document.getElementById('explore-results')!.contains(toggle())).toBe(true)
+    expect(toggle().className).not.toMatch(/\bfixed\b/)
+  })
+
+  it('falls after the initial batch of cards, not at the top or the end', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    const all = cards()
+    const position = (n: Node) => (toggle().compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING) > 0
+    expect(position(all[3])).toBe(false) // 4th card precedes the toggle
+    expect(position(all[4])).toBe(true) // 5th card follows it
+  })
+
+  it('follows the last card when there are fewer than a full batch', async () => {
+    searchParams = new URLSearchParams('kind=gathering')
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(1))
+    const after = (toggle().compareDocumentPosition(cards()[0]) & Node.DOCUMENT_POSITION_PRECEDING) > 0
+    expect(after).toBe(true)
+  })
+
+  it('still renders when nothing matches — the map shows the area regardless', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSearch()
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzz' } })
+    await waitFor(() => expect(screen.getByTestId('explore-empty')).toBeInTheDocument())
+    expect(toggle()).toBeInTheDocument()
+  })
+
+  it('reserves no fixed space at the bottom beyond the pills and the nav', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    const main = screen.getByTestId('explore-page')
+    expect(main.className).not.toMatch(/explore-controls/)
+  })
+})
+
+describe('T116 — switching between the two renderings', () => {
+  const toggleTab = (name: 'List' | 'Map') =>
+    within(screen.getByTestId('list-map-toggle')).getByRole('tab', { name })
+
+  it('swaps the card list for the map', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(toggleTab('Map'))
+    await waitFor(() => expect(screen.getByTestId('explore-map')).toBeInTheDocument())
+    expect(cards()).toHaveLength(0)
+    expect(toggleTab('Map')).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('swaps back to the cards', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(toggleTab('Map'))
+    await waitFor(() => expect(screen.getByTestId('explore-map')).toBeInTheDocument())
+    fireEvent.click(toggleTab('List'))
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('explore-map')).not.toBeInTheDocument()
+    expect(toggleTab('List')).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('keeps the toggle reachable in map view', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(toggleTab('Map'))
+    await waitFor(() => expect(screen.getByTestId('explore-map')).toBeInTheDocument())
+    expect(screen.getByTestId('list-map-toggle')).toBeInTheDocument()
+  })
+
+  it('fades the incoming view in rather than navigating', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(toggleTab('Map'))
+    await waitFor(() => expect(screen.getByTestId('explore-map')).toBeInTheDocument())
+    expect(screen.getByTestId('explore-view-pane').className).toMatch(/explore-fade-in/)
+  })
+
+  it('the map renders the same filtered result set', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    openSheet()
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Repair' }))
+    showResults()
+    await waitFor(() => expect(cards()).toHaveLength(2))
+    fireEvent.click(toggleTab('Map'))
+    await waitFor(() => expect(screen.getByTestId('explore-map')).toBeInTheDocument())
+    expect(screen.getByTestId('explore-map')).toHaveAttribute('data-item-count', '2')
+  })
+})
+
+describe('T116 — the view is ephemeral session state', () => {
+  it('never writes the view into the URL', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(within(screen.getByTestId('list-map-toggle')).getByRole('tab', { name: 'Map' }))
+    await waitFor(() => expect(screen.getByTestId('explore-map')).toBeInTheDocument())
+    for (const call of replace.mock.calls) expect(call[0]).not.toContain('view=')
+  })
+
+  it('opens on the list even when a stale link asks for the map', async () => {
+    searchParams = new URLSearchParams('view=map')
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.queryByTestId('explore-map')).not.toBeInTheDocument()
+  })
+
+  it('keeps the filters in the URL alongside the ephemeral view', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    fireEvent.click(within(screen.getByTestId('list-map-toggle')).getByRole('tab', { name: 'Map' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/explore?kind=gathering', { scroll: false }))
+  })
+})
+
+describe('T116 — the toggle waits for the first page', () => {
+  it('does not render against an empty grid while the results are still loading', () => {
+    // Rendering it before the cards arrive puts it at the top of the page and
+    // then shoves it down four cards a moment later.
+    renderExplore()
+    expect(screen.getByTestId('result-count')).toHaveTextContent('Loading')
+    expect(screen.queryByTestId('list-map-toggle')).not.toBeInTheDocument()
+  })
+
+  it('appears once the cards land', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    expect(screen.getByTestId('list-map-toggle')).toBeInTheDocument()
   })
 })

@@ -158,3 +158,18 @@ a:hover {
   filter: grayscale(0);
   opacity: 1;
 }
+
+/* T116 — Explore list/map view change. A 200ms fade on the incoming pane; the
+   pane is keyed on the view, so React remounts it and the animation replays. */
+@keyframes explore-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.explore-fade-in {
+  animation: explore-fade-in 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .explore-fade-in { animation: none; }
+}
