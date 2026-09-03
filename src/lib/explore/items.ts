@@ -135,3 +135,26 @@ export function categoryLabel(slug: string): string {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
 }
+
+/**
+ * Item ids whose gathering child carries a recurrence rule — the backing set
+ * for the sheet's "Recurring" schedule option (T115).
+ *
+ * `recurrence_rule` is not projected into the MV, and adding it would mean a
+ * fourth drop-and-rebuild of the view and its six indexes for one filter
+ * option. `item_gatherings` reads through `select_via_parent`, which resolves
+ * to the same published/listed visibility gate the MV encodes, so this second
+ * (id-only) read sees exactly the rows a browse may see.
+ */
+export async function fetchRecurringGatheringIds(client: FromClient): Promise<Set<string>> {
+  try {
+    const { data, error } = await client
+      .from('item_gatherings')
+      .select('item_id')
+      .not('recurrence_rule', 'is', null)
+    if (error) return new Set()
+    return new Set(((data ?? []) as { item_id: string }[]).map((r) => r.item_id))
+  } catch {
+    return new Set()
+  }
+}

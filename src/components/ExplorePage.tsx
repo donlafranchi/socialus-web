@@ -3,22 +3,43 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, X, MapIcon, List } from 'lucide-react'
+import { MapIcon, List } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useNavVisible } from './NavVisibilityProvider'
+import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { ItemFeedCard } from './feed/ItemFeedCard'
 import { KindFilterPills, EXPLORE_RESULTS_ID, KIND_PILL_ROW_HEIGHT } from './explore/KindFilterPills'
+import { ExploreSearchBar } from './explore/ExploreSearchBar'
+import { ExploreFilterSheet } from './explore/ExploreFilterSheet'
+import { ActiveFilterChips } from './explore/ActiveFilterChips'
 import { parseKindParam, kindTabId } from '@/lib/explore/kinds'
 import { exploreQueryString } from '@/lib/explore/query'
 import {
+  DEFAULT_SECONDARY,
+  applySecondaryFilters,
+  hasSecondaryFilters,
+  parseSecondaryFilters,
+  removeFilter,
+  sortExploreItems,
+} from '@/lib/explore/filters'
+import { fetchExploreOrigin, type ExploreOrigin } from '@/lib/explore/origin'
+import {
   fetchExploreItems,
+  fetchRecurringGatheringIds,
   searchExploreItems,
   exploreCategoryOptions,
-  categoryLabel,
   type ExploreItem,
 } from '@/lib/explore/items'
 
 const ExploreMap = dynamic(() => import('./ExploreMap').then((m) => m.ExploreMap), { ssr: false })
+
+/** Height of the fixed mobile view-toggle row — a 44px touch target plus the
+ *  8px band above and below it and the 1px hairline. `main` reserves this much
+ *  so the last card clears it. T116 takes the row inline, and the reservation
+ *  goes with it. */
+const MOBILE_CONTROLS_HEIGHT = 61
+
+const NO_RECURRING: ReadonlySet<string> = new Set()
 
 function supabase() {
   return createBrowserClient(
@@ -35,10 +56,16 @@ export function ExplorePage() {
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [kindFilter, setKindFilter] = useState(() => parseKindParam(params.get('kind')))
   const [view, setView] = useState<'list' | 'map'>((params.get('view') as 'list' | 'map') ?? 'list')
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(params.get('category'))
+  const [secondary, setSecondary] = useState(() => parseSecondaryFilters(params))
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const [items, setItems] = useState<ExploreItem[]>([])
   const [loaded, setLoaded] = useState(false)
+  const [origin, setOrigin] = useState<ExploreOrigin | null>(null)
+  const [recurringIds, setRecurringIds] = useState<ReadonlySet<string>>(NO_RECURRING)
+  // One clock per mount, so the week/weekend boundaries stay stable across
+  // renders instead of shifting under a memo.
+  const [now] = useState(() => new Date())
 
   // Kind is filtered server-side on the MV's indexed `item_kind`, so each pill
   // tap refetches. The previous page stays on screen until the next resolves —
@@ -55,143 +82,75 @@ export function ExplorePage() {
       })
   }, [kindFilter])
 
+  // The locality (search-row label + the point distances are measured from) and
+  // the recurring set are page-lifetime facts — fetched once, not per pill tap.
+  useEffect(() => {
+    const client = supabase()
+    fetchExploreOrigin(client).then(setOrigin)
+    fetchRecurringGatheringIds(client).then(setRecurringIds)
+  }, [])
+
   useEffect(() => {
     const qs = exploreQueryString({
       q: query,
       kind: kindFilter,
-      category: categoryFilter,
+      categories: secondary.categories,
+      distance: secondary.distance,
+      schedule: secondary.schedule,
+      sort: secondary.sort,
       view,
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [query, kindFilter, categoryFilter, view, router])
+  }, [query, kindFilter, secondary, view, router])
 
-  const filtered = useMemo(
-    () => searchExploreItems(items, { q: query, category: categoryFilter }),
-    [items, query, categoryFilter]
-  )
+  const originPoint = origin?.point ?? null
+
+  const filtered = useMemo(() => {
+    const searched = searchExploreItems(items, { q: query })
+    const narrowed = applySecondaryFilters(searched, secondary, {
+      origin: originPoint,
+      now,
+      recurringIds,
+    })
+    return sortExploreItems(narrowed, secondary.sort, { origin: originPoint })
+  }, [items, query, secondary, originPoint, now, recurringIds])
+
   const categories = useMemo(() => exploreCategoryOptions(items), [items])
+
+  useScrollRestoration('explore', loaded && filtered.length > 0)
 
   const clearAll = () => {
     setQuery('')
     setKindFilter(null)
-    setCategoryFilter(null)
+    setSecondary(DEFAULT_SECONDARY)
   }
 
-  // The main padding reserves the whole bottom stack: nav + kind pills + the 116px
-  // mobile control cluster (view toggle + search). T115/T116 move those two rows.
+  // The bottom stack is nav + kind pills + the mobile view-toggle row.
   return (
     <main
-      className="pb-[calc(var(--nav-height)+var(--kind-pill-row)+116px+env(safe-area-inset-bottom))] md:pb-24"
-      style={{ '--kind-pill-row': `${KIND_PILL_ROW_HEIGHT}px` } as React.CSSProperties}
+      className="pb-[calc(var(--nav-height)+var(--kind-pill-row)+var(--explore-controls)+env(safe-area-inset-bottom))] md:pb-24"
+      style={
+        {
+          '--kind-pill-row': `${KIND_PILL_ROW_HEIGHT}px`,
+          '--explore-controls': `${MOBILE_CONTROLS_HEIGHT}px`,
+        } as React.CSSProperties
+      }
       data-testid="explore-page"
     >
-      {/* Desktop top header */}
-      <header className="hidden md:block sticky top-14 z-20 bg-white border-b border-neutral-200">
-        <div className="max-w-5xl mx-auto p-3">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="search"
-              placeholder="Search events, products, services, ideas"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              data-testid="search-input-desktop"
-              className="w-full pl-9 pr-9 py-2.5 text-sm border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
-            />
-          </div>
-          <div className="mt-3 flex gap-2 items-center">
-            <FilterChip
-              label={categoryFilter ? categoryLabel(categoryFilter) : 'Category'}
-              active={!!categoryFilter}
-              onClear={categoryFilter ? () => setCategoryFilter(null) : undefined}
-              menuItems={categories.map((slug) => ({
-                label: categoryLabel(slug),
-                onSelect: () => setCategoryFilter(slug),
-                selected: categoryFilter === slug,
-              }))}
-            />
-            <div className="ml-auto flex gap-1">
-              <button
-                type="button"
-                onClick={() => setView('list')}
-                className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md ${
-                  view === 'list' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
-                }`}
-              >
-                <List size={14} /> List
-              </button>
-              <button
-                type="button"
-                onClick={() => setView('map')}
-                className={`inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md ${
-                  view === 'map' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
-                }`}
-              >
-                <MapIcon size={14} /> Map
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ExploreSearchBar
+        placeName={origin?.placeName ?? null}
+        query={query}
+        onQueryChange={setQuery}
+        filtersActive={hasSecondaryFilters(secondary)}
+        onOpenFilters={() => setSheetOpen(true)}
+      />
 
-      {/* Mobile bottom-anchored controls — stacked above the kind pills, riding the
-          same nav-height shift so the cluster stays glued to the pill row. */}
-      <div
-        className={`fixed inset-x-0 z-30 md:hidden bg-white/95 backdrop-blur border-t border-neutral-200 transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none ${
-          navVisible ? '-translate-y-[var(--nav-height)]' : 'translate-y-0'
-        }`}
-        style={{ bottom: `calc(${KIND_PILL_ROW_HEIGHT}px + env(safe-area-inset-bottom))` }}
-        data-testid="bottom-controls"
-      >
-        {/* View toggle row (top of stack) */}
-        <div className="px-3 pt-2 pb-1 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setView('list')}
-            data-active={view === 'list'}
-            className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 text-sm rounded-md ${
-              view === 'list' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
-            }`}
-          >
-            <List size={14} /> List
-          </button>
-          <button
-            type="button"
-            onClick={() => setView('map')}
-            data-active={view === 'map'}
-            className={`flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 text-sm rounded-md ${
-              view === 'map' ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
-            }`}
-          >
-            <MapIcon size={14} /> Map
-          </button>
-        </div>
-
-        {/* Search input row (closest to nav, easiest thumb reach) */}
-        <div className="px-3 pb-3">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="search"
-              placeholder="Search events, products, services, ideas"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              data-testid="search-input"
-              className="w-full pl-9 pr-9 py-2.5 text-sm border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"
-                aria-label="Clear search"
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Not sticky, by design: the chips scroll away and the dot on the filter
+          icon is what keeps the filtered state visible. */}
+      <ActiveFilterChips
+        filters={secondary}
+        onRemove={(id) => setSecondary((f) => removeFilter(f, id))}
+      />
 
       <div id={EXPLORE_RESULTS_ID} role="tabpanel" aria-labelledby={kindTabId(kindFilter)}>
         {view === 'list' ? (
@@ -234,69 +193,55 @@ export function ExplorePage() {
         )}
       </div>
 
+      {/* View toggle. Fixed above the kind pills on mobile — riding the same
+          nav-height shift so the bottom stack moves as one — and a plain inline
+          row on desktop. T116 takes the mobile half inline too. */}
+      <div
+        className={`fixed inset-x-0 z-30 border-t border-neutral-200 bg-white/95 px-3 py-2 backdrop-blur transition-transform duration-200 ease-out will-change-transform motion-reduce:transition-none md:static md:mx-auto md:max-w-5xl md:translate-y-0 md:border-0 md:bg-transparent md:px-6 md:pb-6 md:backdrop-blur-none ${
+          navVisible ? '-translate-y-[var(--nav-height)]' : 'translate-y-0'
+        }`}
+        style={{ bottom: `calc(${KIND_PILL_ROW_HEIGHT}px + env(safe-area-inset-bottom))` }}
+        data-testid="bottom-controls"
+      >
+        <div className="flex gap-2 md:justify-end">
+          <ViewToggleButton icon={<List size={14} />} label="List" active={view === 'list'} onClick={() => setView('list')} />
+          <ViewToggleButton icon={<MapIcon size={14} />} label="Map" active={view === 'map'} onClick={() => setView('map')} />
+        </div>
+      </div>
+
       <KindFilterPills selected={kindFilter} onSelect={setKindFilter} />
+
+      <ExploreFilterSheet
+        open={sheetOpen}
+        value={secondary}
+        categories={categories}
+        originAvailable={originPoint !== null}
+        onClose={() => setSheetOpen(false)}
+        onApply={setSecondary}
+      />
     </main>
   )
 }
 
-interface FilterChipProps {
+interface ViewToggleButtonProps {
+  icon: React.ReactNode
   label: string
   active: boolean
-  onClear?: () => void
-  menuItems: { label: string; onSelect: () => void; selected: boolean }[]
-  placement?: 'bottom' | 'top'
+  onClick: () => void
 }
 
-function FilterChip({ label, active, onClear, menuItems, placement = 'bottom' }: FilterChipProps) {
-  const [open, setOpen] = useState(false)
-  const menuPosClasses =
-    placement === 'top' ? 'absolute z-50 bottom-full mb-1' : 'absolute z-50 top-full mt-1'
+function ViewToggleButton({ icon, label, active, onClick }: ViewToggleButtonProps) {
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium border transition-colors whitespace-nowrap ${
-          active ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]' : 'bg-white text-neutral-700 border-neutral-300'
-        }`}
-      >
-        {label}
-        {active && onClear && (
-          <span
-            onClick={(e) => {
-              e.stopPropagation()
-              onClear()
-              setOpen(false)
-            }}
-            className="ml-1"
-            role="button"
-          >
-            <X size={12} />
-          </span>
-        )}
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className={`${menuPosClasses} w-48 bg-white rounded-lg border border-neutral-200 shadow-lg max-h-64 overflow-y-auto`}>
-            {menuItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => {
-                  item.onSelect()
-                  setOpen(false)
-                }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-neutral-100 ${
-                  item.selected ? 'font-medium text-[var(--color-accent)]' : 'text-neutral-700'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      data-active={active}
+      aria-pressed={active}
+      className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-md text-sm md:flex-none md:px-4 ${
+        active ? 'bg-[var(--color-accent)] text-white' : 'bg-neutral-100 text-neutral-700'
+      }`}
+    >
+      {icon} {label}
+    </button>
   )
 }

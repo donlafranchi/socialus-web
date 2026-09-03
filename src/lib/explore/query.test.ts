@@ -1,7 +1,8 @@
-// T114 — Explore URL state (F045 § "Filter state persists in URL").
+// T114/T115 — Explore URL state (F045 § "Filter state persists in URL").
 
 import { describe, it, expect } from 'vitest'
 import { exploreQueryString } from './query'
+import { DEFAULT_SECONDARY } from './filters'
 
 describe('exploreQueryString', () => {
   it('is empty for the default view', () => {
@@ -17,12 +18,28 @@ describe('exploreQueryString', () => {
   })
 
   it('composes kind with the secondary filters', () => {
-    expect(exploreQueryString({ q: 'honey', kind: 'product', category: 'food', view: 'map' })).toBe(
-      'q=honey&kind=product&category=food&view=map',
-    )
+    expect(
+      exploreQueryString({ q: 'honey', kind: 'product', categories: ['food'], view: 'map' }),
+    ).toBe('q=honey&kind=product&category=food&view=map')
   })
 
   it('leaves the list view implicit', () => {
     expect(exploreQueryString({ view: 'list' })).toBe('')
+  })
+
+  it('writes every secondary filter the bottom sheet can set', () => {
+    expect(
+      exploreQueryString({
+        kind: 'gathering',
+        distance: 5,
+        schedule: 'weekend',
+        categories: ['food', 'repair'],
+        sort: 'nearest',
+      }),
+    ).toBe('kind=gathering&category=food%2Crepair&distance=5&schedule=weekend&sort=nearest')
+  })
+
+  it('keeps the secondary defaults out of the URL', () => {
+    expect(exploreQueryString({ ...DEFAULT_SECONDARY })).toBe('')
   })
 })
