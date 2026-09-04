@@ -70,7 +70,7 @@ function serviceRow(overrides: Record<string, unknown> = {}) {
 describe('resolveService — group path (T095 Group-attribution)', () => {
   it('attributes to the Group (kind=group, name=brand_label)', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [serviceRow()] },
     })
     const result = await resolveService(supabase, {
@@ -87,21 +87,22 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
     expect(result!.anchor).toEqual({ label: 'Studio' })
   })
 
-  it('returns null when a Group-filed service has no brand_label', async () => {
+  it('falls back to the Group name when a Group-filed service has no brand_label (T119)', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [serviceRow({ brand_label: null })] },
     })
     const result = await resolveService(supabase, {
       groupSlug: 'maya-music-a1',
       itemSlug: 'piano-lessons-deadbeef',
     })
-    expect(result).toBeNull()
+    expect(result).not.toBeNull()
+    expect(result!.attribution).toEqual({ kind: 'group', name: 'Repair Cafe Regulars' })
   })
 
   it('returns null when no row id matches the slug fragment', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [serviceRow()] },
     })
     const result = await resolveService(supabase, {

@@ -9,6 +9,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { FeedItem } from '@/lib/feed/locality-feed'
+import { attachGroupPrefixes, filterBrowsable } from '@/lib/feed/group-prefixes'
 
 const DEFAULT_NEARBY_RADIUS_M = 5000
 
@@ -86,7 +87,8 @@ export async function getVenueHostedItems(
     p_owning_group_id: args.owningGroupId,
   })
   if (error || !data) return []
-  return (data as FeedRow[]).map(mapFeedRow)
+  // T119 — withhold kinds with no detail page, then attach Group URL prefixes.
+  return attachGroupPrefixes(supabase, filterBrowsable((data as FeedRow[]).map(mapFeedRow)))
 }
 
 /**
@@ -103,5 +105,6 @@ export async function getVenueNearbyItems(
     p_radius_m: args.radiusMeters ?? DEFAULT_NEARBY_RADIUS_M,
   })
   if (error || !data) return []
-  return (data as FeedRow[]).map(mapFeedRow)
+  // T119 — same gate as the hosted section; one list, both sections.
+  return attachGroupPrefixes(supabase, filterBrowsable((data as FeedRow[]).map(mapFeedRow)))
 }

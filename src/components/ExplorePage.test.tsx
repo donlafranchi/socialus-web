@@ -63,8 +63,17 @@ const PLACE = { id: 'wsac', display_name: 'West Sacramento', slug: 'the-good-pla
 /** Records the `.eq()` predicates each MV fetch sent, and answers from ROWS. */
 const eqCalls: [string, unknown][][] = []
 
+/** T119 — rows the group_url_prefixes RPC answers with. Set per test. */
+const groupPrefixRows: { group_id: string; slug: string | null; place_path: string | null }[] = []
+
 vi.mock('@supabase/ssr', () => ({
   createBrowserClient: () => ({
+    // T119 — the browse read now resolves Group URL prefixes so Group-filed
+    // Items link to their Group place-path rather than a 404ing Member path.
+    rpc: async (name: string) =>
+      name === 'group_url_prefixes'
+        ? { data: [...groupPrefixRows], error: null }
+        : { data: null, error: null },
     from: (table: string) => {
       const applied: [string, unknown][] = []
       const b: Record<string, unknown> = {}
@@ -72,6 +81,8 @@ vi.mock('@supabase/ssr', () => ({
       b.is = () => b
       b.not = () => b
       b.eq = (c: string, v: unknown) => { applied.push([c, v]); return b }
+      // T119 — the unfiltered browse now sends .in('item_kind', BROWSABLE_KINDS).
+      b.in = (c: string, v: unknown) => { applied.push([c, v]); return b }
       b.order = () => b
       b.maybeSingle = async () =>
         table === 'places' ? { data: { centroid: PLACE_CENTROID }, error: null } : { data: null, error: null }
@@ -83,8 +94,18 @@ vi.mock('@supabase/ssr', () => ({
         })
       b.limit = () => {
         eqCalls.push(applied)
-        const kind = applied.find(([c]) => c === 'item_kind')?.[1]
-        const data = kind ? ROWS.filter((r) => r.item_kind === kind) : ROWS
+        // T119 — item_kind now carries two predicates: the unconditional
+        // browsable .in() and, when a pill is selected, its own .eq(). Apply
+        // every one in order so the stub intersects the way PostgREST does.
+        const data = applied
+          .filter(([c]) => c === 'item_kind')
+          .reduce(
+            (rows, [, v]) =>
+              Array.isArray(v)
+                ? rows.filter((r) => (v as string[]).includes(r.item_kind))
+                : rows.filter((r) => r.item_kind === v),
+            ROWS as typeof ROWS,
+          )
         return Promise.resolve({ data, error: null })
       }
       return b
@@ -152,7 +173,10 @@ describe('T117 — the kind pills filter the item results', () => {
   it('starts on All with no kind predicate and every item shown', async () => {
     renderExplore()
     await waitFor(() => expect(cards()).toHaveLength(5))
-    expect(eqCalls[0]).toEqual([])
+    // T119 — "All" is no longer an absent predicate: it constrains item_kind to
+    // the kinds that have a detail page, so the page limit counts only linkable
+    // rows rather than being spent on Items that would 404.
+    expect(eqCalls[0]).toEqual([['item_kind', ['product', 'service', 'gathering']]])
     expect(screen.getAllByRole('tab')[0]).toHaveAttribute('aria-selected', 'true')
   })
 
@@ -162,7 +186,10 @@ describe('T117 — the kind pills filter the item results', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
     await waitFor(() => expect(cards()).toHaveLength(1))
     expect(screen.getByText('Repair Cafe')).toBeInTheDocument()
-    expect(eqCalls.at(-1)).toEqual([['item_kind', 'gathering']])
+    expect(eqCalls.at(-1)).toEqual([
+      ['item_kind', ['product', 'service', 'gathering']],
+      ['item_kind', 'gathering'],
+    ])
   })
 
   it('restores the selection from ?kind= on load and fetches that kind', async () => {
@@ -170,14 +197,33 @@ describe('T117 — the kind pills filter the item results', () => {
     renderExplore()
     await waitFor(() => expect(cards()).toHaveLength(1))
     expect(screen.getByText('Saturday Bike Tune-Up')).toBeInTheDocument()
-    expect(eqCalls[0]).toEqual([['item_kind', 'service']])
+    expect(eqCalls[0]).toEqual([
+      ['item_kind', ['product', 'service', 'gathering']],
+      ['item_kind', 'service'],
+    ])
   })
 
   it('writes the selection back to the URL', async () => {
     renderExplore()
     await waitFor(() => expect(cards()).toHaveLength(5))
-    fireEvent.click(screen.getByRole('tab', { name: 'Ideas' }))
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/explore?kind=wonder', { scroll: false }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Services' }))
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/explore?kind=service', { scroll: false }))
+  })
+
+  it('offers no pill for a kind with no detail page (T119)', async () => {
+    renderExplore()
+    await waitFor(() => expect(cards()).toHaveLength(5))
+    const pills = within(screen.getByTestId('kind-filter-pills'))
+      .getAllByRole('tab')
+      .map((t) => t.textContent)
+    expect(pills).toEqual(['All', 'Events', 'Products', 'Services'])
+  })
+
+  it('ignores ?kind= for a withheld kind rather than emptying the surface (T119)', async () => {
+    searchParams = new URLSearchParams('kind=wonder')
+    renderExplore()
+    // Falls back to All — a URL naming a withheld kind must not strand the tab.
+    await waitFor(() => expect(cards()).toHaveLength(5))
   })
 
   it('keeps the previous results on screen while the next kind loads', async () => {
@@ -419,11 +465,14 @@ describe('T117 — the read degrades instead of stranding the tab', () => {
   it('falls through to the empty state when the MV read rejects', async () => {
     const ssr = await import('@supabase/ssr')
     const spy = vi.spyOn(ssr, 'createBrowserClient').mockReturnValue({
+      rpc: async () => ({ data: [], error: null }),
       from: () => ({
         select: () => ({
           not: () => Promise.resolve({ data: [], error: null }),
           is: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }),
           eq: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }),
+          // T119 — the unfiltered browse constrains item_kind before ordering.
+          in: () => ({ order: () => ({ limit: () => Promise.reject(new Error('offline')) }) }),
           order: () => ({ limit: () => Promise.reject(new Error('offline')) }),
         }),
       }),
@@ -437,12 +486,14 @@ describe('T117 — the read degrades instead of stranding the tab', () => {
   it('keeps the surface usable when the locality never resolves', async () => {
     const ssr = await import('@supabase/ssr')
     const spy = vi.spyOn(ssr, 'createBrowserClient').mockReturnValue({
+      rpc: async () => ({ data: [], error: null }),
       from: (table: string) => {
         const b: Record<string, unknown> = {}
         b.select = () => b
         b.is = () => b
         b.not = () => b
         b.eq = () => b
+        b.in = () => b
         b.order = () => b
         b.maybeSingle = async () => ({ data: null, error: null })
         b.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null })

@@ -129,17 +129,23 @@ export async function resolveGathering(
   const idFrag = parseIdFragment(args.itemSlug)
   if (!idFrag) return null
 
-  let scope: { column: 'group_id' | 'member_id'; value: string; individual: boolean } | null =
-    null
+  let scope: {
+    column: 'group_id' | 'member_id'
+    value: string
+    individual: boolean
+    /** T119 — Group display name, the attribution fallback when brand_label is null. */
+    groupName: string | null
+  } | null = null
   if (args.groupSlug) {
     const { data: g } = await supabase
       .from('groups')
-      .select('id')
+      .select('id, name')
       .eq('slug', args.groupSlug)
       .limit(1)
       .maybeSingle()
     if (!g) return null
-    scope = { column: 'group_id', value: (g as { id: string }).id, individual: false }
+    const grp = g as { id: string; name: string | null }
+    scope = { column: 'group_id', value: grp.id, individual: false, groupName: grp.name ?? null }
   } else if (args.handle) {
     const { data: m } = await supabase
       .from('members')
@@ -148,7 +154,7 @@ export async function resolveGathering(
       .limit(1)
       .maybeSingle()
     if (!m) return null
-    scope = { column: 'member_id', value: (m as { id: string }).id, individual: true }
+    scope = { column: 'member_id', value: (m as { id: string }).id, individual: true, groupName: null }
   }
   if (!scope) return null
 
@@ -198,8 +204,13 @@ export async function resolveGathering(
       isDiscoverable: (disc as { is_discoverable: boolean } | null)?.is_discoverable ?? false,
     }
   } else {
-    if (!row.brand_label) return null
-    attribution = { kind: 'group', name: row.brand_label }
+    // T119 — brand_label is denormalized from group_businesses.display_name, so
+    // it is null for every non-business Group. Group events are filed under
+    // event_anchored / interest / place / practice Groups, which made every one
+    // of them unresolvable. Fall back to the Group's own name.
+    const groupName = row.brand_label ?? scope.groupName
+    if (!groupName) return null
+    attribution = { kind: 'group', name: groupName }
   }
 
   return {

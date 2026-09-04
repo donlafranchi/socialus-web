@@ -20,16 +20,16 @@ function renderPills(opts: { selected?: ItemKindFilter; navVisible?: boolean } =
 }
 
 describe('KindFilterPills', () => {
-  it('renders one tab per kind, All first', () => {
+  it('renders one tab per browsable kind, All first', () => {
     renderPills()
+    // T119 — the row is derived from BROWSABLE_KINDS. Withheld kinds lose their
+    // pill in the same edit that withholds them: a pill whose kind the index
+    // never returns is a control that always yields the empty state.
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
       'All',
       'Events',
       'Products',
       'Services',
-      'Ideas',
-      'Offers',
-      'Asks',
     ])
   })
 
@@ -55,8 +55,8 @@ describe('KindFilterPills', () => {
     const { onSelect } = renderPills()
     fireEvent.click(screen.getByRole('tab', { name: 'Events' }))
     expect(onSelect).toHaveBeenCalledWith('gathering')
-    fireEvent.click(screen.getByRole('tab', { name: 'Ideas' }))
-    expect(onSelect).toHaveBeenCalledWith('wonder')
+    fireEvent.click(screen.getByRole('tab', { name: 'Services' }))
+    expect(onSelect).toHaveBeenCalledWith('service')
   })
 
   it('emits null for All', () => {
@@ -117,10 +117,10 @@ describe('KindFilterPills', () => {
     const { onSelect } = renderPills({ selected: null })
     const tabs = screen.getAllByRole('tab')
     fireEvent.keyDown(tabs[0], { key: 'ArrowLeft' })
-    expect(onSelect).toHaveBeenCalledWith('ask')
+    expect(onSelect).toHaveBeenCalledWith('service')
 
     fireEvent.keyDown(tabs[0], { key: 'End' })
-    expect(onSelect).toHaveBeenCalledWith('ask')
+    expect(onSelect).toHaveBeenCalledWith('service')
 
     fireEvent.keyDown(tabs[0], { key: 'Home' })
     expect(onSelect).toHaveBeenCalledWith(null)

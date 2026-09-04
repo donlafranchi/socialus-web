@@ -36,6 +36,8 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
     ownerHandle: item.ownerHandle,
     title: item.title,
     itemId: item.itemId,
+    groupSlug: item.groupSlug,
+    groupPlacePath: item.groupPlacePath,
   })
   const owner = item.brandLabel ?? item.ownerDisplayName
   const photo = item.photoUrl?.trim() || null

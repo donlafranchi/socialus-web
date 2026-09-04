@@ -39,9 +39,15 @@ function fakeClient(rows: unknown[]) {
   const chain = () => builder
   builder.select = vi.fn((s: string) => { calls.select = s; return chain() })
   builder.eq = vi.fn((c: string, v: unknown) => { calls.eq!.push([c, v]); return chain() })
+  // T119 — the unfiltered browse constrains item_kind to BROWSABLE_KINDS.
+  builder.in = vi.fn((c: string, v: unknown) => { calls.eq!.push([c, v]); return chain() })
   builder.order = vi.fn((c: string) => { calls.order = c; return chain() })
   builder.limit = vi.fn((n: number) => { calls.limit = n; return Promise.resolve({ data: rows, error: null }) })
-  const client = { from: vi.fn((t: string) => { calls.table = t; return builder }) }
+  const client = {
+    from: vi.fn((t: string) => { calls.table = t; return builder }),
+    // T119 — group_url_prefixes resolves the canonical Group URL prefix.
+    rpc: vi.fn(async () => ({ data: [], error: null })),
+  }
   return { client: client as never, calls }
 }
 
@@ -93,23 +99,42 @@ describe('T117 — fetchExploreItems', () => {
     expect(items[0].title).toBe('Country Sourdough Loaf')
   })
 
-  it('sends no kind predicate for the All pill', async () => {
+  it('constrains the All pill to kinds that have a detail page (T119)', async () => {
     const { client, calls } = fakeClient([row])
     await fetchExploreItems(client, { kind: null })
-    expect(calls.eq).toEqual([])
+    expect(calls.eq).toEqual([['item_kind', ['product', 'service', 'gathering']]])
   })
 
   it('filters server-side on item_kind when a pill is selected', async () => {
     const { client, calls } = fakeClient([])
     await fetchExploreItems(client, { kind: 'gathering' })
-    expect(calls.eq).toEqual([['item_kind', 'gathering']])
+    // T119 — the browsable constraint applies unconditionally and intersects
+    // with the pill's own predicate on the same column.
+    expect(calls.eq).toEqual([
+      ['item_kind', ['product', 'service', 'gathering']],
+      ['item_kind', 'gathering'],
+    ])
+  })
+
+  it('cannot surface a withheld kind even when one is passed directly (T119)', async () => {
+    const { client, calls } = fakeClient([])
+    await fetchExploreItems(client, { kind: 'wonder' as never })
+    // The browsable .in() still constrains, so the intersection is empty
+    // rather than a page of Items whose links 404.
+    expect(calls.eq).toEqual([
+      ['item_kind', ['product', 'service', 'gathering']],
+      ['item_kind', 'wonder'],
+    ])
   })
 
   it('returns [] rather than throwing when the read errors', async () => {
+    const fail = { limit: () => Promise.resolve({ data: null, error: { message: 'boom' } }) }
     const client = {
+      rpc: async () => ({ data: [], error: null }),
       from: () => ({
         select: () => ({
-          order: () => ({ limit: () => Promise.resolve({ data: null, error: { message: 'boom' } }) }),
+          in: () => ({ order: () => fail }),
+          order: () => fail,
         }),
       }),
     }

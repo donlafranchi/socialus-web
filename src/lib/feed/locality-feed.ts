@@ -5,6 +5,7 @@
 // src/lib/groups/resolve-shop.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { attachGroupPrefixes, filterBrowsable } from './group-prefixes'
 
 export interface FeedItem {
   itemId: string
@@ -21,6 +22,10 @@ export interface FeedItem {
   /** Hero image for the feed card. items.photo_url, else item_products.photo_urls[1]. */
   photoUrl: string | null
   publishedAt: string
+  /** T119 — canonical-URL prefix for a Group-filed Item; null when unfiled or
+   *  when the Group has no resolvable Place. Attached by attachGroupPrefixes. */
+  groupSlug?: string | null
+  groupPlacePath?: string | null
 }
 
 const TAG_RE = /^[a-z0-9-]{1,60}$/
@@ -69,7 +74,10 @@ export async function getLocalityFeed(
   })
   if (error) throw error
   const rows = (data ?? []) as LocalityFeedRow[]
-  return rows.map((r) => ({
+  // T119 — withhold kinds with no detail page, then attach Group URL prefixes.
+  // The RPC applies its own limit before this filter, so a page can come back
+  // short; at b1 volumes it cannot under-fill (see T119 DEVIATIONS).
+  const mapped = rows.map((r) => ({
     itemId: r.item_id,
     kind: r.item_kind,
     title: r.title,
@@ -84,6 +92,7 @@ export async function getLocalityFeed(
     photoUrl: r.photo_url ?? null,
     publishedAt: r.published_at,
   }))
+  return attachGroupPrefixes(supabase, filterBrowsable(mapped))
 }
 
 type FromClient = Pick<SupabaseClient, 'from'>

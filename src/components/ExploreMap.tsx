@@ -83,6 +83,8 @@ export function ExploreMap({ items }: { items: ExploreItem[] }) {
                 ownerHandle: selected.ownerHandle,
                 title: selected.title,
                 itemId: selected.itemId,
+                groupSlug: selected.groupSlug,
+                groupPlacePath: selected.groupPlacePath,
               })}
               className="text-sm font-medium text-[var(--color-accent)] whitespace-nowrap"
             >

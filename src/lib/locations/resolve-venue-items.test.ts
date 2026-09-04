@@ -25,9 +25,20 @@ function makeGroupStub(result: { data: unknown; error?: unknown }) {
   } as unknown as Parameters<typeof resolveOwningGroup>[0]
 }
 
-function makeRpcStub(captured: { name?: string; params?: unknown }, result: { data: unknown; error?: unknown }) {
+/**
+ * T119 — the section resolvers now make a second RPC call
+ * (`group_url_prefixes`) to build canonical Group URLs. The stub dispatches on
+ * name so `captured` still records the section call under test rather than the
+ * prefix lookup that follows it; `prefixes` supplies the prefix rows.
+ */
+function makeRpcStub(
+  captured: { name?: string; params?: unknown },
+  result: { data: unknown; error?: unknown },
+  prefixes: { group_id: string; slug: string | null; place_path: string | null }[] = [],
+) {
   return {
     rpc: (name: string, params: unknown) => {
+      if (name === 'group_url_prefixes') return Promise.resolve({ data: prefixes, error: null })
       captured.name = name
       captured.params = params
       return Promise.resolve(result)
@@ -141,5 +152,50 @@ describe('getVenueNearbyItems', () => {
       { locationId: 'loc-1', owningGroupId: null },
     )
     expect(items).toEqual([])
+  })
+})
+
+describe('T119 — canonical URLs and withheld kinds in the venue sections', () => {
+  it('withholds kinds with no detail page from both sections', async () => {
+    const rows = [
+      { ...FEED_ROW, item_id: 'a', item_kind: 'gathering' },
+      { ...FEED_ROW, item_id: 'b', item_kind: 'wonder' },
+      { ...FEED_ROW, item_id: 'c', item_kind: 'ask' },
+      { ...FEED_ROW, item_id: 'd', item_kind: 'offer' },
+      { ...FEED_ROW, item_id: 'e', item_kind: 'initiative' },
+      { ...FEED_ROW, item_id: 'f', item_kind: 'product' },
+    ]
+    const hosted = await getVenueHostedItems(makeRpcStub({}, { data: rows }), {
+      locationId: 'loc-1',
+      owningGroupId: 'grp-owning',
+    })
+    expect(hosted.map((i) => i.kind)).toEqual(['gathering', 'product'])
+
+    const nearby = await getVenueNearbyItems(makeRpcStub({}, { data: rows }), {
+      locationId: 'loc-1',
+      owningGroupId: null,
+    })
+    expect(nearby.map((i) => i.kind)).toEqual(['gathering', 'product'])
+  })
+
+  it('attaches the Group URL prefix so the card links to the Group place-path', async () => {
+    const items = await getVenueNearbyItems(
+      makeRpcStub({}, { data: [FEED_ROW] }, [
+        { group_id: 'grp-owning', slug: 'drakes-pub', place_path: 'ca/sacramento/oak-park' },
+      ]),
+      { locationId: 'loc-1', owningGroupId: null },
+    )
+    expect(items[0].groupSlug).toBe('drakes-pub')
+    expect(items[0].groupPlacePath).toBe('ca/sacramento/oak-park')
+  })
+
+  it('leaves the prefix null when the Group has no resolvable Place', async () => {
+    const items = await getVenueNearbyItems(
+      makeRpcStub({}, { data: [FEED_ROW] }, [
+        { group_id: 'grp-owning', slug: 'drakes-pub', place_path: null },
+      ]),
+      { locationId: 'loc-1', owningGroupId: null },
+    )
+    expect(items[0].groupSlug).toBeNull()
   })
 })

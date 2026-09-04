@@ -13,6 +13,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { FeedItem } from '@/lib/feed/locality-feed'
 import type { ItemKindFilter } from './kinds'
 import { decodeEwkbPoint } from './ewkb'
+import { attachGroupPrefixes } from '@/lib/feed/group-prefixes'
+import { BROWSABLE_KINDS } from '@/lib/feed/item-url'
 
 export interface ExploreItem extends FeedItem {
   description: string | null
@@ -72,6 +74,7 @@ export function mapExploreRow(r: ExploreRow): ExploreItem {
 }
 
 type FromClient = Pick<SupabaseClient, 'from'>
+type BrowseClient = Pick<SupabaseClient, 'from' | 'rpc'>
 
 /**
  * Newest-first page of the browse index. `kind` filters server-side on the
@@ -80,16 +83,24 @@ type FromClient = Pick<SupabaseClient, 'from'>
  * state instead of blanking the tab.
  */
 export async function fetchExploreItems(
-  client: FromClient,
+  client: BrowseClient,
   opts: { kind?: ItemKindFilter; limit?: number },
 ): Promise<ExploreItem[]> {
   let q = client.from('discoverable_items').select(EXPLORE_SELECT)
+  // T119 — withheld kinds are excluded server-side on the indexed column, so
+  // the page limit counts only linkable rows. The browsable constraint is
+  // applied unconditionally rather than only on the All path: parseKindParam
+  // already rejects a withheld ?kind=, but this function is exported and a
+  // caller that skipped that guard must not be able to surface a kind whose
+  // link 404s. Both predicates on the same column intersect.
+  q = q.in('item_kind', [...BROWSABLE_KINDS])
   if (opts.kind) q = q.eq('item_kind', opts.kind)
   const { data, error } = await q
     .order('published_at', { ascending: false })
     .limit(opts.limit ?? EXPLORE_LIMIT)
   if (error) return []
-  return ((data ?? []) as unknown as ExploreRow[]).map(mapExploreRow)
+  const mapped = ((data ?? []) as unknown as ExploreRow[]).map(mapExploreRow)
+  return attachGroupPrefixes(client, mapped)
 }
 
 /** Free-text + category refinement over an already-fetched page. */
