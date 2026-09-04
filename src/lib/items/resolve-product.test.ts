@@ -83,7 +83,7 @@ function productRow(overrides: Record<string, unknown> = {}) {
 describe('resolveProduct — group path (T095 Group-attribution)', () => {
   it('attributes to the Group (kind=group, name=brand_label); members embed is not consulted', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [productRow()] },
     })
     const result = await resolveProduct(supabase, {
@@ -100,21 +100,22 @@ describe('resolveProduct — group path (T095 Group-attribution)', () => {
     expect(result!.madeAtPlaceId).toBeNull()
   })
 
-  it('returns null when a Group-filed item has no brand_label (Group attribution requires it)', async () => {
+  it('falls back to the Group name when a Group-filed product has no brand_label (T119)', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [productRow({ brand_label: null })] },
     })
     const result = await resolveProduct(supabase, {
       groupSlug: 'oak-park-sourdough-a1',
       itemSlug: 'country-sourdough-loaf-deadbeef',
     })
-    expect(result).toBeNull()
+    expect(result).not.toBeNull()
+    expect(result!.attribution).toEqual({ kind: 'group', name: 'Repair Cafe Regulars' })
   })
 
   it('returns null when no row id matches the slug fragment', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [productRow()] },
     })
     const result = await resolveProduct(supabase, {

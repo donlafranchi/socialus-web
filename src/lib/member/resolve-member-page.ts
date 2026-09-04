@@ -19,7 +19,8 @@
 // is discoverable AND public; everything else is noindex.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { itemHref } from '@/lib/feed/item-url'
+import { itemHref, BROWSABLE_KINDS } from '@/lib/feed/item-url'
+import { fetchGroupPrefixes } from '@/lib/feed/group-prefixes'
 
 export interface MemberItem {
   itemId: string
@@ -70,6 +71,7 @@ interface ItemRow {
   kind: string
   title: string
   brand_label: string | null
+  group_id: string | null
 }
 
 interface GroupRow {
@@ -121,26 +123,41 @@ export async function resolveMemberPage(
   const isSelf = viewerId !== null && viewerId === member.id
 
   // Authored, published, non-deleted Items (newest first).
+  // T119 — only kinds with a detail page are listed; the filter is server-side
+  // on the same enum the browse index uses. An author whose only Items are
+  // withheld kinds renders the existing "Nothing posted yet." empty state.
   const { data: itemData } = await supabase
     .from('items')
-    .select('id, kind, title, brand_label')
+    .select('id, kind, title, brand_label, group_id')
     .eq('member_id', member.id)
     .eq('state', 'published')
     .is('deleted_at', null)
+    .in('kind', [...BROWSABLE_KINDS])
     .order('created_at', { ascending: false })
 
-  const items: MemberItem[] = ((itemData as unknown as ItemRow[]) ?? []).map((row) => ({
-    itemId: row.id,
-    kind: row.kind,
-    title: row.title,
-    brandLabel: row.brand_label,
-    href: itemHref({
-      kind: row.kind,
-      ownerHandle: member.handle,
-      title: row.title,
+  const itemRows = (itemData as unknown as ItemRow[]) ?? []
+  const groupPrefixes = await fetchGroupPrefixes(
+    supabase,
+    itemRows.map((r) => r.group_id),
+  )
+
+  const items: MemberItem[] = itemRows.map((row) => {
+    const prefix = row.group_id ? groupPrefixes.get(row.group_id) : undefined
+    return {
       itemId: row.id,
-    }),
-  }))
+      kind: row.kind,
+      title: row.title,
+      brandLabel: row.brand_label,
+      href: itemHref({
+        kind: row.kind,
+        ownerHandle: member.handle,
+        title: row.title,
+        itemId: row.id,
+        groupSlug: prefix?.slug ?? null,
+        groupPlacePath: prefix?.placePath ?? null,
+      }),
+    }
+  })
 
   // Listed Group memberships via the privacy-preserving public projection.
   const { data: groupData } = await supabase

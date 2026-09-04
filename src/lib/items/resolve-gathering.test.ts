@@ -118,7 +118,7 @@ function gatheringRow(overrides: Record<string, unknown> = {}) {
 describe('resolveGathering — group path (T095 Group-attribution)', () => {
   it('attributes to the Group (kind=group, name=brand_label)', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [gatheringRow()] },
     })
     const result = await resolveGathering(supabase, {
@@ -135,21 +135,22 @@ describe('resolveGathering — group path (T095 Group-attribution)', () => {
     expect(result!.location).toEqual({ label: "Drake's" })
   })
 
-  it('returns null when a Group-filed gathering has no brand_label', async () => {
+  it('falls back to the Group name when a Group-filed gathering has no brand_label (T119)', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [gatheringRow({ brand_label: null })] },
     })
     const result = await resolveGathering(supabase, {
       groupSlug: 'drakes-a1',
       itemSlug: 'thursday-run-club-deadbeef',
     })
-    expect(result).toBeNull()
+    expect(result).not.toBeNull()
+    expect(result!.attribution).toEqual({ kind: 'group', name: 'Repair Cafe Regulars' })
   })
 
   it('returns null when no row id matches the slug fragment', async () => {
     const supabase = makeSupabase({
-      groups: { data: { id: 'g1' } },
+      groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
       items: { data: [gatheringRow()] },
     })
     const result = await resolveGathering(supabase, {

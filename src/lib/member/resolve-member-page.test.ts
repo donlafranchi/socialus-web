@@ -19,6 +19,7 @@ function tableStub(opts: { list?: unknown[]; single?: unknown }) {
   chain.select = passthrough
   chain.eq = passthrough
   chain.is = passthrough
+  chain.in = passthrough
   chain.limit = passthrough
   chain.order = passthrough
   chain.maybeSingle = () => Promise.resolve({ data: opts.single ?? null, error: null })
@@ -38,14 +39,23 @@ function makeClient(opts: {
   verdict?: VerdictRow | null
   verdictError?: boolean
   tables?: Record<string, ReturnType<typeof tableStub>>
+  /** T119 — rows returned by rpc('group_url_prefixes'). */
+  groupPrefixes?: { group_id: string; slug: string | null; place_path: string | null }[]
 }) {
   const tables = opts.tables ?? {}
   return {
-    rpc: (_name: string) =>
-      Promise.resolve({
+    rpc: (name: string) => {
+      // T119 — the resolver now makes a second, differently-shaped RPC call.
+      // The stub must dispatch on name; a name-blind stub would hand the
+      // visibility verdict to the prefix mapper and pass by accident.
+      if (name === 'group_url_prefixes') {
+        return Promise.resolve({ data: opts.groupPrefixes ?? [], error: null })
+      }
+      return Promise.resolve({
         data: opts.verdict ? [opts.verdict] : opts.verdict === null ? [] : null,
         error: opts.verdictError ? { message: 'boom' } : null,
-      }),
+      })
+    },
     from: (name: string) => tables[name] ?? tableStub({}),
   } as unknown as SupabaseClient
 }
@@ -133,6 +143,58 @@ describe('resolveMemberPage — render payload (verdict already render)', () => 
     is_discoverable: true,
     profile_visibility: 'public',
   }
+
+  it('links a Group-filed item at its Group place-path (T119)', async () => {
+    const client = makeClient({
+      verdict: renderVerdict,
+      groupPrefixes: [
+        { group_id: 'grp-1', slug: 'the-good-loaf', place_path: 'tgp/the-good-place/orchard-hill' },
+      ],
+      tables: {
+        members: tableStub({ single: MEMBER }),
+        items: tableStub({
+          list: [
+            {
+              id: 'item-abcdef12',
+              kind: 'product',
+              title: 'Sourdough Loaf',
+              brand_label: 'The Good Loaf',
+              group_id: 'grp-1',
+            },
+          ],
+        }),
+      },
+    })
+    const view = await resolveMemberPage(client, { handle: 'maya' })
+    if (view.kind !== 'render') throw new Error('unreachable')
+    expect(view.page.items[0].href).toBe(
+      '/p/tgp/the-good-place/orchard-hill/g/the-good-loaf/p/sourdough-loaf-item-abc',
+    )
+  })
+
+  it('falls back to the Member path when the Group has no resolvable Place (T119)', async () => {
+    const client = makeClient({
+      verdict: renderVerdict,
+      groupPrefixes: [{ group_id: 'grp-1', slug: 'the-good-loaf', place_path: null }],
+      tables: {
+        members: tableStub({ single: MEMBER }),
+        items: tableStub({
+          list: [
+            {
+              id: 'item-abcdef12',
+              kind: 'product',
+              title: 'Sourdough Loaf',
+              brand_label: null,
+              group_id: 'grp-1',
+            },
+          ],
+        }),
+      },
+    })
+    const view = await resolveMemberPage(client, { handle: 'maya' })
+    if (view.kind !== 'render') throw new Error('unreachable')
+    expect(view.page.items[0].href).toBe('/m/maya/p/sourdough-loaf-item-abc')
+  })
 
   it('maps the member header, published items (with hrefs), and listed groups', async () => {
     const client = makeClient({
