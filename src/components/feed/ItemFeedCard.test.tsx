@@ -43,11 +43,6 @@ describe('T088 — ItemFeedCard', () => {
     expect(screen.getByText('Oak Park Pottery')).toBeTruthy()
   })
 
-  it('renders no hero image when photoUrl is null', () => {
-    render(<ItemFeedCard item={baseItem} />)
-    expect(screen.queryByTestId('feed-item-photo')).toBeNull()
-  })
-
   it('renders a hero image when photoUrl is present', () => {
     render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
     const img = screen.getByTestId('feed-item-photo') as HTMLImageElement
@@ -55,10 +50,79 @@ describe('T088 — ItemFeedCard', () => {
     expect(img.getAttribute('alt')).toBe('')
     expect(img.getAttribute('loading')).toBe('lazy')
   })
+})
 
-  it('ignores a blank photoUrl', () => {
+// T118 — the media block is unconditional (Decision A, 2026-09-04).
+// design-language.md § Card media block.
+describe('T118 — ItemFeedCard media block', () => {
+  it('renders the media block when there is no photo', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    expect(screen.getByTestId('feed-item-media')).toBeTruthy()
+  })
+
+  it('renders the media block when there is a photo', () => {
+    render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
+    expect(screen.getByTestId('feed-item-media')).toBeTruthy()
+  })
+
+  it('falls back to the kind field, not a photo, when photoUrl is null', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    expect(screen.queryByTestId('feed-item-photo')).toBeNull()
+    expect(screen.getByTestId('feed-item-placeholder')).toBeTruthy()
+  })
+
+  it('treats a blank photoUrl as no photo', () => {
     render(<ItemFeedCard item={{ ...baseItem, photoUrl: '   ' }} />)
     expect(screen.queryByTestId('feed-item-photo')).toBeNull()
+    expect(screen.getByTestId('feed-item-placeholder')).toBeTruthy()
+  })
+
+  it('shows the photo instead of the kind field when one exists', () => {
+    render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
+    expect(screen.queryByTestId('feed-item-placeholder')).toBeNull()
+  })
+
+  it('carries a distinct glyph for each of the seven kinds', () => {
+    const kinds = ['gathering', 'product', 'service', 'wonder', 'offer', 'ask', 'initiative']
+    const seen = new Set<string>()
+    for (const kind of kinds) {
+      cleanup()
+      render(<ItemFeedCard item={{ ...baseItem, kind }} />)
+      const glyph = screen.getByTestId('feed-item-placeholder').getAttribute('data-glyph')
+      expect(glyph).toBeTruthy()
+      seen.add(glyph as string)
+    }
+    expect(seen.size).toBe(kinds.length)
+  })
+
+  it('still renders a glyph for an unknown kind', () => {
+    render(<ItemFeedCard item={{ ...baseItem, kind: 'sasquatch' }} />)
+    expect(screen.getByTestId('feed-item-placeholder').getAttribute('data-glyph')).toBeTruthy()
+  })
+
+  it('renders the kind as an editorial label, not a chip', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    const kind = screen.getByTestId('feed-item-kind')
+    expect(kind.textContent).toBe('Event')
+    expect(kind.className).not.toContain('chip')
+  })
+
+  it('shows the kind label on photo cards too', () => {
+    render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
+    expect(screen.getByTestId('feed-item-kind').textContent).toBe('Event')
+  })
+
+  it('fills its grid cell and declares no width of its own', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    const card = screen.getByTestId('feed-item-card')
+    expect(card.className).toContain('h-full')
+    expect(card.className).not.toMatch(/(^|\s)w-\d/)
+    expect(card.className).not.toMatch(/(^|\s)(sm:|md:|lg:)?grid-cols-/)
+  })
+
+  it('carries a hairline border at rest', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    expect(screen.getByTestId('feed-item-card').className).toContain('border')
   })
 
   it('uses the product segment for a product', () => {
