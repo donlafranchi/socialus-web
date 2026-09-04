@@ -17,9 +17,3 @@ export {
   type ItemAttachLocationInput,
   type ItemAttachLocationResult,
 } from './attach-location'
-export {
-  itemQrCardRequest,
-  itemQrCardRequestInput,
-  type ItemQrCardRequestInput,
-  type ItemQrCardRequestResult,
-} from './qr-card'

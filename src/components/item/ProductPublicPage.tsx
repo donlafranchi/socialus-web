@@ -11,14 +11,11 @@
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import type { ResolvedProduct } from '@/lib/items/resolve-product'
-import { QrCardButton } from './QrCardButton'
 
 export interface ProductPublicPageProps {
   product: ResolvedProduct
   /** Group page href when filed under a business Group; null when individual. */
   groupHref: string | null
-  /** True when the signed-in viewer owns this Item — gates the QR-card affordance (F041). */
-  isOwner?: boolean
 }
 
 function formatPrice(cents: number | null, unit: string | null): string {
@@ -30,7 +27,7 @@ function formatPrice(cents: number | null, unit: string | null): string {
   return unit ? `${dollars} / ${unit}` : dollars
 }
 
-export function ProductPublicPage({ product, groupHref, isOwner = false }: ProductPublicPageProps) {
+export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps) {
   return (
     <main className="mx-auto max-w-2xl px-4 py-6" data-testid="product-page">
       <article>
@@ -126,12 +123,6 @@ export function ProductPublicPage({ product, groupHref, isOwner = false }: Produ
         {/* T095 — the standalone "Sold by [Member]" line is folded into the
             attribution block above; the page no longer makes a hardcoded link to
             /m/<handle>. */}
-
-        {isOwner ? (
-          <div className="mt-6">
-            <QrCardButton itemId={product.itemId} />
-          </div>
-        ) : null}
       </article>
     </main>
   )

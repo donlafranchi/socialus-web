@@ -14,14 +14,11 @@
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import type { ResolvedService } from '@/lib/items/resolve-service'
-import { QrCardButton } from './QrCardButton'
 
 export interface ServicePublicPageProps {
   service: ResolvedService
   /** Group page href when filed under a business Group; null when individual. */
   groupHref: string | null
-  /** True when the signed-in viewer owns this Item — gates the QR-card affordance (F041). */
-  isOwner?: boolean
 }
 
 function formatRate(model: ResolvedService['rateModel'], cents: number | null): string {
@@ -36,7 +33,7 @@ function formatRate(model: ResolvedService['rateModel'], cents: number | null): 
   return dollars
 }
 
-export function ServicePublicPage({ service, groupHref, isOwner = false }: ServicePublicPageProps) {
+export function ServicePublicPage({ service, groupHref }: ServicePublicPageProps) {
   return (
     <main className="mx-auto max-w-2xl px-4 py-6" data-testid="service-page">
       <article>
@@ -108,12 +105,6 @@ export function ServicePublicPage({ service, groupHref, isOwner = false }: Servi
 
         {/* T095 — the standalone "Offered by [Member]" line is folded into the
             attribution block above. */}
-
-        {isOwner ? (
-          <div className="mt-6">
-            <QrCardButton itemId={service.itemId} />
-          </div>
-        ) : null}
       </article>
     </main>
   )

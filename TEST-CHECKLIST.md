@@ -44,7 +44,6 @@ npm run eval       # Playwright evals
 | F037 | `features/F037-maya-claims-locally-owned.spec.ts` | Locally-owned jurisdiction claim |
 | F038 | `features/F038-producer-lists-product.spec.ts` | Product Item page, Group attribution, pickup |
 | F040 | `features/F040-producer-lists-service.spec.ts` | Service Item page, brand resolve-up, service area, rate |
-| F041 | `features/F041-producer-generates-qr-card.spec.ts` | QR card affordance, owner-only gating |
 | F042 | `features/F042-member-follows-producer-group-venue.spec.ts` | Following summary on `/you`, full list at `/you/following` |
 
 ### Substrate floor

@@ -35,7 +35,6 @@ import {
 } from '@/lib/groups/resolve-shop'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
 import { splitItemSlug, resolveProduct } from '@/lib/items/resolve-product'
-import { isItemOwner } from '@/lib/items/is-item-owner'
 import { ProductPublicPage } from '@/components/item/ProductPublicPage'
 import { splitServiceSlug, resolveService } from '@/lib/items/resolve-service'
 import { ServicePublicPage } from '@/components/item/ServicePublicPage'
@@ -204,11 +203,7 @@ export default async function PlacePage({ params }: Props) {
       notFound()
     }
     const groupHref = `/p/${itemSplit.placeSegments.join('/')}/g/${itemSplit.groupSlug}`
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    const isOwner = await isItemOwner(supabase, product.itemId, user?.id ?? null)
-    return <ProductPublicPage product={product} groupHref={groupHref} isOwner={isOwner} />
+    return <ProductPublicPage product={product} groupHref={groupHref} />
   }
 
   // Service Item page dispatch — /p/[…place]/g/[group]/s/[item]. Checked before
@@ -223,11 +218,7 @@ export default async function PlacePage({ params }: Props) {
       notFound()
     }
     const groupHref = `/p/${serviceSplit.placeSegments.join('/')}/g/${serviceSplit.groupSlug}`
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    const isOwner = await isItemOwner(supabase, service.itemId, user?.id ?? null)
-    return <ServicePublicPage service={service} groupHref={groupHref} isOwner={isOwner} />
+    return <ServicePublicPage service={service} groupHref={groupHref} />
   }
 
   // Gathering Item page dispatch — /p/[…place]/g/[group]/e/[item]. Checked
@@ -244,10 +235,6 @@ export default async function PlacePage({ params }: Props) {
     const placePath = gatheringSplit.placeSegments.join('/')
     const groupHref = `/p/${placePath}/g/${gatheringSplit.groupSlug}`
     const shareUrl = `${groupHref}/e/${gatheringSplit.itemSlug}`
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    const isOwner = await isItemOwner(supabase, gathering.itemId, user?.id ?? null)
     return (
       <GatheringPublicPage
         gathering={gathering}
@@ -257,7 +244,6 @@ export default async function PlacePage({ params }: Props) {
           gathering.recurrenceRule,
         )}
         shareUrl={shareUrl}
-        isOwner={isOwner}
       />
     )
   }

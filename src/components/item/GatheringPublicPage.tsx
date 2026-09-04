@@ -12,7 +12,6 @@ import { MapPin, CalendarClock, Users } from 'lucide-react'
 import type { ResolvedGathering } from '@/lib/items/resolve-gathering'
 import { describeRecurrence } from '@/lib/items/resolve-gathering'
 import { ShareLinkButton } from './ShareLinkButton'
-import { QrCardButton } from './QrCardButton'
 
 export interface GatheringPublicPageProps {
   gathering: ResolvedGathering
@@ -22,8 +21,6 @@ export interface GatheringPublicPageProps {
   nextOccurrenceLabel: string | null
   /** Canonical URL the Share-link copies / shares. */
   shareUrl: string
-  /** True when the signed-in viewer owns this Item — gates the QR-card affordance (F041). */
-  isOwner?: boolean
 }
 
 function formatCost(cents: number | null): string {
@@ -36,7 +33,6 @@ export function GatheringPublicPage({
   groupHref,
   nextOccurrenceLabel,
   shareUrl,
-  isOwner = false,
 }: GatheringPublicPageProps) {
   const recurrence = describeRecurrence(gathering.recurrenceRule)
 
@@ -155,7 +151,6 @@ export function GatheringPublicPage({
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <ShareLinkButton url={shareUrl} />
-          {isOwner ? <QrCardButton itemId={gathering.itemId} /> : null}
         </div>
 
         {/* T095 — the standalone "Hosted by [Member]" line is folded into the

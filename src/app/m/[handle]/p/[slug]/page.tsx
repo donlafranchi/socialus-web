@@ -8,7 +8,6 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import { resolveProduct } from '@/lib/items/resolve-product'
-import { isItemOwner } from '@/lib/items/is-item-owner'
 import { ProductPublicPage } from '@/components/item/ProductPublicPage'
 
 interface Props {
@@ -35,10 +34,6 @@ export default async function MemberProductPage({ params }: Props) {
   if (!product) {
     notFound()
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const isOwner = await isItemOwner(supabase, product.itemId, user?.id ?? null)
   // Individual products have no Group page to resolve up to.
-  return <ProductPublicPage product={product} groupHref={null} isOwner={isOwner} />
+  return <ProductPublicPage product={product} groupHref={null} />
 }

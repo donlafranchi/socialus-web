@@ -1,5 +1,5 @@
 // Canonical origin for anything that leaves the browser — magic-link and OAuth
-// redirects, OG tags, printed QR codes.
+// redirects, OG tags, share links.
 //
 // Order matters. NEXT_PUBLIC_SITE_URL wins so a production build always emits
 // the canonical host (www.socialus.org) rather than whatever host the visitor
