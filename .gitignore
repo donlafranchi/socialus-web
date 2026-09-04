@@ -20,3 +20,6 @@ reports/mutation/
 .stryker-tmp/
 .vercel
 .env*
+
+# Local Claude Code tooling (dev-server launch config) — not app code
+.claude/
