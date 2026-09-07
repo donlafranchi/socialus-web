@@ -51,11 +51,11 @@ export default function JoinPage() {
       <section className="px-6 pt-12 md:pt-20 pb-10 max-w-3xl mx-auto text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] font-semibold">For vendors</p>
         <h1 className="mt-3 text-4xl md:text-5xl font-semibold text-neutral-900 leading-tight">
-          Sell at a farmers market? Get listed free.
+          Sell at a farmers market? Get listed.
         </h1>
         <p className="mt-4 text-lg text-neutral-700 max-w-xl mx-auto">
           SocialUs helps the customers you meet at the market find you the other six days of the week.
-          No fees. No middlemen. Just visibility for independent makers and farmers.
+          Listing costs nothing.
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -84,8 +84,8 @@ export default function JoinPage() {
             body="Customers who love what you made on Saturday can find you on Wednesday."
           />
           <Benefit
-            title="Free forever for vendors"
-            body="No listing fees, no transaction fees, no paid placement. The platform is supported by consumers."
+            title="Listing costs nothing"
+            body="There is no charge to create a listing or keep it up."
           />
           <Benefit
             title="Local-first audience"
@@ -98,7 +98,7 @@ export default function JoinPage() {
       <section className="px-6 py-12 max-w-3xl mx-auto">
         <h2 className="text-2xl font-semibold text-neutral-900 text-center">How it works</h2>
         <ol className="mt-6 space-y-5">
-          <Step n={1} title="Create a free account" body="Email and password. Takes 10 seconds." />
+          <Step n={1} title="Create an account" body="Email and password. Takes 10 seconds." />
           <Step
             n={2}
             title="Tell customers who you are"

@@ -87,7 +87,7 @@ function OpenSpotCard({ type, emoji }: { type: string; emoji: string }) {
           className="mt-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent)]"
         >
           <Plus size={11} />
-          List here — it's free
+          List here
         </Link>
       </div>
     </div>
@@ -150,7 +150,7 @@ function FeaturedExampleCard() {
               <Plus size={14} />
               Create your listing
             </Link>
-            <span className="text-xs text-neutral-500">Free · 90 seconds · No fees, ever</span>
+            <span className="text-xs text-neutral-500">Listing costs nothing · about 90 seconds</span>
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ export function RecruitmentGrid() {
       <div className="px-3 md:px-6 pt-6">
         <h2 className="text-base font-semibold text-neutral-900">We're looking for makers in Sacramento</h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Every spot below is open. It's free to list, takes 90 seconds, and you keep every customer relationship.
+          Every spot below is open. Listing costs nothing and takes about 90 seconds.
         </p>
       </div>
 
