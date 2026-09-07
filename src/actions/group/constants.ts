@@ -18,3 +18,15 @@ export type GroupKind = (typeof GROUP_KINDS)[number]
 // has not yet reached the brand-name step. group.activate refuses to promote a
 // row that still carries this placeholder.
 export const DRAFT_NAME_PLACEHOLDER = 'untitled-draft'
+
+// T132 — groups.md § Roles per kind: business Groups are managed by
+// role='owner', every other kind by role='steward'. The role a founder is
+// assigned at group.create and the role group.update_draft requires to edit
+// a draft are the same question — this is the one place both agree on the
+// answer. Two independent readers of group_memberships.role already branch
+// the same way in SQL (member_has_standing_presence, acquisition-prompt.ts's
+// qualifying probe) — this function governs the write path only; a future
+// change to the kind→role rule still needs updating in all three places.
+export function managingRoleForKind(kind: GroupKind): 'owner' | 'steward' {
+  return kind === 'business' ? 'owner' : 'steward'
+}

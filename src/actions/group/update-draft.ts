@@ -3,8 +3,9 @@
 // Spec:   product/systems/groups.md § Action handlers (2026-05-31 amendment)
 //
 // Per-step composer update. Mutates a `groups` row where lifecycle_state='draft'
-// AND the caller has role='owner' on the Group. For kind='business', the same
-// handler also patches group_businesses fields in the same transaction.
+// AND the caller holds the Group's managing role (T132 — 'owner' for
+// business, 'steward' otherwise; see managingRoleForKind). For kind='business',
+// the same handler also patches group_businesses fields in the same transaction.
 //
 // Refuses (ValidationError) if the row is not in 'draft' state — activate'd
 // or dissolved rows mutate through their own surface-specific handlers.
@@ -18,6 +19,7 @@ import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import { toSlug } from '../../lib/slugify'
+import { managingRoleForKind, type GroupKind } from './constants'
 import type { ActionContext } from '../_lib/context'
 
 export const groupUpdateDraftInput = z.object({
@@ -95,18 +97,23 @@ export const groupUpdateDraft = defineHandler(
           'group.update_draft: self-bootstrap acting member is not permitted; resolve to a real member first',
         )
       }
+      // T132 — the managing role is 'owner' for business, 'steward' for every
+      // other kind (groups.md § Roles per kind). A non-business founder holds
+      // 'steward', never 'owner' — an unconditional owner check here would
+      // lock every non-business founder out of their own draft.
+      const managingRole = managingRoleForKind(row.kind as GroupKind)
       const ownerRes = await client.query<{ role: string }>(
         `select role
            from public.group_memberships
           where group_id = $1
             and member_id = $2
             and left_at is null
-            and role = 'owner'`,
-        [input.groupId, ctx.actingMemberId],
+            and role = $3`,
+        [input.groupId, ctx.actingMemberId, managingRole],
       )
       if (ownerRes.rows.length === 0) {
         throw new AuthorizationError(
-          `group.update_draft: acting member ${ctx.actingMemberId} is not an owner of group ${input.groupId}`,
+          `group.update_draft: acting member ${ctx.actingMemberId} is not a ${managingRole} of group ${input.groupId}`,
         )
       }
 
