@@ -202,8 +202,11 @@ describe('T070 — handler source-shape sanity checks', () => {
     expect(createSrc).toMatch(/lifecycle_state\)[\s\S]*?values[\s\S]*?'draft'/)
   })
 
-  it('group.create writes role=\'owner\' + source=\'explicit\' for founder membership', () => {
-    expect(createSrc).toMatch(/'owner'/)
+  it('group.create branches founder role by kind via managingRoleForKind, source=\'explicit\'', () => {
+    // T132 — role is no longer a hardcoded 'owner' literal; it's computed per
+    // groups.md § Roles per kind (business → owner, else → steward). See
+    // src/actions/group/constants.test.ts for the branch's own unit coverage.
+    expect(createSrc).toMatch(/managingRoleForKind/)
     expect(createSrc).toMatch(/'explicit'/)
   })
 
@@ -217,8 +220,11 @@ describe('T070 — handler source-shape sanity checks', () => {
     expect(updateSrc).toMatch(/ValidationError/)
   })
 
-  it('group.update_draft requires caller to be a role=\'owner\' member', () => {
-    expect(updateSrc).toMatch(/role\s*=\s*'owner'/)
+  it('group.update_draft requires caller to hold the kind\'s managing role, not a hardcoded owner', () => {
+    // T132 — an unconditional role='owner' check would lock out every
+    // non-business founder (who correctly holds 'steward' as of this ticket).
+    expect(updateSrc).toMatch(/managingRoleForKind/)
+    expect(updateSrc).not.toMatch(/role\s*=\s*'owner'/)
     expect(updateSrc).toMatch(/AuthorizationError/)
   })
 

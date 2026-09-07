@@ -4,9 +4,10 @@
 //         product/ui/design-language.md § Multi-step composer (the draft-state contract)
 //
 // Creates a `groups` row with lifecycle_state='draft' + a founder
-// group_memberships row with role='owner', source='explicit', + a
-// group.created event — all in one transaction (ADR-10 same-transaction
-// invariant; groups.md § 365 ratified source='explicit').
+// group_memberships row (role branches by kind — see managingRoleForKind,
+// groups.md § Roles per kind), source='explicit', + a group.created event —
+// all in one transaction (ADR-10 same-transaction invariant; groups.md §365
+// ratified source='explicit').
 //
 // For kind='business', also creates the companion group_businesses row
 // with display_name (or an empty placeholder if the composer hasn't reached
@@ -21,7 +22,7 @@ import { appendEvent } from '../_lib/event-log'
 import { toSlug } from '../../lib/slugify'
 import { maybeEnqueueDiscoverabilityPrompt } from '../../lib/member/acquisition-prompt'
 import type { ActionContext } from '../_lib/context'
-import { GROUP_KINDS, DRAFT_NAME_PLACEHOLDER } from './constants'
+import { GROUP_KINDS, DRAFT_NAME_PLACEHOLDER, managingRoleForKind } from './constants'
 
 export const groupCreateInput = z.object({
   kind: z.enum(GROUP_KINDS),
@@ -117,15 +118,16 @@ export const groupCreate = defineHandler(
         )
       }
 
-      // Founder membership: role='owner', source='explicit' per groups.md:365
-      // (Intent Ratified 2026-05-31 — Member opted in by invoking the
-      // composer; source='explicit' is the schema-level firewall against
-      // Nextdoor-style auto-enrollment).
+      // Founder membership: role branches by kind (T132 — groups.md § Roles
+      // per kind), source='explicit' (Intent Ratified 2026-05-31 — Member
+      // opted in by invoking the composer; source='explicit' is the
+      // schema-level firewall against Nextdoor-style auto-enrollment).
+      const founderRole = managingRoleForKind(input.kind)
       await client.query(
         `insert into public.group_memberships
            (group_id, member_id, role, source)
-         values ($1, $2, 'owner', 'explicit')`,
-        [groupId, input.founderMemberId],
+         values ($1, $2, $3, 'explicit')`,
+        [groupId, input.founderMemberId, founderRole],
       )
 
       // Event: group.created. Per groups.md 2026-05-31 amendment, this fires
@@ -142,23 +144,24 @@ export const groupCreate = defineHandler(
         },
       })
 
-      // Event: group.member_joined for the founder's owner-role membership.
-      // Same transaction as the membership insert; satisfies the scenario's
+      // Event: group.member_joined for the founder's membership. Same
+      // transaction as the membership insert; satisfies the scenario's
       // "in one transaction" Then-clause for F036 Beat 2.
       await appendEvent(txCtx, 'group_events', {
         group_id: groupId,
         event_kind: 'group.member_joined',
         payload: {
           member_id: input.founderMemberId,
-          role: 'owner',
+          role: founderRole,
           source: 'explicit',
         },
       })
 
-      // T095 — prompt-on-acquisition. Founding a kind='business' Group is the
-      // Member's first business-Group membership; enqueue the one-time
-      // discoverability offer (no-op for community kinds, where the founder is
-      // owner — not steward — so the helper's qualifying probe declines). Same
+      // T095 — prompt-on-acquisition. The helper's own qualifying probe fires
+      // on a business-kind membership OR a steward role in any Group (per
+      // member.md, Ratified 2026-06-03) — before T132, community-kind
+      // founders never actually received 'steward', so this branch of a
+      // already-ratified feature never fired. It now does, correctly. Same
       // transaction so the offer can never be lost between membership + prompt.
       await maybeEnqueueDiscoverabilityPrompt(client, input.founderMemberId)
 
