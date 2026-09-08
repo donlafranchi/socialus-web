@@ -11,6 +11,7 @@
 // fragment. RLS (items_select_published) is the visibility gate.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { memberHasPublished } from '../member/has-published'
 import { parseIdFragment } from './resolve-product'
 import type { ItemAttribution } from './resolve-product'
 import type { RateModel } from '@/components/sell/ServiceComposer'
@@ -122,7 +123,7 @@ export async function resolveService(
   if (!scope) return null
 
   // T095 — Group-filed services attribute to the Group (no members embed needed);
-  // individual services embed the author + read discoverability separately.
+  // individual services embed the author + derive the link from what they've published (T137).
   const baseSelect =
     'id, title, description, brand_label, member_id, ' +
     'item_services(rate_model, rate_cents, service_area_geography), ' +
@@ -157,16 +158,11 @@ export async function resolveService(
   if (scope.individual) {
     const owner = firstEmbed(row.owner)
     if (!owner) return null
-    const { data: disc } = await supabase
-      .from('member_public_discoverability')
-      .select('is_discoverable')
-      .eq('member_id', row.member_id)
-      .maybeSingle()
     attribution = {
       kind: 'member',
       handle: owner.handle,
       displayName: owner.display_name,
-      isDiscoverable: (disc as { is_discoverable: boolean } | null)?.is_discoverable ?? false,
+      hasPublished: await memberHasPublished(supabase, row.member_id),
     }
   } else {
     // T119 — brand_label is denormalized from group_businesses.display_name, so

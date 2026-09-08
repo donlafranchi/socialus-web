@@ -56,10 +56,10 @@ export function ShopPublicPage({ shop, badge, items, loggedIn, ownerClaim = null
 
         {shop.founder && (
           <div data-testid="shop-founder" className="flex items-center gap-2">
-            {/* T095 — link only when the founder has opted into discoverability;
+            {/* T137 — link only when the founder has published something;
                 otherwise render the name as plain text. The Shop is public regardless
                 (Groups are public-by-default); only the personal-profile link is gated. */}
-            {shop.founder.isDiscoverable ? (
+            {shop.founder.hasPublished ? (
               <a
                 href={`/m/${shop.founder.handle}`}
                 data-testid="shop-founder-link"

@@ -63,7 +63,7 @@ export function ServicePublicPage({ service, groupHref }: ServicePublicPageProps
         ) : service.attribution.kind === 'member' ? (
           <p className="mt-3 text-sm font-medium" data-testid="service-attribution">
             Offered by{' '}
-            {service.attribution.isDiscoverable ? (
+            {service.attribution.hasPublished ? (
               <Link
                 href={`/m/${service.attribution.handle}`}
                 data-testid="service-attribution-link"

@@ -122,8 +122,8 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
   })
 })
 
-describe('resolveService — individual path (T095 Member-attribution + conditional link)', () => {
-  it('attributes to the Member with isDiscoverable=true', async () => {
+describe('resolveService — individual path (T137 Member-attribution + link follows publishing)', () => {
+  it('attributes to the Member with hasPublished=true', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-maya' } },
       items: {
@@ -139,7 +139,7 @@ describe('resolveService — individual path (T095 Member-attribution + conditio
           }),
         ],
       },
-      member_public_discoverability: { data: { is_discoverable: true } },
+      member_public_has_published: { data: { member_id: 'mem-maya' } },
     })
     const result = await resolveService(supabase, {
       handle: 'maya',
@@ -153,20 +153,20 @@ describe('resolveService — individual path (T095 Member-attribution + conditio
       kind: 'member',
       handle: 'maya',
       displayName: 'Maya Chen',
-      isDiscoverable: true,
+      hasPublished: true,
     })
   })
 
-  it('attributes to the Member with isDiscoverable=false (plain-text fallback)', async () => {
+  it('attributes to the Member with hasPublished=false (plain-text fallback)', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-maya' } },
       items: { data: [serviceRow({ brand_label: null })] },
-      member_public_discoverability: { data: { is_discoverable: false } },
+      member_public_has_published: { data: null },
     })
     const result = await resolveService(supabase, {
       handle: 'maya',
       itemSlug: 'piano-lessons-deadbeef',
     })
-    expect((result!.attribution as { isDiscoverable: boolean }).isDiscoverable).toBe(false)
+    expect((result!.attribution as { hasPublished: boolean }).hasPublished).toBe(false)
   })
 })

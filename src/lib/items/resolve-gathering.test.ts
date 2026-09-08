@@ -161,12 +161,12 @@ describe('resolveGathering — group path (T095 Group-attribution)', () => {
   })
 })
 
-describe('resolveGathering — individual path (T095 Member-attribution + conditional link)', () => {
-  it('attributes to the Member with isDiscoverable=true', async () => {
+describe('resolveGathering — individual path (T137 Member-attribution + link follows publishing)', () => {
+  it('attributes to the Member with hasPublished=true', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-sam' } },
       items: { data: [gatheringRow({ brand_label: null })] },
-      member_public_discoverability: { data: { is_discoverable: true } },
+      member_public_has_published: { data: { member_id: 'mem-sam' } },
     })
     const result = await resolveGathering(supabase, {
       handle: 'sam',
@@ -178,20 +178,20 @@ describe('resolveGathering — individual path (T095 Member-attribution + condit
       kind: 'member',
       handle: 'sam',
       displayName: 'Sam Rivera',
-      isDiscoverable: true,
+      hasPublished: true,
     })
   })
 
-  it('attributes to the Member with isDiscoverable=false (plain-text fallback)', async () => {
+  it('attributes to the Member with hasPublished=false (plain-text fallback)', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-sam' } },
       items: { data: [gatheringRow({ brand_label: null })] },
-      member_public_discoverability: { data: { is_discoverable: false } },
+      member_public_has_published: { data: null },
     })
     const result = await resolveGathering(supabase, {
       handle: 'sam',
       itemSlug: 'thursday-run-club-deadbeef',
     })
-    expect((result!.attribution as { isDiscoverable: boolean }).isDiscoverable).toBe(false)
+    expect((result!.attribution as { hasPublished: boolean }).hasPublished).toBe(false)
   })
 })

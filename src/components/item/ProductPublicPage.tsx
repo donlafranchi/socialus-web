@@ -54,9 +54,9 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
 
         {/* T095 — attribution. Group-filed items attribute to the Group (link to the
             Shop page). Individual items attribute to the Member with a conditional
-            link gated by is_discoverable: link to /m/<handle> when discoverable,
+            link that follows publishing (T137): /m/<handle> when they've published,
             plain text otherwise. The seller's privacy never blocks the item's
-            visibility — "outputs surface, people opt in." */}
+            visibility — outputs surface; the person is reachable through them. */}
         {product.attribution.kind === 'group' && groupHref ? (
           <p className="mt-3 text-sm font-medium" data-testid="product-attribution">
             Sold by{' '}
@@ -71,7 +71,7 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
         ) : product.attribution.kind === 'member' ? (
           <p className="mt-3 text-sm font-medium" data-testid="product-attribution">
             Sold by{' '}
-            {product.attribution.isDiscoverable ? (
+            {product.attribution.hasPublished ? (
               <Link
                 href={`/m/${product.attribution.handle}`}
                 data-testid="product-attribution-link"

@@ -15,6 +15,7 @@
 // Supabase-client-shaped (session-bound), same convention as resolve-shop.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { memberHasPublished } from '../member/has-published'
 
 export interface ResolvedProductPickup {
   label: string
@@ -23,12 +24,12 @@ export interface ResolvedProductPickup {
 /**
  * T095 — Item attribution model. Items filed under a Group attribute to the Group
  * (always public); items sold as an individual attribute to the Member with a
- * conditional link gated by is_discoverable. Selling something publicly does not
- * require the seller's personal profile to be searchable.
+ * conditional link. T137 — the link follows publishing: a Member who has
+ * published anything links; one who has published nothing is plain text.
  */
 export type ItemAttribution =
   | { kind: 'group'; name: string }
-  | { kind: 'member'; handle: string; displayName: string; isDiscoverable: boolean }
+  | { kind: 'member'; handle: string; displayName: string; hasPublished: boolean }
 
 export interface ResolvedProduct {
   itemId: string
@@ -141,8 +142,8 @@ export async function resolveProduct(
   // T095 — Attribution model. Group-filed items attribute to the Group (always
   // public); the members embed is dropped on that path so item pages no longer
   // require a base-table read of members. Individual items still embed the
-  // author's member row for the attribution name + handle, plus a separate read
-  // of member_public_discoverability for the conditional link.
+  // author's member row for the attribution name + handle; the conditional
+  // link derives from what they've published (T137).
   const baseSelect =
     'id, title, description, brand_label, made_at_place_id, member_id, ' +
     'item_products(price_cents, price_unit, photo_urls), ' +
@@ -178,16 +179,11 @@ export async function resolveProduct(
   if (scope.individual) {
     const owner = firstEmbed(row.owner)
     if (!owner) return null
-    const { data: disc } = await supabase
-      .from('member_public_discoverability')
-      .select('is_discoverable')
-      .eq('member_id', row.member_id)
-      .maybeSingle()
     attribution = {
       kind: 'member',
       handle: owner.handle,
       displayName: owner.display_name,
-      isDiscoverable: (disc as { is_discoverable: boolean } | null)?.is_discoverable ?? false,
+      hasPublished: await memberHasPublished(supabase, row.member_id),
     }
   } else {
     // Group-filed: brand_label is the denormalized Group display_name.

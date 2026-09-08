@@ -26,7 +26,7 @@ function gathering(overrides: Partial<ResolvedGathering> = {}): ResolvedGatherin
       kind: 'member',
       handle: 'sam',
       displayName: 'Sam Rivera',
-      isDiscoverable: true,
+      hasPublished: true,
     },
     location: { label: "Drake's" },
     ...overrides,
@@ -66,7 +66,7 @@ describe('T082/T095 — GatheringPublicPage', () => {
             kind: 'member',
             handle: 'sam',
             displayName: 'Sam Rivera',
-            isDiscoverable: false,
+            hasPublished: false,
           },
         })}
         groupHref={null}

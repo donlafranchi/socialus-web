@@ -53,7 +53,7 @@ describe('T079/T095 — ProductPublicPage', () => {
             kind: 'member',
             handle: 'maya',
             displayName: 'Maya Chen',
-            isDiscoverable: true,
+            hasPublished: true,
           },
         })}
         groupHref={null}
@@ -74,7 +74,7 @@ describe('T079/T095 — ProductPublicPage', () => {
             kind: 'member',
             handle: 'maya',
             displayName: 'Maya Chen',
-            isDiscoverable: false,
+            hasPublished: false,
           },
         })}
         groupHref={null}
