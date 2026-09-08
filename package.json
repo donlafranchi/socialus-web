@@ -28,6 +28,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^1.0.8",
     "@playwright/test": "^1.59.1",
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/typescript-checker": "^9.6.1",
@@ -38,6 +39,7 @@
     "@types/mapbox-gl": "^3.4.1",
     "@types/node": "^20",
     "@types/pg": "^8.11.10",
+    "@types/piexifjs": "^1.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
@@ -45,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "jsdom": "^29.0.2",
+    "piexifjs": "^1.0.6",
     "tailwindcss": "^4",
     "tsx": "^4.19.0",
     "typescript": "^5",
