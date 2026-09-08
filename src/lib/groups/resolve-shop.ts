@@ -13,6 +13,7 @@
 // with the session-bound client. Same convention as src/lib/sell/getDraftGroup.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { memberHasPublished } from '../member/has-published'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'dissolved'
 
@@ -20,8 +21,8 @@ export interface ShopFounder {
   handle: string
   displayName: string
   avatarUrl: string | null
-  /** T095 — gates the conditional link on the "Founded by" line; plain text when false. */
-  isDiscoverable: boolean
+  /** T137 — gates the conditional link on the "Founded by" line; plain text when false. */
+  hasPublished: boolean
 }
 
 export interface ResolvedShop {
@@ -117,19 +118,8 @@ export async function resolveShop(
   const biz = firstEmbed(row.group_businesses)
   const founderRow = firstEmbed(row.founder)
 
-  // T095 — founder's discoverability drives the conditional link on "Founded by".
-  // Read from the anon-readable projection view (migration 030); the base
-  // member_privacy table is owner-only RLS so a direct embed would always return
-  // null for non-owners.
-  let founderIsDiscoverable = false
-  if (founderRow) {
-    const { data: disc } = await supabase
-      .from('member_public_discoverability')
-      .select('is_discoverable')
-      .eq('member_id', founderRow.id)
-      .maybeSingle()
-    founderIsDiscoverable = (disc as { is_discoverable: boolean } | null)?.is_discoverable ?? false
-  }
+  // T137 — the "Founded by" link follows what the founder has published.
+  const founderHasPublished = founderRow ? await memberHasPublished(supabase, founderRow.id) : false
 
   return {
     groupId: row.id,
@@ -143,7 +133,7 @@ export async function resolveShop(
           handle: founderRow.handle,
           displayName: founderRow.display_name,
           avatarUrl: founderRow.avatar_url,
-          isDiscoverable: founderIsDiscoverable,
+          hasPublished: founderHasPublished,
         }
       : null,
   }

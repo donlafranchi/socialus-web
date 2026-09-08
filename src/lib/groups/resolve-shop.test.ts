@@ -37,12 +37,12 @@ describe('splitGroupSlug', () => {
 })
 
 // Supabase client stub: switches the chainable builder by table name so we can
-// stub two queries (groups + member_public_discoverability) in one test.
+// stub two queries (groups + member_public_has_published) in one test.
 // T095 — added discoverability route.
 function makeSupabaseStub(routes: {
   group?: unknown
   groupError?: unknown
-  discoverability?: unknown
+  hasPublished?: unknown
 }) {
   return {
     from: (table: string) => {
@@ -52,9 +52,9 @@ function makeSupabaseStub(routes: {
       chain.eq = passthrough
       chain.is = passthrough
       chain.limit = passthrough
-      if (table === 'member_public_discoverability') {
+      if (table === 'member_public_has_published') {
         chain.maybeSingle = () =>
-          Promise.resolve({ data: routes.discoverability ?? null, error: null })
+          Promise.resolve({ data: routes.hasPublished ?? null, error: null })
       } else {
         chain.maybeSingle = () =>
           Promise.resolve({ data: routes.group ?? null, error: routes.groupError ?? null })
@@ -90,9 +90,9 @@ describe('resolveShop', () => {
     expect(shop).toBeNull()
   })
 
-  it('maps an active business Group with founder, defaulting isDiscoverable=false when no privacy row', async () => {
+  it('maps an active business Group with founder, defaulting hasPublished=false when the projection has no row', async () => {
     const shop = await resolveShop(
-      makeSupabaseStub({ group: ACTIVE_ROW, discoverability: null }),
+      makeSupabaseStub({ group: ACTIVE_ROW, hasPublished: null }),
       'oak-park-sourdough',
     )
     expect(shop).toEqual({
@@ -106,24 +106,24 @@ describe('resolveShop', () => {
         handle: 'maya',
         displayName: 'Maya Rivera',
         avatarUrl: 'https://x/a.png',
-        isDiscoverable: false,
+        hasPublished: false,
       },
     })
   })
 
-  it('surfaces founder isDiscoverable=true when the projection view returns it', async () => {
+  it('surfaces founder hasPublished=true when the projection carries them', async () => {
     const shop = await resolveShop(
-      makeSupabaseStub({ group: ACTIVE_ROW, discoverability: { is_discoverable: true } }),
+      makeSupabaseStub({ group: ACTIVE_ROW, hasPublished: { member_id: 'mem-maya' } }),
       'oak-park-sourdough',
     )
-    expect(shop?.founder?.isDiscoverable).toBe(true)
+    expect(shop?.founder?.hasPublished).toBe(true)
   })
 
   it('flags a draft row so the page can render the owner preview', async () => {
     const shop = await resolveShop(
       makeSupabaseStub({
         group: { ...ACTIVE_ROW, lifecycle_state: 'draft' },
-        discoverability: null,
+        hasPublished: null,
       }),
       'oak-park-sourdough',
     )
@@ -138,18 +138,18 @@ describe('resolveShop', () => {
           group_businesses: { display_name: 'Solo Object Shop', public_description: '' },
           founder: { id: 'mem-maya', handle: 'maya', display_name: 'Maya Rivera', avatar_url: null },
         },
-        discoverability: { is_discoverable: false },
+        hasPublished: null,
       }),
       'oak-park-sourdough',
     )
     expect(shop?.displayName).toBe('Solo Object Shop')
     expect(shop?.founder?.avatarUrl).toBeNull()
-    expect(shop?.founder?.isDiscoverable).toBe(false)
+    expect(shop?.founder?.hasPublished).toBe(false)
   })
 
   it('returns a null founder gracefully when the embed is absent', async () => {
     const shop = await resolveShop(
-      makeSupabaseStub({ group: { ...ACTIVE_ROW, founder: null }, discoverability: null }),
+      makeSupabaseStub({ group: { ...ACTIVE_ROW, founder: null }, hasPublished: null }),
       'oak-park-sourdough',
     )
     expect(shop?.founder).toBeNull()

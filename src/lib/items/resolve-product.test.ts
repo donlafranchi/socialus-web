@@ -135,8 +135,8 @@ describe('resolveProduct — group path (T095 Group-attribution)', () => {
   })
 })
 
-describe('resolveProduct — individual path (T095 Member-attribution + conditional link)', () => {
-  it('attributes to the Member with isDiscoverable=true when the discoverability row says so', async () => {
+describe('resolveProduct — individual path (T137 Member-attribution + link follows publishing)', () => {
+  it('attributes to the Member with hasPublished=true when the projection carries the Member', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-maya' } },
       items: {
@@ -147,7 +147,7 @@ describe('resolveProduct — individual path (T095 Member-attribution + conditio
           }),
         ],
       },
-      member_public_discoverability: { data: { is_discoverable: true } },
+      member_public_has_published: { data: { member_id: 'mem-maya' } },
     })
     const result = await resolveProduct(supabase, {
       handle: 'maya',
@@ -160,15 +160,15 @@ describe('resolveProduct — individual path (T095 Member-attribution + conditio
       kind: 'member',
       handle: 'maya',
       displayName: 'Maya Chen',
-      isDiscoverable: true,
+      hasPublished: true,
     })
   })
 
-  it('attributes to the Member with isDiscoverable=false (plain-text fallback)', async () => {
+  it('attributes to the Member with hasPublished=false (plain-text fallback)', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-maya' } },
       items: { data: [productRow({ brand_label: null })] },
-      member_public_discoverability: { data: { is_discoverable: false } },
+      member_public_has_published: { data: null },
     })
     const result = await resolveProduct(supabase, {
       handle: 'maya',
@@ -178,20 +178,20 @@ describe('resolveProduct — individual path (T095 Member-attribution + conditio
       kind: 'member',
       handle: 'maya',
       displayName: 'Maya Chen',
-      isDiscoverable: false,
+      hasPublished: false,
     })
   })
 
-  it('falls back to isDiscoverable=false when the discoverability row is missing', async () => {
+  it('falls back to hasPublished=false when the projection has no row', async () => {
     const supabase = makeSupabase({
       members: { data: { id: 'mem-maya' } },
       items: { data: [productRow({ brand_label: null })] },
-      member_public_discoverability: { data: null },
+      member_public_has_published: { data: null },
     })
     const result = await resolveProduct(supabase, {
       handle: 'maya',
       itemSlug: 'country-sourdough-loaf-deadbeef',
     })
-    expect((result!.attribution as { isDiscoverable: boolean }).isDiscoverable).toBe(false)
+    expect((result!.attribution as { hasPublished: boolean }).hasPublished).toBe(false)
   })
 })

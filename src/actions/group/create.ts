@@ -20,7 +20,6 @@ import { defineHandler } from '../_lib/handler'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import { toSlug } from '../../lib/slugify'
-import { maybeEnqueueDiscoverabilityPrompt } from '../../lib/member/acquisition-prompt'
 import type { ActionContext } from '../_lib/context'
 import { GROUP_KINDS, DRAFT_NAME_PLACEHOLDER, managingRoleForKind } from './constants'
 
@@ -156,14 +155,6 @@ export const groupCreate = defineHandler(
           source: 'explicit',
         },
       })
-
-      // T095 — prompt-on-acquisition. The helper's own qualifying probe fires
-      // on a business-kind membership OR a steward role in any Group (per
-      // member.md, Ratified 2026-06-03) — before T132, community-kind
-      // founders never actually received 'steward', so this branch of a
-      // already-ratified feature never fired. It now does, correctly. Same
-      // transaction so the offer can never be lost between membership + prompt.
-      await maybeEnqueueDiscoverabilityPrompt(client, input.founderMemberId)
 
       return { groupId, slug: insertedSlug, lifecycleState: 'draft' }
     })

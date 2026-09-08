@@ -61,7 +61,7 @@ export function GatheringPublicPage({
         ) : gathering.attribution.kind === 'member' ? (
           <p className="mt-2 text-sm font-medium" data-testid="gathering-attribution">
             Hosted by{' '}
-            {gathering.attribution.isDiscoverable ? (
+            {gathering.attribution.hasPublished ? (
               <Link
                 href={`/m/${gathering.attribution.handle}`}
                 data-testid="gathering-attribution-link"

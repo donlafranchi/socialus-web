@@ -21,7 +21,7 @@ const SHOP: ResolvedShop = {
     handle: 'maya',
     displayName: 'Maya Rivera',
     avatarUrl: 'https://x/a.png',
-    isDiscoverable: true,
+    hasPublished: true,
   },
 }
 
@@ -45,7 +45,7 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     expect(h1).toHaveTextContent('Oak Park Sourdough')
   })
 
-  it('links the founder to their Member page when isDiscoverable=true; avatar is decorative', () => {
+  it('links the founder to their Member page when hasPublished=true; avatar is decorative', () => {
     renderShop()
     const founder = screen.getByTestId('shop-founder')
     const link = screen.getByTestId('shop-founder-link')
@@ -55,11 +55,11 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     expect(founder.querySelector('img')).toHaveAttribute('alt', '')
   })
 
-  it('T095 — renders the founder as plain text (no link) when isDiscoverable=false', () => {
+  it('T137 — renders the founder as plain text (no link) when hasPublished=false', () => {
     renderShop({
       shop: {
         ...SHOP,
-        founder: { ...SHOP.founder!, isDiscoverable: false },
+        founder: { ...SHOP.founder!, hasPublished: false },
       },
     })
     const founder = screen.getByTestId('shop-founder')

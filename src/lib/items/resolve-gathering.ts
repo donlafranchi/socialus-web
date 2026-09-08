@@ -10,6 +10,7 @@
 // resolve-product.ts. RLS (items_select_published) is the visibility gate.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { memberHasPublished } from '../member/has-published'
 import { parseIdFragment } from './resolve-product'
 import type { ItemAttribution } from './resolve-product'
 
@@ -159,7 +160,7 @@ export async function resolveGathering(
   if (!scope) return null
 
   // T095 — Group-filed gatherings attribute to the Group; individual gatherings
-  // (Member-hosted, no Group) embed the host + read discoverability separately.
+  // (Member-hosted, no Group) embed the host + derive the link from what they've published (T137).
   const baseSelect =
     'id, title, description, brand_label, member_id, ' +
     'item_gatherings(starts_at, ends_at, recurrence_rule, capacity, cost_cents, what_to_bring), ' +
@@ -192,16 +193,11 @@ export async function resolveGathering(
   if (scope.individual) {
     const owner = firstEmbed(row.owner)
     if (!owner) return null
-    const { data: disc } = await supabase
-      .from('member_public_discoverability')
-      .select('is_discoverable')
-      .eq('member_id', row.member_id)
-      .maybeSingle()
     attribution = {
       kind: 'member',
       handle: owner.handle,
       displayName: owner.display_name,
-      isDiscoverable: (disc as { is_discoverable: boolean } | null)?.is_discoverable ?? false,
+      hasPublished: await memberHasPublished(supabase, row.member_id),
     }
   } else {
     // T119 — brand_label is denormalized from group_businesses.display_name, so

@@ -13,11 +13,12 @@ Development agent's build progress tracker. Use JOURNAL.md for product/strategy 
 **Target:** b1 MVP — Producer Marketplace
 **Bundle:** [planning/now/bundle-1.md](../planning/now/bundle-1.md)
 
-**This week:** [2026-W36](build-log/2026-W36.md)
+**This week:** [2026-W37](build-log/2026-W37.md)
 
 ## History
 
 | Week | Notes |
 |------|-------|
+| 2026-W36 | [Week 36](build-log/2026-W36.md) — T112–T119, T132, T138: nav refresh, browse filters, item cards, canonical URLs, founder role by kind, standing badge removed |
 | 2026-W32 | [Week 32](build-log/2026-W32.md) — rotation policy introduced, no tickets |
 | pre-rotation | [Full archive](build-log/archive-pre-rotation.md) — all entries through 2026-06-18 |

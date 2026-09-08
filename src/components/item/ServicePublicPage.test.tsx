@@ -52,7 +52,7 @@ describe('T083/T095 — ServicePublicPage', () => {
             kind: 'member',
             handle: 'maya',
             displayName: 'Maya Chen',
-            isDiscoverable: true,
+            hasPublished: true,
           },
         })}
         groupHref={null}
@@ -72,7 +72,7 @@ describe('T083/T095 — ServicePublicPage', () => {
             kind: 'member',
             handle: 'maya',
             displayName: 'Maya Chen',
-            isDiscoverable: false,
+            hasPublished: false,
           },
         })}
         groupHref={null}
