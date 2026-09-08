@@ -43,7 +43,6 @@ export interface ResolvedMemberPage {
   bio: string | null
   pronouns: string | null
   avatarUrl: string | null
-  hasStandingPresence: boolean
   items: MemberItem[]
   groups: MemberGroup[]
   isSelf: boolean
@@ -172,15 +171,6 @@ export async function resolveMemberPage(
     kind: row.kind,
   }))
 
-  // Standing-presence badge.
-  const { data: standingData } = await supabase
-    .from('member_has_standing_presence')
-    .select('member_id')
-    .eq('member_id', member.id)
-    .limit(1)
-    .maybeSingle()
-  const hasStandingPresence = !!standingData
-
   // Follow state — only meaningful for an auth'd, non-self viewer.
   let isFollowing = false
   if (viewerId && !isSelf) {
@@ -205,7 +195,6 @@ export async function resolveMemberPage(
       bio: member.bio,
       pronouns: member.pronouns,
       avatarUrl: member.avatar_url,
-      hasStandingPresence,
       items,
       groups,
       isSelf,

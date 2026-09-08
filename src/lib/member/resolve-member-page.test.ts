@@ -71,7 +71,6 @@ const MEMBER = {
 
 const RENDER_TABLES = {
   members: tableStub({ single: MEMBER }),
-  member_has_standing_presence: tableStub({ single: null }),
 }
 
 describe('resolveMemberPage — visibility verdict', () => {
@@ -207,7 +206,6 @@ describe('resolveMemberPage — render payload (verdict already render)', () => 
         member_public_group_memberships: tableStub({
           list: [{ slug: 'oak-park-bakers', name: 'Oak Park Bakers', kind: 'interest' }],
         }),
-        member_has_standing_presence: tableStub({ single: { member_id: 'mem-1' } }),
       },
     })
 
@@ -217,7 +215,6 @@ describe('resolveMemberPage — render payload (verdict already render)', () => 
     expect(page.displayName).toBe('Maya Rivera')
     expect(page.handle).toBe('maya')
     expect(page.bio).toBe('Baker of bread.')
-    expect(page.hasStandingPresence).toBe(true)
     expect(page.items).toEqual([
       {
         itemId: 'item-abcdef12',
@@ -230,13 +227,12 @@ describe('resolveMemberPage — render payload (verdict already render)', () => 
     expect(page.groups).toEqual([{ slug: 'oak-park-bakers', name: 'Oak Park Bakers', kind: 'interest' }])
   })
 
-  it('empty items + groups render as empty arrays, no standing badge', async () => {
+  it('empty items + groups render as empty arrays', async () => {
     const client = makeClient({ verdict: renderVerdict, tables: RENDER_TABLES })
     const view = await resolveMemberPage(client, { handle: 'maya' })
     if (view.kind !== 'render') throw new Error('unreachable')
     expect(view.page.items).toEqual([])
     expect(view.page.groups).toEqual([])
-    expect(view.page.hasStandingPresence).toBe(false)
   })
 
   it('isSelf true when the viewer is the member; follow state not queried', async () => {
@@ -252,7 +248,6 @@ describe('resolveMemberPage — render payload (verdict already render)', () => 
       verdict: renderVerdict,
       tables: {
         members: tableStub({ single: MEMBER }),
-        member_has_standing_presence: tableStub({ single: null }),
         member_follows: tableStub({ single: { follower_member_id: 'viewer-9' } }),
       },
     })
