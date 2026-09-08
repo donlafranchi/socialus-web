@@ -24,7 +24,6 @@ function member(overrides: Partial<ResolvedMemberPage> = {}): ResolvedMemberPage
     bio: 'Baker of bread.',
     pronouns: 'she/her',
     avatarUrl: null,
-    hasStandingPresence: false,
     items: [],
     groups: [],
     isSelf: false,
@@ -42,11 +41,10 @@ describe('T092 — MemberPublicPage', () => {
     expect(screen.getByTestId('member-bio')).toHaveTextContent('Baker of bread.')
   })
 
-  it('shows the standing badge only when hasStandingPresence', () => {
-    const { rerender } = render(<MemberPublicPage member={member()} loggedIn={false} />)
+  it('T138 — never renders a standing badge (ruled: badge removed, no replacement)', () => {
+    render(<MemberPublicPage member={member()} loggedIn={false} />)
     expect(screen.queryByTestId('member-standing-badge')).not.toBeInTheDocument()
-    rerender(<MemberPublicPage member={member({ hasStandingPresence: true })} loggedIn={false} />)
-    expect(screen.getByTestId('member-standing-badge')).toBeInTheDocument()
+    expect(screen.queryByText('Active in the community')).not.toBeInTheDocument()
   })
 
   it('self-view renders Edit profile, not a Follow button', () => {

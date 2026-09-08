@@ -2,9 +2,10 @@
 //
 // Seeds the read+follow state F032 verifies:
 //   - NADIA (target Member): bio/pronouns/avatar, ≥1 published Item, a LISTED
-//     interest Group she stewards (grants standing-presence AND a listed
-//     membership that must surface), plus an UNLISTED Group she's in that must
-//     NOT surface.
+//     interest Group she stewards (a listed membership that must surface;
+//     the standing-presence signal it also satisfies no longer renders
+//     anywhere as of T138 — the badge was removed, not the role), plus an
+//     UNLISTED Group she's in that must NOT surface.
 //   - THEO (viewer Member): hashed password so the UI sign-in flow grants a
 //     session. Starts NOT following Nadia (the seed clears any prior follow).
 //   - GHOST (soft-deleted Member): deleted_at set → /m/[handle] must 404.

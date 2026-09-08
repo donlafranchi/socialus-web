@@ -30,7 +30,7 @@ const NADIA_URL = `/m/${NADIA.handle}`
 
 test.describe('F032 — Viewer finds a member page and follows', () => {
   test.describe('Beat 1 — Anonymous visitor can read the Member page', () => {
-    test('Given an anon visitor | When /m/[handle] loads | Then header, items, listed groups, and standing badge render; unlisted groups + place-interests do not', async ({
+    test('Given an anon visitor | When /m/[handle] loads | Then header, items, and listed groups render; unlisted groups + place-interests do not; no standing badge', async ({
       page,
     }) => {
       const res = await page.goto(NADIA_URL)
@@ -42,8 +42,10 @@ test.describe('F032 — Viewer finds a member page and follows', () => {
       await expect(page.getByTestId('member-handle')).toContainText(NADIA.pronouns)
       await expect(page.getByTestId('member-bio')).toContainText(NADIA.bio)
 
-      // Standing badge — Nadia stewards a non-business Group (member.md / groups.md).
-      await expect(page.getByTestId('member-standing-badge')).toBeVisible()
+      // T138 — the standing badge is removed (ruled: role-only, no activity
+      // requirement, collides with the never-rates/ranks/labels line). Nadia
+      // stewards a non-business Group, which pre-T138 would have shown it.
+      await expect(page.getByTestId('member-standing-badge')).toHaveCount(0)
 
       // Authored published Item surfaces.
       await expect(page.getByTestId('member-item')).toContainText(ITEM.title)

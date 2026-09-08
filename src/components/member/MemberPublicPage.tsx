@@ -34,14 +34,6 @@ export function MemberPublicPage({ member, loggedIn }: Props) {
               <h1 data-testid="member-name" className="text-2xl font-semibold">
                 {member.displayName}
               </h1>
-              {member.hasStandingPresence && (
-                <span
-                  data-testid="member-standing-badge"
-                  className="chip chip-selected whitespace-nowrap text-xs"
-                >
-                  Active in the community
-                </span>
-              )}
             </div>
             <p data-testid="member-handle" className="text-sm text-gray-500">
               @{member.handle}
