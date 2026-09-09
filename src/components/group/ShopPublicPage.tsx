@@ -95,6 +95,15 @@ export function ShopPublicPage({ shop, badge, items, loggedIn, ownerClaim = null
           </div>
         )}
 
+        {/* T143 — where this Page currently resolves to, shown to every
+            viewer including the owner. Resolved at read time (see
+            resolvePagePlacements); nothing here is stored on the Page. */}
+        {shop.placements[0] && (
+          <p data-testid="shop-placement" className="text-sm text-gray-600">
+            {shop.placements[0].label}
+          </p>
+        )}
+
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}

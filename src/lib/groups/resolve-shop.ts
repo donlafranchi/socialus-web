@@ -14,6 +14,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { memberHasPublished } from '../member/has-published'
+import { resolvePagePlacements, type Placement } from './resolve-page-placement'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'dissolved'
 
@@ -33,6 +34,10 @@ export interface ResolvedShop {
   lifecycleState: GroupLifecycleState
   anchorLocationId: string | null
   founder: ShopFounder | null
+  /** T143 — where this Page currently resolves to. A list, not a single
+   *  point: at most one today (the anchor); bounded at two once
+   *  appearances land (the anchor plus at most one active appearance). */
+  placements: Placement[]
 }
 
 export interface ShopItem {
@@ -120,6 +125,13 @@ export async function resolveShop(
 
   // T137 — the "Founded by" link follows what the founder has published.
   const founderHasPublished = founderRow ? await memberHasPublished(supabase, founderRow.id) : false
+  // T143 — resolved at read time, never stored. pg-shaped (not
+  // Supabase-client-shaped like the rest of this function) because
+  // extracting lng/lat from a `geography` column needs raw SQL
+  // (st_x/st_y) — the same reason sellActivateAction's place-path
+  // resolution also reaches for the action-layer pool instead of
+  // PostgREST. See T143 DEVIATIONS for the two-credential-path note.
+  const placements = await resolvePagePlacements(row.id)
 
   return {
     groupId: row.id,
@@ -128,6 +140,7 @@ export async function resolveShop(
     publicDescription: biz?.public_description ?? '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId: row.anchor_location_id,
+    placements,
     founder: founderRow
       ? {
           handle: founderRow.handle,

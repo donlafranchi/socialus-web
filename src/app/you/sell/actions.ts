@@ -227,10 +227,18 @@ export async function sellCreateLocationAction(
     return await withTransaction(async (client) => {
       let geographyWkt: string
       let kind: 'permanent' | 'area'
+      // T143 needs this to render "where you are now" for an address-mode
+      // Location — the resolved street address, not re-derivable from the
+      // stored point alone (reverse-geocoding a point yields a Place, not
+      // the original address string). T142 computed this text for the UI
+      // confirmation and then discarded it; persisting it here is the
+      // fix-forward, not new scope.
+      let description: string | null = null
 
       if ('address' in input && input.address) {
         geographyWkt = input.address.geographyWkt
         kind = 'permanent'
+        description = input.address.resolvedAddressText
       } else {
         const neighborhoodId = (input as { neighborhoodId: string }).neighborhoodId
         const bboxRes = await client.query<{
@@ -272,10 +280,10 @@ export async function sellCreateLocationAction(
 
       const result = await client.query<{ id: string; label: string }>(
         `insert into public.locations
-           (member_id, kind, label, slug, geography)
-         values ($1, $2, $3, $4, $5)
+           (member_id, kind, label, slug, geography, description)
+         values ($1, $2, $3, $4, $5, $6)
          returning id, label`,
-        [memberId, kind, input.label, slug, geographyWkt],
+        [memberId, kind, input.label, slug, geographyWkt, description],
       )
       const row = result.rows[0]
       if (!row) {
