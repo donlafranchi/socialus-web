@@ -17,6 +17,7 @@ const SHOP: ResolvedShop = {
   publicDescription: 'Real bread, baked local.',
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
+  placements: [],
   founder: {
     handle: 'maya',
     displayName: 'Maya Rivera',
@@ -82,6 +83,32 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     renderShop({ shop: { ...SHOP, founder: null } })
     expect(screen.queryByTestId('shop-founder')).not.toBeInTheDocument()
     expect(screen.getByTestId('shop-name')).toBeInTheDocument()
+  })
+})
+
+describe('ShopPublicPage — T143 (where this Page currently resolves to)', () => {
+  it('renders the resolved placement label when one exists', () => {
+    renderShop({
+      shop: {
+        ...SHOP,
+        placements: [
+          { source: 'anchor', kind: 'point', label: '123 Main St, Sacramento, CA', lng: -121.5, lat: 38.58 },
+        ],
+      },
+    })
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('123 Main St, Sacramento, CA')
+  })
+
+  it('renders an area placement\'s Place name the same way', () => {
+    renderShop({
+      shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'area', label: 'Midtown', lng: -121.48, lat: 38.57 }] },
+    })
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('Midtown')
+  })
+
+  it('renders nothing when there is no placement — no empty heading, no placeholder', () => {
+    renderShop({ shop: { ...SHOP, placements: [] } })
+    expect(screen.queryByTestId('shop-placement')).not.toBeInTheDocument()
   })
 })
 

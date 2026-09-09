@@ -50,6 +50,20 @@ describe('sellCreateLocationAction — address mode', () => {
     // The deleted constant must never appear anywhere in the call.
     expect(params.join(' ')).not.toContain('-121.4944 38.5816')
   })
+
+  it('persists the resolved address text — T143 reads it back to render "where you are now"', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: 'loc-1', label: 'Home' }] })
+    await sellCreateLocationAction({
+      label: 'Home',
+      address: {
+        geographyWkt: 'SRID=4326;POINT(-121.5 38.6)',
+        resolvedAddressText: '123 Main St, Sacramento, CA',
+      },
+    })
+    const [sql, params] = query.mock.calls[0]
+    expect(sql).toMatch(/description/i)
+    expect(params).toContain('123 Main St, Sacramento, CA')
+  })
 })
 
 describe('sellCreateLocationAction — neighbourhood mode', () => {
@@ -85,6 +99,8 @@ describe('sellCreateLocationAction — neighbourhood mode', () => {
     expect(Number(lngStr)).toBeLessThanOrEqual(-121.45)
     expect(Number(latStr)).toBeGreaterThanOrEqual(38.55)
     expect(Number(latStr)).toBeLessThanOrEqual(38.6)
+    // No resolved-address text exists in neighbourhood mode.
+    expect(insertParams).toContain(null)
   })
 
   it('refuses when the neighbourhood cannot be found', async () => {

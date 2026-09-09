@@ -2,13 +2,25 @@
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md
 //        development/tickets/T074-shop-public-page.md
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// T143 — resolveShop now calls the pg-backed position resolver. Mocked so
+// this file stays a pure unit test of the Supabase-client read path, not
+// an integration test against a live Postgres pool.
+const { resolvePagePlacements } = vi.hoisted(() => ({ resolvePagePlacements: vi.fn() }))
+vi.mock('./resolve-page-placement', () => ({ resolvePagePlacements }))
+
 import {
   splitGroupSlug,
   resolveShop,
   resolveLocalOwnerBadge,
   resolveOwnerClaim,
 } from './resolve-shop'
+
+beforeEach(() => {
+  resolvePagePlacements.mockReset()
+  resolvePagePlacements.mockResolvedValue([])
+})
 
 describe('splitGroupSlug', () => {
   it('returns null when there is no /g/ marker (bare place path)', () => {
@@ -102,6 +114,7 @@ describe('resolveShop', () => {
       publicDescription: 'Real bread, baked local.',
       lifecycleState: 'active',
       anchorLocationId: 'loc-1',
+      placements: [],
       founder: {
         handle: 'maya',
         displayName: 'Maya Rivera',
@@ -109,6 +122,20 @@ describe('resolveShop', () => {
         hasPublished: false,
       },
     })
+  })
+
+  it('T143 — carries the resolved placements through from resolvePagePlacements', async () => {
+    resolvePagePlacements.mockResolvedValueOnce([
+      { source: 'anchor', kind: 'point', label: '123 Main St, Sacramento, CA', lng: -121.5, lat: 38.58 },
+    ])
+    const shop = await resolveShop(
+      makeSupabaseStub({ group: ACTIVE_ROW, hasPublished: null }),
+      'oak-park-sourdough',
+    )
+    expect(resolvePagePlacements).toHaveBeenCalledWith('grp-1')
+    expect(shop?.placements).toEqual([
+      { source: 'anchor', kind: 'point', label: '123 Main St, Sacramento, CA', lng: -121.5, lat: 38.58 },
+    ])
   })
 
   it('surfaces founder hasPublished=true when the projection carries them', async () => {
