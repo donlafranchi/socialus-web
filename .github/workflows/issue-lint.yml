@@ -1,0 +1,44 @@
+name: issue-lint
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, edited]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.issue?.body || context.payload.pull_request?.body || "");
+            const num = context.payload.issue?.number || context.payload.pull_request?.number;
+            const isPR = !!context.payload.pull_request;
+            const problems = [];
+
+            if (!isPR) {
+              const kindMatch = body.match(/Kind:\s*(scenario|change|bug|chore)/i);
+              const scenarioMatch = body.match(/Scenario:\s*(F\d+|none)/i);
+              if (!kindMatch) problems.push("missing `Kind:` (scenario|change|bug|chore)");
+              if (!scenarioMatch) problems.push("missing `Scenario:` (F### or none)");
+              const kind = kindMatch?.[1]?.toLowerCase();
+              if (kind && kind !== "scenario" && /- \[[ x]\]/i.test(body)) {
+                problems.push("has acceptance checkboxes but is kind `" + kind + "` — that's a scenario");
+              }
+            } else {
+              if (!/#\d+/.test(body)) problems.push("cites no Issue (`#123` or `closes #123`)");
+            }
+
+            const label = "needs-fix";
+            const { owner, repo } = context.repo;
+            if (problems.length) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: [label] });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: num,
+                body: "needs-fix:\n" + problems.map(p => "- " + p).join("\n"),
+              });
+            } else {
+              try {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: num, name: label });
+              } catch (e) {}
+            }
