@@ -15,6 +15,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { memberHasPublished } from '../member/has-published'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
+import { resolvePageCategoryOtherText } from './resolve-page-category'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'dissolved'
 
@@ -33,6 +34,12 @@ export interface ResolvedShop {
   publicDescription: string
   lifecycleState: GroupLifecycleState
   anchorLocationId: string | null
+  /** T144 — the fixed-vocabulary term, or null (either pre-T144 row,
+   *  or the Member chose "Something else" — see categoryOtherText). */
+  category: string | null
+  /** T144 — the Member's own free text when they chose "Something
+   *  else" instead of a fixed term. Null whenever `category` is set. */
+  categoryOtherText: string | null
   founder: ShopFounder | null
   /** T143 — where this Page currently resolves to. A list, not a single
    *  point: at most one today (the anchor); bounded at two once
@@ -91,6 +98,7 @@ interface ShopRow {
   kind: string
   lifecycle_state: string
   anchor_location_id: string | null
+  category: string | null
   group_businesses:
     | { display_name: string; public_description: string }[]
     | { display_name: string; public_description: string }
@@ -108,7 +116,7 @@ export async function resolveShop(
   const { data, error } = await supabase
     .from('groups')
     .select(
-      'id, slug, kind, lifecycle_state, anchor_location_id, ' +
+      'id, slug, kind, lifecycle_state, anchor_location_id, category, ' +
         'group_businesses(display_name, public_description), ' +
         'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
     )
@@ -125,6 +133,19 @@ export async function resolveShop(
 
   // T137 — the "Founded by" link follows what the founder has published.
   const founderHasPublished = founderRow ? await memberHasPublished(supabase, founderRow.id) : false
+
+  // T144 — a Page's own free text when it chose "Something else" instead
+  // of a fixed term, shown publicly (same treatment as the fixed-term
+  // case — the review's own language: "renders on the Page as the
+  // Member's own words," to any viewer). Only queried when there's no
+  // fixed category. pg-pool-shaped, not Supabase-client-shaped, because
+  // group_category_suggestions' own RLS (T141) scopes SELECT to the
+  // author or founder — correct for the table's stated admin surface
+  // ("an operator groups and counts by query"), wrong for this one public
+  // row. Reaching for the action-layer pool here is the same fix-forward
+  // T143 already used for the placement resolver, rather than widening
+  // the policy with a new migration this ticket's own scope rules out.
+  const categoryOtherText = row.category ? null : await resolvePageCategoryOtherText(row.id)
   // T143 — resolved at read time, never stored. pg-shaped (not
   // Supabase-client-shaped like the rest of this function) because
   // extracting lng/lat from a `geography` column needs raw SQL
@@ -140,6 +161,8 @@ export async function resolveShop(
     publicDescription: biz?.public_description ?? '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId: row.anchor_location_id,
+    category: row.category,
+    categoryOtherText,
     placements,
     founder: founderRow
       ? {

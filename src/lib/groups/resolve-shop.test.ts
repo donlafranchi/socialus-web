@@ -4,11 +4,15 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// T143 — resolveShop now calls the pg-backed position resolver. Mocked so
-// this file stays a pure unit test of the Supabase-client read path, not
-// an integration test against a live Postgres pool.
-const { resolvePagePlacements } = vi.hoisted(() => ({ resolvePagePlacements: vi.fn() }))
+// T143/T144 — resolveShop now calls two pg-backed resolvers (placement,
+// category free text). Mocked so this file stays a pure unit test of the
+// Supabase-client read path, not an integration test against a live pool.
+const { resolvePagePlacements, resolvePageCategoryOtherText } = vi.hoisted(() => ({
+  resolvePagePlacements: vi.fn(),
+  resolvePageCategoryOtherText: vi.fn(),
+}))
 vi.mock('./resolve-page-placement', () => ({ resolvePagePlacements }))
+vi.mock('./resolve-page-category', () => ({ resolvePageCategoryOtherText }))
 
 import {
   splitGroupSlug,
@@ -20,6 +24,8 @@ import {
 beforeEach(() => {
   resolvePagePlacements.mockReset()
   resolvePagePlacements.mockResolvedValue([])
+  resolvePageCategoryOtherText.mockReset()
+  resolvePageCategoryOtherText.mockResolvedValue(null)
 })
 
 describe('splitGroupSlug', () => {
@@ -82,6 +88,7 @@ const ACTIVE_ROW = {
   kind: 'business',
   lifecycle_state: 'active',
   anchor_location_id: 'loc-1',
+  category: null as string | null,
   group_businesses: [
     { display_name: 'Oak Park Sourdough', public_description: 'Real bread, baked local.' },
   ],
@@ -114,6 +121,8 @@ describe('resolveShop', () => {
       publicDescription: 'Real bread, baked local.',
       lifecycleState: 'active',
       anchorLocationId: 'loc-1',
+      category: null,
+      categoryOtherText: null,
       placements: [],
       founder: {
         handle: 'maya',
@@ -136,6 +145,27 @@ describe('resolveShop', () => {
     expect(shop?.placements).toEqual([
       { source: 'anchor', kind: 'point', label: '123 Main St, Sacramento, CA', lng: -121.5, lat: 38.58 },
     ])
+  })
+
+  it('T144 — carries a fixed category through without querying for free text', async () => {
+    const shop = await resolveShop(
+      makeSupabaseStub({ group: { ...ACTIVE_ROW, category: 'Food & Drink' } }),
+      'oak-park-sourdough',
+    )
+    expect(shop?.category).toBe('Food & Drink')
+    expect(shop?.categoryOtherText).toBeNull()
+    expect(resolvePageCategoryOtherText).not.toHaveBeenCalled()
+  })
+
+  it('T144 — queries for the free text only when there is no fixed category', async () => {
+    resolvePageCategoryOtherText.mockResolvedValueOnce('I fix bicycles on weekends')
+    const shop = await resolveShop(
+      makeSupabaseStub({ group: { ...ACTIVE_ROW, category: null } }),
+      'oak-park-sourdough',
+    )
+    expect(resolvePageCategoryOtherText).toHaveBeenCalledWith('grp-1')
+    expect(shop?.category).toBeNull()
+    expect(shop?.categoryOtherText).toBe('I fix bicycles on weekends')
   })
 
   it('surfaces founder hasPublished=true when the projection carries them', async () => {

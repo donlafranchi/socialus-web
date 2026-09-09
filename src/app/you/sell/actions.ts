@@ -18,6 +18,7 @@ import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { withTransaction } from '@/actions/_lib/db'
 import { deriveInteriorPoint } from '@/lib/geo/interior-point'
+import type { PageCategory } from '@/lib/groups/page-categories'
 import {
   groupCreate,
   groupUpdateDraft,
@@ -100,11 +101,12 @@ export async function sellUpdateDraftAction(input: {
 
 export async function sellActivateAction(input: {
   groupId: string
+  category: { term: PageCategory } | { otherText: string }
 }): Promise<{ destinationUrl: string }> {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
-    await groupActivate(ctx, { groupId: input.groupId })
+    await groupActivate(ctx, { groupId: input.groupId, category: input.category })
   } catch (err) {
     rethrow(err)
   }

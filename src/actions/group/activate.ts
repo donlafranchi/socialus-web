@@ -20,9 +20,21 @@ import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from './constants'
+import { PAGE_CATEGORIES } from '../../lib/groups/page-categories'
+
+// T144 — a Page declares exactly one category at publish. A fixed term
+// writes groups.category; free text ("Something else") writes
+// group_category_suggestions instead and leaves groups.category null.
+// Neither is optional — the category is what search matches, and a Page
+// with none can't be found by what it does.
+const groupActivateCategoryInput = z.union([
+  z.object({ term: z.enum(PAGE_CATEGORIES) }),
+  z.object({ otherText: z.string().min(1).max(280) }),
+])
 
 export const groupActivateInput = z.object({
   groupId: z.string().uuid(),
+  category: groupActivateCategoryInput.optional(),
 })
 
 export type GroupActivateInput = z.infer<typeof groupActivateInput>
@@ -79,6 +91,20 @@ export const groupActivate = defineHandler(
         )
       }
 
+      // T144 — category is required at publish, for every kind. Checked
+      // before promotion alongside the other required-field gates, so a
+      // missing category fails activation outright rather than partially.
+      if (!input.category) {
+        throw new ValidationError(
+          `group.activate: group ${input.groupId} requires a category to publish`,
+        )
+      }
+      if ('otherText' in input.category && input.category.otherText.trim().length === 0) {
+        throw new ValidationError(
+          `group.activate: group ${input.groupId} category free text is empty after trimming`,
+        )
+      }
+
       // Kind-specific required-field validation.
       if (row.kind === 'business') {
         if (!row.anchor_location_id) {
@@ -125,6 +151,25 @@ export const groupActivate = defineHandler(
       if (promoteRes.rows.length === 0) {
         throw new ValidationError(
           `group.activate: group ${input.groupId} was no longer in draft state at promotion time (concurrent activate?)`,
+        )
+      }
+
+      // T144 — category write, same transaction as the promote above.
+      // Deferred to publish (not progressively via group.update_draft) so
+      // changing your mind mid-draft doesn't leave a trail of abandoned
+      // "Something else" rows — only the final choice is ever written.
+      if ('term' in input.category) {
+        await client.query(
+          `update public.groups set category = $1 where id = $2`,
+          [input.category.term, input.groupId],
+        )
+      } else {
+        const rawText = input.category.otherText.trim()
+        await client.query(
+          `insert into public.group_category_suggestions
+             (group_id, member_id, raw_text, normalized_text)
+           values ($1, $2, $3, $4)`,
+          [input.groupId, ctx.actingMemberId, rawText, rawText.toLowerCase()],
         )
       }
 

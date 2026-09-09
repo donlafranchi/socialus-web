@@ -5,12 +5,13 @@
 // Ticket: development/tickets/T073-sell-walkthrough-and-you-sell-cta.md
 // DLS:    product/ui/design-language.md § Component recipes → Multi-step composer
 //
-// Composes <MultiStepComposer> with five steps:
+// Composes <MultiStepComposer> with six steps:
 //   1. Brand name              → group.create on Continue (writes draft Group)
 //   2. Anchor Location         → group.update_draft + AddEntityDrawer sub-flow for "+ Add a new"
-//   3. About (optional)        → group.update_draft on Continue
-//   4. Locality (Tier 0)       → UI-only at b1 (substrate ships with F037; see DEVIATIONS)
-//   5. Review & done           → group.activate → redirect to /p/[...place]/g/[slug]
+//   3. Category (T144)         → held in composer state only, sent with group.activate at publish
+//   4. About (optional)        → group.update_draft on Continue
+//   5. Locality (Tier 0)       → UI-only at b1 (substrate ships with F037; see DEVIATIONS)
+//   6. Review & done           → group.activate(category) → redirect to /p/[...place]/g/[slug]
 //
 // The composer is presentational + control-flow only (per T071) — this file
 // supplies steps, persistence callbacks, and the redirect. Server-action
@@ -30,6 +31,7 @@ import {
   type LocationPlaceFieldsState,
 } from '@/components/locations/LocationPlaceFields'
 import type { CreateLocationInput } from '@/app/you/sell/actions'
+import { PAGE_CATEGORIES, type PageCategory } from '@/lib/groups/page-categories'
 
 export interface AnchorLocationOption {
   id: string
@@ -45,6 +47,16 @@ export interface SellWalkthroughState {
   anchorLocationId: string | null
   /** Local-only label for the picker UI; not persisted. */
   anchorLocationLabel: string | null
+  /** T144 — deliberately NOT patched via group.update_draft. Deferred to
+   *  the final activate() call (see onComplete) so changing your mind
+   *  mid-draft never writes more than the one final choice — see T144
+   *  Completion notes on the resume tradeoff this costs. */
+  /** `'other'` is an explicit radio selection, distinct from `null`
+   *  (nothing chosen yet) — keeps "is 'Something else' selected" a plain
+   *  equality check instead of something inferred from whether free text
+   *  happens to be non-empty, which breaks the moment that text is cleared. */
+  category: PageCategory | 'other' | null
+  categoryOtherText: string
   about: string
   /** Tier 0 ZIP. UI-only at b1 (no member_business_jurisdictions table yet — F037). */
   localityZip: string
@@ -62,7 +74,10 @@ export interface SellWalkthroughHandlers {
     brand?: string
   }) => Promise<void>
   /** Called on final-step "Create my shop". Returns the place-scoped Group URL. */
-  activate: (input: { groupId: string }) => Promise<{ destinationUrl: string }>
+  activate: (input: {
+    groupId: string
+    category: { term: PageCategory } | { otherText: string }
+  }) => Promise<{ destinationUrl: string }>
   /** Sub-flow: inline-add a new Location. Returns the new Location's id + label. */
   createLocation: (input: CreateLocationInput) => Promise<{ id: string; label: string }>
   /** Available saved Locations for the anchor picker. */
@@ -95,6 +110,8 @@ function emptyState(): SellWalkthroughState {
     brand: '',
     anchorLocationId: null,
     anchorLocationLabel: null,
+    category: null,
+    categoryOtherText: '',
     about: '',
     localityZip: '',
   }
@@ -120,6 +137,11 @@ export function SellWalkthrough({
         brand: resume.brand,
         anchorLocationId: resume.anchorLocationId,
         anchorLocationLabel: resume.anchorLocationLabel,
+        // T144 — category is never persisted during drafting (see the
+        // field's own comment above), so a resumed session has no
+        // server-side value to restore it from. The Member re-picks it.
+        category: null,
+        categoryOtherText: '',
         about: resume.about,
         localityZip: '',
       }
@@ -170,7 +192,27 @@ export function SellWalkthrough({
           : { ok: false, errors: { anchor: 'Pick or add an anchor Location' } },
     },
 
-    // 3. About (optional)
+    // 3. Category (T144)
+    {
+      id: 'category',
+      title: 'What you do',
+      helper: 'Pick the one that fits best.',
+      render: (state, setState) => (
+        <CategoryStep state={state} setState={setState} />
+      ),
+      validate: (state) => {
+        if (state.category === 'other') {
+          return state.categoryOtherText.trim().length > 0
+            ? { ok: true }
+            : { ok: false, errors: { category: 'In your own words, say what you do' } }
+        }
+        return state.category
+          ? { ok: true }
+          : { ok: false, errors: { category: 'Choose a category' } }
+      },
+    },
+
+    // 4. About (optional)
     {
       id: 'about',
       title: 'About',
@@ -192,7 +234,7 @@ export function SellWalkthrough({
       validate: () => ({ ok: true }),
     },
 
-    // 4. Locality claim (Tier 0) — UI-only at b1 (no substrate).
+    // 5. Locality claim (Tier 0) — UI-only at b1 (no substrate).
     {
       id: 'locality',
       title: 'Are you locally owned?',
@@ -231,7 +273,7 @@ export function SellWalkthrough({
       },
     },
 
-    // 5. Review & done
+    // 6. Review & done
     {
       id: 'review',
       title: 'Review',
@@ -326,6 +368,13 @@ export function SellWalkthrough({
         })
         return
       }
+      if (stepId === 'category') {
+        // T144 — deliberately not patched via group.update_draft. Held in
+        // composer state only and sent with the final activate() call, so
+        // changing your mind mid-draft never leaves a trail of abandoned
+        // "Something else" suggestion rows (see the field's own comment).
+        return
+      }
       if (stepId === 'about') {
         await updateDraft({
           groupId: draftGroupId,
@@ -348,7 +397,11 @@ export function SellWalkthrough({
       if (!draftGroupId) {
         throw new Error('SellWalkthrough.onComplete: draftGroupId missing')
       }
-      const { destinationUrl } = await activate({ groupId: draftGroupId })
+      const category: { term: PageCategory } | { otherText: string } =
+        state.category === 'other' || state.category === null
+          ? { otherText: state.categoryOtherText.trim() }
+          : { term: state.category }
+      const { destinationUrl } = await activate({ groupId: draftGroupId, category })
       // Composer is presentational — it does not navigate. We do.
       redirect(destinationUrl)
       showToast(TOAST_SUCCESS)
@@ -380,6 +433,88 @@ function resolveDraftId(
   shadow: string | null,
 ): string | null {
   return state.draftGroupId ?? shadow
+}
+
+/** Step-3 category picker (T144). Native radios for the fixed twelve — a
+ *  real radio group gives arrow-key navigation and one tab stop for the
+ *  whole set for free, which is exactly what review binding note calls
+ *  for ("thirteen tappable divs is the failure mode here"). "Something
+ *  else" is the thirteenth option; choosing it reveals a text input. */
+function CategoryStep({
+  state,
+  setState,
+}: {
+  state: SellWalkthroughState
+  setState: (next: SellWalkthroughState) => void
+}) {
+  const isOther = state.category === 'other'
+  const selected = state.category ?? ''
+
+  function selectTerm(term: PageCategory) {
+    setState({ ...state, category: term, categoryOtherText: '' })
+  }
+
+  function selectOther() {
+    setState({ ...state, category: 'other' })
+  }
+
+  return (
+    <fieldset>
+      <legend className="text-sm font-medium text-[var(--color-fg)]">What you do</legend>
+      <div
+        role="radiogroup"
+        aria-label="What you do"
+        className="mt-2 flex max-h-80 flex-col gap-1 overflow-y-auto"
+      >
+        {PAGE_CATEGORIES.map((term) => (
+          <label
+            key={term}
+            className="flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm hover:bg-neutral-50"
+          >
+            <input
+              type="radio"
+              name="sell-category"
+              data-testid={`sell-category-option-${term}`}
+              value={term}
+              checked={selected === term}
+              onChange={() => selectTerm(term)}
+            />
+            {term}
+          </label>
+        ))}
+        <div className="mt-3 border-t border-neutral-200 pt-3">
+          <label className="flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm hover:bg-neutral-50">
+            <input
+              type="radio"
+              name="sell-category"
+              data-testid="sell-category-option-other"
+              value="other"
+              checked={selected === 'other'}
+              onChange={selectOther}
+            />
+            Something else
+          </label>
+        </div>
+      </div>
+      {isOther && (
+        <div role="status" className="mt-2">
+          <label className="block">
+            <span className="text-sm font-medium text-[var(--color-fg)]">
+              In your own words — what do you do?
+            </span>
+            <input
+              data-testid="sell-category-other-input"
+              aria-label="In your own words — what do you do?"
+              className="input mt-1 w-full"
+              autoFocus
+              value={state.categoryOtherText}
+              onChange={(e) => setState({ ...state, categoryOtherText: e.target.value })}
+            />
+          </label>
+        </div>
+      )}
+    </fieldset>
+  )
 }
 
 /** Step-2 picker. List of saved Locations + a "+ Add a new Location" row that
