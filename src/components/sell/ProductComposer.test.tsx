@@ -4,6 +4,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+
+// T142 — the "+ Add a new Location" drawer now embeds <LocationPlaceFields>.
+// Mocked so this stays a unit test of ProductComposer, not the geocoder/DB.
+const { geocode } = vi.hoisted(() => ({ geocode: vi.fn() }))
+vi.mock('@/lib/geocoding', () => ({ geocode }))
+vi.mock('@/app/you/sell/actions', () => ({
+  sellListNeighborhoodsAction: vi.fn(async () => []),
+}))
+
 import {
   ProductComposer,
   dollarsToCents,
@@ -90,6 +99,64 @@ describe('T078 — ProductComposer step 1 (details)', () => {
     // Advanced to step 2 (pickup).
     await waitFor(() =>
       expect(screen.getByTestId('product-pickup-options')).toBeInTheDocument(),
+    )
+  })
+})
+
+describe('T142 — adding a new pickup Location requires a real address or neighbourhood', () => {
+  it('cannot save the new Location until a suggested address is chosen', async () => {
+    const { createLocation } = setup()
+    fireEvent.change(screen.getByTestId('product-title-input'), { target: { value: 'Loaf' } })
+    fireEvent.change(screen.getByTestId('product-description-input'), {
+      target: { value: 'Sourdough.' },
+    })
+    fireEvent.change(screen.getByTestId('product-price-input'), { target: { value: '9' } })
+    cont() // → pickup
+    await waitFor(() => expect(screen.getByTestId('product-pickup-options')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('product-pickup-add-new'))
+    fireEvent.change(screen.getByTestId('product-add-location-input'), {
+      target: { value: 'Farmers Market' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Add and select/i }))
+    await waitFor(() => expect(screen.getByText(/choose a suggested address/i)).toBeInTheDocument())
+    expect(createLocation).not.toHaveBeenCalled()
+  })
+
+  it('saves with the geocoded address once a suggestion is selected', async () => {
+    geocode.mockResolvedValue([
+      { name: '500 Market St, Sacramento, CA', coordinates: [-121.49, 38.58] },
+    ])
+    const { createLocation } = setup()
+    fireEvent.change(screen.getByTestId('product-title-input'), { target: { value: 'Loaf' } })
+    fireEvent.change(screen.getByTestId('product-description-input'), {
+      target: { value: 'Sourdough.' },
+    })
+    fireEvent.change(screen.getByTestId('product-price-input'), { target: { value: '9' } })
+    cont() // → pickup
+    await waitFor(() => expect(screen.getByTestId('product-pickup-options')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTestId('product-pickup-add-new'))
+    fireEvent.change(screen.getByTestId('product-add-location-input'), {
+      target: { value: 'Farmers Market' },
+    })
+    fireEvent.change(screen.getByTestId('product-pickup-address-input'), {
+      target: { value: '500 Market' },
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('product-pickup-address-suggestion-0')).toBeInTheDocument(),
+      { timeout: 2000 },
+    )
+    fireEvent.click(screen.getByTestId('product-pickup-address-suggestion-0'))
+    fireEvent.click(screen.getByRole('button', { name: /Add and select/i }))
+    await waitFor(() =>
+      expect(createLocation).toHaveBeenCalledWith({
+        label: 'Farmers Market',
+        address: {
+          geographyWkt: 'SRID=4326;POINT(-121.49 38.58)',
+          resolvedAddressText: '500 Market St, Sacramento, CA',
+        },
+      }),
     )
   })
 })

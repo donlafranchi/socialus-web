@@ -5,6 +5,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+
+// T142 — the "+ Add a new Location" drawer now embeds <LocationPlaceFields>,
+// which calls the real geocoder and the neighbourhoods action. Mocked here
+// so this stays a unit test of SellWalkthrough, not an integration test of
+// the geocoder or the DB.
+const { geocode } = vi.hoisted(() => ({ geocode: vi.fn() }))
+vi.mock('@/lib/geocoding', () => ({ geocode }))
+vi.mock('@/app/you/sell/actions', () => ({
+  sellListNeighborhoodsAction: vi.fn(async () => []),
+}))
+
 import { SellWalkthrough, type AnchorLocationOption } from './SellWalkthrough'
 
 function setup(overrides: Partial<Parameters<typeof SellWalkthrough>[0]> = {}) {
@@ -19,9 +30,10 @@ function setup(overrides: Partial<Parameters<typeof SellWalkthrough>[0]> = {}) {
     void _input
     return { destinationUrl: '/p/sacramento/g/oak-park-sourdough-abc1' }
   })
-  const createLocation = vi.fn(
-    async ({ label }: { label: string }) => ({ id: 'loc-new', label }),
-  )
+  const createLocation = vi.fn(async (input: { label: string }) => ({
+    id: 'loc-new',
+    label: input.label,
+  }))
   const redirect = vi.fn()
   const showToast = vi.fn()
   const onAbandon = vi.fn()
@@ -165,15 +177,32 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
   })
 
   it('auto-selects new Location after AddEntityDrawer save and stays paused on anchor step', async () => {
+    geocode.mockResolvedValue([
+      { name: '123 Main St, Sacramento, CA', coordinates: [-121.5, 38.58] },
+    ])
     const { createLocation } = setup()
     await advanceToAnchor()
     fireEvent.click(screen.getByTestId('sell-anchor-add-new'))
     fireEvent.change(screen.getByTestId('sell-add-location-input'), {
       target: { value: 'Home Kitchen' },
     })
+    fireEvent.change(screen.getByTestId('sell-anchor-address-input'), {
+      target: { value: '123 Main' },
+    })
+    await vi.advanceTimersByTimeAsync(350)
+    await waitFor(() =>
+      expect(screen.getByTestId('sell-anchor-address-suggestion-0')).toBeInTheDocument(),
+    )
+    fireEvent.click(screen.getByTestId('sell-anchor-address-suggestion-0'))
     fireEvent.click(screen.getByRole('button', { name: /Add and select/i }))
     await waitFor(() => {
-      expect(createLocation).toHaveBeenCalledWith({ label: 'Home Kitchen' })
+      expect(createLocation).toHaveBeenCalledWith({
+        label: 'Home Kitchen',
+        address: {
+          geographyWkt: 'SRID=4326;POINT(-121.5 38.58)',
+          resolvedAddressText: '123 Main St, Sacramento, CA',
+        },
+      })
     })
     // Drawer closed.
     await waitFor(() => {
@@ -186,6 +215,18 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
       screen.getByRole('heading', { name: /Anchor Location/i }),
     ).toBeInTheDocument()
     // Picker still mounted, ready for the user to tap Continue.
+  })
+
+  it('cannot save the new Location until a suggested address (or a neighbourhood) is chosen', async () => {
+    const { createLocation } = setup()
+    await advanceToAnchor()
+    fireEvent.click(screen.getByTestId('sell-anchor-add-new'))
+    fireEvent.change(screen.getByTestId('sell-add-location-input'), {
+      target: { value: 'Home Kitchen' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Add and select/i }))
+    await waitFor(() => expect(screen.getByText(/choose a suggested address/i)).toBeInTheDocument())
+    expect(createLocation).not.toHaveBeenCalled()
   })
 })
 
