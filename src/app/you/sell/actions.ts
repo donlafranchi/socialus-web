@@ -17,6 +17,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { withTransaction } from '@/actions/_lib/db'
+import { deriveInteriorPoint } from '@/lib/geo/interior-point'
 import {
   groupCreate,
   groupUpdateDraft,
@@ -176,27 +177,44 @@ export async function sellActivateAction(input: {
   return { destinationUrl }
 }
 
-/** Sub-flow: inline-add a Location from the anchor-Location step. Thin
- *  wrapper over the existing location handler. The location action handler
- *  is not yet shipped in T073 scope — this stub creates a placeholder row
- *  via the existing `locations` table the client can refer back to. */
-export async function sellCreateLocationAction(input: {
-  label: string
-  /** Optional geography in WKT — caller can stamp from a map picker. */
-  geographyWkt?: string
-}): Promise<{ id: string; label: string }> {
+export interface AddressPlacement {
+  /** Geography in WKT, already resolved from a real address — e.g.
+   *  `SRID=4326;POINT(${lon} ${lat})` from the geocoder's result. */
+  geographyWkt: string
+  /** The resolved address text, shown back to the Member for confirmation. */
+  resolvedAddressText: string
+}
+
+/** A Location must be placed one of two ways: a real geocoded address, or
+ *  a chosen neighbourhood. There is no third option and no default —
+ *  T142 deleted the hard-coded downtown-Sacramento fallback this type
+ *  replaces. A Member declining to give a street address is not the same
+ *  as the platform guessing one; the type makes guessing unrepresentable. */
+export type CreateLocationInput =
+  | { label: string; address: AddressPlacement; neighborhoodId?: never }
+  | { label: string; neighborhoodId: string; address?: never }
+
+/** Sub-flow: inline-add a Location from the anchor-Location step (and the
+ *  Product/Service composers' pickup/center-location steps — same shared
+ *  action, same shared guarantee). Full `location.create` action handler
+ *  is its own substrate ticket (flagged in SPEC-PATCHES); at b1 we insert
+ *  via the action-layer pg pool (service-role DB connection) so we bypass
+ *  RLS without exposing service-role to the browser. */
+export async function sellCreateLocationAction(
+  input: CreateLocationInput,
+): Promise<{ id: string; label: string }> {
   const memberId = await requireMemberId()
-  // Minimal Location.create — full `location.create` action handler is its
-  // own substrate ticket (flagged in SPEC-PATCHES). At b1 we insert via
-  // the action-layer pg pool (service-role DB connection) so we bypass
-  // RLS without exposing service-role to the browser.
-  //
-  // T073b fix-forward: original T073a used the supabase server client
-  // (session-bound, RLS-enforced). `locations` has no INSERT RLS policy
-  // — all writes are designed to go through the action layer. The eval
-  // surfaced "new row violates row-level security policy for table
-  // locations" on every inline-add attempt. Routing through `withTransaction`
-  // mirrors what `location.create` will do once that handler lands.
+  // Runtime guard alongside the compile-time one: a server action is a
+  // callable network endpoint, and TypeScript's discriminated union does
+  // not survive past the client. A request built without going through
+  // the type (a hand-rolled fetch, a stale client bundle) must refuse the
+  // same way the UI does, not fall back to a coordinate nobody chose.
+  if (!('address' in input && input.address) && !('neighborhoodId' in input && input.neighborhoodId)) {
+    throw new SellActionError(
+      'A Location needs a real address or a neighbourhood — we never guess one.',
+      'location_needs_place',
+    )
+  }
   const slug =
     input.label
       .toLowerCase()
@@ -207,17 +225,57 @@ export async function sellCreateLocationAction(input: {
     Math.random().toString(36).slice(2, 10)
   try {
     return await withTransaction(async (client) => {
+      let geographyWkt: string
+      let kind: 'permanent' | 'area'
+
+      if ('address' in input && input.address) {
+        geographyWkt = input.address.geographyWkt
+        kind = 'permanent'
+      } else {
+        const neighborhoodId = (input as { neighborhoodId: string }).neighborhoodId
+        const bboxRes = await client.query<{
+          min_lng: number
+          min_lat: number
+          max_lng: number
+          max_lat: number
+        }>(
+          `select
+             st_xmin(geography::geometry) as min_lng,
+             st_ymin(geography::geometry) as min_lat,
+             st_xmax(geography::geometry) as max_lng,
+             st_ymax(geography::geometry) as max_lat
+           from public.places
+          where id = $1 and kind = 'neighborhood' and deleted_at is null`,
+          [neighborhoodId],
+        )
+        const bbox = bboxRes.rows[0]
+        if (!bbox) {
+          throw new SellActionError(
+            'That neighbourhood could not be found.',
+            'neighborhood_not_found',
+          )
+        }
+        // Seeded by a fresh id, not the neighbourhood's own id — two
+        // Pages in the same neighbourhood must not land on the same
+        // point. Drawn toward the polygon's interior, not uniformly
+        // across the bbox (review binding note 7: the five seeded
+        // polygons are hand-drawn rectangles).
+        const point = deriveInteriorPoint(crypto.randomUUID(), {
+          minLng: bbox.min_lng,
+          minLat: bbox.min_lat,
+          maxLng: bbox.max_lng,
+          maxLat: bbox.max_lat,
+        })
+        geographyWkt = `SRID=4326;POINT(${point.lng} ${point.lat})`
+        kind = 'area'
+      }
+
       const result = await client.query<{ id: string; label: string }>(
         `insert into public.locations
            (member_id, kind, label, slug, geography)
-         values ($1, 'permanent', $2, $3, $4)
+         values ($1, $2, $3, $4, $5)
          returning id, label`,
-        [
-          memberId,
-          input.label,
-          slug,
-          input.geographyWkt ?? 'SRID=4326;POINT(-121.4944 38.5816)',
-        ],
+        [memberId, kind, input.label, slug, geographyWkt],
       )
       const row = result.rows[0]
       if (!row) {
@@ -235,4 +293,25 @@ export async function sellCreateLocationAction(input: {
       'location_create_failed',
     )
   }
+}
+
+export interface Neighborhood {
+  id: string
+  name: string
+  slug: string
+}
+
+/** Neighbourhoods available in the "rather give a neighbourhood?" picker.
+ *  Unauthenticated — this is read-only reference data, same trust level
+ *  as the rest of the place tree. */
+export async function sellListNeighborhoodsAction(): Promise<Neighborhood[]> {
+  return withTransaction(async (client) => {
+    const result = await client.query<{ id: string; display_name: string; slug: string }>(
+      `select id, display_name, slug
+         from public.places
+        where kind = 'neighborhood' and deleted_at is null
+        order by display_name`,
+    )
+    return result.rows.map((r) => ({ id: r.id, name: r.display_name, slug: r.slug }))
+  })
 }

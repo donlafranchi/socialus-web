@@ -23,6 +23,13 @@ import {
   type StepDef,
 } from '@/components/composer/MultiStepComposer'
 import { AddEntityDrawer } from '@/components/composer/AddEntityDrawer'
+import {
+  LocationPlaceFields,
+  initialLocationPlaceFieldsState,
+  isLocationPlaceFieldsComplete,
+  type LocationPlaceFieldsState,
+} from '@/components/locations/LocationPlaceFields'
+import type { CreateLocationInput } from '@/app/you/sell/actions'
 
 export interface AnchorLocationOption {
   id: string
@@ -57,9 +64,7 @@ export interface SellWalkthroughHandlers {
   /** Called on final-step "Create my shop". Returns the place-scoped Group URL. */
   activate: (input: { groupId: string }) => Promise<{ destinationUrl: string }>
   /** Sub-flow: inline-add a new Location. Returns the new Location's id + label. */
-  createLocation: (input: {
-    label: string
-  }) => Promise<{ id: string; label: string }>
+  createLocation: (input: CreateLocationInput) => Promise<{ id: string; label: string }>
   /** Available saved Locations for the anchor picker. */
   availableLocations: AnchorLocationOption[]
   /** Caller's redirect mechanism (router.push in production, a spy in tests). */
@@ -390,7 +395,7 @@ function AnchorLocationStep({
   state: SellWalkthroughState
   setState: (next: SellWalkthroughState) => void
   available: AnchorLocationOption[]
-  createLocation: (input: { label: string }) => Promise<{ id: string; label: string }>
+  createLocation: (input: CreateLocationInput) => Promise<{ id: string; label: string }>
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   // T073b fix-forward: track Locations the user creates inline so the
@@ -456,31 +461,52 @@ function AnchorLocationStep({
       </ul>
 
       {drawerOpen && (
-        <AddEntityDrawer<{ label: string }>
+        <AddEntityDrawer<{ label: string; place: LocationPlaceFieldsState }>
           title="Add a Location"
-          initialState={{ label: '' }}
+          initialState={{ label: '', place: initialLocationPlaceFieldsState }}
           render={(s, set) => (
-            <label className="block">
-              <span className="text-sm font-medium text-[var(--color-fg)]">
-                Location name
-              </span>
-              <input
-                data-testid="sell-add-location-input"
-                aria-label="Location name"
-                className="input mt-1 w-full"
-                placeholder="Maya's Kitchen"
-                value={s.label}
-                onChange={(e) => set({ label: e.target.value })}
+            <div className="space-y-3">
+              <label className="block">
+                <span className="text-sm font-medium text-[var(--color-fg)]">
+                  Location name
+                </span>
+                <input
+                  data-testid="sell-add-location-input"
+                  aria-label="Location name"
+                  className="input mt-1 w-full"
+                  placeholder="Maya's Kitchen"
+                  value={s.label}
+                  onChange={(e) => set({ ...s, label: e.target.value })}
+                />
+              </label>
+              <LocationPlaceFields
+                state={s.place}
+                setState={(place) => set({ ...s, place })}
+                idPrefix="sell-anchor"
               />
-            </label>
+            </div>
           )}
-          validate={(s) =>
-            s.label.trim().length > 0
-              ? { ok: true }
-              : { ok: false, errors: { label: 'Name is required' } }
-          }
+          validate={(s) => {
+            const errors: Record<string, string> = {}
+            if (s.label.trim().length === 0) errors.label = 'Name is required'
+            if (!isLocationPlaceFieldsComplete(s.place)) {
+              errors.place =
+                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighbourhood'
+            }
+            return Object.keys(errors).length === 0 ? { ok: true } : { ok: false, errors }
+          }}
           onSave={async (s) => {
-            const created = await createLocation({ label: s.label.trim() })
+            const input: CreateLocationInput =
+              s.place.mode === 'address' && s.place.selectedAddress
+                ? {
+                    label: s.label.trim(),
+                    address: {
+                      geographyWkt: `SRID=4326;POINT(${s.place.selectedAddress.coordinates[0]} ${s.place.selectedAddress.coordinates[1]})`,
+                      resolvedAddressText: s.place.selectedAddress.name,
+                    },
+                  }
+                : { label: s.label.trim(), neighborhoodId: s.place.neighborhoodId! }
+            const created = await createLocation(input)
             // Append to local options so the picker renders it immediately
             // and the post-save selection has a visible label. Per DLS:
             // parent composer stays paused at this step with the new entity

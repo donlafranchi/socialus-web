@@ -4,6 +4,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+
+// T142 — the "+ Add a new Location" drawer now embeds <LocationPlaceFields>.
+// Mocked so this stays a unit test of ServiceComposer, not the geocoder/DB.
+const { geocode } = vi.hoisted(() => ({ geocode: vi.fn() }))
+vi.mock('@/lib/geocoding', () => ({ geocode }))
+vi.mock('@/app/you/sell/actions', () => ({
+  sellListNeighborhoodsAction: vi.fn(async () => []),
+}))
+
 import {
   ServiceComposer,
   milesToMeters,
@@ -204,5 +213,59 @@ describe('T082 — service area + publish', () => {
     const arg = createService.mock.calls[0][0] as Record<string, unknown>
     expect(arg.rateModel).toBe('quote')
     expect(arg.rateCents).toBeNull()
+  })
+})
+
+describe('T142 — adding a new center Location requires a real address or neighbourhood', () => {
+  async function toServiceArea() {
+    const utils = setup()
+    await fillDetails()
+    fireEvent.change(screen.getByTestId('service-rate-model-select'), {
+      target: { value: 'hourly' },
+    })
+    fireEvent.change(screen.getByTestId('service-rate-input'), { target: { value: '95' } })
+    cont() // → service area
+    await waitFor(() => expect(screen.getByTestId('service-center-options')).toBeInTheDocument())
+    return utils
+  }
+
+  it('cannot save the new Location until a suggested address is chosen', async () => {
+    const { createLocation } = await toServiceArea()
+    fireEvent.click(screen.getByTestId('service-center-add-new'))
+    fireEvent.change(screen.getByTestId('service-add-location-input'), {
+      target: { value: 'My studio' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Add and select/i }))
+    await waitFor(() => expect(screen.getByText(/choose a suggested address/i)).toBeInTheDocument())
+    expect(createLocation).not.toHaveBeenCalled()
+  })
+
+  it('saves with the geocoded address once a suggestion is selected', async () => {
+    geocode.mockResolvedValue([
+      { name: '77 Studio Ln, Sacramento, CA', coordinates: [-121.48, 38.57] },
+    ])
+    const { createLocation } = await toServiceArea()
+    fireEvent.click(screen.getByTestId('service-center-add-new'))
+    fireEvent.change(screen.getByTestId('service-add-location-input'), {
+      target: { value: 'My studio' },
+    })
+    fireEvent.change(screen.getByTestId('service-center-address-input'), {
+      target: { value: '77 Studio' },
+    })
+    await waitFor(
+      () => expect(screen.getByTestId('service-center-address-suggestion-0')).toBeInTheDocument(),
+      { timeout: 2000 },
+    )
+    fireEvent.click(screen.getByTestId('service-center-address-suggestion-0'))
+    fireEvent.click(screen.getByRole('button', { name: /Add and select/i }))
+    await waitFor(() =>
+      expect(createLocation).toHaveBeenCalledWith({
+        label: 'My studio',
+        address: {
+          geographyWkt: 'SRID=4326;POINT(-121.48 38.57)',
+          resolvedAddressText: '77 Studio Ln, Sacramento, CA',
+        },
+      }),
+    )
   })
 })
