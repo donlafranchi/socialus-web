@@ -17,6 +17,8 @@ const SHOP: ResolvedShop = {
   publicDescription: 'Real bread, baked local.',
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
+  category: null,
+  categoryOtherText: null,
   placements: [],
   founder: {
     handle: 'maya',
@@ -83,6 +85,30 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     renderShop({ shop: { ...SHOP, founder: null } })
     expect(screen.queryByTestId('shop-founder')).not.toBeInTheDocument()
     expect(screen.getByTestId('shop-name')).toBeInTheDocument()
+  })
+})
+
+describe('ShopPublicPage — T144 (self-declared category)', () => {
+  it('renders a fixed category as a plain chip', () => {
+    renderShop({ shop: { ...SHOP, category: 'Food & Drink' } })
+    expect(screen.getByTestId('shop-category')).toHaveTextContent('Food & Drink')
+    expect(screen.queryByTestId('shop-category-other')).not.toBeInTheDocument()
+  })
+
+  it('renders free text as the Member\'s own words, no chip', () => {
+    renderShop({
+      shop: { ...SHOP, category: null, categoryOtherText: 'I fix bicycles on weekends' },
+    })
+    expect(screen.getByTestId('shop-category-other')).toHaveTextContent(
+      'I fix bicycles on weekends',
+    )
+    expect(screen.queryByTestId('shop-category')).not.toBeInTheDocument()
+  })
+
+  it('renders neither when the Page has no category at all (pre-T144 row)', () => {
+    renderShop({ shop: { ...SHOP, category: null, categoryOtherText: null } })
+    expect(screen.queryByTestId('shop-category')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('shop-category-other')).not.toBeInTheDocument()
   })
 })
 

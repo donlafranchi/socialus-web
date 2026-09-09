@@ -26,10 +26,12 @@ function setup(overrides: Partial<Parameters<typeof SellWalkthrough>[0]> = {}) {
   const updateDraft = vi.fn(async (_input: Record<string, unknown>) => {
     void _input
   })
-  const activate = vi.fn(async (_input: { groupId: string }) => {
-    void _input
-    return { destinationUrl: '/p/sacramento/g/oak-park-sourdough-abc1' }
-  })
+  const activate = vi.fn(
+    async (_input: { groupId: string; category: { term: string } | { otherText: string } }) => {
+      void _input
+      return { destinationUrl: '/p/sacramento/g/oak-park-sourdough-abc1' }
+    },
+  )
   const createLocation = vi.fn(async (input: { label: string }) => ({
     id: 'loc-new',
     label: input.label,
@@ -85,15 +87,15 @@ afterEach(() => {
   cleanup()
 })
 
-describe('SellWalkthrough — five-step shape', () => {
-  it('opens on step 1 (Brand name) with the 5-step indicator', () => {
+describe('SellWalkthrough — six-step shape', () => {
+  it('opens on step 1 (Brand name) with the 6-step indicator', () => {
     setup()
     expect(
       screen.getByRole('heading', { name: /Brand name/i }),
     ).toBeInTheDocument()
     const progress = screen.getByRole('progressbar')
     expect(progress).toHaveAttribute('aria-valuenow', '1')
-    expect(progress).toHaveAttribute('aria-valuemax', '5')
+    expect(progress).toHaveAttribute('aria-valuemax', '6')
   })
 
   it('blocks Continue when brand is empty and surfaces an inline field error', async () => {
@@ -230,13 +232,73 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
   })
 })
 
-describe('SellWalkthrough — step 3 About (optional)', () => {
+describe('SellWalkthrough — step 3 Category (T144)', () => {
+  async function advanceToCategory() {
+    fireEvent.change(screen.getByTestId('sell-brand-input'), {
+      target: { value: 'Oak Park Sourdough' },
+    })
+    await clickContinue()
+    fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
+    await clickContinue()
+  }
+
+  it('renders the twelve terms plus Something else, and blocks Continue with none chosen', async () => {
+    const { updateDraft } = setup()
+    await advanceToCategory()
+    expect(screen.getByTestId('sell-category-option-Food & Drink')).toBeInTheDocument()
+    expect(screen.getByTestId('sell-category-option-Faith & Culture')).toBeInTheDocument()
+    expect(screen.getByTestId('sell-category-option-other')).toBeInTheDocument()
+    updateDraft.mockClear()
+    await clickContinue()
+    expect(screen.getByTestId('field-error-category')).toBeInTheDocument()
+    // Deliberately not persisted via update_draft — see the ticket's own
+    // resume tradeoff note.
+    expect(updateDraft).not.toHaveBeenCalled()
+  })
+
+  it('selecting a fixed term unblocks Continue and advances to About', async () => {
+    setup()
+    await advanceToCategory()
+    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
+    await clickContinue()
+    expect(screen.getByRole('heading', { name: /^About$/i })).toBeInTheDocument()
+  })
+
+  it('selecting Something else reveals a free-text input, announced, and blocks Continue until it has text', async () => {
+    setup()
+    await advanceToCategory()
+    fireEvent.click(screen.getByTestId('sell-category-option-other'))
+    const reveal = screen.getByTestId('sell-category-other-input')
+    expect(reveal).toBeInTheDocument()
+    expect(reveal.closest('[role="status"]')).not.toBeNull()
+    await clickContinue()
+    expect(screen.getByTestId('field-error-category')).toBeInTheDocument()
+    fireEvent.change(reveal, { target: { value: 'I fix bicycles on weekends' } })
+    await clickContinue()
+    expect(screen.getByRole('heading', { name: /^About$/i })).toBeInTheDocument()
+  })
+
+  it('whitespace-only free text does not satisfy the step', async () => {
+    setup()
+    await advanceToCategory()
+    fireEvent.click(screen.getByTestId('sell-category-option-other'))
+    fireEvent.change(screen.getByTestId('sell-category-other-input'), {
+      target: { value: '   ' },
+    })
+    await clickContinue()
+    expect(screen.getByTestId('field-error-category')).toBeInTheDocument()
+  })
+})
+
+describe('SellWalkthrough — step 4 About (optional)', () => {
   async function advanceToAbout() {
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
     await clickContinue()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
+    await clickContinue()
+    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
     await clickContinue()
   }
 
@@ -265,13 +327,15 @@ describe('SellWalkthrough — step 3 About (optional)', () => {
   })
 })
 
-describe('SellWalkthrough — step 4 Locality (Tier 0, optional, UI-only)', () => {
+describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () => {
   async function advanceToLocality() {
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
     await clickContinue()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
+    await clickContinue()
+    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
     await clickContinue()
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
   }
@@ -310,13 +374,15 @@ describe('SellWalkthrough — step 4 Locality (Tier 0, optional, UI-only)', () =
   })
 })
 
-describe('SellWalkthrough — step 5 Review & activate', () => {
+describe('SellWalkthrough — step 6 Review & activate', () => {
   async function advanceToReview() {
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
     await clickContinue()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
+    await clickContinue()
+    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
     await clickContinue()
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
@@ -339,16 +405,42 @@ describe('SellWalkthrough — step 5 Review & activate', () => {
     ).toBeInTheDocument()
   })
 
-  it('fires group.activate, redirects to the new Group URL, and toasts on success', async () => {
+  it('fires group.activate with the chosen category, redirects to the new Group URL, and toasts on success', async () => {
     const { activate, redirect, showToast } = setup()
     await advanceToReview()
     fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
-    expect(activate).toHaveBeenCalledWith({ groupId: 'g-draft-1' })
+    expect(activate).toHaveBeenCalledWith({
+      groupId: 'g-draft-1',
+      category: { term: 'Food & Drink' },
+    })
     expect(redirect).toHaveBeenCalledWith(
       '/p/sacramento/g/oak-park-sourdough-abc1',
     )
     expect(showToast).toHaveBeenCalledWith('Your shop is live.')
+  })
+
+  it('fires group.activate with free text when Something else was chosen', async () => {
+    const { activate } = setup()
+    fireEvent.change(screen.getByTestId('sell-brand-input'), {
+      target: { value: 'Oak Park Sourdough' },
+    })
+    await clickContinue()
+    fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
+    await clickContinue()
+    fireEvent.click(screen.getByTestId('sell-category-option-other'))
+    fireEvent.change(screen.getByTestId('sell-category-other-input'), {
+      target: { value: 'I fix bicycles on weekends' },
+    })
+    await clickContinue()
+    fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
+    fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
+    await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
+    expect(activate).toHaveBeenCalledWith({
+      groupId: 'g-draft-1',
+      category: { otherText: 'I fix bicycles on weekends' },
+    })
   })
 })
 
@@ -388,7 +480,7 @@ describe('SellWalkthrough — resume', () => {
         anchorLocationId: 'loc-1',
         anchorLocationLabel: "Maya's Kitchen",
         about: '',
-        resumeFromStep: 2, // About step
+        resumeFromStep: 3, // About step (index shifted by the T144 Category step)
       },
     })
     expect(screen.getByRole('heading', { name: /^About$/i })).toBeInTheDocument()
@@ -402,7 +494,7 @@ describe('SellWalkthrough — resume', () => {
         anchorLocationId: 'loc-1',
         anchorLocationLabel: "Maya's Kitchen",
         about: '',
-        resumeFromStep: 2,
+        resumeFromStep: 3,
       },
     })
     fireEvent.change(screen.getByTestId('sell-about-input'), {
