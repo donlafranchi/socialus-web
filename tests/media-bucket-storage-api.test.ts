@@ -8,14 +8,19 @@
 // skip-when-absent discipline as tests/rls-coverage.test.ts and
 // scripts/bootstrap-eval-helpers.ts.
 //
-// Gated strictly on a LOCAL Supabase URL (127.0.0.1 / localhost), never a
-// remote project — these tests write real objects and create real auth
-// users, which rls-coverage.test.ts's own comment explicitly calls out as
-// unsafe to point at a remote project (that suite is read-only; this one
-// is not).
+// T150: when the environment is absent this suite FAILS rather than skipping.
+// It carries the acceptance criterion "rejected by the storage API", and a
+// skip is that criterion unmet while the run reports green — which is exactly
+// how T120 closed with a ticked box and nothing verified.
+//
+// Still gated on a LOCAL Supabase URL here: these tests create real auth users
+// and write real objects, which rls-coverage.test.ts's own comment calls out
+// as unsafe against a remote project. T151 replaces this predicate with an
+// explicit "safe to write to" question, so a Supabase branch can run it too.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
+import { requireRunnable } from './support/runnable'
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
@@ -31,11 +36,18 @@ function isLocal(url: string | undefined): url is string {
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
 const ANON_KEY = process.env.SUPABASE_ANON_KEY
-const RUNNABLE = isLocal(SUPABASE_URL) && !!SERVICE_ROLE_KEY && !!ANON_KEY
+
+const RUNNABLE = requireRunnable({
+  claim: 'the media bucket rejects a direct upload that bypasses the client module',
+  available: isLocal(SUPABASE_URL) && !!SERVICE_ROLE_KEY && !!ANON_KEY,
+  remedy:
+    'run `supabase start`, then point SUPABASE_URL, SUPABASE_ANON_KEY and ' +
+    'SUPABASE_SERVICE_ROLE_KEY at it (recipe in .env.local.example)',
+})
 
 const BUCKET = 'media'
 
-describe.skipIf(!RUNNABLE)('T120 media bucket — storage API enforcement (local only)', () => {
+describe.skipIf(!RUNNABLE)('T120 media bucket — storage API enforcement', () => {
   let admin: SupabaseClient
   let memberAId: string
   let memberBId: string
@@ -67,13 +79,26 @@ describe.skipIf(!RUNNABLE)('T120 media bucket — storage API enforcement (local
     if (errB) throw errB
     memberBId = userB.user.id
 
-    clientA = createClient(SUPABASE_URL!, ANON_KEY!)
+    // `persistSession: false` is load-bearing, not tidiness. The suite runs
+    // under jsdom, so two clients built with the same URL and key share one
+    // localStorage under one default auth-storage key: B's sign-in silently
+    // overwrote A's session and both clients acted as B. The cross-member
+    // checks below then compared B against B — which is why they passed
+    // review and failed the first time this suite actually executed.
+    clientA = createClient(SUPABASE_URL!, ANON_KEY!, { auth: { persistSession: false } })
     const signInA = await clientA.auth.signInWithPassword({ email: emailA, password })
     if (signInA.error) throw signInA.error
 
-    clientB = createClient(SUPABASE_URL!, ANON_KEY!)
+    clientB = createClient(SUPABASE_URL!, ANON_KEY!, { auth: { persistSession: false } })
     const signInB = await clientB.auth.signInWithPassword({ email: emailB, password })
     if (signInB.error) throw signInB.error
+
+    // The isolation the two checks below depend on. Assert it rather than
+    // trusting it: if the sessions ever cross again, this says so directly
+    // instead of turning a cross-member test into a same-member one.
+    const [whoA, whoB] = await Promise.all([clientA.auth.getUser(), clientB.auth.getUser()])
+    expect(whoA.data.user?.id).toBe(memberAId)
+    expect(whoB.data.user?.id).toBe(memberBId)
   })
 
   afterAll(async () => {
