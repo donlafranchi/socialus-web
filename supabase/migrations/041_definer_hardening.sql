@@ -18,17 +18,25 @@
 --    convention in 027/032/033, since 001 installs postgis unqualified but
 --    Supabase-managed environments may hold it in `extensions`.
 --
--- 2. FIVE SECURITY DEFINER FUNCTIONS ARE EXECUTABLE BY anon. Not because
---    anything granted them — because Postgres grants EXECUTE to PUBLIC by
---    default at creation, and only 028_email_is_registered.sql ever revoked it.
---    All five are trigger bodies with no `.rpc()` caller anywhere in src/.
---    PostgreSQL checks EXECUTE on a trigger function when the trigger is
---    CREATED, not when it fires, so revoking is invisible to the triggers.
+-- 2. FIVE SECURITY DEFINER FUNCTIONS ARE EXECUTABLE BY anon AND authenticated.
+--    The grants are explicit ACL entries, not the PUBLIC default: Supabase ships
+--    ALTER DEFAULT PRIVILEGES on the public schema granting EXECUTE on new
+--    functions to anon and authenticated, so every function this repo creates
+--    picks them up at birth without any migration asking for it. Confirmed
+--    against the live ACLs on socialus-db: no migration here grants these five
+--    to anon or authenticated, yet all five carry anon=X and authenticated=X.
 --
---    handle_new_auth_user() is re-revoked even though 006 already revoked it in
---    migration — the advisor still reports it against the live database, which
---    means either drift or a grant applied outside migrations. REVOKE is
---    idempotent; re-asserting costs nothing and closes the gap either way.
+--    That is why the revoke names anon and authenticated explicitly. Revoking
+--    PUBLIC alone would not clear the lint — and on handle_new_auth_user there
+--    is no PUBLIC entry left to revoke, because 006's REVOKE already worked.
+--    Its live ACL reads postgres=X | anon=X | authenticated=X. Not drift.
+--
+--    All five are trigger bodies. Their only references anywhere in this repo
+--    are the definition, the `execute function` in their CREATE TRIGGER, and a
+--    comment — no RLS policy, no column default, no CHECK constraint, and no
+--    `.rpc()` caller in src/. PostgreSQL checks EXECUTE on a trigger function
+--    when the trigger is CREATED, not when it fires, so the triggers keep
+--    working with no grant at all.
 --
 -- DELIBERATELY NOT TOUCHED (full reasoning in issue #36):
 --   - The four member_public_* views. Load-bearing privacy projections; the
@@ -37,12 +45,19 @@
 --     intended deny-all end state of 035_partition_rls.sql.
 --   - spatial_ref_sys + the st_estimatedextent overloads. PostGIS-owned.
 --   - current_member_explicit_group_ids(). Called inside four RLS policy USING
---     clauses (014, 015); policy expressions run with the querying role's
---     privileges, so revoking turns member reads into permission errors.
+--     clauses (014_groups.sql:230,237,296 and 015_items.sql:123). A policy
+--     expression is evaluated with the querying role's privileges and a
+--     function call inside it IS permission-checked, so dropping the anon /
+--     authenticated grants turns member reads of groups, memberships and items
+--     into "permission denied for function" rather than empty results. It will
+--     keep showing as an advisor WARN; that is the correct trade.
 --   - zip_is_proximal_to_location, resolve_member_page_visibility. Live
 --     PostgREST callers; migrations-t075.test.ts asserts the former's grant.
---   - place_for_coords. Reached only through the action layer's direct pg pool
---     as postgres, so its PUBLIC grant is unused rather than exposed.
+--   - place_for_coords. Its only caller is the action layer's direct pg pool,
+--     which connects as postgres — so the anon grant has no legitimate user and
+--     is a candidate for the same revoke. Left out of this migration only to
+--     keep it to the set whose ACLs were read directly; raised on issue #36 as
+--     a follow-up rather than widened in silently.
 --   - discoverable_items anon SELECT. By design — a materialized view cannot
 --     carry RLS, so its WHERE clause is the gate (016).
 --   - vector / postgis / pg_net in public. Real finding, breaking remedy.
