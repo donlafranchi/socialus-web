@@ -13,36 +13,26 @@
 // skip is that criterion unmet while the run reports green — which is exactly
 // how T120 closed with a ticked box and nothing verified.
 //
-// Still gated on a LOCAL Supabase URL here: these tests create real auth users
-// and write real objects, which rls-coverage.test.ts's own comment calls out
-// as unsafe against a remote project. T151 replaces this predicate with an
-// explicit "safe to write to" question, so a Supabase branch can run it too.
+// T151: gated on "is this instance safe to write to", not "is it localhost"
+// (tests/support/write-safe.ts). The old predicate's intent was right — these
+// tests create real auth users and write real objects — but a Supabase branch
+// has a remote hostname and would have skipped exactly as the sandbox did.
+// The marker makes the answer explicit instead of guessed.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { randomUUID } from 'node:crypto'
 import { requireRunnable } from './support/runnable'
-
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
-
-function isLocal(url: string | undefined): url is string {
-  if (!url) return false
-  try {
-    return LOCAL_HOSTS.has(new URL(url).hostname.toLowerCase())
-  } catch {
-    return false
-  }
-}
+import { writeSafety } from './support/write-safe'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
 const ANON_KEY = process.env.SUPABASE_ANON_KEY
 
+const safety = writeSafety(process.env)
 const RUNNABLE = requireRunnable({
   claim: 'the media bucket rejects a direct upload that bypasses the client module',
-  available: isLocal(SUPABASE_URL) && !!SERVICE_ROLE_KEY && !!ANON_KEY,
-  remedy:
-    'run `supabase start`, then point SUPABASE_URL, SUPABASE_ANON_KEY and ' +
-    'SUPABASE_SERVICE_ROLE_KEY at it (recipe in .env.local.example)',
+  available: safety.safe,
+  remedy: `${safety.reason} Recipe in .env.local.example`,
 })
 
 const BUCKET = 'media'
