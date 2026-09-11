@@ -11,8 +11,10 @@ const MIG = resolve(__dirname, '..', 'supabase', 'migrations')
 const stripComments = (s: string) =>
   s.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n')
 
-describe('040_page_identity.sql', () => {
-  const file = resolve(MIG, '040_page_identity.sql')
+describe('20260911160535_page_identity.sql', () => {
+  // Renamed from 040_ to match the version the remote recorded when this was
+  // applied to production out-of-band (2026-09-11). Same DDL, verified by hash.
+  const file = resolve(MIG, '20260911160535_page_identity.sql')
   it('exists', () => expect(existsSync(file)).toBe(true))
   const sql = existsSync(file) ? stripComments(readFileSync(file, 'utf8')) : ''
 

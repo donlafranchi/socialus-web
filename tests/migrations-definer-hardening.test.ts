@@ -12,8 +12,15 @@ const MIG = resolve(__dirname, '..', 'supabase', 'migrations')
 const stripComments = (s: string) =>
   s.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n')
 
-const file = resolve(MIG, '041_definer_hardening.sql')
-const sql = stripComments(readFileSync(file, 'utf8'))
+// Split in two when the migration history was reconciled (2026-09-11): the
+// work was applied to production as two statements under separate versions,
+// so the files match what actually ran. Part one pins search_path, part two
+// revokes EXECUTE. Assertions follow the seam.
+const pinFile = resolve(MIG, '20260911161048_definer_hardening_search_path.sql')
+const revokeFile = resolve(MIG, '20260911161136_definer_hardening_revoke_execute.sql')
+const pinSql = stripComments(readFileSync(pinFile, 'utf8'))
+const revokeSql = stripComments(readFileSync(revokeFile, 'utf8'))
+const sql = `${pinSql}\n${revokeSql}`
 
 // The 14 functions the advisor flagged as function_search_path_mutable.
 const PINNED = [
@@ -42,8 +49,11 @@ const REVOKED = [
   'refresh_discoverable_items_on_publish',
 ] as const
 
-describe('issue #36 — 041_definer_hardening.sql', () => {
-  it('exists', () => expect(existsSync(file)).toBe(true))
+describe('issue #36 — definer hardening (two files)', () => {
+  it('both halves exist', () => {
+    expect(existsSync(pinFile)).toBe(true)
+    expect(existsSync(revokeFile)).toBe(true)
+  })
 
   it.each(PINNED)('re-creates %s with a pinned search_path', (fn) => {
     const def = sql.match(
