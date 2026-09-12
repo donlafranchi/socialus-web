@@ -12,6 +12,16 @@ SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one me
 
 Classify it by `ops-pattern/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `ops-pattern` for one before ticketing it as anything else.
 
+## Who checks what
+
+Agents own whether a change is **correct**. Don owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app on the Vercel preview link.
+
+Every PR opens with one of two things, before anything else: **"Don doesn't need to look."** plus a reason, or **the preview link, three plain-language steps, and what he should expect to see** — then the `needs-don` label. `.github/pull_request_template.md` carries both blocks; keep one, delete the other.
+
+Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
+
+Full rule, including when he looks: `ops-pattern/PIPELINE.md` § Who checks what.
+
 ## When a PR diverges from its scenario
 
 A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `ops-pattern`, not here. Don't quietly ship a different behavior than what was approved.
