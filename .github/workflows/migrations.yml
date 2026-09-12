@@ -1,0 +1,144 @@
+name: migrations
+
+# Applies database migrations to socialus-db, and guards against the repo and
+# the database drifting apart.
+#
+# ALWAYS the Supabase CLI (`supabase db push`), NEVER the management API.
+# On 2026-09-11 two migrations were applied through the management API's
+# apply_migration endpoint. That endpoint executes whatever SQL it is handed
+# and writes a history row named after whatever it is told — it never reads
+# supabase/migrations/. Local and remote diverged immediately and silently.
+# `db push` reads the files and records their versions, which is the only way
+# the migration files stay the source of truth. Do not "simplify" this job by
+# calling the API.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - '.github/workflows/migrations.yml'
+      - 'scripts/check-migration-drift.sh'
+
+# One migration job at a time. Two concurrent `db push` runs against one
+# database is exactly the race this whole workflow exists to prevent.
+concurrency:
+  group: migrations-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Gate 1 — do these migrations actually apply, from nothing, in order?
+  # Runs on PRs and on main. No secrets, no production contact: a throwaway
+  # local Supabase stack built from the files in this commit.
+  verify:
+    name: Migrations apply from scratch
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start a throwaway local stack
+        run: supabase start
+
+      # The real check: every migration, from an empty database, in order.
+      # This is what would have caught a migration that only applies when
+      # some earlier hand-run state already exists.
+      - name: Apply every migration from scratch
+        run: supabase db reset
+
+      - run: npm ci
+
+      # The migration tests are static-shape guards over the SQL files. They
+      # are the part of the suite that speaks to migrations, and they are
+      # green — see the note on gating in the PR body.
+      - name: Migration tests
+        run: npx vitest run tests/migrations-*.test.ts tests/rls-coverage.test.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+  # Gate 2 — has anything reached the database without going through a file?
+  # Local-only migrations are fine and expected on a PR. Remote-only ones are
+  # drift, and always a failure.
+  drift:
+    name: No undocumented migrations in the database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to socialus-db
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+
+      - name: Compare local files against the applied history
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: bash scripts/check-migration-drift.sh
+
+  # Apply. Only on main, only after both gates, and only once a human approves
+  # in the `production` environment. Idempotent: `db push` applies what the
+  # remote history does not already carry, so a re-run of a successful job is
+  # a no-op rather than a second application.
+  apply:
+    name: Apply to socialus-db
+    if: github.event_name == 'push'
+    needs: [verify, drift]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to socialus-db
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+
+      # Printed into the log on both sides of the push, so the job itself is
+      # the record of what the history looked like before and after. This is
+      # the check that would have caught the 2026-09-11 drift the same day.
+      - name: History before
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase migration list
+
+      - name: Push migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push
+
+      - name: History after
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase migration list
+
+      # Belt and braces: after a successful push there must be nothing the
+      # database carries that this repo does not.
+      - name: Confirm no drift remains
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: bash scripts/check-migration-drift.sh
