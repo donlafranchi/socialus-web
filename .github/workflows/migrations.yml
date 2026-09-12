@@ -1,4 +1,4 @@
-name: migrations
+name: migrations (check)
 
 # Applies database migrations to socialus-db, and guards against the repo and
 # the database drifting apart.
@@ -17,6 +17,13 @@ on:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
+  # Nothing applies automatically, so main can carry a migration the database
+  # has not seen. That window is exactly the state that caused the 2026-09-11
+  # divergence, and silence is what made it last. This makes it noisy instead:
+  # a daily run that goes red, and emails, for as long as anything is pending.
+  schedule:
+    - cron: '0 14 * * *'   # 14:00 UTC daily
+  workflow_dispatch:
   pull_request:
     paths:
       - 'supabase/migrations/**'
@@ -93,17 +100,17 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: bash scripts/check-migration-drift.sh
 
-  # Apply. Only on main, only after both gates, and only once a human approves
-  # in the `production` environment. Idempotent: `db push` applies what the
-  # remote history does not already carry, so a re-run of a successful job is
-  # a no-op rather than a second application.
-  apply:
-    name: Apply to socialus-db
-    if: github.event_name == 'push'
-    needs: [verify, drift]
+  # Is production behind main? Only meaningful on main and on the schedule —
+  # a PR is *supposed* to carry a migration the database lacks.
+  #
+  # On push this reports and passes: you have just merged, of course it is
+  # pending. On the daily schedule it FAILS, because by then it means someone
+  # merged a migration and never ran the apply workflow.
+  pending:
+    name: Production behind main?
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: production
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -117,28 +124,12 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
 
-      # Printed into the log on both sides of the push, so the job itself is
-      # the record of what the history looked like before and after. This is
-      # the check that would have caught the 2026-09-11 drift the same day.
-      - name: History before
+      - name: Check for unapplied migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase migration list
-
-      - name: Push migrations
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push
-
-      - name: History after
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase migration list
-
-      # Belt and braces: after a successful push there must be nothing the
-      # database carries that this repo does not.
-      - name: Confirm no drift remains
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: bash scripts/check-migration-drift.sh
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            bash scripts/check-migration-drift.sh --strict
+          else
+            bash scripts/check-migration-drift.sh
+          fi
