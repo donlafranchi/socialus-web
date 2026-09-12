@@ -10,7 +10,17 @@
 #
 # Reads `supabase migration list` (the project must already be linked).
 # Prints the table either way, so the job log carries the record.
+#
+# Two modes:
+#   (default)  remote-only migrations fail. Local-only ones are reported and
+#              pass — a PR that adds a migration is supposed to have one.
+#   --strict   local-only migrations fail too. Used by the scheduled check,
+#              where a migration sitting on main unapplied is the problem
+#              being watched for, not a normal in-flight state.
 set -uo pipefail
+
+STRICT=0
+[ "${1:-}" = "--strict" ] && STRICT=1
 
 OUT="$(supabase migration list 2>&1)"
 status=$?
@@ -50,9 +60,16 @@ done <<< "$OUT"
 # file the database has not seen yet — that is the whole point of the PR, and
 # the apply job runs it on merge. Report it and pass.
 if [ ${#local_only[@]} -gt 0 ]; then
-  echo "check-migration-drift: pending (expected) — in supabase/migrations/, not yet applied:"
+  echo "check-migration-drift: ${#local_only[@]} migration(s) in supabase/migrations/ not yet applied:"
   printf '  %s\n' "${local_only[@]}"
-  echo "  These apply when this lands on main."
+  if [ "$STRICT" -eq 1 ]; then
+    echo
+    echo "check-migration-drift: FAILED — main carries migrations the database does not." >&2
+    echo "  Production is behind the repo. Apply them:" >&2
+    echo "  Actions → 'Apply migrations to PRODUCTION' → Run workflow." >&2
+    exit 1
+  fi
+  echo "  Expected on a PR. They apply when you run the apply workflow."
   echo
 fi
 
