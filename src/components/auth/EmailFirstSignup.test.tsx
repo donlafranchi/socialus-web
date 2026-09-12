@@ -65,7 +65,9 @@ describe('T090 — EmailFirstSignup', () => {
 
     fireEvent.change(screen.getByTestId('password-input'), { target: { value: 'supersecret' } })
     clickSubmit()
-    await waitFor(() => expect(deps.signUp).toHaveBeenCalledWith('new@example.test', 'supersecret'))
+    await waitFor(() =>
+      expect(deps.signUp).toHaveBeenCalledWith('new@example.test', 'supersecret', '/onboarding'),
+    )
     await waitFor(() => expect(onAuthenticated).toHaveBeenCalledWith('/onboarding'))
   })
 
