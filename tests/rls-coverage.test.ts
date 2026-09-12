@@ -6,11 +6,21 @@
 // without `rowsecurity = true`. Allowance list is empty at Phase 0 —
 // every public table must opt in to RLS.
 //
-// Runs only when DATABASE_URL is set (the same env var _lib/db.ts reads).
-// In CI the Postgres service is up; locally the user runs `supabase start`.
+// Gated on DATABASE_URL (the same env var _lib/db.ts reads). In CI the
+// Postgres service is up; locally the user runs `supabase start`.
+//
+// T150: absent, this fails rather than skipping. "Every public table has RLS"
+// is an acceptance criterion, and a skipped check is that criterion unmet
+// while the run reports green.
+//
+// Read-only — a single SELECT on pg_tables — so it does NOT take T151's
+// write-safe gate. Pointing it at a remote project is safe, and requiring an
+// ephemeral marker here would lock out the one check that is fine to run
+// anywhere.
 
 import { describe, it, expect } from 'vitest'
 import { Pool } from 'pg'
+import { requireRunnable } from './support/runnable'
 
 const DATABASE_URL =
   process.env.DATABASE_URL ??
@@ -24,7 +34,15 @@ const DATABASE_URL =
 // event-log partitions are covered by 035_partition_rls.sql.
 const ALLOWLIST: readonly string[] = ['spatial_ref_sys']
 
-describe.skipIf(!DATABASE_URL)('T051 Rule 3 — RLS coverage on public schema', () => {
+const RUNNABLE = requireRunnable({
+  claim: 'every table in the public schema has row-level security enabled',
+  available: !!DATABASE_URL,
+  remedy:
+    'run `supabase start`, then put DATABASE_URL in .env.test.local ' +
+    '(recipe in .env.local.example)',
+})
+
+describe.skipIf(!RUNNABLE)('T051 Rule 3 — RLS coverage on public schema', () => {
   it('every public table has rowsecurity = true', async () => {
     const pool = new Pool({ connectionString: DATABASE_URL })
     try {
