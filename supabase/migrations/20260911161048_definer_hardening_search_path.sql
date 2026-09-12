@@ -1,72 +1,6 @@
--- Issue #36 — Supabase security advisor hardening: pin search_path, revoke
--- default anon EXECUTE on trigger-only SECURITY DEFINER functions.
--- Source: Supabase security advisor against socialus-db, 2026-09-09.
---
--- Two independent changes, neither of which alters behaviour.
---
--- 1. FOURTEEN FUNCTIONS SHIP WITHOUT A PINNED search_path. Every one is ours
---    and every one is re-created below with the identical body plus a `set
---    search_path`. Without the pin, whatever search_path the caller happens to
---    hold decides how an unqualified function, operator or type inside the body
---    resolves — so a caller who can create objects in a schema earlier on their
---    own path can shadow what the body meant to call. The bodies here already
---    schema-qualify their table references; the pin closes the operator and
---    built-in resolution that qualification cannot reach.
---
---    `public, pg_catalog` is the default pin. The one PostGIS caller
---    (resolve_home_metro) takes `public, extensions` to match the existing
---    convention in 027/032/033, since 001 installs postgis unqualified but
---    Supabase-managed environments may hold it in `extensions`.
---
--- 2. FIVE SECURITY DEFINER FUNCTIONS ARE EXECUTABLE BY anon AND authenticated.
---    The grants are explicit ACL entries, not the PUBLIC default: Supabase ships
---    ALTER DEFAULT PRIVILEGES on the public schema granting EXECUTE on new
---    functions to anon and authenticated, so every function this repo creates
---    picks them up at birth without any migration asking for it. Confirmed
---    against the live ACLs on socialus-db: no migration here grants these five
---    to anon or authenticated, yet all five carry anon=X and authenticated=X.
---
---    That is why the revoke names anon and authenticated explicitly. Revoking
---    PUBLIC alone would not clear the lint — and on handle_new_auth_user there
---    is no PUBLIC entry left to revoke, because 006's REVOKE already worked.
---    Its live ACL reads postgres=X | anon=X | authenticated=X. Not drift.
---
---    All five are trigger bodies. Their only references anywhere in this repo
---    are the definition, the `execute function` in their CREATE TRIGGER, and a
---    comment — no RLS policy, no column default, no CHECK constraint, and no
---    `.rpc()` caller in src/. PostgreSQL checks EXECUTE on a trigger function
---    when the trigger is CREATED, not when it fires, so the triggers keep
---    working with no grant at all.
---
--- DELIBERATELY NOT TOUCHED (full reasoning in issue #36):
---   - The four member_public_* views. Load-bearing privacy projections; the
---     owner-privileges bypass IS the mechanism, per 029/030/038.
---   - The 22 partitions + embedding tables with RLS and no policy. The
---     intended deny-all end state of 035_partition_rls.sql.
---   - spatial_ref_sys + the st_estimatedextent overloads. PostGIS-owned.
---   - current_member_explicit_group_ids(). Called inside four RLS policy USING
---     clauses (014_groups.sql:230,237,296 and 015_items.sql:123). A policy
---     expression is evaluated with the querying role's privileges and a
---     function call inside it IS permission-checked, so dropping the anon /
---     authenticated grants turns member reads of groups, memberships and items
---     into "permission denied for function" rather than empty results. It will
---     keep showing as an advisor WARN; that is the correct trade.
---   - zip_is_proximal_to_location, resolve_member_page_visibility. Live
---     PostgREST callers; migrations-t075.test.ts asserts the former's grant.
---   - place_for_coords. Its only caller is the action layer's direct pg pool,
---     which connects as postgres — so the anon grant has no legitimate user and
---     is a candidate for the same revoke. Left out of this migration only to
---     keep it to the set whose ACLs were read directly; raised on issue #36 as
---     a follow-up rather than widened in silently.
---   - discoverable_items anon SELECT. By design — a materialized view cannot
---     carry RLS, so its WHERE clause is the gate (016).
---   - vector / postgis / pg_net in public. Real finding, breaking remedy.
---   - Leaked password protection. A dashboard auth setting, not a migration.
-
-------------------------------------------------------------
--- 1. Pin search_path — trigger functions.
-------------------------------------------------------------
-
+-- 041 part 1 of 2 — pin search_path on the 14 functions that shipped without one.
+-- Issue #36. Bodies identical to the versions already in production; the only
+-- change is the added `set search_path`.
 create or replace function public.update_updated_at_column()
 returns trigger
 language plpgsql
@@ -132,14 +66,6 @@ begin
 end;
 $$;
 
-------------------------------------------------------------
--- 2. Pin search_path — resolver.
-------------------------------------------------------------
--- PostGIS caller (ST_Contains / ST_Area): `public, extensions`, matching the
--- convention already used by locality_feed_items / venue_* in 027/032/033.
--- Grant is unchanged — 031 grants this to authenticated, anon and the feed
--- vantage-point path calls it.
-
 create or replace function public.resolve_home_metro(point geography)
 returns uuid
 language sql
@@ -154,15 +80,6 @@ as $$
   order by ST_Area(geography) asc
   limit 1;
 $$;
-
-------------------------------------------------------------
--- 3. Pin search_path — the five partition-creation helpers.
-------------------------------------------------------------
--- Bodies carried forward verbatim from 035_partition_rls.sql, including the
--- load-bearing `enable row level security` step. A partition does not inherit
--- the parent's rowsecurity flag, and PostgREST exposes each partition as its
--- own endpoint — dropping that line here would silently reopen the hole 035
--- closed on the next monthly rotation.
 
 create or replace function public.ensure_member_events_partition(target_month date)
 returns void
@@ -294,10 +211,6 @@ begin
 end;
 $$;
 
-------------------------------------------------------------
--- 4. Pin search_path — the five rotation wrappers.
-------------------------------------------------------------
-
 create or replace function public.rotate_member_events_partitions()
 returns void
 language plpgsql
@@ -367,19 +280,3 @@ begin
   perform public.ensure_place_events_partition((base + interval '2 months')::date);
 end;
 $$;
-
-------------------------------------------------------------
--- 5. Revoke the default PUBLIC EXECUTE on trigger-only definer functions.
-------------------------------------------------------------
--- Each of these fires from a trigger and has no client caller. anon and
--- authenticated are named explicitly alongside PUBLIC so the revoke also
--- covers a direct grant applied outside migrations.
-
-revoke all on function public.handle_new_auth_user()                  from public, anon, authenticated;
-revoke all on function public.create_member_privacy_defaults()        from public, anon, authenticated;
-revoke all on function public.assert_member_id_in_auth_users()        from public, anon, authenticated;
-revoke all on function public.sync_area_centroid()                    from public, anon, authenticated;
-revoke all on function public.refresh_discoverable_items_on_publish() from public, anon, authenticated;
-
-comment on function public.handle_new_auth_user is
-  'F030/T044 signup hook — the only path to a Member row. SECURITY DEFINER over auth.users; EXECUTE revoked from PUBLIC/anon/authenticated (issue #36). Fires from the on_auth_user_created trigger, which does not re-check EXECUTE.';
