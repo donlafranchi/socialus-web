@@ -245,6 +245,19 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
   const type = (value: string) =>
     fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value } })
 
+  it('prompts with farmers market examples rather than explaining what a tag is', async () => {
+    // Don's call: a creator knows what they offer and most already market
+    // elsewhere, so the register is the prompt. Examples are a placeholder,
+    // never a default — nothing is prefilled and nothing is submitted.
+    setup()
+    await advanceToTags()
+    const input = screen.getByTestId('sell-tag-input')
+    expect(input).toHaveAttribute('placeholder', 'sourdough, honey, eggs, soap')
+    expect(input).toHaveValue('')
+    await clickContinue()
+    expect(screen.getByTestId('field-error-tags')).toBeInTheDocument()
+  })
+
   it('offers a free text input, not a fixed list — creators create their own tags', async () => {
     setup()
     await advanceToTags()

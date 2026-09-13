@@ -440,6 +440,9 @@ function resolveDraftId(
  *  Enter and comma both commit a tag. Comma because people type lists that
  *  way unprompted, and a creator typing "bread, pastry" and getting one tag
  *  called "bread, pastry" is a silent wrong answer. */
+/** Examples, not defaults — nothing is prefilled and nothing is submitted. */
+const TAG_PLACEHOLDER = 'sourdough, honey, eggs, soap'
+
 function TagStep({
   state,
   setState,
@@ -447,6 +450,10 @@ function TagStep({
   state: SellWalkthroughState
   setState: (next: SellWalkthroughState) => void
 }) {
+  // Greyed examples rather than help text explaining what a tag is. A
+  // creator knows what they offer — most already market on other apps, so
+  // the register is the prompt, not an explanation. Farmers market
+  // vocabulary because that is the seed audience.
   const add = (raw: string) => {
     const label = raw.trim()
     if (!isValidTagLabel(label)) return
@@ -496,7 +503,7 @@ function TagStep({
         data-testid="sell-tag-input"
         value={state.tagDraft}
         maxLength={TAG_MAX_LENGTH}
-        placeholder="sourdough"
+        placeholder={TAG_PLACEHOLDER}
         onChange={(e) => {
           const v = e.target.value
           if (v.endsWith(',')) add(v.slice(0, -1))
@@ -522,9 +529,6 @@ function TagStep({
         Add
       </button>
 
-      <p className="mt-2 text-xs text-neutral-500">
-        These are how people find you. Use the words you would say out loud.
-      </p>
     </div>
   )
 }
