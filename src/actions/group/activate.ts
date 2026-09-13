@@ -20,21 +20,20 @@ import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from './constants'
-import { PAGE_CATEGORIES } from '../../lib/groups/page-categories'
+import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH } from '../../lib/groups/tags'
 
-// T144 — a Page declares exactly one category at publish. A fixed term
-// writes groups.category; free text ("Something else") writes
-// group_category_suggestions instead and leaves groups.category null.
-// Neither is optional — the category is what search matches, and a Page
-// with none can't be found by what it does.
-const groupActivateCategoryInput = z.union([
-  z.object({ term: z.enum(PAGE_CATEGORIES) }),
-  z.object({ otherText: z.string().min(1).max(280) }),
-])
+// T159 — a Page declares at least one tag at publish, and no category.
+// Supersedes T144's twelve-term category and its "Something else" free
+// text; both are retired (ruled 2026-09-13, tags are the only vocabulary).
+//
+// At least one is required for the same reason a category was: tags are
+// what search matches, and an untagged Page cannot be found by what it
+// does. The cap is a guard against a paste, not a considered limit.
+const MAX_TAGS_PER_PAGE = 12
 
 export const groupActivateInput = z.object({
   groupId: z.string().uuid(),
-  category: groupActivateCategoryInput.optional(),
+  tags: z.array(z.string().min(1).max(TAG_MAX_LENGTH)).min(1).max(MAX_TAGS_PER_PAGE).optional(),
 })
 
 export type GroupActivateInput = z.infer<typeof groupActivateInput>
@@ -91,17 +90,21 @@ export const groupActivate = defineHandler(
         )
       }
 
-      // T144 — category is required at publish, for every kind. Checked
-      // before promotion alongside the other required-field gates, so a
-      // missing category fails activation outright rather than partially.
-      if (!input.category) {
-        throw new ValidationError(
-          `group.activate: group ${input.groupId} requires a category to publish`,
-        )
+      // T159 — at least one tag is required at publish, for every kind.
+      // Checked before promotion alongside the other required-field gates,
+      // so a missing tag fails activation outright rather than partially.
+      //
+      // Normalized first, then deduped: "Sourdough" and " sour dough " sent
+      // together are one tag, and a creator who does that has not sent two.
+      const tagLabels = (input.tags ?? []).filter(isValidTagLabel)
+      const byNormalized = new Map<string, string>()
+      for (const label of tagLabels) {
+        const n = normalizeTag(label)
+        if (!byNormalized.has(n)) byNormalized.set(n, label.trim())
       }
-      if ('otherText' in input.category && input.category.otherText.trim().length === 0) {
+      if (byNormalized.size === 0) {
         throw new ValidationError(
-          `group.activate: group ${input.groupId} category free text is empty after trimming`,
+          `group.activate: group ${input.groupId} requires at least one tag to publish`,
         )
       }
 
@@ -154,22 +157,26 @@ export const groupActivate = defineHandler(
         )
       }
 
-      // T144 — category write, same transaction as the promote above.
-      // Deferred to publish (not progressively via group.update_draft) so
-      // changing your mind mid-draft doesn't leave a trail of abandoned
-      // "Something else" rows — only the final choice is ever written.
-      if ('term' in input.category) {
+      // T159 — tag writes, same transaction as the promote above. Deferred
+      // to publish rather than patched progressively, for T144's reason: a
+      // creator changing their mind mid-draft should leave no trail.
+      //
+      // Each tag is upserted into the shared vocabulary, then attached. The
+      // upsert is `on conflict do nothing` + select rather than
+      // `returning` alone, because a tag another creator already made
+      // returns no row from the insert and must still be attached.
+      for (const [normalized, label] of byNormalized) {
         await client.query(
-          `update public.groups set category = $1 where id = $2`,
-          [input.category.term, input.groupId],
+          `insert into public.tags (label, normalized, created_by)
+           values ($1, $2, $3)
+           on conflict (normalized) do nothing`,
+          [label, normalized, ctx.actingMemberId],
         )
-      } else {
-        const rawText = input.category.otherText.trim()
         await client.query(
-          `insert into public.group_category_suggestions
-             (group_id, member_id, raw_text, normalized_text)
-           values ($1, $2, $3, $4)`,
-          [input.groupId, ctx.actingMemberId, rawText, rawText.toLowerCase()],
+          `insert into public.page_tags (group_id, tag_id)
+           select $1, t.id from public.tags t where t.normalized = $2
+           on conflict (group_id, tag_id) do nothing`,
+          [input.groupId, normalized],
         )
       }
 

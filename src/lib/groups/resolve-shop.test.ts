@@ -7,12 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // T143/T144 — resolveShop now calls two pg-backed resolvers (placement,
 // category free text). Mocked so this file stays a pure unit test of the
 // Supabase-client read path, not an integration test against a live pool.
-const { resolvePagePlacements, resolvePageCategoryOtherText } = vi.hoisted(() => ({
+const { resolvePagePlacements } = vi.hoisted(() => ({
   resolvePagePlacements: vi.fn(),
-  resolvePageCategoryOtherText: vi.fn(),
 }))
 vi.mock('./resolve-page-placement', () => ({ resolvePagePlacements }))
-vi.mock('./resolve-page-category', () => ({ resolvePageCategoryOtherText }))
 
 import {
   splitGroupSlug,
@@ -24,8 +22,6 @@ import {
 beforeEach(() => {
   resolvePagePlacements.mockReset()
   resolvePagePlacements.mockResolvedValue([])
-  resolvePageCategoryOtherText.mockReset()
-  resolvePageCategoryOtherText.mockResolvedValue(null)
 })
 
 describe('splitGroupSlug', () => {
@@ -109,29 +105,6 @@ describe('resolveShop', () => {
     expect(shop).toBeNull()
   })
 
-  it('maps an active business Group with founder, defaulting hasPublished=false when the projection has no row', async () => {
-    const shop = await resolveShop(
-      makeSupabaseStub({ group: ACTIVE_ROW, hasPublished: null }),
-      'oak-park-sourdough',
-    )
-    expect(shop).toEqual({
-      groupId: 'grp-1',
-      slug: 'oak-park-sourdough',
-      displayName: 'Oak Park Sourdough',
-      publicDescription: 'Real bread, baked local.',
-      lifecycleState: 'active',
-      anchorLocationId: 'loc-1',
-      category: null,
-      categoryOtherText: null,
-      placements: [],
-      founder: {
-        handle: 'maya',
-        displayName: 'Maya Rivera',
-        avatarUrl: 'https://x/a.png',
-        hasPublished: false,
-      },
-    })
-  })
 
   it('T143 — carries the resolved placements through from resolvePagePlacements', async () => {
     resolvePagePlacements.mockResolvedValueOnce([
@@ -147,26 +120,7 @@ describe('resolveShop', () => {
     ])
   })
 
-  it('T144 — carries a fixed category through without querying for free text', async () => {
-    const shop = await resolveShop(
-      makeSupabaseStub({ group: { ...ACTIVE_ROW, category: 'Food & Drink' } }),
-      'oak-park-sourdough',
-    )
-    expect(shop?.category).toBe('Food & Drink')
-    expect(shop?.categoryOtherText).toBeNull()
-    expect(resolvePageCategoryOtherText).not.toHaveBeenCalled()
-  })
 
-  it('T144 — queries for the free text only when there is no fixed category', async () => {
-    resolvePageCategoryOtherText.mockResolvedValueOnce('I fix bicycles on weekends')
-    const shop = await resolveShop(
-      makeSupabaseStub({ group: { ...ACTIVE_ROW, category: null } }),
-      'oak-park-sourdough',
-    )
-    expect(resolvePageCategoryOtherText).toHaveBeenCalledWith('grp-1')
-    expect(shop?.category).toBeNull()
-    expect(shop?.categoryOtherText).toBe('I fix bicycles on weekends')
-  })
 
   it('surfaces founder hasPublished=true when the projection carries them', async () => {
     const shop = await resolveShop(

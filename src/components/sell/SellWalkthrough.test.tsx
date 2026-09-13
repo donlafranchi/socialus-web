@@ -3,7 +3,7 @@
 // acceptance-criteria checkbox in T073.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, within, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
 // T142 — the "+ Add a new Location" drawer now embeds <LocationPlaceFields>,
@@ -27,7 +27,7 @@ function setup(overrides: Partial<Parameters<typeof SellWalkthrough>[0]> = {}) {
     void _input
   })
   const activate = vi.fn(
-    async (_input: { groupId: string; category: { term: string } | { otherText: string } }) => {
+    async (_input: { groupId: string; tags: string[] }) => {
       void _input
       return { destinationUrl: '/p/sacramento/g/oak-park-sourdough-abc1' }
     },
@@ -232,8 +232,8 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
   })
 })
 
-describe('SellWalkthrough — step 3 Category (T144)', () => {
-  async function advanceToCategory() {
+describe('SellWalkthrough — step 3 Tags (T159)', () => {
+  async function advanceToTags() {
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
@@ -242,51 +242,94 @@ describe('SellWalkthrough — step 3 Category (T144)', () => {
     await clickContinue()
   }
 
-  it('renders the twelve terms plus Something else, and blocks Continue with none chosen', async () => {
+  const type = (value: string) =>
+    fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value } })
+
+  it('offers a free text input, not a fixed list — creators create their own tags', async () => {
+    setup()
+    await advanceToTags()
+    expect(screen.getByTestId('sell-tag-input')).toBeInTheDocument()
+    // The twelve are retired; nothing should offer them.
+    expect(screen.queryByTestId('sell-category-option-Food & Drink')).toBeNull()
+    expect(screen.queryByTestId('sell-category-option-other')).toBeNull()
+  })
+
+  it('blocks Continue with no tag, and persists nothing mid-draft', async () => {
     const { updateDraft } = setup()
-    await advanceToCategory()
-    expect(screen.getByTestId('sell-category-option-Food & Drink')).toBeInTheDocument()
-    expect(screen.getByTestId('sell-category-option-Faith & Culture')).toBeInTheDocument()
-    expect(screen.getByTestId('sell-category-option-other')).toBeInTheDocument()
+    await advanceToTags()
     updateDraft.mockClear()
     await clickContinue()
-    expect(screen.getByTestId('field-error-category')).toBeInTheDocument()
-    // Deliberately not persisted via update_draft — see the ticket's own
-    // resume tradeoff note.
+    expect(screen.getByTestId('field-error-tags')).toBeInTheDocument()
     expect(updateDraft).not.toHaveBeenCalled()
   })
 
-  it('selecting a fixed term unblocks Continue and advances to About', async () => {
+  it('adds a tag with the Add button and shows it', async () => {
     setup()
-    await advanceToCategory()
-    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
+    await advanceToTags()
+    type('sourdough')
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('sourdough')).toBeInTheDocument()
+  })
+
+  it('adds a tag on Enter without submitting the step', async () => {
+    setup()
+    await advanceToTags()
+    type('sourdough')
+    fireEvent.keyDown(screen.getByTestId('sell-tag-input'), { key: 'Enter' })
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('sourdough')).toBeInTheDocument()
+    // Still on the tag step — Enter committed a tag, it did not advance.
+    expect(screen.getByTestId('sell-tag-input')).toBeInTheDocument()
+  })
+
+  it('commits a tag on a typed comma, so a typed list does not become one tag', async () => {
+    setup()
+    await advanceToTags()
+    type('bread,')
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('bread')).toBeInTheDocument()
+    expect(screen.queryByText('bread,')).toBeNull()
+  })
+
+  it('does not add the same tag twice, whatever the casing or spacing', async () => {
+    setup()
+    await advanceToTags()
+    type('Sourdough')
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
+    type(' sourdough ')
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
+    expect(within(screen.getByTestId('sell-tag-list')).getAllByText(/sourdough/i)).toHaveLength(1)
+  })
+
+  it('refuses to add whitespace', async () => {
+    setup()
+    await advanceToTags()
+    type('   ')
+    expect(screen.getByTestId('sell-tag-add')).toBeDisabled()
+  })
+
+  it('removes a tag', async () => {
+    setup()
+    await advanceToTags()
+    type('sourdough')
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
+    fireEvent.click(screen.getByTestId('sell-tag-remove-sourdough'))
+    expect(screen.queryByTestId('sell-tag-list')).toBeNull()
+  })
+
+  it('one tag unblocks Continue and advances to About', async () => {
+    setup()
+    await advanceToTags()
+    type('sourdough')
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
     await clickContinue()
     expect(screen.getByRole('heading', { name: /^About$/i })).toBeInTheDocument()
   })
 
-  it('selecting Something else reveals a free-text input, announced, and blocks Continue until it has text', async () => {
+  it('accepts a word typed but not added — the creator did not change their mind', async () => {
     setup()
-    await advanceToCategory()
-    fireEvent.click(screen.getByTestId('sell-category-option-other'))
-    const reveal = screen.getByTestId('sell-category-other-input')
-    expect(reveal).toBeInTheDocument()
-    expect(reveal.closest('[role="status"]')).not.toBeNull()
-    await clickContinue()
-    expect(screen.getByTestId('field-error-category')).toBeInTheDocument()
-    fireEvent.change(reveal, { target: { value: 'I fix bicycles on weekends' } })
+    await advanceToTags()
+    type('sourdough')
     await clickContinue()
     expect(screen.getByRole('heading', { name: /^About$/i })).toBeInTheDocument()
-  })
-
-  it('whitespace-only free text does not satisfy the step', async () => {
-    setup()
-    await advanceToCategory()
-    fireEvent.click(screen.getByTestId('sell-category-option-other'))
-    fireEvent.change(screen.getByTestId('sell-category-other-input'), {
-      target: { value: '   ' },
-    })
-    await clickContinue()
-    expect(screen.getByTestId('field-error-category')).toBeInTheDocument()
   })
 })
 
@@ -298,7 +341,8 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
     await clickContinue()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
     await clickContinue()
-    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
+    fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value: 'sourdough' } })
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
     await clickContinue()
   }
 
@@ -335,7 +379,8 @@ describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () =
     await clickContinue()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
     await clickContinue()
-    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
+    fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value: 'sourdough' } })
+    fireEvent.click(screen.getByTestId('sell-tag-add'))
     await clickContinue()
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
   }
@@ -375,14 +420,17 @@ describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () =
 })
 
 describe('SellWalkthrough — step 6 Review & activate', () => {
-  async function advanceToReview() {
+  async function advanceToReview(tags: string[] = ['sourdough']) {
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
     await clickContinue()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
     await clickContinue()
-    fireEvent.click(screen.getByTestId('sell-category-option-Food & Drink'))
+    for (const tag of tags) {
+      fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value: tag } })
+      fireEvent.click(screen.getByTestId('sell-tag-add'))
+    }
     await clickContinue()
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
@@ -405,14 +453,14 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
     ).toBeInTheDocument()
   })
 
-  it('fires group.activate with the chosen category, redirects to the new Group URL, and toasts on success', async () => {
+  it('fires group.activate with the chosen tags, redirects to the new Group URL, and toasts on success', async () => {
     const { activate, redirect, showToast } = setup()
     await advanceToReview()
     fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
     expect(activate).toHaveBeenCalledWith({
       groupId: 'g-draft-1',
-      category: { term: 'Food & Drink' },
+      tags: ['sourdough'],
     })
     expect(redirect).toHaveBeenCalledWith(
       '/p/sacramento/g/oak-park-sourdough-abc1',
@@ -420,26 +468,14 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
     expect(showToast).toHaveBeenCalledWith('Your shop is live.')
   })
 
-  it('fires group.activate with free text when Something else was chosen', async () => {
+  it('sends every tag added, in the order they were added', async () => {
     const { activate } = setup()
-    fireEvent.change(screen.getByTestId('sell-brand-input'), {
-      target: { value: 'Oak Park Sourdough' },
-    })
-    await clickContinue()
-    fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
-    await clickContinue()
-    fireEvent.click(screen.getByTestId('sell-category-option-other'))
-    fireEvent.change(screen.getByTestId('sell-category-other-input'), {
-      target: { value: 'I fix bicycles on weekends' },
-    })
-    await clickContinue()
-    fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
-    fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
+    await advanceToReview(['sourdough', 'bread', 'pastry'])
     fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
     expect(activate).toHaveBeenCalledWith({
       groupId: 'g-draft-1',
-      category: { otherText: 'I fix bicycles on weekends' },
+      tags: ['sourdough', 'bread', 'pastry'],
     })
   })
 })
