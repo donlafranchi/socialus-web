@@ -71,6 +71,11 @@ const PROTECTED_TABLES = [
   'place_events',
   'member_place_interests',
   'member_saved_searches',
+  // T162 (#75) — posts are member-contributed content written through the
+  // action layer per ADR-7. Listed now, while nothing writes it yet, because
+  // the composer is the change that would otherwise add the first direct
+  // write and the rule at the same time.
+  'page_posts',
 ] as const
 
 const WRITE_METHODS = ['insert', 'update', 'delete', 'upsert'] as const
