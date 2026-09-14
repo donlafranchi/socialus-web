@@ -8,8 +8,13 @@
 # supabase/migrations/. Local and remote drifted silently, and nothing
 # noticed until someone ran `migration list` by hand.
 #
-# Reads `supabase migration list` (the project must already be linked).
-# Prints the table either way, so the job log carries the record.
+# Reads `supabase migration list`. Needs SUPABASE_DB_URL — a Postgres
+# connection string, built by scripts/supabase-db-url.sh — and talks straight
+# to the database. It deliberately does NOT use `supabase link`: link resolves
+# the project's service-role secret through the Management API, which a scoped
+# access token cannot do (supabase/supabase#50244), and migration history is a
+# table in the database, not an API key. Prints the table either way, so the
+# job log carries the record.
 #
 # Two modes:
 #   (default)  remote-only migrations fail. Local-only ones are reported and
@@ -22,14 +27,24 @@ set -uo pipefail
 STRICT=0
 [ "${1:-}" = "--strict" ] && STRICT=1
 
-OUT="$(supabase migration list 2>&1)"
+if [ -z "${SUPABASE_DB_URL:-}" ]; then
+  echo "check-migration-drift: SUPABASE_DB_URL is not set." >&2
+  echo "  It is built by scripts/supabase-db-url.sh, which names whichever" >&2
+  echo "  secret is at fault. If that step was skipped, this one cannot run." >&2
+  exit 1
+fi
+
+OUT="$(supabase migration list --db-url "$SUPABASE_DB_URL" 2>&1)"
 status=$?
 
 echo "$OUT"
 echo
 
 if [ $status -ne 0 ]; then
-  echo "check-migration-drift: could not read the migration list (exit $status)." >&2
+  echo >&2
+  echo "check-migration-drift: could not read the migration history from the database." >&2
+  echo "  The connection succeeded, so this is not a credentials problem." >&2
+  echo "  The CLI's own message is in the output above." >&2
   exit 1
 fi
 
