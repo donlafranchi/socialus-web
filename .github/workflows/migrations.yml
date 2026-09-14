@@ -75,6 +75,17 @@ jobs:
         run: npx vitest run tests/migrations-*.test.ts tests/rls-coverage.test.ts
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          # This job starts a local Supabase from nothing and throws it away
+          # when the runner ends, so the ephemeral assertion is simply true
+          # here. Stating it is what lets the write-bound suites run; without
+          # it they go red with "carries no ephemeral marker", which is the
+          # guard working rather than a problem to route around.
+          #
+          # It is safe *because* it is stated per job. T151's rule holds: the
+          # marker alone never enables a write suite — the host must also be
+          # local or a branch, and the production ref is refused whatever any
+          # variable says.
+          SUPABASE_TEST_EPHEMERAL: '1'
 
   # Gate 2 — has anything reached the database without going through a file?
   # Local-only migrations are fine and expected on a PR. Remote-only ones are
