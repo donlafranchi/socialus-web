@@ -18,7 +18,6 @@ const SHOP: ResolvedShop = {
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
   category: null,
-  categoryOtherText: null,
   placements: [],
   founder: {
     handle: 'maya',
@@ -88,27 +87,15 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
   })
 })
 
-describe('ShopPublicPage — T144 (self-declared category)', () => {
-  it('renders a fixed category as a plain chip', () => {
-    renderShop({ shop: { ...SHOP, category: 'Food & Drink' } })
-    expect(screen.getByTestId('shop-category')).toHaveTextContent('Food & Drink')
-    expect(screen.queryByTestId('shop-category-other')).not.toBeInTheDocument()
-  })
-
-  it('renders free text as the Member\'s own words, no chip', () => {
-    renderShop({
-      shop: { ...SHOP, category: null, categoryOtherText: 'I fix bicycles on weekends' },
-    })
-    expect(screen.getByTestId('shop-category-other')).toHaveTextContent(
-      'I fix bicycles on weekends',
-    )
-    expect(screen.queryByTestId('shop-category')).not.toBeInTheDocument()
-  })
-
-  it('renders neither when the Page has no category at all (pre-T144 row)', () => {
-    renderShop({ shop: { ...SHOP, category: null, categoryOtherText: null } })
-    expect(screen.queryByTestId('shop-category')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('shop-category-other')).not.toBeInTheDocument()
+describe('ShopPublicPage — T159 (categories retired)', () => {
+  it('shows no category chip and no free-text category line', () => {
+    // Categories are retired; tags are the only vocabulary. Tags are NOT
+    // shown here yet — a public tag is member-contributed content other
+    // members see, which rule 1 bars from production until
+    // report-and-takedown exists (#13).
+    renderShop()
+    expect(screen.queryByTestId('shop-category')).toBeNull()
+    expect(screen.queryByTestId('shop-category-other')).toBeNull()
   })
 })
 

@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// T144 — group.activate gains the category write. Category is required at
-// publish: a fixed-vocabulary term writes groups.category; "Something
-// else" free text writes group_category_suggestions instead, leaving
-// groups.category null. Neither given refuses activation outright — the
-// same transaction never promotes a Page with no category.
+// T159 — group.activate writes tags, not a category. At least one tag is
+// required at publish: tags are what search matches, and an untagged Page
+// cannot be found by what it does. Supersedes T144's twelve-term category
+// and its "Something else" free text, both retired 2026-09-13.
 
 type QueryCall = [string, unknown[]?]
 
@@ -74,10 +73,10 @@ function installQueryRouter(opts: {
     if (/update public\.groups\s+set lifecycle_state = 'active'/i.test(sql)) {
       return { rows: [{ id: GROUP_ID }] }
     }
-    if (/update public\.groups\s+set category = \$1/i.test(sql)) {
+    if (/insert into public\.tags/i.test(sql)) {
       return { rows: [] }
     }
-    if (/insert into public\.group_category_suggestions/i.test(sql)) {
+    if (/insert into public\.page_tags/i.test(sql)) {
       return { rows: [] }
     }
     throw new Error(`unexpected query in test: ${sql}`)
@@ -88,53 +87,73 @@ beforeEach(() => {
   appendEvent.mockClear()
 })
 
-describe('group.activate — category required at publish', () => {
-  it('refuses activation with neither a category term nor free text', async () => {
+describe('group.activate — at least one tag is required at publish', () => {
+  it('refuses activation with no tags at all', async () => {
     installQueryRouter()
-    await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/category/i)
+    await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/tag/i)
     // Refused before promotion — no lifecycle_state write should have landed.
     expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
   })
 
-  it('writes groups.category for a fixed-vocabulary term', async () => {
+  it('refuses activation when every tag is whitespace', async () => {
+    installQueryRouter()
+    await expect(
+      groupActivate(ctx(), { groupId: GROUP_ID, tags: ['   ', '\t'] }),
+    ).rejects.toThrow(/tag/i)
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+  })
+
+  it('creates the tag and attaches it to the Page', async () => {
+    installQueryRouter()
+    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['Sourdough'] })
+
+    const [tagCall] = callsMatching(/insert into public\.tags/i)
+    expect(tagCall).toBeDefined()
+    // Label preserved as typed; normalized form is the uniqueness key.
+    expect(tagCall![1]).toEqual(['Sourdough', 'sourdough', FOUNDER_ID])
+
+    const [attachCall] = callsMatching(/insert into public\.page_tags/i)
+    expect(attachCall).toBeDefined()
+    expect(attachCall![1]).toEqual([GROUP_ID, 'sourdough'])
+  })
+
+  it('attaches a tag another creator already made, rather than failing on the conflict', async () => {
+    // The insert returns no row when the tag exists, which is why the attach
+    // selects by normalized form instead of relying on `returning`.
+    installQueryRouter()
+    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
+    expect(callsMatching(/insert into public\.tags/i)[0]![0]).toMatch(/on conflict \(normalized\) do nothing/i)
+    expect(callsMatching(/insert into public\.page_tags/i)).toHaveLength(1)
+  })
+
+  it('writes one tag when the same word is sent twice in different shapes', async () => {
     installQueryRouter()
     await groupActivate(ctx(), {
       groupId: GROUP_ID,
-      category: { term: 'Food & Drink' },
+      tags: ['Sourdough', ' sour dough ', 'SOURDOUGH'],
     })
-    const [categoryCall] = callsMatching(/set category = \$1/i)
-    expect(categoryCall).toBeDefined()
-    expect(categoryCall![1]).toEqual(['Food & Drink', GROUP_ID])
-    expect(callsMatching(/insert into public\.group_category_suggestions/i)).toHaveLength(0)
+    const normalized = callsMatching(/insert into public\.tags/i).map((c) => c[1]![1])
+    expect(normalized).toEqual(['sourdough', 'sour dough'])
   })
 
-  it('rejects a term outside the fixed vocabulary', async () => {
+  it('writes every distinct tag', async () => {
+    installQueryRouter()
+    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['bread', 'pastry', 'cake'] })
+    expect(callsMatching(/insert into public\.page_tags/i)).toHaveLength(3)
+  })
+
+  it('drops an over-long tag rather than truncating it', async () => {
     installQueryRouter()
     await expect(
-      groupActivate(ctx(), { groupId: GROUP_ID, category: { term: 'Not A Real Category' } }),
+      groupActivate(ctx(), { groupId: GROUP_ID, tags: ['a'.repeat(41)] }),
     ).rejects.toThrow()
   })
 
-  it('writes group_category_suggestions for "Something else" free text, leaving groups.category untouched', async () => {
+  it('never writes a category or a suggestion — both are retired', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), {
-      groupId: GROUP_ID,
-      category: { otherText: 'I fix bicycles on weekends' },
-    })
-    const [suggestionCall] = callsMatching(/insert into public\.group_category_suggestions/i)
-    expect(suggestionCall).toBeDefined()
-    const [, params] = suggestionCall!
-    expect(params).toContain(GROUP_ID)
-    expect(params).toContain(FOUNDER_ID)
-    expect(params).toContain('I fix bicycles on weekends')
-    expect(params).toContain('i fix bicycles on weekends')
-    expect(callsMatching(/set category = \$1/i)).toHaveLength(0)
-  })
-
-  it('normalizes whitespace-only free text to a refusal, same as no category at all', async () => {
-    installQueryRouter()
-    await expect(
-      groupActivate(ctx(), { groupId: GROUP_ID, category: { otherText: '   ' } }),
-    ).rejects.toThrow(/category/i)
+    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
+    expect(callsMatching(/set category = /i)).toHaveLength(0)
+    expect(callsMatching(/group_category_suggestions/i)).toHaveLength(0)
   })
 })
+

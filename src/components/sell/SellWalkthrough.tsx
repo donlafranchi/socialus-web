@@ -8,10 +8,10 @@
 // Composes <MultiStepComposer> with six steps:
 //   1. Brand name              → group.create on Continue (writes draft Group)
 //   2. Anchor Location         → group.update_draft + AddEntityDrawer sub-flow for "+ Add a new"
-//   3. Category (T144)         → held in composer state only, sent with group.activate at publish
+//   3. Tags (T159)              → held in composer state only, sent with group.activate at publish
 //   4. About (optional)        → group.update_draft on Continue
 //   5. Locality (Tier 0)       → UI-only at b1 (substrate ships with F037; see DEVIATIONS)
-//   6. Review & done           → group.activate(category) → redirect to /p/[...place]/g/[slug]
+//   6. Review & done           → group.activate(tags) → redirect to /p/[...place]/g/[slug]
 //
 // The composer is presentational + control-flow only (per T071) — this file
 // supplies steps, persistence callbacks, and the redirect. Server-action
@@ -31,7 +31,7 @@ import {
   type LocationPlaceFieldsState,
 } from '@/components/locations/LocationPlaceFields'
 import type { CreateLocationInput } from '@/app/you/sell/actions'
-import { PAGE_CATEGORIES, type PageCategory } from '@/lib/groups/page-categories'
+import { isValidTagLabel, normalizeTag, TAG_MAX_LENGTH } from '@/lib/groups/tags'
 
 export interface AnchorLocationOption {
   id: string
@@ -51,12 +51,11 @@ export interface SellWalkthroughState {
    *  the final activate() call (see onComplete) so changing your mind
    *  mid-draft never writes more than the one final choice — see T144
    *  Completion notes on the resume tradeoff this costs. */
-  /** `'other'` is an explicit radio selection, distinct from `null`
-   *  (nothing chosen yet) — keeps "is 'Something else' selected" a plain
-   *  equality check instead of something inferred from whether free text
-   *  happens to be non-empty, which breaks the moment that text is cleared. */
-  category: PageCategory | 'other' | null
-  categoryOtherText: string
+  /** T159 — the tags a creator has added, as typed. Normalization happens at
+   *  the handler, not here, so what the creator sees is what they wrote. */
+  tags: string[]
+  /** What is in the input and not yet added. */
+  tagDraft: string
   about: string
   /** Tier 0 ZIP. UI-only at b1 (no member_business_jurisdictions table yet — F037). */
   localityZip: string
@@ -76,7 +75,7 @@ export interface SellWalkthroughHandlers {
   /** Called on final-step "Create my shop". Returns the place-scoped Group URL. */
   activate: (input: {
     groupId: string
-    category: { term: PageCategory } | { otherText: string }
+    tags: string[]
   }) => Promise<{ destinationUrl: string }>
   /** Sub-flow: inline-add a new Location. Returns the new Location's id + label. */
   createLocation: (input: CreateLocationInput) => Promise<{ id: string; label: string }>
@@ -110,8 +109,8 @@ function emptyState(): SellWalkthroughState {
     brand: '',
     anchorLocationId: null,
     anchorLocationLabel: null,
-    category: null,
-    categoryOtherText: '',
+    tags: [],
+    tagDraft: '',
     about: '',
     localityZip: '',
   }
@@ -140,8 +139,8 @@ export function SellWalkthrough({
         // T144 — category is never persisted during drafting (see the
         // field's own comment above), so a resumed session has no
         // server-side value to restore it from. The Member re-picks it.
-        category: null,
-        categoryOtherText: '',
+        tags: [],
+        tagDraft: '',
         about: resume.about,
         localityZip: '',
       }
@@ -192,23 +191,21 @@ export function SellWalkthrough({
           : { ok: false, errors: { anchor: 'Pick or add an anchor Location' } },
     },
 
-    // 3. Category (T144)
+    // 3. Tags (T159) — same position the category step held.
     {
-      id: 'category',
+      id: 'tags',
       title: 'What you do',
-      helper: 'Pick the one that fits best.',
-      render: (state, setState) => (
-        <CategoryStep state={state} setState={setState} />
-      ),
+      helper: 'Add a few words people would search for. Your words, not ours.',
+      render: (state, setState) => <TagStep state={state} setState={setState} />,
       validate: (state) => {
-        if (state.category === 'other') {
-          return state.categoryOtherText.trim().length > 0
-            ? { ok: true }
-            : { ok: false, errors: { category: 'In your own words, say what you do' } }
-        }
-        return state.category
+        // An untagged Page cannot be found by what it does, which is the one
+        // outcome the tags-only ruling exists to prevent. Anything still in
+        // the input counts — a creator who typed a word and moved on has not
+        // changed their mind about it.
+        const usable = [...state.tags, state.tagDraft].filter(isValidTagLabel)
+        return usable.length > 0
           ? { ok: true }
-          : { ok: false, errors: { category: 'Choose a category' } }
+          : { ok: false, errors: { tags: 'Add at least one word that describes what you do' } }
       },
     },
 
@@ -368,11 +365,11 @@ export function SellWalkthrough({
         })
         return
       }
-      if (stepId === 'category') {
-        // T144 — deliberately not patched via group.update_draft. Held in
-        // composer state only and sent with the final activate() call, so
-        // changing your mind mid-draft never leaves a trail of abandoned
-        // "Something else" suggestion rows (see the field's own comment).
+      if (stepId === 'tags') {
+        // T159 — deliberately not patched via group.update_draft. Held in
+        // composer state only and sent with the final activate() call, so a
+        // creator changing their mind mid-draft never leaves abandoned tags
+        // in the shared vocabulary.
         return
       }
       if (stepId === 'about') {
@@ -397,11 +394,8 @@ export function SellWalkthrough({
       if (!draftGroupId) {
         throw new Error('SellWalkthrough.onComplete: draftGroupId missing')
       }
-      const category: { term: PageCategory } | { otherText: string } =
-        state.category === 'other' || state.category === null
-          ? { otherText: state.categoryOtherText.trim() }
-          : { term: state.category }
-      const { destinationUrl } = await activate({ groupId: draftGroupId, category })
+      const tags = [...state.tags, state.tagDraft].filter(isValidTagLabel)
+      const { destinationUrl } = await activate({ groupId: draftGroupId, tags })
       // Composer is presentational — it does not navigate. We do.
       redirect(destinationUrl)
       showToast(TOAST_SUCCESS)
@@ -435,85 +429,107 @@ function resolveDraftId(
   return state.draftGroupId ?? shadow
 }
 
-/** Step-3 category picker (T144). Native radios for the fixed twelve — a
- *  real radio group gives arrow-key navigation and one tab stop for the
- *  whole set for free, which is exactly what review binding note calls
- *  for ("thirteen tappable divs is the failure mode here"). "Something
- *  else" is the thirteenth option; choosing it reveals a text input. */
-function CategoryStep({
+/** Step-3 tag input (T159). Replaces the twelve-term category picker.
+ *
+ *  A plain text input rather than a picker over a fixed list, because
+ *  creators create their own tags — the vocabulary starts empty and fills
+ *  itself. Suggestions from existing tags are a progressive enhancement and
+ *  deliberately not a precondition: gating this step on a seeded list is
+ *  exactly what the tags-only ruling removed.
+ *
+ *  Enter and comma both commit a tag. Comma because people type lists that
+ *  way unprompted, and a creator typing "bread, pastry" and getting one tag
+ *  called "bread, pastry" is a silent wrong answer. */
+/** Examples, not defaults — nothing is prefilled and nothing is submitted. */
+const TAG_PLACEHOLDER = 'sourdough, honey, eggs, soap'
+
+function TagStep({
   state,
   setState,
 }: {
   state: SellWalkthroughState
   setState: (next: SellWalkthroughState) => void
 }) {
-  const isOther = state.category === 'other'
-  const selected = state.category ?? ''
-
-  function selectTerm(term: PageCategory) {
-    setState({ ...state, category: term, categoryOtherText: '' })
+  // Greyed examples rather than help text explaining what a tag is. A
+  // creator knows what they offer — most already market on other apps, so
+  // the register is the prompt, not an explanation. Farmers market
+  // vocabulary because that is the seed audience.
+  const add = (raw: string) => {
+    const label = raw.trim()
+    if (!isValidTagLabel(label)) return
+    // Compare normalized so "Bread" after "bread" is not a second chip; keep
+    // what was typed first, because that is what the creator already sees.
+    const already = state.tags.some((t) => normalizeTag(t) === normalizeTag(label))
+    setState({
+      ...state,
+      tags: already ? state.tags : [...state.tags, label],
+      tagDraft: '',
+    })
   }
 
-  function selectOther() {
-    setState({ ...state, category: 'other' })
-  }
+  const remove = (label: string) =>
+    setState({ ...state, tags: state.tags.filter((t) => t !== label) })
 
   return (
-    <fieldset>
-      <legend className="text-sm font-medium text-[var(--color-fg)]">What you do</legend>
-      <div
-        role="radiogroup"
-        aria-label="What you do"
-        className="mt-2 flex max-h-80 flex-col gap-1 overflow-y-auto"
-      >
-        {PAGE_CATEGORIES.map((term) => (
-          <label
-            key={term}
-            className="flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm hover:bg-neutral-50"
-          >
-            <input
-              type="radio"
-              name="sell-category"
-              data-testid={`sell-category-option-${term}`}
-              value={term}
-              checked={selected === term}
-              onChange={() => selectTerm(term)}
-            />
-            {term}
-          </label>
-        ))}
-        <div className="mt-3 border-t border-neutral-200 pt-3">
-          <label className="flex min-h-[44px] items-center gap-2 rounded-lg px-2 text-sm hover:bg-neutral-50">
-            <input
-              type="radio"
-              name="sell-category"
-              data-testid="sell-category-option-other"
-              value="other"
-              checked={selected === 'other'}
-              onChange={selectOther}
-            />
-            Something else
-          </label>
-        </div>
-      </div>
-      {isOther && (
-        <div role="status" className="mt-2">
-          <label className="block">
-            <span className="text-sm font-medium text-[var(--color-fg)]">
-              In your own words — what do you do?
-            </span>
-            <input
-              data-testid="sell-category-other-input"
-              aria-label="In your own words — what do you do?"
-              className="input mt-1 w-full"
-              autoFocus
-              value={state.categoryOtherText}
-              onChange={(e) => setState({ ...state, categoryOtherText: e.target.value })}
-            />
-          </label>
-        </div>
+    <div>
+      <label htmlFor="sell-tag-input" className="text-sm font-medium text-[var(--color-fg)]">
+        What you do
+      </label>
+
+      {state.tags.length > 0 && (
+        <ul data-testid="sell-tag-list" className="mt-2 flex flex-wrap gap-2">
+          {state.tags.map((tag) => (
+            <li key={tag}>
+              <span className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-sm">
+                {tag}
+                <button
+                  type="button"
+                  data-testid={`sell-tag-remove-${tag}`}
+                  aria-label={`Remove ${tag}`}
+                  onClick={() => remove(tag)}
+                  className="ml-1 min-h-[44px] text-neutral-500 hover:text-neutral-900"
+                >
+                  ×
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
-    </fieldset>
+
+      <input
+        id="sell-tag-input"
+        type="text"
+        data-testid="sell-tag-input"
+        value={state.tagDraft}
+        maxLength={TAG_MAX_LENGTH}
+        placeholder={TAG_PLACEHOLDER}
+        onChange={(e) => {
+          const v = e.target.value
+          if (v.endsWith(',')) add(v.slice(0, -1))
+          else setState({ ...state, tagDraft: v })
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            // Commits a tag; must not submit the step.
+            e.preventDefault()
+            add(state.tagDraft)
+          }
+        }}
+        className="input mt-2 min-h-[44px] w-full"
+      />
+
+      <button
+        type="button"
+        data-testid="sell-tag-add"
+        onClick={() => add(state.tagDraft)}
+        disabled={!isValidTagLabel(state.tagDraft)}
+        className="mt-2 min-h-[44px] text-sm font-medium text-[var(--color-accent)] disabled:opacity-40"
+      >
+        Add
+      </button>
+
+    </div>
   )
 }
 

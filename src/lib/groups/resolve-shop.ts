@@ -15,7 +15,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { memberHasPublished } from '../member/has-published'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
-import { resolvePageCategoryOtherText } from './resolve-page-category'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'dissolved'
 
@@ -35,11 +34,10 @@ export interface ResolvedShop {
   lifecycleState: GroupLifecycleState
   anchorLocationId: string | null
   /** T144 — the fixed-vocabulary term, or null (either pre-T144 row,
-   *  or the Member chose "Something else" — see categoryOtherText). */
+   *  T159 — always null now: categories are retired and nothing writes
+   *  `groups.category`. Kept on the type so the column can be dropped in a
+   *  separate, reversible cleanup rather than in the same change. */
   category: string | null
-  /** T144 — the Member's own free text when they chose "Something
-   *  else" instead of a fixed term. Null whenever `category` is set. */
-  categoryOtherText: string | null
   founder: ShopFounder | null
   /** T143 — where this Page currently resolves to. A list, not a single
    *  point: at most one today (the anchor); bounded at two once
@@ -140,12 +138,7 @@ export async function resolveShop(
   // Member's own words," to any viewer). Only queried when there's no
   // fixed category. pg-pool-shaped, not Supabase-client-shaped, because
   // group_category_suggestions' own RLS (T141) scopes SELECT to the
-  // author or founder — correct for the table's stated admin surface
-  // ("an operator groups and counts by query"), wrong for this one public
-  // row. Reaching for the action-layer pool here is the same fix-forward
-  // T143 already used for the placement resolver, rather than widening
-  // the policy with a new migration this ticket's own scope rules out.
-  const categoryOtherText = row.category ? null : await resolvePageCategoryOtherText(row.id)
+
   // T143 — resolved at read time, never stored. pg-shaped (not
   // Supabase-client-shaped like the rest of this function) because
   // extracting lng/lat from a `geography` column needs raw SQL
@@ -162,7 +155,6 @@ export async function resolveShop(
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId: row.anchor_location_id,
     category: row.category,
-    categoryOtherText,
     placements,
     founder: founderRow
       ? {

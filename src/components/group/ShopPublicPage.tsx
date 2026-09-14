@@ -95,21 +95,10 @@ export function ShopPublicPage({ shop, badge, items, loggedIn, ownerClaim = null
           </div>
         )}
 
-        {/* T144 — the Page's self-declared category. A fixed term renders
-            as a plain chip (same recipe as the local-owner badge above,
-            no platform judgment implied); free text ("Something else")
-            renders as the Member's own words with no chip and no framing
-            that would make it read as a platform-assigned label. */}
-        {shop.category && (
-          <span data-testid="shop-category" className="chip w-fit text-xs">
-            {shop.category}
-          </span>
-        )}
-        {!shop.category && shop.categoryOtherText && (
-          <p data-testid="shop-category-other" className="text-sm text-gray-600">
-            {shop.categoryOtherText}
-          </p>
-        )}
+        {/* T159 — no category is shown. Categories are retired (tags are the
+            only vocabulary), and tags are NOT displayed here yet: a public
+            tag is member-contributed content other members see, which rule 1
+            bars from production until report-and-takedown exists (#13). */}
 
         {/* T143 — where this Page currently resolves to, shown to every
             viewer including the owner. Resolved at read time (see
