@@ -76,6 +76,10 @@ const PROTECTED_TABLES = [
   // the composer is the change that would otherwise add the first direct
   // write and the rule at the same time.
   'page_posts',
+  // T163 (#77) — the waitlist is written only by the action layer, which is
+  // also what keeps the two counters on metro_polygons in step with the rows.
+  'metro_waitlist',
+  'metro_polygons',
 ] as const
 
 const WRITE_METHODS = ['insert', 'update', 'delete', 'upsert'] as const

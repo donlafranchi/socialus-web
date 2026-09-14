@@ -26,6 +26,7 @@ import {
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate } from './report'
+import { metroWaitlistJoin } from './metro'
 import type { NamedActionHandler } from './_lib/handler'
 
 const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
@@ -50,6 +51,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
   // T159 — F058: a member reports something; the photo hides at once.
   'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
+  // T163 — F076: a person outside an open metro joins its waitlist.
+  'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {
@@ -81,6 +84,14 @@ export {
   type ReportCreateInput,
   type ReportCreateResult,
 } from './report'
+export {
+  metroWaitlistJoin,
+  metroWaitlistJoinInput,
+  WAITLIST_ROLES,
+  type WaitlistRole,
+  type MetroWaitlistJoinInput,
+  type MetroWaitlistJoinResult,
+} from './metro'
 export {
   ActionError,
   ValidationError,

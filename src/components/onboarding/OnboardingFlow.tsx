@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { completeOnboardingAction, type SaveProfileInput } from '@/app/onboarding/actions'
+import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
+import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
 
 export interface OnboardingActions {
   completeOnboarding: (
@@ -20,10 +22,15 @@ export function OnboardingFlow({
   initialDisplayName = '',
   actions = DEFAULT_ACTIONS,
   onNavigate,
+  metros = [],
+  onJoinWaitlist = joinMetroWaitlistAction,
 }: {
   initialDisplayName?: string
   actions?: OnboardingActions
   onNavigate?: (url: string) => void
+  /** T163 (F076) — every US metro, selectable. Empty disables the step. */
+  metros?: MetroOption[]
+  onJoinWaitlist?: typeof joinMetroWaitlistAction
 }) {
   const router = useRouter()
   const navigate = onNavigate ?? ((url: string) => router.push(url))
@@ -31,6 +38,10 @@ export function OnboardingFlow({
   const [displayName, setDisplayName] = useState(initialDisplayName)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // T163 — the metro step follows the name, rather than sharing a screen with
+  // it: the name is one field and one button, and keeping it that way is the
+  // reason this flow reads as it does.
+  const [askMetro, setAskMetro] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,12 +59,36 @@ export function OnboardingFlow({
         setError(res.message)
         return
       }
+      if (metros.length > 0) {
+        setAskMetro(true)
+        return
+      }
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Try again.')
     } finally {
       setBusy(false)
     }
+  }
+
+  if (askMetro) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
+        <div className="card space-y-4 p-6">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold">Where are you, and why?</h1>
+            <p className="text-sm text-[var(--color-fg-muted)]">
+              We are not everywhere yet. Tell us where you are and we will tell you where it stands.
+            </p>
+          </div>
+          <MetroWaitlistStep
+            metros={metros}
+            onJoin={onJoinWaitlist}
+            onDone={() => navigate('/')}
+          />
+        </div>
+      </main>
+    )
   }
 
   return (
