@@ -14,7 +14,7 @@
 import { describe, it, expect } from 'vitest'
 import { Pool } from 'pg'
 import { requireRunnable } from './support/runnable'
-import { writeSafety } from './support/write-safe'
+import { databaseWriteSafety } from './support/write-safe'
 
 const DATABASE_URL =
   process.env.DATABASE_URL ??
@@ -152,10 +152,14 @@ describe.skipIf(!RUNNABLE)('T154 — browse_pages, as shipped', () => {
 //
 // This seeds four Pages in one transaction, asserts, and rolls back.
 
-const safety = writeSafety(process.env)
+// Gated on the database this suite actually writes to, not on SUPABASE_URL.
+// It opens a pg Pool on DATABASE_URL and never touches the Supabase API, so
+// judging SUPABASE_URL here refused runs that were perfectly safe — the guard
+// firing correctly about the wrong instance.
+const safety = databaseWriteSafety(DATABASE_URL, process.env)
 const WRITABLE = requireRunnable({
   claim: 'the browse source actually withholds drafts, unlisted and dissolved Pages',
-  available: !!DATABASE_URL && safety.safe,
+  available: safety.safe,
   remedy: `${safety.reason} Recipe in .env.local.example`,
 })
 
