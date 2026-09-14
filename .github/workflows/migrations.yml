@@ -29,6 +29,7 @@ on:
       - 'supabase/migrations/**'
       - '.github/workflows/migrations.yml'
       - 'scripts/check-migration-drift.sh'
+      - 'scripts/supabase-db-url.sh'
 
 # One migration job at a time. Two concurrent `db push` runs against one
 # database is exactly the race this whole workflow exists to prevent.
@@ -89,15 +90,19 @@ jobs:
         with:
           version: latest
 
-      - name: Link to socialus-db
+      - name: Build the database connection string
+        id: dburl
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Compare local files against the applied history
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
         run: bash scripts/check-migration-drift.sh
 
   # Is production behind main? Only meaningful on main and on the schedule —
@@ -118,15 +123,19 @@ jobs:
         with:
           version: latest
 
-      - name: Link to socialus-db
+      - name: Build the database connection string
+        id: dburl
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Check for unapplied migrations
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
             bash scripts/check-migration-drift.sh --strict
