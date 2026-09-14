@@ -10,7 +10,9 @@ Every PR appended to `build-log/2026-W37.md`, so **merging any PR conflicted eve
 
 Sixteen existing entries split out verbatim — checked line by line, 127 non-blank lines in, 127 accounted for, nothing reworded. The weekly file is deleted rather than left as a stub that would invite appending again.
 
-**Three writers updated, because the fix does not hold if any of them still says append:** `BUILD-LOG.md`'s rotation policy, `CLAUDE.md` § Naming, and the `build` skill's workflow — that last one lives in `~/Projects/skills` and is a separate PR (`PIPELINE.md` § Process).
+**Two writers updated, because the fix does not hold if either still says append:** `BUILD-LOG.md`'s rotation policy and `CLAUDE.md` § Naming.
+
+**The `build` skill needed nothing — checked rather than assumed.** It never mentions the log at all; the *"BUILD-LOG.md updated"* line that appears on every ticket comes from the archived ticket text in `ops-pattern`, not from the skill an agent reads mid-ticket. So no PR against `~/Projects/skills`, and the instruction an agent actually follows is `CLAUDE.md`.
 
 **This lands as the last conflict of its kind.** It touches the file every open PR touches, so it conflicts with each of them exactly once.
 
