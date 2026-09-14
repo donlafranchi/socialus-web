@@ -25,6 +25,7 @@ import {
   groupMemberLeave,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
+import { reportCreate } from './report'
 import type { NamedActionHandler } from './_lib/handler'
 
 const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
@@ -47,6 +48,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.saved_search.restore': memberSavedSearchRestore as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
+  // T159 — F058: a member reports something; the photo hides at once.
+  'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {
@@ -72,6 +75,12 @@ export {
 } from './member'
 export { groupCreate, groupUpdateDraft, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
 export { itemCreate, itemPublish, itemAttachLocation } from './item'
+export {
+  reportCreate,
+  reportCreateInput,
+  type ReportCreateInput,
+  type ReportCreateResult,
+} from './report'
 export {
   ActionError,
   ValidationError,
