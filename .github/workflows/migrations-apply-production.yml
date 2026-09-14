@@ -53,36 +53,44 @@ jobs:
         with:
           version: latest
 
-      - name: Link to socialus-db
+      # NOT `supabase link`. `link` calls GET /v1/projects/{ref}/api-keys
+      # ?reveal=true to resolve the service-role secret, and a scoped access
+      # token cannot reveal it — supabase/supabase#50244, which returns 403
+      # even at Full access. That is what failed the first real run of this
+      # workflow (run 34909360794, 2026-09-14): it died here, before any
+      # migration was attempted, and regenerating the token does not help.
+      #
+      # The drift job in migrations.yml already solved this by talking straight
+      # to Postgres. This mirrors it rather than inventing a second way, so
+      # there is one connection path in this repo and one place to fix it.
+      # Reasoning in full at the top of scripts/supabase-db-url.sh.
+      - name: Build the database connection string
+        id: dburl
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       # Before and after are printed into the log so the run itself is the
       # record of what the history looked like on both sides. This is the
       # check that would have caught the 2026-09-11 drift the same day.
       - name: History before
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase migration list
+        run: supabase migration list --db-url "${{ steps.dburl.outputs.url }}"
 
       # Idempotent: applies only what the remote history lacks. Re-running
       # after a success is a no-op, not a second application.
       - name: Push migrations
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push
+        run: supabase db push --db-url "${{ steps.dburl.outputs.url }}"
 
       - name: History after
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase migration list
+        run: supabase migration list --db-url "${{ steps.dburl.outputs.url }}"
 
       # Nothing pending and nothing undocumented: the repo and the database
       # agree in both directions before this job is allowed to go green.
       - name: Confirm repo and database now agree
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
         run: bash scripts/check-migration-drift.sh --strict
