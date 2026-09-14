@@ -29,7 +29,7 @@ die() { echo >&2; echo "ERROR: $*" >&2; exit 1; }
 
 REF="${SUPABASE_PROJECT_REF:-}"
 PASSWORD="${SUPABASE_DB_PASSWORD:-}"
-REGION="${SUPABASE_DB_REGION:-us-west-1}"
+REGION="${SUPABASE_DB_REGION:-us-west-2}"
 
 # --- the three things that can be wrong, each named in words ----------------
 
@@ -106,6 +106,11 @@ for host in "${CANDIDATES[@]}"; do
   err="$(tr -d '\r' </tmp/pgerr | head -3)"
   say "  ${host}: did not connect"
   say "    ${err}"
+  # Supavisor's way of saying "this project is not on this shard". It is not a
+  # credentials problem, and the message gives no hint of that.
+  if printf '%s' "$err" | grep -q 'ENOTFOUND'; then
+    say "    → that host does not host this project (wrong region or shard)."
+  fi
   # A wrong password is conclusive — the other shard will not fix it, and
   # retrying only buries the real message under a second failure.
   if printf '%s' "$err" | grep -qiE 'password authentication failed|role .* does not exist'; then
