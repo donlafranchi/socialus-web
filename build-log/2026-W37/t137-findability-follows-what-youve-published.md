@@ -1,0 +1,15 @@
+### T137 — Findability follows what you've published
+
+Scenario F060 (bundled fix, PM-approved alongside the findability ruling). One derivation change, not a rescue: Pages and Items were already findable with no opt-in; only the Member's own name on their listing, and the Shop's "Founded by" line, were gated on `member_privacy.is_discoverable` — a flag nobody was ever asked to flip.
+
+- **Migration 038** adds `member_public_has_published`, an anon-readable projection (regular view, owner privileges — the 029 pattern) carrying `member_id` for every Member with an explicit managing-role membership in an active Group or a published, non-deleted Item. It never reads the opt-in flag. It also drops `member_prompts`.
+- **One helper, four readers.** `src/lib/member/has-published.ts` replaces the four copies of the projection read in the product, service, gathering and shop resolvers. The attribution field is renamed `isDiscoverable` → `hasPublished` through the resolvers, the four public-page components and their tests, so the name says what the value is.
+- **The prompt is deleted, not built.** `acquisition-prompt.ts`, its test, and its call in `group.create` are gone. `is_discoverable` itself is untouched and still governs `/m/[handle]` robots meta and the not-yet-built people-search.
+
+**Caught by M2 code review:** the first cut counted *any* active membership — including `soft_via_follow` / `soft_via_attendance` rows and plain `member`-role joins, which put nothing forward. Narrowed to the managing role per kind (the same branch `member_has_standing_presence` encodes). No user-visible difference today; the protective direction stays protective.
+
+**Observed, left alone:** `get-member-follows.ts` still tombstones a followed person on the opt-in flag — a second surface where the flag decides reachability. Noted in `development/deviations/T137.md` for the PM.
+
+Tests: 104 GREEN across the touched suites (two new files). Full suite failures are all pre-existing on main (the known signup red + ci-tooling suites that time out under load). tsc parity with main; eslint clean on touched files.
+
+**Deploy is not complete at merge.** Migration `038` must be applied to production by hand. Until it is, every individual-Item attribution and Shop "Founded by" line renders as plain text (the helper's error path returns false — the protective direction).
