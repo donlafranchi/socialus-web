@@ -74,8 +74,10 @@ url_for() { echo "postgresql://postgres.${REF}:${ENCODED}@${1}:5432/postgres"; }
 
 # Older projects sit on the aws-0 shard, newer ones on aws-1. Which one a
 # project uses is not derivable from the ref, so try both and say which
-# answered — two DNS lookups and at most two connects.
-CANDIDATES=("aws-1-${REGION}.pooler.supabase.com" "aws-0-${REGION}.pooler.supabase.com")
+# answered. socialus-db answered on aws-0-us-west-2 (verified 2026-09-13), so
+# that is first; aws-1 stays as a fallback so a Supabase-side move needs no
+# code change, only a slower first run.
+CANDIDATES=("aws-0-${REGION}.pooler.supabase.com" "aws-1-${REGION}.pooler.supabase.com")
 
 if ! command -v psql >/dev/null 2>&1; then
   die "psql is not installed, so the connection cannot be checked before use.
