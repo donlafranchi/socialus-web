@@ -42,7 +42,15 @@ const PROBE_SUITES = [
   'tests/actions-t043.test.ts',
 ]
 
-const EXCLUDE = ['evals/**', 'node_modules/**', '.stryker-tmp/**', 'reports/**']
+// `.claude/**` is load-bearing here, not housekeeping. A git worktree created
+// inside the repo carries a full copy of tests/, and Vitest will happily run
+// both copies — so a stale branch's tests get scored against this branch's
+// code. That produced "new row violates row-level security" failures on
+// 2026-09-12 against a storage suite that passes cleanly on its own.
+// Worktrees now live outside the repo (ops-pattern CLAUDE.md § Sessions), so
+// this should never fire — it stays because the failure it prevents looks
+// like a real bug in your own code, and costs an hour before you suspect it.
+const EXCLUDE = ['evals/**', 'node_modules/**', '.stryker-tmp/**', 'reports/**', '.claude/**']
 
 const shared = {
   plugins: [react()],
