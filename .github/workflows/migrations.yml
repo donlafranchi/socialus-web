@@ -90,6 +90,16 @@ jobs:
         with:
           version: latest
 
+      - name: TEMP verify project ref matches the documented one
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ "$SUPABASE_PROJECT_REF" = "khghdkdsicoeafyuvewl" ]; then
+            echo "REF_CHECK=matches-documented"
+          else
+            echo "REF_CHECK=DIFFERENT (length ${#SUPABASE_PROJECT_REF})"
+          fi
+
       - name: Build the database connection string
         id: dburl
         env:
