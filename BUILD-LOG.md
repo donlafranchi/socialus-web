@@ -27,7 +27,7 @@ There was never a disagreement to resolve. Git saw two insertions at the same an
 
 | Week | Notes |
 |------|-------|
-| 2026-W38 | [Week 38](build-log/2026-W38/) — F058 takedown path |
+| 2026-W38 | [Week 38](build-log/2026-W38/) — F058 takedown path: the handler, the control, the owner's notice |
 | 2026-W37 | [Week 37](build-log/2026-W37/) — first week of one-file-per-ticket (chore #76) |
 | 2026-W36 | [Week 36](build-log/2026-W36.md) — T112–T119, T132, T138: nav refresh, browse filters, item cards, canonical URLs, founder role by kind, standing badge removed |
 | 2026-W32 | [Week 32](build-log/2026-W32.md) — rotation policy introduced, no tickets |

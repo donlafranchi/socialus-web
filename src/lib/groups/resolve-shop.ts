@@ -38,6 +38,12 @@ export interface ResolvedShop {
    *  `groups.category`. Kept on the type so the column can be dropped in a
    *  separate, reversible cleanup rather than in the same change. */
   category: string | null
+  /** T145/T160 — the stored URL. Never project this directly: every surface
+   *  that renders a Page photo goes through `visiblePhotoUrl()`, which is
+   *  what makes a hide a hide. */
+  photoUrl: string | null
+  /** T160 — non-null means hidden pending operator review (T159). */
+  photoHiddenAt: string | null
   founder: ShopFounder | null
   /** T143 — where this Page currently resolves to. A list, not a single
    *  point: at most one today (the anchor); bounded at two once
@@ -97,6 +103,8 @@ interface ShopRow {
   lifecycle_state: string
   anchor_location_id: string | null
   category: string | null
+  photo_url: string | null
+  photo_hidden_at: string | null
   group_businesses:
     | { display_name: string; public_description: string }[]
     | { display_name: string; public_description: string }
@@ -115,6 +123,7 @@ export async function resolveShop(
     .from('groups')
     .select(
       'id, slug, kind, lifecycle_state, anchor_location_id, category, ' +
+        'photo_url, photo_hidden_at, ' +
         'group_businesses(display_name, public_description), ' +
         'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
     )
@@ -155,6 +164,8 @@ export async function resolveShop(
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId: row.anchor_location_id,
     category: row.category,
+    photoUrl: row.photo_url,
+    photoHiddenAt: row.photo_hidden_at,
     placements,
     founder: founderRow
       ? {
@@ -235,6 +246,32 @@ export async function resolveLocalOwnerBadge(
  * the management surface. For an owner, returns their own active jurisdiction
  * ZIP (or null when unclaimed) plus whether it currently earns the badge.
  */
+/**
+ * T160 — is the viewer an owner of this Page?
+ *
+ * Owner-role membership, the same test `resolveOwnerClaim` applies. Split out
+ * because the hidden-photo notice needs ownership on its own, without the
+ * jurisdiction lookups that claim state drags in — and because a notice that
+ * renders for the wrong viewer is a privacy failure, so the test it depends on
+ * should be one obvious function rather than a side effect of another.
+ */
+export async function viewerOwnsPage(
+  supabase: SupabaseClient,
+  args: { groupId: string; viewerMemberId: string | null },
+): Promise<boolean> {
+  if (!args.viewerMemberId) return false
+  const { data } = await supabase
+    .from('group_memberships')
+    .select('role')
+    .eq('group_id', args.groupId)
+    .eq('member_id', args.viewerMemberId)
+    .eq('role', 'owner')
+    .is('left_at', null)
+    .limit(1)
+    .maybeSingle()
+  return Boolean(data)
+}
+
 export async function resolveOwnerClaim(
   supabase: SupabaseClient,
   args: { groupId: string; anchorLocationId: string | null; viewerMemberId: string | null },

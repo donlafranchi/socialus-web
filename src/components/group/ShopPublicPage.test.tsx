@@ -18,6 +18,8 @@ const SHOP: ResolvedShop = {
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
   category: null,
+  photoUrl: null,
+  photoHiddenAt: null,
   placements: [],
   founder: {
     handle: 'maya',
@@ -188,5 +190,60 @@ describe('FollowShopButton — Beats 4 & 5', () => {
     render(<FollowShopButton loggedIn shopName="Oak Park Sourdough" />)
     fireEvent.click(screen.getByTestId('follow-shop'))
     expect(screen.getByRole('status')).toHaveTextContent(/coming soon/i)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// T160 (Issue #62) — the report control, and what the owner sees.
+// Trace: planning/scenario-F058.md acceptance 1 and 2.
+
+describe('T160 — the report control on the Page surface', () => {
+  it('every viewer gets the ⋯ control, signed in or not', () => {
+    renderShop()
+    expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
+    cleanup()
+    renderShop({ loggedIn: true })
+    expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
+  })
+})
+
+describe('T160 — what the owner sees when their photo is hidden', () => {
+  const HIDDEN: ResolvedShop = { ...SHOP, photoUrl: 'https://x/p.jpg', photoHiddenAt: '2026-09-14T00:00:00Z' }
+
+  it('the owner sees the notice in the photo\'s frame', () => {
+    renderShop({ shop: HIDDEN, loggedIn: true, viewerOwnsPage: true })
+    expect(screen.getByTestId('hidden-photo-notice')).toBeInTheDocument()
+  })
+
+  it('a signed-in non-owner does not', () => {
+    renderShop({ shop: HIDDEN, loggedIn: true, viewerOwnsPage: false })
+    expect(screen.queryByTestId('hidden-photo-notice')).not.toBeInTheDocument()
+  })
+
+  it('an anonymous viewer does not', () => {
+    renderShop({ shop: HIDDEN, loggedIn: false, viewerOwnsPage: false })
+    expect(screen.queryByTestId('hidden-photo-notice')).not.toBeInTheDocument()
+  })
+
+  it('a non-owner sees exactly what a Page with no photo sees — no photo, and no hint one exists', () => {
+    const { container } = renderShop({ shop: HIDDEN, loggedIn: true, viewerOwnsPage: false })
+    expect(container.querySelector('img[src="https://x/p.jpg"]')).toBeNull()
+    expect(container.textContent ?? '').not.toMatch(/hidden|reported|reviewing/i)
+  })
+
+  it('the owner of a Page whose photo is NOT hidden sees no notice', () => {
+    renderShop({
+      shop: { ...SHOP, photoUrl: 'https://x/p.jpg', photoHiddenAt: null },
+      loggedIn: true,
+      viewerOwnsPage: true,
+    })
+    expect(screen.queryByTestId('hidden-photo-notice')).not.toBeInTheDocument()
+  })
+
+  it('the notice never carries a reporter or a report body', () => {
+    renderShop({ shop: HIDDEN, loggedIn: true, viewerOwnsPage: true })
+    const text = screen.getByTestId('hidden-photo-notice').textContent ?? ''
+    expect(text).not.toMatch(/report(ed )?by|from [A-Z]/)
+    expect(text).not.toMatch(/@|\bsaid\b/)
   })
 })

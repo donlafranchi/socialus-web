@@ -24,6 +24,12 @@
   --color-charcoal-900: #2b2b2b;
   --color-charcoal-700: #3c3c3c;
   --color-charcoal-100: #e8e8e8;
+  /* T160 — the boundary of a form control, which is a different role from the
+     hairline separator above. WCAG 1.4.11 wants >= 3:1 against the surface for
+     anything a person has to find in order to operate it; charcoal-100 is
+     1.23:1, which is right for a separator and wrong for the edge of a box you
+     are meant to type in. 3.45:1 on white, with margin. */
+  --color-control-border: #8a8a8a;
   --color-nav-inactive: #717171;
   --color-nav-border: #ebebeb;
 

@@ -6,7 +6,11 @@
 // it stays unit-testable. The only client island is <FollowShopButton>.
 
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
+import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { FollowShopButton } from './FollowShopButton'
+import { ReportControl } from './ReportControl'
+import { HiddenPhotoNotice } from './HiddenPhotoNotice'
+import { sendReportAction } from '@/app/_actions/report-actions'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -18,10 +22,35 @@ interface Props {
   /** T097 (F037) — the acting owner's claim state; null for non-owners / anon
    *  (the owner-only management widget renders only when this is non-null). */
   ownerClaim?: OwnerClaim | null
+  /** T160 (F058) — gates the hidden-photo notice. Owners only; a non-owner
+   *  sees exactly what a Page with no photo shows. */
+  viewerOwnsPage?: boolean
+  /** T160 — where to come back to after a signed-out member signs in. */
+  pagePath?: string
 }
 
-export function ShopPublicPage({ shop, badge, items, loggedIn, ownerClaim = null }: Props) {
+export function ShopPublicPage({
+  shop,
+  badge,
+  items,
+  loggedIn,
+  ownerClaim = null,
+  viewerOwnsPage = false,
+  pagePath,
+}: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
+
+  // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
+  // single place `photo_hidden_at` is consulted; nothing here reads
+  // `shop.photoUrl` directly, which is what keeps a hide a hide.
+  const photoUrl = visiblePhotoUrl({
+    photo_url: shop.photoUrl,
+    photo_hidden_at: shop.photoHiddenAt,
+  })
+  // Only the owner is told. Everyone else sees what a photoless Page shows —
+  // today nothing, and T146's default art once that lands. Neither reveals
+  // that a photo exists, or that anyone reported it.
+  const showHiddenNotice = viewerOwnsPage && photoUrl === null && shop.photoHiddenAt !== null
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
@@ -39,6 +68,12 @@ export function ShopPublicPage({ shop, badge, items, loggedIn, ownerClaim = null
         </div>
       )}
 
+      {showHiddenNotice && (
+        <div className="mb-6">
+          <HiddenPhotoNotice />
+        </div>
+      )}
+
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-2xl font-semibold">
@@ -52,6 +87,18 @@ export function ShopPublicPage({ shop, badge, items, loggedIn, ownerClaim = null
               {badge.label}
             </span>
           )}
+
+          {/* T160 — every viewer gets this, signed in or not. A signed-out
+              member is sent to sign-in, never to a dead end. */}
+          <div className="ml-auto">
+            <ReportControl
+              subjectId={shop.groupId}
+              subjectLabel={shop.displayName}
+              loggedIn={loggedIn}
+              returnTo={pagePath}
+              onSend={sendReportAction}
+            />
+          </div>
         </div>
 
         {shop.founder && (
