@@ -13,7 +13,7 @@
 // mode of guessing wrong is a destructive suite running against production.
 
 import { describe, it, expect } from 'vitest'
-import { writeSafety } from './support/write-safe'
+import { writeSafety, databaseWriteSafety } from './support/write-safe'
 
 const LOCAL = 'http://127.0.0.1:54321'
 const BRANCH = 'https://abcdefghijklmnopqrst.supabase.co'
@@ -111,5 +111,76 @@ describe('T151 — the production refusal is unconditional', () => {
       SUPABASE_PROTECTED_REFS: 'abcdefghijklmnopqrst',
     })
     expect(v.safe).toBe(false)
+  })
+})
+
+// T154 follow-up — the gate must judge the connection a suite actually writes
+// through.
+//
+// The defect this covers: tests/migrations-browse-pages.test.ts writes to
+// Postgres via DATABASE_URL and gated on writeSafety(process.env), which reads
+// SUPABASE_URL. Two variables, two different instances, and the one being
+// judged was not the one being written to. A developer with the documented
+// DATABASE_URL recipe got "SUPABASE_URL is not set" and a red run — the
+// suite's own guard firing correctly about the wrong thing.
+describe('T154 — databaseWriteSafety judges the Postgres connection', () => {
+  const LOCAL_DB = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+  const REMOTE_DB = 'postgresql://postgres:pw@db.abcdefghijklmnopqrst.supabase.co:5432/postgres'
+
+  it('runs against a local database with the ephemeral marker', () => {
+    expect(databaseWriteSafety(LOCAL_DB, { SUPABASE_TEST_EPHEMERAL: '1' }).safe).toBe(true)
+  })
+
+  it('needs no SUPABASE_URL or Supabase keys — it is not writing through them', () => {
+    // The whole point: DATABASE_URL is sufficient to describe what is written.
+    const v = databaseWriteSafety(LOCAL_DB, { SUPABASE_TEST_EPHEMERAL: '1' })
+    expect(v.safe).toBe(true)
+    expect(v.reason).not.toMatch(/SUPABASE_URL/)
+  })
+
+  it('refuses a local database with no ephemeral marker', () => {
+    const v = databaseWriteSafety(LOCAL_DB, {})
+    expect(v.safe).toBe(false)
+    expect(v.reason).toMatch(/ephemeral/i)
+  })
+
+  it('refuses a host that is neither local nor Supabase-hosted, marker or not', () => {
+    const v = databaseWriteSafety('postgresql://u:p@db.example.com:5432/x', {
+      SUPABASE_TEST_EPHEMERAL: '1',
+    })
+    expect(v.safe).toBe(false)
+    expect(v.reason).toMatch(/not a local or Supabase-hosted/i)
+  })
+
+  it('refuses the production database unconditionally, by ref inside the host', () => {
+    // A Postgres host carries the project ref as a label — db.<ref>.supabase.co
+    // — so the same production refusal has to match on containment, not on
+    // the first label.
+    const v = databaseWriteSafety(REMOTE_DB, {
+      SUPABASE_TEST_EPHEMERAL: '1',
+      NEXT_PUBLIC_SUPABASE_URL: 'https://abcdefghijklmnopqrst.supabase.co',
+    })
+    expect(v.safe).toBe(false)
+    expect(v.reason).toMatch(/production/i)
+  })
+
+  it('refuses a ref listed in SUPABASE_PROTECTED_REFS, wherever it sits in the host', () => {
+    const v = databaseWriteSafety(REMOTE_DB, {
+      SUPABASE_TEST_EPHEMERAL: '1',
+      SUPABASE_PROTECTED_REFS: 'abcdefghijklmnopqrst',
+    })
+    expect(v.safe).toBe(false)
+    expect(v.reason).toMatch(/production/i)
+  })
+
+  it('allows a branch database with the marker', () => {
+    const v = databaseWriteSafety(REMOTE_DB, { SUPABASE_TEST_EPHEMERAL: '1' })
+    expect(v.safe).toBe(true)
+  })
+
+  it('reports an absent connection string as absent, not as unsafe', () => {
+    expect(databaseWriteSafety(undefined, { SUPABASE_TEST_EPHEMERAL: '1' }).reason).toMatch(
+      /not set/i,
+    )
   })
 })
