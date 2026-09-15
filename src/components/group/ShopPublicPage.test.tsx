@@ -1,11 +1,10 @@
-// T074 — Unit tests for <ShopPublicPage> + <FollowShopButton> (F035 read surface).
+// T074 — Unit tests for <ShopPublicPage> (F035 read surface).
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md story beats 1–6.
 
 import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { ShopPublicPage } from './ShopPublicPage'
-import { FollowShopButton } from './FollowShopButton'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 
 afterEach(cleanup)
@@ -20,6 +19,7 @@ const SHOP: ResolvedShop = {
   category: null,
   photoUrl: null,
   photoHiddenAt: null,
+  discoverability: 'listed',
   placements: [],
   founder: {
     handle: 'maya',
@@ -169,27 +169,28 @@ describe('ShopPublicPage — Beat 6 (draft owner preview)', () => {
   })
 })
 
-describe('FollowShopButton — Beats 4 & 5', () => {
-  it('Beat 5: anonymous viewer gets a "Sign up to follow" link to signup', () => {
-    render(<FollowShopButton loggedIn={false} shopName="Oak Park Sourdough" />)
-    const cta = screen.getByTestId('follow-shop-signup')
-    expect(cta).toHaveTextContent('Sign up to follow')
-    expect(cta).toHaveAttribute('href', '/auth/login')
-    expect(screen.queryByTestId('follow-shop')).not.toBeInTheDocument()
+// F067 replaced the placeholder button. The old Beats 4 & 5 tests asserted
+// that following was "coming soon" and that the label read "Follow {name}";
+// both describe behaviour that no longer exists. What survives is the beat
+// itself: a signed-out viewer gets a way in, a signed-in one gets the control.
+// The control's own behaviour is covered in FollowPageButton.test.tsx.
+
+describe('F035 Beats 4 & 5 — the follow control is present for both viewers', () => {
+  it('Beat 5: a signed-out viewer gets a way to sign in', () => {
+    renderShop({ loggedIn: false })
+    expect(screen.getByTestId('page-follow-signin')).toBeInTheDocument()
+    expect(screen.queryByTestId('page-follow')).not.toBeInTheDocument()
   })
 
-  it('Beat 4: logged-in viewer gets a "Follow {name}" button', () => {
-    render(<FollowShopButton loggedIn shopName="Oak Park Sourdough" />)
-    const btn = screen.getByTestId('follow-shop')
-    expect(btn.tagName).toBe('BUTTON')
-    expect(btn).toHaveTextContent('Follow Oak Park Sourdough')
-    expect(screen.queryByTestId('follow-shop-signup')).not.toBeInTheDocument()
+  it('Beat 4: a signed-in viewer gets the control itself', () => {
+    renderShop({ loggedIn: true })
+    expect(screen.getByTestId('page-follow')).toBeInTheDocument()
+    expect(screen.queryByTestId('page-follow-signin')).not.toBeInTheDocument()
   })
 
-  it('Beat 4: persistence is deferred (F042) — tap surfaces a non-destructive status, no crash', () => {
-    render(<FollowShopButton loggedIn shopName="Oak Park Sourdough" />)
-    fireEvent.click(screen.getByTestId('follow-shop'))
-    expect(screen.getByRole('status')).toHaveTextContent(/coming soon/i)
+  it('a private Page is joined, not followed', () => {
+    renderShop({ loggedIn: true, shop: { ...SHOP, discoverability: 'private' } })
+    expect(screen.getByTestId('page-follow')).toHaveTextContent(/^Join$/)
   })
 })
 

@@ -44,6 +44,8 @@ export interface ResolvedShop {
   photoUrl: string | null
   /** T160 — non-null means hidden pending operator review (T159). */
   photoHiddenAt: string | null
+  /** F067 — a private Page is joined; anything else is followed. */
+  discoverability: string
   founder: ShopFounder | null
   /** T143 — where this Page currently resolves to. A list, not a single
    *  point: at most one today (the anchor); bounded at two once
@@ -105,6 +107,7 @@ interface ShopRow {
   category: string | null
   photo_url: string | null
   photo_hidden_at: string | null
+  discoverability: string
   group_businesses:
     | { display_name: string; public_description: string }[]
     | { display_name: string; public_description: string }
@@ -123,7 +126,7 @@ export async function resolveShop(
     .from('groups')
     .select(
       'id, slug, kind, lifecycle_state, anchor_location_id, category, ' +
-        'photo_url, photo_hidden_at, ' +
+        'photo_url, photo_hidden_at, discoverability, ' +
         'group_businesses(display_name, public_description), ' +
         'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
     )
@@ -166,6 +169,7 @@ export async function resolveShop(
     category: row.category,
     photoUrl: row.photo_url,
     photoHiddenAt: row.photo_hidden_at,
+    discoverability: row.discoverability,
     placements,
     founder: founderRow
       ? {
@@ -266,6 +270,29 @@ export async function viewerOwnsPage(
     .eq('group_id', args.groupId)
     .eq('member_id', args.viewerMemberId)
     .eq('role', 'owner')
+    .is('left_at', null)
+    .limit(1)
+    .maybeSingle()
+  return Boolean(data)
+}
+
+/**
+ * F067 — does this viewer already follow (or belong to) this Page?
+ *
+ * Their own row is readable through `memberships_select_self` whatever the
+ * relationship, so this works for a follower of an open Page as well as a
+ * member of a private one.
+ */
+export async function viewerFollowsPage(
+  supabase: SupabaseClient,
+  args: { groupId: string; viewerMemberId: string | null },
+): Promise<boolean> {
+  if (!args.viewerMemberId) return false
+  const { data } = await supabase
+    .from('group_memberships')
+    .select('relationship')
+    .eq('group_id', args.groupId)
+    .eq('member_id', args.viewerMemberId)
     .is('left_at', null)
     .limit(1)
     .maybeSingle()

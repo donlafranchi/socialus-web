@@ -33,6 +33,7 @@ import {
   resolveLocalOwnerBadge,
   resolveOwnerClaim,
   viewerOwnsPage,
+  viewerFollowsPage,
 } from '@/lib/groups/resolve-shop'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
 import { splitItemSlug, resolveProduct } from '@/lib/items/resolve-product'
@@ -315,13 +316,17 @@ export default async function PlacePage({ params }: Props) {
     ])
     // F037 — owner-only claim widget state. Resolves null for non-owners / anon.
     // T160 (F058) — ownership again, on its own, for the hidden-photo notice.
-    const [ownerClaim, ownsPage] = await Promise.all([
+    const [ownerClaim, ownsPage, follows] = await Promise.all([
       resolveOwnerClaim(supabase, {
         groupId: shop.groupId,
         anchorLocationId: shop.anchorLocationId,
         viewerMemberId: auth.user?.id ?? null,
       }),
       viewerOwnsPage(supabase, {
+        groupId: shop.groupId,
+        viewerMemberId: auth.user?.id ?? null,
+      }),
+      viewerFollowsPage(supabase, {
         groupId: shop.groupId,
         viewerMemberId: auth.user?.id ?? null,
       }),
@@ -334,6 +339,7 @@ export default async function PlacePage({ params }: Props) {
         loggedIn={Boolean(auth.user)}
         ownerClaim={ownerClaim}
         viewerOwnsPage={ownsPage}
+        viewerFollows={follows}
         pagePath={`/p/${slug.join('/')}`}
       />
     )

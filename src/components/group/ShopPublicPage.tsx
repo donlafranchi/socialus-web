@@ -3,14 +3,16 @@
 //
 // Presentational + server-renderable. Data fetching lives in the route
 // (src/app/p/[...slug]/page.tsx); this component renders the resolved shape so
-// it stays unit-testable. The only client island is <FollowShopButton>.
+// it stays unit-testable. The client islands are <FollowPageButton> and
+// <ReportControl>.
 
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
-import { FollowShopButton } from './FollowShopButton'
+import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { sendReportAction } from '@/app/_actions/report-actions'
+import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -27,6 +29,8 @@ interface Props {
   viewerOwnsPage?: boolean
   /** T160 — where to come back to after a signed-out member signs in. */
   pagePath?: string
+  /** F067 — whether the viewer already follows or belongs to this Page. */
+  viewerFollows?: boolean
 }
 
 export function ShopPublicPage({
@@ -37,6 +41,7 @@ export function ShopPublicPage({
   ownerClaim = null,
   viewerOwnsPage = false,
   pagePath,
+  viewerFollows = false,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -161,7 +166,15 @@ export function ShopPublicPage({
         )}
 
         <div className="mt-2">
-          <FollowShopButton loggedIn={loggedIn} shopName={shop.displayName} />
+          <FollowPageButton
+            groupId={shop.groupId}
+            isPrivate={shop.discoverability === 'private'}
+            loggedIn={loggedIn}
+            following={viewerFollows}
+            returnTo={pagePath}
+            onFollow={followPageAction}
+            onUnfollow={unfollowPageAction}
+          />
         </div>
       </header>
 

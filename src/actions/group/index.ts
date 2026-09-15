@@ -30,3 +30,14 @@ export {
   type GroupMemberJoinInput,
   type GroupMemberJoinResult,
 } from './member-join'
+// F067 — a Page can be followed. Privacy decides whether that is a follow or a join.
+export {
+  groupFollow,
+  groupUnfollow,
+  groupFollowInput,
+  relationshipFor,
+  type Relationship,
+  type GroupFollowInput,
+  type GroupFollowResult,
+  type GroupUnfollowResult,
+} from './follow'

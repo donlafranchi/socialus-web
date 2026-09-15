@@ -23,6 +23,8 @@ import {
   groupActivate,
   groupMemberJoin,
   groupMemberLeave,
+  groupFollow,
+  groupUnfollow,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate } from './report'
@@ -49,6 +51,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.saved_search.restore': memberSavedSearchRestore as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
+  // F067 — following a Page. Privacy decides follow vs join.
+  'group.follow': groupFollow as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unfollow': groupUnfollow as unknown as NamedActionHandler<unknown, unknown>,
   // T159 — F058: a member reports something; the photo hides at once.
   'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
@@ -77,6 +82,7 @@ export {
   memberSavedSearchRestore,
 } from './member'
 export { groupCreate, groupUpdateDraft, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
+export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export { itemCreate, itemPublish, itemAttachLocation } from './item'
 export {
   reportCreate,
