@@ -28,7 +28,8 @@ export function OnboardingFlow({
   initialDisplayName?: string
   actions?: OnboardingActions
   onNavigate?: (url: string) => void
-  /** T163 (F076) — every US metro, selectable. Empty disables the step. */
+  /** T163 (F076) — every US metro, selectable. An empty list is an error the
+   *  step reports, never a reason to skip it. */
   metros?: MetroOption[]
   onJoinWaitlist?: typeof joinMetroWaitlistAction
 }) {
@@ -59,11 +60,13 @@ export function OnboardingFlow({
         setError(res.message)
         return
       }
-      if (metros.length > 0) {
-        setAskMetro(true)
-        return
-      }
-      navigate('/')
+      // Unconditional, per Don's ruling 2026-09-14: the metro step appears for
+      // every signup. It previously ran only when the metro list was non-empty,
+      // which meant a failed or empty query SKIPPED the question silently — the
+      // person would never be asked, never join a waitlist, and F076 criteria 1
+      // and 2 would fail with nothing to show for it. An empty list is now an
+      // error the step itself reports, not a reason to walk past it.
+      setAskMetro(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Try again.')
     } finally {

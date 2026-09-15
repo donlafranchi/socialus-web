@@ -168,3 +168,24 @@ describe('the popup (c7, c8)', () => {
     expect(onDone).not.toHaveBeenCalled()
   })
 })
+
+describe('an empty metro list is an error, not a skip', () => {
+  it('says so, rather than rendering a select with nothing in it', () => {
+    render(<MetroWaitlistStep metros={[]} onJoin={join} onDone={onDone} />)
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  })
+
+  it('offers a way forward rather than a dead end', () => {
+    render(<MetroWaitlistStep metros={[]} onJoin={join} onDone={onDone} />)
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
+  })
+
+  it('does not quietly finish the step', () => {
+    // The failure mode this replaces: skipping the question and carrying on,
+    // which loses F076 criteria 1 and 2 with nothing to show for it.
+    render(<MetroWaitlistStep metros={[]} onJoin={join} onDone={onDone} />)
+    expect(onDone).not.toHaveBeenCalled()
+    expect(join).not.toHaveBeenCalled()
+  })
+})

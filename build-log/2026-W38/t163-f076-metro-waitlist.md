@@ -85,6 +85,19 @@ already names. Recorded, not silently dropped.
 - **From-scratch apply is CI's `supabase db reset` job.** Not run locally —
   it would wipe a stack another session may be using.
 
+## Amendment, 2026-09-14 — the metro step is unconditional
+
+Don ruled that the step appears for **every** signup. It previously ran only
+when the metro list came back non-empty, which meant a failed or empty query
+**skipped the question silently**: the person was never asked, never joined a
+waitlist, and criteria 1 and 2 failed with nothing to show for it. The guard is
+gone. An empty list is now an error the step reports, with a way forward,
+rather than a reason to walk past it.
+
+`OnboardingFlow`'s "navigates home on Continue" test was amended rather than
+deleted — Continue now advances to the metro step, and home is where the metro
+step lands. Both halves are covered.
+
 ## Known, and not fixed here
 
 - `metro_polygons` is now a catalog of metros of which one has a polygon. The

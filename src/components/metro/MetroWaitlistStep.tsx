@@ -61,6 +61,27 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
     }
   }
 
+  // The list is 296 static, publicly-readable rows, so an empty one means the
+  // read failed rather than that there are no metros. Said out loud with a way
+  // forward, because the alternative — rendering a select containing only the
+  // placeholder — is a dead end that looks like the person's fault.
+  if (metros.length === 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        <p role="alert" className="text-sm text-[var(--color-charcoal-900)]">
+          We couldn&rsquo;t load the list of places just now.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-sm font-semibold text-white"
+        >
+          Try again
+        </button>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="flex flex-col gap-5">
