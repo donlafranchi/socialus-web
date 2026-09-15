@@ -105,7 +105,7 @@ describe('SellWalkthrough — the question comes first', () => {
     expect(screen.queryByTestId('sell-brand-input')).not.toBeInTheDocument()
     const progress = screen.getByRole('progressbar')
     expect(progress).toHaveAttribute('aria-valuenow', '1')
-    expect(progress).toHaveAttribute('aria-valuemax', '7')
+    expect(progress).toHaveAttribute('aria-valuemax', '6')
   })
 
   it('offers exactly the three Don named, none pre-selected', () => {
@@ -445,56 +445,11 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
   })
 })
 
-describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () => {
-  async function advanceToLocality() {
-    fireEvent.change(screen.getByTestId('sell-brand-input'), {
-      target: { value: 'Oak Park Sourdough' },
-    })
-    await clickContinue()
-    fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
-    await clickContinue()
-    fireEvent.change(screen.getByTestId('sell-tag-input'), { target: { value: 'sourdough' } })
-    fireEvent.click(screen.getByTestId('sell-tag-add'))
-    await clickContinue()
-    fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
-  }
-
-  it('renders the Locality step with Skip', async () => {
-    setup()
-    await answerPurpose()
-    await advanceToLocality()
-    expect(
-      screen.getByRole('heading', { name: /locally owned/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: /Skip this step/i }),
-    ).toBeInTheDocument()
-  })
-
-  it('blocks Continue on a non-5-digit ZIP', async () => {
-    setup()
-    await answerPurpose()
-    await advanceToLocality()
-    fireEvent.change(screen.getByTestId('sell-locality-zip-input'), {
-      target: { value: 'abc' },
-    })
-    await clickContinue()
-    expect(screen.getByTestId('field-error-zip')).toBeInTheDocument()
-  })
-
-  it('does NOT persist the ZIP at b1 (substrate deferred to F037)', async () => {
-    const { updateDraft } = setup()
-    await answerPurpose()
-    await advanceToLocality()
-    updateDraft.mockClear()
-    fireEvent.change(screen.getByTestId('sell-locality-zip-input'), {
-      target: { value: '95817' },
-    })
-    await clickContinue()
-    // No write call fires for the locality step.
-    expect(updateDraft).not.toHaveBeenCalled()
-  })
-})
+// #110 — the Locality step is gone. Don ruled business fields out of Page
+// creation; DECISIONS.md 2026-09-07 already said creation carries "no ZIP
+// prompt". The step was UI-only (onAdvance returned early, the ZIP was
+// discarded), so nothing it did is lost. Its tests go with it rather than
+// being adapted to describe behaviour that no longer exists.
 
 describe('SellWalkthrough — step 6 Review & activate', () => {
   async function advanceToReview(tags: string[] = ['sourdough']) {
@@ -509,18 +464,21 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
       fireEvent.click(screen.getByTestId('sell-tag-add'))
     }
     await clickContinue()
-    fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
+    // One optional step now, not two: Locality is gone (#110).
     fireEvent.click(screen.getByRole('link', { name: /Skip this step/i }))
   }
 
-  it('renders the review list with brand, anchor, about, locality summaries', async () => {
+  it('renders the review list with name, anchor and about summaries', async () => {
     setup()
     await answerPurpose()
     await advanceToReview()
     const review = screen.getByTestId('sell-review-list')
     expect(review).toHaveTextContent(/Oak Park Sourdough/)
     expect(review).toHaveTextContent(/Maya's Kitchen/)
-    expect(review).toHaveTextContent(/skipped/) // locality
+    // About was skipped, so it reads (none). There is no locality row to
+    // summarise any more (#110).
+    expect(review).toHaveTextContent(/none/)
+    expect(review).not.toHaveTextContent(/ZIP/i)
   })
 
   it('final CTA reads "Create my shop" for the shop answer', async () => {

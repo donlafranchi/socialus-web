@@ -5,6 +5,7 @@
 // role=button + accessible name /Add a product/i (see T073b note).
 
 import { useState, useCallback } from 'react'
+import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
 import { ProductComposer, type PickupLocationOption } from './ProductComposer'
 import { createProductAction } from '@/app/you/sell/product/actions'
@@ -58,7 +59,7 @@ export function AddProductButton({
       {open && (
         <ProductComposer
           createProduct={createProduct}
-          createLocation={(input) => sellCreateLocationAction(input)}
+          createLocation={(input) => unwrap(sellCreateLocationAction(input))}
           availableLocations={availableLocations}
           defaultPickupLocationId={anchorLocationId}
           defaultPickupLocationLabel={anchorLocationLabel}

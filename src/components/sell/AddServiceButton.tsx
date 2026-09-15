@@ -5,6 +5,7 @@
 // Mirrors AddProductButton: role=button + accessible name /Add a service/i.
 
 import { useState, useCallback } from 'react'
+import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
 import { ServiceComposer, type PickupLocationOption, type RateModel } from './ServiceComposer'
 import { createServiceAction } from '@/app/you/sell/service/actions'
@@ -58,7 +59,7 @@ export function AddServiceButton({
       {open && (
         <ServiceComposer
           createService={createService}
-          createLocation={(input) => sellCreateLocationAction(input)}
+          createLocation={(input) => unwrap(sellCreateLocationAction(input))}
           availableLocations={availableLocations}
           defaultCenterLocationId={anchorLocationId}
           defaultCenterLocationLabel={anchorLocationLabel}

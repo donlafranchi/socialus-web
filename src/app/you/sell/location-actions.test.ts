@@ -41,7 +41,9 @@ describe('sellCreateLocationAction — address mode', () => {
       },
     })
 
-    expect(result).toEqual({ id: 'loc-1', label: 'Home' })
+    // #107 — actions return their outcome as data now, so the message
+    // survives the 'use server' boundary instead of becoming a digest.
+    expect(result).toEqual({ ok: true, data: { id: 'loc-1', label: 'Home' } })
     expect(query).toHaveBeenCalledTimes(1)
     const [sql, params] = query.mock.calls[0]
     expect(sql).toMatch(/insert into public\.locations/i)
@@ -79,7 +81,7 @@ describe('sellCreateLocationAction — neighbourhood mode', () => {
       neighborhoodId: 'nbhd-midtown',
     })
 
-    expect(result).toEqual({ id: 'loc-2', label: 'Run Club' })
+    expect(result).toEqual({ ok: true, data: { id: 'loc-2', label: 'Run Club' } })
     expect(query).toHaveBeenCalledTimes(2)
 
     const [bboxSql, bboxParams] = query.mock.calls[0]
@@ -107,7 +109,7 @@ describe('sellCreateLocationAction — neighbourhood mode', () => {
     query.mockResolvedValueOnce({ rows: [] })
     await expect(
       sellCreateLocationAction({ label: 'Run Club', neighborhoodId: 'does-not-exist' }),
-    ).rejects.toMatchObject({ code: 'neighborhood_not_found' })
+    ).resolves.toMatchObject({ ok: false, code: 'neighborhood_not_found' })
   })
 })
 
@@ -117,7 +119,8 @@ describe('sellCreateLocationAction — refuses a placement-less call at runtime'
     // guards the same invariant at runtime, since a server action is a
     // callable network endpoint and types don't survive past the client.
     const input = { label: 'Oops' } as unknown as Parameters<typeof sellCreateLocationAction>[0]
-    await expect(sellCreateLocationAction(input)).rejects.toMatchObject({
+    await expect(sellCreateLocationAction(input)).resolves.toMatchObject({
+      ok: false,
       code: 'location_needs_place',
     })
     expect(query).not.toHaveBeenCalled()
