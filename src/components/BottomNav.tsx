@@ -3,8 +3,10 @@
 import { Fragment } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { NavYouBadge } from './NavYouBadge'
+import { PersonMark } from './PersonMark'
+import { useAuth } from '@/hooks/useAuth'
 import { Home, Search, User, Plus } from 'lucide-react'
-import { AuthCtaButtons } from './AuthCtaButtons'
 import { useNavVisible } from './NavVisibilityProvider'
 
 const TABS = [
@@ -40,6 +42,15 @@ const CREATE = { href: '/you/sell', label: 'Create' }
 // Between the tabs, not at an end. Three tabs give two interior slots; this is
 // the one that keeps You last, which is the order members already have.
 const CREATE_AFTER = 2
+
+/** F086 — on a phone the nav has no room for a name, so the You tab carries
+ *  the mark instead. One glance, no tap. The name and the sign-out control
+ *  live one tap away on /you, which is where this tab goes. */
+function YouTabIcon({ active, fallback: Fallback }: { active: boolean; fallback: typeof User }) {
+  const { user, loading } = useAuth()
+  if (loading || !user) return <Fallback size={20} strokeWidth={1.5} fill={active ? 'currentColor' : 'none'} />
+  return <PersonMark name={user.email ?? 'You'} className="h-5 w-5" />
+}
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -82,7 +93,11 @@ export function BottomNav() {
                     active ? 'text-[var(--color-charcoal)]' : 'text-[var(--color-nav-inactive)]'
                   }`}
                 >
-                  <Icon size={20} strokeWidth={1.5} fill={active ? 'currentColor' : 'none'} />
+                  {t.href === '/you' ? (
+                    <YouTabIcon active={active} fallback={Icon} />
+                  ) : (
+                    <Icon size={20} strokeWidth={1.5} fill={active ? 'currentColor' : 'none'} />
+                  )}
                   <span>{t.label}</span>
                 </Link>
               </li>
@@ -143,7 +158,11 @@ export function TopNavDesktop() {
         </Link>
       </div>
       <div className="ml-auto">
-        <AuthCtaButtons />
+        {/* F086 — who you are, and the way out. Replaces AuthCtaButtons here,
+            which showed "Sign in" when signed out and hid you when signed in,
+            so the signed-in state had no representation anywhere in the app.
+            AuthCtaButtons is untouched on HomeFeed, its other caller. */}
+        <NavYouBadge />
       </div>
     </nav>
   )
