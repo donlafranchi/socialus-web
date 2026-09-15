@@ -45,32 +45,32 @@ describe('SELL_DRAFT_NAME_PLACEHOLDER', () => {
 })
 
 describe('resumeStepFor', () => {
-  it('returns 0 when brand name is missing', () => {
-    expect(resumeStepFor({ brandName: null, anchorLocationId: null })).toBe(0)
+  it('returns 1 (the name step) when brand name is missing', () => {
+    expect(resumeStepFor({ brandName: null, anchorLocationId: null })).toBe(1)
   })
 
-  it('returns 0 when brand name is the draft placeholder', () => {
+  it('returns 1 when brand name is the draft placeholder', () => {
     expect(
       resumeStepFor({
         brandName: DRAFT_NAME_PLACEHOLDER,
         anchorLocationId: 'loc-1',
       }),
-    ).toBe(0)
-  })
-
-  it('returns 1 when brand is set but anchor Location missing', () => {
-    expect(
-      resumeStepFor({ brandName: 'Oak Park Sourdough', anchorLocationId: null }),
     ).toBe(1)
   })
 
-  it('returns 2 (About) when brand + anchor are both set', () => {
+  it('returns 2 when brand is set but anchor Location missing', () => {
+    expect(
+      resumeStepFor({ brandName: 'Oak Park Sourdough', anchorLocationId: null }),
+    ).toBe(2)
+  })
+
+  it('returns 3 (About) when brand + anchor are both set', () => {
     expect(
       resumeStepFor({
         brandName: 'Oak Park Sourdough',
         anchorLocationId: 'loc-1',
       }),
-    ).toBe(2)
+    ).toBe(3)
   })
 })
 
@@ -128,11 +128,11 @@ describe('getDraftGroup', () => {
       brandName: 'Oak Park Sourdough',
       anchorLocationId: 'loc-1',
       publicDescription: 'bread',
-      resumeFromStep: 2, // brand + anchor set → resume at About
+      resumeFromStep: 3, // brand + anchor set → resume at About
     })
   })
 
-  it('treats DRAFT_NAME_PLACEHOLDER as no brand (resume at step 0)', async () => {
+  it('treats DRAFT_NAME_PLACEHOLDER as no brand (resume at the name step)', async () => {
     const sb = makeSupabaseStub({
       group_memberships: { data: [], error: null },
       groups: {
@@ -151,7 +151,7 @@ describe('getDraftGroup', () => {
     })
     const result = await getDraftGroup(sb, MEMBER)
     expect(result.draftGroup?.brandName).toBeNull()
-    expect(result.draftGroup?.resumeFromStep).toBe(0)
+    expect(result.draftGroup?.resumeFromStep).toBe(1)
   })
 
   it('throws when active-membership query fails (do not silently fall through)', async () => {

@@ -64,9 +64,18 @@ export function resumeStepFor(d: {
   brandName: string | null
   anchorLocationId: string | null
 }): number {
-  if (!d.brandName || d.brandName === DRAFT_NAME_PLACEHOLDER) return 0
-  if (!d.anchorLocationId) return 1
-  return 2 // Brand + anchor set → resume on About (next non-blocked step)
+  // F087 — every index here is +1 of what it was, because the flow now opens
+  // on "What are we creating?". These are array positions, so inserting a step
+  // at the front shifts all of them; the value is computed at read time and
+  // never stored, so no existing draft carries a stale number.
+  //
+  // A resumed draft has no answer to the question (it predates it, or the
+  // person got past it), and lands on the first un-set required field rather
+  // than being asked again. Its wording falls back to shop, which is what
+  // nounFor(null) returns and what these drafts were created as.
+  if (!d.brandName || d.brandName === DRAFT_NAME_PLACEHOLDER) return 1
+  if (!d.anchorLocationId) return 2
+  return 3 // Name + anchor set → resume on About (next non-blocked step)
 }
 
 export async function getDraftGroup(

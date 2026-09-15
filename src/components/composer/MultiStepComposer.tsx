@@ -22,13 +22,21 @@ export interface Validation {
   errors?: Record<string, string>
 }
 
+/** A label that may depend on the state so far.
+ *
+ *  F087 — the create flow asks what you are making first, and every heading
+ *  after it is written in the words of that answer. A static string cannot do
+ *  that, so these three accept a function of the current state. Existing
+ *  callers pass plain strings and are unaffected. */
+export type StepLabel<S> = string | ((state: S) => string)
+
 export interface StepDef<S> {
   /** Stable id; passed to onAdvance to identify which step just submitted. */
   id: string
   /** Heading rendered at the top of the step body (22px / 600 slot). */
-  title: string
+  title: StepLabel<S>
   /** Optional one-sentence helper (14px / 400 / muted) under the title. */
-  helper?: string
+  helper?: StepLabel<S>
   /** When true, the navigation row renders a [Skip this step] link. */
   isOptional?: boolean
   /** Step body. Receives current state + setState; returns the input UI. */
@@ -39,7 +47,7 @@ export interface StepDef<S> {
   /** Optional override for the primary CTA label on the final step.
    *  E.g. "Create my shop". Per DLS § Multi-step composer, final-step
    *  CTAs read the destination verb — never "Submit" or "Done". */
-  finalLabel?: string
+  finalLabel?: StepLabel<S>
 }
 
 export interface MultiStepComposerProps<S> {
@@ -166,7 +174,9 @@ export function MultiStepComposer<S>({
     [],
   )
 
-  const finalCtaLabel = step.finalLabel ?? 'Done'
+  const resolve = (l: StepLabel<S> | undefined): string | undefined =>
+    typeof l === 'function' ? l(state) : l
+  const finalCtaLabel = resolve(step.finalLabel) ?? 'Done'
 
   return (
     <div
@@ -202,10 +212,10 @@ export function MultiStepComposer<S>({
             id="multistep-composer-step-title"
             className="text-[22px] font-semibold leading-tight"
           >
-            {step.title}
+            {resolve(step.title)}
           </h3>
-          {step.helper && (
-            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">{step.helper}</p>
+          {resolve(step.helper) && (
+            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">{resolve(step.helper)}</p>
           )}
           <div className="mt-5">
             {step.render(state, (next) => {

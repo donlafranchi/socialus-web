@@ -268,7 +268,7 @@ describe('SellCta — render branches', () => {
     fireEvent.click(cta)
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: /Page name/i }),
+        screen.getByRole('heading', { name: /What are we creating\?/i }),
       ).toBeInTheDocument()
     })
   })
