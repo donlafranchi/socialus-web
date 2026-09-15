@@ -1,7 +1,11 @@
 # Copy inventory — every word the app shows a person
 
-**Audit only. Nothing here is a proposal, and nothing has been rewritten.**
-Produced 2026-09-15 against `main` at `640e1fc`.
+**Audit and worksheet. Nothing here is a proposal, and nothing has been
+rewritten.** Produced 2026-09-15 against `main` at `640e1fc`. Issue #89.
+
+Two things in one file: an **inventory** of every user-facing string, and a
+**worksheet** marking which surfaces could carry the product's premise copy and
+how much room each spot has.
 
 ## What this is, and how to read it
 
@@ -64,6 +68,80 @@ sit under *Uncategorised*.
 **28% of the product's copy — 164 strings — belongs to surfaces that were
 retired.** `register-vendor`, `vendors/[slug]`, `business/[slug]`,
 `you/vendor/*`, and the market/bulletin components. Some are reachable today.
+
+---
+
+## Premise-copy worksheet
+
+**The constraint, from Don: a few sentences, spread throughout. Never a
+manifesto on one page.** So this marks *where* a "why this exists" line could
+sit and *how much room* that spot has. It does not write any.
+
+**Room is a property of the slot, not a preference.** Three sizes:
+
+| Room | Means | Slot types |
+|---|---|---|
+| **None** | the words are the control | buttons, labels, menu items, field labels, chips |
+| **A line** | one sentence, sometimes two | empty states, banners, toasts, confirmations, helper text |
+| **A few sentences** | a short paragraph | onboarding steps, composer step intros, signed-out heroes |
+
+**✓ candidate · ~ possible · ✗ no** — the last meaning the surface should not
+carry premise copy, either because it is being retired, because it is not
+member-facing, or because the words there are purely functional.
+
+| Surface | Premise copy? | Most room available | Why |
+|---|---|---|---|
+| Onboarding | **✓** | **a few sentences** | Multi-step, already has a subhead under each question. The natural home, and the only place a person is reading rather than doing. |
+| Create / sell walkthrough + composers | **✓** | **a few sentences** | Six steps, each with room for one line of *why this step*. Directly adjacent to the attestation copy about to be written. |
+| Signup, sign-in and auth | **✓** | **a line** | One line under the heading. `role-language.md` already drafts the shape of it. |
+| A Page (group/"shop") in public | **✓** | **a line** | The empty state a visitor hits on a Page with nothing listed — often the first thing a stranger sees. |
+| Reporting and moderation | **✓** | **a line** | *Already does this.* "This goes to a person, not a queue" is the best premise line in the app — proof the pattern works at this size. |
+| Home and the locality feed | **~** | **a line** | The signed-out banner and the empty feed. Competes with the feed itself for attention. |
+| Browse (`/explore`) | **~** | **a line** | The empty state only. Browse is a working surface; a person here is looking for something. |
+| Metro waitlist (F076) | **~** | **a line, heavily constrained** | The popup message. **F076 criterion 9 forbids implying a date, a timeline or that the metro will open** — a premise line here is possible but has a hard edge, and is tested. |
+| You (account surface) | **~** | **a line** | Signed-out state has room; signed-in is a control panel. |
+| Following | **~** | **a line** | Empty state only. |
+| Member profile | **~** | **a line** | The empty-profile state. A person's own page is mostly theirs, not ours. |
+| Join / marketing page | **~** | **a few sentences — and the risk** | The one page where a manifesto would accumulate by gravity. Worth marking as the place the constraint is most likely to break. |
+| An Item in public | **✗** | a line, but content-driven | The member's own words carry this surface. |
+| Locations and venues | **✗** | none to a line | Functional. |
+| Places | **✗** | — | Placeholder surface until b2. |
+| RETIRED farmers-market surfaces | **✗** | — | 164 strings. Do not invest until #4 below is answered. |
+| Dev-only demo routes | **✗** | — | Not member-facing. |
+| Action-layer errors (server) | **✗** | — | Should not reach a member at all — see finding 6. |
+| Shared libs and types | **✗** | — | Not a surface. |
+
+### Named slots, for the candidates
+
+Where the line would actually go, and what occupies that space today. **Nothing
+below is a proposal — it is the slot and its current occupant.**
+
+| Slot | Room | What is there now |
+|---|---|---|
+| Onboarding, name step — under the question | a few sentences | "This is the name your neighbors will see." |
+| Onboarding, metro step — under the question | a few sentences | "We are not everywhere yet. Tell us where you are and we will tell you where it stands." |
+| Sign-in form — under the heading | a line | "Enter your email and we'll send you a link. No password — new here or not, this is the way in." |
+| Sell walkthrough — per step | a line each, ×6 | step-specific instructions only; no *why* anywhere |
+| A Page with nothing listed | a line | "[Name] hasn't listed anything yet — check back soon." *(and the spacing bug)* |
+| A Page a visitor cannot fill — the follow CTA | a line | "Sign up to follow" |
+| Report sheet | a line | **"This goes to a person, not a queue."** |
+| Waitlist popup | a line, constrained | "This metro needs 299 more people before there is enough here to be worth showing you." |
+| Signed-out home banner | a line | "Sign in to set your home locality and follow what you love." |
+| Browse, no results | a line | "Nothing here yet — try another filter" |
+
+### Where the constraint will break, if it breaks
+
+Three pressures worth naming before anyone writes:
+
+1. **The Join page.** Long, already the most voice-heavy surface, and the
+   natural gravity well for a manifesto. If premise copy concentrates anywhere,
+   it will be here.
+2. **Onboarding.** The only surface with room for *a few sentences* in more than
+   one consecutive step — so it can become a manifesto by accumulation, one
+   reasonable paragraph at a time, without any single step looking wrong.
+3. **Empty states.** Eleven of them, all with room for a line. Consistent premise
+   copy across all eleven is a manifesto delivered in instalments. Some should
+   stay purely functional.
 
 ---
 
@@ -963,3 +1041,6 @@ correctness rather than style:
 
 - The `ShopPublicPage` spacing bug (already tracked).
 - Settling whether handler-prefixed action errors can reach a member.
+
+The premise-copy worksheet above marks **where** and **how much room** — it does
+not write a single line of premise copy, and deliberately does not suggest one.
