@@ -19,6 +19,7 @@
 // in by the parent so the component is testable in isolation.
 
 import { useState, useCallback } from 'react'
+import { PURPOSES, PURPOSE_COPY, nounFor, type Purpose } from '@/lib/sell/purpose'
 import {
   MultiStepComposer,
   type StepDef,
@@ -41,7 +42,11 @@ export interface AnchorLocationOption {
 }
 
 export interface SellWalkthroughState {
-  /** Set after the brand-name step writes the draft. Steps 2+ patch it via group.update_draft. */
+  /** F087 — what the person said they were making. Null until they answer,
+   *  and null for a draft started before the question existed. Selects the
+   *  words downstream and nothing else; see src/lib/sell/purpose.ts. */
+  purpose: Purpose | null
+  /** Set after the name step writes the draft. Steps 2+ patch it via group.update_draft. */
   draftGroupId: string | null
   brand: string
   anchorLocationId: string | null
@@ -72,7 +77,7 @@ export interface SellWalkthroughHandlers {
     /** Brand re-edit from Back navigation. Not normally sent. */
     brand?: string
   }) => Promise<void>
-  /** Called on final-step "Create my Page". Returns the place-scoped Group URL. */
+  /** Called on the final step. Returns the place-scoped Group URL. */
   activate: (input: {
     groupId: string
     tags: string[]
@@ -101,10 +106,11 @@ export interface SellWalkthroughProps extends SellWalkthroughHandlers {
   onAbandon: () => void
 }
 
-const TOAST_SUCCESS = 'Your Page is live.'
+const toastSuccess = (purpose: Purpose | null) => `Your ${nounFor(purpose)} is live.`
 
 function emptyState(): SellWalkthroughState {
   return {
+    purpose: null,
     draftGroupId: null,
     brand: '',
     anchorLocationId: null,
@@ -143,20 +149,62 @@ export function SellWalkthrough({
         tagDraft: '',
         about: resume.about,
         localityZip: '',
+        purpose: null,
       }
     : emptyState()
 
   // Step definitions — kept inline so the captures (handlers above) bind
   // cleanly. The composer is generic over S; we instantiate with our state.
   const steps: StepDef<SellWalkthroughState>[] = [
-    // 1. Brand name
+    // F087 — the question comes first. Don's words, 2026-09-15.
+    // Nothing is pre-selected: F087 criterion 2, and the same reason the
+    // metro step pre-selects nothing. A default here is an assumption about
+    // what someone is making, which is the assumption this step removes.
+    {
+      id: 'purpose',
+      title: 'What are we creating?',
+      helper: 'Pick the one closest to what you have in mind.',
+      render: (state, setState) => (
+        <fieldset>
+          <legend className="sr-only">What are we creating?</legend>
+          <div className="flex flex-col gap-2">
+            {PURPOSES.map((p) => (
+              <label
+                key={p}
+                className={`flex min-h-11 cursor-pointer items-center rounded-xl border px-4 text-sm ${
+                  state.purpose === p
+                    ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
+                    : 'border-[var(--color-control-border)] bg-white text-[var(--color-charcoal-900)]'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="sell-purpose"
+                  className="sr-only"
+                  data-testid={`sell-purpose-${p}`}
+                  checked={state.purpose === p}
+                  onChange={() => setState({ ...state, purpose: p })}
+                />
+                {PURPOSE_COPY[p].choice}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ),
+      validate: (state) =>
+        state.purpose
+          ? { ok: true }
+          : { ok: false, errors: { purpose: 'Pick one to carry on' } },
+    },
+
+    // 1. Name
     {
       id: 'brand',
-      title: 'Page name',
-      helper: "What should your Page be called?",
+      title: (state) => `Name your ${nounFor(state.purpose)}`,
+      helper: (state) => `What should your ${nounFor(state.purpose)} be called?`,
       render: (state, setState) => (
         <label className="block">
-          <span className="text-sm font-medium text-[var(--color-fg)]">Page name</span>
+          <span className="text-sm font-medium text-[var(--color-fg)]">Name</span>
           <input
             data-testid="sell-brand-input"
             className="input mt-1 w-full"
@@ -169,14 +217,14 @@ export function SellWalkthrough({
       validate: (state) =>
         state.brand.trim().length > 0
           ? { ok: true }
-          : { ok: false, errors: { brand: 'Page name is required' } },
+          : { ok: false, errors: { brand: 'A name is required' } },
     },
 
     // 2. Anchor Location
     {
       id: 'anchor',
       title: 'Anchor Location',
-      helper: 'Where is your Page primarily based?',
+      helper: (state) => `Where is your ${nounFor(state.purpose)} primarily based?`,
       render: (state, setState) => (
         <AnchorLocationStep
           state={state}
@@ -235,8 +283,11 @@ export function SellWalkthrough({
     {
       id: 'locality',
       title: 'Are you locally owned?',
-      helper:
-        'Add your ZIP to claim Locally Owned status (Tier 0 — self-attested). You can do this later from Page settings.',
+      // FLAGGED for Don's wording, not rewritten here: this line carries an
+      // em dash and "Tier 0", both of which voice.md rules out. Only the noun
+      // is swapped, which is the rename this change is scoped to.
+      helper: (state) =>
+        `Add your ZIP to claim Locally Owned status (Tier 0 — self-attested). You can do this later from your ${nounFor(state.purpose)} settings.`,
       isOptional: true,
       render: (state, setState) => (
         <label className="block">
@@ -274,8 +325,8 @@ export function SellWalkthrough({
     {
       id: 'review',
       title: 'Review',
-      helper: 'Confirm the details below, then create your Page.',
-      finalLabel: 'Create my Page',
+      helper: (state) => `Confirm the details below, then create your ${nounFor(state.purpose)}.`,
+      finalLabel: (state) => `Create my ${nounFor(state.purpose)}`,
       render: (state) => (
         <ul data-testid="sell-review-list" className="text-sm space-y-2">
           <li>
@@ -320,6 +371,13 @@ export function SellWalkthrough({
 
   const onAdvance = useCallback(
     async (stepId: string, state: SellWalkthroughState) => {
+      // F087 — the question writes nothing. It has to return before the
+      // draft-id guard below, which runs for every step after `brand` and
+      // throws when there is no draft yet. This step comes BEFORE the draft
+      // exists, so falling through it is how the flow silently refused to
+      // advance the first time.
+      if (stepId === 'purpose') return
+
       if (stepId === 'brand') {
         // Step 1 — group.create. Writes the spine + group_businesses +
         // founder membership + group.created event + group.member_joined
@@ -398,7 +456,7 @@ export function SellWalkthrough({
       const { destinationUrl } = await activate({ groupId: draftGroupId, tags })
       // Composer is presentational — it does not navigate. We do.
       redirect(destinationUrl)
-      showToast(TOAST_SUCCESS)
+      showToast(toastSuccess(state.purpose))
       return { destinationUrl }
     },
     [activate, redirect, showToast, shadowDraftId],
@@ -413,8 +471,11 @@ export function SellWalkthrough({
       onComplete={onComplete}
       onAbandon={onAbandon}
       // T073b: dialog accessible name must NOT match any step input's label
-      // (e.g. "Page name") or Playwright's getByLabel resolves to both.
-      dialogLabel="Set up your Page"
+      // (e.g. "Name") or Playwright's getByLabel resolves to both. F087 makes
+      // that tighter, since the step headings now carry the chosen noun — so
+      // this takes voice.md's own button vocabulary, which collides with none
+      // of them and never says Page.
+      dialogLabel="Create something"
     />
   )
 }

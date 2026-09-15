@@ -71,6 +71,14 @@ function setup(overrides: Partial<Parameters<typeof SellWalkthrough>[0]> = {}) {
   }
 }
 
+/** F087 — the flow now opens on "What are we creating?". The tests below were
+ *  written for the steps after it, so they answer it first. Shop keeps their
+ *  existing wording, which is what they already assert. */
+async function answerPurpose(purpose: 'shop' | 'service' | 'group' = 'shop') {
+  fireEvent.click(screen.getByTestId(`sell-purpose-${purpose}`))
+  await clickContinue()
+}
+
 async function clickContinue() {
   fireEvent.click(screen.getByRole('button', { name: /^Continue$/i }))
   await waitFor(() => {
@@ -87,19 +95,51 @@ afterEach(() => {
   cleanup()
 })
 
-describe('SellWalkthrough — six-step shape', () => {
-  it('opens on step 1 (Page name) with the 6-step indicator', () => {
+describe('SellWalkthrough — the question comes first', () => {
+  it('opens on the question, not on a name field', () => {
+    // F087 criterion 2: purpose is chosen first, before any other field.
     setup()
     expect(
-      screen.getByRole('heading', { name: /Page name/i }),
+      screen.getByRole('heading', { name: /What are we creating\?/i }),
     ).toBeInTheDocument()
+    expect(screen.queryByTestId('sell-brand-input')).not.toBeInTheDocument()
     const progress = screen.getByRole('progressbar')
     expect(progress).toHaveAttribute('aria-valuenow', '1')
-    expect(progress).toHaveAttribute('aria-valuemax', '6')
+    expect(progress).toHaveAttribute('aria-valuemax', '7')
+  })
+
+  it('offers exactly the three Don named, none pre-selected', () => {
+    setup()
+    const radios = screen.getAllByRole('radio')
+    expect(radios).toHaveLength(3)
+    for (const r of radios) expect(r).not.toBeChecked()
+    expect(screen.getByText('Opening a shop')).toBeInTheDocument()
+    expect(screen.getByText('Offering a service')).toBeInTheDocument()
+    expect(screen.getByText('Creating a group for meetups')).toBeInTheDocument()
+  })
+
+  it('will not advance until one is picked', async () => {
+    setup()
+    await clickContinue()
+    expect(screen.getByTestId('field-error-purpose')).toBeInTheDocument()
+    expect(screen.queryByTestId('sell-brand-input')).not.toBeInTheDocument()
+  })
+
+  it('names the thing in the words of the answer', async () => {
+    setup()
+    await answerPurpose('group')
+    expect(screen.getByRole('heading', { name: /Name your group/i })).toBeInTheDocument()
+  })
+
+  it('never shows the person the word Page', async () => {
+    const { container } = setup()
+    await answerPurpose('service')
+    expect(container.textContent).not.toMatch(/\bPage\b/)
   })
 
   it('blocks Continue when brand is empty and surfaces an inline field error', async () => {
     const { createDraft } = setup()
+    await answerPurpose()
     await clickContinue()
     expect(
       screen.getByTestId('field-error-brand'),
@@ -111,6 +151,7 @@ describe('SellWalkthrough — six-step shape', () => {
 describe('SellWalkthrough — step 1 fires group.create', () => {
   it('writes the draft Group on first Continue with brand text', async () => {
     const { createDraft } = setup()
+    await answerPurpose()
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
@@ -121,6 +162,7 @@ describe('SellWalkthrough — step 1 fires group.create', () => {
 
   it('advances to step 2 (Anchor Location) after step 1 succeeds', async () => {
     setup()
+    await answerPurpose()
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
@@ -141,6 +183,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
 
   it('lists saved Locations and selects on tap', async () => {
     setup()
+    await answerPurpose()
     await advanceToAnchor()
     expect(screen.getByTestId('sell-anchor-options')).toBeInTheDocument()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
@@ -151,6 +194,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
 
   it('blocks Continue when no Location selected', async () => {
     const { updateDraft } = setup()
+    await answerPurpose()
     await advanceToAnchor()
     await clickContinue()
     expect(
@@ -161,6 +205,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
 
   it('fires group.update_draft with anchorLocationId on Continue', async () => {
     const { updateDraft } = setup()
+    await answerPurpose()
     await advanceToAnchor()
     fireEvent.click(screen.getByTestId('sell-anchor-option-loc-1'))
     await clickContinue()
@@ -172,6 +217,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
 
   it('opens the AddEntityDrawer when "+ Add a new Location" tapped', async () => {
     setup()
+    await answerPurpose()
     await advanceToAnchor()
     fireEvent.click(screen.getByTestId('sell-anchor-add-new'))
     expect(screen.getByTestId('add-entity-drawer-overlay')).toBeInTheDocument()
@@ -183,6 +229,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
       { name: '123 Main St, Sacramento, CA', coordinates: [-121.5, 38.58] },
     ])
     const { createLocation } = setup()
+    await answerPurpose()
     await advanceToAnchor()
     fireEvent.click(screen.getByTestId('sell-anchor-add-new'))
     fireEvent.change(screen.getByTestId('sell-add-location-input'), {
@@ -221,6 +268,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
 
   it('cannot save the new Location until a suggested address (or a neighbourhood) is chosen', async () => {
     const { createLocation } = setup()
+    await answerPurpose()
     await advanceToAnchor()
     fireEvent.click(screen.getByTestId('sell-anchor-add-new'))
     fireEvent.change(screen.getByTestId('sell-add-location-input'), {
@@ -250,6 +298,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
     // elsewhere, so the register is the prompt. Examples are a placeholder,
     // never a default — nothing is prefilled and nothing is submitted.
     setup()
+    await answerPurpose()
     await advanceToTags()
     const input = screen.getByTestId('sell-tag-input')
     expect(input).toHaveAttribute('placeholder', 'sourdough, honey, eggs, soap')
@@ -260,6 +309,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('offers a free text input, not a fixed list — creators create their own tags', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     expect(screen.getByTestId('sell-tag-input')).toBeInTheDocument()
     // The twelve are retired; nothing should offer them.
@@ -269,6 +319,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('blocks Continue with no tag, and persists nothing mid-draft', async () => {
     const { updateDraft } = setup()
+    await answerPurpose()
     await advanceToTags()
     updateDraft.mockClear()
     await clickContinue()
@@ -278,6 +329,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('adds a tag with the Add button and shows it', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('sourdough')
     fireEvent.click(screen.getByTestId('sell-tag-add'))
@@ -286,6 +338,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('adds a tag on Enter without submitting the step', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('sourdough')
     fireEvent.keyDown(screen.getByTestId('sell-tag-input'), { key: 'Enter' })
@@ -296,6 +349,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('commits a tag on a typed comma, so a typed list does not become one tag', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('bread,')
     expect(within(screen.getByTestId('sell-tag-list')).getByText('bread')).toBeInTheDocument()
@@ -304,6 +358,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('does not add the same tag twice, whatever the casing or spacing', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('Sourdough')
     fireEvent.click(screen.getByTestId('sell-tag-add'))
@@ -314,6 +369,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('refuses to add whitespace', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('   ')
     expect(screen.getByTestId('sell-tag-add')).toBeDisabled()
@@ -321,6 +377,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('removes a tag', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('sourdough')
     fireEvent.click(screen.getByTestId('sell-tag-add'))
@@ -330,6 +387,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('one tag unblocks Continue and advances to About', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('sourdough')
     fireEvent.click(screen.getByTestId('sell-tag-add'))
@@ -339,6 +397,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
 
   it('accepts a word typed but not added — the creator did not change their mind', async () => {
     setup()
+    await answerPurpose()
     await advanceToTags()
     type('sourdough')
     await clickContinue()
@@ -361,6 +420,7 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
 
   it('renders the About step with optional Skip link', async () => {
     setup()
+    await answerPurpose()
     await advanceToAbout()
     expect(
       screen.getByRole('heading', { name: /^About$/i }),
@@ -372,6 +432,7 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
 
   it('fires group.update_draft with about text on Continue', async () => {
     const { updateDraft } = setup()
+    await answerPurpose()
     await advanceToAbout()
     fireEvent.change(screen.getByTestId('sell-about-input'), {
       target: { value: 'I bake sourdough.' },
@@ -400,6 +461,7 @@ describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () =
 
   it('renders the Locality step with Skip', async () => {
     setup()
+    await answerPurpose()
     await advanceToLocality()
     expect(
       screen.getByRole('heading', { name: /locally owned/i }),
@@ -411,6 +473,7 @@ describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () =
 
   it('blocks Continue on a non-5-digit ZIP', async () => {
     setup()
+    await answerPurpose()
     await advanceToLocality()
     fireEvent.change(screen.getByTestId('sell-locality-zip-input'), {
       target: { value: 'abc' },
@@ -421,6 +484,7 @@ describe('SellWalkthrough — step 5 Locality (Tier 0, optional, UI-only)', () =
 
   it('does NOT persist the ZIP at b1 (substrate deferred to F037)', async () => {
     const { updateDraft } = setup()
+    await answerPurpose()
     await advanceToLocality()
     updateDraft.mockClear()
     fireEvent.change(screen.getByTestId('sell-locality-zip-input'), {
@@ -451,6 +515,7 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
 
   it('renders the review list with brand, anchor, about, locality summaries', async () => {
     setup()
+    await answerPurpose()
     await advanceToReview()
     const review = screen.getByTestId('sell-review-list')
     expect(review).toHaveTextContent(/Oak Park Sourdough/)
@@ -458,18 +523,20 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
     expect(review).toHaveTextContent(/skipped/) // locality
   })
 
-  it('final CTA reads "Create my Page"', async () => {
+  it('final CTA reads "Create my shop" for the shop answer', async () => {
     setup()
+    await answerPurpose()
     await advanceToReview()
     expect(
-      screen.getByRole('button', { name: /Create my Page/i }),
+      screen.getByRole('button', { name: /Create my shop/i }),
     ).toBeInTheDocument()
   })
 
   it('fires group.activate with the chosen tags, redirects to the new Group URL, and toasts on success', async () => {
     const { activate, redirect, showToast } = setup()
+    await answerPurpose()
     await advanceToReview()
-    fireEvent.click(screen.getByRole('button', { name: /Create my Page/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
     expect(activate).toHaveBeenCalledWith({
       groupId: 'g-draft-1',
@@ -478,13 +545,14 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
     expect(redirect).toHaveBeenCalledWith(
       '/p/sacramento/g/oak-park-sourdough-abc1',
     )
-    expect(showToast).toHaveBeenCalledWith('Your Page is live.')
+    expect(showToast).toHaveBeenCalledWith('Your shop is live.')
   })
 
   it('sends every tag added, in the order they were added', async () => {
     const { activate } = setup()
+    await answerPurpose()
     await advanceToReview(['sourdough', 'bread', 'pastry'])
-    fireEvent.click(screen.getByRole('button', { name: /Create my Page/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
     expect(activate).toHaveBeenCalledWith({
       groupId: 'g-draft-1',
@@ -496,6 +564,7 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
 describe('SellWalkthrough — back-edit brand does not double-create the draft', () => {
   it('uses update_draft (not create) when brand re-submitted after step 1 created the draft', async () => {
     const { createDraft, updateDraft } = setup()
+    await answerPurpose()
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Sourdough' },
     })
@@ -504,7 +573,7 @@ describe('SellWalkthrough — back-edit brand does not double-create the draft',
     // Step 2 is rendered. Back to step 1.
     fireEvent.click(screen.getByRole('button', { name: /^← Back$/i }))
     expect(
-      screen.getByRole('heading', { name: /Page name/i }),
+      screen.getByRole('heading', { name: /Name your shop/i }),
     ).toBeInTheDocument()
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Bakery' },
@@ -529,7 +598,7 @@ describe('SellWalkthrough — resume', () => {
         anchorLocationId: 'loc-1',
         anchorLocationLabel: "Maya's Kitchen",
         about: '',
-        resumeFromStep: 3, // About step (index shifted by the T144 Category step)
+        resumeFromStep: 4, // About step (index shifted again by F087's question)
       },
     })
     expect(screen.getByRole('heading', { name: /^About$/i })).toBeInTheDocument()
@@ -543,7 +612,7 @@ describe('SellWalkthrough — resume', () => {
         anchorLocationId: 'loc-1',
         anchorLocationLabel: "Maya's Kitchen",
         about: '',
-        resumeFromStep: 3,
+        resumeFromStep: 4,
       },
     })
     fireEvent.change(screen.getByTestId('sell-about-input'), {
