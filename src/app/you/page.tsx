@@ -11,6 +11,7 @@ import { VendorCard } from '@/components/VendorCard'
 import { RecruitmentGrid } from '@/components/RecruitmentGrid'
 import { SellCta } from '@/components/sell/SellCta'
 import { FollowingSummary } from '@/components/follows/FollowingSummary'
+import { NavYouBadge } from '@/components/NavYouBadge'
 
 type Tab = 'saved' | 'following' | 'settings'
 
@@ -166,6 +167,12 @@ function YouPageInner() {
 
   return (
     <main className="pb-24 max-w-3xl mx-auto p-4" data-testid="you-page">
+      {/* F086 (thin front) — on a phone the nav has no room for a name, so the
+          badge lives here too. This is the sign-out control's home on mobile:
+          the You tab is one tap from anywhere and lands on it. */}
+      <div className="mb-4 md:hidden">
+        <NavYouBadge />
+      </div>
       <header className="flex items-baseline justify-between">
         <div>
           <h1 className="text-2xl font-semibold">You</h1>

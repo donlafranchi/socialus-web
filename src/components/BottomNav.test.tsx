@@ -7,10 +7,17 @@ import '@testing-library/jest-dom/vitest'
 import { BottomNav, TopNavDesktop } from './BottomNav'
 import { NavVisibilityContext } from './NavVisibilityProvider'
 
-// TopNavDesktop renders AuthCtaButtons, which builds a Supabase browser client
-// and needs project env vars. This file tests nav structure, not auth — which
-// is also why TopNavDesktop had no test before now.
+// The nav's auth-aware parts build a Supabase browser client and need project
+// env vars. This file tests nav structure, not auth — which is also why
+// TopNavDesktop had no test before now.
+//
+// F086 added two more of them: NavYouBadge in the desktop nav, and useAuth in
+// the You tab's icon. Both are stubbed for the same reason as AuthCtaButtons,
+// and their own behaviour is covered in YouBadge.test.tsx and
+// PersonMark.test.tsx.
 vi.mock('./AuthCtaButtons', () => ({ AuthCtaButtons: () => null }))
+vi.mock('./NavYouBadge', () => ({ NavYouBadge: () => null }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
 
 const pathname = { current: '/' }
 vi.mock('next/navigation', () => ({
