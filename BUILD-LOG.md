@@ -1,4 +1,4 @@
-# BUILD-LOG — movers-makers-shakers/web
+# BUILD-LOG — socialus-web
 
 Development agent's build progress tracker. Use JOURNAL.md for product/strategy notes.
 

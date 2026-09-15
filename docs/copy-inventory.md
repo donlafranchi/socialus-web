@@ -36,9 +36,11 @@ sit under *Uncategorised*.
   inventory. Nobody on the team can see its current wording without logging in.
 - **No other email copy exists.** `RESEND_API_KEY` and `FOLLOW_EMAIL_FROM` sit in
   `.env.local.example` and nothing in `src/` reads them.
-- **`FOLLOW_EMAIL_FROM` still says `Movers, Makers & Shakers`** — the retired
-  product name — so the first email a member would receive, if that path were
-  ever built, would come from a company that no longer exists.
+- **`FOLLOW_EMAIL_FROM` said `Movers, Makers & Shakers`** — the retired product
+  name — so the first email a member would receive, if that path were ever
+  built, would have come from a company that no longer exists. **Fixed in the
+  repo (#96).** The deployed value is a Vercel environment variable and is not
+  version-controlled; whether it still carries the old name is Don's to check.
 
 ### The counts
 
@@ -948,8 +950,10 @@ minority but is not confined to the retired surfaces: "Ownership Type",
 profile section (`components/member/MemberPublicPage.tsx:98`) — the schema word
 surfacing as a UI label.
 
-**Product name.** 25 strings say "SocialUs"; `package.json` and
-`FOLLOW_EMAIL_FROM` still say "Movers, Makers & Shakers".
+**Product name.** 25 strings say "SocialUs". `package.json`, `README.md`,
+`BUILD-LOG.md` and `FOLLOW_EMAIL_FROM` said "Movers, Makers & Shakers" —
+**all fixed in the repo (#96)**. What remains is outside version control: the
+deployed Vercel env var, and the Supabase-hosted email templates.
 
 ### 5. One confirmed rendering bug, and it is invisible to the tests
 
@@ -1018,7 +1022,9 @@ booth. The new creator-attestation copy will need this word in its first
 sentence.
 
 **3. What is the platform called?**
-"SocialUs" in 25 strings, "Movers, Makers & Shakers" in the email sender.
+Settled in the repo as **SocialUs** (#96). Still worth confirming the deployed
+Vercel env var and the Supabase email templates carry it — neither is in version
+control.
 
 **4. Do the retired surfaces get copy, or get deleted?**
 164 strings — 28% of the product's words — are farmers-market surfaces. Writing
