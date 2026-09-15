@@ -29,5 +29,17 @@ export default async function OnboardingPage() {
 
   const m = member as { display_name: string } | null
 
-  return <OnboardingFlow initialDisplayName={m?.display_name ?? ''} />
+  // T163 (F076) — every US metro, selectable at signup. Ordered by name so the
+  // native select's typeahead lands where a person expects.
+  const { data: metroRows } = await supabase
+    .from('metro_polygons')
+    .select('id, name')
+    .order('name')
+
+  return (
+    <OnboardingFlow
+      initialDisplayName={m?.display_name ?? ''}
+      metros={(metroRows ?? []) as { id: string; name: string }[]}
+    />
+  )
 }
