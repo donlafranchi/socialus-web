@@ -17,7 +17,7 @@
 // block this ticket.
 
 import { useEffect, useRef, useState } from 'react'
-import { geocode, type GeocodingResult } from '@/lib/geocoding'
+import { geocode, GeocodingUnavailableError, type GeocodingResult } from '@/lib/geocoding'
 import { sellListNeighborhoodsAction, type Neighborhood } from '@/app/you/sell/actions'
 
 export type PlaceMode = 'address' | 'neighbourhood'
@@ -105,6 +105,16 @@ export function LocationPlaceFields({
             "We couldn't find that address. Try a nearby cross-street or landmark.",
           )
         }
+      } catch (err) {
+        if (!mountedRef.current) return
+        setSuggestions([])
+        // Not the person's fault, and saying so matters: the old copy told
+        // them their address did not exist when the search had never run.
+        setAddressError(
+          err instanceof GeocodingUnavailableError
+            ? 'Address search is unavailable right now. You can pick a neighbourhood instead.'
+            : "We couldn't find that address. Try a nearby cross-street or landmark.",
+        )
       } finally {
         if (mountedRef.current) setSearching(false)
       }

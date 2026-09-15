@@ -16,6 +16,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
+import { succeeded, failed, type ActionResult } from './action-result'
 import { withTransaction } from '@/actions/_lib/db'
 import { deriveInteriorPoint } from '@/lib/geo/interior-point'
 import {
@@ -33,6 +34,31 @@ class SellActionError extends Error {
   constructor(message: string, code: string) {
     super(message)
     this.code = code
+  }
+}
+
+/**
+ * #107 — run an action body and return its failure as DATA.
+ *
+ * A custom Error thrown from a 'use server' function does not cross the
+ * boundary: Next replaces it with a generic digest and the message is gone.
+ * Every message in this file used to die that way, which is how a creation
+ * crash reached Don with nothing to read.
+ *
+ * The client adapter in SellCta turns a returned failure back into a throw,
+ * so the composer's existing catch still works — but the throw now happens
+ * on the client, where the message survives.
+ */
+async function asResult<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
+  try {
+    return succeeded(await fn())
+  } catch (err) {
+    if (err instanceof SellActionError) return failed(err.message, err.code)
+    if (err instanceof ActionError) return failed(err.message, err.code)
+    // An unexpected error still gets a readable sentence rather than a digest.
+    // The detail stays in the server log, where it belongs.
+    console.error('sell action failed:', err)
+    return failed('Something went wrong on our end. Mind trying again?', 'unexpected')
   }
 }
 
@@ -57,7 +83,8 @@ function rethrow(err: unknown): never {
 
 export async function sellCreateDraftAction(input: {
   brand: string
-}): Promise<{ groupId: string }> {
+}): Promise<ActionResult<{ groupId: string }>> {
+  return asResult(async () => {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
@@ -70,6 +97,7 @@ export async function sellCreateDraftAction(input: {
   } catch (err) {
     rethrow(err)
   }
+  })
 }
 
 export async function sellUpdateDraftAction(input: {
@@ -101,7 +129,8 @@ export async function sellUpdateDraftAction(input: {
 export async function sellActivateAction(input: {
   groupId: string
   tags: string[]
-}): Promise<{ destinationUrl: string }> {
+}): Promise<ActionResult<{ destinationUrl: string }>> {
+  return asResult(async () => {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
@@ -176,6 +205,7 @@ export async function sellActivateAction(input: {
     return { destinationUrl: `/p/${placePath}/g/${group.slug}` }
   })
   return { destinationUrl }
+  })
 }
 
 export interface AddressPlacement {
@@ -203,7 +233,8 @@ export type CreateLocationInput =
  *  RLS without exposing service-role to the browser. */
 export async function sellCreateLocationAction(
   input: CreateLocationInput,
-): Promise<{ id: string; label: string }> {
+): Promise<ActionResult<{ id: string; label: string }>> {
+  return asResult(async () => {
   const memberId = await requireMemberId()
   // Runtime guard alongside the compile-time one: a server action is a
   // callable network endpoint, and TypeScript's discriminated union does
@@ -302,6 +333,7 @@ export async function sellCreateLocationAction(
       'location_create_failed',
     )
   }
+  })
 }
 
 export interface Neighborhood {

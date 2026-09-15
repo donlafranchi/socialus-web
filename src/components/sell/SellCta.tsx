@@ -15,6 +15,7 @@
 // "Sell CTA visible on /you for any Member" acceptance criterion.
 
 import { useEffect, useState, useCallback } from 'react'
+import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import {
@@ -179,10 +180,10 @@ export function SellCta({
 
       {walkthroughOpen && signal && (
         <SellWalkthrough
-          createDraft={sellCreateDraftAction}
+          createDraft={(i) => unwrap(sellCreateDraftAction(i))}
           updateDraft={sellUpdateDraftAction}
-          activate={sellActivateAction}
-          createLocation={sellCreateLocationAction}
+          activate={(i) => unwrap(sellActivateAction(i))}
+          createLocation={(i) => unwrap(sellCreateLocationAction(i))}
           availableLocations={locations}
           redirect={(url) => router.push(url)}
           showToast={(msg) => setToast(msg)}

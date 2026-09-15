@@ -62,8 +62,6 @@ export interface SellWalkthroughState {
   /** What is in the input and not yet added. */
   tagDraft: string
   about: string
-  /** Tier 0 ZIP. UI-only at b1 (no member_business_jurisdictions table yet — F037). */
-  localityZip: string
 }
 
 export interface SellWalkthroughHandlers {
@@ -118,7 +116,6 @@ function emptyState(): SellWalkthroughState {
     tags: [],
     tagDraft: '',
     about: '',
-    localityZip: '',
   }
 }
 
@@ -148,8 +145,7 @@ export function SellWalkthrough({
         tags: [],
         tagDraft: '',
         about: resume.about,
-        localityZip: '',
-        purpose: null,
+            purpose: null,
       }
     : emptyState()
 
@@ -280,46 +276,6 @@ export function SellWalkthrough({
     },
 
     // 5. Locality claim (Tier 0) — UI-only at b1 (no substrate).
-    {
-      id: 'locality',
-      title: 'Are you locally owned?',
-      // FLAGGED for Don's wording, not rewritten here: this line carries an
-      // em dash and "Tier 0", both of which voice.md rules out. Only the noun
-      // is swapped, which is the rename this change is scoped to.
-      helper: (state) =>
-        `Add your ZIP to claim Locally Owned status (Tier 0 — self-attested). You can do this later from your ${nounFor(state.purpose)} settings.`,
-      isOptional: true,
-      render: (state, setState) => (
-        <label className="block">
-          <span className="text-sm font-medium text-[var(--color-fg)]">ZIP code</span>
-          <input
-            data-testid="sell-locality-zip-input"
-            aria-label="ZIP code"
-            inputMode="numeric"
-            pattern="[0-9]{5}"
-            maxLength={10}
-            className="input mt-1 w-full"
-            placeholder="95817"
-            value={state.localityZip}
-            onChange={(e) =>
-              setState({ ...state, localityZip: e.target.value })
-            }
-          />
-          <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-            Tier 0 is self-attested — the badge reads <em>Claimed</em>. Upgrade
-            to <em>Verified</em> or <em>Documented</em> later if you choose.
-          </p>
-        </label>
-      ),
-      validate: (state) => {
-        // Optional, but if the user typed something it must be 5 digits.
-        const v = state.localityZip.trim()
-        if (v.length === 0) return { ok: true }
-        return /^\d{5}$/.test(v)
-          ? { ok: true }
-          : { ok: false, errors: { zip: 'Use a 5-digit ZIP, or skip this step.' } }
-      },
-    },
 
     // 6. Review & done
     {
@@ -342,14 +298,6 @@ export function SellWalkthrough({
               state.about
             ) : (
               <em className="text-[var(--color-fg-muted)]">(none)</em>
-            )}
-          </li>
-          <li>
-            <strong>Locally owned ZIP:</strong>{' '}
-            {state.localityZip ? (
-              state.localityZip
-            ) : (
-              <em className="text-[var(--color-fg-muted)]">(skipped)</em>
             )}
           </li>
         </ul>
@@ -435,11 +383,6 @@ export function SellWalkthrough({
           groupId: draftGroupId,
           about: state.about,
         })
-        return
-      }
-      if (stepId === 'locality') {
-        // No substrate at b1 — see DEVIATIONS. Step is UI-only; collected
-        // ZIP discarded on submit. F037 will retro-fit the persistence path.
         return
       }
     },
