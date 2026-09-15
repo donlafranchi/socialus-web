@@ -61,7 +61,7 @@ describe('labelFor', () => {
       labelFor({ draftGroup: null, hasActiveBusinessGroup: true }),
     ).toBe('Sell')
   })
-  it('returns "Continue setting up your shop" when a draft is in flight', () => {
+  it('returns "Continue setting up your Page" when a draft is in flight', () => {
     expect(
       labelFor({
         draftGroup: {
@@ -73,7 +73,7 @@ describe('labelFor', () => {
         },
         hasActiveBusinessGroup: false,
       }),
-    ).toBe('Continue setting up your shop')
+    ).toBe('Continue setting up your Page')
   })
   it('returns "Sell" for first-time Seller', () => {
     expect(
@@ -105,7 +105,7 @@ describe('SellCta — render branches', () => {
     })
   })
 
-  it('shows "Continue setting up your shop" when a draft exists', async () => {
+  it('shows "Continue setting up your Page" when a draft exists', async () => {
     render(
       <SellCta
         memberId="m1"
@@ -129,7 +129,7 @@ describe('SellCta — render branches', () => {
     )
     await waitFor(() => {
       const cta = screen.getByTestId('you-sell-cta')
-      expect(cta).toHaveTextContent(/Continue setting up your shop/i)
+      expect(cta).toHaveTextContent(/Continue setting up your Page/i)
       expect(cta).toHaveAttribute('data-cta-state', 'resume')
     })
   })
@@ -268,7 +268,7 @@ describe('SellCta — render branches', () => {
     fireEvent.click(cta)
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: /Brand name/i }),
+        screen.getByRole('heading', { name: /Page name/i }),
       ).toBeInTheDocument()
     })
   })

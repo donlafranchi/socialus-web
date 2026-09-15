@@ -8,7 +8,7 @@
 //
 //   1. No active business Group AND no in-flight draft → opens the walkthrough at step 1.
 //   2. In-flight draft Group                            → opens the walkthrough with resume hint;
-//                                                          button label reads "Continue setting up your shop".
+//                                                          button label reads "Continue setting up your Page".
 //   3. ≥1 active business-Group membership              → routes to /you/sell (the active-seller index).
 //
 // The CTA stays present in all three branches per F036's
@@ -164,14 +164,14 @@ export function SellCta({
       >
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
-            Your shop
+            Your Page
           </p>
           <p className="text-sm text-neutral-700">
             {signal?.hasActiveBusinessGroup
               ? 'List a product or service.'
               : signal?.draftGroup
                 ? 'Pick up where you left off.'
-                : 'Open a shop on SocialUs.'}
+                : 'Open a Page on SocialUs.'}
           </p>
         </div>
         {ctaButton}
@@ -208,7 +208,7 @@ export function SellCta({
 export function labelFor(signal: SellRoutingSignal | null): string {
   if (!signal) return 'Sell'
   if (signal.hasActiveBusinessGroup) return 'Sell'
-  if (signal.draftGroup) return 'Continue setting up your shop'
+  if (signal.draftGroup) return 'Continue setting up your Page'
   return 'Sell'
 }
 

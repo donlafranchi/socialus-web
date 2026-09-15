@@ -88,10 +88,10 @@ afterEach(() => {
 })
 
 describe('SellWalkthrough — six-step shape', () => {
-  it('opens on step 1 (Brand name) with the 6-step indicator', () => {
+  it('opens on step 1 (Page name) with the 6-step indicator', () => {
     setup()
     expect(
-      screen.getByRole('heading', { name: /Brand name/i }),
+      screen.getByRole('heading', { name: /Page name/i }),
     ).toBeInTheDocument()
     const progress = screen.getByRole('progressbar')
     expect(progress).toHaveAttribute('aria-valuenow', '1')
@@ -458,18 +458,18 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
     expect(review).toHaveTextContent(/skipped/) // locality
   })
 
-  it('final CTA reads "Create my shop"', async () => {
+  it('final CTA reads "Create my Page"', async () => {
     setup()
     await advanceToReview()
     expect(
-      screen.getByRole('button', { name: /Create my shop/i }),
+      screen.getByRole('button', { name: /Create my Page/i }),
     ).toBeInTheDocument()
   })
 
   it('fires group.activate with the chosen tags, redirects to the new Group URL, and toasts on success', async () => {
     const { activate, redirect, showToast } = setup()
     await advanceToReview()
-    fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Create my Page/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
     expect(activate).toHaveBeenCalledWith({
       groupId: 'g-draft-1',
@@ -478,13 +478,13 @@ describe('SellWalkthrough — step 6 Review & activate', () => {
     expect(redirect).toHaveBeenCalledWith(
       '/p/sacramento/g/oak-park-sourdough-abc1',
     )
-    expect(showToast).toHaveBeenCalledWith('Your shop is live.')
+    expect(showToast).toHaveBeenCalledWith('Your Page is live.')
   })
 
   it('sends every tag added, in the order they were added', async () => {
     const { activate } = setup()
     await advanceToReview(['sourdough', 'bread', 'pastry'])
-    fireEvent.click(screen.getByRole('button', { name: /Create my shop/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Create my Page/i }))
     await waitFor(() => expect(activate).toHaveBeenCalledTimes(1))
     expect(activate).toHaveBeenCalledWith({
       groupId: 'g-draft-1',
@@ -504,7 +504,7 @@ describe('SellWalkthrough — back-edit brand does not double-create the draft',
     // Step 2 is rendered. Back to step 1.
     fireEvent.click(screen.getByRole('button', { name: /^← Back$/i }))
     expect(
-      screen.getByRole('heading', { name: /Brand name/i }),
+      screen.getByRole('heading', { name: /Page name/i }),
     ).toBeInTheDocument()
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
       target: { value: 'Oak Park Bakery' },

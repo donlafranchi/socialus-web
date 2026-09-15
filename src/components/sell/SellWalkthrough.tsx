@@ -72,7 +72,7 @@ export interface SellWalkthroughHandlers {
     /** Brand re-edit from Back navigation. Not normally sent. */
     brand?: string
   }) => Promise<void>
-  /** Called on final-step "Create my shop". Returns the place-scoped Group URL. */
+  /** Called on final-step "Create my Page". Returns the place-scoped Group URL. */
   activate: (input: {
     groupId: string
     tags: string[]
@@ -101,7 +101,7 @@ export interface SellWalkthroughProps extends SellWalkthroughHandlers {
   onAbandon: () => void
 }
 
-const TOAST_SUCCESS = 'Your shop is live.'
+const TOAST_SUCCESS = 'Your Page is live.'
 
 function emptyState(): SellWalkthroughState {
   return {
@@ -152,11 +152,11 @@ export function SellWalkthrough({
     // 1. Brand name
     {
       id: 'brand',
-      title: 'Brand name',
-      helper: "What should your shop be called?",
+      title: 'Page name',
+      helper: "What should your Page be called?",
       render: (state, setState) => (
         <label className="block">
-          <span className="text-sm font-medium text-[var(--color-fg)]">Brand name</span>
+          <span className="text-sm font-medium text-[var(--color-fg)]">Page name</span>
           <input
             data-testid="sell-brand-input"
             className="input mt-1 w-full"
@@ -169,14 +169,14 @@ export function SellWalkthrough({
       validate: (state) =>
         state.brand.trim().length > 0
           ? { ok: true }
-          : { ok: false, errors: { brand: 'Brand name is required' } },
+          : { ok: false, errors: { brand: 'Page name is required' } },
     },
 
     // 2. Anchor Location
     {
       id: 'anchor',
       title: 'Anchor Location',
-      helper: 'Where is your shop primarily based?',
+      helper: 'Where is your Page primarily based?',
       render: (state, setState) => (
         <AnchorLocationStep
           state={state}
@@ -236,7 +236,7 @@ export function SellWalkthrough({
       id: 'locality',
       title: 'Are you locally owned?',
       helper:
-        'Add your ZIP to claim Locally Owned status (Tier 0 — self-attested). You can do this later from Shop settings.',
+        'Add your ZIP to claim Locally Owned status (Tier 0 — self-attested). You can do this later from Page settings.',
       isOptional: true,
       render: (state, setState) => (
         <label className="block">
@@ -274,8 +274,8 @@ export function SellWalkthrough({
     {
       id: 'review',
       title: 'Review',
-      helper: 'Confirm the details below, then create your shop.',
-      finalLabel: 'Create my shop',
+      helper: 'Confirm the details below, then create your Page.',
+      finalLabel: 'Create my Page',
       render: (state) => (
         <ul data-testid="sell-review-list" className="text-sm space-y-2">
           <li>
@@ -413,8 +413,8 @@ export function SellWalkthrough({
       onComplete={onComplete}
       onAbandon={onAbandon}
       // T073b: dialog accessible name must NOT match any step input's label
-      // (e.g. "Brand name") or Playwright's getByLabel resolves to both.
-      dialogLabel="Set up your shop"
+      // (e.g. "Page name") or Playwright's getByLabel resolves to both.
+      dialogLabel="Set up your Page"
     />
   )
 }

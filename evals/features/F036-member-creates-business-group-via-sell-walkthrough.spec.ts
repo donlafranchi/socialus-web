@@ -111,7 +111,7 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       // Add-an-Item routing. Conflating them would re-create the Group on every tap.
       await sellCta.click();
       await expect(
-        page.getByRole("heading", { name: /Brand name/i })
+        page.getByRole("heading", { name: /Page name/i })
       ).not.toBeVisible();
     });
   });
@@ -127,9 +127,9 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       // When — drive the walkthrough end-to-end
       await page.getByRole("button", { name: /^Sell$/i }).click();
 
-      // Step 1 — Brand name
+      // Step 1 — Page name
       await page
-        .getByLabel(/Brand name/i)
+        .getByLabel(/Page name/i)
         .fill("Oak Park Sourdough");
       await page.getByRole("button", { name: /Continue/i }).click();
 
@@ -180,7 +180,7 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       await page.goto("/you");
       await page.getByRole("button", { name: /^Sell$/i }).click();
       await page
-        .getByLabel(/Brand name/i)
+        .getByLabel(/Page name/i)
         .fill("Oak Park Sourdough");
       await page.getByRole("button", { name: /Continue/i }).click();
       await page
@@ -283,7 +283,7 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       await page.goto("/you");
       await page.getByRole("button", { name: /^Sell$/i }).click();
       await page
-        .getByLabel(/Brand name/i)
+        .getByLabel(/Page name/i)
         .fill("Oak Park Sourdough");
       await page.getByRole("button", { name: /Continue/i }).click();
       await page
@@ -348,7 +348,7 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       await page.goto("/you");
       await page.getByRole("button", { name: /^Sell$/i }).click();
       await page
-        .getByLabel(/Brand name/i)
+        .getByLabel(/Page name/i)
         .fill("Oak Park Sourdough");
       await page.getByRole("button", { name: /Continue/i }).click();
 
@@ -403,7 +403,7 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       await page.goto("/you");
       await page.getByRole("button", { name: /^Sell$/i }).click();
       await page
-        .getByLabel(/Brand name/i)
+        .getByLabel(/Page name/i)
         .fill("Oak Park Sourdough");
       await page.getByRole("button", { name: /Continue/i }).click();
       // Close the composer via the X button (top-right per recipe)
@@ -454,7 +454,7 @@ test.describe("F036 — Maya creates a business Group through the Sell walkthrou
       // walkthrough would create a redundant duplicate Group and break the
       // multi-business-Group b2 deferral.
       await expect(
-        page.getByRole("heading", { name: /Brand name/i })
+        page.getByRole("heading", { name: /Page name/i })
       ).not.toBeVisible();
 
       // And — an Add-an-Item picker / shop dashboard surface IS visible
