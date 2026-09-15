@@ -51,21 +51,42 @@ comment on column public.group_memberships.relationship is
 ------------------------------------------------------------
 
 -- `memberships_select_co_member` admits every membership row of any group the
--- reader is an explicit member of. The Page's own owner is an explicit member,
--- so without this change the owner — and every other member — can read the
--- follower list of their own open Page.
+-- reader is an explicit member of. Followers of an open Page should not be in
+-- that set for every member of the Page. But the Page's OWNER should see them
+-- (Don, 2026-09-15) — knowing who follows you is the point of being followed.
 --
--- F067 acceptance 2 is explicit that this includes the Page's own side:
--- "a business Page's followers are never visible to anyone, including the
--- business's own visitors, except a count where it earns its place."
+-- So the policy narrows for members and opens for whoever runs the Page.
 --
--- Found by tests/follower-privacy-db.test.ts rather than by reading the
--- policy, which is why the test reads through RLS as three different people
--- rather than asserting the DDL.
---
--- Narrowed, not closed: co-members of a private Page still see each other,
--- because their rows carry relationship = 'member' (acceptance 3). The count
--- is unaffected — it is read server-side, where RLS does not apply.
+-- OPEN, and deliberately not built either way: whether followers can see EACH
+-- OTHER. Don has not ruled. It stays closed here, because closed is reversible
+-- and open is not — once a follower list has been shown to other followers,
+-- it cannot be unshown. A follower is not an explicit member, so
+-- current_member_explicit_group_ids() excludes them and they read nobody.
+
+-- Mirrors current_member_explicit_group_ids: SECURITY DEFINER so the policy
+-- below can consult group_memberships without recursing into its own RLS.
+-- The managing role differs by kind — 'owner' for a business Page, 'steward'
+-- for the community kinds (see managingRoleForKind) — so both count.
+create or replace function public.current_member_managed_group_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path to 'public', 'pg_catalog'
+as $fn$
+  select group_id
+    from public.group_memberships
+   where member_id = auth.uid()
+     and left_at is null
+     and source = 'explicit'
+     and role in ('owner', 'steward');
+$fn$;
+
+revoke all on function public.current_member_managed_group_ids() from public;
+grant execute on function public.current_member_managed_group_ids() to anon, authenticated;
+
+comment on function public.current_member_managed_group_ids() is
+  'Groups the current member runs — role owner or steward, the two managing roles. Used by memberships_select_co_member so a Page owner can read their own follower list (Don, 2026-09-15) while ordinary members cannot.';
 
 drop policy if exists memberships_select_co_member on public.group_memberships;
 
@@ -74,8 +95,13 @@ create policy memberships_select_co_member
   for select
   using (
     group_id in (select current_member_explicit_group_ids())
-    and relationship <> 'follower'
+    and (
+      -- Members of a Page see each other, as they always have.
+      relationship <> 'follower'
+      -- ...and whoever runs the Page also sees who follows it.
+      or group_id in (select current_member_managed_group_ids())
+    )
   );
 
 comment on policy memberships_select_co_member on public.group_memberships is
-  'Explicit members of a Group read that Group''s memberships, EXCEPT followers. A follower of an open Page is visible to nobody, including the Page''s own owner (F067 acceptance 2). A member''s own row stays readable through memberships_select_self whatever the relationship, which is what the follow control reads.';
+  'Explicit members of a Group read that Group''s memberships. Followers are excluded EXCEPT for whoever runs the Page (role owner or steward), who may read their own follower list (Don, 2026-09-15). Whether followers can see each other is undecided and stays closed: a follower is not an explicit member, so this policy never returns anything to one. A member''s own row stays readable through memberships_select_self whatever the relationship, which is what the follow control reads.';

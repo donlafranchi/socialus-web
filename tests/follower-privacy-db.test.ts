@@ -5,9 +5,15 @@
 //
 // The mechanism: `memberships_select_listed_group` returns rows only where
 // source = 'explicit'. A follower is written 'soft_via_follow', so it falls
-// outside. That is why no new policy was added, and why this test exists —
-// the guarantee rests on the handler writing the right source, which a
-// migration cannot enforce.
+// outside. The guarantee rests on the handler writing the right source, which
+// a migration cannot enforce — hence a test that reads as real people.
+//
+// WHO MAY SEE THE FOLLOWER LIST (Don, 2026-09-15):
+//   the Page's owner        YES — knowing who follows you is the point
+//   an ordinary member      no
+//   a stranger              no
+//   another follower        UNDECIDED. Closed here, because closed is
+//                           reversible and open is not. Don's call.
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
@@ -27,6 +33,8 @@ const RUNNABLE = requireRunnable({
 const OWNER = 'aaaaaaaa-0000-4000-8000-00000000f067'
 const FOLLOWER = 'bbbbbbbb-0000-4000-8000-00000000f067'
 const NOSY = 'cccccccc-0000-4000-8000-00000000f067'
+const PLAIN_MEMBER = 'eeeeeeee-0000-4000-8000-00000000f067'
+const OTHER_FOLLOWER = 'ffffffff-0000-4000-8000-00000000f067'
 const OPEN_PAGE = 'dddddddd-0000-4000-8000-00000000f067'
 
 let pool: Pool
@@ -38,7 +46,8 @@ beforeAll(async () => {
   client = await pool.connect()
   await client.query('begin')
 
-  for (const [id, h] of [[OWNER, 'f067-owner'], [FOLLOWER, 'f067-follower'], [NOSY, 'f067-nosy']]) {
+  for (const [id, h] of [[OWNER, 'f067-owner'], [FOLLOWER, 'f067-follower'], [NOSY, 'f067-nosy'],
+                         [PLAIN_MEMBER, 'f067-plain'], [OTHER_FOLLOWER, 'f067-follower-2']]) {
     await client.query(
       `insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
          email_confirmed_at, created_at, updated_at)
@@ -66,6 +75,18 @@ beforeAll(async () => {
     `insert into public.group_memberships (group_id, member_id, role, source, relationship)
      values ($1,$2,'member','soft_via_follow','follower')`,
     [OPEN_PAGE, FOLLOWER],
+  )
+  // A second follower, to test whether followers see each other.
+  await client.query(
+    `insert into public.group_memberships (group_id, member_id, role, source, relationship)
+     values ($1,$2,'member','soft_via_follow','follower')`,
+    [OPEN_PAGE, OTHER_FOLLOWER],
+  )
+  // An ordinary member: explicit, but does not run the Page.
+  await client.query(
+    `insert into public.group_memberships (group_id, member_id, role, source, relationship)
+     values ($1,$2,'member','explicit','member')`,
+    [OPEN_PAGE, PLAIN_MEMBER],
   )
 })
 
@@ -95,10 +116,29 @@ describe.skipIf(!RUNNABLE)('F067 — an open Page hides who follows it', () => {
     expect(rows.map((r) => r.member_id)).not.toContain(FOLLOWER)
   })
 
-  it("the Page's own owner cannot see the follower either", async () => {
-    // Acceptance 2 is explicit that this includes the Page's own side.
+  it('the Page owner CAN see the follower list', async () => {
+    // Don, 2026-09-15, reversing the earlier narrowing. Knowing who follows
+    // you is the point of being followed. F067 acceptance 2 said "nobody,
+    // including the Page's own visitors"; that wording is superseded and is
+    // being amended in ops-pattern.
     const rows = await readAs(OWNER)
+    expect(rows.map((r) => r.member_id)).toContain(FOLLOWER)
+  })
+
+  it('an ordinary member of the same Page cannot', async () => {
+    // The control that keeps the owner grant from becoming a general one.
+    // This member is explicit and not a follower, so they read the Page's
+    // members — but not the people who follow it.
+    const rows = await readAs(PLAIN_MEMBER)
+    expect(rows.map((r) => r.member_id)).toContain(OWNER)
     expect(rows.map((r) => r.member_id)).not.toContain(FOLLOWER)
+  })
+
+  it('a follower cannot see another follower — undecided, kept closed', async () => {
+    // Don has not ruled on this. Closed because closed is reversible: once a
+    // follower list has been shown to other followers it cannot be unshown.
+    const rows = await readAs(FOLLOWER)
+    expect(rows.map((r) => r.member_id)).not.toContain(OTHER_FOLLOWER)
   })
 
   it('the follower can still see their own row, which is what the button reads', async () => {
@@ -120,6 +160,6 @@ describe.skipIf(!RUNNABLE)('F067 — an open Page hides who follows it', () => {
         where group_id = $1 and relationship = 'follower' and left_at is null`,
       [OPEN_PAGE],
     )
-    expect(Number(rows[0].n)).toBe(1)
+    expect(Number(rows[0].n)).toBe(2)
   })
 })
