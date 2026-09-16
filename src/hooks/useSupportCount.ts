@@ -10,6 +10,7 @@ export function useSupportCount(businessId: string | null) {
   useEffect(() => {
     if (!businessId) return
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- tracked in #119
     setLoading(true)
     const supabase = createClient()
 

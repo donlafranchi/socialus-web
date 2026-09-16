@@ -149,17 +149,21 @@ function VendorDashboardInner() {
 // ---------- Overview ----------
 
 function OverviewTab({ data }: { data: DashboardData }) {
+  // One reading of the clock per mount. Date.now() during render is impure and
+  // also lets the 7- and 14-day boundaries below drift apart within one pass.
+  // eslint-disable-next-line react-hooks/purity -- tracked in #119
+  const now = useMemo(() => Date.now(), [])
   const followerCount = data.follows.length
   const recent7Follows = data.follows.filter(
-    (f) => Date.parse(f.created_at) >= Date.now() - 7 * 24 * 3600 * 1000
+    (f) => Date.parse(f.created_at) >= now - 7 * 24 * 3600 * 1000
   ).length
 
   const count7 = (name: string, sourceWindow: VendorAnalyticsEvent[]) =>
     sourceWindow.filter((e) => e.event_name === name).length
   const prevWindow = data.events14.filter(
     (e) =>
-      Date.parse(e.created_at) < Date.now() - 7 * 24 * 3600 * 1000 &&
-      Date.parse(e.created_at) >= Date.now() - 14 * 24 * 3600 * 1000
+      Date.parse(e.created_at) < now - 7 * 24 * 3600 * 1000 &&
+      Date.parse(e.created_at) >= now - 14 * 24 * 3600 * 1000
   )
 
   const profileViews7 = count7('profile_view', data.events7)
@@ -167,13 +171,13 @@ function OverviewTab({ data }: { data: DashboardData }) {
   const supportClicks7 = count7('support_click', data.events7)
   const supportClicksPrev = count7('support_click', prevWindow)
   const bulletinOpens7 = data.stats14
-    .filter((s) => Date.parse(s.day) >= Date.now() - 7 * 24 * 3600 * 1000)
+    .filter((s) => Date.parse(s.day) >= now - 7 * 24 * 3600 * 1000)
     .reduce((sum, s) => sum + (s.bulletin_opens ?? 0), 0)
   const bulletinOpensPrev = data.stats14
     .filter(
       (s) =>
-        Date.parse(s.day) < Date.now() - 7 * 24 * 3600 * 1000 &&
-        Date.parse(s.day) >= Date.now() - 14 * 24 * 3600 * 1000
+        Date.parse(s.day) < now - 7 * 24 * 3600 * 1000 &&
+        Date.parse(s.day) >= now - 14 * 24 * 3600 * 1000
     )
     .reduce((sum, s) => sum + (s.bulletin_opens ?? 0), 0)
 
@@ -412,7 +416,8 @@ function FollowersTab({ data }: { data: DashboardData }) {
 // ---------- Activity ----------
 
 function ActivityTab({ data }: { data: DashboardData }) {
-  const now = Date.now()
+  // eslint-disable-next-line react-hooks/purity -- tracked in #119
+  const now = useMemo(() => Date.now(), [])
   const within = (e: VendorAnalyticsEvent, hoursStart: number, hoursEnd: number) => {
     const t = Date.parse(e.created_at)
     return t >= now - hoursEnd * 3600 * 1000 && t < now - hoursStart * 3600 * 1000

@@ -30,6 +30,7 @@ export default function JoinPage() {
   // a Member and needs the explanation before the form.
   useEffect(() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- tracked in #119
     setUrl(`${origin}/join`)
 
     const client = supabase()

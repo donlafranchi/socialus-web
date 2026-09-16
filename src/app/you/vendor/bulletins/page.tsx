@@ -85,7 +85,7 @@ export default function BulletinsListPage() {
 
       {loaded && rows.length === 0 && (
         <div className="mt-8 text-center py-10 px-6 border border-dashed border-neutral-300 rounded-xl">
-          <p className="text-sm text-neutral-600">You haven't sent any bulletins yet.</p>
+          <p className="text-sm text-neutral-600">You haven&apos;t sent any bulletins yet.</p>
           <Link href="/you/vendor/bulletins/new" className="mt-4 inline-flex btn-primary">
             Write your first bulletin
           </Link>

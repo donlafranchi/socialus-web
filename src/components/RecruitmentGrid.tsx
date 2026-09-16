@@ -15,7 +15,7 @@ const RECRUITMENT_CATEGORIES: Category[] = [
     name: 'Food Makers',
     emoji: '🍞',
     spots: ['Home Baker', 'Fermenter', 'Preserves & Honey Maker'],
-    example: { name: "Clara's Kitchen", tagline: 'Sourdough loaves, cookies & seasonal jams — baked in small batches' },
+    example: { name: "Clara&apos;s Kitchen", tagline: 'Sourdough loaves, cookies & seasonal jams — baked in small batches' },
   },
   {
     name: 'Growers',
@@ -132,7 +132,7 @@ function FeaturedExampleCard() {
             <Star size={12} className="fill-amber-500 text-amber-500" />
             Featured Maker
           </div>
-          <h3 className="mt-1 text-lg font-semibold text-neutral-900">Clara's Kitchen</h3>
+          <h3 className="mt-1 text-lg font-semibold text-neutral-900">Clara&apos;s Kitchen</h3>
           <p className="text-sm text-neutral-600 mt-1">
             Sourdough loaves, brown-butter cookies, and seasonal jams — baked from a home kitchen in Oak Park.
             Pickup Saturdays at the Midtown Farmers Market.
@@ -162,7 +162,7 @@ export function RecruitmentGrid() {
   return (
     <div className="space-y-8">
       <div className="px-3 md:px-6 pt-6">
-        <h2 className="text-base font-semibold text-neutral-900">We're looking for makers in Sacramento</h2>
+        <h2 className="text-base font-semibold text-neutral-900">We&apos;re looking for makers in Sacramento</h2>
         <p className="text-sm text-neutral-600 mt-1">
           Every spot below is open. Listing costs nothing and takes about 90 seconds.
         </p>
