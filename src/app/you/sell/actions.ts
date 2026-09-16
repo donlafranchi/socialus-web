@@ -106,6 +106,7 @@ export async function sellUpdateDraftAction(input: {
   brand?: string
   anchorLocationId?: string
   about?: string
+  photoUrl?: string | null
 }): Promise<void> {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
@@ -121,6 +122,8 @@ export async function sellUpdateDraftAction(input: {
       ...(input.about !== undefined
         ? { businessPublicDescription: input.about }
         : {}),
+      // F070 · T145 — `!== undefined`, so an explicit null clears the photo.
+      ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
     })
   } catch (err) {
     rethrow(err)

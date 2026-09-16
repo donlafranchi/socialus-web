@@ -28,6 +28,15 @@ export const groupUpdateDraftInput = z.object({
   name: z.string().min(1).max(120).optional(),
   description: z.string().max(2000).optional(),
   anchorLocationId: z.string().uuid().nullable().optional(),
+  // F070 · T145 — the Page's photo. `null` clears it; `undefined` leaves it
+  // alone. The composer needs both: removing a photo is a deliberate act and
+  // is not the same as advancing past the step without touching it.
+  //
+  // A URL, not a file: uploading is the browser's job (`lib/media/upload-image`
+  // resizes, re-encodes and puts the object in the media bucket), and this
+  // handler records where it landed. Keeping the bytes out of the action layer
+  // is what lets the same handler serve the composer and any later surface.
+  photoUrl: z.string().url().nullable().optional(),
   // group_businesses patches (only meaningful for kind='business' rows; the
   // handler skips them silently if the underlying Group is a community kind).
   businessDisplayName: z.string().min(1).max(120).optional(),
@@ -55,6 +64,7 @@ type GroupSpineSetClause =
   | 'slug = $'
   | 'description = $'
   | 'anchor_location_id = $'
+  | 'photo_url = $'
 type GroupBusinessSetClause =
   | 'display_name = $'
   | 'public_description = $'
@@ -149,6 +159,13 @@ export const groupUpdateDraft = defineHandler(
         })
         patched.push('anchor_location_id')
       }
+      // Photo. `!== undefined` rather than a truthiness check, so an explicit
+      // null clears the column instead of being silently skipped.
+      if (input.photoUrl !== undefined) {
+        spineFragments.push({ clause: 'photo_url = $', value: input.photoUrl })
+        patched.push('photo_url')
+      }
+
       if (spineFragments.length > 0) {
         const setSql = spineFragments
           .map((f, i) => `${f.clause}${i + 1}`)
