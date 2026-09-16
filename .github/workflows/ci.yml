@@ -103,17 +103,24 @@ jobs:
       # instance is disposable. It is safe to state here precisely because the
       # stack was created three steps ago and dies with the runner.
       #
-      # NEXT_PUBLIC_SUPABASE_URL points at the same local stack on purpose.
-      # write-safe.ts treats a remote value there as production and refuses to
-      # write, which is the correct behaviour and would block the suite.
+      # NEXT_PUBLIC_* are deliberately NOT set. They are what the app's own
+      # client reads, and several unit suites are written against a client that
+      # cannot reach anything — src/lib/media/upload-image.test.ts asserts an
+      # 8MB photo is not rejected pre-resize, and reaches that assertion only
+      # because the upload fails instantly. Pointing those variables at the
+      # live local stack turned that instant failure into a hung socket and
+      # timed the suite out. Leaving them unset is also what `npm test` does on
+      # a developer's machine, so CI and local agree.
+      #
+      # write-safe.ts is satisfied regardless: with NEXT_PUBLIC_SUPABASE_URL
+      # unset there is no protected ref to collide with, and the write-bound
+      # suites judge SUPABASE_URL, which is the local stack.
       - name: Vitest
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
           SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           SUPABASE_TEST_EPHEMERAL: '1'
         run: |
           export SUPABASE_ANON_KEY="${ANON_KEY:?supabase status did not export ANON_KEY}"
           export SUPABASE_SERVICE_ROLE_KEY="${SERVICE_ROLE_KEY:?supabase status did not export SERVICE_ROLE_KEY}"
-          export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$SUPABASE_ANON_KEY"
           npm test

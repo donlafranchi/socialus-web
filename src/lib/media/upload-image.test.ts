@@ -167,12 +167,7 @@ describe('uploadImage / deleteImage', () => {
     // call itself will fail — the point is that it gets there at all,
     // i.e. resizeAndEncode did not reject on the 8MB source size.
     await expect(uploadImage(file, 'member-1')).rejects.not.toMatchObject({ code: 'too-large' })
-    // 20s, not Vitest's 5s default. Two costs land here that do not land on the
-    // tests around it: resizing a real 8MB buffer, and — since CI runs with a
-    // live local Supabase at 127.0.0.1 — an upload that now actually crosses a
-    // socket before being rejected, rather than failing instantly on an
-    // unreachable host. The assertion is unchanged; only the time budget is.
-  }, 20_000)
+  })
 
   it('deleteImage is a no-op on a URL outside the media bucket', async () => {
     const { deleteImage } = await import('./upload-image')
