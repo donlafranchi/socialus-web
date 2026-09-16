@@ -11,20 +11,30 @@
 // wrapper enforces this.
 
 import { Pool, type PoolClient } from 'pg'
+import { resolveConnectionString } from './db-config'
 
 let pool: Pool | null = null
 
+/**
+ * Is a connection string configured at all? Answers without opening a
+ * connection, so a health check can ask before any member does.
+ *
+ * Kept separate from getPool() deliberately: the whole failure this guards
+ * against was that the only thing which ever asked this question was a write
+ * already in flight. See db-config.ts.
+ */
+export function assertPoolConfigured(env = process.env): void {
+  const resolved = resolveConnectionString(env)
+  if (!resolved.ok) throw new Error(resolved.message)
+}
+
 export function getPool(): Pool {
   if (pool) return pool
-  const connectionString =
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_URL_NON_POOLING ??
-    process.env.POSTGRES_URL
-  if (!connectionString) {
-    throw new Error(
-      'Action layer DB pool: DATABASE_URL (or POSTGRES_URL_NON_POOLING / POSTGRES_URL) must be set.',
-    )
+  const resolved = resolveConnectionString(process.env)
+  if (!resolved.ok) {
+    throw new Error(resolved.message)
   }
+  const { connectionString } = resolved
   pool = new Pool({
     connectionString,
     // Modest defaults for the action layer; tune per environment later.
