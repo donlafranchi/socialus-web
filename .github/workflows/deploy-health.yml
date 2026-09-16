@@ -1,0 +1,91 @@
+name: Deploy health
+
+# Does the deployed app have a working database connection?
+#
+# On 2026-09-16 Don could not create a Page. The cause was that DATABASE_URL had
+# never been set in any Vercel environment — since 2026-05-11, when the action
+# layer's pool landed. Every write in the app was down for four months: signup,
+# Page creation, follows, posts, reports, the lot. Reads were fine, because they
+# go through PostgREST and never touch that pool, so the app looked healthy.
+#
+# Nothing detected it. The unit suite passes (it uses a local stack), the build
+# passes (it never connects), lint and types pass. A config gap in a deployed
+# environment is invisible to every check that runs before the deploy.
+#
+# So this one runs AFTER, against the running app, and asks the deployment
+# itself. /api/health/db reports unconfigured / unreachable / ok. Nothing here
+# knows a password: the endpoint answers about its own environment.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 13 * * *'   # 13:00 UTC daily — catches a variable deleted later
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Origin to check (defaults to the production URL)'
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-health-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Database reachable from the deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      # A push to main triggers a Vercel build that this workflow races. The
+      # retry loop below is what waits it out — polling is cheaper and more
+      # honest than a fixed sleep guessed at once and never revisited.
+      - name: Ask the deployment about its database
+        env:
+          # vars.HEALTH_URL overrides without a code change — a renamed domain,
+          # or pointing this at a preview. Not a secret: it is a public origin.
+          TARGET: ${{ inputs.url || vars.HEALTH_URL || 'https://www.socialus.org' }}
+        run: |
+          set -uo pipefail
+          endpoint="${TARGET%/}/api/health/db"
+          echo "Checking $endpoint"
+
+          attempt=0
+          max=20          # 20 x 30s = 10 minutes, enough for a Vercel build
+          body=''
+          while [ "$attempt" -lt "$max" ]; do
+            attempt=$((attempt + 1))
+            code="$(curl -sS -o /tmp/health.json -w '%{http_code}' --max-time 20 "$endpoint" || echo 000)"
+            body="$(cat /tmp/health.json 2>/dev/null || true)"
+
+            if [ "$code" = "200" ]; then
+              echo "::notice::Database reachable from $TARGET"
+              echo "$body"
+              exit 0
+            fi
+
+            # 503 is the endpoint answering, and it has already said why. That is
+            # a real answer, not a transient — fail now rather than burning ten
+            # minutes re-asking a question that has been answered.
+            if [ "$code" = "503" ]; then
+              echo "::error::$TARGET reports its database is not usable."
+              echo "$body"
+              case "$body" in
+                *unconfigured*)
+                  echo "::error::No connection string in that environment. Set DATABASE_URL in Vercel for BOTH Production and Preview — the Supavisor pooler URL, not db.<ref>.supabase.co. See INFRASTRUCTURE.md § Environment variables."
+                  ;;
+                *unreachable*)
+                  echo "::error::A connection string is set but the database did not answer. Wrong pooler shard, or the direct host (no A record, dead from IPv4-only runtimes)."
+                  ;;
+              esac
+              exit 1
+            fi
+
+            echo "attempt $attempt/$max: HTTP $code — deployment may still be building, retrying in 30s"
+            sleep 30
+          done
+
+          echo "::error::$endpoint never answered 200 or 503 after $max attempts (last HTTP $code)."
+          echo "$body"
+          exit 1

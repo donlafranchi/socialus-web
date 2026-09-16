@@ -463,9 +463,12 @@ Details that cause failures if missed:
   `postgresql-client` is usually older than Supabase's Postgres and `pg_dump`
   refuses to run against a newer server. Pin the client version explicitly in
   the workflow.
-- **Use the pooler-free connection string** for dumps. Session pooling and
-  `pg_dump` interact badly. Take the direct connection string from Supabase >
-  Project Settings > Database.
+- **Use the pooler-free connection string** for dumps, **and only for dumps**.
+  Session pooling and `pg_dump` interact badly. Take the direct connection
+  string from Supabase > Project Settings > Database. **This is not advice for
+  the app** — `DATABASE_URL` in Vercel must be the pooler URL, because the
+  direct host has no A record and Vercel is IPv4-only. See § Environment
+  variables.
 - **`--no-owner --no-privileges`** so the dump restores into a fresh project
   without role errors.
 - **Storage objects** are not in `pg_dump`. The Supabase CLI can mirror a bucket
@@ -659,10 +662,46 @@ deployment view: what belongs in Vercel, and which item put it there.
 | `CRON_SECRET` | All | 7 |
 | `AUTH_BEFORE_USER_CREATED_HOOK_SECRET` | All | 8 |
 | `ADMIN_EMAILS` | All | UI gating, item 9 |
-| `DATABASE_URL` | Local, or direct prod string | Action-layer pool, item 10 |
+| `DATABASE_URL` | **Production and Preview** (and local) | Action-layer pool, item 10 — see the note below |
 | `SIGNUP_BLOCKED_EMAIL_DOMAINS` | Optional | 8 |
 | `SIGNUP_ALLOWED_EMAIL_DOMAINS` | Optional | 8 |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Local only | Playwright evals |
+
+### `DATABASE_URL` — the one that took the app down
+
+**Set it in Production AND Preview.** It was missing from both for four months
+(2026-05-11 to 2026-09-16) and **every write in the app was down the whole
+time** — signup, Page creation, follows, posts, reports. Reads were unaffected,
+because they go through PostgREST and never touch this pool, so the app looked
+healthy. Nothing detected it: the unit suite runs against a local stack, the
+build never connects, and no check ran against a deployed environment. That is
+what `/api/health/db` and `.github/workflows/deploy-health.yml` now cover.
+
+**Use the Supavisor pooler URL, not the direct host:**
+
+```
+postgresql://postgres.<PROJECT_REF>:<URL-ENCODED-PASSWORD>@aws-0-us-west-2.pooler.supabase.com:5432/postgres
+```
+
+- **Why the pooler.** `db.<ref>.supabase.co` publishes **AAAA only — no A
+  record**. Vercel functions and GitHub runners are IPv4-only, so the direct
+  host is simply unreachable from both. `scripts/supabase-db-url.sh` prints the
+  DNS evidence on every run.
+- **Percent-encode the password.** Database passwords routinely contain
+  `@ : / ? #`, every one of which changes the meaning of a connection string. A
+  raw paste fails with an error that points nowhere near the cause.
+- **The shard is not derivable from the ref.** `socialus-db` answers on
+  `aws-0-us-west-2` (verified 2026-09-13); newer projects sit on `aws-1`.
+- **Generate it rather than assembling it by hand:**
+  `SUPABASE_PROJECT_REF=<ref> SUPABASE_DB_PASSWORD=<password> bash scripts/supabase-db-url.sh`
+  — it encodes the password, tries both shards, verifies the connection, and
+  prints the URL on stdout with its reasoning on stderr.
+
+> **This does not contradict the backup guidance above.** The "use the
+> pooler-free connection string" line under item 11 is about **`pg_dump` only**
+> — session pooling and `pg_dump` interact badly. That is a constraint on dumps,
+> not on the app. The running app uses the pooler; dumps use the direct string,
+> from a host that has IPv6.
 
 Added by the wire-ups above, not yet in the example file:
 
