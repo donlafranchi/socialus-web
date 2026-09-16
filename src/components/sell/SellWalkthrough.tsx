@@ -25,6 +25,7 @@ import {
   type StepDef,
 } from '@/components/composer/MultiStepComposer'
 import { AddEntityDrawer } from '@/components/composer/AddEntityDrawer'
+import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import {
   LocationPlaceFields,
   initialLocationPlaceFieldsState,
@@ -56,6 +57,11 @@ export interface SellWalkthroughState {
    *  the final activate() call (see onComplete) so changing your mind
    *  mid-draft never writes more than the one final choice — see T144
    *  Completion notes on the resume tradeoff this costs. */
+  /** F070 · T145 — the Page's photo, as a URL in the media bucket. Null until
+   *  one is chosen, and null again if it is removed — the two are different
+   *  and `group.update_draft` writes both. The upload happens in the picker;
+   *  by the time it reaches here the bytes are already stored. */
+  photoUrl: string | null
   /** T159 — the tags a creator has added, as typed. Normalization happens at
    *  the handler, not here, so what the creator sees is what they wrote. */
   tags: string[]
@@ -72,6 +78,8 @@ export interface SellWalkthroughHandlers {
     groupId: string
     anchorLocationId?: string
     about?: string
+    /** F070 · T145 — null clears the photo; undefined leaves it alone. */
+    photoUrl?: string | null
     /** Brand re-edit from Back navigation. Not normally sent. */
     brand?: string
   }) => Promise<void>
@@ -98,10 +106,14 @@ export interface SellWalkthroughProps extends SellWalkthroughHandlers {
     anchorLocationId: string | null
     anchorLocationLabel: string | null
     about: string
+    /** F070 · T145 — the photo already on the draft, if any. */
+    photoUrl?: string | null
     /** 0-indexed step the composer should resume on. */
     resumeFromStep: number
   }
   onAbandon: () => void
+  /** F070 · T145 — whose media folder an uploaded photo lands in. */
+  memberId: string
 }
 
 const toastSuccess = (purpose: Purpose | null) => `Your ${nounFor(purpose)} is live.`
@@ -113,6 +125,7 @@ function emptyState(): SellWalkthroughState {
     brand: '',
     anchorLocationId: null,
     anchorLocationLabel: null,
+    photoUrl: null,
     tags: [],
     tagDraft: '',
     about: '',
@@ -121,6 +134,7 @@ function emptyState(): SellWalkthroughState {
 
 export function SellWalkthrough({
   resume,
+  memberId,
   createDraft,
   updateDraft,
   activate,
@@ -139,6 +153,7 @@ export function SellWalkthrough({
         brand: resume.brand,
         anchorLocationId: resume.anchorLocationId,
         anchorLocationLabel: resume.anchorLocationLabel,
+        photoUrl: resume.photoUrl ?? null,
         // T144 — category is never persisted during drafting (see the
         // field's own comment above), so a resumed session has no
         // server-side value to restore it from. The Member re-picks it.
@@ -270,6 +285,13 @@ export function SellWalkthrough({
             value={state.about}
             onChange={(e) => setState({ ...state, about: e.target.value })}
           />
+          <div className="mt-4">
+            <PagePhotoPicker
+              memberId={memberId}
+              value={state.photoUrl}
+              onChange={(url: string | null) => setState({ ...state, photoUrl: url })}
+            />
+          </div>
         </label>
       ),
       validate: () => ({ ok: true }),
@@ -291,6 +313,14 @@ export function SellWalkthrough({
           <li>
             <strong>Anchor Location:</strong>{' '}
             {state.anchorLocationLabel ?? '(set)'}
+          </li>
+          <li>
+            <strong>Photo:</strong>{' '}
+            {state.photoUrl ? (
+              'added'
+            ) : (
+              <em className="text-[var(--color-fg-muted)]">(none)</em>
+            )}
           </li>
           <li>
             <strong>About:</strong>{' '}
@@ -382,6 +412,10 @@ export function SellWalkthrough({
         await updateDraft({
           groupId: draftGroupId,
           about: state.about,
+          // Always sent, never conditional on truthiness: null is how a
+          // removed photo reaches the handler, and `undefined` would mean
+          // "leave it alone" — which would make removal impossible.
+          photoUrl: state.photoUrl,
         })
         return
       }

@@ -1,0 +1,119 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// F070 · T145 — a Page gets a photo at creation.
+//
+// Everything downstream of this already exists on main: the media bucket
+// (039), `groups.photo_url`, the hide columns (T123), `visiblePhotoUrl()`,
+// `HiddenPhotoNotice`, and `ShopPublicPage` rendering the result. What did not
+// exist was any way to WRITE the column — `uploadImage()` had zero callers and
+// no action touched `photo_url`. A Page could be hidden, restored and rendered,
+// but never given a photo in the first place.
+//
+// So this covers the write half, at the only layer allowed to do it:
+//
+//   1. `photoUrl` patches `groups.photo_url` through the closed SET-clause
+//      enum, like every other patchable field.
+//   2. Clearing is explicit — `null` is a value, `undefined` is "don't touch".
+//      The composer needs both: removing a photo is not the same as skipping
+//      the step.
+//   3. The draft/owner/TOCTOU refusals already guarding this handler apply to
+//      the photo exactly as they do to the name. A photo is not a special case
+//      with its own weaker path.
+
+type QueryCall = [string, unknown[]?]
+
+const { query } = vi.hoisted(() => ({ query: vi.fn() }))
+
+vi.mock('../_lib/db', () => ({
+  withTransaction: vi.fn(async (fn: (c: { query: typeof query }) => unknown) => fn({ query })),
+}))
+
+import { groupUpdateDraft, groupUpdateDraftInput } from './update-draft'
+import { AuthorizationError, ValidationError } from '../_lib/errors'
+import type { ActionContext } from '../_lib/context'
+
+const GROUP = '11111111-1111-1111-1111-111111111111'
+const OWNER = '22222222-2222-2222-2222-222222222222'
+const OTHER = '33333333-3333-3333-3333-333333333333'
+const PHOTO = 'https://x.supabase.co/storage/v1/object/public/media/m/a.webp'
+
+function ctx(actingMemberId: string = OWNER): ActionContext {
+  return {
+    actingMemberId,
+    viaDelegationId: null,
+    traceId: 't',
+    db: {} as never,
+    now: () => new Date('2026-09-16T12:00:00Z'),
+  }
+}
+
+/** draft business Page owned by OWNER, unless told otherwise. */
+function happyPath(opts: { lifecycle?: string; owned?: boolean } = {}) {
+  const { lifecycle = 'draft', owned = true } = opts
+  query.mockReset()
+  query.mockImplementation(async (sql: string) => {
+    if (/from public\.groups/.test(sql)) {
+      return { rows: [{ id: GROUP, kind: 'business', lifecycle_state: lifecycle }], rowCount: 1 }
+    }
+    if (/from public\.group_memberships/.test(sql)) {
+      return { rows: owned ? [{ role: 'owner' }] : [], rowCount: owned ? 1 : 0 }
+    }
+    if (/update public\.groups/.test(sql)) return { rows: [], rowCount: 1 }
+    return { rows: [], rowCount: 0 }
+  })
+}
+
+const updateCall = (): QueryCall | undefined =>
+  (query.mock.calls as QueryCall[]).find(([sql]) => /update public\.groups/.test(sql))
+
+beforeEach(() => happyPath())
+
+describe('F070 · T145 — group.update_draft accepts a photo', () => {
+  it('accepts photoUrl on the input schema', () => {
+    const parsed = groupUpdateDraftInput.safeParse({ groupId: GROUP, photoUrl: PHOTO })
+    expect(parsed.success).toBe(true)
+  })
+
+  it('writes photo_url, and reports it as patched', async () => {
+    const result = await groupUpdateDraft(ctx(), { groupId: GROUP, photoUrl: PHOTO })
+
+    const [sql, params] = updateCall() ?? ['', []]
+    expect(sql).toMatch(/photo_url = \$/)
+    expect(params).toContain(PHOTO)
+    expect(result.patchedFields).toContain('photo_url')
+  })
+
+  it('clears the photo when passed null — removing is not the same as skipping', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, photoUrl: null })
+
+    const [sql, params] = updateCall() ?? ['', []]
+    expect(sql).toMatch(/photo_url = \$/)
+    expect(params).toContain(null)
+  })
+
+  it('leaves photo_url alone when photoUrl is absent', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, name: 'Clara' })
+
+    const [sql] = updateCall() ?? ['', []]
+    expect(sql).not.toMatch(/photo_url/)
+  })
+
+  it('rejects a photoUrl that is not a URL', () => {
+    const parsed = groupUpdateDraftInput.safeParse({ groupId: GROUP, photoUrl: 'not-a-url' })
+    expect(parsed.success).toBe(false)
+  })
+
+  it('refuses a photo on a Page the caller does not manage', async () => {
+    happyPath({ owned: false })
+    await expect(
+      groupUpdateDraft(ctx(OTHER), { groupId: GROUP, photoUrl: PHOTO }),
+    ).rejects.toBeInstanceOf(AuthorizationError)
+  })
+
+  it('refuses a photo on a Page that is no longer a draft', async () => {
+    happyPath({ lifecycle: 'active' })
+    await expect(
+      groupUpdateDraft(ctx(), { groupId: GROUP, photoUrl: PHOTO }),
+    ).rejects.toBeInstanceOf(ValidationError)
+  })
+})

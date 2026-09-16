@@ -52,6 +52,7 @@ function setup(overrides: Partial<Parameters<typeof SellWalkthrough>[0]> = {}) {
 
   const utils = render(
     <SellWalkthrough
+      memberId="member-1"
       createDraft={createDraft}
       updateDraft={updateDraft}
       activate={activate}
@@ -444,9 +445,13 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
       target: { value: 'I bake sourdough.' },
     })
     await clickContinue()
+    // F070 · T145 — the About step now also carries the photo. `null` is
+    // sent, not omitted: omitting would mean "leave it alone" and make
+    // removing a photo impossible.
     expect(updateDraft).toHaveBeenLastCalledWith({
       groupId: 'g-draft-1',
       about: 'I bake sourdough.',
+      photoUrl: null,
     })
   })
 })
@@ -586,6 +591,7 @@ describe('SellWalkthrough — resume', () => {
     expect(updateDraft).toHaveBeenCalledWith({
       groupId: 'g-existing',
       about: 'updated',
+      photoUrl: null,
     })
   })
 })

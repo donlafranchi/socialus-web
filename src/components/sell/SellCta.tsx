@@ -180,6 +180,7 @@ export function SellCta({
 
       {walkthroughOpen && signal && (
         <SellWalkthrough
+          memberId={memberId}
           createDraft={(i) => unwrap(sellCreateDraftAction(i))}
           updateDraft={sellUpdateDraftAction}
           activate={(i) => unwrap(sellActivateAction(i))}
