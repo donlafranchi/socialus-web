@@ -4,11 +4,8 @@ import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import type { Vendor, Market, VendorCategory } from '@/lib/types'
 import { useMarket } from '@/components/MarketContext'
 import { MarketSelector } from '@/components/MarketSelector'
-import { VendorCard } from '@/components/VendorCard'
-import { RecruitmentGrid } from '@/components/RecruitmentGrid'
 import { SellCta } from '@/components/sell/SellCta'
 import { FollowingSummary } from '@/components/follows/FollowingSummary'
 import { NavYouBadge } from '@/components/NavYouBadge'
@@ -20,23 +17,6 @@ function supabase() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   )
-}
-
-interface VendorWithMeta {
-  vendor: Vendor
-  primaryCategory: string | null
-  nextMarket: Market | null
-}
-
-function pickPrimary(cats: VendorCategory[], vendorId: string): string | null {
-  const v = cats.filter((c) => c.vendor_id === vendorId)
-  const primary = v.find((c) => c.is_primary)
-  return primary?.category_slug ?? v[0]?.category_slug ?? null
-}
-
-function pickNextMarket(vendorId: string, allMarkets: Market[], links: { vendor_id: string; market_id: string }[]): Market | null {
-  const ids = links.filter((l) => l.vendor_id === vendorId).map((l) => l.market_id)
-  return allMarkets.find((m) => ids.includes(m.id)) ?? null
 }
 
 export default function YouPage() {
@@ -58,10 +38,7 @@ function YouPageInner() {
   const [email, setEmail] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [hasVendor, setHasVendor] = useState(false)
   const [emailsEnabled, setEmailsEnabled] = useState(true)
-  const [savedVendors, setSavedVendors] = useState<VendorWithMeta[]>([])
-  const [followedVendors, setFollowedVendors] = useState<VendorWithMeta[]>([])
 
   useEffect(() => {
     const client = supabase()
@@ -74,49 +51,18 @@ function YouPageInner() {
       setEmail(user.email ?? null)
       setUserId(user.id)
 
-      const [
-        { data: vendorRow },
-        { data: prefs },
-        { data: supports },
-        { data: follows },
-        { data: allCats },
-        { data: allMarkets },
-        { data: allLinks },
-      ] = await Promise.all([
-        client.from('businesses').select('slug').eq('user_id', user.id).limit(1).maybeSingle(),
-        client.from('user_preferences').select('follow_emails_enabled').eq('user_id', user.id).maybeSingle(),
-        client.from('supports').select('business_id').eq('user_id', user.id),
-        client.from('follows').select('vendor_id').eq('user_id', user.id).is('unfollowed_at', null),
-        client.from('vendor_categories').select('*'),
-        client.from('markets').select('*'),
-        client.from('market_vendors').select('vendor_id, market_id'),
-      ])
+      // Vendors are retired (DECISIONS 2026-09-16). The tables this block used
+      // to read — businesses, vendors, follows, vendor_categories, markets,
+      // market_vendors, supports — do not exist and never did, so every one of
+      // these queries returned nothing and the tabs below rendered empty.
+      // What survives is the one preference this page actually stores.
+      const { data: prefs } = await client
+        .from('user_preferences')
+        .select('follow_emails_enabled')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-      setHasVendor(!!vendorRow)
       setEmailsEnabled(prefs?.follow_emails_enabled ?? true)
-
-      const cats = (allCats ?? []) as VendorCategory[]
-      const markets = (allMarkets ?? []) as Market[]
-      const links = (allLinks ?? []) as { vendor_id: string; market_id: string }[]
-
-      const supportIds = (supports ?? []).map((s) => s.business_id)
-      const followIds = (follows ?? []).map((f) => f.vendor_id)
-      const allIds = Array.from(new Set([...supportIds, ...followIds]))
-
-      if (allIds.length > 0) {
-        const { data: vRows } = await client.from('businesses').select('*').in('id', allIds)
-        const vendors = (vRows ?? []) as Vendor[]
-        const buildMeta = (ids: string[]): VendorWithMeta[] =>
-          vendors
-            .filter((v) => ids.includes(v.id))
-            .map((v) => ({
-              vendor: v,
-              primaryCategory: pickPrimary(cats, v.id),
-              nextMarket: pickNextMarket(v.id, markets, links),
-            }))
-        setSavedVendors(buildMeta(supportIds))
-        setFollowedVendors(buildMeta(followIds))
-      }
 
       setLoaded(true)
     })
@@ -178,15 +124,6 @@ function YouPageInner() {
           <h1 className="text-2xl font-semibold">You</h1>
           <p className="text-sm text-neutral-600 mt-0.5">{email}</p>
         </div>
-        {hasVendor && (
-          <Link
-            href="/you/vendor"
-            data-testid="vendor-mode-link"
-            className="text-sm font-medium text-[var(--color-accent)] hover:underline whitespace-nowrap"
-          >
-            Switch to vendor mode →
-          </Link>
-        )}
       </header>
 
       {/* T073 — Sell CTA (always-visible, 3-branch routing per F036). */}
@@ -242,65 +179,27 @@ function YouPageInner() {
       </nav>
 
       <div className="mt-6">
-        {tab === 'saved' && <SavedTab rows={savedVendors} />}
-        {tab === 'following' && <FollowingTab rows={followedVendors} />}
+        {tab === 'saved' && <EmptyTab what="saved" />}
+        {tab === 'following' && <EmptyTab what="followed" />}
         {tab === 'settings' && (
           <SettingsTab emailsEnabled={emailsEnabled} onToggleEmails={toggleEmails} onSignOut={signOut} />
         )}
       </div>
-
-      {!hasVendor && (
-        <div className="mt-12">
-          <RecruitmentGrid />
-        </div>
-      )}
 
       <MarketSelector open={marketSelectorOpen} onClose={() => setMarketSelectorOpen(false)} userLocation={null} />
     </main>
   )
 }
 
-function SavedTab({ rows }: { rows: VendorWithMeta[] }) {
-  if (rows.length === 0) {
-    return (
-      <EmptyState
-        message="No saved businesses yet. Tap the heart on any listing to save it."
-      />
-    )
-  }
+// Saved and Following were vendor lists. Vendors are retired (DECISIONS
+// 2026-09-16) and the tables behind them never existed, so both tabs have
+// always rendered empty. They stay as named places rather than disappearing
+// mid-session; what fills them is Pages, and that is its own ticket.
+function EmptyTab({ what }: { what: string }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3" data-testid="saved-list">
-      {rows.map((r) => (
-        <VendorCard
-          key={r.vendor.id}
-          vendor={r.vendor}
-          primaryCategory={r.primaryCategory}
-          nextMarket={r.nextMarket}
-        />
-      ))}
-    </div>
-  )
-}
-
-function FollowingTab({ rows }: { rows: VendorWithMeta[] }) {
-  if (rows.length === 0) {
-    return (
-      <EmptyState
-        message="Not following anyone yet. Follow vendors to see their bulletins and updates."
-      />
-    )
-  }
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3" data-testid="following-list">
-      {rows.map((r) => (
-        <VendorCard
-          key={r.vendor.id}
-          vendor={r.vendor}
-          primaryCategory={r.primaryCategory}
-          nextMarket={r.nextMarket}
-        />
-      ))}
-    </div>
+    <p className="text-sm text-neutral-600" data-testid={`you-${what}-empty`}>
+      Nothing {what} yet.
+    </p>
   )
 }
 
