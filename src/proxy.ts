@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/** The shapes Supabase uses for "this session cookie is no longer good". */
+function isStaleSession(message: string): boolean {
+  return /invalid refresh token|refresh token not found|session( |_)?(not found|expired)|jwt expired/i.test(
+    message,
+  )
+}
+
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request })
 
@@ -22,7 +29,28 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  // A stale session cookie must not take the request down. This runs on every
+  // matched route, so one expired refresh token turned into a 500 on every
+  // page that browser asked for — twice in production on 2026-09-16 — with no
+  // member-reachable way out. Signed out is a state the app already handles;
+  // a token that will not refresh means signed out, not unserviceable.
+  //
+  // Supabase reports this both ways depending on where it fails: a rejected
+  // promise, or a resolved one carrying `error`. Both are handled.
+  try {
+    const { error } = await supabase.auth.getUser()
+    if (error && !isStaleSession(error.message)) {
+      console.warn('[proxy] getUser returned an error:', error.message)
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    if (!isStaleSession(message)) {
+      // Not a stale cookie. Still not worth a 500 on a page that renders fine
+      // signed out — but it is worth saying, because a failure nothing reports
+      // is how a four-month outage happens.
+      console.warn('[proxy] getUser failed unexpectedly:', message)
+    }
+  }
 
   return response
 }

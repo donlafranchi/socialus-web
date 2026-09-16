@@ -4,12 +4,11 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { User, Search } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
-import type { PlatformEvent, Vendor, Market, VendorBulletin } from '@/lib/types'
+import type { PlatformEvent, Vendor, Market } from '@/lib/types'
 import { useMarket } from './MarketContext'
 import { AuthCtaButtons } from './AuthCtaButtons'
 import { RecruitmentGrid } from './RecruitmentGrid'
 import { EventCard, buildHostMaps } from './EventCard'
-import { BulletinFeedCard } from './BulletinFeedCard'
 
 function supabase() {
   return createBrowserClient(
@@ -29,11 +28,6 @@ const FILTERS: { id: FilterChip; label: string; types: string[] | null }[] = [
 const FEED_LIMIT = 50
 const WINDOW_DAYS = 30
 
-interface BulletinWithVendor {
-  bulletin: VendorBulletin
-  vendor: Vendor
-}
-
 export function HomeFeed() {
   const { selectedMarket } = useMarket()
   const [isAuth, setIsAuth] = useState(false)
@@ -42,8 +36,6 @@ export function HomeFeed() {
   const [events, setEvents] = useState<PlatformEvent[]>([])
   const [vendorMap, setVendorMap] = useState<ReturnType<typeof buildHostMaps>['vendorMap']>(new Map())
   const [marketMap, setMarketMap] = useState<ReturnType<typeof buildHostMaps>['marketMap']>(new Map())
-  const [bulletins, setBulletins] = useState<BulletinWithVendor[]>([])
-  const [mutedVendorIds, setMutedVendorIds] = useState<Set<string>>(new Set())
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -87,33 +79,10 @@ export function HomeFeed() {
       setMarketMap(mm)
       setEvents((ev ?? []) as PlatformEvent[])
 
-      if (authed && uid) {
-        const [{ data: follows }, { data: mutes }] = await Promise.all([
-          client.from('follows').select('vendor_id').eq('user_id', uid).is('unfollowed_at', null),
-          client.from('bulletin_mutes').select('vendor_id').eq('user_id', uid),
-        ])
-        const muteSet = new Set((mutes ?? []).map((m) => m.vendor_id))
-        setMutedVendorIds(muteSet)
-        const followIds = (follows ?? []).map((f) => f.vendor_id).filter((id) => !muteSet.has(id))
-        if (followIds.length > 0) {
-          const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
-          const { data: bulls } = await client
-            .from('vendor_bulletins')
-            .select('*')
-            .in('vendor_id', followIds)
-            .not('published_at', 'is', null)
-            .gte('published_at', since)
-            .order('published_at', { ascending: false })
-            .limit(10)
-          const list: BulletinWithVendor[] = ((bulls ?? []) as VendorBulletin[])
-            .map((b) => {
-              const v = allVendors.find((x) => x.id === b.vendor_id)
-              return v ? { bulletin: b, vendor: v } : null
-            })
-            .filter((x): x is BulletinWithVendor => !!x)
-          setBulletins(list)
-        }
-      }
+      // Bulletins are retired with vendors (DECISIONS 2026-09-16). The tables
+      // this read — follows, bulletin_mutes, vendor_bulletins — do not exist,
+      // so the section below never rendered. Announcements now live on a Page
+      // as posts (group.post_create).
 
       setLoaded(true)
     }
@@ -191,24 +160,6 @@ export function HomeFeed() {
       </nav>
 
       {/* Pinned bulletins */}
-      {bulletins.filter((b) => !mutedVendorIds.has(b.vendor.id)).length > 0 && (
-        <section className="px-3 md:px-6 mt-6" data-testid="bulletin-pinned-section">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-3">From vendors you follow</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {bulletins
-              .filter((b) => !mutedVendorIds.has(b.vendor.id))
-              .map((b) => (
-                <BulletinFeedCard
-                  key={b.bulletin.id}
-                  bulletin={b.bulletin}
-                  vendor={b.vendor}
-                  userId={userId}
-                  onMute={(vid) => setMutedVendorIds((prev) => new Set(prev).add(vid))}
-                />
-              ))}
-          </div>
-        </section>
-      )}
 
       {/* Event grid */}
       <section className="px-3 md:px-6 mt-6">

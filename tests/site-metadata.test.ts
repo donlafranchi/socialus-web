@@ -110,7 +110,11 @@ function metadataFiles(): { file: string; source: string }[] {
 
 describe('T148 — every metadata export in src/app', () => {
   it('finds the metadata surfaces, so the checks below are not vacuous', () => {
-    expect(metadataFiles().length).toBeGreaterThanOrEqual(9)
+    // 7, not 9: the vendor funnel took two metadata surfaces with it when it
+    // was retired (DECISIONS 2026-09-16) — `/vendors/[slug]` and
+    // `/business/[slug]`. The floor exists so the checks below cannot pass
+    // vacuously; it tracks reality rather than pinning a number nobody revisits.
+    expect(metadataFiles().length).toBeGreaterThanOrEqual(7)
   })
 
   it('titles every page `{thing} — SocialUs`, or the bare product name', () => {
