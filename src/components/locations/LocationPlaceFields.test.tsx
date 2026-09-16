@@ -14,8 +14,14 @@ const { geocode, listNeighborhoods } = vi.hoisted(() => ({
   listNeighborhoods: vi.fn(),
 }))
 
-vi.mock('@/lib/geocoding', () => ({ geocode }))
+vi.mock('@/lib/geocoding', () => ({
+  geocode,
+  // The component imports this to tell "cannot run" from "no match" (#107).
+  GeocodingUnavailableError: class GeocodingUnavailableError extends Error {},
+}))
 vi.mock('@/app/you/sell/actions', () => ({
+  // Our own place search, stubbed: these tests are about the field, not the data.
+  sellSearchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
   sellListNeighborhoodsAction: listNeighborhoods,
 }))
 
@@ -73,50 +79,64 @@ describe('LocationPlaceFields — address mode', () => {
     expect(isLocationPlaceFieldsComplete(latest)).toBe(true)
   })
 
-  it('shows a refusal message and selects nothing when the geocoder finds no match', async () => {
+  it('says nothing was found, and points at the kinds that still work', async () => {
     geocode.mockResolvedValue([])
     render(<Harness />)
     fireEvent.change(screen.getByTestId('test-address-input'), {
       target: { value: 'not a real place at all' },
     })
     await vi.advanceTimersByTimeAsync(350)
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/couldn't find that address/i))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/city or a neighbourhood/i))
     expect(screen.queryByTestId('test-address-confirmed')).not.toBeInTheDocument()
   })
 
-  it('does not search until at least 3 characters are typed', async () => {
+  it('does not search on a single character', async () => {
+    // Two, not three: "Oak" is three, but a city search wants to start sooner
+    // than a street search did.
     render(<Harness />)
-    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: '12' } })
+    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: '1' } })
     await vi.advanceTimersByTimeAsync(350)
     expect(geocode).not.toHaveBeenCalled()
   })
 })
 
-describe('LocationPlaceFields — neighbourhood mode', () => {
-  it('switches mode, lazy-loads the neighbourhood list, and lets the Member choose one', async () => {
-    listNeighborhoods.mockResolvedValue([
-      { id: 'n1', name: 'Midtown', slug: 'midtown' },
-      { id: 'n2', name: 'Oak Park', slug: 'oak-park' },
-    ])
+describe('LocationPlaceFields — one field, three kinds of answer', () => {
+  it('offers a city or a neighbourhood from our own data, with no geocoder', async () => {
+    // The case that matters: Mapbox unavailable, and a person can still say
+    // where they are. Production has run without a token.
+    const { sellSearchPlacesAction } = await import('@/app/you/sell/actions')
+    ;(sellSearchPlacesAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      data: [{ id: 'n1', name: 'Oak Park', kind: 'neighborhood', parentName: 'Sacramento' }],
+    })
+    geocode.mockRejectedValue(new (await import('@/lib/geocoding')).GeocodingUnavailableError())
+
     let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
     render(<Harness onState={(s) => (latest = s)} />)
+    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: 'oak' } })
+    await vi.advanceTimersByTimeAsync(350)
 
-    fireEvent.click(screen.getByTestId('test-mode-neighbourhood'))
-    await waitFor(() => expect(listNeighborhoods).toHaveBeenCalledTimes(1))
+    const opt = await screen.findByTestId('test-address-suggestion-0')
+    expect(opt).toHaveTextContent('Oak Park')
+    expect(opt).toHaveTextContent('Neighbourhood')
+    expect(opt).toHaveTextContent('Sacramento')
 
-    const select = await screen.findByTestId('test-neighbourhood-select')
-    await waitFor(() => expect(screen.getAllByRole('option').length).toBeGreaterThan(1))
-    fireEvent.change(select, { target: { value: 'n1' } })
-
+    fireEvent.click(opt)
     expect(latest.neighborhoodId).toBe('n1')
     expect(isLocationPlaceFieldsComplete(latest)).toBe(true)
   })
 
-  it('switching back to address mode does not complete the fields on its own', () => {
-    let latest: LocationPlaceFieldsState = { ...initialLocationPlaceFieldsState, mode: 'neighbourhood' }
-    render(<Harness initial={latest} onState={(s) => (latest = s)} />)
-    fireEvent.click(screen.getByTestId('test-mode-address'))
-    expect(latest.mode).toBe('address')
-    expect(isLocationPlaceFieldsComplete(latest)).toBe(false)
+  it('never shows the internal kind string', async () => {
+    const { sellSearchPlacesAction } = await import('@/app/you/sell/actions')
+    ;(sellSearchPlacesAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      data: [{ id: 'c1', name: 'Davis', kind: 'city', parentName: null }],
+    })
+    geocode.mockResolvedValue([])
+    const { container } = render(<Harness />)
+    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: 'davis' } })
+    await vi.advanceTimersByTimeAsync(350)
+    await screen.findByTestId('test-address-suggestion-0')
+    expect(container.textContent).not.toContain('neighborhood')
   })
 })

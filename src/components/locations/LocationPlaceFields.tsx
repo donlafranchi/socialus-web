@@ -18,7 +18,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { geocode, GeocodingUnavailableError, type GeocodingResult } from '@/lib/geocoding'
-import { sellListNeighborhoodsAction, type Neighborhood } from '@/app/you/sell/actions'
+import { sellSearchPlacesAction } from '@/app/you/sell/actions'
+import { mergeMatches, type Suggestion } from '@/lib/places/suggestions'
+import { placeKindLabel } from '@/lib/places/search'
 
 export type PlaceMode = 'address' | 'neighbourhood'
 
@@ -57,11 +59,9 @@ export function LocationPlaceFields({
   /** Distinguishes data-testids across the three composers that embed this. */
   idPrefix: string
 }) {
-  const [suggestions, setSuggestions] = useState<GeocodingResult[]>([])
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [searching, setSearching] = useState(false)
   const [addressError, setAddressError] = useState<string | null>(null)
-  const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([])
-  const [neighborhoodsLoaded, setNeighborhoodsLoaded] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mountedRef = useRef(true)
   useEffect(() => {
@@ -71,68 +71,102 @@ export function LocationPlaceFields({
     }
   }, [])
 
-  useEffect(() => {
-    if (state.mode === 'neighbourhood' && !neighborhoodsLoaded) {
-      sellListNeighborhoodsAction()
-        .then((rows) => {
-          if (!mountedRef.current) return
-          setNeighborhoods(rows)
-          setNeighborhoodsLoaded(true)
-        })
-        .catch(() => {
-          if (mountedRef.current) setNeighborhoodsLoaded(true)
-        })
-    }
-  }, [state.mode, neighborhoodsLoaded])
 
   function handleAddressQueryChange(value: string) {
-    setState({ ...state, addressQuery: value, selectedAddress: null })
+    setState({ ...state, addressQuery: value, selectedAddress: null, neighborhoodId: null })
     setAddressError(null)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (value.trim().length < 3) {
+    if (value.trim().length < 2) {
       setSuggestions([])
       return
     }
     debounceRef.current = setTimeout(async () => {
       if (!mountedRef.current) return
       setSearching(true)
-      try {
-        const results = await geocode(value)
-        if (!mountedRef.current) return
-        setSuggestions(results)
-        if (results.length === 0) {
-          setAddressError(
-            "We couldn't find that address. Try a nearby cross-street or landmark.",
-          )
-        }
-      } catch (err) {
-        if (!mountedRef.current) return
-        setSuggestions([])
-        // Not the person's fault, and saying so matters: the old copy told
-        // them their address did not exist when the search had never run.
+      // Both sources at once, and one failing does not take the other down:
+      // our places need no token, Mapbox does, and production has run without
+      // one. A person must still be able to finish.
+      const [placesOutcome, addressOutcome] = await Promise.allSettled([
+        sellSearchPlacesAction(value),
+        geocode(value),
+      ])
+      if (!mountedRef.current) return
+
+      const placeRows: Suggestion[] =
+        placesOutcome.status === 'fulfilled' && placesOutcome.value.ok
+          ? placesOutcome.value.data.map((m) => ({
+              source: 'place' as const,
+              kind: m.kind,
+              label: m.name,
+              sublabel: m.parentName,
+              placeId: m.id,
+            }))
+          : []
+
+      const addressRows: Suggestion[] =
+        addressOutcome.status === 'fulfilled'
+          ? addressOutcome.value.map((a) => ({
+              source: 'address' as const,
+              kind: 'address' as const,
+              label: a.name,
+              sublabel: null,
+              address: a,
+            }))
+          : []
+
+      const merged = mergeMatches(placeRows, addressRows)
+      setSuggestions(merged)
+
+      const addressUnavailable =
+        addressOutcome.status === 'rejected' &&
+        addressOutcome.reason instanceof GeocodingUnavailableError
+
+      if (merged.length === 0) {
         setAddressError(
-          err instanceof GeocodingUnavailableError
-            ? 'Address search is unavailable right now. You can pick a neighbourhood instead.'
-            : "We couldn't find that address. Try a nearby cross-street or landmark.",
+          addressUnavailable
+            ? 'Address search is unavailable right now. Try a city or a neighbourhood.'
+            : "We couldn't find that. Try a city or a neighbourhood instead.",
         )
-      } finally {
-        if (mountedRef.current) setSearching(false)
+      } else if (addressUnavailable) {
+        // Places still came back, so this is a note rather than a failure.
+        setAddressError('Address search is unavailable right now, so these are cities and neighbourhoods.')
       }
+      setSearching(false)
     }, 300)
   }
 
-  function selectSuggestion(s: GeocodingResult) {
-    setState({ ...state, addressQuery: s.name, selectedAddress: s })
+  function selectSuggestion(s: Suggestion) {
+    if (s.source === 'address') {
+      setState({
+        ...state,
+        mode: 'address',
+        addressQuery: s.label,
+        selectedAddress: s.address,
+        neighborhoodId: null,
+      })
+    } else {
+      // A city or a neighbourhood goes down the same path a neighbourhood
+      // always did: the action derives an interior point from the place's
+      // bounding box. Cities have geography too, so nothing new is needed.
+      setState({
+        ...state,
+        mode: 'neighbourhood',
+        addressQuery: s.label,
+        selectedAddress: null,
+        neighborhoodId: s.placeId,
+      })
+    }
     setSuggestions([])
     setAddressError(null)
   }
+
 
   return (
     <div className="space-y-3">
       {state.mode === 'address' ? (
         <div>
           <label className="block" htmlFor={`${idPrefix}-address-input`}>
-            <span className="text-sm font-medium text-[var(--color-fg)]">Address</span>
+            <span className="text-sm font-medium text-[var(--color-fg)]">Where is it?</span>
           </label>
           <div className="relative">
             <input
@@ -144,7 +178,7 @@ export function LocationPlaceFields({
               aria-describedby={addressError ? `${idPrefix}-address-error` : undefined}
               aria-autocomplete="list"
               className="input mt-1 w-full"
-              placeholder="123 Main St, Sacramento, CA"
+              placeholder="A street, a city, or a neighbourhood"
               value={state.addressQuery}
               onChange={(e) => handleAddressQueryChange(e.target.value)}
               autoComplete="off"
@@ -153,19 +187,34 @@ export function LocationPlaceFields({
               <ul
                 id={`${idPrefix}-address-listbox`}
                 role="listbox"
-                aria-label="Address suggestions"
+                aria-label="Places and addresses"
                 data-testid={`${idPrefix}-address-suggestions`}
                 className="absolute z-10 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-md"
               >
                 {suggestions.map((s, i) => (
-                  <li key={`${s.name}-${i}`} role="option" aria-selected={state.selectedAddress?.name === s.name}>
+                  <li
+                    key={`${s.source}-${s.label}-${i}`}
+                    role="option"
+                    aria-selected={state.selectedAddress?.name === s.label}
+                  >
                     <button
                       type="button"
                       data-testid={`${idPrefix}-address-suggestion-${i}`}
-                      className="flex min-h-[44px] w-full items-center px-3 text-left text-sm hover:bg-neutral-50"
+                      className="flex min-h-[44px] w-full items-center justify-between gap-3 px-3 text-left text-sm hover:bg-neutral-50"
                       onClick={() => selectSuggestion(s)}
                     >
-                      {s.name}
+                      <span className="min-w-0">
+                        <span className="block truncate">{s.label}</span>
+                        {s.sublabel && (
+                          <span className="block truncate text-xs text-[var(--color-fg-muted)]">
+                            {s.sublabel}
+                          </span>
+                        )}
+                      </span>
+                      {/* What kind of place this is, in words. Never the column value. */}
+                      <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs">
+                        {s.source === 'address' ? 'Address' : placeKindLabel(s.kind)}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -208,37 +257,7 @@ export function LocationPlaceFields({
             Rather give a neighbourhood?
           </button>
         </div>
-      ) : (
-        <div>
-          <label className="block" htmlFor={`${idPrefix}-neighbourhood-select`}>
-            <span className="text-sm font-medium text-[var(--color-fg)]">Neighbourhood</span>
-          </label>
-          <select
-            id={`${idPrefix}-neighbourhood-select`}
-            data-testid={`${idPrefix}-neighbourhood-select`}
-            className="input mt-1 w-full"
-            value={state.neighborhoodId ?? ''}
-            onChange={(e) => setState({ ...state, neighborhoodId: e.target.value || null })}
-          >
-            <option value="" disabled>
-              Choose a neighbourhood
-            </option>
-            {neighborhoods.map((n) => (
-              <option key={n.id} value={n.id}>
-                {n.name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            data-testid={`${idPrefix}-mode-address`}
-            className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
-            onClick={() => setState({ ...state, mode: 'address' })}
-          >
-            Give a street address instead
-          </button>
-        </div>
-      )}
+      ) : null}
     </div>
   )
 }

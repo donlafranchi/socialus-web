@@ -17,6 +17,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { succeeded, failed, type ActionResult } from './action-result'
+import { rankPlaces, type PlaceMatch } from '@/lib/places/search'
 import { withTransaction } from '@/actions/_lib/db'
 import { deriveInteriorPoint } from '@/lib/geo/interior-point'
 import {
@@ -285,13 +286,13 @@ export async function sellCreateLocationAction(
              st_xmax(geography::geometry) as max_lng,
              st_ymax(geography::geometry) as max_lat
            from public.places
-          where id = $1 and kind = 'neighborhood' and deleted_at is null`,
+          where id = $1 and kind in ('city', 'neighborhood') and deleted_at is null`,
           [neighborhoodId],
         )
         const bbox = bboxRes.rows[0]
         if (!bbox) {
           throw new SellActionError(
-            'That neighbourhood could not be found.',
+            'We could not find that place. Try searching for it again.',
             'neighborhood_not_found',
           )
         }
@@ -345,6 +346,54 @@ export interface Neighborhood {
 /** Neighbourhoods available in the "rather give a neighbourhood?" picker.
  *  Unauthenticated — this is read-only reference data, same trust level
  *  as the rest of the place tree. */
+/**
+ * Search cities and neighbourhoods by name, from our own `places` table.
+ *
+ * Deliberately NOT Mapbox: address lookup needs a token production has shipped
+ * without, and this is the path that still works when that is missing. It is
+ * also the right source — these are the places the platform actually knows,
+ * not everything Mapbox has heard of.
+ *
+ * Counties and states are excluded: a Page anchored to a whole county is not a
+ * location anybody meant, and the tiers above city exist for browse scoping.
+ */
+export async function sellSearchPlacesAction(
+  query: string,
+): Promise<ActionResult<PlaceMatch[]>> {
+  return asResult(async () => {
+    const q = query.trim()
+    if (!q) return []
+    return withTransaction(async (client) => {
+      const res = await client.query<{
+        id: string
+        display_name: string
+        kind: string
+        parent_name: string | null
+      }>(
+        `select p.id, p.display_name, p.kind, parent.display_name as parent_name
+           from public.places p
+           left join public.places parent on parent.id = p.parent_id
+          where p.deleted_at is null
+            and p.kind in ('city', 'neighborhood')
+            and p.display_name ilike '%' || $1 || '%'
+          order by p.display_name
+          limit 25`,
+        [q],
+      )
+      const matches: PlaceMatch[] = res.rows.map((r) => ({
+        id: r.id,
+        name: r.display_name,
+        kind: r.kind,
+        parentName: r.parent_name,
+      }))
+      // Ordered here rather than in SQL: the ranking is a product judgement
+      // (exact, then prefix, then contains; specific beats broad) and it is
+      // unit-tested without a database.
+      return rankPlaces(q, matches)
+    })
+  })
+}
+
 export async function sellListNeighborhoodsAction(): Promise<Neighborhood[]> {
   return withTransaction(async (client) => {
     const result = await client.query<{ id: string; display_name: string; slug: string }>(
