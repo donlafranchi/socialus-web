@@ -11,8 +11,14 @@ import '@testing-library/jest-dom/vitest'
 // so this stays a unit test of SellWalkthrough, not an integration test of
 // the geocoder or the DB.
 const { geocode } = vi.hoisted(() => ({ geocode: vi.fn() }))
-vi.mock('@/lib/geocoding', () => ({ geocode }))
+vi.mock('@/lib/geocoding', () => ({
+  geocode,
+  // The component imports this to tell "cannot run" from "no match" (#107).
+  GeocodingUnavailableError: class GeocodingUnavailableError extends Error {},
+}))
 vi.mock('@/app/you/sell/actions', () => ({
+  // Our own place search, stubbed: these tests are about the field, not the data.
+  sellSearchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
   sellListNeighborhoodsAction: vi.fn(async () => []),
 }))
 
