@@ -13,6 +13,9 @@ import { ReportControl } from './ReportControl'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { sendReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
+import { PagePosts } from './PagePosts'
+import { postToPageAction, editPagePostAction } from '@/app/_actions/page-post-actions'
+import type { PagePost } from '@/lib/groups/page-posts'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -31,6 +34,9 @@ interface Props {
   pagePath?: string
   /** F067 — whether the viewer already follows or belongs to this Page. */
   viewerFollows?: boolean
+  /** F072 — what this Page has said, newest first. RLS decides what is in
+   *  here; the owner's own drafts-of-a-draft-Page come back for the owner. */
+  posts?: PagePost[]
 }
 
 export function ShopPublicPage({
@@ -42,6 +48,7 @@ export function ShopPublicPage({
   viewerOwnsPage = false,
   pagePath,
   viewerFollows = false,
+  posts = [],
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -189,6 +196,17 @@ export function ShopPublicPage({
           onRemove={removeJurisdictionAction}
         />
       )}
+
+      {/* F072 — what the Page has said, above what it lists. Acceptance 2
+          puts a post at the top of its Page; the owner's composer lives here
+          too, so saying something and seeing it are the same place. */}
+      <PagePosts
+        groupId={shop.groupId}
+        posts={posts}
+        canPost={viewerOwnsPage}
+        onPost={postToPageAction}
+        onEdit={editPagePostAction}
+      />
 
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>

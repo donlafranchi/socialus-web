@@ -25,6 +25,8 @@ import {
   groupMemberLeave,
   groupFollow,
   groupUnfollow,
+  groupPostCreate,
+  groupPostEdit,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate } from './report'
@@ -54,6 +56,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // F067 — following a Page. Privacy decides follow vs join.
   'group.follow': groupFollow as unknown as NamedActionHandler<unknown, unknown>,
   'group.unfollow': groupUnfollow as unknown as NamedActionHandler<unknown, unknown>,
+  // T164 — F072: a Page owner posts. There is no 'group.post_delete'.
+  'group.post_create': groupPostCreate as unknown as NamedActionHandler<unknown, unknown>,
+  'group.post_edit': groupPostEdit as unknown as NamedActionHandler<unknown, unknown>,
   // T159 — F058: a member reports something; the photo hides at once.
   'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
@@ -83,6 +88,16 @@ export {
 } from './member'
 export { groupCreate, groupUpdateDraft, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
+export {
+  groupPostCreate,
+  groupPostEdit,
+  groupPostCreateInput,
+  groupPostEditInput,
+  type GroupPostCreateInput,
+  type GroupPostEditInput,
+  type GroupPostCreateResult,
+  type GroupPostEditResult,
+} from './group'
 export { itemCreate, itemPublish, itemAttachLocation } from './item'
 export {
   reportCreate,
