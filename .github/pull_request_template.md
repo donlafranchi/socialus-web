@@ -12,6 +12,11 @@
   He does not look at: invisible migrations, tests, refactors, docs,
   infrastructure, dependency bumps.
 
+  The block you keep also decides the merge. "Don doesn't need to look"
+  means merge it yourself once the checks are green — don't park finished
+  work waiting on a review he cannot give. "Don, please look" means hold:
+  he previews it and merges himself, or tells you to merge.
+
   Full rule: ops-pattern/PIPELINE.md § Who checks what.
 -->
 

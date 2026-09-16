@@ -19,6 +19,8 @@ Agents own whether a change is **correct**. Don owns whether it is **right**. He
 
 Every PR opens with one of two things, before anything else: **"Don doesn't need to look."** plus a reason, or **the preview link, three plain-language steps, and what he should expect to see** — then the `needs-don` label. `.github/pull_request_template.md` carries both blocks; keep one, delete the other.
 
+That choice also decides the merge. **"Don doesn't need to look"** means merge it yourself once checks are green. **`needs-don`** means hold — he previews it and merges himself, or tells you to.
+
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 
 Full rule, including when he looks: `ops-pattern/PIPELINE.md` § Who checks what.
@@ -29,7 +31,11 @@ A PR whose behavior differs from the cited scenario's Acceptance stops and asks 
 
 ## Commits
 
-Branch per ticket. Ask before merge to main — a merge to main deploys to production via Vercel. Never rewrite history. Never cross-commit with `ops-pattern`.
+Branch per ticket. **Default to merging your own PR once checks are green.** Don is not proficient in code; a review that spends his attention on code he cannot judge buys nothing, and waiting for it only parks finished work. Hold only for what he must judge: product wording, a UI he needs to see, a scope or role-model decision, anything with a real trade-off. When you hold, say so and name what to look at on the preview — he merges himself in GitHub, or tells you to merge.
+
+A merge to main deploys to production via Vercel. That is still true and still worth knowing: it is a reason to be sure the checks are green before merging, not a reason to ask.
+
+Never rewrite history. Never cross-commit with `ops-pattern`.
 
 ## Issue hygiene
 
