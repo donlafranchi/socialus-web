@@ -36,6 +36,7 @@ import {
   viewerFollowsPage,
 } from '@/lib/groups/resolve-shop'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
+import { resolvePagePosts } from '@/lib/groups/page-posts'
 import { splitItemSlug, resolveProduct } from '@/lib/items/resolve-product'
 import { ProductPublicPage } from '@/components/item/ProductPublicPage'
 import { splitServiceSlug, resolveService } from '@/lib/items/resolve-service'
@@ -306,8 +307,10 @@ export default async function PlacePage({ params }: Props) {
     if (!shop || shop.lifecycleState === 'dissolved') {
       notFound()
     }
-    const [items, badge, { data: auth }] = await Promise.all([
+    const [items, posts, badge, { data: auth }] = await Promise.all([
       resolveShopItems(supabase, shop.groupId),
+      // F072 — what this Page has said. RLS is the visibility gate here too.
+      resolvePagePosts(supabase, shop.groupId),
       resolveLocalOwnerBadge(supabase, {
         groupId: shop.groupId,
         anchorLocationId: shop.anchorLocationId,
@@ -340,6 +343,7 @@ export default async function PlacePage({ params }: Props) {
         ownerClaim={ownerClaim}
         viewerOwnsPage={ownsPage}
         viewerFollows={follows}
+        posts={posts}
         pagePath={`/p/${slug.join('/')}`}
       />
     )

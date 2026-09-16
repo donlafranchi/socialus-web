@@ -41,3 +41,15 @@ export {
   type GroupFollowResult,
   type GroupUnfollowResult,
 } from './follow'
+// F072 — a Page owner posts. No delete handler, deliberately: acceptance 4
+// refuses deletion, and the way to refuse it is to not build it.
+export {
+  groupPostCreate,
+  groupPostEdit,
+  groupPostCreateInput,
+  groupPostEditInput,
+  type GroupPostCreateInput,
+  type GroupPostEditInput,
+  type GroupPostCreateResult,
+  type GroupPostEditResult,
+} from './post'

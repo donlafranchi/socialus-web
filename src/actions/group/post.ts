@@ -1,0 +1,172 @@
+// F072 — group.post_create / group.post_edit
+// Scenario: planning/scenario-F072.md
+//
+// The table and its browse read source shipped with T162; this is the write
+// half. Nothing here touches `starts_at`: a post with a time is F073, and a
+// post without one is a first-class post, not a degraded event.
+//
+// WHO MAY POST. Acceptance 1 says the Page's managing role, and that is not
+// one role: `managingRoleForKind()` has answered since T132 that a business
+// Page is managed by role='owner' and every other kind by role='steward'. A
+// handler that hardcoded 'owner' would lock the founder of a run club out of
+// their own Page, so the kind is read and the role derived from it through the
+// same function group.create writes with. One answer, in one place.
+//
+// WHY THERE IS NO DELETE. Acceptance 4 refuses deletion, and the way to refuse
+// it is to not build it. `page_posts` carries no INSERT/UPDATE/DELETE policy,
+// so a direct client write is already refused by RLS; the absence of a handler
+// closes the action layer's path too.
+
+import { z } from 'zod'
+import { defineHandler } from '../_lib/handler'
+import { AuthorizationError, NotFoundError } from '../_lib/errors'
+import { withTransaction } from '../_lib/db'
+import { appendEvent } from '../_lib/event-log'
+import type { ActionContext } from '../_lib/context'
+import { managingRoleForKind, type GroupKind } from './constants'
+
+/** Matches the column's own CHECK, so a too-long body is refused before the
+ *  database has to refuse it and the caller gets a message rather than a
+ *  constraint name. */
+const body = z.string().trim().min(1).max(5000)
+
+export const groupPostCreateInput = z.object({
+  groupId: z.string().uuid(),
+  body,
+})
+export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
+
+export const groupPostEditInput = z.object({
+  postId: z.string().uuid(),
+  body,
+})
+export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
+
+export interface GroupPostCreateResult {
+  postId: string
+  groupId: string
+  /** The row's own timestamp, so the Page can render the new post without a
+   *  round trip and without inventing a time of its own. */
+  createdAt: string
+}
+
+/** An edit carries no timestamp: the post is already on screen with the one it
+ *  was written at, and the row keeps its id (acceptance 4). */
+export interface GroupPostEditResult {
+  postId: string
+  groupId: string
+}
+
+interface Queryable {
+  query<T = Record<string, unknown>>(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ rows: T[]; rowCount: number }>
+}
+
+function requireMember(ctx: ActionContext, verb: string): string {
+  if (!ctx.actingMemberId || ctx.actingMemberId === 'self-bootstrap') {
+    throw new AuthorizationError(`${verb}: a signed-in member is required`)
+  }
+  return ctx.actingMemberId
+}
+
+/** One round trip: the Page's kind, and this member's role on it. A LEFT JOIN
+ *  so a missing Page and a missing membership stay distinguishable — the first
+ *  is not found, the second is refused. */
+async function requireManagingRole(
+  client: Queryable,
+  verb: string,
+  groupId: string,
+  memberId: string,
+): Promise<void> {
+  const found = await client.query<{ kind: string; role: string | null }>(
+    `select g.kind, m.role
+       from public.groups g
+       left join public.group_memberships m
+         on m.group_id = g.id and m.member_id = $2 and m.left_at is null
+      where g.id = $1 and g.dissolved_at is null`,
+    [groupId, memberId],
+  )
+  const row = found.rows[0]
+  if (!row) {
+    throw new NotFoundError(`${verb}: group ${groupId} not found or dissolved`)
+  }
+  if (row.role !== managingRoleForKind(row.kind as GroupKind)) {
+    throw new AuthorizationError(`${verb}: only the people who manage this Page can post`)
+  }
+}
+
+export const groupPostCreate = defineHandler(
+  'group.post_create',
+  groupPostCreateInput,
+  async (ctx: ActionContext, input: GroupPostCreateInput): Promise<GroupPostCreateResult> => {
+    const memberId = requireMember(ctx, 'group.post_create')
+
+    return withTransaction(async (client) => {
+      await requireManagingRole(client, 'group.post_create', input.groupId, memberId)
+
+      // Live and listed on write. A post has no draft state of its own: the
+      // owner decides to say something by saying it, and the Page's own
+      // lifecycle already withholds posts of a draft Page (both halves of
+      // page_posts_select_published are required).
+      const inserted = await client.query<{ id: string; created_at: string | Date }>(
+        `insert into public.page_posts
+           (group_id, body, lifecycle_state, discoverability, created_at, updated_at)
+         values ($1, $2, $3, $4, $5, $5)
+         returning id, created_at`,
+        [input.groupId, input.body, 'active', 'listed', ctx.now()],
+      )
+      const postId = inserted.rows[0]!.id
+      const createdAt = new Date(inserted.rows[0]!.created_at).toISOString()
+
+      const txCtx: ActionContext = { ...ctx, db: client }
+      await appendEvent(txCtx, 'group_events', {
+        group_id: input.groupId,
+        event_kind: 'group.post_created',
+        payload: { post_id: postId },
+      })
+
+      return { postId, groupId: input.groupId, createdAt }
+    })
+  },
+)
+
+export const groupPostEdit = defineHandler(
+  'group.post_edit',
+  groupPostEditInput,
+  async (ctx: ActionContext, input: GroupPostEditInput): Promise<GroupPostEditResult> => {
+    const memberId = requireMember(ctx, 'group.post_edit')
+
+    return withTransaction(async (client) => {
+      const found = await client.query<{ id: string; group_id: string }>(
+        `select id, group_id from public.page_posts
+          where id = $1 and dissolved_at is null`,
+        [input.postId],
+      )
+      const post = found.rows[0]
+      if (!post) {
+        throw new NotFoundError(`group.post_edit: post ${input.postId} not found`)
+      }
+
+      await requireManagingRole(client, 'group.post_edit', post.group_id, memberId)
+
+      // In place, and the row keeps its id (acceptance 4). `updated_at` moves
+      // because browse orders on it; nothing else about the row changes, so an
+      // edit can never quietly unpublish a post.
+      await client.query(
+        `update public.page_posts set body = $2, updated_at = $3 where id = $1`,
+        [input.postId, input.body, ctx.now()],
+      )
+
+      const txCtx: ActionContext = { ...ctx, db: client }
+      await appendEvent(txCtx, 'group_events', {
+        group_id: post.group_id,
+        event_kind: 'group.post_edited',
+        payload: { post_id: input.postId },
+      })
+
+      return { postId: input.postId, groupId: post.group_id }
+    })
+  },
+)
