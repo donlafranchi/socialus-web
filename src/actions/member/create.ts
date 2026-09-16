@@ -78,7 +78,6 @@ export const memberCreate = defineHandler(
       // is a compile-time constant. Literal-only keeps the conformance
       // check quiet without an annotation.
 
-       
       while (true) {
         await client.query('savepoint member_create_handle_attempt')
         try {
