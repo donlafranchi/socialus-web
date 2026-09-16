@@ -102,7 +102,7 @@ export function BulletinFeedCard({ bulletin, vendor, userId, onMute }: Props) {
                 data-testid="bulletin-mute"
                 className="w-full text-left px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
               >
-                Mute {vendor.name}'s bulletins
+                Mute {vendor.name}&apos;s bulletins
               </button>
             </div>
           )}

@@ -1,0 +1,126 @@
+name: CI
+
+# What every PR is checked against.
+#
+# Until this existed, "green" on a PR meant Vercel had built a preview and
+# `issue-lint` had read the description. 131 unit test files, 24 Playwright
+# specs and a lint script existed in the repo and none of them ran on a PR —
+# every merge on 2026-09-16 was green without a single test executing.
+#
+# Two jobs, split on whether they need a database:
+#
+#   quality — lint, types, production build. Seconds, no services.
+#   test    — the Vitest suite against a throwaway local Supabase.
+#
+# The suite is NOT run without that stack. `tests/support/runnable.ts` makes a
+# suite that cannot run FAIL rather than skip (T150), and eleven DB-bound
+# suites take that path with no database. Excluding them by path would have
+# been the easy way to a green tick and would have reproduced, in CI, exactly
+# the thing that convention exists to prevent. `ALLOW_UNVERIFIED` is likewise
+# not set here — it is an escape hatch for a local iteration loop, and its own
+# message says never in a merge.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A second push to a PR cancels the first. Not on main: those runs are the
+# record of what a merge did.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Lint, types, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Types
+        run: npx tsc --noEmit
+
+      # The build is a real gate: it catches what neither lint nor tsc sees —
+      # a server/client boundary violation, a bad route export, a module that
+      # resolves in dev and not in a production bundle.
+      #
+      # These values are placeholders and deliberately fake. The build only
+      # needs them to be present and well-formed; nothing here talks to a
+      # Supabase or Mapbox instance, and a real key would be a secret in a
+      # public repo for no gain.
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+          NEXT_PUBLIC_MAPBOX_TOKEN: pk.ci_placeholder
+        run: npm run build
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Built from the migration files in this commit, thrown away with the
+      # runner. `db reset` applies every migration from empty, in order, which
+      # is also what makes the DB-bound suites meaningful rather than merely
+      # runnable.
+      - name: Start a throwaway local stack
+        run: |
+          supabase start
+          supabase db reset
+
+      - run: npm ci
+
+      # Keys are generated per stack by the CLI, so they are read out of it
+      # rather than hardcoded.
+      - name: Read the stack's keys into the environment
+        run: supabase status -o env | sed 's/="/=/; s/"$//' >> "$GITHUB_ENV"
+
+      # SUPABASE_TEST_EPHEMERAL is the explicit assertion T151 requires: this
+      # instance is disposable. It is safe to state here precisely because the
+      # stack was created three steps ago and dies with the runner.
+      #
+      # NEXT_PUBLIC_* are deliberately NOT set. They are what the app's own
+      # client reads, and several unit suites are written against a client that
+      # cannot reach anything — src/lib/media/upload-image.test.ts asserts an
+      # 8MB photo is not rejected pre-resize, and reaches that assertion only
+      # because the upload fails instantly. Pointing those variables at the
+      # live local stack turned that instant failure into a hung socket and
+      # timed the suite out. Leaving them unset is also what `npm test` does on
+      # a developer's machine, so CI and local agree.
+      #
+      # write-safe.ts is satisfied regardless: with NEXT_PUBLIC_SUPABASE_URL
+      # unset there is no protected ref to collide with, and the write-bound
+      # suites judge SUPABASE_URL, which is the local stack.
+      - name: Vitest
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SUPABASE_URL: http://127.0.0.1:54321
+          SUPABASE_TEST_EPHEMERAL: '1'
+        run: |
+          export SUPABASE_ANON_KEY="${ANON_KEY:?supabase status did not export ANON_KEY}"
+          export SUPABASE_SERVICE_ROLE_KEY="${SERVICE_ROLE_KEY:?supabase status did not export SERVICE_ROLE_KEY}"
+          npm test

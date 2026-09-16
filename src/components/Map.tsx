@@ -112,6 +112,7 @@ export function Map() {
 
     map.on('render', () => {
       if (!map.getSource(SOURCE_ID) || !map.isSourceLoaded(SOURCE_ID)) return
+      // eslint-disable-next-line react-hooks/immutability -- tracked in #119
       updateMarkers(map)
     })
 
