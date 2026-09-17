@@ -5,10 +5,11 @@
 // market / category / day button row, which cost a full band of vertical space
 // above the results; those filters now live in the bottom sheet.
 //
-// The locality is display-only at b1: F045's acceptance criteria place a
-// location pill in the row but specify no picker, and Explore has no locality
-// selector to open (the pre-rebuild one read the retired `markets` table). See
-// DEVIATIONS — the picker is thesis-level scope, deferred to its own ticket.
+// The locality pill is now the scope control. It was display-only through b1 —
+// F045 placed a pill in the row but specified no picker, and the pre-rebuild
+// selector read the retired `markets` table — so the one thing on Browse that
+// named a place was the one thing you could not change. It opens the scope
+// sheet.
 
 import { useEffect, useRef, useState } from 'react'
 import { placePillLabel, NO_PLACE_CHOSEN_LABEL } from '@/lib/explore/place-label'
@@ -24,6 +25,8 @@ interface ExploreSearchBarProps {
   /** Drives the dot — any distance / schedule / category / sort filter. */
   filtersActive: boolean
   onOpenFilters: () => void
+  /** Opens the scope sheet. The pill is the control; there is no second entry point. */
+  onOpenScope: () => void
 }
 
 export function ExploreSearchBar({
@@ -33,6 +36,7 @@ export function ExploreSearchBar({
   onQueryChange,
   filtersActive,
   onOpenFilters,
+  onOpenScope,
 }: ExploreSearchBarProps) {
   // An existing query keeps the input open, so a shared `?q=` link shows the
   // terms it filtered by rather than a collapsed icon.
@@ -62,10 +66,16 @@ export function ExploreSearchBar({
             nothing chosen that name is the seeded launch stand-in — so the pill
             asserted a locality to someone who never named one. It now says what
             is true, and an unanswered question is styled as a question. */}
-        <span
+        <button
+          type="button"
+          onClick={onOpenScope}
+          aria-haspopup="dialog"
+          aria-label={
+            label === NO_PLACE_CHOSEN_LABEL ? 'Choose your area' : `Area: ${label} — change it`
+          }
           data-testid="explore-location-pill"
           data-place-chosen={label === NO_PLACE_CHOSEN_LABEL ? 'false' : 'true'}
-          className={`inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${
+          className={`lift inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${
             label === NO_PLACE_CHOSEN_LABEL
               ? 'bg-white text-[var(--color-fg-muted)] ring-1 ring-[var(--color-border)]'
               : 'bg-neutral-100 text-[var(--color-charcoal-900)]'
@@ -73,7 +83,7 @@ export function ExploreSearchBar({
         >
           <MapPin size={14} className="shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
           <span className="truncate">{label}</span>
-        </span>
+        </button>
 
         <div className="ml-auto flex items-center gap-1">
           <button
