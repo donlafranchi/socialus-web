@@ -7,8 +7,8 @@ import { locationLine, isMappable, LOCATION_SCALES } from './location'
 // uses those terms and no others.
 
 describe('LOCATION_SCALES', () => {
-  it('is the ratified ladder, in the ratified order', () => {
-    expect(LOCATION_SCALES).toEqual(['address', 'neighbourhood', 'metro', 'wider', 'online'])
+  it('is the ratified ladder, in the ratified order, with the draft case last', () => {
+    expect(LOCATION_SCALES).toEqual(['address', 'neighbourhood', 'metro', 'wider', 'online', 'none'])
   })
 })
 
@@ -42,5 +42,23 @@ describe('isMappable', () => {
     for (const scale of ['address', 'neighbourhood', 'metro', 'wider'] as const) {
       expect(isMappable({ scale })).toBe(true)
     }
+  })
+})
+
+// `none` is not part of the ratified ladder — it means "not chosen yet", which
+// is a real state for a draft and a different fact from `online`.
+describe('the draft case', () => {
+  it('says so rather than claiming the thing is online', () => {
+    expect(locationLine({ scale: 'none' })).toBe('No location yet')
+    expect(locationLine({ scale: 'none' })).not.toMatch(/online/i)
+  })
+
+  it('never gets a map pin — there is nothing to pin it to', () => {
+    expect(isMappable({ scale: 'none' })).toBe(false)
+  })
+
+  it('sits last, after the ratified ladder, so the order still reads as the ruling', () => {
+    expect(LOCATION_SCALES.slice(0, 5)).toEqual(['address', 'neighbourhood', 'metro', 'wider', 'online'])
+    expect(LOCATION_SCALES[5]).toBe('none')
   })
 })
