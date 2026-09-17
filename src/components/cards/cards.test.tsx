@@ -34,57 +34,113 @@ describe('CardGrid — the fluid rule', () => {
 })
 
 describe('TileCard', () => {
+  const loc = { scale: 'neighbourhood', label: 'Oak Park' } as const
+
   it('carries no fixed width — the grid cell decides', () => {
-    render(<TileCard title="Clara’s Kitchen" />)
+    render(<TileCard location={loc} title="Clara’s Kitchen" />)
     const cls = screen.getByTestId('tile-card').className
     expect(cls).not.toMatch(/\bw-\d/)
     expect(cls).not.toMatch(/flex-shrink-0/)
   })
 
   it('never has a border — the separation is white on warm off-white', () => {
-    render(<TileCard title="Clara’s Kitchen" />)
+    render(<TileCard location={loc} title="Clara’s Kitchen" />)
     expect(screen.getByTestId('tile-card').className).not.toMatch(/\bborder\b/)
   })
 
-  it('lifts and shadows on hover, but only when it is actually a link', () => {
-    const { rerender } = render(<TileCard title="A" href="/p/x" />)
+  it('lifts on hover, but only when it is actually a link', () => {
+    const { rerender } = render(<TileCard location={loc} title="A" href="/p/x" />)
     expect(screen.getByTestId('tile-card').className).toMatch(/card-hover/)
-    rerender(<TileCard title="A" />)
+    rerender(<TileCard location={loc} title="A" />)
     expect(screen.getByTestId('tile-card').className).not.toMatch(/card-hover/)
   })
 
-  it('holds the image to a ratio rather than a fixed height, so the crop survives both extremes', () => {
-    render(<TileCard title="A" />)
+  it('holds the image to a ratio rather than a fixed height', () => {
+    render(<TileCard location={loc} title="A" />)
     expect(screen.getByTestId('tile-image').className).toMatch(/aspect-\[3\/2\]/)
     expect(screen.getByTestId('tile-image').className).not.toMatch(/\bh-\d/)
   })
 
-  // The single most reusable idea in the recovered design.
   it('falls back to an emoji on the surface colour, not a grey box', () => {
-    render(<TileCard title="A" emoji="🥖" />)
-    const img = screen.getByTestId('tile-image')
+    render(<TileCard location={loc} title="A" emoji="🥖" />)
     expect(screen.getByTestId('tile-emoji')).toHaveTextContent('🥖')
-    expect(img.className).toMatch(/bg-\[var\(--color-surface\)\]/)
+    expect(screen.getByTestId('tile-image').className).toMatch(/bg-\[var\(--color-surface\)\]/)
   })
 
-  it('keeps identical height with and without a photo, so a row lines up', () => {
-    const { rerender } = render(<TileCard title="A" />)
-    const without = screen.getByTestId('tile-image').className
-    rerender(<TileCard title="A" imageUrl="https://x/a.webp" />)
-    const with_ = screen.getByTestId('tile-image').className
-    // Same box either way; only the contents differ.
-    expect(with_).toBe(without)
+  // ---- uniform height (Don, 2026-09-17) --------------------------------
+  //
+  // Reserving space, not stretching. `align-items: stretch` only equalises
+  // within a row; Don wants every card the same, so each row holds its height
+  // whether or not it has content.
+
+  it('reserves two lines for the title, so a wrapping one does not grow the card', () => {
+    render(<TileCard location={loc} title="A very long name that will wrap onto two lines" />)
+    const t = screen.getByTestId('tile-title')
+    expect(t.className).toMatch(/line-clamp-2/)
+    expect(t.className).toMatch(/min-h-\[2\.5rem\]/)
   })
 
-  it('clamps the name to one line and the tagline to two, as the original did', () => {
-    render(<TileCard title="A" tagline="B" />)
-    expect(screen.getByText('A').className).toMatch(/line-clamp-1/)
-    expect(screen.getByText('B').className).toMatch(/line-clamp-2/)
+  it('reserves the tagline row even when there is no tagline', () => {
+    render(<TileCard location={loc} title="A" />)
+    const tagline = screen.getByTestId('tile-tagline')
+    expect(tagline).toBeInTheDocument()
+    expect(tagline.className).toMatch(/min-h-\[2\.5rem\]/)
+    expect(tagline.className).toMatch(/line-clamp-2/)
   })
 
-  it('omits the tagline and meta rows entirely when absent', () => {
-    render(<TileCard title="Only a name" />)
-    expect(screen.getByTestId('tile-card').textContent).toBe('🌱Only a name')
+  it('reserves one line for the location and clamps it, so a long one cannot grow the card', () => {
+    render(<TileCard location={{ scale: 'address', label: '3117 Broadway, Sacramento, California 95817' }} title="A" />)
+    const l = screen.getByTestId('tile-location')
+    expect(l.className).toMatch(/line-clamp-1/)
+    expect(l.className).toMatch(/min-h-\[1\.25rem\]/)
+  })
+
+  it('renders the same set of rows for the emptiest and fullest card', () => {
+    const { rerender } = render(<TileCard location={loc} title="A" />)
+    const bare = ['tile-image', 'tile-title', 'tile-tagline', 'tile-location'].map((t) =>
+      Boolean(screen.queryByTestId(t)),
+    )
+    rerender(
+      <TileCard
+        location={{ scale: 'address', label: '3117 Broadway' }}
+        title="A much longer name"
+        tagline="And a tagline that runs on for a while"
+        imageUrl="https://x/a.webp"
+      />,
+    )
+    const full = ['tile-image', 'tile-title', 'tile-tagline', 'tile-location'].map((t) =>
+      Boolean(screen.queryByTestId(t)),
+    )
+    expect(bare).toEqual(full)
+    expect(bare.every(Boolean)).toBe(true)
+  })
+
+  // ---- location is required --------------------------------------------
+
+  it('always shows a location line, including for something with no physical place', () => {
+    render(<TileCard location={{ scale: 'online' }} title="Ledger & Ink" />)
+    expect(screen.getByTestId('tile-location')).toHaveTextContent('Online')
+  })
+
+  it('records the scale on the card, so a surface can style or filter by it', () => {
+    render(<TileCard location={{ scale: 'online' }} title="A" />)
+    expect(screen.getByTestId('tile-card')).toHaveAttribute('data-location-scale', 'online')
+  })
+
+  // ---- padding and underline -------------------------------------------
+
+  it('pads the text away from the card edge, while the image still bleeds', () => {
+    render(<TileCard location={loc} title="A" />)
+    expect(screen.getByTestId('tile-text').className).toMatch(/px-3/)
+    expect(screen.getByTestId('tile-image').className).not.toMatch(/px-/)
+  })
+
+  it('does not ask the link to underline — the affordance is lift plus colour', () => {
+    render(<TileCard location={loc} title="A" href="/p/x" />)
+    const link = screen.getByRole('link')
+    expect(link.className).not.toMatch(/underline/)
+    // The replacement: the title takes the accent colour on card hover.
+    expect(screen.getByTestId('tile-title').className).toMatch(/group-hover\/tile:text-\[var\(--color-accent\)\]/)
   })
 })
 

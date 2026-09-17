@@ -5,14 +5,18 @@
 // placeholder.
 
 import { CardGrid, TileCard, AnnouncementCard, StatusDot, MetricTile } from '@/components/cards'
+import type { CardLocation } from '@/components/cards'
 
-const TILES = [
-  { title: 'Clara’s Kitchen', tagline: 'Sourdough, focaccia, and a weekly cinnamon thing.', meta: 'Oak Park · Sun', emoji: '🍞' },
-  { title: 'Held Ceramics', tagline: 'Hand-thrown mugs and small plates.', meta: 'Midtown · Sat', emoji: '🏺' },
-  { title: 'Two Rivers Honey', tagline: null, meta: null, emoji: '🍯' },
-  { title: 'Sierra Bench Works', tagline: 'Benches, stools, and repairs to furniture you already own.', meta: null, emoji: '🪵' },
-  { title: 'Thread & Thrift', tagline: 'Mending, alterations, and a Tuesday sewing table.', meta: 'Tahoe Park · Tue', emoji: '🧵' },
-  { title: 'Valley Apiary', tagline: 'Raw honey and beeswax from eight hives along the river.', meta: null, emoji: '🐝' },
+// Deliberately uneven, because uniform height is the thing to check: a title
+// that wraps to two lines, one that does not; a tagline and none; every
+// location scale including online; a photo and the emoji fallback.
+const TILES: Array<{ title: string; tagline: string | null; location: CardLocation; emoji: string }> = [
+  { title: 'Clara’s Kitchen', tagline: 'Sourdough, focaccia, and a weekly cinnamon thing.', location: { scale: 'address', label: '3117 Broadway' }, emoji: '🍞' },
+  { title: 'Held Ceramics', tagline: 'Hand-thrown mugs and small plates.', location: { scale: 'neighbourhood', label: 'Midtown' }, emoji: '🏺' },
+  { title: 'Two Rivers Honey', tagline: null, location: { scale: 'metro', label: 'Sacramento' }, emoji: '🍯' },
+  { title: 'Sierra Bench Works and Restoration Company', tagline: 'Benches, stools, and repairs to furniture you already own — drop off any Saturday.', location: { scale: 'wider', label: 'Placer County' }, emoji: '🪵' },
+  { title: 'Thread & Thrift', tagline: 'Mending, alterations, and a Tuesday sewing table.', location: { scale: 'neighbourhood', label: 'Tahoe Park' }, emoji: '🧵' },
+  { title: 'Ledger & Ink Bookkeeping', tagline: null, location: { scale: 'online' }, emoji: '💻' },
 ]
 
 export default function CardGalleryPage() {
@@ -20,7 +24,8 @@ export default function CardGalleryPage() {
     <main className="px-4 py-6 bg-[var(--color-bg)] min-h-screen">
       <h1 className="text-2xl font-semibold text-[var(--color-fg)]">Card system</h1>
       <p className="text-sm text-[var(--color-fg-muted)] mt-1">
-        Resize the window. No breakpoints — one grid rule from 320px to 2560px.
+        Resize the window. No breakpoints — one grid rule from 320px to 2560px. The tiles below
+        carry deliberately uneven content: every card should still be the same height.
       </p>
 
       <h2 className="text-[17px] font-semibold mt-8 text-[var(--color-fg)]">Tiles</h2>
@@ -38,7 +43,7 @@ export default function CardGalleryPage() {
       <h2 className="text-[17px] font-semibold mt-10 text-[var(--color-fg)]">Tiles, compact</h2>
       <CardGrid density="compact" className="mt-3">
         {TILES.slice(0, 4).map((t) => (
-          <TileCard key={t.title} title={t.title} emoji={t.emoji} href="/#" />
+          <TileCard key={t.title} title={t.title} emoji={t.emoji} location={t.location} href="/#" />
         ))}
       </CardGrid>
 

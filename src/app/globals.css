@@ -74,6 +74,16 @@ a:hover {
   text-decoration: underline;
 }
 
+/* A card is not a sentence. Underlining a whole card — image included — on
+ * hover is what Don asked to remove, and the affordance it provided is
+ * replaced by the lift plus a colour shift on the card's title. Scoped to
+ * cards rather than dropped globally: a link inside a paragraph still
+ * underlines, because there it is the only signal. */
+.card a:hover,
+.card a:hover * {
+  text-decoration: none;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-fg);
   outline-offset: 2px;
@@ -101,7 +111,7 @@ a:hover {
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium transition-colors;
+  @apply lift inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium;
   background-color: var(--color-accent);
   color: #fff;
 }
@@ -114,7 +124,7 @@ a:hover {
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-medium transition-colors;
+  @apply lift inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-medium;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);
@@ -131,12 +141,70 @@ a:hover {
   @apply bg-white rounded-xl overflow-hidden transition-all duration-200 ease-out;
 }
 
+/* The lift. One definition, used by every interactive surface.
+ *
+ * Don asked for more of this and for it to be consistent: same easing, same
+ * distance, everywhere a tap target exists. So it is a token plus one utility
+ * rather than a hover rule re-typed per component — `.lift` is the thing to add
+ * to a new button or row, and changing the feel is one edit here.
+ *
+ * The shadow and the translate travel together deliberately. The shadow alone
+ * reads as a glow; the translate alone reads as a glitch. */
+:root {
+  --lift-distance: 2px;
+  --lift-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --lift-duration: 200ms;
+  --lift-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Declared with @utility, not as a plain class: Tailwind v4 can only `@apply`
+ * something it knows as a utility, and `.btn-primary` / `.chip` below apply it.
+ * A plain `.lift {}` compiles but fails at `@apply lift` with "unknown utility
+ * class" — which is exactly what happened on the first attempt. */
+@utility lift {
+  transition:
+    transform var(--lift-duration) var(--lift-ease),
+    box-shadow var(--lift-duration) var(--lift-ease),
+    background-color var(--lift-duration) var(--lift-ease),
+    color var(--lift-duration) var(--lift-ease);
+  will-change: transform;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(calc(-1 * var(--lift-distance)));
+    box-shadow: var(--lift-shadow);
+  }
+
+  /* A press should feel like a press: the lift collapses rather than persisting. */
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* Motion is the whole effect, so this removes it rather than shortening it.
+   * The colour transitions stay — they are the affordance, not the decoration. */
+  @media (prefers-reduced-motion: reduce) {
+    transition:
+      background-color var(--lift-duration) var(--lift-ease),
+      color var(--lift-duration) var(--lift-ease);
+    will-change: auto;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+/* Kept as the card's name for the same behaviour. */
 .card-hover {
-  @apply hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5;
+  @apply lift;
 }
 
 .chip {
-  @apply inline-flex items-center rounded-full border px-3.5 py-2 text-sm transition-colors;
+  @apply lift inline-flex items-center rounded-full border px-3.5 py-2 text-sm;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);
