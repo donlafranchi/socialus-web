@@ -79,13 +79,13 @@ export function ListMapToggle({ view, onChange }: ListMapToggleProps) {
             // the regression is visible to a test and to a screenshot instead
             // of only to a keyboard user. Nothing paints until
             // `focus-visible:outline` supplies a style.
-            className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-5 text-sm font-medium transition-colors outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+            className={`press inline-flex min-h-11 items-center gap-1.5 rounded-full border px-5 text-sm font-medium outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
               isSelected
                 ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
                 : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
             }`}
           >
-            {v.value === 'list' ? <List size={14} aria-hidden="true" /> : <MapIcon size={14} aria-hidden="true" />}
+            {v.value === 'list' ? <List size={14} className="reacts" aria-hidden="true" /> : <MapIcon size={14} className="reacts" aria-hidden="true" />}
             {v.label}
           </button>
         )

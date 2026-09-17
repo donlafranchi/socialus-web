@@ -75,13 +75,13 @@ export function ExploreSearchBar({
           }
           data-testid="explore-location-pill"
           data-place-chosen={label === NO_PLACE_CHOSEN_LABEL ? 'false' : 'true'}
-          className={`lift inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${
+          className={`press inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${
             label === NO_PLACE_CHOSEN_LABEL
               ? 'bg-white text-[var(--color-fg-muted)] ring-1 ring-[var(--color-border)]'
               : 'bg-neutral-100 text-[var(--color-charcoal-900)]'
           }`}
         >
-          <MapPin size={14} className="shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
+          <MapPin size={14} className="reacts shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
           <span className="truncate">{label}</span>
         </button>
 
@@ -92,9 +92,9 @@ export function ExploreSearchBar({
             onClick={() => setExpanded((v) => !v)}
             aria-label="Search"
             aria-expanded={expanded}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-charcoal-900)] hover:bg-neutral-100"
+            className="press inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-charcoal-900)] hover:bg-neutral-100"
           >
-            <Search size={18} />
+            <Search size={18} className="reacts" />
           </button>
           <button
             type="button"
@@ -102,9 +102,9 @@ export function ExploreSearchBar({
             aria-label={filtersActive ? 'Open filters — filters applied' : 'Open filters'}
             aria-haspopup="dialog"
             data-testid="explore-filter-icon"
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-charcoal-900)] hover:bg-neutral-100"
+            className="press relative inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-charcoal-900)] hover:bg-neutral-100"
           >
-            <SlidersHorizontal size={18} />
+            <SlidersHorizontal size={18} className="reacts" />
             {filtersActive && (
               <span
                 data-testid="filter-active-dot"
