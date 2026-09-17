@@ -7,9 +7,15 @@ design language can be reused elsewhere. Nothing here is product.
 
 ## How to look at it
 
-The rendered page is `/design-archive` on this branch's Vercel preview. That is
-the thing to look at — it shows the cards with placeholder content rather than
-asking anyone to read JSX.
+Two pages on this branch's Vercel preview:
+
+- **`/design-archive`** — the recovered cards, with placeholder content.
+- **`/card-gallery`** — the live `@/components/cards` system those became,
+  fluid from 320px to 2560px.
+
+Both are under `src/app/(dev)/`, which since #132 renders on previews and 404s
+only in production. Looking at them side by side is the point: the first is what
+was there, the second is what it became.
 
 ## What is in `recovered/`
 

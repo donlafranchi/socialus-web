@@ -10,11 +10,12 @@
 // exist, so importing them would drag the vendor era back into the tree. What
 // matters here is the shape, and the shape is the markup.
 //
-// Why a plain route and not `src/app/(dev)/`: that group's layout calls
-// notFound() unless NODE_ENV === 'development', so a page there renders on a
-// laptop and 404s on a Vercel preview — exactly backwards for something Don
-// reads on his phone. Living on an unmerged branch is what keeps it out of
-// production instead.
+// It lives under `(dev)` as of 2026-09-17. It could not before: that group's
+// layout gated on NODE_ENV, so a page there rendered on a laptop and 404'd on
+// every preview — backwards for something read on a phone. #132 changed the
+// gate to VERCEL_ENV and forced dynamic rendering, so `(dev)` now renders on
+// previews and 404s only in production. This branch still does not merge, but
+// the gate is what keeps it out of production rather than that alone.
 
 export const metadata = { title: 'Design archive — the /you cards' }
 
