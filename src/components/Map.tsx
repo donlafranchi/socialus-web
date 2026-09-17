@@ -3,31 +3,27 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MAP_DEFAULTS, PIN_COLORS, CLUSTER_CONFIG } from '@/lib/map-config'
-import { useMapBusinesses, type Bounds } from '@/hooks/useMapBusinesses'
+import { MAP_DEFAULTS, CLUSTER_CONFIG } from '@/lib/map-config'
+import { useMapPages, type Bounds, type MapPage } from '@/hooks/useMapPages'
 import { SearchBar } from './SearchBar'
-import { BusinessDetailCard } from './BusinessDetailCard'
-import type { Business, OwnershipTier } from '@/lib/types'
+import { PageDetailCard } from './group/PageDetailCard'
 
-const SOURCE_ID = 'businesses'
+const SOURCE_ID = 'pages'
 
-function businessesToGeoJSON(businesses: Business[]): GeoJSON.FeatureCollection {
+// One pin colour for every Page. The old palette keyed off ownership tier — a
+// vendor concept, retired with the funnel. Colouring by Page kind is a design
+// call for design-language.md, not something a rewire should decide.
+const PAGE_PIN_HEX = '#374151'
+
+function pagesToGeoJSON(pages: MapPage[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: businesses
-      .filter((b) => b.latitude != null && b.longitude != null)
-      .map((b) => ({
+    features: pages
+      .filter((p) => p.latitude != null && p.longitude != null)
+      .map((p) => ({
         type: 'Feature' as const,
-        geometry: { type: 'Point' as const, coordinates: [b.longitude!, b.latitude!] },
-        properties: {
-          id: b.id,
-          name: b.name,
-          ownership_tier: b.ownership_tier,
-          street_address: b.street_address,
-          city: b.city,
-          state: b.state,
-          category: b.category,
-        },
+        geometry: { type: 'Point' as const, coordinates: [p.longitude!, p.latitude!] },
+        properties: { id: p.id, name: p.name, kind: p.kind, category: p.category },
       })),
   }
 }
@@ -36,12 +32,12 @@ export function Map() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<Record<string, mapboxgl.Marker>>({})
-  const businessesRef = useRef<Business[]>([])
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const pagesRef = useRef<MapPage[]>([])
+  const [selectedPage, setSelectedPage] = useState<MapPage | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [noResultsQuery, setNoResultsQuery] = useState<string | null>(null)
   const categoryFilterRef = useRef<string | null>(null)
-  const { businesses, fetchBusinesses } = useMapBusinesses()
+  const { pages, fetchPages } = useMapPages()
 
   const getBounds = useCallback((): Bounds | null => {
     const map = mapRef.current
@@ -58,8 +54,8 @@ export function Map() {
 
   const refreshPins = useCallback(() => {
     const bounds = getBounds()
-    if (bounds) fetchBusinesses(bounds, categoryFilterRef.current || undefined)
-  }, [getBounds, fetchBusinesses])
+    if (bounds) fetchPages(bounds, categoryFilterRef.current || undefined)
+  }, [getBounds, fetchPages])
 
   // Initialize map
   useEffect(() => {
@@ -102,12 +98,12 @@ export function Map() {
       })
 
       const bounds = getBounds()
-      if (bounds) fetchBusinesses(bounds)
+      if (bounds) fetchPages(bounds)
     })
 
     map.on('moveend', () => {
       const bounds = getBounds()
-      if (bounds) fetchBusinesses(bounds, categoryFilterRef.current || undefined)
+      if (bounds) fetchPages(bounds, categoryFilterRef.current || undefined)
     })
 
     map.on('render', () => {
@@ -183,27 +179,25 @@ export function Map() {
         newMarkerIds.add(key)
 
         if (!markersRef.current[key]) {
-          const tier = props.ownership_tier as OwnershipTier
-          const pinConfig = PIN_COLORS[tier]
-          if (!pinConfig) continue
-
+          // Pins used to be coloured by ownership tier, which was a vendor
+          // concept and is gone with the funnel. One colour for every Page for
+          // now; colouring by Page kind is a design call, not a rewire.
           const el = document.createElement('div')
           el.setAttribute('data-testid', 'map-pin')
-          el.setAttribute('data-ownership', tier)
-          el.setAttribute('data-color', pinConfig.name)
-          el.setAttribute('data-business-id', id)
+          el.setAttribute('data-kind', String(props.kind ?? ''))
+          el.setAttribute('data-page-id', id)
           el.style.width = '24px'
           el.style.height = '24px'
           el.style.borderRadius = '50%'
-          el.style.backgroundColor = pinConfig.hex
+          el.style.backgroundColor = PAGE_PIN_HEX
           el.style.border = '2px solid white'
           el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
           el.style.cursor = 'pointer'
 
           el.addEventListener('click', (e) => {
             e.stopPropagation()
-            const biz = businessesRef.current.find((b) => b.id === id)
-            if (biz) setSelectedBusiness(biz)
+            const page = pagesRef.current.find((p) => p.id === id)
+            if (page) setSelectedPage(page)
           })
 
           const marker = new mapboxgl.Marker({ element: el }).setLngLat(coords).addTo(map)
@@ -220,9 +214,9 @@ export function Map() {
     }
   }
 
-  // Update GeoJSON source when businesses change
+  // Update GeoJSON source when pages change
   useEffect(() => {
-    businessesRef.current = businesses
+    pagesRef.current = pages
 
     const map = mapRef.current
     if (!map || !map.isStyleLoaded()) return
@@ -235,13 +229,13 @@ export function Map() {
       delete markersRef.current[key]
     }
 
-    source.setData(businessesToGeoJSON(businesses))
+    source.setData(pagesToGeoJSON(pages))
 
     // Fit map bounds to results when a category filter is active
-    if (categoryFilterRef.current && businesses.length > 0) {
-      const coords = businesses
-        .filter((b) => b.latitude != null && b.longitude != null)
-        .map((b) => [b.longitude!, b.latitude!] as [number, number])
+    if (categoryFilterRef.current && pages.length > 0) {
+      const coords = pages
+        .filter((p) => p.latitude != null && p.longitude != null)
+        .map((p) => [p.longitude!, p.latitude!] as [number, number])
 
       if (coords.length > 0) {
         const bounds = coords.reduce(
@@ -251,16 +245,16 @@ export function Map() {
         map.fitBounds(bounds, { padding: 60, maxZoom: 15 })
       }
     }
-  }, [businesses])
+  }, [pages])
 
   // Search callbacks
   const handleCategorySelect = useCallback((category: string) => {
     setCategoryFilter(category)
     categoryFilterRef.current = category
     setNoResultsQuery(null)
-    // Pass null bounds so the query fetches all matching businesses globally
-    fetchBusinesses(null, category)
-  }, [fetchBusinesses])
+    // Pass null bounds so the query fetches all matching pages globally
+    fetchPages(null, category)
+  }, [fetchPages])
 
   const handleLocationSelect = useCallback((coordinates: [number, number]) => {
     setNoResultsQuery(null)
@@ -302,14 +296,14 @@ export function Map() {
           data-testid="search-no-results"
           className="absolute bottom-24 left-4 right-4 z-20 bg-white dark:bg-zinc-900 rounded-xl shadow-lg px-4 py-3 text-sm text-center text-zinc-600 dark:text-zinc-400"
         >
-          No &ldquo;{noResultsQuery}&rdquo; businesses found in this area
+          No &ldquo;{noResultsQuery}&rdquo; pages found in this area
         </div>
       )}
 
-      {selectedBusiness && (
-        <BusinessDetailCard
-          business={selectedBusiness}
-          onClose={() => setSelectedBusiness(null)}
+      {selectedPage && (
+        <PageDetailCard
+          page={selectedPage}
+          onClose={() => setSelectedPage(null)}
         />
       )}
     </div>
