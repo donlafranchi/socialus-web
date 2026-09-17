@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { controlsForKind, appearsOnMap, GROUP_KINDS } from './kind-controls'
+import { controlsForKind, appearsOnMap, hasSocialLinks, GROUP_KINDS } from './kind-controls'
 
 // Don's ruling, 2026-09-16: "Vendors go. Those are now absorbed by page types.
 // And the page types gets its various type of control. E.g. map and address
@@ -27,17 +27,35 @@ describe('controlsForKind', () => {
     expect(controlsForKind('place')).toMatchObject({ hasAddress: true, appearsOnMap: true })
   })
 
-  it('a kind without premises carries neither', () => {
-    // An interest group is people, not a place. Giving it an address control
-    // invites a home address onto a public map, which is the failure the
-    // address rule exists to prevent.
-    expect(controlsForKind('interest')).toMatchObject({ hasAddress: false, appearsOnMap: false })
-    expect(controlsForKind('practice')).toMatchObject({ hasAddress: false, appearsOnMap: false })
-    expect(controlsForKind('family')).toMatchObject({ hasAddress: false, appearsOnMap: false })
+  // CORRECTION. The first version of this file asserted that interest and
+  // practice carried no address. That contradicts the ratified mapping in
+  // ops-pattern `product/systems/page-kind-tools.md` § The mapping, whose
+  // Location anchor row is ● for place, interest, practice, event_anchored and
+  // business, and ✕ for family alone. A run club meets somewhere.
+  it('a community kind still has a place — it is a social group, not a homeless one', () => {
+    for (const kind of ['interest', 'practice', 'event_anchored'] as const) {
+      expect(controlsForKind(kind)).toMatchObject({ hasAddress: true, appearsOnMap: true })
+    }
   })
 
-  it('an event-anchored kind has a place because the event does', () => {
-    expect(controlsForKind('event_anchored')).toMatchObject({ hasAddress: true, appearsOnMap: true })
+  // family is the community set with privacy on: "every tool it loses, it loses
+  // because nobody outside can see it, not because a family cannot do it".
+  it('family carries nothing public — not the map, not links out', () => {
+    expect(controlsForKind('family')).toEqual({
+      hasAddress: false,
+      appearsOnMap: false,
+      hasSocialLinks: false,
+    })
+  })
+
+  it('every kind but family publishes links out', () => {
+    for (const kind of GROUP_KINDS) {
+      expect(controlsForKind(kind).hasSocialLinks).toBe(kind !== 'family')
+    }
+  })
+
+  it('an unknown kind carries no links, same as it gets no pin', () => {
+    expect(hasSocialLinks('something_new_from_a_migration')).toBe(false)
   })
 
   it('appearsOnMap tolerates an unknown kind by withholding the pin', () => {

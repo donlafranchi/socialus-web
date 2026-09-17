@@ -452,6 +452,7 @@ describe('SellWalkthrough — step 4 About (optional)', () => {
       groupId: 'g-draft-1',
       about: 'I bake sourdough.',
       photoUrl: null,
+      socialLinks: {},
     })
   })
 })
@@ -592,6 +593,7 @@ describe('SellWalkthrough — resume', () => {
       groupId: 'g-existing',
       about: 'updated',
       photoUrl: null,
+      socialLinks: {},
     })
   })
 })

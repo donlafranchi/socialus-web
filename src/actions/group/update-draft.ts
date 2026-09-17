@@ -20,6 +20,7 @@ import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/erro
 import { withTransaction } from '../_lib/db'
 import { toSlug } from '../../lib/slugify'
 import { managingRoleForKind, type GroupKind } from './constants'
+import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import type { ActionContext } from '../_lib/context'
 
 export const groupUpdateDraftInput = z.object({
@@ -37,6 +38,11 @@ export const groupUpdateDraftInput = z.object({
   // handler records where it landed. Keeping the bytes out of the action layer
   // is what lets the same handler serve the composer and any later surface.
   photoUrl: z.string().url().nullable().optional(),
+  // F070 — the Page's links out, {platform: https-url}. Validated here and
+  // again by the CHECK constraints on the column: this layer explains, the
+  // database refuses. The value is rendered as href on a public Page, so an
+  // unsafe scheme is an XSS vector wearing a platform label.
+  socialLinks: z.record(z.string(), z.string()).optional(),
   // group_businesses patches (only meaningful for kind='business' rows; the
   // handler skips them silently if the underlying Group is a community kind).
   businessDisplayName: z.string().min(1).max(120).optional(),
@@ -65,6 +71,7 @@ type GroupSpineSetClause =
   | 'description = $'
   | 'anchor_location_id = $'
   | 'photo_url = $'
+  | 'social_links = $'
 type GroupBusinessSetClause =
   | 'display_name = $'
   | 'public_description = $'
@@ -164,6 +171,20 @@ export const groupUpdateDraft = defineHandler(
       if (input.photoUrl !== undefined) {
         spineFragments.push({ clause: 'photo_url = $', value: input.photoUrl })
         patched.push('photo_url')
+      }
+
+      // Social links. Normalised rather than trusted: unknown platforms are
+      // dropped and an unsafe URL is refused outright, because the column is
+      // read straight into an href.
+      if (input.socialLinks !== undefined) {
+        const { links, rejected } = normaliseSocialLinks(input.socialLinks)
+        if (rejected.length > 0) {
+          throw new ValidationError(
+            `group.update_draft: these links are not https URLs and were refused: ${rejected.join(', ')}`,
+          )
+        }
+        spineFragments.push({ clause: 'social_links = $', value: JSON.stringify(links) })
+        patched.push('social_links')
       }
 
       if (spineFragments.length > 0) {

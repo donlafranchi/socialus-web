@@ -117,3 +117,46 @@ describe('F070 · T145 — group.update_draft accepts a photo', () => {
     ).rejects.toBeInstanceOf(ValidationError)
   })
 })
+
+describe('F070 — group.update_draft accepts social links', () => {
+  it('writes social_links as JSON, and reports it as patched', async () => {
+    const result = await groupUpdateDraft(ctx(), {
+      groupId: GROUP,
+      socialLinks: { instagram: 'https://instagram.com/claras' },
+    })
+
+    const [sql, params] = updateCall() ?? ['', []]
+    expect(sql).toMatch(/social_links = \$/)
+    expect(params).toContain(JSON.stringify({ instagram: 'https://instagram.com/claras' }))
+    expect(result.patchedFields).toContain('social_links')
+  })
+
+  // The column is read straight into an href on a public Page. A handler that
+  // accepted this would be the XSS.
+  it('refuses a link that is not an https URL, and names it', async () => {
+    await expect(
+      groupUpdateDraft(ctx(), { groupId: GROUP, socialLinks: { instagram: 'javascript:alert(1)' } }),
+    ).rejects.toThrow(/instagram/)
+  })
+
+  it('drops an unknown platform rather than storing it', async () => {
+    await groupUpdateDraft(ctx(), {
+      groupId: GROUP,
+      socialLinks: { myspace: 'https://myspace.com/x', website: 'https://claras.example' },
+    })
+    const [, params] = updateCall() ?? ['', []]
+    expect(params).toContain(JSON.stringify({ website: 'https://claras.example' }))
+  })
+
+  it('an empty value clears that link — removing is a deliberate act', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, socialLinks: { instagram: '' } })
+    const [, params] = updateCall() ?? ['', []]
+    expect(params).toContain('{}')
+  })
+
+  it('leaves social_links alone when the field is absent', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, name: 'Clara' })
+    const [sql] = updateCall() ?? ['', []]
+    expect(sql).not.toMatch(/social_links/)
+  })
+})

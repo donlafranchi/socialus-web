@@ -26,6 +26,8 @@ import {
 } from '@/components/composer/MultiStepComposer'
 import { AddEntityDrawer } from '@/components/composer/AddEntityDrawer'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
+import { SocialLinksFields } from '@/components/group/SocialLinksFields'
+import type { SocialLinks } from '@/lib/groups/social-links'
 import {
   LocationPlaceFields,
   initialLocationPlaceFieldsState,
@@ -62,6 +64,8 @@ export interface SellWalkthroughState {
    *  and `group.update_draft` writes both. The upload happens in the picker;
    *  by the time it reaches here the bytes are already stored. */
   photoUrl: string | null
+  /** F070 — the Page's links out. Empty object means none. */
+  socialLinks: SocialLinks
   /** T159 — the tags a creator has added, as typed. Normalization happens at
    *  the handler, not here, so what the creator sees is what they wrote. */
   tags: string[]
@@ -80,6 +84,8 @@ export interface SellWalkthroughHandlers {
     about?: string
     /** F070 · T145 — null clears the photo; undefined leaves it alone. */
     photoUrl?: string | null
+    /** F070 — the Page's links out. */
+    socialLinks?: SocialLinks
     /** Brand re-edit from Back navigation. Not normally sent. */
     brand?: string
   }) => Promise<void>
@@ -108,6 +114,8 @@ export interface SellWalkthroughProps extends SellWalkthroughHandlers {
     about: string
     /** F070 · T145 — the photo already on the draft, if any. */
     photoUrl?: string | null
+    /** F070 — links already on the draft, if any. */
+    socialLinks?: SocialLinks | null
     /** 0-indexed step the composer should resume on. */
     resumeFromStep: number
   }
@@ -126,6 +134,7 @@ function emptyState(): SellWalkthroughState {
     anchorLocationId: null,
     anchorLocationLabel: null,
     photoUrl: null,
+    socialLinks: {},
     tags: [],
     tagDraft: '',
     about: '',
@@ -154,6 +163,7 @@ export function SellWalkthrough({
         anchorLocationId: resume.anchorLocationId,
         anchorLocationLabel: resume.anchorLocationLabel,
         photoUrl: resume.photoUrl ?? null,
+        socialLinks: resume.socialLinks ?? {},
         // T144 — category is never persisted during drafting (see the
         // field's own comment above), so a resumed session has no
         // server-side value to restore it from. The Member re-picks it.
@@ -292,6 +302,16 @@ export function SellWalkthrough({
               onChange={(url: string | null) => setState({ ...state, photoUrl: url })}
             />
           </div>
+          {/* Every Page this composer creates is kind='business' — the purpose
+              step confers no kind (F087 criterion 6) and resolveShop filters on
+              it. Stated rather than hardcoded downstream: the control asks
+              kind-controls, so a composer that one day creates other kinds gets
+              the right answer without this line changing meaning. */}
+          <SocialLinksFields
+            kind="business"
+            value={state.socialLinks}
+            onChange={(next) => setState({ ...state, socialLinks: next })}
+          />
         </label>
       ),
       validate: () => ({ ok: true }),
@@ -313,6 +333,14 @@ export function SellWalkthrough({
           <li>
             <strong>Anchor Location:</strong>{' '}
             {state.anchorLocationLabel ?? '(set)'}
+          </li>
+          <li>
+            <strong>Links:</strong>{' '}
+            {Object.keys(state.socialLinks).length > 0 ? (
+              `${Object.keys(state.socialLinks).length} added`
+            ) : (
+              <em className="text-[var(--color-fg-muted)]">(none)</em>
+            )}
           </li>
           <li>
             <strong>Photo:</strong>{' '}
@@ -416,6 +444,7 @@ export function SellWalkthrough({
           // removed photo reaches the handler, and `undefined` would mean
           // "leave it alone" — which would make removal impossible.
           photoUrl: state.photoUrl,
+          socialLinks: state.socialLinks,
         })
         return
       }
