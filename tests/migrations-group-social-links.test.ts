@@ -39,6 +39,16 @@ describe('F070 — groups.social_links', () => {
     expect(sql).toMatch(/\^https:\/\//)
   })
 
+  // Postgres refuses a subquery in a CHECK (SQLSTATE 0A000), and inspecting an
+  // object's keys needs a set-returning function. CI caught the inline version;
+  // this keeps it caught.
+  it('uses IMMUTABLE helper functions rather than subqueries in the CHECKs', () => {
+    expect(sql).toMatch(/create or replace function public\.social_links_keys_known/i)
+    expect(sql).toMatch(/create or replace function public\.social_links_values_https/i)
+    expect(sql).toMatch(/immutable/i)
+    expect(sql).not.toMatch(/check\s*\(\s*not exists/i)
+  })
+
   it('refuses http as well as javascript — no downgrade, no scheme smuggling', () => {
     expect(sql).not.toMatch(/\^https\?:/)
   })
