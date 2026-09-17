@@ -9,6 +9,7 @@ import { MarketSelector } from '@/components/MarketSelector'
 import { SellCta } from '@/components/sell/SellCta'
 import { FollowingSummary } from '@/components/follows/FollowingSummary'
 import { NavYouBadge } from '@/components/NavYouBadge'
+import { OwnPages } from '@/components/member/OwnPages'
 
 type Tab = 'saved' | 'following' | 'settings'
 
@@ -128,6 +129,16 @@ function YouPageInner() {
 
       {/* T073 — Sell CTA (always-visible, 3-branch routing per F036). */}
       <SellCta memberId={userId} />
+
+      {/* The Pages this member made. Nothing showed these before: SellCta finds
+          a DRAFT to resume and lets an active Page fall through, so someone who
+          had built something had no surface that showed it back to them. */}
+      {userId && (
+        <section className="mt-6" data-testid="your-pages-section">
+          <h2 className="text-[17px] font-semibold text-[var(--color-fg)] mb-3">Your Pages</h2>
+          <OwnPages memberId={userId} />
+        </section>
+      )}
 
       <section className="mt-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between gap-3" data-testid="your-market-row">
         <div className="min-w-0">

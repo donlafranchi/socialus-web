@@ -32,13 +32,15 @@ export function CardGrid({
   density = 'comfortable',
   className = '',
   children,
+  ...rest
 }: {
   density?: CardGridDensity
   className?: string
   children: ReactNode
-}) {
+} & Record<string, unknown>) {
   return (
     <ul
+      {...rest}
       data-testid="card-grid"
       data-density={density}
       className={`grid gap-4 list-none p-0 m-0 ${className}`.trim()}

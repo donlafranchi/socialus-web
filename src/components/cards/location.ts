@@ -18,7 +18,21 @@
 // Wide Web". Using the term the docs already ratified rather than a second one
 // for the same thing.
 
-export const LOCATION_SCALES = ['address', 'neighbourhood', 'metro', 'wider', 'online'] as const
+export const LOCATION_SCALES = [
+  'address',
+  'neighbourhood',
+  'metro',
+  'wider',
+  'online',
+  // NOT part of the ratified ladder, and deliberately last.
+  //
+  // `none` means "not chosen yet", which is a real state for a draft and is a
+  // different fact from `online` — online is a deliberate answer that the thing
+  // has no physical place, and saying it about a half-finished draft would be a
+  // lie the owner never told. It appears on one surface only: a member's list
+  // of their own Pages, where drafts are visible. Nothing public renders it.
+  'none',
+] as const
 
 export type LocationScale = (typeof LOCATION_SCALES)[number]
 
@@ -35,6 +49,7 @@ const DEFAULT_LABEL: Record<LocationScale, string> = {
   metro: 'Across the metro',
   wider: 'Further out',
   online: 'Online',
+  none: 'No location yet',
 }
 
 /**
@@ -58,5 +73,5 @@ export function locationLine(location: CardLocation): string {
  * re-deciding it.
  */
 export function isMappable(location: CardLocation): boolean {
-  return location.scale !== 'online'
+  return location.scale !== 'online' && location.scale !== 'none'
 }
