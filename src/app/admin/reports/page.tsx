@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase-server'
 import { isOperator } from '@/actions/_lib/operator'
 import { fetchReviewQueue, hiddenFor } from '@/lib/admin/reports-queue'
 import { ReportEntry } from './ReportEntry'
-import { restoreReportAction, removeReportAction } from './actions'
+import { decideReportAction, reverseDecisionAction } from './actions'
 
 // The queue is a live fact about withheld content. Never prerendered, never
 // cached — a stale queue means reviewing something already decided.
@@ -36,8 +36,8 @@ export default async function AdminReportsPage() {
       <h1 className="text-lg font-semibold text-[var(--color-fg)]">Reports</h1>
       <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
         {queue.length === 0
-          ? 'Nothing waiting.'
-          : `${queue.length} waiting · longest-hidden first`}
+          ? 'Nothing here.'
+          : `${queue.filter((r) => r.history.length === 0).length} waiting · decided ones stay below, and any decision can be undone`}
       </p>
 
       {queue.length > 0 ? (
@@ -47,8 +47,8 @@ export default async function AdminReportsPage() {
               key={r.reportId}
               report={r}
               hiddenFor={hiddenFor(r.hiddenAt, now)}
-              onRestore={restoreReportAction}
-              onRemove={removeReportAction}
+              onDecide={decideReportAction}
+              onReverse={reverseDecisionAction}
             />
           ))}
         </ul>
