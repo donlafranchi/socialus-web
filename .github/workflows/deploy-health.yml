@@ -89,3 +89,24 @@ jobs:
           echo "::error::$endpoint never answered 200 or 503 after $max attempts (last HTTP $code)."
           echo "$body"
           exit 1
+
+  # Added 2026-09-17. It rides the daily job that already exists rather than
+  # getting a schedule of its own: ops-pattern's process/LIVING-DOCS.md refuses
+  # scheduled Actions on the grounds that a thing regenerating on a schedule
+  # rots between reads, and a second cron would be a second thing to notice
+  # firing late. This one only ever speaks when something is wrong.
+  ontology-drift:
+    name: Ontology declarations still match the code
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Silent and green when clean. Red, with both lists, when a declaration's
+      # handler or table has gone — which is what emails Don.
+      - name: Report drift
+        run: npx tsx scripts/ontology-drift.ts
