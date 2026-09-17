@@ -10,7 +10,6 @@ import { Home, Search, User, Plus } from 'lucide-react'
 import { useNavVisible } from './NavVisibilityProvider'
 
 const TABS = [
-  { href: '/', label: 'Home', icon: Home, match: (p: string) => p === '/' },
   { href: '/explore', label: 'Explore', icon: Search, match: (p: string) => p.startsWith('/explore') || p === '/map' },
   { href: '/you', label: 'You', icon: User, match: (p: string) => p.startsWith('/you') || p.startsWith('/following') },
 ]
@@ -41,7 +40,11 @@ const CREATE = { href: '/you/sell', label: 'Create' }
 
 // Between the tabs, not at an end. Three tabs give two interior slots; this is
 // the one that keeps You last, which is the order members already have.
-const CREATE_AFTER = 2
+// Create sits BETWEEN the destinations, not at an end — that placement is the
+// bet about declaring things being first class. With Home paused there are two
+// tabs, so it moves from after the second to after the first; leaving it at 2
+// parks it on the right-hand end, which is a different claim.
+const CREATE_AFTER = 1
 
 /** F086 — on a phone the nav has no room for a name, so the You tab carries
  *  the mark instead. One glance, no tap. The name and the sign-out control

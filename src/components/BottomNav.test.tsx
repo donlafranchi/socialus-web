@@ -33,12 +33,13 @@ afterEach(() => {
 const bar = () => screen.getByTestId('bottom-nav').querySelector('ul')!
 
 describe('BottomNav — thesis §2 visual spec', () => {
-  it('renders exactly three tabs: Home, Explore, You', () => {
+  // Home is paused (2026-09-17) — off the site, not deleted. Two tabs now.
+  it('renders exactly two tabs: Explore, You', () => {
     render(<BottomNav />)
     const tabs = within(screen.getByTestId('bottom-nav'))
       .getAllByRole('link')
       .filter((l) => l.hasAttribute('data-active'))
-    expect(tabs.map((l) => l.textContent)).toEqual(['Home', 'Explore', 'You'])
+    expect(tabs.map((l) => l.textContent)).toEqual(['Explore', 'You'])
   })
 
   it('exposes a named navigation landmark', () => {
@@ -88,21 +89,21 @@ describe('BottomNav — thesis §2 visual spec', () => {
   it('inactive tabs render in the muted nav gray', () => {
     pathname.current = '/explore'
     render(<BottomNav />)
-    const inactive = screen.getByRole('link', { name: 'Home' })
+    const inactive = screen.getByRole('link', { name: 'You' })
     expect(inactive).toHaveAttribute('data-active', 'false')
     expect(inactive.className).toContain('text-[var(--color-nav-inactive)]')
   })
 
   it('each tab spans the full 44px bar height as a touch target', () => {
     render(<BottomNav />)
-    const link = screen.getByRole('link', { name: 'Home' })
+    const link = screen.getByRole('link', { name: 'You' })
     expect(link.className).toContain('h-full')
     expect(link.parentElement!.className).toContain('items-stretch')
   })
 
   it('labels are 9px medium sitting 3px below the icon', () => {
     render(<BottomNav />)
-    const link = screen.getByRole('link', { name: 'Home' })
+    const link = screen.getByRole('link', { name: 'You' })
     expect(link.className).toContain('text-[9px]')
     expect(link.className).toContain('font-medium')
     expect(link.className).toContain('gap-[3px]')
@@ -112,7 +113,7 @@ describe('BottomNav — thesis §2 visual spec', () => {
     pathname.current = '/explore'
     render(<BottomNav />)
     const icons = screen.getByTestId('bottom-nav').querySelectorAll('svg')
-    expect(icons).toHaveLength(4) // three tabs + the create action
+    expect(icons).toHaveLength(3) // two tabs + the create action (Home paused)
     icons.forEach((svg) => {
       expect(svg.getAttribute('width')).toBe('20')
       expect(svg.getAttribute('height')).toBe('20')
@@ -126,15 +127,19 @@ describe('BottomNav — thesis §2 visual spec', () => {
     const svgOf = (name: string) =>
       screen.getByRole('link', { name }).querySelector('svg')!
     expect(svgOf('Explore').getAttribute('fill')).toBe('currentColor')
-    expect(svgOf('Home').getAttribute('fill')).toBe('none')
     expect(svgOf('You').getAttribute('fill')).toBe('none')
   })
 
   it('re-tapping the active tab scrolls to top instead of navigating', () => {
+    // Explicit now: the suite default is '/', which matched the Home tab. With
+    // Home paused nothing matches '/' — and nothing should, since '/' redirects
+    // to Explore and the nav never renders there.
+    pathname.current = '/explore'
     const scrollTo = vi.fn()
     vi.stubGlobal('scrollTo', scrollTo)
     render(<BottomNav />)
-    screen.getByRole('link', { name: 'Home' }).click()
+    // The ACTIVE tab — pathname is /explore in this suite.
+    screen.getByRole('link', { name: 'Explore' }).click()
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     vi.unstubAllGlobals()
   })
@@ -240,12 +245,12 @@ describe('BottomNav — create action (T158)', () => {
     expect(create()).not.toHaveAttribute('aria-current')
   })
 
-  it('does not displace a tab — all three still render beside it', () => {
+  it('does not displace a tab — both still render beside it', () => {
     render(<BottomNav />)
     const tabs = within(screen.getByTestId('bottom-nav'))
       .getAllByRole('link')
       .filter((l) => l.hasAttribute('data-active'))
-    expect(tabs.map((t) => t.textContent)).toEqual(['Home', 'Explore', 'You'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Explore', 'You'])
     expect(tabs).not.toContain(create())
   })
 
@@ -304,10 +309,10 @@ describe('TopNavDesktop — create action (T158)', () => {
     expect(create()).not.toHaveAttribute('aria-current')
   })
 
-  it('does not displace the three destinations', () => {
+  it('does not displace the two destinations', () => {
     render(<TopNavDesktop />)
     const nav = screen.getByTestId('top-nav-desktop')
-    for (const name of ['Home', 'Explore', 'You']) {
+    for (const name of ['Explore', 'You']) {
       expect(within(nav).getByRole('link', { name })).toBeInTheDocument()
     }
   })
