@@ -5,3 +5,11 @@ export {
   type ReportCreateInput,
   type ReportCreateResult,
 } from './create'
+
+export {
+  reportRestore,
+  reportRemove,
+  reportReviewInput,
+  type ReportReviewInput,
+  type ReportReviewResult,
+} from './review'

@@ -29,7 +29,7 @@ import {
   groupPostEdit,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
-import { reportCreate } from './report'
+import { reportCreate, reportRestore, reportRemove } from './report'
 import { metroWaitlistJoin } from './metro'
 import type { NamedActionHandler } from './_lib/handler'
 
@@ -61,6 +61,10 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'group.post_edit': groupPostEdit as unknown as NamedActionHandler<unknown, unknown>,
   // T159 — F058: a member reports something; the photo hides at once.
   'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
+  // T122 (#12) — the operator's two outcomes. Operator-only, enforced in the
+  // handlers; absence of a button is not authorization.
+  'report.restore': reportRestore as unknown as NamedActionHandler<unknown, unknown>,
+  'report.remove': reportRemove as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
 }
@@ -101,6 +105,8 @@ export {
 export { itemCreate, itemPublish, itemAttachLocation } from './item'
 export {
   reportCreate,
+  reportRestore,
+  reportRemove,
   reportCreateInput,
   type ReportCreateInput,
   type ReportCreateResult,
