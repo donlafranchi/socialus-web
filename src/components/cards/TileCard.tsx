@@ -1,49 +1,50 @@
-// The tile. The recovered `VendorCard` (ccbf54d) made fluid.
+// The tile. The recovered `VendorCard` (ccbf54d) made fluid, then made uniform.
 //
-// Kept exactly as it was:
-//   · image block on top with its OWN rounded-xl inside the card's — the inner
-//     radius is what stops it reading as a photo with a card stuck behind it
-//   · the emoji empty state on the surface colour, never a grey box
-//   · font-medium 15px name clamped to one line; 14px muted tagline clamped to
-//     two; a 14px medium meta line under them
-//   · the action sits outside the link, below the text block
+// Kept from the original: the image block with its own rounded-xl inside the
+// card's, the emoji empty state on the surface colour, the 15px medium name,
+// the 14px muted tagline, the action below the text outside the link.
 //
-// Changed, because the fixed tile cannot meet "27-inch down to iPhone mini":
-//   · `w-56` / `w-44` are gone. The card fills its grid cell; CardGrid decides
-//     how many cells there are.
-//   · the image is `aspect-[3/2]` rather than `h-32`. A fixed height on a card
-//     that now varies in width distorts the crop at both extremes — tall and
-//     letterboxed when narrow, a thin strip when wide. A ratio holds the
-//     composition at every width, which is what makes the emoji state keep
-//     identical height across a row.
-//   · the emoji scales with the card (`clamp` on container-query units)
-//     instead of a fixed `text-3xl`. The original's 30px inside a 128px-tall
-//     block is roughly a quarter of the block's height; 17cqw holds that same
-//     proportion at every card width, so it is neither a speck on a wide card
-//     nor overwhelming on a narrow one.
+// Changed for Don's review of the gallery, 2026-09-17:
+//
+//   1. UNIFORM HEIGHT. Every text row now reserves its space whether or not it
+//      has content — two lines for the title, two for the tagline, one for the
+//      location. Content no longer decides height: a one-word title and a
+//      wrapping one produce the same card. Reserving beats stretching, because
+//      `align-items: stretch` only equalises within a row and Don wants every
+//      card the same.
+//   2. LOCATION IS REQUIRED. Not an optional line — the slot that is always
+//      there is what makes the height deterministic, and `online` is a value
+//      rather than an absence. See location.ts; the vocabulary is ratified.
+//   3. LEFT PADDING. The original's text was flush to the card edge; the image
+//      bleeds, so nothing revealed it. `px-3` on the text block. The image
+//      still bleeds, which is deliberate — an inset image inside an inset text
+//      block reads as a card inside a card.
+//   4. NO UNDERLINE. The global `a:hover` underlined the whole card, image
+//      included. Removed for cards in globals.css. The affordance it carried is
+//      replaced by the lift plus the title shifting to the accent colour —
+//      colour and motion rather than a line.
 
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Card } from './Card'
+import { locationLine, type CardLocation } from './location'
 
 export interface TileCardProps {
   title: string
-  /** Optional second line. Clamped to two lines, as the original was. */
+  /** Optional. Reserves two lines whether present or not. */
   tagline?: string | null
-  /** Optional third line — the original used "Market · Sunday". */
-  meta?: string | null
+  /** Required. Every card has a location — see location.ts. */
+  location: CardLocation
   imageUrl?: string | null
-  /** Shown centred on the surface colour when there is no image. */
   emoji?: string
   href?: string | null
-  /** Rendered under the text block, outside the link. */
   action?: ReactNode
 }
 
 export function TileCard({
   title,
   tagline,
-  meta,
+  location,
   imageUrl,
   emoji = '🌱',
   href,
@@ -65,12 +66,29 @@ export function TileCard({
           </span>
         )}
       </div>
-      <div className="pt-3 pb-1">
-        <p className="font-medium text-[15px] text-[var(--color-fg)] line-clamp-1">{title}</p>
-        {tagline ? (
-          <p className="text-sm text-[var(--color-fg-muted)] mt-1 line-clamp-2">{tagline}</p>
-        ) : null}
-        {meta ? <p className="text-sm text-[var(--color-fg)] mt-2 font-medium">{meta}</p> : null}
+
+      {/* Every row below reserves its height. `min-h` in em rather than a pixel
+          count so it tracks the line-height of its own row rather than a
+          number that drifts when the type scale changes. */}
+      <div data-testid="tile-text" className="px-3 pt-3 pb-1">
+        <p
+          data-testid="tile-title"
+          className="font-medium text-[15px] leading-5 text-[var(--color-fg)] line-clamp-2 min-h-[2.5rem] transition-colors group-hover/tile:text-[var(--color-accent)]"
+        >
+          {title}
+        </p>
+        <p
+          data-testid="tile-tagline"
+          className="text-sm leading-5 text-[var(--color-fg-muted)] mt-1 line-clamp-2 min-h-[2.5rem]"
+        >
+          {tagline ?? ' '}
+        </p>
+        <p
+          data-testid="tile-location"
+          className="text-sm leading-5 text-[var(--color-fg)] mt-2 font-medium line-clamp-1 min-h-[1.25rem]"
+        >
+          {locationLine(location)}
+        </p>
       </div>
     </>
   )
@@ -80,19 +98,19 @@ export function TileCard({
       as="li"
       interactive={Boolean(href)}
       data-testid="tile-card"
-      // container-type is what lets the emoji size off the CARD rather than the
-      // viewport — the same tile is 288px on a phone and 250px in a ten-column
-      // grid, and a viewport unit cannot tell those apart.
-      className="[container-type:inline-size]"
+      data-location-scale={location.scale}
+      // `group/tile` so the title can respond to hovering anywhere on the card,
+      // not only on the words. container-type sizes the emoji off the CARD.
+      className="group/tile flex flex-col [container-type:inline-size]"
     >
       {href ? (
-        <Link href={href} className="block hover:no-underline">
+        <Link href={href} className="block">
           {body}
         </Link>
       ) : (
         body
       )}
-      {action ? <div className="pt-2">{action}</div> : null}
+      {action ? <div className="px-3 pb-3 pt-2 mt-auto">{action}</div> : null}
     </Card>
   )
 }
