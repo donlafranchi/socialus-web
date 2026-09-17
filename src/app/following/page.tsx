@@ -109,7 +109,7 @@ export default function FollowingPage() {
       {loaded && rows.length === 0 && (
         <div className="px-4 md:px-6 mt-6 text-center text-sm text-neutral-600">
           <p>You&apos;re not following anyone yet.</p>
-          <Link href="/" className="mt-3 inline-block text-[var(--color-accent)] underline">
+          <Link href="/explore" className="mt-3 inline-block text-[var(--color-accent)] underline">
             Browse vendors
           </Link>
         </div>

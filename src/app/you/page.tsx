@@ -225,6 +225,28 @@ function SettingsTab({
 }) {
   return (
     <div className="space-y-4" data-testid="settings-panel">
+      {/* Home is paused (2026-09-17) and MakeThisYoursBanner went dark with it.
+          That banner was the only VISIBLE link into onboarding. The route was
+          never orphaned — `EmailFirstSignup` and `auth/password` both default
+          their post-auth `next` to /onboarding — but a member already past
+          signup had no way back to it. This is that way.
+
+          Stated as a destination rather than "finish setting up": there is no
+          completion flag on a Member (onboarding writes display_name and a
+          home locality, nothing that says "done"), so claiming someone is
+          unfinished would be a guess. */}
+      <div>
+        <h2 className="text-sm font-semibold text-neutral-700 mb-2">Profile</h2>
+        <Link
+          href="/onboarding"
+          data-testid="settings-onboarding-link"
+          className="flex items-center justify-between bg-white border border-neutral-200 rounded-lg px-4 py-3 text-sm hover:no-underline"
+        >
+          <span>Your name and where you are</span>
+          <span aria-hidden className="text-[var(--color-fg-muted)]">›</span>
+        </Link>
+      </div>
+
       <div>
         <h2 className="text-sm font-semibold text-neutral-700 mb-2">Notifications</h2>
         <label className="flex items-center justify-between bg-white border border-neutral-200 rounded-lg px-4 py-3 text-sm">

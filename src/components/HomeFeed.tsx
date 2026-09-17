@@ -102,7 +102,7 @@ export function HomeFeed() {
       {/* Mobile top header */}
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200 md:hidden">
         <div className="px-3 py-2 flex items-center justify-between gap-2">
-          <Link href="/" className="font-semibold text-[var(--color-accent)]">SocialUs</Link>
+          <Link href="/explore" className="font-semibold text-[var(--color-accent)]">SocialUs</Link>
           {isAuth ? (
             <Link href="/you" aria-label="You" className="p-2">
               <User size={20} className="text-neutral-700" />
