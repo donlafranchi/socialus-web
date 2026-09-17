@@ -26,6 +26,8 @@ export {
   type CardLocation,
   type LocationScale,
 } from './location'
+export { ExampleCard, type ExampleCardProps } from './ExampleCard'
+export { ExampleBlock } from './ExampleBlock'
 export { AnnouncementCard } from './AnnouncementCard'
 export { StatusDot } from './StatusDot'
 export { MetricTile } from './MetricTile'

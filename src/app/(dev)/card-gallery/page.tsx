@@ -4,7 +4,7 @@
 // It exists to be looked at at 320px and at 2560px. Everything on it is
 // placeholder.
 
-import { CardGrid, TileCard, AnnouncementCard, StatusDot, MetricTile } from '@/components/cards'
+import { CardGrid, TileCard, AnnouncementCard, StatusDot, MetricTile, ExampleBlock } from '@/components/cards'
 import type { CardLocation } from '@/components/cards'
 
 // Deliberately uneven, because uniform height is the thing to check: a title
@@ -46,6 +46,16 @@ export default function CardGalleryPage() {
           <TileCard key={t.title} title={t.title} emoji={t.emoji} location={t.location} href="/#" />
         ))}
       </CardGrid>
+
+      {/* Don's ruling, 2026-09-17. It sits here next to the real tiles on
+          purpose: the comparison is the review. The example cards should read
+          as the same SHAPE and unmistakably not the same THING. */}
+      <h2 className="text-[17px] font-semibold mt-10 text-[var(--color-fg)]">Examples</h2>
+      <p className="text-sm text-[var(--color-fg-muted)] mb-3">
+        Shown where SocialUs isn&rsquo;t running yet. Marked, tinted, and with nothing to tap —
+        no link, no follow, no map pin. Its own bounded block, never the results grid.
+      </p>
+      <ExampleBlock placeName="Boise City, ID" />
 
       <h2 className="text-[17px] font-semibold mt-10 text-[var(--color-fg)]">Announcements</h2>
       <CardGrid className="mt-3">

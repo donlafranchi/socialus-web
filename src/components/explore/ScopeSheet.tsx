@@ -12,16 +12,21 @@
 // ones we actually serve come first under their own heading, and the rest are
 // named as what they are.
 //
-// And the rest are NOT selectable. 295 of the 296 carry no polygon and no
-// centroid (the waitlist migration dropped both NOT NULLs), so choosing one
-// could only relabel the page while the results underneath stayed exactly the
-// same — the precise lie this whole change set is undoing. They are listed
-// because a person should be able to find their own metro and see where it
-// stands; joining its waitlist from here is the follow-up, not a silent no-op.
+// And the rest are not selectable AS A SCOPE. 295 of the 296 carry no polygon
+// and no centroid (the waitlist migration dropped both NOT NULLs), so choosing
+// one as a place to browse could only relabel the page while the results
+// underneath stayed exactly the same — the precise lie this whole change set is
+// undoing.
+//
+// They ARE tappable now, and they open MetroNotCoveredPanel instead: what is
+// missing, what SocialUs looks like, and the waitlist that already exists.
+// Listing them as dead text was honest about scope and told someone who found
+// their own city nothing at all.
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { fetchChoosableMetros, splitByOpen, type ChoosableMetro } from '@/lib/explore/metros'
+import { MetroNotCoveredPanel } from './MetroNotCoveredPanel'
 
 export function ScopeSheet({
   open,
@@ -36,6 +41,8 @@ export function ScopeSheet({
 }) {
   const [metros, setMetros] = useState<ChoosableMetro[] | null>(null)
   const [q, setQ] = useState('')
+  // A metro the platform does not serve, opened for a closer look. Not a scope.
+  const [looking, setLooking] = useState<ChoosableMetro | null>(null)
 
   useEffect(() => {
     if (!open || metros !== null) return
@@ -72,15 +79,21 @@ export function ScopeSheet({
     </li>
   )
 
+  // Tappable, but it opens the not-covered panel — it never becomes the scope.
+  // `data-selectable="false"` still says so: a test asserting you cannot browse
+  // here should keep passing.
   const notYetRow = (m: ChoosableMetro) => (
-    <li
-      key={m.id}
-      data-testid={`scope-metro-${m.slug}`}
-      data-selectable="false"
-      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-[var(--color-fg-muted)]"
-    >
-      <span className="truncate">{m.name}</span>
-      <span className="shrink-0 text-xs">Not yet</span>
+    <li key={m.id}>
+      <button
+        type="button"
+        data-testid={`scope-metro-${m.slug}`}
+        data-selectable="false"
+        onClick={() => setLooking(m)}
+        className="nudge flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm text-[var(--color-fg-muted)] hover:bg-[var(--color-surface)]"
+      >
+        <span className="truncate">{m.name}</span>
+        <span className="shrink-0 text-xs">Not yet →</span>
+      </button>
     </li>
   )
 
@@ -91,6 +104,10 @@ export function ScopeSheet({
         data-testid="scope-sheet"
         className="relative w-full max-w-md rounded-t-2xl bg-white p-4 pb-8 shadow-[0_-6px_16px_rgba(0,0,0,0.12)] sm:rounded-2xl sm:pb-4 max-h-[75vh] overflow-y-auto"
       >
+        {looking ? (
+          <MetroNotCoveredPanel metro={looking} onBack={() => setLooking(null)} />
+        ) : (
+        <>
         <h2 className="text-lg font-semibold text-[var(--color-fg)]">Choose your area</h2>
 
         <input
@@ -135,6 +152,8 @@ export function ScopeSheet({
               </p>
             ) : null}
           </>
+        )}
+        </>
         )}
       </div>
     </div>
