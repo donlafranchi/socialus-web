@@ -36,3 +36,28 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 ## Issue hygiene
 
 `.github/ISSUE_TEMPLATE/work.md` and `.github/workflows/issue-lint.yml` enforce `Kind:`/`Scenario:` fields and flag scope drift automatically — label `needs-fix` means one of those checks failed; read the bot comment.
+
+## The ontology
+
+The nouns live in ops-pattern `product/foundation/nouns.md`, the verbs in
+`verbs.md`. **The links live in `src/ontology/links.ts`** — the relationships
+between nouns, which had no home before and so lived implicitly in foreign keys.
+
+**The rule: a ruling that introduces or changes a link updates that file in the
+same PR.** Not afterwards, not in a follow-up ticket. Each entry carries its
+`ruled:` date, which is the pointer back to the `DECISIONS.md` line.
+
+It is code, not a document, on purpose — ops-pattern's own `process/LIVING-DOCS.md`
+already ruled that *"a file only a script compares is safe, because nothing
+believes it"*, and a document called REGISTRY died in this project once already.
+`scripts/check-action-layer-conformance.ts` Rule 5 fails the PR when a link
+claims a handler that is not registered, or points at a table no migration
+creates. It runs at `npm test`.
+
+**It declares meaning, not columns.** `via` names a table and column only so the
+check has something real to compare against. If you are adding a type or an
+index there, it has drifted into being a second copy of the migrations.
+
+**Verbs are never hand-listed** — they are read from `src/actions/index.ts`.
+**Object types are deferred**: a noun gets a declaration the next time a handler
+touching it is edited, not in a 24-handler rewrite.

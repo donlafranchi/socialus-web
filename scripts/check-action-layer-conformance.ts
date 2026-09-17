@@ -435,6 +435,127 @@ function checkParameterizedQueries(relPath: string, content: string): Violation[
   return violations
 }
 
+
+// ---------------------------------------------------------------------------
+// Check 5 — ontology link declarations (2026-09-17).
+//
+// The nouns and the verbs already have homes. The RELATIONSHIPS never did, so
+// they lived implicitly in foreign keys and kept being rediscovered. They are
+// now declared in src/ontology/links.ts, and this is what keeps that file from
+// becoming another document nobody believes.
+//
+// It compares CODE AGAINST CODE — never a doc against a doc:
+//
+//   5a. every handler a link claims writes it exists in the action registry
+//   5b. every table a link points at exists in the migrations
+//
+// It deliberately does NOT check that every handler has a link. Most handlers
+// do not create a relationship, and inferring which ones should is judgement a
+// script cannot do — a rule like that produces noise and then gets ignored,
+// which is the failure mode this whole check exists to avoid.
+// ---------------------------------------------------------------------------
+
+const LINKS_PATH = resolve(ROOT, 'src', 'ontology', 'links.ts')
+const ACTIONS_INDEX_PATH = resolve(ROOT, 'src', 'actions', 'index.ts')
+const MIGRATIONS_DIR = resolve(ROOT, 'supabase', 'migrations')
+
+/** Handler names as registered, read from the registry rather than re-listed. */
+function registeredHandlerNames(): string[] {
+  let src: string
+  try {
+    src = readFileSync(ACTIONS_INDEX_PATH, 'utf8')
+  } catch {
+    return []
+  }
+  const body = src.slice(src.indexOf('const REGISTRY'), src.indexOf('export function getHandler'))
+  return [...body.matchAll(/^\s*'([a-z_]+(?:\.[a-z_]+)+)':/gm)].map((m) => m[1])
+}
+
+/** Table names any migration creates. */
+function migrationTableNames(): Set<string> {
+  const names = new Set<string>()
+  let files: string[]
+  try {
+    files = readdirSync(MIGRATIONS_DIR).filter((f) => f.endsWith('.sql'))
+  } catch {
+    return names
+  }
+  for (const f of files) {
+    const sql = readFileSync(resolve(MIGRATIONS_DIR, f), 'utf8')
+    for (const m of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:public\.)?([a-z0-9_]+)/gi)) {
+      names.add(m[1].toLowerCase())
+    }
+  }
+  return names
+}
+
+interface DeclaredLink {
+  name: string
+  table: string
+  writtenBy: string[]
+  line: number
+}
+
+/** Parse the declarations. Regex over the literal, so the check needs no build step. */
+function parseDeclaredLinks(): { links: DeclaredLink[]; error: string | null } {
+  let src: string
+  try {
+    src = readFileSync(LINKS_PATH, 'utf8')
+  } catch {
+    return { links: [], error: `src/ontology/links.ts is missing` }
+  }
+  const links: DeclaredLink[] = []
+  for (const m of src.matchAll(/name:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g)) {
+    const after = src.slice(m.index ?? 0)
+    const tableM = after.match(/via:\s*\{\s*table:\s*'([a-z0-9_]+)'/)
+    const writersM = after.match(/writtenBy:\s*\[([^\]]*)\]/)
+    if (!tableM) continue
+    links.push({
+      name: m[2],
+      table: tableM[1],
+      writtenBy: writersM ? [...writersM[1].matchAll(/'([^']+)'/g)].map((w) => w[1]) : [],
+      line: src.slice(0, m.index ?? 0).split('\n').length,
+    })
+  }
+  return { links, error: null }
+}
+
+function checkOntologyLinks(): Violation[] {
+  const violations: Violation[] = []
+  const { links, error } = parseDeclaredLinks()
+  const rel = relative(ROOT, LINKS_PATH)
+  if (error) {
+    return [{ rule: 'Rule 5 — ontology link declarations', file: rel, line: 1, column: 1, match: error }]
+  }
+  const handlers = new Set(registeredHandlerNames())
+  const tables = migrationTableNames()
+
+  for (const link of links) {
+    for (const w of link.writtenBy) {
+      if (!handlers.has(w)) {
+        violations.push({
+          rule: 'Rule 5a — a link claims a handler that is not registered',
+          file: rel,
+          line: link.line,
+          column: 1,
+          match: `"${link.name}" says it is written by '${w}', which is not in src/actions/index.ts`,
+        })
+      }
+    }
+    // An empty migrations read means the directory moved; do not fail on that.
+    if (tables.size > 0 && !tables.has(link.table)) {
+      violations.push({
+        rule: 'Rule 5b — a link points at a table no migration creates',
+        file: rel,
+        line: link.line,
+        column: 1,
+        match: `"${link.name}" points at table '${link.table}', which no migration creates`,
+      })
+    }
+  }
+  return violations
+}
+
 function main(): number {
   // T052 sub-task — `--json` mode for the action-layer-conformance check.
   // The bootstrap-eval-helpers.ts script ingests this output and writes it
@@ -470,6 +591,9 @@ function main(): number {
     // Check 3 (T051 Rule 4): parameterized queries. Probe dirs participate.
     allViolations.push(...checkParameterizedQueries(f, content))
   }
+
+  // Check 5: ontology link declarations. Once per run, not per file.
+  allViolations.push(...checkOntologyLinks())
 
   for (const err of ledgerErrors) {
     allViolations.push({
