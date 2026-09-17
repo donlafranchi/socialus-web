@@ -50,11 +50,21 @@ describe('rowsToMapPages', () => {
     expect(p.latitude).toBeCloseTo(38.55, 5)
   })
 
-  it('drops a kind that does not belong on the map', () => {
-    // Not a filter for tidiness: an interest group is people, and pinning one
-    // puts a member's own location on a public map.
-    expect(rowsToMapPages([row({ kind: 'interest' })])).toEqual([])
+  // CORRECTED alongside kind-controls: the ratified mapping in ops-pattern
+  // `product/systems/page-kind-tools.md` gives interest and practice a Location
+  // anchor. A run club meets somewhere. `family` is the only ✕ — it is the
+  // community set with privacy on, so nothing it has is public.
+  it('pins a community kind, which has a place like any other social group', () => {
+    expect(rowsToMapPages([row({ kind: 'interest' })])).toHaveLength(1)
+    expect(rowsToMapPages([row({ kind: 'practice' })])).toHaveLength(1)
+  })
+
+  it('drops family, whose whole difference is that nothing of it is public', () => {
     expect(rowsToMapPages([row({ kind: 'family' })])).toEqual([])
+  })
+
+  it('drops a kind it does not recognise, rather than pinning it by default', () => {
+    expect(rowsToMapPages([row({ kind: 'something_new' })])).toEqual([])
   })
 
   it('drops a Page with no anchor, rather than pinning it at null island', () => {

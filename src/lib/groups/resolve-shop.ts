@@ -13,6 +13,7 @@
 // with the session-bound client. Same convention as src/lib/sell/getDraftGroup.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { memberHasPublished } from '../member/has-published'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
 
@@ -42,6 +43,8 @@ export interface ResolvedShop {
    *  that renders a Page photo goes through `visiblePhotoUrl()`, which is
    *  what makes a hide a hide. */
   photoUrl: string | null
+  /** F070 — the Page's links out. Empty object means none. */
+  socialLinks: SocialLinks
   /** T160 — non-null means hidden pending operator review (T159). */
   photoHiddenAt: string | null
   /** F067 — a private Page is joined; anything else is followed. */
@@ -106,6 +109,7 @@ interface ShopRow {
   anchor_location_id: string | null
   category: string | null
   photo_url: string | null
+  social_links: unknown
   photo_hidden_at: string | null
   discoverability: string
   group_businesses:
@@ -126,7 +130,7 @@ export async function resolveShop(
     .from('groups')
     .select(
       'id, slug, kind, lifecycle_state, anchor_location_id, category, ' +
-        'photo_url, photo_hidden_at, discoverability, ' +
+        'photo_url, social_links, photo_hidden_at, discoverability, ' +
         'group_businesses(display_name, public_description), ' +
         'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
     )
@@ -168,6 +172,10 @@ export async function resolveShop(
     anchorLocationId: row.anchor_location_id,
     category: row.category,
     photoUrl: row.photo_url,
+    // Normalised on read as well as on write: a row written before the column
+    // had its CHECK, or by anything that bypassed the action layer, must not
+    // reach an href unchecked.
+    socialLinks: normaliseSocialLinks(row.social_links).links,
     photoHiddenAt: row.photo_hidden_at,
     discoverability: row.discoverability,
     placements,

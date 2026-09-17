@@ -18,6 +18,7 @@ const SHOP: ResolvedShop = {
   anchorLocationId: 'loc-1',
   category: null,
   photoUrl: null,
+  socialLinks: {},
   photoHiddenAt: null,
   discoverability: 'listed',
   placements: [],
@@ -246,5 +247,27 @@ describe('T160 — what the owner sees when their photo is hidden', () => {
     const text = screen.getByTestId('hidden-photo-notice').textContent ?? ''
     expect(text).not.toMatch(/report(ed )?by|from [A-Z]/)
     expect(text).not.toMatch(/@|\bsaid\b/)
+  })
+})
+
+describe('F070 — links out', () => {
+  it('renders nothing when the Page has no links', () => {
+    renderShop({ shop: { ...SHOP, socialLinks: {} } })
+    expect(screen.queryByTestId('shop-social-links')).toBeNull()
+  })
+
+  it('renders a link per platform, off-platform and safely', () => {
+    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras' } } })
+    const a = screen.getByTestId('shop-social-instagram')
+    expect(a).toHaveAttribute('href', 'https://instagram.com/claras')
+    expect(a).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  // The one that matters. A row that predates the CHECK, or anything that
+  // bypassed the action layer, must not reach an href.
+  it('withholds a link that is not https, rather than rendering it', () => {
+    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'javascript:alert(1)' } as never } })
+    expect(screen.queryByTestId('shop-social-instagram')).toBeNull()
+    expect(screen.queryByTestId('shop-social-links')).toBeNull()
   })
 })
