@@ -11,11 +11,14 @@
 // DEVIATIONS — the picker is thesis-level scope, deferred to its own ticket.
 
 import { useEffect, useRef, useState } from 'react'
+import { placePillLabel, NO_PLACE_CHOSEN_LABEL } from '@/lib/explore/place-label'
 import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
 
 interface ExploreSearchBarProps {
   /** Current locality display name; null until it resolves. */
   placeName: string | null
+  /** False when nobody chose the place — the pill asks instead of asserting. */
+  placeChosen?: boolean
   query: string
   onQueryChange: (q: string) => void
   /** Drives the dot — any distance / schedule / category / sort filter. */
@@ -25,6 +28,7 @@ interface ExploreSearchBarProps {
 
 export function ExploreSearchBar({
   placeName,
+  placeChosen = true,
   query,
   onQueryChange,
   filtersActive,
@@ -46,18 +50,29 @@ export function ExploreSearchBar({
     searchToggleRef.current?.focus()
   }
 
+  const label = placePillLabel(placeName === null ? null : { placeName, chosen: placeChosen })
+
   return (
     <div
       data-testid="explore-search-bar"
       className="sticky top-0 z-30 border-b border-[var(--color-charcoal-100)] bg-white md:top-14"
     >
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2 md:px-6">
+        {/* It used to print the resolved place name unconditionally, and with
+            nothing chosen that name is the seeded launch stand-in — so the pill
+            asserted a locality to someone who never named one. It now says what
+            is true, and an unanswered question is styled as a question. */}
         <span
           data-testid="explore-location-pill"
-          className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5 text-sm font-medium text-[var(--color-charcoal-900)]"
+          data-place-chosen={label === NO_PLACE_CHOSEN_LABEL ? 'false' : 'true'}
+          className={`inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${
+            label === NO_PLACE_CHOSEN_LABEL
+              ? 'bg-white text-[var(--color-fg-muted)] ring-1 ring-[var(--color-border)]'
+              : 'bg-neutral-100 text-[var(--color-charcoal-900)]'
+          }`}
         >
           <MapPin size={14} className="shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
-          <span className="truncate">{placeName ?? 'Nearby'}</span>
+          <span className="truncate">{label}</span>
         </span>
 
         <div className="ml-auto flex items-center gap-1">

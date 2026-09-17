@@ -34,9 +34,20 @@ describe('T115 — one row, three elements', () => {
     expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('West Sacramento')
   })
 
-  it('falls back to a neutral label before the locality resolves', () => {
+  // CHANGED 2026-09-17. "Nearby" was a claim, not a neutral label: with nothing
+  // resolved the surface does not know the reader is near anything. It now asks.
+  it('asks for an area rather than claiming one, before the locality resolves', () => {
     renderBar({ placeName: null })
-    expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Nearby')
+    const pill = screen.getByTestId('explore-location-pill')
+    expect(pill).toHaveTextContent('Choose your area')
+    expect(pill).toHaveAttribute('data-place-chosen', 'false')
+  })
+
+  it('asks rather than naming the launch stand-in, even when one resolves', () => {
+    renderBar({ placeName: 'The Good Place', placeChosen: false })
+    const pill = screen.getByTestId('explore-location-pill')
+    expect(pill).toHaveTextContent('Choose your area')
+    expect(pill.textContent).not.toMatch(/good place/i)
   })
 
   it('offers a search affordance and a filter affordance, in that order', () => {

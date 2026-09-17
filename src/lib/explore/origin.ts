@@ -9,9 +9,13 @@
 // Explore has no place scope of its own at b1, so this resolves the same
 // launch-locality default the feed falls back to. See DEVIATIONS — member
 // primary_home precedence lands with an Explore place scope.
+//
+// `chosen` carries whether anyone actually picked the place. It is false for
+// the launch default, and the pill says so in plain words rather than naming a
+// locality nobody chose.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { resolveFeedPlace } from '@/lib/feed/feed-place'
+import { resolveFeedPlace, LAUNCH_PLACE_SLUG } from '@/lib/feed/feed-place'
 import { decodeEwkbPoint } from './ewkb'
 import type { GeoPoint } from './filters'
 
@@ -19,6 +23,14 @@ type FromClient = Pick<SupabaseClient, 'from'>
 
 export interface ExploreOrigin {
   placeName: string
+  /**
+   * Did anyone actually choose this place?
+   *
+   * `false` when the launch locality is standing in for the IP geolocation
+   * deferred at b1 — nobody said they were here. A surface must not present
+   * that as the member's place, which is what naming it did.
+   */
+  chosen: boolean
   /** Null when the place row carries no polygon-derived centroid. */
   point: GeoPoint | null
 }
@@ -33,7 +45,16 @@ export async function fetchExploreOrigin(client: FromClient): Promise<ExploreOri
       .eq('id', place.placeId)
       .maybeSingle()
     const centroid = (data as { centroid: string | null } | null)?.centroid ?? null
-    return { placeName: place.displayName, point: decodeEwkbPoint(centroid) }
+    return {
+      placeName: place.displayName,
+      // Not just `source !== 'default'`. Onboarding writes The Good Place into
+      // every new Member's primary_home invisibly — "the locality write is
+      // invisible to the Member — there is no picker" (onboarding/actions.ts).
+      // So a stored value pointing at the launch place is still nobody's
+      // choice, and naming it would be the same lie by a longer route.
+      chosen: place.source !== 'default' && place.slug !== LAUNCH_PLACE_SLUG,
+      point: decodeEwkbPoint(centroid),
+    }
   } catch {
     return null
   }

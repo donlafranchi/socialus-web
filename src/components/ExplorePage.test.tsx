@@ -58,7 +58,10 @@ const ROWS = [
   mvRow({ item_id: 'i5', title: 'Bay Area Beeswax', category: 'crafts', nearest_location_geography: FAR_AWAY }),
 ]
 
-const PLACE = { id: 'wsac', display_name: 'West Sacramento', slug: 'the-good-place', kind: 'city' }
+// A real locality, not the launch stand-in. The fixture used slug
+// 'the-good-place' with a friendly display name, which meant these tests were
+// asserting that the stand-in gets named — the behaviour removed on 2026-09-17.
+const PLACE = { id: 'wsac', display_name: 'West Sacramento', slug: 'west-sacramento', kind: 'city' }
 
 /** Records the `.eq()` predicates each MV fetch sent, and answers from ROWS. */
 const eqCalls: [string, unknown][][] = []
@@ -240,7 +243,13 @@ describe('T115 — the sticky search row replaces the filter-button row', () => 
     renderExplore()
     await waitFor(() => expect(cards()).toHaveLength(5))
     expect(screen.getByTestId('explore-search-bar')).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('West Sacramento'))
+    // Explore has no place scope of its own yet — `fetchExploreOrigin` calls
+    // resolveFeedPlace with no options, so every visitor lands on the launch
+    // default. Nobody chose it, so the pill asks instead of naming it. This
+    // becomes a real locality name when the Explore scope control lands.
+    await waitFor(() =>
+      expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Choose your area'),
+    )
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /open filters/i })).toBeInTheDocument()
   })
@@ -503,7 +512,8 @@ describe('T117 — the read degrades instead of stranding the tab', () => {
     } as never)
     renderExplore()
     await waitFor(() => expect(cards()).toHaveLength(5))
-    expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Nearby')
+    // Nothing resolved, so nothing is claimed.
+    expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Choose your area')
     openSheet()
     expect(within(sheet()).getByRole('radio', { name: '5 mi' })).toBeDisabled()
     spy.mockRestore()
