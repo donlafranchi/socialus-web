@@ -46,18 +46,11 @@ async function one(
  *
  * Precedence: **requestedSlug → memberMetroId → default metro.**
  *
- * This inverts `resolveFeedPlace`, which returns on the stored value before it
- * reads the requested one — the reason the shipped scope picker does nothing
- * for a signed-in Member with a home set. The inversion is deliberate: someone
- * who taps the switcher or follows a shared link has stated an intent that a
- * stored preference should not override.
- *
- * Do not mirror this into `resolveFeedPlace` speculatively; the surface ticket
- * decides whether the place path needs it.
- *
- * Every step falls through rather than failing, so an unknown slug or a stale
- * member metro lands on something rather than on a blank feed. Null comes back
- * only when even the default row is missing.
+ * Same precedence as `resolveFeedPlace`: requested → stored → default. That
+ * used to be an inversion worth calling out — the Place resolver read the
+ * stored value first, which is why the shipped scope picker did nothing. Fixed
+ * 2026-09-17; the two now agree, and an explicit act by a person beats a stored
+ * default in both.
  */
 export async function resolveFeedMetro(
   supabase: FromClient,

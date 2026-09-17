@@ -35,16 +35,40 @@ const SAC = { id: 'sac', display_name: 'Sacramento', slug: 'sacramento', kind: '
 const OAK = { id: 'oak', display_name: 'Oak Park', slug: 'oak-park', kind: 'neighborhood' }
 
 describe('T088 — resolveFeedPlace precedence', () => {
-  it('prefers the member primary_home', async () => {
+  // CORRECTED 2026-09-17. This asserted that the stored primary_home BEAT an
+  // explicitly requested slug — which is the bug, not the contract: a member
+  // with a stored place could tap the scope picker and nothing would happen.
+  // `feed-metro.ts` had named it in a comment for weeks. An explicit act by a
+  // person beats a stored default.
+  it('prefers an explicitly requested slug over the member primary_home', async () => {
     const client = makeClient({
       byId: { oak: OAK },
-      bySlug: { 'oak-park': [OAK], [LAUNCH_PLACE_SLUG]: [SAC] },
+      bySlug: { sacramento: [SAC], 'oak-park': [OAK], [LAUNCH_PLACE_SLUG]: [SAC] },
     })
     const out = await resolveFeedPlace(client as never, {
       memberPlaceId: 'oak',
       requestedSlug: 'sacramento',
     })
-    expect(out).toEqual({ placeId: 'oak', displayName: 'Oak Park', slug: 'oak-park' })
+    expect(out).toEqual({
+      placeId: 'sac',
+      displayName: 'Sacramento',
+      slug: 'sacramento',
+      source: 'requested',
+    })
+  })
+
+  it('falls back to the member primary_home when nothing was requested', async () => {
+    const client = makeClient({
+      byId: { oak: OAK },
+      bySlug: { [LAUNCH_PLACE_SLUG]: [SAC] },
+    })
+    const out = await resolveFeedPlace(client as never, { memberPlaceId: 'oak' })
+    expect(out).toEqual({
+      placeId: 'oak',
+      displayName: 'Oak Park',
+      slug: 'oak-park',
+      source: 'member',
+    })
   })
 
   it('falls to the requested slug when no member home', async () => {
