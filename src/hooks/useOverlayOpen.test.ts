@@ -2,10 +2,17 @@
 // Trace: scenario F046 § Edge Cases "Modal / bottom sheet open".
 
 import { describe, it, expect, afterEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, cleanup } from '@testing-library/react'
 import { useOverlayOpen } from './useOverlayOpen'
 
+// `cleanup()` first, then the DOM. Wiping innerHTML alone left four React roots
+// mounted for the life of the file: the hook's MutationObserver stayed attached
+// and the scheduler kept queued work, which fired as `ReferenceError: window is
+// not defined` once the jsdom environment was torn down — three unhandled
+// errors that failed the whole run while every test passed. Timing-dependent,
+// so it surfaced only when another component suite shifted the schedule.
 afterEach(() => {
+  cleanup()
   document.body.innerHTML = ''
 })
 

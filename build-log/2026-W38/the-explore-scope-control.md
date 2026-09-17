@@ -81,3 +81,17 @@ own change.
 - Updated: the search row's affordance-order test now expects three buttons —
   still "one row, three elements", with the locality as the first of the three
   rather than a label beside two.
+
+## One fix that came with it
+
+`useOverlayOpen.test.ts` never unmounted its React roots — `afterEach` wiped
+`document.body.innerHTML` out from under React instead of calling `cleanup()`.
+Four roots stayed mounted for the life of the file, the hook's MutationObserver
+stayed attached, and the scheduler's queued work fired after the jsdom
+environment was torn down: `ReferenceError: window is not defined`, three
+unhandled errors, whole CI run red while all 2167 tests passed.
+
+Pre-existing and timing-dependent — the first CI run of this same code passed.
+Adding another component suite shifted the schedule enough to expose it. Fixed
+here rather than left as a flaky gate, since it was the thing blocking this
+merge.
