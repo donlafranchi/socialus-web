@@ -132,6 +132,7 @@ export function ExplorePage() {
     >
       <ExploreSearchBar
         placeName={origin?.placeName ?? null}
+        placeChosen={origin?.chosen ?? false}
         query={query}
         onQueryChange={setQuery}
         filtersActive={hasSecondaryFilters(secondary)}
