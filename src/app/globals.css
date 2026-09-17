@@ -111,7 +111,7 @@ a:hover {
 }
 
 .btn-primary {
-  @apply lift inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium;
+  @apply press inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium;
   background-color: var(--color-accent);
   color: #fff;
 }
@@ -124,7 +124,7 @@ a:hover {
 }
 
 .btn-secondary {
-  @apply lift inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-medium;
+  @apply press inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-medium;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);
@@ -141,60 +141,179 @@ a:hover {
   @apply bg-white rounded-xl overflow-hidden transition-all duration-200 ease-out;
 }
 
-/* The lift. One definition, used by every interactive surface.
+/* THE MOTION VOCABULARY.
  *
- * Don asked for more of this and for it to be consistent: same easing, same
- * distance, everywhere a tap target exists. So it is a token plus one utility
- * rather than a hover rule re-typed per component — `.lift` is the thing to add
- * to a new button or row, and changing the feel is one edit here.
+ * Don's correction, 2026-09-17: he asked for "more of that" after the card
+ * lift, and what he meant was more of that KIND of feedback — not the same
+ * effect applied to everything. One lift on cards, buttons, rows and pills
+ * alike is a single gesture copy-pasted, and it makes a button feel like a
+ * card and a list row feel like neither.
  *
- * The shadow and the translate travel together deliberately. The shadow alone
- * reads as a glow; the translate alone reads as a glitch. */
+ * So: four utilities, one shared set of tokens. Each says what its element
+ * does, and they are deliberately different gestures:
+ *
+ *   · `lift`   — a CARD rises off the page. It's a surface; it has a shadow.
+ *   · `press`  — a BUTTON goes down under the finger. A button that rises
+ *                reads as a card; a button is a thing you push.
+ *   · `nudge`  — a ROW in a list slides along its own axis. A row has no
+ *                edges of its own to lift, and moving it up moves it toward
+ *                the row above.
+ *   · `reacts` — an ICON inside a control answers the pointer on its own,
+ *                slightly ahead of the control around it.
+ *
+ * Timing and easing are shared, which is what keeps four gestures feeling
+ * like one product rather than four.
+ *
+ * COMPOSABILITY — the reason these use `translate:` and `scale:` rather than
+ * `transform:`. A scroll-responsive header that shrinks as you scroll (the
+ * Airbnb behaviour Don has pointed at) wants to drive `scale` while hover
+ * drives `translate`. With the `transform` shorthand those two fight: whoever
+ * writes last wins and the other is lost. The individual transform properties
+ * compose, so scroll-shrink can land later without rewriting any of this.
+ *
+ * REDUCED MOTION is honoured per utility, and it removes movement rather than
+ * shortening it. Colour transitions stay — they are the affordance; the motion
+ * is the decoration. */
 :root {
+  /* Shared. Change these to change the feel of everything at once. */
+  --motion-duration: 200ms;
+  --motion-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Per gesture. */
   --lift-distance: 2px;
   --lift-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  --lift-duration: 200ms;
-  --lift-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --press-scale: 0.97;
+  --nudge-distance: 3px;
+  --reacts-scale: 1.12;
+
+  /* Kept as aliases: `lift` shipped with its own duration/easing names and
+   * other rules may still reference them. They now follow the shared pair. */
+  --lift-duration: var(--motion-duration);
+  --lift-ease: var(--motion-ease);
 }
 
-/* Declared with @utility, not as a plain class: Tailwind v4 can only `@apply`
- * something it knows as a utility, and `.btn-primary` / `.chip` below apply it.
+/* Declared with @utility, not as plain classes: Tailwind v4 can only `@apply`
+ * something it knows as a utility, and `.btn-primary` / `.chip` apply these.
  * A plain `.lift {}` compiles but fails at `@apply lift` with "unknown utility
  * class" — which is exactly what happened on the first attempt. */
+
+/* A CARD rises. The shadow and the translate travel together deliberately: the
+ * shadow alone reads as a glow, the translate alone as a glitch. */
 @utility lift {
   transition:
-    transform var(--lift-duration) var(--lift-ease),
-    box-shadow var(--lift-duration) var(--lift-ease),
-    background-color var(--lift-duration) var(--lift-ease),
-    color var(--lift-duration) var(--lift-ease);
-  will-change: transform;
+    translate var(--motion-duration) var(--motion-ease),
+    box-shadow var(--motion-duration) var(--motion-ease),
+    background-color var(--motion-duration) var(--motion-ease),
+    color var(--motion-duration) var(--motion-ease);
 
   &:hover,
   &:focus-visible {
-    transform: translateY(calc(-1 * var(--lift-distance)));
+    translate: 0 calc(-1 * var(--lift-distance));
     box-shadow: var(--lift-shadow);
+    --icon-scale: var(--reacts-scale);
   }
 
   /* A press should feel like a press: the lift collapses rather than persisting. */
   &:active {
-    transform: translateY(0);
+    translate: 0 0;
     box-shadow: none;
   }
 
-  /* Motion is the whole effect, so this removes it rather than shortening it.
-   * The colour transitions stay — they are the affordance, not the decoration. */
   @media (prefers-reduced-motion: reduce) {
     transition:
-      background-color var(--lift-duration) var(--lift-ease),
-      color var(--lift-duration) var(--lift-ease);
-    will-change: auto;
+      background-color var(--motion-duration) var(--motion-ease),
+      color var(--motion-duration) var(--motion-ease);
 
     &:hover,
     &:focus-visible,
     &:active {
-      transform: none;
+      translate: none;
       box-shadow: none;
     }
+  }
+}
+
+/* A BUTTON goes down. No shadow and no rise — the colour change carries hover,
+ * and the scale is the answer to the finger. Scaling from the centre keeps a
+ * full-width button from appearing to drift toward one edge. */
+@utility press {
+  transition:
+    scale var(--motion-duration) var(--motion-ease),
+    background-color var(--motion-duration) var(--motion-ease),
+    border-color var(--motion-duration) var(--motion-ease),
+    color var(--motion-duration) var(--motion-ease);
+  transform-origin: center;
+
+  &:hover,
+  &:focus-visible {
+    --icon-scale: var(--reacts-scale);
+  }
+
+  &:active {
+    scale: var(--press-scale);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition:
+      background-color var(--motion-duration) var(--motion-ease),
+      border-color var(--motion-duration) var(--motion-ease),
+      color var(--motion-duration) var(--motion-ease);
+
+    &:active {
+      scale: none;
+    }
+  }
+}
+
+/* A ROW slides along its own axis. Rows sit against their neighbours, so the
+ * only direction with room is sideways — and sideways is also the direction
+ * the row leads, toward whatever it opens. */
+@utility nudge {
+  transition:
+    translate var(--motion-duration) var(--motion-ease),
+    background-color var(--motion-duration) var(--motion-ease),
+    color var(--motion-duration) var(--motion-ease);
+
+  &:hover,
+  &:focus-visible {
+    translate: var(--nudge-distance) 0;
+    --icon-scale: var(--reacts-scale);
+  }
+
+  &:active {
+    translate: 0 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition:
+      background-color var(--motion-duration) var(--motion-ease),
+      color var(--motion-duration) var(--motion-ease);
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      translate: none;
+    }
+  }
+}
+
+/* An ICON answers on its own. Put this on the icon and `press`, `lift` or
+ * `nudge` on the control around it.
+ *
+ * It reads an INHERITED custom property rather than a `:hover` of its own,
+ * which is the whole trick: hovering the button sets `--icon-scale` on the
+ * button, the value inherits down to the icon, and the icon animates. No
+ * `group-hover:` to re-type per component, no dependency on the icon being a
+ * direct child, and the hover target stays the whole control rather than the
+ * few pixels of the glyph. */
+@utility reacts {
+  scale: var(--icon-scale, 1);
+  transition: scale var(--motion-duration) var(--motion-ease);
+  transform-origin: center;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    scale: none;
   }
 }
 
@@ -204,7 +323,7 @@ a:hover {
 }
 
 .chip {
-  @apply lift inline-flex items-center rounded-full border px-3.5 py-2 text-sm;
+  @apply press inline-flex items-center rounded-full border px-3.5 py-2 text-sm;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);

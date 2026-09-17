@@ -37,7 +37,7 @@ export function PageDetailCard({
         type="button"
         onClick={onClose}
         aria-label="Close"
-        className="lift absolute right-4 top-4 rounded-full px-2 text-neutral-500 hover:text-neutral-800"
+        className="press absolute right-4 top-4 rounded-full px-2 text-neutral-500 hover:text-neutral-800"
       >
         ×
       </button>

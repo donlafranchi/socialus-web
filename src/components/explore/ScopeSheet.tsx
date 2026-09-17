@@ -62,7 +62,7 @@ export function ScopeSheet({
         data-testid={`scope-metro-${m.slug}`}
         data-current={m.slug === currentSlug ? 'true' : undefined}
         onClick={() => onChoose(m)}
-        className="lift flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[var(--color-surface)]"
+        className="nudge flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[var(--color-surface)]"
       >
         <span className="truncate">{m.name}</span>
         {m.slug === currentSlug ? (
