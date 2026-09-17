@@ -42,6 +42,17 @@ Worth recording: `bySlug` already resolves the duplicate `sacramento` Place rows
 deterministically, ranking neighborhood > city > county. The duplicate slugs are
 handled here, whatever the underlying data turns out to be.
 
+## A pre-existing test asserted the bug
+
+`tests/feed-place.test.ts` had a case literally named **"prefers the member
+primary_home"**, asserting that a stored place beats an explicitly requested
+slug. That is the defect written down as the contract — and it is why the bug
+survived: the suite was green the whole time, defending it.
+
+Corrected, and split in two so both directions are now pinned: requested beats
+stored, and stored is used when nothing was requested. Flagging it rather than
+letting a quiet test edit pass in a bug-fix PR.
+
 ## Verification
 
 5 new tests covering every branch, including the one that was wrong.
