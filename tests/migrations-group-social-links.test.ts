@@ -49,6 +49,14 @@ describe('F070 — groups.social_links', () => {
     expect(sql).not.toMatch(/check\s*\(\s*not exists/i)
   })
 
+  // Issue #36: a function that ships with a mutable search_path is the finding
+  // the definer hardening closed. tests/migrations-definer-hardening.test.ts
+  // enforces it across every migration and caught these two.
+  it('pins search_path on both helpers', () => {
+    const pins = sql.match(/set search_path = public, pg_catalog/gi) ?? []
+    expect(pins).toHaveLength(2)
+  })
+
   it('refuses http as well as javascript — no downgrade, no scheme smuggling', () => {
     expect(sql).not.toMatch(/\^https\?:/)
   })

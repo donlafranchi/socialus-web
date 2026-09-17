@@ -34,6 +34,9 @@ returns boolean
 language sql
 immutable
 parallel safe
+-- Pinned, per issue #36: a function that ships with a mutable search_path is
+-- the finding that hardening closed, and the suite enforces it.
+set search_path = public, pg_catalog
 as $$
   select coalesce(
     bool_and(k in ('instagram','facebook','tiktok','x','youtube','bluesky','website')),
@@ -49,6 +52,7 @@ returns boolean
 language sql
 immutable
 parallel safe
+set search_path = public, pg_catalog
 as $$
   select coalesce(
     bool_and(
