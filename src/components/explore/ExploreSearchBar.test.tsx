@@ -8,6 +8,7 @@ import { ExploreSearchBar } from './ExploreSearchBar'
 
 const onQueryChange = vi.fn()
 const onOpenFilters = vi.fn()
+const onOpenScope = vi.fn()
 
 function renderBar(over: Partial<React.ComponentProps<typeof ExploreSearchBar>> = {}) {
   return render(
@@ -17,6 +18,7 @@ function renderBar(over: Partial<React.ComponentProps<typeof ExploreSearchBar>> 
       onQueryChange={onQueryChange}
       filtersActive={false}
       onOpenFilters={onOpenFilters}
+      onOpenScope={onOpenScope}
       {...over}
     />,
   )
@@ -25,6 +27,7 @@ function renderBar(over: Partial<React.ComponentProps<typeof ExploreSearchBar>> 
 beforeEach(() => {
   onQueryChange.mockClear()
   onOpenFilters.mockClear()
+  onOpenScope.mockClear()
 })
 afterEach(cleanup)
 
@@ -50,13 +53,15 @@ describe('T115 — one row, three elements', () => {
     expect(pill.textContent).not.toMatch(/good place/i)
   })
 
-  it('offers a search affordance and a filter affordance, in that order', () => {
+  // Still one row, three elements (F045 thesis §5) — the locality is now the
+  // first of the three rather than a label sitting beside two.
+  it('offers the area, then search, then filters, in that order', () => {
     renderBar()
     const row = screen.getByTestId('explore-search-bar')
     const labels = within(row)
       .getAllByRole('button')
       .map((b) => b.getAttribute('aria-label'))
-    expect(labels).toEqual(['Search', 'Open filters'])
+    expect(labels).toEqual(['Area: West Sacramento — change it', 'Search', 'Open filters'])
   })
 
   it('sticks to the top of the viewport', () => {
@@ -129,5 +134,21 @@ describe('T115 — the search affordance', () => {
     renderBar({ query: 'rye' })
     fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
     expect(onQueryChange).toHaveBeenCalledWith('')
+  })
+})
+
+describe('the location pill as the scope control', () => {
+  it('opens the scope sheet when tapped', () => {
+    renderBar()
+    fireEvent.click(screen.getByTestId('explore-location-pill'))
+    expect(onOpenScope).toHaveBeenCalledOnce()
+  })
+
+  it('is a button even before anywhere is chosen — that is the whole point', () => {
+    renderBar({ placeName: null, placeChosen: false })
+    const pill = screen.getByTestId('explore-location-pill')
+    expect(pill.tagName).toBe('BUTTON')
+    fireEvent.click(pill)
+    expect(onOpenScope).toHaveBeenCalledOnce()
   })
 })

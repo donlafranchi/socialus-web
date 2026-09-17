@@ -10,6 +10,7 @@ import { KindFilterPills, EXPLORE_RESULTS_ID, KIND_PILL_ROW_HEIGHT } from './exp
 import { ExploreSearchBar } from './explore/ExploreSearchBar'
 import { ListMapToggle, type ExploreView } from './explore/ListMapToggle'
 import { ExploreFilterSheet } from './explore/ExploreFilterSheet'
+import { ScopeSheet } from './explore/ScopeSheet'
 import { ActiveFilterChips } from './explore/ActiveFilterChips'
 import { parseKindParam, kindTabId } from '@/lib/explore/kinds'
 import { exploreQueryString } from '@/lib/explore/query'
@@ -57,6 +58,10 @@ export function ExplorePage() {
   const [view, setView] = useState<ExploreView>('list')
   const [secondary, setSecondary] = useState(() => parseSecondaryFilters(params))
   const [sheetOpen, setSheetOpen] = useState(false)
+  // The chosen metro. In the URL, so a scoped Browse is shareable and survives
+  // a reload — the same rule the other filters follow.
+  const [metroSlug, setMetroSlug] = useState<string | null>(() => params.get('metro'))
+  const [scopeOpen, setScopeOpen] = useState(false)
 
   const [items, setItems] = useState<ExploreItem[]>([])
   const [loaded, setLoaded] = useState(false)
@@ -84,13 +89,18 @@ export function ExplorePage() {
   // The locality (search-row label + the point distances are measured from) and
   // the recurring set are page-lifetime facts — fetched once, not per pill tap.
   useEffect(() => {
-    const client = supabase()
-    fetchExploreOrigin(client).then(setOrigin)
-    fetchRecurringGatheringIds(client).then(setRecurringIds)
+    fetchRecurringGatheringIds(supabase()).then(setRecurringIds)
   }, [])
+
+  // The locality — the search-row label and the point distances are measured
+  // from — now follows the chosen metro, so picking one moves both together.
+  useEffect(() => {
+    fetchExploreOrigin(supabase(), { metroSlug }).then(setOrigin)
+  }, [metroSlug])
 
   useEffect(() => {
     const qs = exploreQueryString({
+      metro: metroSlug,
       q: query,
       kind: kindFilter,
       categories: secondary.categories,
@@ -99,7 +109,7 @@ export function ExplorePage() {
       sort: secondary.sort,
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [query, kindFilter, secondary, router])
+  }, [metroSlug, query, kindFilter, secondary, router])
 
   const originPoint = origin?.point ?? null
 
@@ -137,6 +147,7 @@ export function ExplorePage() {
         onQueryChange={setQuery}
         filtersActive={hasSecondaryFilters(secondary)}
         onOpenFilters={() => setSheetOpen(true)}
+        onOpenScope={() => setScopeOpen(true)}
       />
 
       {/* Not sticky, by design: the chips scroll away and the dot on the filter
@@ -216,6 +227,16 @@ export function ExplorePage() {
       </div>
 
       <KindFilterPills selected={kindFilter} onSelect={setKindFilter} />
+
+      <ScopeSheet
+        open={scopeOpen}
+        currentSlug={metroSlug}
+        onClose={() => setScopeOpen(false)}
+        onChoose={(m) => {
+          setMetroSlug(m.slug)
+          setScopeOpen(false)
+        }}
+      />
 
       <ExploreFilterSheet
         open={sheetOpen}

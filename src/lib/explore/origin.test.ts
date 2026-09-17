@@ -55,3 +55,55 @@ describe('fetchExploreOrigin', () => {
     expect(await fetchExploreOrigin(client as never)).toBeNull()
   })
 })
+
+// The scope control: a chosen metro is the origin, and it beats the launch
+// default outright. Only an open metro can be chosen.
+describe('fetchExploreOrigin with a chosen metro', () => {
+  const METRO = {
+    name: 'Sacramento-Roseville, CA',
+    centroid: '0101000020E610000052B81E85EB615EC00AD7A3703D4A4340',
+    is_open: true,
+  }
+
+  function metroClient(row: Record<string, unknown> | null) {
+    return {
+      from: vi.fn((table: string) => {
+        const b: Record<string, unknown> = {}
+        b.select = () => b
+        b.is = () => b
+        b.eq = () => b
+        b.maybeSingle = async () => ({
+          data: table === 'metro_polygons' ? row : { centroid: null },
+          error: null,
+        })
+        b.then = (resolve: (v: unknown) => void) => resolve({ data: [SAC], error: null })
+        return b
+      }),
+    }
+  }
+
+  it('names the chosen metro and measures from its centroid', async () => {
+    const out = await fetchExploreOrigin(metroClient(METRO) as never, {
+      metroSlug: 'sacramento-roseville-ca',
+    })
+    expect(out?.placeName).toBe('Sacramento-Roseville, CA')
+    expect(out?.chosen).toBe(true)
+    expect(out?.point?.latitude).toBeCloseTo(38.58, 4)
+  })
+
+  // 295 of 296 metros carry no centroid. Naming one would relabel the page
+  // while the results underneath never moved — the lie this change undoes.
+  it('refuses a metro the platform does not serve, even from a hand-typed URL', async () => {
+    const out = await fetchExploreOrigin(
+      metroClient({ name: 'Boise City, ID', centroid: null, is_open: false }) as never,
+      { metroSlug: 'boise-city-id' },
+    )
+    expect(out?.placeName).toBe('West Sacramento')
+    expect(out?.chosen).toBe(false)
+  })
+
+  it('falls back to the place default when the slug matches nothing', async () => {
+    const out = await fetchExploreOrigin(metroClient(null) as never, { metroSlug: 'nowhere' })
+    expect(out?.placeName).toBe('West Sacramento')
+  })
+})

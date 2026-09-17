@@ -12,6 +12,8 @@ import type { DistanceMiles, ScheduleFilter, SortOrder } from './filters'
 
 export interface ExploreFilters {
   q?: string
+  /** Chosen metro slug. Absent when nobody picked one — the common case stays `/explore`. */
+  metro?: string | null
   kind?: ItemKindFilter
   categories?: string[]
   distance?: DistanceMiles | null
@@ -22,6 +24,7 @@ export interface ExploreFilters {
 /** Serialize active filters. Defaults stay out of the URL. */
 export function exploreQueryString(f: ExploreFilters): string {
   const sp = new URLSearchParams()
+  if (f.metro) sp.set('metro', f.metro)
   if (f.q) sp.set('q', f.q)
   if (f.kind) sp.set('kind', f.kind)
   if (f.categories?.length) sp.set('category', f.categories.join(','))
