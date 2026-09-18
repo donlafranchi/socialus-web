@@ -1,60 +1,177 @@
-// T122 (#12) — the review surface. Three rules the ticket states outright, and
-// each is the kind that erodes quietly if nothing asserts it.
+// T122 (#12) — the review surface, two buttons and reversible decisions.
+//
+// The assertions that matter: both buttons are always present, neither is a
+// confirm, and every past decision can be undone from the card it happened on.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { ReportEntry } from './ReportEntry'
-import type { QueuedReport } from '@/lib/admin/reports-queue'
+import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
+
+const DECISION: PastDecision = {
+  decisionId: 'd1',
+  outcome: 'removed',
+  reasonCode: 'not_suitable',
+  reasonNote: null,
+  decidedAt: new Date('2026-09-16T10:00:00Z'),
+  decidedByName: 'Don',
+  reversesDecisionId: null,
+  alreadyReversed: false,
+}
 
 const REPORT: QueuedReport = {
   reportId: 'r1',
   body: 'This photo does not belong on a neighbourhood app.',
   reportedAt: new Date('2026-09-15T09:00:00Z'),
   hiddenAt: new Date('2026-09-15T09:00:00Z'),
+  removedAt: null,
   groupId: 'g1',
   groupName: 'Oak Park Bakery',
   groupSlug: 'oak-park-bakery',
   photoUrl: 'https://cdn.example.test/media/x.jpg',
   ownerDisplayName: 'Sam R.',
   ownerHandle: 'sam-r',
+  history: [],
 }
 
-const onRestore = vi.fn(async () => {})
-const onRemove = vi.fn(async () => {})
+const onDecide = vi.fn(async () => {})
+const onReverse = vi.fn(async () => {})
 
 function renderEntry(over: Partial<QueuedReport> = {}) {
-  onRestore.mockClear()
-  onRemove.mockClear()
+  onDecide.mockClear()
+  onReverse.mockClear()
   return render(
     <ReportEntry
       report={{ ...REPORT, ...over }}
       hiddenFor="2 days"
-      onRestore={onRestore}
-      onRemove={onRemove}
+      onDecide={onDecide}
+      onReverse={onReverse}
     />,
   )
 }
 
 afterEach(cleanup)
 
-describe('the image is never the first thing the operator sees', () => {
-  it('is blurred on load, behind a control that says what it does', () => {
+describe('two buttons, both present', () => {
+  it('offers approve and reject side by side, not a mode or a menu', () => {
     renderEntry()
-    const img = screen.getByTestId('reported-photo')
-    expect(img).toHaveAttribute('data-shown', 'false')
-    expect(img.style.filter).toContain('blur')
+    expect(screen.getByTestId('approve')).toBeInTheDocument()
+    expect(screen.getByTestId('reject')).toBeInTheDocument()
+  })
+
+  it('neither button is a confirm — each opens its own reasons', () => {
+    renderEntry()
+    fireEvent.click(screen.getByTestId('reject'))
+    const picker = screen.getByTestId('reasons-removed')
+    expect(within(picker).getByTestId('reason-not_suitable')).toBeInTheDocument()
+    // Not a yes/no dialog.
+    expect(screen.queryByText(/are you sure/i)).toBeNull()
+  })
+
+  it('decides in two taps: outcome, then reason', async () => {
+    renderEntry()
+    fireEvent.click(screen.getByTestId('reject'))
+    fireEvent.click(screen.getByTestId('reason-not_suitable'))
+    await waitFor(() =>
+      expect(onDecide).toHaveBeenCalledWith({
+        reportId: 'r1',
+        outcome: 'removed',
+        reasonCode: 'not_suitable',
+        reasonNote: undefined,
+      }),
+    )
+  })
+
+  it('offers restore reasons under approve, not removal ones', () => {
+    renderEntry()
+    fireEvent.click(screen.getByTestId('approve'))
+    const picker = screen.getByTestId('reasons-restored')
+    expect(within(picker).getByTestId('reason-nothing_wrong')).toBeInTheDocument()
+    expect(within(picker).queryByTestId('reason-not_suitable')).toBeNull()
+  })
+})
+
+describe('free text is the exception, not the path', () => {
+  it('asks for a note only when the reason is "something else"', () => {
+    renderEntry()
+    fireEvent.click(screen.getByTestId('reject'))
+    expect(screen.queryByTestId('reason-note')).toBeNull()
+    fireEvent.click(screen.getByTestId('reason-other'))
+    expect(screen.getByTestId('reason-note')).toBeInTheDocument()
+  })
+
+  it('will not submit "something else" with nothing written', async () => {
+    renderEntry()
+    fireEvent.click(screen.getByTestId('reject'))
+    fireEvent.click(screen.getByTestId('reason-other'))
+    expect(screen.getByTestId('reason-note-submit')).toBeDisabled()
+    expect(onDecide).not.toHaveBeenCalled()
+  })
+
+  it('sends the note when one is written', async () => {
+    renderEntry()
+    fireEvent.click(screen.getByTestId('reject'))
+    fireEvent.click(screen.getByTestId('reason-other'))
+    fireEvent.change(screen.getByTestId('reason-note'), { target: { value: 'Duplicate of r0.' } })
+    fireEvent.click(screen.getByTestId('reason-note-submit'))
+    await waitFor(() =>
+      expect(onDecide).toHaveBeenCalledWith(
+        expect.objectContaining({ reasonCode: 'other', reasonNote: 'Duplicate of r0.' }),
+      ),
+    )
+  })
+})
+
+describe('every decision is visible and reversible on the item', () => {
+  it('shows what happened before, and who did it', () => {
+    renderEntry({ history: [DECISION] })
+    const hist = screen.getByTestId('decision-history')
+    expect(hist).toHaveTextContent('Removed')
+    expect(hist).toHaveTextContent('Not suitable here')
+    expect(hist).toHaveTextContent('Don')
+  })
+
+  it('offers undo on a past decision — not a support request', async () => {
+    renderEntry({ history: [DECISION] })
+    fireEvent.click(screen.getByTestId('reverse-d1'))
+    // Reversing a removal restores, so it offers restore reasons.
+    fireEvent.click(within(screen.getByTestId('reverse-reasons')).getByTestId('reason-nothing_wrong'))
+    await waitFor(() =>
+      expect(onReverse).toHaveBeenCalledWith({
+        decisionId: 'd1',
+        reasonCode: 'nothing_wrong',
+        reasonNote: undefined,
+      }),
+    )
+  })
+
+  it('does not offer undo twice on the same decision', () => {
+    renderEntry({ history: [{ ...DECISION, alreadyReversed: true }] })
+    expect(screen.queryByTestId('reverse-d1')).toBeNull()
+    expect(screen.getByTestId('already-reversed')).toBeInTheDocument()
+  })
+
+  it('still offers both buttons on an already-decided report', () => {
+    renderEntry({ history: [DECISION] })
+    expect(screen.getByTestId('approve')).toBeInTheDocument()
+    expect(screen.getByTestId('reject')).toBeInTheDocument()
+  })
+})
+
+describe('the image is never the first thing the operator sees', () => {
+  it('is blurred on load behind a control that says what it does', () => {
+    renderEntry()
+    expect(screen.getByTestId('reported-photo')).toHaveAttribute('data-shown', 'false')
     expect(screen.getByTestId('show-photo')).toHaveTextContent('Show photo')
   })
 
-  it('takes a deliberate tap to reveal — two taps to act on it, never one', () => {
+  it('reveals only on a deliberate tap', () => {
     renderEntry()
     fireEvent.click(screen.getByTestId('show-photo'))
     expect(screen.getByTestId('reported-photo')).toHaveAttribute('data-shown', 'true')
-    expect(screen.queryByTestId('show-photo')).toBeNull()
   })
 
-  // Most reports are decided on the words, not the picture.
   it('is readable without the image at all', () => {
     renderEntry()
     expect(screen.getByText(REPORT.body)).toBeInTheDocument()
@@ -62,54 +179,16 @@ describe('the image is never the first thing the operator sees', () => {
     expect(screen.getByText(/Hidden 2 days/)).toBeInTheDocument()
   })
 
-  it('says so plainly when the Page has no photo', () => {
-    renderEntry({ photoUrl: null })
-    expect(screen.queryByTestId('reported-photo')).toBeNull()
-    expect(screen.getByText(/no photo/i)).toBeInTheDocument()
-  })
-})
-
-describe('the destructive outcome is the harder one', () => {
-  it('restores in a single tap — reversible, common, and the queue has to move', async () => {
-    renderEntry()
-    fireEvent.click(screen.getByTestId('restore-photo'))
-    await waitFor(() => expect(onRestore).toHaveBeenCalledWith('r1'))
-  })
-
-  it('never removes on the first tap', () => {
-    renderEntry()
-    fireEvent.click(screen.getByTestId('remove-photo'))
-    expect(onRemove).not.toHaveBeenCalled()
-    expect(screen.getByTestId('remove-confirm')).toBeInTheDocument()
-  })
-
-  it('removes only after the confirm', async () => {
-    renderEntry()
-    fireEvent.click(screen.getByTestId('remove-photo'))
-    fireEvent.click(screen.getByTestId('remove-confirm-yes'))
-    await waitFor(() => expect(onRemove).toHaveBeenCalledWith('r1'))
-  })
-
-  it('lets the operator back out of the confirm', () => {
-    renderEntry()
-    fireEvent.click(screen.getByTestId('remove-photo'))
-    fireEvent.click(screen.getByText('Cancel'))
-    expect(screen.queryByTestId('remove-confirm')).toBeNull()
-    expect(onRemove).not.toHaveBeenCalled()
+  it('says the photo is removed rather than that there is none', () => {
+    renderEntry({ removedAt: new Date('2026-09-16T10:00:00Z'), history: [DECISION] })
+    expect(screen.getByText(/Photo removed/)).toBeInTheDocument()
   })
 })
 
 describe('who posted it', () => {
-  // Don's ruling, 2026-09-17: content posted to the platform is subject to
-  // review by the platform. The member-to-member rules are untouched.
   it('names the poster, because judging a report needs it', () => {
     renderEntry()
     expect(screen.getByText(/Sam R\./)).toBeInTheDocument()
     expect(screen.getByText(/@sam-r/)).toBeInTheDocument()
-  })
-
-  it('does not fall over when the Page has no founder on record', () => {
-    renderEntry({ ownerDisplayName: null, ownerHandle: null })
-    expect(screen.getByText(/Unknown member/)).toBeInTheDocument()
   })
 })

@@ -1,76 +1,110 @@
 'use client'
 
-// One report, reviewable on a phone without looking at the image first.
+// One report, decided on a phone.
 //
-// THE IMAGE DOES NOT RENDER ON LOAD (#12). It sits behind a deliberate tap,
-// blurred until then, and the control says what it does. Two taps, never one.
-// The reason is not squeamishness: the operator is a person who will do this
-// many times, and the worst thing in the queue should not be the first thing
-// their eye lands on. Everything needed to judge most reports — what the
-// reporter wrote, whose Page, how long it has been hidden — is readable
-// without it.
+// TWO BUTTONS, BOTH PRESENT (Don, 2026-09-17). Not one button with a mode, not
+// a menu. The fast path is choosing between two visible options, each opening
+// its own short list of preset reasons — one tap to pick the outcome, one to
+// pick the reason. Free text exists for the case that does not fit and is the
+// exception, not the path.
 //
-// THE TWO OUTCOMES ARE NOT EQUALLY EASY, deliberately. Restore is one tap:
-// it is reversible, it is the common case, and throughput is the point.
-// Remove is permanent, so it asks once. Friction on the destructive side only
-// — adding it to both would slow the queue to protect against half the risk.
+// NO CONFIRM DIALOG AND NO UNDO WINDOW, deliberately. Removal preserves the URL
+// and the bytes, so any decision can be undone from this same card at any time,
+// including days later. A confirm that fires on every removal is one people
+// learn to dismiss without reading; a timed window adds a clock and is strictly
+// weaker than permanent reversibility. The protection is that reversal is
+// always here and the history is visible — so nobody reverses blind.
+//
+// THE IMAGE STILL DOES NOT RENDER ON LOAD. It sits behind a deliberate tap,
+// blurred until then. The operator is a person who will do this many times, and
+// the worst thing in the queue should not be the first thing their eye meets.
 
 import { useState, useTransition } from 'react'
-import type { QueuedReport } from '@/lib/admin/reports-queue'
+import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
+import { reasonsFor, reasonLabel, reasonNeedsNote, type ReasonCode, type Outcome } from '@/lib/admin/reason-codes'
 
-export function ReportEntry({
-  report,
-  hiddenFor,
-  onRestore,
-  onRemove,
-}: {
+interface Props {
   report: QueuedReport
   hiddenFor: string | null
-  onRestore: (id: string) => Promise<void>
-  onRemove: (id: string) => Promise<void>
-}) {
+  onDecide: (input: {
+    reportId: string
+    outcome: Outcome
+    reasonCode: ReasonCode
+    reasonNote?: string
+  }) => Promise<void>
+  onReverse: (input: {
+    decisionId: string
+    reasonCode: ReasonCode
+    reasonNote?: string
+  }) => Promise<void>
+}
+
+export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
   const [shown, setShown] = useState(false)
-  const [confirming, setConfirming] = useState(false)
+  const [picking, setPicking] = useState<Outcome | null>(null)
+  const [reversing, setReversing] = useState<PastDecision | null>(null)
+  const [note, setNote] = useState('')
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  const run = (fn: (id: string) => Promise<void>) => {
+  const latest = report.history[0] ?? null
+  const decided = latest !== null
+
+  const run = (fn: () => Promise<void>) => {
     setError(null)
     startTransition(async () => {
       try {
-        await fn(report.reportId)
+        await fn()
+        setPicking(null)
+        setReversing(null)
+        setNote('')
       } catch (e) {
         setError(e instanceof Error ? e.message : 'That did not go through.')
       }
     })
   }
 
+  const pick = (outcome: Outcome, code: ReasonCode) => {
+    if (reasonNeedsNote(code) && note.trim() === '') return
+    run(() =>
+      onDecide({
+        reportId: report.reportId,
+        outcome,
+        reasonCode: code,
+        reasonNote: note.trim() || undefined,
+      }),
+    )
+  }
+
   return (
     <li
       data-testid="report-entry"
       data-report-id={report.reportId}
+      data-decided={decided ? 'true' : 'false'}
       className="card p-4 flex flex-col gap-3"
     >
       <div>
         <p className="text-sm font-semibold text-[var(--color-fg)]">{report.groupName}</p>
         {/* Who posted it. Don's ruling of 2026-09-17: content posted to the
-            platform is subject to review by the platform. This is the display
-            name and handle, which is all the platform holds — there is no
-            legal_name column. */}
+            platform is subject to review by the platform. Display name and
+            handle — there is no legal_name column. */}
         <p className="text-xs text-[var(--color-fg-muted)]">
           {report.ownerDisplayName ?? 'Unknown member'}
           {report.ownerHandle ? ` · @${report.ownerHandle}` : ''}
         </p>
       </div>
 
-      {/* Readable without the image. This is the part most reports are decided on. */}
       <blockquote className="border-l-2 border-[var(--color-border)] pl-3 text-sm text-[var(--color-fg)]">
         {report.body}
       </blockquote>
 
       <p className="text-xs text-[var(--color-fg-muted)]">
-        {hiddenFor ? `Hidden ${hiddenFor}` : 'Not hidden'} · reported{' '}
-        {report.reportedAt.toISOString().slice(0, 10)}
+        {report.removedAt
+          ? 'Photo removed'
+          : hiddenFor
+            ? `Hidden ${hiddenFor}`
+            : 'Not hidden'}{' '}
+        · reported {report.reportedAt.toISOString().slice(0, 10)}
       </p>
 
       {report.photoUrl ? (
@@ -99,49 +133,104 @@ export function ReportEntry({
         <p className="text-xs text-[var(--color-fg-muted)]">This Page has no photo.</p>
       )}
 
-      {/* Restore first and one tap: reversible, common, and the queue moves. */}
-      <div className="flex flex-col gap-2">
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => run(onRestore)}
-          data-testid="restore-photo"
-          className="btn-secondary w-full disabled:opacity-50"
-        >
-          Restore photo
-        </button>
+      {/* What happened to this before, on the item. A reversal made blind is
+          how two reviewers ping-pong. */}
+      {report.history.length > 0 ? (
+        <ol data-testid="decision-history" className="flex flex-col gap-1 list-none p-0 text-xs">
+          {report.history.map((d) => (
+            <li
+              key={d.decisionId}
+              data-testid="decision-row"
+              data-outcome={d.outcome}
+              className="flex flex-wrap items-center gap-x-2 text-[var(--color-fg-muted)]"
+            >
+              <span className="font-medium text-[var(--color-fg)]">
+                {d.outcome === 'removed' ? 'Removed' : 'Restored'}
+              </span>
+              <span>{reasonLabel(d.reasonCode as ReasonCode)}</span>
+              {d.reasonNote ? <span>· “{d.reasonNote}”</span> : null}
+              <span>· {d.decidedByName ?? 'unknown'}</span>
+              <span>· {d.decidedAt.toISOString().slice(0, 10)}</span>
+              {d.reversesDecisionId ? <span>· reversal</span> : null}
+              {/* Reversing is as easy as deciding — one tap, from here. */}
+              {!d.alreadyReversed ? (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setReversing(d)}
+                  data-testid={`reverse-${d.decisionId}`}
+                  className="press underline text-[var(--color-fg)] disabled:opacity-50"
+                >
+                  Undo this
+                </button>
+              ) : (
+                <span data-testid="already-reversed">· undone</span>
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : null}
 
-        {confirming ? (
-          <div className="flex gap-2" data-testid="remove-confirm">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => run(onRemove)}
-              data-testid="remove-confirm-yes"
-              className="press w-full rounded-xl bg-[var(--color-danger,#b3261e)] py-3 text-sm font-medium text-white disabled:opacity-50"
-            >
-              {pending ? 'Removing…' : 'Yes, remove for good'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              className="btn-secondary w-full"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
+      {reversing ? (
+        <ReasonPicker
+          testId="reverse-reasons"
+          title={`Undo the ${reversing.outcome === 'removed' ? 'removal' : 'restore'} — why?`}
+          outcome={reversing.outcome === 'removed' ? 'restored' : 'removed'}
+          note={note}
+          onNote={setNote}
+          pending={pending}
+          onCancel={() => {
+            setReversing(null)
+            setNote('')
+          }}
+          onPick={(code) => {
+            if (reasonNeedsNote(code) && note.trim() === '') return
+            run(() =>
+              onReverse({
+                decisionId: reversing.decisionId,
+                reasonCode: code,
+                reasonNote: note.trim() || undefined,
+              }),
+            )
+          }}
+        />
+      ) : picking ? (
+        <ReasonPicker
+          testId={`reasons-${picking}`}
+          title={picking === 'restored' ? 'Approve — why?' : 'Reject — why?'}
+          outcome={picking}
+          note={note}
+          onNote={setNote}
+          pending={pending}
+          onCancel={() => {
+            setPicking(null)
+            setNote('')
+          }}
+          onPick={(code) => pick(picking, code)}
+        />
+      ) : (
+        // Both buttons, side by side, equal weight. Neither is a confirm.
+        <div className="flex gap-2">
           <button
             type="button"
             disabled={pending}
-            onClick={() => setConfirming(true)}
-            data-testid="remove-photo"
+            onClick={() => setPicking('restored')}
+            data-testid="approve"
+            className="btn-secondary w-full disabled:opacity-50"
+          >
+            {decided && latest?.outcome === 'restored' ? 'Approve again' : 'Approve'}
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => setPicking('removed')}
+            data-testid="reject"
             className="press w-full rounded-xl border border-[var(--color-border)] py-3 text-sm font-medium text-[var(--color-fg)] disabled:opacity-50"
           >
-            Remove for good
+            {decided && latest?.outcome === 'removed' ? 'Reject again' : 'Reject'}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {error ? (
         <p role="alert" className="text-sm text-[var(--color-fg)]">
@@ -149,5 +238,73 @@ export function ReportEntry({
         </p>
       ) : null}
     </li>
+  )
+}
+
+/** The preset list. One tap for the common case; free text for the rest. */
+function ReasonPicker({
+  testId,
+  title,
+  outcome,
+  note,
+  onNote,
+  pending,
+  onPick,
+  onCancel,
+}: {
+  testId: string
+  title: string
+  outcome: Outcome
+  note: string
+  onNote: (v: string) => void
+  pending: boolean
+  onPick: (code: ReasonCode) => void
+  onCancel: () => void
+}) {
+  const [needsNote, setNeedsNote] = useState<ReasonCode | null>(null)
+
+  return (
+    <div data-testid={testId} className="rounded-xl bg-[var(--color-surface)] p-3 flex flex-col gap-2">
+      <p className="text-xs font-semibold text-[var(--color-fg)]">{title}</p>
+      {reasonsFor(outcome).map((r) => (
+        <button
+          key={r.code}
+          type="button"
+          disabled={pending}
+          data-testid={`reason-${r.code}`}
+          onClick={() => (reasonNeedsNote(r.code) ? setNeedsNote(r.code) : onPick(r.code))}
+          className="press w-full rounded-lg bg-white py-2.5 text-left text-sm px-3 disabled:opacity-50"
+        >
+          {r.label}
+        </button>
+      ))}
+
+      {needsNote ? (
+        <>
+          <textarea
+            value={note}
+            onChange={(e) => onNote(e.target.value)}
+            data-testid="reason-note"
+            aria-label="What happened?"
+            placeholder="What happened? The member can be told this."
+            className="input w-full text-sm"
+            rows={3}
+          />
+          <button
+            type="button"
+            disabled={pending || note.trim() === ''}
+            onClick={() => onPick(needsNote)}
+            data-testid="reason-note-submit"
+            className="btn-primary w-full disabled:opacity-50"
+          >
+            Use this reason
+          </button>
+        </>
+      ) : null}
+
+      <button type="button" onClick={onCancel} className="press text-xs underline self-start">
+        Cancel
+      </button>
+    </div>
   )
 }

@@ -29,7 +29,7 @@ import {
   groupPostEdit,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
-import { reportCreate, reportRestore, reportRemove } from './report'
+import { reportCreate, reportDecide, reportReverse } from './report'
 import { metroWaitlistJoin } from './metro'
 import type { NamedActionHandler } from './_lib/handler'
 
@@ -63,8 +63,10 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
   // T122 (#12) — the operator's two outcomes. Operator-only, enforced in the
   // handlers; absence of a button is not authorization.
-  'report.restore': reportRestore as unknown as NamedActionHandler<unknown, unknown>,
-  'report.remove': reportRemove as unknown as NamedActionHandler<unknown, unknown>,
+  // A decision is an event, not a state overwrite — `report.reverse` undoes any
+  // past one by recording a new decision that points at it.
+  'report.decide': reportDecide as unknown as NamedActionHandler<unknown, unknown>,
+  'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
 }
@@ -105,8 +107,8 @@ export {
 export { itemCreate, itemPublish, itemAttachLocation } from './item'
 export {
   reportCreate,
-  reportRestore,
-  reportRemove,
+  reportDecide,
+  reportReverse,
   reportCreateInput,
   type ReportCreateInput,
   type ReportCreateResult,

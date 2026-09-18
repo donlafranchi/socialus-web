@@ -7,9 +7,11 @@ export {
 } from './create'
 
 export {
-  reportRestore,
-  reportRemove,
-  reportReviewInput,
-  type ReportReviewInput,
-  type ReportReviewResult,
+  reportDecide,
+  reportReverse,
+  reportDecideInput,
+  reportReverseInput,
+  type ReportDecideInput,
+  type ReportReverseInput,
+  type ReportDecisionResult,
 } from './review'

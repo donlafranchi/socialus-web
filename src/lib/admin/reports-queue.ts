@@ -3,9 +3,14 @@
 // `reports` has no client SELECT policy and must not gain one (#12), so this
 // goes over DATABASE_URL through the pool — never through PostgREST.
 //
-// ORDER: oldest hidden first. A hidden photo is a member's content withheld
-// from the world before anyone judged it, so the queue is ordered by how long
-// that has been true, not by when the report arrived.
+// ORDER: undecided first, then oldest hidden. A hidden photo is a member's
+// content withheld from the world before anyone judged it, so that clock is the
+// one that matters.
+//
+// DECIDED REPORTS STAY IN THE LIST, below the undecided ones. Every decision is
+// reversible, and you cannot reverse what you cannot see — hiding decided
+// reports would make undo a support request, which is exactly what Don ruled
+// against.
 //
 // WHAT THE REVIEWER SEES, and why it names the poster:
 // Don's ruling, 2026-09-17 — "Anyone posting anything to the platform is
@@ -31,6 +36,19 @@
 
 import { getPool } from '@/actions/_lib/db'
 
+export interface PastDecision {
+  decisionId: string
+  outcome: 'restored' | 'removed'
+  reasonCode: string
+  reasonNote: string | null
+  decidedAt: Date
+  decidedByName: string | null
+  /** The decision this one undid, if it was a reversal. */
+  reversesDecisionId: string | null
+  /** True once something else has undone THIS one — it cannot be undone twice. */
+  alreadyReversed: boolean
+}
+
 export interface QueuedReport {
   reportId: string
   /** What the reporter wrote, in their own words. */
@@ -38,6 +56,8 @@ export interface QueuedReport {
   reportedAt: Date
   /** Null when the report did not hide anything — see report.create's limits. */
   hiddenAt: Date | null
+  /** Non-null means the photo is currently removed. Reversible. */
+  removedAt: Date | null
   groupId: string
   groupName: string
   groupSlug: string | null
@@ -46,6 +66,62 @@ export interface QueuedReport {
   /** Who posted it. See the note above — this is all the platform holds. */
   ownerDisplayName: string | null
   ownerHandle: string | null
+  /**
+   * What has happened to this before, newest first.
+   *
+   * On the item, not in a separate log: a reversal made blind is how two
+   * reviewers ping-pong. The reviewer should see what was decided and by whom
+   * before deciding again.
+   */
+  history: PastDecision[]
+}
+
+/**
+ * Decisions for a set of reports, newest first.
+ *
+ * `report_decisions` is the source of truth; `reports.reviewed_at` and friends
+ * are a projection of its latest row.
+ */
+async function fetchHistory(reportIds: string[]): Promise<Map<string, PastDecision[]>> {
+  const byReport = new Map<string, PastDecision[]>()
+  if (reportIds.length === 0) return byReport
+
+  const { rows } = await getPool().query(
+    `select d.id,
+            d.report_id,
+            d.outcome,
+            d.reason_code,
+            d.reason_note,
+            d.decided_at,
+            d.reverses_decision_id,
+            m.display_name as decided_by_name,
+            exists (
+              select 1 from public.report_decisions x
+               where x.reverses_decision_id = d.id
+            ) as already_reversed
+       from public.report_decisions d
+       left join public.members m on m.id = d.decided_by_member_id
+      where d.report_id = any($1::uuid[])
+      order by d.decided_at desc`,
+    [reportIds],
+  )
+
+  for (const r of rows as Record<string, unknown>[]) {
+    const id = r.report_id as string
+    const list = byReport.get(id) ?? []
+    list.push({
+      decisionId: r.id as string,
+      outcome: r.outcome as 'restored' | 'removed',
+      reasonCode: r.reason_code as string,
+      reasonNote: (r.reason_note as string | null) ?? null,
+      decidedAt: r.decided_at as Date,
+      decidedByName: (r.decided_by_name as string | null) ?? null,
+      reversesDecisionId: (r.reverses_decision_id as string | null) ?? null,
+      alreadyReversed: Boolean(r.already_reversed),
+    })
+    byReport.set(id, list)
+  }
+  return byReport
 }
 
 export async function fetchReviewQueue(limit = 50): Promise<QueuedReport[]> {
@@ -54,6 +130,7 @@ export async function fetchReviewQueue(limit = 50): Promise<QueuedReport[]> {
             r.body            as body,
             r.created_at      as reported_at,
             g.photo_hidden_at as hidden_at,
+            g.photo_removed_at as removed_at,
             g.id              as group_id,
             g.name            as group_name,
             g.slug            as group_slug,
@@ -63,24 +140,29 @@ export async function fetchReviewQueue(limit = 50): Promise<QueuedReport[]> {
        from public.reports r
        join public.groups  g on g.id = r.subject_id
        left join public.members m on m.id = g.founder_member_id
-      where r.reviewed_at is null
-        and r.subject_kind = 'group'
-      order by g.photo_hidden_at asc nulls last, r.created_at asc
+      where r.subject_kind = 'group'
+      order by (r.reviewed_at is not null),          -- undecided first
+               g.photo_hidden_at asc nulls last,
+               r.created_at asc
       limit $1`,
     [limit],
   )
+
+  const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))
 
   return rows.map((r: Record<string, unknown>) => ({
     reportId: r.report_id as string,
     body: r.body as string,
     reportedAt: r.reported_at as Date,
     hiddenAt: (r.hidden_at as Date | null) ?? null,
+    removedAt: (r.removed_at as Date | null) ?? null,
     groupId: r.group_id as string,
     groupName: r.group_name as string,
     groupSlug: (r.group_slug as string | null) ?? null,
     photoUrl: (r.photo_url as string | null) ?? null,
     ownerDisplayName: (r.owner_display_name as string | null) ?? null,
     ownerHandle: (r.owner_handle as string | null) ?? null,
+    history: history.get(r.report_id as string) ?? [],
   }))
 }
 
