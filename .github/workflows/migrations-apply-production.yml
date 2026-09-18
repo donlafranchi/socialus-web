@@ -32,7 +32,16 @@ concurrency:
 jobs:
   apply:
     name: Apply to socialus-db
-    runs-on: ubuntu-latest
+    # PINNED, not ubuntu-latest. The `ubuntu-latest` label migrates to Ubuntu 26
+    # from 2026-10-19 — eleven days before launch. An unpinned runner would
+    # change the OS, the preinstalled toolchain and the default package
+    # versions underneath us in the worst week of the project, and the first
+    # symptom would be a job failing for a reason unrelated to any change we
+    # made. 24.04 is exactly what every run has been using; this pins what is
+    # already proven rather than adopting anything new.
+    #
+    # Revisit after launch: this is a deliberate freeze, not a preference.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       # A Run button sitting next to a production database is easier to press
@@ -50,11 +59,11 @@ jobs:
       # Full history and every remote branch: the preflight below names which
       # OTHER ref has a pending migration when this one has none, and it cannot
       # do that from a single-commit shallow clone of one branch.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v2
         with:
           version: latest
 
