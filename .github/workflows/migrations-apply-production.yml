@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type "apply" to confirm writing to the production database'
+        description: 'Type "apply" to confirm writing to the production database. FIRST check "Use workflow from" above — a migration under review is on its branch, not main.'
         required: true
         type: string
 
@@ -47,7 +47,12 @@ jobs:
           fi
           echo "Confirmed. Applying migrations to socialus-db."
 
+      # Full history and every remote branch: the preflight below names which
+      # OTHER ref has a pending migration when this one has none, and it cannot
+      # do that from a single-commit shallow clone of one branch.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: supabase/setup-cli@v1
         with:
@@ -79,6 +84,26 @@ jobs:
       # check that would have caught the 2026-09-11 drift the same day.
       - name: History before
         run: supabase migration list --db-url "${{ steps.dburl.outputs.url }}"
+
+      # THE WRONG-REF GUARD.
+      #
+      # `workflow_dispatch` shows a "Use workflow from" dropdown that defaults
+      # to main. A migration under review lives on its branch until the PR
+      # merges, so accepting the default runs this job against a ref with
+      # nothing pending — `db push` prints "Remote database is up to date", the
+      # job goes green, and nothing was applied. A green run and a run that did
+      # nothing look identical from the run list. That cost two round trips.
+      #
+      # So the job REFUSES to be a silent no-op, and when it refuses it names
+      # the branch to pick instead. A note in a PR body was the alternative and
+      # it relies on someone remembering the thing they just forgot.
+      #
+      # It also prints what it is about to apply BEFORE applying it, so the log
+      # says what changed rather than only that something did.
+      - name: What would this apply?
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+        run: bash scripts/migrations-pending.sh
 
       # Idempotent: applies only what the remote history lacks. Re-running
       # after a success is a no-op, not a second application.
