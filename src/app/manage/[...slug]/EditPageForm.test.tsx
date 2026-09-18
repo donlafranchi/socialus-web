@@ -15,11 +15,12 @@ function renderForm(over: Partial<Parameters<typeof EditPageForm>[0]> = {}) {
   return render(
     <EditPageForm
       groupId="g1"
-      kind="business"
+      memberId="m1"
       pagePath="/p/oak-park-sourdough"
       slug="oak-park-sourdough"
       initialName="Oak Park Sourdough"
       initialDescription="Real bread."
+      initialPhotoUrl={null}
       initialSocialLinks={{}}
       onSave={onSave}
       {...over}
@@ -73,5 +74,40 @@ describe('a failed save says why', () => {
     renderForm()
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(screen.getByTestId('edit-saved')).toBeInTheDocument())
+  })
+})
+
+describe('handles, not URLs — the bug Don hit', () => {
+  it('shows the prefix so the member types only their username', () => {
+    renderForm()
+    expect(screen.getByTestId('social-prefix-instagram')).toHaveTextContent('instagram.com/')
+  })
+
+  it('accepts a bare handle and saves the composed URL', async () => {
+    renderForm()
+    fireEvent.change(screen.getByTestId('social-instagram'), {
+      target: { value: 'donlafranchi' },
+    })
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          socialLinks: { instagram: 'https://instagram.com/donlafranchi' },
+        }),
+      ),
+    )
+  })
+
+  it('shows a stored URL back as the handle the member typed', () => {
+    renderForm({ initialSocialLinks: { instagram: 'https://instagram.com/clara' } })
+    expect(screen.getByTestId('social-instagram')).toHaveValue('clara')
+  })
+
+  it('names the field that is wrong rather than failing the whole save opaquely', async () => {
+    renderForm()
+    fireEvent.change(screen.getByTestId('social-instagram'), { target: { value: 'has space' } })
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(screen.getByTestId('edit-error')).toHaveTextContent(/instagram/))
+    expect(onSave).not.toHaveBeenCalled()
   })
 })

@@ -42,11 +42,12 @@ export default async function EditPage({ params }: { params: Promise<{ slug: str
       <p className="mt-1 mb-4 text-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
       <EditPageForm
         groupId={shop.groupId}
-        kind={shop.kind}
+        memberId={auth.user.id}
         pagePath={pagePath}
         slug={shop.slug}
         initialName={shop.displayName}
         initialDescription={shop.publicDescription}
+        initialPhotoUrl={shop.photoUrl}
         initialSocialLinks={shop.socialLinks}
         onSave={editPageAction}
       />
