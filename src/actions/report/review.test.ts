@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 // T122 (#12) — report.decide and report.reverse.
 //
@@ -237,5 +239,27 @@ describe('reversal inserts, never edits', () => {
       reviewed_by: OPERATOR,
       now_outcome: 'restored',
     })
+  })
+})
+
+// The report-bombing caps (2026-09-18). Requiring an account is what makes
+// these possible: an account is persistent and rate-limitable, an anonymous
+// reporter is neither. That is the point of the wall — continuity, not identity.
+describe('report-bombing is refused, not merely un-hidden', () => {
+  const src = readFileSync(resolve(__dirname, 'create.ts'), 'utf8')
+
+  it('has both caps set well above ordinary use', () => {
+    expect(src).toMatch(/MAX_OPEN_REPORTS_TOTAL = (\d+)/)
+    expect(src).toMatch(/MAX_REPORTS_PER_SUBJECT = (\d+)/)
+    const total = Number(src.match(/MAX_OPEN_REPORTS_TOTAL = (\d+)/)![1])
+    // Above the auto-hide cap of 5, so ordinary reporting is untouched.
+    expect(total).toBeGreaterThan(5)
+  })
+
+  it('refuses BEFORE writing the row — a report nobody will read is still queue', () => {
+    const refuse = src.indexOf('MAX_OPEN_REPORTS_TOTAL)')
+    const insert = src.indexOf('insert into public.reports')
+    expect(refuse).toBeGreaterThan(-1)
+    expect(refuse).toBeLessThan(insert)
   })
 })

@@ -17,6 +17,7 @@
 import { useRef, useState } from 'react'
 import { PageOverflowMenu } from './PageOverflowMenu'
 import { ReportSheet } from './ReportSheet'
+import { signInHref as gatedSignInHref } from '@/lib/auth/requires-account'
 
 interface Props {
   subjectId: string
@@ -39,7 +40,17 @@ export function ReportControl({ subjectId, subjectLabel, loggedIn, returnTo, onS
   // leads to sign-in rather than to a disabled button or a dead end — a member
   // who wants to report something should never have to guess whether they are
   // allowed to.
-  const signInHref = `/auth/login${returnTo ? `?next=${encodeURIComponent(returnTo)}` : ''}`
+  //
+  // Reporting sits inside the wall by Don's ruling of 2026-09-18, and the
+  // reasoning is worth keeping at the call site: requiring an account buys no
+  // identity — accountability here is visibility and peer pressure, already
+  // ruled — it buys CONTINUITY. An account is persistent, rate-limitable and
+  // revocable; an anonymous reporter is none of those, which is what makes the
+  // report-bombing caps in report.create possible at all.
+  //
+  // Now routed through the shared helper so the intent survives sign-in and the
+  // report sheet can open on return, rather than the tap being lost.
+  const signInHref = gatedSignInHref('report', returnTo ?? '/')
 
   return (
     <>

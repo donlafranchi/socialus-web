@@ -36,6 +36,22 @@ const BODY_MAX_LENGTH = 2000
 // reporter, so one person cannot hide the metro.
 const MAX_OPEN_REPORTS_PER_REPORTER = 5
 
+// THE REFUSAL CAPS (2026-09-18). The one above only withholds the auto-hide;
+// the report is still stored, so an unbounded reporter could still fill the
+// operator's queue. Report-bombing a business is the specific risk Don named,
+// and requiring an account is what makes these caps possible at all — an
+// account is persistent and rate-limitable, an anonymous reporter is neither.
+// That is the point of the wall: not identity, continuity.
+//
+// Deliberately well above ordinary use. Someone with 20 open reports is not
+// reporting in good faith, and someone filing a third report on the same Page
+// they have already reported twice is not adding information.
+//
+// Constants, not configuration: a threshold in code is reversible in one edit,
+// a threshold in the schema is a migration and a production apply.
+const MAX_OPEN_REPORTS_TOTAL = 20
+const MAX_REPORTS_PER_SUBJECT = 2
+
 export const reportCreateInput = z.object({
   // 'group' is the only value today. Posts join when posts exist; Items never
   // do (model.md § There are no Items).
@@ -131,6 +147,19 @@ export const reportCreate = defineHandler(
         [reporterMemberId],
       )
       const openByReporter = Number(openRes.rows[0]?.count ?? '0')
+
+      // Refuse before writing. A stored report that nobody will ever read is
+      // still a row in the operator's queue.
+      if (openByReporter >= MAX_OPEN_REPORTS_TOTAL) {
+        throw new ValidationError(
+          'report.create: you have a lot of reports open already — we will get to them before taking more',
+        )
+      }
+      if (priorBySameMember >= MAX_REPORTS_PER_SUBJECT) {
+        throw new ValidationError(
+          'report.create: you have already reported this one — we have it',
+        )
+      }
 
       const insertRes = await client.query<{ id: string }>(
         `insert into public.reports
