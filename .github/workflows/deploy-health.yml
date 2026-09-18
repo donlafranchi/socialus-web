@@ -35,7 +35,16 @@ concurrency:
 jobs:
   check:
     name: Database reachable from the deployment
-    runs-on: ubuntu-latest
+    # PINNED, not ubuntu-latest. The `ubuntu-latest` label migrates to Ubuntu 26
+    # from 2026-10-19 — eleven days before launch. An unpinned runner would
+    # change the OS, the preinstalled toolchain and the default package
+    # versions underneath us in the worst week of the project, and the first
+    # symptom would be a job failing for a reason unrelated to any change we
+    # made. 24.04 is exactly what every run has been using; this pins what is
+    # already proven rather than adopting anything new.
+    #
+    # Revisit after launch: this is a deliberate freeze, not a preference.
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       # A push to main triggers a Vercel build that this workflow races. The
@@ -97,11 +106,11 @@ jobs:
   # firing late. This one only ever speaks when something is wrong.
   ontology-drift:
     name: Ontology declarations still match the code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm

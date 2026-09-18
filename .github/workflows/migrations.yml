@@ -43,17 +43,26 @@ jobs:
   # local Supabase stack built from the files in this commit.
   verify:
     name: Migrations apply from scratch
-    runs-on: ubuntu-latest
+    # PINNED, not ubuntu-latest. The `ubuntu-latest` label migrates to Ubuntu 26
+    # from 2026-10-19 — eleven days before launch. An unpinned runner would
+    # change the OS, the preinstalled toolchain and the default package
+    # versions underneath us in the worst week of the project, and the first
+    # symptom would be a job failing for a reason unrelated to any change we
+    # made. 24.04 is exactly what every run has been using; this pins what is
+    # already proven rather than adopting anything new.
+    #
+    # Revisit after launch: this is a deliberate freeze, not a preference.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v2
         with:
           version: latest
 
@@ -92,12 +101,12 @@ jobs:
   # drift, and always a failure.
   drift:
     name: No undocumented migrations in the database
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v2
         with:
           version: latest
 
@@ -125,12 +134,12 @@ jobs:
   pending:
     name: Production behind main?
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v2
         with:
           version: latest
 
