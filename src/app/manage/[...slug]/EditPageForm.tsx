@@ -13,33 +13,42 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { SocialLinksFields } from '@/components/group/SocialLinksFields'
-import type { SocialLinks } from '@/lib/groups/social-links'
+import { SocialHandleFields } from '@/components/group/SocialHandleFields'
+import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
+import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
+import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput } from './actions'
 
 export function EditPageForm({
   groupId,
-  kind,
+  memberId,
   pagePath,
   slug,
   initialName,
   initialDescription,
+  initialPhotoUrl,
   initialSocialLinks,
   onSave,
 }: {
   groupId: string
-  kind: string
+  memberId: string
   pagePath: string
   slug: string
   initialName: string
   initialDescription: string
+  initialPhotoUrl: string | null
   initialSocialLinks: SocialLinks
   onSave: (input: EditPageInput) => Promise<{ ok: true }>
 }) {
   const router = useRouter()
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState(initialDescription)
-  const [socialLinks, setSocialLinks] = useState<SocialLinks>(initialSocialLinks)
+  // Handles in the form, URLs on the wire. The member types `donlafranchi`;
+  // the column and every read path still get an https URL.
+  const [handles, setHandles] = useState<Partial<Record<SocialPlatform, string>>>(() =>
+    handlesFromLinks(initialSocialLinks),
+  )
+  const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -49,8 +58,16 @@ export function EditPageForm({
     setError(null)
     setSaved(false)
     startTransition(async () => {
+      // Compose the URLs here so a bad handle is caught with the field that
+      // caused it, rather than as one opaque failure after a round trip.
+      const { links, problems } = linksFromHandles(handles)
+      const firstBad = Object.entries(problems)[0]
+      if (firstBad) {
+        setError(`${firstBad[0]}: ${firstBad[1]}`)
+        return
+      }
       try {
-        await onSave({ groupId, pagePath, name, description, socialLinks })
+        await onSave({ groupId, pagePath, name, description, photoUrl, socialLinks: links })
         setSaved(true)
         router.refresh()
       } catch (err) {
@@ -98,7 +115,14 @@ export function EditPageForm({
         </p>
       </div>
 
-      <SocialLinksFields kind={kind} value={socialLinks} onChange={setSocialLinks} />
+      <div>
+        <span className="text-sm font-medium text-[var(--color-fg)]">Photo</span>
+        <div className="mt-1">
+          <PagePhotoPicker memberId={memberId} value={photoUrl} onChange={setPhotoUrl} />
+        </div>
+      </div>
+
+      <SocialHandleFields value={handles} onChange={setHandles} />
 
       {error ? (
         <p role="alert" data-testid="edit-error" className="text-sm text-[var(--color-fg)]">
