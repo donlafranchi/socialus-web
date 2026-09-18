@@ -11,6 +11,7 @@ afterEach(cleanup)
 
 const SHOP: ResolvedShop = {
   groupId: 'grp-1',
+  kind: 'business',
   slug: 'oak-park-sourdough',
   displayName: 'Oak Park Sourdough',
   publicDescription: 'Real bread, baked local.',

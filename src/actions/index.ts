@@ -20,6 +20,7 @@ import {
 import {
   groupCreate,
   groupUpdateDraft,
+  groupUpdate,
   groupActivate,
   groupMemberJoin,
   groupMemberLeave,
@@ -37,6 +38,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.create': memberCreate as unknown as NamedActionHandler<unknown, unknown>,
   'group.create': groupCreate as unknown as NamedActionHandler<unknown, unknown>,
   'group.update_draft': groupUpdateDraft as unknown as NamedActionHandler<unknown, unknown>,
+  // The owner edits a Page that is already live. Separate from update_draft
+  // because a live Page's slug is frozen and the edit is an event.
+  'group.update': groupUpdate as unknown as NamedActionHandler<unknown, unknown>,
   'group.activate': groupActivate as unknown as NamedActionHandler<unknown, unknown>,
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
@@ -92,7 +96,7 @@ export {
   memberSavedSearchRemove,
   memberSavedSearchRestore,
 } from './member'
-export { groupCreate, groupUpdateDraft, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
+export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
   groupPostCreate,

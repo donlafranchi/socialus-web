@@ -328,6 +328,10 @@ export default async function PlacePage({ params }: Props) {
       viewerOwnsPage(supabase, {
         groupId: shop.groupId,
         viewerMemberId: auth.user?.id ?? null,
+        // Without the kind this falls back to "either managing role", which
+        // was silently wrong for every non-business Page — their founder holds
+        // 'steward', not 'owner'.
+        kind: shop.kind,
       }),
       viewerFollowsPage(supabase, {
         groupId: shop.groupId,

@@ -53,3 +53,5 @@ export {
   type GroupPostCreateResult,
   type GroupPostEditResult,
 } from './post'
+
+export { groupUpdate, groupUpdateInput, type GroupUpdateInput, type GroupUpdateResult } from './update'
