@@ -12,6 +12,7 @@
 // Supabase-client-shaped (not pg-shaped) so it runs from a server component
 // with the session-bound client. Same convention as src/lib/sell/getDraftGroup.ts.
 
+import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { memberHasPublished } from '../member/has-published'
@@ -30,6 +31,10 @@ export interface ShopFounder {
 export interface ResolvedShop {
   groupId: string
   slug: string
+  /** The Page kind. Always 'business' while this resolver filters on it, but
+   *  carried rather than assumed — the managing role is derived from it, and a
+   *  wrong assumption here hides the owner's own controls from them. */
+  kind: string
   displayName: string
   publicDescription: string
   lifecycleState: GroupLifecycleState
@@ -165,6 +170,7 @@ export async function resolveShop(
 
   return {
     groupId: row.id,
+    kind: row.kind,
     slug: row.slug,
     displayName: biz?.display_name ?? '',
     publicDescription: biz?.public_description ?? '',
@@ -269,15 +275,28 @@ export async function resolveLocalOwnerBadge(
  */
 export async function viewerOwnsPage(
   supabase: SupabaseClient,
-  args: { groupId: string; viewerMemberId: string | null },
+  args: { groupId: string; viewerMemberId: string | null; kind?: string | null },
 ): Promise<boolean> {
   if (!args.viewerMemberId) return false
+  // CORRECTED 2026-09-18. This asked for role='owner' unconditionally, and a
+  // non-business Page's founder holds 'steward' — never 'owner'. So the founder
+  // of a run club, an interest Page or a practice was not recognised as owning
+  // their own Page, and every owner-only affordance was hidden from them. The
+  // same trap `group.update_draft` warns about in its own comments.
+  //
+  // `kind` is optional so older callers still compile; without it, either
+  // managing role counts, which is the safer default for a read that only
+  // decides whether to SHOW a control. The write handlers check the exact role
+  // for the exact kind, so a wrong answer here cannot authorise anything.
+  const roles = args.kind
+    ? [managingRoleForKind(args.kind as GroupKind)]
+    : ['owner', 'steward']
   const { data } = await supabase
     .from('group_memberships')
     .select('role')
     .eq('group_id', args.groupId)
     .eq('member_id', args.viewerMemberId)
-    .eq('role', 'owner')
+    .in('role', roles)
     .is('left_at', null)
     .limit(1)
     .maybeSingle()

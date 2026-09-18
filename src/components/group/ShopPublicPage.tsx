@@ -10,6 +10,7 @@ import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
+import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { socialLinksForDisplay } from '@/lib/groups/social-links'
 import { sendReportAction } from '@/app/_actions/report-actions'
@@ -113,6 +114,11 @@ export function ShopPublicPage({
             />
           </div>
         </div>
+
+        {/* Owner only, and absent from the markup for everyone else — this
+            component is not rendered at all unless the server resolved
+            ownership. The writes behind it re-check the managing role. */}
+        {viewerOwnsPage && pagePath ? <OwnerBar pagePath={pagePath} /> : null}
 
         {shop.founder && (
           <div data-testid="shop-founder" className="flex items-center gap-2">
