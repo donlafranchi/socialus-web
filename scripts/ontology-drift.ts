@@ -23,13 +23,18 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { LINK_TYPES } from '../src/ontology/links'
+import { listHandlers } from '../src/actions'
 
 const ROOT = resolve(__dirname, '..')
 
+// IMPORTED, not parsed. This script used to regex `src/actions/index.ts` and
+// `src/ontology/links.ts` for the same facts they already export. That made it
+// the second of three parsers of one literal, each able to disagree with the
+// compiler — and a parser that quietly matches nothing reports "no drift",
+// which is the failure this job exists to catch. See lesson 28.
 function registeredHandlers(): string[] {
-  const src = readFileSync(resolve(ROOT, 'src/actions/index.ts'), 'utf8')
-  const body = src.slice(src.indexOf('const REGISTRY'), src.indexOf('export function getHandler'))
-  return [...body.matchAll(/^\s*'([a-z_]+(?:\.[a-z_]+)+)':/gm)].map((m) => m[1]).sort()
+  return listHandlers().sort()
 }
 
 function migrationTables(): Set<string> {
@@ -54,21 +59,12 @@ interface Declared {
 }
 
 function declaredLinks(): Declared[] {
-  const src = readFileSync(resolve(ROOT, 'src/ontology/links.ts'), 'utf8')
-  const out: Declared[] = []
-  for (const m of src.matchAll(/name:\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/g)) {
-    const after = src.slice(m.index ?? 0)
-    const table = after.match(/via:\s*\{\s*table:\s*'([a-z0-9_]+)'/)
-    if (!table) continue
-    const writers = after.match(/writtenBy:\s*\[([^\]]*)\]/)
-    out.push({
-      name: m[2],
-      table: table[1],
-      writtenBy: writers ? [...writers[1].matchAll(/'([^']+)'/g)].map((w) => w[1]) : [],
-      built: /built:\s*true/.test(after.slice(0, after.indexOf('},'))),
-    })
-  }
-  return out
+  return LINK_TYPES.map((l) => ({
+    name: l.name,
+    table: l.via.table,
+    writtenBy: [...l.writtenBy],
+    built: l.built,
+  }))
 }
 
 function main(): number {

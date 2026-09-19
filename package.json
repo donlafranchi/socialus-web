@@ -14,7 +14,8 @@
     "eval:bootstrap": "tsx scripts/bootstrap-eval-helpers.ts",
     "check:action-layer": "tsx scripts/check-action-layer-conformance.ts",
     "mutate": "stryker run",
-    "db:push": "supabase db push"
+    "db:push": "supabase db push",
+    "ontology:registry": "tsx scripts/ontology-registry.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
