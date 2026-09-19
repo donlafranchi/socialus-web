@@ -277,12 +277,17 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
     )) as { id: string; pt: string }[]
 
     let n = 0
+    // Slugified: `locations.slug` has a CHECK, and a post body makes a poor
+    // slug. The fixture, not the function — but a fixture that cannot insert
+    // is a test that cannot fail for the right reason.
+    const slugify = (s: string) =>
+      s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
     const mkLoc = async (tag: string, point: string = pt) => {
       n += 1
       const [{ id }] = (await q(
         `insert into public.locations (member_id, kind, label, slug, geography, place_id)
          values ($1, 'permanent', $2, $3, $4, $5) returning id`,
-        [memberId, `${tag} loc`, `t156-${tag}-${n}`, point, placeId],
+        [memberId, `${tag} loc`, `t156-${slugify(tag)}-${n}`, point, placeId],
       )) as { id: string }[]
       return id
     }
