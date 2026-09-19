@@ -110,6 +110,10 @@ interface ShopRow {
   id: string
   slug: string
   kind: string
+  /** The Page's own name. What every kind but `business` is known by. */
+  name: string | null
+  /** The Page's own free text. Same story as `name`. */
+  description: string | null
   lifecycle_state: string
   anchor_location_id: string | null
   category: string | null
@@ -127,22 +131,42 @@ interface ShopRow {
     | null
 }
 
+export interface ResolveShopOptions {
+  /**
+   * T156 — the Page kinds this read admits. Omitted or empty means **every
+   * kind**, which is the only correct default: `groups.slug` is globally
+   * unique, so a kind predicate here can do exactly one thing — 404 a Page
+   * that exists.
+   *
+   * It is a parameter rather than a constant because whether SocialUs has two
+   * Page kinds or three is Don's, and unruled. A caller that genuinely needs
+   * one kind passes it; the ruling, when it lands, lands at the call sites
+   * instead of forcing this read to be rewritten.
+   */
+  kinds?: readonly string[]
+}
+
 export async function resolveShop(
   supabase: SupabaseClient,
   slug: string,
+  opts: ResolveShopOptions = {},
 ): Promise<ResolvedShop | null> {
-  const { data, error } = await supabase
+  // CORRECTED 2026-09-19 (T156). This was `.eq('kind', 'business')`, which
+  // 404'd every Page that is not a business — a run club, an interest Page, a
+  // practice — even though each one resolves, renders and is owned exactly
+  // like a Shop. Don hit it himself with SacRiver Floaters.
+  let query = supabase
     .from('groups')
     .select(
-      'id, slug, kind, lifecycle_state, anchor_location_id, category, ' +
+      'id, slug, kind, name, description, lifecycle_state, anchor_location_id, category, ' +
         'photo_url, social_links, photo_hidden_at, discoverability, ' +
         'group_businesses(display_name, public_description), ' +
         'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
     )
     .eq('slug', slug)
-    .eq('kind', 'business')
-    .limit(1)
-    .maybeSingle()
+  if (opts.kinds && opts.kinds.length > 0) query = query.in('kind', [...opts.kinds])
+
+  const { data, error } = await query.limit(1).maybeSingle()
 
   if (error || !data) return null
 
@@ -172,8 +196,12 @@ export async function resolveShop(
     groupId: row.id,
     kind: row.kind,
     slug: row.slug,
-    displayName: biz?.display_name ?? '',
-    publicDescription: biz?.public_description ?? '',
+    // T156 — a business keeps its public name in the `group_businesses` child;
+    // every other kind of Page keeps it on the `groups` row and has no child
+    // at all. Falling back is what makes resolving a run club worth doing:
+    // without it the 404 is replaced by a Page with no name on it.
+    displayName: biz?.display_name ?? row.name ?? '',
+    publicDescription: biz?.public_description ?? row.description ?? '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId: row.anchor_location_id,
     category: row.category,
