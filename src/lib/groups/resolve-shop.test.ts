@@ -299,3 +299,96 @@ describe('resolveOwnerClaim', () => {
     expect(claim).toEqual({ zip: '90210', isProximal: false })
   })
 })
+
+// T156 — the Page kind is a parameter, not a constant.
+//
+// This resolver filtered `kind = 'business'` and so 404'd every other kind of
+// Page: a run club, an interest Page, a practice. Whether SocialUs has two
+// Page kinds or three is Don's and unruled, so the filter becomes an argument
+// the caller supplies and the decision lands without a second rewrite.
+function makeRecordingStub(row: unknown) {
+  const calls = { eq: [] as [string, unknown][], in: [] as [string, unknown][] }
+  const supabase = {
+    from: (table: string) => {
+      const chain: Record<string, unknown> = {}
+      chain.select = () => chain
+      chain.eq = (c: string, v: unknown) => {
+        calls.eq.push([c, v])
+        return chain
+      }
+      chain.in = (c: string, v: unknown) => {
+        calls.in.push([c, v])
+        return chain
+      }
+      chain.is = () => chain
+      chain.limit = () => chain
+      chain.maybeSingle = () =>
+        Promise.resolve({
+          data: table === 'member_public_has_published' ? null : row,
+          error: null,
+        })
+      return chain
+    },
+  } as unknown as Parameters<typeof resolveShop>[0]
+  return { supabase, calls }
+}
+
+const RUN_CLUB_ROW = {
+  id: 'grp-2',
+  slug: 'sacriver-floaters',
+  kind: 'interest',
+  name: 'SacRiver Floaters',
+  description: 'We float the river on Sundays.',
+  lifecycle_state: 'active',
+  anchor_location_id: 'loc-2',
+  category: null as string | null,
+  // A non-business Page has no group_businesses child, and never will.
+  group_businesses: null,
+  founder: [{ id: 'mem-don', handle: 'don', display_name: 'Don', avatar_url: null }],
+}
+
+describe('T156 — resolveShop takes the Page kind as a parameter', () => {
+  it('applies no kind predicate by default, so any Page kind resolves', async () => {
+    const { supabase, calls } = makeRecordingStub(RUN_CLUB_ROW)
+    const shop = await resolveShop(supabase, 'sacriver-floaters')
+    expect(shop?.groupId).toBe('grp-2')
+    expect(calls.eq).toContainEqual(['slug', 'sacriver-floaters'])
+    expect(calls.eq.map(([c]) => c)).not.toContain('kind')
+    expect(calls.in.map(([c]) => c)).not.toContain('kind')
+  })
+
+  it('narrows to the kinds a caller asks for', async () => {
+    const { supabase, calls } = makeRecordingStub(ACTIVE_ROW)
+    await resolveShop(supabase, 'oak-park-sourdough', { kinds: ['business'] })
+    expect(calls.in).toContainEqual(['kind', ['business']])
+  })
+
+  it('an empty kind list is treated as no filter, never as "match nothing"', async () => {
+    const { supabase, calls } = makeRecordingStub(RUN_CLUB_ROW)
+    const shop = await resolveShop(supabase, 'sacriver-floaters', { kinds: [] })
+    expect(shop?.groupId).toBe('grp-2')
+    expect(calls.in.map(([c]) => c)).not.toContain('kind')
+  })
+
+  // Resolving the Page and then rendering it blank is not a fix. A non-business
+  // Page's name and description live on `groups`; only a business keeps them in
+  // the `group_businesses` child.
+  it('a non-business Page carries its own name and description', async () => {
+    const { supabase } = makeRecordingStub(RUN_CLUB_ROW)
+    const shop = await resolveShop(supabase, 'sacriver-floaters')
+    expect(shop?.displayName).toBe('SacRiver Floaters')
+    expect(shop?.publicDescription).toBe('We float the river on Sundays.')
+    expect(shop?.kind).toBe('interest')
+  })
+
+  it('a business still prefers its group_businesses name over the groups row', async () => {
+    const { supabase } = makeRecordingStub({
+      ...ACTIVE_ROW,
+      name: 'oak-park-sourdough-llc',
+      description: 'internal',
+    })
+    const shop = await resolveShop(supabase, 'oak-park-sourdough')
+    expect(shop?.displayName).toBe('Oak Park Sourdough')
+    expect(shop?.publicDescription).toBe('Real bread, baked local.')
+  })
+})
