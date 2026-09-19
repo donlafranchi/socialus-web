@@ -30,11 +30,29 @@ local_versions="$(ls supabase/migrations/*.sql 2>/dev/null \
 # Remote history, straight from the database. Same connection path as the
 # drift check — no `supabase link`, which cannot resolve a service-role secret
 # from a scoped token (supabase/supabase#50244).
-remote_versions="$(supabase migration list --db-url "$SUPABASE_DB_URL" 2>/dev/null \
-  | awk -F'|' 'NF>2 {gsub(/ /,"",$2); if ($2 ~ /^[0-9]+$/) print $2}' | sort -u)"
+#
+# KEEP BOTH HANDS OFF THE CELL FORMAT. `supabase migration list` renders its
+# table as markdown when stdout is not a TTY, so in CI every cell arrives
+# backtick-wrapped — ` `20260917210000` ` — while the same command in a
+# terminal prints bare digits. The first version of this parser stripped
+# spaces and then required ^[0-9]+$, which the backticks defeat: the remote
+# history came back empty on every CI run and the script took its
+# refuse-to-guess branch, one step before `db push`, with the full table
+# printed in the step above it (run 35469653868). So: take the digits out of
+# column 2 and ignore every decoration around them.
+remote_raw="$(supabase migration list --db-url "$SUPABASE_DB_URL" 2>&1)"
+remote_status=$?
+
+remote_versions="$(printf '%s\n' "$remote_raw" \
+  | awk -F'|' 'NF>2 { v=$2; gsub(/[^0-9]/,"",v); if (v != "") print v }' | sort -u)"
 
 if [ -z "$remote_versions" ]; then
   echo "::error::Could not read the remote migration history. Not proceeding — refusing to guess."
+  echo
+  # The original failure printed the line above and nothing else, which said
+  # only that something was wrong. Whatever the CLI said goes in the log.
+  echo "supabase migration list exited $remote_status and said:"
+  printf '%s\n' "$remote_raw" | sed 's/^/  /'
   exit 2
 fi
 
