@@ -111,7 +111,16 @@ describe('--check fails on a stale file', () => {
   })
 
   it('fails when the file no longer matches its source', () => {
-    writeFileSync(REGISTRY, original.replace('"schema": 1', '"schema": 99'), 'utf8')
+    // Mutated through JSON rather than by replacing a literal. The first
+    // version of this swapped the string `"schema": 1`, and bumping the schema
+    // to 2 turned the setup into a no-op that wrote the file back unchanged —
+    // the assertion below caught it, but a setup that can silently do nothing
+    // is the shape of every guard that passes while checking nothing.
+    const parsed = JSON.parse(original)
+    parsed.links.pop()
+    const mutated = JSON.stringify(parsed, null, 2) + '\n'
+    expect(mutated, 'the mutation did not change the file').not.toBe(original)
+    writeFileSync(REGISTRY, mutated, 'utf8')
     expect(check()).toBe(1)
   })
 
