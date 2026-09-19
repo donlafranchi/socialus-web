@@ -52,7 +52,14 @@ already ruled that *"a file only a script compares is safe, because nothing
 believes it"*, and a document called REGISTRY died in this project once already.
 `scripts/check-action-layer-conformance.ts` Rule 5 fails the PR when a link
 claims a handler that is not registered, or points at a table no migration
-creates. It runs at `npm test`.
+creates. It runs at `npm test`. A link also carries the ruling behind it or it
+does not go in — a bare note that restates the foreign key fails there too.
+
+**`src/ontology/registry.json` is the same thing as data**, generated from those
+declarations by `npm run ontology:registry` and committed, because ops-pattern's
+STATUS.md job reads it across repos with `git show` and cannot run a script here.
+Change a link, regenerate, commit both — a test compares them and goes red
+otherwise. Nothing is written into the JSON by hand.
 
 **It declares meaning, not columns.** `via` names a table and column only so the
 check has something real to compare against. If you are adding a type or an
