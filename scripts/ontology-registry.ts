@@ -32,22 +32,39 @@
 
 import { writeFileSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { LINK_TYPES, OBJECT_TYPE_NAMES } from '../src/ontology/links'
+import { LINK_TYPES } from '../src/ontology/links'
+import { OBJECT_TYPES, REJECTED_AS_NOUNS } from '../src/ontology/objects'
 import { listHandlers } from '../src/actions'
 
 const OUT = resolve(__dirname, '..', 'src', 'ontology', 'registry.json')
 
-/** Bump when a consumer would have to change. ops-pattern reads this first. */
-const SCHEMA = 1
+/**
+ * Bump when a consumer would have to change. ops-pattern reads this first.
+ *
+ * 2 — object types became declarations (name, status, definedIn, note) instead
+ *     of bare names, and `rejectedAsNouns` arrived. A reader of 1 that expects
+ *     `objectTypes` to be an array of strings must be updated, which is why
+ *     this moved rather than growing a parallel key.
+ */
+const SCHEMA = 2
 
 export function buildRegistry(): string {
   return (
     JSON.stringify(
       {
         schema: SCHEMA,
-        // Names only — the definitions live in ops-pattern's nouns.md, and an
-        // object type declaring its fields here would be the migrations again.
-        objectTypes: [...OBJECT_TYPE_NAMES],
+        // Pointers, not definitions: a name, a status in nouns.md's own
+        // vocabulary, and where that file defines it. No fields and no table —
+        // an object type describing its columns would be the migrations again.
+        objectTypes: OBJECT_TYPES.map((o) => ({
+          name: o.name,
+          status: o.status,
+          definedIn: o.definedIn,
+          note: o.note ?? null,
+        })),
+        // Words that name a relation to a Page and not a kind of person.
+        // Exported so nothing downstream reinvents them as types.
+        rejectedAsNouns: [...REJECTED_AS_NOUNS],
         links: LINK_TYPES.map((l) => ({
           name: l.name,
           from: l.from,

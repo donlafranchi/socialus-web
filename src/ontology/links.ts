@@ -46,34 +46,10 @@
 // KEEPING IT CURRENT: when a ruling introduces or changes a link, the same
 // change updates this file. See CLAUDE.md § The ontology.
 
-/**
- * A noun. Named, not defined — the definitions live in `nouns.md`.
- *
- * Every name here is a noun THAT FILE uses, and the list holds only nouns a
- * link below actually relates. `Post` was here and is not one of them:
- * `nouns.md` names the thing **Announcement** ("the Page is the board, an
- * announcement is the first kind of post") and puts bare *post* on its
- * watch list precisely because it means a `page_posts` row in one breath and
- * the act of posting in the next.
- *
- * A value, not a bare union, for two reasons: a test can then assert that no
- * name sits here unused (which is how `Place` and `Post` both went stale), and
- * anything generating from this file reads it instead of re-parsing the source.
- *
- * NAMES ONLY. This is not an object-type declaration and must not grow into
- * one by accident — a noun listing its fields here is the migrations again.
- */
-export const OBJECT_TYPE_NAMES = [
-  'Member',
-  'Page',
-  'Item',
-  'Location',
-  'Place',
-  'Announcement',
-  'Tag',
-] as const
+import type { ObjectTypeName } from './objects'
 
-export type ObjectTypeName = (typeof OBJECT_TYPE_NAMES)[number]
+export type { ObjectTypeName }
+export { OBJECT_TYPE_NAMES, OBJECT_TYPES } from './objects'
 
 export interface LinkType {
   /** What the relationship IS, in the project's own words. */
@@ -274,6 +250,24 @@ export const LINK_TYPES: readonly LinkType[] = [
       'Places are platform-curated with no member-facing create surface, so the column is ' +
       'populated by seed data. The one member-facing location insert omits it, which means those ' +
       'Locations have a null place_path in browse until a backfill gives them one.',
+  },
+  {
+    name: 'a Member runs a Page',
+    from: 'Member',
+    to: 'Page',
+    via: { table: 'group_memberships', column: 'role' },
+    writtenBy: ['group.create'],
+    ruled: '2026-09-19',
+    built: true,
+    note:
+      'AUTHORITY, not attachment — the only relation that implies being able to change a Page, ' +
+      'and the one every managing check actually reads (requireManagingRole, role in owner or ' +
+      'steward, branching by Page kind). DISTINCT FROM "a Member owns a Page", which points at ' +
+      'groups.founder_member_id: that column records who STARTED the Page and is not what any ' +
+      'permission consults. Today they coincide because group.create writes both; nothing makes ' +
+      'them stay that way, and a steward who did not found a Page has authority under this link ' +
+      'and appears under neither of the others. Declared because leaving it implicit is how a ' +
+      'relation becomes an identity — the role is on the link, never on the person.',
   },
 ] as const
 
