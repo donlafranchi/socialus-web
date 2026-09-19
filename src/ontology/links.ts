@@ -23,11 +23,22 @@
 // it is a pointer, not a schema. If you find yourself adding a column type or
 // an index here, it has drifted into being a second copy of the migrations.
 //
-// SCOPE, deliberately small. Six links that are already load-bearing. Not
-// declared, on purpose: the events tables, unused substrate (delegations,
+// SCOPE: every relationship the app runs on today, and nothing else. It began
+// at six; the other six were found by the survey that followed T156, which had
+// leaned on four of them. The test for admission is not "is there a foreign
+// key" — it is whether the link carries a ruling you could not recover by
+// reading the column. A Page with no anchor Location is in no browse result at
+// all; a post never borrows its Page's pin; a hidden tag must stop steering a
+// lens. Strip those notes and what is left is the migrations again.
+//
+// Not declared, on purpose: the events tables, unused substrate (delegations,
 // messages), retired vendor surfaces, PostGIS internals, and anything keyed to
 // `groups.kind` — the Page kinds question is unruled and declaring links over a
 // vocabulary that is actively changing buys a rename.
+//
+// Not declared, but only for now: a Page's collection membership, ruled
+// 2026-09-19. It has no table yet, and Rule 5b fails a link pointing at a table
+// no migration creates. It arrives with its migration.
 //
 // OBJECT TYPES are deferred. A noun gets a declaration the next time a handler
 // touching it is edited; there is no 24-handler rewrite here.
@@ -35,14 +46,34 @@
 // KEEPING IT CURRENT: when a ruling introduces or changes a link, the same
 // change updates this file. See CLAUDE.md § The ontology.
 
-/** A noun. Named, not defined — the definitions live in `nouns.md`. */
-export type ObjectTypeName =
-  | 'Member'
-  | 'Page'
-  | 'Item'
-  | 'Location'
-  | 'Place'
-  | 'Post'
+/**
+ * A noun. Named, not defined — the definitions live in `nouns.md`.
+ *
+ * Every name here is a noun THAT FILE uses, and the list holds only nouns a
+ * link below actually relates. `Post` was here and is not one of them:
+ * `nouns.md` names the thing **Announcement** ("the Page is the board, an
+ * announcement is the first kind of post") and puts bare *post* on its
+ * watch list precisely because it means a `page_posts` row in one breath and
+ * the act of posting in the next.
+ *
+ * A value, not a bare union, for two reasons: a test can then assert that no
+ * name sits here unused (which is how `Place` and `Post` both went stale), and
+ * anything generating from this file reads it instead of re-parsing the source.
+ *
+ * NAMES ONLY. This is not an object-type declaration and must not grow into
+ * one by accident — a noun listing its fields here is the migrations again.
+ */
+export const OBJECT_TYPE_NAMES = [
+  'Member',
+  'Page',
+  'Item',
+  'Location',
+  'Place',
+  'Announcement',
+  'Tag',
+] as const
+
+export type ObjectTypeName = (typeof OBJECT_TYPE_NAMES)[number]
 
 export interface LinkType {
   /** What the relationship IS, in the project's own words. */
@@ -58,7 +89,11 @@ export interface LinkType {
    * but not today.
    */
   writtenBy: readonly string[]
-  /** The DECISIONS.md date that ruled it. `null` where it predates the log. */
+  /**
+   * The DECISIONS.md date that ruled it. `null` where there is no dated line —
+   * it predates the log, or the rule lives in a foundation doc instead, and
+   * then `note` says which. Never a nearby date standing in for an exact one.
+   */
   ruled: string | null
   /** Is it real today? An unbuilt link is declared and marked, never implied. */
   built: boolean
@@ -95,7 +130,10 @@ export const LINK_TYPES: readonly LinkType[] = [
     writtenBy: ['item.create'],
     ruled: null,
     built: true,
-    note: 'Nullable: an Item can exist before it has a Page to sit under.',
+    note:
+      'Optional, and deliberately so: an Item exists before it has a Page to sit under, and the ' +
+      'responsible human is never in doubt because items.member_id is NOT NULL while this is not. ' +
+      'Filing is a placement; authorship is the accountability, and they are different links.',
   },
   {
     name: 'an Item is at a Location',
@@ -105,7 +143,11 @@ export const LINK_TYPES: readonly LinkType[] = [
     writtenBy: ['item.attach_location'],
     ruled: null,
     built: true,
-    note: 'A join table, not a column: an Item may be at more than one Location.',
+    note:
+      'An Item may be at more than one Location at once — the same thing offered at two markets ' +
+      'is one Item with two placements, not two Items. That is why this is a join table and why ' +
+      "an Item's locality is a set rather than a field, which every place-scoped read has to " +
+      'handle rather than assuming one address.',
   },
   {
     name: "a Member is subscribed to a Page's updates",
@@ -137,6 +179,101 @@ export const LINK_TYPES: readonly LinkType[] = [
       'group_memberships is keyed (group_id, member_id), one row per pair, so support and ' +
       'subscription cannot both be a value of one `relationship` column. Extending the row ' +
       'rather than adding a table is the preferred shape; it is not decided.',
+  },
+  {
+    name: 'an Announcement is posted to a Page',
+    from: 'Announcement',
+    to: 'Page',
+    via: { table: 'page_posts', column: 'group_id' },
+    writtenBy: ['group.post_create'],
+    ruled: '2026-09-10',
+    built: true,
+    note:
+      'The Page is the board; an announcement is the first kind of post. One table and one ' +
+      'composer carry both the undated post and the dated one — that ruling is why there is no ' +
+      '`bulletins` table and no separate event entity. NOT NULL, and load-bearing because of it: ' +
+      'a post has no existence apart from its Page, which is what lets T156 return Pages and ' +
+      'posts in one result set without inventing a second identity for the poster.',
+  },
+  {
+    name: 'an Announcement is at a Location',
+    from: 'Announcement',
+    to: 'Location',
+    via: { table: 'page_posts', column: 'location_id' },
+    writtenBy: [],
+    ruled: null,
+    built: false,
+    note:
+      "A post carries its OWN address or none. It never borrows its Page's pin — the rule is in " +
+      'product/foundation/model.md rather than a dated DECISIONS line, and T156 implements it by ' +
+      "projecting the post's own geography and null where it has none. DECLARED UNBUILT ON " +
+      'PURPOSE, because the honest state is odd and invisible: the column exists, browse reads it, ' +
+      'and nothing writes it. group.post_create inserts a post without a location and there is no ' +
+      'composer field for one. So every post in production is addressless, and a read path built ' +
+      "to tell a post's pin from its Page's has nothing yet to tell apart.",
+  },
+  {
+    name: 'a Page is anchored at a Location',
+    from: 'Page',
+    to: 'Location',
+    via: { table: 'groups', column: 'anchor_location_id' },
+    writtenBy: ['group.create', 'group.update_draft', 'group.update'],
+    ruled: null,
+    built: true,
+    note:
+      'The anchor is what gives a Page a locality, and locality is the whole basis of Browse: ' +
+      'T156 joins it INNER, so a Page without one appears in no metro and no Place result at all ' +
+      '— not ranked low, absent. group.activate refuses to publish a Page that has no anchor, ' +
+      'which is the same rule enforced one step earlier where a person can still fix it. This is ' +
+      "the Page's own address; the Place it sits in is one join further on, and is a separate link.",
+  },
+  {
+    name: 'a Member follows a Member',
+    from: 'Member',
+    to: 'Member',
+    via: { table: 'member_follows', column: 'followed_member_id' },
+    writtenBy: ['member.follow', 'member.unfollow'],
+    ruled: null,
+    built: true,
+    note:
+      'Person to person, and the only link of that shape — nouns.md is explicit that ' +
+      'a Person follows a Person and nothing else, and that messages do not exist. A PAGE CANNOT ' +
+      'BE FOLLOWED ' +
+      'THROUGH THIS TABLE: that is group_memberships and a different link entirely, which is why ' +
+      'group.follow does not touch it. Unfollowing sets unfollowed_at rather than deleting the ' +
+      'row, so the link is reversible without losing that it once existed.',
+  },
+  {
+    name: 'a Page carries a Tag',
+    from: 'Page',
+    to: 'Tag',
+    via: { table: 'page_tags', column: 'tag_id' },
+    writtenBy: ['group.activate'],
+    ruled: '2026-09-13',
+    built: true,
+    note:
+      'Tags are the only vocabulary a CREATOR authors, and the only thing search matches. That ' +
+      'ruling was narrowed on 2026-09-19 and not reversed: collections are platform vocabulary an ' +
+      'owner picks from, which is a different link with no table yet. Written once, at activation ' +
+      '— there is no tag editing on a live Page. T156 matches a lens on tags.normalized and ' +
+      'excludes hidden ones, so a tag taken down stops steering discovery rather than merely ' +
+      'disappearing from display.',
+  },
+  {
+    name: 'a Location is in a Place',
+    from: 'Location',
+    to: 'Place',
+    via: { table: 'locations', column: 'place_id' },
+    writtenBy: [],
+    ruled: null,
+    built: true,
+    note:
+      "The join two SQL functions walk: place_url_path() for a Page's URL, and " +
+      'zip_is_proximal_to_location() for the local-owner badge (T075). NOTHING IN THE ACTION ' +
+      'LAYER WRITES IT, and that is the fact worth declaring rather than a gap to close here — ' +
+      'Places are platform-curated with no member-facing create surface, so the column is ' +
+      'populated by seed data. The one member-facing location insert omits it, which means those ' +
+      'Locations have a null place_path in browse until a backfill gives them one.',
   },
 ] as const
 

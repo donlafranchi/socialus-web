@@ -13,7 +13,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { LINK_TYPES, declaredWriters } from '../src/ontology/links'
+import { LINK_TYPES, OBJECT_TYPE_NAMES, declaredWriters } from '../src/ontology/links'
 import { listHandlers } from '../src/actions'
 
 const ROOT = resolve(__dirname, '..')
@@ -65,6 +65,49 @@ describe('the declarations match the code today', () => {
   it('a link ruled by a decision carries its date', () => {
     for (const l of LINK_TYPES) {
       if (l.ruled !== null) expect(l.ruled).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    }
+  })
+})
+
+// The rule that keeps this file from becoming a second copy of the schema is
+// "a link carries the ruling behind it or it does not go in." That rule had no
+// hook, and a rule with no hook is a wish — ops-pattern lesson 17. These are
+// the hook. They assert on the imported declarations, not on the file's text.
+describe('a declaration says something the column does not', () => {
+  it('every link carries a note', () => {
+    for (const l of LINK_TYPES) {
+      expect(l.note, `"${l.name}" has no note — without one it restates a foreign key`).toBeTruthy()
+    }
+  })
+
+  it('a note is long enough to be a reason rather than a label', () => {
+    // Not a quality bar, a floor. "a Page has posts" is the failure mode.
+    for (const l of LINK_TYPES) {
+      expect(l.note!.length, `"${l.name}" has a note too short to carry a reason`).toBeGreaterThan(80)
+    }
+  })
+
+  it('no two links share a name', () => {
+    const names = LINK_TYPES.map((l) => l.name)
+    expect(new Set(names).size).toBe(names.length)
+  })
+
+  it('every noun in the list is actually related by some link', () => {
+    // `Post` and `Place` both sat in this list relating nothing. A name nobody
+    // uses is the start of a vocabulary that drifts from the one in nouns.md.
+    const used = new Set(LINK_TYPES.flatMap((l) => [l.from, l.to]))
+    for (const n of OBJECT_TYPE_NAMES) {
+      expect(used.has(n), `${n} is named as a noun but no link relates it`).toBe(true)
+    }
+  })
+
+  it('an unwritten link is one nothing writes, not one nobody declared', () => {
+    // Two links have no writer in the action layer and say so. That is the
+    // state worth surfacing; silence would read as "not our problem".
+    const unwritten = LINK_TYPES.filter((l) => l.writtenBy.length === 0)
+    expect(unwritten.length).toBeGreaterThan(0)
+    for (const l of unwritten) {
+      expect(l.note, `"${l.name}" has no writer and no note explaining why`).toBeTruthy()
     }
   })
 })
