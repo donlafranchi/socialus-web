@@ -1,13 +1,56 @@
 {
-  "schema": 1,
+  "schema": 2,
   "objectTypes": [
-    "Member",
-    "Page",
-    "Item",
-    "Location",
-    "Place",
-    "Announcement",
-    "Tag"
+    {
+      "name": "Member",
+      "status": "live",
+      "definedIn": "nouns.md § The nouns that ship",
+      "note": "One real human, one account. The spine calls the concept Person and names Member as its schema name; \"Person\" itself is rejected as a noun (2026-09-19) for being generic. What a member IS carries no type, tier or stored role — creator, organizer, follower and patron are relations to a Page, declared as links, never as a kind of person."
+    },
+    {
+      "name": "Page",
+      "status": "live",
+      "definedIn": "nouns.md § Page — the canonical definition",
+      "note": "The person or people behind the listing. Every kind gets one, including a one-time gathering; what differs between kinds is the tools offered, never whether it is a Page. How many kinds there are is unruled, which is why no link is keyed to groups.kind."
+    },
+    {
+      "name": "Item",
+      "status": "live",
+      "definedIn": "nouns.md § The nouns that ship",
+      "note": "Anything a person declares, varying by entry type. The bare word is forbidden in prose by nouns.md's vague-term rule — qualify it at the point of use. Kept here because the links relate it and the type name is an identifier, which that rule exempts."
+    },
+    {
+      "name": "Location",
+      "status": "live",
+      "definedIn": "nouns.md § The spine",
+      "note": "A physical place with no members of its own. In the spine rather than the ships table, which is a gap in that file and not a difference in status: three built links relate it."
+    },
+    {
+      "name": "Place",
+      "status": "live",
+      "definedIn": "nouns.md § The nouns that ship",
+      "note": "Platform-curated geography, neighbourhood up to state. Nobody adds a Place and there is no member-facing create surface — which is exactly why the Location-is-in-a-Place link has no writer in the action layer, rather than that being an omission."
+    },
+    {
+      "name": "Announcement",
+      "status": "live",
+      "definedIn": "nouns.md § The nouns that are coming",
+      "note": "A Page telling the people attached to it what is upcoming. DISAGREES WITH nouns.md, which still marks it postponed: it is built here — page_posts, written by group.post_create and group.post_edit, and read by browse. Declared live because a built link relates it, and that file needs the correction. Named Announcement, never Post: bare \"post\" is on the vague-term watch list for meaning a row in one breath and the act in the next."
+    },
+    {
+      "name": "Tag",
+      "status": "live",
+      "definedIn": "nouns.md § The nouns that are coming",
+      "note": "A creator's own word for what their Page is — the only vocabulary a creator authors, and what search matches. DISAGREES WITH nouns.md, which marks it postponed and says there is no store: page_tags and tags both exist and group.activate writes them. Collections, ruled 2026-09-19, are platform vocabulary and a different thing entirely."
+    }
+  ],
+  "rejectedAsNouns": [
+    "Person",
+    "Creator",
+    "Organizer",
+    "Follower",
+    "Patron",
+    "Vendor"
   ],
   "links": [
     {
@@ -187,6 +230,21 @@
       "ruled": null,
       "built": true,
       "note": "The join two SQL functions walk: place_url_path() for a Page's URL, and zip_is_proximal_to_location() for the local-owner badge (T075). NOTHING IN THE ACTION LAYER WRITES IT, and that is the fact worth declaring rather than a gap to close here — Places are platform-curated with no member-facing create surface, so the column is populated by seed data. The one member-facing location insert omits it, which means those Locations have a null place_path in browse until a backfill gives them one."
+    },
+    {
+      "name": "a Member runs a Page",
+      "from": "Member",
+      "to": "Page",
+      "via": {
+        "table": "group_memberships",
+        "column": "role"
+      },
+      "writtenBy": [
+        "group.create"
+      ],
+      "ruled": "2026-09-19",
+      "built": true,
+      "note": "AUTHORITY, not attachment — the only relation that implies being able to change a Page, and the one every managing check actually reads (requireManagingRole, role in owner or steward, branching by Page kind). DISTINCT FROM \"a Member owns a Page\", which points at groups.founder_member_id: that column records who STARTED the Page and is not what any permission consults. Today they coincide because group.create writes both; nothing makes them stay that way, and a steward who did not found a Page has authority under this link and appears under neither of the others. Declared because leaving it implicit is how a relation becomes an identity — the role is on the link, never on the person."
     }
   ],
   "handlers": [

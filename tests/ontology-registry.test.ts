@@ -18,7 +18,8 @@ import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { buildRegistry } from '../scripts/ontology-registry'
-import { LINK_TYPES, OBJECT_TYPE_NAMES } from '../src/ontology/links'
+import { LINK_TYPES } from '../src/ontology/links'
+import { OBJECT_TYPES, REJECTED_AS_NOUNS } from '../src/ontology/objects'
 import { listHandlers } from '../src/actions'
 
 const ROOT = resolve(__dirname, '..')
@@ -40,9 +41,10 @@ describe('the committed registry matches its source', () => {
 
   it('carries every declared link, every noun and every handler', () => {
     const r = JSON.parse(buildRegistry())
-    expect(r.schema).toBe(1)
+    expect(r.schema).toBe(2)
     expect(r.links).toHaveLength(LINK_TYPES.length)
-    expect(r.objectTypes).toEqual([...OBJECT_TYPE_NAMES])
+    expect(r.objectTypes).toHaveLength(OBJECT_TYPES.length)
+    expect(r.rejectedAsNouns).toEqual([...REJECTED_AS_NOUNS])
     expect(r.handlers).toEqual(listHandlers())
   })
 
@@ -50,6 +52,10 @@ describe('the committed registry matches its source', () => {
     // The hard constraint: this must not become a second description of the
     // database. Everything comes from the declarations; nothing is added.
     const r = JSON.parse(buildRegistry())
+    for (const o of r.objectTypes) {
+      // A pointer carries no table and no column. Nothing else may appear.
+      expect(Object.keys(o).sort()).toEqual(['definedIn', 'name', 'note', 'status'])
+    }
     for (const l of r.links) {
       expect(Object.keys(l.via).sort()).toEqual(['column', 'table'])
       expect(Object.keys(l).sort()).toEqual(
@@ -105,7 +111,16 @@ describe('--check fails on a stale file', () => {
   })
 
   it('fails when the file no longer matches its source', () => {
-    writeFileSync(REGISTRY, original.replace('"schema": 1', '"schema": 99'), 'utf8')
+    // Mutated through JSON rather than by replacing a literal. The first
+    // version of this swapped the string `"schema": 1`, and bumping the schema
+    // to 2 turned the setup into a no-op that wrote the file back unchanged —
+    // the assertion below caught it, but a setup that can silently do nothing
+    // is the shape of every guard that passes while checking nothing.
+    const parsed = JSON.parse(original)
+    parsed.links.pop()
+    const mutated = JSON.stringify(parsed, null, 2) + '\n'
+    expect(mutated, 'the mutation did not change the file').not.toBe(original)
+    writeFileSync(REGISTRY, mutated, 'utf8')
     expect(check()).toBe(1)
   })
 

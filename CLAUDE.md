@@ -66,5 +66,16 @@ check has something real to compare against. If you are adding a type or an
 index there, it has drifted into being a second copy of the migrations.
 
 **Verbs are never hand-listed** — they are read from `src/actions/index.ts`.
-**Object types are deferred**: a noun gets a declaration the next time a handler
-touching it is edited, not in a 24-handler rewrite.
+
+**The object types live in `src/ontology/objects.ts`** and are pointers: a name,
+a status in `nouns.md`'s own four-state vocabulary, and where that file defines
+it. Nothing else — no fields, no columns, no tables. The deferral that stood here
+was retired on 2026-09-19 after firing zero times in two chances; a status is
+checked rather than asserted, so a noun declared live with no built link relating
+it fails the build.
+
+**A role is not a noun.** Creator, organizer, follower and patron name a person's
+relation to a Page, not a kind of person — `nouns.md` says a Member has "no type,
+tier, or stored role", and these belong on the links. Authority is its own link
+(`group_memberships.role`, what every managing check reads) and is deliberately
+not the founder link (`groups.founder_member_id`, who started it).
