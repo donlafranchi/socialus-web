@@ -16,7 +16,12 @@ vi.mock('@/app/you/sell/actions', () => ({
   sellCreateDraftAction: vi.fn(),
   sellUpdateDraftAction: vi.fn(),
   sellActivateAction: vi.fn(),
-  sellCreateLocationAction: vi.fn(),
+}))
+// Issue #180 — the Location actions live in their own module now.
+vi.mock('@/app/_actions/location-actions', () => ({
+  createLocationAction: vi.fn(),
+  searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
+  listNeighborhoodsAction: vi.fn(async () => []),
 }))
 
 afterEach(() => {

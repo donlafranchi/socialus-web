@@ -27,7 +27,7 @@ import {
   isLocationPlaceFieldsComplete,
   type LocationPlaceFieldsState,
 } from '@/components/locations/LocationPlaceFields'
-import type { CreateLocationInput } from '@/app/you/sell/actions'
+import type { CreateLocationInput } from '@/app/_actions/location-actions'
 
 export interface PickupLocationOption {
   id: string

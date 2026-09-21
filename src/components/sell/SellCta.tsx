@@ -31,8 +31,8 @@ import {
   sellCreateDraftAction,
   sellUpdateDraftAction,
   sellActivateAction,
-  sellCreateLocationAction,
 } from '@/app/you/sell/actions'
+import { createLocationAction } from '@/app/_actions/location-actions'
 
 interface SellCtaProps {
   /** Member id (= auth.users.id). When absent, CTA is hidden (signed-out shell). */
@@ -184,7 +184,7 @@ export function SellCta({
           createDraft={(i) => unwrap(sellCreateDraftAction(i))}
           updateDraft={sellUpdateDraftAction}
           activate={(i) => unwrap(sellActivateAction(i))}
-          createLocation={(i) => unwrap(sellCreateLocationAction(i))}
+          createLocation={(i) => unwrap(createLocationAction(i))}
           availableLocations={locations}
           redirect={(url) => router.push(url)}
           showToast={(msg) => setToast(msg)}

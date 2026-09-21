@@ -19,10 +19,10 @@ vi.mock('@/lib/geocoding', () => ({
   // The component imports this to tell "cannot run" from "no match" (#107).
   GeocodingUnavailableError: class GeocodingUnavailableError extends Error {},
 }))
-vi.mock('@/app/you/sell/actions', () => ({
+vi.mock('@/app/_actions/location-actions', () => ({
   // Our own place search, stubbed: these tests are about the field, not the data.
-  sellSearchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
-  sellListNeighborhoodsAction: listNeighborhoods,
+  searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
+  listNeighborhoodsAction: listNeighborhoods,
 }))
 
 function Harness({
@@ -104,8 +104,8 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
   it('offers a city or a neighbourhood from our own data, with no geocoder', async () => {
     // The case that matters: Mapbox unavailable, and a person can still say
     // where they are. Production has run without a token.
-    const { sellSearchPlacesAction } = await import('@/app/you/sell/actions')
-    ;(sellSearchPlacesAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    const { searchPlacesAction } = await import('@/app/_actions/location-actions')
+    ;(searchPlacesAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       data: [{ id: 'n1', name: 'Oak Park', kind: 'neighborhood', parentName: 'Sacramento' }],
     })
@@ -127,8 +127,8 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
   })
 
   it('never shows the internal kind string', async () => {
-    const { sellSearchPlacesAction } = await import('@/app/you/sell/actions')
-    ;(sellSearchPlacesAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    const { searchPlacesAction } = await import('@/app/_actions/location-actions')
+    ;(searchPlacesAction as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       data: [{ id: 'c1', name: 'Davis', kind: 'city', parentName: null }],
     })
@@ -138,5 +138,44 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
     await vi.advanceTimersByTimeAsync(350)
     await screen.findByTestId('test-address-suggestion-0')
     expect(container.textContent).not.toContain('neighborhood')
+  })
+})
+
+// Issue #180 — the dead end, found while embedding this in the Page edit form.
+//
+// `state.mode === 'address' ? (…) : null` meant "Rather give a neighbourhood?"
+// replaced the control with an empty panel: no input, no list, no way back.
+describe('neighbourhood mode shows something', () => {
+  it('never renders an empty panel with no way out', () => {
+    const state = { ...initialLocationPlaceFieldsState, mode: 'neighbourhood' as const }
+    render(<LocationPlaceFields state={state} setState={vi.fn()} idPrefix="t" />)
+    expect(screen.getByTestId('t-neighbourhood-chosen')).toBeInTheDocument()
+    expect(screen.getByTestId('t-mode-address')).toBeInTheDocument()
+  })
+
+  it('names the place that was chosen', () => {
+    const state = {
+      ...initialLocationPlaceFieldsState,
+      mode: 'neighbourhood' as const,
+      neighborhoodId: 'pl-1',
+      addressQuery: 'Oak Park',
+    }
+    render(<LocationPlaceFields state={state} setState={vi.fn()} idPrefix="t" />)
+    expect(screen.getByTestId('t-neighbourhood-chosen')).toHaveTextContent('Oak Park')
+  })
+
+  it('goes back to searching, and clears what was chosen when it does', () => {
+    const setState = vi.fn()
+    const state = {
+      ...initialLocationPlaceFieldsState,
+      mode: 'neighbourhood' as const,
+      neighborhoodId: 'pl-1',
+      addressQuery: 'Oak Park',
+    }
+    render(<LocationPlaceFields state={state} setState={setState} idPrefix="t" />)
+    fireEvent.click(screen.getByTestId('t-mode-address'))
+    expect(setState).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'address', neighborhoodId: null, selectedAddress: null }),
+    )
   })
 })

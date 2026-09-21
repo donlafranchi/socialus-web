@@ -13,10 +13,10 @@ vi.mock('@/lib/geocoding', () => ({
   // The component imports this to tell "cannot run" from "no match" (#107).
   GeocodingUnavailableError: class GeocodingUnavailableError extends Error {},
 }))
-vi.mock('@/app/you/sell/actions', () => ({
+vi.mock('@/app/_actions/location-actions', () => ({
   // Our own place search, stubbed: these tests are about the field, not the data.
-  sellSearchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
-  sellListNeighborhoodsAction: vi.fn(async () => []),
+  searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
+  listNeighborhoodsAction: vi.fn(async () => []),
 }))
 
 import {

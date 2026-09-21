@@ -18,6 +18,9 @@ export interface EditPageInput {
   description?: string
   photoUrl?: string | null
   socialLinks?: Record<string, string>
+  /** Issue #180 — where the Page is. `group.update` already accepted this;
+   *  nothing but the form was missing. */
+  anchorLocationId?: string
 }
 
 export async function editPageAction(input: EditPageInput): Promise<{ ok: true }> {
@@ -33,6 +36,9 @@ export async function editPageAction(input: EditPageInput): Promise<{ ok: true }
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
       ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
+      ...(input.anchorLocationId !== undefined
+        ? { anchorLocationId: input.anchorLocationId }
+        : {}),
     })
   } catch (err) {
     // The handler's message is written to be read by the owner — "these links

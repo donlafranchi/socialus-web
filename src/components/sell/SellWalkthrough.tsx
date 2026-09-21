@@ -34,7 +34,7 @@ import {
   isLocationPlaceFieldsComplete,
   type LocationPlaceFieldsState,
 } from '@/components/locations/LocationPlaceFields'
-import type { CreateLocationInput } from '@/app/you/sell/actions'
+import type { CreateLocationInput } from '@/app/_actions/location-actions'
 import { isValidTagLabel, normalizeTag, TAG_MAX_LENGTH } from '@/lib/groups/tags'
 
 export interface AnchorLocationOption {

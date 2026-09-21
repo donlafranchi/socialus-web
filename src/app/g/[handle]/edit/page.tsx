@@ -55,6 +55,10 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         initialDescription={shop.publicDescription}
         initialPhotoUrl={shop.photoUrl}
         initialSocialLinks={shop.socialLinks}
+        // Issue #180 — where the Page is, in the words it was saved with.
+        // `placements` is T143's read-time resolution of exactly that; the
+        // anchor's own label is the first (and today only) entry.
+        initialAddressLabel={shop.placements[0]?.label ?? null}
         onSave={editPageAction}
       />
     </main>
