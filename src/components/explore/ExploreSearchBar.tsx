@@ -22,7 +22,7 @@ interface ExploreSearchBarProps {
   placeChosen?: boolean
   query: string
   onQueryChange: (q: string) => void
-  /** Drives the dot — any distance / schedule / category / sort filter. */
+  /** Drives the dot — any schedule or tag filter. */
   filtersActive: boolean
   onOpenFilters: () => void
   /** Opens the scope sheet. The pill is the control; there is no second entry point. */
@@ -127,8 +127,8 @@ export function ExploreSearchBar({
             <input
               ref={inputRef}
               type="search"
-              aria-label="Search Explore"
-              placeholder="Search events, products, services, ideas"
+              aria-label="Search Browse"
+              placeholder="Search Pages and posts"
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
               onKeyDown={(e) => {

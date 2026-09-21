@@ -26,10 +26,10 @@
 // Don's — it needs a row that is not keyed to a member, which is schema, not
 // assembly. Until then this is honest about the step rather than hiding it.
 //
-// The session is read HERE rather than threaded down from ExplorePage. Explore
-// itself has no use for it, and reading it up there made every Explore render
-// pay for a session round-trip — and broke 53 tests whose Supabase mock has no
-// `auth`, which was the mock telling the truth: Explore does not need auth.
+// The session is read HERE rather than threaded down. Browse resolves auth
+// server-side now (T156), but this panel is reached from inside the scope
+// sheet — several client layers below the surface — and threading a flag
+// through them to reach one button would couple the whole picker to it.
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -37,7 +37,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ExampleBlock } from '@/components/cards'
 import { MetroStandingDialog } from '@/components/metro/MetroStandingDialog'
 import { joinMetroWaitlistAction, type JoinMetroWaitlistResult } from '@/app/_actions/metro-waitlist-actions'
-import type { ChoosableMetro } from '@/lib/explore/metros'
+import type { FeedMetro } from '@/lib/feed/feed-metro'
 
 type Role = 'creator' | 'patron'
 
@@ -52,7 +52,7 @@ export function MetroNotCoveredPanel({
   metro,
   onBack,
 }: {
-  metro: ChoosableMetro
+  metro: FeedMetro
   onBack: () => void
 }) {
   const { user } = useAuth()

@@ -23,46 +23,42 @@
 // Listing them as dead text was honest about scope and told someone who found
 // their own city nothing at all.
 
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
-import { fetchChoosableMetros, splitByOpen, type ChoosableMetro } from '@/lib/explore/metros'
+// T156 — the list arrives as a prop. It used to fetch itself from the browser
+// on first open, which meant the one control that decides what Browse shows
+// resolved its options on a different client from the results. Browse resolves
+// the metro server-side now; the options come from the same read
+// (`listFeedMetros`), through the surface, so the picker and the feed can
+// never disagree about which metros exist.
+
+import { useState } from 'react'
+import { splitByOpen, type FeedMetro } from '@/lib/feed/feed-metro'
 import { MetroNotCoveredPanel } from './MetroNotCoveredPanel'
 
 export function ScopeSheet({
   open,
   currentSlug,
+  metros,
   onClose,
   onChoose,
 }: {
   open: boolean
   currentSlug: string | null
+  metros: readonly FeedMetro[]
   onClose: () => void
-  onChoose: (metro: ChoosableMetro) => void
+  onChoose: (metro: FeedMetro) => void
 }) {
-  const [metros, setMetros] = useState<ChoosableMetro[] | null>(null)
   const [q, setQ] = useState('')
   // A metro the platform does not serve, opened for a closer look. Not a scope.
-  const [looking, setLooking] = useState<ChoosableMetro | null>(null)
-
-  useEffect(() => {
-    if (!open || metros !== null) return
-    let live = true
-    fetchChoosableMetros(createClient()).then((m) => {
-      if (live) setMetros(m)
-    })
-    return () => {
-      live = false
-    }
-  }, [open, metros])
+  const [looking, setLooking] = useState<FeedMetro | null>(null)
 
   if (!open) return null
 
-  const all = metros ?? []
+  const all = metros
   const needle = q.trim().toLowerCase()
   const matching = needle ? all.filter((m) => m.name.toLowerCase().includes(needle)) : all
   const { open: served, notYet } = splitByOpen(matching)
 
-  const openRow = (m: ChoosableMetro) => (
+  const openRow = (m: FeedMetro) => (
     <li key={m.id}>
       <button
         type="button"
@@ -82,7 +78,7 @@ export function ScopeSheet({
   // Tappable, but it opens the not-covered panel — it never becomes the scope.
   // `data-selectable="false"` still says so: a test asserting you cannot browse
   // here should keep passing.
-  const notYetRow = (m: ChoosableMetro) => (
+  const notYetRow = (m: FeedMetro) => (
     <li key={m.id}>
       <button
         type="button"
@@ -120,10 +116,7 @@ export function ScopeSheet({
           className="input mt-3 w-full"
         />
 
-        {metros === null ? (
-          <p className="mt-4 text-sm text-[var(--color-fg-muted)]">Loading areas…</p>
-        ) : (
-          <>
+        <>
             <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">
               Where SocialUs is running
             </h3>
@@ -151,8 +144,7 @@ export function ScopeSheet({
                 {notYet.length - 40} more — search to narrow.
               </p>
             ) : null}
-          </>
-        )}
+        </>
         </>
         )}
       </div>

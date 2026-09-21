@@ -9,50 +9,51 @@
 // Every control is a native radio or checkbox behind `sr-only`, so arrow-key
 // navigation, group semantics and checked state come from the platform rather
 // than from a hand-rolled `role="radiogroup"`.
+//
+// T156 — this is the ONLY place filtering happens. Ruled 2026-09-12 (Don):
+// zero filter pills outside the filter view, at every viewport width — the
+// ruling is about the results surface, not about how wide the screen is, so
+// there is no desktop pill row either. Free-text search stays on the results
+// surface, because search is not a filter control.
+//
+// Two groups left. Distance and Sort went with T156: see
+// `@/lib/browse/filters` for why each one could not stay honest.
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import {
-  DEFAULT_SECONDARY,
-  DISTANCE_OPTIONS,
+  DEFAULT_BROWSE_FILTERS,
   SCHEDULE_OPTIONS,
-  SORT_OPTIONS,
-  hasSecondaryFilters,
-  toggleCategory,
-  type DistanceMiles,
+  hasBrowseFilters,
+  toggleTag,
+  type BrowseFilters,
   type ScheduleFilter,
-  type SecondaryFilters,
-  type SortOrder,
-} from '@/lib/explore/filters'
-import { categoryLabel } from '@/lib/explore/items'
+} from '@/lib/browse/filters'
 
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])'
 
 interface ExploreFilterSheetProps {
   open: boolean
-  value: SecondaryFilters
-  /** Category slugs present in the current result set. */
-  categories: string[]
-  /** False when no origin resolved — distance and "Nearest" cannot be honest. */
-  originAvailable: boolean
+  value: BrowseFilters
+  /** Tags present in the current result set — creators make their own. */
+  tags: string[]
   onClose: () => void
-  onApply: (filters: SecondaryFilters) => void
+  onApply: (filters: BrowseFilters) => void
 }
 
 export function ExploreFilterSheet({
   open,
   value,
-  categories,
-  originAvailable,
+  tags,
   onClose,
   onApply,
 }: ExploreFilterSheetProps) {
   const [draft, setDraft] = useState(value)
-  // Options come from the current result set, so switching kinds can drop a
-  // category that is still selected. Union the selection back in, or the sheet
-  // would show a filter the member cannot turn off from inside the sheet.
-  const categoryOptions = Array.from(new Set([...categories, ...draft.categories])).sort()
+  // Options come from the current result set, so a search can drop a tag that
+  // is still selected. Union the selection back in, or the sheet would show a
+  // filter the member cannot turn off from inside the sheet.
+  const tagOptions = Array.from(new Set([...tags, ...draft.tags])).sort()
   const sheetRef = useRef<HTMLDivElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const titleId = useId()
@@ -103,7 +104,7 @@ export function ExploreFilterSheet({
     }
   }
 
-  const commit = (filters: SecondaryFilters) => {
+  const commit = (filters: BrowseFilters) => {
     onApply(filters)
     onClose()
   }
@@ -137,12 +138,12 @@ export function ExploreFilterSheet({
           <h2 id={titleId} className="text-base font-semibold text-[var(--color-charcoal-900)]">
             Filters
           </h2>
-          {hasSecondaryFilters(draft) && (
+          {hasBrowseFilters(draft) && (
             <button
               type="button"
               onClick={() => {
-                setDraft(DEFAULT_SECONDARY)
-                commit(DEFAULT_SECONDARY)
+                setDraft(DEFAULT_BROWSE_FILTERS)
+                commit(DEFAULT_BROWSE_FILTERS)
               }}
               // Charcoal, not the accent token: `--color-accent` on white is
               // 2.9:1 and `--color-accent-hover` 4.29:1, both short of AA for
@@ -157,32 +158,6 @@ export function ExploreFilterSheet({
         </header>
 
         <div data-testid="filter-sheet-body" className="flex-1 overflow-y-auto px-4 py-4">
-          <Group label="Distance">
-            {!originAvailable && (
-              <p data-testid="distance-unavailable" className="mb-2 text-xs text-neutral-600">
-                We don&rsquo;t know where to measure from yet, so distance is unavailable.
-              </p>
-            )}
-            <Options>
-              <Choice
-                name={`${groupId}-distance`}
-                label="Any distance"
-                checked={draft.distance === null}
-                onChange={() => setDraft((d) => ({ ...d, distance: null }))}
-              />
-              {DISTANCE_OPTIONS.map((mi) => (
-                <Choice
-                  key={mi}
-                  name={`${groupId}-distance`}
-                  label={`${mi} mi`}
-                  disabled={!originAvailable}
-                  checked={draft.distance === mi}
-                  onChange={() => setDraft((d) => ({ ...d, distance: mi as DistanceMiles }))}
-                />
-              ))}
-            </Options>
-          </Group>
-
           <Group label="Schedule">
             <Options>
               {SCHEDULE_OPTIONS.map((s) => (
@@ -197,37 +172,25 @@ export function ExploreFilterSheet({
             </Options>
           </Group>
 
-          {categoryOptions.length > 0 && (
-            <Group label="Category">
+          {tagOptions.length > 0 && (
+            <Group label="Tags">
               <Options>
-                {categoryOptions.map((slug) => (
+                {tagOptions.map((tag) => (
                   <Choice
-                    key={slug}
+                    key={tag}
                     type="checkbox"
-                    name={`${groupId}-category-${slug}`}
-                    label={categoryLabel(slug)}
-                    checked={draft.categories.includes(slug)}
-                    onChange={() => setDraft((d) => toggleCategory(d, slug))}
+                    name={`${groupId}-tag-${tag}`}
+                    /* The tag IS the label. Creators type their own — nothing
+                       seeds a display name to look up (T159, #64). */
+                    label={tag}
+                    checked={draft.tags.includes(tag)}
+                    onChange={() => setDraft((d) => toggleTag(d, tag))}
                   />
                 ))}
               </Options>
             </Group>
           )}
 
-          <Group label="Sort">
-            <Options>
-              {SORT_OPTIONS.map((s) => (
-                <Choice
-                  key={s.value}
-                  name={`${groupId}-sort`}
-                  label={s.label}
-                  disabled={s.value === 'nearest' && !originAvailable}
-                  checked={draft.sort === s.value}
-                  onChange={() => setDraft((d) => ({ ...d, sort: s.value as SortOrder }))}
-                />
-              ))}
-            </Options>
-          </Group>
         </div>
 
         <footer
@@ -266,28 +229,18 @@ interface ChoiceProps {
   checked: boolean
   onChange: () => void
   type?: 'radio' | 'checkbox'
-  disabled?: boolean
 }
 
-function Choice({ name, label, checked, onChange, type = 'radio', disabled }: ChoiceProps) {
+function Choice({ name, label, checked, onChange, type = 'radio' }: ChoiceProps) {
   return (
     <label
-      className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-medium transition-colors ${
-        disabled
-          ? 'cursor-not-allowed border-[var(--color-charcoal-100)] bg-neutral-50 text-neutral-400'
-          : checked
-            ? 'cursor-pointer border-transparent bg-[var(--color-charcoal-700)] text-white'
-            : 'cursor-pointer border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
+      className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-medium transition-colors ${
+        checked
+          ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
+          : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
       } has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--color-accent)]`}
     >
-      <input
-        type={type}
-        name={name}
-        className="sr-only"
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-      />
+      <input type={type} name={name} className="sr-only" checked={checked} onChange={onChange} />
       {label}
     </label>
   )
