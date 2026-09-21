@@ -21,7 +21,7 @@
 // inner `/p/` markers and render the appropriate view. ADR-20 did not
 // anticipate the Next.js limit; revisit before the b1.1 Group surface work.
 
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import { resolvePlacePath } from '@/lib/places/resolve-path'
@@ -29,14 +29,8 @@ import { PlaceBreadcrumb } from '@/components/place-breadcrumb'
 import {
   splitGroupSlug,
   resolveShop,
-  resolveShopItems,
-  resolveLocalOwnerBadge,
-  resolveOwnerClaim,
-  viewerOwnsPage,
-  viewerFollowsPage,
 } from '@/lib/groups/resolve-shop'
-import { ShopPublicPage } from '@/components/group/ShopPublicPage'
-import { resolvePagePosts } from '@/lib/groups/page-posts'
+import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { splitItemSlug, resolveProduct } from '@/lib/items/resolve-product'
 import { ProductPublicPage } from '@/components/item/ProductPublicPage'
 import { splitServiceSlug, resolveService } from '@/lib/items/resolve-service'
@@ -160,9 +154,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  // Group (Shop) page — /p/[…place]/g/[slug]. Per T060 DEVIATION, the Group
-  // dispatch folds into this catch-all (Next.js forbids a static segment after
-  // a catch-all).
+  // Group (Page) index — /p/[…place]/g/[slug]. The route redirects to the
+  // canonical address (#175); the title is kept so anything that reads
+  // metadata without following the redirect still sees the Page's name rather
+  // than "Not found".
   const groupSplit = splitGroupSlug(slug)
   if (groupSplit) {
     const shop = await resolveShop(supabase, groupSplit.groupSlug)
@@ -297,61 +292,22 @@ export default async function PlacePage({ params }: Props) {
     )
   }
 
-  // Group (Shop) page dispatch — see generateMetadata comment + T060 DEVIATION.
+  // Group (Page) dispatch — an INDEX now, not a home.
+  //
+  // Issue #175 / the URL ruling of 2026-09-21: a place path links to a Page's
+  // canonical address and never renders a Page inline at an index path.
+  // Rendering here is what produced two live addresses for one Page, neither
+  // of them canonical. RLS is still the visibility gate — a draft, dissolved
+  // or nonexistent slug yields no row and 404s.
   const groupSplit = splitGroupSlug(slug)
   if (groupSplit) {
-    // RLS (T070 groups_select_active_or_own_draft) is the visibility gate:
-    // a draft / dissolved / nonexistent slug yields no row → 404 to non-owners;
-    // a returned 'draft' row implies the viewer is the founder → owner preview.
     const shop = await resolveShop(supabase, groupSplit.groupSlug)
     if (!shop || shop.lifecycleState === 'dissolved') {
       notFound()
     }
-    const [items, posts, badge, { data: auth }] = await Promise.all([
-      resolveShopItems(supabase, shop.groupId),
-      // F072 — what this Page has said. RLS is the visibility gate here too.
-      resolvePagePosts(supabase, shop.groupId),
-      resolveLocalOwnerBadge(supabase, {
-        groupId: shop.groupId,
-        anchorLocationId: shop.anchorLocationId,
-      }),
-      supabase.auth.getUser(),
-    ])
-    // F037 — owner-only claim widget state. Resolves null for non-owners / anon.
-    // T160 (F058) — ownership again, on its own, for the hidden-photo notice.
-    const [ownerClaim, ownsPage, follows] = await Promise.all([
-      resolveOwnerClaim(supabase, {
-        groupId: shop.groupId,
-        anchorLocationId: shop.anchorLocationId,
-        viewerMemberId: auth.user?.id ?? null,
-      }),
-      viewerOwnsPage(supabase, {
-        groupId: shop.groupId,
-        viewerMemberId: auth.user?.id ?? null,
-        // Without the kind this falls back to "either managing role", which
-        // was silently wrong for every non-business Page — their founder holds
-        // 'steward', not 'owner'.
-        kind: shop.kind,
-      }),
-      viewerFollowsPage(supabase, {
-        groupId: shop.groupId,
-        viewerMemberId: auth.user?.id ?? null,
-      }),
-    ])
-    return (
-      <ShopPublicPage
-        shop={shop}
-        items={items}
-        badge={badge}
-        loggedIn={Boolean(auth.user)}
-        ownerClaim={ownerClaim}
-        viewerOwnsPage={ownsPage}
-        viewerFollows={follows}
-        posts={posts}
-        pagePath={`/p/${slug.join('/')}`}
-      />
-    )
+    permanentRedirect(canonicalPagePath(shop.slug, shop.publicId))
   }
+
 
   const resolved = await resolvePlacePath(supabase, slug)
 

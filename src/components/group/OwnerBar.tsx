@@ -19,9 +19,13 @@ import Link from 'next/link'
 import { Pencil, Megaphone } from 'lucide-react'
 
 export function OwnerBar({ pagePath }: { pagePath: string }) {
-  // `/p/<slug>` → `/manage/<slug>`. Next.js refuses a segment after a
-  // catch-all, so the owner surface is a sibling route rather than a child.
-  const managePath = pagePath.replace(/^\/p\//, '/manage/')
+  // Issue #175 — the owner surface is a CHILD of the Page now.
+  //
+  // It was `/manage/<slug>`, a parallel top-level route, only because the old
+  // address lived under a catch-all and Next.js refuses a static segment after
+  // one. The canonical address is a single dynamic segment, so the edit
+  // surface hangs off the Page it edits, which is where it belongs.
+  const managePath = `${pagePath}/edit`
   return (
     <div
       data-testid="owner-bar"
