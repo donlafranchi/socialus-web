@@ -18,6 +18,7 @@ import {
   type OwnerClaim,
 } from './resolve-shop'
 import { resolvePagePosts, type PagePost } from './page-posts'
+import { countPageFollowers } from '@/lib/follows/follower-count'
 
 export interface PageView {
   items: ShopItem[]
@@ -27,6 +28,10 @@ export interface PageView {
   viewerOwnsPage: boolean
   viewerFollows: boolean
   loggedIn: boolean
+  /** F072 criterion 4 — how many people get updates from this Page. Zero for
+   *  anyone who does not run it: the count sits inside the composer, and
+   *  nobody else has one. */
+  followerCount: number
 }
 
 export async function loadPageView(
@@ -63,6 +68,12 @@ export async function loadPageView(
     viewerFollowsPage(supabase, { groupId: shop.groupId, viewerMemberId }),
   ])
 
+  // Asked for only when there is somewhere to show it. RLS would return zero
+  // to a non-owner anyway (followers are excluded from
+  // `memberships_select_listed_group` except for whoever runs the Page), but a
+  // read nobody renders is a read worth not making.
+  const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
+
   return {
     items,
     posts,
@@ -71,5 +82,6 @@ export async function loadPageView(
     viewerOwnsPage: owns,
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
+    followerCount,
   }
 }

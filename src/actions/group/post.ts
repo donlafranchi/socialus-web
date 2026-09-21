@@ -2,8 +2,13 @@
 // Scenario: planning/scenario-F072.md
 //
 // The table and its browse read source shipped with T162; this is the write
-// half. Nothing here touches `starts_at`: a post with a time is F073, and a
-// post without one is a first-class post, not a degraded event.
+// half.
+//
+// T164 SHIPPED THIS WITHOUT `starts_at`, deferring to F073. F072 absorbed F073
+// on 2026-09-21 and that deferral is discharged: an announcement carries an
+// optional time and an optional address of its own, and both are written here.
+// A post without a time is still a first-class post — the column is nullable
+// precisely so that stays true, and a time-windowed read never returns one.
 //
 // WHO MAY POST. Acceptance 1 says the Page's managing role, and that is not
 // one role: `managingRoleForKind()` has answered since T132 that a business
@@ -30,15 +35,25 @@ import { managingRoleForKind, type GroupKind } from './constants'
  *  constraint name. */
 const body = z.string().trim().min(1).max(5000)
 
+/** F072 criterion 3 — OPTIONAL, and nullable on top of optional. `undefined`
+ *  on an edit leaves the column alone; an explicit `null` clears it. Those are
+ *  different acts: not mentioning the time is not the same as taking it off. */
+const startsAt = z.string().datetime({ offset: true }).nullable().optional()
+const locationId = z.string().uuid().nullable().optional()
+
 export const groupPostCreateInput = z.object({
   groupId: z.string().uuid(),
   body,
+  startsAt,
+  locationId,
 })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
 
 export const groupPostEditInput = z.object({
   postId: z.string().uuid(),
   body,
+  startsAt,
+  locationId,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 
@@ -56,6 +71,11 @@ export interface GroupPostEditResult {
   postId: string
   groupId: string
 }
+
+/** Closed set. The SET clause is built from these literals, never from input —
+ *  the same shape `group.update`'s SpineClause has, and what makes the
+ *  interpolation below a safe one. */
+type PostSetClause = 'starts_at = $' | 'location_id = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
@@ -112,10 +132,22 @@ export const groupPostCreate = defineHandler(
       // page_posts_select_published are required).
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
-           (group_id, body, lifecycle_state, discoverability, created_at, updated_at)
-         values ($1, $2, $3, $4, $5, $5)
+           (group_id, body, starts_at, location_id,
+            lifecycle_state, discoverability, created_at, updated_at)
+         values ($1, $2, $3, $4, $5, $6, $7, $7)
          returning id, created_at`,
-        [input.groupId, input.body, 'active', 'listed', ctx.now()],
+        [
+          input.groupId,
+          input.body,
+          // `?? null` rather than passing undefined: an absent time is a null
+          // column, and node-postgres would otherwise send the string
+          // "undefined".
+          input.startsAt ?? null,
+          input.locationId ?? null,
+          'active',
+          'listed',
+          ctx.now(),
+        ],
       )
       const postId = inserted.rows[0]!.id
       const createdAt = new Date(inserted.rows[0]!.created_at).toISOString()
@@ -154,9 +186,27 @@ export const groupPostEdit = defineHandler(
       // In place, and the row keeps its id (acceptance 4). `updated_at` moves
       // because browse orders on it; nothing else about the row changes, so an
       // edit can never quietly unpublish a post.
+      //
+      // The SET clause is built from a CLOSED SET of literals, never from
+      // input — the same rule group.update follows. A field left out is left
+      // alone; an explicit null clears it.
+      const sets: string[] = ['body = $2', 'updated_at = $3']
+      const params: unknown[] = [input.postId, input.body, ctx.now()]
+      const patch: { clause: PostSetClause; value: unknown }[] = []
+      if (input.startsAt !== undefined) {
+        patch.push({ clause: 'starts_at = $', value: input.startsAt })
+      }
+      if (input.locationId !== undefined) {
+        patch.push({ clause: 'location_id = $', value: input.locationId })
+      }
+      for (const f of patch) {
+        params.push(f.value)
+        sets.push(`${f.clause}${params.length}`)
+      }
+      // sql-injection-safe: enum-constrained by PostSetClause
       await client.query(
-        `update public.page_posts set body = $2, updated_at = $3 where id = $1`,
-        [input.postId, input.body, ctx.now()],
+        `update public.page_posts set ${sets.join(', ')} where id = $1`,
+        params,
       )
 
       const txCtx: ActionContext = { ...ctx, db: client }
