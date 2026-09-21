@@ -19,7 +19,7 @@ vi.mock('@/actions/_lib/db', () => ({
   ),
 }))
 
-import { sellCreateLocationAction, sellListNeighborhoodsAction } from './actions'
+import { createLocationAction, listNeighborhoodsAction } from '@/app/_actions/location-actions'
 
 const MEMBER = '11111111-1111-1111-1111-111111111111'
 
@@ -29,11 +29,11 @@ beforeEach(() => {
   getUser.mockResolvedValue({ data: { user: { id: MEMBER } }, error: null })
 })
 
-describe('sellCreateLocationAction — address mode', () => {
+describe('createLocationAction — address mode', () => {
   it('inserts with the given geography, kind permanent, and never falls back to a placeholder point', async () => {
     query.mockResolvedValueOnce({ rows: [{ id: 'loc-1', label: 'Home' }] })
 
-    const result = await sellCreateLocationAction({
+    const result = await createLocationAction({
       label: 'Home',
       address: {
         geographyWkt: 'SRID=4326;POINT(-121.5 38.6)',
@@ -55,7 +55,7 @@ describe('sellCreateLocationAction — address mode', () => {
 
   it('persists the resolved address text — T143 reads it back to render "where you are now"', async () => {
     query.mockResolvedValueOnce({ rows: [{ id: 'loc-1', label: 'Home' }] })
-    await sellCreateLocationAction({
+    await createLocationAction({
       label: 'Home',
       address: {
         geographyWkt: 'SRID=4326;POINT(-121.5 38.6)',
@@ -68,7 +68,7 @@ describe('sellCreateLocationAction — address mode', () => {
   })
 })
 
-describe('sellCreateLocationAction — neighbourhood mode', () => {
+describe('createLocationAction — neighbourhood mode', () => {
   it('derives an interior point from the neighbourhood bbox and inserts kind=area', async () => {
     query
       .mockResolvedValueOnce({
@@ -76,7 +76,7 @@ describe('sellCreateLocationAction — neighbourhood mode', () => {
       })
       .mockResolvedValueOnce({ rows: [{ id: 'loc-2', label: 'Run Club' }] })
 
-    const result = await sellCreateLocationAction({
+    const result = await createLocationAction({
       label: 'Run Club',
       neighborhoodId: 'nbhd-midtown',
     })
@@ -108,18 +108,18 @@ describe('sellCreateLocationAction — neighbourhood mode', () => {
   it('refuses when the neighbourhood cannot be found', async () => {
     query.mockResolvedValueOnce({ rows: [] })
     await expect(
-      sellCreateLocationAction({ label: 'Run Club', neighborhoodId: 'does-not-exist' }),
+      createLocationAction({ label: 'Run Club', neighborhoodId: 'does-not-exist' }),
     ).resolves.toMatchObject({ ok: false, code: 'neighborhood_not_found' })
   })
 })
 
-describe('sellCreateLocationAction — refuses a placement-less call at runtime', () => {
+describe('createLocationAction — refuses a placement-less call at runtime', () => {
   it('throws rather than writing a row when neither address nor neighborhoodId is present', async () => {
     // TypeScript's discriminated union prevents this at compile time; this
     // guards the same invariant at runtime, since a server action is a
     // callable network endpoint and types don't survive past the client.
-    const input = { label: 'Oops' } as unknown as Parameters<typeof sellCreateLocationAction>[0]
-    await expect(sellCreateLocationAction(input)).resolves.toMatchObject({
+    const input = { label: 'Oops' } as unknown as Parameters<typeof createLocationAction>[0]
+    await expect(createLocationAction(input)).resolves.toMatchObject({
       ok: false,
       code: 'location_needs_place',
     })
@@ -127,7 +127,7 @@ describe('sellCreateLocationAction — refuses a placement-less call at runtime'
   })
 })
 
-describe('sellListNeighborhoodsAction', () => {
+describe('listNeighborhoodsAction', () => {
   it('returns id/name/slug for every neighbourhood place', async () => {
     query.mockResolvedValueOnce({
       rows: [
@@ -135,7 +135,7 @@ describe('sellListNeighborhoodsAction', () => {
         { id: 'n2', display_name: 'Oak Park', slug: 'oak-park' },
       ],
     })
-    const result = await sellListNeighborhoodsAction()
+    const result = await listNeighborhoodsAction()
     expect(result).toEqual([
       { id: 'n1', name: 'Midtown', slug: 'midtown' },
       { id: 'n2', name: 'Oak Park', slug: 'oak-park' },

@@ -9,7 +9,7 @@ import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
 import { ServiceComposer, type PickupLocationOption, type RateModel } from './ServiceComposer'
 import { createServiceAction } from '@/app/you/sell/service/actions'
-import { sellCreateLocationAction } from '@/app/you/sell/actions'
+import { createLocationAction } from '@/app/_actions/location-actions'
 
 export interface AddServiceButtonProps {
   groupId: string
@@ -59,7 +59,7 @@ export function AddServiceButton({
       {open && (
         <ServiceComposer
           createService={createService}
-          createLocation={(input) => unwrap(sellCreateLocationAction(input))}
+          createLocation={(input) => unwrap(createLocationAction(input))}
           availableLocations={availableLocations}
           defaultCenterLocationId={anchorLocationId}
           defaultCenterLocationLabel={anchorLocationLabel}

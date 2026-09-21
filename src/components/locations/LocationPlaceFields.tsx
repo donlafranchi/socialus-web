@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { geocode, GeocodingUnavailableError, type GeocodingResult } from '@/lib/geocoding'
-import { sellSearchPlacesAction } from '@/app/you/sell/actions'
+import { searchPlacesAction } from '@/app/_actions/location-actions'
 import { mergeMatches, type Suggestion } from '@/lib/places/suggestions'
 import { placeKindLabel } from '@/lib/places/search'
 
@@ -87,7 +87,7 @@ export function LocationPlaceFields({
       // our places need no token, Mapbox does, and production has run without
       // one. A person must still be able to finish.
       const [placesOutcome, addressOutcome] = await Promise.allSettled([
-        sellSearchPlacesAction(value),
+        searchPlacesAction(value),
         geocode(value),
       ])
       if (!mountedRef.current) return
@@ -257,7 +257,38 @@ export function LocationPlaceFields({
             Rather give a neighbourhood?
           </button>
         </div>
-      ) : null}
+      ) : (
+        // Issue #180 — neighbourhood mode used to render NOTHING.
+        //
+        // `state.mode === 'address' ? (…) : null` meant that clicking "Rather
+        // give a neighbourhood?" replaced the whole control with an empty
+        // panel: no input, no list, no way back. The only path that ever set
+        // this mode and still showed something was picking a place out of the
+        // suggestions, which leaves the mode set and the search box gone.
+        // Found while embedding this component in the Page edit form, where an
+        // owner changing their address would have hit the dead end.
+        <div>
+          <span className="text-sm font-medium text-[var(--color-fg)]">Where is it?</span>
+          <p
+            data-testid={`${idPrefix}-neighbourhood-chosen`}
+            className="mt-1 text-sm text-[var(--color-fg)]"
+          >
+            {state.neighborhoodId
+              ? state.addressQuery
+              : 'Search for a city or a neighbourhood.'}
+          </p>
+          <button
+            type="button"
+            data-testid={`${idPrefix}-mode-address`}
+            className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+            onClick={() =>
+              setState({ ...state, mode: 'address', selectedAddress: null, neighborhoodId: null })
+            }
+          >
+            {state.neighborhoodId ? 'Choose somewhere else' : 'Search again'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

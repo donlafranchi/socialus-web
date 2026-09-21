@@ -3,9 +3,15 @@
 // The owner's edit form.
 //
 // Same fields they set at creation, minus the ones a live Page cannot change.
-// The ADDRESS is shown and not editable, with the reason said out loud rather
-// than the field being silently absent: a Page's URL has been shared and moving
-// it breaks every link somebody already sent.
+//
+// THE ADDRESS AND THE LINK ARE DIFFERENT THINGS, and this form used to call
+// them both "Address" (#180). What it showed under that heading was the URL,
+// frozen, with a reason about broken links — so an owner reading it was told
+// they could not move house. The link is still frozen and the reason still
+// holds; the ADDRESS is where the Page is, and it is editable now.
+//
+// The picker is `<LocationPlaceFields>`, the same control creation uses. One
+// component so the two cannot drift, which is the rule T142 set for it.
 //
 // A FAILED SAVE SAYS WHY. The handler's messages are written for the owner, so
 // they are shown verbatim instead of being replaced by "something went wrong" —
@@ -15,9 +21,18 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
+import {
+  LocationPlaceFields,
+  initialLocationPlaceFieldsState,
+  isLocationPlaceFieldsComplete,
+  type LocationPlaceFieldsState,
+} from '@/components/locations/LocationPlaceFields'
+import { createLocationAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput } from './actions'
+
+type CreateLocation = typeof createLocationAction
 
 export function EditPageForm({
   groupId,
@@ -28,7 +43,9 @@ export function EditPageForm({
   initialDescription,
   initialPhotoUrl,
   initialSocialLinks,
+  initialAddressLabel,
   onSave,
+  onCreateLocation = createLocationAction,
 }: {
   groupId: string
   memberId: string
@@ -38,7 +55,13 @@ export function EditPageForm({
   initialDescription: string
   initialPhotoUrl: string | null
   initialSocialLinks: SocialLinks
+  /** Where the Page is now, in the words it was saved with. Null when the
+   *  owner never chose one — a different fact from "online", and saying
+   *  online would be a claim they never made. */
+  initialAddressLabel: string | null
   onSave: (input: EditPageInput) => Promise<{ ok: true }>
+  /** Injected so the form can be tested without a server action. */
+  onCreateLocation?: CreateLocation
 }) {
   const router = useRouter()
   const [name, setName] = useState(initialName)
@@ -49,6 +72,10 @@ export function EditPageForm({
     handlesFromLinks(initialSocialLinks),
   )
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
+  // Closed until asked for. An address the owner is not changing should not
+  // look like one they have to re-enter.
+  const [changingAddress, setChangingAddress] = useState(false)
+  const [place, setPlace] = useState<LocationPlaceFieldsState>(initialLocationPlaceFieldsState)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -66,9 +93,44 @@ export function EditPageForm({
         setError(`${firstBad[0]}: ${firstBad[1]}`)
         return
       }
+      // The address, when one was actually chosen. A Location is made first
+      // and the Page is pointed at it second — and if the first half fails the
+      // second never runs. Half a move leaves a Page pointing at nothing,
+      // which is a Page with no address at all.
+      let anchorLocationId: string | undefined
+      if (changingAddress && isLocationPlaceFieldsComplete(place)) {
+        const made = await onCreateLocation(
+          place.mode === 'address'
+            ? {
+                label: place.selectedAddress!.name,
+                address: {
+                  geographyWkt: `SRID=4326;POINT(${place.selectedAddress!.coordinates[0]} ${place.selectedAddress!.coordinates[1]})`,
+                  resolvedAddressText: place.selectedAddress!.name,
+                },
+              }
+            : { label: place.addressQuery, neighborhoodId: place.neighborhoodId! },
+        )
+        if (!made.ok) {
+          // The action's own message, which is written for the owner — "we
+          // never guess one" — rather than a generic failure.
+          setError(made.message)
+          return
+        }
+        anchorLocationId = made.data.id
+      }
+
       try {
-        await onSave({ groupId, pagePath, name, description, photoUrl, socialLinks: links })
+        await onSave({
+          groupId,
+          pagePath,
+          name,
+          description,
+          photoUrl,
+          socialLinks: links,
+          ...(anchorLocationId ? { anchorLocationId } : {}),
+        })
         setSaved(true)
+        setChangingAddress(false)
         router.refresh()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'That did not save.')
@@ -102,16 +164,52 @@ export function EditPageForm({
         />
       </label>
 
-      {/* Shown, not hidden, and the reason given. A field that quietly is not
-          there reads as a missing feature. */}
-      <div data-testid="edit-address-frozen">
+      {/* Where the Page is. Editable — this is the thing an owner moves. */}
+      <div data-testid="edit-address">
         <span className="text-sm font-medium text-[var(--color-fg)]">Address</span>
+        {!changingAddress ? (
+          <>
+            <p className="mt-1 text-sm text-[var(--color-fg)]">
+              {initialAddressLabel ?? 'Not set yet.'}
+            </p>
+            <button
+              type="button"
+              data-testid="edit-address-change"
+              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              onClick={() => setChangingAddress(true)}
+            >
+              {initialAddressLabel ? 'Change it' : 'Add one'}
+            </button>
+          </>
+        ) : (
+          <div className="mt-1">
+            <LocationPlaceFields state={place} setState={setPlace} idPrefix="edit-address" />
+            <button
+              type="button"
+              data-testid="edit-address-cancel"
+              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              onClick={() => {
+                setChangingAddress(false)
+                setPlace(initialLocationPlaceFieldsState)
+              }}
+            >
+              Keep it where it is
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* The LINK, which is the thing that cannot move. Shown, not hidden, and
+          the reason given: a field that quietly is not there reads as a
+          missing feature. */}
+      <div data-testid="edit-link-frozen">
+        <span className="text-sm font-medium text-[var(--color-fg)]">Link</span>
         <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
           socialus.org{pagePath}
         </p>
         <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-          The name can change; the address can&rsquo;t. People have this link already, and moving
-          it would break it. <span className="sr-only">Current address: {slug}</span>
+          The name can change; this link can&rsquo;t. People have it already, and moving
+          it would break it. <span className="sr-only">Current link: {slug}</span>
         </p>
       </div>
 

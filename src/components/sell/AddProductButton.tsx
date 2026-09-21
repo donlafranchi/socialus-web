@@ -9,7 +9,7 @@ import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
 import { ProductComposer, type PickupLocationOption } from './ProductComposer'
 import { createProductAction } from '@/app/you/sell/product/actions'
-import { sellCreateLocationAction } from '@/app/you/sell/actions'
+import { createLocationAction } from '@/app/_actions/location-actions'
 
 export interface AddProductButtonProps {
   groupId: string
@@ -59,7 +59,7 @@ export function AddProductButton({
       {open && (
         <ProductComposer
           createProduct={createProduct}
-          createLocation={(input) => unwrap(sellCreateLocationAction(input))}
+          createLocation={(input) => unwrap(createLocationAction(input))}
           availableLocations={availableLocations}
           defaultPickupLocationId={anchorLocationId}
           defaultPickupLocationLabel={anchorLocationLabel}
