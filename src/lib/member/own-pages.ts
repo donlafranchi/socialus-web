@@ -16,7 +16,7 @@
 // fixes.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { fetchGroupPrefixes } from '@/lib/feed/group-prefixes'
+import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import type { CardLocation } from '@/components/cards'
 
@@ -31,14 +31,16 @@ export interface OwnPage {
   location: CardLocation
   /** 'draft' | 'active' | 'dissolved' — shown, because a draft looks identical otherwise. */
   lifecycleState: string
-  /** Null for a draft, or when the place path cannot be resolved. */
-  href: string | null
+  /** The canonical address. Never null: every Page has a public id, including
+   *  a draft, whose owner previews it at the address it will keep. */
+  href: string
 }
 
 interface Row {
   id: string
   name: string | null
   slug: string | null
+  public_id: string
   kind: string
   category: string | null
   description: string | null
@@ -49,7 +51,7 @@ interface Row {
 }
 
 const SELECT =
-  'id, name, slug, kind, category, description, photo_url, photo_hidden_at, lifecycle_state,' +
+  'id, name, slug, public_id, kind, category, description, photo_url, photo_hidden_at, lifecycle_state,' +
   ' anchor:locations!groups_anchor_location_id_fkey(label, kind)'
 
 /**
@@ -89,13 +91,19 @@ export async function getOwnPages(
 
   const rows = (data ?? []) as unknown as Row[]
 
-  // Only an active Page has a public URL worth offering. A draft's link would
-  // 404 for its own author, which is a worse answer than no link.
-  const active = rows.filter((r) => r.lifecycle_state === 'active')
-  const prefixes = await fetchGroupPrefixes(supabase, active.map((r) => r.id))
-
+  // Issue #175 — every Page here links, including a draft.
+  //
+  // This used to resolve a place path and hand back `href: null` when it could
+  // not, which was always, because nothing populates `locations.place_id` for
+  // a member-created Location. Don saw two Pages he had made and neither was
+  // clickable — and the owner bar, which is the only way to edit a Page or
+  // announce anything, lives ON the Page. A dead card here was a dead creator
+  // surface.
+  //
+  // A draft links too. Its address is the one it keeps when it goes live, and
+  // RLS already admits a founder to their own draft, so the link resolves for
+  // the one person who can see it.
   return rows.map((r) => {
-    const prefix = r.lifecycle_state === 'active' ? prefixes.get(r.id) : undefined
     return {
       groupId: r.id,
       name: r.name ?? 'Untitled',
@@ -106,7 +114,7 @@ export async function getOwnPages(
       photoUrl: visiblePhotoUrl({ photo_url: r.photo_url, photo_hidden_at: r.photo_hidden_at }),
       location: scaleFor(r.anchor),
       lifecycleState: r.lifecycle_state,
-      href: prefix ? `/p/${prefix.placePath}/g/${prefix.slug}` : null,
+      href: canonicalPagePath(r.slug ?? 'page', r.public_id),
     }
   })
 }

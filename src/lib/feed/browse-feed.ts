@@ -39,6 +39,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
+import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
@@ -162,7 +163,7 @@ export interface BrowseResult {
   sortAt: string
 }
 
-type RpcClient = Pick<SupabaseClient, 'rpc'>
+type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
 
 /** A bad point loses its pin, never the row. */
 function pointOf(ewkb: string | null): { longitude: number | null; latitude: number | null } {
@@ -175,15 +176,23 @@ function pointOf(ewkb: string | null): { longitude: number | null; latitude: num
   }
 }
 
-/** `/p/<…place>/g/<slug>`, or null when either half is missing. */
-export function browseHref(placePath: string | null, slug: string | null): string | null {
-  const path = placePath?.trim()
+/**
+ * The canonical Page address — `/g/<slug>-<id>`, or null with no id to resolve by.
+ *
+ * Issue #175. This used to be `/p/<place_path>/g/<slug>`, and `place_path` is
+ * null for every Page a member created, so every one of those cards rendered
+ * without a link. The address no longer depends on geography at all (ruled
+ * 2026-09-21), which is what fixes it — and `place_path` stays in the row
+ * because breadcrumbs and scoping still want it.
+ */
+export function browseHref(slug: string | null, publicId: string | null): string | null {
   const s = slug?.trim()
-  if (!path || !s) return null
-  return `/p/${path}/g/${s}`
+  const id = publicId?.trim()
+  if (!s || !id) return null
+  return canonicalPagePath(s, id)
 }
 
-export function mapBrowseRow(r: BrowseFeedRow): BrowseResult {
+export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseResult {
   return {
     resultKind: r.result_kind,
     resultId: r.result_id,
@@ -191,7 +200,7 @@ export function mapBrowseRow(r: BrowseFeedRow): BrowseResult {
     groupKind: r.group_kind,
     slug: r.slug,
     name: r.name,
-    href: browseHref(r.place_path, r.slug),
+    href: browseHref(r.slug, publicId),
     photoUrl: visiblePhotoUrl({
       photo_url: r.photo_url,
       photo_hidden_at: r.photo_hidden_at,
@@ -239,5 +248,34 @@ export async function getBrowseFeed(
     p_limit: clampLimit(opts.limit),
   })
   if (error) throw error
-  return ((data ?? []) as BrowseFeedRow[]).map(mapBrowseRow)
+  const rows = (data ?? []) as BrowseFeedRow[]
+  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
+  return rows.map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null))
+}
+
+/**
+ * The public ids for a result set's Pages, in one read.
+ *
+ * A second round trip rather than a column on `browse_feed`, deliberately: the
+ * feed function's signature is shared by the map, the list and the snapshot,
+ * and changing a `returns table` means dropping and recreating all 390 lines
+ * of it. This is a primary-key lookup over at most one page of results.
+ *
+ * A failure costs the cards their links and never the feed — the same rule
+ * `fetchGroupPrefixes` follows, and the same rule that made this bug quiet for
+ * so long, so it is worth saying out loud: a missing id is a dead card.
+ */
+async function fetchPagePublicIds(
+  supabase: RpcClient,
+  groupIds: readonly string[],
+): Promise<Map<string, string>> {
+  const ids = Array.from(new Set(groupIds.filter(Boolean)))
+  const out = new Map<string, string>()
+  if (ids.length === 0) return out
+  const { data, error } = await supabase.from('groups').select('id, public_id').in('id', ids)
+  if (error || !data) return out
+  for (const row of data as { id: string; public_id: string | null }[]) {
+    if (row.public_id) out.set(row.id, row.public_id)
+  }
+  return out
 }

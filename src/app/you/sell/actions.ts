@@ -15,6 +15,7 @@
 //      the client can use to surface inline / toast messages.
 
 import { createClient } from '@/lib/supabase-server'
+import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { resolveActionContext } from '@/lib/action-context'
 import { succeeded, failed, type ActionResult } from './action-result'
 import { rankPlaces, type PlaceMatch } from '@/lib/places/search'
@@ -144,71 +145,29 @@ export async function sellActivateAction(input: {
   } catch (err) {
     rethrow(err)
   }
-  // Build the place-scoped Group URL. F035 owns the page render; this
-  // action just hands the URL back so the client redirects.
+  // Issue #175 — the canonical address, which needs no place at all.
   //
-  // T073b fix-forward: the locations table has NO `place_id` column —
-  // the place resolution is geographic (via public.place_for_coords on
-  // the location's geography Point) per 022_places_reverse_geocode.sql.
-  // Original T073 used a PostgREST relational join that silently returned
-  // null and tripped the `shop_url_unresolved` throw on every activation.
-  // Reaches into the action-layer pg pool so we can call the RPC + walk
-  // the parent_id chain.
+  // This used to resolve `groups.anchor_location_id` -> `locations.place_id`
+  // -> a walk up `places.parent_id`, and throw `shop_url_unresolved` when any
+  // link was missing. The middle link is ALWAYS missing: nothing populates
+  // `place_id` for a member-created Location. So a Page finished creation and
+  // was handed either an error or an address that led nowhere.
+  //
+  // A Page's address is now a cosmetic slug plus its own id (ruled 2026-09-21),
+  // which is on the row already. No geography, no joins, nothing to fail.
   const { destinationUrl } = await withTransaction(async (client) => {
-    const groupRes = await client.query<{
-      slug: string
-      anchor_location_id: string | null
-    }>(
-      `select slug, anchor_location_id
-         from public.groups
-        where id = $1`,
+    const groupRes = await client.query<{ slug: string; public_id: string }>(
+      `select slug, public_id from public.groups where id = $1`,
       [input.groupId],
     )
     const group = groupRes.rows[0]
-    if (!group?.anchor_location_id || !group.slug) {
+    if (!group?.slug || !group.public_id) {
       throw new SellActionError(
-        'Your shop was created, but we could not resolve its public URL. Refresh /you to see it.',
+        'Your Page was created, but we could not resolve its address. Refresh /you to see it.',
         'shop_url_unresolved',
       )
     }
-    // Resolve the place via the location's geography centroid → place_for_coords.
-    // place_for_coords expects (lat, lon); we extract from the Point.
-    const placeRes = await client.query<{ place_id: string | null }>(
-      `select (public.place_for_coords(
-                 st_y(l.geography::geometry),
-                 st_x(l.geography::geometry)
-               )).place_id
-         from public.locations l
-        where l.id = $1`,
-      [group.anchor_location_id],
-    )
-    const placeId = placeRes.rows[0]?.place_id
-    if (!placeId) {
-      throw new SellActionError(
-        'Your shop was created, but we could not resolve a place for its anchor Location.',
-        'shop_url_unresolved',
-      )
-    }
-    // Walk the parent_id chain to assemble the slash-joined slug path
-    // (innermost place last). Recursive CTE keeps it one query.
-    const pathRes = await client.query<{ path: string }>(
-      `with recursive chain(id, slug, parent_id, depth) as (
-         select id, slug, parent_id, 0 from public.places where id = $1
-         union all
-         select p.id, p.slug, p.parent_id, c.depth + 1
-           from public.places p join chain c on p.id = c.parent_id
-       )
-       select string_agg(slug, '/' order by depth desc) as path from chain`,
-      [placeId],
-    )
-    const placePath = pathRes.rows[0]?.path
-    if (!placePath) {
-      throw new SellActionError(
-        'Your shop was created, but we could not assemble its place URL.',
-        'shop_url_unresolved',
-      )
-    }
-    return { destinationUrl: `/p/${placePath}/g/${group.slug}` }
+    return { destinationUrl: canonicalPagePath(group.slug, group.public_id) }
   })
   return { destinationUrl }
   })

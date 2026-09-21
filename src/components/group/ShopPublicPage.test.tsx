@@ -13,6 +13,7 @@ const SHOP: ResolvedShop = {
   groupId: 'grp-1',
   kind: 'business',
   slug: 'oak-park-sourdough',
+  publicId: '7k3x8m',
   displayName: 'Oak Park Sourdough',
   publicDescription: 'Real bread, baked local.',
   lifecycleState: 'active',

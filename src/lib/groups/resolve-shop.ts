@@ -31,6 +31,9 @@ export interface ShopFounder {
 export interface ResolvedShop {
   groupId: string
   slug: string
+  /** Issue #175 — what the canonical address resolves by. The slug beside it
+   *  in that address is cosmetic and may change; this does not. */
+  publicId: string
   /** The Page kind. Always 'business' while this resolver filters on it, but
    *  carried rather than assumed — the managing role is derived from it, and a
    *  wrong assumption here hides the owner's own controls from them. */
@@ -109,6 +112,7 @@ function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
 interface ShopRow {
   id: string
   slug: string
+  public_id: string
   kind: string
   /** The Page's own name. What every kind but `business` is known by. */
   name: string | null
@@ -144,11 +148,20 @@ export interface ResolveShopOptions {
    * instead of forcing this read to be rewritten.
    */
   kinds?: readonly string[]
+  /**
+   * Issue #175 — which column the key is.
+   *
+   * `publicId` is what a canonical address resolves by. `slug` remains the
+   * default because every address shared before the ruling of 2026-09-21 is
+   * slug-shaped, and those redirect rather than breaking.
+   */
+  by?: 'slug' | 'publicId'
 }
 
 export async function resolveShop(
   supabase: SupabaseClient,
-  slug: string,
+  /** A slug, or a `public_id` when `opts.by` says so. */
+  key: string,
   opts: ResolveShopOptions = {},
 ): Promise<ResolvedShop | null> {
   // CORRECTED 2026-09-19 (T156). This was `.eq('kind', 'business')`, which
@@ -158,12 +171,12 @@ export async function resolveShop(
   let query = supabase
     .from('groups')
     .select(
-      'id, slug, kind, name, description, lifecycle_state, anchor_location_id, category, ' +
+      'id, slug, public_id, kind, name, description, lifecycle_state, anchor_location_id, category, ' +
         'photo_url, social_links, photo_hidden_at, discoverability, ' +
         'group_businesses(display_name, public_description), ' +
         'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
     )
-    .eq('slug', slug)
+    .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
   if (opts.kinds && opts.kinds.length > 0) query = query.in('kind', [...opts.kinds])
 
   const { data, error } = await query.limit(1).maybeSingle()
@@ -196,6 +209,7 @@ export async function resolveShop(
     groupId: row.id,
     kind: row.kind,
     slug: row.slug,
+    publicId: row.public_id,
     // T156 — a business keeps its public name in the `group_businesses` child;
     // every other kind of Page keeps it on the `groups` row and has no child
     // at all. Falling back is what makes resolving a run club worth doing:

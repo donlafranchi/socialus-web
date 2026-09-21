@@ -38,8 +38,19 @@ const POST_ROW: BrowseFeedRow = {
   starts_at: '2026-09-24T17:00:00.000Z',
 }
 
-function client(rows: unknown[] = [PAGE_ROW], error: unknown = null) {
-  return { rpc: vi.fn(() => Promise.resolve({ data: rows, error })) }
+// Issue #175 — the href is the canonical address now, so the stub answers the
+// second read that resolves it: the Pages' public ids, keyed by group id.
+function client(
+  rows: unknown[] = [PAGE_ROW],
+  error: unknown = null,
+  handles: unknown[] = [{ id: 'g1', slug: 'folsom-coffee', public_id: '7k3x8m' }],
+) {
+  return {
+    rpc: vi.fn(() => Promise.resolve({ data: rows, error })),
+    from: vi.fn(() => ({
+      select: () => ({ in: () => Promise.resolve({ data: handles, error: null }) }),
+    })),
+  }
 }
 
 function argsOf(c: ReturnType<typeof client>) {
@@ -77,17 +88,39 @@ describe('T156 — getBrowseFeed projection', () => {
     })
   })
 
-  it('builds the canonical href from the projected place path', async () => {
+  it('links to the canonical address, which carries no place path (#175)', async () => {
     const [row] = await getBrowseFeed(client() as never, { scope: { metroId: 'm1' } })
-    expect(row.href).toBe('/p/ca/sacramento/folsom/g/folsom-coffee')
+    expect(row.href).toBe('/g/folsom-coffee-7k3x8m')
   })
 
-  it('leaves href null when the place path did not resolve', async () => {
+  it('still links when the place path did not resolve — that null was the bug', async () => {
+    // Every member-created Page had a null place_path, and every card built
+    // from one was dead. The address no longer depends on it.
     const [row] = await getBrowseFeed(
       client([{ ...PAGE_ROW, place_path: null }]) as never,
       { scope: { metroId: 'm1' } },
     )
+    expect(row.href).toBe('/g/folsom-coffee-7k3x8m')
+  })
+
+  it('leaves href null when the Page has no public id to resolve by', async () => {
+    const [row] = await getBrowseFeed(
+      client([PAGE_ROW], null, []) as never,
+      { scope: { metroId: 'm1' } },
+    )
     expect(row.href).toBeNull()
+  })
+
+  it('reads the public ids once for the whole result set, not once per row', async () => {
+    const c = client([PAGE_ROW, { ...POST_ROW, result_id: 'pp2' }])
+    await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(c.from).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not read at all when the feed is empty', async () => {
+    const c = client([])
+    await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(c.from).not.toHaveBeenCalled()
   })
 
   it('decodes the geography to a map pin', async () => {

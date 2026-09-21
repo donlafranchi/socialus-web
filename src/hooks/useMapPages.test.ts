@@ -28,6 +28,7 @@ const row = (over: Partial<MapPageRow> = {}): MapPageRow => ({
   id: 'g1',
   name: 'Clara’s Kitchen',
   slug: 'claras-kitchen',
+  public_id: '7k3x8m',
   kind: 'business',
   category: 'bakery',
   photo_url: null,
@@ -108,9 +109,23 @@ describe('withinBounds', () => {
   })
 })
 
-describe('the pin carries no link until the place path resolves', () => {
-  it('starts with href null — the URL needs a place path the groups row does not carry', () => {
+// Issue #175 — the pin links off the groups row itself. It used to need a
+// second read through `locations.place_id`, which is null for every Page a
+// member created, so every one of those pins was a dead pin.
+describe('the pin links to the Page', () => {
+  it('builds the canonical address from the row, with no second read', () => {
     const [p] = rowsToMapPages([row()])
+    expect(p.href).toBe('/g/claras-kitchen-7k3x8m')
+  })
+
+  it('carries no place path — the address survives a move from metros to neighbourhoods', () => {
+    const [p] = rowsToMapPages([row()])
+    expect(p.href).not.toMatch(/^\/p\//)
+  })
+
+  it('loses the link, never the pin, when there is no id to resolve by', () => {
+    const [p] = rowsToMapPages([row({ public_id: null })])
     expect(p.href).toBeNull()
+    expect(p.latitude).toBeDefined()
   })
 })

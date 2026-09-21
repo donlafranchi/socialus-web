@@ -5,9 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // listed a member's own Pages — SellCta finds a DRAFT to resume and lets an
 // active Page fall through.
 
-const { fetchGroupPrefixes } = vi.hoisted(() => ({ fetchGroupPrefixes: vi.fn() }))
-vi.mock('@/lib/feed/group-prefixes', () => ({ fetchGroupPrefixes }))
-
 import { getOwnPages } from './own-pages'
 
 const MEMBER = 'm-1'
@@ -25,6 +22,7 @@ const row = (over: Record<string, unknown> = {}) => ({
   id: 'g-1',
   name: 'SacRiver Floaters',
   slug: 'sacriver-floaters',
+  public_id: 'q4vw2n',
   kind: 'business',
   category: null,
   description: null,
@@ -37,7 +35,6 @@ const row = (over: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  fetchGroupPrefixes.mockResolvedValue(new Map([['g-1', { slug: 'sacriver-floaters', placePath: 'ca/sacramento' }]]))
 })
 
 describe('getOwnPages', () => {
@@ -61,11 +58,26 @@ describe('getOwnPages', () => {
     expect(out[0].lifecycleState).toBe('draft')
   })
 
-  it('gives an active Page a link and a draft none — a draft link 404s for its own author', async () => {
-    const c = client([row(), row({ id: 'g-2', lifecycle_state: 'draft' })])
+  // Issue #175 — the whole reported symptom. Don saw the Pages he had made and
+  // not one of them was clickable, because the href was derived from
+  // `locations.place_id`, which nothing populates for anything a member makes.
+  it('links every Page to its canonical address, carrying no place path', async () => {
+    const c = client([row()])
     const out = await getOwnPages(c as never, MEMBER)
-    expect(out.find((p) => p.groupId === 'g-1')?.href).toBe('/p/ca/sacramento/g/sacriver-floaters')
-    expect(out.find((p) => p.groupId === 'g-2')?.href).toBeNull()
+    expect(out[0].href).toBe('/g/sacriver-floaters-q4vw2n')
+  })
+
+  it('links a draft too — its address is the one it keeps when it goes live', async () => {
+    const c = client([row(), row({ id: 'g-2', lifecycle_state: 'draft', public_id: 'zt9w4p' })])
+    const out = await getOwnPages(c as never, MEMBER)
+    expect(out.find((p) => p.groupId === 'g-1')?.href).toBe('/g/sacriver-floaters-q4vw2n')
+    expect(out.find((p) => p.groupId === 'g-2')?.href).toBe('/g/sacriver-floaters-zt9w4p')
+  })
+
+  it('asks for the public id, without which nothing here has an address', async () => {
+    const c = client([row()])
+    await getOwnPages(c as never, MEMBER)
+    expect(c._q.select).toHaveBeenCalledWith(expect.stringContaining('public_id'))
   })
 
   it('reads the scale off the Location’s own kind rather than guessing', async () => {

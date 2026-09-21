@@ -1,0 +1,75 @@
+// Everything the Page surface needs, in one place.
+//
+// Issue #175 — this was inline in the `/p/[...slug]` catch-all, which is now an
+// index that redirects rather than a second home for a Page. Lifted out so the
+// canonical route is the only thing rendering a Page, and so the next surface
+// that needs it does not copy the six reads and get one of them wrong.
+
+import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  resolveShopItems,
+  resolveLocalOwnerBadge,
+  resolveOwnerClaim,
+  viewerOwnsPage,
+  viewerFollowsPage,
+  type ResolvedShop,
+  type ShopItem,
+  type LocalOwnerBadge,
+  type OwnerClaim,
+} from './resolve-shop'
+import { resolvePagePosts, type PagePost } from './page-posts'
+
+export interface PageView {
+  items: ShopItem[]
+  posts: PagePost[]
+  badge: LocalOwnerBadge | null
+  ownerClaim: OwnerClaim | null
+  viewerOwnsPage: boolean
+  viewerFollows: boolean
+  loggedIn: boolean
+}
+
+export async function loadPageView(
+  supabase: SupabaseClient,
+  shop: ResolvedShop,
+): Promise<PageView> {
+  const [items, posts, badge, { data: auth }] = await Promise.all([
+    resolveShopItems(supabase, shop.groupId),
+    // RLS is the visibility gate here too: the owner's own posts come back for
+    // the owner and for nobody else.
+    resolvePagePosts(supabase, shop.groupId),
+    resolveLocalOwnerBadge(supabase, {
+      groupId: shop.groupId,
+      anchorLocationId: shop.anchorLocationId,
+    }),
+    supabase.auth.getUser(),
+  ])
+
+  const viewerMemberId = auth.user?.id ?? null
+  const [ownerClaim, owns, follows] = await Promise.all([
+    resolveOwnerClaim(supabase, {
+      groupId: shop.groupId,
+      anchorLocationId: shop.anchorLocationId,
+      viewerMemberId,
+    }),
+    viewerOwnsPage(supabase, {
+      groupId: shop.groupId,
+      viewerMemberId,
+      // Without the kind this falls back to "either managing role", which is
+      // silently wrong for every non-business Page — their founder holds
+      // 'steward', not 'owner'.
+      kind: shop.kind,
+    }),
+    viewerFollowsPage(supabase, { groupId: shop.groupId, viewerMemberId }),
+  ])
+
+  return {
+    items,
+    posts,
+    badge,
+    ownerClaim,
+    viewerOwnsPage: owns,
+    viewerFollows: follows,
+    loggedIn: Boolean(auth.user),
+  }
+}
