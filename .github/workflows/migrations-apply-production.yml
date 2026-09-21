@@ -63,9 +63,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      # PINNED, not `latest`. Issue #164, and it has now cost an outage.
+      #
+      # `version: latest` makes this step call the GitHub releases API on every
+      # run. On 2026-09-21 that API rate-limited, the step failed with
+      # "Failed to resolve latest Supabase CLI release", and the whole
+      # migrations check went red for a reason unrelated to any migration —
+      # so the one job that watches the schema was dark on the day a migration
+      # merged unapplied and took every Page URL down.
+      #
+      # A pinned version needs no API call and cannot be rate-limited. Bump it
+      # deliberately; do not put `latest` back.
       - uses: supabase/setup-cli@v2
         with:
-          version: latest
+          version: 2.117.0
 
       # NOT `supabase link`. `link` calls GET /v1/projects/{ref}/api-keys
       # ?reveal=true to resolve the service-role secret, and a scoped access

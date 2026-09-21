@@ -62,9 +62,20 @@ jobs:
           node-version: 20
           cache: npm
 
+      # PINNED, not `latest`. Issue #164, and it has now cost an outage.
+      #
+      # `version: latest` makes this step call the GitHub releases API on every
+      # run. On 2026-09-21 that API rate-limited, the step failed with
+      # "Failed to resolve latest Supabase CLI release", and the whole
+      # migrations check went red for a reason unrelated to any migration —
+      # so the one job that watches the schema was dark on the day a migration
+      # merged unapplied and took every Page URL down.
+      #
+      # A pinned version needs no API call and cannot be rate-limited. Bump it
+      # deliberately; do not put `latest` back.
       - uses: supabase/setup-cli@v2
         with:
-          version: latest
+          version: 2.117.0
 
       - name: Start a throwaway local stack
         run: supabase start
@@ -106,9 +117,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # PINNED, not `latest`. Issue #164, and it has now cost an outage.
+      #
+      # `version: latest` makes this step call the GitHub releases API on every
+      # run. On 2026-09-21 that API rate-limited, the step failed with
+      # "Failed to resolve latest Supabase CLI release", and the whole
+      # migrations check went red for a reason unrelated to any migration —
+      # so the one job that watches the schema was dark on the day a migration
+      # merged unapplied and took every Page URL down.
+      #
+      # A pinned version needs no API call and cannot be rate-limited. Bump it
+      # deliberately; do not put `latest` back.
       - uses: supabase/setup-cli@v2
         with:
-          version: latest
+          version: 2.117.0
 
       - name: Build the database connection string
         id: dburl
@@ -128,9 +150,16 @@ jobs:
   # Is production behind main? Only meaningful on main and on the schedule —
   # a PR is *supposed* to carry a migration the database lacks.
   #
-  # On push this reports and passes: you have just merged, of course it is
-  # pending. On the daily schedule it FAILS, because by then it means someone
-  # merged a migration and never ran the apply workflow.
+  # IT USED TO REPORT AND PASS ON PUSH, on the reasoning that you have just
+  # merged and of course it is pending. 2026-09-21 is what that reasoning
+  # costs: a migration merged, the deploy went out against a database without
+  # it, and every Page URL 404'd for an hour while this job sat green saying
+  # "expected on a push". Only the daily schedule would have failed, by which
+  # time Don had already found it himself.
+  #
+  # It fails on push now. A red main build the minute a migration is pending is
+  # the point — the window between merge and apply is exactly the window the
+  # outage lived in, and nothing else was watching it.
   pending:
     name: Production behind main?
     if: github.event_name != 'pull_request'
@@ -139,9 +168,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # PINNED, not `latest`. Issue #164, and it has now cost an outage.
+      #
+      # `version: latest` makes this step call the GitHub releases API on every
+      # run. On 2026-09-21 that API rate-limited, the step failed with
+      # "Failed to resolve latest Supabase CLI release", and the whole
+      # migrations check went red for a reason unrelated to any migration —
+      # so the one job that watches the schema was dark on the day a migration
+      # merged unapplied and took every Page URL down.
+      #
+      # A pinned version needs no API call and cannot be rate-limited. Bump it
+      # deliberately; do not put `latest` back.
       - uses: supabase/setup-cli@v2
         with:
-          version: latest
+          version: 2.117.0
 
       - name: Build the database connection string
         id: dburl
@@ -157,8 +197,4 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            bash scripts/check-migration-drift.sh --strict
-          else
-            bash scripts/check-migration-drift.sh
-          fi
+          bash scripts/check-migration-drift.sh --strict
