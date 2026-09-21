@@ -99,6 +99,55 @@ jobs:
           echo "$body"
           exit 1
 
+      # Added 2026-09-21, after an hour-long outage this job watched and did
+      # not see. A migration merged, Vercel deployed the code, nobody applied
+      # the migration, and every Page URL 404'd — while the step above stayed
+      # green, because a database was reachable. It was the wrong shape.
+      #
+      # This asks the deployment whether its database has the migrations this
+      # build was compiled against. It is the deployment's own answer about its
+      # own database, which is the only place that fact exists.
+      - name: Ask the deployment whether its schema is current
+        env:
+          TARGET: ${{ inputs.url || vars.HEALTH_URL || 'https://www.socialus.org' }}
+        run: |
+          set -uo pipefail
+          endpoint="${TARGET%/}/api/health/schema"
+          echo "Checking $endpoint"
+
+          attempt=0
+          max=10
+          body=''
+          while [ "$attempt" -lt "$max" ]; do
+            attempt=$((attempt + 1))
+            code="$(curl -sS -o /tmp/schema.json -w '%{http_code}' --max-time 20 "$endpoint" || echo 000)"
+            body="$(cat /tmp/schema.json 2>/dev/null || true)"
+
+            if [ "$code" = "200" ]; then
+              echo "::notice::Schema current on $TARGET"
+              echo "$body"
+              exit 0
+            fi
+
+            # 503 is the endpoint answering, and it has already said which
+            # migrations are missing. Fail now.
+            if [ "$code" = "503" ]; then
+              echo "::error::$TARGET is serving code built against a schema its database does not have."
+              echo "$body"
+              echo "::error::Run Actions → '⚠️ Apply migrations to PRODUCTION' → Run workflow, from main. Until then the deployed code is querying columns that do not exist."
+              exit 1
+            fi
+
+            echo "attempt $attempt/$max: HTTP $code — retrying in 30s"
+            sleep 30
+          done
+
+          # A 404 here means the deployment predates this endpoint. That is
+          # still not a pass: it means nothing checked the schema.
+          echo "::error::$endpoint never answered 200 or 503 after $max attempts (last HTTP $code). The schema went unchecked; this is not a pass."
+          echo "$body"
+          exit 1
+
   # Added 2026-09-17. It rides the daily job that already exists rather than
   # getting a schedule of its own: ops-pattern's process/LIVING-DOCS.md refuses
   # scheduled Actions on the grounds that a thing regenerating on a schedule
