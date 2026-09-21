@@ -133,11 +133,40 @@ describe('group.post_create — only the managing role can post', () => {
     expect(params).toContain('listed')
   })
 
-  it('carries no start time, per this scenario', async () => {
+  // F072 absorbed F073 on 2026-09-21, so the deferral this used to assert is
+  // discharged. What replaces it is the property that made the deferral safe
+  // in the first place: an announcement with no time writes a null, and is
+  // therefore never returned by a time-windowed read.
+  it('writes a start time when one was given', async () => {
     install()
-    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Sourdough is back Thursday.' })
-    const [sql] = calls(/insert into public\.page_posts/i)[0]!
-    expect(sql).not.toMatch(/starts_at/i)
+    await groupPostCreate(ctx(), {
+      groupId: GROUP,
+      body: 'Bread class Thursday.',
+      startsAt: '2026-09-25T02:00:00.000Z',
+    })
+    const [sql, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(sql).toMatch(/starts_at/i)
+    expect(params).toContain('2026-09-25T02:00:00.000Z')
+  })
+
+  it('writes a null when none was given, rather than inventing one', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Sourdough is back.' })
+    const [, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(params).toContain(null)
+    expect(params).not.toContain(undefined)
+  })
+
+  it('writes the announcement’s own place when one was given', async () => {
+    install()
+    await groupPostCreate(ctx(), {
+      groupId: GROUP,
+      body: 'Bread class at the church hall.',
+      locationId: '22222222-2222-2222-2222-222222222222',
+    })
+    const [sql, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(sql).toMatch(/location_id/i)
+    expect(params).toContain('22222222-2222-2222-2222-222222222222')
   })
 
   it('writes the event in the same transaction as the row', async () => {

@@ -1,168 +1,287 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { PagePosts } from './PagePosts'
-import type { PagePost } from '@/lib/groups/page-posts'
 
-afterEach(cleanup)
+// F072 — a Page owner announces something, with a time and a place on it.
 
-const onPost = vi.fn()
-const onEdit = vi.fn()
+const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
+vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction }))
+vi.mock('@/lib/geocoding', () => ({
+  geocode: vi.fn(async () => []),
+  GeocodingUnavailableError: class extends Error {},
+}))
 
-beforeEach(() => {
-  onPost.mockReset()
-  onEdit.mockReset()
-  onPost.mockResolvedValue({ ok: true, data: { postId: 'p-new', createdAt: '2026-09-15T10:00:00Z' } })
-  onEdit.mockResolvedValue({ ok: true, data: { postId: 'p-1' } })
-})
+const onPost = vi.fn(async (_i: unknown) => ({
+  ok: true as const,
+  data: { postId: 'pp-new', createdAt: '2026-09-21T12:00:00.000Z' },
+}))
+const onEdit = vi.fn(async (_i: unknown) => ({ ok: true as const, data: { postId: 'pp-1' } }))
+const onCreateLocation = vi.fn(async (_i: unknown) => ({
+  ok: true as const,
+  data: { id: 'loc-new', label: 'The church hall' },
+}))
 
-const POSTS: PagePost[] = [
-  {
-    id: 'p-1',
-    body: 'Sourdough is back Thursday.',
-    createdAt: '2026-09-15T10:00:00Z',
-    updatedAt: '2026-09-15T10:00:00Z',
-  },
-]
+const POST = {
+  id: 'pp-1',
+  body: 'Sourdough is back Thursday.',
+  createdAt: '2026-09-20T12:00:00.000Z',
+  updatedAt: '2026-09-20T12:00:00.000Z',
+  startsAt: null as string | null,
+  locationLabel: null as string | null,
+}
 
-function renderPosts(overrides: Partial<Parameters<typeof PagePosts>[0]> = {}) {
+function renderPosts(over: Partial<Parameters<typeof PagePosts>[0]> = {}) {
   return render(
     <PagePosts
-      groupId="g-1"
-      posts={POSTS}
-      canPost={false}
+      groupId="g1"
+      posts={[]}
+      canPost
+      followerCount={0}
       onPost={onPost}
       onEdit={onEdit}
-      {...overrides}
+      onCreateLocation={onCreateLocation as never}
+      {...over}
     />,
   )
 }
 
-describe('who gets the control (acceptance 1)', () => {
-  it('gives a visitor no way to post and no way to edit', () => {
+beforeEach(() => {
+  onPost.mockClear()
+  onEdit.mockClear()
+  onCreateLocation.mockClear()
+  searchPlacesAction.mockReset()
+  searchPlacesAction.mockResolvedValue({
+    ok: true,
+    data: [{ id: 'pl-oak-park', name: 'Oak Park', kind: 'neighborhood', parentName: 'Sacramento' }],
+  })
+})
+afterEach(cleanup)
+
+async function pickAPlace(prefix = 'announce') {
+  fireEvent.click(screen.getByTestId(`${prefix}-add-place`))
+  fireEvent.change(screen.getByTestId(`${prefix}-place-address-input`), {
+    target: { value: 'Oak Park' },
+  })
+  await waitFor(() => screen.getByTestId(`${prefix}-place-address-suggestion-0`))
+  fireEvent.click(screen.getByTestId(`${prefix}-place-address-suggestion-0`))
+}
+
+describe('the word', () => {
+  it('is announcement, never bulletin and never post', () => {
+    const { container } = renderPosts({ posts: [POST] })
+    const text = container.textContent ?? ''
+    expect(text).toMatch(/Announce/)
+    expect(text.toLowerCase()).not.toContain('bulletin')
+    // "post" as a word on its own. `data-testid` values are not copy.
+    expect(text.toLowerCase()).not.toMatch(/\bposts?\b/)
+  })
+
+  it('names the primary control Announce', () => {
     renderPosts()
-    expect(screen.queryByTestId('page-post-body')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('page-post-edit')).not.toBeInTheDocument()
-  })
-
-  it('gives the owner both', () => {
-    renderPosts({ canPost: true })
-    expect(screen.getByTestId('page-post-body')).toBeInTheDocument()
-    expect(screen.getByTestId('page-post-edit')).toBeInTheDocument()
+    expect(screen.getByTestId('page-post-send')).toHaveTextContent('Announce')
   })
 })
 
-describe('what a visitor sees', () => {
-  it('reads the post', () => {
+describe('a time on it', () => {
+  it('sends what the creator typed as an instant in the metro’s zone', async () => {
     renderPosts()
-    expect(screen.getByText('Sourdough is back Thursday.')).toBeInTheDocument()
-  })
-
-  it('sees no price and no buy control — this is the Page talking, not a listing', () => {
-    const { container } = renderPosts()
-    expect(container.textContent).not.toMatch(/\$|buy|price|add to cart/i)
-  })
-
-  it('sees nothing at all when the Page has said nothing', () => {
-    const { container } = renderPosts({ posts: [] })
-    expect(container.textContent).toBe('')
-  })
-})
-
-describe('what the owner sees when there is nothing yet', () => {
-  it('is told what the space is for, with no count of anything', () => {
-    renderPosts({ canPost: true, posts: [] })
-    const empty = screen.getByTestId('page-posts-empty')
-    expect(empty).toHaveTextContent("Nothing here yet.")
-    expect(empty.textContent).not.toMatch(/\b0\b|zero/i)
-  })
-})
-
-describe('posting', () => {
-  it('will not send an empty body', () => {
-    renderPosts({ canPost: true, posts: [] })
-    expect(screen.getByTestId('page-post-send')).toBeDisabled()
-  })
-
-  it('sends what was typed, trimmed, and shows it straight away', async () => {
-    renderPosts({ canPost: true, posts: [] })
     fireEvent.change(screen.getByTestId('page-post-body'), {
-      target: { value: '  Market stall on Saturday.  ' },
+      target: { value: 'Bread class Thursday.' },
     })
+    fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '19:00' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() =>
-      expect(onPost).toHaveBeenCalledWith({ groupId: 'g-1', body: 'Market stall on Saturday.' }),
+      // 7pm in Sacramento, not 7pm UTC and not 7pm wherever the reader is.
+      expect(onPost).toHaveBeenCalledWith(
+        expect.objectContaining({ startsAt: '2026-09-25T02:00:00.000Z' }),
+      ),
     )
-    expect(await screen.findByText('Market stall on Saturday.')).toBeInTheDocument()
   })
 
-  it('clears the box after sending, so the same words cannot go twice', async () => {
-    renderPosts({ canPost: true, posts: [] })
-    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Open late tonight.' } })
+  it('sends no time at all when none was given — an undated announcement is a first-class one', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), {
+      target: { value: 'Sourdough is back.' },
+    })
     fireEvent.click(screen.getByTestId('page-post-send'))
-    await waitFor(() => expect(screen.getByTestId('page-post-body')).toHaveValue(''))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ startsAt: null }))
   })
 
-  it('keeps the words and says what happened when the send fails', async () => {
-    onPost.mockResolvedValue({ ok: false, message: 'That didn’t go through. Mind trying again?', code: 'transient' })
-    renderPosts({ canPost: true, posts: [] })
-    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Open late tonight.' } })
+  it('refuses half a time rather than inventing the other half', async () => {
+    // F072 § Not this rules out all-day announcements, so a date on its own
+    // has nothing to become. Guessing midnight would put a Thursday evening
+    // on Wednesday night for a reader one zone east.
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'x' } })
+    fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
-    expect(await screen.findByTestId('page-post-error')).toHaveTextContent('Mind trying again?')
-    expect(screen.getByTestId('page-post-body')).toHaveValue('Open late tonight.')
+    await waitFor(() =>
+      expect(screen.getByTestId('page-post-error')).toHaveTextContent(/both a date and a time/i),
+    )
+    expect(onPost).not.toHaveBeenCalled()
+  })
+
+  it('shows the time back in the metro’s words', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z' }] })
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent('Thursday, September 24')
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00pm')
+  })
+
+  it('shows nothing about time on an undated announcement', () => {
+    renderPosts({ posts: [POST] })
+    expect(screen.queryByTestId('page-post-when')).toBeNull()
   })
 })
 
-describe('editing in place (acceptance 4)', () => {
-  it('opens with what was already said', () => {
-    renderPosts({ canPost: true })
-    fireEvent.click(screen.getByTestId('page-post-edit'))
-    expect(screen.getByTestId('page-post-edit-body')).toHaveValue('Sourdough is back Thursday.')
+describe('a place of its own', () => {
+  it('reads as being at its Page’s address until one is given', () => {
+    renderPosts()
+    expect(screen.getByTestId('announce-place-current')).toHaveTextContent(/Page’s address/i)
   })
 
-  it('replaces the post rather than adding a second one', async () => {
-    renderPosts({ canPost: true })
+  it('makes the Location and sends its id', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Bread class.' } })
+    await pickAPlace()
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onCreateLocation).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ locationId: 'loc-new' })),
+    )
+  })
+
+  it('leaves nothing behind when the place could not be made', async () => {
+    // Criterion 5. The announcement is never written, so there is no row on
+    // the Page, in browse, or in its Page's history.
+    onCreateLocation.mockResolvedValueOnce({
+      ok: false,
+      message: 'A Location needs a real address or a neighbourhood — we never guess one.',
+      code: 'location_needs_place',
+    } as never)
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Bread class.' } })
+    await pickAPlace()
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() =>
+      expect(screen.getByTestId('page-post-error')).toHaveTextContent(/never guess one/i),
+    )
+    expect(onPost).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('page-post')).toBeNull()
+  })
+
+  it('shows an announcement’s own place on it', () => {
+    renderPosts({ posts: [{ ...POST, locationLabel: 'The church hall' }] })
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent('The church hall')
+  })
+})
+
+describe('who sees this', () => {
+  it('uses the ratified words, and sits on Anyone', () => {
+    renderPosts()
+    expect(screen.getByTestId('announce-audience')).toHaveTextContent('Who sees this')
+    expect(screen.getByTestId('announce-audience-label')).toHaveTextContent('Anyone')
+    expect(screen.getByTestId('announce-audience-switch')).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('names the people, never a kind of post', () => {
+    renderPosts()
+    fireEvent.click(screen.getByTestId('announce-audience-switch'))
+    const label = screen.getByTestId('announce-audience-label').textContent ?? ''
+    expect(label).toBe('Only people who get updates from you')
+    expect(label.toLowerCase()).not.toContain('announcement')
+    expect(label.toLowerCase()).not.toContain('bulletin')
+  })
+
+  it('counts the people at the restricted setting', () => {
+    renderPosts({ followerCount: 42 })
+    fireEvent.click(screen.getByTestId('announce-audience-switch'))
+    expect(screen.getByTestId('announce-audience-count')).toHaveTextContent('42 right now')
+  })
+
+  it('says Nobody yet at zero, never "0"', () => {
+    renderPosts({ followerCount: 0 })
+    fireEvent.click(screen.getByTestId('announce-audience-switch'))
+    const count = screen.getByTestId('announce-audience-count')
+    expect(count).toHaveTextContent('Nobody yet')
+    expect(count.textContent).not.toMatch(/\b0\b/)
+  })
+
+  it('shows the restricted setting rather than hiding it', () => {
+    renderPosts()
+    expect(screen.getByTestId('announce-audience-switch')).toBeInTheDocument()
+  })
+
+  it('will not post with it, and says why', async () => {
+    // Follower delivery does not exist. Telling a creator they reached 42
+    // people who receive nothing is a lie; hiding the setting is a different
+    // lie. So: visible, choosable, and plainly not sendable yet.
+    renderPosts({ followerCount: 42 })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'x' } })
+    fireEvent.click(screen.getByTestId('announce-audience-switch'))
+    expect(screen.getByTestId('announce-audience-blocked')).toHaveTextContent(/reach nobody/i)
+    expect(screen.getByTestId('page-post-send')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).not.toHaveBeenCalled())
+  })
+})
+
+describe('editing in place', () => {
+  it('stays the same announcement — the id does not change', async () => {
+    renderPosts({ posts: [POST] })
     fireEvent.click(screen.getByTestId('page-post-edit'))
     fireEvent.change(screen.getByTestId('page-post-edit-body'), {
       target: { value: 'Sourdough is back Friday.' },
     })
     fireEvent.click(screen.getByTestId('page-post-edit-save'))
-    await waitFor(() => expect(onEdit).toHaveBeenCalledWith({ postId: 'p-1', body: 'Sourdough is back Friday.' }))
-    expect(await screen.findByText('Sourdough is back Friday.')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ postId: 'pp-1' })),
+    )
     expect(screen.getAllByTestId('page-post')).toHaveLength(1)
-    expect(screen.queryByText('Sourdough is back Thursday.')).not.toBeInTheDocument()
   })
 
-  it('leaves the post alone on cancel', () => {
-    renderPosts({ canPost: true })
+  it('starts from the time already on it', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z' }] })
     fireEvent.click(screen.getByTestId('page-post-edit'))
-    fireEvent.change(screen.getByTestId('page-post-edit-body'), { target: { value: 'Something else.' } })
-    fireEvent.click(screen.getByTestId('page-post-edit-cancel'))
-    expect(screen.getByText('Sourdough is back Thursday.')).toBeInTheDocument()
-    expect(onEdit).not.toHaveBeenCalled()
+    expect(screen.getByTestId('page-post-edit-date')).toHaveValue('2026-09-24')
+    expect(screen.getByTestId('page-post-edit-time')).toHaveValue('19:00')
   })
 
-  it('offers no way to delete (acceptance 4)', () => {
-    const { container } = renderPosts({ canPost: true })
-    expect(container.textContent).not.toMatch(/delete|remove|take down/i)
+  it('can take the time off again', async () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z' }] })
+    fireEvent.click(screen.getByTestId('page-post-edit'))
+    fireEvent.click(screen.getByTestId('page-post-edit-clear-when'))
+    fireEvent.click(screen.getByTestId('page-post-edit-save'))
+    await waitFor(() =>
+      expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ startsAt: null })),
+    )
+  })
+
+  it('leaves the place alone when the address control was never opened', async () => {
+    renderPosts({ posts: [{ ...POST, locationLabel: 'The church hall' }] })
+    fireEvent.click(screen.getByTestId('page-post-edit'))
+    fireEvent.click(screen.getByTestId('page-post-edit-save'))
+    await waitFor(() => expect(onEdit).toHaveBeenCalled())
+    expect(onEdit.mock.calls[0][0]).not.toHaveProperty('locationId')
+  })
+
+  it('offers no way to delete one', () => {
+    renderPosts({ posts: [POST] })
+    expect(screen.queryByText(/^delete$/i)).toBeNull()
   })
 })
 
-describe('copy', () => {
-  it('never writes about this the way a feed does', () => {
-    const { container } = renderPosts({ canPost: true })
-    const text = container.textContent ?? ''
-    for (const word of ['Post', 'Share', 'Update', 'Feed', 'Publish']) {
-      expect(text, `copy must not say "${word}"`).not.toMatch(new RegExp(`\\b${word}`, 'i'))
-    }
+describe('who gets a control at all', () => {
+  it('a visitor gets none', () => {
+    renderPosts({ canPost: false, posts: [POST] })
+    expect(screen.queryByTestId('page-post-send')).toBeNull()
+    expect(screen.queryByTestId('page-post-edit')).toBeNull()
   })
 
-  it('uses no em dash and no word for a kind of person', () => {
-    const { container } = renderPosts({ canPost: true })
-    const text = container.textContent ?? ''
-    expect(text).not.toContain('—')
-    for (const noun of ['creator', 'vendor', 'seller', 'maker', 'supporter', 'patron', 'customer', 'shop']) {
-      expect(text.toLowerCase(), `copy must not say "${noun}"`).not.toContain(noun)
-    }
+  it('a visitor sees no empty section on a Page with nothing on it', () => {
+    const { container } = renderPosts({ canPost: false, posts: [] })
+    expect(container.firstChild).toBeNull()
   })
 })

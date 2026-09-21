@@ -39,6 +39,9 @@ interface Props {
   /** F072 — what this Page has said, newest first. RLS decides what is in
    *  here; the owner's own drafts-of-a-draft-Page come back for the owner. */
   posts?: PagePost[]
+  /** F072 — how many people get updates from this Page. Owner-only; the
+   *  composer is the only thing that renders it. */
+  followerCount?: number
 }
 
 export function ShopPublicPage({
@@ -51,6 +54,7 @@ export function ShopPublicPage({
   pagePath,
   viewerFollows = false,
   posts = [],
+  followerCount = 0,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -234,6 +238,7 @@ export function ShopPublicPage({
         groupId={shop.groupId}
         posts={posts}
         canPost={viewerOwnsPage}
+        followerCount={followerCount}
         onPost={postToPageAction}
         onEdit={editPagePostAction}
       />
