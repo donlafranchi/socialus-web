@@ -1,27 +1,36 @@
-// T115 — the secondary-filter bottom sheet (F045 § "Bottom sheet opens with
-// secondary filters").
+// T115 — the filter bottom sheet, as a container: half-height, internally
+// scrollable, dismissed by backdrop / Escape / Show results, edits held as a
+// draft until they are committed.
+//
+// T156 — two of its four groups are gone, and their absence is asserted
+// rather than merely untested. Distance and Sort were deleted with the Item
+// grain (see `@/lib/browse/filters`); a later port that quietly reintroduced
+// either would pass a test suite that only checked what remains.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { ExploreFilterSheet } from './ExploreFilterSheet'
-import { DEFAULT_SECONDARY, type SecondaryFilters } from '@/lib/explore/filters'
+import { DEFAULT_BROWSE_FILTERS, type BrowseFilters } from '@/lib/browse/filters'
 
 const onClose = vi.fn()
 const onApply = vi.fn()
 
+const TAGS = ['local food', 'repair']
+
+function props(over: Partial<React.ComponentProps<typeof ExploreFilterSheet>> = {}) {
+  return {
+    open: true,
+    value: DEFAULT_BROWSE_FILTERS,
+    tags: TAGS,
+    onClose,
+    onApply,
+    ...over,
+  }
+}
+
 function renderSheet(over: Partial<React.ComponentProps<typeof ExploreFilterSheet>> = {}) {
-  return render(
-    <ExploreFilterSheet
-      open
-      value={DEFAULT_SECONDARY}
-      categories={['food', 'repair']}
-      originAvailable
-      onClose={onClose}
-      onApply={onApply}
-      {...over}
-    />,
-  )
+  return render(<ExploreFilterSheet {...props(over)} />)
 }
 
 const sheet = () => screen.getByRole('dialog')
@@ -32,68 +41,67 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('T115 — the sheet holds the four secondary filters', () => {
+describe('T156 — what the sheet holds, and what it no longer does', () => {
   it('renders nothing when closed', () => {
     renderSheet({ open: false })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('offers the four radii from the scenario', () => {
+  it('offers the three schedule options', () => {
+    renderSheet()
+    for (const label of ['Any time', 'This week', 'This weekend']) {
+      expect(within(sheet()).getByRole('radio', { name: label })).toBeInTheDocument()
+    }
+  })
+
+  it('offers the tags as a multi-select, labelled as the creator typed them', () => {
+    renderSheet()
+    expect(within(sheet()).getByRole('checkbox', { name: 'local food' })).toBeInTheDocument()
+    expect(within(sheet()).getByRole('checkbox', { name: 'repair' })).toBeInTheDocument()
+  })
+
+  it('offers no distance control — there is no honest point to measure from', () => {
     renderSheet()
     for (const mi of ['1 mi', '5 mi', '10 mi', '25 mi']) {
-      expect(within(sheet()).getByRole('radio', { name: mi })).toBeInTheDocument()
+      expect(within(sheet()).queryByRole('radio', { name: mi })).not.toBeInTheDocument()
     }
+    expect(within(sheet()).queryByText(/Distance/)).not.toBeInTheDocument()
   })
 
-  it('offers the four schedule options', () => {
-    renderSheet()
-    for (const label of ['Any time', 'This week', 'This weekend', 'Recurring']) {
-      expect(within(sheet()).getByRole('radio', { name: label })).toBeInTheDocument()
-    }
-  })
-
-  it('offers the categories as a multi-select', () => {
-    renderSheet()
-    expect(within(sheet()).getByRole('checkbox', { name: 'Food' })).toBeInTheDocument()
-    expect(within(sheet()).getByRole('checkbox', { name: 'Repair' })).toBeInTheDocument()
-  })
-
-  it('offers the sort orders', () => {
+  it('offers no sort control — ordering is the server’s', () => {
     renderSheet()
     for (const label of ['Newest', 'Starting soonest', 'Nearest', 'Most responses']) {
-      expect(within(sheet()).getByRole('radio', { name: label })).toBeInTheDocument()
+      expect(within(sheet()).queryByRole('radio', { name: label })).not.toBeInTheDocument()
     }
   })
 
-  it('does not offer a kind selector — the pills own that dimension', () => {
+  it('offers no Recurring schedule — nothing carries a recurrence rule', () => {
     renderSheet()
-    expect(within(sheet()).queryByRole('radio', { name: 'Events' })).not.toBeInTheDocument()
+    expect(within(sheet()).queryByRole('radio', { name: 'Recurring' })).not.toBeInTheDocument()
   })
 
-  it('disables the distance-dependent controls when there is no origin to measure from', () => {
-    renderSheet({ originAvailable: false })
-    expect(within(sheet()).getByRole('radio', { name: '5 mi' })).toBeDisabled()
-    expect(within(sheet()).getByRole('radio', { name: 'Nearest' })).toBeDisabled()
-    expect(within(sheet()).getByTestId('distance-unavailable')).toBeInTheDocument()
+  it('offers no Item-kind selector — those kinds are gone with the Items', () => {
+    renderSheet()
+    for (const label of ['Events', 'Products', 'Services']) {
+      expect(within(sheet()).queryByRole('radio', { name: label })).not.toBeInTheDocument()
+    }
   })
 
   it('reflects the committed filter state when it opens', () => {
-    const value: SecondaryFilters = { distance: 10, schedule: 'weekend', categories: ['repair'], sort: 'nearest' }
+    const value: BrowseFilters = { schedule: 'weekend', tags: ['repair'] }
     renderSheet({ value })
-    expect(within(sheet()).getByRole('radio', { name: '10 mi' })).toBeChecked()
     expect(within(sheet()).getByRole('radio', { name: 'This weekend' })).toBeChecked()
-    expect(within(sheet()).getByRole('checkbox', { name: 'Repair' })).toBeChecked()
-    expect(within(sheet()).getByRole('radio', { name: 'Nearest' })).toBeChecked()
+    expect(within(sheet()).getByRole('checkbox', { name: 'repair' })).toBeChecked()
   })
 })
 
 describe('T115 — applying and clearing', () => {
   it('holds edits as a draft until Show results is tapped', () => {
     renderSheet()
-    fireEvent.click(within(sheet()).getByRole('radio', { name: '5 mi' }))
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'This week' }))
     expect(onApply).not.toHaveBeenCalled()
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
-    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_SECONDARY, distance: 5 })
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, schedule: 'week' })
   })
 
   it('dismisses the sheet when the results are applied', () => {
@@ -104,38 +112,34 @@ describe('T115 — applying and clearing', () => {
 
   it('discards the draft when the sheet is dismissed without applying', () => {
     const { rerender } = renderSheet()
-    fireEvent.click(within(sheet()).getByRole('radio', { name: '5 mi' }))
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'This week' }))
     fireEvent.keyDown(sheet(), { key: 'Escape' })
     expect(onClose).toHaveBeenCalled()
     expect(onApply).not.toHaveBeenCalled()
-    rerender(
-      <ExploreFilterSheet open={false} value={DEFAULT_SECONDARY} categories={['food']} originAvailable onClose={onClose} onApply={onApply} />,
-    )
-    rerender(
-      <ExploreFilterSheet open value={DEFAULT_SECONDARY} categories={['food']} originAvailable onClose={onClose} onApply={onApply} />,
-    )
-    expect(within(sheet()).getByRole('radio', { name: '5 mi' })).not.toBeChecked()
+    rerender(<ExploreFilterSheet {...props({ open: false })} />)
+    rerender(<ExploreFilterSheet {...props()} />)
+    expect(within(sheet()).getByRole('radio', { name: 'This week' })).not.toBeChecked()
   })
 
-  it('multi-selects categories', () => {
+  it('multi-selects tags', () => {
     renderSheet()
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Food' }))
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Repair' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'local food' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'repair' }))
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
-    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_SECONDARY, categories: ['food', 'repair'] })
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, tags: ['local food', 'repair'] })
   })
 
   it('hides Clear all until something is set', () => {
     renderSheet()
     expect(within(sheet()).queryByRole('button', { name: /clear all/i })).not.toBeInTheDocument()
-    fireEvent.click(within(sheet()).getByRole('radio', { name: '5 mi' }))
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'This week' }))
     expect(within(sheet()).getByRole('button', { name: /clear all/i })).toBeInTheDocument()
   })
 
   it('Clear all resets the draft and applies the empty state', () => {
-    renderSheet({ value: { distance: 5, schedule: 'week', categories: ['food'], sort: 'nearest' } })
+    renderSheet({ value: { schedule: 'week', tags: ['local food'] } })
     fireEvent.click(within(sheet()).getByRole('button', { name: /clear all/i }))
-    expect(onApply).toHaveBeenCalledWith(DEFAULT_SECONDARY)
+    expect(onApply).toHaveBeenCalledWith(DEFAULT_BROWSE_FILTERS)
   })
 
   it('closes on a backdrop tap without applying', () => {
@@ -182,9 +186,7 @@ describe('T115 — the sheet is an accessible dialog', () => {
     trigger.focus()
     const { rerender } = renderSheet()
     expect(document.activeElement).not.toBe(trigger)
-    rerender(
-      <ExploreFilterSheet open={false} value={DEFAULT_SECONDARY} categories={['food']} originAvailable onClose={onClose} onApply={onApply} />,
-    )
+    rerender(<ExploreFilterSheet {...props({ open: false })} />)
     expect(document.activeElement).toBe(trigger)
     trigger.remove()
   })
@@ -198,14 +200,14 @@ describe('T115 — the sheet is an accessible dialog', () => {
 
 describe('T115 — Clear all meets the contrast and target floor', () => {
   it('is charcoal rather than the sub-AA accent token', () => {
-    renderSheet({ value: { ...DEFAULT_SECONDARY, distance: 5 } })
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, schedule: 'week' } })
     const clear = within(sheet()).getByRole('button', { name: /clear all/i })
     expect(clear.className).toContain('text-[var(--color-charcoal-900)]')
     expect(clear.className).not.toContain('text-[var(--color-accent)]')
   })
 
   it('carries a full-height touch target', () => {
-    renderSheet({ value: { ...DEFAULT_SECONDARY, distance: 5 } })
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, schedule: 'week' } })
     expect(within(sheet()).getByRole('button', { name: /clear all/i }).className).toMatch(/min-h-11/)
   })
 })
@@ -215,9 +217,7 @@ describe('T115 — review fixes', () => {
     document.body.style.overflow = 'scroll'
     const { rerender } = renderSheet()
     expect(document.body.style.overflow).toBe('hidden')
-    rerender(
-      <ExploreFilterSheet open={false} value={DEFAULT_SECONDARY} categories={['food']} originAvailable onClose={onClose} onApply={onApply} />,
-    )
+    rerender(<ExploreFilterSheet {...props({ open: false })} />)
     expect(document.body.style.overflow).toBe('scroll')
     document.body.style.overflow = ''
   })
@@ -227,14 +227,14 @@ describe('T115 — review fixes', () => {
     expect(screen.getByTestId('filter-sheet-backdrop')).toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('still lists a selected category the current results no longer contain', () => {
-    // Switching kinds can drop a category from the options while it stays
-    // selected; the sheet must remain able to turn it off.
-    renderSheet({ categories: ['food'], value: { ...DEFAULT_SECONDARY, categories: ['repair'] } })
-    const repair = within(sheet()).getByRole('checkbox', { name: 'Repair' })
+  it('still lists a selected tag the current results no longer contain', () => {
+    // A search can drop a tag from the options while it stays selected; the
+    // sheet must remain able to turn it off.
+    renderSheet({ tags: ['local food'], value: { ...DEFAULT_BROWSE_FILTERS, tags: ['repair'] } })
+    const repair = within(sheet()).getByRole('checkbox', { name: 'repair' })
     expect(repair).toBeChecked()
     fireEvent.click(repair)
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
-    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_SECONDARY, categories: [] })
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, tags: [] })
   })
 })

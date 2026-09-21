@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { ListMapToggle } from './ListMapToggle'
-import { EXPLORE_RESULTS_ID } from './KindFilterPills'
+import { BROWSE_RESULTS_ID } from '@/components/browse/results-id'
 
 const onChange = vi.fn()
 
@@ -53,7 +53,7 @@ describe('T116 — the toggle is a tablist', () => {
 
   it('points both tabs at the results region', () => {
     renderToggle()
-    for (const tab of tabs()) expect(tab).toHaveAttribute('aria-controls', EXPLORE_RESULTS_ID)
+    for (const tab of tabs()) expect(tab).toHaveAttribute('aria-controls', BROWSE_RESULTS_ID)
   })
 
   it('uses a roving tabindex so the pair is one tab stop', () => {

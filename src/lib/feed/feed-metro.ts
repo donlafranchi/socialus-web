@@ -20,12 +20,24 @@ export interface FeedMetro {
   id: string
   slug: string
   name: string
+  /**
+   * Does the platform actually serve this metro today?
+   *
+   * T156 folded `explore/metros.ts`'s `fetchChoosableMetros` into this
+   * function, which was reading the same table for the same picker. The flag
+   * came with it, and it is not decoration: exactly one metro is open and 296
+   * are seeded, so a picker offering all 296 as equals would claim coverage
+   * the platform does not have. 295 carry no polygon and no centroid — the
+   * waitlist migration dropped both NOT NULLs — so choosing one could only
+   * relabel the surface while the results underneath stayed identical.
+   */
+  isOpen: boolean
 }
 
 type FromClient = Pick<SupabaseClient, 'from'>
 
 const TABLE = 'metro_polygons'
-const COLUMNS = 'id, slug, name'
+const COLUMNS = 'id, slug, name, is_open'
 
 async function one(
   supabase: FromClient,
@@ -38,7 +50,18 @@ async function one(
     .eq(column, value)
     .maybeSingle()
   if (error) throw error
-  return (data as FeedMetro | null) ?? null
+  return toMetro(data as MetroRow | null)
+}
+
+interface MetroRow {
+  id: string
+  slug: string
+  name: string
+  is_open: boolean
+}
+
+function toMetro(row: MetroRow | null): FeedMetro | null {
+  return row ? { id: row.id, slug: row.slug, name: row.name, isOpen: row.is_open } : null
 }
 
 /**
@@ -68,15 +91,40 @@ export async function resolveFeedMetro(
 }
 
 /**
- * The metros the switcher offers, by name.
+ * The metros the switcher offers — every seeded row, `isOpen` saying which
+ * ones the platform actually serves.
  *
- * There is exactly one seeded today. The rural hole is real and this does not
+ * There is exactly one open today. The rural hole is real and this does not
  * close it: `members.home_metro_id` is null outside every seeded CSA, and the
  * default keeps the surface non-blank without making it relevant to someone in
  * another state. A known limitation of a one-metro launch.
  */
 export async function listFeedMetros(supabase: FromClient): Promise<FeedMetro[]> {
-  const { data, error } = await supabase.from(TABLE).select(COLUMNS).order('name')
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select(COLUMNS)
+    // Open first, then alphabetical — a picker lands where a person expects
+    // within each group, and the served metros are what they came for.
+    .order('is_open', { ascending: false })
+    .order('name')
   if (error) throw error
-  return (data ?? []) as FeedMetro[]
+  return ((data ?? []) as MetroRow[]).map((r) => toMetro(r)!)
+}
+
+/**
+ * The switcher's two groups.
+ *
+ * Exactly one metro is open today and 296 are seeded. A flat list of 296 as
+ * equals would imply we cover all of them, so the served ones come first under
+ * their own heading and the rest are named as what they are — places you can
+ * point at, not places we run in.
+ */
+export function splitByOpen(metros: readonly FeedMetro[]): {
+  open: FeedMetro[]
+  notYet: FeedMetro[]
+} {
+  return {
+    open: metros.filter((m) => m.isOpen),
+    notYet: metros.filter((m) => !m.isOpen),
+  }
 }

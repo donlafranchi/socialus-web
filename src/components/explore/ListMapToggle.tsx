@@ -1,18 +1,17 @@
 'use client'
 
 // T116 — the inline List/Map toggle (F044). Inline, in the document flow, so
-// it scrolls with the results: Explore already carries three fixed layers
-// (sticky search row, kind pills, nav) and a fourth would compress the
-// scrollable area it sits in.
+// it scrolls with the results: Browse carries two fixed layers (the sticky
+// search row and the nav) and a third would compress the scrollable area it
+// sits in.
 //
-// Two tablists now point at `#explore-results` — this one and T114's kind
-// pills. Both genuinely control that region; the panel's `aria-labelledby`
-// stays on the kind tab, which is the more meaningful label ("Events" says
-// more about what is in the panel than "List" does).
+// T156 — this is now the only tablist pointing at the results container, and
+// that container is a labelled `region` rather than a `tabpanel`. The kind
+// pills that were the other tablist are gone with the Item kinds they named.
 
 import { useRef } from 'react'
 import { MapIcon, List } from 'lucide-react'
-import { EXPLORE_RESULTS_ID } from './KindFilterPills'
+import { BROWSE_RESULTS_ID } from '@/components/browse/results-id'
 
 export type ExploreView = 'list' | 'map'
 
@@ -66,7 +65,7 @@ export function ListMapToggle({ view, onChange }: ListMapToggleProps) {
             type="button"
             role="tab"
             aria-selected={isSelected}
-            aria-controls={EXPLORE_RESULTS_ID}
+            aria-controls={BROWSE_RESULTS_ID}
             tabIndex={isSelected ? 0 : -1}
             data-view={v.value}
             data-active={isSelected}

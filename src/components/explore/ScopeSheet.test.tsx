@@ -16,17 +16,18 @@ const METROS = [
 vi.mock('@/lib/supabase', () => ({
   createClient: () => ({ auth: { getUser: async () => ({ data: { user: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } }),
 }))
-vi.mock('@/lib/explore/metros', async (orig) => ({
-  ...(await orig<typeof import('@/lib/explore/metros')>()),
-  fetchChoosableMetros: async () => METROS,
-}))
-
 const onChoose = vi.fn()
 const onClose = vi.fn()
 
 function renderSheet(currentSlug: string | null = null) {
   return render(
-    <ScopeSheet open currentSlug={currentSlug} onClose={onClose} onChoose={onChoose} />,
+    <ScopeSheet
+      open
+      currentSlug={currentSlug}
+      metros={METROS}
+      onClose={onClose}
+      onChoose={onChoose}
+    />,
   )
 }
 
@@ -108,7 +109,15 @@ describe('ScopeSheet', () => {
   })
 
   it('renders nothing when closed', () => {
-    render(<ScopeSheet open={false} currentSlug={null} onClose={onClose} onChoose={onChoose} />)
+    render(
+      <ScopeSheet
+        open={false}
+        currentSlug={null}
+        metros={METROS}
+        onClose={onClose}
+        onChoose={onChoose}
+      />,
+    )
     expect(screen.queryByTestId('scope-sheet')).toBeNull()
   })
 })

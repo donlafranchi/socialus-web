@@ -10,9 +10,12 @@
 import { describe, it, expect, vi } from 'vitest'
 import { resolveFeedMetro, listFeedMetros, DEFAULT_METRO_SLUG } from './feed-metro'
 
-const SAC = { id: 'metro-sac', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA' }
-const PDX = { id: 'metro-pdx', slug: 'portland-vancouver-or-wa', name: 'Portland-Vancouver, OR-WA' }
+const SAC = { id: 'metro-sac', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', is_open: true }
+const PDX = { id: 'metro-pdx', slug: 'portland-vancouver-or-wa', name: 'Portland-Vancouver, OR-WA', is_open: false }
 const ROWS = [SAC, PDX]
+
+/** The same rows as the helper returns them — `is_open` becomes `isOpen`. */
+const MAPPED = ROWS.map(({ id, slug, name, is_open }) => ({ id, slug, name, isOpen: is_open }))
 
 /** Minimal metro_polygons stub: eq('id'|'slug', …) then maybeSingle, or a list. */
 function client(rows = ROWS) {
@@ -20,7 +23,11 @@ function client(rows = ROWS) {
     const state: { col?: string; val?: string } = {}
     const b: Record<string, unknown> = {
       select: () => b,
-      order: () => Promise.resolve({ data: rows, error: null }),
+      // Chainable AND awaitable: `listFeedMetros` orders twice (open first,
+      // then by name) and awaits the builder itself.
+      order: () => b,
+      then: (resolve: (v: unknown) => unknown) =>
+        Promise.resolve({ data: rows, error: null }).then(resolve),
       eq: (col: string, val: string) => {
         state.col = col
         state.val = val
@@ -102,9 +109,14 @@ describe('T155 — the precedence inversion is deliberate', () => {
 })
 
 describe('T155 — listFeedMetros', () => {
+  it('carries is_open, so the picker can say which metros are actually served', async () => {
+    const metros = await listFeedMetros(client())
+    expect(metros.map((m) => m.isOpen)).toEqual([true, false])
+  })
+
   it('returns the seeded metros for the switcher', async () => {
     const metros = await listFeedMetros(client())
-    expect(metros).toEqual(ROWS)
+    expect(metros).toEqual(MAPPED)
   })
 
   it('returns an empty list rather than throwing when none are seeded', async () => {
