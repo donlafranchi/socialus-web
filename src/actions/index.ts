@@ -31,7 +31,7 @@ import {
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
-import { metroWaitlistJoin } from './metro'
+import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import type { NamedActionHandler } from './_lib/handler'
 
 const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
@@ -73,6 +73,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
+  // T167 — F076 c13-15: the same step for someone with no account. Separate
+  // handler because this one has no acting member to guard on at all.
+  'metro.waitlist_join_anonymous': metroWaitlistJoinAnonymous as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {
@@ -124,6 +127,12 @@ export {
   type WaitlistRole,
   type MetroWaitlistJoinInput,
   type MetroWaitlistJoinResult,
+} from './metro'
+export {
+  metroWaitlistJoinAnonymous,
+  metroWaitlistJoinAnonymousInput,
+  type MetroWaitlistJoinAnonymousInput,
+  type MetroWaitlistJoinAnonymousResult,
 } from './metro'
 export {
   ActionError,

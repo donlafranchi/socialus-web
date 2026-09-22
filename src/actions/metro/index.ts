@@ -7,3 +7,9 @@ export {
   type MetroWaitlistJoinInput,
   type MetroWaitlistJoinResult,
 } from './waitlist-join'
+export {
+  metroWaitlistJoinAnonymous,
+  metroWaitlistJoinAnonymousInput,
+  type MetroWaitlistJoinAnonymousInput,
+  type MetroWaitlistJoinAnonymousResult,
+} from './waitlist-join-anonymous'

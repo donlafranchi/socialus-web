@@ -14,7 +14,13 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { metroWaitlistJoin, ActionError, type WaitlistRole } from '@/actions'
+import { resolveAnonymousActionContext } from '@/lib/action-context'
+import {
+  metroWaitlistJoin,
+  metroWaitlistJoinAnonymous,
+  ActionError,
+  type WaitlistRole,
+} from '@/actions'
 import { metroStanding, standingMessage } from '@/lib/metro/waitlist-standing'
 
 export interface JoinMetroWaitlistResult {
@@ -91,6 +97,61 @@ export async function joinMetroWaitlistAction(input: {
   return {
     open: false,
     metroName: after.name,
+    standing: standing.display,
+    message: standingMessage(standing),
+  }
+}
+
+// T167 (#193) — F076 criteria 13-15: the same step, without an account.
+//
+// NO `getUser()`, AND NO SUPABASE CLIENT AT ALL. The signed-in action above
+// reads `metro_polygons` through the browser client twice, around the write.
+// This one reads nothing: the handler returns the counts it read inside its
+// own transaction, BEFORE the write, and those are the numbers that come back.
+//
+// That is criterion 14's subtle half. `joinMetroWaitlistAction` reads AFTER on
+// purpose — a member is entitled to see themselves in the number. Here, a
+// count that moved on a genuine insert and not on a repeat would be the oracle
+// that everything else in this path is closing, so the count must be the one
+// that predates the write. The divergence is deliberate; the two functions
+// should not be "unified".
+//
+// The result type is the same `JoinMetroWaitlistResult` the popup already
+// takes, and it carries no flag distinguishing a new address from a known one,
+// because there is nowhere in it to put one.
+export async function joinMetroWaitlistAnonymousAction(input: {
+  metroId: string
+  email: string
+  role: WaitlistRole
+}): Promise<JoinMetroWaitlistResult> {
+  const ctx = resolveAnonymousActionContext()
+
+  let result
+  try {
+    result = await metroWaitlistJoinAnonymous(ctx, {
+      metroId: input.metroId,
+      email: input.email,
+      role: input.role,
+    })
+  } catch (err) {
+    if (err instanceof ActionError) throw new Error(err.message)
+    throw err
+  }
+
+  if (result.open) {
+    return { open: true, metroName: result.metroName, standing: { combined: 0, target: 0 }, message: '' }
+  }
+
+  const standing = metroStanding({
+    creatorCount: result.creatorCount,
+    patronCount: result.patronCount,
+    creatorThreshold: result.creatorThreshold,
+    patronThreshold: result.patronThreshold,
+  })
+
+  return {
+    open: false,
+    metroName: result.metroName,
     standing: standing.display,
     message: standingMessage(standing),
   }
