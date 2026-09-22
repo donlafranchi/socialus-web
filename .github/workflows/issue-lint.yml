@@ -4,6 +4,16 @@ on:
     types: [opened, edited]
   pull_request:
     types: [opened, edited]
+# WITHOUT THIS THE JOB CANNOT DO THE ONE THING IT IS FOR.
+# The default token is read-only for issues, so `addLabels` returned
+# `403 Resource not accessible by integration` and killed the run before it
+# could comment. The red tick looked like flakiness; the label never appeared,
+# so `needs-fix` — which CLAUDE.md tells every agent to watch for — had never
+# once been applied. Bug #189.
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   lint:
     # PINNED, not ubuntu-latest. The `ubuntu-latest` label migrates to Ubuntu 26
@@ -26,8 +36,13 @@ jobs:
             const problems = [];
 
             if (!isPR) {
-              const kindMatch = body.match(/Kind:\s*(scenario|change|bug|chore)/i);
-              const scenarioMatch = body.match(/Scenario:\s*(F\d+|none)/i);
+              // `[*_\s]*` BECAUSE THE TEMPLATE IS MARKDOWN AND THIS READS RAW TEXT.
+              // .github/ISSUE_TEMPLATE/work.md emits `**Kind:** bug`, so what
+              // follows `Kind:` is `**`, which the old `\s*` could not cross.
+              // Every issue opened from this repo's own template was judged to
+              // be missing the two fields it had just filled in. Bug #189.
+              const kindMatch = body.match(/Kind:[*_\s]*(scenario|change|bug|chore)\b/i);
+              const scenarioMatch = body.match(/Scenario:[*_\s]*(F\d+|none)\b/i);
               if (!kindMatch) problems.push("missing `Kind:` (scenario|change|bug|chore)");
               if (!scenarioMatch) problems.push("missing `Scenario:` (F### or none)");
               const kind = kindMatch?.[1]?.toLowerCase();
