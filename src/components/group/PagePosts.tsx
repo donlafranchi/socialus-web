@@ -27,6 +27,7 @@
 import { useState } from 'react'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
+import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
@@ -257,7 +258,7 @@ export function PagePosts({
   }
 
   return (
-    <section className="mt-8" data-testid="page-posts">
+    <section id={ANNOUNCE_ANCHOR} className="mt-8 scroll-mt-20" data-testid="page-posts">
       <h2 className="text-lg font-medium">Announcements</h2>
 
       {canPost && (
