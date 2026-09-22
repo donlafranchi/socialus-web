@@ -50,6 +50,23 @@ fi
 
 # Rows look like:  ' 039  | 039  | 2026-… '   — local | remote | time
 # An unmatched row leaves one of the first two columns empty.
+#
+# BACKTICKS, NOT JUST SPACES — bug #209, and it made all three checks built on
+# this script inert.
+#
+# `supabase migration list` emits a MARKDOWN table when stdout is not a TTY, so
+# in CI every cell arrives backtick-wrapped and an ABSENT cell arrives as
+# '` `'. Stripping only whitespace left that as two backticks, which is
+# non-empty, so an unapplied migration was classified as neither local-only nor
+# remote-only and the script reported "clean". In a terminal the CLI renders
+# the same table without backticks, which is why it worked by hand for weeks.
+#
+# This is the same bug that broke run 35469653868 on 2026-09-19. That one was
+# fixed in scripts/migrations-pending.sh and pinned by
+# tests/migrations-pending-parse.test.ts. THIS FILE HAS THE SAME PARSER AND WAS
+# NOT FIXED — same bug, two files, one of them repaired. There is now an
+# executing test over this one too, for the same reason its sibling has one: a
+# grep cannot see a parse bug.
 local_only=()
 remote_only=()
 
@@ -64,8 +81,8 @@ while IFS= read -r line; do
     *---*) continue ;;
   esac
 
-  l="$(printf '%s' "$line" | cut -d'|' -f1 | tr -d '[:space:]')"
-  r="$(printf '%s' "$line" | cut -d'|' -f2 | tr -d '[:space:]')"
+  l="$(printf '%s' "$line" | cut -d'|' -f1 | tr -d '[:space:]`')"
+  r="$(printf '%s' "$line" | cut -d'|' -f2 | tr -d '[:space:]`')"
 
   if [ -n "$l" ] && [ -z "$r" ]; then local_only+=("$l"); fi
   if [ -z "$l" ] && [ -n "$r" ]; then remote_only+=("$r"); fi
