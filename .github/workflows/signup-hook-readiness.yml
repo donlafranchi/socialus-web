@@ -1,0 +1,58 @@
+name: signup hook readiness
+
+# Does production's auth-signup hook actually work?
+#
+# WHY THIS EXISTS. `006_auth_signup_hook.sql` creates the members row for a new
+# auth user by POSTing to this app, signed with two Vault secrets. When either
+# secret is missing the function does this:
+#
+#     raise warning 'auth-signup hook not configured ... Member row for auth
+#     user % will NOT be auto-created'
+#     return new;
+#
+# A WARNING. The signup succeeds, the auth.users row is created, and no members
+# row ever appears. The first the person sees is "We could not finish setting
+# up your account" one step later, in onboarding. Nothing goes red, nothing
+# pages anyone, and production's newest members row is 2026-09-14 — so nothing
+# has exercised this in over a week.
+#
+# "We think it is configured" is not a thing to carry into launch. This asks.
+#
+# IT NEVER PRINTS A SECRET VALUE. It reads `vault.secrets`, which holds the
+# encrypted column, and selects only `name` — never `vault.decrypted_secrets`,
+# and never the secret itself. The output is a name and a yes/no.
+#
+# Read-only. No writes, no DDL, no signup. Manual only — this is a question you
+# ask before a launch and after a credentials change, not something that needs
+# to run on every push.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  readiness:
+    name: Is the signup hook wired up?
+    # PINNED, not ubuntu-latest — same reasoning as every other job here.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Ask
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+        run: bash scripts/check-signup-hook.sh
