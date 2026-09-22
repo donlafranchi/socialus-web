@@ -25,6 +25,21 @@ Steps are for someone holding a phone who has not read the ticket. No file paths
 
 Full rule, including when he looks: `ops-pattern/PIPELINE.md` § Who checks what.
 
+## The seeds are privileged
+
+`supabase/seeds/` writes as `postgres`: RLS bypassed, two triggers disabled,
+every UUID hard-coded, nothing through the action layer. A seeded row is
+assembled by someone who already knew what the finished row should contain; a
+real row is assembled by a handler from a form. **When they disagree, the seed
+is the one that looks right**, and a surface can be correct against every
+seeded row and broken for every member-created one with nothing going red.
+That is how bug #175 — a Page a member created had no reachable URL — survived
+weeks of people browsing working Page URLs in the seed data.
+
+So: verify against a row that went through the handler. "It works on the seed"
+is evidence about the seed. Full note, including why the seeds stay:
+`supabase/seeds/README.md`.
+
 ## When a PR diverges from its scenario
 
 A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `ops-pattern`, not here. Don't quietly ship a different behavior than what was approved.
