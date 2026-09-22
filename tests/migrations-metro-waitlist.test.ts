@@ -194,12 +194,31 @@ describe.skipIf(!RUNNABLE)('T163 — metro_waitlist shape', () => {
     expect(d).toBeNull()
   })
 
-  it('is unique on the person — idempotency is the constraint, not the handler (c4)', async () => {
-    const rows = await query<{ def: string }>(
+  it('is unique on the person — the database enforces idempotency, not the handler (c4)', async () => {
+    // WAS a `unique` CONSTRAINT and is now a partial unique INDEX.
+    //
+    // The anonymous amendment made `member_id` nullable, and a constraint
+    // cannot be partial — so the rule had to be re-expressed as
+    // `metro_waitlist_member_unique ... where member_id is not null`. That is
+    // a change of mechanism and not of rule, and this test asked about the
+    // mechanism, so it went red on a migration that broke nothing.
+    //
+    // It asks about the rule now: uniqueness on member_id exists SOMEWHERE the
+    // database enforces it. Behaviour is pinned separately, by
+    // migrations-metro-waitlist-anonymous.test.ts, which inserts a second row
+    // for one member and requires the insert to fail.
+    const constraints = await query<{ def: string }>(
       `select pg_get_constraintdef(oid) as def from pg_constraint
         where conrelid = 'public.metro_waitlist'::regclass and contype = 'u'`,
     )
-    expect(rows.some((r) => /\(member_id\)/.test(r.def))).toBe(true)
+    const indexes = await query<{ def: string }>(
+      `select indexdef as def from pg_indexes
+        where schemaname = 'public' and tablename = 'metro_waitlist'`,
+    )
+    const unique = [...constraints, ...indexes]
+      .map((r) => r.def)
+      .filter((d) => /unique/i.test(d) && /\(\s*member_id\s*\)/.test(d))
+    expect(unique, 'nothing in the database makes a second row for one member impossible').not.toHaveLength(0)
   })
 })
 
