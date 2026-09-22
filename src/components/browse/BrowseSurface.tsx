@@ -27,6 +27,7 @@ import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
 import { ScopeSheet } from '@/components/explore/ScopeSheet'
 import { BrowseResultCard } from './BrowseResultCard'
+import { FollowingRow } from './FollowingRow'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import {
@@ -181,6 +182,15 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
 
       {/* Above the results, and absent for a signed-in Member. */}
       {!snapshot.signedIn && <MakeThisYoursBanner isAuthenticated={false} />}
+
+      {/* F059 criterion 2b. Above the public results because it is what this
+          person came back for, and NOT tucked into the member's own area —
+          Browse is for discovery, /you is for management, and the content
+          belongs on the former. Renders nothing when the list is empty, which
+          is every signed-out load and every member who follows nothing. It is
+          outside the results region on purpose: it is not a result of the
+          search, and the count above the grid must not include it. */}
+      <FollowingRow results={snapshot.following} />
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}

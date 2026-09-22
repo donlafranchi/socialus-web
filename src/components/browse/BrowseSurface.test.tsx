@@ -56,6 +56,8 @@ function result(over: Partial<BrowseResult> = {}): BrowseResult {
 function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
   return {
     results: [result()],
+    // T169 — empty by default, which is every signed-out load. The row hides.
+    following: [],
     metro: SAC,
     chosen: false,
     metros: [SAC, PDX],
@@ -266,5 +268,43 @@ describe('T156 — M3: the accent token is not used for text on white', () => {
     render(<BrowseSurface initial={snapshot({ results: [] })} />)
     expect(screen.getByRole('button', { name: /clear filters/i }).className).toMatch(/min-h-11/)
     expect(screen.getByTestId('browse-widen').className).toMatch(/min-h-11/)
+  })
+})
+
+describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
+  it('renders no trace of the row for a signed-out reader', () => {
+    render(<BrowseSurface initial={snapshot({ signedIn: false, following: [] })} />)
+    expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
+    // Absence, not emptiness. No heading, no hint the row exists.
+    expect(screen.queryByText(/announcements from pages/i)).not.toBeInTheDocument()
+  })
+
+  it('renders no row for a member who follows nothing', () => {
+    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [] })} />)
+    expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
+  })
+
+  it('renders the row when there is something in it', () => {
+    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
+    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
+    expect(screen.getByTestId('browse-following')).toBeInTheDocument()
+  })
+
+  it('keeps the personal half out of the result count', () => {
+    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
+    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
+    // One public result. The row is not a result of the search and must not
+    // inflate the count above the grid.
+    expect(screen.getByTestId('result-count').textContent).toMatch(/^1 result/)
+  })
+
+  it('does not let a search over the public half filter the personal row', () => {
+    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
+    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzzz' } })
+    // The public half is now empty…
+    expect(screen.getByTestId('browse-empty')).toBeInTheDocument()
+    expect(screen.getByTestId('browse-following')).toBeInTheDocument()
   })
 })
