@@ -144,3 +144,75 @@ jobs:
           export SUPABASE_ANON_KEY="${ANON_KEY:?supabase status did not export ANON_KEY}"
           export SUPABASE_SERVICE_ROLE_KEY="${SERVICE_ROLE_KEY:?supabase status did not export SERVICE_ROLE_KEY}"
           npm test
+
+  # ---------------------------------------------------------------------
+  # Is every migration in this branch already applied to production?
+  #
+  # 2026-09-21: two PRs merged carrying a migration nobody had applied, the
+  # deploy went out against a database without it, and every Page URL 404'd
+  # for an hour. #164 pinned the CLI so the watching job stops going dark.
+  # #184 added /api/health/schema so a deployment reports a schema its code
+  # cannot use. Both of those NOTICE. Both fire after the merge, which is
+  # after the outage has started.
+  #
+  # The thing that prevents it is an ordering: a migration reaches production
+  # BEFORE it reaches main, applied from its own branch — which the apply
+  # workflow already supports, and its own input text already tells you to do
+  # ("FIRST check 'Use workflow from'"). Then the merge can never be ahead of
+  # the database, because the database went first.
+  #
+  # `--strict` is exactly that question. The `pending` job in migrations.yml
+  # asks it of main; this asks it of the branch, before the branch is main.
+  #
+  # NO `paths:` FILTER, DELIBERATELY. ci.yml runs on every PR, and this job
+  # must too. A required check that is skipped by a path filter reports
+  # nothing, and GitHub treats "nothing" as "not yet" — which blocks every
+  # unrelated PR forever, and is how people learn to turn the requirement off.
+  # Running always and passing quickly is what makes it safe to require.
+  #
+  # IT IS NOT YET A CONTROL — SEE Issue #187.
+  # Making a red check actually stop a merge needs branch protection or a
+  # ruleset. Both return "403 Upgrade to GitHub Pro or make this repository
+  # public" on this repo's plan; that was checked against the API with an
+  # admin token, not assumed. Until one of them is available this is a red
+  # tick a person can merge past. It goes in now so that making it binding is
+  # a setting rather than new work.
+  # ---------------------------------------------------------------------
+  applied:
+    name: Migrations applied to production
+    if: github.event_name == 'pull_request'
+    # PINNED, not ubuntu-latest — same reasoning as every other job here.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # PINNED, not `latest`. Issue #164, and it has now cost an outage.
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      # Missing secrets exit non-zero here and take the job with them. That
+      # matters more than usual for this job: the failure mode being guarded
+      # against is a migration going unnoticed, so a version of this check
+      # that shrugs when it cannot reach the database would be worse than not
+      # having it — it would be a green tick asserting something nobody asked.
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Every migration here is already in the database
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+        run: |
+          if bash scripts/check-migration-drift.sh --strict; then
+            exit 0
+          fi
+          echo "::error::This branch carries a migration production does not have. Apply it FIRST, then merge: Actions -> 'Apply migrations to PRODUCTION' -> Run workflow -> set 'Use workflow from' to THIS BRANCH -> type apply. Merging first is what caused the 2026-09-21 outage."
+          exit 1
