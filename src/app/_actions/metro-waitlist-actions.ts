@@ -14,8 +14,18 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { metroWaitlistJoin, ActionError, type WaitlistRole } from '@/actions'
-import { metroStanding, standingMessage } from '@/lib/metro/waitlist-standing'
+import { resolveAnonymousActionContext } from '@/lib/action-context'
+import {
+  metroWaitlistJoin,
+  metroWaitlistJoinAnonymous,
+  ActionError,
+  type WaitlistRole,
+} from '@/actions'
+import {
+  metroStanding,
+  standingMessage,
+  ANONYMOUS_WAITLIST_MESSAGE,
+} from '@/lib/metro/waitlist-standing'
 
 export interface JoinMetroWaitlistResult {
   /** True when the metro is already live — there is nothing to wait for. */
@@ -93,5 +103,56 @@ export async function joinMetroWaitlistAction(input: {
     metroName: after.name,
     standing: standing.display,
     message: standingMessage(standing),
+  }
+}
+
+// T167 (#193) — F076 criteria 13-15: the same step, without an account.
+//
+// NO `getUser()`, AND NO SUPABASE CLIENT AT ALL. The signed-in action above
+// reads `metro_polygons` through the browser client twice, around the write.
+// This one reads nothing, because there is nothing it is allowed to report.
+//
+// NO COUNT, RULED 2026-09-22 (#196). The first version of this returned a
+// standing read before the write, on the reasoning that a pre-write count
+// cannot be diffed. It can: submit a new address and it returns N, submit it
+// again and it returns N+1. Reading after the write instead makes a single
+// probe of someone else's address leak, which is worse. Any truthful live
+// count leaks membership by differencing, so the anonymous path shows none —
+// the handler does not read the counts and this result has no field for one.
+//
+// The signed-in action above keeps its number, deliberately. A member is
+// entitled to see themselves counted; someone leaving an address learns
+// nothing from it that they can act on.
+export interface JoinMetroWaitlistAnonymousResult {
+  /** True when the metro is already live — there is nothing to wait for. */
+  open: boolean
+  metroName: string
+  /** Fixed text. Nothing in it is derived from a count. */
+  message: string
+}
+
+export async function joinMetroWaitlistAnonymousAction(input: {
+  metroId: string
+  email: string
+  role: WaitlistRole
+}): Promise<JoinMetroWaitlistAnonymousResult> {
+  const ctx = resolveAnonymousActionContext()
+
+  let result
+  try {
+    result = await metroWaitlistJoinAnonymous(ctx, {
+      metroId: input.metroId,
+      email: input.email,
+      role: input.role,
+    })
+  } catch (err) {
+    if (err instanceof ActionError) throw new Error(err.message)
+    throw err
+  }
+
+  return {
+    open: result.open,
+    metroName: result.metroName,
+    message: result.open ? '' : ANONYMOUS_WAITLIST_MESSAGE,
   }
 }

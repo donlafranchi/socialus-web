@@ -33,8 +33,28 @@
 --     2. the count shown is read BEFORE the write, so it cannot be diffed
 --        across two submissions to learn whether an address was new;
 --     3. rate limiting on the endpoint.
---   (1) and (2) are the ones that matter: without (2) the popup's own number
---   is the oracle, which is easy to miss.
+--
+--   CORRECTED 2026-09-22 (#196). POINT 2 IS WRONG, AND THE SQL BELOW IS
+--   UNAFFECTED — only this comment overclaimed.
+--
+--   Reading before the write does not prevent diffing across two submissions;
+--   it is the thing that gets diffed. The first submission inserts a row, so
+--   the second submission's pre-write read returns one higher — 0, then 1,
+--   verified against Postgres while building the handler. The unit test
+--   asserting the two were identical passed throughout, because a mocked count
+--   is fixed however it is called.
+--
+--   Reading AFTER the write inverts the problem rather than solving it: two
+--   submissions of one address then agree, but a single probe of an address
+--   you do not own leaks in one request instead of two. ANY TRUTHFUL LIVE
+--   COUNT LEAKS MEMBERSHIP BY DIFFERENCING — the leak is in the number, not in
+--   when it is read.
+--
+--   RULED: an anonymous submitter is shown NO COUNT. Not rounded, not stale,
+--   none. The handler does not select the counts and its result type has no
+--   field for one, so there is no read order left to get wrong. Point 1 stands
+--   and is now true in full. Point 3 is Issue #195, and is about count
+--   inflation, which is a different problem from this one.
 --
 -- WHAT THIS DOES NOT DO
 --   No email is verified here. An unverified address means the count is
