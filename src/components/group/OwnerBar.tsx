@@ -17,6 +17,7 @@
 
 import Link from 'next/link'
 import { Pencil, Megaphone } from 'lucide-react'
+import { ANNOUNCE_ANCHOR } from './announce-anchor'
 
 export function OwnerBar({ pagePath }: { pagePath: string }) {
   // Issue #175 — the owner surface is a CHILD of the Page now.
@@ -39,7 +40,7 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
         Edit
       </Link>
       <Link
-        href={`${pagePath}#announce`}
+        href={`${pagePath}#${ANNOUNCE_ANCHOR}`}
         data-testid="owner-announce"
         className="btn-primary press"
       >
