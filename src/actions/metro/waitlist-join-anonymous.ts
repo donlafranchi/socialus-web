@@ -17,38 +17,35 @@
 // consequences of one index rather than becoming logic here, exactly as
 // `member_id unique` does for a signed-in member.
 //
-// CRITERION 14, AND THE HALF OF IT THIS HANDLER DOES NOT DELIVER.
+// CRITERION 14 IS SATISFIED BY NOT READING THE COUNTS AT ALL.
 // A unique index on an email makes "is this address already waiting?" a
-// question this endpoint can answer. SQL cannot fix that; the handler has to.
+// question this endpoint can answer, and SQL cannot fix that. The first
+// attempt at fixing it here was to read the counts BEFORE the write, which is
+// what the migration and #191 prescribe. That does not work, and it was the
+// real database rather than the test that said so: submit a new address and
+// the pre-write read returns N, submit it again and it returns N+1, because
+// the first submission inserted. Verified — creatorCount 0, then 1. The unit
+// test passed throughout, because the mock returns a fixed count however it is
+// called; it was asking whether the handler returns what the mock returns.
 //
-// What is delivered: the SHAPE of the result is identical whether the row was
-// inserted, moved, or already exactly here. No flag, no second message, no
-// different status. The result type has nowhere to put one.
+// Reading after the write inverts the problem instead of solving it: two
+// submissions of one address then agree, but a single probe of an address you
+// do not own returns N+1 if it was new and N if it was not, which is a cheaper
+// attack than the one it closes. ANY TRUTHFUL LIVE COUNT LEAKS MEMBERSHIP BY
+// DIFFERENCING — the leak is in the number, not in when you read it.
 //
-// What is NOT delivered: THE COUNT. The counts are read before any write, per
-// the rule the migration and #191 set down — and reading before the write does
-// not do what that rule says it does. Submit a new address and the pre-write
-// read returns N; submit the same address again and it returns N+1, because
-// the first submission inserted. Criterion 14's own sentence — "a person who
-// submits twice cannot tell that they had already submitted" — is therefore
-// false here. Verified against local Postgres, not reasoned about: two
-// submissions returned creatorCount 0, then 1.
+// RULED 2026-09-22 (#196): an anonymous submitter is shown no count. Not a
+// rounded one, not a stale one — none. So this handler does not SELECT
+// creator_count or patron_count, and its result type has nowhere to put them.
+// The read-order question does not arise, because there is no read. The
+// counters are still MAINTAINED here, because a write is not a read and the
+// metro's standing still has to be right for the people entitled to see it.
 //
-// Reading AFTER the write inverts the problem rather than solving it: two
-// submissions of one address then agree (N+1 both times), but a single probe
-// of an address you do not own returns N+1 if it was new and N if it was not,
-// which is a cheaper attack than the one it fixes.
-//
-// The honest statement is that ANY truthful live count leaks membership by
-// differencing, and which way to trade that off is a product ruling with an
-// acceptance check behind it — Issue #196, routed to `plan`. Read-before-write
-// is kept meanwhile because it is what the applied migration documents, and
-// because it is the better of the two against a single probe.
-//
-// Note this is the OPPOSITE of what `joinMetroWaitlistAction` does for a
-// signed-in member, where reading after is right because that person is
-// entitled to see themselves counted.
-//
+// The count is not load-bearing for this person. It teaches a creator on the
+// composer's audience switch who they are reaching; it teaches someone leaving
+// an address nothing they can act on. `joinMetroWaitlistAction` keeps showing
+// it to a signed-in member, who is entitled to see themselves counted.
+
 // THIS HANDLER NEVER OPENS A METRO (criterion 12), and a test asserts that no
 // statement it issues writes `is_open`.
 
@@ -86,21 +83,15 @@ export type MetroWaitlistJoinAnonymousInput = z.infer<typeof metroWaitlistJoinAn
 /**
  * Everything the caller learns, and nothing else.
  *
- * There is no `changed`, no `created`, no `alreadyListed`. That absence is the
- * feature — criterion 14 is enforced by the type having nowhere to leak, not
- * by callers remembering not to look.
- *
- * The counts are as they stood BEFORE this call.
+ * No `changed`, no `created`, no `alreadyListed`, AND NO COUNT. That absence is
+ * the enforcement — criterion 14 holds because the type has nowhere to leak,
+ * not because callers remember not to look.
  */
 export interface MetroWaitlistJoinAnonymousResult {
   /** True when the metro is already live — there is nothing to wait for. */
   open: boolean
   metroId: string
   metroName: string
-  creatorCount: number
-  patronCount: number
-  creatorThreshold: number
-  patronThreshold: number
 }
 
 /** `creator` → `creator_count`. Kept here so the column names stay in one place. */
@@ -109,14 +100,11 @@ const COUNT_COLUMN: Record<WaitlistRole, string> = {
   patron: 'patron_count',
 }
 
+/** Three columns. The counts are deliberately not among them — see above. */
 interface MetroRow {
   id: string
   name: string
   is_open: boolean
-  creator_count: number
-  patron_count: number
-  creator_threshold: number
-  patron_threshold: number
 }
 
 export const metroWaitlistJoinAnonymous = defineHandler(
@@ -130,12 +118,11 @@ export const metroWaitlistJoinAnonymous = defineHandler(
     // — criterion 13 is "no account", and a signed-out stranger is the common
     // case on the surface this serves.
     return withTransaction(async (client) => {
-      // FIRST, and before any write. See criterion 14 above.
+      // Three columns, and no counts. A future edit that adds `creator_count`
+      // here to "be helpful" reopens #196; a test asserts this SELECT does not
+      // mention them.
       const metroRes = await client.query<MetroRow>(
-        `select id, name, is_open, creator_count, patron_count,
-                creator_threshold, patron_threshold
-           from public.metro_polygons
-          where id = $1`,
+        `select id, name, is_open from public.metro_polygons where id = $1`,
         [input.metroId],
       )
       const metro = metroRes.rows[0]
@@ -145,19 +132,15 @@ export const metroWaitlistJoinAnonymous = defineHandler(
         )
       }
 
-      const standing: MetroWaitlistJoinAnonymousResult = {
+      const result: MetroWaitlistJoinAnonymousResult = {
         open: metro.is_open,
         metroId: metro.id,
         metroName: metro.name,
-        creatorCount: metro.creator_count,
-        patronCount: metro.patron_count,
-        creatorThreshold: metro.creator_threshold,
-        patronThreshold: metro.patron_threshold,
       }
 
       // An open metro has no waitlist. Joining one would write a row counting
       // toward a threshold already passed.
-      if (metro.is_open) return standing
+      if (metro.is_open) return result
 
       // The address's existing row, if any — across ALL metros, because the
       // index is global. Locked so a concurrent submission of the same address
@@ -176,7 +159,7 @@ export const metroWaitlistJoinAnonymous = defineHandler(
       // probing an address all land here, and all get `standing` back
       // unchanged, which is the whole of criterion 14.
       if (existing && existing.metro_id === input.metroId && existing.role === input.role) {
-        return standing
+        return result
       }
 
       const bump = async (metroId: string, role: WaitlistRole, delta: 1 | -1) => {
@@ -213,8 +196,8 @@ export const metroWaitlistJoinAnonymous = defineHandler(
         await bump(input.metroId, input.role, 1)
       }
 
-      // The counts read before the write, returned whatever the write did.
-      return standing
+      // The same three fields whatever the write did — insert, move, or nothing.
+      return result
     })
   },
 )

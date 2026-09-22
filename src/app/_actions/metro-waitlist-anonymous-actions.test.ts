@@ -25,10 +25,6 @@ function handlerResult(over: Record<string, unknown> = {}) {
     open: false,
     metroId: METRO,
     metroName: 'Boise City-Mountain Home-Ontario, ID-OR',
-    creatorCount: 10,
-    patronCount: 40,
-    creatorThreshold: 50,
-    patronThreshold: 250,
     ...over,
   }
 }
@@ -48,46 +44,42 @@ describe('joinMetroWaitlistAnonymousAction', () => {
     ).resolves.toBeTruthy()
   })
 
-  it('hands the browser one combined number, never the split', async () => {
+  // Ruled 2026-09-22 (#196). Not "the split does not travel" — NO number
+  // travels, because any truthful live count leaks membership by differencing.
+  it('hands the browser no number of any kind', async () => {
     const result = await joinMetroWaitlistAnonymousAction({
       metroId: METRO,
       email: 'a@b.com',
       role: 'creator',
     })
-    expect(result.standing).toEqual({ combined: 50, target: 300 })
-    // criterion 8 — the 50/250 split is how the platform decides, and must not
-    // travel to a popup.
-    const serialised = JSON.stringify(result)
-    expect(serialised).not.toMatch(/creatorThreshold|patronThreshold|creatorCount|patronCount/)
+    expect(Object.keys(result).sort()).toEqual(['message', 'metroName', 'open'])
+    expect(JSON.stringify(result)).not.toMatch(
+      /creatorThreshold|patronThreshold|creatorCount|patronCount|combined|standing/i,
+    )
+    // And no digit smuggled into the copy — "247 more people" would be the
+    // same leak with better manners.
+    expect(result.message).not.toMatch(/\d/)
   })
 
-  it('shows the count as it stood before the write', async () => {
-    // The handler returns pre-write counts by construction; the action must
-    // pass them through rather than reading the metro again afterwards.
-    joinAnonymous.mockResolvedValue(handlerResult({ creatorCount: 10, patronCount: 40 }))
-    const result = await joinMetroWaitlistAnonymousAction({
-      metroId: METRO,
-      email: 'new@example.com',
-      role: 'creator',
-    })
-    expect(result.standing.combined).toBe(50)
-  })
-
-  // The SHAPE carries no tell. The COUNT still does — see #196 and the note at
-  // the top of waitlist-join-anonymous.ts. Asserting `repeat).toEqual(fresh)`
-  // here would pass only because the handler is mocked to a fixed count, which
-  // is how the original version of this test reported success about a question
-  // it was not asking.
-  it('carries no flag that distinguishes a new address from a known one', async () => {
-    const result = await joinMetroWaitlistAnonymousAction({
+  // Now true in full. With no number in the result there is nothing left that
+  // could differ between the two, so this no longer depends on the mock
+  // returning a fixed count — which is exactly how the earlier version of this
+  // test reported success about a question it was not asking.
+  it('returns the same thing for a new address and a known one', async () => {
+    const fresh = await joinMetroWaitlistAnonymousAction({
       metroId: METRO,
       email: 'same@example.com',
       role: 'creator',
     })
+    const repeat = await joinMetroWaitlistAnonymousAction({
+      metroId: METRO,
+      email: 'same@example.com',
+      role: 'creator',
+    })
+    expect(repeat).toEqual(fresh)
     for (const leak of ['changed', 'created', 'existed', 'alreadyListed', 'isNew']) {
-      expect(result).not.toHaveProperty(leak)
+      expect(fresh).not.toHaveProperty(leak)
     }
-    expect(Object.keys(result).sort()).toEqual(['message', 'metroName', 'open', 'standing'])
   })
 
   it('says nothing about a date, a timeline, or a promise to open', async () => {
@@ -99,6 +91,8 @@ describe('joinMetroWaitlistAnonymousAction', () => {
     // criterion 9, as a hard constraint rather than copy guidance.
     expect(result.message).not.toMatch(/soon|week|month|year|date|shortly|will open|coming/i)
     expect(result.message.length).toBeGreaterThan(0)
+    // criterion 15 — the one use the address has, said plainly.
+    expect(result.message).toMatch(/one message/i)
   })
 
   it('has nothing to wait for when the metro is already open', async () => {

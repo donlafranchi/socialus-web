@@ -34,9 +34,9 @@ Full suite: **2430 passed, 212 files, 0 failed, 0 skipped**, with
 `DATABASE_URL` set so the DB-bound suites actually ran rather than reporting
 "cannot run".
 
-## What the real database contradicted
+## What the real database contradicted, and what was ruled
 
-The criterion-14 test **passed against the mock and is false against Postgres.**
+The criterion-14 test **passed against the mock and was false against Postgres.**
 
 ```
 new   : creatorCount 0
@@ -50,15 +50,49 @@ because the mock returns a fixed count whatever it is asked. It was asking
 whether the handler returns what the mock returns.
 
 Reading after the write is not the fix: it makes two submissions of one address
-agree and makes a single probe of someone else's address leak, which is
-cheaper. Any truthful live count leaks membership by differencing.
+agree and makes a single probe of someone else's address leak in one request
+instead of two. Any truthful live count leaks membership by differencing.
 
-Escalated as #196 rather than improvised. The test is narrowed to what is
-actually true and the handler comment says plainly what it does not deliver.
-Three documents currently assert the opposite and #196 names them.
+**Ruled 2026-09-22 (#196): an anonymous submitter is shown no count at all.**
+
+Implemented structurally rather than as a display rule. The handler does not
+SELECT `creator_count` or `patron_count`, its result type has no field for one,
+and the confirmation message is a fixed constant with no digit in it. There is
+no read order left to get wrong. The counters are still *maintained*, because a
+write is not a read.
+
+Three tests hold it: the SELECT statements are asserted not to mention the
+count columns; the result keys are asserted to be exactly
+`metroId, metroName, open`; and the message is asserted to contain no digit.
+Asserting the *absence of a read* cannot pass on a mock the way the old test
+did.
+
+Re-verified against local Postgres after the change:
+
+```
+new   : {"open":false,"metroId":"3fb9e838…","metroName":"Abilene-Sweetwater, TX"}
+repeat: {"open":false,"metroId":"3fb9e838…","metroName":"Abilene-Sweetwater, TX"}
+IDENTICAL RESPONSE (real DB): true
+DIFFERENT ADDRESS, SAME RESPONSE: true
+```
+
+The third line is the one the old design could not produce — it is the
+differencing attack, and the response no longer moves for it.
+
+## Three documents corrected
+
+All three asserted that read-before-write closes this:
+
+- `planning/scenario-F076.md` in ops-pattern — criteria 7 and 14 amended, the
+  Why section corrected, and a `DECISIONS.md` entry added. Separate commit in
+  that repo, never cross-committed.
+- the header comment in `supabase/migrations/20260922034637_metro_waitlist_anonymous.sql`
+  — applied to production already, so the comment is corrected in place and the
+  SQL is untouched. Only the comment overclaimed.
+- the body of PR #191, corrected via a note in place.
 
 ## Not built
 
-The UI (#194) — blocked on #196, since what the popup shows is the open
-question. Rate limiting (#195) — no primitive in this repo, and what may
-identify an anonymous caller is a privacy ruling.
+The UI (#194) — next, now unblocked. Rate limiting (#195) — no primitive in
+this repo, and what may identify an anonymous caller is still a privacy ruling.
+That Issue is about count inflation, which is a different problem from this one.

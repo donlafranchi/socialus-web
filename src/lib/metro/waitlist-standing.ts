@@ -69,3 +69,20 @@ export function standingMessage(standing: MetroStanding): string {
   // person decides what happens next. Saying more would be a promise.
   return 'Enough people are here. A person reviews each metro before it goes live.'
 }
+
+/**
+ * What someone who left an address reads. Fixed text, and fixed is the point.
+ *
+ * RULED 2026-09-22 (#196): an anonymous submitter is shown no count. Any
+ * truthful live count leaks membership by differencing — the leak is in the
+ * number, not in when it is read — so there is no number here, and nothing in
+ * this string is derived from one. `standingMessage` above interpolates a
+ * remaining count and must never be used on the anonymous path; this constant
+ * exists so that is a different function rather than a forgotten argument.
+ *
+ * It still states what is needed (criterion 9), still promises no date and no
+ * opening, and names the single use the address has (criterion 15).
+ */
+export const ANONYMOUS_WAITLIST_MESSAGE =
+  'You’re counted. This metro opens when enough people here have asked for it. ' +
+  'If it does, we’ll send one message to this address — that is the only thing it will ever be used for.'

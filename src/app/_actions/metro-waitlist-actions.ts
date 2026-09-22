@@ -21,7 +21,11 @@ import {
   ActionError,
   type WaitlistRole,
 } from '@/actions'
-import { metroStanding, standingMessage } from '@/lib/metro/waitlist-standing'
+import {
+  metroStanding,
+  standingMessage,
+  ANONYMOUS_WAITLIST_MESSAGE,
+} from '@/lib/metro/waitlist-standing'
 
 export interface JoinMetroWaitlistResult {
   /** True when the metro is already live — there is nothing to wait for. */
@@ -106,24 +110,32 @@ export async function joinMetroWaitlistAction(input: {
 //
 // NO `getUser()`, AND NO SUPABASE CLIENT AT ALL. The signed-in action above
 // reads `metro_polygons` through the browser client twice, around the write.
-// This one reads nothing: the handler returns the counts it read inside its
-// own transaction, BEFORE the write, and those are the numbers that come back.
+// This one reads nothing, because there is nothing it is allowed to report.
 //
-// That is criterion 14's subtle half. `joinMetroWaitlistAction` reads AFTER on
-// purpose — a member is entitled to see themselves in the number. Here, a
-// count that moved on a genuine insert and not on a repeat would be the oracle
-// that everything else in this path is closing, so the count must be the one
-// that predates the write. The divergence is deliberate; the two functions
-// should not be "unified".
+// NO COUNT, RULED 2026-09-22 (#196). The first version of this returned a
+// standing read before the write, on the reasoning that a pre-write count
+// cannot be diffed. It can: submit a new address and it returns N, submit it
+// again and it returns N+1. Reading after the write instead makes a single
+// probe of someone else's address leak, which is worse. Any truthful live
+// count leaks membership by differencing, so the anonymous path shows none —
+// the handler does not read the counts and this result has no field for one.
 //
-// The result type is the same `JoinMetroWaitlistResult` the popup already
-// takes, and it carries no flag distinguishing a new address from a known one,
-// because there is nowhere in it to put one.
+// The signed-in action above keeps its number, deliberately. A member is
+// entitled to see themselves counted; someone leaving an address learns
+// nothing from it that they can act on.
+export interface JoinMetroWaitlistAnonymousResult {
+  /** True when the metro is already live — there is nothing to wait for. */
+  open: boolean
+  metroName: string
+  /** Fixed text. Nothing in it is derived from a count. */
+  message: string
+}
+
 export async function joinMetroWaitlistAnonymousAction(input: {
   metroId: string
   email: string
   role: WaitlistRole
-}): Promise<JoinMetroWaitlistResult> {
+}): Promise<JoinMetroWaitlistAnonymousResult> {
   const ctx = resolveAnonymousActionContext()
 
   let result
@@ -138,21 +150,9 @@ export async function joinMetroWaitlistAnonymousAction(input: {
     throw err
   }
 
-  if (result.open) {
-    return { open: true, metroName: result.metroName, standing: { combined: 0, target: 0 }, message: '' }
-  }
-
-  const standing = metroStanding({
-    creatorCount: result.creatorCount,
-    patronCount: result.patronCount,
-    creatorThreshold: result.creatorThreshold,
-    patronThreshold: result.patronThreshold,
-  })
-
   return {
-    open: false,
+    open: result.open,
     metroName: result.metroName,
-    standing: standing.display,
-    message: standingMessage(standing),
+    message: result.open ? '' : ANONYMOUS_WAITLIST_MESSAGE,
   }
 }

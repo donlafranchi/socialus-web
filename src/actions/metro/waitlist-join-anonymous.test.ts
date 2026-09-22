@@ -42,8 +42,6 @@ function ctx(): ActionContext {
 const calls = (re: RegExp): QueryCall[] =>
   (query.mock.calls as QueryCall[]).filter(([sql]) => re.test(sql))
 
-const order = (): string[] => (query.mock.calls as QueryCall[]).map(([sql]) => sql)
-
 interface RouterOpts {
   existing?: { id: string; metro_id: string; role: string } | null
   metroExists?: boolean
@@ -148,38 +146,47 @@ describe('metro.waitlist_join_anonymous — leaving an address', () => {
   })
 })
 
-describe('metro.waitlist_join_anonymous — criterion 14, as far as it goes', () => {
-  it('reads the count BEFORE the write, so the number excludes the row just added', async () => {
+describe('metro.waitlist_join_anonymous — criterion 14, ruled 2026-09-22 (#196)', () => {
+  // The ruling is "no count", and these two tests are what makes it structural
+  // rather than a habit. An earlier version of this file asserted that two
+  // submissions returned identical results; it passed against the mock and was
+  // false against Postgres, because the mock returns a fixed count however it
+  // is called. Asserting the ABSENCE of the read cannot fail that way.
+  it('never selects the counts at all, so there is no read order to get wrong', async () => {
+    await metroWaitlistJoinAnonymous(ctx(), {
+      metroId: BOISE,
+      email: 'new@example.com',
+      role: 'creator',
+    })
+    const reads = (query.mock.calls as QueryCall[]).filter(([sql]) => /^\s*select/i.test(sql))
+    expect(reads.length).toBeGreaterThan(0)
+    expect(reads.filter(([sql]) => /creator_count|patron_count|_threshold/i.test(sql))).toHaveLength(0)
+  })
+
+  it('returns no count, under any name', async () => {
     const result = await metroWaitlistJoinAnonymous(ctx(), {
       metroId: BOISE,
       email: 'new@example.com',
       role: 'creator',
     })
-    // 7 + 11, as they stood before this call. Not 19.
-    expect(result.creatorCount).toBe(7)
-    expect(result.patronCount).toBe(11)
-
-    // And structurally: the metro read precedes the insert. A later refactor
-    // that moves the read after the write would keep the numbers right only by
-    // accident of the mock.
-    const sql = order()
-    const readAt = sql.findIndex((s) => /from public\.metro_polygons/i.test(s) && /select/i.test(s))
-    const writeAt = sql.findIndex((s) => /insert into public\.metro_waitlist/i.test(s))
-    expect(readAt).toBeGreaterThanOrEqual(0)
-    expect(writeAt).toBeGreaterThan(readAt)
+    expect(Object.keys(result).sort()).toEqual(['metroId', 'metroName', 'open'])
+    expect(JSON.stringify(result)).not.toMatch(/count|threshold|combined|remaining/i)
   })
 
-  // THIS TEST USED TO ASSERT BYTE-IDENTICAL RESULTS ACROSS TWO SUBMISSIONS AND
-  // IT PASSED, BECAUSE THE MOCK RETURNS A FIXED COUNT. Against a real database
-  // it is false: the first submission inserts a row, so the second
-  // submission's pre-write read returns one more than the first did. Run
-  // against local Postgres the two results were creatorCount 0 then 1.
-  //
-  // It is left here narrowed to what is actually true — the two results agree
-  // on everything EXCEPT the count — because the count is the open question,
-  // and a test asserting the whole of criterion 14 would be asserting
-  // something this handler does not do. See #196.
-  it('differs from a repeat submission only in the count — the rest is identical', async () => {
+  it('still maintains the counters — a write is not a read', async () => {
+    await metroWaitlistJoinAnonymous(ctx(), {
+      metroId: BOISE,
+      email: 'new@example.com',
+      role: 'creator',
+    })
+    const bumps = calls(/update public\.metro_polygons/i)
+    expect(bumps).toHaveLength(1)
+    expect(bumps[0]![0]).toMatch(/creator_count/i)
+  })
+
+  // Now true in full, and true against Postgres too: with no count in the
+  // result there is nothing left that could differ between the two.
+  it('returns a byte-identical result whether the address was new or known', async () => {
     installRouter({ existing: null })
     const fresh = await metroWaitlistJoinAnonymous(ctx(), {
       metroId: BOISE,
@@ -194,8 +201,7 @@ describe('metro.waitlist_join_anonymous — criterion 14, as far as it goes', ()
       role: 'creator',
     })
 
-    const withoutCounts = (r: typeof fresh) => ({ ...r, creatorCount: 0, patronCount: 0 })
-    expect(withoutCounts(repeat)).toEqual(withoutCounts(fresh))
+    expect(repeat).toEqual(fresh)
   })
 
   it('carries no flag that would let a caller tell the two apart', async () => {
@@ -204,7 +210,7 @@ describe('metro.waitlist_join_anonymous — criterion 14, as far as it goes', ()
       email: 'new@example.com',
       role: 'creator',
     })
-    for (const leak of ['changed', 'created', 'existed', 'inserted', 'alreadyListed', 'isNew']) {
+    for (const leak of ['changed', 'created', 'existed', 'inserted', 'alreadyListed', 'isNew', 'creatorCount', 'patronCount']) {
       expect(result).not.toHaveProperty(leak)
     }
   })
