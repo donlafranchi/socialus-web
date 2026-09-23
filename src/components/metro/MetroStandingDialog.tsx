@@ -14,18 +14,31 @@
 //
 // The number is the combined one and the split never reaches this component:
 // it is not passed in, so it cannot be rendered by accident.
+//
+// T168 (#194) — THE NUMBER IS NOW OPTIONAL, and omitted is a real case rather
+// than a fallback. Ruled 2026-09-22 (#196): someone who left an email address
+// without an account is shown no count at all, because any truthful live count
+// makes "is this address already waiting?" answerable by differencing. A
+// signed-in member still sees it — they are entitled to see themselves
+// counted. Passing neither renders no number at all, not a zero and not a
+// placeholder.
 
 import { useEffect, useId, useRef } from 'react'
 
 interface Props {
   metroName: string
-  combined: number
-  target: number
+  /** Omitted for an anonymous submitter — see the note above. */
+  combined?: number
+  target?: number
   message: string
   onClose: () => void
 }
 
 export function MetroStandingDialog({ metroName, combined, target, message, onClose }: Props) {
+  // Both or neither. A half-supplied pair could only render something
+  // misleading, and silently dropping one is how a count comes back by
+  // accident.
+  const showCount = typeof combined === 'number' && typeof target === 'number'
   const titleId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -55,15 +68,21 @@ export function MetroStandingDialog({ metroName, combined, target, message, onCl
           {metroName}
         </h2>
 
-        <p className="mt-4 text-3xl font-semibold text-[var(--color-charcoal-900)]">
-          {combined} <span className="text-base font-normal text-neutral-600">of {target}</span>
-        </p>
+        {showCount ? (
+          <p
+            data-testid="metro-standing-count"
+            className="mt-4 text-3xl font-semibold text-[var(--color-charcoal-900)]"
+          >
+            {combined} <span className="text-base font-normal text-neutral-600">of {target}</span>
+          </p>
+        ) : null}
 
-        <p className="mt-3 text-sm text-neutral-600">{message}</p>
+        <p className={`${showCount ? 'mt-3' : 'mt-4'} text-sm text-neutral-600`}>{message}</p>
 
         <button
           ref={closeRef}
           type="button"
+          data-testid="metro-standing-close"
           onClick={onClose}
           className="mt-6 w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-sm font-semibold text-white"
         >

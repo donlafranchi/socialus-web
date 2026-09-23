@@ -16,15 +16,21 @@
 //      signed-out stranger has any reason to care, and it is the block Don
 //      ruled on: marked, separated, non-interactive, captioned as the idea
 //      rather than as stock.
-//   3. WHAT THEY CAN DO — join the waitlist, which already exists end to end
-//      (metro.waitlist_join, the counts, the standing popup). This is assembly.
+//   3. WHAT THEY CAN DO — leave an address, or sign in. This is assembly.
 //
-// SIGNED OUT IS THE COMMON CASE HERE and the waitlist needs an account:
-// `joinMetroWaitlistAction` calls `getUser()` and throws without one. So the
-// control routes to sign-in rather than failing after the tap. Whether an
-// anonymous person should be able to join at all is a real question and it is
-// Don's — it needs a row that is not keyed to a member, which is schema, not
-// assembly. Until then this is honest about the step rather than hiding it.
+// SIGNED OUT IS THE COMMON CASE HERE, and it used to be a dead end: the
+// waitlist needed an account, so the control routed to /auth/login, which is
+// the step someone who just found their own city has no reason to take yet.
+// Don ruled that open on 2026-09-21 (F076 criteria 13-15) and T167 built the
+// handler, so the signed-out branch now takes an address instead.
+//
+// THE POPUP CARRIES NO NUMBER ON THIS PATH, ruled 2026-09-22 (#196). A unique
+// index on an email makes "is this address already waiting?" answerable, and
+// any truthful live count leaks that by differencing — reading it before the
+// write does not help, which the database said and the mock did not. So
+// `joinMetroWaitlistAnonymousAction` returns no count and the dialog is given
+// none. A signed-in member still sees theirs; they are entitled to see
+// themselves counted.
 //
 // The session is read HERE rather than threaded down. Browse resolves auth
 // server-side now (T156), but this panel is reached from inside the scope
@@ -36,7 +42,11 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { ExampleBlock } from '@/components/cards'
 import { MetroStandingDialog } from '@/components/metro/MetroStandingDialog'
-import { joinMetroWaitlistAction, type JoinMetroWaitlistResult } from '@/app/_actions/metro-waitlist-actions'
+import {
+  joinMetroWaitlistAction,
+  joinMetroWaitlistAnonymousAction,
+  type JoinMetroWaitlistResult,
+} from '@/app/_actions/metro-waitlist-actions'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
 type Role = 'creator' | 'patron'
@@ -58,25 +68,89 @@ export function MetroNotCoveredPanel({
   const { user } = useAuth()
   const signedIn = Boolean(user)
   const [role, setRole] = useState<Role | ''>('')
+  const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [standing, setStanding] = useState<JoinMetroWaitlistResult | null>(null)
+  // `combined`/`target` are absent on the anonymous path, which is what makes
+  // the dialog render no number. See #196.
+  const [standing, setStanding] = useState<
+    { metroName: string; message: string; combined?: number; target?: number } | null
+  >(null)
   const [joined, setJoined] = useState(false)
 
+  const ready = Boolean(role) && (signedIn || email.trim().length > 0)
+
   const submit = async () => {
-    if (!role || busy) return
+    if (!ready || !role || busy) return
     setBusy(true)
     setError(null)
     try {
-      const result = await joinMetroWaitlistAction({ metroId: metro.id, role })
-      setJoined(true)
-      if (!result.open) setStanding(result)
+      if (signedIn) {
+        const result: JoinMetroWaitlistResult = await joinMetroWaitlistAction({
+          metroId: metro.id,
+          role,
+        })
+        setJoined(true)
+        if (!result.open) {
+          setStanding({
+            metroName: result.metroName,
+            message: result.message,
+            combined: result.standing.combined,
+            target: result.standing.target,
+          })
+        }
+      } else {
+        const result = await joinMetroWaitlistAnonymousAction({
+          metroId: metro.id,
+          email: email.trim(),
+          role,
+        })
+        setJoined(true)
+        // No combined, no target — deliberately. Spreading the result here
+        // would be the bug, so the two fields are named rather than splatted.
+        if (!result.open) {
+          setStanding({ metroName: result.metroName, message: result.message })
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'That did not go through. Try again?')
     } finally {
       setBusy(false)
     }
   }
+
+  const roleRadios = (
+    <fieldset className="mt-2">
+      <legend className="text-sm text-[var(--color-fg-muted)]">Which one are you?</legend>
+      <div className="mt-2 flex flex-col gap-2">
+        {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
+          <label key={r} className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              name="waitlist-role"
+              value={r}
+              checked={role === r}
+              onChange={() => setRole(r)}
+              data-testid={`waitlist-role-${r}`}
+            />
+            {ROLE_LABELS[r]}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )
+
+  const submitButton = (
+    <button
+      type="button"
+      onClick={submit}
+      disabled={!ready || busy}
+      data-testid="waitlist-join"
+      className="btn-primary mt-3 w-full disabled:opacity-50"
+    >
+      {busy ? 'Adding you…' : 'Count me in'}
+    </button>
+  )
 
   return (
     <div data-testid="metro-not-covered" className="flex flex-col gap-5">
@@ -112,48 +186,51 @@ export function MetroNotCoveredPanel({
           </p>
         ) : !signedIn ? (
           <>
-            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
-              You’ll need an account, so we count each person once.
-            </p>
-            <Link
-              href={`/auth/login?next=${encodeURIComponent(`/explore?metro=${metro.slug}`)}`}
-              data-testid="waitlist-signin"
-              className="btn-primary mt-3 w-full"
+            {roleRadios}
+
+            <label
+              htmlFor="waitlist-email"
+              className="mt-4 block text-sm text-[var(--color-fg-muted)]"
             >
-              Sign in to be counted
-            </Link>
+              Where should we reach you?
+            </label>
+            <input
+              id="waitlist-email"
+              data-testid="waitlist-email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="mt-1 w-full rounded-xl border border-[var(--color-charcoal-100)] px-3 py-2 text-sm"
+            />
+            {/* Criterion 15, said before they type rather than after. */}
+            <p
+              data-testid="waitlist-email-purpose"
+              className="mt-2 text-xs text-[var(--color-fg-muted)]"
+            >
+              One message, if this metro opens. That is the only thing this address is used
+              for — nothing else, ever.
+            </p>
+
+            {submitButton}
+
+            {/* Signing up stays available, and is not the price of being told. */}
+            <p className="mt-3 text-center text-xs text-[var(--color-fg-muted)]">
+              <Link
+                href={`/auth/login?next=${encodeURIComponent(`/explore?metro=${metro.slug}`)}`}
+                data-testid="waitlist-signin-alt"
+                className="underline"
+              >
+                Or sign in, if you already have an account
+              </Link>
+            </p>
           </>
         ) : (
           <>
-            <fieldset className="mt-2">
-              <legend className="text-sm text-[var(--color-fg-muted)]">
-                Which one are you?
-              </legend>
-              <div className="mt-2 flex flex-col gap-2">
-                {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-                  <label key={r} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="radio"
-                      name="waitlist-role"
-                      value={r}
-                      checked={role === r}
-                      onChange={() => setRole(r)}
-                      data-testid={`waitlist-role-${r}`}
-                    />
-                    {ROLE_LABELS[r]}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <button
-              type="button"
-              onClick={submit}
-              disabled={!role || busy}
-              data-testid="waitlist-join"
-              className="btn-primary mt-3 w-full disabled:opacity-50"
-            >
-              {busy ? 'Adding you…' : 'Count me in'}
-            </button>
+            {roleRadios}
+            {submitButton}
           </>
         )}
 
@@ -167,8 +244,8 @@ export function MetroNotCoveredPanel({
       {standing ? (
         <MetroStandingDialog
           metroName={standing.metroName}
-          combined={standing.standing.combined}
-          target={standing.standing.target}
+          combined={standing.combined}
+          target={standing.target}
           message={standing.message}
           onClose={() => setStanding(null)}
         />
