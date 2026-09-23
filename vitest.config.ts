@@ -42,6 +42,37 @@ const PROBE_SUITES = [
   'tests/actions-t043.test.ts',
 ]
 
+// Suites that SPAWN A SUBPROCESS but do not write under src/.
+//
+// The `probe` project below already gives its members 60s, with this reasoning:
+// "Each test spawns `npx eslint` or `tsx` and waits for it. Vitest's 5s default
+// is unrealistic for that." That reasoning is about the spawn, not about the
+// shared on-disk state — and these six spawn too, and were never added, so they
+// ran in `unit` against the 5s default.
+//
+// The bill came due on 2026-09-23: seven timeouts across four branches in one
+// day, always a timeout and never an assertion, always passing when run alone.
+// Three separate times it cost a clean verification, and once it was masking a
+// check that genuinely mattered (a migration manifest on a branch that changed
+// migrations). A guard people learn to re-run is a guard that stops being
+// believed — which is the failure this repo has spent the week fighting at
+// every other layer.
+//
+// They get their own project rather than joining `probe`, because they are not
+// what `probe` is for. PROBE_SUITES exists for suites that share on-disk state
+// under src/ and therefore cannot run in parallel with each other; these write
+// nothing under src/ (checked, not assumed) and parallelism is free for them.
+// Folding them in would have cost the suite the parallelism and blurred a
+// membership rule that is written down and still correct.
+const SUBPROCESS_SUITES = [
+  'tests/ci-enforcement-rule-5.test.ts',
+  'tests/runnable-gate.test.ts',
+  'tests/ontology-registry.test.ts',
+  'tests/migrations-pending-parse.test.ts',
+  'tests/migrations-drift-parse.test.ts',
+  'src/lib/migrations/manifest.test.ts',
+]
+
 // `.claude/**` is load-bearing here, not housekeeping. A git worktree created
 // inside the repo carries a full copy of tests/, and Vitest will happily run
 // both copies — so a stale branch's tests get scored against this branch's
@@ -66,7 +97,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'jsdom',
           setupFiles: [],
-          exclude: [...EXCLUDE, ...PROBE_SUITES],
+          exclude: [...EXCLUDE, ...PROBE_SUITES, ...SUBPROCESS_SUITES],
         },
       },
       {
@@ -84,6 +115,23 @@ export default defineConfig({
           // several seconds, more when the unit project is using the cores.
           // This was the second half of issue #38: the shared-probe race and
           // a too-tight timeout looked like one flaky symptom.
+          testTimeout: 60_000,
+          hookTimeout: 60_000,
+        },
+      },
+      {
+        ...shared,
+        test: {
+          name: 'subprocess',
+          // `node`, not `jsdom`: none of these render anything, and standing up
+          // a DOM per file is pure cost on suites that shell out.
+          environment: 'node',
+          setupFiles: [],
+          include: SUBPROCESS_SUITES,
+          exclude: EXCLUDE,
+          // Same budget and the same reason as `probe`. Parallelism stays on:
+          // these share no on-disk state, which is the whole reason they are
+          // not in PROBE_SUITES.
           testTimeout: 60_000,
           hookTimeout: 60_000,
         },

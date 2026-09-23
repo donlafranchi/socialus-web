@@ -47,16 +47,6 @@ function plainTable(rows: { local?: string; remote?: string }[]): string {
   ].join('\n')
 }
 
-/**
- * Every test here spawns a bash subprocess, and vitest's 5s default is not
- * enough for that under the parallel load of the full suite — the sibling
- * `migrations-pending-parse.test.ts` timed out six times today for exactly
- * this reason. Adding another subprocess-spawning file without an explicit
- * budget would make that worse, and a guard people learn to re-run is a guard
- * that stops being believed, which is the disease this whole PR is about.
- */
-const SUBPROCESS_TIMEOUT_MS = 30_000
-
 let bin: string
 
 function fakeCli(stdout: string) {
@@ -101,7 +91,7 @@ describe('an unapplied migration, in the backtick table CI gets', () => {
     expect(code).toBe(1)
     expect(out).toMatch(/not yet applied/i)
     expect(out).toContain('20260922204457')
-  }, SUBPROCESS_TIMEOUT_MS)
+  })
 
   it('is reported but passes WITHOUT --strict — a PR is supposed to carry one', () => {
     fakeCli(table([APPLIED, PENDING]))
@@ -109,7 +99,7 @@ describe('an unapplied migration, in the backtick table CI gets', () => {
     expect(code).toBe(0)
     expect(out).toMatch(/not yet applied/i)
     expect(out).toContain('20260922204457')
-  }, SUBPROCESS_TIMEOUT_MS)
+  })
 })
 
 describe('a migration in the database with no file — always drift', () => {
@@ -121,7 +111,7 @@ describe('a migration in the database with no file — always drift', () => {
       expect(out).toMatch(/the database has migrations this repo does not/i)
       expect(out).toContain('20260911999999')
     }
-  }, SUBPROCESS_TIMEOUT_MS)
+  })
 })
 
 describe('everything applied', () => {
@@ -132,7 +122,7 @@ describe('everything applied', () => {
       expect(code).toBe(0)
       expect(out).toMatch(/clean/i)
     }
-  }, SUBPROCESS_TIMEOUT_MS)
+  })
 })
 
 describe('the terminal rendering still works', () => {
@@ -143,11 +133,11 @@ describe('the terminal rendering still works', () => {
     const { code, out } = run('--strict')
     expect(code).toBe(1)
     expect(out).toContain('20260922204457')
-  }, SUBPROCESS_TIMEOUT_MS)
+  })
 
   it('detects drift with no backticks at all', () => {
     fakeCli(plainTable([APPLIED, GHOST]))
     const { code } = run()
     expect(code).toBe(1)
-  }, SUBPROCESS_TIMEOUT_MS)
+  })
 })
