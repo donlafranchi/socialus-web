@@ -32,6 +32,20 @@ export interface FeedMetro {
    * relabel the surface while the results underneath stayed identical.
    */
   isOpen: boolean
+  /**
+   * How many people are waiting here, as of the last cache refresh.
+   *
+   * Undefined when nothing has merged the cached counts in — a surface that
+   * did not ask for them, or a metro missing from the snapshot. Undefined
+   * renders no number and sorts last; it is not zero, and the difference
+   * matters because "nobody yet" and "we do not know" read the same to a
+   * person and should not.
+   *
+   * ALWAYS THE CACHED FIGURE. See `@/lib/metro/waitlist-counts`: a live count
+   * anywhere on this path reintroduces the oracle, and a sorted list is a
+   * particularly good oracle because it exposes every metro at once.
+   */
+  waiting?: number
 }
 
 type FromClient = Pick<SupabaseClient, 'from'>
@@ -125,6 +139,32 @@ export function splitByOpen(metros: readonly FeedMetro[]): {
 } {
   return {
     open: metros.filter((m) => m.isOpen),
-    notYet: metros.filter((m) => !m.isOpen),
+    // MOST WANTED FIRST — Don asked for this: "it would be cool to sort those
+    // metros by number of people signed up". It is a demand signal for where to
+    // open next, and for a person it answers "is anyone else here?" before they
+    // have to tap anything.
+    //
+    // Alphabetical is the tiebreak, so the 200-odd metros nobody has asked for
+    // keep the order they had rather than shuffling on every refresh.
+    // Unknown sorts as -1, below a genuine zero: "we do not know" is not "nobody".
+    notYet: metros
+      .filter((m) => !m.isOpen)
+      .slice()
+      .sort((a, b) => {
+        const wa = a.waiting ?? -1
+        const wb = b.waiting ?? -1
+        return wb - wa || a.name.localeCompare(b.name)
+      }),
   }
+}
+
+/** Merge the cached waiting counts onto a metro list. */
+export function withWaitingCounts(
+  metros: readonly FeedMetro[],
+  counts: ReadonlyMap<string, number>,
+): FeedMetro[] {
+  return metros.map((m) => {
+    const waiting = counts.get(m.id)
+    return waiting === undefined ? m : { ...m, waiting }
+  })
 }

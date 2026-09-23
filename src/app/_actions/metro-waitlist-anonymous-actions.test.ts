@@ -9,7 +9,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ActionError } from '@/actions/_lib/errors'
 
-const { joinAnonymous } = vi.hoisted(() => ({ joinAnonymous: vi.fn() }))
+const { joinAnonymous, waitingCountFor } = vi.hoisted(() => ({
+  joinAnonymous: vi.fn(),
+  waitingCountFor: vi.fn(),
+}))
+
+// The CACHED count. Mocked here so a test can say what the cache held, and —
+// more importantly — so a test can assert the action never reads anything else.
+vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountFor }))
 
 vi.mock('@/actions', async (importActual) => {
   const actual = await importActual<typeof import('@/actions')>()
@@ -31,7 +38,9 @@ function handlerResult(over: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   joinAnonymous.mockReset()
+  waitingCountFor.mockReset()
   joinAnonymous.mockResolvedValue(handlerResult())
+  waitingCountFor.mockResolvedValue(50)
 })
 
 describe('joinMetroWaitlistAnonymousAction', () => {
@@ -44,21 +53,44 @@ describe('joinMetroWaitlistAnonymousAction', () => {
     ).resolves.toBeTruthy()
   })
 
-  // Ruled 2026-09-22 (#196). Not "the split does not travel" — NO number
-  // travels, because any truthful live count leaks membership by differencing.
-  it('hands the browser no number of any kind', async () => {
+  // Ruled 2026-09-23, reversing #196. The count is back — and it comes from
+  // the cache, which is what keeps the oracle closed.
+  it('shows the cached count, and never the per-role split', () => {
+    return joinMetroWaitlistAnonymousAction({
+      metroId: METRO,
+      email: 'a@b.com',
+      role: 'creator',
+    }).then((result) => {
+      expect(result.standing).toEqual({ combined: 50, target: 300 })
+      // criterion 8 — the 50/250 split is how the platform decides and must
+      // not reach a popup.
+      expect(JSON.stringify(result)).not.toMatch(
+        /creatorThreshold|patronThreshold|creatorCount|patronCount/,
+      )
+    })
+  })
+
+  it('reads the CACHED count and nothing else — no live read on the write path', async () => {
+    await joinMetroWaitlistAnonymousAction({ metroId: METRO, email: 'a@b.com', role: 'creator' })
+    // The whole mechanism in one assertion. If this action ever reads
+    // metro_polygons directly again, it needs a Supabase client, and none is
+    // mocked here — it would fail with a module error rather than quietly
+    // reintroducing the oracle.
+    expect(waitingCountFor).toHaveBeenCalledTimes(1)
+    expect(waitingCountFor).toHaveBeenCalledWith(METRO)
+  })
+
+  it('renders no number at all when the metro is missing from the snapshot', async () => {
+    // Null, not zero. "Nobody yet" and "we do not know" read the same to a
+    // person and are different facts.
+    waitingCountFor.mockResolvedValue(null)
     const result = await joinMetroWaitlistAnonymousAction({
       metroId: METRO,
       email: 'a@b.com',
       role: 'creator',
     })
-    expect(Object.keys(result).sort()).toEqual(['message', 'metroName', 'open'])
-    expect(JSON.stringify(result)).not.toMatch(
-      /creatorThreshold|patronThreshold|creatorCount|patronCount|combined|standing/i,
-    )
-    // And no digit smuggled into the copy — "247 more people" would be the
-    // same leak with better manners.
-    expect(result.message).not.toMatch(/\d/)
+    expect(result.standing).toBeNull()
+    expect(result.message).toBe('')
   })
 
   // Now true in full. With no number in the result there is nothing left that
@@ -76,6 +108,8 @@ describe('joinMetroWaitlistAnonymousAction', () => {
       email: 'same@example.com',
       role: 'creator',
     })
+    // Still byte-identical, and now for the right reason: the count is the
+    // same cached figure both times, because a submission does not move it.
     expect(repeat).toEqual(fresh)
     for (const leak of ['changed', 'created', 'existed', 'alreadyListed', 'isNew']) {
       expect(fresh).not.toHaveProperty(leak)
@@ -92,7 +126,8 @@ describe('joinMetroWaitlistAnonymousAction', () => {
     expect(result.message).not.toMatch(/soon|week|month|year|date|shortly|will open|coming/i)
     expect(result.message.length).toBeGreaterThan(0)
     // criterion 15 — the one use the address has, said plainly.
-    expect(result.message).toMatch(/one message/i)
+    // Criterion 15's promise lives on the panel, before a person types, not
+    // in the confirmation after the fact.
   })
 
   it('has nothing to wait for when the metro is already open', async () => {
@@ -104,6 +139,7 @@ describe('joinMetroWaitlistAnonymousAction', () => {
     })
     expect(result.open).toBe(true)
     expect(result.message).toBe('')
+    expect(result.standing).toBeNull()
   })
 
   it('surfaces a handler refusal as a plain message', async () => {

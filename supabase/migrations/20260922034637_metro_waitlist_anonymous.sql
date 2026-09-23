@@ -50,11 +50,31 @@
 --   COUNT LEAKS MEMBERSHIP BY DIFFERENCING — the leak is in the number, not in
 --   when it is read.
 --
---   RULED: an anonymous submitter is shown NO COUNT. Not rounded, not stale,
---   none. The handler does not select the counts and its result type has no
---   field for one, so there is no read order left to get wrong. Point 1 stands
---   and is now true in full. Point 3 is Issue #195, and is about count
---   inflation, which is a different problem from this one.
+--   RULED 2026-09-22: an anonymous submitter is shown NO COUNT.
+--
+--   REVERSED 2026-09-23 by Don, and this is the ruling that stands.
+--   "how would anyone know about anybody elses emails with just a count? ...
+--   Nobody would be able to know anything else except someone else somewhere
+--   else also found this site. they could have even chosen the wrong area."
+--
+--   The 2026-09-22 ruling was right about the mechanism and wrong about the
+--   stakes. The oracle is real; what it reveals is that an address expressed
+--   interest in a local app before launch, which does not justify removing
+--   something useful.
+--
+--   THE COUNT IS BACK, AND IT IS CACHED. The leak was never the number
+--   existing — it was the number being recomputed and re-displayed in response
+--   to your own write. A figure that is at most an hour old and is shared with
+--   the metro picker's ordering does not move when you submit, so there is
+--   nothing to difference. See src/lib/metro/waitlist-counts.ts, which also
+--   states what a cache does NOT close rather than leaving it to be
+--   rediscovered.
+--
+--   Point 1 stands and is true in full: the response is identical either way.
+--   Point 3 is Issue #195, about count inflation, a different problem.
+--
+--   NOTHING IN THE SQL BELOW CHANGED FOR ANY OF THIS. Three rulings have now
+--   been recorded in this header and the schema has been correct throughout.
 --
 -- WHAT THIS DOES NOT DO
 --   No email is verified here. An unverified address means the count is

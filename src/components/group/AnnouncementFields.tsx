@@ -10,6 +10,21 @@
 // One component, used by the composer and by an edit, so the two cannot come
 // to disagree about what a date means.
 
+// F074 — RECURRENCE DOES NOT COVER YEARLY, AND SOMEONE WILL ASSUME IT DOES.
+//
+// Recorded here because this is the file recurrence work touches first.
+//
+// The approved F074 is weekly-on-chosen-days with an optional start and end
+// date. It has no yearly case. On 2026-09-23 Don named a YEARLY event as the
+// reason past announcements must survive — "Especially if the announcement is
+// for a yearly event" — so the case is live in his head and absent from the
+// scenario.
+//
+// This is a note, not a deferral and not a licence to add it: building yearly
+// off the back of this comment would be answering a scenario question by
+// implementation. It is here so that whoever builds recurrence checks whether
+// F074 was amended rather than assuming the gap was considered.
+
 import {
   LocationPlaceFields,
   initialLocationPlaceFieldsState,
