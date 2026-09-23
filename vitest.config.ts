@@ -16,6 +16,21 @@ import path from 'path'
 // remote project is safe. See .env.local.example for the recipe.
 dotenv.config({ path: '.env.test.local', quiet: true })
 
+// TZ IS PINNED, AND IT IS A CORRECTNESS FIX, NOT A PREFERENCE — bug #211.
+//
+// `METRO_TIME_ZONE` is 'America/Los_Angeles', and so is this laptop. So a
+// surface that formats in the READER'S DEVICE timezone and a surface that
+// formats in the METRO's produce identical strings here and differ everywhere
+// else. Exactly that bug shipped: an Explore card read "THU, SEP 24, 2:12 AM"
+// while the Page read "Wednesday, September 23 at 7:12pm", and no test could
+// see it, because on the only machines anyone ran tests on the two zones are
+// the same one.
+//
+// UTC because CI runs UTC. Pinning it to the metro zone would have made the
+// suite agree with this laptop and disagree with CI, which is the wrong way
+// round: a test that passes locally and fails in CI is at least visible.
+process.env.TZ = 'UTC'
+
 // Issue #38 — the probe suites cannot run in parallel with each other.
 //
 // Each of these writes probe files into a fixed path under src/ and shells out

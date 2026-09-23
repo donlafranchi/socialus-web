@@ -1,7 +1,7 @@
 // T156 — the browse read helper. One query, Pages and posts together.
 
 import { describe, it, expect, vi } from 'vitest'
-import { getBrowseFeed, type BrowseFeedRow } from './browse-feed'
+import { getBrowseFeed, type BrowseFeedRow, resultHref } from './browse-feed'
 
 // EWKB point, little-endian, SRID 4326 — lon -121, lat 38.
 const POINT = '0101000020E6100000000000000040' + '5EC0' + '0000000000004340'
@@ -266,5 +266,26 @@ describe('T156 — the parameters getBrowseFeed sends', () => {
     const c = client()
     await getBrowseFeed(c as never, { scope: { metroId: 'm1' }, limit: 5000 })
     expect(argsOf(c).p_limit).toBe(100)
+  })
+})
+
+// bug #211 — an announcement card links to its announcement.
+describe('resultHref', () => {
+  const row = (over: Record<string, unknown> = {}) =>
+    ({ slug: 'sacriver-floaters', result_kind: 'post', result_id: 'p-1', ...over }) as never
+
+  it('sends an announcement to its own fragment on the Page', () => {
+    expect(resultHref(row(), 'abc123')).toBe('/g/sacriver-floaters-abc123#announcement-p-1')
+  })
+
+  it('sends a Page to its Page, with no fragment', () => {
+    expect(resultHref(row({ result_kind: 'page' }), 'abc123')).toBe('/g/sacriver-floaters-abc123')
+  })
+
+  it('is null when the Page has no address — never a bare fragment', () => {
+    // A bare '#announcement-…' is a link that looks live and goes nowhere,
+    // which is worse than the card having no link at all.
+    expect(resultHref(row(), null)).toBeNull()
+    expect(resultHref(row({ slug: null }), 'abc123')).toBeNull()
   })
 })

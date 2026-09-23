@@ -24,10 +24,11 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
+import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
@@ -117,6 +118,34 @@ export function PagePosts({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
+
+  // bug #211 — arrive on the announcement you tapped, not on the top of a Page
+  // with a compose box where you expected it.
+  //
+  // The browser's own fragment scrolling is not enough here. This is a client
+  // component below a server component; the list exists only after hydration,
+  // and by then the browser has already given up looking for the id. So the
+  // scroll happens here, once, after the list is on the page.
+  const [highlighted, setHighlighted] = useState<string | null>(null)
+  const scrolled = useRef(false)
+  useEffect(() => {
+    if (scrolled.current) return
+    const id = announcementIdFromHash(window.location.hash)
+    if (!id) return
+    const el = document.getElementById(announcementAnchor(id))
+    if (!el) return
+    scrolled.current = true
+    setHighlighted(id)
+    // `auto`, not `smooth`: this runs on arrival, and animating a jump the
+    // person did not ask for reads as the page moving under them.
+    //
+    // Optional call, and not only for jsdom. THE MARK IS WHAT IDENTIFIES THE
+    // ANNOUNCEMENT; the scroll is an aid. `setHighlighted` above already ran,
+    // so an environment without `scrollIntoView` still lands on a Page where
+    // the right announcement is ringed — whereas a throw here would take the
+    // highlight down with it, which is exactly what it did the first time.
+    el.scrollIntoView?.({ behavior: 'auto', block: 'center' })
+  }, [])
 
   // A visitor looking at a Page with nothing on it sees no empty section. The
   // owner does, because the owner is the one who can fill it.
@@ -316,7 +345,20 @@ export function PagePosts({
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
           {items.map((post) => (
-            <li key={post.id} data-testid="page-post" className="card p-3">
+            <li
+              key={post.id}
+              id={announcementAnchor(post.id)}
+              data-testid="page-post"
+              // The mark is a ring rather than a background: it says "this
+              // one" without restyling the announcement into something that
+              // looks like a different kind of thing.
+              data-highlighted={highlighted === post.id ? 'true' : undefined}
+              className={`card p-3 scroll-mt-24${
+                highlighted === post.id
+                  ? ' ring-2 ring-[var(--color-accent)] ring-offset-2'
+                  : ''
+              }`}
+            >
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   <label htmlFor={`edit-${post.id}`} className="sr-only">

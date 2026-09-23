@@ -31,6 +31,9 @@ const POST = {
   locationLabel: null as string | null,
 }
 
+/** bug #211 — a post with an id of your choosing. */
+const postFixture = (over: Partial<typeof POST> = {}) => ({ ...POST, ...over })
+
 function renderPosts(over: Partial<Parameters<typeof PagePosts>[0]> = {}) {
   return render(
     <PagePosts
@@ -283,5 +286,59 @@ describe('who gets a control at all', () => {
   it('a visitor sees no empty section on a Page with nothing on it', () => {
     const { container } = renderPosts({ canPost: false, posts: [] })
     expect(container.firstChild).toBeNull()
+  })
+})
+
+// bug #211 — you arrive on the announcement you tapped.
+describe('arriving from a browse card', () => {
+  const withHash = (hash: string) => {
+    window.history.replaceState(null, '', `/g/x-abc${hash}`)
+  }
+
+  // jsdom has no scrollIntoView. The component calls it optionally so its
+  // absence costs the scroll and not the highlight — this stub is so the
+  // "brings it into view" test has something to assert on.
+  const originalScrollIntoView = Element.prototype.scrollIntoView
+  afterEach(() => {
+    window.history.replaceState(null, '', '/')
+    Element.prototype.scrollIntoView = originalScrollIntoView
+  })
+
+  it('gives every announcement an id a fragment can name', () => {
+    renderPosts({ posts: [postFixture({ id: 'p-1' }), postFixture({ id: 'p-2' })] })
+    expect(document.getElementById('announcement-p-1')).not.toBeNull()
+    expect(document.getElementById('announcement-p-2')).not.toBeNull()
+  })
+
+  it('marks the one the fragment names even where scrollIntoView does not exist', () => {
+    // jsdom is that environment, and so was the first version of this fix:
+    // the throw took the highlight with it.
+    expect(Element.prototype.scrollIntoView).toBeUndefined()
+    withHash('#announcement-p-2')
+    renderPosts({ posts: [postFixture({ id: 'p-1' }), postFixture({ id: 'p-2' })] })
+    expect(document.getElementById('announcement-p-2')).toHaveAttribute('data-highlighted', 'true')
+    expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
+  })
+
+  it('brings it into view — the list is below the composer for an owner', () => {
+    withHash('#announcement-p-2')
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    renderPosts({ canPost: true, posts: [postFixture({ id: 'p-1' }), postFixture({ id: 'p-2' })] })
+    expect(scrollIntoView).toHaveBeenCalled()
+  })
+
+  it('does nothing at all when the fragment names something else', () => {
+    // '#announce' is the composer's own anchor (#185). It must not be read as
+    // an announcement id, or the owner bar's button would mark a random row.
+    withHash('#announce')
+    renderPosts({ posts: [postFixture({ id: 'p-1' })] })
+    expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
+  })
+
+  it('does nothing when the fragment names an announcement that is not here', () => {
+    withHash('#announcement-nope')
+    renderPosts({ posts: [postFixture({ id: 'p-1' })] })
+    expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
   })
 })
