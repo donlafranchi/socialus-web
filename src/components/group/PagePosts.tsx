@@ -24,11 +24,12 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
-import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
+import { announcementAnchor } from './announcement-anchor'
+import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
@@ -120,44 +121,10 @@ export function PagePosts({
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
-  // with a compose box where you expected it.
-  //
-  // The browser's own fragment scrolling is not enough here. This is a client
-  // component below a server component; the list exists only after hydration,
-  // and by then the browser has already given up looking for the id. So the
-  // scroll happens here, once, after the list is on the page.
-  const [highlighted, setHighlighted] = useState<string | null>(null)
-  const arrived = useRef(false)
-  useEffect(() => {
-    if (arrived.current) return
-    const id = announcementIdFromHash(window.location.hash)
-    if (!id) return
-    const el = document.getElementById(announcementAnchor(id))
-    if (!el) return
-    arrived.current = true
-
-    // AFTER PAINT, not synchronously. Two reasons and both are real:
-    //
-    // `scrollIntoView` needs layout, and inside the effect the list has been
-    // committed but the browser has not painted it, so a scroll computed here
-    // can land on the wrong offset — which is precisely the failure this whole
-    // bug is about, one layer down.
-    //
-    // And a synchronous setState in an effect cascades a second render before
-    // paint. The React Compiler lint says so, and #119 is the standing record
-    // of what suppressing that rule costs, so this obeys it rather than
-    // silencing it.
-    const frame = requestAnimationFrame(() => {
-      setHighlighted(id)
-      // Optional call, and not only for jsdom. THE MARK IS WHAT IDENTIFIES THE
-      // ANNOUNCEMENT; the scroll is an aid. An environment without
-      // `scrollIntoView` still lands on a Page where the right announcement is
-      // ringed — whereas a throw here would take the highlight down with it,
-      // which is exactly what it did the first time.
-      el.scrollIntoView?.({ behavior: 'auto', block: 'center' })
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [])
+  // with a compose box where you expected it. Shared with the signed-out list
+  // (F093), because an `#announcement-<id>` link has to land the same way on
+  // both and two copies of the effect is how they stop doing that.
+  const highlighted = useAnnouncementAnchor()
 
   // A visitor looking at a Page with nothing on it sees no empty section. The
   // owner does, because the owner is the one who can fill it.
@@ -365,11 +332,7 @@ export function PagePosts({
               // one" without restyling the announcement into something that
               // looks like a different kind of thing.
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card p-3 scroll-mt-24${
-                highlighted === post.id
-                  ? ' ring-2 ring-[var(--color-accent)] ring-offset-2'
-                  : ''
-              }`}
+              className={`card p-3 scroll-mt-24${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
             >
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">

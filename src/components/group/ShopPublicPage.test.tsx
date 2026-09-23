@@ -273,3 +273,33 @@ describe('F070 — links out', () => {
     expect(screen.queryByTestId('shop-social-links')).toBeNull()
   })
 })
+
+// F093 — which announcements list a Page shows depends on who is reading.
+describe('F093 — the Page, signed out', () => {
+  const withheld = [
+    {
+      resultKind: 'post',
+      resultId: 'p-1',
+      withheld: true,
+      announcementCount: 2,
+    },
+  ] as unknown as Parameters<typeof ShopPublicPage>[0]['withheldPosts']
+
+  it('shows the withheld announcements to a signed-out visitor', () => {
+    renderShop({ loggedIn: false, withheldPosts: withheld })
+    expect(screen.getByTestId('page-posts-withheld')).toBeInTheDocument()
+  })
+
+  it('does not also show the readable list', () => {
+    // Both at once would mean two Announcements headings and two anchors with
+    // the same id — the fragment would land on whichever rendered first.
+    renderShop({ loggedIn: false, withheldPosts: withheld })
+    expect(screen.queryByTestId('page-posts')).not.toBeInTheDocument()
+  })
+
+  it('shows the readable list to a signed-in member — criterion 6', () => {
+    renderShop({ loggedIn: true, posts: [], viewerOwnsPage: true })
+    expect(screen.getByTestId('page-posts')).toBeInTheDocument()
+    expect(screen.queryByTestId('page-posts-withheld')).not.toBeInTheDocument()
+  })
+})
