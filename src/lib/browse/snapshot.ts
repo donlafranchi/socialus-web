@@ -11,6 +11,15 @@ import type { FeedMetro } from '@/lib/feed/feed-metro'
 
 export interface BrowseSnapshot {
   results: BrowseResult[]
+  /**
+   * Announcements from Pages this member gets updates from (F059 criterion 2b).
+   *
+   * Always `[]` for a signed-out reader, and `[]` is a real state rather than a
+   * fallback: the row HIDES when this is empty, never renders empty. Nothing
+   * downstream may distinguish "signed out" from "follows nothing" — both are
+   * an absent row, which is the point.
+   */
+  following: BrowseResult[]
   /** Null when no metro resolves at all — the no-scope state. */
   metro: FeedMetro | null
   /** Did a person pick this metro, or did it fall out of a default? */
