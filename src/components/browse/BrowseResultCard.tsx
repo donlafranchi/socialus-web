@@ -10,24 +10,30 @@
 // event — it simply has no date line.
 
 import { TileCard } from '@/components/cards'
+import { formatMetroDateTime } from '@/lib/metro/metro-time'
 import { browseCardLocation, browseCardTagline } from '@/lib/browse/card'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 /**
- * A date a person reads, not an ISO string. Local to the reader's device —
- * which is why the element carries `suppressHydrationWarning`: the server
- * renders this in its own timezone and the browser re-renders it in the
- * reader's, and those two strings are meant to differ.
+ * A date a person reads, IN THE METRO'S TIMEZONE — the same as the Page.
+ *
+ * Bug #211. This used to format in the reader's device timezone, which is a
+ * defensible thing for a card to do right up until its Page does something
+ * else. `PagePosts` formats with `formatMetroDateTime`, so the same
+ * announcement read "THU, SEP 24, 2:12 AM" on a card and "Wednesday,
+ * September 23 at 7:12pm" on the Page — a different DAY, which reads as the
+ * information being missing rather than as a rendering difference.
+ *
+ * An event happens in the metro's time whoever is reading about it. A person
+ * in London looking at a Sacramento river float wants to know when to be at
+ * the river, not what their own clock will say.
+ *
+ * No `suppressHydrationWarning` any more, and its absence is load-bearing: the
+ * server and the browser now render the same string, so a mismatch is a real
+ * bug and should be allowed to shout.
  */
 function whenLabel(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+  return formatMetroDateTime(iso)
 }
 
 export function BrowseResultCard({ result }: { result: BrowseResult }) {
@@ -42,7 +48,6 @@ export function BrowseResultCard({ result }: { result: BrowseResult }) {
       action={
         isPost ? (
           <span
-            suppressHydrationWarning
             data-testid="browse-post-when"
             // Muted, not the accent token: at 12px the accent's 2.9:1 on
             // white is well short of AA, and a date is secondary anyway.

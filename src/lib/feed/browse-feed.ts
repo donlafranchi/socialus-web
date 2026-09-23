@@ -40,6 +40,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { announcementAnchor } from '@/components/group/announcement-anchor'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
@@ -192,6 +193,30 @@ export function browseHref(slug: string | null, publicId: string | null): string
   return canonicalPagePath(s, id)
 }
 
+/**
+ * Where a result card goes.
+ *
+ * A Page row goes to its Page. AN ANNOUNCEMENT ROW GOES TO ITS ANNOUNCEMENT —
+ * bug #211. Before this both went to the Page, so tapping an announcement
+ * landed you at the top of a Page with no indication which one you had tapped,
+ * and if you owned the Page you landed on the composer, which renders between
+ * the heading and the list.
+ *
+ * A fragment rather than a route, because an announcement does not have its
+ * own address yet. When it does, this is the one place that changes.
+ */
+export function resultHref(
+  r: Pick<BrowseFeedRow, 'slug' | 'result_kind' | 'result_id'>,
+  publicId: string | null,
+): string | null {
+  const page = browseHref(r.slug, publicId)
+  // No Page path means no link at all. A bare '#announcement-…' would be a
+  // link that looks live and goes nowhere, which is worse than no link.
+  if (!page) return null
+  if (r.result_kind !== 'post') return page
+  return `${page}#${announcementAnchor(r.result_id)}`
+}
+
 export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseResult {
   return {
     resultKind: r.result_kind,
@@ -200,7 +225,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     groupKind: r.group_kind,
     slug: r.slug,
     name: r.name,
-    href: browseHref(r.slug, publicId),
+    href: resultHref(r, publicId),
     photoUrl: visiblePhotoUrl({
       photo_url: r.photo_url,
       photo_hidden_at: r.photo_hidden_at,
