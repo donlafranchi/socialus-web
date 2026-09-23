@@ -127,24 +127,36 @@ export function PagePosts({
   // and by then the browser has already given up looking for the id. So the
   // scroll happens here, once, after the list is on the page.
   const [highlighted, setHighlighted] = useState<string | null>(null)
-  const scrolled = useRef(false)
+  const arrived = useRef(false)
   useEffect(() => {
-    if (scrolled.current) return
+    if (arrived.current) return
     const id = announcementIdFromHash(window.location.hash)
     if (!id) return
     const el = document.getElementById(announcementAnchor(id))
     if (!el) return
-    scrolled.current = true
-    setHighlighted(id)
-    // `auto`, not `smooth`: this runs on arrival, and animating a jump the
-    // person did not ask for reads as the page moving under them.
+    arrived.current = true
+
+    // AFTER PAINT, not synchronously. Two reasons and both are real:
     //
-    // Optional call, and not only for jsdom. THE MARK IS WHAT IDENTIFIES THE
-    // ANNOUNCEMENT; the scroll is an aid. `setHighlighted` above already ran,
-    // so an environment without `scrollIntoView` still lands on a Page where
-    // the right announcement is ringed — whereas a throw here would take the
-    // highlight down with it, which is exactly what it did the first time.
-    el.scrollIntoView?.({ behavior: 'auto', block: 'center' })
+    // `scrollIntoView` needs layout, and inside the effect the list has been
+    // committed but the browser has not painted it, so a scroll computed here
+    // can land on the wrong offset — which is precisely the failure this whole
+    // bug is about, one layer down.
+    //
+    // And a synchronous setState in an effect cascades a second render before
+    // paint. The React Compiler lint says so, and #119 is the standing record
+    // of what suppressing that rule costs, so this obeys it rather than
+    // silencing it.
+    const frame = requestAnimationFrame(() => {
+      setHighlighted(id)
+      // Optional call, and not only for jsdom. THE MARK IS WHAT IDENTIFIES THE
+      // ANNOUNCEMENT; the scroll is an aid. An environment without
+      // `scrollIntoView` still lands on a Page where the right announcement is
+      // ringed — whereas a throw here would take the highlight down with it,
+      // which is exactly what it did the first time.
+      el.scrollIntoView?.({ behavior: 'auto', block: 'center' })
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   // A visitor looking at a Page with nothing on it sees no empty section. The

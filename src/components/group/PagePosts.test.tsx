@@ -310,35 +310,40 @@ describe('arriving from a browse card', () => {
     expect(document.getElementById('announcement-p-2')).not.toBeNull()
   })
 
-  it('marks the one the fragment names even where scrollIntoView does not exist', () => {
+  it('marks the one the fragment names even where scrollIntoView does not exist', async () => {
     // jsdom is that environment, and so was the first version of this fix:
     // the throw took the highlight with it.
     expect(Element.prototype.scrollIntoView).toBeUndefined()
     withHash('#announcement-p-2')
     renderPosts({ posts: [postFixture({ id: 'p-1' }), postFixture({ id: 'p-2' })] })
-    expect(document.getElementById('announcement-p-2')).toHaveAttribute('data-highlighted', 'true')
+    // The mark lands after paint, deliberately — see the effect's comment.
+    await waitFor(() =>
+      expect(document.getElementById('announcement-p-2')).toHaveAttribute('data-highlighted', 'true'),
+    )
     expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
   })
 
-  it('brings it into view — the list is below the composer for an owner', () => {
+  it('brings it into view — the list is below the composer for an owner', async () => {
     withHash('#announcement-p-2')
     const scrollIntoView = vi.fn()
     Element.prototype.scrollIntoView = scrollIntoView
     renderPosts({ canPost: true, posts: [postFixture({ id: 'p-1' }), postFixture({ id: 'p-2' })] })
-    expect(scrollIntoView).toHaveBeenCalled()
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalled())
   })
 
-  it('does nothing at all when the fragment names something else', () => {
+  it('does nothing at all when the fragment names something else', async () => {
     // '#announce' is the composer's own anchor (#185). It must not be read as
     // an announcement id, or the owner bar's button would mark a random row.
     withHash('#announce')
     renderPosts({ posts: [postFixture({ id: 'p-1' })] })
+    await new Promise((r) => requestAnimationFrame(() => r(null)))
     expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
   })
 
-  it('does nothing when the fragment names an announcement that is not here', () => {
+  it('does nothing when the fragment names an announcement that is not here', async () => {
     withHash('#announcement-nope')
     renderPosts({ posts: [postFixture({ id: 'p-1' })] })
+    await new Promise((r) => requestAnimationFrame(() => r(null)))
     expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
   })
 })

@@ -72,15 +72,30 @@ against the new.
 
 Blast radius of the pin: none. 2462 passed.
 
-## One thing worth keeping
+## Two things worth keeping
 
-The first version of the scroll threw in jsdom — `scrollIntoView` does not
+**The first version of the scroll threw in jsdom** — `scrollIntoView` does not
 exist there — and the throw took the **highlight** down with it, because both
 lived in one effect. It is now an optional call, and the reasoning is in the
 code: the mark is what identifies the announcement, the scroll is an aid. A
 test asserts the mark survives in an environment with no `scrollIntoView`.
 
+**The mark and the scroll happen after paint**, in a `requestAnimationFrame`,
+for two reasons that are both real. `scrollIntoView` needs layout, and inside
+the effect the list is committed but not painted, so a scroll computed there
+can land on the wrong offset — the same failure this bug is about, one layer
+down. And a synchronous `setState` in an effect cascades a render before paint,
+which the React Compiler lint flags; #119 is the standing record of what
+suppressing that rule costs, so this obeys it rather than silencing it. The
+first version did neither and lint caught it.
+
 ## Suite
 
-2462 passed. One known flake — `migrations-pending-parse.test.ts` at 5459ms
-against 5000ms, seventh today, still queued separately.
+2461 passed. The failures are `migrations-pending-parse.test.ts` and
+`manifest.test.ts`, both timeouts, both the known subprocess-under-load class —
+and it is **getting worse**: one of them hit 60287ms against a 60000ms budget,
+where earlier today the same class was missing a 5000ms one by a few hundred
+milliseconds. Each of this file's own suites passes on its own. CI has passed
+this class on every PR today, so CI is the arbiter here; the flake is being
+fixed in its own PR immediately after this one, because it is now the third
+time today it has cost a clean verification.
