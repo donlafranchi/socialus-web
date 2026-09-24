@@ -37,6 +37,25 @@
 // database-side scheduled refresh would need the extension enabled in
 // production before any of this could ship. Next's data cache is shared across
 // instances on Vercel and needs nothing new, which is why it is the mechanism.
+//
+// NO MIGRATION, AND THIS FILE IS WHERE THE NEW RULING LIVES BECAUSE OF THAT.
+// `metro_polygons.creator_count` / `patron_count` already exist and are already
+// maintained incrementally by the join handlers, so the schema does not move
+// for any of this.
+//
+// An earlier draft of this change rewrote the header of
+// `supabase/migrations/20260922034637_metro_waitlist_anonymous.sql` to record
+// the reversal. That header still says *"RULED: an anonymous submitter is shown
+// NO COUNT"*, AND IT IS LEFT SAYING SO ON PURPOSE. An applied migration is a
+// dated record of what was true when it ran — the same rule DECISIONS.md states
+// for itself: append only, never edit a past line, a reversal is a new line
+// that says what it replaces. Editing it would also have been invisible to
+// every check we have: `scripts/check-migration-drift.sh` compares the VERSION
+// rows on each side and never the content, so a file that no longer matches
+// what production ran cannot go red.
+//
+// The record of the reversal is `ops-pattern/DECISIONS.md` 2026-09-23, F076
+// criteria 7, 8, 14 and 16, and this file.
 
 import { unstable_cache } from 'next/cache'
 import { createClient as createServerClient } from '@/lib/supabase-server'
