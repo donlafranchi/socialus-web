@@ -1,4 +1,14 @@
-# F093 · T170 · Signed out sees that an announcement exists, not what it says
+# F093 · T171 · Signed out sees that an announcement exists, not what it says
+
+> **Renumbered from T170 on 2026-09-24.** `change #216` claimed T170 first — its
+> commit landed at 08:03 PDT against this one's 09:25, and its PR (#217) opened
+> an hour and twenty minutes before #218. Two tickets with one number is what
+> ops-pattern #84 is already open about, so this one moved rather than argue it.
+> **The branch name still reads `t170` and cannot be changed** — GitHub does not
+> let a PR's head branch be renamed, and closing #218 to re-open it under a new
+> name would cost the review and the number for a cosmetic fix. The commit
+> message on the first commit also still reads T170; history is not rewritten
+> here. `git log --grep F093` is the provenance either way.
 
 **Issue:** #215 · **Scenario:** F093 (`ops-pattern/planning/scenario-F093.md`, approved 2026-09-23)
 **Ruling:** `ops-pattern/DECISIONS.md`, 2026-09-23 — Don, on #200
