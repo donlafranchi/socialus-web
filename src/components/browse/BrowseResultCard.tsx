@@ -10,6 +10,7 @@
 // event — it simply has no date line.
 
 import { TileCard } from '@/components/cards'
+import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatMetroDateTime } from '@/lib/metro/metro-time'
 import { browseCardLocation, browseCardTagline } from '@/lib/browse/card'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
@@ -37,6 +38,12 @@ function whenLabel(iso: string): string {
 }
 
 export function BrowseResultCard({ result }: { result: BrowseResult }) {
+  // F093 — a withheld announcement is a different card, and the choice lives
+  // here rather than in BrowseSurface so that every surface rendering browse
+  // results gets it without being told: the grid, the map's list, and whatever
+  // renders results next.
+  if (result.withheld) return <WithheldAnnouncementCard result={result} />
+
   const isPost = result.resultKind === 'post'
   return (
     <TileCard

@@ -16,8 +16,10 @@ import { socialLinksForDisplay } from '@/lib/groups/social-links'
 import { sendReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
+import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
+import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -39,6 +41,8 @@ interface Props {
   /** F072 — what this Page has said, newest first. RLS decides what is in
    *  here; the owner's own drafts-of-a-draft-Page come back for the owner. */
   posts?: PagePost[]
+  /** F093 — the signed-out form. Never populated at the same time as `posts`. */
+  withheldPosts?: BrowseResult[]
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
@@ -54,6 +58,7 @@ export function ShopPublicPage({
   pagePath,
   viewerFollows = false,
   posts = [],
+  withheldPosts = [],
   followerCount = 0,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
@@ -234,14 +239,23 @@ export function ShopPublicPage({
       {/* F072 — what the Page has said, above what it lists. Acceptance 2
           puts a post at the top of its Page; the owner's composer lives here
           too, so saying something and seeing it are the same place. */}
-      <PagePosts
-        groupId={shop.groupId}
-        posts={posts}
-        canPost={viewerOwnsPage}
-        followerCount={followerCount}
-        onPost={postToPageAction}
-        onEdit={editPagePostAction}
-      />
+      {/* F093 — one list or the other, never both. Two of them would mean two
+          Announcements headings and two elements carrying the same
+          `announcement-<id>`, and a fragment would land on whichever rendered
+          first. Which one is decided by whether a withheld read happened at
+          all, which `loadPageView` only does when there is no member. */}
+      {withheldPosts.length > 0 ? (
+        <WithheldPagePosts posts={withheldPosts} />
+      ) : (
+        <PagePosts
+          groupId={shop.groupId}
+          posts={posts}
+          canPost={viewerOwnsPage}
+          followerCount={followerCount}
+          onPost={postToPageAction}
+          onEdit={editPagePostAction}
+        />
+      )}
 
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>
