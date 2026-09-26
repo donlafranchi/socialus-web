@@ -173,13 +173,35 @@ describe.skipIf(!RUNNABLE)('F072 — posting, for real', () => {
     }
   }
 
-  it('is readable by a stranger, which is what putting it on a Page means', async () => {
+  // AMENDED BY F093 (#215), 2026-09-23. This read "is readable by a stranger,
+  // which is what putting it on a Page means", and it asserted exactly that: a
+  // stranger selecting the row and getting it back.
+  //
+  // Don ruled the other way. Who exists is public, what's happening is not,
+  // but THAT something is happening is public — so a stranger still FINDS the
+  // announcement and no longer READS it. F072's numbered acceptance is
+  // untouched: criterion 2 asks that an announcement appear "on its Page and
+  // in browse", and it still does, in withheld form (F093 criterion 7). What
+  // changed is the sentence in F072's STORY about a stranger finding what is
+  // on this week, which F093 supersedes.
+  //
+  // The original intent survives inverted rather than deleted: a post nobody
+  // can find is not a post, so the assertion moved from the table to the
+  // withheld path rather than being dropped.
+  it('is findable by a stranger, and not readable — F093', async () => {
     const created = await groupPostCreate(ctx(OWNER), { groupId: SHOP, body: 'Market stall Saturday.' })
-    const rows = await asAnon<{ id: string }>(
+
+    const readable = await asAnon<{ id: string }>(
       `select id from public.page_posts where id = $1`,
       [created.postId],
     )
-    expect(rows).toHaveLength(1)
+    expect(readable).toHaveLength(0)
+
+    const findable = await asAnon<{ result_id: string }>(
+      `select result_id from public.announcements_withheld(p_group_id => $1)`,
+      [SHOP],
+    )
+    expect(findable.map((r) => r.result_id)).toContain(created.postId)
   })
 
   it('is withheld from a stranger once its Page stops being listed', async () => {

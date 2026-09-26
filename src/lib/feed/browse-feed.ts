@@ -162,6 +162,23 @@ export interface BrowseResult {
   updatedAt: string
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
+  /**
+   * F093 — this row is the signed-out form: which Page posted, and how many
+   * it has this period. No body, no time, no place.
+   *
+   * A flag rather than a separate type, so signed-out Explore keeps its
+   * post-kind rows (criterion 7) through the same grid, the same search and
+   * the same map without any of them learning about two shapes. It is always
+   * a boolean and never undefined: a surface asking `withheld` must not have
+   * a third state to get wrong.
+   */
+  withheld: boolean
+  /**
+   * F093 criterion 5 — announcements this Page has in the current period.
+   * Null on anything a reader can actually read, because a member reads the
+   * announcement itself rather than a count of them.
+   */
+  announcementCount: number | null
 }
 
 type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
@@ -241,6 +258,8 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     pageCreatedAt: r.page_created_at,
     updatedAt: r.updated_at,
     sortAt: r.sort_at,
+    withheld: false,
+    announcementCount: null,
   }
 }
 

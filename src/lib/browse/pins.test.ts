@@ -23,6 +23,8 @@ function row(over: Partial<BrowseResult> = {}): BrowseResult {
     pageCreatedAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-02T00:00:00Z',
     sortAt: '2026-09-02T00:00:00Z',
+    withheld: false,
+    announcementCount: null,
     ...over,
   }
 }

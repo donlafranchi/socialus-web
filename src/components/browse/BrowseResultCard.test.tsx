@@ -68,3 +68,30 @@ describe('the card links to the announcement, not just its Page', () => {
     expect(link.getAttribute('href')).toBe('/g/sacriver-floaters-abc123#announcement-p-1')
   })
 })
+
+// F093 — a withheld announcement is a different card, chosen here.
+//
+// The choice lives in BrowseResultCard rather than in BrowseSurface so that
+// every surface rendering browse results gets it without being told: the grid,
+// the map's list, and whatever renders results next.
+describe('F093 — the signed-out form', () => {
+  const withheld = (over: Partial<BrowseResult> = {}): BrowseResult =>
+    post({ withheld: true, body: null, startsAt: null, announcementCount: 3, ...over })
+
+  it('renders the withheld card when the result is withheld', () => {
+    render(<BrowseResultCard result={withheld()} />)
+    expect(screen.getByTestId('withheld-cta')).toBeInTheDocument()
+  })
+
+  it('renders no date line, because there is no time to show', () => {
+    render(<BrowseResultCard result={withheld()} />)
+    expect(screen.queryByTestId('browse-post-when')).not.toBeInTheDocument()
+  })
+
+  it('leaves a readable announcement on the ordinary card', () => {
+    // Criterion 6 — a signed-in member sees no change.
+    render(<BrowseResultCard result={post()} />)
+    expect(screen.queryByTestId('withheld-cta')).not.toBeInTheDocument()
+    expect(screen.getByTestId('browse-post-when')).toBeInTheDocument()
+  })
+})

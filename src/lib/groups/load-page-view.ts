@@ -19,10 +19,22 @@ import {
 } from './resolve-shop'
 import { resolvePagePosts, type PagePost } from './page-posts'
 import { countPageFollowers } from '@/lib/follows/follower-count'
+import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
+import { metroWeekBounds } from '@/lib/metro/metro-week'
+import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 export interface PageView {
   items: ShopItem[]
   posts: PagePost[]
+  /**
+   * F093 — the same announcements, in the form a stranger may see: which ones
+   * exist and how many this week, never what they say.
+   *
+   * Always `[]` for a signed-in member, who has `posts` instead. The two are
+   * never both populated, and that is the shape of criterion 6: the signed-in
+   * surface is not a withheld surface with extra fields, it is untouched.
+   */
+  withheldPosts: BrowseResult[]
   badge: LocalOwnerBadge | null
   ownerClaim: OwnerClaim | null
   viewerOwnsPage: boolean
@@ -74,9 +86,27 @@ export async function loadPageView(
   // read nobody renders is a read worth not making.
   const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
 
+  // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
+  // this the Announcements section would not render at all and an
+  // `#announcement-<id>` link from Explore would scroll to nothing. That is
+  // the dead end #211 fixed, reintroduced at a different door.
+  //
+  // A failure costs the announcements and never the Page, the rule
+  // `resolvePagePosts` already follows.
+  const withheldPosts = auth.user
+    ? []
+    : await getWithheldAnnouncements(supabase, {
+        scope: { groupId: shop.groupId },
+        period: metroWeekBounds(),
+      }).catch((error) => {
+        console.error('[loadPageView] withheld announcements failed:', (error as Error).message)
+        return [] as BrowseResult[]
+      })
+
   return {
     items,
     posts,
+    withheldPosts,
     badge,
     ownerClaim,
     viewerOwnsPage: owns,

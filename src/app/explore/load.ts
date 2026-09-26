@@ -39,6 +39,8 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { getBrowseFeed } from '@/lib/feed/browse-feed'
+import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
+import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
 import { listFeedMetros, type FeedMetro } from '@/lib/feed/feed-metro'
 import { resolveBrowseScope } from '@/lib/browse/scope'
@@ -77,13 +79,50 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     ? followedFeed(supabase, user.id, scope.metro.id)
     : Promise.resolve([] as BrowseResult[])
 
+  // F093 — SIGNED OUT, ANNOUNCEMENTS COME FROM THE WITHHELD PATH.
+  //
+  // `browse_feed` is `security invoker` and `page_posts` has no anonymous read
+  // any more, so it would return no post rows to a stranger anyway. Asking it
+  // for Pages only is not what does the withholding — the policy is — it just
+  // says out loud which half of the corpus this call is for, and makes it
+  // impossible for one announcement to arrive down both paths if the policy
+  // is ever loosened.
+  //
+  // Criterion 7: the rows STAY, in withheld form. A signed-out Explore
+  // carrying only Pages leaks nothing and is still wrong — it is the
+  // difference between a directory and a place that is visibly alive, which
+  // is the whole reason this ruling is not "announcements require an account".
+  const signedOut = !user
+  let withheldFailed = false
+  const withheldPromise = signedOut
+    ? getWithheldAnnouncements(supabase, {
+        scope: { metroId: scope.metro.id },
+        // The period the count on the card is over, in the metro's own week.
+        period: metroWeekBounds(),
+        limit: BROWSE_LIMIT,
+      }).catch((error) => {
+        console.error('[loadBrowse] withheld announcements failed:', (error as Error).message)
+        withheldFailed = true
+        return [] as BrowseResult[]
+      })
+    : Promise.resolve([] as BrowseResult[])
+
   try {
     const results = await getBrowseFeed(supabase, {
       scope: { metroId: scope.metro.id },
+      resultKinds: signedOut ? ['page'] : null,
       limit: BROWSE_LIMIT,
     })
     const following = await followingPromise
-    return { ...base, results, following, metro: scope.metro, chosen: scope.chosen, failed: false }
+    const withheld = await withheldPromise
+    return {
+      ...base,
+      results: mergeByRecency(results, withheld),
+      following,
+      metro: scope.metro,
+      chosen: scope.chosen,
+      failed: withheldFailed,
+    }
   } catch (error) {
     // Loud, and distinguishable. An empty surface that means "the query is
     // broken" must not read as "nothing is here yet" — the empty state invites
@@ -98,6 +137,20 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
       failed: true,
     }
   }
+}
+
+/**
+ * Two result sets as one list, newest first.
+ *
+ * `browse_feed` already ordered its own rows and the withheld read ordered
+ * its own; neither knows about the other, so the interleave happens here. One
+ * sort key (`sortAt`) rather than two lists on the surface, because F059
+ * criterion 2 asks for Pages and posts TOGETHER and a second row would be a
+ * second answer to what Browse is.
+ */
+function mergeByRecency(a: BrowseResult[], b: BrowseResult[]): BrowseResult[] {
+  if (b.length === 0) return a
+  return [...a, ...b].sort((x, y) => (x.sortAt < y.sortAt ? 1 : x.sortAt > y.sortAt ? -1 : 0))
 }
 
 /**
