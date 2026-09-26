@@ -15,7 +15,17 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { getUser, from, rpc, getBrowseFeed, resolveFollowedPageIds, listFeedMetros, resolveBrowseScope } =
+const {
+  getUser,
+  from,
+  rpc,
+  getBrowseFeed,
+  resolveFollowedPageIds,
+  listFeedMetros,
+  waitingCountByMetro,
+  getWithheldAnnouncements,
+  resolveBrowseScope,
+} =
   vi.hoisted(() => ({
     getUser: vi.fn(),
     from: vi.fn(),
@@ -23,6 +33,8 @@ const { getUser, from, rpc, getBrowseFeed, resolveFollowedPageIds, listFeedMetro
     getBrowseFeed: vi.fn(),
     resolveFollowedPageIds: vi.fn(),
     listFeedMetros: vi.fn(),
+    waitingCountByMetro: vi.fn(),
+    getWithheldAnnouncements: vi.fn(),
     resolveBrowseScope: vi.fn(),
   }))
 
@@ -31,7 +43,18 @@ vi.mock('@/lib/supabase-server', () => ({
 }))
 vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
-vi.mock('@/lib/feed/feed-metro', () => ({ listFeedMetros }))
+vi.mock('@/lib/feed/feed-metro', async (importActual) => {
+  const actual = await importActual<typeof import('@/lib/feed/feed-metro')>()
+  // `withWaitingCounts` stays real — it is a pure merge, and stubbing it would
+  // hide the thing worth checking: that the cached counts reach the picker.
+  return { ...actual, listFeedMetros }
+})
+vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
+// F093's signed-out read. Stubbed here rather than left real because the real
+// one calls `supabase.rpc` on this file's mock client and throws — which
+// `loadBrowse` catches into `failed`, so an unmocked module quietly turns
+// every signed-out assertion about `failed` into a test of the wrong thing.
+vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
 
 import { loadBrowse } from './load'
@@ -51,7 +74,9 @@ const followingCalls = () =>
 
 beforeEach(() => {
   vi.clearAllMocks()
+  getWithheldAnnouncements.mockResolvedValue([])
   listFeedMetros.mockResolvedValue([METRO])
+  waitingCountByMetro.mockResolvedValue(new Map([[METRO.id, 12]]))
   resolveBrowseScope.mockResolvedValue({ metro: METRO, chosen: false })
   resolveFollowedPageIds.mockResolvedValue([])
   from.mockReturnValue({
@@ -111,6 +136,7 @@ describe('signed in — criterion 2b, Browse carries what is theirs', () => {
     const out = await loadBrowse(null)
     vi.clearAllMocks()
     listFeedMetros.mockResolvedValue([METRO])
+  waitingCountByMetro.mockResolvedValue(new Map([[METRO.id, 12]]))
     resolveBrowseScope.mockResolvedValue({ metro: METRO, chosen: false })
     from.mockReturnValue({
       select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { home_metro_id: null } }) }) }),
@@ -173,5 +199,23 @@ describe('failure', () => {
     const snap = await loadBrowse(null)
     expect(snap.following).toEqual([])
     expect(getBrowseFeed).not.toHaveBeenCalled()
+  })
+})
+
+// F076 — the cached count reaches the picker, which is what the ordering needs.
+describe('the waiting counts the picker sorts by', () => {
+  it('merges the cached figure onto the metros', async () => {
+    signedOut()
+    const snap = await loadBrowse(null)
+    expect(snap.metros[0]!.waiting).toBe(12)
+  })
+
+  it('costs the ordering and never the picker when the cache read fails', async () => {
+    signedOut()
+    waitingCountByMetro.mockRejectedValue(new Error('cache down'))
+    const snap = await loadBrowse(null)
+    expect(snap.metros).toHaveLength(1)
+    expect(snap.metros[0]!.waiting).toBeUndefined()
+    expect(snap.failed).toBe(false)
   })
 })

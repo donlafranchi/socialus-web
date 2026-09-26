@@ -39,9 +39,9 @@ const METRO: FeedMetro = {
   isOpen: false,
 }
 
+// What `standingMessage` produces for a cached combined of 50 against 300.
 const CONFIRMATION =
-  'You’re counted. This metro opens when enough people here have asked for it. ' +
-  'If it does, we’ll send one message to this address — that is the only thing it will ever be used for.'
+  'This metro needs 250 more people before there is enough here to be worth showing you.'
 
 function renderPanel() {
   return render(<MetroNotCoveredPanel metro={METRO} onBack={() => {}} />)
@@ -54,7 +54,12 @@ beforeEach(() => {
   getUser.mockReset()
   joinAnonymous.mockReset()
   join.mockReset()
-  joinAnonymous.mockResolvedValue({ open: false, metroName: METRO.name, message: CONFIRMATION })
+  joinAnonymous.mockResolvedValue({
+    open: false,
+    metroName: METRO.name,
+    standing: { combined: 50, target: 300 },
+    message: CONFIRMATION,
+  })
   join.mockResolvedValue({
     open: false,
     metroName: METRO.name,
@@ -122,7 +127,7 @@ describe('signed out — criterion 13, no account and no second step', () => {
   })
 })
 
-describe('signed out — the popup carries no number (#196)', () => {
+describe('signed out — the popup carries the cached number (ruled 2026-09-23)', () => {
   const submit = async () => {
     signedOut()
     renderPanel()
@@ -144,10 +149,21 @@ describe('signed out — the popup carries no number (#196)', () => {
     })
   })
 
-  it('renders no digit anywhere in the popup', async () => {
+  it('shows the cached count against the target', async () => {
     const dialog = await submit()
-    // The whole of #196 in one assertion: a count, a target, "12 of 300", or a
-    // number smuggled into the copy all fail here.
+    expect(dialog.textContent).toContain('50')
+    expect(dialog.textContent).toContain('300')
+  })
+
+  it('renders no number when the action had none to give', async () => {
+    // Null standing, not zero — a metro missing from the cached snapshot.
+    joinAnonymous.mockResolvedValue({
+      open: false,
+      metroName: METRO.name,
+      standing: null,
+      message: '',
+    })
+    const dialog = await submit()
     expect(dialog.textContent ?? '').not.toMatch(/\d/)
   })
 
@@ -207,7 +223,7 @@ describe('the confirmation says nothing it must not', () => {
     fireEvent.click(screen.getByTestId('waitlist-join'))
     const dialog = await waitFor(() => screen.getByTestId('metro-standing-dialog'))
 
-    expect(dialog.textContent).toBe(`${METRO.name}${CONFIRMATION}Got it`)
+    expect(dialog.textContent).toBe(`${METRO.name}50 of 300${CONFIRMATION}Got it`)
     // And the confirmation line behind it says nothing conditional either.
     expect(screen.getByTestId('waitlist-joined').textContent).not.toMatch(
       /already|again|previously|still/i,

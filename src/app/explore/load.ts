@@ -42,7 +42,8 @@ import { getBrowseFeed } from '@/lib/feed/browse-feed'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
-import { listFeedMetros, type FeedMetro } from '@/lib/feed/feed-metro'
+import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
+import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
@@ -66,7 +67,13 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
   // then this, then the default.
   const memberMetroId = user ? await homeMetroId(supabase, user.id) : null
   const scope = await resolveBrowseScope(supabase, { memberMetroId, requestedSlug })
-  const metros = await metrosPromise
+  // The CACHED counts, merged here so the picker can order by them and the
+  // popup can show one — the same figure in both places, which is the whole
+  // point. A failure costs the ordering and the number, never the picker.
+  const metros = withWaitingCounts(
+    await metrosPromise,
+    await waitingCountByMetro().catch(() => new Map<string, number>()),
+  )
 
   const base = { metros, signedIn: Boolean(user) }
   if (!scope) {

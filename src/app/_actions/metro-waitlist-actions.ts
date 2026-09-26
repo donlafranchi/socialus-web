@@ -24,8 +24,9 @@ import {
 import {
   metroStanding,
   standingMessage,
-  ANONYMOUS_WAITLIST_MESSAGE,
+  standingFromCombined,
 } from '@/lib/metro/waitlist-standing'
+import { waitingCountFor } from '@/lib/metro/waitlist-counts'
 
 export interface JoinMetroWaitlistResult {
   /** True when the metro is already live — there is nothing to wait for. */
@@ -108,26 +109,32 @@ export async function joinMetroWaitlistAction(input: {
 
 // T167 (#193) — F076 criteria 13-15: the same step, without an account.
 //
-// NO `getUser()`, AND NO SUPABASE CLIENT AT ALL. The signed-in action above
-// reads `metro_polygons` through the browser client twice, around the write.
-// This one reads nothing, because there is nothing it is allowed to report.
+// NO `getUser()`, AND NO SUPABASE CLIENT ON THE WRITE PATH. The signed-in
+// action above reads `metro_polygons` through the browser client twice, around
+// the write. This one reads nothing around the write at all.
 //
-// NO COUNT, RULED 2026-09-22 (#196). The first version of this returned a
-// standing read before the write, on the reasoning that a pre-write count
-// cannot be diffed. It can: submit a new address and it returns N, submit it
-// again and it returns N+1. Reading after the write instead makes a single
-// probe of someone else's address leak, which is worse. Any truthful live
-// count leaks membership by differencing, so the anonymous path shows none —
-// the handler does not read the counts and this result has no field for one.
+// THE COUNT IS BACK, AND IT IS CACHED — ruled 2026-09-23, reversing #196.
+// `waitingCountFor` serves a figure that was current up to an hour ago and is
+// shared with the metro picker's ordering, so it does not move in response to
+// this submission. That is what removes the oracle: the earlier attempt read
+// the live count before the write, which does not help, because the thing that
+// leaks is any number that is a function of what you just did.
 //
-// The signed-in action above keeps its number, deliberately. A member is
-// entitled to see themselves counted; someone leaving an address learns
-// nothing from it that they can act on.
+// The residual is stated where the cache is defined, not glossed here.
+//
+// The signed-in action above still reads the LIVE count after its write, and
+// that stays: a member is entitled to see themselves counted, and there is no
+// oracle on that path — you are authenticated as yourself and cannot probe
+// somebody else's address with it.
 export interface JoinMetroWaitlistAnonymousResult {
   /** True when the metro is already live — there is nothing to wait for. */
   open: boolean
   metroName: string
-  /** Fixed text. Nothing in it is derived from a count. */
+  /**
+   * The cached standing, or null when the metro is missing from the snapshot.
+   * Null renders no number rather than a confident zero.
+   */
+  standing: { combined: number; target: number } | null
   message: string
 }
 
@@ -150,9 +157,18 @@ export async function joinMetroWaitlistAnonymousAction(input: {
     throw err
   }
 
+  if (result.open) {
+    return { open: true, metroName: result.metroName, standing: null, message: '' }
+  }
+
+  // Cached. Not a read of this metro's current counters — see above.
+  const waiting = await waitingCountFor(result.metroId)
+  const standing = waiting === null ? null : standingFromCombined(waiting)
+
   return {
-    open: result.open,
+    open: false,
     metroName: result.metroName,
-    message: result.open ? '' : ANONYMOUS_WAITLIST_MESSAGE,
+    standing,
+    message: standing ? standingMessage(standing) : '',
   }
 }

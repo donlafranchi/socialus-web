@@ -24,13 +24,16 @@
 // Don ruled that open on 2026-09-21 (F076 criteria 13-15) and T167 built the
 // handler, so the signed-out branch now takes an address instead.
 //
-// THE POPUP CARRIES NO NUMBER ON THIS PATH, ruled 2026-09-22 (#196). A unique
-// index on an email makes "is this address already waiting?" answerable, and
-// any truthful live count leaks that by differencing — reading it before the
-// write does not help, which the database said and the mock did not. So
-// `joinMetroWaitlistAnonymousAction` returns no count and the dialog is given
-// none. A signed-in member still sees theirs; they are entitled to see
-// themselves counted.
+// THE POPUP CARRIES A NUMBER AGAIN, ruled 2026-09-23, reversing #196. A unique
+// index on an email does make "is this address already waiting?" answerable,
+// and the earlier ruling removed the count to close that. Don overruled it:
+// what the oracle reveals is "this address expressed interest in a local app
+// before launch", which does not justify losing something useful.
+//
+// The count is CACHED — see `@/lib/metro/waitlist-counts`. The leak was never
+// the number existing, it was the number being recomputed in response to your
+// own write, and a figure shared with the metro picker's ordering does not
+// move when you submit. Null standing renders no number rather than a zero.
 //
 // The session is read HERE rather than threaded down. Browse resolves auth
 // server-side now (T156), but this panel is reached from inside the scope
@@ -71,8 +74,6 @@ export function MetroNotCoveredPanel({
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // `combined`/`target` are absent on the anonymous path, which is what makes
-  // the dialog render no number. See #196.
   const [standing, setStanding] = useState<
     { metroName: string; message: string; combined?: number; target?: number } | null
   >(null)
@@ -106,10 +107,15 @@ export function MetroNotCoveredPanel({
           role,
         })
         setJoined(true)
-        // No combined, no target — deliberately. Spreading the result here
-        // would be the bug, so the two fields are named rather than splatted.
         if (!result.open) {
-          setStanding({ metroName: result.metroName, message: result.message })
+          setStanding({
+            metroName: result.metroName,
+            message: result.message,
+            // Cached, and the same figure the picker sorted by. Named rather
+            // than splatted so a new field upstream cannot arrive here unread.
+            combined: result.standing?.combined,
+            target: result.standing?.target,
+          })
         }
       }
     } catch (err) {

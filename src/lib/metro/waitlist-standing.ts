@@ -58,7 +58,7 @@ export function metroStanding(counts: MetroCounts): MetroStanding {
  * open at all. It also does not leak the creator/patron split, which is what
  * keeps a popup a popup.
  */
-export function standingMessage(standing: MetroStanding): string {
+export function standingMessage(standing: Pick<MetroStanding, 'combined' | 'target'>): string {
   const remaining = Math.max(0, standing.target - standing.combined)
   if (remaining > 0) {
     const people = remaining === 1 ? 'one more person' : `${remaining} more people`
@@ -83,6 +83,22 @@ export function standingMessage(standing: MetroStanding): string {
  * It still states what is needed (criterion 9), still promises no date and no
  * opening, and names the single use the address has (criterion 15).
  */
-export const ANONYMOUS_WAITLIST_MESSAGE =
-  'You’re counted. This metro opens when enough people here have asked for it. ' +
-  'If it does, we’ll send one message to this address — that is the only thing it will ever be used for.'
+/**
+ * What a person who left an address reads, in one number and one line.
+ *
+ * RULED 2026-09-23, reversing 2026-09-22. The count is back: the leak was never
+ * the number existing, it was the number being recomputed in response to your
+ * own write. It now comes from `getMetroWaitingCounts`, which every surface
+ * shares and which a submission does not move.
+ *
+ * `standingMessage` is the same copy a signed-in member gets, deliberately —
+ * two people looking at the same metro should read the same sentence, and the
+ * count behind it is the same cached figure either way.
+ *
+ * Criterion 15 — the one use the address has — is said BEFORE the person
+ * types, on the panel itself, rather than in the confirmation. It is a reason
+ * to submit, not a footnote after the fact.
+ */
+export function standingFromCombined(combined: number): { combined: number; target: number } {
+  return { combined, target: COMBINED_TARGET }
+}
