@@ -23,6 +23,7 @@ const {
   resolveFollowedPageIds,
   listFeedMetros,
   waitingCountByMetro,
+  getWithheldAnnouncements,
   resolveBrowseScope,
 } =
   vi.hoisted(() => ({
@@ -33,6 +34,7 @@ const {
     resolveFollowedPageIds: vi.fn(),
     listFeedMetros: vi.fn(),
     waitingCountByMetro: vi.fn(),
+    getWithheldAnnouncements: vi.fn(),
     resolveBrowseScope: vi.fn(),
   }))
 
@@ -48,6 +50,11 @@ vi.mock('@/lib/feed/feed-metro', async (importActual) => {
   return { ...actual, listFeedMetros }
 })
 vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
+// F093's signed-out read. Stubbed here rather than left real because the real
+// one calls `supabase.rpc` on this file's mock client and throws — which
+// `loadBrowse` catches into `failed`, so an unmocked module quietly turns
+// every signed-out assertion about `failed` into a test of the wrong thing.
+vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
 
 import { loadBrowse } from './load'
@@ -67,6 +74,7 @@ const followingCalls = () =>
 
 beforeEach(() => {
   vi.clearAllMocks()
+  getWithheldAnnouncements.mockResolvedValue([])
   listFeedMetros.mockResolvedValue([METRO])
   waitingCountByMetro.mockResolvedValue(new Map([[METRO.id, 12]]))
   resolveBrowseScope.mockResolvedValue({ metro: METRO, chosen: false })

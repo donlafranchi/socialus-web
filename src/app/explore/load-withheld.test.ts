@@ -19,6 +19,7 @@ const {
   getWithheldAnnouncements,
   resolveFollowedPageIds,
   listFeedMetros,
+  waitingCountByMetro,
   resolveBrowseScope,
 } = vi.hoisted(() => ({
   getUser: vi.fn(),
@@ -28,6 +29,7 @@ const {
   getWithheldAnnouncements: vi.fn(),
   resolveFollowedPageIds: vi.fn(),
   listFeedMetros: vi.fn(),
+  waitingCountByMetro: vi.fn(),
   resolveBrowseScope: vi.fn(),
 }))
 
@@ -37,7 +39,16 @@ vi.mock('@/lib/supabase-server', () => ({
 vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
 vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
-vi.mock('@/lib/feed/feed-metro', () => ({ listFeedMetros }))
+// `withWaitingCounts` stays real — it is a pure merge, and these tests assert
+// nothing about it; stubbing it away would only hide a change to it.
+vi.mock('@/lib/feed/feed-metro', async (importActual) => {
+  const actual = await importActual<typeof import('@/lib/feed/feed-metro')>()
+  return { ...actual, listFeedMetros }
+})
+// #216's cached waiting counts. Same reason as the withheld stub in
+// load.test.ts: unmocked, the real one reaches for a server client that is not
+// there, and the throw lands in a catch that makes these assertions vacuous.
+vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
 vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
 
 import { loadBrowse } from './load'
@@ -64,6 +75,7 @@ beforeEach(() => {
   listFeedMetros.mockResolvedValue([METRO])
   resolveBrowseScope.mockResolvedValue({ metro: METRO, chosen: false })
   resolveFollowedPageIds.mockResolvedValue([])
+  waitingCountByMetro.mockResolvedValue(new Map<string, number>())
   from.mockReturnValue({
     select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { home_metro_id: null } }) }) }),
   })
