@@ -52,6 +52,22 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 
 `.github/ISSUE_TEMPLATE/work.md` and `.github/workflows/issue-lint.yml` enforce `Kind:`/`Scenario:` fields and flag scope drift automatically — label `needs-fix` means one of those checks failed; read the bot comment.
 
+## Rulings that bind this repo
+
+**ops-pattern `constraints/code.md`** — every ratified decision tagged as binding the
+code tier, one line each, generated from `DECISIONS.md`. Read it before building;
+it is the only rulings file this repo points at. Never edit it — change the tag on
+the decision in ops-pattern.
+
+## Which check discharges which criterion
+
+A test or script that discharges a scenario criterion says so on the line above it:
+`// [guards F093.4]` — one criterion per marker, several markers on a line if one
+check covers several. ops-pattern builds a per-scenario coverage map from these, so
+a criterion with no marked check shows as unguarded instead of assumed. Mark only
+a check that has been seen failing against input it should reject
+([guard-proves-itself]); a marker on a test that never ran is a false claim.
+
 ## Open questions
 
 A question you cannot answer and will not answer this session is marked where it
@@ -61,7 +77,7 @@ build an Issue → the Issue **body** (comments are not scanned). Never a PR
 description or commit message — neither can be edited to close it. A question
 whose answer changes behaviour is not a marker; stop and ask for a scenario
 change. Answering one removes the marker in the same commit. ops-pattern's
-`STATUS.md` indexes every marker; `scripts/check-open-questions.sh` fails CI on
+`STATUS.md` indexes every marker; `scripts/check-markers.sh` fails CI on
 one missing an owner, a date or a question. Full rule:
 `ops-pattern/process/PIPELINE.md` § Open questions.
 
