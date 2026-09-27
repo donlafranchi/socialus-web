@@ -21,7 +21,7 @@ import datetime, re, sys
 B = r"\["  # built from pieces so this file never contains a marker of its own
 ANY_OQ = re.compile(B + r"open[- ]?question", re.I)
 ANY_G = re.compile(B + r"guards?(?=[\s\]])", re.I)
-ANY_B = re.compile(B + r"binds?(?=[\s\]])", re.I)
+ANY_B = re.compile(B + r"(binds?(?=[\s\]])|supersed[\w-]*)", re.I)
 FULL_OQ = re.compile(B + "open-" + r"question owner=(\w+) raised=([0-9-]+)\]")
 FULL_G = re.compile(B + r"guards F\d{3}\.\d+[a-z]?\]")
 today, bad = datetime.date.today(), 0
@@ -52,7 +52,7 @@ for p in sys.argv[1:]:
             if not FULL_G.match(bare, m.start()):
                 err(p, n, "not a guards marker: one scenario criterion per marker, e.g. F093.4")
         for m in ANY_B.finditer(bare):
-            err(p, n, "a binds tag belongs on an ops-pattern DECISIONS.md line, not here")
+            err(p, n, "binds and supersedes tags belong on ops-pattern DECISIONS.md lines, not here")
 sys.exit(1 if bad else 0)
 PY
 }
@@ -60,7 +60,7 @@ PY
 if [ $# -gt 0 ]; then check "$@"; exit; fi
 
 fx=scripts/fixtures/markers
-EXPECT_BAD=12
+EXPECT_BAD=13
 got=$(check "$fx/bad.txt" | grep -c '^marker:')
 if [ "$got" -ne "$EXPECT_BAD" ]; then
   echo "marker checker is inert — rejected $got of $EXPECT_BAD bad fixture lines"; exit 1

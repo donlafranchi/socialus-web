@@ -57,7 +57,12 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 **ops-pattern `constraints/code.md`** — every ratified decision tagged as binding the
 code tier, one line each, generated from `DECISIONS.md`. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
-the decision in ops-pattern.
+the decision in ops-pattern. It lists only live rulings; superseded ones are gone.
+
+**If two rulings seem to conflict, the newer wins and work continues** — never stop
+to ask Don which is true (ops-pattern `[newer-decision-wins]`). Only two live
+rulings in conflict with neither superseding the other are raised, as an
+open-question marker where it bites. Never split the difference.
 
 ## Which check discharges which criterion
 
