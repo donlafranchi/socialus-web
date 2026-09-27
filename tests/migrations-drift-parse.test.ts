@@ -76,6 +76,13 @@ const APPLIED = { local: '20260921200710', remote: '20260921200710' }
 const PENDING = { local: '20260922204457' }
 const GHOST = { remote: '20260911999999' }
 
+// Bug #224 — the two failures need opposite fixes, so the caller has to be
+// able to tell them apart. One exit code for both is how CI came to print
+// "this branch carries a migration production does not have" when the truth
+// was that production carried one the branch did not.
+const PENDING_EXIT = 2
+const DRIFT_EXIT = 3
+
 beforeAll(() => {
   bin = mkdtempSync(join(tmpdir(), 'drift-'))
 })
@@ -88,7 +95,7 @@ describe('an unapplied migration, in the backtick table CI gets', () => {
     fakeCli(table([APPLIED, PENDING]))
     const { code, out } = run('--strict')
     // The regression: this exited 0 and said "clean".
-    expect(code).toBe(1)
+    expect(code).toBe(PENDING_EXIT)
     expect(out).toMatch(/not yet applied/i)
     expect(out).toContain('20260922204457')
   })
@@ -107,7 +114,7 @@ describe('a migration in the database with no file — always drift', () => {
     for (const args of [[], ['--strict']]) {
       fakeCli(table([APPLIED, GHOST]))
       const { code, out } = run(...args)
-      expect(code, `args: ${JSON.stringify(args)}`).toBe(1)
+      expect(code, `args: ${JSON.stringify(args)}`).toBe(DRIFT_EXIT)
       expect(out).toMatch(/the database has migrations this repo does not/i)
       expect(out).toContain('20260911999999')
     }
@@ -131,13 +138,26 @@ describe('the terminal rendering still works', () => {
   it('detects a pending migration with no backticks at all', () => {
     fakeCli(plainTable([APPLIED, PENDING]))
     const { code, out } = run('--strict')
-    expect(code).toBe(1)
+    expect(code).toBe(PENDING_EXIT)
     expect(out).toContain('20260922204457')
   })
 
   it('detects drift with no backticks at all', () => {
     fakeCli(plainTable([APPLIED, GHOST]))
     const { code } = run()
-    expect(code).toBe(1)
+    expect(code).toBe(DRIFT_EXIT)
+  })
+})
+
+describe('both at once under --strict', () => {
+  // The pending check used to exit before the drift check ran, so a branch
+  // with both was told only about the one that is fixed by applying — and
+  // applying does nothing about a migration the branch has no file for.
+  it('reports both, and exits as drift', () => {
+    fakeCli(table([APPLIED, PENDING, GHOST]))
+    const { code, out } = run('--strict')
+    expect(code).toBe(DRIFT_EXIT)
+    expect(out).toContain('20260922204457')
+    expect(out).toContain('20260911999999')
   })
 })
