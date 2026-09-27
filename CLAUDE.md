@@ -52,6 +52,19 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 
 `.github/ISSUE_TEMPLATE/work.md` and `.github/workflows/issue-lint.yml` enforce `Kind:`/`Scenario:` fields and flag scope drift automatically — label `needs-fix` means one of those checks failed; read the bot comment.
 
+## Open questions
+
+A question you cannot answer and will not answer this session is marked where it
+lives: `[open-question owner=<don|cowork|code> raised=YYYY-MM-DD] the question`.
+About one line of code or one migration → a comment on that line. About how to
+build an Issue → the Issue **body** (comments are not scanned). Never a PR
+description or commit message — neither can be edited to close it. A question
+whose answer changes behaviour is not a marker; stop and ask for a scenario
+change. Answering one removes the marker in the same commit. ops-pattern's
+`STATUS.md` indexes every marker; `scripts/check-open-questions.sh` fails CI on
+one missing an owner, a date or a question. Full rule:
+`ops-pattern/process/PIPELINE.md` § Open questions.
+
 ## The ontology
 
 The nouns live in ops-pattern `product/foundation/nouns.md`, the verbs in

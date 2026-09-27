@@ -1,0 +1,9 @@
+Every line below must be rejected. scripts/check-open-questions.sh counts them; add a line, bump EXPECT_BAD there.
+[open-question raised=2026-09-27] missing an owner?
+[open-question owner=don] missing a date?
+[open-question] missing both?
+[open-question owner=someone raised=2026-09-27] an owner nobody is?
+[open-question owner=don raised=2026-13-40] a date that is not one?
+[open-question owner=don raised=2999-01-01] raised in the future?
+[open-question owner=don raised=2026-09-27]
+[Open Question owner=don raised=2026-09-27] a near-miss spelling?
