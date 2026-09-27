@@ -16,7 +16,7 @@ check() {
   python3 - "$@" <<'PY'
 import datetime, re, sys
 ANY = re.compile(r"\[open[- ]?question", re.I)
-FULL = re.compile(r"\[open-question owner=(\w+) raised=([0-9-]+)\]")
+FULL = re.compile(r"\[open-" r"question owner=(\w+) raised=([0-9-]+)\]")
 today, bad = datetime.date.today(), 0
 def err(p, n, msg):
     global bad; bad += 1; print(f"open-question: {p}:{n}: {msg}")
