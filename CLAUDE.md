@@ -96,9 +96,9 @@ between nouns, which had no home before and so lived implicitly in foreign keys.
 same PR.** Not afterwards, not in a follow-up ticket. Each entry carries its
 `ruled:` date, which is the pointer back to the `DECISIONS.md` line.
 
-It is code, not a document, on purpose — ops-pattern's own `process/LIVING-DOCS.md`
-already ruled that *"a file only a script compares is safe, because nothing
-believes it"*, and a document called REGISTRY died in this project once already.
+It is code, not a document, on purpose — ops-pattern's `CLAUDE.md` § Naming rules
+that a file only a script compares is fine, because nothing believes it, and a
+document called REGISTRY died in this project once already.
 `scripts/check-action-layer-conformance.ts` Rule 5 fails the PR when a link
 claims a handler that is not registered, or points at a table no migration
 creates. It runs at `npm test`. A link also carries the ruling behind it or it

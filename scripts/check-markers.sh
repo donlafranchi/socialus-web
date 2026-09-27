@@ -2,8 +2,7 @@
 # Checks the grammar of ops-pattern's inline markers wherever they sit in this repo:
 #   `[open-question owner=<don|cowork|code> raised=YYYY-MM-DD] the question`
 #   `[guards F093.4]` — on the check that discharges criterion 4 of scenario F093
-# Grammar and meaning: ops-pattern `process/LIVING-DOCS.md` § Grep-built, never
-# hand-kept. ops-pattern is private, so whether F093 criterion 4 exists is checked
+# Grammar and meaning: ops-pattern `process/LIVING-DOCS.md`. ops-pattern is private, so whether F093 criterion 4 exists is checked
 # there, not here; this is the gate that repo cannot be.
 #
 #   bash scripts/check-markers.sh              # self-test, then every tracked file
