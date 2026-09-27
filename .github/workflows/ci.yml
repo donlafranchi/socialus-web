@@ -211,8 +211,13 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
         run: |
-          if bash scripts/check-migration-drift.sh --strict; then
-            exit 0
-          fi
-          echo "::error::This branch carries a migration production does not have. Apply it FIRST, then merge: Actions -> 'Apply migrations to PRODUCTION' -> Run workflow -> set 'Use workflow from' to THIS BRANCH -> type apply. Merging first is what caused the 2026-09-21 outage."
+          # Exit codes are the script's (#224): 2 pending, 3 drift, 1 could not run.
+          code=0
+          bash scripts/check-migration-drift.sh --strict || code=$?
+          case "$code" in
+            0) exit 0 ;;
+            2) echo "::error::This branch carries a migration production does not have. Apply it FIRST, then merge: Actions -> 'Apply migrations to PRODUCTION' -> Run workflow -> set 'Use workflow from' to THIS BRANCH -> type apply. Merging first is what caused the 2026-09-21 outage." ;;
+            3) echo "::error::Production has a migration this branch does not (versions listed above). Do NOT apply anything. If main already carries the file, update this branch from main. If main lacks it too, something wrote to production outside the migration files: add the matching file." ;;
+            *) echo "::error::The drift check could not run (exit $code). Its own message is above." ;;
+          esac
           exit 1

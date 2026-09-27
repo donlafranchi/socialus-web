@@ -85,6 +85,7 @@ const SUBPROCESS_SUITES = [
   'tests/ontology-registry.test.ts',
   'tests/migrations-pending-parse.test.ts',
   'tests/migrations-drift-parse.test.ts',
+  'tests/ci-migration-gate-message.test.ts',
   'src/lib/migrations/manifest.test.ts',
 ]
 

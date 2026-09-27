@@ -18,6 +18,13 @@ const DATABASE_URL =
   process.env.POSTGRES_URL
 
 const MIG = resolve(__dirname, '..', 'supabase', 'migrations')
+
+// Expected collisions are n^2 / (2 * 32^6), 0.0019 at n = 2000. Ten allowed:
+// a fair generator exceeds that about 1 run in 10^38, a 32^3 one always does.
+const MAX_COLLISIONS = 10
+function distinctWithinBirthdayBound(n: number, distinct: number): boolean {
+  return n - distinct <= MAX_COLLISIONS
+}
 const FILE = readdirSync(MIG).find((f) => /^\d{14}_page_public_id\.sql$/.test(f))
 
 describe('#175 — the migration file', () => {
@@ -78,6 +85,14 @@ describe.skipIf(!RUNNABLE)('#175 — groups.public_id, as shipped', () => {
     }
   }
 
+  const distinctIds = async (generator: string, n: number): Promise<number> => {
+    const rows = await query<{ n: string }>(
+      `select count(distinct id) as n from (select ${generator} as id from generate_series(1, $1::int)) t`,
+      [n],
+    )
+    return Number(rows[0].n)
+  }
+
   it('is not null, so no Page can exist without an address', async () => {
     const rows = await query<{ is_nullable: string; column_default: string | null }>(
       `select is_nullable, column_default from information_schema.columns
@@ -120,14 +135,29 @@ describe.skipIf(!RUNNABLE)('#175 — groups.public_id, as shipped', () => {
     expect(rows[0].ok).toBe(true)
   })
 
-  it('is not walkable: 2000 ids collide with none of each other', async () => {
-    // Enumerability is the safety property. A sequence would give 2000 here
-    // too, so the distribution test below is the one that separates them.
+  // Bug #225. This asserted all 2000 distinct, and a fair generator breaks
+  // that about one run in 530 — the birthday bound over 32^6. A collision in
+  // a batch of draws is a legitimate outcome of new_page_public_id(), which
+  // is why the function retries against `groups` rather than trusting luck.
+  // The claim is "collisions are as rare as the keyspace says", checked
+  // against a generator with too little entropy so the guard is seen biting.
+  it('is not walkable: 2000 ids collide no more than 32^6 allows', async () => {
+    expect(distinctWithinBirthdayBound(2000, await distinctIds('public.new_page_public_id()', 2000))).toBe(true)
+  })
+
+  it('accepts a fair sample that happens to hold one collision', async () => {
     const rows = await query<{ n: string }>(
-      `select count(distinct id) as n
-         from (select public.new_page_public_id() as id from generate_series(1, 2000)) t`,
+      `with d as (select public.new_page_public_id() as id from generate_series(1, 1999)),
+            dup as (select id from d union all (select id from d limit 1))
+       select count(distinct id) as n from dup`,
     )
-    expect(Number(rows[0].n)).toBe(2000)
+    expect(distinctWithinBirthdayBound(2000, Number(rows[0].n))).toBe(true)
+  })
+
+  it('rejects a generator with only three random characters', async () => {
+    // 32^3 = 32768 ids: 2000 draws collide ~60 times, far outside the bound.
+    const weak = `'aaa' || substr(public.new_page_public_id(), 1, 3)`
+    expect(distinctWithinBirthdayBound(2000, await distinctIds(weak, 2000))).toBe(false)
   })
 
   it('draws each character about equally — a biased alphabet is a smaller keyspace', async () => {

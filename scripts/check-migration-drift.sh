@@ -22,10 +22,17 @@
 #   --strict   local-only migrations fail too. Used by the scheduled check,
 #              where a migration sitting on main unapplied is the problem
 #              being watched for, not a normal in-flight state.
+#
+# Exit codes — distinct because the two failures need opposite fixes (#224):
+#   0  clean
+#   1  could not run (no connection string, CLI error)
+#   2  pending: a file here the database has not applied (--strict only)
+#   3  drift: the database has a migration with no file here
 set -uo pipefail
 
 STRICT=0
 [ "${1:-}" = "--strict" ] && STRICT=1
+pending=0
 
 if [ -z "${SUPABASE_DB_URL:-}" ]; then
   echo "check-migration-drift: SUPABASE_DB_URL is not set." >&2
@@ -96,19 +103,21 @@ if [ ${#local_only[@]} -gt 0 ]; then
   printf '  %s\n' "${local_only[@]}"
   if [ "$STRICT" -eq 1 ]; then
     echo
-    echo "check-migration-drift: FAILED — main carries migrations the database does not." >&2
+    echo "check-migration-drift: FAILED — this checkout carries migrations the database does not." >&2
     echo "  Production is behind the repo. Apply them:" >&2
     echo "  Actions → 'Apply migrations to PRODUCTION' → Run workflow." >&2
-    exit 1
+    pending=1
+  else
+    echo "  Expected on a PR. They apply when you run the apply workflow."
+    echo
   fi
-  echo "  Expected on a PR. They apply when you run the apply workflow."
-  echo
 fi
 
 # Remote-only IS drift, always. It means something wrote to the database
 # without going through the files, so the repo is no longer the source of
 # truth for the schema.
 if [ ${#remote_only[@]} -eq 0 ]; then
+  [ "$pending" -eq 1 ] && exit 2
   echo "check-migration-drift: clean — nothing applied that is missing a file here."
   exit 0
 fi
@@ -119,6 +128,7 @@ if [ ${#remote_only[@]} -gt 0 ]; then
   echo "  → something wrote to the database outside the migration files." >&2
   echo "    Do NOT run 'migration repair --status reverted' to make this go away:" >&2
   echo "    those migrations are applied, and re-running their DDL will fail partway." >&2
-  echo "    Add the matching file instead, named for the version shown above." >&2
+  echo "    If main already has the file, update this branch from main." >&2
+  echo "    If main lacks it too, add the matching file, named for the version above." >&2
 fi
-exit 1
+exit 3
