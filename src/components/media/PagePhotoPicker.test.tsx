@@ -86,4 +86,11 @@ describe('F070 · T145 — PagePhotoPicker', () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(URL_A))
     expect(screen.queryByRole('alert')).toBeNull()
   })
+
+  // #237 — the browser's bare "Choose File / No file chosen" did not read as
+  // the thing to press.
+  it('offers a named button to choose a photo', () => {
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={() => {}} />)
+    expect(screen.getByText('Choose a photo')).toBeInTheDocument()
+  })
 })

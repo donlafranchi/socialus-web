@@ -57,7 +57,7 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
 
   return (
     <div className="block">
-      <span className="text-sm font-medium text-[var(--color-fg)]">Photo</span>
+      <span className="block text-sm font-medium text-[var(--color-fg)]">Photo</span>
 
       {value ? (
         <div className="mt-2 flex items-start gap-3">
@@ -78,16 +78,21 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
         </div>
       ) : null}
 
-      <input
-        ref={inputRef}
-        data-testid="page-photo-input"
-        type="file"
-        accept="image/*"
-        aria-label="Choose a photo for your Page"
-        disabled={busy}
-        className="mt-2 block w-full text-sm"
-        onChange={(e) => onPick(e.target.files?.[0])}
-      />
+      {/* A labelled button, not the browser's bare "Choose File / No file
+          chosen", which does not read as the thing to press. */}
+      <label className={`btn-secondary press mt-2 flex w-fit cursor-pointer ${busy ? 'opacity-50' : ''}`}>
+        {value ? 'Choose a different photo' : 'Choose a photo'}
+        <input
+          ref={inputRef}
+          data-testid="page-photo-input"
+          type="file"
+          accept="image/*"
+          aria-label="Choose a photo for your Page"
+          disabled={busy}
+          className="sr-only"
+          onChange={(e) => onPick(e.target.files?.[0])}
+        />
+      </label>
 
       {busy ? (
         <p className="mt-1 text-sm text-[var(--color-fg-muted)]">Uploading…</p>

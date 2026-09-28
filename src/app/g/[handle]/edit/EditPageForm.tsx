@@ -72,6 +72,10 @@ export function EditPageForm({
     handlesFromLinks(initialSocialLinks),
   )
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
+  // What the Page carries now. An uploaded photo is not on the Page until it
+  // is saved, and the preview alone reads as done.
+  const [savedPhotoUrl, setSavedPhotoUrl] = useState<string | null>(initialPhotoUrl)
+  const photoUnsaved = photoUrl !== savedPhotoUrl
   // Closed until asked for. An address the owner is not changing should not
   // look like one they have to re-enter.
   const [changingAddress, setChangingAddress] = useState(false)
@@ -130,6 +134,7 @@ export function EditPageForm({
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
         setSaved(true)
+        setSavedPhotoUrl(photoUrl)
         setChangingAddress(false)
         router.refresh()
       } catch (err) {
@@ -214,10 +219,22 @@ export function EditPageForm({
       </div>
 
       <div>
-        <span className="text-sm font-medium text-[var(--color-fg)]">Photo</span>
-        <div className="mt-1">
-          <PagePhotoPicker memberId={memberId} value={photoUrl} onChange={setPhotoUrl} />
+        <div>
+          <PagePhotoPicker
+            memberId={memberId}
+            value={photoUrl}
+            onChange={(url) => {
+              setPhotoUrl(url)
+              setSaved(false)
+            }}
+          />
         </div>
+        {photoUnsaved ? (
+          <p data-testid="edit-unsaved" role="status" className="mt-1 text-sm font-medium text-[var(--color-fg)]">
+            {photoUrl ? 'This photo is not on your Page yet.' : 'The photo is still on your Page.'}{' '}
+            Press <strong>Save changes</strong> at the bottom to {photoUrl ? 'put it there' : 'take it off'}.
+          </p>
+        ) : null}
       </div>
 
       <SocialHandleFields value={handles} onChange={setHandles} />
@@ -233,12 +250,17 @@ export function EditPageForm({
         </p>
       ) : null}
 
-      <div className="flex gap-2">
+      {/* Pinned, and above the bottom nav: on a phone the form runs well past
+          one screen, and the only control that saves must not be below it. */}
+      <div
+        data-testid="edit-actions"
+        className="sticky bottom-0 z-50 -mx-3 flex gap-2 border-t border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3"
+      >
         <button type="submit" disabled={pending} data-testid="edit-save" className="btn-primary w-full disabled:opacity-50">
           {pending ? 'Saving…' : 'Save changes'}
         </button>
-        <a href={pagePath} className="btn-secondary w-full text-center">
-          Done
+        <a href={pagePath} data-testid="edit-leave" className="btn-secondary w-full text-center">
+          {photoUnsaved ? 'Leave without saving' : 'Done'}
         </a>
       </div>
     </form>

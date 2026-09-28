@@ -21,6 +21,9 @@ vi.mock('@/lib/geocoding', () => ({
 }))
 const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
 vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction }))
+vi.mock('@/lib/media/upload-image', () => ({
+  uploadImage: vi.fn(async () => ({ url: 'https://x.supabase.co/storage/v1/object/public/media/m1/p.webp' })),
+}))
 
 const onSave = vi.fn(async (_input: unknown) => ({ ok: true }) as const)
 const onCreateLocation = vi.fn(async () => ({ ok: true, data: { id: 'loc-new', label: 'x' } }) as const)
@@ -217,5 +220,59 @@ describe('handles, not URLs — the bug Don hit', () => {
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(screen.getByTestId('edit-error')).toHaveTextContent(/instagram/))
     expect(onSave).not.toHaveBeenCalled()
+  })
+})
+
+// Issue #237 — Don uploaded a photo and could not see what to press. The
+// preview appeared at once, which reads as done; the save was seven social
+// fields further down, beside a "Done" that quietly threw the photo away.
+describe('a chosen photo is not saved until the owner saves', () => {
+  async function choosePhoto() {
+    fireEvent.change(screen.getByTestId('page-photo-input'), {
+      target: { files: [new File(['x'], 'p.jpg', { type: 'image/jpeg' })] },
+    })
+    await waitFor(() => screen.getByTestId('page-photo-preview'))
+  }
+
+  it('says the photo is not on the Page yet, and names the button that puts it there', async () => {
+    renderForm()
+    await choosePhoto()
+    expect(screen.getByTestId('edit-unsaved')).toHaveTextContent(/not on your page yet/i)
+    expect(screen.getByTestId('edit-unsaved')).toHaveTextContent(/save changes/i)
+  })
+
+  it('stops saying so once it is saved', async () => {
+    renderForm()
+    await choosePhoto()
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => screen.getByTestId('edit-saved'))
+    expect(screen.queryByTestId('edit-unsaved')).toBeNull()
+  })
+
+  it('says Photo once, not twice', () => {
+    renderForm()
+    expect(screen.getAllByText(/^photo$/i)).toHaveLength(1)
+  })
+
+  it('says nothing when nothing has changed', () => {
+    renderForm()
+    expect(screen.queryByTestId('edit-unsaved')).toBeNull()
+  })
+
+  it('keeps Save changes pinned to the bottom of the screen, not below the fold', () => {
+    renderForm()
+    const bar = screen.getByTestId('edit-actions')
+    expect(bar).toContainElement(screen.getByTestId('edit-save'))
+    expect(bar.className).toMatch(/\bsticky\b/)
+    expect(bar.className).toMatch(/\bbottom-0\b/)
+    // The mobile bottom nav is z-40 and slides back on scroll up.
+    expect(bar.className).toMatch(/\bz-50\b/)
+  })
+
+  it('does not offer a quiet way out that drops the photo', async () => {
+    renderForm()
+    expect(screen.getByTestId('edit-leave')).toHaveTextContent(/^done$/i)
+    await choosePhoto()
+    expect(screen.getByTestId('edit-leave')).toHaveTextContent(/leave without saving/i)
   })
 })
