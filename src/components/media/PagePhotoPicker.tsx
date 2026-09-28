@@ -78,14 +78,25 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
         </div>
       ) : null}
 
+      {/* A bare file input looks like nothing in most browsers (#234). The
+          button is what a person sees and presses; the input only chooses. */}
+      <button
+        type="button"
+        disabled={busy}
+        className="btn-secondary mt-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-50"
+        onClick={() => inputRef.current?.click()}
+      >
+        {value ? 'Change photo' : 'Choose a photo'}
+      </button>
       <input
         ref={inputRef}
         data-testid="page-photo-input"
         type="file"
         accept="image/*"
-        aria-label="Choose a photo for your Page"
+        aria-hidden="true"
+        tabIndex={-1}
         disabled={busy}
-        className="mt-2 block w-full text-sm"
+        className="sr-only"
         onChange={(e) => onPick(e.target.files?.[0])}
       />
 
