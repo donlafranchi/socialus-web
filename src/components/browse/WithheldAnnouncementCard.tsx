@@ -1,68 +1,93 @@
-// F093 — an announcement as a stranger sees it.
+// F093 — a Page's announcements, as a stranger sees them on Explore.
 //
-// Four things, and the scenario says exactly four: the Page name, that the
-// Page posted an announcement, how many it has this period, and the ask.
-// No body, no excerpt, no first line, no time, no place, no photo.
+// One card per Page (amended 2026-09-27). One per announcement put two
+// identical cards side by side, each carrying the Page's count, which read as
+// broken. Shaped like `TileCard` — same image block, same title row — so it
+// sits in the grid as one of the tiles rather than a text box among them.
 //
-// NOT `TileCard`, and that is the reason. Every other browse card carries an
-// image slot and a location slot, because a uniform height needs an
-// always-present slot — and both of those would be a fifth and sixth thing
-// here. A photo is not withheld by the ruling, but it is not one of the four
-// either, and a card that quietly grows the list is how "exactly four things"
-// stops being true without anyone deciding it.
-//
-// The body never reaches this component. `announcements_withheld` has no such
-// column, which is the guarantee; this file could not render one if it tried.
+// What it carries: the Page's photo and name, how many announcements this
+// week, who can read them, and the ask. Not the body, the time, the place or
+// the Page's location — a location line under "3 announcements" reads as
+// where they happen. The body never reaches this component:
+// `announcements_withheld` has no such column.
 
 import Link from 'next/link'
+import { Megaphone } from 'lucide-react'
 import { Card } from '@/components/cards'
-import { METRO_WEEK_LABEL } from '@/lib/metro/metro-week'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
-
-/** Where the ask goes. Signing up, not signing in — a stranger has no account
- *  yet, and `/auth/login` offers one only in small print underneath. */
-const JOIN_HREF = '/auth/signup'
+import {
+  WITHHELD_CTA,
+  WITHHELD_DETAILS,
+  withheldCountLabel,
+  withheldJoinHref,
+} from './withheld-copy'
 
 export function WithheldAnnouncementCard({ result }: { result: BrowseResult }) {
-  const count = result.announcementCount ?? 0
-  const inner = (
+  const body = (
     <>
-      <p className="text-sm font-semibold text-neutral-900">{result.name}</p>
-      <p data-testid="withheld-what" className="mt-1 text-xs font-semibold text-[var(--color-accent)]">
-        Posted an announcement
-      </p>
-      {/* A nought is not shown. "0 announcements this week" beside "posted an
-          announcement" contradicts itself on the card, and the card's job is
-          to say the place is alive. */}
-      {count > 0 && (
-        <p data-testid="withheld-count" className="mt-1 text-xs text-[var(--color-fg-muted)]">
-          {count} announcement{count === 1 ? '' : 's'} {METRO_WEEK_LABEL}
+      <div
+        data-testid="tile-image"
+        className="relative aspect-[3/2] w-full rounded-xl overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
+        style={{ fontSize: 'clamp(2rem, 17cqw, 4rem)' }}
+      >
+        {result.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={result.photoUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span data-testid="tile-emoji" aria-hidden>
+            🌱
+          </span>
+        )}
+        <span
+          data-testid="withheld-count"
+          className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-[var(--color-fg)] shadow-sm"
+        >
+          <Megaphone aria-hidden className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+          {withheldCountLabel(result.announcementCount ?? 0)}
+        </span>
+      </div>
+      <div className="px-3 pt-3 pb-1">
+        <p
+          data-testid="tile-title"
+          className="font-medium text-[15px] leading-5 text-[var(--color-fg)] line-clamp-2 min-h-[2.5rem] transition-colors group-hover/tile:text-[var(--color-accent)]"
+        >
+          {result.name}
         </p>
-      )}
+        <p
+          data-testid="withheld-details"
+          className="text-sm leading-5 text-[var(--color-fg-muted)] mt-1 line-clamp-3 min-h-[3.75rem]"
+        >
+          {WITHHELD_DETAILS}
+        </p>
+      </div>
     </>
   )
 
   return (
-    <Card as="li" interactive={Boolean(result.href)} className="flex flex-col gap-2 p-4">
+    <Card
+      as="li"
+      interactive={Boolean(result.href)}
+      data-testid="withheld-card"
+      className="group/tile flex flex-col [container-type:inline-size]"
+    >
       {result.href ? (
-        <Link data-testid="withheld-link" href={result.href} className="hover:no-underline">
-          {inner}
+        <Link data-testid="withheld-link" href={result.href} className="block">
+          {body}
         </Link>
       ) : (
-        <div>{inner}</div>
+        body
       )}
-      {/* The ask is a link of its own rather than the card's link. Criterion
-          10: nothing here navigates to something a signed-out reader cannot
-          read and only then asks them to sign in — the card's own link goes to
-          this announcement's WITHHELD card on the Page, and the ask is right
-          here, before they go anywhere. */}
-      <Link
-        data-testid="withheld-cta"
-        href={JOIN_HREF}
-        className="press text-xs font-medium text-[var(--color-charcoal-900)] underline"
-      >
-        Become a member to read it
-      </Link>
+      {/* Its own link, not the card's. Criterion 10: the ask comes first, and
+          the card's link goes only to what a stranger can already read. */}
+      <div className="px-3 pb-3 pt-2 mt-auto">
+        <Link
+          data-testid="withheld-cta"
+          href={withheldJoinHref(result.href)}
+          className="press inline-flex items-center rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)] hover:no-underline"
+        >
+          {WITHHELD_CTA}
+        </Link>
+      </div>
     </Card>
   )
 }

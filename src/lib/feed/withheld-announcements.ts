@@ -22,15 +22,18 @@ import { announcementAnchor } from '@/components/group/announcement-anchor'
 import { browseHref, type BrowseResult } from './browse-feed'
 import { clampLimit } from './locality-feed'
 
-/** One row exactly as `announcements_withheld` returns it. Read the shape as
- *  the ruling: which Page, that it posted, how many this period. */
+/** One row per Page, exactly as `announcements_withheld` returns it. Read the
+ *  shape as the ruling: which Page, that it posted, how many this period. */
 export interface WithheldAnnouncementRow {
   result_id: string
   group_id: string
   slug: string
   name: string
   public_id: string | null
+  /** Already null when hidden or removed — resolved in SQL. */
+  photo_url: string | null
   announcement_count: number
+  announcement_ids: string[]
   updated_at: string
 }
 
@@ -73,12 +76,12 @@ export function mapWithheldRow(r: WithheldAnnouncementRow): BrowseResult {
     groupKind: '',
     slug: r.slug,
     name: r.name,
-    // Criterion 9 — the announcement you tapped is the one you land on, even
-    // signed out, where what you land on is its withheld card. Null rather
+    // Criterion 9 — lands on the Page's withheld card, marked, via the latest
+    // announcement's anchor. Null rather
     // than a bare fragment when the Page has no address: a link that looks
     // live and goes nowhere is worse than no link.
     href: page ? `${page}#${announcementAnchor(r.result_id)}` : null,
-    photoUrl: null,
+    photoUrl: r.photo_url,
     description: null,
     body: null,
     tags: [],
@@ -92,6 +95,7 @@ export function mapWithheldRow(r: WithheldAnnouncementRow): BrowseResult {
     sortAt: r.updated_at,
     withheld: true,
     announcementCount: r.announcement_count,
+    announcementIds: r.announcement_ids,
   }
 }
 

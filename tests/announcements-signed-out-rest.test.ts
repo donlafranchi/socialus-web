@@ -44,6 +44,8 @@ const GROUP = 'cccccccc-0000-4000-8000-00000000f093'
 const LOCATION = 'dddddddd-0000-4000-8000-00000000f093'
 const METRO = 'eeeeeeee-0000-4000-8000-00000000f093'
 const POST = 'ffffffff-0000-4000-8000-00000000f093'
+const POST_2 = 'ffffffff-0000-4000-8000-00000001f093'
+const PHOTO = 'https://example.test/f093-floaters.jpg'
 
 /** The exact words the test looks for. If any of these reach anon, it failed. */
 const BODY = 'F093 SECRET BODY — we are meeting Thursday at 2pm at the river'
@@ -110,15 +112,23 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     )
     await client.query(
       `insert into public.groups
-         (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-       values ($1,'interest','F093 Floaters','f093-floaters','active','listed',$2,$3)`,
-      [GROUP, OWNER, LOCATION],
+         (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id, anchor_location_id, photo_url)
+       values ($1,'interest','F093 Floaters','f093-floaters','active','listed',$2,$3,$4)`,
+      [GROUP, OWNER, LOCATION, PHOTO],
     )
     await client.query(
       `insert into public.page_posts
          (id, group_id, body, starts_at, location_id, lifecycle_state, discoverability)
        values ($1,$2,$3,$4,$5,'active','listed')`,
       [POST, GROUP, BODY, STARTS_AT, LOCATION],
+    )
+    // A second announcement on the same Page, older, so the card has two to
+    // stand for and a known latest.
+    await client.query(
+      `insert into public.page_posts
+         (id, group_id, body, starts_at, location_id, lifecycle_state, discoverability, updated_at)
+       values ($1,$2,$3,$4,$5,'active','listed', now() - interval '1 hour')`,
+      [POST_2, GROUP, BODY, STARTS_AT, LOCATION],
     )
 
     anon = createClient(SUPABASE_URL!, ANON_KEY!, { auth: { persistSession: false } })
@@ -180,7 +190,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criteria 3, 4, 7 — the withheld read path
   // ---------------------------------------------------------------
 
-  it('serves the withheld card to an anonymous caller, scoped to the metro', async () => {
+  it('serves ONE withheld card per Page, standing for its latest announcement', async () => {
     const { data, error } = await anon.rpc('announcements_withheld', {
       p_metro_id: METRO,
       p_limit: 50,
@@ -190,25 +200,46 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     expect(rows).toHaveLength(1)
     expect(rows[0]!.result_id).toBe(POST)
     expect(rows[0]!.name).toBe('F093 Floaters')
+    expect([...(rows[0]!.announcement_ids as string[])].sort()).toEqual([POST, POST_2].sort())
   })
 
-  it('projects no body, no time and no place — the shape is the guarantee', async () => {
+  it('projects exactly the allowed columns — the shape is the guarantee', async () => {
     const { data } = await anon.rpc('announcements_withheld', { p_metro_id: METRO, p_limit: 50 })
     const row = ((data ?? []) as Record<string, unknown>[])[0]!
-    // Asserted as ABSENT KEYS rather than null values. A null column is a
-    // filter someone can stop applying; a column that does not exist in the
-    // function's signature cannot be un-withheld by a later caller.
-    for (const withheld of [
-      'body',
-      'starts_at',
-      'location_id',
-      'location_label',
-      'location_geography',
-      'description',
-    ]) {
-      expect(Object.keys(row)).not.toContain(withheld)
-    }
+    // An allow-list, not a deny-list: a column added later fails here even
+    // though nobody thought to forbid it. Keys, not null values — a null is a
+    // filter someone can stop applying.
+    expect(Object.keys(row).sort()).toEqual(
+      [
+        'announcement_count',
+        'announcement_ids',
+        'group_id',
+        'name',
+        'photo_url',
+        'public_id',
+        'result_id',
+        'slug',
+        'updated_at',
+      ].sort(),
+    )
     expect(JSON.stringify(row)).not.toContain('SECRET BODY')
+    expect(JSON.stringify(row)).not.toContain(STARTS_AT.slice(0, 16))
+    expect(JSON.stringify(row)).not.toContain(LOCATION)
+  })
+
+  it("carries the Page's photo, which is public", async () => {
+    const { data } = await anon.rpc('announcements_withheld', { p_metro_id: METRO, p_limit: 50 })
+    expect(((data ?? []) as Record<string, unknown>[])[0]!.photo_url).toBe(PHOTO)
+  })
+
+  it('carries no photo the moderator hid', async () => {
+    await client.query(`update public.groups set photo_hidden_at = now() where id = $1`, [GROUP])
+    try {
+      const { data } = await anon.rpc('announcements_withheld', { p_metro_id: METRO, p_limit: 50 })
+      expect(((data ?? []) as Record<string, unknown>[])[0]!.photo_url).toBeNull()
+    } finally {
+      await client.query(`update public.groups set photo_hidden_at = null where id = $1`, [GROUP])
+    }
   })
 
   it('carries the Page name and a count of that Page for the period', async () => {
@@ -220,7 +251,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     })
     const row = ((data ?? []) as Record<string, unknown>[])[0]!
     expect(row.name).toBe('F093 Floaters')
-    expect(row.announcement_count).toBe(1)
+    expect(row.announcement_count).toBe(2)
   })
 
   it('counts nothing for a period the announcement is outside of', async () => {
@@ -242,7 +273,10 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     ])
     try {
       const { data } = await anon.rpc('announcements_withheld', { p_metro_id: METRO, p_limit: 50 })
-      expect((data ?? []) as unknown[]).toHaveLength(0)
+      const rows = (data ?? []) as Record<string, unknown>[]
+      expect(rows[0]!.result_id).toBe(POST_2)
+      expect(rows[0]!.announcement_ids).toEqual([POST_2])
+      expect(rows[0]!.announcement_count).toBe(1)
     } finally {
       await client.query(`update public.page_posts set discoverability = 'listed' where id = $1`, [
         POST,
@@ -258,7 +292,9 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     const { data, error } = await anon.rpc('announcements_withheld', { p_group_id: GROUP })
     expect(error).toBeNull()
     const rows = (data ?? []) as Record<string, unknown>[]
-    expect(rows.map((r) => r.result_id)).toContain(POST)
+    expect(rows).toHaveLength(1)
+    // Every announcement's anchor resolves to the one card, not only the latest.
+    expect(rows[0]!.announcement_ids).toContain(POST_2)
   })
 
   // ---------------------------------------------------------------

@@ -33,6 +33,7 @@ function result(over: Partial<BrowseResult> = {}): BrowseResult {
     sortAt: '2026-09-02T00:00:00Z',
     withheld: false,
     announcementCount: null,
+    announcementIds: null,
     ...over,
   }
 }

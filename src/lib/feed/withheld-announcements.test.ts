@@ -15,7 +15,9 @@ const ROW = {
   slug: 'sacriver-floaters',
   name: 'SacRiver Floaters',
   public_id: '3k8x0p',
+  photo_url: 'https://example.test/floaters.jpg',
   announcement_count: 3,
+  announcement_ids: ['11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333'],
   updated_at: '2026-09-23T16:00:00.000Z',
 }
 
@@ -32,6 +34,14 @@ describe('mapWithheldRow', () => {
     const r = mapWithheldRow(ROW)
     expect(r.name).toBe('SacRiver Floaters')
     expect(r.announcementCount).toBe(3)
+  })
+
+  it("carries the Page's photo, which the database already resolved", () => {
+    expect(mapWithheldRow(ROW).photoUrl).toBe('https://example.test/floaters.jpg')
+  })
+
+  it('carries every announcement id the card answers to', () => {
+    expect(mapWithheldRow(ROW).announcementIds).toEqual(ROW.announcement_ids)
   })
 
   it('carries no body, no time and no place', () => {
