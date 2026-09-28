@@ -55,6 +55,11 @@ jobs:
 
       - run: npm ci
 
+      # Proves itself on a known-bad fixture first, then checks every tracked
+      # file ([guard-proves-itself]). Grammar: ops-pattern PIPELINE.md.
+      - name: Markers — open questions and guard claims
+        run: bash scripts/check-markers.sh
+
       - name: Lint
         run: npm run lint
 

@@ -1,0 +1,14 @@
+Every line below must be rejected. scripts/check-markers.sh counts them; add a line, bump EXPECT_BAD there.
+[open-question raised=2026-09-27] missing an owner?
+[open-question owner=don] missing a date?
+[open-question] missing both?
+[open-question owner=someone raised=2026-09-27] an owner nobody is?
+[open-question owner=don raised=2026-13-40] a date that is not one?
+[open-question owner=don raised=2999-01-01] raised in the future?
+[open-question owner=don raised=2026-09-27]
+[Open Question owner=don raised=2026-09-27] a near-miss spelling?
+[guards F093] no criterion
+[Guards F093.1] a near-miss spelling
+[guards F093.1 F093.2] two criteria in one marker
+[binds tiers=code surfaces=explore] a binds tag belongs on a DECISIONS.md line, not in code
+[supersedes 2026-09-22: A live count] a supersedes tag belongs on an ops-pattern decision, not in code

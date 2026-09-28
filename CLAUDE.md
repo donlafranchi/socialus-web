@@ -52,6 +52,40 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 
 `.github/ISSUE_TEMPLATE/work.md` and `.github/workflows/issue-lint.yml` enforce `Kind:`/`Scenario:` fields and flag scope drift automatically — label `needs-fix` means one of those checks failed; read the bot comment.
 
+## Rulings that bind this repo
+
+**ops-pattern `constraints/code.md`** — every ratified decision tagged as binding the
+code tier, one line each, generated from `DECISIONS.md`. Read it before building;
+it is the only rulings file this repo points at. Never edit it — change the tag on
+the decision in ops-pattern. It lists only live rulings; superseded ones are gone.
+
+**If two rulings seem to conflict, the newer wins and work continues** — never stop
+to ask Don which is true (ops-pattern `[newer-decision-wins]`). Only two live
+rulings in conflict with neither superseding the other are raised, as an
+open-question marker where it bites. Never split the difference.
+
+## Which check discharges which criterion
+
+A test or script that discharges a scenario criterion says so on the line above it:
+`// [guards F093.4]` — one criterion per marker, several markers on a line if one
+check covers several. ops-pattern builds a per-scenario coverage map from these, so
+a criterion with no marked check shows as unguarded instead of assumed. Mark only
+a check that has been seen failing against input it should reject
+([guard-proves-itself]); a marker on a test that never ran is a false claim.
+
+## Open questions
+
+A question you cannot answer and will not answer this session is marked where it
+lives: `[open-question owner=<don|cowork|code> raised=YYYY-MM-DD] the question`.
+About one line of code or one migration → a comment on that line. About how to
+build an Issue → the Issue **body** (comments are not scanned). Never a PR
+description or commit message — neither can be edited to close it. A question
+whose answer changes behaviour is not a marker; stop and ask for a scenario
+change. Answering one removes the marker in the same commit. ops-pattern's
+`STATUS.md` indexes every marker; `scripts/check-markers.sh` fails CI on
+one missing an owner, a date or a question. Full rule:
+`ops-pattern/process/PIPELINE.md` § Open questions.
+
 ## The ontology
 
 The nouns live in ops-pattern `product/foundation/nouns.md`, the verbs in
@@ -62,9 +96,9 @@ between nouns, which had no home before and so lived implicitly in foreign keys.
 same PR.** Not afterwards, not in a follow-up ticket. Each entry carries its
 `ruled:` date, which is the pointer back to the `DECISIONS.md` line.
 
-It is code, not a document, on purpose — ops-pattern's own `process/LIVING-DOCS.md`
-already ruled that *"a file only a script compares is safe, because nothing
-believes it"*, and a document called REGISTRY died in this project once already.
+It is code, not a document, on purpose — ops-pattern's `CLAUDE.md` § Naming rules
+that a file only a script compares is fine, because nothing believes it, and a
+document called REGISTRY died in this project once already.
 `scripts/check-action-layer-conformance.ts` Rule 5 fails the PR when a link
 claims a handler that is not registered, or points at a table no migration
 creates. It runs at `npm test`. A link also carries the ruling behind it or it
