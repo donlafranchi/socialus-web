@@ -66,7 +66,7 @@ export async function resizeAndEncode(file: File): Promise<Blob> {
   // would otherwise leave the caller with no error at all — the one
   // outcome the acceptance criterion rules out. A bounded timeout turns
   // silence into a typed error instead.
-  const blob = await Promise.race([
+  let blob = await Promise.race([
     new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY)
     }),
@@ -79,6 +79,16 @@ export async function resizeAndEncode(file: File): Promise<Blob> {
   ])
   if (!blob) {
     throw new UploadError('canvas-unavailable', 'Could not encode the image.')
+  }
+  // Safari's canvas cannot encode WebP and hands back a PNG without saying so
+  // (#232). The pixels are already stripped, so encode those in the page
+  // instead; the codec loads only for browsers that need it.
+  if (blob.type !== 'image/webp') {
+    const pixels = ctx.getImageData(0, 0, width, height)
+    const { default: encodeWebp } = await import('@jsquash/webp/encode')
+    blob = new Blob([await encodeWebp(pixels, { quality: WEBP_QUALITY * 100 })], {
+      type: 'image/webp',
+    })
   }
   if (blob.size > MAX_STORED_BYTES) {
     throw new UploadError('too-large', 'That photo is too large even after resizing.')
@@ -99,7 +109,10 @@ export async function uploadImage(file: File, memberId: string): Promise<{ url: 
     contentType: 'image/webp',
   })
   if (error) {
-    throw new UploadError('network', error.message)
+    // The storage server's own words ("mime type image/png is not supported")
+    // are for us, not the member (#232).
+    console.error('media upload failed', error)
+    throw new UploadError('network', "it didn't reach our storage")
   }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
