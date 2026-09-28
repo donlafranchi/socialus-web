@@ -147,6 +147,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     expect(error ? [] : (data ?? [])).toHaveLength(0)
   })
 
+  // [guards F093.1]
   it('does not leak the body through an anonymous select that names the column', async () => {
     const { data, error } = await anon.from('page_posts').select('id, body').eq('group_id', GROUP)
     const rows = error ? [] : (data ?? [])
@@ -157,6 +158,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criterion 2 — the time and the place go with it
   // ---------------------------------------------------------------
 
+  // [guards F093.2]
   it('does not leak starts_at or location_id to an anonymous caller', async () => {
     const { data, error } = await anon
       .from('page_posts')
@@ -192,6 +194,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     expect(rows[0]!.name).toBe('F093 Floaters')
   })
 
+  // [guards F093.3]
   it('projects no body, no time and no place — the shape is the guarantee', async () => {
     const { data } = await anon.rpc('announcements_withheld', { p_metro_id: METRO, p_limit: 50 })
     const row = ((data ?? []) as Record<string, unknown>[])[0]!
@@ -211,6 +214,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     expect(JSON.stringify(row)).not.toContain('SECRET BODY')
   })
 
+  // [guards F093.4] [guards F093.5]
   it('carries the Page name and a count of that Page for the period', async () => {
     const { data } = await anon.rpc('announcements_withheld', {
       p_metro_id: METRO,
@@ -254,6 +258,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criterion 9 — the anchor a signed-out visitor follows
   // ---------------------------------------------------------------
 
+  // [guards F093.9]
   it('serves the withheld card for one Page, so an announcement anchor resolves', async () => {
     const { data, error } = await anon.rpc('announcements_withheld', { p_group_id: GROUP })
     expect(error).toBeNull()
@@ -265,6 +270,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criterion 6 — a signed-in member sees no change
   // ---------------------------------------------------------------
 
+  // [guards F093.6]
   it('still returns the body to a signed-in member', async () => {
     // The service-role key bypasses RLS, so it cannot answer this. This asks
     // as a real `authenticated` caller — the role the policy actually judges.

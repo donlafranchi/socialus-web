@@ -88,6 +88,7 @@ beforeEach(() => {
   getWithheldAnnouncements.mockResolvedValue([withheldRow])
 })
 
+// [guards F093.7]
 describe('signed out — criterion 7, the rows stay, in withheld form', () => {
   it('still carries post-kind rows', async () => {
     signedOut()
@@ -144,6 +145,7 @@ describe('signed out — criterion 7, the rows stay, in withheld form', () => {
   })
 })
 
+// [guards F093.6]
 describe('signed in — criterion 6, no change whatsoever', () => {
   it('never calls the withheld path', async () => {
     signedIn()
