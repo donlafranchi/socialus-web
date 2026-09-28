@@ -87,3 +87,35 @@ describe('F070 · T145 — PagePhotoPicker', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 })
+
+// Bug — Don saw a bare file input on production with nothing to say it could
+// be pressed. The control is a button that looks like one and says what it does.
+describe('the photo control looks and acts like a button', () => {
+  it('is a button named for what it does, with a pointer and a visible focus ring', () => {
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
+    const button = screen.getByRole('button', { name: /choose a photo/i })
+    expect(button.className).toMatch(/\bbtn-secondary\b/)
+    expect(button.className).toMatch(/\bcursor-pointer\b/)
+    expect(button.className).toMatch(/\bfocus-visible:ring-2\b/)
+  })
+
+  it('opens the file chooser when pressed', () => {
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
+    const input = screen.getByTestId('page-photo-input') as HTMLInputElement
+    const click = vi.spyOn(input, 'click')
+    fireEvent.click(screen.getByRole('button', { name: /choose a photo/i }))
+    expect(click).toHaveBeenCalledTimes(1)
+  })
+
+  it('says "Change photo" once there is one', () => {
+    render(<PagePhotoPicker memberId="m1" value={URL_A} onChange={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /change photo/i })).toBeInTheDocument()
+  })
+
+  it('keeps the bare input out of the tab order and out of sight', () => {
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
+    const input = screen.getByTestId('page-photo-input')
+    expect(input).toHaveAttribute('tabindex', '-1')
+    expect(input.className).toMatch(/\bsr-only\b/)
+  })
+})
