@@ -23,10 +23,14 @@ export interface EditPageInput {
   anchorLocationId?: string
 }
 
-export async function editPageAction(input: EditPageInput): Promise<{ ok: true }> {
+export type EditPageResult = { ok: true } | { ok: false; message: string }
+
+// Returns its failure rather than throwing it: Next redacts a thrown message in
+// production to a generic render error with a digest (#231).
+export async function editPageAction(input: EditPageInput): Promise<EditPageResult> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) throw new Error('You must be signed in.')
+  if (error || !data.user) return { ok: false, message: 'You must be signed in.' }
 
   const ctx = resolveActionContext({ actingMemberId: data.user.id })
   try {
@@ -42,9 +46,11 @@ export async function editPageAction(input: EditPageInput): Promise<{ ok: true }
     })
   } catch (err) {
     // The handler's message is written to be read by the owner — "these links
-    // could not be read: instagram" — so it is passed through rather than
-    // replaced with a generic failure. A save that fails should say why.
-    throw err instanceof ActionError ? new Error(err.message) : err
+    // could not be read: instagram" — so it is passed through. Anything else is
+    // ours to read in the logs, not theirs.
+    if (err instanceof ActionError) return { ok: false, message: err.message }
+    console.error('editPageAction failed', err)
+    return { ok: false, message: "That didn't save. Nothing on your Page changed — try again." }
   }
 
   revalidatePath(input.pagePath)
