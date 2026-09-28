@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createCanvas, loadImage } from '@napi-rs/canvas'
 import piexif from 'piexifjs'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 // T120 — the upload primitive. Real canvas work via @napi-rs/canvas (jsdom
 // has no real 2D context or toBlob), so these tests exercise the actual
@@ -9,7 +11,9 @@ import piexif from 'piexifjs'
 // was called does not satisfy this criterion" — the EXIF test below inspects
 // real output bytes.
 
-function installCanvasPolyfill() {
+// Safari's canvas cannot encode WebP: asked for image/webp, toBlob hands back a
+// PNG and says so in blob.type. That is what reached the bucket (#232).
+function installCanvasPolyfill({ webp = true }: { webp?: boolean } = {}) {
   const realCreateElement = document.createElement.bind(document)
   const createElementSpy = vi
     .spyOn(document, 'createElement')
@@ -29,9 +33,27 @@ function installCanvasPolyfill() {
         set height(v: number) {
           napi = createCanvas(napi.width || 1, v)
         },
-        getContext: (type: string) => napi.getContext(type as '2d'),
+        getContext: (type: string) => {
+          const ctx = napi.getContext(type as '2d')
+          // The native canvas returns pixels from another realm; a browser's
+          // are its own, which is what the WebP codec checks for.
+          return new Proxy(ctx, {
+            get(target, key) {
+              if (key !== 'getImageData') {
+                const v = Reflect.get(target, key)
+                return typeof v === 'function' ? v.bind(target) : v
+              }
+              return (x: number, y: number, w: number, h: number) => {
+                const img = target.getImageData(x, y, w, h)
+                return { data: new Uint8ClampedArray(img.data), width: img.width, height: img.height }
+              }
+            },
+            set: (target, key, value) => Reflect.set(target, key, value),
+          })
+        },
         toBlob: (cb: (b: Blob | null) => void, type?: string, quality?: number) => {
-          const mime = (type ?? 'image/png') as 'image/png' | 'image/jpeg' | 'image/webp'
+          const asked = (type ?? 'image/png') as 'image/png' | 'image/jpeg' | 'image/webp'
+          const mime = asked === 'image/webp' && !webp ? 'image/png' : asked
           const buf = mime === 'image/png' ? napi.toBuffer('image/png') : napi.toBuffer(mime, quality)
           cb(new Blob([new Uint8Array(buf)], { type: mime }))
         },
@@ -127,6 +149,32 @@ describe('resize + WebP re-encode (via upload-image internals)', () => {
     expect(decoded.height).toBe(100)
   })
 
+  it('still stores WebP when the browser canvas cannot encode it, as Safari cannot (#232)', async () => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    installCanvasPolyfill({ webp: false })
+    // Node has no wasm loader for the codec's URL, so hand it the module the
+    // browser would fetch. Same module instance the code under test imports.
+    const codec = await import('@jsquash/webp/encode')
+    await codec.init(
+      await WebAssembly.compile(
+        readFileSync(join(process.cwd(), 'node_modules/@jsquash/webp/codec/enc/webp_enc_simd.wasm')),
+      ),
+    )
+
+    const { resizeAndEncode } = await import('./upload-image')
+    const file = fileFromBuffer(jpegWithGpsExif(), 'from-an-iphone.jpg', 'image/jpeg')
+    const outBlob = await resizeAndEncode(file)
+    const outBuf = Buffer.from(await outBlob.arrayBuffer())
+
+    expect(outBlob.type).toBe('image/webp')
+    expect(outBuf.slice(0, 4).toString('latin1')).toBe('RIFF')
+    expect(outBuf.slice(8, 12).toString('latin1')).toBe('WEBP')
+    expect(outBuf.toString('latin1')).not.toContain('Exif')
+    const decoded = await loadImage(outBuf)
+    expect(decoded.width).toBe(400)
+  })
+
   it('throws a typed wrong-type error for an unreadable file, not a crash', async () => {
     const { resizeAndEncode, UploadError } = await import('./upload-image')
     const file = fileFromBuffer(Buffer.from('not an image'), 'nope.txt', 'text/plain')
@@ -167,6 +215,30 @@ describe('uploadImage / deleteImage', () => {
     // call itself will fail — the point is that it gets there at all,
     // i.e. resizeAndEncode did not reject on the 8MB source size.
     await expect(uploadImage(file, 'member-1')).rejects.not.toMatchObject({ code: 'too-large' })
+  })
+
+  it("never hands the storage server's own words to the member (#232)", async () => {
+    vi.resetModules()
+    vi.doMock('@/lib/supabase', () => ({
+      createClient: () => ({
+        storage: {
+          from: () => ({
+            upload: async () => ({ error: { message: 'mime type image/png is not supported' } }),
+          }),
+        },
+      }),
+    }))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const { uploadImage } = await import('./upload-image')
+      const file = fileFromBuffer(jpegWithGpsExif(), 'a.jpg', 'image/jpeg')
+      const err = await uploadImage(file, 'member-1').catch((e: Error) => e)
+      expect(err).toMatchObject({ code: 'network' })
+      expect((err as Error).message).not.toMatch(/mime|image\/png/)
+    } finally {
+      vi.doUnmock('@/lib/supabase')
+      vi.resetModules()
+    }
   })
 
   it('deleteImage is a no-op on a URL outside the media bucket', async () => {

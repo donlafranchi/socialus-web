@@ -78,21 +78,27 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
         </div>
       ) : null}
 
-      {/* A labelled button, not the browser's bare "Choose File / No file
-          chosen", which does not read as the thing to press. */}
-      <label className={`btn-secondary press mt-2 flex w-fit cursor-pointer ${busy ? 'opacity-50' : ''}`}>
-        {value ? 'Choose a different photo' : 'Choose a photo'}
-        <input
-          ref={inputRef}
-          data-testid="page-photo-input"
-          type="file"
-          accept="image/*"
-          aria-label="Choose a photo for your Page"
-          disabled={busy}
-          className="sr-only"
-          onChange={(e) => onPick(e.target.files?.[0])}
-        />
-      </label>
+      {/* A bare file input looks like nothing in most browsers (#234). The
+          button is what a person sees and presses; the input only chooses. */}
+      <button
+        type="button"
+        disabled={busy}
+        className="btn-secondary mt-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-50"
+        onClick={() => inputRef.current?.click()}
+      >
+        {value ? 'Change photo' : 'Choose a photo'}
+      </button>
+      <input
+        ref={inputRef}
+        data-testid="page-photo-input"
+        type="file"
+        accept="image/*"
+        aria-hidden="true"
+        tabIndex={-1}
+        disabled={busy}
+        className="sr-only"
+        onChange={(e) => onPick(e.target.files?.[0])}
+      />
 
       {busy ? (
         <p className="mt-1 text-sm text-[var(--color-fg-muted)]">Uploading…</p>
