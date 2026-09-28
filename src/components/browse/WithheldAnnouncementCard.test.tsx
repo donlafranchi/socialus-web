@@ -1,10 +1,8 @@
-// F093 criteria 4, 10 and 11 — what a stranger actually sees.
+// F093 criteria 4, 5, 10 and 11 — what a stranger sees on Explore.
 //
-// None of this discharges criterion 1. The scenario is explicit that no "the
-// component does not render it" test does, and the body never reaches this
-// component to be rendered: `announcements_withheld` has no such column.
-// What these tests hold is the other direction — that the card says the four
-// things it is allowed to say and does not grow a fifth.
+// None of this discharges criterion 1: the body never reaches this component
+// (`announcements_withheld` has no such column). These hold the other
+// direction — the card says what it may and does not grow another line.
 
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -17,7 +15,9 @@ const RESULT = mapWithheldRow({
   slug: 'sacriver-floaters',
   name: 'SacRiver Floaters',
   public_id: '3k8x0p',
+  photo_url: 'https://example.test/floaters.jpg',
   announcement_count: 3,
+  announcement_ids: ['11111111-1111-4111-8111-111111111111'],
   updated_at: '2026-09-23T16:00:00.000Z',
 })
 
@@ -26,16 +26,22 @@ afterEach(cleanup)
 describe('WithheldAnnouncementCard', () => {
   it('names the Page', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
-    expect(screen.getByText('SacRiver Floaters')).toBeTruthy()
+    expect(screen.getByTestId('tile-title').textContent).toBe('SacRiver Floaters')
   })
 
-  it('says that the Page posted an announcement', () => {
+  it("shows the Page's photo", () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
-    expect(screen.getByTestId('withheld-what').textContent).toBe('Posted an announcement')
+    expect(screen.getByTestId('tile-image').querySelector('img')?.getAttribute('src')).toBe(
+      'https://example.test/floaters.jpg',
+    )
+  })
+
+  it('falls back to the tile emoji when the Page has no photo', () => {
+    render(<WithheldAnnouncementCard result={{ ...RESULT, photoUrl: null }} />)
+    expect(screen.getByTestId('tile-emoji')).toBeTruthy()
   })
 
   it('says how many, and names the period in words', () => {
-    // Criterion 5 — a count that cannot be read as a period is not a count.
     render(<WithheldAnnouncementCard result={RESULT} />)
     expect(screen.getByTestId('withheld-count').textContent).toBe('3 announcements this week')
   })
@@ -45,39 +51,35 @@ describe('WithheldAnnouncementCard', () => {
     expect(screen.getByTestId('withheld-count').textContent).toBe('1 announcement this week')
   })
 
-  it('shows no count line at all when the Page has none this period', () => {
-    // "0 announcements this week" beside "posted an announcement" is a
-    // contradiction on its face. The card still exists — that something is
-    // happening is the public part — it just does not carry a nought.
+  it('carries no nought when the Page has none this period', () => {
     render(<WithheldAnnouncementCard result={{ ...RESULT, announcementCount: 0 }} />)
-    expect(screen.queryByTestId('withheld-count')).toBeNull()
+    expect(screen.getByTestId('withheld-count').textContent).toBe('Posted an announcement')
   })
 
-  it('asks the reader in', () => {
+  it('says who can read it', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
-    expect(screen.getByTestId('withheld-cta').textContent).toBe('Become a member to read it')
+    expect(screen.getByTestId('withheld-details').textContent).toBe(
+      'The details are for members and followers of this Page.',
+    )
   })
 
-  it('points the ask at signing up', () => {
+  it('asks the reader to sign in and become a member, and brings them back to the Page', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
-    expect(screen.getByTestId('withheld-cta').getAttribute('href')).toBe('/auth/signup')
+    const cta = screen.getByTestId('withheld-cta')
+    expect(cta.textContent).toBe('Sign in to become a member')
+    expect(cta.getAttribute('href')).toBe('/auth/login?next=%2Fg%2Fsacriver-floaters-3k8x0p')
   })
 
   it('carries nothing else — no body, no time, no place', () => {
-    // Criterion 4: exactly four things. Asserted as a whole-card text match
-    // rather than four absences, so a fifth line added later fails here even
-    // though nobody thought to write a test forbidding it.
+    // Criterion 4, as a whole-card match so a line added later fails here.
     const { container } = render(<WithheldAnnouncementCard result={RESULT} />)
     expect(container.textContent).toBe(
-      'SacRiver FloatersPosted an announcement3 announcements this weekBecome a member to read it',
+      '3 announcements this weekSacRiver FloatersThe details are for members and followers of this Page.Sign in to become a member',
     )
   })
 
   it('is the same for every anonymous reader', () => {
-    // Criterion 11 — no personalisation, nothing derived from a prior visit,
-    // and in particular nothing formatted in the reader's own timezone. The
-    // card carries no date at all, so this holds by having nothing to vary;
-    // the test is here so that adding one is not silent.
+    // Criterion 11 — nothing formatted in the reader's own timezone.
     const { container: a } = render(<WithheldAnnouncementCard result={RESULT} />)
     const tz = process.env.TZ
     try {
@@ -89,19 +91,17 @@ describe('WithheldAnnouncementCard', () => {
     }
   })
 
-  it('links to the announcement it names, not to a body', () => {
-    // Criterion 10. Where it goes is the Page's own withheld card for this
-    // announcement (criterion 9) — something a signed-out reader CAN read.
+  it("links to the Page's withheld card, not to a body", () => {
+    // Criterion 10 — somewhere a signed-out reader CAN read.
     render(<WithheldAnnouncementCard result={RESULT} />)
     expect(screen.getByTestId('withheld-link').getAttribute('href')).toBe(
       '/g/sacriver-floaters-3k8x0p#announcement-11111111-1111-4111-8111-111111111111',
     )
   })
 
-  it('renders no link when the Page has no address', () => {
+  it('renders no link when the Page has no address, and keeps the ask', () => {
     render(<WithheldAnnouncementCard result={{ ...RESULT, href: null }} />)
     expect(screen.queryByTestId('withheld-link')).toBeNull()
-    // The ask survives the missing link — it is the point of the card.
-    expect(screen.getByTestId('withheld-cta')).toBeTruthy()
+    expect(screen.getByTestId('withheld-cta').getAttribute('href')).toBe('/auth/login')
   })
 })

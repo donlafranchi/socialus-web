@@ -179,6 +179,8 @@ export interface BrowseResult {
    * announcement itself rather than a count of them.
    */
   announcementCount: number | null
+  /** F093 — every announcement id a withheld Page card answers to. */
+  announcementIds: string[] | null
 }
 
 type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
@@ -260,6 +262,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,
+    announcementIds: null,
   }
 }
 
