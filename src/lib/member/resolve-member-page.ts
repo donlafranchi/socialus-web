@@ -14,7 +14,7 @@
 //   - tombstone → a signed-in, non-self viewer hit a 'private' Member's URL.
 //   - render    → proceed to read the page data. The remaining reads still rely
 //                 on RLS + the 029 projections (members_public_read,
-//                 items_select_published, member_public_group_memberships).
+//                 items_select_published, member_public_pages).
 // `indexable` (render only) drives the page's robots meta: index iff the Member
 // is discoverable AND public; everything else is noindex.
 
@@ -158,12 +158,9 @@ export async function resolveMemberPage(
     }
   })
 
-  // Listed Group memberships via the privacy-preserving public projection.
-  const { data: groupData } = await supabase
-    .from('member_public_group_memberships')
-    .select('slug, name, kind')
-    .eq('member_id', member.id)
-    .order('name', { ascending: true })
+  // Listed Group memberships, one direction only: the view behind this also
+  // answers Page → members, so a stranger may not read it (#241).
+  const { data: groupData } = await supabase.rpc('member_public_pages', { p_member_id: member.id })
 
   const groups: MemberGroup[] = ((groupData as unknown as GroupRow[]) ?? []).map((row) => ({
     slug: row.slug,

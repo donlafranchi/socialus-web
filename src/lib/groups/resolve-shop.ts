@@ -15,7 +15,6 @@
 import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
-import { memberHasPublished } from '../member/has-published'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'dissolved'
@@ -129,10 +128,13 @@ interface ShopRow {
     | { display_name: string; public_description: string }[]
     | { display_name: string; public_description: string }
     | null
-  founder:
-    | { id: string; handle: string; display_name: string; avatar_url: string | null }[]
-    | { id: string; handle: string; display_name: string; avatar_url: string | null }
-    | null
+}
+
+interface FounderRow {
+  handle: string
+  display_name: string
+  avatar_url: string | null
+  has_published: boolean
 }
 
 export interface ResolveShopOptions {
@@ -173,8 +175,7 @@ export async function resolveShop(
     .select(
       'id, slug, public_id, kind, name, description, lifecycle_state, anchor_location_id, category, ' +
         'photo_url, social_links, photo_hidden_at, discoverability, ' +
-        'group_businesses(display_name, public_description), ' +
-        'founder:members!founder_member_id(id, handle, display_name, avatar_url)',
+        'group_businesses(display_name, public_description)',
     )
     .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
   if (opts.kinds && opts.kinds.length > 0) query = query.in('kind', [...opts.kinds])
@@ -185,10 +186,12 @@ export async function resolveShop(
 
   const row = data as unknown as ShopRow
   const biz = firstEmbed(row.group_businesses)
-  const founderRow = firstEmbed(row.founder)
-
-  // T137 — the "Founded by" link follows what the founder has published.
-  const founderHasPublished = founderRow ? await memberHasPublished(supabase, founderRow.id) : false
+  // #241 — never through groups.founder_member_id, which a stranger may not
+  // read: embedding through it fails the whole query and 404s the Page. The
+  // function returns the founder without their id, and T137's "has published"
+  // with it, since that too was keyed by the id.
+  const { data: founderData } = await supabase.rpc('page_founder_public', { p_group_id: row.id })
+  const founderRow = ((founderData as FounderRow[] | null) ?? [])[0] ?? null
 
   // T144 — a Page's own free text when it chose "Something else" instead
   // of a fixed term, shown publicly (same treatment as the fixed-term
@@ -232,7 +235,7 @@ export async function resolveShop(
           handle: founderRow.handle,
           displayName: founderRow.display_name,
           avatarUrl: founderRow.avatar_url,
-          hasPublished: founderHasPublished,
+          hasPublished: founderRow.has_published,
         }
       : null,
   }
