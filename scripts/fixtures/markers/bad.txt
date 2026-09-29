@@ -12,3 +12,5 @@ Every line below must be rejected. scripts/check-markers.sh counts them; add a l
 [guards F093.1 F093.2] two criteria in one marker
 [binds tiers=code surfaces=explore] a binds tag belongs on a DECISIONS.md line, not in code
 [supersedes 2026-09-22: A live count] a supersedes tag belongs on an ops-pattern decision, not in code
+[guards F093.1 partial] partial, without saying what the check leaves out
+[guards F093.1 partially: the copy] a near-miss of partial

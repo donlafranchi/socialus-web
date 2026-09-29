@@ -145,7 +145,7 @@ describe('signed out — criterion 7, the rows stay, in withheld form', () => {
   })
 })
 
-// [guards F093.6]
+// [guards F093.6 partial: bodies, times, places and ordering as rendered, and the Page surface]
 describe('signed in — criterion 6, no change whatsoever', () => {
   it('never calls the withheld path', async () => {
     signedIn()
