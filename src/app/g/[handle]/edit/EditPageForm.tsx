@@ -30,7 +30,7 @@ import {
 import { createLocationAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
-import type { EditPageInput } from './actions'
+import type { EditPageInput, EditPageResult } from './actions'
 
 type CreateLocation = typeof createLocationAction
 
@@ -59,7 +59,7 @@ export function EditPageForm({
    *  owner never chose one — a different fact from "online", and saying
    *  online would be a claim they never made. */
   initialAddressLabel: string | null
-  onSave: (input: EditPageInput) => Promise<{ ok: true }>
+  onSave: (input: EditPageInput) => Promise<EditPageResult>
   /** Injected so the form can be tested without a server action. */
   onCreateLocation?: CreateLocation
 }) {
@@ -120,7 +120,7 @@ export function EditPageForm({
       }
 
       try {
-        await onSave({
+        const result = await onSave({
           groupId,
           pagePath,
           name,
@@ -129,6 +129,10 @@ export function EditPageForm({
           socialLinks: links,
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
+        if (!result.ok) {
+          setError(result.message)
+          return
+        }
         setSaved(true)
         setChangingAddress(false)
         router.refresh()

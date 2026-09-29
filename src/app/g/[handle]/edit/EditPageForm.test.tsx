@@ -22,7 +22,9 @@ vi.mock('@/lib/geocoding', () => ({
 const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
 vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction }))
 
-const onSave = vi.fn(async (_input: unknown) => ({ ok: true }) as const)
+const onSave = vi.fn(
+  async (_input: unknown): Promise<{ ok: true } | { ok: false; message: string }> => ({ ok: true }),
+)
 const onCreateLocation = vi.fn(async () => ({ ok: true, data: { id: 'loc-new', label: 'x' } }) as const)
 
 /** Drive the embedded picker the way a person does: type, wait for the list,
@@ -169,7 +171,7 @@ describe('the address, which the owner can change', () => {
 
 describe('a failed save says why', () => {
   it('shows the handler message rather than a generic failure', async () => {
-    onSave.mockRejectedValueOnce(new Error('these links could not be read: instagram'))
+    onSave.mockResolvedValueOnce({ ok: false, message: 'these links could not be read: instagram' })
     renderForm()
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() =>
