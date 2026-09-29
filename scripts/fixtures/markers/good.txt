@@ -3,3 +3,4 @@ Every marker below must pass.
 -- [open-question owner=code raised=2026-01-02] Does this index need a partial predicate?
 A mention in backticks is not a marker: `[open-question owner=<who> raised=<date>]`.
 // [guards F093.1] the check below discharges it
+// [guards F093.2 partial: the copy on the card] a check that covers part of a criterion

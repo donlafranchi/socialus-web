@@ -192,7 +192,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criteria 3, 4, 7 — the withheld read path
   // ---------------------------------------------------------------
 
-  // [guards F093.5]
+  // [guards F093.5 partial: the period named in words, and no nought on a Page with none this period]
   it('serves ONE withheld card per Page, standing for its latest announcement', async () => {
     const { data, error } = await anon.rpc('announcements_withheld', {
       p_metro_id: METRO,
@@ -231,13 +231,13 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     expect(JSON.stringify(row)).not.toContain(LOCATION)
   })
 
-  // [guards F093.4]
+  // [guards F093.4 partial: the name, the count, the members-and-followers line, the call to sign in, and the no-photo placeholder]
   it("carries the Page's photo, which is public", async () => {
     const { data } = await anon.rpc('announcements_withheld', { p_metro_id: METRO, p_limit: 50 })
     expect(((data ?? []) as Record<string, unknown>[])[0]!.photo_url).toBe(PHOTO)
   })
 
-  // [guards F093.4]
+  // [guards F093.4 partial: everything on the card but the hidden photo]
   it('carries no photo the moderator hid', async () => {
     await client.query(`update public.groups set photo_hidden_at = now() where id = $1`, [GROUP])
     try {
@@ -248,7 +248,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     }
   })
 
-  // [guards F093.4] [guards F093.5]
+  // [guards F093.4 partial: the photo, the members-and-followers line, the call to sign in, and the no-photo placeholder] [guards F093.5 partial: the period named in words, and no nought on a Page with none this period]
   it('carries the Page name and a count of that Page for the period', async () => {
     const { data } = await anon.rpc('announcements_withheld', {
       p_metro_id: METRO,
@@ -295,7 +295,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criterion 9 — the anchor a signed-out visitor follows
   // ---------------------------------------------------------------
 
-  // [guards F093.9]
+  // [guards F093.9 partial: that the Page renders its card marked as where they landed, with the call to sign in, and never a 404]
   it('serves the withheld card for one Page, so an announcement anchor resolves', async () => {
     const { data, error } = await anon.rpc('announcements_withheld', { p_group_id: GROUP })
     expect(error).toBeNull()
@@ -309,7 +309,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
   // Criterion 6 — a signed-in member sees no change
   // ---------------------------------------------------------------
 
-  // [guards F093.6]
+  // [guards F093.6 partial: times, places and ordering, and the Explore and Page surfaces as rendered]
   it('still returns the body to a signed-in member', async () => {
     // The service-role key bypasses RLS, so it cannot answer this. This asks
     // as a real `authenticated` caller — the role the policy actually judges.

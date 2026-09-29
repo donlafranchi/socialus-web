@@ -2,6 +2,7 @@
 # Checks the grammar of ops-pattern's inline markers wherever they sit in this repo:
 #   `[open-question owner=<don|cowork|code> raised=YYYY-MM-DD] the question`
 #   `[guards F093.4]` — on the check that discharges criterion 4 of scenario F093
+#   `[guards F093.4 partial: what it leaves unchecked]` — on a check that covers part of it
 # Grammar and meaning: ops-pattern `process/LIVING-DOCS.md`. ops-pattern is private, so whether F093 criterion 4 exists is checked
 # there, not here; this is the gate that repo cannot be.
 #
@@ -22,7 +23,7 @@ ANY_OQ = re.compile(B + r"open[- ]?question", re.I)
 ANY_G = re.compile(B + r"guards?(?=[\s\]])", re.I)
 ANY_B = re.compile(B + r"(binds?(?=[\s\]])|supersed[\w-]*)", re.I)
 FULL_OQ = re.compile(B + "open-" + r"question owner=(\w+) raised=([0-9-]+)\]")
-FULL_G = re.compile(B + r"guards F\d{3}\.\d+[a-z]?\]")
+FULL_G = re.compile(B + r"guards F\d{3}\.\d+[a-z]?(?: partial: [^\]]+?)?\]")
 today, bad = datetime.date.today(), 0
 def err(p, n, msg):
     global bad; bad += 1; print(f"marker: {p}:{n}: {msg}")
@@ -49,7 +50,7 @@ for p in sys.argv[1:]:
                 err(p, n, "no question after the marker")
         for m in ANY_G.finditer(bare):
             if not FULL_G.match(bare, m.start()):
-                err(p, n, "not a guards marker: one scenario criterion per marker, e.g. F093.4")
+                err(p, n, "not a guards marker: one scenario criterion per marker, e.g. F093.4, or F093.4 partial: what it leaves unchecked")
         for m in ANY_B.finditer(bare):
             err(p, n, "binds and supersedes tags belong on ops-pattern DECISIONS.md lines, not here")
 sys.exit(1 if bad else 0)
@@ -59,7 +60,7 @@ PY
 if [ $# -gt 0 ]; then check "$@"; exit; fi
 
 fx=scripts/fixtures/markers
-EXPECT_BAD=13
+EXPECT_BAD=15
 got=$(check "$fx/bad.txt" | grep -c '^marker:')
 if [ "$got" -ne "$EXPECT_BAD" ]; then
   echo "marker checker is inert — rejected $got of $EXPECT_BAD bad fixture lines"; exit 1

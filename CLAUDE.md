@@ -68,8 +68,11 @@ open-question marker where it bites. Never split the difference.
 
 A test or script that discharges a scenario criterion says so on the line above it:
 `// [guards F093.4]` — one criterion per marker, several markers on a line if one
-check covers several. ops-pattern builds a per-scenario coverage map from these, so
-a criterion with no marked check shows as unguarded instead of assumed. Mark only
+check covers several. A check that covers only part of a criterion says what it
+leaves out: `// [guards F093.4 partial: the call to sign in]`. A criterion counts as
+covered only when one check claims all of it, since partial checks never add up.
+ops-pattern builds a per-scenario coverage map from these, so a criterion with no
+marked check shows as unguarded instead of assumed. Mark only
 a check that has been seen failing against input it should reject
 ([guard-proves-itself]); a marker on a test that never ran is a false claim.
 
