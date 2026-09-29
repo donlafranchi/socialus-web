@@ -41,6 +41,8 @@ function makeClient(opts: {
   tables?: Record<string, ReturnType<typeof tableStub>>
   /** T119 — rows returned by rpc('group_url_prefixes'). */
   groupPrefixes?: { group_id: string; slug: string | null; place_path: string | null }[]
+  /** #241 — rows returned by rpc('member_public_pages'). */
+  memberPages?: { slug: string; name: string; kind: string }[]
 }) {
   const tables = opts.tables ?? {}
   return {
@@ -51,12 +53,19 @@ function makeClient(opts: {
       if (name === 'group_url_prefixes') {
         return Promise.resolve({ data: opts.groupPrefixes ?? [], error: null })
       }
+      if (name === 'member_public_pages') {
+        return Promise.resolve({ data: opts.memberPages ?? [], error: null })
+      }
       return Promise.resolve({
         data: opts.verdict ? [opts.verdict] : opts.verdict === null ? [] : null,
         error: opts.verdictError ? { message: 'boom' } : null,
       })
     },
-    from: (name: string) => tables[name] ?? tableStub({}),
+    from: (name: string) => {
+      // #241 — the view answers Page → members too; anon may not read it.
+      if (name === 'member_public_group_memberships') throw new Error('reads the view; use member_public_pages')
+      return tables[name] ?? tableStub({})
+    },
   } as unknown as SupabaseClient
 }
 
@@ -203,10 +212,8 @@ describe('resolveMemberPage — render payload (verdict already render)', () => 
         items: tableStub({
           list: [{ id: 'item-abcdef12', kind: 'product', title: 'Sourdough Loaf', brand_label: 'Oak Park Sourdough' }],
         }),
-        member_public_group_memberships: tableStub({
-          list: [{ slug: 'oak-park-bakers', name: 'Oak Park Bakers', kind: 'interest' }],
-        }),
       },
+      memberPages: [{ slug: 'oak-park-bakers', name: 'Oak Park Bakers', kind: 'interest' }],
     })
 
     const view = await resolveMemberPage(client, { handle: 'maya' })

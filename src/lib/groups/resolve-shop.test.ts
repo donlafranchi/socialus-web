@@ -56,27 +56,34 @@ describe('splitGroupSlug', () => {
 function makeSupabaseStub(routes: {
   group?: unknown
   groupError?: unknown
-  hasPublished?: unknown
+  /** #241 — the row rpc('page_founder_public') returns, or null for none. */
+  founder?: unknown
+  selects?: string[]
 }) {
   return {
-    from: (table: string) => {
+    rpc: (name: string) =>
+      Promise.resolve({
+        data: name === 'page_founder_public' && routes.founder ? [routes.founder] : [],
+        error: null,
+      }),
+    from: () => {
       const chain: Record<string, unknown> = {}
       const passthrough = () => chain
-      chain.select = passthrough
+      chain.select = (cols: string) => {
+        routes.selects?.push(cols)
+        return chain
+      }
       chain.eq = passthrough
       chain.is = passthrough
       chain.limit = passthrough
-      if (table === 'member_public_has_published') {
-        chain.maybeSingle = () =>
-          Promise.resolve({ data: routes.hasPublished ?? null, error: null })
-      } else {
-        chain.maybeSingle = () =>
-          Promise.resolve({ data: routes.group ?? null, error: routes.groupError ?? null })
-      }
+      chain.maybeSingle = () =>
+        Promise.resolve({ data: routes.group ?? null, error: routes.groupError ?? null })
       return chain
     },
   } as unknown as Parameters<typeof resolveShop>[0]
 }
+
+const FOUNDER = { handle: 'maya', display_name: 'Maya Rivera', avatar_url: 'https://x/a.png', has_published: false }
 
 const ACTIVE_ROW = {
   id: 'grp-1',
@@ -88,7 +95,6 @@ const ACTIVE_ROW = {
   group_businesses: [
     { display_name: 'Oak Park Sourdough', public_description: 'Real bread, baked local.' },
   ],
-  founder: [{ id: 'mem-maya', handle: 'maya', display_name: 'Maya Rivera', avatar_url: 'https://x/a.png' }],
 }
 
 describe('resolveShop', () => {
@@ -111,7 +117,7 @@ describe('resolveShop', () => {
       { source: 'anchor', kind: 'point', label: '123 Main St, Sacramento, CA', lng: -121.5, lat: 38.58 },
     ])
     const shop = await resolveShop(
-      makeSupabaseStub({ group: ACTIVE_ROW, hasPublished: null }),
+      makeSupabaseStub({ group: ACTIVE_ROW, founder: FOUNDER }),
       'oak-park-sourdough',
     )
     expect(resolvePagePlacements).toHaveBeenCalledWith('grp-1')
@@ -124,7 +130,7 @@ describe('resolveShop', () => {
 
   it('surfaces founder hasPublished=true when the projection carries them', async () => {
     const shop = await resolveShop(
-      makeSupabaseStub({ group: ACTIVE_ROW, hasPublished: { member_id: 'mem-maya' } }),
+      makeSupabaseStub({ group: ACTIVE_ROW, founder: { ...FOUNDER, has_published: true } }),
       'oak-park-sourdough',
     )
     expect(shop?.founder?.hasPublished).toBe(true)
@@ -134,7 +140,7 @@ describe('resolveShop', () => {
     const shop = await resolveShop(
       makeSupabaseStub({
         group: { ...ACTIVE_ROW, lifecycle_state: 'draft' },
-        hasPublished: null,
+        founder: FOUNDER,
       }),
       'oak-park-sourdough',
     )
@@ -147,9 +153,8 @@ describe('resolveShop', () => {
         group: {
           ...ACTIVE_ROW,
           group_businesses: { display_name: 'Solo Object Shop', public_description: '' },
-          founder: { id: 'mem-maya', handle: 'maya', display_name: 'Maya Rivera', avatar_url: null },
         },
-        hasPublished: null,
+        founder: { ...FOUNDER, avatar_url: null },
       }),
       'oak-park-sourdough',
     )
@@ -158,12 +163,22 @@ describe('resolveShop', () => {
     expect(shop?.founder?.hasPublished).toBe(false)
   })
 
-  it('returns a null founder gracefully when the embed is absent', async () => {
-    const shop = await resolveShop(
-      makeSupabaseStub({ group: { ...ACTIVE_ROW, founder: null }, hasPublished: null }),
-      'oak-park-sourdough',
-    )
+  it('returns a null founder gracefully when there is none to show', async () => {
+    const shop = await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW, founder: null }), 'oak-park-sourdough')
     expect(shop?.founder).toBeNull()
+  })
+
+  // #241 — a stranger may not read groups.founder_member_id, and asking for it
+  // (or embedding through it) fails the whole read, which 404s the Page.
+  it('never asks groups for who founded it', async () => {
+    const selects: string[] = []
+    await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW, founder: FOUNDER, selects }), 'oak-park-sourdough')
+    expect(selects.join(' ')).not.toMatch(/founder/)
+  })
+
+  it('names the founder from page_founder_public', async () => {
+    const shop = await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW, founder: FOUNDER }), 'oak-park-sourdough')
+    expect(shop?.founder).toEqual({ handle: 'maya', displayName: 'Maya Rivera', avatarUrl: 'https://x/a.png', hasPublished: false })
   })
 })
 
@@ -309,6 +324,7 @@ describe('resolveOwnerClaim', () => {
 function makeRecordingStub(row: unknown) {
   const calls = { eq: [] as [string, unknown][], in: [] as [string, unknown][] }
   const supabase = {
+    rpc: () => Promise.resolve({ data: [], error: null }),
     from: (table: string) => {
       const chain: Record<string, unknown> = {}
       chain.select = () => chain
@@ -344,7 +360,6 @@ const RUN_CLUB_ROW = {
   category: null as string | null,
   // A non-business Page has no group_businesses child, and never will.
   group_businesses: null,
-  founder: [{ id: 'mem-don', handle: 'don', display_name: 'Don', avatar_url: null }],
 }
 
 describe('T156 — resolveShop takes the Page kind as a parameter', () => {
