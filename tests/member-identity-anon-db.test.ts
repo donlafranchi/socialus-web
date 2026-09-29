@@ -80,6 +80,46 @@ afterAll(async () => {
 })
 
 describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
+  it('the membership view does not answer an anonymous caller', async () => {
+    await expect(
+      as('anon', `select member_id from public.member_public_group_memberships where slug = $1`, [SLUG]),
+    ).rejects.toThrow(/permission denied/)
+  })
+
+  it('groups.founder_member_id does not answer an anonymous caller', async () => {
+    await expect(
+      as('anon', `select founder_member_id from public.groups where id = $1`, [PAGE]),
+    ).rejects.toThrow(/permission denied/)
+  })
+
+  it('every other column a signed-out Page reads still answers', async () => {
+    const rows = await as(
+      'anon',
+      `select id, slug, public_id, kind, name, description, lifecycle_state, anchor_location_id,
+              category, photo_url, photo_hidden_at, photo_hide_locked_url, social_links,
+              discoverability, dissolved_at
+         from public.groups where id = $1`,
+      [PAGE],
+    )
+    expect(rows).toHaveLength(1)
+  })
+
+  it('a column added to groups later is granted to anon, unless it names a member', async () => {
+    const { rows } = await client.query<{ column_name: string }>(
+      `select column_name from information_schema.columns
+        where table_schema = 'public' and table_name = 'groups'
+          and column_name <> 'founder_member_id'`,
+    )
+    const cols = rows.map((r) => `"${r.column_name}"`).join(', ')
+    await expect(as('anon', `select ${cols} from public.groups where id = $1`, [PAGE])).resolves.toHaveLength(1)
+  })
+
+  it("a policy that asks who founded a Page does not break an anonymous read of that Page's posts", async () => {
+    await expect(
+      as('anon', `select id from public.page_posts where group_id = $1`, [PAGE]),
+    ).resolves.toBeDefined()
+  })
+
   it("a signed-out profile still lists the member's Pages, one direction only", async () => {
     const rows = await as<{ slug: string }>('anon', `select * from public.member_public_pages($1)`, [FOUNDER])
     expect(rows.map((r) => r.slug)).toEqual([SLUG])
@@ -96,6 +136,20 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
     expect(rows[0]).toMatchObject({ handle: 'identity-leak', display_name: 'Leak Founder' })
     expect(Object.keys(rows[0])).not.toContain('id')
     expect(Object.keys(rows[0])).not.toContain('member_id')
+  })
+
+  it("a listed Page's roster does not answer an anonymous caller", async () => {
+    const rows = await as('anon', `select member_id from public.group_memberships where group_id = $1`, [PAGE])
+    expect(rows).toHaveLength(0)
+  })
+
+  it('a member signed in still reads their own membership', async () => {
+    const rows = await as(
+      'authenticated',
+      `select role from public.group_memberships where group_id = $1 and member_id = $2`,
+      [PAGE, FOUNDER],
+    )
+    expect(rows).toHaveLength(1)
   })
 
   it('a founder signed in still finds their own Pages by founder_member_id', async () => {
