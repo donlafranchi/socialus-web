@@ -138,6 +138,20 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
     expect(Object.keys(rows[0])).not.toContain('member_id')
   })
 
+  it("a listed Page's roster does not answer an anonymous caller", async () => {
+    const rows = await as('anon', `select member_id from public.group_memberships where group_id = $1`, [PAGE])
+    expect(rows).toHaveLength(0)
+  })
+
+  it('a member signed in still reads their own membership', async () => {
+    const rows = await as(
+      'authenticated',
+      `select role from public.group_memberships where group_id = $1 and member_id = $2`,
+      [PAGE, FOUNDER],
+    )
+    expect(rows).toHaveLength(1)
+  })
+
   it('a founder signed in still finds their own Pages by founder_member_id', async () => {
     const rows = await as(
       'authenticated',

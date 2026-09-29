@@ -11,6 +11,10 @@
 --      ?slug=eq.<slug> returns the member ids of that Page.
 --   2. groups.founder_member_id reaches anon, because RLS is row-level and no
 --      column grant narrowed it.
+--   3. group_memberships itself: 014's memberships_select_listed_group is a
+--      "Listed-Group public roster" for anon. It predates, and is overruled by,
+--      Don's 2026-09-14 rule that no name is reachable by browsing and no
+--      roster may be accumulated. No signed-out read in the app uses it.
 --
 -- FOR anon ONLY; `authenticated` keeps both. REQUIRES part 1
 -- (20260929170000) AND ITS CODE TO BE LIVE: code that still embeds through
@@ -54,3 +58,6 @@ create policy page_posts_select_own
          and g.founder_member_id = auth.uid()
     )
   );
+
+-- Route 3. Only the role changes; the rows a signed-in reader sees are as before.
+alter policy memberships_select_listed_group on public.group_memberships to authenticated;

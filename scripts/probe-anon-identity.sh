@@ -4,8 +4,8 @@
 # JavaScript the site serves. Counts only — ids are held in memory to follow the
 # chain and are never printed or kept.
 #
-# Exits 1 while either route answers: the membership view keyed by Page slug,
-# or groups.founder_member_id.
+# Exits 1 while any route answers: the membership view keyed by Page slug,
+# groups.founder_member_id, or group_memberships itself.
 set -euo pipefail
 
 SITE="${SITE:-https://www.socialus.org}"
@@ -51,8 +51,16 @@ n_founder="$(grep -c . <<<"$founder_ids" || true)"
 echo "groups.founder_member_id: $n_founder distinct founder ids readable"
 (( n_founder > 0 )) && leaks=1
 
+# (3) The roster itself: group_memberships.
+r="$(get 'group_memberships?select=member_id&limit=1000')"
+roster_ids=""
+[[ "$(status "$r")" =~ ^2 ]] && roster_ids="$(body "$r" | ids || true)"
+n_roster="$(grep -c . <<<"$roster_ids" || true)"
+echo "group_memberships: $n_roster distinct member ids readable"
+(( n_roster > 0 )) && leaks=1
+
 # The chain: do those ids resolve to a member row a stranger can read?
-all_ids="$(printf '%s\n%s\n' "$view_ids" "$founder_ids" | grep . | sort -u || true)"
+all_ids="$(printf '%s\n%s\n%s\n' "$view_ids" "$founder_ids" "$roster_ids" | grep . | sort -u || true)"
 if [[ -n "$all_ids" ]]; then
   list="$(paste -sd, - <<<"$all_ids")"
   r="$(get "members?select=id&id=in.($list)")"
