@@ -26,6 +26,7 @@ const PAGE_ROW: BrowseFeedRow = {
   location_geography: POINT,
   page_created_at: '2026-09-01T00:00:00.000Z',
   updated_at: '2026-09-12T00:00:00.000Z',
+  posted_at: null,
   sort_at: '2026-09-12T00:00:00.000Z',
 }
 

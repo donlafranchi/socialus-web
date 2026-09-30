@@ -19,6 +19,7 @@ const ROW = {
   announcement_count: 3,
   announcement_ids: ['11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333'],
   updated_at: '2026-09-23T16:00:00.000Z',
+  posted_at: null,
 }
 
 function client(data: unknown, error: unknown = null) {
@@ -148,6 +149,7 @@ describe('mapBrowseRow — the signed-in path is untouched', () => {
     location_geography: null,
     page_created_at: '2026-09-01T00:00:00.000Z',
     updated_at: ROW.updated_at,
+    posted_at: null,
     sort_at: ROW.updated_at,
   }
 

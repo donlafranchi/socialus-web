@@ -108,3 +108,41 @@ export function formatMetroDateTime(
     .replace(' PM', 'pm')
   return `${day} at ${clock}`
 }
+
+function isThisYear(d: Date, tz: string, now: Date): boolean {
+  const year = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric' })
+  return year.format(d) === year.format(now)
+}
+
+/** #256 (F072 criterion 3) — a card's lead: "Thu Sep 10 · 7pm", in the metro. */
+export function formatCardWhen(iso: string, tz: string = METRO_TIME_ZONE, now: Date = new Date()): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const day = d.toLocaleDateString('en-US', {
+    timeZone: tz,
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    ...(isThisYear(d, tz, now) ? {} : { year: 'numeric' }),
+  })
+  const clock = d
+    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+    .replace(':00', '')
+    .replace(' AM', 'am')
+    .replace(' PM', 'pm')
+  // "Thu, Sep 10" → "Thu Sep 10"; a year keeps its own comma.
+  return `${day.replace(',', '')} · ${clock}`
+}
+
+/** #256 — an undated announcement keeps the date it was posted: "Posted Sep 2". */
+export function formatPostedDate(iso: string, tz: string = METRO_TIME_ZONE, now: Date = new Date()): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const day = d.toLocaleDateString('en-US', {
+    timeZone: tz,
+    month: 'short',
+    day: 'numeric',
+    ...(isThisYear(d, tz, now) ? {} : { year: 'numeric' }),
+  })
+  return `Posted ${day}`
+}

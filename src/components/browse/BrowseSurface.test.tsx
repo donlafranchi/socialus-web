@@ -48,6 +48,7 @@ function result(over: Partial<BrowseResult> = {}): BrowseResult {
     latitude: 38.5,
     pageCreatedAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-02T00:00:00Z',
+    postedAt: null,
     sortAt: '2026-09-02T00:00:00Z',
     withheld: false,
     announcementCount: null,
@@ -93,9 +94,16 @@ describe('T156 — Browse renders Pages, not Items', () => {
   })
 
   it('shows an undated post without a date, not as a degraded event', () => {
-    const post = result({ resultKind: 'post', resultId: 'p1', body: 'sourdough is back', startsAt: null })
+    const post = result({
+      resultKind: 'post',
+      resultId: 'p1',
+      body: 'sourdough is back',
+      startsAt: null,
+      postedAt: '2026-09-02T18:00:00Z',
+    })
     render(<BrowseSurface initial={snapshot({ results: [post] })} />)
-    expect(screen.getByTestId('browse-post-when')).toHaveTextContent('Posted')
+    // #256: it keeps the date it was posted.
+    expect(screen.getByTestId('browse-post-when')).toHaveTextContent('Posted Sep 2')
   })
 })
 
