@@ -40,14 +40,25 @@ const asyncNoop = vi.fn(async () => ({}) as never)
 const message = () => screen.getByText(COPY.postingSafety)
 
 describe('F080 — the safety message where a member posts', () => {
-  it('is Don\'s placeholder line, word for word', () => {
+  const postProps = { groupId: 'g1', posts: [], followerCount: 0, onPost: asyncNoop, onEdit: asyncNoop,
+    onCreateLocation: asyncNoop }
+
+  it("is Don's short placeholder at posting, word for word", () => {
     expect(COPY.postingSafety).toBe(
-      "While we grow into a platform with a full team, we're asking for your help: please don't post anything sensitive, like photos or content involving children, pets, or anyone who can't speak up for themselves. We look out for you. Thank you for looking out for us and each other.",
+      "Please don't post anything sensitive, like content involving children, pets, or anyone who can't speak up for themselves. We rely on each other to keep this place kind and decent.",
     )
   })
 
-  const postProps = { groupId: 'g1', posts: [], followerCount: 0, onPost: asyncNoop, onEdit: asyncNoop,
-    onCreateLocation: asyncNoop }
+  it("keeps Don's full placeholder as its own key, for the rules page (#223)", () => {
+    expect(COPY.postingSafetyFull).toBe(
+      "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
+    )
+  })
+
+  it('shows the short line at posting, never the full one', () => {
+    render(<PagePosts {...postProps} canPost />)
+    expect(screen.queryByText(COPY.postingSafetyFull)).toBeNull()
+  })
 
   // Every surface a member can post from: a new Page (with its photo), an
   // edit to a live Page (photo, words), an announcement, and each item kind.
