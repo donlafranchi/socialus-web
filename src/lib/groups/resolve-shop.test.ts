@@ -219,48 +219,45 @@ function makeJurisdictionStub(opts: {
   } as unknown as Parameters<typeof resolveLocalOwnerBadge>[0]
 }
 
+// #246 — the badge is page_local_owner_badge(), a boolean. The proximity test
+// and the OR across registrations live in SQL (tests/registration-badge-db).
+// The registration table is never read here: a stranger may not read it.
+function makeBadgeStub(badge: boolean | null, error: unknown = null) {
+  const calls: { name: string; params: unknown }[] = []
+  const supabase = {
+    from(table: string) {
+      throw new Error(`reads ${table}; use page_local_owner_badge`)
+    },
+    rpc(name: string, params: unknown) {
+      calls.push({ name, params })
+      return Promise.resolve({ data: badge, error })
+    },
+  } as unknown as Parameters<typeof resolveLocalOwnerBadge>[0]
+  return { supabase, calls }
+}
+
 describe('resolveLocalOwnerBadge', () => {
-  it('returns null when there are no active jurisdiction rows', async () => {
-    const badge = await resolveLocalOwnerBadge(makeJurisdictionStub({ activeRows: [] }), {
-      groupId: 'grp-1',
-      anchorLocationId: 'loc-1',
-    })
-    expect(badge).toBeNull()
-  })
-
-  it('returns the badge when an active owner ZIP is proximal to the anchor', async () => {
-    const badge = await resolveLocalOwnerBadge(
-      makeJurisdictionStub({ activeRows: [{ zip: '95817' }], proximalZips: ['95817'] }),
-      { groupId: 'grp-1', anchorLocationId: 'loc-1' },
-    )
+  it('returns the badge when page_local_owner_badge says so', async () => {
+    const { supabase, calls } = makeBadgeStub(true)
+    const badge = await resolveLocalOwnerBadge(supabase, { groupId: 'grp-1', anchorLocationId: 'loc-1' })
     expect(badge).toEqual({ label: 'Claimed local owner' })
+    expect(calls).toEqual([{ name: 'page_local_owner_badge', params: { p_group_id: 'grp-1' } }])
   })
 
-  it('returns null when the active ZIP fails the proximity test', async () => {
-    const badge = await resolveLocalOwnerBadge(
-      makeJurisdictionStub({ activeRows: [{ zip: '90210' }], proximalZips: ['95817'] }),
-      { groupId: 'grp-1', anchorLocationId: 'loc-1' },
-    )
-    expect(badge).toBeNull()
+  it('returns null when it does not', async () => {
+    const { supabase } = makeBadgeStub(false)
+    expect(await resolveLocalOwnerBadge(supabase, { groupId: 'grp-1', anchorLocationId: 'loc-1' })).toBeNull()
   })
 
-  it('OR-aggregates — badge renders if ANY active owner ZIP is proximal', async () => {
-    const badge = await resolveLocalOwnerBadge(
-      makeJurisdictionStub({
-        activeRows: [{ zip: '90210' }, { zip: '95816' }],
-        proximalZips: ['95816'],
-      }),
-      { groupId: 'grp-1', anchorLocationId: 'loc-1' },
-    )
-    expect(badge).toEqual({ label: 'Claimed local owner' })
+  it('returns null on an error — a missing answer never earns the badge', async () => {
+    const { supabase } = makeBadgeStub(null, { message: 'boom' })
+    expect(await resolveLocalOwnerBadge(supabase, { groupId: 'grp-1', anchorLocationId: 'loc-1' })).toBeNull()
   })
 
-  it('returns null without calling the RPC when the anchor Location is null', async () => {
-    const badge = await resolveLocalOwnerBadge(
-      makeJurisdictionStub({ activeRows: [{ zip: '95817' }], proximalZips: ['95817'] }),
-      { groupId: 'grp-1', anchorLocationId: null },
-    )
-    expect(badge).toBeNull()
+  it('returns null without asking when the anchor Location is null', async () => {
+    const { supabase, calls } = makeBadgeStub(true)
+    expect(await resolveLocalOwnerBadge(supabase, { groupId: 'grp-1', anchorLocationId: null })).toBeNull()
+    expect(calls).toEqual([])
   })
 })
 
