@@ -140,16 +140,13 @@ as $$
       g.photo_removed_at,
       g.description,
       null::text            as body,
-      -- F093 criterion 8: signed out, no tags, no location, and a pin at the
-      -- Page's Place rather than its stored point.
+      -- F093 criterion 8: signed out, no tags, no location, and no pin.
       case when auth.uid() is null then array[]::text[]
            else coalesce(ptl.labels, array[]::text[]) end as tags,
       null::timestamptz     as starts_at,
       case when auth.uid() is null then null else l.id end    as location_id,
       case when auth.uid() is null then null else l.label end as location_label,
-      case when auth.uid() is null
-           then (select pc.centroid from public.places pc where pc.id = l.place_id and pc.deleted_at is null)
-           else l.geography end as location_geography,
+      case when auth.uid() is null then null else l.geography end as location_geography,
       g.created_at          as page_created_at,
       g.updated_at,
       case p_sort
