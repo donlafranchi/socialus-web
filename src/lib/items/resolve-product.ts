@@ -15,6 +15,7 @@
 // Supabase-client-shaped (session-bound), same convention as resolve-shop.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { itemLocationLabel } from './item-location'
 
 export interface ResolvedProductPickup {
   label: string
@@ -85,9 +86,6 @@ interface ProductRow {
     | { price_cents: number | null; price_unit: string | null; photo_urls: string[] }[]
     | { price_cents: number | null; price_unit: string | null; photo_urls: string[] }
     | null
-  item_locations:
-    | { removed_at: string | null; locations: { label: string }[] | { label: string } | null }[]
-    | null
 }
 
 function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
@@ -137,8 +135,7 @@ export async function resolveProduct(
   // T095 — Group-filed items attribute to the Group; individual items to nobody.
   const baseSelect =
     'id, title, description, brand_label, made_at_place_id, ' +
-    'item_products(price_cents, price_unit, photo_urls), ' +
-    'item_locations(removed_at, locations(label))'
+    'item_products(price_cents, price_unit, photo_urls)'
   let query = supabase
     .from('items')
     .select(baseSelect)
@@ -157,9 +154,8 @@ export async function resolveProduct(
 
   const prod = firstEmbed(row.item_products)
 
-  // First active (non-removed) pickup Location.
-  const activeLoc = (row.item_locations ?? []).find((il) => il.removed_at === null)
-  const locEmbed = activeLoc ? firstEmbed(activeLoc.locations) : null
+  // F093 criterion 8 — read on its own, as the caller; signed out it is refused.
+  const locationLabel = await itemLocationLabel(supabase, row.id)
 
   // Build attribution by scope.
   let attribution: ItemAttribution
@@ -185,7 +181,7 @@ export async function resolveProduct(
     photoUrls: prod?.photo_urls ?? [],
     brandLabel: row.brand_label,
     attribution,
-    pickup: locEmbed ? { label: locEmbed.label } : null,
+    pickup: locationLabel ? { label: locationLabel } : null,
     madeAtPlaceId: row.made_at_place_id,
   }
 }

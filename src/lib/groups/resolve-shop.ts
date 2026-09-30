@@ -118,7 +118,6 @@ interface ShopRow {
   /** The Page's own free text. Same story as `name`. */
   description: string | null
   lifecycle_state: string
-  anchor_location_id: string | null
   category: string | null
   photo_url: string | null
   social_links: unknown
@@ -173,7 +172,7 @@ export async function resolveShop(
   let query = supabase
     .from('groups')
     .select(
-      'id, slug, public_id, kind, name, description, lifecycle_state, anchor_location_id, category, ' +
+      'id, slug, public_id, kind, name, description, lifecycle_state, category, ' +
         'photo_url, social_links, photo_hidden_at, discoverability, ' +
         'group_businesses(display_name, public_description)',
     )
@@ -206,7 +205,18 @@ export async function resolveShop(
   // (st_x/st_y) — the same reason sellActivateAction's place-path
   // resolution also reaches for the action-layer pool instead of
   // PostgREST. See T143 DEVIATIONS for the two-credential-path note.
-  const placements = await resolvePagePlacements(row.id)
+  // F093 criterion 8 — where a Page is never reaches a signed-out caller. The
+  // anchor is asked for as the caller, whom the database refuses signed out,
+  // and the address (read through the pool, past RLS) only once it answered.
+  const { data: anchorRow, error: anchorErr } = await supabase
+    .from('groups')
+    .select('anchor_location_id')
+    .eq('id', row.id)
+    .maybeSingle()
+  const anchorLocationId = anchorErr
+    ? null
+    : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)
+  const placements = anchorErr ? [] : await resolvePagePlacements(row.id)
 
   return {
     groupId: row.id,
@@ -220,7 +230,7 @@ export async function resolveShop(
     displayName: biz?.display_name ?? row.name ?? '',
     publicDescription: biz?.public_description ?? row.description ?? '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
-    anchorLocationId: row.anchor_location_id,
+    anchorLocationId,
     category: row.category,
     photoUrl: row.photo_url,
     // Normalised on read as well as on write: a row written before the column

@@ -120,7 +120,9 @@ describe.skipIf(!RUNNABLE)('T156 — browse_feed, as shipped', () => {
     }
   })
 
-  it('is stable, security invoker, and pins its search_path', async () => {
+  // #252: it runs as its owner so it can scope by a location a signed-out
+  // caller may not read; what RLS gave it is written out in its body.
+  it('is stable, security definer, and pins its search_path', async () => {
     const rows = await query<{
       provolatile: string
       prosecdef: boolean
@@ -132,7 +134,7 @@ describe.skipIf(!RUNNABLE)('T156 — browse_feed, as shipped', () => {
       [SIG],
     )
     expect(rows[0].provolatile).toBe('s')
-    expect(rows[0].prosecdef).toBe(false) // invoker, so RLS applies
+    expect(rows[0].prosecdef).toBe(true)
     expect(rows[0].proconfig?.join(',')).toContain('search_path=public, extensions')
   })
 
@@ -249,6 +251,11 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
     const client = await pool.connect()
     try {
       await client.query('begin')
+      // F093 criterion 8: signed out, browse_feed sends no location or tags,
+      // and tests/front-door-db.test.ts covers that. These are the signed-in reads.
+      await client.query(`select set_config('request.jwt.claims', $1, true)`, [
+        JSON.stringify({ sub: '00000000-0000-4000-8000-000000000156', role: 'authenticated' }),
+      ])
       const q: Q = async (sql, p = []) =>
         (await client.query(sql, p)).rows as Record<string, unknown>[]
       return await fn(q)

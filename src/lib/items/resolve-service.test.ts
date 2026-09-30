@@ -84,6 +84,7 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
   it('attributes to the Group (kind=group, name=brand_label)', async () => {
     const supabase = makeSupabase({
       groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
+      item_locations: { data: [{ removed_at: null, locations: { label: 'Studio' } }] },
       items: { data: [serviceRow()] },
     })
     const result = await resolveService(supabase, {
@@ -103,6 +104,7 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
   it('falls back to the Group name when a Group-filed service has no brand_label (T119)', async () => {
     const supabase = makeSupabase({
       groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
+      item_locations: { data: [{ removed_at: null, locations: { label: 'Studio' } }] },
       items: { data: [serviceRow({ brand_label: null })] },
     })
     const result = await resolveService(supabase, {
@@ -116,6 +118,7 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
   it('returns null when no row id matches the slug fragment', async () => {
     const supabase = makeSupabase({
       groups: { data: { id: 'g1', name: 'Repair Cafe Regulars' } },
+      item_locations: { data: [{ removed_at: null, locations: { label: 'Studio' } }] },
       items: { data: [serviceRow()] },
     })
     const result = await resolveService(supabase, {
@@ -135,6 +138,33 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
   })
 })
 
+// F093 criterion 8 (amended 2026-09-30) — an item's location is read on its
+// own, so a signed-out caller, whom the database refuses it, still gets the item.
+describe('resolveService — its location', () => {
+  it('is not embedded in the read that finds the item', async () => {
+    const supabase = makeSupabase({
+      posted_item_id: { data: 'deadbeef-1111-2222-3333-444455556666' },
+      items: { data: [serviceRow({ brand_label: null })] },
+    })
+    await resolveService(supabase, { handle: 'maya', itemSlug: 'piano-lessons-deadbeef' })
+    const itemRead = read.find((r) => r.startsWith('select:id, title'))
+    expect(itemRead).toBeDefined()
+    expect(itemRead).not.toContain('locations(')
+    expect(read).toContain('item_locations')
+  })
+
+  it('is absent, and the item still resolves, when the caller may not read it', async () => {
+    const supabase = makeSupabase({
+      posted_item_id: { data: 'deadbeef-1111-2222-3333-444455556666' },
+      item_locations: { data: null, error: { message: 'permission denied for table locations' } },
+      items: { data: [serviceRow({ brand_label: null })] },
+    })
+    const result = await resolveService(supabase, { handle: 'maya', itemSlug: 'piano-lessons-deadbeef' })
+    expect(result).not.toBeNull()
+    expect(result!.anchor).toBeNull()
+  })
+})
+
 // #253 — an item posted without a Page resolves from the handle and id in its
 // URL through posted_item_id, and names no poster: nobody reads who made it.
 describe('resolveService — individual path', () => {
@@ -142,6 +172,7 @@ describe('resolveService — individual path', () => {
     const calls: unknown[] = []
     const supabase = makeSupabase({
       posted_item_id: { data: 'deadbeef-1111-2222-3333-444455556666' },
+      item_locations: { data: [{ removed_at: null, locations: { label: 'Studio' } }] },
       items: { data: [serviceRow({ brand_label: null })] },
     })
     const rpc = supabase.rpc as unknown as (fn: string, args: unknown) => Promise<unknown>

@@ -10,6 +10,7 @@
 // resolve-product.ts. RLS (items_select_published) is the visibility gate.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { itemLocationLabel } from './item-location'
 import { parseIdFragment } from './resolve-product'
 import type { ItemAttribution } from './resolve-product'
 
@@ -106,9 +107,6 @@ interface GatheringRow {
   description: string
   brand_label: string | null
   item_gatherings: GatheringChild[] | GatheringChild | null
-  item_locations:
-    | { removed_at: string | null; locations: { label: string }[] | { label: string } | null }[]
-    | null
 }
 
 function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
@@ -157,8 +155,7 @@ export async function resolveGathering(
   // to nobody.
   const baseSelect =
     'id, title, description, brand_label, ' +
-    'item_gatherings(starts_at, ends_at, recurrence_rule, capacity, cost_cents, what_to_bring), ' +
-    'item_locations(removed_at, locations(label))'
+    'item_gatherings(starts_at, ends_at, recurrence_rule, capacity, cost_cents, what_to_bring)'
   let query = supabase
     .from('items')
     .select(baseSelect)
@@ -176,8 +173,8 @@ export async function resolveGathering(
 
   const child = firstEmbed(row.item_gatherings)
 
-  const activeLoc = (row.item_locations ?? []).find((il) => il.removed_at === null)
-  const locEmbed = activeLoc ? firstEmbed(activeLoc.locations) : null
+  // F093 criterion 8 — read on its own, as the caller; signed out it is refused.
+  const locationLabel = await itemLocationLabel(supabase, row.id)
 
   let attribution: ItemAttribution
   if (scope.individual) {
@@ -204,6 +201,6 @@ export async function resolveGathering(
     whatToBring: child?.what_to_bring ?? null,
     brandLabel: row.brand_label,
     attribution,
-    location: locEmbed ? { label: locEmbed.label } : null,
+    location: locationLabel ? { label: locationLabel } : null,
   }
 }

@@ -44,7 +44,7 @@ async function as<T>(sub: string | null, sql: string, params: unknown[] = []) {
   }
 }
 
-const allColumnsBut = async (table: string, ...skip: string[]) => {
+const allColumnsBut = async (table: string, ...skip: string[]): Promise<string> => {
   const { rows } = await client.query<{ column_name: string }>(
     `select column_name from information_schema.columns
       where table_schema = 'public' and table_name = $1 and column_name <> all($2)`,
@@ -140,7 +140,10 @@ describe.skipIf(!RUNNABLE)('who founded, sells or hosts, to anyone', () => {
     ['item_gatherings', 'host_member_id', GATHERING, 'item_id'],
   ])('every other column of %s still answers', async (table, column, id, key) => {
     const cols = await allColumnsBut(table, column)
-    for (const sub of [null, STRANGER]) {
+    // #252: signed out, a Page's anchor is withheld too (tests/front-door-db.test.ts).
+    const anonCols = table === 'groups' ? await allColumnsBut(table, column, 'anchor_location_id') : cols
+    expect(await as(null, `select ${anonCols} from public.${table} where ${key} = $1`, [id]), `${table} as anon`).toHaveLength(1)
+    for (const sub of [STRANGER]) {
       expect(await as(sub, `select ${cols} from public.${table} where ${key} = $1`, [id]), `${table} as ${sub}`).toHaveLength(1)
     }
   })
