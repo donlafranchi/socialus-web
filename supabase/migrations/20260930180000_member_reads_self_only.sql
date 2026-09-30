@@ -5,8 +5,15 @@
 --     a display name and avatar to anyone who views the Page.
 --   Nobody sees who follows whom. A Page's owner sees who follows their Page.
 --   A member's interest tags are not public.
---   Group members see who RSVP'd. Only a business's owners see who bought.
 --   A stranger does not see a Page's roster.
+--   Whoever is party to an RSVP sees it: everyone who RSVP'd to a gathering,
+--     and its organiser, see the others; a one-on-one, its two parties.
+--   Someone who RSVP'd to a group gathering is inside the group and sees what
+--     a member sees.
+--   Purchases are deferred: nobody buys in the app yet, so a purchase or a
+--     pledge reaches its responder only.
+--   The founder, by display name, is on a Page's front door for anyone signed
+--     in, private Pages included; the signed-out front door carries none.
 --
 -- Confirmed on production 2026-09-30: signed out reads member_follows,
 -- member_interests, locations.member_id and item_responses; a signed-in
@@ -68,9 +75,9 @@ as $$
    order by v.name
 $$;
 
--- 3. A Page's creator, on the Page: display name and avatar. Same signature,
--- so today's code keeps rendering "Founded by" as text; handle and
--- has_published led only to a profile nobody else can now read.
+-- 3. A Page's founder, on its front door: display name, to anyone signed in.
+-- Same signature, so today's code keeps rendering "Founded by" as text;
+-- handle and has_published led only to a profile nobody else can now read.
 create or replace function public.page_founder_public(p_group_id uuid)
 returns table (handle text, display_name text, avatar_url text, has_published boolean)
 language sql
@@ -80,22 +87,18 @@ set search_path = ''
 as $$
   select null::text,
          m.display_name::text,
-         m.avatar_url::text,
+         null::text,
          false
     from public.groups g
     join public.members m on m.id = g.founder_member_id
    where g.id = p_group_id
+     and auth.uid() is not null
      and m.deleted_at is null
      and m.login_disabled = false
      and (
-       (g.lifecycle_state = 'active' and g.discoverability = 'listed' and g.dissolved_at is null)
+       (g.lifecycle_state = 'active' and g.dissolved_at is null)
        or g.founder_member_id = auth.uid()
-       or exists (
-         select 1 from public.group_memberships gm
-          where gm.group_id = g.id and gm.member_id = auth.uid() and gm.left_at is null
-       )
      )
-     and (auth.uid() is not null or m.stakeholder_visibility = 'public')
 $$;
 
 -- An item posted without a Page lives at /m/<handle>/p/…, so its handle is
@@ -213,9 +216,31 @@ create policy member_follows_select_own
 -- A signed-in stranger's read of any listed Page's roster, followers included.
 drop policy if exists memberships_select_listed_group on public.group_memberships;
 
--- The roster is for the Page's current members (2026-09-08). A follower is
--- not one, and read the members' rows through current_member_explicit_group_ids,
--- which counts a follow as a membership.
+-- The roster is for the Page's current members (2026-09-08), and for someone
+-- who RSVP'd to one of its gatherings, who is inside the group (2026-09-30). A
+-- follower is neither, and read the members' rows through
+-- current_member_explicit_group_ids, which counts a follow as a membership.
+create or replace function public.current_member_rsvp_group_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select distinct i.group_id
+    from public.item_responses r
+    join public.items i on i.id = r.item_id
+    join public.groups g on g.id = i.group_id
+   where r.responder_member_id = auth.uid()
+     and r.response_kind = 'rsvp'
+     and r.withdrawn_at is null
+     and i.deleted_at is null
+     and g.kind <> 'business'
+$$;
+
+revoke all on function public.current_member_rsvp_group_ids() from public;
+grant execute on function public.current_member_rsvp_group_ids() to anon, authenticated;
+
 create or replace function public.current_member_roster_group_ids()
 returns setof uuid
 language sql
@@ -236,11 +261,40 @@ grant execute on function public.current_member_roster_group_ids() to anon, auth
 
 alter policy memberships_select_co_member on public.group_memberships
   using (
-    group_id in (select public.current_member_roster_group_ids())
+    (
+      group_id in (select public.current_member_roster_group_ids())
+      or group_id in (select public.current_member_rsvp_group_ids())
+    )
     and (
       relationship <> 'follower'
       or group_id in (select public.current_member_managed_group_ids())
     )
+  );
+
+-- What else a member reads of their group, someone who RSVP'd reads too.
+alter policy groups_select_member on public.groups
+  using (
+    id in (select public.current_member_explicit_group_ids())
+    or id in (select public.current_member_rsvp_group_ids())
+  );
+
+alter policy items_select_group_member on public.items
+  using (
+    group_id is not null
+    and deleted_at is null
+    and (
+      group_id in (select public.current_member_explicit_group_ids())
+      or group_id in (select public.current_member_rsvp_group_ids())
+    )
+  );
+
+alter policy group_events_select_member_of_group on public.group_events
+  using (
+    (
+      group_id in (select public.current_member_explicit_group_ids())
+      or group_id in (select public.current_member_rsvp_group_ids())
+    )
+    and event_kind <> all (array['group.reported', 'group.photo_hidden', 'group.photo_restored'])
   );
 
 -- 6. Interest tags: the member's own.
@@ -250,42 +304,60 @@ create policy member_interests_select_own
   using (member_id = auth.uid());
 
 -- 7. Who responded. The responder always reads their own
--- (item_responses_select_self). A kind no ruling names stays there.
+-- (item_responses_select_self). A purchase, a pledge and every kind no ruling
+-- names stay there.
 drop policy if exists item_responses_select_public on public.item_responses;
 
--- RSVPs on a group Page: its current members and whoever runs it. A business
--- Page's RSVPs are open cell (d) in nouns.md and get no policy yet.
-create policy item_responses_select_rsvp_group_members
+-- RSVPs: whoever is party to one. Everyone with a live RSVP on an item sees
+-- the others' live RSVPs; its organiser (who posted it, its host, whoever runs
+-- its Page) sees them all. A one-on-one is the same rule with one RSVP.
+-- Through functions, since a policy on item_responses may not query it.
+create or replace function public.current_member_rsvp_item_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select r.item_id
+    from public.item_responses r
+   where r.responder_member_id = auth.uid()
+     and r.response_kind = 'rsvp'
+     and r.withdrawn_at is null
+$$;
+
+create or replace function public.current_member_organised_item_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select i.id from public.items i where i.member_id = auth.uid()
+  union
+  select ig.item_id from public.item_gatherings ig where ig.host_member_id = auth.uid()
+  union
+  select i.id
+    from public.items i
+    join public.group_memberships gm on gm.group_id = i.group_id
+   where gm.member_id = auth.uid()
+     and gm.left_at is null
+     and gm.source = 'explicit'
+     and gm.role in ('owner', 'steward')
+$$;
+
+revoke all on function public.current_member_rsvp_item_ids() from public;
+revoke all on function public.current_member_organised_item_ids() from public;
+grant execute on function public.current_member_rsvp_item_ids() to anon, authenticated;
+grant execute on function public.current_member_organised_item_ids() to anon, authenticated;
+
+create policy item_responses_select_rsvp_parties
   on public.item_responses for select to authenticated
   using (
     response_kind = 'rsvp'
-    and exists (
-      select 1 from public.items i
-        join public.groups g on g.id = i.group_id
-        join public.group_memberships gm on gm.group_id = g.id
-       where i.id = item_responses.item_id
-         and g.kind <> 'business'
-         and gm.member_id = auth.uid()
-         and gm.left_at is null
-         and gm.source = 'explicit'
-         and (gm.relationship = 'member' or gm.role in ('owner', 'steward'))
-    )
-  );
-
-create policy item_responses_select_purchase_business_owner
-  on public.item_responses for select to authenticated
-  using (
-    response_kind = 'purchase'
-    and exists (
-      select 1 from public.items i
-        join public.groups g on g.id = i.group_id
-        join public.group_memberships gm on gm.group_id = g.id
-       where i.id = item_responses.item_id
-         and g.kind = 'business'
-         and gm.member_id = auth.uid()
-         and gm.left_at is null
-         and gm.source = 'explicit'
-         and gm.role = 'owner'
+    and (
+      item_id in (select public.current_member_organised_item_ids())
+      or (withdrawn_at is null and item_id in (select public.current_member_rsvp_item_ids()))
     )
   );
 
