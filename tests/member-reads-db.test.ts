@@ -24,14 +24,14 @@ const MEMBER = 'b0000000-0000-4000-8000-000000000246' // member of the group Pag
 const STRANGER = 'c0000000-0000-4000-8000-000000000246' // follows the group Page, buys
 const SELLER = 'd0000000-0000-4000-8000-000000000246' // owns the business Page; RSVPs a one-on-one
 const PLAIN = '50000000-0000-4000-8000-000000000246' // member of the group Page, no RSVP
-const GUEST = '60000000-0000-4000-8000-000000000246' // RSVPs group gatherings, belongs to nothing
+const GUEST = '60000000-0000-4000-8000-000000000246' // RSVPs gatherings and books the service, belongs to nothing
 const GROUP = 'e0000000-0000-4000-8000-000000000246'
 const SHOP = 'f0000000-0000-4000-8000-000000000246'
 const LOCATION = '10000000-0000-4000-8000-000000000246'
 const GATHERING = '20000000-0000-4000-8000-000000000246'
 const PRODUCT = '30000000-0000-4000-8000-000000000246'
 const OWN_ITEM = '40000000-0000-4000-8000-000000000246'
-const SOLO = '70000000-0000-4000-8000-000000000246' // a gathering with no Page
+const SOLO = '70000000-0000-4000-8000-000000000246' // a one-on-one: a service, two separate bookings
 const PRIV = '80000000-0000-4000-8000-000000000246' // a private group Page
 const PRIV_EVENT = '90000000-0000-4000-8000-000000000246'
 const ITEMS = [GATHERING, PRODUCT, OWN_ITEM, SOLO, PRIV_EVENT]
@@ -120,14 +120,14 @@ beforeAll(async () => {
        ($1,$2,'gathering','B246 Saturday run','published',$3),
        ($4,$5,'product','B246 Loaf','published',$6),
        ($7,$8,'product','B246 Jam','published',null),
-       ($9,$8,'gathering','B246 Piano lesson','published',null),
+       ($9,$8,'service','B246 Piano lesson','published',null),
        ($10,$2,'gathering','B246 Family dinner','published',$11)`,
     [GATHERING, RUNNER, GROUP, PRODUCT, SELLER, SHOP, OWN_ITEM, MEMBER, SOLO, PRIV_EVENT, PRIV],
   )
   await client.query(
     `insert into public.item_gatherings (item_id, starts_at)
      select unnest($1::uuid[]), now() + interval '7 days'`,
-    [[GATHERING, SOLO, PRIV_EVENT]],
+    [[GATHERING, PRIV_EVENT]],
   )
   await client.query(
     `insert into public.item_locations (item_id, location_id, schedule_kind) values ($1,$2,'one_time')`,
@@ -136,7 +136,7 @@ beforeAll(async () => {
   await client.query(
     `insert into public.item_responses (item_id, responder_member_id, response_kind) values
        ($1,$2,'rsvp'), ($1,$5,'rsvp'), ($4,$3,'purchase'), ($4,$2,'pledge'),
-       ($6,$7,'rsvp'), ($8,$5,'rsvp')`,
+       ($6,$7,'rsvp'), ($6,$5,'rsvp'), ($8,$5,'rsvp')`,
     [GATHERING, MEMBER, STRANGER, PRODUCT, GUEST, SOLO, SELLER, PRIV_EVENT],
   )
   await client.query(
@@ -220,21 +220,19 @@ describe.skipIf(!RUNNABLE)('what a member is, to anyone else', () => {
 })
 
 describe.skipIf(!RUNNABLE)("a Page's creator, on that Page", () => {
-  // Don, 2026-09-30 (corrected): the front door shows no founder, signed in
-  // or out. A member of the Page, or someone inside it through an RSVP, sees
-  // who founded it, by display name.
-  it('names no founder to a signed-out visitor or a signed-in non-member, private Pages included', async () => {
+  // Don, 2026-09-30: the front door is the same for every Page and shows no
+  // founder. A member of the Page sees who founded it, by display name.
+  it('names no founder on the front door: signed out, signed in, following, or party to an RSVP', async () => {
     for (const page of [GROUP, PRIV]) {
-      for (const sub of [null, SELLER, STRANGER]) {
+      for (const sub of [null, SELLER, STRANGER, GUEST]) {
         expect(await count(sub, `select * from public.page_founder_public($1)`, [page]), `${page} as ${sub}`).toBe(0)
       }
     }
   })
 
-  it("names the founder to the Page's members and to someone inside it through an RSVP, by display name only", async () => {
-    for (const [sub, page] of [[MEMBER, GROUP], [PLAIN, GROUP], [GUEST, GROUP], [GUEST, PRIV]]) {
-      const rows = await as<Record<string, unknown>>(sub, `select * from public.page_founder_public($1)`, [page])
-      expect(rows, `${page} as ${sub}`).toEqual([
+  it("names the founder to the Page's members, by display name only", async () => {
+    for (const sub of [MEMBER, PLAIN]) {
+      expect(await as(sub, `select * from public.page_founder_public($1)`, [GROUP]), `as ${sub}`).toEqual([
         { handle: null, display_name: 'b246-runner', avatar_url: null, has_published: false },
       ])
     }
@@ -293,12 +291,11 @@ describe.skipIf(!RUNNABLE)('the follow graph', () => {
     expect(rows.map((r) => r.member_id)).toEqual([STRANGER])
   })
 
-  // Don, 2026-09-30: business Pages don't have members. A row that says
-  // otherwise reads no roster; only the business's owner does.
-  it("a business Page's roster answers its owner, and no one holding a member row", async () => {
+  // Don, 2026-09-30: nothing is keyed on the kind of Page. A member of a
+  // business Page reads its roster exactly as a member of a run club does.
+  it("any Page's members see each other, the business kind included", async () => {
     const q = `select member_id from public.group_memberships where group_id = $1 order by 1`
-    expect((await as<{ member_id: string }>(PLAIN, q, [SHOP])).map((r) => r.member_id)).toEqual([PLAIN])
-    expect((await as<{ member_id: string }>(SELLER, q, [SHOP])).map((r) => r.member_id)).toEqual([SELLER, PLAIN].sort())
+    expect((await as<{ member_id: string }>(PLAIN, q, [SHOP])).map((r) => r.member_id)).toEqual([SELLER, PLAIN].sort())
   })
 
   it("a Page's members see each other", async () => {
@@ -360,10 +357,11 @@ describe.skipIf(!RUNNABLE)('who responded', () => {
     for (const sub of [PLAIN, STRANGER, SELLER]) expect(await count(sub, rsvps, [GATHERING])).toBe(0)
   })
 
-  it('a one-on-one is seen by its two parties only', async () => {
-    expect(await as(MEMBER, rsvps, [SOLO])).toEqual([{ who: SELLER }])
+  it('a one-on-one is seen by its two parties only, however many are booked', async () => {
     expect(await as(SELLER, rsvps, [SOLO])).toEqual([{ who: SELLER }])
-    for (const sub of [RUNNER, GUEST]) expect(await count(sub, rsvps, [SOLO])).toBe(0)
+    expect(await as(GUEST, rsvps, [SOLO])).toEqual([{ who: GUEST }])
+    expect(await as(MEMBER, rsvps, [SOLO])).toEqual([{ who: SELLER }, { who: GUEST }].sort((a, b) => a.who.localeCompare(b.who)))
+    expect(await count(RUNNER, rsvps, [SOLO])).toBe(0)
   })
 
   it('a purchase reaches only its buyer; no seller-side rule is built yet', async () => {
@@ -378,29 +376,23 @@ describe.skipIf(!RUNNABLE)('who responded', () => {
   })
 })
 
-// Don, 2026-09-30: someone who RSVP'd counts as part of the group and sees
-// what a member sees.
-describe.skipIf(!RUNNABLE)("inside the house: someone who RSVP'd to a group gathering", () => {
-  it("reads the Page's roster, but not its followers", async () => {
-    const rows = await as<{ member_id: string }>(
-      GUEST,
-      `select member_id from public.group_memberships where group_id = $1 order by 1`,
-      [GROUP],
-    )
-    expect(rows.map((r) => r.member_id)).toEqual([RUNNER, MEMBER, PLAIN].sort())
-  })
-
-  it('reads a private Page and its items, which a stranger does not', async () => {
-    expect(await count(GUEST, `select 1 from public.groups where id = $1`, [PRIV])).toBe(1)
+// Don, 2026-09-30: party to an RSVP is its own relation, keyed on the post,
+// not the Page. It reads the post; it does not make anyone a member.
+describe.skipIf(!RUNNABLE)('party to an RSVP, and not a member', () => {
+  it("reads the post they RSVP'd to, on a private Page too", async () => {
     expect(await count(GUEST, `select 1 from public.items where id = $1`, [PRIV_EVENT])).toBe(1)
-    expect(await count(SELLER, `select 1 from public.groups where id = $1`, [PRIV])).toBe(0)
     expect(await count(SELLER, `select 1 from public.items where id = $1`, [PRIV_EVENT])).toBe(0)
   })
 
-  it('stops being inside once the RSVP is withdrawn', async () => {
+  it("does not read the Page's roster, its private Page, or its other posts", async () => {
+    expect(await count(GUEST, `select 1 from public.group_memberships where group_id = $1 and member_id <> $2`, [GROUP, GUEST])).toBe(0)
+    expect(await count(GUEST, `select 1 from public.groups where id = $1`, [PRIV])).toBe(0)
+  })
+
+  it('stops reading the post once the RSVP is withdrawn', async () => {
     await client.query(`update public.item_responses set withdrawn_at = now() where item_id = $1 and responder_member_id = $2`, [PRIV_EVENT, GUEST])
     try {
-      expect(await count(GUEST, `select 1 from public.groups where id = $1`, [PRIV])).toBe(0)
+      expect(await count(GUEST, `select 1 from public.items where id = $1`, [PRIV_EVENT])).toBe(0)
     } finally {
       await client.query(`update public.item_responses set withdrawn_at = null where item_id = $1 and responder_member_id = $2`, [PRIV_EVENT, GUEST])
     }

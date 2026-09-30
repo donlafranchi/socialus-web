@@ -8,14 +8,15 @@
 --   A stranger does not see a Page's roster.
 --   Whoever is party to an RSVP sees it: everyone who RSVP'd to a gathering,
 --     and its organiser, see the others; a one-on-one, its two parties.
---   Someone who RSVP'd to a group Page's gathering is inside the group and
---     sees what a member sees. On a business Page an RSVP joins that post only.
---   Business Pages don't have members. Membership is scoped to one Page.
+--   Nothing is keyed on the kind of Page: any Page has followers, members,
+--     announcements and RSVPs, and the same front door. What a person reads
+--     follows their relation to the Page or the item.
+--   An RSVP makes someone party to that post, not a member of the Page.
+--   Membership is scoped to one Page.
 --   Purchases are deferred: nobody buys in the app yet, so a purchase or a
 --     pledge reaches its responder only.
 --   The front door shows no founder or seller, signed in or out. The Page's
---     members, and whoever is inside it through an RSVP, see the founder by
---     display name.
+--     members see the founder by display name.
 --
 -- Confirmed on production 2026-09-30: signed out reads member_follows,
 -- member_interests, locations.member_id and item_responses; a signed-in
@@ -194,33 +195,9 @@ create policy member_follows_select_own
 -- A signed-in stranger's read of any listed Page's roster, followers included.
 drop policy if exists memberships_select_listed_group on public.group_memberships;
 
--- The roster is for the Page's current members (2026-09-08), and for someone
--- who RSVP'd to one of its gatherings, who is inside the group (2026-09-30). A
--- follower is neither, and read the members' rows through
+-- The roster is for the Page's current members (2026-09-08), whatever kind
+-- of Page it is. A follower is not one, and read the members' rows through
 -- current_member_explicit_group_ids, which counts a follow as a membership.
--- A business Page has no members (2026-09-30): only whoever runs it reads its
--- roster, whatever a row says, and an RSVP there joins that post only.
-create or replace function public.current_member_rsvp_group_ids()
-returns setof uuid
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select distinct i.group_id
-    from public.item_responses r
-    join public.items i on i.id = r.item_id
-    join public.groups g on g.id = i.group_id
-   where r.responder_member_id = auth.uid()
-     and r.response_kind = 'rsvp'
-     and r.withdrawn_at is null
-     and i.deleted_at is null
-     and g.kind <> 'business'
-$$;
-
-revoke all on function public.current_member_rsvp_group_ids() from public;
-grant execute on function public.current_member_rsvp_group_ids() to anon, authenticated;
-
 create or replace function public.current_member_roster_group_ids()
 returns setof uuid
 language sql
@@ -233,23 +210,14 @@ as $$
    where member_id = auth.uid()
      and left_at is null
      and source = 'explicit'
-     and (
-       role in ('owner', 'steward')
-       or (
-         relationship = 'member'
-         and exists (
-           select 1 from public.groups g
-            where g.id = group_memberships.group_id and g.kind <> 'business'
-         )
-       )
-     )
+     and (relationship = 'member' or role in ('owner', 'steward'))
 $$;
 
 revoke all on function public.current_member_roster_group_ids() from public;
 grant execute on function public.current_member_roster_group_ids() to anon, authenticated;
 
--- 3. A Page's founder: display name, to the Page's members and whoever is
--- inside it through an RSVP; never on the front door. Same signature, so
+-- 3. A Page's founder: display name, to the Page's members; never on the
+-- front door. Same signature, so
 -- today's code renders "Founded by" as text for them and omits it otherwise.
 -- handle and has_published led only to a profile nobody else can now read.
 create or replace function public.page_founder_public(p_group_id uuid)
@@ -271,48 +239,19 @@ as $$
      and (
        g.founder_member_id = auth.uid()
        or g.id in (select public.current_member_roster_group_ids())
-       or g.id in (select public.current_member_rsvp_group_ids())
      )
 $$;
 
 
 alter policy memberships_select_co_member on public.group_memberships
   using (
-    (
-      group_id in (select public.current_member_roster_group_ids())
-      or group_id in (select public.current_member_rsvp_group_ids())
-    )
+    group_id in (select public.current_member_roster_group_ids())
     and (
       relationship <> 'follower'
       or group_id in (select public.current_member_managed_group_ids())
     )
   );
 
--- What else a member reads of their group, someone who RSVP'd reads too.
-alter policy groups_select_member on public.groups
-  using (
-    id in (select public.current_member_explicit_group_ids())
-    or id in (select public.current_member_rsvp_group_ids())
-  );
-
-alter policy items_select_group_member on public.items
-  using (
-    group_id is not null
-    and deleted_at is null
-    and (
-      group_id in (select public.current_member_explicit_group_ids())
-      or group_id in (select public.current_member_rsvp_group_ids())
-    )
-  );
-
-alter policy group_events_select_member_of_group on public.group_events
-  using (
-    (
-      group_id in (select public.current_member_explicit_group_ids())
-      or group_id in (select public.current_member_rsvp_group_ids())
-    )
-    and event_kind <> all (array['group.reported', 'group.photo_hidden', 'group.photo_restored'])
-  );
 
 -- 6. Interest tags: the member's own.
 drop policy if exists member_interests_public_read on public.member_interests;
@@ -325,9 +264,10 @@ create policy member_interests_select_own
 -- names stay there.
 drop policy if exists item_responses_select_public on public.item_responses;
 
--- RSVPs: whoever is party to one. Everyone with a live RSVP on an item sees
--- the others' live RSVPs; its organiser (who posted it, its host, whoever runs
--- its Page) sees them all. A one-on-one is the same rule with one RSVP.
+-- RSVPs: whoever is party to one. The organiser (who posted the item, its
+-- host, whoever runs its Page) sees them all. On a gathering, everyone with a
+-- live RSVP sees the others'. Anything else is one-on-one: two separate
+-- bookings of a piano lesson are two meetings, so each sees only their own.
 -- Through functions, since a policy on item_responses may not query it.
 create or replace function public.current_member_rsvp_item_ids()
 returns setof uuid
@@ -374,9 +314,19 @@ create policy item_responses_select_rsvp_parties
     response_kind = 'rsvp'
     and (
       item_id in (select public.current_member_organised_item_ids())
-      or (withdrawn_at is null and item_id in (select public.current_member_rsvp_item_ids()))
+      or (
+        withdrawn_at is null
+        and item_id in (select public.current_member_rsvp_item_ids())
+        and exists (select 1 from public.items i where i.id = item_responses.item_id and i.kind = 'gathering')
+      )
     )
   );
+
+-- Party to an RSVP reads the post it is on, wherever the post lives. It is
+-- not membership: the Page and its other posts stay as they were.
+create policy items_select_rsvp_party
+  on public.items for select to authenticated
+  using (deleted_at is null and id in (select public.current_member_rsvp_item_ids()));
 
 -- 8. locations.member_id. RLS is row-level, so the column goes the way
 -- groups.founder_member_id went for anon in #241: SELECT is rebuilt as every
