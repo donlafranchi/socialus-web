@@ -8,12 +8,14 @@
 --   A stranger does not see a Page's roster.
 --   Whoever is party to an RSVP sees it: everyone who RSVP'd to a gathering,
 --     and its organiser, see the others; a one-on-one, its two parties.
---   Someone who RSVP'd to a group gathering is inside the group and sees what
---     a member sees.
+--   Someone who RSVP'd to a group Page's gathering is inside the group and
+--     sees what a member sees. On a business Page an RSVP joins that post only.
+--   Business Pages don't have members. Membership is scoped to one Page.
 --   Purchases are deferred: nobody buys in the app yet, so a purchase or a
 --     pledge reaches its responder only.
---   The founder, by display name, is on a Page's front door for anyone signed
---     in, private Pages included; the signed-out front door carries none.
+--   The front door shows no founder or seller, signed in or out. The Page's
+--     members, and whoever is inside it through an RSVP, see the founder by
+--     display name.
 --
 -- Confirmed on production 2026-09-30: signed out reads member_follows,
 -- member_interests, locations.member_id and item_responses; a signed-in
@@ -75,31 +77,7 @@ as $$
    order by v.name
 $$;
 
--- 3. A Page's founder, on its front door: display name, to anyone signed in.
--- Same signature, so today's code keeps rendering "Founded by" as text;
--- handle and has_published led only to a profile nobody else can now read.
-create or replace function public.page_founder_public(p_group_id uuid)
-returns table (handle text, display_name text, avatar_url text, has_published boolean)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select null::text,
-         m.display_name::text,
-         null::text,
-         false
-    from public.groups g
-    join public.members m on m.id = g.founder_member_id
-   where g.id = p_group_id
-     and auth.uid() is not null
-     and m.deleted_at is null
-     and m.login_disabled = false
-     and (
-       (g.lifecycle_state = 'active' and g.dissolved_at is null)
-       or g.founder_member_id = auth.uid()
-     )
-$$;
+-- 3. (A Page's founder is below, after the roster functions it reads.)
 
 -- An item posted without a Page lives at /m/<handle>/p/…, so its handle is
 -- already public and its member_id already on the item. This names the poster
@@ -220,6 +198,8 @@ drop policy if exists memberships_select_listed_group on public.group_membership
 -- who RSVP'd to one of its gatherings, who is inside the group (2026-09-30). A
 -- follower is neither, and read the members' rows through
 -- current_member_explicit_group_ids, which counts a follow as a membership.
+-- A business Page has no members (2026-09-30): only whoever runs it reads its
+-- roster, whatever a row says, and an RSVP there joins that post only.
 create or replace function public.current_member_rsvp_group_ids()
 returns setof uuid
 language sql
@@ -253,11 +233,48 @@ as $$
    where member_id = auth.uid()
      and left_at is null
      and source = 'explicit'
-     and (relationship = 'member' or role in ('owner', 'steward'))
+     and (
+       role in ('owner', 'steward')
+       or (
+         relationship = 'member'
+         and exists (
+           select 1 from public.groups g
+            where g.id = group_memberships.group_id and g.kind <> 'business'
+         )
+       )
+     )
 $$;
 
 revoke all on function public.current_member_roster_group_ids() from public;
 grant execute on function public.current_member_roster_group_ids() to anon, authenticated;
+
+-- 3. A Page's founder: display name, to the Page's members and whoever is
+-- inside it through an RSVP; never on the front door. Same signature, so
+-- today's code renders "Founded by" as text for them and omits it otherwise.
+-- handle and has_published led only to a profile nobody else can now read.
+create or replace function public.page_founder_public(p_group_id uuid)
+returns table (handle text, display_name text, avatar_url text, has_published boolean)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select null::text,
+         m.display_name::text,
+         null::text,
+         false
+    from public.groups g
+    join public.members m on m.id = g.founder_member_id
+   where g.id = p_group_id
+     and m.deleted_at is null
+     and m.login_disabled = false
+     and (
+       g.founder_member_id = auth.uid()
+       or g.id in (select public.current_member_roster_group_ids())
+       or g.id in (select public.current_member_rsvp_group_ids())
+     )
+$$;
+
 
 alter policy memberships_select_co_member on public.group_memberships
   using (

@@ -111,7 +111,8 @@ beforeAll(async () => {
        ($1,$4,'member','explicit','follower'),
        ($5,$6,'owner','explicit','member'),
        ($1,$7,'member','explicit','member'),
-       ($8,$2,'steward','explicit','member')`,
+       ($8,$2,'steward','explicit','member'),
+       ($5,$7,'member','explicit','member')`,
     [GROUP, RUNNER, MEMBER, STRANGER, SHOP, SELLER, PLAIN, PRIV],
   )
   await client.query(
@@ -219,18 +220,24 @@ describe.skipIf(!RUNNABLE)('what a member is, to anyone else', () => {
 })
 
 describe.skipIf(!RUNNABLE)("a Page's creator, on that Page", () => {
-  // Don, 2026-09-30: the founder by display name is on the front door for
-  // anyone signed in, private Pages included; the signed-out front door
-  // carries no founder.
-  it('names the founder to a signed-in stranger by display name only, and nothing that leads to a profile', async () => {
+  // Don, 2026-09-30 (corrected): the front door shows no founder, signed in
+  // or out. A member of the Page, or someone inside it through an RSVP, sees
+  // who founded it, by display name.
+  it('names no founder to a signed-out visitor or a signed-in non-member, private Pages included', async () => {
     for (const page of [GROUP, PRIV]) {
-      const rows = await as<Record<string, unknown>>(SELLER, `select * from public.page_founder_public($1)`, [page])
-      expect(rows).toEqual([{ handle: null, display_name: 'b246-runner', avatar_url: null, has_published: false }])
+      for (const sub of [null, SELLER, STRANGER]) {
+        expect(await count(sub, `select * from public.page_founder_public($1)`, [page]), `${page} as ${sub}`).toBe(0)
+      }
     }
   })
 
-  it('names no founder signed out', async () => {
-    expect(await count(null, `select * from public.page_founder_public($1)`, [GROUP])).toBe(0)
+  it("names the founder to the Page's members and to someone inside it through an RSVP, by display name only", async () => {
+    for (const [sub, page] of [[MEMBER, GROUP], [PLAIN, GROUP], [GUEST, GROUP], [GUEST, PRIV]]) {
+      const rows = await as<Record<string, unknown>>(sub, `select * from public.page_founder_public($1)`, [page])
+      expect(rows, `${page} as ${sub}`).toEqual([
+        { handle: null, display_name: 'b246-runner', avatar_url: null, has_published: false },
+      ])
+    }
   })
 
   it("an item a member posted without a Page names its poster, by the handle already in the item's URL", async () => {
@@ -284,6 +291,14 @@ describe.skipIf(!RUNNABLE)('the follow graph', () => {
       [GROUP],
     )
     expect(rows.map((r) => r.member_id)).toEqual([STRANGER])
+  })
+
+  // Don, 2026-09-30: business Pages don't have members. A row that says
+  // otherwise reads no roster; only the business's owner does.
+  it("a business Page's roster answers its owner, and no one holding a member row", async () => {
+    const q = `select member_id from public.group_memberships where group_id = $1 order by 1`
+    expect((await as<{ member_id: string }>(PLAIN, q, [SHOP])).map((r) => r.member_id)).toEqual([PLAIN])
+    expect((await as<{ member_id: string }>(SELLER, q, [SHOP])).map((r) => r.member_id)).toEqual([SELLER, PLAIN].sort())
   })
 
   it("a Page's members see each other", async () => {
