@@ -120,22 +120,16 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
     ).resolves.toBeDefined()
   })
 
-  it("a signed-out profile still lists the member's Pages, one direction only", async () => {
-    const rows = await as<{ slug: string }>('anon', `select * from public.member_public_pages($1)`, [FOUNDER])
-    expect(rows.map((r) => r.slug)).toEqual([SLUG])
-    expect(Object.keys(rows[0])).not.toContain('member_id')
+  // #246 (2026-09-30): a member's Pages are about the member, so they reach
+  // nobody but that member. tests/member-reads-db.test.ts covers the owner.
+  it("a signed-out caller is not listed a member's Pages", async () => {
+    expect(await as('anon', `select * from public.member_public_pages($1)`, [FOUNDER])).toEqual([])
   })
 
-  it('a signed-out Page still names its founder, without their id', async () => {
-    const rows = await as<Record<string, unknown>>(
-      'anon',
-      `select * from public.page_founder_public($1)`,
-      [PAGE],
-    )
-    expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({ handle: 'identity-leak', display_name: 'Leak Founder' })
-    expect(Object.keys(rows[0])).not.toContain('id')
-    expect(Object.keys(rows[0])).not.toContain('member_id')
+  // #246 (Don, 2026-09-30): the signed-out front door carries no founder.
+  // tests/member-reads-db.test.ts covers the signed-in one, by display name.
+  it('a signed-out Page names no founder', async () => {
+    expect(await as('anon', `select * from public.page_founder_public($1)`, [PAGE])).toEqual([])
   })
 
   it("a listed Page's roster does not answer an anonymous caller", async () => {

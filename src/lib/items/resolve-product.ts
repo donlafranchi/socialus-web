@@ -15,7 +15,6 @@
 // Supabase-client-shaped (session-bound), same convention as resolve-shop.ts.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { memberHasPublished } from '../member/has-published'
 
 export interface ResolvedProductPickup {
   label: string
@@ -86,11 +85,6 @@ interface ProductRow {
     | { price_cents: number | null; price_unit: string | null; photo_urls: string[] }[]
     | { price_cents: number | null; price_unit: string | null; photo_urls: string[] }
     | null
-  // owner embed is only present on the individual-sale path; null otherwise (selected away).
-  owner:
-    | { handle: string; display_name: string }[]
-    | { handle: string; display_name: string }
-    | null
   item_locations:
     | { removed_at: string | null; locations: { label: string }[] | { label: string } | null }[]
     | null
@@ -101,6 +95,8 @@ function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
   return embed ?? null
 }
 
+type PostAuthor = { member_id: string; display_name: string; avatar_url: string | null }
+
 export async function resolveProduct(
   supabase: SupabaseClient,
   args: { groupSlug?: string; handle?: string; itemSlug: string },
@@ -109,6 +105,7 @@ export async function resolveProduct(
   if (!idFrag) return null
 
   // Resolve the owning scope to a filter on items.
+  let poster: PostAuthor | null = null
   let scope: {
     column: 'group_id' | 'member_id'
     value: string
@@ -128,33 +125,25 @@ export async function resolveProduct(
     const grp = g as { id: string; name: string | null }
     scope = { column: 'group_id', value: grp.id, individual: false, groupName: grp.name ?? null }
   } else if (args.handle) {
-    const { data: m } = await supabase
-      .from('members')
-      .select('id')
-      .eq('handle', args.handle)
-      .limit(1)
-      .maybeSingle()
-    if (!m) return null
-    scope = { column: 'member_id', value: (m as { id: string }).id, individual: true, groupName: null }
+    // #246 — nobody reads another member's row. This names the poster of an
+    // item posted without a Page, by the handle already in its URL.
+    const { data } = await supabase.rpc('post_author_public', { p_handle: args.handle })
+    const author = ((data as PostAuthor[] | null) ?? [])[0]
+    if (!author) return null
+    poster = author
+    scope = { column: 'member_id', value: author.member_id, individual: true, groupName: null }
   }
   if (!scope) return null
 
-  // T095 — Attribution model. Group-filed items attribute to the Group (always
-  // public); the members embed is dropped on that path so item pages no longer
-  // require a base-table read of members. Individual items still embed the
-  // author's member row for the attribution name + handle; the conditional
-  // link derives from what they've published (T137).
+  // T095 — Group-filed items attribute to the Group; individual items to the
+  // poster named above.
   const baseSelect =
     'id, title, description, brand_label, made_at_place_id, member_id, ' +
     'item_products(price_cents, price_unit, photo_urls), ' +
     'item_locations(removed_at, locations(label))'
-  const select = scope.individual
-    ? baseSelect + ', owner:members!member_id(handle, display_name)'
-    : baseSelect
-
   let query = supabase
     .from('items')
-    .select(select)
+    .select(baseSelect)
     .eq(scope.column, scope.value)
     .eq('kind', 'product')
     .eq('state', 'published')
@@ -177,13 +166,13 @@ export async function resolveProduct(
   // Build attribution by scope.
   let attribution: ItemAttribution
   if (scope.individual) {
-    const owner = firstEmbed(row.owner)
-    if (!owner) return null
+    if (!poster) return null
     attribution = {
       kind: 'member',
-      handle: owner.handle,
-      displayName: owner.display_name,
-      hasPublished: await memberHasPublished(supabase, row.member_id),
+      handle: args.handle!,
+      displayName: poster.display_name,
+      // #246 — a profile opens for its owner only, so the name links nowhere.
+      hasPublished: false,
     }
   } else {
     // Group-filed: brand_label is the denormalized Group display_name.

@@ -147,11 +147,12 @@ describe.skipIf(!RUNNABLE)('F067 — an open Page hides who follows it', () => {
     expect(rows.find((r) => r.member_id === FOLLOWER)?.relationship).toBe('follower')
   })
 
-  it('the control: an explicit member of the same listed Page IS visible', async () => {
-    // Without this, a policy that returned nothing at all would pass every
-    // assertion above while breaking F067 acceptance 3.
-    const rows = await readAs(NOSY)
-    expect(rows.map((r) => r.member_id)).toContain(OWNER)
+  it('the control: a stranger sees none of the roster, while a member sees the Page\'s members', async () => {
+    // Without the second half, a policy that returned nothing at all would pass
+    // every assertion above while breaking F067 criterion 3. #246 (2026-09-30):
+    // a stranger does not see a Page's roster.
+    expect(await readAs(NOSY)).toEqual([])
+    expect((await readAs(PLAIN_MEMBER)).map((r) => r.member_id)).toContain(OWNER)
   })
 
   it('a count is still possible server-side, where the operator reads', async () => {

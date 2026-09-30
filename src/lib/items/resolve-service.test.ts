@@ -41,9 +41,19 @@ function chainable(result: { data: unknown; error?: unknown }) {
   return p
 }
 
+const read: string[] = []
+
 function makeSupabase(routes: Record<string, { data: unknown; error?: unknown }>) {
+  read.length = 0
   return {
-    from: (table: string) => chainable(routes[table] ?? { data: null }),
+    from: (table: string) => {
+      read.push(table)
+      return chainable(routes[table] ?? { data: null })
+    },
+    rpc: (fn: string) => {
+      read.push(fn)
+      return Promise.resolve(routes[fn] ?? { data: null })
+    },
   } as unknown as SupabaseClient
 }
 
@@ -122,51 +132,32 @@ describe('resolveService — group path (T095 Group-attribution)', () => {
   })
 })
 
-describe('resolveService — individual path (T137 Member-attribution + link follows publishing)', () => {
-  it('attributes to the Member with hasPublished=true', async () => {
+// #246 — nobody reads another member's row, so the poster comes from
+// post_author_public, and the name never links to a profile only its owner can open.
+describe('resolveService — individual path', () => {
+  it('attributes to the poster by display name, and reads no member row', async () => {
     const supabase = makeSupabase({
-      members: { data: { id: 'mem-maya' } },
-      items: {
-        data: [
-          serviceRow({
-            brand_label: null,
-            item_services: {
-              rate_model: 'quote',
-              rate_cents: null,
-              service_area_geography: null,
-            },
-            item_locations: [],
-          }),
-        ],
-      },
-      member_public_has_published: { data: { member_id: 'mem-maya' } },
+      post_author_public: { data: [{ member_id: 'mem-maya', display_name: 'Maya Chen', avatar_url: null }] },
+      items: { data: [serviceRow({ brand_label: null })] },
     })
-    const result = await resolveService(supabase, {
-      handle: 'maya',
-      itemSlug: 'piano-lessons-deadbeef',
-    })
+    const result = await resolveService(supabase, { handle: 'maya', itemSlug: 'piano-lessons-deadbeef' })
     expect(result).not.toBeNull()
     expect(result!.brandLabel).toBeNull()
-    expect(result!.rateModel).toBe('quote')
-    expect(result!.hasServiceArea).toBe(false)
     expect(result!.attribution).toEqual({
       kind: 'member',
       handle: 'maya',
       displayName: 'Maya Chen',
-      hasPublished: true,
+      hasPublished: false,
     })
+    expect(read).not.toContain('members')
+    expect(read).not.toContain('member_public_has_published')
   })
 
-  it('attributes to the Member with hasPublished=false (plain-text fallback)', async () => {
+  it('returns null when the handle has posted nothing', async () => {
     const supabase = makeSupabase({
-      members: { data: { id: 'mem-maya' } },
+      post_author_public: { data: [] },
       items: { data: [serviceRow({ brand_label: null })] },
-      member_public_has_published: { data: null },
     })
-    const result = await resolveService(supabase, {
-      handle: 'maya',
-      itemSlug: 'piano-lessons-deadbeef',
-    })
-    expect((result!.attribution as { hasPublished: boolean }).hasPublished).toBe(false)
+    expect(await resolveService(supabase, { handle: 'maya', itemSlug: 'piano-lessons-deadbeef' })).toBeNull()
   })
 })

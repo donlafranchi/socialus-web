@@ -11,7 +11,6 @@
 // fragment. RLS (items_select_published) is the visibility gate.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { memberHasPublished } from '../member/has-published'
 import { parseIdFragment } from './resolve-product'
 import type { ItemAttribution } from './resolve-product'
 import type { RateModel } from '@/components/sell/ServiceComposer'
@@ -69,11 +68,6 @@ interface ServiceRow {
       }[]
     | { rate_model: string; rate_cents: number | null; service_area_geography: string | null }
     | null
-  // owner embed only present on the individual-sale path.
-  owner:
-    | { handle: string; display_name: string }[]
-    | { handle: string; display_name: string }
-    | null
   item_locations:
     | { removed_at: string | null; locations: { label: string }[] | { label: string } | null }[]
     | null
@@ -84,6 +78,8 @@ function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
   return embed ?? null
 }
 
+type PostAuthor = { member_id: string; display_name: string; avatar_url: string | null }
+
 export async function resolveService(
   supabase: SupabaseClient,
   args: { groupSlug?: string; handle?: string; itemSlug: string },
@@ -92,6 +88,7 @@ export async function resolveService(
   if (!idFrag) return null
 
   // Resolve the owning scope to a filter on items.
+  let poster: PostAuthor | null = null
   let scope: {
     column: 'group_id' | 'member_id'
     value: string
@@ -111,30 +108,25 @@ export async function resolveService(
     const grp = g as { id: string; name: string | null }
     scope = { column: 'group_id', value: grp.id, individual: false, groupName: grp.name ?? null }
   } else if (args.handle) {
-    const { data: m } = await supabase
-      .from('members')
-      .select('id')
-      .eq('handle', args.handle)
-      .limit(1)
-      .maybeSingle()
-    if (!m) return null
-    scope = { column: 'member_id', value: (m as { id: string }).id, individual: true, groupName: null }
+    // #246 — nobody reads another member's row. This names the poster of an
+    // item posted without a Page, by the handle already in its URL.
+    const { data } = await supabase.rpc('post_author_public', { p_handle: args.handle })
+    const author = ((data as PostAuthor[] | null) ?? [])[0]
+    if (!author) return null
+    poster = author
+    scope = { column: 'member_id', value: author.member_id, individual: true, groupName: null }
   }
   if (!scope) return null
 
-  // T095 — Group-filed services attribute to the Group (no members embed needed);
-  // individual services embed the author + derive the link from what they've published (T137).
+  // T095 — Group-filed services attribute to the Group; individual services to
+  // the poster named above.
   const baseSelect =
     'id, title, description, brand_label, member_id, ' +
     'item_services(rate_model, rate_cents, service_area_geography), ' +
     'item_locations(removed_at, locations(label))'
-  const select = scope.individual
-    ? baseSelect + ', owner:members!member_id(handle, display_name)'
-    : baseSelect
-
   let query = supabase
     .from('items')
-    .select(select)
+    .select(baseSelect)
     .eq(scope.column, scope.value)
     .eq('kind', 'service')
     .eq('state', 'published')
@@ -156,13 +148,13 @@ export async function resolveService(
 
   let attribution: ItemAttribution
   if (scope.individual) {
-    const owner = firstEmbed(row.owner)
-    if (!owner) return null
+    if (!poster) return null
     attribution = {
       kind: 'member',
-      handle: owner.handle,
-      displayName: owner.display_name,
-      hasPublished: await memberHasPublished(supabase, row.member_id),
+      handle: args.handle!,
+      displayName: poster.display_name,
+      // #246 — a profile opens for its owner only, so the name links nowhere.
+      hasPublished: false,
     }
   } else {
     // T119 — brand_label is denormalized from group_businesses.display_name, so
