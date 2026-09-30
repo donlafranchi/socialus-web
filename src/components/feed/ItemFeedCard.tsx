@@ -39,7 +39,8 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
     groupSlug: item.groupSlug,
     groupPlacePath: item.groupPlacePath,
   })
-  const owner = item.brandLabel ?? item.ownerDisplayName
+  // #253 — a card names no seller; a business's brand label is the Page speaking.
+  const owner = item.brandLabel
   const photo = item.photoUrl?.trim() || null
   const glyph = KIND_GLYPHS[item.kind] ?? FALLBACK_GLYPH
   const Glyph = glyph.icon
@@ -85,7 +86,11 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
         <h3 className="mt-1 line-clamp-2 text-[15px] font-semibold text-[var(--color-fg)]">
           {item.title}
         </h3>
-        <p className="mt-1 truncate text-sm text-[var(--color-fg-muted)]">{owner}</p>
+        {owner && (
+          <p data-testid="feed-item-owner" className="mt-1 truncate text-sm text-[var(--color-fg-muted)]">
+            {owner}
+          </p>
+        )}
         {item.nearestLocationLabel && (
           <p className="mt-0.5 truncate text-[13px] text-[var(--color-fg-muted)]">
             {item.nearestLocationLabel}

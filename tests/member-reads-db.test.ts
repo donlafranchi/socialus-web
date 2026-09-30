@@ -238,16 +238,8 @@ describe.skipIf(!RUNNABLE)("a Page's creator, on that Page", () => {
     }
   })
 
-  it("an item a member posted without a Page names its poster, by the handle already in the item's URL", async () => {
-    for (const sub of [null, STRANGER]) {
-      const rows = await as<Record<string, unknown>>(sub, `select * from public.post_author_public('b246-member')`)
-      expect(rows).toEqual([{ member_id: MEMBER, display_name: 'b246-member', avatar_url: null }])
-    }
-  })
-
-  it('a handle with nothing posted answers nothing', async () => {
-    expect(await count(STRANGER, `select * from public.post_author_public('b246-stranger')`)).toBe(0)
-  })
+  // #253 retired post_author_public: an item posted without a Page names
+  // nobody. tests/member-ids-db.test.ts covers what replaced it.
 
   // The count /you/following showed before, followers included; only its route changes.
   it("a Page's listed membership count answers without a roster", async () => {

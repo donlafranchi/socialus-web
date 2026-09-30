@@ -11,11 +11,12 @@ const MEMBER = 'm-1'
 
 function client(rows: unknown[], error: { message: string } | null = null) {
   const q: Record<string, unknown> = {}
-  for (const m of ['select', 'eq', 'is', 'order']) {
+  for (const m of ['select', 'eq', 'in', 'is', 'order']) {
     q[m] = vi.fn(() => q)
   }
   q.limit = vi.fn(async () => ({ data: rows, error }))
-  return { from: vi.fn(() => q), rpc: vi.fn(), _q: q }
+  const rpc = vi.fn(async () => ({ data: rows.map((r) => (r as { id: string }).id), error: null }))
+  return { from: vi.fn(() => q), rpc, _q: q }
 }
 
 const row = (over: Record<string, unknown> = {}) => ({
@@ -45,10 +46,14 @@ describe('getOwnPages', () => {
     expect(out[0]).toMatchObject({ name: 'SacRiver Floaters', lifecycleState: 'active' })
   })
 
-  it('asks for the founder’s own rows and excludes dissolved ones', async () => {
+  // #253 — groups.founder_member_id answers nobody, so the founder's own Pages
+  // come from current_member_founded_group_ids(), read as the founder.
+  it('asks for the founder’s own Pages by id, never by the founder column, and excludes dissolved ones', async () => {
     const c = client([row()])
     await getOwnPages(c as never, MEMBER)
-    expect(c._q.eq).toHaveBeenCalledWith('founder_member_id', MEMBER)
+    expect(c.rpc).toHaveBeenCalledWith('current_member_founded_group_ids')
+    expect(c._q.in).toHaveBeenCalledWith('id', ['g-1'])
+    expect(c._q.eq).not.toHaveBeenCalledWith('founder_member_id', expect.anything())
     expect(c._q.is).toHaveBeenCalledWith('dissolved_at', null)
   })
 

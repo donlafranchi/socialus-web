@@ -15,7 +15,6 @@ const baseItem: FeedItem = {
   brandLabel: null,
   groupId: null,
   ownerHandle: 'maya',
-  ownerDisplayName: 'Maya',
   nearestLocationLabel: 'Drake’s',
   responseCount: 2,
   primaryTag: 'crafts',
@@ -24,12 +23,18 @@ const baseItem: FeedItem = {
 }
 
 describe('T088 — ItemFeedCard', () => {
-  it('renders title, kind label, owner, and location', () => {
+  it('renders title, kind label, and location', () => {
     render(<ItemFeedCard item={baseItem} />)
     expect(screen.getByText('Pottery Night')).toBeTruthy()
     expect(screen.getByTestId('feed-item-kind').textContent).toBe('Event')
-    expect(screen.getByText('Maya')).toBeTruthy()
     expect(screen.getByText('Drake’s')).toBeTruthy()
+  })
+
+  // #253 — a card names no seller. The item carries no member name to show.
+  it('names no seller when there is no brand label', () => {
+    render(<ItemFeedCard item={baseItem} />)
+    expect(Object.keys(baseItem)).not.toContain('ownerDisplayName')
+    expect(screen.queryByTestId('feed-item-owner')).toBeNull()
   })
 
   it('links to the member-scoped Item URL with kind segment + id8 fragment', () => {
@@ -40,7 +45,7 @@ describe('T088 — ItemFeedCard', () => {
 
   it('prefers the brand label over the owner name when present', () => {
     render(<ItemFeedCard item={{ ...baseItem, brandLabel: 'Oak Park Pottery' }} />)
-    expect(screen.getByText('Oak Park Pottery')).toBeTruthy()
+    expect(screen.getByTestId('feed-item-owner').textContent).toBe('Oak Park Pottery')
   })
 
   it('renders a hero image when photoUrl is present', () => {

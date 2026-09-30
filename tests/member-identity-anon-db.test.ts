@@ -146,12 +146,10 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
     expect(rows).toHaveLength(1)
   })
 
-  it('a founder signed in still finds their own Pages by founder_member_id', async () => {
-    const rows = await as(
-      'authenticated',
-      `select id from public.groups where founder_member_id = $1`,
-      [FOUNDER],
-    )
-    expect(rows).toHaveLength(1)
+  // #253: founder_member_id answers nobody; the founder finds their own Pages
+  // through current_member_founded_group_ids().
+  it('a founder signed in still finds their own Pages', async () => {
+    const rows = await as('authenticated', `select * from public.current_member_founded_group_ids()`)
+    expect(rows).toEqual([{ current_member_founded_group_ids: PAGE }])
   })
 })

@@ -58,23 +58,6 @@ export function GatheringPublicPage({
               {gathering.attribution.name}
             </Link>
           </p>
-        ) : gathering.attribution.kind === 'member' ? (
-          <p className="mt-2 text-sm font-medium" data-testid="gathering-attribution">
-            Hosted by{' '}
-            {gathering.attribution.hasPublished ? (
-              <Link
-                href={`/m/${gathering.attribution.handle}`}
-                data-testid="gathering-attribution-link"
-                className="text-[var(--color-accent)] hover:underline"
-              >
-                {gathering.attribution.displayName}
-              </Link>
-            ) : (
-              <span data-testid="gathering-attribution-text">
-                {gathering.attribution.displayName}
-              </span>
-            )}
-          </p>
         ) : null}
 
         <section className="mt-4 space-y-1.5 text-sm">

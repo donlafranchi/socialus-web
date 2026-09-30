@@ -23,7 +23,6 @@ function feedItem(over: Partial<FeedItem> = {}): FeedItem {
     brandLabel: "Drake's",
     groupId: 'grp-owning',
     ownerHandle: 'drakes',
-    ownerDisplayName: "Drake's",
     nearestLocationLabel: null,
     responseCount: 0,
     primaryTag: null,

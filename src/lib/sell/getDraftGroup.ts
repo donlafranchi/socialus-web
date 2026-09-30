@@ -108,10 +108,13 @@ export async function getDraftGroup(
 
   // 2) Draft-Group lookup. The most-recent draft wins (multi-draft is a
   // pathological state, not a supported flow — but we don't deadlock on it).
+  // #253 — by id among the Pages they founded; groups.founder_member_id
+  // answers nobody.
+  const { data: foundedIds } = await supabase.rpc('current_member_founded_group_ids')
   const { data: draftRows, error: draftErr } = await supabase
     .from('groups')
     .select('id, name, anchor_location_id, group_businesses(display_name, public_description)')
-    .eq('founder_member_id', memberId)
+    .in('id', (foundedIds as string[] | null) ?? [])
     .eq('kind', 'business')
     .eq('lifecycle_state', 'draft')
     .order('created_at', { ascending: false })

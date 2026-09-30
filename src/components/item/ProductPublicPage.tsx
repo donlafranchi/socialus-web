@@ -52,11 +52,8 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
           {formatPrice(product.priceCents, product.priceUnit)}
         </p>
 
-        {/* T095 — attribution. Group-filed items attribute to the Group (link to the
-            Shop page). Individual items attribute to the Member with a conditional
-            link that follows publishing (T137): /m/<handle> when they've published,
-            plain text otherwise. The seller's privacy never blocks the item's
-            visibility — outputs surface; the person is reachable through them. */}
+        {/* T095 — Group-filed items attribute to the Group (link to the Shop
+            page). #253: an item posted without a Page names nobody. */}
         {product.attribution.kind === 'group' && groupHref ? (
           <p className="mt-3 text-sm font-medium" data-testid="product-attribution">
             Sold by{' '}
@@ -67,23 +64,6 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
             >
               {product.attribution.name}
             </Link>
-          </p>
-        ) : product.attribution.kind === 'member' ? (
-          <p className="mt-3 text-sm font-medium" data-testid="product-attribution">
-            Sold by{' '}
-            {product.attribution.hasPublished ? (
-              <Link
-                href={`/m/${product.attribution.handle}`}
-                data-testid="product-attribution-link"
-                className="text-[var(--color-accent)] hover:underline"
-              >
-                {product.attribution.displayName}
-              </Link>
-            ) : (
-              <span data-testid="product-attribution-text">
-                {product.attribution.displayName}
-              </span>
-            )}
           </p>
         ) : null}
 

@@ -42,7 +42,7 @@ export async function resolveOwningGroup(
 interface FeedRow {
   item_id: string
   member_handle: string
-  member_display_name: string
+  member_display_name: string | null
   item_kind: string
   title: string
   category: string | null
@@ -64,7 +64,6 @@ function mapFeedRow(r: FeedRow): FeedItem {
     brandLabel: r.brand_label,
     groupId: r.group_id,
     ownerHandle: r.member_handle,
-    ownerDisplayName: r.member_display_name,
     nearestLocationLabel: r.nearest_location_label,
     responseCount: Number(r.response_count ?? 0),
     primaryTag: r.primary_tag,

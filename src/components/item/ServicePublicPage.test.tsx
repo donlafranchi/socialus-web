@@ -43,43 +43,16 @@ describe('T083/T095 — ServicePublicPage', () => {
     expect(link).toHaveAttribute('href', '/p/ca/sacramento/oak-park/g/maya-music-a1')
   })
 
-  it('Member-attributed, discoverable: "Offered by [Member]" links to /m/<handle>', () => {
+  // #253 — nobody reads who posted an item without a Page, so it names nobody.
+  it('an item posted without a Page names no one', () => {
     render(
       <ServicePublicPage
-        service={service({
-          brandLabel: null,
-          attribution: {
-            kind: 'member',
-            handle: 'maya',
-            displayName: 'Maya Chen',
-            hasPublished: true,
-          },
-        })}
+        service={service({ brandLabel: null, attribution: { kind: 'none' } })}
         groupHref={null}
       />,
     )
-    const link = screen.getByTestId('service-attribution-link')
-    expect(link).toHaveAttribute('href', '/m/maya')
-    expect(link).toHaveTextContent('Maya Chen')
-  })
-
-  it('Member-attributed, non-discoverable: "Offered by [Member]" renders as plain text', () => {
-    render(
-      <ServicePublicPage
-        service={service({
-          brandLabel: null,
-          attribution: {
-            kind: 'member',
-            handle: 'maya',
-            displayName: 'Maya Chen',
-            hasPublished: false,
-          },
-        })}
-        groupHref={null}
-      />,
-    )
-    expect(screen.queryByTestId('service-attribution-link')).not.toBeInTheDocument()
-    expect(screen.getByTestId('service-attribution-text')).toHaveTextContent('Maya Chen')
+    expect(screen.queryByTestId('service-attribution')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Offered by')
   })
 
   it('renders "Request a quote" for the quote model', () => {

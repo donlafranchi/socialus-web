@@ -105,7 +105,6 @@ interface GatheringRow {
   title: string
   description: string
   brand_label: string | null
-  member_id: string
   item_gatherings: GatheringChild[] | GatheringChild | null
   item_locations:
     | { removed_at: string | null; locations: { label: string }[] | { label: string } | null }[]
@@ -117,8 +116,6 @@ function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
   return embed ?? null
 }
 
-type PostAuthor = { member_id: string; display_name: string; avatar_url: string | null }
-
 export async function resolveGathering(
   supabase: SupabaseClient,
   args: { groupSlug?: string; handle?: string; itemSlug: string },
@@ -126,9 +123,8 @@ export async function resolveGathering(
   const idFrag = parseIdFragment(args.itemSlug)
   if (!idFrag) return null
 
-  let poster: PostAuthor | null = null
   let scope: {
-    column: 'group_id' | 'member_id'
+    column: 'group_id' | 'id'
     value: string
     individual: boolean
     /** T119 — Group display name, the attribution fallback when brand_label is null. */
@@ -145,20 +141,22 @@ export async function resolveGathering(
     const grp = g as { id: string; name: string | null }
     scope = { column: 'group_id', value: grp.id, individual: false, groupName: grp.name ?? null }
   } else if (args.handle) {
-    // #246 — nobody reads another member's row. This names the poster of an
-    // item posted without a Page, by the handle already in its URL.
-    const { data } = await supabase.rpc('post_author_public', { p_handle: args.handle })
-    const author = ((data as PostAuthor[] | null) ?? [])[0]
-    if (!author) return null
-    poster = author
-    scope = { column: 'member_id', value: author.member_id, individual: true, groupName: null }
+    // #253 — an item posted without a Page, from the handle and id in its URL.
+    // Nobody reads who posted it, so nothing here names them.
+    const { data } = await supabase.rpc('posted_item_id', {
+      p_handle: args.handle,
+      p_kind: 'gathering',
+      p_id_prefix: idFrag,
+    })
+    if (!data) return null
+    scope = { column: 'id', value: data as string, individual: true, groupName: null }
   }
   if (!scope) return null
 
   // T095 — Group-filed gatherings attribute to the Group; individual gatherings
-  // to the host named above.
+  // to nobody.
   const baseSelect =
-    'id, title, description, brand_label, member_id, ' +
+    'id, title, description, brand_label, ' +
     'item_gatherings(starts_at, ends_at, recurrence_rule, capacity, cost_cents, what_to_bring), ' +
     'item_locations(removed_at, locations(label))'
   let query = supabase
@@ -183,14 +181,7 @@ export async function resolveGathering(
 
   let attribution: ItemAttribution
   if (scope.individual) {
-    if (!poster) return null
-    attribution = {
-      kind: 'member',
-      handle: args.handle!,
-      displayName: poster.display_name,
-      // #246 — a profile opens for its owner only, so the name links nowhere.
-      hasPublished: false,
-    }
+    attribution = { kind: 'none' }
   } else {
     // T119 — brand_label is denormalized from group_businesses.display_name, so
     // it is null for every non-business Group. Group events are filed under
