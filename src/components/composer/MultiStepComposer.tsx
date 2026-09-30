@@ -66,6 +66,8 @@ export interface MultiStepComposerProps<S> {
    *  this, getByLabel matches both the dialog and any input whose label
    *  happens to match the step title — strict-mode violation. */
   dialogLabel?: string
+  /** Shown on the final step, above the button that publishes (F080). */
+  finalNotice?: ReactNode
 }
 
 /**
@@ -79,6 +81,7 @@ export function MultiStepComposer<S>({
   onAbandon,
   resumeFromStep = 0,
   dialogLabel = 'Multi-step composer',
+  finalNotice,
 }: MultiStepComposerProps<S>) {
   const [state, setState] = useState<S>(initialState)
   const [stepIdx, setStepIdx] = useState<number>(
@@ -234,6 +237,8 @@ export function MultiStepComposer<S>({
             </p>
           ))}
         </div>
+
+        {isFinal && finalNotice && <div className="px-5 pb-3">{finalNotice}</div>}
 
         {/* Submit-error row */}
         {submitError && (

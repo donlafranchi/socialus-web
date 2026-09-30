@@ -17,6 +17,7 @@
 // Presentational + control-flow only (per T071). The parent passes the
 // server-action thunks so the component is testable in isolation.
 
+import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { useState, useCallback } from 'react'
 import {
   MultiStepComposer,
@@ -330,6 +331,7 @@ export function ServiceComposer({
 
   return (
     <MultiStepComposer<ServiceComposerState>
+      finalNotice={<PostingSafetyNote />}
       steps={steps}
       initialState={initialState}
       onAdvance={onAdvance}
