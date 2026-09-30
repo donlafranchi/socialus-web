@@ -22,60 +22,25 @@ function gathering(overrides: Partial<ResolvedGathering> = {}): ResolvedGatherin
     costCents: null,
     whatToBring: 'Water + shoes',
     brandLabel: null,
-    attribution: {
-      kind: 'member',
-      handle: 'sam',
-      displayName: 'Sam Rivera',
-      hasPublished: true,
-    },
+    attribution: { kind: 'none' },
     location: { label: "Drake's" },
     ...overrides,
   }
 }
 
 describe('T082/T095 — GatheringPublicPage', () => {
-  it('Member-attributed, discoverable: "Hosted by [Member]" links to /m/<handle>', () => {
+  // #253 — nobody reads who posted an item without a Page, so it names nobody.
+  it('an item posted without a Page names no one', () => {
     render(
       <GatheringPublicPage
-        gathering={gathering()}
+        gathering={gathering({ brandLabel: null, attribution: { kind: 'none' } })}
         groupHref={null}
-        nextOccurrenceLabel="Thursday, June 4, 2099"
-        shareUrl="/m/sam/e/thursday-run-club-deadbeef"
+        nextOccurrenceLabel={null}
+        shareUrl="https://www.socialus.org/x"
       />,
     )
-    expect(screen.getByTestId('gathering-title')).toHaveTextContent('Thursday Run Club')
-    expect(screen.getByTestId('gathering-recurrence')).toHaveTextContent('Every Thursday')
-    expect(screen.getByTestId('gathering-next-occurrence')).toHaveTextContent(
-      'Thursday, June 4, 2099',
-    )
-    expect(screen.getByTestId('gathering-location')).toHaveTextContent("Drake's")
-    expect(screen.getByTestId('gathering-what-to-bring')).toHaveTextContent('Water + shoes')
-    expect(screen.getByTestId('gathering-share-link')).toBeInTheDocument()
-
-    const attribution = screen.getByTestId('gathering-attribution')
-    expect(attribution).toHaveTextContent('Hosted by Sam Rivera')
-    const link = screen.getByTestId('gathering-attribution-link')
-    expect(link).toHaveAttribute('href', '/m/sam')
-  })
-
-  it('Member-attributed, non-discoverable: "Hosted by [Member]" renders as plain text', () => {
-    render(
-      <GatheringPublicPage
-        gathering={gathering({
-          attribution: {
-            kind: 'member',
-            handle: 'sam',
-            displayName: 'Sam Rivera',
-            hasPublished: false,
-          },
-        })}
-        groupHref={null}
-        nextOccurrenceLabel="Thursday, June 4, 2099"
-        shareUrl="/x"
-      />,
-    )
-    expect(screen.queryByTestId('gathering-attribution-link')).not.toBeInTheDocument()
-    expect(screen.getByTestId('gathering-attribution-text')).toHaveTextContent('Sam Rivera')
+    expect(screen.queryByTestId('gathering-attribution')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Hosted by')
   })
 
   it('Group-attributed: "Hosted by [Group]" links to the Group page', () => {

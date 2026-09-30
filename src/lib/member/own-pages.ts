@@ -74,10 +74,14 @@ export async function getOwnPages(
   supabase: Pick<SupabaseClient, 'from' | 'rpc'>,
   memberId: string,
 ): Promise<OwnPage[]> {
+  // #253 — groups.founder_member_id answers nobody; the founder's own ids come
+  // from a function that reads it as them.
+  void memberId
+  const { data: ids } = await supabase.rpc('current_member_founded_group_ids')
   const { data, error } = await supabase
     .from('groups')
     .select(SELECT)
-    .eq('founder_member_id', memberId)
+    .in('id', (ids as string[] | null) ?? [])
     .is('dissolved_at', null)
     .order('updated_at', { ascending: false })
     .limit(50)

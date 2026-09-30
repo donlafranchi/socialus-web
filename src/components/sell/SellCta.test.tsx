@@ -39,6 +39,7 @@ function makeSupabaseStub(responses: {
     const passthrough = () => chain
     chain.select = passthrough
     chain.eq = passthrough
+    chain.in = passthrough
     chain.is = passthrough
     chain.order = passthrough
     chain.limit = passthrough
@@ -52,7 +53,15 @@ function makeSupabaseStub(responses: {
   return () =>
     ({
       from: vi.fn((table: string) => builder(table)),
-      rpc: vi.fn(() => Promise.resolve({ data: responses.locations ?? [], error: null })),
+      rpc: vi.fn((fn: string) =>
+        Promise.resolve({
+          data:
+            fn === 'current_member_founded_group_ids'
+              ? ((responses.groups ?? []) as { id: string }[]).map((g) => g.id)
+              : (responses.locations ?? []),
+          error: null,
+        }),
+      ),
     }) as unknown as ReturnType<
       typeof import('@supabase/ssr').createBrowserClient
     >
@@ -169,6 +178,7 @@ describe('SellCta — render branches', () => {
           const passthrough = () => chain
           chain.select = passthrough
           chain.eq = passthrough
+          chain.in = passthrough
           chain.is = passthrough
           chain.order = passthrough
           chain.limit = passthrough

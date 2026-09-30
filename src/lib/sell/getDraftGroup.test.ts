@@ -21,7 +21,11 @@ function makeSupabaseStub(responses: {
     const chain: Record<string, unknown> = {}
     const passthrough = () => chain
     chain.select = passthrough
-    chain.eq = passthrough
+    chain.in = passthrough
+    chain.eq = (col: string) => {
+      filters.push(`${table}.${col}`)
+      return chain
+    }
     chain.is = passthrough
     chain.order = passthrough
     chain.limit = passthrough
@@ -33,8 +37,27 @@ function makeSupabaseStub(responses: {
     from: vi.fn((table: string) =>
       builder(table as 'group_memberships' | 'groups'),
     ),
+    rpc: vi.fn(async (fn: string) => {
+      rpcs.push(fn)
+      return { data: ['g-draft-1'], error: null }
+    }),
   } as unknown as SupabaseClient
 }
+
+const filters: string[] = []
+const rpcs: string[] = []
+
+// #253 — groups.founder_member_id answers nobody; a member's own drafts come
+// from current_member_founded_group_ids(), read as the member.
+describe('getDraftGroup — the member’s own draft', () => {
+  it('is found by its id among the Pages they founded, never by the founder column', async () => {
+    filters.length = 0
+    rpcs.length = 0
+    await getDraftGroup(makeSupabaseStub({ group_memberships: { data: [], error: null } }), 'm1')
+    expect(rpcs).toContain('current_member_founded_group_ids')
+    expect(filters).not.toContain('groups.founder_member_id')
+  })
+})
 
 describe('SELL_DRAFT_NAME_PLACEHOLDER', () => {
   it('matches the action-handler constant (drift guard)', () => {

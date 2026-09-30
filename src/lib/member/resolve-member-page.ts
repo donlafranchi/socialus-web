@@ -125,10 +125,13 @@ export async function resolveMemberPage(
   // T119 — only kinds with a detail page are listed; the filter is server-side
   // on the same enum the browse index uses. An author whose only Items are
   // withheld kinds renders the existing "Nothing posted yet." empty state.
+  // #253 — items.member_id answers nobody; a profile is its owner's alone, so
+  // their own items are read by id.
+  const { data: ownIds } = await supabase.rpc('current_member_item_ids')
   const { data: itemData } = await supabase
     .from('items')
     .select('id, kind, title, brand_label, group_id')
-    .eq('member_id', member.id)
+    .in('id', (ownIds as string[] | null) ?? [])
     .eq('state', 'published')
     .is('deleted_at', null)
     .in('kind', [...BROWSABLE_KINDS])

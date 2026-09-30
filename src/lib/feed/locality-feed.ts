@@ -15,7 +15,6 @@ export interface FeedItem {
   brandLabel: string | null
   groupId: string | null
   ownerHandle: string
-  ownerDisplayName: string
   nearestLocationLabel: string | null
   responseCount: number
   primaryTag: string | null
@@ -48,7 +47,7 @@ export function clampLimit(n: number | null | undefined): number {
 interface LocalityFeedRow {
   item_id: string
   member_handle: string
-  member_display_name: string
+  member_display_name: string | null
   item_kind: string
   title: string
   category: string | null
@@ -85,7 +84,6 @@ export async function getLocalityFeed(
     brandLabel: r.brand_label,
     groupId: r.group_id,
     ownerHandle: r.member_handle,
-    ownerDisplayName: r.member_display_name,
     nearestLocationLabel: r.nearest_location_label,
     responseCount: Number(r.response_count ?? 0),
     primaryTag: r.primary_tag,

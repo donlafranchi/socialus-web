@@ -44,46 +44,16 @@ describe('T079/T095 — ProductPublicPage', () => {
     expect(link).toHaveAttribute('href', '/p/ca/sacramento/oak-park/g/oak-park-sourdough-a1')
   })
 
-  it('Member-attributed, discoverable: "Sold by [Member]" links to /m/<handle>', () => {
+  // #253 — nobody reads who posted an item without a Page, so it names nobody.
+  it('an item posted without a Page names no one', () => {
     render(
       <ProductPublicPage
-        product={product({
-          brandLabel: null,
-          attribution: {
-            kind: 'member',
-            handle: 'maya',
-            displayName: 'Maya Chen',
-            hasPublished: true,
-          },
-        })}
+        product={product({ brandLabel: null, attribution: { kind: 'none' } })}
         groupHref={null}
       />,
     )
-    const attribution = screen.getByTestId('product-attribution')
-    expect(attribution).toHaveTextContent('Sold by Maya Chen')
-    const link = screen.getByTestId('product-attribution-link')
-    expect(link).toHaveAttribute('href', '/m/maya')
-  })
-
-  it('Member-attributed, non-discoverable: "Sold by [Member]" renders as plain text (no link)', () => {
-    render(
-      <ProductPublicPage
-        product={product({
-          brandLabel: null,
-          attribution: {
-            kind: 'member',
-            handle: 'maya',
-            displayName: 'Maya Chen',
-            hasPublished: false,
-          },
-        })}
-        groupHref={null}
-      />,
-    )
-    const attribution = screen.getByTestId('product-attribution')
-    expect(attribution).toHaveTextContent('Sold by Maya Chen')
-    expect(screen.queryByTestId('product-attribution-link')).not.toBeInTheDocument()
-    expect(screen.getByTestId('product-attribution-text')).toHaveTextContent('Maya Chen')
+    expect(screen.queryByTestId('product-attribution')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Sold by')
   })
 
   it('renders "Free" when priceCents is null', () => {

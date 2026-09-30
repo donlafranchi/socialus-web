@@ -78,7 +78,10 @@ describe('nextOccurrence', () => {
 function chainable(result: { data: unknown; error?: unknown }) {
   const p: Record<string, unknown> = {}
   for (const m of ['select', 'eq', 'is', 'limit', 'in', 'order']) {
-    p[m] = () => p
+    p[m] = (...args: unknown[]) => {
+      if (m === 'select' || m === 'eq') read.push(`${m}:${String(args[0])}`)
+      return p
+    }
   }
   p.maybeSingle = () => Promise.resolve(result)
   p.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) =>
@@ -171,32 +174,31 @@ describe('resolveGathering — group path (T095 Group-attribution)', () => {
   })
 })
 
-// #246 — nobody reads another member's row, so the poster comes from
-// post_author_public, and the name never links to a profile only its owner can open.
+// #253 — an item posted without a Page resolves from the handle and id in its
+// URL through posted_item_id, and names no poster: nobody reads who made it.
 describe('resolveGathering — individual path', () => {
-  it('attributes to the poster by display name, and reads no member row', async () => {
+  it('resolves through posted_item_id, attributes to nobody, and reads no member column', async () => {
+    const calls: unknown[] = []
     const supabase = makeSupabase({
-      post_author_public: { data: [{ member_id: 'mem-sam', display_name: 'Sam Rivera', avatar_url: null }] },
+      posted_item_id: { data: 'deadbeef-1111-2222-3333-444455556666' },
       items: { data: [gatheringRow({ brand_label: null })] },
     })
+    const rpc = supabase.rpc as unknown as (fn: string, args: unknown) => Promise<unknown>
+    ;(supabase as unknown as { rpc: typeof rpc }).rpc = (fn: string, args: unknown) => {
+      calls.push([fn, args])
+      return rpc(fn, args)
+    }
     const result = await resolveGathering(supabase, { handle: 'sam', itemSlug: 'thursday-run-club-deadbeef' })
     expect(result).not.toBeNull()
-    expect(result!.brandLabel).toBeNull()
-    expect(result!.attribution).toEqual({
-      kind: 'member',
-      handle: 'sam',
-      displayName: 'Sam Rivera',
-      hasPublished: false,
-    })
+    expect(result!.attribution).toEqual({ kind: 'none' })
+    expect(calls).toContainEqual(['posted_item_id', { p_handle: 'sam', p_kind: 'gathering', p_id_prefix: 'deadbeef' }])
     expect(read).not.toContain('members')
-    expect(read).not.toContain('member_public_has_published')
+    expect(read).not.toContain('post_author_public')
+    expect(read.filter((r) => /^(select|eq):/.test(r) && /\bmember_id\b/.test(r))).toEqual([])
   })
 
-  it('returns null when the handle has posted nothing', async () => {
-    const supabase = makeSupabase({
-      post_author_public: { data: [] },
-      items: { data: [gatheringRow({ brand_label: null })] },
-    })
+  it('returns null when the URL names no item', async () => {
+    const supabase = makeSupabase({ posted_item_id: { data: null }, items: { data: [] } })
     expect(await resolveGathering(supabase, { handle: 'sam', itemSlug: 'thursday-run-club-deadbeef' })).toBeNull()
   })
 })
