@@ -30,7 +30,6 @@ const METRO_SLUG = 'sacramento-roseville-ca'
 let pool: Pool
 let client: PoolClient
 let metroId: string
-let placeCentroid: string
 
 async function as<T>(sub: string | null, sql: string, params: unknown[] = []) {
   await client.query('begin')
@@ -73,9 +72,8 @@ beforeAll(async () => {
   client = await pool.connect()
   metroId = (await client.query(`select id from public.metro_polygons where slug = $1`, [METRO_SLUG])).rows[0].id
   const place = (
-    await client.query(`select id, st_astext(centroid) as c from public.places where slug = 'oak-park' limit 1`)
+    await client.query(`select id from public.places where slug = 'oak-park' limit 1`)
   ).rows[0]
-  placeCentroid = place.c
   for (const [id, h] of [[OWNER, 'b252-owner'], [VISITOR, 'b252-visitor']]) {
     await client.query(
       `insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -124,10 +122,11 @@ describe.skipIf(!RUNNABLE)("a Page's front door, signed out", () => {
     expect(rows[0]).toMatchObject({ location_id: null, location_label: null, tags: [], description: 'We run.' })
   })
 
-  it("places the Page on the map at its Place, never at its stored point", async () => {
+  // Don, 2026-09-30 (answering #252): no pins at all signed out. The stored
+  // location still scopes the Page to the metro, which the row itself proves.
+  it('puts no pin on the map, and still finds the Page by its metro', async () => {
     const [row] = await feed(null)
-    expect(row.location_point).not.toBe(POINT)
-    expect(row.location_point).toBe(placeCentroid)
+    expect(row.location_point).toBeNull()
   })
 
   it('a tag filter cannot be used to learn a Page\'s tags', async () => {

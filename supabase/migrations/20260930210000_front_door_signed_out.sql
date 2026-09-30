@@ -7,10 +7,9 @@
 --     (ops-pattern #45, Don approved)
 --   ops-pattern/DECISIONS.md 2026-09-23 (withholding is enforced in SQL)
 --
--- The Page keeps its location: it still scopes the Page to its metro and
--- places it on the map, server-side, without being sent. A signed-out map pin
--- is the Page's Place centroid, never the stored point
--- (the question on #252: pins at the Place, or no pins).
+-- The Page keeps its location: it still scopes the Page to its metro,
+-- server-side, without being sent. Signed out there are no map pins at all
+-- (Don, 2026-09-30, answering #252).
 --
 -- APPLY AFTER #254 (bug #253) IS MERGED. Until this PR's code is live, a
 -- signed-out Page's read of its anchor and an item's pickup label fail, and
@@ -140,16 +139,13 @@ as $$
       g.photo_removed_at,
       g.description,
       null::text            as body,
-      -- F093 criterion 8: signed out, no tags, no location, and a pin at the
-      -- Page's Place rather than its stored point.
+      -- F093 criterion 8: signed out, no tags, no location, and no pin.
       case when auth.uid() is null then array[]::text[]
            else coalesce(ptl.labels, array[]::text[]) end as tags,
       null::timestamptz     as starts_at,
       case when auth.uid() is null then null else l.id end    as location_id,
       case when auth.uid() is null then null else l.label end as location_label,
-      case when auth.uid() is null
-           then (select pc.centroid from public.places pc where pc.id = l.place_id and pc.deleted_at is null)
-           else l.geography end as location_geography,
+      case when auth.uid() is null then null else l.geography end as location_geography,
       g.created_at          as page_created_at,
       g.updated_at,
       case p_sort
