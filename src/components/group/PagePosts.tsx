@@ -38,6 +38,7 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
+import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPlaceFields'
 
 const BODY_LIMIT = 5000
@@ -293,6 +294,8 @@ export function PagePosts({
             followerCount={followerCount}
             idPrefix="announce"
           />
+
+          <PostingSafetyNote />
 
           <div>
             <button

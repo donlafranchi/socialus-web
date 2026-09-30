@@ -18,6 +18,7 @@
 // thunks (createDraft / updateDraft / activate / createLocation) are passed
 // in by the parent so the component is testable in isolation.
 
+import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { useState, useCallback } from 'react'
 import { PURPOSES, PURPOSE_COPY, nounFor, type Purpose } from '@/lib/sell/purpose'
 import {
@@ -470,6 +471,7 @@ export function SellWalkthrough({
 
   return (
     <MultiStepComposer<SellWalkthroughState>
+      finalNotice={<PostingSafetyNote />}
       steps={steps}
       initialState={initialState}
       resumeFromStep={resume?.resumeFromStep ?? 0}
