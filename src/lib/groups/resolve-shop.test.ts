@@ -59,6 +59,8 @@ function makeSupabaseStub(routes: {
   /** #241 — the row rpc('page_founder_public') returns, or null for none. */
   founder?: unknown
   selects?: string[]
+  /** F093.8 — what asking for the anchor as the caller returns; signed out it is refused. */
+  anchorError?: unknown
 }) {
   return {
     rpc: (name: string) =>
@@ -69,15 +71,23 @@ function makeSupabaseStub(routes: {
     from: () => {
       const chain: Record<string, unknown> = {}
       const passthrough = () => chain
-      chain.select = (cols: string) => {
-        routes.selects?.push(cols)
+      let cols = ''
+      chain.select = (c: string) => {
+        cols = c
+        routes.selects?.push(c)
         return chain
       }
       chain.eq = passthrough
       chain.is = passthrough
       chain.limit = passthrough
       chain.maybeSingle = () =>
-        Promise.resolve({ data: routes.group ?? null, error: routes.groupError ?? null })
+        cols === 'anchor_location_id'
+          ? Promise.resolve(
+              routes.anchorError
+                ? { data: null, error: routes.anchorError }
+                : { data: { anchor_location_id: (routes.group as { anchor_location_id?: string } | null)?.anchor_location_id ?? null }, error: null },
+            )
+          : Promise.resolve({ data: routes.group ?? null, error: routes.groupError ?? null })
       return chain
     },
   } as unknown as Parameters<typeof resolveShop>[0]
@@ -96,6 +106,34 @@ const ACTIVE_ROW = {
     { display_name: 'Oak Park Sourdough', public_description: 'Real bread, baked local.' },
   ],
 }
+
+// F093 criterion 8 (amended 2026-09-30): where a Page is never reaches a
+// signed-out caller. The anchor is asked for as the caller, whom the database
+// refuses when signed out, and the address is resolved only when it answered.
+describe('resolveShop — where the Page is', () => {
+  it('never asks for the anchor in the read that finds the Page', async () => {
+    const selects: string[] = []
+    await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW, selects }), 'oak-park-sourdough')
+    expect(selects[0]).not.toContain('anchor_location_id')
+  })
+
+  it('signed out, carries no anchor and resolves no address', async () => {
+    const shop = await resolveShop(
+      makeSupabaseStub({ group: ACTIVE_ROW, anchorError: { message: 'permission denied' } }),
+      'oak-park-sourdough',
+    )
+    expect(shop).not.toBeNull()
+    expect(shop!.anchorLocationId).toBeNull()
+    expect(shop!.placements).toEqual([])
+    expect(resolvePagePlacements).not.toHaveBeenCalled()
+  })
+
+  it('signed in, carries the anchor and its address', async () => {
+    const shop = await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW }), 'oak-park-sourdough')
+    expect(shop!.anchorLocationId).toBe('loc-1')
+    expect(resolvePagePlacements).toHaveBeenCalledWith('grp-1')
+  })
+})
 
 describe('resolveShop', () => {
   it('returns null when RLS yields no row (draft-to-non-owner, dissolved, nonexistent)', async () => {

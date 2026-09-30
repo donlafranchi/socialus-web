@@ -11,6 +11,7 @@
 // fragment. RLS (items_select_published) is the visibility gate.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { itemLocationLabel } from './item-location'
 import { parseIdFragment } from './resolve-product'
 import type { ItemAttribution } from './resolve-product'
 import type { RateModel } from '@/components/sell/ServiceComposer'
@@ -67,9 +68,6 @@ interface ServiceRow {
       }[]
     | { rate_model: string; rate_cents: number | null; service_area_geography: string | null }
     | null
-  item_locations:
-    | { removed_at: string | null; locations: { label: string }[] | { label: string } | null }[]
-    | null
 }
 
 function firstEmbed<T>(embed: T[] | T | null | undefined): T | null {
@@ -119,8 +117,7 @@ export async function resolveService(
   // T095 — Group-filed services attribute to the Group; individual services to nobody.
   const baseSelect =
     'id, title, description, brand_label, ' +
-    'item_services(rate_model, rate_cents, service_area_geography), ' +
-    'item_locations(removed_at, locations(label))'
+    'item_services(rate_model, rate_cents, service_area_geography)'
   let query = supabase
     .from('items')
     .select(baseSelect)
@@ -140,8 +137,8 @@ export async function resolveService(
   const svc = firstEmbed(row.item_services)
 
   // First active (non-removed) anchor Location.
-  const activeLoc = (row.item_locations ?? []).find((il) => il.removed_at === null)
-  const locEmbed = activeLoc ? firstEmbed(activeLoc.locations) : null
+  // F093 criterion 8 — read on its own, as the caller; signed out it is refused.
+  const locationLabel = await itemLocationLabel(supabase, row.id)
 
   let attribution: ItemAttribution
   if (scope.individual) {
@@ -165,6 +162,6 @@ export async function resolveService(
     hasServiceArea: Boolean(svc?.service_area_geography),
     brandLabel: row.brand_label,
     attribution,
-    anchor: locEmbed ? { label: locEmbed.label } : null,
+    anchor: locationLabel ? { label: locationLabel } : null,
   }
 }

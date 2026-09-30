@@ -79,7 +79,7 @@ describe('WithheldPagePosts', () => {
   it('says nothing about what the announcements say, when, or where', () => {
     const { container } = render(<WithheldPagePosts posts={[PAGE]} />)
     expect(container.textContent).toBe(
-      'Announcements3 announcements this weekThe details are for members and followers of this Page.Sign in to become a member',
+      "Announcements3 announcements this weekThe details are for members and followers of this Page.Sign up to see what's happening",
     )
   })
 })

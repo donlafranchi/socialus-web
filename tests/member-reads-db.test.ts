@@ -400,15 +400,14 @@ describe.skipIf(!RUNNABLE)("a location's owner", () => {
     }
   })
 
-  it("every other column of a listed location still answers", async () => {
+  // #252: signed out, no location answers at all (tests/front-door-db.test.ts).
+  it("every other column of a listed location still answers a signed-in caller", async () => {
     const { rows } = await client.query<{ column_name: string }>(
       `select column_name from information_schema.columns
         where table_schema = 'public' and table_name = 'locations' and column_name <> 'member_id'`,
     )
     const cols = rows.map((r) => `"${r.column_name}"`).join(', ')
-    for (const sub of [null, STRANGER]) {
-      expect(await count(sub, `select ${cols} from public.locations where id = $1`, [LOCATION])).toBe(1)
-    }
+    expect(await count(STRANGER, `select ${cols} from public.locations where id = $1`, [LOCATION])).toBe(1)
   })
 
   it('the owner lists their own locations', async () => {

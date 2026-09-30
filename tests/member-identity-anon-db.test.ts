@@ -95,7 +95,7 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
   it('every other column a signed-out Page reads still answers', async () => {
     const rows = await as(
       'anon',
-      `select id, slug, public_id, kind, name, description, lifecycle_state, anchor_location_id,
+      `select id, slug, public_id, kind, name, description, lifecycle_state,
               category, photo_url, photo_hidden_at, photo_hide_locked_url, social_links,
               discoverability, dissolved_at
          from public.groups where id = $1`,
@@ -104,11 +104,12 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
     expect(rows).toHaveLength(1)
   })
 
-  it('a column added to groups later is granted to anon, unless it names a member', async () => {
+  // #252 withholds the anchor too: where a Page is never reaches a signed-out caller.
+  it('a column added to groups later is granted to anon, unless it names a member or where the Page is', async () => {
     const { rows } = await client.query<{ column_name: string }>(
       `select column_name from information_schema.columns
         where table_schema = 'public' and table_name = 'groups'
-          and column_name <> 'founder_member_id'`,
+          and column_name not in ('founder_member_id', 'anchor_location_id')`,
     )
     const cols = rows.map((r) => `"${r.column_name}"`).join(', ')
     await expect(as('anon', `select ${cols} from public.groups where id = $1`, [PAGE])).resolves.toHaveLength(1)
