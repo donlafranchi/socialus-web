@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { PagePosts } from './PagePosts'
+import { COPY } from '@/lib/copy'
 
 // F072 — a Page owner announces something, with a time and a place on it.
 
@@ -73,7 +74,9 @@ async function pickAPlace(prefix = 'announce') {
 describe('the word', () => {
   it('is announcement, never bulletin and never post', () => {
     const { container } = renderPosts({ posts: [POST] })
-    const text = container.textContent ?? ''
+    // F080's safety line is Don's and says "post" as a verb, to anyone about
+    // anything they share; the rule is about naming an announcement.
+    const text = (container.textContent ?? '').replace(COPY.postingSafety, '')
     expect(text).toMatch(/Announce/)
     expect(text.toLowerCase()).not.toContain('bulletin')
     // "post" as a word on its own. `data-testid` values are not copy.

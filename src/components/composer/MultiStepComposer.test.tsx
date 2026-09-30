@@ -348,3 +348,28 @@ describe('T071 — <MultiStepComposer> base', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
   })
 })
+
+// F080 — the notice a consumer passes shows where it publishes, and only there.
+describe('MultiStepComposer — finalNotice', () => {
+  it('renders on the final step only', async () => {
+    const steps = ['one', 'two'].map((id) => ({
+      id,
+      title: id,
+      render: () => null,
+      validate: () => ({ ok: true }),
+    }))
+    render(
+      <MultiStepComposer
+        steps={steps}
+        initialState={{}}
+        onAdvance={async () => {}}
+        onComplete={async () => ({ destinationUrl: '/' })}
+        onAbandon={() => {}}
+        finalNotice={<p>notice</p>}
+      />,
+    )
+    expect(screen.queryByText('notice')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    expect(await screen.findByText('notice')).toBeInTheDocument()
+  })
+})
