@@ -10,7 +10,7 @@
 -- The Page keeps its location: it still scopes the Page to its metro and
 -- places it on the map, server-side, without being sent. A signed-out map pin
 -- is the Page's Place centroid, never the stored point
--- ([open-question] on #252: pins at the Place, or no pins).
+-- (the question on #252: pins at the Place, or no pins).
 --
 -- APPLY AFTER #254 (bug #253) IS MERGED. Until this PR's code is live, a
 -- signed-out Page's read of its anchor and an item's pickup label fail, and
