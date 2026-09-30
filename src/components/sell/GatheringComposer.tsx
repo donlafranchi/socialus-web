@@ -19,6 +19,7 @@
 // server-action thunk so the component is testable in isolation. Location is
 // pre-attached from a prop (the venue/anchor) — no picker step at b1.
 
+import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { useCallback } from 'react'
 import {
   MultiStepComposer,
@@ -408,6 +409,7 @@ export function GatheringComposer({
 
   return (
     <MultiStepComposer<GatheringComposerState>
+      finalNotice={<PostingSafetyNote />}
       steps={steps}
       initialState={initialState}
       onAdvance={onAdvance}

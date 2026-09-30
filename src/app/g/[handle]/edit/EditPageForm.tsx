@@ -31,6 +31,7 @@ import { createLocationAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput, EditPageResult } from './actions'
+import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 
 type CreateLocation = typeof createLocationAction
 
@@ -236,6 +237,8 @@ export function EditPageForm({
           Saved.
         </p>
       ) : null}
+
+      <PostingSafetyNote />
 
       <div className="flex gap-2">
         <button type="submit" disabled={pending} data-testid="edit-save" className="btn-primary w-full disabled:opacity-50">
