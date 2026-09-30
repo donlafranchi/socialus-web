@@ -1,24 +1,13 @@
--- F072 · T175 (#256) — an announcement's card says when it was posted, and
--- one with no address of its own reads as being at its Page's location.
+-- F093 · T173 (#252) — signed out, no map pins at all (Don, 2026-09-30,
+-- answering #252). The stored location still scopes a Page to its metro.
 --
--- Spec anchor: ops-pattern/planning/scenario-F072.md criterion 3 ("With an
--- address it reads as being there; with none, at its Page's location").
---
--- browse_feed gains posted_at (a post's created_at; updated_at moves on every
--- edit), which changes its return type, so it is dropped and recreated with
--- the same arguments and grants. Post rows reach signed-in callers only (#252),
--- so the Page's location never reaches a signed-out one. The map pin stays the
--- post's own point.
---
--- APPLY AFTER #255 IS MERGED. Safe before this PR's code: the old code ignores
--- the new column.
+-- 20260930220000 (#256) was applied to production carrying the earlier
+-- signed-out pin at the Page's Place centroid, a minute before that choice
+-- was changed. An applied migration is never edited, so this replaces the
+-- function in place: same arguments, same return type, so grants and the
+-- comment stay.
 
-drop function public.browse_feed(
-  uuid, uuid, text[], text[], text, uuid[], text[],
-  timestamptz, timestamptz, timestamptz, text, timestamptz, int
-);
-
-create function public.browse_feed(
+create or replace function public.browse_feed(
   -- SCOPE. Exactly one. Explore scopes to a metro (F059 criterion 6);
   -- venue and place reads scope to a Place polygon. Both are ids and never
   -- slugs: two rows in `public.places` currently share the slug 'sacramento'
@@ -140,16 +129,13 @@ as $$
       g.photo_removed_at,
       g.description,
       null::text            as body,
-      -- F093 criterion 8: signed out, no tags, no location, and a pin at the
-      -- Page's Place rather than its stored point.
+      -- F093 criterion 8: signed out, no tags, no location, and no pin.
       case when auth.uid() is null then array[]::text[]
            else coalesce(ptl.labels, array[]::text[]) end as tags,
       null::timestamptz     as starts_at,
       case when auth.uid() is null then null else l.id end    as location_id,
       case when auth.uid() is null then null else l.label end as location_label,
-      case when auth.uid() is null
-           then (select pc.centroid from public.places pc where pc.id = l.place_id and pc.deleted_at is null)
-           else l.geography end as location_geography,
+      case when auth.uid() is null then null else l.geography end as location_geography,
       g.created_at          as page_created_at,
       g.updated_at,
       case p_sort
@@ -327,19 +313,3 @@ as $$
     r.result_id
   limit greatest(1, least(coalesce(p_limit, 50), 100));
 $$;
-
-comment on function public.browse_feed(
-  uuid, uuid, text[], text[], text, uuid[], text[],
-  timestamptz, timestamptz, timestamptz, text, timestamptz, int
-) is
-  'The browse read source (T156), superseding browse_pages and browse_posts. Returns Pages and posts together, one discriminated row shape, scoped to one metro OR one Place polygon by id. Every axis Browse varies is a parameter: Page kind (NEVER a constant — the two-or-three-kinds question is unruled), result kind, tags, a start-time window, Page creation recency, and the sort. p_tags matches tags.normalized (normalise with normalizeTag() before calling) while the projected tags are the creators'' own labels. The personal half is a predicate: p_audience=''following'' restricts to p_following, so a signed-out reader gets nothing from the database rather than from a client filter (F059 criteria 2b/2c). Withholds drafts, unlisted and dissolved Pages and posts, and drops past-dated posts; undated posts never drop. A post projects its OWN geography (null when it has none) and its owning Page''s tags, because posts carry no tags of their own. A post with no address of its own is labelled with its Page''s location (#256, F072 criterion 3), and carries posted_at, its created_at. Signed out it runs with no location, tags or posts (#252). NO cost parameter: free/priced is an open decision and there is no price on a Page or a post. Ordering carries locality and recency, never payment and never what holds attention.';
-
-revoke all on function public.browse_feed(
-  uuid, uuid, text[], text[], text, uuid[], text[],
-  timestamptz, timestamptz, timestamptz, text, timestamptz, int
-) from public;
-
-grant execute on function public.browse_feed(
-  uuid, uuid, text[], text[], text, uuid[], text[],
-  timestamptz, timestamptz, timestamptz, text, timestamptz, int
-) to anon, authenticated;
