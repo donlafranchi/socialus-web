@@ -10,4 +10,5 @@ Tests: `tests/announcement-card-db.test.ts`, 4 against Postgres 17.6.1.166 built
 
 **Migration: `20260930220000_announcement_card_place_and_posted.sql`** (drops and recreates `browse_feed` with one more column). Apply after #255 merges.
 
-**Forward fix: `20260930230000_front_door_no_pins.sql`.** Production ran `20260930220000` with the earlier signed-out pin, a minute before the no-pin change reached this branch. That file is restored to exactly what was applied, and this migration replaces the function with no signed-out pin. Seen failing (a pin returned) before it, passing after.
+
+Production ran `20260930220000` at f315cab, which still had the signed-out pin at the Page's neighbourhood; the file is exactly what ran. The no-pin replacement is its own follow-up PR.
