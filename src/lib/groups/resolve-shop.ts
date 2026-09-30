@@ -275,30 +275,19 @@ async function zipIsProximal(
 /**
  * Beat 2 — "Claimed local owner" badge (F037 read path over T075's substrate).
  *
- * Selects the Group's active jurisdiction rows (public-read RLS
- * `mbj_select_public_active`) and runs the proximity test per ZIP. Returns the
- * badge if ANY active owner's ZIP shares the anchor Location's MSA
- * (OR-aggregation per `business-jurisdiction.md` line 50). Returns null when
- * there is no anchor Location, no active row, or no ZIP passes — no
- * "not locally owned" negative space.
+ * #246 — a registration is collected and never displayed (Don, 2026-09-29), so
+ * this never reads member_business_jurisdictions. page_local_owner_badge()
+ * answers true if ANY active registration's ZIP shares the anchor Location's
+ * metro, and returns nothing but that boolean. No "not locally owned"
+ * negative space: false, an error or no anchor all render nothing.
  */
 export async function resolveLocalOwnerBadge(
   supabase: SupabaseClient,
   shop: { groupId: string; anchorLocationId: string | null },
 ): Promise<LocalOwnerBadge | null> {
   if (!shop.anchorLocationId) return null
-  const { data, error } = await supabase
-    .from('member_business_jurisdictions')
-    .select('zip')
-    .eq('group_id', shop.groupId)
-    .is('removed_at', null)
-  if (error || !data) return null
-  for (const row of data as { zip: string }[]) {
-    if (await zipIsProximal(supabase, row.zip, shop.anchorLocationId)) {
-      return { label: LOCAL_OWNER_LABEL }
-    }
-  }
-  return null
+  const { data, error } = await supabase.rpc('page_local_owner_badge', { p_group_id: shop.groupId })
+  return !error && data === true ? { label: LOCAL_OWNER_LABEL } : null
 }
 
 /**
