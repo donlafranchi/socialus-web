@@ -1,11 +1,9 @@
 // T109 — Listed-member-count reader for Group rows (F042).
 //
-// Counts LISTED memberships per Group from member_public_group_memberships
-// (T095 projection: active explicit memberships in non-dissolved, listed
-// Groups). This is the same source the public Group page counts from — unlisted
-// and private memberships never contribute, so the count surfaced on
-// /you/following can never exceed the public count. Never count raw
-// group_memberships.
+// Counts LISTED memberships per Group: active explicit memberships in
+// non-dissolved, listed Groups, so the count surfaced on /you/following can
+// never exceed the public count. #246 — through page_listed_member_counts,
+// which returns a number per Page and never the members behind it.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -15,14 +13,11 @@ export async function getListedMemberCounts(
 ): Promise<Record<string, number>> {
   if (groupIds.length === 0) return {}
 
-  const { data } = await supabase
-    .from('member_public_group_memberships')
-    .select('group_id')
-    .in('group_id', groupIds)
+  const { data } = await supabase.rpc('page_listed_member_counts', { p_group_ids: groupIds })
 
   const counts: Record<string, number> = {}
-  for (const row of (data as { group_id: string }[] | null) ?? []) {
-    counts[row.group_id] = (counts[row.group_id] ?? 0) + 1
+  for (const row of (data as { group_id: string; members: number }[] | null) ?? []) {
+    counts[row.group_id] = row.members
   }
   return counts
 }

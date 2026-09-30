@@ -87,19 +87,13 @@ export function SellCta({
         // when the lookup fails. The CTA stays visible.
         if (!cancelled) setSignal({ draftGroup: null, hasActiveBusinessGroup: false })
       }
-      // Load saved Locations the user owns (for the anchor picker).
-      // T073a fix-forward: column is `label`, not `display_name` (per
-      // supabase/migrations/007_locations.sql). Original T073 unit test
-      // mocked the supabase client so the wrong column name didn't fail.
+      // Load saved Locations the user owns (for the anchor picker). #246 —
+      // locations.member_id answers nobody; own_locations() reads it as owner.
       if (!initialLocations) {
-        const { data } = await sb
-          .from('locations')
-          .select('id, label')
-          .eq('member_id', memberId)
-          .limit(20)
+        const { data } = await sb.rpc('own_locations')
         if (!cancelled && data) {
           setLocations(
-            data.map((r: { id: string; label: string | null }) => ({
+            (data as { id: string; label: string | null }[]).slice(0, 20).map((r) => ({
               id: r.id,
               label: r.label ?? 'Untitled Location',
             })),

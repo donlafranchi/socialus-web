@@ -209,7 +209,7 @@ export const LINK_TYPES: readonly LinkType[] = [
     to: 'Member',
     via: { table: 'member_follows', column: 'followed_member_id' },
     writtenBy: ['member.follow', 'member.unfollow'],
-    ruled: null,
+    ruled: '2026-09-30',
     built: true,
     note:
       'Person to person, and the only link of that shape — nouns.md is explicit that ' +
@@ -217,7 +217,8 @@ export const LINK_TYPES: readonly LinkType[] = [
       'BE FOLLOWED ' +
       'THROUGH THIS TABLE: that is group_memberships and a different link entirely, which is why ' +
       'group.follow does not touch it. Unfollowing sets unfollowed_at rather than deleting the ' +
-      'row, so the link is reversible without losing that it once existed.',
+      'row, so the link is reversible without losing that it once existed. Nobody sees who ' +
+      'follows whom: the row is readable by the follower alone (2026-09-30).',
   },
   {
     name: 'a Page carries a Tag',

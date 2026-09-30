@@ -11,7 +11,8 @@
 // What this suite does NOT assert: which columns a stranger sees on a public
 // member, or what `community_only` means to a signed-in viewer. Both are
 // unruled (#178). It asserts only that the column's own default — private —
-// is honoured for anon, and that signed-in reads are unchanged.
+// is honoured for anon. #246 (2026-09-30) closed the rest: nobody reads
+// another member's row.
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
@@ -28,8 +29,7 @@ const DATABASE_URL =
 const safety = writeSafety(process.env)
 const RUNNABLE = requireRunnable({
   claim:
-    'an anonymous caller cannot read a member marked private or community_only, ' +
-    'while a signed-in member still can',
+    'no caller, signed out or signed in, reads another member',
   available: safety.safe && Boolean(DATABASE_URL),
   remedy: `${safety.reason} DATABASE_URL must also be set. Recipe in .env.local.example`,
 })
@@ -107,20 +107,20 @@ describe.skipIf(!RUNNABLE)('#178 — members, signed out, over PostgREST', () =>
 
   it('cannot be walked around by filtering or paging the whole table', async () => {
     const { data } = await anon.from('members').select('id, stakeholder_visibility').range(0, 999)
-    const leaked = (data ?? []).filter((r) => r.stakeholder_visibility !== 'public')
-    expect(leaked).toEqual([])
+    expect(data ?? []).toEqual([])
   })
 
-  it('still returns a member marked public', async () => {
-    expect(await anonRead(PUBLIC)).toHaveLength(1)
+  // #246 (2026-09-30): nobody reads a member's fields, signed in or out.
+  it('returns no row for a member marked public either', async () => {
+    expect(await anonRead(PUBLIC)).toHaveLength(0)
   })
 
-  it('still returns a private member to a signed-in member', async () => {
+  it('returns no other member to a signed-in member', async () => {
     const member = createClient(SUPABASE_URL!, ANON_KEY!, { auth: { persistSession: false } })
     const signedIn = await member.auth.signInWithPassword({ email: READER_EMAIL, password: READER_PASSWORD })
     expect(signedIn.error).toBeNull()
     const { data, error } = await member.from('members').select('id').in('id', OURS)
     expect(error).toBeNull()
-    expect((data ?? []).map((r) => r.id).sort()).toEqual([...OURS].sort())
+    expect(data ?? []).toEqual([])
   })
 })

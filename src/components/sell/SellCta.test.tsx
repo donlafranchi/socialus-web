@@ -52,6 +52,7 @@ function makeSupabaseStub(responses: {
   return () =>
     ({
       from: vi.fn((table: string) => builder(table)),
+      rpc: vi.fn(() => Promise.resolve({ data: responses.locations ?? [], error: null })),
     }) as unknown as ReturnType<
       typeof import('@supabase/ssr').createBrowserClient
     >
@@ -195,70 +196,18 @@ describe('SellCta — render branches', () => {
     })
   })
 
-  it('queries `locations` with the schema-correct columns (T073a fix-forward guard)', async () => {
-    // The locations table has `label`, not `display_name` (per
-    // 007_locations.sql). Original T073 shipped with `display_name` —
-    // unit tests mocked the supabase chain and never noticed. This test
-    // captures the actual select() argument so the wrong column would fail.
-    const selectSpy = vi.fn(() => {
-      const chain: Record<string, unknown> = {}
-      const passthrough = () => chain
-      chain.select = passthrough
-      chain.eq = passthrough
-      chain.is = passthrough
-      chain.order = passthrough
-      chain.limit = passthrough
-      chain.then = (onFulfilled: (v: unknown) => unknown) =>
-        Promise.resolve({ data: [], error: null }).then(onFulfilled)
-      return chain
-    })
-    const factory = () =>
-      ({
-        from: vi.fn((table: string) => {
-          if (table === 'locations') {
-            const chain: Record<string, unknown> = {}
-            chain.select = (cols: string) => {
-              selectSpy()
-              ;(chain as { _cols?: string })._cols = cols
-              const inner: Record<string, unknown> = {}
-              const through = () => inner
-              inner.eq = through
-              inner.is = through
-              inner.order = through
-              inner.limit = through
-              inner.then = (onFulfilled: (v: unknown) => unknown) =>
-                Promise.resolve({ data: [], error: null }).then(onFulfilled)
-              return inner
-            }
-            chain.eq = () => chain
-            chain.is = () => chain
-            chain.order = () => chain
-            chain.limit = () => chain
-            chain.then = (onFulfilled: (v: unknown) => unknown) =>
-              Promise.resolve({ data: [], error: null }).then(onFulfilled)
-            return chain
-          }
-          // group_memberships + groups passthroughs.
-          const chain: Record<string, unknown> = {}
-          const passthrough = () => chain
-          chain.select = passthrough
-          chain.eq = passthrough
-          chain.is = passthrough
-          chain.order = passthrough
-          chain.limit = passthrough
-          chain.then = (onFulfilled: (v: unknown) => unknown) =>
-            Promise.resolve({ data: [], error: null }).then(onFulfilled)
-          return chain
-        }),
-      }) as unknown as ReturnType<
-        typeof import('@supabase/ssr').createBrowserClient
-      >
+  // #246 — locations.member_id is readable by nobody, so the member's own
+  // saved Locations come from own_locations(), which reads it as its owner.
+  it("loads the member's saved Locations without reading locations.member_id", async () => {
+    const stub = makeSupabaseStub({})()
+    const rpc = vi.fn(() => Promise.resolve({ data: [{ id: 'l1', label: 'B246 Hall' }], error: null }))
+    const factory = () => ({ ...stub, rpc }) as unknown as typeof stub
     const { container } = render(<SellCta memberId="m1" supabaseFactory={factory} />)
     await waitFor(() => {
       expect(container.querySelector('[data-testid="you-sell-cta"]')).not.toBeNull()
     })
-    // Locations select() ran with `id, label` (NOT `id, display_name`).
-    expect(selectSpy).toHaveBeenCalled()
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('own_locations'))
+    expect((stub.from as ReturnType<typeof vi.fn>).mock.calls.map(([t]) => t)).not.toContain('locations')
   })
 
   it('opens the walkthrough on fresh-Seller CTA click', async () => {
