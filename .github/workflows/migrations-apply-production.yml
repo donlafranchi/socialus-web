@@ -23,6 +23,16 @@ on:
         description: 'Type "apply" to confirm writing to the production database. FIRST check "Use workflow from" above — a migration under review is on its branch, not main.'
         required: true
         type: string
+      allow_multiple:
+        description: 'Apply more than one pending migration in this run. Leave unchecked: one PR, one migration, verified before the next (#264).'
+        required: false
+        type: boolean
+        default: false
+
+# The guard below reads the branch's pull requests; nothing here writes to GitHub.
+permissions:
+  contents: read
+  pull-requests: read
 
 # Never two pushes against one database at once.
 concurrency:
@@ -123,7 +133,36 @@ jobs:
       - name: What would this apply?
         env:
           SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+          PENDING_OUT: ${{ runner.temp }}/pending.txt
         run: bash scripts/migrations-pending.sh
+
+      # THE AHEAD-OF-ITS-CODE GUARD (#264). On 2026-09-30 three stacked
+      # migration PRs were applied before any of their code merged, and every
+      # signed-out Page 404'd until it did. It refuses a branch whose open PR
+      # does not target main, and more than one pending migration unless
+      # allow_multiple is checked.
+      #
+      # [guard-proves-itself]: it is first run against a stacked fixture and
+      # must refuse it, in this job, on every run, before it is trusted.
+      - name: The guard refuses a stacked branch (self-test)
+        env:
+          BRANCH: guard-self-test
+          PR_BASES: some-other-branch
+          PENDING: '1'
+        run: |
+          if bash scripts/migrations-apply-guard.sh; then
+            echo "::error::The guard passed a stacked fixture. It is not working; refusing to apply anything."
+            exit 1
+          fi
+          echo "Self-test: the guard refused the stacked fixture, as it must."
+
+      - name: Refuse what would run ahead of its code
+        env:
+          BRANCH: ${{ github.ref_name }}
+          PENDING_FILE: ${{ runner.temp }}/pending.txt
+          ALLOW_MULTIPLE: ${{ inputs.allow_multiple }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/migrations-apply-guard.sh
 
       # Idempotent: applies only what the remote history lacks. Re-running
       # after a success is a no-op, not a second application.
