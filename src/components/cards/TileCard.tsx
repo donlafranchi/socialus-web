@@ -41,6 +41,8 @@ export interface TileCardProps {
   action?: ReactNode
   /** #260 — what the image is, in the card's own words. Empty means decorative. */
   imageAlt?: string
+  /** #270 — 'div' when the caller already provides the list item. */
+  as?: 'li' | 'div'
 }
 
 export function TileCard({
@@ -52,6 +54,7 @@ export function TileCard({
   href,
   action,
   imageAlt = '',
+  as = 'li',
 }: TileCardProps) {
   const body = (
     <>
@@ -98,7 +101,7 @@ export function TileCard({
 
   return (
     <Card
-      as="li"
+      as={as}
       interactive={Boolean(href)}
       data-testid="tile-card"
       data-location-scale={location.scale}
