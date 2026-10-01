@@ -10,6 +10,7 @@
 // resolve-product.ts. RLS (items_select_published) is the visibility gate.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { METRO_TIME_ZONE, formatMetroDateTime } from '@/lib/metro/metro-time'
 import { itemLocationLabel } from './item-location'
 import { parseIdFragment } from './resolve-product'
 import type { ItemAttribution } from './resolve-product'
@@ -90,6 +91,21 @@ export function nextOccurrence(
     while (occ < nowMs) occ += WEEK_MS
   }
   return new Date(occ)
+}
+
+/** #262 — a gathering's own page says when, with its end, in the metro's
+ *  words. A series carries the same length onto its next occurrence. */
+export function gatheringWhenLabel(
+  startsAt: string | null,
+  endsAt: string | null,
+  rrule: string | null,
+  now: Date = new Date(),
+): string | null {
+  const occ = nextOccurrence(startsAt, rrule, now)
+  if (!occ || !startsAt) return null
+  const length = endsAt ? new Date(endsAt).getTime() - new Date(startsAt).getTime() : 0
+  const end = length > 0 ? new Date(occ.getTime() + length).toISOString() : null
+  return formatMetroDateTime(occ.toISOString(), METRO_TIME_ZONE, now, end)
 }
 
 interface GatheringChild {
