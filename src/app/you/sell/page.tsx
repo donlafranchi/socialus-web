@@ -109,7 +109,8 @@ export default async function SellIndexPage() {
   // No active Shops AND we got here? Send the user back to /you to pick up
   // the walkthrough — the CTA logic shouldn't have routed them here.
   if (shops.length === 0) {
-    redirect('/you')
+    // #274 — where the walkthrough opens at once, not /you's empty state.
+    redirect('/you?create=1')
   }
 
   return (

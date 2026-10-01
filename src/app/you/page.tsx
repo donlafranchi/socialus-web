@@ -128,7 +128,7 @@ function YouPageInner() {
       </header>
 
       {/* T073 — Sell CTA (always-visible, 3-branch routing per F036). */}
-      <SellCta memberId={userId} />
+      <SellCta memberId={userId} autoOpen={searchParams.get('create') === '1'} />
 
       {/* The Pages this member made. Nothing showed these before: SellCta finds
           a DRAFT to resume and lets an active Page fall through, so someone who
