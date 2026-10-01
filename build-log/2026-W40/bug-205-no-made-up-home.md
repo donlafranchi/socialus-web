@@ -8,3 +8,5 @@ F081 criterion 7: onboarding assigns no place the person did not give.
 - **Data left as is:** members who already hold the Good Place, and the fictional places in production.
 
 Tests: `src/app/onboarding/actions.test.ts`, seen failing first (`[guards F081.7]`). **No migration.**
+
+**Removed `tests/migrations-default-home-place.test.ts`.** It pinned onboarding's place id to the migration that creates the Good Place, so a fresh database could finish onboarding. Onboarding now depends on no place at all, so the regression it guarded can't happen. The migration stays: it is applied history.
