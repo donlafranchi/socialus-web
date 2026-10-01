@@ -49,7 +49,7 @@ export function FollowingRow({ results }: { results: BrowseResult[] }) {
             key={`${result.resultKind}:${result.resultId}`}
             className="w-[min(78vw,20rem)] shrink-0 snap-start"
           >
-            <BrowseResultCard result={result} />
+            <BrowseResultCard result={result} as="div" />
           </li>
         ))}
       </ul>
