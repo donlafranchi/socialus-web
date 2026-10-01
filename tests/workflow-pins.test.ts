@@ -46,6 +46,8 @@ describe('every action targets a supported Node', () => {
     'actions/checkout': 5,
     'actions/setup-node': 5,
     'actions/github-script': 8,
+    // #269 — v6 is the first that declares node24.
+    'actions/upload-artifact': 6,
     // v2 is `using: composite` — no Node runtime at all, so it cannot emit the
     // warning. Deliberately NOT v3, which switches the CLI install from GitHub
     // releases to npm; that is a real behaviour change on the workflow that

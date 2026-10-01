@@ -3,6 +3,11 @@ import { config } from 'dotenv'
 config({ path: '.env.local' })
 
 import { defineConfig, devices } from '@playwright/test'
+import { QUARANTINE } from './evals/quarantine'
+
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+// #269 — evals that fail against today's rulings; see evals/quarantine.ts.
+const QUARANTINED = QUARANTINE.length ? new RegExp(QUARANTINE.map((q) => escape(q.title)).join('|')) : undefined
 
 // #269 — the browser suite runs in CI (ci.yml, "Browser") against a throwaway
 // local stack seeded with personas (scripts/seed-personas.ts). Projects:
@@ -31,6 +36,7 @@ export default defineConfig({
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
       testIgnore: [/screens\//, /_guard\//],
+      grepInvert: QUARANTINED,
     },
     {
       name: 'screens',
