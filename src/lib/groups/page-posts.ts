@@ -25,6 +25,8 @@ export interface PagePost {
    *  an announcement never borrows its Page's pin, but it does inherit its
    *  Page's whereabouts when it says nothing. */
   locationLabel: string | null
+  /** #286 — the post's own tags; empty means it carries its Page's. */
+  tags?: string[]
 }
 
 interface Row {
@@ -35,6 +37,7 @@ interface Row {
   starts_at: string | null
   ends_at: string | null
   location: { label: string | null } | { label: string | null }[] | null
+  post_tags?: { tags: { label: string } | { label: string }[] | null }[] | null
 }
 
 /** Ordered by recency, matching browse. A read failure yields no posts rather
@@ -45,7 +48,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, location:locations(label)')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -62,6 +65,9 @@ export async function resolvePagePosts(
       updatedAt: r.updated_at,
       startsAt: r.starts_at,
       endsAt: r.ends_at,
+      tags: (r.post_tags ?? [])
+        .map((t) => (Array.isArray(t.tags) ? t.tags[0] : t.tags)?.label)
+        .filter((l): l is string => Boolean(l)),
       locationLabel: loc?.label ?? null,
     }
   })

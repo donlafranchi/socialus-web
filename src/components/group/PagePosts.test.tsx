@@ -406,3 +406,21 @@ describe('an end time on it', () => {
     expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
   })
 })
+
+describe('#286 — tags on posts', () => {
+  it('a new post carries the tags typed into it', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Concert Friday' } })
+    fireEvent.change(screen.getByTestId('announce-tag-input'), { target: { value: 'concert,' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+  })
+
+  it('an edit starts from the post\'s own tags and sends the new set', async () => {
+    renderPosts({ posts: [postFixture({ tags: ['concert', 'jazz'] } as never)] })
+    fireEvent.click(screen.getByTestId('page-post-edit'))
+    fireEvent.click(screen.getByTestId('announce-edit-tag-remove-jazz'))
+    fireEvent.click(screen.getByTestId('page-post-edit-save'))
+    await waitFor(() => expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+  })
+})

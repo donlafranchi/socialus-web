@@ -28,6 +28,7 @@ import { AuthorizationError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
+import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { managingRoleForKind, type GroupKind } from './constants'
 
 /** Matches the column's own CHECK, so a too-long body is refused before the
@@ -48,6 +49,45 @@ const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) 
   !v.endsAt || (!!v.startsAt && new Date(v.endsAt) > new Date(v.startsAt))
 const END_MESSAGE = 'An end time needs a start time before it.'
 
+/** #286 — a post's own tags (Don, 2026-10-01). None means it carries its
+ *  Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
+const tags = z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional()
+
+type Client = { query: (sql: string, params: unknown[]) => Promise<unknown> }
+
+/** Replaces a post's tags with this set, in the caller's transaction. */
+async function writePostTags(client: Client, postId: string, labels: string[], memberId: string) {
+  const set = new Map<string, string>()
+  for (const label of labels.filter(isValidTagLabel)) {
+    const n = normalizeTag(label)
+    if (!set.has(n)) set.set(n, label.trim())
+  }
+  for (const [normalized, label] of set) {
+    await client.query(
+      `insert into public.tags (label, normalized, created_by)
+       values ($1, $2, $3)
+       on conflict (normalized) do nothing`,
+      [label, normalized, memberId],
+    )
+  }
+  await client.query(
+    `delete from public.post_tags ptg
+      using public.tags t
+      where ptg.tag_id = t.id
+        and ptg.post_id = $1
+        and t.normalized <> all($2)`,
+    [postId, [...set.keys()]],
+  )
+  for (const normalized of set.keys()) {
+    await client.query(
+      `insert into public.post_tags (post_id, tag_id)
+       select $1, t.id from public.tags t where t.normalized = $2
+       on conflict (post_id, tag_id) do nothing`,
+      [postId, normalized],
+    )
+  }
+}
+
 export const groupPostCreateInput = z
   .object({
     groupId: z.string().uuid(),
@@ -55,6 +95,7 @@ export const groupPostCreateInput = z
     startsAt,
     endsAt,
     locationId,
+    tags,
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -65,6 +106,7 @@ export const groupPostEditInput = z.object({
   startsAt,
   endsAt,
   locationId,
+  tags,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 
@@ -163,6 +205,7 @@ export const groupPostCreate = defineHandler(
       )
       const postId = inserted.rows[0]!.id
       const createdAt = new Date(inserted.rows[0]!.created_at).toISOString()
+      if (input.tags?.length) await writePostTags(client, postId, input.tags, memberId)
 
       const txCtx: ActionContext = { ...ctx, db: client }
       await appendEvent(txCtx, 'group_events', {
@@ -223,6 +266,7 @@ export const groupPostEdit = defineHandler(
         `update public.page_posts set ${sets.join(', ')} where id = $1`,
         params,
       )
+      if (input.tags !== undefined) await writePostTags(client, input.postId, input.tags, memberId)
 
       const txCtx: ActionContext = { ...ctx, db: client }
       await appendEvent(txCtx, 'group_events', {
