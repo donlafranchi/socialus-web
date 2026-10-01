@@ -42,6 +42,8 @@ export default defineConfig({
       name: 'screens',
       testMatch: /screens\/matrix\.spec\.ts/,
       dependencies: ['setup'],
+      // Six widths per test, each a navigation and a full-page screenshot.
+      timeout: 240_000,
       use: { ...devices['Desktop Chrome'] },
     },
     { name: 'guard', testMatch: /_guard\/must-fail\.spec\.ts/, retries: 0 },

@@ -31,7 +31,8 @@ for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
           const res = await page.goto(route.path(who), { waitUntil: 'load' })
           expect(res?.status() ?? 0, `${route.name} at ${width}px`).toBeLessThan(500)
-          await page.waitForLoadState('networkidle').catch(() => {})
+          // Bounded: map tiles and polling can keep the network busy forever.
+          await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
           if (route.act) await route.act(page)
           await page.screenshot({ path: join(DIR, String(width), who.key, `${route.name}.png`), fullPage: true })
         }

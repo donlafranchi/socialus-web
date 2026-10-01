@@ -168,7 +168,8 @@ jobs:
   browser:
     name: Browser
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    # The matrix alone is ~45 minutes: 572 tests, six widths each.
+    timeout-minutes: 90
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
