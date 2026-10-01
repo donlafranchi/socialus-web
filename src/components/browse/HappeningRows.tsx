@@ -26,7 +26,7 @@ export function HappeningRows({ rows }: { rows: HappeningSnapshot }) {
           <ul className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 md:-mx-6 md:px-6">
             {results.map((result) => (
               <li key={`${result.resultKind}:${result.resultId}`} className="w-[min(78vw,20rem)] shrink-0 snap-start">
-                <BrowseResultCard result={result} />
+                <BrowseResultCard result={result} as="div" />
               </li>
             ))}
           </ul>

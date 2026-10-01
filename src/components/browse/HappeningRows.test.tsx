@@ -52,3 +52,11 @@ describe('HappeningRows', () => {
     expect(container).toBeEmptyDOMElement()
   })
 })
+
+// #270's lesson — the row supplies the <li>, so the card must not be one too.
+describe('HappeningRows — list structure', () => {
+  it('nests no list item inside another', () => {
+    const { container } = render(<HappeningRows rows={{ today: [post('a')], thisWeek: [post('b')], thisWeekend: [] }} />)
+    expect(container.querySelectorAll('li li')).toHaveLength(0)
+  })
+})
