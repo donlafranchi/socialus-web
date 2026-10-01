@@ -87,6 +87,7 @@ const SUBPROCESS_SUITES = [
   'tests/migrations-drift-parse.test.ts',
   'tests/ci-migration-gate-message.test.ts',
   'src/lib/migrations/manifest.test.ts',
+  'tests/migrations-apply-guard.test.ts',
 ]
 
 // `.claude/**` is load-bearing here, not housekeeping. A git worktree created
