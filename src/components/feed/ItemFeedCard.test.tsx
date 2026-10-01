@@ -52,7 +52,6 @@ describe('T088 — ItemFeedCard', () => {
     render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
     const img = screen.getByTestId('feed-item-photo') as HTMLImageElement
     expect(img.getAttribute('src')).toBe('https://cdn.test/a.jpg')
-    expect(img.getAttribute('alt')).toBe('')
     expect(img.getAttribute('loading')).toBe('lazy')
   })
 })
@@ -162,5 +161,13 @@ describe('T088 — MakeThisYoursBanner', () => {
   it('hides when authenticated', () => {
     const { container } = render(<MakeThisYoursBanner isAuthenticated={true} />)
     expect(container.querySelector('[data-testid="signup-cta"]')).toBeNull()
+  })
+})
+
+// #260 — the card image says what the card says.
+describe('ItemFeedCard image', () => {
+  it('has alt text from the title and place', () => {
+    render(<ItemFeedCard item={{ ...baseItem, photoUrl: 'https://cdn.test/a.jpg' }} />)
+    expect(screen.getByTestId('feed-item-photo').getAttribute('alt')).toBe('Pottery Night, Drake’s')
   })
 })

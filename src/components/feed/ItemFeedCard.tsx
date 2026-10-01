@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import type { FeedItem } from '@/lib/feed/locality-feed'
 import { itemHref, kindLabel } from '@/lib/feed/item-url'
+import { cardImageAlt } from '@/lib/calendar/ics'
 
 /** items.kind → placeholder glyph. Fixed in design-language.md § Card media block. */
 const KIND_GLYPHS: Record<string, { icon: LucideIcon; name: string }> = {
@@ -59,7 +60,7 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={photo}
-            alt=""
+            alt={cardImageAlt({ title: item.title, place: item.nearestLocationLabel })}
             loading="lazy"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover"

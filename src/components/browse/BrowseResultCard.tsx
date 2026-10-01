@@ -12,6 +12,7 @@
 import { TileCard } from '@/components/cards'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen, formatPostedDate } from '@/lib/metro/metro-time'
+import { cardImageAlt } from '@/lib/calendar/ics'
 import { browseCardLocation, browseCardTagline } from '@/lib/browse/card'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -47,6 +48,11 @@ export function BrowseResultCard({ result }: { result: BrowseResult }) {
       tagline={browseCardTagline(result)}
       location={browseCardLocation(result)}
       imageUrl={result.photoUrl}
+      imageAlt={cardImageAlt({
+        title: result.name,
+        when: isPost && result.startsAt ? formatCardWhen(result.startsAt) : null,
+        place: result.locationLabel,
+      })}
       href={result.href}
       action={
         isPost ? (

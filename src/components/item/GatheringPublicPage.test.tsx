@@ -96,3 +96,18 @@ describe('T082/T095 — GatheringPublicPage', () => {
     expect(screen.queryByTestId('gathering-recurrence')).not.toBeInTheDocument()
   })
 })
+
+// #260 — a gathering with a start time can be added to a calendar.
+describe('GatheringPublicPage — add to calendar', () => {
+  it('offers an .ics when it has a start', () => {
+    render(
+      <GatheringPublicPage
+        gathering={gathering({ startsAt: '2026-09-11T02:00:00Z' })}
+        groupHref={null}
+        nextOccurrenceLabel={null}
+        shareUrl="https://www.socialus.org/x"
+      />,
+    )
+    expect(screen.getByTestId('add-to-calendar')).toBeInTheDocument()
+  })
+})

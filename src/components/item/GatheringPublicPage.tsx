@@ -7,6 +7,7 @@
 // location with a map-pin, cost (or "Free"), capacity + what-to-bring when
 // present, the host (links to /m/<handle>), and the Share-link affordance.
 
+import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
 import Link from 'next/link'
 import { MapPin, CalendarClock, Users } from 'lucide-react'
 import type { ResolvedGathering } from '@/lib/items/resolve-gathering'
@@ -134,6 +135,16 @@ export function GatheringPublicPage({
 
         <div className="mt-6 flex flex-wrap items-center gap-2">
           <ShareLinkButton url={shareUrl} />
+          {gathering.startsAt ? (
+            <AddToCalendarLink
+              uid={`${gathering.itemId}@socialus.org`}
+              title={gathering.title}
+              start={gathering.startsAt}
+              end={gathering.endsAt}
+              location={gathering.location?.label ?? null}
+              url={shareUrl}
+            />
+          ) : null}
         </div>
 
         {/* T095 — the standalone "Hosted by [Member]" line is folded into the
