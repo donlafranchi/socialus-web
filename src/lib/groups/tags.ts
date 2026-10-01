@@ -12,6 +12,9 @@
 /** Long enough for "community supported agriculture", short enough to render. */
 export const TAG_MAX_LENGTH = 40
 
+/** A Page's tags, at publish and on every edit after. */
+export const MAX_TAGS_PER_PAGE = 12
+
 /**
  * The uniqueness key for a tag.
  *
