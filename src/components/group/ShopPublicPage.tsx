@@ -111,17 +111,20 @@ export function ShopPublicPage({
             </span>
           )}
 
-          {/* T160 — every viewer gets this, signed in or not. A signed-out
-              member is sent to sign-in, never to a dead end. */}
-          <div className="ml-auto">
-            <ReportControl
-              subjectId={shop.groupId}
-              subjectLabel={shop.displayName}
-              loggedIn={loggedIn}
-              returnTo={pagePath}
-              onSend={sendReportAction}
-            />
-          </div>
+          {/* T160 — every viewer but the owner gets this, signed in or not. A
+              signed-out member is sent to sign-in, never to a dead end. */}
+          {/* #267 — not on your own Page. */}
+          {!viewerOwnsPage && (
+            <div className="ml-auto">
+              <ReportControl
+                subjectId={shop.groupId}
+                subjectLabel={shop.displayName}
+                loggedIn={loggedIn}
+                returnTo={pagePath}
+                onSend={sendReportAction}
+              />
+            </div>
+          )}
         </div>
 
         {/* Owner only, and absent from the markup for everyone else — this
@@ -211,17 +214,21 @@ export function ShopPublicPage({
           </ul>
         )}
 
-        <div className="mt-2">
-          <FollowPageButton
-            groupId={shop.groupId}
-            isPrivate={shop.discoverability === 'private'}
-            loggedIn={loggedIn}
-            following={viewerFollows}
-            returnTo={pagePath}
-            onFollow={followPageAction}
-            onUnfollow={unfollowPageAction}
-          />
-        </div>
+        {/* #267 — not on your own Page: your row there is your authority, not
+            a follow, and "Following" would have offered to end it. */}
+        {!viewerOwnsPage && (
+          <div className="mt-2">
+            <FollowPageButton
+              groupId={shop.groupId}
+              isPrivate={shop.discoverability === 'private'}
+              loggedIn={loggedIn}
+              following={viewerFollows}
+              returnTo={pagePath}
+              onFollow={followPageAction}
+              onUnfollow={unfollowPageAction}
+            />
+          </div>
+        )}
       </header>
 
       {/* F037 — owner-only Locally Owned claim management. Rendered only when the

@@ -34,16 +34,24 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
  * server and the browser now render the same string, so a mismatch is a real
  * bug and should be allowed to shout.
  */
-export function BrowseResultCard({ result }: { result: BrowseResult }) {
+export function BrowseResultCard({
+  result,
+  as = 'li',
+}: {
+  result: BrowseResult
+  /** #270 — 'div' when the caller already provides the list item. */
+  as?: 'li' | 'div'
+}) {
   // F093 — a withheld announcement is a different card, and the choice lives
   // here rather than in BrowseSurface so that every surface rendering browse
   // results gets it without being told: the grid, the map's list, and whatever
   // renders results next.
-  if (result.withheld) return <WithheldAnnouncementCard result={result} />
+  if (result.withheld) return <WithheldAnnouncementCard result={result} as={as} />
 
   const isPost = result.resultKind === 'post'
   return (
     <TileCard
+      as={as}
       title={result.name}
       tagline={browseCardTagline(result)}
       location={browseCardLocation(result)}
