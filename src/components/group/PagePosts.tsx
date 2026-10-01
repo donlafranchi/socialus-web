@@ -26,6 +26,8 @@
 
 import { useState } from 'react'
 import type { PagePost } from '@/lib/groups/page-posts'
+import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
+import { isValidTagLabel } from '@/lib/groups/tags'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor } from './announcement-anchor'
@@ -59,6 +61,7 @@ interface PostInput {
   startsAt?: string | null
   endsAt?: string | null
   locationId?: string | null
+  tags?: string[]
 }
 
 interface EditInput {
@@ -67,6 +70,7 @@ interface EditInput {
   startsAt?: string | null
   endsAt?: string | null
   locationId?: string | null
+  tags?: string[]
 }
 
 interface Props {
@@ -139,6 +143,10 @@ export function PagePosts({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
+  // #286 — a post's own tags; none means it carries its Page's.
+  const [tags, setTags] = useState<TagInputValue>({ tags: [], draft: '' })
+  const [editTags, setEditTags] = useState<TagInputValue>({ tags: [], draft: '' })
+  const tagSet = (v: TagInputValue) => [...v.tags, v.draft].filter(isValidTagLabel)
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
   // with a compose box where you expected it. Shared with the signed-out list
@@ -235,6 +243,7 @@ export function PagePosts({
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
       locationId: resolved.locationId,
+      tags: tagSet(tags),
     })
     setBusy(false)
     if (!r.ok) {
@@ -250,11 +259,13 @@ export function PagePosts({
         startsAt: resolved.startsAt,
         endsAt: resolved.endsAt,
         locationLabel: resolved.locationLabel,
+        tags: tagSet(tags),
       },
       ...items,
     ])
     setDraft('')
     setWhen(emptyWhenWhere)
+    setTags({ tags: [], draft: '' })
   }
 
   const saveEdit = async (postId: string) => {
@@ -278,6 +289,7 @@ export function PagePosts({
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
+      tags: tagSet(editTags),
     })
     setBusy(false)
     if (!r.ok) {
@@ -294,6 +306,7 @@ export function PagePosts({
               body,
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
+              tags: tagSet(editTags),
               ...(editWhen.addingPlace ? { locationLabel: resolved.locationLabel } : {}),
             }
           : p,
@@ -323,6 +336,8 @@ export function PagePosts({
           />
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
+
+          <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
 
           <AudienceSwitch
             value={audience}
@@ -393,6 +408,7 @@ export function PagePosts({
                     idPrefix="page-post-edit"
                     placeLabel={post.locationLabel}
                   />
+                  <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -451,6 +467,7 @@ export function PagePosts({
                           setEditingId(post.id)
                           setEditDraft(post.body)
                           setEditWhen(whenWhereFrom(post))
+                          setEditTags({ tags: post.tags ?? [], draft: '' })
                           setError(null)
                         }}
                         className="text-xs underline"
