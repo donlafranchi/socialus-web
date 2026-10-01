@@ -41,12 +41,13 @@ import { createClient } from '@/lib/supabase-server'
 import { getBrowseFeed } from '@/lib/feed/browse-feed'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
+import { happeningWindows } from '@/lib/metro/happening'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
 import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
-import type { BrowseSnapshot } from '@/lib/browse/snapshot'
+import type { BrowseSnapshot, HappeningSnapshot } from '@/lib/browse/snapshot'
 
 export type { BrowseSnapshot }
 
@@ -75,7 +76,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     await waitingCountByMetro().catch(() => new Map<string, number>()),
   )
 
-  const base = { metros, signedIn: Boolean(user) }
+  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
   }
@@ -85,6 +86,9 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
   const followingPromise = user
     ? followedFeed(supabase, user.id, scope.metro.id)
     : Promise.resolve([] as BrowseResult[])
+
+  // F091 — signed in only: post rows reach no signed-out reader (F093).
+  const happeningPromise = user ? happeningRows(supabase, scope.metro.id) : Promise.resolve(NO_ROWS)
 
   // F093 — SIGNED OUT, ANNOUNCEMENTS COME FROM THE WITHHELD PATH.
   //
@@ -124,6 +128,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     const withheld = await withheldPromise
     return {
       ...base,
+      happening: await happeningPromise,
       results: mergeByRecency(results, withheld),
       following,
       metro: scope.metro,
@@ -139,6 +144,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
       ...base,
       results: [],
       following: await followingPromise,
+      happening: await happeningPromise,
       metro: scope.metro,
       chosen: scope.chosen,
       failed: true,
@@ -189,6 +195,37 @@ async function followedFeed(
   } catch (error) {
     console.error('[loadBrowse] following feed failed:', (error as Error).message)
     return []
+  }
+}
+
+const NO_ROWS: HappeningSnapshot = { today: [], thisWeek: [], thisWeekend: [] }
+const ROW_LIMIT = 20
+
+/**
+ * F091 — one time-windowed, soonest-first read per row. Like the following
+ * row, a failure costs the rows, never the surface: an absent row and a broken
+ * one read the same, and both are logged.
+ */
+async function happeningRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  metroId: string,
+): Promise<HappeningSnapshot> {
+  const w = happeningWindows()
+  const row = (win: { from: string; to: string }) =>
+    getBrowseFeed(supabase, {
+      scope: { metroId },
+      resultKinds: ['post'],
+      startsFrom: win.from,
+      startsBefore: win.to,
+      sort: 'soonest',
+      limit: ROW_LIMIT,
+    })
+  try {
+    const [today, thisWeek, thisWeekend] = await Promise.all([row(w.today), row(w.thisWeek), row(w.thisWeekend)])
+    return { today, thisWeek, thisWeekend }
+  } catch (error) {
+    console.error('[loadBrowse] happening rows failed:', (error as Error).message)
+    return NO_ROWS
   }
 }
 

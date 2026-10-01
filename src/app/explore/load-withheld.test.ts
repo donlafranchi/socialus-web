@@ -156,12 +156,47 @@ describe('signed in — criterion 6, no change whatsoever', () => {
   it('asks browse_feed for both kinds, as before', async () => {
     signedIn()
     await loadBrowse(null)
-    expect(getBrowseFeed.mock.calls[0]![1].resultKinds ?? null).toBeNull()
+    // F091's rows are their own reads (sorted soonest); this is the public one.
+    const publicRead = getBrowseFeed.mock.calls.find(
+      (c) => !(c[1] as { sort?: string; audience?: unknown }).sort && !(c[1] as { audience?: unknown }).audience,
+    )!
+    expect(publicRead[1].resultKinds ?? null).toBeNull()
   })
 
   it('still receives announcements with their bodies', async () => {
     signedIn()
     const snap = await loadBrowse(null)
     expect(snap.results.find((r) => r.resultKind === 'post')?.body).toBe('secret')
+  })
+})
+
+// F091 — "What's happening…" rows: one time-windowed, soonest-first read per
+// row, for a signed-in reader. Signed out, post rows are withheld (F093), so
+// there are no rows (the open question on #257).
+describe("what's happening", () => {
+  // [guards F091.1 partial: the window and order are browse_feed's, covered in tests/migrations-browse-feed.test.ts; this checks each row asks for them]
+  it('signed in, asks for posts inside each window, soonest first', async () => {
+    signedIn()
+    await loadBrowse(null)
+    const rowCalls = getBrowseFeed.mock.calls.filter((c) => (c[1] as { sort?: string }).sort === 'soonest')
+    expect(rowCalls).toHaveLength(3)
+    for (const [, opts] of rowCalls) {
+      expect(opts).toMatchObject({ resultKinds: ['post'], scope: { metroId: METRO.id } })
+      expect((opts as { startsFrom: string }).startsFrom).toBeTruthy()
+      expect((opts as { startsBefore: string }).startsBefore).toBeTruthy()
+    }
+  })
+
+  it('signed in, hands the rows to the surface', async () => {
+    signedIn()
+    const snap = await loadBrowse(null)
+    expect(snap.happening).toMatchObject({ today: expect.any(Array), thisWeek: expect.any(Array), thisWeekend: expect.any(Array) })
+  })
+
+  it('signed out, has no rows and makes no row reads', async () => {
+    signedOut()
+    const snap = await loadBrowse(null)
+    expect(snap.happening).toEqual({ today: [], thisWeek: [], thisWeekend: [] })
+    expect(getBrowseFeed.mock.calls.filter((c) => (c[1] as { sort?: string }).sort === 'soonest')).toHaveLength(0)
   })
 })

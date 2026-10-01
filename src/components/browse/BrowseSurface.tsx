@@ -28,6 +28,7 @@ import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapTog
 import { ScopeSheet } from '@/components/explore/ScopeSheet'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
+import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import {
@@ -191,6 +192,7 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
       <FollowingRow results={snapshot.following} />
+      <HappeningRows rows={snapshot.happening} />
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}
