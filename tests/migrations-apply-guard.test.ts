@@ -77,9 +77,13 @@ describe('the preflight fails closed and is useful when it fails', () => {
 // any of their code merged, and signed-out Pages 404'd until it did.
 import { spawnSync } from 'node:child_process'
 
-const guard = resolve(ROOT, 'scripts/migrations-apply-guard.sh')
+const guardScript = resolve(ROOT, 'scripts/migrations-apply-guard.sh')
 const runGuard = (env: Record<string, string>) => {
-  const r = spawnSync('bash', [guard], { env: { PATH: process.env.PATH ?? '', ...env }, encoding: 'utf8' })
+  const args = [guardScript]
+  const r = spawnSync('bash', args, {
+    env: { PATH: process.env.PATH ?? '', ...env } as unknown as NodeJS.ProcessEnv,
+    encoding: 'utf8',
+  })
   return { code: r.status, out: `${r.stdout}${r.stderr}` }
 }
 
