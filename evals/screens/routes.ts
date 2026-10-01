@@ -39,8 +39,9 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S012', 'S013'],
     path: () => '/explore',
     act: async (page) => {
-      const toggle = page.getByRole('button', { name: /map/i }).first()
-      if (await toggle.isVisible().catch(() => false)) await toggle.click()
+      // Under 1024px the pill switches to the map; wider, the map is already beside the list.
+      const pill = page.getByTestId('view-pill')
+      if (await pill.isVisible().catch(() => false)) await pill.click()
     },
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },
