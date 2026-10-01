@@ -9,7 +9,7 @@ Don approved option B on 2026-10-01. It clears the accepted risk "the browser te
   - the must-fail spec, and the job stops if it passes
   - the feature evals
   - the screenshot matrix, uploaded as an artifact
-- **Feature evals:** 238 pass locally, stable across two runs. 48 that fail against today's rulings (public profiles, rosters, seller names and so on) are excluded by exact title in `evals/quarantine.ts`. `tests/eval-quarantine.test.ts` fails on an entry whose title no longer exists.
+- **Feature evals:** 238 pass locally, stable across two runs. 50 entries (whole blocks for two) that fail against today's rulings (public profiles, rosters, seller names and so on) are excluded by exact title in `evals/quarantine.ts`. `tests/eval-quarantine.test.ts` fails on an entry whose title no longer exists.
 - **Matrix:** 44 screens × 13 personas × 6 widths. Each test takes six screenshots, so its time limit is 240s and its network-idle wait is capped at 5s; at the default 30s, 163 timed out locally on a dev server.
 - **First finding:** signed-in Explore nested an `<li>` in an `<li>` and failed to hydrate, fixed in #271. #266 had the same pattern and is fixed on its branch.
 - **Join approval:** not built, so the confirmed and unconfirmed members differ only in `confirmed_at`.
