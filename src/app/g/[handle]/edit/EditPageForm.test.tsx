@@ -264,7 +264,8 @@ describe('EditPageForm — unsaved changes', () => {
     expect(leave()).toBe(true)
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(screen.getByTestId('edit-saved')).toBeInTheDocument())
-    expect(leave()).toBe(false)
+    // The listener comes off in an effect after that render; wait for it.
+    await waitFor(() => expect(leave()).toBe(false))
   })
 })
 
