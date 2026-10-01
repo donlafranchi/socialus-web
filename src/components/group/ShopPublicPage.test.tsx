@@ -202,7 +202,7 @@ describe('F035 Beats 4 & 5 — the follow control is present for both viewers', 
 // Trace: planning/scenario-F058.md acceptance 1 and 2.
 
 describe('T160 — the report control on the Page surface', () => {
-  it('every viewer gets the ⋯ control, signed in or not', () => {
+  it('every viewer but the owner gets the ⋯ control, signed in or not', () => {
     renderShop()
     expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
     cleanup()
@@ -301,5 +301,26 @@ describe('F093 — the Page, signed out', () => {
     renderShop({ loggedIn: true, posts: [], viewerOwnsPage: true })
     expect(screen.getByTestId('page-posts')).toBeInTheDocument()
     expect(screen.queryByTestId('page-posts-withheld')).not.toBeInTheDocument()
+  })
+})
+
+// #267 — a Page's owner sees neither Follow nor Report on their own Page.
+// Unfollowing ran group.unfollow on the row that holds their authority.
+describe('#267 — the owner on their own Page', () => {
+  it('sees no follow control, even though their own row reads as following', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, viewerFollows: true })
+    expect(screen.queryByTestId('page-follow')).toBeNull()
+    expect(screen.queryByTestId('page-follow-signin')).toBeNull()
+  })
+
+  it('sees no report control', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true })
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+  })
+
+  it('a signed-in visitor who does not own it still sees both', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false })
+    expect(screen.getByTestId('page-follow')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
   })
 })
