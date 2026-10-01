@@ -104,3 +104,12 @@ describe('F093 — the signed-out form', () => {
     expect(screen.getByTestId('browse-post-when')).toBeInTheDocument()
   })
 })
+
+// #260 — the card image says what the card says, not nothing.
+describe('the card image', () => {
+  it('has alt text from the title, when, and place', () => {
+    render(<BrowseResultCard result={post({ photoUrl: 'https://cdn.test/a.jpg', locationLabel: 'Church Hall' })} />)
+    const img = screen.getByRole('img')
+    expect(img.getAttribute('alt')).toBe(`SacRiver Floaters, ${formatCardWhen(INSTANT)}, Church Hall`)
+  })
+})

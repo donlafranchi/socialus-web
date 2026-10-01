@@ -350,3 +350,16 @@ describe('arriving from a browse card', () => {
     expect(document.getElementById('announcement-p-1')).not.toHaveAttribute('data-highlighted')
   })
 })
+
+// #260 — a dated announcement can be added to a calendar; an undated one cannot.
+describe('add to calendar', () => {
+  it('is offered on an announcement with a start time', () => {
+    renderPosts({ canPost: false, posts: [postFixture({ id: 'p-cal', startsAt: '2026-09-11T02:00:00Z' })] })
+    expect(screen.getByTestId('add-to-calendar').getAttribute('download')).toMatch(/\.ics$/)
+  })
+
+  it('is not offered on one without', () => {
+    renderPosts({ canPost: false, posts: [postFixture({ id: 'p-nocal', startsAt: null })] })
+    expect(screen.queryByTestId('add-to-calendar')).toBeNull()
+  })
+})

@@ -39,6 +39,7 @@ import {
 } from './AnnouncementFields'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
+import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
 import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPlaceFields'
 
 const BODY_LIMIT = 5000
@@ -391,6 +392,17 @@ export function PagePosts({
                       {post.startsAt && post.locationLabel ? ' · ' : null}
                       {post.locationLabel}
                     </p>
+                  )}
+
+                  {post.startsAt && (
+                    <div className="mt-2">
+                      <AddToCalendarLink
+                        uid={`${post.id}@socialus.org`}
+                        title={post.body.split('\n')[0].slice(0, 120)}
+                        start={post.startsAt}
+                        location={post.locationLabel ?? null}
+                      />
+                    </div>
                   )}
 
                   <div className="mt-2 flex items-center gap-3">

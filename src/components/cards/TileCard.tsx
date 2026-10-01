@@ -39,6 +39,8 @@ export interface TileCardProps {
   emoji?: string
   href?: string | null
   action?: ReactNode
+  /** #260 — what the image is, in the card's own words. Empty means decorative. */
+  imageAlt?: string
 }
 
 export function TileCard({
@@ -49,6 +51,7 @@ export function TileCard({
   emoji = '🌱',
   href,
   action,
+  imageAlt = '',
 }: TileCardProps) {
   const body = (
     <>
@@ -59,7 +62,7 @@ export function TileCard({
       >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+          <img src={imageUrl} alt={imageAlt} className="h-full w-full object-cover" />
         ) : (
           <span data-testid="tile-emoji" aria-hidden>
             {emoji}
