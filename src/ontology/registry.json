@@ -292,6 +292,7 @@
     "metro.waitlist_join_anonymous",
     "report.create",
     "report.decide",
-    "report.reverse"
+    "report.reverse",
+    "tag.review"
   ]
 }

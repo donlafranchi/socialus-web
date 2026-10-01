@@ -31,6 +31,8 @@ import {
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
+export { tagReview, tagReviewInput, type TagReviewInput } from './tag'
+import { tagReview } from './tag'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import type { NamedActionHandler } from './_lib/handler'
 
@@ -71,6 +73,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // past one by recording a new decision that points at it.
   'report.decide': reportDecide as unknown as NamedActionHandler<unknown, unknown>,
   'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
+  // #287 — the operator marks a tag safe or unsafe, after it appears.
+  'tag.review': tagReview as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
   // T167 — F076 c13-15: the same step for someone with no account. Separate
