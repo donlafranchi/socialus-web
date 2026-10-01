@@ -5,21 +5,16 @@
 // Onboarding asks for one thing: a display name. Everything else is derived:
 //   - saveProfileAction        → members.display_name (owner-update RLS; profile
 //                                edits are not declarations, so no event).
-//   - setHomeLocalityAction    → member.place_interest.add (action layer; emits).
 //   - addInterestsAction       → member.interests.add (action layer; emits).
-//   - completeOnboardingAction → what the flow calls: name, then the default
-//                                home locality, server-side and unseen.
+//   - completeOnboardingAction → what the flow calls: the name, then the login
+//                                marked onboarded. No place (#205).
 //
-// Locality + interests go through the action layer (resolveActionContext →
+// Interests go through the action layer (resolveActionContext →
 // invoke) exactly like createProductAction (T078).
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { memberPlaceInterestAdd, memberInterestsAdd, ActionError } from '@/actions'
-
-// 'use server' modules may only export async functions — keep this module-local.
-/** The Good Place (city) — every new Member's default primary_home at b1. */
-const DEFAULT_HOME_PLACE_ID = '10000000-0000-4000-8000-000000000003'
+import { memberInterestsAdd, ActionError } from '@/actions'
 
 async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
@@ -79,31 +74,18 @@ export async function saveProfileAction(input: SaveProfileInput): Promise<SavePr
   return { ok: true }
 }
 
-export async function setHomeLocalityAction(input: {
-  placeId: string
-}): Promise<{ ok: true }> {
-  const memberId = await requireMemberId()
-  const ctx = resolveActionContext({ actingMemberId: memberId })
-  try {
-    await memberPlaceInterestAdd(ctx, { placeId: input.placeId, scopeKind: 'primary_home' })
-  } catch (err) {
-    if (err instanceof ActionError) throw new Error(err.message)
-    throw err
-  }
-  return { ok: true }
-}
-
 /**
- * The whole of onboarding: save the display name, then default the Member's
- * primary_home to The Good Place. The locality write is invisible to the
- * Member — there is no picker.
+ * The whole of onboarding: save the display name and mark the login onboarded.
+ * #205 — no place is written for anyone (F081 criterion 7). Home is the metro
+ * the member's zip determines, which lands with F081's zip step.
  */
 export async function completeOnboardingAction(
   input: SaveProfileInput,
 ): Promise<SaveProfileResult> {
   const res = await saveProfileAction(input)
   if (!res.ok) return res
-  await setHomeLocalityAction({ placeId: DEFAULT_HOME_PLACE_ID })
+  const supabase = await createClient()
+  await supabase.auth.updateUser({ data: { onboarded: true } })
   return { ok: true }
 }
 
