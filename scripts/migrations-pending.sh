@@ -58,6 +58,9 @@ fi
 
 pending="$(comm -23 <(echo "$local_versions") <(echo "$remote_versions"))"
 
+# #264: the guard after this step reads what would be applied from here.
+[ -n "${PENDING_OUT:-}" ] && printf '%s\n' "$pending" > "$PENDING_OUT"
+
 if [ -n "$pending" ]; then
   echo "This ref has $(echo "$pending" | wc -l | tr -d ' ') migration(s) to apply:"
   echo
