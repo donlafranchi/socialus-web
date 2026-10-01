@@ -108,7 +108,8 @@ describe('signed out — criterion 7, the rows stay, in withheld form', () => {
   it('reads them from the withheld path', async () => {
     signedOut()
     await loadBrowse(null)
-    expect(getWithheldAnnouncements).toHaveBeenCalledTimes(1)
+    // Once for the week's cards, once for the today row (F091, 2026-10-01).
+    expect(getWithheldAnnouncements).toHaveBeenCalledTimes(2)
   })
 
   it('asks browse_feed for Pages only, so one announcement cannot arrive twice', async () => {
@@ -193,10 +194,30 @@ describe("what's happening", () => {
     expect(snap.happening).toMatchObject({ today: expect.any(Array), thisWeek: expect.any(Array), thisWeekend: expect.any(Array) })
   })
 
-  it('signed out, has no rows and makes no row reads', async () => {
+  it('signed out, reads no post row and fills no week or weekend row', async () => {
     signedOut()
     const snap = await loadBrowse(null)
-    expect(snap.happening).toEqual({ today: [], thisWeek: [], thisWeekend: [] })
+    expect(snap.happening.thisWeek).toEqual([])
+    expect(snap.happening.thisWeekend).toEqual([])
     expect(getBrowseFeed.mock.calls.filter((c) => (c[1] as { sort?: string }).sort === 'soonest')).toHaveLength(0)
+  })
+
+  // [guards F091.7 partial: the loader; the card itself is WithheldAnnouncementCard's tests]
+  it('signed out, the today row is one withheld card per Page that posted today (Don, 2026-10-01)', async () => {
+    signedOut()
+    const quiet = { ...withheldRow, resultId: 'p-2', groupId: 'g-2', announcementCount: 0 }
+    getWithheldAnnouncements.mockImplementation(async (_c: unknown, opts: { period?: { from: string; to: string } }) =>
+      opts.period && Date.parse(opts.period.to) - Date.parse(opts.period.from) <= 25 * 3600_000
+        ? [withheldRow, quiet]
+        : [withheldRow],
+    )
+    const snap = await loadBrowse(null)
+    expect(snap.happening.today.map((r) => r.resultId)).toEqual(['p-1'])
+    expect(snap.happening.today.every((r) => r.withheld && r.body === null)).toBe(true)
+    const todayCall = getWithheldAnnouncements.mock.calls
+      .map((c) => (c[1] as { period: { from: string; to: string } }).period)
+      .find((p) => Date.parse(p.to) - Date.parse(p.from) <= 25 * 3600_000)
+    expect(todayCall).toBeDefined()
+    expect(new Date(todayCall!.from).getTime()).toBeLessThanOrEqual(Date.now())
   })
 })

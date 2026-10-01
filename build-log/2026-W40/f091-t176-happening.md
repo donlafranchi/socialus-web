@@ -17,3 +17,5 @@ Tests (each seen failing first):
 - loader tests (`[guards F091.1 partial]`)
 
 No migration.
+
+**2026-10-01 — signed out, the today row** (Don, answering this Issue): one "Sign up to see what's happening" card for each Page that posted something today, the same card as the signed-out front door. "Posted today" runs midnight to midnight in the metro and uses when it was posted, never when it happens, through the same withheld read. The week and weekend rows stay empty signed out. Loader test seen failing first.

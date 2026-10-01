@@ -87,8 +87,11 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     ? followedFeed(supabase, user.id, scope.metro.id)
     : Promise.resolve([] as BrowseResult[])
 
-  // F091 — signed in only: post rows reach no signed-out reader (F093).
-  const happeningPromise = user ? happeningRows(supabase, scope.metro.id) : Promise.resolve(NO_ROWS)
+  // F091 — signed in, the rows are posts. Signed out, only the today row
+  // fills, with the front door's withheld card (Don, 2026-10-01).
+  const happeningPromise = user
+    ? happeningRows(supabase, scope.metro.id)
+    : signedOutToday(supabase, scope.metro.id)
 
   // F093 — SIGNED OUT, ANNOUNCEMENTS COME FROM THE WITHHELD PATH.
   //
@@ -225,6 +228,29 @@ async function happeningRows(
     return { today, thisWeek, thisWeekend }
   } catch (error) {
     console.error('[loadBrowse] happening rows failed:', (error as Error).message)
+    return NO_ROWS
+  }
+}
+
+/**
+ * Signed out: one "Sign up to see what's happening" card for each Page that
+ * posted something today. "Today" is when it was posted, never when it
+ * happens — the withheld read counts by created_at so nobody can sweep it to
+ * learn when things take place.
+ */
+async function signedOutToday(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  metroId: string,
+): Promise<HappeningSnapshot> {
+  try {
+    const rows = await getWithheldAnnouncements(supabase, {
+      scope: { metroId },
+      period: happeningWindows().postedToday,
+      limit: ROW_LIMIT,
+    })
+    return { ...NO_ROWS, today: rows.filter((r) => (r.announcementCount ?? 0) > 0) }
+  } catch (error) {
+    console.error('[loadBrowse] signed-out today row failed:', (error as Error).message)
     return NO_ROWS
   }
 }

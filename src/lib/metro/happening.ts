@@ -13,6 +13,8 @@ export interface Window {
 }
 
 export interface HappeningWindows {
+  /** Midnight to midnight in the metro: what "posted today" means. */
+  postedToday: Window
   today: Window
   thisWeek: Window
   thisWeekend: Window
@@ -27,6 +29,7 @@ export function happeningWindows(now: Date = new Date(), tz: string = METRO_TIME
   const nextMonday = midnight(shiftDays(today, toMonday))
   const saturday = midnight(shiftDays(today, toMonday - 2))
   return {
+    postedToday: { from: midnight(today), to: midnight(shiftDays(today, 1)) },
     today: { from: fromNow, to: midnight(shiftDays(today, 1)) },
     thisWeek: { from: fromNow, to: nextMonday },
     thisWeekend: { from: saturday > fromNow ? saturday : fromNow, to: nextMonday },
