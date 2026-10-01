@@ -23,6 +23,8 @@
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
+import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
+import { textOperator } from '@/lib/notify/operator-sms'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -56,6 +58,8 @@ export const reportCreateInput = z.object({
   // 'group' is the only value today. Posts join when posts exist; Items never
   // do (model.md § There are no Items).
   subjectKind: z.literal('group'),
+  // F078 criterion 9 — no report without a reason the reporter chose.
+  category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
   // Bounded generously here as a guard against absurd input; the real limit is
   // applied to the trimmed body below, so a 2000-character report that happens
@@ -105,7 +109,8 @@ export const reportCreate = defineHandler(
       )
     }
 
-    return withTransaction(async (client) => {
+    let textAfterCommit = false
+    const result = await withTransaction(async (client) => {
       // `reports.subject_id` carries no foreign key — it is polymorphic by
       // design, so posts join later without a change of shape. The handler is
       // what keeps it honest.
@@ -115,11 +120,13 @@ export const reportCreate = defineHandler(
         photo_hidden_at: Date | null
         photo_hide_locked_url: string | null
         builder_on_real: boolean
+        reporter_is_builder: boolean
       }>(
         // #280 — a builder's report on a real Page is stored and queued, and
         // never hides anything a real member sees.
         `select id, photo_url, photo_hidden_at, photo_hide_locked_url,
-                public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real
+                public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+                public.is_builder($2) as reporter_is_builder
            from public.groups
           where id = $1`,
         [input.subjectId, reporterMemberId],
@@ -167,10 +174,10 @@ export const reportCreate = defineHandler(
 
       const insertRes = await client.query<{ id: string }>(
         `insert into public.reports
-           (reporter_member_id, subject_kind, subject_id, body, created_at)
-         values ($1, $2, $3, $4, $5)
+           (reporter_member_id, subject_kind, subject_id, body, category, created_at)
+         values ($1, $2, $3, $4, $5, $6)
          returning id`,
-        [reporterMemberId, input.subjectKind, input.subjectId, body, ctx.now()],
+        [reporterMemberId, input.subjectKind, input.subjectId, body, input.category, ctx.now()],
       )
       const reportId = insertRes.rows[0]!.id
 
@@ -202,13 +209,18 @@ export const reportCreate = defineHandler(
         subject.photo_hide_locked_url !== null &&
         subject.photo_hide_locked_url === subject.photo_url
 
+      // F078 criterion 8 — sensitive content and threat of harm hide whatever
+      // the per-member limits say. The restore lock still holds: Don has
+      // already looked at that photo.
+      const urgent = URGENT_CATEGORIES.includes(input.category)
+      if (urgent && !subject.reporter_is_builder && !subject.builder_on_real) textAfterCommit = true
+
       const shouldHide =
         !subject.builder_on_real &&
         subject.photo_url !== null &&
         subject.photo_hidden_at === null &&
         !isLocked &&
-        priorBySameMember === 0 &&
-        openByReporter < MAX_OPEN_REPORTS_PER_REPORTER
+        (urgent || (priorBySameMember === 0 && openByReporter < MAX_OPEN_REPORTS_PER_REPORTER))
 
       if (!shouldHide) {
         return { reportId, photoHidden: false }
@@ -236,5 +248,15 @@ export const reportCreate = defineHandler(
 
       return { reportId, photoHidden: true }
     })
+
+    // After the commit, so a text never announces a report that rolled back.
+    // Names the reason and where to look; never the reporter or what they wrote.
+    if (textAfterCommit) {
+      const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.socialus.org'
+      await textOperator(
+        `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? ' and hid a Page photo' : ''}. Review: ${site}/admin/reports`,
+      )
+    }
+    return result
   },
 )

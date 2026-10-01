@@ -19,6 +19,7 @@
 // blurred until then. The operator is a person who will do this many times, and
 // the worst thing in the queue should not be the first thing their eye meets.
 
+import { categoryLabel } from '@/lib/reports/categories'
 import { useState, useTransition } from 'react'
 import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
 import { reasonsFor, reasonLabel, reasonNeedsNote, type ReasonCode, type Outcome } from '@/lib/admin/reason-codes'
@@ -94,6 +95,11 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
         </p>
       </div>
 
+      {report.category && (
+        <p data-testid="report-category" className="text-sm font-medium text-[var(--color-fg)]">
+          {categoryLabel(report.category)}
+        </p>
+      )}
       <blockquote className="border-l-2 border-[var(--color-border)] pl-3 text-sm text-[var(--color-fg)]">
         {report.body}
       </blockquote>
