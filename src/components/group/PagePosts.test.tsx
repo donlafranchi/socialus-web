@@ -29,6 +29,7 @@ const POST = {
   createdAt: '2026-09-20T12:00:00.000Z',
   updatedAt: '2026-09-20T12:00:00.000Z',
   startsAt: null as string | null,
+  endsAt: null as string | null,
   locationLabel: null as string | null,
 }
 
@@ -361,5 +362,47 @@ describe('add to calendar', () => {
   it('is not offered on one without', () => {
     renderPosts({ canPost: false, posts: [postFixture({ id: 'p-nocal', startsAt: null })] })
     expect(screen.queryByTestId('add-to-calendar')).toBeNull()
+  })
+})
+
+// #262 — an optional end time, the same day as the start.
+describe('an end time on it', () => {
+  const typeStart = () => {
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Bread class Thursday.' } })
+    fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '19:00' } })
+  }
+
+  it('sends the end as an instant in the metro’s zone', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '21:00' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(
+        expect.objectContaining({ startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }),
+      ),
+    )
+  })
+
+  it('sends no end when none was given', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ endsAt: null })))
+  })
+
+  it('refuses an end before the start, and says so', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '18:00' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    expect(await screen.findByTestId('page-post-error')).toBeInTheDocument()
+    expect(onPost).not.toHaveBeenCalled()
+  })
+
+  it('shows the range back', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }] })
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
   })
 })

@@ -38,7 +38,7 @@ import { ServicePublicPage } from '@/components/item/ServicePublicPage'
 import {
   splitGatheringSlug,
   resolveGathering,
-  nextOccurrence,
+  gatheringWhenLabel,
 } from '@/lib/items/resolve-gathering'
 import { GatheringPublicPage } from '@/components/item/GatheringPublicPage'
 import {
@@ -55,21 +55,6 @@ import {
 import { VenuePublicPage } from '@/components/venue/VenuePublicPage'
 
 /** Human-readable next-occurrence date for a gathering (real clock). */
-function gatheringOccurrenceLabel(
-  startsAt: string | null,
-  recurrenceRule: string | null,
-): string | null {
-  const occ = nextOccurrence(startsAt, recurrenceRule, new Date())
-  return occ
-    ? occ.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null
-}
-
 interface Props {
   params: Promise<{ slug: string[] }>
 }
@@ -237,10 +222,7 @@ export default async function PlacePage({ params }: Props) {
       <GatheringPublicPage
         gathering={gathering}
         groupHref={groupHref}
-        nextOccurrenceLabel={gatheringOccurrenceLabel(
-          gathering.startsAt,
-          gathering.recurrenceRule,
-        )}
+        nextOccurrenceLabel={gatheringWhenLabel(gathering.startsAt, gathering.endsAt, gathering.recurrenceRule)}
         shareUrl={shareUrl}
       />
     )
