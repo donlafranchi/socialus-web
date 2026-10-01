@@ -132,18 +132,32 @@ describe('the report sheet', () => {
 })
 
 describe('sending', () => {
-  function openAndSend(body = 'This photo does not belong here.') {
+  function openAndSend(body = 'This photo does not belong here.', reason: RegExp | null = /^spam$/i) {
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    if (reason) fireEvent.click(screen.getByRole('radio', { name: reason }))
     fireEvent.change(screen.getByRole('textbox'), { target: { value: body } })
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
   }
+
+  // [guards F078.9]
+  it('will not send without a reason chosen', () => {
+    renderControl()
+    openAndSend('words, but no reason', null)
+    expect(send).not.toHaveBeenCalled()
+  })
+
+  it('offers sensitive content as a reason, naming what it covers', () => {
+    renderControl()
+    openAndSend('x', null)
+    expect(screen.getByRole('radio', { name: /sensitive content.*children.*animals.*fend for themselves/i })).toBeInTheDocument()
+  })
 
   it('passes the subject and the member\'s own words to the action', async () => {
     renderControl()
     openAndSend('the photo is stolen')
     await waitFor(() => {
-      expect(send).toHaveBeenCalledWith({ subjectId: 'grp-1', body: 'the photo is stolen' })
+      expect(send).toHaveBeenCalledWith({ subjectId: 'grp-1', category: 'spam', body: 'the photo is stolen' })
     })
   })
 

@@ -14,6 +14,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { X } from 'lucide-react'
+import { REPORT_CATEGORIES, type ReportCategory } from '@/lib/reports/categories'
 
 const FOCUSABLE =
   'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -25,7 +26,7 @@ interface Props {
   open: boolean
   subjectLabel: string
   onClose: () => void
-  onSend: (body: string) => Promise<void>
+  onSend: (category: ReportCategory, body: string) => Promise<void>
   /** Where focus goes when the sheet closes. Defaults to whatever was focused
    *  when it opened — which is wrong when the sheet is opened from a menu item
    *  that unmounts with its menu, so callers in that shape pass the control. */
@@ -34,6 +35,7 @@ interface Props {
 
 export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo }: Props) {
   const [body, setBody] = useState('')
+  const [category, setCategory] = useState<ReportCategory | null>(null)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -83,12 +85,13 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
     const trimmed = body.trim()
     // An empty report tells the operator nothing. Refused here as well as in
     // the handler, so the member is told before the round trip.
-    if (trimmed.length === 0 || sending) return
+    if (trimmed.length === 0 || !category || sending) return
     setSending(true)
     setError(null)
     try {
-      await onSend(trimmed)
+      await onSend(category, trimmed)
       setBody('')
+      setCategory(null)
     } catch (err) {
       // The words stay in the box. Being asked to retype a report of something
       // upsetting is its own small harm.
@@ -135,6 +138,26 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
             This goes to a person, not a queue.
           </p>
 
+          {/* F078 criterion 9 — no report without a reason the reporter chose. */}
+          <fieldset className="mt-4">
+            <legend className="text-sm font-medium text-[var(--color-charcoal-900)]">Why are you reporting this?</legend>
+            <div className="mt-2 space-y-1">
+              {REPORT_CATEGORIES.map((c) => (
+                <label key={c.value} className="flex min-h-11 items-center gap-3 text-sm text-[var(--color-charcoal-900)]">
+                  <input
+                    type="radio"
+                    name={`${titleId}-category`}
+                    value={c.value}
+                    checked={category === c.value}
+                    onChange={() => setCategory(c.value)}
+                    className="h-4 w-4 accent-[var(--color-charcoal-700)]"
+                  />
+                  {c.label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
           <label htmlFor={`${titleId}-body`} className="mt-4 block text-sm font-medium text-[var(--color-charcoal-900)]">
             What&rsquo;s wrong?
           </label>
@@ -162,7 +185,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
           <button
             type="button"
             onClick={submit}
-            disabled={sending || body.trim().length === 0}
+            disabled={sending || body.trim().length === 0 || !category}
             className="w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-sm font-semibold text-white disabled:opacity-50"
           >
             {sending ? 'Sending…' : 'Send'}

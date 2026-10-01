@@ -23,6 +23,7 @@ const DECISION: PastDecision = {
 const REPORT: QueuedReport = {
   reportId: 'r1',
   body: 'This photo does not belong on a neighbourhood app.',
+  category: 'sensitive_content',
   reportedAt: new Date('2026-09-15T09:00:00Z'),
   hiddenAt: new Date('2026-09-15T09:00:00Z'),
   removedAt: null,
@@ -190,5 +191,17 @@ describe('who posted it', () => {
     renderEntry()
     expect(screen.getByText(/Sam R\./)).toBeInTheDocument()
     expect(screen.getByText(/@sam-r/)).toBeInTheDocument()
+  })
+})
+
+describe('F078 — the operator sees the reason the reporter chose', () => {
+  it('shows it above what they wrote', () => {
+    renderEntry()
+    expect(screen.getByTestId('report-category')).toHaveTextContent(/sensitive content/i)
+  })
+
+  it('shows nothing for a report filed before reasons existed', () => {
+    renderEntry({ category: null })
+    expect(screen.queryByTestId('report-category')).toBeNull()
   })
 })

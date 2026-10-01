@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { reportCreate, ActionError } from '@/actions'
+import type { ReportCategory } from '@/lib/reports/categories'
 
 async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
@@ -25,6 +26,7 @@ async function requireMemberId(): Promise<string> {
 
 export async function sendReportAction(input: {
   subjectId: string
+  category: ReportCategory
   body: string
 }): Promise<{ ok: true }> {
   const memberId = await requireMemberId()
@@ -32,6 +34,7 @@ export async function sendReportAction(input: {
   try {
     await reportCreate(ctx, {
       subjectKind: 'group',
+      category: input.category,
       subjectId: input.subjectId,
       body: input.body,
     })
