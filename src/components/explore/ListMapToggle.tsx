@@ -1,9 +1,8 @@
 'use client'
 
-// T116 — the inline List/Map toggle (F044). Inline, in the document flow, so
-// it scrolls with the results: Browse carries two fixed layers (the sticky
-// search row and the nav) and a third would compress the scrollable area it
-// sits in.
+// T116 — the List/Map tablist (F044). T187 moved it out of the results: it
+// now docks in the sticky filter bar, at 1024–1439px with the owner panel
+// open, and nowhere else (F059 criterion 5).
 //
 // T156 — this is now the only tablist pointing at the results container, and
 // that container is a labelled `region` rather than a `tabpanel`. The kind
@@ -52,7 +51,7 @@ export function ListMapToggle({ view, onChange }: ListMapToggleProps) {
       aria-label="View"
       aria-orientation="horizontal"
       onKeyDown={onKeyDown}
-      className="my-6 flex items-center justify-center gap-2"
+      className="flex items-center gap-1"
     >
       {VIEWS.map((v, i) => {
         const isSelected = i === selectedIndex
@@ -78,7 +77,7 @@ export function ListMapToggle({ view, onChange }: ListMapToggleProps) {
             // the regression is visible to a test and to a screenshot instead
             // of only to a keyboard user. Nothing paints until
             // `focus-visible:outline` supplies a style.
-            className={`press inline-flex min-h-11 items-center gap-1.5 rounded-full border px-5 text-sm font-medium outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+            className={`press inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
               isSelected
                 ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
                 : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'

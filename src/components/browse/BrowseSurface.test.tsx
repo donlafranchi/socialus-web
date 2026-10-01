@@ -136,11 +136,9 @@ describe('T156 — the results region', () => {
     expect(region).toHaveAccessibleName(/Sacramento-Roseville/)
   })
 
-  it('the view tablist points at it', () => {
+  it('the view pill points at it', () => {
     render(<BrowseSurface initial={snapshot()} />)
-    for (const tab of screen.getAllByRole('tab')) {
-      expect(tab).toHaveAttribute('aria-controls', 'browse-results')
-    }
+    expect(screen.getByTestId('view-pill')).toHaveAttribute('aria-controls', 'browse-results')
   })
 })
 
