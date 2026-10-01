@@ -293,7 +293,9 @@ jobs:
   # ---------------------------------------------------------------------
   applied:
     name: Migrations applied to production
-    if: github.event_name == 'pull_request'
+    # On main too, so a merge that lands a migration production lacks goes red
+    # where everyone sees it (2026-10-01).
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     # PINNED, not ubuntu-latest — same reasoning as every other job here.
     runs-on: ubuntu-24.04
     timeout-minutes: 10
