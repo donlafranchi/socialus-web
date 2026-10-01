@@ -78,3 +78,15 @@ describe('non-empty — it shows', () => {
     expect(screen.getByRole('region', { name: /announcement/i })).toBeInTheDocument()
   })
 })
+
+// #270 — the row wraps each card in an <li>, and a card was itself an <li>:
+// invalid nesting, and signed-in Explore failed to hydrate.
+describe('FollowingRow — list structure', () => {
+  it('nests no list item inside another', () => {
+    const { container } = render(
+      <FollowingRow results={[result({ resultId: 'a' }), result({ resultId: 'b', withheld: true, body: null })]} />,
+    )
+    expect(container.querySelectorAll('li li')).toHaveLength(0)
+    expect(container.querySelectorAll('ul > li')).toHaveLength(2)
+  })
+})

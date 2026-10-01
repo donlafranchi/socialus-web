@@ -22,7 +22,14 @@ import {
   withheldJoinHref,
 } from './withheld-copy'
 
-export function WithheldAnnouncementCard({ result }: { result: BrowseResult }) {
+export function WithheldAnnouncementCard({
+  result,
+  as = 'li',
+}: {
+  result: BrowseResult
+  /** #270 — 'div' when the caller already provides the list item. */
+  as?: 'li' | 'div'
+}) {
   const body = (
     <>
       <div
@@ -65,7 +72,7 @@ export function WithheldAnnouncementCard({ result }: { result: BrowseResult }) {
 
   return (
     <Card
-      as="li"
+      as={as}
       interactive={Boolean(result.href)}
       data-testid="withheld-card"
       className="group/tile flex flex-col [container-type:inline-size]"
