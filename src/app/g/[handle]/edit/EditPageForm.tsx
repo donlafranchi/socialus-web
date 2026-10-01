@@ -17,7 +17,7 @@
 // they are shown verbatim instead of being replaced by "something went wrong" —
 // Don hit exactly that and could not tell whether it was his input or ours.
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
@@ -78,6 +78,18 @@ export function EditPageForm({
   const [changingAddress, setChangingAddress] = useState(false)
   const [place, setPlace] = useState<LocationPlaceFieldsState>(initialLocationPlaceFieldsState)
   const [error, setError] = useState<string | null>(null)
+  // #276 — what was last saved, so Done and leaving the page can tell a
+  // change from none. Moves on every successful save.
+  const current = JSON.stringify({ name, description, handles, photoUrl })
+  const [savedState, setSavedState] = useState(current)
+  const unsaved = current !== savedState || changingAddress
+  const [askingToLeave, setAskingToLeave] = useState(false)
+  useEffect(() => {
+    if (!unsaved) return
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [unsaved])
   const [saved, setSaved] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -136,6 +148,8 @@ export function EditPageForm({
         }
         setSaved(true)
         setChangingAddress(false)
+        setSavedState(current)
+        setAskingToLeave(false)
         router.refresh()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'That did not save.')
@@ -244,10 +258,31 @@ export function EditPageForm({
         <button type="submit" disabled={pending} data-testid="edit-save" className="btn-primary w-full disabled:opacity-50">
           {pending ? 'Saving…' : 'Save changes'}
         </button>
-        <a href={pagePath} className="btn-secondary w-full text-center">
-          Done
-        </a>
+        {unsaved ? (
+          <button type="button" onClick={() => setAskingToLeave(true)} className="btn-secondary w-full text-center">
+            Done
+          </button>
+        ) : (
+          <a href={pagePath} className="btn-secondary w-full text-center">
+            Done
+          </a>
+        )}
       </div>
+
+      {/* #276 — copy is a placeholder ([public-is-draft]). */}
+      {unsaved && askingToLeave ? (
+        <div role="alertdialog" aria-label="Unsaved changes" data-testid="edit-unsaved" className="flex flex-col gap-2 rounded border border-[var(--color-control-border)] p-3">
+          <p className="text-sm text-[var(--color-fg)]">You have unsaved changes.</p>
+          <div className="flex gap-2">
+            <button type="submit" disabled={pending} className="btn-primary w-full disabled:opacity-50">
+              Save changes
+            </button>
+            <a href={pagePath} className="btn-secondary w-full text-center">
+              Leave without saving
+            </a>
+          </div>
+        </div>
+      ) : null}
     </form>
   )
 }
