@@ -11,7 +11,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseResultCard } from './BrowseResultCard'
-import { formatMetroDateTime } from '@/lib/metro/metro-time'
+import { formatMetroDateTime, formatCardWhen } from '@/lib/metro/metro-time'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 /** 2026-09-24 02:12 UTC is 2026-09-23 19:12 in the metro — a different DAY. */
@@ -37,6 +37,7 @@ const post = (over: Partial<BrowseResult> = {}): BrowseResult =>
     lng: null,
     pageCreatedAt: '2026-09-01T00:00:00Z',
     updatedAt: INSTANT,
+    postedAt: '2026-09-20T18:00:00Z',
     sortAt: INSTANT,
     ...over,
   }) as BrowseResult
@@ -54,10 +55,18 @@ describe('the card renders metro time, the same as the Page', () => {
     expect(screen.queryByText(/Sep 24|September 24/i)).not.toBeInTheDocument()
   })
 
-  it('renders nothing time-shaped for an undated announcement', () => {
-    // An announcement with no time is first-class, not degraded.
-    render(<BrowseResultCard result={post({ startsAt: null })} />)
-    expect(screen.queryByText(/September|Sep /i)).not.toBeInTheDocument()
+  // #256: the start leads the card, large, in the metro's words.
+  it('leads with when it happens, in large type', () => {
+    render(<BrowseResultCard result={post()} />)
+    const when = screen.getByTestId('browse-post-when')
+    expect(when).toHaveTextContent(formatCardWhen(INSTANT))
+    expect(when.className).toMatch(/text-(lg|xl|2xl)/)
+  })
+
+  // #256 (Don, 2026-09-30): an announcement with no time keeps its posted date.
+  it('says when an undated announcement was posted', () => {
+    render(<BrowseResultCard result={post({ startsAt: null, postedAt: '2026-09-02T18:00:00Z' })} />)
+    expect(screen.getByTestId('browse-post-when')).toHaveTextContent('Posted Sep 2')
   })
 })
 

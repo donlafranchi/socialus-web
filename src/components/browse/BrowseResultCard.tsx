@@ -11,7 +11,7 @@
 
 import { TileCard } from '@/components/cards'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
-import { formatMetroDateTime } from '@/lib/metro/metro-time'
+import { formatCardWhen, formatPostedDate } from '@/lib/metro/metro-time'
 import { browseCardLocation, browseCardTagline } from '@/lib/browse/card'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -33,10 +33,6 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
  * server and the browser now render the same string, so a mismatch is a real
  * bug and should be allowed to shout.
  */
-function whenLabel(iso: string): string {
-  return formatMetroDateTime(iso)
-}
-
 export function BrowseResultCard({ result }: { result: BrowseResult }) {
   // F093 — a withheld announcement is a different card, and the choice lives
   // here rather than in BrowseSurface so that every surface rendering browse
@@ -54,14 +50,17 @@ export function BrowseResultCard({ result }: { result: BrowseResult }) {
       href={result.href}
       action={
         isPost ? (
-          <span
-            data-testid="browse-post-when"
-            // Muted, not the accent token: at 12px the accent's 2.9:1 on
-            // white is well short of AA, and a date is secondary anyway.
-            className="text-xs font-semibold uppercase tracking-wide text-[var(--color-fg-muted)]"
-          >
-            {result.startsAt ? whenLabel(result.startsAt) : 'Posted'}
-          </span>
+          // #256 (F072 criterion 3): when it happens leads, large; an
+          // undated announcement says when it was posted, small.
+          result.startsAt ? (
+            <span data-testid="browse-post-when" className="text-lg font-semibold text-[var(--color-fg)]">
+              {formatCardWhen(result.startsAt)}
+            </span>
+          ) : (
+            <span data-testid="browse-post-when" className="text-xs text-[var(--color-fg-muted)]">
+              {result.postedAt ? formatPostedDate(result.postedAt) : null}
+            </span>
+          )
         ) : null
       }
     />

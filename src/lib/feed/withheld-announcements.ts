@@ -92,6 +92,7 @@ export function mapWithheldRow(r: WithheldAnnouncementRow): BrowseResult {
     latitude: null,
     pageCreatedAt: r.updated_at,
     updatedAt: r.updated_at,
+    postedAt: null,
     sortAt: r.updated_at,
     withheld: true,
     announcementCount: r.announcement_count,

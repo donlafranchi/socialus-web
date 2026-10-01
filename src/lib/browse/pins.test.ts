@@ -22,6 +22,7 @@ function row(over: Partial<BrowseResult> = {}): BrowseResult {
     latitude: 38.5,
     pageCreatedAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-02T00:00:00Z',
+    postedAt: null,
     sortAt: '2026-09-02T00:00:00Z',
     withheld: false,
     announcementCount: null,

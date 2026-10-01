@@ -129,6 +129,8 @@ export interface BrowseFeedRow {
   location_geography: string | null
   page_created_at: string
   updated_at: string
+  /** #256 — a post's created_at: when it was posted. Null for a Page row. */
+  posted_at: string | null
   sort_at: string
 }
 
@@ -160,6 +162,8 @@ export interface BrowseResult {
   latitude: number | null
   pageCreatedAt: string
   updatedAt: string
+  /** #256 — when a post was posted; `updatedAt` moves on every edit. */
+  postedAt: string | null
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
   /**
@@ -259,6 +263,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     ...pointOf(r.location_geography),
     pageCreatedAt: r.page_created_at,
     updatedAt: r.updated_at,
+    postedAt: r.posted_at ?? null,
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,

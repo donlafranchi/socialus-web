@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { METRO_TIME_ZONE, metroWallTimeToInstant, formatMetroDateTime } from './metro-time'
+import {
+  METRO_TIME_ZONE,
+  metroWallTimeToInstant,
+  formatMetroDateTime,
+  formatCardWhen,
+  formatPostedDate,
+} from './metro-time'
 
 // F072 criterion 3 — "Times are the metro's, never the reader's and never the
 // server's." `timestamptz` normalises to UTC and throws the offset away, so
@@ -100,5 +106,24 @@ describe('reading an instant back', () => {
     expect(formatMetroDateTime(iso, METRO_TIME_ZONE, NOW)).toBe(
       formatMetroDateTime(iso, METRO_TIME_ZONE, NOW),
     )
+  })
+})
+
+// #256 (F072 criterion 3) — the card leads with when it happens, short enough
+// for large type; an undated announcement says when it was posted.
+describe('the card’s words for when', () => {
+  const now = new Date('2026-09-30T12:00:00Z')
+
+  it('reads the start as weekday, month, day and a short clock, in the metro', () => {
+    expect(formatCardWhen('2026-09-11T02:00:00Z', METRO_TIME_ZONE, now)).toBe('Thu Sep 10 · 7pm')
+    expect(formatCardWhen('2026-09-24T02:12:00Z', METRO_TIME_ZONE, now)).toBe('Wed Sep 23 · 7:12pm')
+  })
+
+  it('adds the year only when it is not this one', () => {
+    expect(formatCardWhen('2027-09-11T02:00:00Z', METRO_TIME_ZONE, now)).toBe('Fri Sep 10, 2027 · 7pm')
+  })
+
+  it('says when an undated announcement was posted', () => {
+    expect(formatPostedDate('2026-09-24T02:12:00Z', METRO_TIME_ZONE, now)).toBe('Posted Sep 23')
   })
 })
