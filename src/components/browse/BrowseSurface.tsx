@@ -308,8 +308,8 @@ export function BrowseSurface({
             <div
               className={
                 layout === 'split'
-                  ? 'h-full overflow-hidden rounded-xl'
-                  : 'h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)] overflow-hidden rounded-xl md:h-[calc(100dvh-3.5rem-185px)]'
+                  ? 'h-full overflow-hidden rounded-md'
+                  : 'h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)] overflow-hidden rounded-md md:h-[calc(100dvh-3.5rem-185px)]'
               }
             >
               <BrowseMap results={visible} />

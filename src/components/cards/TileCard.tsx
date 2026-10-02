@@ -1,6 +1,6 @@
 // The tile. The recovered `VendorCard` (ccbf54d) made fluid, then made uniform.
 //
-// Kept from the original: the image block with its own rounded-xl inside the
+// Kept from the original: the image block with its own rounded-md inside the
 // card's, the emoji empty state on the surface colour, the 15px medium name,
 // the 14px muted tagline, the action below the text outside the link.
 //
@@ -60,7 +60,7 @@ export function TileCard({
     <>
       <div
         data-testid="tile-image"
-        className="aspect-[3/2] w-full rounded-xl overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
+        className="aspect-[3/2] w-full rounded-md overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
         style={{ fontSize: 'clamp(2rem, 17cqw, 4rem)' }}
       >
         {imageUrl ? (

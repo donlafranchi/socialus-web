@@ -108,7 +108,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
       </p>
 
       {report.photoUrl ? (
-        <div className="relative overflow-hidden rounded-xl bg-[var(--color-surface)]">
+        <div className="relative overflow-hidden rounded-md bg-[var(--color-surface)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={report.photoUrl}
@@ -225,7 +225,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
             disabled={pending}
             onClick={() => setPicking('removed')}
             data-testid="reject"
-            className="press w-full rounded-xl border border-[var(--color-border)] py-3 text-sm font-medium text-[var(--color-fg)] disabled:opacity-50"
+            className="press w-full rounded-md border border-[var(--color-border)] py-3 text-sm font-medium text-[var(--color-fg)] disabled:opacity-50"
           >
             {decided && latest?.outcome === 'removed' ? 'Reject again' : 'Reject'}
           </button>
@@ -264,7 +264,7 @@ function ReasonPicker({
   const [needsNote, setNeedsNote] = useState<ReasonCode | null>(null)
 
   return (
-    <div data-testid={testId} className="rounded-xl bg-[var(--color-surface)] p-3 flex flex-col gap-2">
+    <div data-testid={testId} className="rounded-md bg-[var(--color-surface)] p-3 flex flex-col gap-2">
       <p className="text-xs font-semibold text-[var(--color-fg)]">{title}</p>
       {reasonsFor(outcome).map((r) => (
         <button

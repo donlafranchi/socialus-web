@@ -101,7 +101,7 @@ export function SearchBar({
       {expanded && suggestions.length > 0 && (
         <div
           data-testid="search-suggestions"
-          className="mb-2 bg-white rounded-2xl shadow-[0_6px_16px_rgba(0,0,0,0.12)] overflow-hidden border border-[var(--color-border)]"
+          className="mb-2 bg-white rounded-lg shadow-lift overflow-hidden border border-[var(--color-border)]"
         >
           {suggestions.map((s, i) => (
             <button
@@ -120,7 +120,7 @@ export function SearchBar({
       )}
 
       <form onSubmit={handleSubmit} className="relative">
-        <div className="flex items-center bg-white rounded-full shadow-[0_6px_16px_rgba(0,0,0,0.12)] border border-[var(--color-border)] px-5 py-3.5">
+        <div className="flex items-center bg-white rounded-full shadow-lift border border-[var(--color-border)] px-5 py-3.5">
           <svg
             className="w-5 h-5 text-[var(--color-fg-muted)] mr-3 shrink-0"
             fill="none"

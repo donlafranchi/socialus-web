@@ -140,7 +140,7 @@ function YouPageInner() {
         </section>
       )}
 
-      <section className="mt-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between gap-3" data-testid="your-market-row">
+      <section className="mt-4 rounded-md border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between gap-3" data-testid="your-market-row">
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">Your Market</p>
           {selectedMarket ? (
@@ -263,7 +263,7 @@ function SettingsTab({
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="text-center py-10 px-6 border border-dashed border-neutral-300 rounded-xl">
+    <div className="text-center py-10 px-6 border border-dashed border-neutral-300 rounded-md">
       <p className="text-sm text-neutral-600">{message}</p>
       <Link
         href="/explore"
