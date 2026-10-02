@@ -83,6 +83,7 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'you-following', inventory: ['S128', 'S129', 'S130', 'S131'], path: () => '/you/following' },
   { name: 'you-sell', inventory: ['S132', 'S133', 'S135', 'S139', 'S143', 'S149'], path: () => '/you/sell' },
   { name: 'card-gallery', inventory: ['S093'], path: () => '/card-gallery' },
+  { name: 'playground', inventory: [], path: () => '/playground' },
   { name: 'composer-demo', inventory: ['S094'], path: () => '/composer-demo' },
   { name: 'add-entity-demo', inventory: ['S072'], path: () => '/add-entity-demo' },
 ]
