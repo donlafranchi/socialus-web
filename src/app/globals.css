@@ -176,7 +176,7 @@ a:hover {
 }
 
 .btn-primary {
-  @apply press inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-medium;
+  @apply press inline-flex min-h-tap items-center justify-center rounded-md px-5 py-3 text-sm font-semibold;
   background-color: var(--color-accent);
   color: #fff;
 }
@@ -189,7 +189,7 @@ a:hover {
 }
 
 .btn-secondary {
-  @apply press inline-flex items-center justify-center rounded-md border px-5 py-3 text-sm font-medium;
+  @apply press inline-flex min-h-tap items-center justify-center rounded-md border px-5 py-3 text-sm font-semibold;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);

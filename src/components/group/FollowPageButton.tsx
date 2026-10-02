@@ -10,6 +10,9 @@
 // following was coming soon. It is not coming soon any more.
 
 import { useState } from 'react'
+import { Check } from 'lucide-react'
+import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { buttonClass } from '@/components/ui/Button'
 
 interface Props {
   groupId: string
@@ -33,16 +36,26 @@ export function FollowPageButton({
   const [isFollowing, setIsFollowing] = useState(following)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [asking, setAsking] = useState(false)
 
   const idle = isPrivate ? 'Join' : 'Follow'
   const done = isPrivate ? 'Joined' : 'Following'
 
+  // #297 — signed out, the same Follow opens the sign-in sheet, and the
+  // tap is kept: sign-in comes back to this Page.
   if (!loggedIn) {
-    const href = `/auth/login${returnTo ? `?next=${encodeURIComponent(returnTo)}` : ''}`
     return (
-      <a href={href} data-testid="page-follow-signin" className="btn-primary">
-        Sign in to {idle.toLowerCase()}
-      </a>
+      <>
+        <button
+          type="button"
+          data-testid="page-follow-signin"
+          onClick={() => setAsking(true)}
+          className={buttonClass('primary')}
+        >
+          {idle}
+        </button>
+        {asking && <SignInPrompt action="follow" currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
+      </>
     )
   }
 
@@ -69,12 +82,9 @@ export function FollowPageButton({
         data-testid="page-follow"
         onClick={toggle}
         disabled={busy}
-        className={
-          isFollowing
-            ? 'inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--color-control-border)] bg-white px-5 text-sm font-medium text-[var(--color-charcoal-900)] disabled:opacity-50'
-            : 'btn-primary disabled:opacity-50'
-        }
+        className={isFollowing ? buttonClass('secondary') : buttonClass('primary')}
       >
+        {isFollowing && <Check size={16} aria-hidden="true" />}
         {isFollowing ? done : idle}
       </button>
       {error && (
