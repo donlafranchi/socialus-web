@@ -19,7 +19,7 @@
 // Two groups left. Distance and Sort went with T156: see
 // `@/lib/browse/filters` for why each one could not stay honest.
 
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import {
   DEFAULT_BROWSE_FILTERS,
@@ -53,9 +53,14 @@ export function ExploreFilterSheet({
   const tagOptions = Array.from(new Set([...tags, ...draft.tags])).sort()
   const groupId = useId()
 
-  useEffect(() => {
+  // Re-seed from the committed value on each open, which is what makes a
+  // dismissal discard the draft rather than leave it half-applied. Done while
+  // rendering, on the open edge, rather than in an effect.
+  const [wasOpen, setWasOpen] = useState(open)
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) setDraft(value)
-  }, [open])
+  }
 
   const commit = (filters: BrowseFilters) => {
     onApply(filters)
