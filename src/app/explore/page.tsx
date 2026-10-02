@@ -14,6 +14,7 @@
 import { Suspense } from 'react'
 import { loadBrowse } from './load'
 import { BrowseSurface } from '@/components/browse/BrowseSurface'
+import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +27,7 @@ export default async function Page({
   const snapshot = await loadBrowse(metro ?? null)
 
   return (
-    <Suspense fallback={<div className="p-4">Loading…</div>}>
+    <Suspense fallback={<ExploreSkeleton />}>
       <BrowseSurface initial={snapshot} />
     </Suspense>
   )

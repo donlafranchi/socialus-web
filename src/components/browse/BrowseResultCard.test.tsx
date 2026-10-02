@@ -113,3 +113,11 @@ describe('the card image', () => {
     expect(img.getAttribute('alt')).toBe(`SacRiver Floaters, ${formatCardWhen(INSTANT)}, Church Hall`)
   })
 })
+
+describe('#299 — no photo shows default art, never the emoji', () => {
+  it('a Page or post without a photo carries its kind and a neutral tone', () => {
+    render(<BrowseResultCard result={post({ photoUrl: null })} />)
+    expect(screen.getByTestId('default-art')).toBeInTheDocument()
+    expect(screen.queryByTestId('tile-emoji')).toBeNull()
+  })
+})
