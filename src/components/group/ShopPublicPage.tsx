@@ -6,6 +6,8 @@
 // it stays unit-testable. The client islands are <FollowPageButton> and
 // <ReportControl>.
 
+import { OwnerPanel } from './OwnerPanel'
+import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { FollowPageButton } from './FollowPageButton'
@@ -76,7 +78,10 @@ export function ShopPublicPage({
   const showHiddenNotice = viewerOwnsPage && photoUrl === null && shop.photoHiddenAt !== null
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6">
+    // #300 — T2 Detail: a read-width column, and from 1024 the owner's panel
+    // beside it (720 + 48 + 360 inside the 1128 detail width).
+    <main className="mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12">
+     <div className="min-w-0">
       {isDraftPreview && (
         <div
           data-testid="shop-draft-banner"
@@ -97,9 +102,20 @@ export function ShopPublicPage({
         </div>
       )}
 
+      {/* #300 — the cover: the photo, or the default art when there is none or
+          it is hidden. Decorative: the name is right under it. */}
+      <div data-testid="page-cover" className="mb-4 aspect-[2/1] overflow-hidden rounded-lg md:aspect-[3/1]">
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <DefaultArt seed={shop.groupId} kind={artKindFor(shop.kind)} />
+        )}
+      </div>
+
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <h1 data-testid="shop-name" className="text-2xl font-semibold">
+          <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
             {shop.displayName}
           </h1>
           {badge && (
@@ -130,7 +146,11 @@ export function ShopPublicPage({
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
             ownership. The writes behind it re-check the managing role. */}
-        {viewerOwnsPage && pagePath ? <OwnerBar pagePath={pagePath} /> : null}
+        {viewerOwnsPage && pagePath ? (
+          <div className="lg:hidden">
+            <OwnerBar pagePath={pagePath} />
+          </div>
+        ) : null}
 
         {shop.founder && (
           <div data-testid="shop-founder" className="flex items-center gap-2">
@@ -287,6 +307,14 @@ export function ShopPublicPage({
           </ul>
         )}
       </section>
+     </div>
+      {viewerOwnsPage && pagePath ? (
+        <aside data-testid="owner-panel" className="hidden lg:block">
+          <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
+            <OwnerPanel pagePath={pagePath} />
+          </div>
+        </aside>
+      ) : null}
     </main>
   )
 }

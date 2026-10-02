@@ -324,3 +324,31 @@ describe('#267 — the owner on their own Page', () => {
     expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
   })
 })
+
+describe('#300 — the Page on the new layout', () => {
+  it('shows its photo as the cover', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoHiddenAt: null } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toHaveAttribute('src', 'https://example.test/p.jpg')
+  })
+
+  it('shows default art when there is no photo, or it is hidden', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: null } })
+    expect(screen.getByTestId('page-cover').querySelector('[data-testid="default-art"]')).not.toBeNull()
+    cleanup()
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoHiddenAt: '2026-10-01T00:00:00Z' } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
+  })
+
+  it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
+    renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
+    const panel = screen.getByTestId('owner-panel')
+    expect(panel.className).toMatch(/\bhidden\b/)
+    expect(panel.className).toMatch(/\blg:block\b/)
+    expect(panel.querySelector('a[href="/g/x-abc123/edit"]')).not.toBeNull()
+  })
+
+  it('gives nobody else a panel', () => {
+    renderShop({ viewerOwnsPage: false })
+    expect(screen.queryByTestId('owner-panel')).toBeNull()
+  })
+})
