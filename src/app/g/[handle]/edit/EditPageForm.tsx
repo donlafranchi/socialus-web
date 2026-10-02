@@ -32,6 +32,8 @@ import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput, EditPageResult } from './actions'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
+import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
+import { isValidTagLabel } from '@/lib/groups/tags'
 
 type CreateLocation = typeof createLocationAction
 
@@ -45,6 +47,7 @@ export function EditPageForm({
   initialPhotoUrl,
   initialSocialLinks,
   initialAddressLabel,
+  initialTags = [],
   onSave,
   onCreateLocation = createLocationAction,
 }: {
@@ -60,6 +63,8 @@ export function EditPageForm({
    *  owner never chose one — a different fact from "online", and saying
    *  online would be a claim they never made. */
   initialAddressLabel: string | null
+  /** #285 — editable any time (Don, 2026-10-01). */
+  initialTags?: string[]
   onSave: (input: EditPageInput) => Promise<EditPageResult>
   /** Injected so the form can be tested without a server action. */
   onCreateLocation?: CreateLocation
@@ -73,6 +78,7 @@ export function EditPageForm({
     handlesFromLinks(initialSocialLinks),
   )
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
+  const [tags, setTags] = useState<TagInputValue>({ tags: initialTags, draft: '' })
   // Closed until asked for. An address the owner is not changing should not
   // look like one they have to re-enter.
   const [changingAddress, setChangingAddress] = useState(false)
@@ -80,7 +86,7 @@ export function EditPageForm({
   const [error, setError] = useState<string | null>(null)
   // #276 — what was last saved, so Done and leaving the page can tell a
   // change from none. Moves on every successful save.
-  const current = JSON.stringify({ name, description, handles, photoUrl })
+  const current = JSON.stringify({ name, description, handles, photoUrl, tags: tags.tags })
   const [savedState, setSavedState] = useState(current)
   const unsaved = current !== savedState || changingAddress
   const [askingToLeave, setAskingToLeave] = useState(false)
@@ -110,6 +116,11 @@ export function EditPageForm({
       // and the Page is pointed at it second — and if the first half fails the
       // second never runs. Half a move leaves a Page pointing at nothing,
       // which is a Page with no address at all.
+      const tagSet = [...tags.tags, tags.draft].filter(isValidTagLabel)
+      if (tagSet.length === 0) {
+        setError('Add at least one word that describes what you do.')
+        return
+      }
       let anchorLocationId: string | undefined
       if (changingAddress && isLocationPlaceFieldsComplete(place)) {
         const made = await onCreateLocation(
@@ -140,6 +151,7 @@ export function EditPageForm({
           description,
           photoUrl,
           socialLinks: links,
+          tags: tagSet,
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
         if (!result.ok) {
@@ -182,6 +194,8 @@ export function EditPageForm({
           rows={5}
         />
       </label>
+
+      <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />
 
       {/* Where the Page is. Editable — this is the thing an owner moves. */}
       <div data-testid="edit-address">
