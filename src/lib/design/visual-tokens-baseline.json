@@ -1,0 +1,110 @@
+{
+  "src/app/(dev)/card-gallery/page.tsx": [
+    "text-[17px]",
+    "text-[17px]",
+    "text-[17px]",
+    "text-[17px]",
+    "text-[17px]",
+    "text-[17px]"
+  ],
+  "src/app/(dev)/composer-demo/page.tsx": [
+    "min-h-[6rem]"
+  ],
+  "src/app/join/page.tsx": [
+    "tracking-[0.2em]"
+  ],
+  "src/app/you/page.tsx": [
+    "text-[17px]"
+  ],
+  "src/components/BottomNav.tsx": [
+    "gap-[3px]",
+    "gap-[3px]",
+    "max-w-[420px]",
+    "text-[9px]",
+    "text-[9px]"
+  ],
+  "src/components/EventCard.tsx": [
+    "text-[11px]"
+  ],
+  "src/components/MarketPill.tsx": [
+    "max-w-[14ch]"
+  ],
+  "src/components/RecruitmentGrid.tsx": [
+    "text-[10px]",
+    "text-[10px]",
+    "text-[11px]",
+    "text-[11px]",
+    "text-[11px]",
+    "text-[11px]",
+    "text-[11px]"
+  ],
+  "src/components/browse/BrowseMap.tsx": [
+    "height:18px",
+    "width:18px"
+  ],
+  "src/components/browse/BrowseSurface.tsx": [
+    "h-[calc(100dvh-3.5rem-185px)]",
+    "h-[calc(100dvh-3.5rem-61px)]",
+    "h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)]",
+    "top-[calc(3.5rem+61px)]"
+  ],
+  "src/components/browse/FollowingRow.tsx": [
+    "w-[min(78vw,20rem)]"
+  ],
+  "src/components/browse/WithheldAnnouncementCard.tsx": [
+    "min-h-[2.5rem]",
+    "min-h-[3.75rem]",
+    "text-[15px]"
+  ],
+  "src/components/cards/ExampleCard.tsx": [
+    "min-h-[1.25rem]",
+    "min-h-[2.5rem]",
+    "min-h-[2.5rem]",
+    "text-[11px]",
+    "text-[15px]"
+  ],
+  "src/components/cards/TileCard.tsx": [
+    "min-h-[1.25rem]",
+    "min-h-[2.5rem]",
+    "min-h-[2.5rem]",
+    "text-[15px]"
+  ],
+  "src/components/composer/AddEntityDrawer.tsx": [
+    "text-[22px]"
+  ],
+  "src/components/composer/MultiStepComposer.tsx": [
+    "min-w-[5rem]",
+    "min-w-[6rem]",
+    "text-[22px]"
+  ],
+  "src/components/explore/ViewPill.tsx": [
+    "bottom-[calc(env(safe-area-inset-bottom)+24px)]",
+    "bottom-[calc(var(--nav-height)+env(safe-area-inset-bottom)+16px)]"
+  ],
+  "src/components/feed/ItemFeedCard.tsx": [
+    "text-[11px]",
+    "text-[13px]",
+    "text-[15px]",
+    "tracking-[0.08em]"
+  ],
+  "src/components/group/ReportSheet.tsx": [
+    "w-[28rem]"
+  ],
+  "src/components/sell/GatheringComposer.tsx": [
+    "min-h-[5rem]"
+  ],
+  "src/components/sell/ProductComposer.tsx": [
+    "min-h-[5rem]"
+  ],
+  "src/components/sell/SellWalkthrough.tsx": [
+    "min-h-[6rem]"
+  ],
+  "src/components/sell/ServiceComposer.tsx": [
+    "min-h-[5rem]"
+  ],
+  "src/components/venue/VenuePublicPage.tsx": [
+    "text-[22px]",
+    "text-[22px]",
+    "text-[26px]"
+  ]
+}

@@ -194,7 +194,7 @@ export function EditPageForm({
             <button
               type="button"
               data-testid="edit-address-change"
-              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() => setChangingAddress(true)}
             >
               {initialAddressLabel ? 'Change it' : 'Add one'}
@@ -206,7 +206,7 @@ export function EditPageForm({
             <button
               type="button"
               data-testid="edit-address-cancel"
-              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() => {
                 setChangingAddress(false)
                 setPlace(initialLocationPlaceFieldsState)
