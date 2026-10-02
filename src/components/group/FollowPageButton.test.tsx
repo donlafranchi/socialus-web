@@ -86,22 +86,33 @@ describe('a private Page is joined', () => {
 })
 
 describe('signed out', () => {
-  it('sends you to sign in rather than a dead end', () => {
+  // #297 — the same Follow, which opens the sign-in sheet rather than leaving.
+  it('opens the sign-in sheet rather than a dead end', () => {
     renderBtn({ loggedIn: false })
-    const link = screen.getByRole('link', { name: /follow/i })
-    expect(link).toHaveAttribute('href', expect.stringContaining('/auth/login'))
+    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    expect(screen.getByRole('dialog', { name: /sign in to follow/i })).toBeInTheDocument()
+    expect(screen.getByTestId('sign-in-prompt-continue')).toHaveAttribute('href', expect.stringContaining('/auth/login'))
   })
 
   it('comes back to the Page afterwards', () => {
     renderBtn({ loggedIn: false, returnTo: '/p/ca/sacramento/g/the-good-loaf' })
-    const href = screen.getByRole('link', { name: /follow/i }).getAttribute('href')!
+    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    const href = screen.getByTestId('sign-in-prompt-continue').getAttribute('href')!
     expect(decodeURIComponent(href)).toContain('/p/ca/sacramento/g/the-good-loaf')
   })
 
   it('never reaches the action', () => {
     renderBtn({ loggedIn: false })
-    fireEvent.click(screen.getByRole('link', { name: /follow/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
     expect(follow).not.toHaveBeenCalled()
+  })
+})
+
+describe('#297 — the done state carries a check', () => {
+  it('Following and Joined show one, without it entering the name', () => {
+    renderBtn({ following: true })
+    const btn = screen.getByRole('button', { name: /^Following$/i })
+    expect(btn.querySelector('svg[aria-hidden="true"]')).not.toBeNull()
   })
 })
 
