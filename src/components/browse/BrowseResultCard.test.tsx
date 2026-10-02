@@ -113,3 +113,14 @@ describe('the card image', () => {
     expect(img.getAttribute('alt')).toBe(`SacRiver Floaters, ${formatCardWhen(INSTANT)}, Church Hall`)
   })
 })
+
+describe('#316 — a card shows its tags as #hashtags', () => {
+  it('each tag is a chip linking to Explore filtered by it', () => {
+    render(<BrowseResultCard result={post({ tags: ['Sourdough'] })} />)
+    expect(screen.getByRole('link', { name: '#Sourdough' })).toHaveAttribute('href', '/explore?category=sourdough')
+  })
+  it('a card with no tags (every signed-out card) shows none', () => {
+    render(<BrowseResultCard result={post({ tags: [] })} />)
+    expect(screen.queryByTestId('tag-chips')).toBeNull()
+  })
+})
