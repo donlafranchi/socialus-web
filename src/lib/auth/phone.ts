@@ -2,13 +2,7 @@
 // phone, at signup (Don, 2026-10-01). Builders are the named exception: no
 // text code (#280).
 
-/** Ten US digits, however typed, as E.164; anything else is null. */
-export function normalizeUsPhone(raw: string): string | null {
-  let digits = raw.replace(/\D/g, '')
-  if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1)
-  if (digits.length !== 10 || !/^[2-9]/.test(digits)) return null
-  return `+1${digits}`
-}
+export { normalizeUsPhone } from '@/lib/phone'
 
 interface GateUser {
   phone_confirmed_at?: string | null
