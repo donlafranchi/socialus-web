@@ -9,7 +9,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { groupUpdate, ActionError } from '@/actions'
+import { groupUpdate, groupUpdateDraft, ActionError } from '@/actions'
 
 export interface EditPageInput {
   groupId: string
@@ -33,8 +33,14 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
   if (error || !data.user) return { ok: false, message: 'You must be signed in.' }
 
   const ctx = resolveActionContext({ actingMemberId: data.user.id })
+  // #301 — a draft is finished on its own Page, so Edit serves drafts too;
+  // a draft writes through group.update_draft, which group.update refuses.
+  const { data: row } = await supabase.from('groups').select('lifecycle_state').eq('id', input.groupId).maybeSingle()
+  const isDraft = (row as { lifecycle_state?: string } | null)?.lifecycle_state === 'draft'
+  const save = isDraft ? groupUpdateDraft : groupUpdate
+
   try {
-    await groupUpdate(ctx, {
+    await save(ctx, {
       groupId: input.groupId,
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),

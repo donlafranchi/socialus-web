@@ -6,6 +6,9 @@
 // it stays unit-testable. The client islands are <FollowPageButton> and
 // <ReportControl>.
 
+import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
+import { publishDraftAction } from '@/app/create/actions'
+import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
@@ -82,17 +85,10 @@ export function ShopPublicPage({
     // beside it (720 + 48 + 360 inside the 1128 detail width).
     <main className="mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12">
      <div className="min-w-0">
+      {/* #301 — a draft is finished here, on the Page, not in a walkthrough. */}
       {isDraftPreview && (
-        <div
-          data-testid="shop-draft-banner"
-          role="status"
-          className="mb-6 rounded border border-dashed border-gray-400 bg-gray-50 p-4 text-sm text-gray-700"
-        >
-          <p className="font-medium">Draft — not yet public.</p>
-          <p className="mt-1">
-            Only you can see this. <a href="/you/sell" className="underline">Resume walkthrough</a> to
-            finish setting up your Shop.
-          </p>
+        <div data-testid="shop-draft-banner" role="status" className="mb-4 text-caption font-medium text-[var(--color-fg-muted)]">
+          Draft · only you can see this
         </div>
       )}
 
@@ -116,7 +112,9 @@ export function ShopPublicPage({
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
-            {shop.displayName}
+            {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
+              ? `Your new ${artKindFor(shop.kind) === 'group' ? 'group' : artKindFor(shop.kind)}`
+              : shop.displayName}
           </h1>
           {badge && (
             <span
@@ -146,7 +144,18 @@ export function ShopPublicPage({
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
             ownership. The writes behind it re-check the managing role. */}
-        {viewerOwnsPage && pagePath ? (
+        {isDraftPreview && viewerOwnsPage && pagePath ? (
+          <BeforeYouPublish
+            editPath={`${pagePath}/edit`}
+            hasName={shop.displayName !== DRAFT_NAME_PLACEHOLDER && shop.displayName.trim() !== ''}
+            hasPlace={Boolean(shop.anchorLocationId)}
+            hasDescription={shop.publicDescription.trim() !== ''}
+            hasPhoto={Boolean(photoUrl)}
+            onPublish={publishDraftAction.bind(null, shop.groupId)}
+          />
+        ) : null}
+
+        {viewerOwnsPage && pagePath && !isDraftPreview ? (
           <div className="lg:hidden">
             <OwnerBar pagePath={pagePath} />
           </div>
@@ -308,7 +317,7 @@ export function ShopPublicPage({
         )}
       </section>
      </div>
-      {viewerOwnsPage && pagePath ? (
+      {viewerOwnsPage && pagePath && !isDraftPreview ? (
         <aside data-testid="owner-panel" className="hidden lg:block">
           <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
             <OwnerPanel pagePath={pagePath} />

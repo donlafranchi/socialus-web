@@ -228,7 +228,7 @@ describe('BottomNav — create action (T158)', () => {
   // opens at once.
   it('lands on a create flow that opens at once', () => {
     render(<BottomNav />)
-    expect(create()).toHaveAttribute('href', '/you?create=1')
+    expect(create()).toHaveAttribute('href', '/create')
   })
 
   it('is a link, never a tab', () => {
@@ -303,7 +303,7 @@ describe('TopNavDesktop — create action (T158)', () => {
 
   it('carries the same create action as the bottom bar', () => {
     render(<TopNavDesktop />)
-    expect(create()).toHaveAttribute('href', '/you?create=1')
+    expect(create()).toHaveAttribute('href', '/create')
     expect(create()).toHaveAccessibleName(/create/i)
   })
 

@@ -59,8 +59,9 @@ export const groupActivate = defineHandler(
         founder_member_id: string
         anchor_location_id: string | null
         name: string
+        description: string | null
       }>(
-        `select id, kind, lifecycle_state, founder_member_id, anchor_location_id, name
+        `select id, kind, lifecycle_state, founder_member_id, anchor_location_id, name, description
            from public.groups
           where id = $1`,
         [input.groupId],
@@ -90,11 +91,9 @@ export const groupActivate = defineHandler(
         )
       }
 
-      // T159 — at least one tag is required at publish, for every kind.
-      // Checked before promotion alongside the other required-field gates,
-      // so a missing tag fails activation outright rather than partially.
-      //
-      // Normalized first, then deduped: "Sourdough" and " sour dough " sent
+      // #301 (2026-10-01) — tags are optional at publish (editable any time,
+      // #285); T159's at-least-one-tag rule is superseded. Normalized first,
+      // then deduped: "Sourdough" and " sour dough " sent
       // together are one tag, and a creator who does that has not sent two.
       const tagLabels = (input.tags ?? []).filter(isValidTagLabel)
       const byNormalized = new Map<string, string>()
@@ -102,19 +101,18 @@ export const groupActivate = defineHandler(
         const n = normalizeTag(label)
         if (!byNormalized.has(n)) byNormalized.set(n, label.trim())
       }
-      if (byNormalized.size === 0) {
-        throw new ValidationError(
-          `group.activate: group ${input.groupId} requires at least one tag to publish`,
-        )
+
+      // #301 — publishing needs, for every kind: a name, where it is (an
+      // address or an area: the anchor Location), and a description.
+      if (!row.anchor_location_id) {
+        throw new ValidationError(`group.activate: draft ${input.groupId} requires where it is (anchor_location_id)`)
+      }
+      if (!row.description || row.description.trim() === '') {
+        throw new ValidationError(`group.activate: draft ${input.groupId} requires a description`)
       }
 
-      // Kind-specific required-field validation.
+      // The name, which a business keeps on group_businesses.
       if (row.kind === 'business') {
-        if (!row.anchor_location_id) {
-          throw new ValidationError(
-            `group.activate: kind='business' draft ${input.groupId} requires anchor_location_id`,
-          )
-        }
         const bizRes = await client.query<{ display_name: string }>(
           `select display_name
              from public.group_businesses
