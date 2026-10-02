@@ -49,7 +49,7 @@ export function SocialHandleFields({
                 {PLATFORM_LABELS[platform]}
               </span>
               <span
-                className={`mt-0.5 flex items-stretch overflow-hidden rounded-xl border ${
+                className={`mt-0.5 flex items-stretch overflow-hidden rounded-md border ${
                   problem ? 'border-[var(--color-danger,#b00)]' : 'border-[var(--color-border)]'
                 }`}
               >

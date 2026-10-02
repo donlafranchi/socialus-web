@@ -89,7 +89,7 @@ export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
       {selected && (
         <div
           data-testid="browse-map-popup"
-          className="absolute bottom-4 left-4 right-4 rounded-xl border border-neutral-200 bg-white p-3 shadow-lg"
+          className="absolute bottom-4 left-4 right-4 rounded-md border border-neutral-200 bg-white p-3 shadow-overlay"
         >
           <p className="text-sm font-medium text-[var(--color-fg)]">{selected.name}</p>
           {/* What is here, not just that something is. Several rows at one

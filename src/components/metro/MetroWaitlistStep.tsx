@@ -93,7 +93,7 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
             id={selectId}
             value={metroId}
             onChange={(e) => setMetroId(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-[var(--color-control-border)] bg-white p-3 text-sm text-[var(--color-charcoal-900)]"
+            className="mt-2 w-full rounded-md border border-[var(--color-control-border)] bg-white p-3 text-sm text-[var(--color-charcoal-900)]"
           >
             {/* Not a metro, and not selectable as one. */}
             <option value="">Pick your metro</option>
@@ -170,7 +170,7 @@ function RoleChoice({
 }) {
   return (
     <label
-      className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border px-4 text-sm ${
+      className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-md border px-4 text-sm ${
         checked
           ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
           : 'border-[var(--color-control-border)] bg-white text-[var(--color-charcoal-900)]'
