@@ -1,4 +1,4 @@
-name: Apply migrations to PRODUCTION
+name: Apply migrations
 
 # The only thing in this repo that writes to socialus-db.
 #
@@ -19,10 +19,6 @@ name: Apply migrations to PRODUCTION
 on:
   workflow_dispatch:
     inputs:
-      confirm:
-        description: 'Type "apply" to confirm writing to the production database. FIRST check "Use workflow from" above — a migration under review is on its branch, not main.'
-        required: true
-        type: string
       allow_multiple:
         description: 'Apply more than one pending migration in this run. Leave unchecked: one PR, one migration, verified before the next (#264).'
         required: false
@@ -36,7 +32,7 @@ permissions:
 
 # Never two pushes against one database at once.
 concurrency:
-  group: migrations-apply-production
+  group: apply-migrations
   cancel-in-progress: false
 
 jobs:
@@ -57,18 +53,12 @@ jobs:
       # A Run button sitting next to a production database is easier to press
       # by accident than an approval prompt is to click through. Typing the
       # word is the substitute for the approval gate we cannot have.
-      - name: Check the confirmation
-        run: |
-          if [ "${{ inputs.confirm }}" != "apply" ]; then
-            echo "::error::Confirmation failed. Type exactly: apply"
-            echo "Got: '${{ inputs.confirm }}'"
-            exit 1
-          fi
-          echo "Confirmed. Applying migrations to socialus-db."
+      # 2026-10-02 (Don) — no typed confirmation: the run is started by
+      # name from a terminal (gh workflow run apply.yml --ref <branch>), and
+      # the guard below refuses a stacked branch or more than one migration.
+      - name: Applying to production
+        run: echo "Applying migrations to socialus-db from ${{ github.ref_name }}."
 
-      # Full history and every remote branch: the preflight below names which
-      # OTHER ref has a pending migration when this one has none, and it cannot
-      # do that from a single-commit shallow clone of one branch.
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

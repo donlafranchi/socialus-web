@@ -58,7 +58,7 @@
 
 <!-- "None", or the migration file and the command Don runs to apply it
      BEFORE this merges (one ready at a time):
-     gh workflow run migrations-apply-production.yml --ref <this-branch> -f confirm=apply -->
+     gh workflow run apply.yml --ref <this-branch> -->
 
 ## How it was verified
 
