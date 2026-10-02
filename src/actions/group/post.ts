@@ -17,10 +17,11 @@
 // their own Page, so the kind is read and the role derived from it through the
 // same function group.create writes with. One answer, in one place.
 //
-// WHY THERE IS NO DELETE. Acceptance 4 refuses deletion, and the way to refuse
-// it is to not build it. `page_posts` carries no INSERT/UPDATE/DELETE policy,
-// so a direct client write is already refused by RLS; the absence of a handler
-// closes the action layer's path too.
+// DELETE IS SOFT (#318, Don 2026-10-02, replacing F072 acceptance 4's "no
+// delete"). `group.post_delete` stamps `dissolved_at`; every reader already
+// filters it, so the post is hidden everywhere and the row stays for reports
+// and audit. `page_posts` still carries no INSERT/UPDATE/DELETE policy, so a
+// direct client write is refused by RLS; the handler is the only path.
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
@@ -213,6 +214,44 @@ export const groupPostEdit = defineHandler(
       await appendEvent(txCtx, 'group_events', {
         group_id: post.group_id,
         event_kind: 'group.post_edited',
+        payload: { post_id: input.postId },
+      })
+
+      return { postId: input.postId, groupId: post.group_id }
+    })
+  },
+)
+
+export const groupPostDeleteInput = z.object({ postId: z.string().uuid() })
+export type GroupPostDeleteInput = z.infer<typeof groupPostDeleteInput>
+
+export const groupPostDelete = defineHandler(
+  'group.post_delete',
+  groupPostDeleteInput,
+  async (ctx: ActionContext, input: GroupPostDeleteInput): Promise<{ postId: string; groupId: string }> => {
+    const memberId = requireMember(ctx, 'group.post_delete')
+
+    return withTransaction(async (client) => {
+      const found = await client.query<{ id: string; group_id: string }>(
+        `select id, group_id from public.page_posts
+          where id = $1 and dissolved_at is null`,
+        [input.postId],
+      )
+      const post = found.rows[0]
+      if (!post) {
+        throw new NotFoundError(`group.post_delete: post ${input.postId} not found`)
+      }
+
+      await requireManagingRole(client, 'group.post_delete', post.group_id, memberId)
+
+      await client.query(
+        `update public.page_posts set dissolved_at = $2 where id = $1 and dissolved_at is null`,
+        [input.postId, ctx.now()],
+      )
+
+      await appendEvent({ ...ctx, db: client }, 'group_events', {
+        group_id: post.group_id,
+        event_kind: 'group.post_deleted',
         payload: { post_id: input.postId },
       })
 
