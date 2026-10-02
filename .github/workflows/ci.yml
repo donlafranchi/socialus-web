@@ -11,6 +11,8 @@ name: CI
 #
 #   quality — lint, types, production build. Seconds, no services.
 #   test    — the Vitest suite against a throwaway local Supabase.
+#   browser — Playwright: the feature evals and the screenshot matrix, as
+#             seeded personas, against the same kind of stack (#269).
 #
 # The suite is NOT run without that stack. `tests/support/runnable.ts` makes a
 # suite that cannot run FAIL rather than skip (T150), and eleven DB-bound
@@ -151,6 +153,112 @@ jobs:
           npm test
 
   # ---------------------------------------------------------------------
+  # The browser suite (#269). It existed and never ran: the accepted risk
+  # "the browser test suite never runs" (due 2026-10-16) is this job.
+  #
+  # A throwaway local stack, seeded with one persona per role
+  # (scripts/seed-personas.ts, which refuses any non-local host), a production
+  # build of this commit, then three Playwright runs:
+  #   guard          one spec that MUST fail; this job stops if it passes
+  #   mobile-chrome  the feature evals (evals/quarantine.ts lists the ones that
+  #                  fail against today's rulings and are excluded, by title)
+  #   screens        every inventory route, as every persona, at six widths;
+  #                  uploaded as the `screenshots` artifact
+  # ---------------------------------------------------------------------
+  browser:
+    name: Browser
+    runs-on: ubuntu-24.04
+    # The matrix alone is ~45 minutes: 572 tests, six widths each.
+    timeout-minutes: 90
+    env:
+      SUPABASE_URL: http://127.0.0.1:54321
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_TEST_EPHEMERAL: '1'
+      OPERATOR_MEMBER_ID: 0a000000-0000-4000-8000-000000000006
+      PLAYWRIGHT_WEB_COMMAND: npm run start
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      # Pinned, for the reason the test job gives (#164).
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      - name: Start a throwaway local stack
+        run: |
+          supabase start
+          supabase db reset
+
+      - run: npm ci
+
+      - name: Read the stack's keys into the environment
+        run: supabase status -o env | sed 's/="/=/; s/"$//' >> "$GITHUB_ENV"
+
+      - name: Seed the personas (local only)
+        run: |
+          npx tsx scripts/seed-personas.ts --check
+          npx tsx scripts/seed-personas.ts --apply
+          npx tsx scripts/bootstrap-eval-helpers.ts
+        env:
+          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
+
+      - name: Build against the local stack
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.ANON_KEY }}
+
+      - run: npx playwright install --with-deps chromium
+
+      # [guard-proves-itself]: watched failing on every run, before anything
+      # below is believed.
+      - name: The browser suite can fail (self-test)
+        env:
+          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+        run: |
+          if npx playwright test --project=guard; then
+            echo "::error::evals/_guard/must-fail.spec.ts passed. The browser suite is not catching anything; nothing below can be believed."
+            exit 1
+          fi
+          echo "Self-test: the must-fail spec failed, as it must."
+
+      - name: Feature evals
+        env:
+          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
+        run: npx playwright test --project=mobile-chrome
+
+      - name: Screenshot matrix
+        if: ${{ !cancelled() }}
+        env:
+          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+        run: npx playwright test --project=screens
+
+      - name: Upload screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: screenshots
+          path: screenshots/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------
   # Is every migration in this branch already applied to production?
   #
   # 2026-09-21: two PRs merged carrying a migration nobody had applied, the
@@ -185,7 +293,9 @@ jobs:
   # ---------------------------------------------------------------------
   applied:
     name: Migrations applied to production
-    if: github.event_name == 'pull_request'
+    # On main too, so a merge that lands a migration production lacks goes red
+    # where everyone sees it (2026-10-01).
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     # PINNED, not ubuntu-latest — same reasoning as every other job here.
     runs-on: ubuntu-24.04
     timeout-minutes: 10

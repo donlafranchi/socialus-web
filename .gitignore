@@ -23,3 +23,7 @@ reports/mutation/
 
 # Local Claude Code tooling (dev-server launch config) — not app code
 .claude/
+
+# #269 — persona sessions and the screenshot matrix (local + CI artifact)
+evals/.auth/
+screenshots/

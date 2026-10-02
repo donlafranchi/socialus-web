@@ -62,7 +62,7 @@ export function MetroStandingDialog({ metroName, combined, target, message, onCl
         onKeyDown={(e) => {
           if (e.key === 'Escape') onClose()
         }}
-        className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 rounded-2xl border border-[var(--color-charcoal-100)] bg-white p-6 shadow-[0_8px_32px_rgba(0,0,0,0.16)] md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
+        className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 rounded-lg border border-[var(--color-charcoal-100)] bg-white p-6 shadow-overlay md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
       >
         <h2 id={titleId} className="text-base font-semibold text-[var(--color-charcoal-900)]">
           {metroName}

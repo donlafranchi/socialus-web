@@ -12,4 +12,9 @@ export const COPY = {
   withheldCta: "Sign up to see what's happening",
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
+  // F091 — Don's stem, 2026-09-19; each row completes it. The ellipsis is his.
+  happeningStem: 'What’s happening…',
+  happeningToday: 'today',
+  happeningThisWeek: 'this week',
+  happeningThisWeekend: 'this weekend',
 } as const

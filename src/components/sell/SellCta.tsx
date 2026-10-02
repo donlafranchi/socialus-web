@@ -14,7 +14,7 @@
 // The CTA stays present in all three branches per F036's
 // "Sell CTA visible on /you for any Member" acceptance criterion.
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
@@ -43,6 +43,8 @@ interface SellCtaProps {
   supabaseFactory?: () => ReturnType<typeof createBrowserClient>
   /** Caller may inject available Locations (otherwise fetched on mount). */
   initialLocations?: AnchorLocationOption[]
+  /** #274 — arrived from Create: do what tapping the button would, at once. */
+  autoOpen?: boolean
 }
 
 function defaultSupabaseFactory() {
@@ -56,6 +58,7 @@ export function SellCta({
   memberId,
   supabaseFactory,
   initialLocations,
+  autoOpen = false,
 }: SellCtaProps) {
   const router = useRouter()
   const [signal, setSignal] = useState<SellRoutingSignal | null>(null)
@@ -117,6 +120,18 @@ export function SellCta({
     setWalkthroughOpen(true)
   }, [signal, router])
 
+  // #274 — arrived from Create: what tapping the button would do, once the
+  // routing signal resolves. The walkthrough is derived, not set, so closing
+  // it stays closed; the sell index is a navigation, sent once.
+  const [autoDismissed, setAutoDismissed] = useState(false)
+  const autoWalkthrough = autoOpen && !autoDismissed && !!signal && !signal.hasActiveBusinessGroup
+  const sentToSell = useRef(false)
+  useEffect(() => {
+    if (!autoOpen || sentToSell.current || !signal?.hasActiveBusinessGroup) return
+    sentToSell.current = true
+    router.push('/you/sell')
+  }, [autoOpen, signal, router])
+
   if (!memberId) return null
 
   // Hide the button until the routing signal resolves — prevents a label
@@ -155,7 +170,7 @@ export function SellCta({
     <>
       <div
         data-testid="you-sell-cta-row"
-        className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3"
+        className="mt-4 flex items-center justify-between rounded-md border border-neutral-200 bg-white px-4 py-3"
       >
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
@@ -172,7 +187,7 @@ export function SellCta({
         {ctaButton}
       </div>
 
-      {walkthroughOpen && signal && (
+      {(walkthroughOpen || autoWalkthrough) && signal && (
         <SellWalkthrough
           memberId={memberId}
           createDraft={(i) => unwrap(sellCreateDraftAction(i))}
@@ -182,7 +197,10 @@ export function SellCta({
           availableLocations={locations}
           redirect={(url) => router.push(url)}
           showToast={(msg) => setToast(msg)}
-          onAbandon={() => setWalkthroughOpen(false)}
+          onAbandon={() => {
+            setWalkthroughOpen(false)
+            setAutoDismissed(true)
+          }}
           resume={signal.draftGroup ? resumeFrom(signal.draftGroup) : undefined}
         />
       )}
@@ -192,7 +210,7 @@ export function SellCta({
           role="status"
           aria-live="polite"
           data-testid="sell-toast"
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-sm rounded-full px-4 py-2 shadow-lg"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-sm rounded-full px-4 py-2 shadow-overlay"
         >
           {toast}
         </div>

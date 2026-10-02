@@ -109,7 +109,8 @@ export default async function SellIndexPage() {
   // No active Shops AND we got here? Send the user back to /you to pick up
   // the walkthrough — the CTA logic shouldn't have routed them here.
   if (shops.length === 0) {
-    redirect('/you')
+    // #274 — where the walkthrough opens at once, not /you's empty state.
+    redirect('/you?create=1')
   }
 
   return (
@@ -129,7 +130,7 @@ export default async function SellIndexPage() {
           <li
             key={row.group_id}
             data-testid={`you-sell-shop-${row.group_id}`}
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between"
+            className="rounded-md border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between"
           >
             <div className="min-w-0">
               <p className="font-medium truncate">{row.groups.name}</p>

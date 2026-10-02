@@ -22,12 +22,19 @@ import {
   withheldJoinHref,
 } from './withheld-copy'
 
-export function WithheldAnnouncementCard({ result }: { result: BrowseResult }) {
+export function WithheldAnnouncementCard({
+  result,
+  as = 'li',
+}: {
+  result: BrowseResult
+  /** #270 — 'div' when the caller already provides the list item. */
+  as?: 'li' | 'div'
+}) {
   const body = (
     <>
       <div
         data-testid="tile-image"
-        className="relative aspect-[3/2] w-full rounded-xl overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
+        className="relative aspect-[3/2] w-full rounded-md overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
         style={{ fontSize: 'clamp(2rem, 17cqw, 4rem)' }}
       >
         {result.photoUrl ? (
@@ -65,7 +72,7 @@ export function WithheldAnnouncementCard({ result }: { result: BrowseResult }) {
 
   return (
     <Card
-      as="li"
+      as={as}
       interactive={Boolean(result.href)}
       data-testid="withheld-card"
       className="group/tile flex flex-col [container-type:inline-size]"

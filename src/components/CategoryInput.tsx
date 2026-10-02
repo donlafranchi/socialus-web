@@ -64,7 +64,7 @@ export function CategoryInput({ value, onChange, error }: CategoryInputProps) {
         className="mt-1 block w-full rounded border px-3 py-2 text-sm"
       />
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border rounded shadow-lg z-10">
+        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border rounded shadow-overlay z-10">
           {suggestions.map((s) => (
             <button
               key={s}

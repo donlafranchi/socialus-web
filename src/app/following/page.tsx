@@ -125,7 +125,7 @@ export default function FollowingPage() {
               key={row.vendor.id}
               data-testid="following-row"
               data-vendor-slug={row.vendor.slug}
-              className="bg-white border border-neutral-200 rounded-xl p-3 flex gap-3"
+              className="bg-white border border-neutral-200 rounded-md p-3 flex gap-3"
             >
               <Link href={`/vendors/${row.vendor.slug}`} className="flex-shrink-0">
                 <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[var(--color-accent-tint)] to-amber-100 flex items-center justify-center text-2xl">

@@ -115,7 +115,7 @@ export function MarketSelector({ open, onClose, userLocation }: Props) {
     >
       <div
         data-testid="market-selector"
-        className="bg-white w-full md:max-w-lg md:rounded-2xl rounded-t-2xl max-h-[85vh] flex flex-col"
+        className="bg-white w-full md:max-w-lg md:rounded-lg rounded-t-lg max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-neutral-200">

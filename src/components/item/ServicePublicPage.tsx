@@ -73,7 +73,7 @@ export function ServicePublicPage({ service, groupHref }: ServicePublicPageProps
 
         {service.hasServiceArea ? (
           <section
-            className="mt-6 rounded-xl border border-neutral-200 p-4"
+            className="mt-6 rounded-md border border-neutral-200 p-4"
             data-testid="service-area"
           >
             <h2 className="text-sm font-semibold text-[var(--color-fg)]">Service area</h2>

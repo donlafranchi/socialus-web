@@ -6,7 +6,7 @@
 // an owner reading it was told they could not move house.
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { EditPageForm } from './EditPageForm'
 
@@ -219,5 +219,50 @@ describe('handles, not URLs — the bug Don hit', () => {
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(screen.getByTestId('edit-error')).toHaveTextContent(/instagram/))
     expect(onSave).not.toHaveBeenCalled()
+  })
+})
+
+// #276 — "Done" was a plain link beside Save, so an unsaved change was lost
+// without a word. While anything is unsaved, Done asks first.
+describe('EditPageForm — unsaved changes', () => {
+  it('with nothing changed, Done goes straight back to the Page', () => {
+    renderForm()
+    const done = screen.getByRole('link', { name: 'Done' })
+    expect(done).toHaveAttribute('href', '/g/oak-park-sourdough-7k3x8m')
+  })
+
+  it('with a change, Done asks instead of leaving', () => {
+    renderForm()
+    fireEvent.change(screen.getByLabelText(/name/i, { selector: 'input' }), { target: { value: 'Oak Park Bread' } })
+    expect(screen.queryByRole('link', { name: 'Done' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+    expect(screen.getByTestId('edit-unsaved')).toHaveTextContent(/unsaved/i)
+    expect(screen.getByRole('link', { name: 'Leave without saving' })).toHaveAttribute(
+      'href',
+      '/g/oak-park-sourdough-7k3x8m',
+    )
+  })
+
+  it('from that question, saving saves', async () => {
+    renderForm()
+    fireEvent.change(screen.getByLabelText(/name/i, { selector: 'input' }), { target: { value: 'Oak Park Bread' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+    fireEvent.click(within(screen.getByTestId('edit-unsaved')).getByRole('button', { name: /save changes/i }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ name: 'Oak Park Bread' })))
+  })
+
+  it('the browser asks before the page is left while a change is unsaved, and not once it is saved', async () => {
+    renderForm()
+    const leave = () => {
+      const e = new Event('beforeunload', { cancelable: true })
+      window.dispatchEvent(e)
+      return e.defaultPrevented
+    }
+    expect(leave()).toBe(false)
+    fireEvent.change(screen.getByLabelText(/name/i, { selector: 'input' }), { target: { value: 'Oak Park Bread' } })
+    expect(leave()).toBe(true)
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(screen.getByTestId('edit-saved')).toBeInTheDocument())
+    expect(leave()).toBe(false)
   })
 })

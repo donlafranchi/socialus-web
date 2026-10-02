@@ -221,9 +221,12 @@ describe('BottomNav — create action (T158)', () => {
     expect(within(screen.getByTestId('bottom-nav')).getByText('Create')).toBeInTheDocument()
   })
 
-  it('routes at the existing create entry — it opens no new door', () => {
+  // #274 — /you/sell sent anyone without a business Page back to /you, whose
+  // empty state said "Tap Create": a loop. Create now lands where the flow
+  // opens at once.
+  it('lands on a create flow that opens at once', () => {
     render(<BottomNav />)
-    expect(create()).toHaveAttribute('href', '/you/sell')
+    expect(create()).toHaveAttribute('href', '/you?create=1')
   })
 
   it('is a link, never a tab', () => {
@@ -299,7 +302,7 @@ describe('TopNavDesktop — create action (T158)', () => {
 
   it('carries the same create action as the bottom bar', () => {
     render(<TopNavDesktop />)
-    expect(create()).toHaveAttribute('href', '/you/sell')
+    expect(create()).toHaveAttribute('href', '/you?create=1')
     expect(create()).toHaveAccessibleName(/create/i)
   })
 

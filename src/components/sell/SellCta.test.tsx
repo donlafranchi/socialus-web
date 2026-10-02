@@ -237,3 +237,31 @@ describe('SellCta — render branches', () => {
     })
   })
 })
+
+// #274 — arriving from Create (/you?create=1) opens what tapping the button
+// would have, at once: the walkthrough, or the sell index for someone who
+// already runs a business Page.
+describe('SellCta — opened from Create', () => {
+  it('opens the walkthrough at once for someone without a Page', async () => {
+    render(<SellCta memberId="m1" supabaseFactory={makeSupabaseStub({})} initialLocations={[]} autoOpen />)
+    expect(await screen.findByRole('heading', { name: /What are we creating\?/i })).toBeInTheDocument()
+  })
+
+  it('goes to the sell index for someone who runs a business Page', async () => {
+    render(
+      <SellCta
+        memberId="m1"
+        supabaseFactory={makeSupabaseStub({ group_memberships: [{ group_id: 'g1', groups: { kind: 'business', lifecycle_state: 'active' } }] })}
+        initialLocations={[]}
+        autoOpen
+      />,
+    )
+    await waitFor(() => expect(pushSpy).toHaveBeenCalledWith('/you/sell'))
+  })
+
+  it('stays closed when not arriving from Create', async () => {
+    render(<SellCta memberId="m1" supabaseFactory={makeSupabaseStub({})} initialLocations={[]} />)
+    await screen.findByTestId('you-sell-cta')
+    expect(screen.queryByRole('heading', { name: /What are we creating\?/i })).toBeNull()
+  })
+})

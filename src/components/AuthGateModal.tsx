@@ -27,7 +27,7 @@ export function AuthGateModal({ open, onClose, headline, subtext, intent }: Prop
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-sm p-6 relative"
+        className="bg-white rounded-lg w-full max-w-sm p-6 relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button

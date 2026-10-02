@@ -83,7 +83,9 @@ export const groupFollow = defineHandler(
            (group_id, member_id, role, source, relationship, joined_at, left_at)
          values ($1, $2, 'member', $3, $4, $5, null)
          on conflict (group_id, member_id)
-         do update set left_at = null, relationship = excluded.relationship`,
+         do update set left_at = null, relationship = excluded.relationship
+         -- #267: a managing row is the owner's authority; following leaves it be.
+         where public.group_memberships.role not in ('owner', 'steward')`,
         [input.groupId, memberId, source, relationship, ctx.now()],
       )
 
@@ -117,7 +119,10 @@ export const groupUnfollow = defineHandler(
       await client.query(
         `update public.group_memberships
             set left_at = $3
-          where group_id = $1 and member_id = $2 and left_at is null`,
+          where group_id = $1 and member_id = $2 and left_at is null
+            -- #267: unfollowing never ends the row that holds a Page's
+            -- authority. Leaving a Page you run is not an unfollow.
+            and role not in ('owner', 'steward')`,
         [input.groupId, memberId, ctx.now()],
       )
 

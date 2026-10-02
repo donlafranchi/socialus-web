@@ -25,9 +25,13 @@ import { CardGrid } from '@/components/cards'
 import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
+import { ViewPill } from '@/components/explore/ViewPill'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { ScopeSheet } from '@/components/explore/ScopeSheet'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
+import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import {
@@ -44,15 +48,22 @@ import type { FeedMetro } from '@/lib/feed/feed-metro'
 
 const BrowseMap = dynamic(() => import('./BrowseMap').then((m) => m.BrowseMap), { ssr: false })
 
-/** Cards before the inline toggle interrupts the grid. Ported unchanged from
- *  T116 — four completes a row at both 2 and 4 columns, so the toggle never
- *  lands beside a half-empty row. Not re-derived. */
-const TOGGLE_AFTER_CARDS = 4
+/** T187 — the map column sits under the top nav (3.5rem) and the search row. */
+const SPLIT_TOP = 'top-[calc(3.5rem+61px)]'
+const SPLIT_HEIGHT = 'h-[calc(100dvh-3.5rem-61px)]'
+const MAP_PANE_ID = 'browse-map-pane'
 
 /** Long enough that a five-character search announces once, on settle. */
 const ANNOUNCE_DEBOUNCE_MS = 700
 
-export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
+export function BrowseSurface({
+  initial,
+  // [open-question owner=cowork raised=2026-10-01] Nothing opens an owner panel on Explore yet; what should, if anything?
+  ownerPanelOpen = false,
+}: {
+  initial: BrowseSnapshot
+  ownerPanelOpen?: boolean
+}) {
   const router = useRouter()
   const params = useSearchParams()
 
@@ -61,6 +72,15 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
   const [filters, setFilters] = useState(() => parseBrowseFilters(params))
   // Ephemeral per F044 — not in the URL, resets to List on the next visit.
   const [view, setView] = useState<ExploreView>('list')
+  const [mapCollapsed, setMapCollapsed] = useState(false)
+  // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
+  // pill; from 1024px list and map side by side; at 1024–1439px with the owner
+  // panel open, one view at a time behind a switch docked in the search row.
+  const wide = useMediaQuery('(min-width: 1024px)')
+  const extraWide = useMediaQuery('(min-width: 1440px)')
+  const layout = !wide ? 'single' : ownerPanelOpen && !extraWide ? 'docked' : 'split'
+  const showList = layout === 'split' || view === 'list'
+  const showMap = layout === 'split' ? !mapCollapsed : view === 'map'
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
   const [, startTransition] = useTransition()
@@ -178,6 +198,7 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
         filtersActive={hasBrowseFilters(filters)}
         onOpenFilters={() => setSheetOpen(true)}
         onOpenScope={() => setScopeOpen(true)}
+        viewSwitch={layout === 'docked' ? <ListMapToggle view={view} onChange={setView} /> : undefined}
       />
 
       {/* Above the results, and absent for a signed-in Member. */}
@@ -191,6 +212,7 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
       <FollowingRow results={snapshot.following} />
+      <HappeningRows rows={snapshot.happening} />
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}
@@ -203,10 +225,11 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
         role="region"
         aria-label={`Results in ${metroName}`}
         data-testid="browse-results"
+        data-layout={layout}
+        className="lg:flex lg:items-start"
       >
-        {/* Keyed on the view so the fade replays on each switch. */}
-        <div key={view} data-testid="browse-view-pane" className="explore-fade-in">
-          {view === 'list' ? (
+        {showList && (
+          <div key={`list-${layout}`} data-testid="browse-list-pane" className="explore-fade-in min-w-0 flex-1">
             <section className="px-3 py-4 md:px-6">
               <p className="mb-3 text-sm text-neutral-600" data-testid="result-count">
                 {visible.length} result{visible.length === 1 ? '' : 's'}
@@ -247,37 +270,57 @@ export function BrowseSurface({ initial }: { initial: BrowseSnapshot }) {
                 </div>
               ) : (
                 <CardGrid>
-                  {visible.slice(0, TOGGLE_AFTER_CARDS).map((r) => (
-                    <BrowseResultCard key={`${r.resultKind}:${r.resultId}`} result={r} />
-                  ))}
-                  {/* The toggle interrupts the grid rather than following it,
-                      so it lands where the member is already scrolling.
-                      `presentation` keeps it out of the list's item count. */}
-                  <li role="presentation" className="col-span-full">
-                    <ListMapToggle view={view} onChange={setView} />
-                  </li>
-                  {visible.slice(TOGGLE_AFTER_CARDS).map((r) => (
+                  {visible.map((r) => (
                     <BrowseResultCard key={`${r.resultKind}:${r.resultId}`} result={r} />
                   ))}
                 </CardGrid>
               )}
+            </section>
+          </div>
+        )}
 
-              {/* No cards to interrupt — the toggle still renders, because the
-                  map shows the search area even with nothing in it. */}
-              {visible.length === 0 && <ListMapToggle view={view} onChange={setView} />}
-            </section>
-          ) : (
-            <section className="px-3 py-4 md:px-6">
-              {/* 70vh leaves the toggle below the map on screen without a
-                  scroll, at every viewport height. */}
-              <div className="h-[70vh] overflow-hidden rounded-xl">
-                <BrowseMap results={visible} />
-              </div>
-              <ListMapToggle view={view} onChange={setView} />
-            </section>
-          )}
-        </div>
+        {layout === 'split' && (
+          <div className={`sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} flex shrink-0 items-center border-l border-[var(--color-charcoal-100)]`}>
+            <button
+              type="button"
+              onClick={() => setMapCollapsed((c) => !c)}
+              aria-label={mapCollapsed ? 'Show map' : 'Hide map'}
+              aria-expanded={!mapCollapsed}
+              aria-controls={MAP_PANE_ID}
+              data-testid="map-collapse-handle"
+              className="press -ml-3 inline-flex h-11 w-6 items-center justify-center rounded-full border border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)] shadow-sm outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2"
+            >
+              {mapCollapsed ? <ChevronLeft size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+            </button>
+          </div>
+        )}
+
+        {showMap && (
+          <div
+            key={`map-${layout}`}
+            id={MAP_PANE_ID}
+            data-testid="browse-map-pane"
+            className={
+              layout === 'split'
+                ? `explore-fade-in sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} w-[42%] shrink-0 py-4 pr-6`
+                : 'explore-fade-in min-w-0 flex-1 px-3 py-4 md:px-6'
+            }
+          >
+            {/* Under 1024px the height leaves the floating pill clear of the map's bottom edge. */}
+            <div
+              className={
+                layout === 'split'
+                  ? 'h-full overflow-hidden rounded-md'
+                  : 'h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)] overflow-hidden rounded-md md:h-[calc(100dvh-3.5rem-185px)]'
+              }
+            >
+              <BrowseMap results={visible} />
+            </div>
+          </div>
+        )}
       </div>
+
+      {layout === 'single' && <ViewPill view={view} onChange={setView} />}
 
       <ScopeSheet
         open={scopeOpen}
