@@ -71,7 +71,7 @@ export function VenuePublicPage({
         <img
           src={venue.heroImageUrl}
           alt={`Photo of ${venue.label}`}
-          className="aspect-[4/3] w-full rounded-[--radius-md] object-cover sm:aspect-video"
+          className="aspect-[4/3] w-full rounded-md object-cover sm:aspect-video"
         />
       )}
 
