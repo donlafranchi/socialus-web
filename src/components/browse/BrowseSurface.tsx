@@ -300,7 +300,7 @@ export function BrowseSurface({
             data-testid="browse-map-pane"
             className={
               layout === 'split'
-                ? `explore-fade-in sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} w-[42%] shrink-0 py-4 pr-6`
+                ? `explore-fade-in sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} w-[45%] shrink-0 py-4 pr-6`
                 : 'explore-fade-in min-w-0 flex-1 px-3 py-4 md:px-6'
             }
           >

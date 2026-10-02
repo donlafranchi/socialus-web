@@ -19,7 +19,7 @@
 /** A small, fixed set. Not a ramp, and not per-kind. */
 const TONES = ['a', 'b', 'c', 'd'] as const
 
-const TONE_CLASS: Record<(typeof TONES)[number], string> = {
+export const TONE_CLASS: Record<(typeof TONES)[number], string> = {
   a: 'bg-[var(--color-charcoal-100)] text-[var(--color-charcoal-900)]',
   b: 'bg-neutral-200 text-[var(--color-charcoal-900)]',
   c: 'bg-[var(--color-charcoal-700)] text-white',
@@ -33,7 +33,7 @@ export function initialFor(name: string): string {
 }
 
 /** Stable across loads, processes and people — a plain string hash, not random. */
-function toneFor(name: string): (typeof TONES)[number] {
+export function toneFor(name: string): (typeof TONES)[number] {
   let h = 0
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
   return TONES[h % TONES.length]
