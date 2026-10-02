@@ -54,6 +54,12 @@
 
 <!-- For whoever reviews the code. Don is not the audience for this part. -->
 
+## Migration
+
+<!-- "None", or the migration file and the command Don runs to apply it
+     BEFORE this merges (one ready at a time):
+     gh workflow run migrations-apply-production.yml --ref <this-branch> -f confirm=apply -->
+
 ## How it was verified
 
 <!-- One of: live DB · local Postgres · unit tests only · not verified.

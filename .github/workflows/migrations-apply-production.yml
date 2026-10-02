@@ -1,4 +1,4 @@
-name: ⚠️ Apply migrations to PRODUCTION
+name: Apply migrations to PRODUCTION
 
 # The only thing in this repo that writes to socialus-db.
 #

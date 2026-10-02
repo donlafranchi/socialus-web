@@ -61,6 +61,8 @@ describe('the merge gate says which way production and the branch disagree', () 
     expect(code).toBe(1)
     expect(out).toMatch(/this branch carries a migration production does not have/i)
     expect(out).toMatch(/apply it first/i)
+    // 2026-10-02 — the instruction is the terminal command, naming the branch.
+    expect(out).toMatch(/gh workflow run migrations-apply-production\.yml --ref \S+ -f confirm=apply/)
   })
 
   it('production has a migration the branch lacks: never tells you to apply', () => {

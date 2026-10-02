@@ -134,7 +134,7 @@ jobs:
             if [ "$code" = "503" ]; then
               echo "::error::$TARGET is serving code built against a schema its database does not have."
               echo "$body"
-              echo "::error::Run Actions → '⚠️ Apply migrations to PRODUCTION' → Run workflow, from main. Until then the deployed code is querying columns that do not exist."
+              echo "::error::In a terminal: gh workflow run migrations-apply-production.yml --ref main -f confirm=apply. Until then the deployed code is querying columns that do not exist."
               exit 1
             fi
 
