@@ -96,6 +96,8 @@ describe('a time on it', () => {
     fireEvent.change(screen.getByTestId('page-post-body'), {
       target: { value: 'Bread class Thursday.' },
     })
+    // #317 — a time is asked for, then typed over the defaults it fills.
+    fireEvent.click(screen.getByTestId('announce-add-when'))
     fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
     fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '19:00' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
@@ -123,7 +125,10 @@ describe('a time on it', () => {
     // on Wednesday night for a reader one zone east.
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'x' } })
+    // #317 — a time is asked for, then typed over the defaults it fills.
+    fireEvent.click(screen.getByTestId('announce-add-when'))
     fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() =>
       expect(screen.getByTestId('page-post-error')).toHaveTextContent(/both a date and a time/i),
@@ -369,6 +374,8 @@ describe('add to calendar', () => {
 describe('an end time on it', () => {
   const typeStart = () => {
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Bread class Thursday.' } })
+    // #317 — a time is asked for, then typed over the defaults it fills.
+    fireEvent.click(screen.getByTestId('announce-add-when'))
     fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
     fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '19:00' } })
   }
@@ -385,9 +392,11 @@ describe('an end time on it', () => {
     )
   })
 
-  it('sends no end when none was given', async () => {
+  // #317 — an end is filled an hour after the start; the owner can clear it.
+  it('sends no end when the owner clears it', async () => {
     renderPosts()
     typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ endsAt: null })))
   })

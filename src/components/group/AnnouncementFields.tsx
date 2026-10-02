@@ -25,6 +25,9 @@
 // implementation. It is here so that whoever builds recurrence checks whether
 // F074 was amended rather than assuming the gap was considered.
 
+import { useState } from 'react'
+import { metroDate } from '@/lib/metro/metro-week'
+import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import {
   LocationPlaceFields,
   initialLocationPlaceFieldsState,
@@ -58,62 +61,94 @@ export function AnnouncementFields({
   onChange,
   idPrefix,
   placeLabel,
+  now = new Date(),
 }: {
   value: AnnouncementWhenWhere
   onChange: (next: AnnouncementWhenWhere) => void
   idPrefix: string
   /** Where this announcement is now, if it already has somewhere of its own. */
   placeLabel?: string | null
+  /** For tests; the defaults are read from the metro's clock. */
+  now?: Date
 }) {
+  const [endTouched, setEndTouched] = useState(Boolean(value.endTime))
   return (
     <div className="flex flex-col gap-3">
+      {/* #317 — the phone's own pickers, labelled and full size. Still
+          optional: undated is a first-class post. Asking for a time fills
+          today, the next whole hour, and an end an hour later that follows
+          the start until the owner sets it. */}
       <fieldset className="border-0 p-0">
-        <legend className="text-sm font-medium text-[var(--color-fg)]">
+        <legend className="text-body-sm font-medium text-[var(--color-fg)]">
           When is it? <span className="font-normal text-[var(--color-fg-muted)]">Optional</span>
         </legend>
-        <div className="mt-1 flex flex-wrap gap-2">
-          <label className="flex flex-col">
-            <span className="sr-only">Date</span>
-            <input
-              type="date"
-              data-testid={`${idPrefix}-date`}
-              className="input"
-              value={value.date}
-              onChange={(e) => onChange({ ...value, date: e.target.value })}
-            />
-          </label>
-          <label className="flex flex-col">
-            <span className="sr-only">Time</span>
-            <input
-              type="time"
-              data-testid={`${idPrefix}-time`}
-              className="input"
-              value={value.time}
-              onChange={(e) => onChange({ ...value, time: e.target.value })}
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-sm text-[var(--color-fg-muted)]">until</span>
-            <input
-              type="time"
-              aria-label="Until"
-              data-testid={`${idPrefix}-end-time`}
-              className="input"
-              value={value.endTime}
-              onChange={(e) => onChange({ ...value, endTime: e.target.value })}
-            />
-          </label>
-          {(value.date || value.time || value.endTime) && (
+        {!(value.date || value.time || value.endTime) ? (
+          <button
+            type="button"
+            data-testid={`${idPrefix}-add-when`}
+            className="mt-1 flex min-h-tap items-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+            onClick={() => {
+              const d = whenDefaults(now)
+              setEndTouched(false)
+              onChange({ ...value, ...d })
+            }}
+          >
+            Add a date and time
+          </button>
+        ) : (
+          <>
+            <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-caption text-[var(--color-fg-muted)]">Date</span>
+                <input
+                  type="date"
+                  data-testid={`${idPrefix}-date`}
+                  min={metroDate(now, METRO_TIME_ZONE)}
+                  className="input min-h-tap w-full"
+                  value={value.date}
+                  onChange={(e) => onChange({ ...value, date: e.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-caption text-[var(--color-fg-muted)]">Starts</span>
+                <input
+                  type="time"
+                  data-testid={`${idPrefix}-time`}
+                  className="input min-h-tap w-full"
+                  value={value.time}
+                  onChange={(e) =>
+                    onChange({
+                      ...value,
+                      time: e.target.value,
+                      ...(endTouched || !e.target.value ? {} : { endTime: plusOneHour(e.target.value) }),
+                    })
+                  }
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-caption text-[var(--color-fg-muted)]">Ends</span>
+                <input
+                  type="time"
+                  data-testid={`${idPrefix}-end-time`}
+                  className="input min-h-tap w-full"
+                  value={value.endTime}
+                  onChange={(e) => {
+                    setEndTouched(true)
+                    onChange({ ...value, endTime: e.target.value })
+                  }}
+                />
+              </label>
+            </div>
             <button
               type="button"
               data-testid={`${idPrefix}-clear-when`}
-              className="flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
               onClick={() => onChange({ ...value, date: '', time: '', endTime: '' })}
             >
               No particular time
             </button>
-          )}
-        </div>
+          </>
+        )}
       </fieldset>
 
       <div>
@@ -156,4 +191,19 @@ export function AnnouncementFields({
       </div>
     </div>
   )
+}
+
+/** "18:30" → "19:30", stopping at the end of the day. */
+function plusOneHour(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number) as [number, number]
+  return h >= 23 ? '23:59' : `${String(h + 1).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/** Today in the metro, the next whole hour, and an hour after it. */
+function whenDefaults(now: Date): { date: string; time: string; endTime: string } {
+  const hour = Number(
+    new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: METRO_TIME_ZONE }).format(now),
+  )
+  const start = `${String(Math.min(hour + 1, 23)).padStart(2, '0')}:00`
+  return { date: metroDate(now, METRO_TIME_ZONE), time: start, endTime: plusOneHour(start) }
 }
