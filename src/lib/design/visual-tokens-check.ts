@@ -3,6 +3,9 @@
 // shadow or type (`p-[13px]`, `rounded-[10px]`, `text-[15px]`), or a px/rem
 // length in an inline style. Colour is out of scope (Don, 2026-10-01).
 //
+// Arithmetic over tokens, viewport units and percentages is not a one-off:
+// `h-[calc(100dvh-var(--nav-top-h))]` names nothing a token could.
+//
 // A ratchet, not a cleanup: the values already in the tree are listed in
 // visual-tokens-baseline.json, each removed as its screen moves to the new
 // templates. A value not in the baseline fails; so does a baseline entry the
@@ -16,6 +19,9 @@ const PROPS =
 /** Arbitrary Tailwind values, minus colour. */
 const CLASS = new RegExp(`(?<![\\w-])(${PROPS})-\\[([^\\]\\s]+)\\]`, 'g')
 const COLOUR = /^(var\(--color-|#|rgb|hsl|color:)/
+/** A literal length: what a token should have named. Viewport units, percent,
+ *  var(--token) and env() are layout arithmetic over tokens, not one-offs. */
+const LITERAL = /(?<![\w-])-?\d*\.?\d+(px|rem|em|ch)\b|^\d+$|_\d+px/
 /** px/rem lengths in an inline style object or cssText. */
 const INLINE = /(?<![-\w])(padding|margin|fontSize|font-size|borderRadius|border-radius|boxShadow|box-shadow|gap|width|height|top|left|right|bottom)[A-Za-z-]*:\s*['"`]?(-?\d+(?:\.\d+)?(?:px|rem))/g
 
@@ -25,6 +31,7 @@ export function oneOffs(source: string): string[] {
   const found: string[] = []
   for (const m of source.matchAll(CLASS)) {
     if (m[1] === 'text' && COLOUR.test(m[2]!)) continue
+    if (!LITERAL.test(m[2]!) && !/^shadow/.test(m[1]!)) continue
     found.push(m[0])
   }
   for (const m of source.matchAll(INLINE)) found.push(`${m[1]}:${m[2]}`)

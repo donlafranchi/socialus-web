@@ -15,6 +15,12 @@ describe('#295 — one-off visual values', () => {
     expect(oneOffs(src)).toEqual([])
   })
 
+  it('lets layout arithmetic over tokens and viewport units through', () => {
+    const src = `<i className="h-[calc(100dvh-var(--nav-top-h))] top-[var(--nav-top-h)] w-[42%] max-h-[70vh]" />`
+    expect(oneOffs(src)).toEqual([])
+    expect(oneOffs(`<i className="top-[calc(3.5rem+61px)]" />`)).toEqual(['top-[calc(3.5rem+61px)]'])
+  })
+
   it('does not mistake a media query for an inline length', () => {
     expect(oneOffs(`useMediaQuery('(min-width: 1024px)')`)).toEqual([])
   })
