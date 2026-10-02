@@ -61,7 +61,7 @@ export function ExampleCard({ title, tagline, location, emoji }: ExampleCardProp
 
       <div
         data-testid="example-image"
-        className="aspect-[3/2] w-full overflow-hidden rounded-xl bg-white/70 flex items-center justify-center"
+        className="aspect-[3/2] w-full overflow-hidden rounded-md bg-white/70 flex items-center justify-center"
         style={{ fontSize: 'clamp(2rem, 17cqw, 4rem)' }}
       >
         <span aria-hidden>{emoji}</span>

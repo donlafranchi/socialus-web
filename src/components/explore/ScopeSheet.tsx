@@ -98,7 +98,7 @@ export function ScopeSheet({
       <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/30" />
       <div
         data-testid="scope-sheet"
-        className="relative w-full max-w-md rounded-t-2xl bg-white p-4 pb-8 shadow-[0_-6px_16px_rgba(0,0,0,0.12)] sm:rounded-2xl sm:pb-4 max-h-[75vh] overflow-y-auto"
+        className="relative w-full max-w-md rounded-t-lg bg-white p-4 pb-8 shadow-bar sm:rounded-lg sm:pb-4 max-h-[75vh] overflow-y-auto"
       >
         {looking ? (
           <MetroNotCoveredPanel metro={looking} onBack={() => setLooking(null)} />

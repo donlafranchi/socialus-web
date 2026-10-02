@@ -52,7 +52,7 @@ export function ExampleBlock({ placeName }: { placeName: string }) {
     <section
       data-testid="example-block"
       aria-labelledby="example-block-heading"
-      className="rounded-2xl border border-dashed border-[var(--color-border)] bg-white/40 p-4"
+      className="rounded-lg border border-dashed border-[var(--color-border)] bg-white/40 p-4"
     >
       <h3 id="example-block-heading" className="text-sm font-semibold text-[var(--color-fg)]">
         What SocialUs looks like

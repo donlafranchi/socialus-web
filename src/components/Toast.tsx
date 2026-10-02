@@ -21,7 +21,7 @@ export function Toast({ message, visible, onHide, duration = 2000 }: ToastProps)
   return (
     <div
       data-testid="toast"
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-800 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50"
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-800 text-white px-4 py-2 rounded-full text-sm shadow-overlay z-50"
     >
       {message}
     </div>

@@ -62,7 +62,7 @@ export function ReportForm({ businessId, userId, onClose }: ReportFormProps) {
         data-testid="report-form"
         className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
       >
-        <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-2xl p-6">
+        <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-lg p-6">
           <p data-testid="report-confirmation" className="text-center text-sm py-8">
             Thank you. Your report has been submitted.
           </p>
@@ -83,7 +83,7 @@ export function ReportForm({ businessId, userId, onClose }: ReportFormProps) {
       className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-2xl p-6 max-h-[85vh] overflow-y-auto">
+      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-lg p-6 max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">Report a Concern</h2>
           <button onClick={onClose} className="text-zinc-400 text-xl" aria-label="Close">×</button>

@@ -193,7 +193,7 @@ export function SellWalkthrough({
             {PURPOSES.map((p) => (
               <label
                 key={p}
-                className={`flex min-h-11 cursor-pointer items-center rounded-xl border px-4 text-sm ${
+                className={`flex min-h-11 cursor-pointer items-center rounded-md border px-4 text-sm ${
                   state.purpose === p
                     ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
                     : 'border-[var(--color-control-border)] bg-white text-[var(--color-charcoal-900)]'

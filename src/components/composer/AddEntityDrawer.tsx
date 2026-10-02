@@ -151,7 +151,7 @@ export function AddEntityDrawer<S>({
         <div
           ref={dialogRef}
           tabIndex={-1}
-          className="bg-white w-full md:max-w-md max-h-[90vh] flex flex-col rounded-t-2xl md:rounded-2xl shadow-lg relative outline-none"
+          className="bg-white w-full md:max-w-md max-h-[90vh] flex flex-col rounded-t-lg md:rounded-lg shadow-overlay relative outline-none"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top bar */}

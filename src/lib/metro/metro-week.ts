@@ -28,7 +28,7 @@ export interface MetroWeek {
 }
 
 /** The calendar date in the metro, as `YYYY-MM-DD`. */
-function metroDate(at: Date, tz: string): string {
+export function metroDate(at: Date, tz: string): string {
   // `en-CA` renders ISO-shaped dates, which is why it is used here rather than
   // assembling parts by hand.
   return new Intl.DateTimeFormat('en-CA', {
@@ -40,13 +40,13 @@ function metroDate(at: Date, tz: string): string {
 }
 
 /** 0 = Sunday, matching `Date.prototype.getDay`. */
-function metroWeekday(at: Date, tz: string): number {
+export function metroWeekday(at: Date, tz: string): number {
   const name = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(at)
   return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(name)
 }
 
 /** `YYYY-MM-DD` shifted by whole days, without touching a timezone. */
-function shiftDays(ymd: string, days: number): string {
+export function shiftDays(ymd: string, days: number): string {
   const [y, m, d] = ymd.split('-').map(Number)
   return new Date(Date.UTC(y!, m! - 1, d! + days)).toISOString().slice(0, 10)
 }

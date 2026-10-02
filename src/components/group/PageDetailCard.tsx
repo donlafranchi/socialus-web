@@ -31,7 +31,7 @@ export function PageDetailCard({
   return (
     <div
       data-testid="page-detail-card"
-      className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-[0_-6px_16px_rgba(0,0,0,0.12)] p-6 pb-8 z-30 max-h-[70vh] overflow-y-auto"
+      className="absolute bottom-0 left-0 right-0 bg-white rounded-t-lg shadow-bar p-6 pb-8 z-30 max-h-[70vh] overflow-y-auto"
     >
       <button
         type="button"

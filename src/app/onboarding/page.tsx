@@ -19,7 +19,9 @@ export default async function OnboardingPage() {
     .eq('scope_kind', 'primary_home')
     .is('removed_at', null)
     .maybeSingle()
-  if (home) redirect('/')
+  // #205 — onboarding writes no place now; the login carries the mark. A
+  // member onboarded before that still has the place it wrote.
+  if (home || user.user_metadata?.onboarded === true) redirect('/')
 
   const { data: member } = await supabase
     .from('members')

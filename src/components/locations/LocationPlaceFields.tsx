@@ -189,7 +189,7 @@ export function LocationPlaceFields({
                 role="listbox"
                 aria-label="Places and addresses"
                 data-testid={`${idPrefix}-address-suggestions`}
-                className="absolute z-10 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-md"
+                className="absolute z-10 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lift"
               >
                 {suggestions.map((s, i) => (
                   <li

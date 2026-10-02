@@ -183,7 +183,7 @@ export function MetroNotCoveredPanel({
           what a person reads, not about what happens to be on screen today. */}
       <ExampleBlock placeName={metro.name} />
 
-      <div className="rounded-2xl bg-[var(--color-surface)] p-4">
+      <div className="rounded-lg bg-[var(--color-surface)] p-4">
         <h3 className="text-sm font-semibold text-[var(--color-fg)]">Tell us you’re here</h3>
 
         {joined ? (
@@ -209,7 +209,7 @@ export function MetroNotCoveredPanel({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="mt-1 w-full rounded-xl border border-[var(--color-charcoal-100)] px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-md border border-[var(--color-charcoal-100)] px-3 py-2 text-sm"
             />
             {/* Criterion 15, said before they type rather than after. */}
             <p

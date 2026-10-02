@@ -21,6 +21,8 @@ export interface EditPageInput {
   /** Issue #180 — where the Page is. `group.update` already accepted this;
    *  nothing but the form was missing. */
   anchorLocationId?: string
+  /** #285 — the Page's whole tag set. */
+  tags?: string[]
 }
 
 export type EditPageResult = { ok: true } | { ok: false; message: string }
@@ -40,6 +42,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
       ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
+      ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.anchorLocationId !== undefined
         ? { anchorLocationId: input.anchorLocationId }
         : {}),

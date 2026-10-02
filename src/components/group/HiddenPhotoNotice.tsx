@@ -20,7 +20,7 @@ export function HiddenPhotoNotice() {
     <div
       data-testid="hidden-photo-notice"
       role="status"
-      className="rounded-xl border border-dashed border-[var(--color-charcoal-100)] bg-neutral-50 p-6 text-sm text-[var(--color-charcoal-900)]"
+      className="rounded-md border border-dashed border-[var(--color-charcoal-100)] bg-neutral-50 p-6 text-sm text-[var(--color-charcoal-900)]"
     >
       <p className="font-medium">Your photo is hidden for now.</p>
       <p className="mt-1 text-neutral-600">
