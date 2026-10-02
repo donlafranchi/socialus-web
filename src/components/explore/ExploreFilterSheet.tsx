@@ -124,7 +124,7 @@ export function ExploreFilterSheet({
         aria-labelledby={titleId}
         onKeyDown={onKeyDown}
         data-testid="explore-filter-sheet"
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col rounded-t-2xl border-t border-[var(--color-charcoal-100)] bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.12)] md:inset-x-auto md:right-4 md:top-28 md:bottom-auto md:w-96 md:rounded-2xl md:border"
+        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col rounded-t-lg border-t border-[var(--color-charcoal-100)] bg-white shadow-bar md:inset-x-auto md:right-4 md:top-28 md:bottom-auto md:w-96 md:rounded-lg md:border"
       >
         <header className="flex items-center gap-2 border-b border-[var(--color-charcoal-100)] px-4 py-3">
           <button

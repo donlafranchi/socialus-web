@@ -114,7 +114,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
         aria-describedby={hintId}
         onKeyDown={onKeyDown}
         data-testid="report-sheet"
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col rounded-t-2xl border-t border-[var(--color-charcoal-100)] bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.12)] md:inset-x-auto md:left-1/2 md:top-24 md:bottom-auto md:w-[28rem] md:-translate-x-1/2 md:rounded-2xl md:border"
+        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col rounded-t-lg border-t border-[var(--color-charcoal-100)] bg-white shadow-bar md:inset-x-auto md:left-1/2 md:top-24 md:bottom-auto md:w-[28rem] md:-translate-x-1/2 md:rounded-lg md:border"
       >
         <header className="flex items-center gap-2 border-b border-[var(--color-charcoal-100)] px-4 py-3">
           <button
@@ -145,7 +145,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
             rows={5}
             onChange={(e) => setBody(e.target.value)}
             placeholder="In your own words."
-            className="mt-2 w-full rounded-xl border border-[var(--color-control-border)] p-3 text-sm text-[var(--color-charcoal-900)]"
+            className="mt-2 w-full rounded-md border border-[var(--color-control-border)] p-3 text-sm text-[var(--color-charcoal-900)]"
           />
 
           {error && (

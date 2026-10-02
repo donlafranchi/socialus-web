@@ -31,6 +31,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { ScopeSheet } from '@/components/explore/ScopeSheet'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
+import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import {
@@ -211,6 +212,7 @@ export function BrowseSurface({
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
       <FollowingRow results={snapshot.following} />
+      <HappeningRows rows={snapshot.happening} />
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}
@@ -308,8 +310,8 @@ export function BrowseSurface({
             <div
               className={
                 layout === 'split'
-                  ? 'h-full overflow-hidden rounded-xl'
-                  : 'h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)] overflow-hidden rounded-xl md:h-[calc(100dvh-3.5rem-185px)]'
+                  ? 'h-full overflow-hidden rounded-md'
+                  : 'h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)] overflow-hidden rounded-md md:h-[calc(100dvh-3.5rem-185px)]'
               }
             >
               <BrowseMap results={visible} />

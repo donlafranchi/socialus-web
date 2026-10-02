@@ -16,7 +16,7 @@ export function ViewPill({ view, onChange }: { view: ExploreView; onChange: (vie
       data-testid="view-pill"
       aria-controls={BROWSE_RESULTS_ID}
       onClick={() => onChange(next)}
-      className="press fixed bottom-[calc(var(--nav-height)+env(safe-area-inset-bottom)+16px)] left-1/2 z-30 inline-flex min-h-11 -translate-x-1/2 items-center gap-1.5 rounded-full bg-[var(--color-charcoal-700)] px-5 text-sm font-medium text-white shadow-lg outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:bottom-[calc(env(safe-area-inset-bottom)+24px)]"
+      className="press fixed bottom-[calc(var(--nav-height)+env(safe-area-inset-bottom)+16px)] left-1/2 z-30 inline-flex min-h-11 -translate-x-1/2 items-center gap-1.5 rounded-full bg-[var(--color-charcoal-700)] px-5 text-sm font-medium text-white shadow-overlay outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:bottom-[calc(env(safe-area-inset-bottom)+24px)]"
     >
       {next === 'map' ? <MapIcon size={14} className="reacts" aria-hidden="true" /> : <List size={14} className="reacts" aria-hidden="true" />}
       {next === 'map' ? 'Map' : 'List'}

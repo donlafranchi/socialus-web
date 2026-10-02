@@ -157,7 +157,7 @@ export default function JoinPage() {
 
 function Benefit({ title, body }: { title: string; body: string }) {
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-5">
+    <div className="bg-white rounded-md border border-neutral-200 p-5">
       <h3 className="font-semibold text-neutral-900">{title}</h3>
       <p className="mt-2 text-sm text-neutral-600 leading-relaxed">{body}</p>
     </div>

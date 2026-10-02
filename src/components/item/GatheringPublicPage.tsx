@@ -92,7 +92,7 @@ export function GatheringPublicPage({
 
         {gathering.location ? (
           <section
-            className="mt-6 rounded-xl border border-neutral-200 p-4"
+            className="mt-6 rounded-md border border-neutral-200 p-4"
             data-testid="gathering-location"
           >
             <h2 className="text-sm font-semibold text-[var(--color-fg)]">Where</h2>

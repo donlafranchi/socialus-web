@@ -130,7 +130,7 @@ export default async function SellIndexPage() {
           <li
             key={row.group_id}
             data-testid={`you-sell-shop-${row.group_id}`}
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between"
+            className="rounded-md border border-neutral-200 bg-white px-4 py-3 flex items-center justify-between"
           >
             <div className="min-w-0">
               <p className="font-medium truncate">{row.groups.name}</p>

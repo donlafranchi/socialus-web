@@ -84,7 +84,7 @@ export function ReportControl({ subjectId, subjectLabel, loggedIn, returnTo, onS
         <div
           role="status"
           data-testid="report-sent"
-          className="fixed inset-x-4 bottom-20 z-50 flex items-center gap-3 rounded-2xl bg-[var(--color-charcoal-700)] px-4 py-3 text-sm text-white shadow-lg md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
+          className="fixed inset-x-4 bottom-20 z-50 flex items-center gap-3 rounded-lg bg-[var(--color-charcoal-700)] px-4 py-3 text-sm text-white shadow-overlay md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
         >
           <span className="flex-1">
             Thank you — that went to a person, and they&rsquo;ll take a look.
