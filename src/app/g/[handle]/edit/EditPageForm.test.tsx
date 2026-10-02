@@ -263,6 +263,36 @@ describe('EditPageForm — unsaved changes', () => {
     expect(leave()).toBe(true)
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(screen.getByTestId('edit-saved')).toBeInTheDocument())
-    expect(leave()).toBe(false)
+    // The listener comes off in an effect after that render; wait for it.
+    await waitFor(() => expect(leave()).toBe(false))
+  })
+})
+
+describe('#293 — Contact: phone and hours', () => {
+  it('saves the phone and hours the owner entered', async () => {
+    renderForm({ initialContact: { phone: null, hours: null } })
+    fireEvent.change(screen.getByLabelText(/business phone/i), { target: { value: '916 555 0142' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /monday/i }))
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({ contactPhone: '916 555 0142', openingHours: { mon: [{ open: '09:00', close: '17:00' }] } }),
+      ),
+    )
+  })
+
+  it('an emptied phone is sent as cleared', async () => {
+    renderForm({ initialContact: { phone: '+19165550142', hours: null } })
+    expect(screen.getByLabelText(/business phone/i)).toHaveValue('(916) 555-0142')
+    fireEvent.change(screen.getByLabelText(/business phone/i), { target: { value: '' } })
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ contactPhone: null })))
+  })
+
+  it('counts a contact change as unsaved', () => {
+    renderForm({ initialContact: { phone: null, hours: null } })
+    fireEvent.click(screen.getByRole('checkbox', { name: /tuesday/i }))
+    fireEvent.click(screen.getByRole('button', { name: /done/i }))
+    expect(screen.getByTestId('edit-unsaved')).toBeInTheDocument()
   })
 })

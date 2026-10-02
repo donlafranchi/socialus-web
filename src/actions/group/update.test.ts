@@ -168,3 +168,42 @@ describe('the edit is recorded', () => {
     expect(call[2].payload.by).toBe(OWNER)
   })
 })
+
+describe('#293 — business phone and opening hours', () => {
+  it('stores the phone as E.164, however it was typed', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, contactPhone: '(916) 555-0142' })
+    expect(out.patched).toContain('contact_phone')
+    const [text, params] = sql(/update public\.groups/)[0]!
+    expect(text).toMatch(/contact_phone = \$1/)
+    expect(params![0]).toBe('+19165550142')
+  })
+
+  it('null clears the phone', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, contactPhone: null })
+    expect(sql(/update public\.groups/)[0]![1]![0]).toBeNull()
+  })
+
+  it('refuses a number that is not a US phone, writing nothing', async () => {
+    install()
+    await expect(groupUpdate(ctx(), { groupId: GROUP, contactPhone: '555-0142' })).rejects.toThrow(/phone/i)
+    expect(sql(/update public\.groups/)).toHaveLength(0)
+  })
+
+  it('stores valid hours, and refuses a close before its open', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, openingHours: { mon: [{ open: '07:00', close: '15:00' }] } })
+    expect(sql(/update public\.groups/)[0]![1]![0]).toBe(JSON.stringify({ mon: [{ open: '07:00', close: '15:00' }] }))
+    install()
+    await expect(
+      groupUpdate(ctx(), { groupId: GROUP, openingHours: { mon: [{ open: '15:00', close: '07:00' }] } }),
+    ).rejects.toThrow()
+  })
+
+  it('the event names the fields, never the number', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, contactPhone: '9165550142' })
+    expect(JSON.stringify(appendEvent.mock.calls)).not.toContain('5550142')
+  })
+})

@@ -21,6 +21,9 @@ export interface EditPageInput {
   /** Issue #180 — where the Page is. `group.update` already accepted this;
    *  nothing but the form was missing. */
   anchorLocationId?: string
+  /** #293 — null clears either. */
+  contactPhone?: string | null
+  openingHours?: unknown
 }
 
 export type EditPageResult = { ok: true } | { ok: false; message: string }
@@ -40,6 +43,8 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
       ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
+      ...(input.contactPhone !== undefined ? { contactPhone: input.contactPhone } : {}),
+      ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),
       ...(input.anchorLocationId !== undefined
         ? { anchorLocationId: input.anchorLocationId }
         : {}),
