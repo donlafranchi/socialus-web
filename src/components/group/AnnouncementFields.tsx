@@ -36,6 +36,8 @@ export interface AnnouncementWhenWhere {
   date: string
   /** `hh:mm`, as a time input emits it. Empty means undated. */
   time: string
+  /** #262 — `hh:mm` the same day, optional. Empty means no end. */
+  endTime: string
   /** Whether the creator opened the address control at all. Closed is not the
    *  same as cleared: an announcement that was somewhere and is being edited
    *  keeps its place unless the creator says otherwise. */
@@ -46,6 +48,7 @@ export interface AnnouncementWhenWhere {
 export const emptyWhenWhere: AnnouncementWhenWhere = {
   date: '',
   time: '',
+  endTime: '',
   addingPlace: false,
   place: initialLocationPlaceFieldsState,
 }
@@ -89,12 +92,23 @@ export function AnnouncementFields({
               onChange={(e) => onChange({ ...value, time: e.target.value })}
             />
           </label>
-          {(value.date || value.time) && (
+          <label className="flex items-center gap-1">
+            <span className="text-sm text-[var(--color-fg-muted)]">until</span>
+            <input
+              type="time"
+              aria-label="Until"
+              data-testid={`${idPrefix}-end-time`}
+              className="input"
+              value={value.endTime}
+              onChange={(e) => onChange({ ...value, endTime: e.target.value })}
+            />
+          </label>
+          {(value.date || value.time || value.endTime) && (
             <button
               type="button"
               data-testid={`${idPrefix}-clear-when`}
               className="flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
-              onClick={() => onChange({ ...value, date: '', time: '' })}
+              onClick={() => onChange({ ...value, date: '', time: '', endTime: '' })}
             >
               No particular time
             </button>

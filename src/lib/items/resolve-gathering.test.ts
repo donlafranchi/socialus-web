@@ -9,6 +9,7 @@ import {
   describeRecurrence,
   nextOccurrence,
   resolveGathering,
+  gatheringWhenLabel,
 } from './resolve-gathering'
 
 describe('splitGatheringSlug', () => {
@@ -231,5 +232,29 @@ describe('resolveGathering — individual path', () => {
   it('returns null when the URL names no item', async () => {
     const supabase = makeSupabase({ posted_item_id: { data: null }, items: { data: [] } })
     expect(await resolveGathering(supabase, { handle: 'sam', itemSlug: 'thursday-run-club-deadbeef' })).toBeNull()
+  })
+})
+
+// #262 — a gathering's own page says when, with its end, in the metro's words.
+describe('gatheringWhenLabel', () => {
+  const now = new Date('2026-09-30T12:00:00Z')
+  it('reads a one-time gathering with its range', () => {
+    expect(gatheringWhenLabel('2026-10-09T02:00:00Z', '2026-10-09T04:00:00Z', null, now)).toBe(
+      'Thursday, October 8 at 7:00–9:00pm',
+    )
+  })
+
+  it('reads one without an end at its start', () => {
+    expect(gatheringWhenLabel('2026-10-09T02:00:00Z', null, null, now)).toBe('Thursday, October 8 at 7:00pm')
+  })
+
+  it('carries the same length onto the next occurrence of a series', () => {
+    expect(gatheringWhenLabel('2026-09-03T02:00:00Z', '2026-09-03T04:00:00Z', 'FREQ=WEEKLY;BYDAY=WE', now)).toBe(
+      'Wednesday, September 30 at 7:00–9:00pm',
+    )
+  })
+
+  it('is null when there is no time', () => {
+    expect(gatheringWhenLabel(null, null, null, now)).toBeNull()
   })
 })
