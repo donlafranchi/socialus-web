@@ -124,7 +124,10 @@ async function fetchHistory(reportIds: string[]): Promise<Map<string, PastDecisi
   return byReport
 }
 
-export async function fetchReviewQueue(limit = 50): Promise<QueuedReport[]> {
+export async function fetchReviewQueue(
+  limit = 50,
+  { includeBuilders = false }: { includeBuilders?: boolean } = {},
+): Promise<QueuedReport[]> {
   const { rows } = await getPool().query(
     `select r.id              as report_id,
             r.body            as body,
@@ -141,11 +144,13 @@ export async function fetchReviewQueue(limit = 50): Promise<QueuedReport[]> {
        join public.groups  g on g.id = r.subject_id
        left join public.members m on m.id = g.founder_member_id
       where r.subject_kind = 'group'
+        -- #280 — builder reports and builder Pages reach only the builder operator.
+        and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(g.founder_member_id)))
       order by (r.reviewed_at is not null),          -- undecided first
                g.photo_hidden_at asc nulls last,
                r.created_at asc
       limit $1`,
-    [limit],
+    [limit, includeBuilders],
   )
 
   const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))

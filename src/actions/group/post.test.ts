@@ -261,5 +261,46 @@ describe('#318 — the owner deletes their own post', () => {
   it('a post already deleted, or never there, is not found', async () => {
     install({ postExists: false })
     await expect(groupPostDelete(ctx(), { postId: POST })).rejects.toThrow(/not found/)
+
+// #262 (F072 criterion 3, Don 2026-09-30): an optional end time.
+describe('group.post — an end time', () => {
+  it('writes one when given, beside the start', async () => {
+    install()
+    await groupPostCreate(ctx(), {
+      groupId: GROUP,
+      body: 'Bread class Thursday.',
+      startsAt: '2026-09-25T02:00:00.000Z',
+      endsAt: '2026-09-25T04:00:00.000Z',
+    })
+    const [sql, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(sql).toMatch(/ends_at/i)
+    expect(params).toContain('2026-09-25T04:00:00.000Z')
+  })
+
+  it('refuses an end with no start', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'Soon.', endsAt: '2026-09-25T04:00:00.000Z' }),
+    ).rejects.toThrow()
+  })
+
+  it('refuses an end at or before the start', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), {
+        groupId: GROUP,
+        body: 'Backwards.',
+        startsAt: '2026-09-25T04:00:00.000Z',
+        endsAt: '2026-09-25T02:00:00.000Z',
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('an edit can set or clear it', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Moved.', endsAt: null })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/ends_at = \$/)
+    expect(params).toContain(null)
   })
 })
