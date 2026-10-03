@@ -388,6 +388,8 @@ describe('#318 — deleting a post', () => {
   it('is not offered to anyone who cannot post', () => {
     renderPosts({ posts: [postFixture()], onDelete, canPost: false })
     expect(screen.queryByTestId('page-post-delete')).toBeNull()
+  })
+})
 
 // #262 — an optional end time, the same day as the start.
 describe('an end time on it', () => {

@@ -261,6 +261,8 @@ describe('#318 — the owner deletes their own post', () => {
   it('a post already deleted, or never there, is not found', async () => {
     install({ postExists: false })
     await expect(groupPostDelete(ctx(), { postId: POST })).rejects.toThrow(/not found/)
+  })
+})
 
 // #262 (F072 criterion 3, Don 2026-09-30): an optional end time.
 describe('group.post — an end time', () => {
