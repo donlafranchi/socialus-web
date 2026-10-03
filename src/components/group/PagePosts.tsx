@@ -83,6 +83,10 @@ interface Props {
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
   >
   onCreateLocation?: CreateLocation
+  /** #318 — soft delete, after a confirm. */
+  onDelete?: (input: { postId: string }) => Promise<
+    { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
+  >
 }
 
 /** `yyyy-mm-dd` and `hh:mm` back out of an instant, for an edit form that has
@@ -129,6 +133,7 @@ export function PagePosts({
   onPost,
   onEdit,
   onCreateLocation = createLocationAction,
+  onDelete,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -137,6 +142,7 @@ export function PagePosts({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
 
@@ -458,7 +464,52 @@ export function PagePosts({
                         Edit
                       </button>
                     )}
+                    {canPost && onDelete && (
+                      <button
+                        type="button"
+                        data-testid="page-post-delete"
+                        onClick={() => setConfirmingDelete(post.id)}
+                        className="text-xs underline"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
+                  {confirmingDelete === post.id && onDelete && (
+                    <div
+                      role="alertdialog"
+                      aria-label="Delete this post?"
+                      data-testid="page-post-delete-confirm"
+                      className="mt-2 flex flex-col gap-2 rounded-md border border-[var(--color-control-border)] p-3"
+                    >
+                      <p className="text-body-sm text-[var(--color-fg)]">
+                        Delete this post? It comes off your Page and Explore.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={async () => {
+                            setBusy(true)
+                            const r = await onDelete({ postId: post.id })
+                            setBusy(false)
+                            setConfirmingDelete(null)
+                            if (!r.ok) {
+                              setError(r.message || TRY_AGAIN)
+                              return
+                            }
+                            setItems(items.filter((p) => p.id !== post.id))
+                          }}
+                          className="btn-primary"
+                        >
+                          Delete post
+                        </button>
+                        <button type="button" onClick={() => setConfirmingDelete(null)} className="btn-secondary">
+                          Keep it
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </li>
