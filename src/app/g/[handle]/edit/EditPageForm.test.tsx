@@ -52,6 +52,7 @@ function renderForm(over: Partial<Parameters<typeof EditPageForm>[0]> = {}) {
       initialPhotoUrl={null}
       initialSocialLinks={{}}
       initialAddressLabel="3117 Broadway, Sacramento, CA"
+      initialTags={['sourdough', 'rye']}
       onSave={onSave}
       onCreateLocation={onCreateLocation}
       {...over}
@@ -294,5 +295,38 @@ describe('#293 — Contact: phone and hours', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /tuesday/i }))
     fireEvent.click(screen.getByRole('button', { name: /done/i }))
     expect(screen.getByTestId('edit-unsaved')).toBeInTheDocument()
+  })
+})
+
+describe('#285 — tags can be edited any time', () => {
+  it('shows the Page\'s tags', () => {
+    renderForm()
+    expect(screen.getByTestId('edit-tag-list')).toHaveTextContent('sourdough')
+    expect(screen.getByTestId('edit-tag-list')).toHaveTextContent('rye')
+  })
+
+  it('saves the new set', async () => {
+    renderForm()
+    fireEvent.click(screen.getByTestId('edit-tag-remove-rye'))
+    fireEvent.change(screen.getByTestId('edit-tag-input'), { target: { value: 'pastry,' } })
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['sourdough', 'pastry'] })),
+    )
+  })
+
+  it('counts a tag change as unsaved', () => {
+    renderForm()
+    fireEvent.click(screen.getByTestId('edit-tag-remove-rye'))
+    fireEvent.click(screen.getByRole('button', { name: /done/i }))
+    expect(screen.getByTestId('edit-unsaved')).toBeInTheDocument()
+  })
+
+  it('will not save a Page with no tags, and says why', async () => {
+    renderForm({ initialTags: ['sourdough'] })
+    fireEvent.click(screen.getByTestId('edit-tag-remove-sourdough'))
+    fireEvent.click(screen.getByTestId('edit-save'))
+    expect(await screen.findByTestId('edit-error')).toHaveTextContent(/at least one/i)
+    expect(onSave).not.toHaveBeenCalled()
   })
 })

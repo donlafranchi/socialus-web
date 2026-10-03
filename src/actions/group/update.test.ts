@@ -207,3 +207,42 @@ describe('#293 — business phone and opening hours', () => {
     expect(JSON.stringify(appendEvent.mock.calls)).not.toContain('5550142')
   })
 })
+
+describe('#285 — tags on a live Page can be edited any time (Don, 2026-10-01)', () => {
+  it('replaces the Page\'s tags with the new set, in the same transaction', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, tags: ['Sourdough', 'rye'] })
+    expect(out.patched).toContain('tags')
+    const upserts = sql(/insert into public\.tags/)
+    expect(upserts.map(([, p]) => p![1])).toEqual(['sourdough', 'rye'])
+    const [drop] = sql(/delete from public\.page_tags/)
+    expect(drop![1]).toEqual([GROUP, ['sourdough', 'rye']])
+    expect(sql(/insert into public\.page_tags/)).toHaveLength(2)
+  })
+
+  it('treats two spellings of one tag as one', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, tags: ['Sour Dough', 'sour  dough'] })
+    expect(sql(/insert into public\.tags/)).toHaveLength(1)
+  })
+
+  it('refuses to leave a Page with no tags — search matches tags', async () => {
+    install()
+    await expect(groupUpdate(ctx(), { groupId: GROUP, tags: [] })).rejects.toThrow()
+    await expect(groupUpdate(ctx(), { groupId: GROUP, tags: ['   '] })).rejects.toThrow()
+    expect(sql(/delete from public\.page_tags/)).toHaveLength(0)
+  })
+
+  it('a stranger cannot change them', async () => {
+    install({ isManager: false })
+    await expect(groupUpdate(ctx(STRANGER), { groupId: GROUP, tags: ['x'] })).rejects.toThrow()
+    expect(sql(/page_tags/)).toHaveLength(0)
+  })
+
+  it('tags alone touch no column on the Page', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, tags: ['bread'] })
+    expect(sql(/update public\.groups/)).toHaveLength(0)
+    expect(appendEvent).toHaveBeenCalledTimes(1)
+  })
+})

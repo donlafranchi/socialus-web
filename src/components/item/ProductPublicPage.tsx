@@ -37,7 +37,7 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
             src={product.photoUrls[0]}
             alt={product.title}
             data-testid="product-photo"
-            className="w-full rounded-2xl object-cover"
+            className="w-full rounded-lg object-cover"
           />
         ) : null}
 
@@ -89,7 +89,7 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
 
         {product.pickup ? (
           <section
-            className="mt-6 rounded-xl border border-neutral-200 p-4"
+            className="mt-6 rounded-md border border-neutral-200 p-4"
             data-testid="product-pickup"
           >
             <h2 className="text-sm font-semibold text-[var(--color-fg)]">Pickup point</h2>

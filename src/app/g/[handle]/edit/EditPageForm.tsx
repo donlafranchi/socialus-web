@@ -36,6 +36,8 @@ import { HoursEditor } from '@/components/group/HoursEditor'
 import { formatUsPhone } from '@/lib/phone'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { PageContact } from '@/lib/groups/page-contact'
+import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
+import { isValidTagLabel } from '@/lib/groups/tags'
 
 type CreateLocation = typeof createLocationAction
 
@@ -50,6 +52,7 @@ export function EditPageForm({
   initialSocialLinks,
   initialAddressLabel,
   initialContact = { phone: null, hours: null },
+  initialTags = [],
   onSave,
   onCreateLocation = createLocationAction,
 }: {
@@ -67,6 +70,8 @@ export function EditPageForm({
   initialAddressLabel: string | null
   /** #293 — the Page's business phone and opening hours. */
   initialContact?: PageContact
+  /** #285 — editable any time (Don, 2026-10-01). */
+  initialTags?: string[]
   onSave: (input: EditPageInput) => Promise<EditPageResult>
   /** Injected so the form can be tested without a server action. */
   onCreateLocation?: CreateLocation
@@ -82,6 +87,7 @@ export function EditPageForm({
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
   const [phone, setPhone] = useState(initialContact.phone ? formatUsPhone(initialContact.phone) : '')
   const [hours, setHours] = useState<OpeningHours | null>(initialContact.hours)
+  const [tags, setTags] = useState<TagInputValue>({ tags: initialTags, draft: '' })
   // Closed until asked for. An address the owner is not changing should not
   // look like one they have to re-enter.
   const [changingAddress, setChangingAddress] = useState(false)
@@ -89,7 +95,7 @@ export function EditPageForm({
   const [error, setError] = useState<string | null>(null)
   // #276 — what was last saved, so Done and leaving the page can tell a
   // change from none. Moves on every successful save.
-  const current = JSON.stringify({ name, description, handles, photoUrl, phone, hours })
+  const current = JSON.stringify({ name, description, handles, photoUrl, phone, hours, tags: tags.tags })
   const [savedState, setSavedState] = useState(current)
   const unsaved = current !== savedState || changingAddress
   const [askingToLeave, setAskingToLeave] = useState(false)
@@ -119,6 +125,11 @@ export function EditPageForm({
       // and the Page is pointed at it second — and if the first half fails the
       // second never runs. Half a move leaves a Page pointing at nothing,
       // which is a Page with no address at all.
+      const tagSet = [...tags.tags, tags.draft].filter(isValidTagLabel)
+      if (tagSet.length === 0) {
+        setError('Add at least one word that describes what you do.')
+        return
+      }
       let anchorLocationId: string | undefined
       if (changingAddress && isLocationPlaceFieldsComplete(place)) {
         const made = await onCreateLocation(
@@ -151,6 +162,7 @@ export function EditPageForm({
           socialLinks: links,
           contactPhone: phone.trim() === '' ? null : phone.trim(),
           openingHours: hours,
+          tags: tagSet,
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
         if (!result.ok) {
@@ -215,6 +227,7 @@ export function EditPageForm({
         </label>
         <HoursEditor value={hours} onChange={setHours} />
       </section>
+      <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />
 
       {/* Where the Page is. Editable — this is the thing an owner moves. */}
       <div data-testid="edit-address">

@@ -33,7 +33,7 @@ export function SignInPrompt({
       <div
         data-testid="sign-in-prompt"
         data-action={action}
-        className="relative w-full max-w-sm rounded-t-2xl bg-white p-5 pb-8 shadow-[0_-6px_16px_rgba(0,0,0,0.12)] sm:rounded-2xl sm:pb-5"
+        className="relative w-full max-w-sm rounded-t-lg bg-white p-5 pb-8 shadow-bar sm:rounded-lg sm:pb-5"
       >
         <h2 id="sign-in-prompt-title" className="text-lg font-semibold text-[var(--color-fg)]">
           {title}

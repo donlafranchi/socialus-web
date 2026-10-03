@@ -365,6 +365,32 @@ describe('add to calendar', () => {
   })
 })
 
+describe('#318 — deleting a post', () => {
+  const onDelete = vi.fn(async (_i: unknown) => ({ ok: true as const, data: { postId: 'pp-1' } }))
+
+  it('asks before it deletes, and Keep it changes nothing', () => {
+    renderPosts({ posts: [postFixture()], onDelete })
+    fireEvent.click(screen.getByTestId('page-post-delete'))
+    expect(screen.getByRole('alertdialog', { name: /delete this post/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /keep it/i }))
+    expect(onDelete).not.toHaveBeenCalled()
+    expect(screen.getAllByTestId('page-post')).toHaveLength(1)
+  })
+
+  it('deletes on confirm and takes the post off the Page', async () => {
+    renderPosts({ posts: [postFixture()], onDelete })
+    fireEvent.click(screen.getByTestId('page-post-delete'))
+    fireEvent.click(screen.getByRole('button', { name: /delete post/i }))
+    await waitFor(() => expect(onDelete).toHaveBeenCalledWith({ postId: 'pp-1' }))
+    await waitFor(() => expect(screen.queryAllByTestId('page-post')).toHaveLength(0))
+  })
+
+  it('is not offered to anyone who cannot post', () => {
+    renderPosts({ posts: [postFixture()], onDelete, canPost: false })
+    expect(screen.queryByTestId('page-post-delete')).toBeNull()
+  })
+})
+
 // #262 — an optional end time, the same day as the start.
 describe('an end time on it', () => {
   const typeStart = () => {

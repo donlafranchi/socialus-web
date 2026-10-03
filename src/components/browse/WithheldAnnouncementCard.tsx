@@ -34,7 +34,7 @@ export function WithheldAnnouncementCard({
     <>
       <div
         data-testid="tile-image"
-        className="relative aspect-[3/2] w-full rounded-xl overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
+        className="relative aspect-[3/2] w-full rounded-md overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
         style={{ fontSize: 'clamp(2rem, 17cqw, 4rem)' }}
       >
         {result.photoUrl ? (

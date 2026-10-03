@@ -75,7 +75,7 @@ const RECRUITMENT_CATEGORIES: Category[] = [
 
 function OpenSpotCard({ type, emoji }: { type: string; emoji: string }) {
   return (
-    <div className="h-full flex-shrink-0 w-44 border-2 border-dashed border-neutral-300 rounded-xl overflow-hidden bg-neutral-50 flex flex-col">
+    <div className="h-full flex-shrink-0 w-44 border-2 border-dashed border-neutral-300 rounded-md overflow-hidden bg-neutral-50 flex flex-col">
       <div className="h-28 flex items-center justify-center bg-neutral-100 text-2xl text-neutral-400">
         {emoji}
       </div>
@@ -96,7 +96,7 @@ function OpenSpotCard({ type, emoji }: { type: string; emoji: string }) {
 
 function ExampleCard({ name, tagline, emoji }: { name: string; tagline: string; emoji: string }) {
   return (
-    <div className="h-full flex-shrink-0 w-44 bg-white border border-neutral-200 rounded-xl overflow-hidden relative flex flex-col">
+    <div className="h-full flex-shrink-0 w-44 bg-white border border-neutral-200 rounded-md overflow-hidden relative flex flex-col">
       <div className="absolute top-2 right-2 z-10 bg-amber-100 text-amber-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
         Example
       </div>
@@ -119,7 +119,7 @@ function ExampleCard({ name, tagline, emoji }: { name: string; tagline: string; 
 
 function FeaturedExampleCard() {
   return (
-    <div className="relative bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm">
+    <div className="relative bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
       <div className="absolute top-3 right-3 z-10 bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">
         Example listing
       </div>

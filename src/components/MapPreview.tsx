@@ -52,7 +52,7 @@ export function MapPreview({ latitude, longitude, ownershipTier }: MapPreviewPro
     <div
       data-testid="map-preview"
       ref={containerRef}
-      className="w-full h-48 rounded-xl overflow-hidden"
+      className="w-full h-48 rounded-md overflow-hidden"
     />
   )
 }

@@ -44,6 +44,16 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   const pagePath = canonicalPagePath(shop.slug, shop.publicId)
   const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
 
+  // #285 — the Page's tags, as the owner reads them. A tag taken down is not
+  // offered back; saving leaves it off.
+  const { data: tagRows } = await supabase
+    .from('page_tags')
+    .select('tags(label)')
+    .eq('group_id', shop.groupId)
+  const initialTags = ((tagRows ?? []) as unknown as { tags: { label: string } | null }[])
+    .map((r) => r.tags?.label)
+    .filter((l): l is string => Boolean(l))
+
   return (
     <main className="mx-auto w-full max-w-xl px-3 py-4">
       <h1 className="text-lg font-semibold text-[var(--color-fg)]">Edit {shop.displayName}</h1>
@@ -62,6 +72,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         // anchor's own label is the first (and today only) entry.
         initialAddressLabel={shop.placements[0]?.label ?? null}
         initialContact={contact}
+        initialTags={initialTags}
         onSave={editPageAction}
       />
     </main>

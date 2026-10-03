@@ -24,6 +24,8 @@ export interface EditPageInput {
   /** #293 — null clears either. */
   contactPhone?: string | null
   openingHours?: unknown
+  /** #285 — the Page's whole tag set. */
+  tags?: string[]
 }
 
 export type EditPageResult = { ok: true } | { ok: false; message: string }
@@ -45,6 +47,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
       ...(input.contactPhone !== undefined ? { contactPhone: input.contactPhone } : {}),
       ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),
+      ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.anchorLocationId !== undefined
         ? { anchorLocationId: input.anchorLocationId }
         : {}),
