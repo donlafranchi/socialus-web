@@ -255,6 +255,7 @@
     "group.member_join",
     "group.member_leave",
     "group.post_create",
+    "group.post_delete",
     "group.post_edit",
     "group.unfollow",
     "group.update",
