@@ -324,3 +324,15 @@ describe('#267 — the owner on their own Page', () => {
     expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
   })
 })
+
+describe('#293 — phone and hours on the Page', () => {
+  it('shows them to a signed-in visitor', () => {
+    renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.getByTestId('page-phone')).toHaveAttribute('href', 'tel:+19165550142')
+  })
+
+  it('shows nothing signed out, even if handed them', () => {
+    renderShop({ loggedIn: false, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.queryByTestId('page-contact')).toBeNull()
+  })
+})
