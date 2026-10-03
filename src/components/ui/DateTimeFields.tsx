@@ -13,6 +13,11 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 const DESKTOP = '(pointer: fine), (min-width: 1024px)'
 const FIELD = 'input min-h-tap w-full'
+// The day picker sets its colours on its own root, so they're overridden there.
+const ACCENT = {
+  '--rdp-accent-color': 'var(--color-fg)',
+  '--rdp-accent-background-color': 'var(--color-surface)',
+} as CSSProperties
 
 const toDate = (ymd: string) => {
   const [y, m, d] = ymd.split('-').map(Number) as [number, number, number]
@@ -77,10 +82,12 @@ export function DateField({ label, value, min, onChange, testId }: FieldProps & 
             aria-haspopup="dialog"
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
-            className={`${FIELD} flex items-center justify-between text-left`}
+            className={`${FIELD} text-left`}
           >
-            <span>{showDate(value)}</span>
-            <CalendarDays size={16} aria-hidden="true" />
+            <span className="flex items-center justify-between gap-2">
+              <span>{showDate(value)}</span>
+              <CalendarDays size={16} aria-hidden="true" className="shrink-0 text-[var(--color-fg-muted)]" />
+            </span>
           </button>
           {open && (
             <div
@@ -94,9 +101,9 @@ export function DateField({ label, value, min, onChange, testId }: FieldProps & 
                 }
               }}
               className="absolute left-0 top-full z-[var(--z-panel)] mt-1 rounded-lg border border-[var(--color-border)] bg-white p-2 shadow-overlay"
-              style={{ '--rdp-accent-color': 'var(--color-charcoal-700)', '--rdp-accent-background-color': 'var(--color-charcoal-100)' } as CSSProperties}
             >
               <DayPicker
+                style={ACCENT}
                 mode="single"
                 selected={value ? toDate(value) : undefined}
                 defaultMonth={value ? toDate(value) : min ? toDate(min) : undefined}
@@ -160,7 +167,9 @@ export function TimeField({ label, value, onChange, testId }: FieldProps) {
     setText(showTime(value))
   }
   useEffect(() => {
-    if (open) list.current?.children[active]?.scrollIntoView?.({ block: 'nearest' })
+    const ul = list.current
+    const li = ul?.children[active] as HTMLElement | undefined
+    if (open && ul && li) ul.scrollTop = li.offsetTop - ul.clientHeight / 2 + li.offsetHeight / 2
   }, [open, active])
 
   const openList = () => {
