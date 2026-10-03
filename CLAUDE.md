@@ -5,7 +5,7 @@ SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one me
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
-- **Branch:** `f060-t142-slug`. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
+- **Branch:** the Issue number only, e.g. `318` (Don, 2026-10-02), so a migration applies with `gh workflow run apply.yml --ref 318 -f confirm=apply`. Branches opened before then keep their names. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
 - **Provenance is git.** `git log --grep F060` is everything built for that scenario. No registers here.
 - **Build log:** one new file per ticket, `build-log/YYYY-WNN/<ticket>-<slug>.md`. **Never append to a shared weekly file** — appending is what made every merge conflict every other open PR (chore #76; the reasoning is in `BUILD-LOG.md`).
 
