@@ -58,7 +58,7 @@ describe('the preflight fails closed and is useful when it fails', () => {
   })
 
   it('names which branches DO have something pending', () => {
-    expect(script).toMatch(/gh workflow run apply\.yml --ref <branch>/ -f confirm=apply)
+    expect(script).toMatch(/gh workflow run apply\.yml --ref <branch> -f confirm=apply/)
     expect(script).toMatch(/refs\/remotes\/origin/)
   })
 
