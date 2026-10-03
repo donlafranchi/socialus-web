@@ -26,6 +26,7 @@
 // F074 was amended rather than assuming the gap was considered.
 
 import { useState } from 'react'
+import { DateField, TimeField } from '@/components/ui/DateTimeFields'
 import { metroDate } from '@/lib/metro/metro-week'
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import {
@@ -98,46 +99,30 @@ export function AnnouncementFields({
         ) : (
           <>
             <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <label className="flex flex-col gap-1">
-                <span className="text-caption text-[var(--color-fg-muted)]">Date</span>
-                <input
-                  type="date"
-                  data-testid={`${idPrefix}-date`}
-                  min={metroDate(now, METRO_TIME_ZONE)}
-                  className="input min-h-tap w-full"
-                  value={value.date}
-                  onChange={(e) => onChange({ ...value, date: e.target.value })}
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-caption text-[var(--color-fg-muted)]">Starts</span>
-                <input
-                  type="time"
-                  data-testid={`${idPrefix}-time`}
-                  className="input min-h-tap w-full"
-                  value={value.time}
-                  onChange={(e) =>
-                    onChange({
-                      ...value,
-                      time: e.target.value,
-                      ...(endTouched || !e.target.value ? {} : { endTime: plusOneHour(e.target.value) }),
-                    })
-                  }
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-caption text-[var(--color-fg-muted)]">Ends</span>
-                <input
-                  type="time"
-                  data-testid={`${idPrefix}-end-time`}
-                  className="input min-h-tap w-full"
-                  value={value.endTime}
-                  onChange={(e) => {
-                    setEndTouched(true)
-                    onChange({ ...value, endTime: e.target.value })
-                  }}
-                />
-              </label>
+              <DateField
+                label="Date"
+                testId={`${idPrefix}-date`}
+                min={metroDate(now, METRO_TIME_ZONE)}
+                value={value.date}
+                onChange={(date) => onChange({ ...value, date })}
+              />
+              <TimeField
+                label="Starts"
+                testId={`${idPrefix}-time`}
+                value={value.time}
+                onChange={(time) =>
+                  onChange({ ...value, time, ...(endTouched || !time ? {} : { endTime: plusOneHour(time) }) })
+                }
+              />
+              <TimeField
+                label="Ends"
+                testId={`${idPrefix}-end-time`}
+                value={value.endTime}
+                onChange={(endTime) => {
+                  setEndTouched(true)
+                  onChange({ ...value, endTime })
+                }}
+              />
             </div>
             <button
               type="button"

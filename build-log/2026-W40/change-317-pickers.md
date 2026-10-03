@@ -12,3 +12,9 @@ Don, 2026-10-02: "The date and time pickers are very very ugly and difficult to 
 - **Not here:** the gathering form. It sits with the old create-flow files under the stop note, and moves with the event-form template (#302).
 
 Tests: the new picker tests were seen failing first. The composer's tests now ask for a time first, and one expects the default end to be cleared to send none. No migration.
+
+**2026-10-03 — desktop (Don: good on iPhone, not on laptops).** On a fine pointer or from 1024px:
+- **Date:** a calendar popover (react-day-picker v10, with date-fns its only dependency). Days before today are disabled, and it works by keyboard: arrows move, Enter picks, Escape closes and returns focus.
+- **Times:** typeable fields ("7:30pm", "19:30", "noon") with a dropdown of 15-minute slots (arrows, Enter, Escape). Anything unreadable falls back to the last good time.
+
+Touch devices keep the native pickers. Values are unchanged (`yyyy-mm-dd`, `hh:mm`). Tests for both modes were seen failing first.
