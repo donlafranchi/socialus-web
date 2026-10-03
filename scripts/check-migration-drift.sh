@@ -105,7 +105,7 @@ if [ ${#local_only[@]} -gt 0 ]; then
     echo
     echo "check-migration-drift: FAILED — this checkout carries migrations the database does not." >&2
     echo "  Production is behind the repo. Apply them:" >&2
-    echo "  In a terminal: gh workflow run apply.yml --ref <branch>" >&2
+    echo "  In a terminal: gh workflow run apply.yml --ref <branch> -f confirm=apply" >&2
     pending=1
   else
     echo "  Expected on a PR. They apply when you run the apply workflow."

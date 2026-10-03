@@ -19,6 +19,10 @@ name: Apply migrations
 on:
   workflow_dispatch:
     inputs:
+      confirm:
+        description: 'Type "apply" to confirm writing to the production database. From a terminal: gh workflow run apply.yml --ref <branch> -f confirm=apply'
+        required: true
+        type: string
       allow_multiple:
         description: 'Apply more than one pending migration in this run. Leave unchecked: one PR, one migration, verified before the next (#264).'
         required: false
@@ -53,11 +57,14 @@ jobs:
       # A Run button sitting next to a production database is easier to press
       # by accident than an approval prompt is to click through. Typing the
       # word is the substitute for the approval gate we cannot have.
-      # 2026-10-02 (Don) — no typed confirmation: the run is started by
-      # name from a terminal (gh workflow run apply.yml --ref <branch>), and
-      # the guard below refuses a stacked branch or more than one migration.
-      - name: Applying to production
-        run: echo "Applying migrations to socialus-db from ${{ github.ref_name }}."
+      - name: Check the confirmation
+        run: |
+          if [ "${{ inputs.confirm }}" != "apply" ]; then
+            echo "::error::Confirmation failed. Run: gh workflow run apply.yml --ref <branch> -f confirm=apply"
+            echo "Got: '${{ inputs.confirm }}'"
+            exit 1
+          fi
+          echo "Confirmed. Applying migrations to socialus-db from ${{ github.ref_name }}."
 
       - uses: actions/checkout@v5
         with:

@@ -77,7 +77,7 @@ describe('the schema the build needs vs the schema the database has', () => {
 
   it('says what fixes it, in the name of the thing that fixes it', async () => {
     poolReturning([{ version: '001' }])
-    expect((await (await GET()).json()).detail).toMatch(/gh workflow run apply\.yml --ref main/)
+    expect((await (await GET()).json()).detail).toMatch(/gh workflow run apply\.yml --ref main/ -f confirm=apply)
   })
 })
 
