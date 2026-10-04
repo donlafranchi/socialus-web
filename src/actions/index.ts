@@ -28,6 +28,7 @@ import {
   groupUnfollow,
   groupPostCreate,
   groupPostEdit,
+  groupPostDelete,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
@@ -63,6 +64,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // T164 — F072: a Page owner posts. There is no 'group.post_delete'.
   'group.post_create': groupPostCreate as unknown as NamedActionHandler<unknown, unknown>,
   'group.post_edit': groupPostEdit as unknown as NamedActionHandler<unknown, unknown>,
+  // #318 — soft delete: hidden everywhere, kept for reports and audit.
+  'group.post_delete': groupPostDelete as unknown as NamedActionHandler<unknown, unknown>,
   // T159 — F058: a member reports something; the photo hides at once.
   'report.create': reportCreate as unknown as NamedActionHandler<unknown, unknown>,
   // T122 (#12) — the operator's two outcomes. Operator-only, enforced in the
@@ -104,6 +107,7 @@ export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from '
 export {
   groupPostCreate,
   groupPostEdit,
+  groupPostDelete,
   groupPostCreateInput,
   groupPostEditInput,
   type GroupPostCreateInput,

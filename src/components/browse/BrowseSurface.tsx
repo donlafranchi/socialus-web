@@ -31,6 +31,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { AreaPicker } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
+import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import {
@@ -211,6 +212,7 @@ export function BrowseSurface({
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
       <FollowingRow results={snapshot.following} />
+      <HappeningRows rows={snapshot.happening} />
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}
