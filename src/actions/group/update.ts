@@ -27,6 +27,9 @@
 // normalised — is deliberately identical to update_draft. Two handlers with one
 // rule each beats one handler with a mode flag.
 
+import { normalizeUsPhone } from '../../lib/phone'
+import { parseOpeningHours } from '../../lib/groups/opening-hours'
+import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
@@ -46,6 +49,11 @@ export const groupUpdateInput = z.object({
   photoUrl: z.string().url().nullable().optional(),
   category: z.string().max(80).nullable().optional(),
   socialLinks: z.record(z.string(), z.string()).optional(),
+  // #293 — shown to signed-in visitors only. Null clears either.
+  contactPhone: z.string().max(40).nullable().optional(),
+  openingHours: z.unknown().optional(),
+  // #285 — the whole set, replacing the old one (Don, 2026-10-01: editable any time).
+  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional(),
 })
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
@@ -62,6 +70,8 @@ type SpineClause =
   | 'anchor_location_id = $'
   | 'photo_url = $'
   | 'category = $'
+  | 'contact_phone = $'
+  | 'opening_hours = $'
   | 'social_links = $'
 
 export const groupUpdate = defineHandler(
@@ -155,28 +165,91 @@ export const groupUpdate = defineHandler(
         patched.push('social_links')
       }
 
-      if (fragments.length === 0) return { groupId: input.groupId, patched }
-
-      const setSql = fragments.map((f, i) => `${f.clause}${i + 1}`).join(', ')
-      const whereIdx = fragments.length + 1
-      // Re-assert 'active' in the WHERE: a concurrent dissolve between the
-      // SELECT and this UPDATE must not be written over.
-      // sql-injection-safe: enum-constrained by SpineClause
-      const updateRes = await client.query(
-        `update public.groups
-            set ${setSql}
-          where id = $${whereIdx}
-            and lifecycle_state = 'active'`,
-        [...fragments.map((f) => f.value), input.groupId],
-      )
-      if (updateRes.rowCount === 0) {
-        throw new ValidationError(
-          `group.update: group ${input.groupId} was no longer active at write time`,
-        )
+      if (input.contactPhone !== undefined) {
+        const phone = input.contactPhone === null ? null : normalizeUsPhone(input.contactPhone)
+        if (input.contactPhone !== null && phone === null) {
+          throw new ValidationError('group.update: enter a US phone number, like (916) 555-0142')
+        }
+        fragments.push({ clause: 'contact_phone = $', value: phone })
+        patched.push('contact_phone')
+      }
+      if (input.openingHours !== undefined) {
+        let hours
+        try {
+          hours = parseOpeningHours(input.openingHours)
+        } catch (err) {
+          throw new ValidationError(`group.update: ${(err as Error).message}`)
+        }
+        fragments.push({ clause: 'opening_hours = $', value: hours === null ? null : JSON.stringify(hours) })
+        patched.push('opening_hours')
       }
 
-      // Unlike a draft's per-step saves, an edit to something people can
-      // already see belongs in the Page's history.
+      // At least one tag, as at publish: search matches tags, and an untagged
+      // Page cannot be found by what it does.
+      const tags = new Map<string, string>()
+      if (input.tags !== undefined) {
+        for (const label of input.tags.filter(isValidTagLabel)) {
+          const n = normalizeTag(label)
+          if (!tags.has(n)) tags.set(n, label.trim())
+        }
+        if (tags.size === 0) {
+          throw new ValidationError('group.update: a Page needs at least one tag')
+        }
+        patched.push('tags')
+      }
+
+      if (patched.length === 0) return { groupId: input.groupId, patched }
+
+      if (fragments.length > 0) {
+        const setSql = fragments.map((f, i) => `${f.clause}${i + 1}`).join(', ')
+        const whereIdx = fragments.length + 1
+        // Re-assert 'active' in the WHERE: a concurrent dissolve between the
+        // SELECT and this UPDATE must not be written over.
+        // sql-injection-safe: enum-constrained by SpineClause
+        const updateRes = await client.query(
+          `update public.groups
+              set ${setSql}
+            where id = $${whereIdx}
+              and lifecycle_state = 'active'`,
+          [...fragments.map((f) => f.value), input.groupId],
+        )
+        if (updateRes.rowCount === 0) {
+          throw new ValidationError(
+            `group.update: group ${input.groupId} was no longer active at write time`,
+          )
+        }
+
+        // Unlike a draft's per-step saves, an edit to something people can
+        // already see belongs in the Page's history.
+      }
+
+      if (tags.size > 0) {
+        for (const [normalized, label] of tags) {
+          await client.query(
+            `insert into public.tags (label, normalized, created_by)
+             values ($1, $2, $3)
+             on conflict (normalized) do nothing`,
+            [label, normalized, ctx.actingMemberId],
+          )
+        }
+        await client.query(
+          `delete from public.page_tags pt
+            using public.tags t
+            where pt.tag_id = t.id
+              and pt.group_id = $1
+              and t.normalized <> all($2)`,
+          [input.groupId, [...tags.keys()]],
+        )
+        for (const normalized of tags.keys()) {
+          await client.query(
+            `insert into public.page_tags (group_id, tag_id)
+             select $1, t.id from public.tags t where t.normalized = $2
+             on conflict (group_id, tag_id) do nothing`,
+            [input.groupId, normalized],
+          )
+        }
+      }
+
       await appendEvent({ ...ctx, db: client }, 'group_events', {
         group_id: input.groupId,
         event_kind: 'group.updated',

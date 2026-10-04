@@ -33,8 +33,9 @@
 import { useState } from 'react'
 import { splitByOpen, type FeedMetro } from '@/lib/feed/feed-metro'
 import { MetroNotCoveredPanel } from './MetroNotCoveredPanel'
+import { Sheet } from '@/components/ui/Sheet'
 
-export function ScopeSheet({
+export function AreaPicker({
   open,
   currentSlug,
   metros,
@@ -50,8 +51,6 @@ export function ScopeSheet({
   const [q, setQ] = useState('')
   // A metro the platform does not serve, opened for a closer look. Not a scope.
   const [looking, setLooking] = useState<FeedMetro | null>(null)
-
-  if (!open) return null
 
   const all = metros
   const needle = q.trim().toLowerCase()
@@ -93,19 +92,14 @@ export function ScopeSheet({
     </li>
   )
 
+  // #297 — L03, on the shared sheet.
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label="Choose your area">
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/30" />
-      <div
-        data-testid="scope-sheet"
-        className="relative w-full max-w-md rounded-t-2xl bg-white p-4 pb-8 shadow-[0_-6px_16px_rgba(0,0,0,0.12)] sm:rounded-2xl sm:pb-4 max-h-[75vh] overflow-y-auto"
-      >
+    <Sheet open={open} title="Choose your area" onClose={onClose} testId="scope-sheet">
+      <div>
         {looking ? (
           <MetroNotCoveredPanel metro={looking} onBack={() => setLooking(null)} />
         ) : (
         <>
-        <h2 className="text-lg font-semibold text-[var(--color-fg)]">Choose your area</h2>
-
         <input
           type="search"
           data-testid="scope-search"
@@ -148,6 +142,6 @@ export function ScopeSheet({
         </>
         )}
       </div>
-    </div>
+    </Sheet>
   )
 }

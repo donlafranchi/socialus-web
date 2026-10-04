@@ -7,7 +7,7 @@
 //   · white on the warm off-white page (#f7f6f2). No border, ever — the
 //     separation is the colour difference plus a shadow that only exists on
 //     hover. A border here flattens the whole surface.
-//   · rounded-xl, overflow-hidden, 200ms ease-out
+//   · rounded-md, overflow-hidden, 200ms ease-out
 //   · hover: a 12% shadow and a 2px lift, together. Either alone reads wrong —
 //     the shadow without the lift looks like a glow, the lift without the
 //     shadow looks like a glitch.

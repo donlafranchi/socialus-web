@@ -293,7 +293,9 @@ jobs:
   # ---------------------------------------------------------------------
   applied:
     name: Migrations applied to production
-    if: github.event_name == 'pull_request'
+    # On main too, so a merge that lands a migration production lacks goes red
+    # where everyone sees it (2026-10-01).
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     # PINNED, not ubuntu-latest — same reasoning as every other job here.
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -329,7 +331,7 @@ jobs:
           bash scripts/check-migration-drift.sh --strict || code=$?
           case "$code" in
             0) exit 0 ;;
-            2) echo "::error::This branch carries a migration production does not have. Apply it FIRST, then merge: Actions -> 'Apply migrations to PRODUCTION' -> Run workflow -> set 'Use workflow from' to THIS BRANCH -> type apply. Merging first is what caused the 2026-09-21 outage." ;;
+            2) echo "::error::This branch carries a migration production does not have. Apply it FIRST, then merge. In a terminal: gh workflow run apply.yml --ref ${GITHUB_HEAD_REF:-<this-branch>} -f confirm=apply. Merging first is what caused the 2026-09-21 outage." ;;
             3) echo "::error::Production has a migration this branch does not (versions listed above). Do NOT apply anything. If main already carries the file, update this branch from main. If main lacks it too, something wrote to production outside the migration files: add the matching file." ;;
             *) echo "::error::The drift check could not run (exit $code). Its own message is above." ;;
           esac

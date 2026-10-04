@@ -193,7 +193,7 @@ export function SellWalkthrough({
             {PURPOSES.map((p) => (
               <label
                 key={p}
-                className={`flex min-h-11 cursor-pointer items-center rounded-xl border px-4 text-sm ${
+                className={`flex min-h-11 cursor-pointer items-center rounded-md border px-4 text-sm ${
                   state.purpose === p
                     ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
                     : 'border-[var(--color-control-border)] bg-white text-[var(--color-charcoal-900)]'
@@ -556,7 +556,7 @@ function TagStep({
                   data-testid={`sell-tag-remove-${tag}`}
                   aria-label={`Remove ${tag}`}
                   onClick={() => remove(tag)}
-                  className="ml-1 min-h-[44px] text-neutral-500 hover:text-neutral-900"
+                  className="ml-1 min-h-tap text-neutral-500 hover:text-neutral-900"
                 >
                   ×
                 </button>
@@ -585,7 +585,7 @@ function TagStep({
             add(state.tagDraft)
           }
         }}
-        className="input mt-2 min-h-[44px] w-full"
+        className="input mt-2 min-h-tap w-full"
       />
 
       <button
@@ -593,7 +593,7 @@ function TagStep({
         data-testid="sell-tag-add"
         onClick={() => add(state.tagDraft)}
         disabled={!isValidTagLabel(state.tagDraft)}
-        className="mt-2 min-h-[44px] text-sm font-medium text-[var(--color-accent)] disabled:opacity-40"
+        className="mt-2 min-h-tap text-sm font-medium text-[var(--color-accent)] disabled:opacity-40"
       >
         Add
       </button>

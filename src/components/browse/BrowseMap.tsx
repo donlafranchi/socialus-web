@@ -19,6 +19,7 @@ import { groupPins, type BrowsePin } from '@/lib/browse/pins'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 const PIN_COLOR = 'var(--color-accent)'
+const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
 export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -27,8 +28,8 @@ export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
   const [selected, setSelected] = useState<BrowsePin | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
+    if (!TOKEN || !containerRef.current || mapRef.current) return
+    mapboxgl.accessToken = TOKEN
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: MAP_DEFAULTS.style,
@@ -68,13 +69,27 @@ export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
     if (pins.length > 0) map.fitBounds(bounds, { padding: 60, maxZoom: 13, duration: 0 })
   }, [results])
 
+  // T187 — without a token Mapbox throws, and the map now mounts on every
+  // desktop load; a missing token must cost the map, not the page.
+  if (!TOKEN) {
+    return (
+      <div
+        data-testid="browse-map"
+        data-unavailable=""
+        className="flex h-full w-full items-center justify-center bg-neutral-100 text-sm text-[var(--color-fg-muted)]"
+      >
+        The map isn&rsquo;t available right now.
+      </div>
+    )
+  }
+
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} className="h-full w-full" data-testid="browse-map" />
       {selected && (
         <div
           data-testid="browse-map-popup"
-          className="absolute bottom-4 left-4 right-4 rounded-xl border border-neutral-200 bg-white p-3 shadow-lg"
+          className="absolute bottom-4 left-4 right-4 rounded-md border border-neutral-200 bg-white p-3 shadow-overlay"
         >
           <p className="text-sm font-medium text-[var(--color-fg)]">{selected.name}</p>
           {/* What is here, not just that something is. Several rows at one

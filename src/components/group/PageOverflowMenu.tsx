@@ -102,7 +102,7 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
               close()
             }
           }}
-          className="absolute right-0 z-40 mt-1 min-w-56 overflow-hidden rounded-xl border border-[var(--color-charcoal-100)] bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          className="absolute right-0 z-40 mt-1 min-w-56 overflow-hidden rounded-md border border-[var(--color-charcoal-100)] bg-white py-1 shadow-overlay"
         >
           {items.map((item) =>
             item.href ? (

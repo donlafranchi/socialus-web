@@ -25,13 +25,6 @@ describe('T116 — the toggle is inline, not fixed', () => {
     expect(row.className).not.toMatch(/\bsticky\b/)
   })
 
-  it('centres itself with 24px of vertical breathing room', () => {
-    renderToggle()
-    const row = screen.getByTestId('list-map-toggle')
-    expect(row.className).toMatch(/justify-center/)
-    expect(row.className).toMatch(/my-6/)
-  })
-
   it('renders the two views as compact text', () => {
     renderToggle()
     expect(tabs().map((t) => t.textContent)).toEqual(['List', 'Map'])

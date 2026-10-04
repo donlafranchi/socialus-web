@@ -87,6 +87,8 @@ export function formatMetroDateTime(
   iso: string,
   tz: string = METRO_TIME_ZONE,
   now: Date = new Date(),
+  /** #262 — an end on the same day reads as a range: "at 7:00–9:00pm". */
+  endIso?: string | null,
 ): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
@@ -106,7 +108,29 @@ export function formatMetroDateTime(
     // has no place for shouting.
     .replace(' AM', 'am')
     .replace(' PM', 'pm')
+  if (endIso && sameMetroDay(iso, endIso, tz)) {
+    const end = longClock(new Date(endIso), tz)
+    return `${day} at ${joinRange(clock, end)}`
+  }
   return `${day} at ${clock}`
+}
+
+function longClock(d: Date, tz: string): string {
+  return d
+    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+    .replace(' AM', 'am')
+    .replace(' PM', 'pm')
+}
+
+function sameMetroDay(a: string, b: string, tz: string): boolean {
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
+  return day.format(new Date(a)) === day.format(new Date(b))
+}
+
+/** "7pm" + "9pm" → "7–9pm"; "11:30am" + "1pm" → "11:30am–1pm". */
+function joinRange(start: string, end: string): string {
+  const meridiem = (c: string) => c.slice(-2)
+  return meridiem(start) === meridiem(end) ? `${start.slice(0, -2)}–${end}` : `${start}–${end}`
 }
 
 function isThisYear(d: Date, tz: string, now: Date): boolean {
@@ -114,8 +138,14 @@ function isThisYear(d: Date, tz: string, now: Date): boolean {
   return year.format(d) === year.format(now)
 }
 
-/** #256 (F072 criterion 3) — a card's lead: "Thu Sep 10 · 7pm", in the metro. */
-export function formatCardWhen(iso: string, tz: string = METRO_TIME_ZONE, now: Date = new Date()): string {
+/** #256 (F072 criterion 3) — a card's lead: "Thu Sep 10 · 7pm", in the metro.
+ *  #262 — with an end: "Thu Sep 10 · 7–9pm", or both days past midnight. */
+export function formatCardWhen(
+  iso: string,
+  tz: string = METRO_TIME_ZONE,
+  now: Date = new Date(),
+  endIso?: string | null,
+): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   const day = d.toLocaleDateString('en-US', {
@@ -125,13 +155,12 @@ export function formatCardWhen(iso: string, tz: string = METRO_TIME_ZONE, now: D
     day: 'numeric',
     ...(isThisYear(d, tz, now) ? {} : { year: 'numeric' }),
   })
-  const clock = d
-    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
-    .replace(':00', '')
-    .replace(' AM', 'am')
-    .replace(' PM', 'pm')
+  const clock = shortClock(d, tz)
   // "Thu, Sep 10" → "Thu Sep 10"; a year keeps its own comma.
-  return `${day.replace(',', '')} · ${clock}`
+  const start = `${day.replace(',', '')} · ${clock}`
+  if (!endIso || Number.isNaN(new Date(endIso).getTime())) return start
+  if (!sameMetroDay(iso, endIso, tz)) return `${start} – ${formatCardWhen(endIso, tz, now)}`
+  return `${day.replace(',', '')} · ${joinRange(clock, shortClock(new Date(endIso), tz))}`
 }
 
 /** #256 — an undated announcement keeps the date it was posted: "Posted Sep 2". */
@@ -145,4 +174,12 @@ export function formatPostedDate(iso: string, tz: string = METRO_TIME_ZONE, now:
     ...(isThisYear(d, tz, now) ? {} : { year: 'numeric' }),
   })
   return `Posted ${day}`
+}
+
+function shortClock(d: Date, tz: string): string {
+  return d
+    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+    .replace(':00', '')
+    .replace(' AM', 'am')
+    .replace(' PM', 'pm')
 }

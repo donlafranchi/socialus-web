@@ -170,7 +170,7 @@ export function SellCta({
     <>
       <div
         data-testid="you-sell-cta-row"
-        className="mt-4 flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3"
+        className="mt-4 flex items-center justify-between rounded-md border border-neutral-200 bg-white px-4 py-3"
       >
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
@@ -210,7 +210,7 @@ export function SellCta({
           role="status"
           aria-live="polite"
           data-testid="sell-toast"
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-sm rounded-full px-4 py-2 shadow-lg"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-sm rounded-full px-4 py-2 shadow-overlay"
         >
           {toast}
         </div>

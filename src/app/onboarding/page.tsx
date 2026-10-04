@@ -25,7 +25,9 @@ export default async function OnboardingPage() {
     process.env.PHONE_VERIFICATION_REQUIRED !== '1' ||
     Boolean(user.phone_confirmed_at) ||
     user.app_metadata?.builder === true
-  if (home && phoneVerified) redirect('/')
+  // #205 — onboarding writes no place now; the login carries the mark. A
+  // member onboarded before that still has the place it wrote.
+  if ((home || user.user_metadata?.onboarded === true) && phoneVerified) redirect('/')
 
   const { data: member } = await supabase
     .from('members')

@@ -294,7 +294,7 @@ export function Map() {
       {noResultsQuery && (
         <div
           data-testid="search-no-results"
-          className="absolute bottom-24 left-4 right-4 z-20 bg-white dark:bg-zinc-900 rounded-xl shadow-lg px-4 py-3 text-sm text-center text-zinc-600 dark:text-zinc-400"
+          className="absolute bottom-24 left-4 right-4 z-20 bg-white dark:bg-zinc-900 rounded-md shadow-overlay px-4 py-3 text-sm text-center text-zinc-600 dark:text-zinc-400"
         >
           No &ldquo;{noResultsQuery}&rdquo; pages found in this area
         </div>

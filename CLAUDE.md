@@ -5,7 +5,7 @@ SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one me
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
-- **Branch:** `f060-t142-slug`. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
+- **Branch:** the Issue number only, e.g. `318` (Don, 2026-10-02), so a migration applies with `gh workflow run apply.yml --ref 318 -f confirm=apply`. Branches opened before then keep their names. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
 - **Provenance is git.** `git log --grep F060` is everything built for that scenario. No registers here.
 - **Build log:** one new file per ticket, `build-log/YYYY-WNN/<ticket>-<slug>.md`. **Never append to a shared weekly file** — appending is what made every merge conflict every other open PR (chore #76; the reasoning is in `BUILD-LOG.md`).
 
@@ -43,6 +43,33 @@ is evidence about the seed. Full note, including why the seeds stay:
 ## When a PR diverges from its scenario
 
 A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `ops-pattern`, not here. Don't quietly ship a different behavior than what was approved.
+
+## BUILD RULES (effective now)
+
+Docker
+- Use Docker Desktop only. Never launch, install or depend on OrbStack.
+- Before any build run, confirm `docker context ls` shows desktop-linux as active; if not, run `docker context use desktop-linux`.
+- Run local Supabase on Docker Desktop and re-test migrations from scratch as usual.
+- If any docker command opens OrbStack or errors, stop and tell Don; don't work around it.
+
+Build concurrency
+- Max 2 changes building or testing at once.
+- Every Playwright run uses `--workers=2`.
+- Each change gets its own dev server port, and the server is shut down when the change finishes.
+- Close all headless browsers when a run ends; never leave them open between runs.
+
+Persona reviews
+- Run personas one after another as a background queue, never all at once.
+- Run at most 1 build change alongside the queue.
+- Share one dev server and one browser across all personas, with a separate session per persona.
+- Report each persona's findings as it finishes rather than waiting for all five.
+
+Parallelism rule
+- Parallelize work that waits on the network or the model.
+- Serialize work that drives browsers or builds.
+
+Flag to Don
+- If any rule would slow a deadline, say which one and why before breaking it.
 
 ## Commits
 

@@ -4,8 +4,34 @@
   --background: #ffffff;
   --foreground: #1a1a1a;
   /* Bottom-nav bar height (thesis §2). Sticky elements clear it via calc().
-     Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys. */
-  --nav-height: 44px;
+     Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys.
+     #296: the design's 56px bottom nav. */
+  --nav-height: var(--nav-bottom-h);
+  /* Explore's sticky search row, measured (#187). */
+  --search-row-h: 61px;
+
+  /* #294 — design tokens (socialus-owner-page-design/socialus-tokens.css,
+     2026-10-01). No colour here: colours above and below stay as they are.
+     This file is the single source for visual values. */
+  --nav-bottom-h: 56px;
+  --nav-top-h: 64px;
+  --action-bar-h: 64px;
+  --nav-clearance: calc(var(--nav-bottom-h) + env(safe-area-inset-bottom, 0px));
+  --float-offset: calc(var(--nav-clearance) + 16px);
+  --panel-w: 360px;
+  --tap: 44px;
+
+  /* Layers: one scale. */
+  --z-sticky: 30;
+  --z-nav: 40;
+  --z-float: 45;
+  --z-panel: 50;
+  --z-sheet: 60;
+  --z-toast: 70;
+}
+
+@media (min-width: 1536px) {
+  :root { --panel-w: 400px; }
 }
 
 @theme inline {
@@ -42,15 +68,54 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Radius */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  /* Breakpoints (#294): md moves 768 → 744, iPad portrait. */
+  --breakpoint-sm: 40rem;    /* 640 */
+  --breakpoint-md: 46.5rem;  /* 744 */
+  --breakpoint-lg: 64rem;    /* 1024 */
+  --breakpoint-xl: 80rem;    /* 1280 */
+  --breakpoint-2xl: 96rem;   /* 1536 */
 
-  /* Shadows */
+  /* Type: Inter, nothing below 12 or above 32. Additive: text-sm/xs keep
+     working until each screen moves to these names. */
+  --text-micro: 0.75rem;      --text-micro--line-height: 1rem;
+  --text-caption: 0.8125rem;  --text-caption--line-height: 1.125rem;
+  --text-body-sm: 0.875rem;   --text-body-sm--line-height: 1.25rem;
+  --text-body: 1rem;          --text-body--line-height: 1.5rem;
+  --text-title-3: 1rem;       --text-title-3--line-height: 1.375rem;   --text-title-3--font-weight: 600;
+  --text-title-2: 1.25rem;    --text-title-2--line-height: 1.625rem;   --text-title-2--font-weight: 700;
+  --text-title-1: 1.5rem;     --text-title-1--line-height: 1.875rem;   --text-title-1--font-weight: 700;
+  --text-title-1-lg: 1.75rem; --text-title-1-lg--line-height: 2.125rem; --text-title-1-lg--font-weight: 700;
+  --text-display: 2rem;       --text-display--line-height: 2.375rem;   --text-display--font-weight: 700;
+
+  /* Radius: bigger name = bigger corner. */
+  --radius-sm: 0.375rem;  /* 6  badges, date box */
+  --radius-md: 0.75rem;   /* 12 buttons, inputs, cards */
+  --radius-lg: 1rem;      /* 16 sheets, dialogs, panels, cover */
+  --radius-xl: 1.5rem;    /* 24 floating bar, toast */
+  --radius-full: 9999px;
+
+  /* Shadows: three named. shadow-sm stays for hairline lift on controls. */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.16);
+  --shadow-lift: 0 6px 16px rgb(0 0 0 / 0.12);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.16);
+  --shadow-bar: 0 -4px 16px rgb(0 0 0 / 0.08);
+
+  /* Content widths (max-w-auth … max-w-shell). */
+  --container-auth: 25rem;     /* 400 */
+  --container-form: 35rem;     /* 560 */
+  --container-read: 45rem;     /* 720 */
+  --container-detail: 70.5rem; /* 1128 */
+  --container-shell: 105rem;   /* 1680 */
+
+  /* Spacing stays Tailwind's 4px base; named heights for chrome. */
+  --spacing-tap: 2.75rem;      /* 44 → min-h-tap, size-tap */
+  --spacing-nav-bottom: 3.5rem;
+  --spacing-nav-top: 4rem;
+  --spacing-action-bar: 4rem;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
 
   /* Ownership tier colors — green (local) → gray/black (extractive) spectrum */
   --color-ownership-coop: #0e6b2e;
@@ -111,7 +176,7 @@ a:hover {
 }
 
 .btn-primary {
-  @apply press inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium;
+  @apply press inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-medium;
   background-color: var(--color-accent);
   color: #fff;
 }
@@ -124,7 +189,7 @@ a:hover {
 }
 
 .btn-secondary {
-  @apply press inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-medium;
+  @apply press inline-flex items-center justify-center rounded-md border px-5 py-3 text-sm font-medium;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);
@@ -138,7 +203,7 @@ a:hover {
 }
 
 .card {
-  @apply bg-white rounded-xl overflow-hidden transition-all duration-200 ease-out;
+  @apply bg-white rounded-md overflow-hidden transition-all duration-200 ease-out;
 }
 
 /* THE MOTION VOCABULARY.
@@ -365,4 +430,20 @@ a:hover {
 
 @media (prefers-reduced-motion: reduce) {
   .explore-fade-in { animation: none; }
+}
+
+@utility gutter {
+  padding-inline: 1rem;
+  @variant sm { padding-inline: 1.5rem; }
+  @variant lg { padding-inline: 2rem; }
+  @variant 2xl { padding-inline: 2.5rem; }
+}
+
+@utility pb-nav {
+  padding-bottom: var(--nav-clearance);
+  @variant md { padding-bottom: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }

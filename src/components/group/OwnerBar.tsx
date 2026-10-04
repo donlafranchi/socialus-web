@@ -30,7 +30,7 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
   return (
     <div
       data-testid="owner-bar"
-      className="rounded-xl bg-[var(--color-surface)] p-3 flex flex-wrap items-center gap-2"
+      className="rounded-md bg-[var(--color-surface)] p-3 flex flex-wrap items-center gap-2"
     >
       <span className="text-xs font-medium text-[var(--color-fg-muted)] mr-auto">
         Your Page — only you see this

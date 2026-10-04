@@ -1,15 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+// #297 — the one toast (L25): bottom-centre, above the bottom nav and the
+// safe area, with an optional single action such as Undo.
+
+import { useEffect } from 'react'
 
 interface ToastProps {
   message: string
   visible: boolean
   onHide: () => void
   duration?: number
+  action?: { label: string; onClick: () => void }
 }
 
-export function Toast({ message, visible, onHide, duration = 2000 }: ToastProps) {
+export function Toast({ message, visible, onHide, duration = 3000, action }: ToastProps) {
   useEffect(() => {
     if (!visible) return
     const timer = setTimeout(onHide, duration)
@@ -20,10 +24,23 @@ export function Toast({ message, visible, onHide, duration = 2000 }: ToastProps)
 
   return (
     <div
+      role="status"
       data-testid="toast"
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-zinc-800 text-white px-4 py-2 rounded-full text-sm shadow-lg z-50"
+      className="fixed bottom-[var(--float-offset)] left-1/2 z-[var(--z-toast)] flex -translate-x-1/2 items-center gap-3 rounded-xl bg-zinc-800 px-4 py-2 text-body-sm text-white shadow-overlay md:bottom-6"
     >
-      {message}
+      <span>{message}</span>
+      {action && (
+        <button
+          type="button"
+          onClick={() => {
+            action.onClick()
+            onHide()
+          }}
+          className="min-h-tap font-semibold underline"
+        >
+          {action.label}
+        </button>
+      )}
     </div>
   )
 }

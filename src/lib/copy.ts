@@ -23,4 +23,9 @@ export const COPY = {
   phoneCodeTitle: 'Enter your code',
   phoneCodeSent: 'We texted you a 6-digit code.',
   phoneCodeWrong: "That code didn't match. Check it, or send a new one.",
+  // F091 — Don's stem, 2026-09-19; each row completes it. The ellipsis is his.
+  happeningStem: 'What’s happening…',
+  happeningToday: 'today',
+  happeningThisWeek: 'this week',
+  happeningThisWeekend: 'this weekend',
 } as const

@@ -167,7 +167,7 @@ export function FollowingManager({
     return (
       <div
         data-testid="following-empty"
-        className="rounded-xl border border-dashed border-neutral-300 px-6 py-10 text-center"
+        className="rounded-md border border-dashed border-neutral-300 px-6 py-10 text-center"
       >
         <p className="text-sm text-neutral-600">Nothing followed yet — start exploring.</p>
         <Link

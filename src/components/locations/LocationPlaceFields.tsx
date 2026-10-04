@@ -189,7 +189,7 @@ export function LocationPlaceFields({
                 role="listbox"
                 aria-label="Places and addresses"
                 data-testid={`${idPrefix}-address-suggestions`}
-                className="absolute z-10 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-md"
+                className="absolute z-10 mt-1 w-full rounded-lg border border-neutral-200 bg-white shadow-lift"
               >
                 {suggestions.map((s, i) => (
                   <li
@@ -200,7 +200,7 @@ export function LocationPlaceFields({
                     <button
                       type="button"
                       data-testid={`${idPrefix}-address-suggestion-${i}`}
-                      className="flex min-h-[44px] w-full items-center justify-between gap-3 px-3 text-left text-sm hover:bg-neutral-50"
+                      className="flex min-h-tap w-full items-center justify-between gap-3 px-3 text-left text-sm hover:bg-neutral-50"
                       onClick={() => selectSuggestion(s)}
                     >
                       <span className="min-w-0">
@@ -251,7 +251,7 @@ export function LocationPlaceFields({
           <button
             type="button"
             data-testid={`${idPrefix}-mode-neighbourhood`}
-            className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+            className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
             onClick={() => setState({ ...state, mode: 'neighbourhood' })}
           >
             Rather give a neighbourhood?
@@ -280,7 +280,7 @@ export function LocationPlaceFields({
           <button
             type="button"
             data-testid={`${idPrefix}-mode-address`}
-            className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+            className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
             onClick={() =>
               setState({ ...state, mode: 'address', selectedAddress: null, neighborhoodId: null })
             }

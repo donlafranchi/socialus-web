@@ -11,7 +11,7 @@
 // named a place was the one thing you could not change. It opens the scope
 // sheet.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { placePillLabel, NO_PLACE_CHOSEN_LABEL } from '@/lib/explore/place-label'
 import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
 
@@ -27,6 +27,8 @@ interface ExploreSearchBarProps {
   onOpenFilters: () => void
   /** Opens the scope sheet. The pill is the control; there is no second entry point. */
   onOpenScope: () => void
+  /** T187 — the docked List | Map switch, when the layout calls for one. */
+  viewSwitch?: ReactNode
 }
 
 export function ExploreSearchBar({
@@ -37,6 +39,7 @@ export function ExploreSearchBar({
   filtersActive,
   onOpenFilters,
   onOpenScope,
+  viewSwitch,
 }: ExploreSearchBarProps) {
   // An existing query keeps the input open, so a shared `?q=` link shows the
   // terms it filtered by rather than a collapsed icon.
@@ -59,9 +62,9 @@ export function ExploreSearchBar({
   return (
     <div
       data-testid="explore-search-bar"
-      className="sticky top-0 z-30 border-b border-[var(--color-charcoal-100)] bg-white md:top-14"
+      className="sticky top-0 z-30 border-b border-[var(--color-charcoal-100)] bg-white md:top-nav-top"
     >
-      <div className="mx-auto flex max-w-5xl items-center gap-2 px-3 py-2 md:px-6">
+      <div className="mx-auto flex max-w-5xl items-center lg:max-w-none gap-2 px-3 py-2 md:px-6">
         {/* It used to print the resolved place name unconditionally, and with
             nothing chosen that name is the seeded launch stand-in — so the pill
             asserted a locality to someone who never named one. It now says what
@@ -86,6 +89,7 @@ export function ExploreSearchBar({
         </button>
 
         <div className="ml-auto flex items-center gap-1">
+          {viewSwitch}
           <button
             ref={searchToggleRef}
             type="button"
@@ -117,7 +121,7 @@ export function ExploreSearchBar({
       </div>
 
       {expanded && (
-        <div className="mx-auto max-w-5xl px-3 pb-2 md:px-6">
+        <div className="mx-auto max-w-5xl px-3 pb-2 md:px-6 lg:max-w-none">
           <div className="relative">
             <Search
               size={16}

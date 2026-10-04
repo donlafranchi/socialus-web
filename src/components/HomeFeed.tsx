@@ -120,7 +120,7 @@ export function HomeFeed() {
       >
         <Link
           href="/explore"
-          className="flex items-center gap-2 bg-white shadow-lg border border-neutral-200 rounded-full px-4 py-3 text-sm text-neutral-500"
+          className="flex items-center gap-2 bg-white shadow-overlay border border-neutral-200 rounded-full px-4 py-3 text-sm text-neutral-500"
         >
           <Search size={16} />
           <span>Search vendors, products, markets</span>
@@ -166,11 +166,11 @@ export function HomeFeed() {
         {!loaded ? (
           <div className="grid gap-3 grid-cols-2 md:grid-cols-3">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="h-56 rounded-xl bg-neutral-100 animate-pulse" />
+              <div key={i} className="h-56 rounded-md bg-neutral-100 animate-pulse" />
             ))}
           </div>
         ) : visible.length === 0 ? (
-          <div className="text-center py-12 px-6 border border-dashed border-neutral-300 rounded-xl">
+          <div className="text-center py-12 px-6 border border-dashed border-neutral-300 rounded-md">
             <p className="text-sm text-neutral-600">
               No upcoming events near {selectedMarket?.name ?? 'you'}.
             </p>
