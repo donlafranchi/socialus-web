@@ -10,7 +10,7 @@ import { ActionError } from '@/actions/_lib/errors'
 const { groupUpdate, groupUpdateDraft, lifecycle } = vi.hoisted(() => ({
   groupUpdate: vi.fn(),
   groupUpdateDraft: vi.fn(),
-  lifecycle: { state: 'active' },
+  lifecycle: { state: 'active', kind: 'interest' },
 }))
 vi.mock('@/actions', async () => ({
   ActionError: (await import('@/actions/_lib/errors')).ActionError,
@@ -21,7 +21,7 @@ vi.mock('@/lib/supabase-server', () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: { id: 'm1' } }, error: null }) },
     from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { lifecycle_state: lifecycle.state } }) }) }),
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { lifecycle_state: lifecycle.state, kind: lifecycle.kind } }) }) }),
     }),
   }),
 }))
@@ -66,6 +66,26 @@ describe('#301 — a draft is edited through the draft handler', () => {
     groupUpdate.mockReset()
     groupUpdateDraft.mockReset()
     lifecycle.state = 'active'
+    lifecycle.kind = 'interest'
+  })
+
+  // A shop's name and description live on group_businesses, which the Page
+  // reads and group.activate checks; group.update_draft writes them only
+  // when named as business fields.
+  it("a shop draft's name and description reach its business row", async () => {
+    lifecycle.state = 'draft'
+    lifecycle.kind = 'business'
+    const { editPageAction } = await import('./actions')
+    await editPageAction({ ...input, name: 'Oak Park Sourdough', description: 'Bread.' })
+    expect(groupUpdateDraft).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        name: 'Oak Park Sourdough',
+        businessDisplayName: 'Oak Park Sourdough',
+        description: 'Bread.',
+        businessPublicDescription: 'Bread.',
+      }),
+    )
   })
 
   it('a draft saves through group.update_draft, with the same fields', async () => {
