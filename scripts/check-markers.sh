@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Checks the grammar of ops-pattern's inline markers wherever they sit in this repo:
+# Checks the grammar of the planning repo's inline markers wherever they sit in this repo:
 #   `[open-question owner=<don|cowork|code> raised=YYYY-MM-DD] the question`
 #   `[guards F093.4]` — on the check that discharges criterion 4 of scenario F093
 #   `[guards F093.4 partial: what it leaves unchecked]` — on a check that covers part of it
-# Grammar and meaning: ops-pattern `process/LIVING-DOCS.md`. ops-pattern is private, so whether F093 criterion 4 exists is checked
-# there, not here; this is the gate that repo cannot be.
+# Grammar and meaning: ops-pattern `process/LIVING-DOCS.md`. Whether F093 criterion 4 exists is checked in socialus-plan,
+# which reads this repo; this is the gate that repo cannot be.
 #
 #   bash scripts/check-markers.sh              # self-test, then every tracked file
 #   bash scripts/check-markers.sh FILE...      # just these
@@ -52,7 +52,7 @@ for p in sys.argv[1:]:
             if not FULL_G.match(bare, m.start()):
                 err(p, n, "not a guards marker: one scenario criterion per marker, e.g. F093.4, or F093.4 partial: what it leaves unchecked")
         for m in ANY_B.finditer(bare):
-            err(p, n, "binds and supersedes tags belong on ops-pattern DECISIONS.md lines, not here")
+            err(p, n, "binds and supersedes tags belong on socialus-plan DECISIONS.md lines, not here")
 sys.exit(1 if bad else 0)
 PY
 }
