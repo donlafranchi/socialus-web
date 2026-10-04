@@ -94,11 +94,12 @@ export const metroWaitlistJoin = defineHandler(
         // that did not decrement.
         // sql-injection-safe: `column` is indexed out of a literal map by a
         // Zod-validated enum, never from caller input.
+        // #280 — a builder's place on a waitlist never counts.
         await client.query(
           delta === 1
-            ? `update public.metro_polygons set ${column} = ${column} + 1, updated_at = $2 where id = $1`
-            : `update public.metro_polygons set ${column} = greatest(${column} - 1, 0), updated_at = $2 where id = $1`,
-          [metroId, ctx.now()],
+            ? `update public.metro_polygons set ${column} = ${column} + 1, updated_at = $2 where id = $1 and not public.is_builder($3)`
+            : `update public.metro_polygons set ${column} = greatest(${column} - 1, 0), updated_at = $2 where id = $1 and not public.is_builder($3)`,
+          [metroId, ctx.now(), memberId],
         )
       }
 

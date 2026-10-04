@@ -22,7 +22,7 @@ import { sendReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
 import { WithheldPagePosts } from './WithheldPagePosts'
-import { postToPageAction, editPagePostAction } from '@/app/_actions/page-post-actions'
+import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
@@ -290,6 +290,7 @@ export function ShopPublicPage({
           followerCount={followerCount}
           onPost={postToPageAction}
           onEdit={editPagePostAction}
+          onDelete={deletePagePostAction}
         />
       )}
 

@@ -1,4 +1,4 @@
-name: ⚠️ Apply migrations to PRODUCTION
+name: Apply migrations
 
 # The only thing in this repo that writes to socialus-db.
 #
@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type "apply" to confirm writing to the production database. FIRST check "Use workflow from" above — a migration under review is on its branch, not main.'
+        description: 'Type "apply" to confirm writing to the production database. From a terminal: gh workflow run apply.yml --ref <branch> -f confirm=apply'
         required: true
         type: string
       allow_multiple:
@@ -36,7 +36,7 @@ permissions:
 
 # Never two pushes against one database at once.
 concurrency:
-  group: migrations-apply-production
+  group: apply-migrations
   cancel-in-progress: false
 
 jobs:
@@ -60,15 +60,12 @@ jobs:
       - name: Check the confirmation
         run: |
           if [ "${{ inputs.confirm }}" != "apply" ]; then
-            echo "::error::Confirmation failed. Type exactly: apply"
+            echo "::error::Confirmation failed. Run: gh workflow run apply.yml --ref <branch> -f confirm=apply"
             echo "Got: '${{ inputs.confirm }}'"
             exit 1
           fi
-          echo "Confirmed. Applying migrations to socialus-db."
+          echo "Confirmed. Applying migrations to socialus-db from ${{ github.ref_name }}."
 
-      # Full history and every remote branch: the preflight below names which
-      # OTHER ref has a pending migration when this one has none, and it cannot
-      # do that from a single-commit shallow clone of one branch.
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

@@ -121,3 +121,11 @@ describe('#299 — no photo shows default art, never the emoji', () => {
     expect(screen.queryByTestId('tile-emoji')).toBeNull()
   })
 })
+
+// #262 — an end reads as a range on the card.
+describe('the card with an end time', () => {
+  it('leads with the range', () => {
+    render(<BrowseResultCard result={post({ startsAt: '2026-09-11T02:00:00Z', endsAt: '2026-09-11T04:00:00Z' })} />)
+    expect(screen.getByTestId('browse-post-when')).toHaveTextContent(/7–9pm$/)
+  })
+})

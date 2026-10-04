@@ -131,6 +131,8 @@ export interface BrowseFeedRow {
   updated_at: string
   /** #256 — a post's created_at: when it was posted. Null for a Page row. */
   posted_at: string | null
+  /** #262 — a post's optional end. */
+  ends_at?: string | null
   sort_at: string
 }
 
@@ -164,6 +166,8 @@ export interface BrowseResult {
   updatedAt: string
   /** #256 — when a post was posted; `updatedAt` moves on every edit. */
   postedAt: string | null
+  /** #262 — a post's optional end. */
+  endsAt?: string | null
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
   /**
@@ -264,6 +268,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     pageCreatedAt: r.page_created_at,
     updatedAt: r.updated_at,
     postedAt: r.posted_at ?? null,
+    endsAt: r.ends_at ?? null,
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,

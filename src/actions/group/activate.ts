@@ -20,7 +20,7 @@ import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from './constants'
-import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH } from '../../lib/groups/tags'
+import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 
 // T159 — a Page declares at least one tag at publish, and no category.
 // Supersedes T144's twelve-term category and its "Something else" free
@@ -29,7 +29,6 @@ import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH } from '../../lib/groups/
 // At least one is required for the same reason a category was: tags are
 // what search matches, and an untagged Page cannot be found by what it
 // does. The cap is a guard against a paste, not a considered limit.
-const MAX_TAGS_PER_PAGE = 12
 
 export const groupActivateInput = z.object({
   groupId: z.string().uuid(),
