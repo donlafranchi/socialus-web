@@ -16,6 +16,7 @@ import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
 import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditPageForm } from './EditPageForm'
+import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
 
 export const dynamic = 'force-dynamic'
@@ -41,6 +42,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   if (!owns) notFound()
 
   const pagePath = canonicalPagePath(shop.slug, shop.publicId)
+  const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
 
   // #285 — the Page's tags, as the owner reads them. A tag taken down is not
   // offered back; saving leaves it off.
@@ -69,6 +71,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         // `placements` is T143's read-time resolution of exactly that; the
         // anchor's own label is the first (and today only) entry.
         initialAddressLabel={shop.placements[0]?.label ?? null}
+        initialContact={contact}
         initialTags={initialTags}
         onSave={editPageAction}
       />
