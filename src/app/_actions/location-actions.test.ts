@@ -103,3 +103,27 @@ describe('a new Location records the Place it falls in', () => {
     expect(sql).toMatch(/place_for_coords/i)
   })
 })
+
+// Don, 2026-10-04: a neighbourhood has a centre point for its pin, and an
+// owner who picks a neighbourhood gets that pin, not a random spot.
+describe('#348 — a neighbourhood Location pins at the neighbourhood centre', () => {
+  it('writes the place centre as the point', async () => {
+    query.mockResolvedValueOnce({
+      rows: [{ min_lng: -121.6, min_lat: 38.5, max_lng: -121.4, max_lat: 38.7, centre_lng: -121.47, centre_lat: 38.55 }],
+    })
+    query.mockResolvedValueOnce({ rows: [{ id: 'loc-3', label: 'Curtis Park', place_id: 'pl-7' }] })
+    await createLocationAction({ label: 'Curtis Park', neighborhoodId: 'pl-7' })
+    const [, params] = query.mock.calls[1] as [string, unknown[]]
+    expect(params[4]).toBe('SRID=4326;POINT(-121.47 38.55)')
+  })
+
+  it('falls back to a point inside the shape when a place has no centre', async () => {
+    query.mockResolvedValueOnce({
+      rows: [{ min_lng: -121.6, min_lat: 38.5, max_lng: -121.4, max_lat: 38.7, centre_lng: null, centre_lat: null }],
+    })
+    query.mockResolvedValueOnce({ rows: [{ id: 'loc-4', label: 'Somewhere', place_id: 'pl-8' }] })
+    await createLocationAction({ label: 'Somewhere', neighborhoodId: 'pl-8' })
+    const [, params] = query.mock.calls[1] as [string, unknown[]]
+    expect(params[4]).toMatch(/^SRID=4326;POINT\(-121\.\d+ 38\.\d+\)$/)
+  })
+})

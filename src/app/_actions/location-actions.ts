@@ -127,12 +127,16 @@ export async function createLocationAction(
           min_lat: number
           max_lng: number
           max_lat: number
+          centre_lng: number | null
+          centre_lat: number | null
         }>(
           `select
              st_xmin(geography::geometry) as min_lng,
              st_ymin(geography::geometry) as min_lat,
              st_xmax(geography::geometry) as max_lng,
-             st_ymax(geography::geometry) as max_lat
+             st_ymax(geography::geometry) as max_lat,
+             st_x(centroid::geometry) as centre_lng,
+             st_y(centroid::geometry) as centre_lat
            from public.places
           where id = $1 and kind in ('city', 'neighborhood') and deleted_at is null`,
           [neighborhoodId],
@@ -144,17 +148,18 @@ export async function createLocationAction(
             'neighborhood_not_found',
           )
         }
-        // Seeded by a fresh id, not the neighbourhood's own id — two
-        // Pages in the same neighbourhood must not land on the same
-        // point. Drawn toward the polygon's interior, not uniformly
-        // across the bbox (review binding note 7: the five seeded
-        // polygons are hand-drawn rectangles).
-        const point = deriveInteriorPoint(crypto.randomUUID(), {
-          minLng: bbox.min_lng,
-          minLat: bbox.min_lat,
-          maxLng: bbox.max_lng,
-          maxLat: bbox.max_lat,
-        })
+        // #348 — Don, 2026-10-04: a neighbourhood's pin is its centre point
+        // (the boundary layers carry one). Only a place without one falls back
+        // to a point drawn inside its shape.
+        const point =
+          bbox.centre_lng != null && bbox.centre_lat != null
+            ? { lng: bbox.centre_lng, lat: bbox.centre_lat }
+            : deriveInteriorPoint(crypto.randomUUID(), {
+                minLng: bbox.min_lng,
+                minLat: bbox.min_lat,
+                maxLng: bbox.max_lng,
+                maxLat: bbox.max_lat,
+              })
         geographyWkt = `SRID=4326;POINT(${point.lng} ${point.lat})`
         kind = 'area'
       }
