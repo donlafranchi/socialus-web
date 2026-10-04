@@ -6,26 +6,33 @@ import '@testing-library/jest-dom/vitest'
 import { BeforeYouPublish } from './BeforeYouPublish'
 
 afterEach(cleanup)
-const base = { editPath: '/g/draft-x/edit', hasName: false, hasPlace: false, hasDescription: false, hasPhoto: false }
+const base = { editPath: '/g/draft-x/edit', hasName: false, hasPlace: false, hasDescription: false, hasTags: false, hasPhoto: false }
 
 describe('#301 — Before you publish', () => {
-  it('lists the three things and the optional photo, each with a way to add it', () => {
+  it('lists the four things and the optional photo, each with a way to add it', () => {
     render(<BeforeYouPublish {...base} onPublish={vi.fn()} />)
-    for (const name of [/^name/i, /where it is/i, /description/i, /photo \(optional\)/i]) {
+    for (const name of [/^name/i, /where it is/i, /description/i, /tags/i, /photo \(optional\)/i]) {
       const row = screen.getByTestId(`publish-item-${String(name).match(/[a-z]+/)![0]}`)
       expect(within(row).getByRole('link', { name: /add/i })).toHaveAttribute('href', '/g/draft-x/edit')
     }
   })
 
-  it('will not publish until the three are done, and says what is missing', () => {
-    render(<BeforeYouPublish {...base} hasName hasPlace onPublish={vi.fn()} />)
+  it('will not publish until the four are done, and says what is missing', () => {
+    render(<BeforeYouPublish {...base} hasName hasPlace hasTags onPublish={vi.fn()} />)
     expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
     expect(screen.getByText(/add a description to publish/i)).toBeInTheDocument()
   })
 
+  // 2026-10-01: tags are set on the draft Page and still required to publish.
+  it('a Page with no tags cannot publish', () => {
+    render(<BeforeYouPublish {...base} hasName hasPlace hasDescription onPublish={vi.fn()} />)
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
+    expect(screen.getByText(/add a tag to publish/i)).toBeInTheDocument()
+  })
+
   it('publishes once they are, photo or not', async () => {
     const onPublish = vi.fn(async () => {})
-    render(<BeforeYouPublish {...base} hasName hasPlace hasDescription onPublish={onPublish} />)
+    render(<BeforeYouPublish {...base} hasName hasPlace hasDescription hasTags onPublish={onPublish} />)
     fireEvent.click(screen.getByRole('button', { name: 'Publish' }))
     await waitFor(() => expect(onPublish).toHaveBeenCalled())
   })

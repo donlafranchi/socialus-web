@@ -90,9 +90,10 @@ export const groupActivate = defineHandler(
         )
       }
 
-      // #301 (2026-10-01) — tags are optional at publish (editable any time,
-      // #285); T159's at-least-one-tag rule is superseded. Normalized first,
-      // then deduped: "Sourdough" and " sour dough " sent
+      // T159, kept by the 2026-10-01 Create ruling: at least one tag to
+      // publish ("Tags are set on the draft Page and still required"). They
+      // are usually saved on the draft already; any sent here count too.
+      // Normalized first, then deduped: "Sourdough" and " sour dough " sent
       // together are one tag, and a creator who does that has not sent two.
       const tagLabels = (input.tags ?? []).filter(isValidTagLabel)
       const byNormalized = new Map<string, string>()
@@ -101,8 +102,19 @@ export const groupActivate = defineHandler(
         if (!byNormalized.has(n)) byNormalized.set(n, label.trim())
       }
 
+      if (byNormalized.size === 0) {
+        const saved = await client.query<{ n: number }>(
+          `select count(*)::int as n from public.page_tags where group_id = $1`,
+          [input.groupId],
+        )
+        if ((saved.rows[0]?.n ?? 0) === 0) {
+          throw new ValidationError(`group.activate: group ${input.groupId} requires at least one tag to publish`)
+        }
+      }
+
       // #301 — publishing needs, for every kind: a name, where it is (an
-      // address or an area: the anchor Location), and a description.
+      // address or an area: the anchor Location), a description, and the tag
+      // above.
       if (!row.anchor_location_id) {
         throw new ValidationError(`group.activate: draft ${input.groupId} requires where it is (anchor_location_id)`)
       }

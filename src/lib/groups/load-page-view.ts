@@ -44,6 +44,9 @@ export interface PageView {
    *  anyone who does not run it: the count sits inside the composer, and
    *  nobody else has one. */
   followerCount: number
+  /** #301 — how many tags a draft has, for its owner's publish checklist.
+   *  Zero for anyone else and for a live Page. */
+  draftTagCount: number
 }
 
 export async function loadPageView(
@@ -85,6 +88,11 @@ export async function loadPageView(
   // `memberships_select_listed_group` except for whoever runs the Page), but a
   // read nobody renders is a read worth not making.
   const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
+  const draftTagCount =
+    owns && shop.lifecycleState === 'draft'
+      ? ((await supabase.from('page_tags').select('tag_id', { count: 'exact', head: true }).eq('group_id', shop.groupId))
+          .count ?? 0)
+      : 0
 
   // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
   // this the Announcements section would not render at all and an
@@ -113,5 +121,6 @@ export async function loadPageView(
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
     followerCount,
+    draftTagCount,
   }
 }

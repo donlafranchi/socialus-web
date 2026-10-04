@@ -21,6 +21,7 @@ import { withTransaction } from '../_lib/db'
 import { toSlug } from '../../lib/slugify'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
+import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import type { ActionContext } from '../_lib/context'
 
 export const groupUpdateDraftInput = z.object({
@@ -43,6 +44,9 @@ export const groupUpdateDraftInput = z.object({
   // database refuses. The value is rendered as href on a public Page, so an
   // unsafe scheme is an XSS vector wearing a platform label.
   socialLinks: z.record(z.string(), z.string()).optional(),
+  // #301 — the whole set, replacing the old one. Set on the draft Page and
+  // required at publish (group.activate checks), so none is fine here.
+  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional(),
   // group_businesses patches (only meaningful for kind='business' rows; the
   // handler skips them silently if the underlying Group is a community kind).
   businessDisplayName: z.string().min(1).max(120).optional(),
@@ -275,6 +279,39 @@ export const groupUpdateDraft = defineHandler(
             )
           }
         }
+      }
+
+      if (input.tags !== undefined) {
+        const tags = new Map<string, string>()
+        for (const label of input.tags.filter(isValidTagLabel)) {
+          const n = normalizeTag(label)
+          if (!tags.has(n)) tags.set(n, label.trim())
+        }
+        for (const [normalized, label] of tags) {
+          await client.query(
+            `insert into public.tags (label, normalized, created_by)
+             values ($1, $2, $3)
+             on conflict (normalized) do nothing`,
+            [label, normalized, ctx.actingMemberId],
+          )
+        }
+        await client.query(
+          `delete from public.page_tags pt
+            using public.tags t
+            where pt.tag_id = t.id
+              and pt.group_id = $1
+              and t.normalized <> all($2)`,
+          [input.groupId, [...tags.keys()]],
+        )
+        for (const normalized of tags.keys()) {
+          await client.query(
+            `insert into public.page_tags (group_id, tag_id)
+             select $1, t.id from public.tags t where t.normalized = $2
+             on conflict (group_id, tag_id) do nothing`,
+            [input.groupId, normalized],
+          )
+        }
+        patched.push('tags')
       }
 
       return { groupId: input.groupId, patchedFields: patched }

@@ -160,3 +160,34 @@ describe('F070 — group.update_draft accepts social links', () => {
     expect(sql).not.toMatch(/social_links/)
   })
 })
+
+// #301 — a draft is finished on its own Page, and tags are set there and still
+// required to publish (2026-10-01). Edit sends them; the draft keeps them.
+describe('#301 — group.update_draft saves the tags', () => {
+  const calls = (re: RegExp) => (query.mock.calls as QueryCall[]).filter(([sql]) => re.test(sql))
+
+  it('replaces the draft\'s tags with the set sent, one per word however it was typed', async () => {
+    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['Sourdough', ' SOURDOUGH ', 'rye'] })
+    expect(out.patchedFields).toContain('tags')
+    expect(calls(/insert into public\.tags/).map(([, p]) => p![1])).toEqual(['sourdough', 'rye'])
+    const [drop] = calls(/delete from public\.page_tags/)
+    expect(drop![1]).toEqual([GROUP, ['sourdough', 'rye']])
+    expect(calls(/insert into public\.page_tags/)).toHaveLength(2)
+  })
+
+  it('tags alone touch no column on the Page', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['bread'] })
+    expect(updateCall()).toBeUndefined()
+  })
+
+  it('a stranger cannot set them', async () => {
+    happyPath({ owned: false })
+    await expect(groupUpdateDraft(ctx(OTHER), { groupId: GROUP, tags: ['x'] })).rejects.toThrow()
+    expect(calls(/page_tags/)).toHaveLength(0)
+  })
+
+  it('not sent, they are left alone', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, name: 'Oak Park Sourdough' })
+    expect(calls(/page_tags/)).toHaveLength(0)
+  })
+})

@@ -48,6 +48,7 @@ function installQueryRouter(opts: {
   hasAnchor?: boolean
   description?: string
   name?: string
+  savedTags?: number
 } = {}) {
   const kind = opts.kind ?? 'business'
   const hasAnchor = opts.hasAnchor ?? true
@@ -76,6 +77,9 @@ function installQueryRouter(opts: {
     if (/update public\.groups\s+set lifecycle_state = 'active'/i.test(sql)) {
       return { rows: [{ id: GROUP_ID }] }
     }
+    if (/from public\.page_tags/i.test(sql) && /count/i.test(sql)) {
+      return { rows: [{ n: opts.savedTags ?? 1 }] }
+    }
     if (/insert into public\.tags/i.test(sql)) {
       return { rows: [] }
     }
@@ -91,11 +95,26 @@ beforeEach(() => {
 })
 
 // #301 (2026-10-01): publishing needs a name, where it is (an address or an
-// area) and a description. Tags are optional at publish and editable any time.
+// area), a description and at least one tag ("Tags are set on the draft Page
+// and still required to publish", DECISIONS 2026-10-01; F082.8).
 describe('group.activate — what publishing needs', () => {
-  it('publishes with no tags at all', async () => {
-    installQueryRouter()
+  it('publishes with the tags already saved on the draft', async () => {
+    installQueryRouter({ savedTags: 2 })
     await groupActivate(ctx(), { groupId: GROUP_ID })
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
+  })
+
+  it('refuses a Page with no tags, saved or given, for every kind', async () => {
+    for (const kind of ['business', 'interest', 'practice']) {
+      installQueryRouter({ kind, savedTags: 0 })
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/tag/i)
+      expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+    }
+  })
+
+  it('a tag given at publish counts', async () => {
+    installQueryRouter({ savedTags: 0 })
+    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
     expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
   })
 

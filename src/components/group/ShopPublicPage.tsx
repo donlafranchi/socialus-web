@@ -51,6 +51,8 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** #301 — a draft's tag count, for its owner's publish checklist. */
+  draftTagCount?: number
 }
 
 export function ShopPublicPage({
@@ -65,6 +67,7 @@ export function ShopPublicPage({
   posts = [],
   withheldPosts = [],
   followerCount = 0,
+  draftTagCount = 0,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -150,6 +153,7 @@ export function ShopPublicPage({
             hasName={shop.displayName !== DRAFT_NAME_PLACEHOLDER && shop.displayName.trim() !== ''}
             hasPlace={Boolean(shop.anchorLocationId)}
             hasDescription={shop.publicDescription.trim() !== ''}
+            hasTags={draftTagCount > 0}
             hasPhoto={Boolean(photoUrl)}
             onPublish={publishDraftAction.bind(null, shop.groupId)}
           />

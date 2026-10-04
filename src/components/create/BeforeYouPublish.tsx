@@ -1,7 +1,8 @@
 'use client'
 
 // #301 — L14, on the draft Page in the owner view. Publishing needs a name,
-// where it is (an address or an area) and a description; a photo is optional.
+// where it is (an address or an area), a description and a tag; a photo is
+// optional.
 // Copy is the design's placeholder ([public-is-draft]).
 
 import { useState } from 'react'
@@ -14,20 +15,22 @@ interface Props {
   hasName: boolean
   hasPlace: boolean
   hasDescription: boolean
+  hasTags: boolean
   hasPhoto: boolean
   onPublish: () => Promise<void>
 }
 
-export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasPhoto, onPublish }: Props) {
+export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasTags, hasPhoto, onPublish }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const items = [
     { key: 'name', label: 'Name', done: hasName },
     { key: 'where', label: 'Where it is', done: hasPlace },
     { key: 'description', label: 'Description', done: hasDescription },
+    { key: 'tags', label: 'Tags', done: hasTags },
     { key: 'photo', label: 'Photo (optional)', done: hasPhoto },
   ]
-  const missing = [!hasName && 'a name', !hasPlace && 'where it is', !hasDescription && 'a description'].filter(
+  const missing = [!hasName && 'a name', !hasPlace && 'where it is', !hasDescription && 'a description', !hasTags && 'a tag'].filter(
     Boolean,
   ) as string[]
   const ready = missing.length === 0
@@ -46,7 +49,7 @@ export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, 
   return (
     <section data-testid="before-you-publish" className="rounded-lg border border-[var(--color-border)] p-4">
       <h2 className="text-title-3 text-[var(--color-fg)]">Before you publish</h2>
-      <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Three things, then it&rsquo;s live.</p>
+      <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Four things, then it&rsquo;s live.</p>
       <ul className="mt-3 flex flex-col">
         {items.map((i) => (
           <li
