@@ -177,10 +177,6 @@ export function ShopPublicPage({
           </div>
         )}
 
-        {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
-            moderated after they appear (#287). */}
-        {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
-
         {/* T143 — where this Page currently resolves to, shown to every
             viewer including the owner. Resolved at read time (see
             resolvePagePlacements); nothing here is stored on the Page. */}
@@ -193,6 +189,10 @@ export function ShopPublicPage({
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
+
+        {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
+            moderated after they appear (#287). */}
+        {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
 
         {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
             URL on read: this renders straight into href, and a row written

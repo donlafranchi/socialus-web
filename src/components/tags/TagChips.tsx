@@ -11,14 +11,17 @@ export const hashtag = (label: string) => `#${label.replace(/^#+/, '').replace(/
 export function TagChips({ tags }: { tags: readonly string[] }) {
   if (tags.length === 0) return null
   return (
-    <ul data-testid="tag-chips" className="flex flex-wrap gap-2">
+    <ul data-testid="tag-chips" className="flex flex-wrap gap-x-2">
       {tags.map((t) => (
         <li key={t}>
+          {/* The pill reads 32px; the link around it is the 44px tap target. */}
           <Link
             href={`/explore?category=${encodeURIComponent(normalizeTag(t))}`}
-            className="press inline-flex min-h-8 items-center rounded-full bg-[var(--color-surface)] px-3 text-caption font-medium text-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-100)]"
+            className="press group inline-flex min-h-11 items-center"
           >
-            {hashtag(t)}
+            <span className="inline-flex min-h-8 items-center rounded-full bg-[var(--color-surface)] px-3 text-caption font-medium text-[var(--color-charcoal-900)] group-hover:bg-[var(--color-charcoal-100)]">
+              {hashtag(t)}
+            </span>
           </Link>
         </li>
       ))}

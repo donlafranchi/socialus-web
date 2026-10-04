@@ -340,7 +340,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
     await advanceToTags()
     type('sourdough')
     fireEvent.click(screen.getByTestId('sell-tag-add'))
-    expect(within(screen.getByTestId('sell-tag-list')).getByText('sourdough')).toBeInTheDocument()
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('#sourdough')).toBeInTheDocument()
   })
 
   it('adds a tag on Enter without submitting the step', async () => {
@@ -349,7 +349,7 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
     await advanceToTags()
     type('sourdough')
     fireEvent.keyDown(screen.getByTestId('sell-tag-input'), { key: 'Enter' })
-    expect(within(screen.getByTestId('sell-tag-list')).getByText('sourdough')).toBeInTheDocument()
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('#sourdough')).toBeInTheDocument()
     // Still on the tag step — Enter committed a tag, it did not advance.
     expect(screen.getByTestId('sell-tag-input')).toBeInTheDocument()
   })
@@ -359,8 +359,19 @@ describe('SellWalkthrough — step 3 Tags (T159)', () => {
     await answerPurpose()
     await advanceToTags()
     type('bread,')
-    expect(within(screen.getByTestId('sell-tag-list')).getByText('bread')).toBeInTheDocument()
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('#bread')).toBeInTheDocument()
     expect(screen.queryByText('bread,')).toBeNull()
+  })
+
+  // #316 — the create flow's tag box behaves like a hashtag box too.
+  it('ignores a typed # and commits on a space, shown as #tag', async () => {
+    setup()
+    await answerPurpose()
+    await advanceToTags()
+    type('#bread')
+    expect(screen.getByTestId('sell-tag-input')).toHaveValue('bread')
+    type('bread ')
+    expect(within(screen.getByTestId('sell-tag-list')).getByText('#bread')).toBeInTheDocument()
   })
 
   it('does not add the same tag twice, whatever the casing or spacing', async () => {

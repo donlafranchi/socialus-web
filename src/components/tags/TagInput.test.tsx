@@ -18,6 +18,12 @@ describe('#316 — typing tags', () => {
     expect(onChange).toHaveBeenLastCalledWith({ tags: ['bread'], draft: '' })
   })
 
+  it('a typed # never reaches the draft, so saving without a space cannot store #bread', () => {
+    const { onChange, input } = setup()
+    fireEvent.change(input, { target: { value: '#bread' } })
+    expect(onChange).toHaveBeenLastCalledWith({ tags: [], draft: 'bread' })
+  })
+
   it('a space commits the tag, as with hashtags', () => {
     const { onChange, input } = setup()
     fireEvent.change(input, { target: { value: 'sourdough ' } })

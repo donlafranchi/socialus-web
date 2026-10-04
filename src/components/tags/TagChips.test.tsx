@@ -14,6 +14,11 @@ describe('#316 — TagChips', () => {
     expect(screen.getByRole('link', { name: '#Localfood' })).toHaveAttribute('href', '/explore?category=local%20food')
   })
 
+  it('each chip is a 44px tap target', () => {
+    render(<TagChips tags={['Sourdough']} />)
+    expect(screen.getByRole('link', { name: '#Sourdough' })).toHaveClass('min-h-11')
+  })
+
   it('renders nothing for no tags', () => {
     const { container } = render(<TagChips tags={[]} />)
     expect(container).toBeEmptyDOMElement()

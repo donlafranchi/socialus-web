@@ -81,7 +81,7 @@ export function TagInput({
         onChange={(e) => {
           const v = e.target.value
           if (/[,\s]$/.test(v)) add(v.slice(0, -1))
-          else onChange({ ...value, draft: v.replace(/^#+/, '') === '' ? '' : v })
+          else onChange({ ...value, draft: v.replace(/^#+/, '') })
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
@@ -97,7 +97,7 @@ export function TagInput({
         type="button"
         data-testid={`${idPrefix}-add`}
         onClick={() => add(value.draft)}
-        disabled={!isValidTagLabel(value.draft.replace(/^#+/, ''))}
+        disabled={!isValidTagLabel(value.draft)}
         className="mt-2 min-h-[44px] text-sm font-medium text-[var(--color-accent)] disabled:opacity-40"
       >
         Add
