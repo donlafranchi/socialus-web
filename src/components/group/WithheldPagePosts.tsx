@@ -12,6 +12,7 @@
 // this card and marks it, rather than scrolling to nothing (#211).
 
 import Link from 'next/link'
+import { buttonClass } from '@/components/ui/Button'
 import { Megaphone } from 'lucide-react'
 import { announcementAnchor } from './announcement-anchor'
 import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
@@ -59,7 +60,7 @@ export function WithheldPagePosts({ posts }: { posts: BrowseResult[] }) {
           <Link
             data-testid="withheld-cta"
             href={withheldJoinHref(page.href)}
-            className="press mt-3 inline-flex items-center rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-accent-hover)] hover:no-underline"
+            className={`${buttonClass('primary')} mt-3 hover:no-underline`}
           >
             {WITHHELD_CTA}
           </Link>

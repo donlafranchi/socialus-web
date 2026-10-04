@@ -79,7 +79,18 @@ describe('WithheldPagePosts', () => {
   it('says nothing about what the announcements say, when, or where', () => {
     const { container } = render(<WithheldPagePosts posts={[PAGE]} />)
     expect(container.textContent).toBe(
-      "Announcements3 announcements this weekThe details are for members and followers of this Page.Sign up to see what's happening",
+      "Announcements3 announcements this weekThe details are for members and followers of this Page.Sign in to see what's happening",
     )
+  })
+})
+
+// Don, 2026-10-04: on the signed-out front door this is the main button, and
+// "Sign up to follow" is secondary.
+describe('the front door\'s main button', () => {
+  it('is a full-size primary button', () => {
+    render(<WithheldPagePosts posts={[PAGE]} />)
+    const cta = screen.getByTestId('withheld-cta')
+    expect(cta.className).toContain('bg-[var(--color-accent)]')
+    expect(cta.className).toMatch(/min-h-tap|h-tap|min-h-11/)
   })
 })

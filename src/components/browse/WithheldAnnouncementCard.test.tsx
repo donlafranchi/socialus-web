@@ -67,7 +67,7 @@ describe('WithheldAnnouncementCard', () => {
   it('asks the reader to sign in and become a member, and brings them back to the Page', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
     const cta = screen.getByTestId('withheld-cta')
-    expect(cta.textContent).toBe("Sign up to see what's happening")
+    expect(cta.textContent).toBe("Sign in to see what's happening")
     expect(cta.getAttribute('href')).toBe('/auth/login?next=%2Fg%2Fsacriver-floaters-3k8x0p')
   })
 
@@ -75,7 +75,7 @@ describe('WithheldAnnouncementCard', () => {
     // Criterion 4, as a whole-card match so a line added later fails here.
     const { container } = render(<WithheldAnnouncementCard result={RESULT} />)
     expect(container.textContent).toBe(
-      "3 announcements this weekSacRiver FloatersThe details are for members and followers of this Page.Sign up to see what's happening",
+      "3 announcements this weekSacRiver FloatersThe details are for members and followers of this Page.Sign in to see what's happening",
     )
   })
 
