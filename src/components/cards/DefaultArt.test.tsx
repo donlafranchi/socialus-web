@@ -37,4 +37,10 @@ describe('#299 — DefaultArt', () => {
     expect(artKindFor('practice')).toBe('service')
     for (const k of ['interest', 'place', 'event', 'family']) expect(artKindFor(k)).toBe('group')
   })
+
+  it('draws no icon when the kind is unknown, rather than guessing one', () => {
+    for (const k of ['', null, undefined]) expect(artKindFor(k)).toBeNull()
+    render(<DefaultArt kind={null} />)
+    expect(screen.getByTestId('default-art').querySelector('svg')).toBeNull()
+  })
 })

@@ -120,10 +120,12 @@ describe('#299 — no photo shows default art, never the emoji', () => {
     expect(screen.getByTestId('default-art')).toBeInTheDocument()
     expect(screen.queryByTestId('tile-emoji')).toBeNull()
   })
-  // [guards F093.4 partial: the default art for a Page with no photo; not the other four things]
-  it('a withheld card without a photo shows its kind, not the sprout', () => {
-    render(<BrowseResultCard result={post({ photoUrl: null, withheld: true, body: null, startsAt: null, announcementCount: 2, groupKind: 'business' })} />)
-    expect(screen.getByTestId('default-art')).toHaveAttribute('data-kind', 'shop')
+  it('a withheld card without a photo shows a plain tile, not the sprout and not a guessed kind', () => {
+    // The withheld read carries no Page kind, so no kind icon is drawn rather than a wrong one.
+    render(<BrowseResultCard result={post({ photoUrl: null, withheld: true, body: null, startsAt: null, announcementCount: 2, groupKind: '' })} />)
+    const art = screen.getByTestId('default-art')
+    expect(art).not.toHaveAttribute('data-kind')
+    expect(art.querySelector('svg')).toBeNull()
     expect(screen.queryByTestId('tile-emoji')).toBeNull()
   })
   it('two Pages of the same kind get the same art', () => {
