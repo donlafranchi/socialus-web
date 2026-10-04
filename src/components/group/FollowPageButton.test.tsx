@@ -121,3 +121,34 @@ describe('signed out', () => {
     expect(follow).not.toHaveBeenCalled()
   })
 })
+
+describe('#297 — the done state carries a check', () => {
+  it('Following and Joined show one, without it entering the name', () => {
+    renderBtn({ following: true })
+    const btn = screen.getByRole('button', { name: /^Following$/i })
+    expect(btn.querySelector('svg[aria-hidden="true"]')).not.toBeNull()
+  })
+})
+
+describe('failure', () => {
+  it('says so and stays put', async () => {
+    follow.mockRejectedValue(new Error('nope'))
+    renderBtn()
+    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Follow$/i })).toBeInTheDocument()
+  })
+})
+
+describe('voice.md', () => {
+  it('never says shop, and never names a person as a category', () => {
+    for (const props of [{}, { isPrivate: true }, { following: true }, { loggedIn: false }]) {
+      const { container, unmount } = renderBtn(props)
+      const text = container.textContent ?? ''
+      expect(text.toLowerCase()).not.toContain('shop')
+      expect(text).not.toMatch(/\b(vendor|producer|seller|maker|supporter|consumer|patron|creator)s?\b/i)
+      expect(text).not.toContain('—')
+      unmount()
+    }
+  })
+})
