@@ -538,5 +538,35 @@
       "photographer": "Tim Boote",
       "license": "Unsplash License"
     }
+  },
+  "run-club": {
+    "description": "Group road and trail runs at dawn along the river path",
+    "cover": {
+      "url": "https://images.unsplash.com/photo-1739368732843-800f36a9b7d0?w=1600&q=80&fm=jpg&fit=crop",
+      "page": "https://unsplash.com/photos/a-group-of-people-running-down-a-street-next-to-a-river-k27fjLXCuuo",
+      "photographer": "Joshua Tsu",
+      "license": "Unsplash License"
+    },
+    "post": {
+      "url": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=1600&q=80&fm=jpg&fit=crop",
+      "page": "https://unsplash.com/photos/silhouette-of-three-women-running-on-grey-concrete-road-oGv9xIl7DkY",
+      "photographer": "Fitsum Admasu",
+      "license": "Unsplash License"
+    }
+  },
+  "pottery-studio": {
+    "description": "Community pottery studio: wheel-throwing, kiln and greenware shelves",
+    "cover": {
+      "url": "https://images.unsplash.com/photo-1676125105332-608345abe20e?w=1600&q=80&fm=jpg&fit=crop",
+      "page": "https://unsplash.com/photos/a-potters-wheel-surrounded-by-pottery-and-other-items-ZBJhixjB2XY",
+      "photographer": "Alexandra Slo",
+      "license": "Unsplash License"
+    },
+    "post": {
+      "url": "https://images.unsplash.com/photo-1760018861921-43af85ea6c4f?w=1600&q=80&fm=jpg&fit=crop",
+      "page": "https://unsplash.com/photos/hands-shaping-clay-on-a-pottery-wheel-Y8QTLw6AphU",
+      "photographer": "Javier Balseiro",
+      "license": "Unsplash License"
+    }
   }
 }

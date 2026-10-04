@@ -18,7 +18,7 @@ export const BUILDER_FOR: Record<BuilderKind, 'ownerBusiness' | 'ownerInterest' 
 /** Areas the location picker knows without an address lookup. */
 export type Area =
   | 'Oak Park' | 'Midtown' | 'Land Park' | 'Curtis Park' | 'East Sacramento'
-  | 'West Sacramento' | 'Davis' | 'Roseville' | 'Folsom'
+  | 'West Sacramento' | 'Davis' | 'Roseville' | 'Folsom' | 'Auburn' | 'Carmichael'
 
 export interface Post {
   body: string
@@ -289,7 +289,27 @@ export const ROSTER: Org[] = [
       { body: 'Intro to film developing: load a reel in the dark and see your first negatives.', when: { inDays: 8, start: '18:00', end: '20:30' } },
     ],
   },
+  {
+    key: 'pottery-studio', kind: 'practice', name: 'Kiln & Clay Collective', area: 'Auburn',
+    description: 'A shared pottery studio in an old Auburn feed store. Six-week wheel classes, open studio for members, and a gas kiln we fire together every other Friday.',
+    tags: ['pottery', 'ceramics', 'classes'], instagram: 'kilnandclay.auburn',
+    posts: [
+      { body: 'New six-week wheel class starts soon: centring, pulling and trimming, and you leave with a set of bowls.', when: { inDays: 8, start: '18:00', end: '20:30' } },
+      { body: 'Open studio: bring your own clay or buy a bag here. Wheels, slab roller and glazes are shared.', when: { inDays: 3, start: '10:00', end: '14:00' } },
+      { body: 'Kiln firing: load at noon, unload Sunday. Have your greenware bisqued and on the shelf by Thursday.', when: { inDays: 5, start: '12:00', end: '13:00' } },
+    ],
+  },
   // — groups —
+  {
+    key: 'run-club', kind: 'interest', name: 'Parkway Dawn Runners', area: 'Carmichael',
+    description: 'We run the American River Parkway every Saturday at sunrise, and on Wednesday evenings in summer. Three pace groups and nobody is left behind. Coffee after.',
+    tags: ['running', 'running club', 'parkway'],
+    posts: [
+      { body: 'Saturday sunrise run from the Ancil Hoffman lot: 5 miles out and back, three pace groups.', when: { inDays: 1, start: '06:30', end: '08:00' } },
+      { body: 'Wednesday evening miles along the river: easy pace, headlamps after the time change.', when: { inDays: 4, start: '18:00', end: '19:00' } },
+      { body: 'Saturday sunrise run, the long version: 8 miles for anyone training for the fall half.', when: { inDays: 8, start: '06:30', end: '08:30' } },
+    ],
+  },
   {
     key: 'river-float-club', kind: 'interest', name: 'American River Float Club', area: 'Folsom',
     description: 'Inner tubes, sunscreen and a slow drift from Sunrise to Goethe. We float weekends through October and carpool back to the cars.',
