@@ -15,6 +15,8 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { safeNext } from '@/lib/safe-next'
+import { rememberedEmail, rememberEmail } from '@/lib/auth/remembered-email'
+import { offerToSaveLogin } from '@/lib/auth/save-login'
 
 type Phase = 'email' | 'new' | 'returning' | 'magic-sent' | 'confirm-email'
 
@@ -61,7 +63,7 @@ export function EmailFirstSignup({
   const nextSafe = safeNext(next, '/onboarding')
 
   const [phase, setPhase] = useState<Phase>('email')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(rememberedEmail)
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -113,8 +115,11 @@ export function EmailFirstSignup({
     }
     // Local auto-confirm → live session → onward. Prod confirmation → no
     // session yet → ask them to confirm their email.
-    if (data?.session) onAuthenticated(nextSafe)
-    else setPhase('confirm-email')
+    rememberEmail(email.trim())
+    if (data?.session) {
+      await offerToSaveLogin(email.trim(), password)
+      onAuthenticated(nextSafe)
+    } else setPhase('confirm-email')
   }
 
   async function handleSignIn(e: React.FormEvent) {
@@ -131,6 +136,8 @@ export function EmailFirstSignup({
       setError(err.message)
       return
     }
+    rememberEmail(email.trim())
+    await offerToSaveLogin(email.trim(), password)
     onAuthenticated(nextSafe)
   }
 
@@ -143,6 +150,7 @@ export function EmailFirstSignup({
       setError(err.message)
       return
     }
+    rememberEmail(email.trim())
     setPhase('magic-sent')
   }
 
@@ -209,8 +217,13 @@ export function EmailFirstSignup({
           <form onSubmit={handleEmailContinue} className="space-y-3" data-testid="signup-form">
             <input
               type="email"
+              name="email"
               required
-              autoComplete="email"
+              autoComplete="username"
+              inputMode="email"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -253,8 +266,20 @@ export function EmailFirstSignup({
             className="space-y-3"
             data-testid="password-form"
           >
+            {/* The email again, so password managers know whose password this is. */}
+            <input
+              type="email"
+              name="email"
+              autoComplete="username"
+              value={email}
+              readOnly
+              tabIndex={-1}
+              aria-hidden="true"
+              className="sr-only"
+            />
             <input
               type="password"
+              name="password"
               required
               autoComplete={phase === 'new' ? 'new-password' : 'current-password'}
               value={password}
