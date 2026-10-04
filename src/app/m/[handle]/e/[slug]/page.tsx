@@ -7,23 +7,11 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
-import { resolveGathering, nextOccurrence } from '@/lib/items/resolve-gathering'
+import { resolveGathering, gatheringWhenLabel } from '@/lib/items/resolve-gathering'
 import { GatheringPublicPage } from '@/components/item/GatheringPublicPage'
 
 interface Props {
   params: Promise<{ handle: string; slug: string }>
-}
-
-function occurrenceLabel(startsAt: string | null, recurrenceRule: string | null): string | null {
-  const occ = nextOccurrence(startsAt, recurrenceRule, new Date())
-  return occ
-    ? occ.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -50,7 +38,7 @@ export default async function MemberGatheringPage({ params }: Props) {
     <GatheringPublicPage
       gathering={gathering}
       groupHref={null}
-      nextOccurrenceLabel={occurrenceLabel(gathering.startsAt, gathering.recurrenceRule)}
+      nextOccurrenceLabel={gatheringWhenLabel(gathering.startsAt, gathering.endsAt, gathering.recurrenceRule)}
       shareUrl={`/m/${handle}/e/${slug}`}
     />
   )

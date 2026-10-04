@@ -29,6 +29,7 @@ const POST = {
   createdAt: '2026-09-20T12:00:00.000Z',
   updatedAt: '2026-09-20T12:00:00.000Z',
   startsAt: null as string | null,
+  endsAt: null as string | null,
   locationLabel: null as string | null,
 }
 
@@ -95,6 +96,8 @@ describe('a time on it', () => {
     fireEvent.change(screen.getByTestId('page-post-body'), {
       target: { value: 'Bread class Thursday.' },
     })
+    // #317 — a time is asked for, then typed over the defaults it fills.
+    fireEvent.click(screen.getByTestId('announce-add-when'))
     fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
     fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '19:00' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
@@ -122,7 +125,10 @@ describe('a time on it', () => {
     // on Wednesday night for a reader one zone east.
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'x' } })
+    // #317 — a time is asked for, then typed over the defaults it fills.
+    fireEvent.click(screen.getByTestId('announce-add-when'))
     fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() =>
       expect(screen.getByTestId('page-post-error')).toHaveTextContent(/both a date and a time/i),
@@ -361,5 +367,77 @@ describe('add to calendar', () => {
   it('is not offered on one without', () => {
     renderPosts({ canPost: false, posts: [postFixture({ id: 'p-nocal', startsAt: null })] })
     expect(screen.queryByTestId('add-to-calendar')).toBeNull()
+  })
+})
+
+describe('#318 — deleting a post', () => {
+  const onDelete = vi.fn(async (_i: unknown) => ({ ok: true as const, data: { postId: 'pp-1' } }))
+
+  it('asks before it deletes, and Keep it changes nothing', () => {
+    renderPosts({ posts: [postFixture()], onDelete })
+    fireEvent.click(screen.getByTestId('page-post-delete'))
+    expect(screen.getByRole('alertdialog', { name: /delete this post/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /keep it/i }))
+    expect(onDelete).not.toHaveBeenCalled()
+    expect(screen.getAllByTestId('page-post')).toHaveLength(1)
+  })
+
+  it('deletes on confirm and takes the post off the Page', async () => {
+    renderPosts({ posts: [postFixture()], onDelete })
+    fireEvent.click(screen.getByTestId('page-post-delete'))
+    fireEvent.click(screen.getByRole('button', { name: /delete post/i }))
+    await waitFor(() => expect(onDelete).toHaveBeenCalledWith({ postId: 'pp-1' }))
+    await waitFor(() => expect(screen.queryAllByTestId('page-post')).toHaveLength(0))
+  })
+
+  it('is not offered to anyone who cannot post', () => {
+    renderPosts({ posts: [postFixture()], onDelete, canPost: false })
+    expect(screen.queryByTestId('page-post-delete')).toBeNull()
+  })
+})
+
+// #262 — an optional end time, the same day as the start.
+describe('an end time on it', () => {
+  const typeStart = () => {
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Bread class Thursday.' } })
+    // #317 — a time is asked for, then typed over the defaults it fills.
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '2026-09-24' } })
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '19:00' } })
+  }
+
+  it('sends the end as an instant in the metro’s zone', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '21:00' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(
+        expect.objectContaining({ startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }),
+      ),
+    )
+  })
+
+  // #317 — an end is filled an hour after the start; the owner can clear it.
+  it('sends no end when the owner clears it', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ endsAt: null })))
+  })
+
+  it('refuses an end before the start, and says so', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '18:00' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    expect(await screen.findByTestId('page-post-error')).toBeInTheDocument()
+    expect(onPost).not.toHaveBeenCalled()
+  })
+
+  it('shows the range back', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }] })
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
   })
 })

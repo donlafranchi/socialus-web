@@ -15,7 +15,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const ROOT = resolve(__dirname, '..')
-const wfRaw = readFileSync(resolve(ROOT, '.github/workflows/migrations-apply-production.yml'), 'utf8')
+const wfRaw = readFileSync(resolve(ROOT, '.github/workflows/apply.yml'), 'utf8')
 // The header comment explains at length why `db push` and not the management
 // API, so it mentions both. Match STEPS, not prose — otherwise the assertions
 // fail on the paragraph justifying them.
@@ -58,7 +58,7 @@ describe('the preflight fails closed and is useful when it fails', () => {
   })
 
   it('names which branches DO have something pending', () => {
-    expect(script).toMatch(/Re-run this workflow with/)
+    expect(script).toMatch(/gh workflow run apply\.yml --ref <branch> -f confirm=apply/)
     expect(script).toMatch(/refs\/remotes\/origin/)
   })
 
