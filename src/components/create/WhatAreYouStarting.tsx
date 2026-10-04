@@ -21,7 +21,7 @@ const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
   {
     kind: 'interest',
     title: 'Do you manage a group or meetup, or host events regularly?',
-    body: 'A Page for people who get together, where you post events and people can join.',
+    body: 'A Page for people who get together, where others can find your events and join.',
   },
   {
     kind: 'practice',
@@ -86,7 +86,6 @@ export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => 
             </label>
           ))}
         </fieldset>
-        <p className="text-caption text-[var(--color-fg-muted)]">You can add or turn off any of these later.</p>
         {error && (
           <p role="alert" className="text-body-sm text-[var(--color-fg)]">
             {error}

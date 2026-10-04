@@ -49,6 +49,14 @@ describe('#301 — What are you starting?', () => {
   it('says nothing in the voice rules forbid', () => {
     const { container } = render(<WhatAreYouStarting onStart={vi.fn()} />)
     expect(container.textContent).not.toMatch(/\bnever\b/i)
+    // voice.md: nobody just posts here.
+    expect(container.textContent).not.toMatch(/\bpost(s|ing)?\b/i)
+  })
+
+  // The lines no longer list what each Page comes with, so "these" had nothing to point at.
+  it('does not refer back to a list it no longer shows', () => {
+    const { container } = render(<WhatAreYouStarting onStart={vi.fn()} />)
+    expect(container.textContent).not.toMatch(/any of these/i)
   })
 
   it('says nothing is public until you publish', () => {
