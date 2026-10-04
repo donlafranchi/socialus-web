@@ -119,7 +119,7 @@ export function ShopPublicPage({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <DefaultArt seed={shop.groupId} kind={artKindFor(shop.kind)} />
+          <DefaultArt kind={artKindFor(shop.kind)} />
         )}
       </div>
 
