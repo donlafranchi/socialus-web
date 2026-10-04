@@ -6,3 +6,5 @@
 - **Not here:** "Ask to join / Asked". Join approval isn't built (joining is immediate today), so offering it would promise something that doesn't happen.
 
 Tests: Button, Field and the Follow button's signed-out and check states seen failing first. No migration.
+
+**2026-10-04, Don's fix:** signed out, nobody can follow. Every signed-out Follow now says "Sign up to follow" (or "Sign up to join"): on Pages, members and venues. The Page sheet is titled "Sign up to follow" and leads to sign-up, which is the same email flow as sign-in.
