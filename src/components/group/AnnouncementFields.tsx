@@ -148,7 +148,7 @@ export function AnnouncementFields({
             <button
               type="button"
               data-testid={`${idPrefix}-add-place`}
-              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() => onChange({ ...value, addingPlace: true })}
             >
               {placeLabel ? 'Change where' : 'Somewhere else?'}
@@ -164,7 +164,7 @@ export function AnnouncementFields({
             <button
               type="button"
               data-testid={`${idPrefix}-drop-place`}
-              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() =>
                 onChange({ ...value, addingPlace: false, place: initialLocationPlaceFieldsState })
               }
