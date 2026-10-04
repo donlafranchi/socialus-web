@@ -76,11 +76,21 @@ export function ShopPublicPage({
   // today nothing, and T146's default art once that lands. Neither reveals
   // that a photo exists, or that anyone reported it.
   const showHiddenNotice = viewerOwnsPage && photoUrl === null && shop.photoHiddenAt !== null
+  const showOwnerPanel = viewerOwnsPage && Boolean(pagePath)
+  // F093 criterion 8 — signed out is the front door: name, photo, description,
+  // the withheld card and Sign up to follow. Listings and links out wait.
+  const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
   return (
-    // #300 — T2 Detail: a read-width column, and from 1024 the owner's panel
-    // beside it (720 + 48 + 360 inside the 1128 detail width).
-    <main className="mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12">
+    // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
+    // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
+    <main
+      className={
+        showOwnerPanel
+          ? 'mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12'
+          : 'mx-auto w-full max-w-read gutter py-6 pb-nav'
+      }
+    >
      <div className="min-w-0">
       {isDraftPreview && (
         <div
@@ -216,9 +226,9 @@ export function ShopPublicPage({
             before the column had its CHECK must not reach one unchecked.
             rel="noopener noreferrer" because these point off-platform, and
             target="_blank" so a member does not lose the Page to follow one. */}
-        {socialLinksForDisplay(shop.socialLinks).length > 0 && (
+        {socialLinks.length > 0 && (
           <ul className="flex flex-wrap gap-3 mt-2" data-testid="shop-social-links">
-            {socialLinksForDisplay(shop.socialLinks).map((link) => (
+            {socialLinks.map((link) => (
               <li key={link.platform}>
                 <a
                   href={link.url}
@@ -285,6 +295,7 @@ export function ShopPublicPage({
         />
       )}
 
+      {loggedIn && (
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>
         {items.length === 0 ? (
@@ -293,10 +304,7 @@ export function ShopPublicPage({
             className="mt-3 rounded border border-dashed border-gray-300 p-6 text-sm text-gray-500"
           >
             <p className="font-medium text-gray-600">Nothing listed yet</p>
-            <p className="mt-1">
-              {shop.founder?.displayName ?? 'This Shop'} hasn&apos;t listed anything yet — check
-              back soon.
-            </p>
+            <p className="mt-1">This Page hasn&apos;t listed anything yet — check back soon.</p>
           </div>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
@@ -308,8 +316,9 @@ export function ShopPublicPage({
           </ul>
         )}
       </section>
+      )}
      </div>
-      {viewerOwnsPage && pagePath ? (
+      {showOwnerPanel && pagePath ? (
         <aside data-testid="owner-panel" className="hidden lg:block">
           <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
             <OwnerPanel pagePath={pagePath} />
