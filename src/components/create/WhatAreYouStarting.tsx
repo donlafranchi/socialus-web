@@ -9,21 +9,24 @@ import { Button } from '@/components/ui/Button'
 
 export type StartKind = 'business' | 'practice' | 'interest'
 
+// Don, 2026-10-04: each kind is a question, with one line on what the Page
+// is for. The business and group questions are his; the third is drafted in
+// his voice. Placeholder ([public-is-draft]).
 const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
   {
     kind: 'business',
-    title: 'Opening a shop',
-    body: 'For selling things you make, grow or carry. Comes with Following and Announcements.',
-  },
-  {
-    kind: 'practice',
-    title: 'Offering a service',
-    body: 'For work you do for people, paid or free. Comes with Following and Announcements.',
+    title: 'Have a business where you sell products or services?',
+    body: 'A Page for your shop, farm, trade or studio, where people see what you offer and what’s new.',
   },
   {
     kind: 'interest',
-    title: 'Creating a group for meetups',
-    body: 'For people who get together, once or often. Comes with Joining, Events and Announcements.',
+    title: 'Do you manage a group or meetup, or host events regularly?',
+    body: 'A Page for people who get together, where you post events and people can join.',
+  },
+  {
+    kind: 'practice',
+    title: 'Do you teach a class or lead a regular session?',
+    body: 'A Page for lessons, workshops and practice people come back to, from pottery to yoga.',
   },
 ]
 
@@ -68,11 +71,14 @@ export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => 
                 value={o.kind}
                 checked={kind === o.kind}
                 onChange={() => setKind(o.kind)}
+                aria-labelledby={`start-${o.kind}-title`}
                 aria-describedby={`start-${o.kind}`}
                 className="mt-1 h-4 w-4"
               />
               <span>
-                <span className="block text-body-sm font-semibold text-[var(--color-fg)]">{o.title}</span>
+                <span id={`start-${o.kind}-title`} className="block text-body-sm font-semibold text-[var(--color-fg)]">
+                  {o.title}
+                </span>
                 <span id={`start-${o.kind}`} className="block text-caption text-[var(--color-fg-muted)]">
                   {o.body}
                 </span>

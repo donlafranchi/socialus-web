@@ -19,11 +19,23 @@ describe('#301 — What are you starting?', () => {
     expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled()
   })
 
-  it('starts a shop, a service or a group for meetups as the right kind', async () => {
+  // Don, 2026-10-04: each kind is a question, with one line on what the Page is for.
+  it('asks each kind as a question, in Don\'s words, with one line on what it is for', () => {
+    render(<WhatAreYouStarting onStart={vi.fn()} />)
+    const business = screen.getByRole('radio', { name: 'Have a business where you sell products or services?' })
+    expect(business).toHaveAccessibleDescription(/^A Page for /)
+    const group = screen.getByRole('radio', { name: 'Do you manage a group or meetup, or host events regularly?' })
+    expect(group).toHaveAccessibleDescription(/^A Page for /)
+    for (const radio of screen.getAllByRole('radio')) {
+      expect(radio.getAttribute('aria-label') ?? radio.closest('label')!.textContent).toMatch(/\?/)
+    }
+  })
+
+  it('starts each as the right kind', async () => {
     for (const [label, kind] of [
-      [/opening a shop/i, 'business'],
-      [/offering a service/i, 'practice'],
-      [/creating a group/i, 'interest'],
+      [/sell products or services/i, 'business'],
+      [/teach a class/i, 'practice'],
+      [/group or meetup/i, 'interest'],
     ] as const) {
       const onStart = vi.fn(async () => {})
       const { unmount } = render(<WhatAreYouStarting onStart={onStart} />)
@@ -32,6 +44,11 @@ describe('#301 — What are you starting?', () => {
       await waitFor(() => expect(onStart).toHaveBeenCalledWith(kind))
       unmount()
     }
+  })
+
+  it('says nothing in the voice rules forbid', () => {
+    const { container } = render(<WhatAreYouStarting onStart={vi.fn()} />)
+    expect(container.textContent).not.toMatch(/\bnever\b/i)
   })
 
   it('says nothing is public until you publish', () => {

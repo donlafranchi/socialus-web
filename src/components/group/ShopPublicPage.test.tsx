@@ -366,13 +366,13 @@ describe('#301 — the draft Page, in the owner view', () => {
 
   it('calls an unnamed draft by its kind, never by the placeholder', () => {
     renderShop({ shop: draft, viewerOwnsPage: true, pagePath: '/g/draft-x' })
-    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new shop')
+    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new business Page')
     expect(screen.queryByText('untitled-draft')).toBeNull()
   })
 
   it('names a group draft specifically, not "group" alone', () => {
     renderShop({ shop: { ...draft, kind: 'interest' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
-    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group for meetups')
+    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group or meetup Page')
   })
 
   it('knows what is done', () => {
