@@ -19,6 +19,7 @@
 // server-action thunk so the component is testable in isolation. Location is
 // pre-attached from a prop (the venue/anchor) — no picker step at b1.
 
+import { metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { useCallback } from 'react'
 import {
@@ -37,6 +38,8 @@ export interface GatheringComposerState {
   startDate: string
   /** 'HH:MM'. */
   startTime: string
+  /** #262 — 'HH:MM' the same day, optional. */
+  endTime: string
   /** Integer string; blank = unlimited. */
   capacity: string
   /** Dollars; blank = free. */
@@ -52,6 +55,7 @@ export interface GatheringComposerHandlers {
     description: string
     gatheringKind: GatheringKind
     startsAt?: string
+    endsAt?: string
     recurrenceRule?: string
     capacity?: number
     costCents?: number | null
@@ -133,6 +137,7 @@ export function GatheringComposer({
     description: '',
     startDate: '',
     startTime: '',
+    endTime: '',
     capacity: '',
     costDollars: '',
     whatToBring: '',
@@ -262,6 +267,19 @@ export function GatheringComposer({
                     }
                   />
                 </label>
+                <label className="block flex-1">
+                  <span className="text-sm font-medium text-[var(--color-fg)]">
+                    Until <span className="font-normal text-[var(--color-fg-muted)]">Optional</span>
+                  </span>
+                  <input
+                    type="time"
+                    data-testid="gathering-end-time-input"
+                    aria-label="Until"
+                    className="input mt-1 w-full"
+                    value={state.endTime}
+                    onChange={(e) => setState({ ...state, endTime: e.target.value })}
+                  />
+                </label>
               </div>
               {state.gatheringKind === 'recurring' && state.startDate && (
                 <p
@@ -326,6 +344,10 @@ export function GatheringComposer({
         if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
           return { ok: false, errors: { schedule: 'The first occurrence must be in the future' } }
         }
+        if (state.endTime && state.endTime <= state.startTime) {
+          // #262 — placeholder ([public-is-draft]).
+          return { ok: false, errors: { schedule: 'The end time is before it starts' } }
+        }
         return { ok: true }
       },
     },
@@ -382,9 +404,15 @@ export function GatheringComposer({
         title: state.title.trim(),
         description: state.description.trim(),
         gatheringKind: kind,
+        // #262 — instants in the metro's zone. A bare local time was read by
+        // the database as UTC, seven hours off in Sacramento.
         startsAt:
           isScheduled && state.startDate && state.startTime
-            ? combineDateTime(state.startDate, state.startTime)
+            ? (metroWallTimeToInstant(state.startDate, state.startTime) ?? undefined)
+            : undefined,
+        endsAt:
+          isScheduled && state.startDate && state.startTime && state.endTime
+            ? (metroWallTimeToInstant(state.startDate, state.endTime) ?? undefined)
             : undefined,
         recurrenceRule:
           kind === 'recurring' && state.startDate

@@ -30,7 +30,7 @@ vi.mock('../_lib/db', () => ({
 }))
 vi.mock('../_lib/event-log', () => ({ appendEvent }))
 
-import { groupPostCreate, groupPostEdit } from './post'
+import { groupPostCreate, groupPostEdit, groupPostDelete } from './post'
 import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
 import type { ActionContext } from '../_lib/context'
 
@@ -235,5 +235,74 @@ describe('group.post_edit — in place, by the managing role only', () => {
     await groupPostEdit(ctx(), { postId: POST, body: 'Sourdough is back Friday.' })
     const [sql] = calls(/update public\.page_posts/i)[0]!
     expect(sql).not.toMatch(/dissolved_at|lifecycle_state|discoverability/i)
+  })
+})
+
+describe('#318 — the owner deletes their own post', () => {
+  const calls = (re: RegExp) => (query.mock.calls as [string, unknown[]][]).filter(([q]) => re.test(q))
+
+  it('hides it everywhere by stamping dissolved_at, keeping the row', async () => {
+    install()
+    const out = await groupPostDelete(ctx(), { postId: POST })
+    expect(out).toEqual({ postId: POST, groupId: GROUP })
+    const [sql, params] = calls(/update public\.page_posts/)[0]!
+    expect(sql).toMatch(/set dissolved_at = \$2/)
+    expect(sql).not.toMatch(/delete from/i)
+    expect(params).toEqual([POST, NOW])
+    expect(appendEvent).toHaveBeenCalledWith(expect.anything(), 'group_events', expect.objectContaining({ event_kind: 'group.post_deleted' }))
+  })
+
+  it('only the managing role can delete', async () => {
+    install({ roles: {} })
+    await expect(groupPostDelete(ctx(), { postId: POST })).rejects.toThrow()
+    expect(calls(/update public\.page_posts/)).toHaveLength(0)
+  })
+
+  it('a post already deleted, or never there, is not found', async () => {
+    install({ postExists: false })
+    await expect(groupPostDelete(ctx(), { postId: POST })).rejects.toThrow(/not found/)
+  })
+})
+
+// #262 (F072 criterion 3, Don 2026-09-30): an optional end time.
+describe('group.post — an end time', () => {
+  it('writes one when given, beside the start', async () => {
+    install()
+    await groupPostCreate(ctx(), {
+      groupId: GROUP,
+      body: 'Bread class Thursday.',
+      startsAt: '2026-09-25T02:00:00.000Z',
+      endsAt: '2026-09-25T04:00:00.000Z',
+    })
+    const [sql, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(sql).toMatch(/ends_at/i)
+    expect(params).toContain('2026-09-25T04:00:00.000Z')
+  })
+
+  it('refuses an end with no start', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'Soon.', endsAt: '2026-09-25T04:00:00.000Z' }),
+    ).rejects.toThrow()
+  })
+
+  it('refuses an end at or before the start', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), {
+        groupId: GROUP,
+        body: 'Backwards.',
+        startsAt: '2026-09-25T04:00:00.000Z',
+        endsAt: '2026-09-25T02:00:00.000Z',
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('an edit can set or clear it', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Moved.', endsAt: null })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/ends_at = \$/)
+    expect(params).toContain(null)
   })
 })

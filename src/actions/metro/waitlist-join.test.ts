@@ -166,3 +166,16 @@ describe('metro.waitlist_join — never opens a metro (c12)', () => {
     expect(all).not.toMatch(/is_open\s*=/)
   })
 })
+
+describe('#280 — a builder never moves a metro count', () => {
+  it('guards every counter update on the member not being a builder', async () => {
+    installRouter({ existing: { metro_id: 'old-metro', role: 'patron' } })
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    const bumps = calls(/update public\.metro_polygons/i)
+    expect(bumps.length).toBeGreaterThan(0)
+    for (const [sql, params] of bumps) {
+      expect(sql).toMatch(/not public\.is_builder\(\$3\)/)
+      expect(params?.[2]).toBe(MEMBER)
+    }
+  })
+})

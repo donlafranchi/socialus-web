@@ -9,6 +9,13 @@
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
+/** F091 — the rows under "What's happening…". Empty for a signed-out reader. */
+export interface HappeningSnapshot {
+  today: BrowseResult[]
+  thisWeek: BrowseResult[]
+  thisWeekend: BrowseResult[]
+}
+
 export interface BrowseSnapshot {
   results: BrowseResult[]
   /**
@@ -20,6 +27,7 @@ export interface BrowseSnapshot {
    * an absent row, which is the point.
    */
   following: BrowseResult[]
+  happening: HappeningSnapshot
   /** Null when no metro resolves at all — the no-scope state. */
   metro: FeedMetro | null
   /** Did a person pick this metro, or did it fall out of a default? */

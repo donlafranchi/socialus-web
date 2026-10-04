@@ -1,0 +1,80 @@
+name: Builder accounts (production)
+
+# #280 — builder accounts on the live app (Don, 2026-10-01). Manual only.
+# Passwords derive from the BUILDER_SEED secret and are never printed; the run
+# shows persona, member id, email and on/off.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'provision (create any missing), list, disable or enable'
+        required: true
+        type: choice
+        options: [list, provision, disable, enable]
+      persona:
+        description: 'For disable / enable: stranger, follower, member, applicant, rsvp, operator, ownerBusiness, ownerPlace, ownerInterest, ownerPractice, ownerEvent, ownerFamily'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: builders-production
+  cancel-in-progress: false
+
+jobs:
+  builders:
+    name: Builder accounts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch the service role key
+        id: keys
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          key="$(supabase projects api-keys --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          [ -n "$key" ] || { echo "::error::Could not read the service role key."; exit 1; }
+          echo "::add-mask::$key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+
+      - name: Run
+        env:
+          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.key }}
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
+          ACTION: ${{ inputs.action }}
+          PERSONA: ${{ inputs.persona }}
+        run: |
+          if [ "$ACTION" = provision ] && [ -z "$BUILDER_SEED" ]; then
+            echo "::error::BUILDER_SEED is not set. Settings → Secrets and variables → Actions → New repository secret."
+            exit 1
+          fi
+          npx tsx scripts/builders.ts "$ACTION" $PERSONA
