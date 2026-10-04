@@ -7,6 +7,7 @@
 // <ReportControl>.
 
 import { PageContactBlock } from './PageContactBlock'
+import { PageLinks } from './PageLinks'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -14,7 +15,6 @@ import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
 import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
-import { socialLinksForDisplay } from '@/lib/groups/social-links'
 import { sendReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
@@ -198,28 +198,8 @@ export function ShopPublicPage({
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
 
-        {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
-            URL on read: this renders straight into href, and a row written
-            before the column had its CHECK must not reach one unchecked.
-            rel="noopener noreferrer" because these point off-platform, and
-            target="_blank" so a member does not lose the Page to follow one. */}
-        {socialLinksForDisplay(shop.socialLinks).length > 0 && (
-          <ul className="flex flex-wrap gap-3 mt-2" data-testid="shop-social-links">
-            {socialLinksForDisplay(shop.socialLinks).map((link) => (
-              <li key={link.platform}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid={`shop-social-${link.platform}`}
-                  className="text-sm underline text-[var(--color-accent)]"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* F070 — the Page's links out; #344 — one row of icons. */}
+        <PageLinks links={shop.socialLinks} />
 
         {/* #267 — not on your own Page: your row there is your authority, not
             a follow, and "Following" would have offered to end it. */}

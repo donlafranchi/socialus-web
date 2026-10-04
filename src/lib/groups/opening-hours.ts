@@ -61,3 +61,32 @@ export function weekFromToday(
     }
   })
 }
+
+const SHORT: Record<Day, string> = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' }
+
+/** #344 — the one line collapsed hours show: open now and when it closes, or
+ *  when it next opens. Null when the owner gave no hours. */
+export function hoursStatus(
+  hours: OpeningHours | null,
+  now: Date = new Date(),
+  tz: string = METRO_TIME_ZONE,
+): { open: boolean; text: string } | null {
+  if (!hours) return null
+  const parts = new Intl.DateTimeFormat('en-GB', { weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: tz })
+    .formatToParts(now)
+  const get = (t: string) => parts.find((p) => p.type === t)!.value
+  const today = DAYS.indexOf(get('weekday').toLowerCase().slice(0, 3) as Day)
+  const time = `${get('hour')}:${get('minute')}`
+
+  const todays = hours[DAYS[today]!] ?? []
+  const current = todays.find((r) => r.open <= time && time < r.close)
+  if (current) return { open: true, text: `Open now · Closes ${clock(current.close)}` }
+  const laterToday = todays.find((r) => r.open > time)
+  if (laterToday) return { open: false, text: `Closed · Opens ${clock(laterToday.open)}` }
+  for (let i = 1; i <= 7; i++) {
+    const day = DAYS[(today + i) % 7]!
+    const first = hours[day]?.[0]
+    if (first) return { open: false, text: `Closed · Opens ${clock(first.open)} ${SHORT[day]}` }
+  }
+  return { open: false, text: 'Closed' }
+}
