@@ -51,6 +51,9 @@
   "src/components/browse/FollowingRow.tsx": [
     "w-[min(78vw,20rem)]"
   ],
+  "src/components/browse/HappeningRows.tsx": [
+    "w-[min(78vw,20rem)]"
+  ],
   "src/components/browse/WithheldAnnouncementCard.tsx": [
     "min-h-[2.5rem]",
     "min-h-[3.75rem]",

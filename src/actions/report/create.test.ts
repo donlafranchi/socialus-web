@@ -74,6 +74,7 @@ function installQueryRouter(
     photoHideLockedUrl?: string | null
     priorReportsBySameMember?: number
     openReportsByReporter?: number
+    builderOnReal?: boolean
   } = {},
 ) {
   const {
@@ -83,6 +84,7 @@ function installQueryRouter(
     photoHideLockedUrl = null,
     priorReportsBySameMember = 0,
     openReportsByReporter = 0,
+    builderOnReal = false,
   } = opts
 
   query.mockReset()
@@ -96,6 +98,7 @@ function installQueryRouter(
                 photo_url: photoUrl,
                 photo_hidden_at: photoHiddenAt,
                 photo_hide_locked_url: photoHideLockedUrl,
+                builder_on_real: builderOnReal,
               },
             ]
           : [],
@@ -355,5 +358,26 @@ describe('report.create — the body bound is applied to the trimmed text', () =
       }),
     ).rejects.toThrow(/2000/)
     expect(callsMatching(/insert into public\.reports/i)).toHaveLength(0)
+  })
+})
+
+describe('#280 — a builder report on a real Page', () => {
+  it('stores and queues the report but never hides a real photo', async () => {
+    installQueryRouter({ builderOnReal: true })
+    const result = await reportCreate(ctx(), {
+      subjectKind: 'group',
+      subjectId: GROUP_ID,
+      body: 'Testing the report flow.',
+    })
+    expect(result).toEqual({ reportId: REPORT_ID, photoHidden: false })
+    expect(callsMatching(/update public\.groups/i)).toHaveLength(0)
+  })
+
+  it('asks the database whether the reporter is a builder and the Page is not', async () => {
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' })
+    const [subject] = callsMatching(/from public\.groups/i)
+    expect(subject![0]).toMatch(/is_builder\(\$2\)/)
+    expect(subject![1]).toContain(REPORTER_ID)
   })
 })

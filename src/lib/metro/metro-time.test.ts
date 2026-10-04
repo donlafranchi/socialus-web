@@ -127,3 +127,22 @@ describe('the card’s words for when', () => {
     expect(formatPostedDate('2026-09-24T02:12:00Z', METRO_TIME_ZONE, now)).toBe('Posted Sep 23')
   })
 })
+
+// #262 — an end time reads as a range, in the app's lowercase style.
+describe('a range', () => {
+  const now = new Date('2026-09-30T12:00:00Z')
+  it('shares the day and, where it can, the meridiem', () => {
+    expect(formatCardWhen('2026-09-11T02:00:00Z', METRO_TIME_ZONE, now, '2026-09-11T04:00:00Z')).toBe('Thu Sep 10 · 7–9pm')
+    expect(formatCardWhen('2026-09-10T18:30:00Z', METRO_TIME_ZONE, now, '2026-09-10T20:00:00Z')).toBe('Thu Sep 10 · 11:30am–1pm')
+  })
+
+  it('names the end day when it runs past midnight', () => {
+    expect(formatCardWhen('2026-09-11T05:00:00Z', METRO_TIME_ZONE, now, '2026-09-11T08:00:00Z')).toBe('Thu Sep 10 · 10pm – Fri Sep 11 · 1am')
+  })
+
+  it('reads the long form with the end too', () => {
+    expect(formatMetroDateTime('2026-09-11T02:00:00Z', METRO_TIME_ZONE, now, '2026-09-11T04:00:00Z')).toBe(
+      'Thursday, September 10 at 7:00–9:00pm',
+    )
+  })
+})
