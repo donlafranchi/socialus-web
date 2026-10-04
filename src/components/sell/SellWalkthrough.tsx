@@ -36,8 +36,7 @@ import {
   type LocationPlaceFieldsState,
 } from '@/components/locations/LocationPlaceFields'
 import type { CreateLocationInput } from '@/app/_actions/location-actions'
-import { isValidTagLabel } from '@/lib/groups/tags'
-import { TagInput } from '@/components/tags/TagInput'
+import { isValidTagLabel, normalizeTag, TAG_MAX_LENGTH } from '@/lib/groups/tags'
 
 export interface AnchorLocationOption {
   id: string
@@ -499,6 +498,20 @@ function resolveDraftId(
   return state.draftGroupId ?? shadow
 }
 
+/** Step-3 tag input (T159). Replaces the twelve-term category picker.
+ *
+ *  A plain text input rather than a picker over a fixed list, because
+ *  creators create their own tags — the vocabulary starts empty and fills
+ *  itself. Suggestions from existing tags are a progressive enhancement and
+ *  deliberately not a precondition: gating this step on a seeded list is
+ *  exactly what the tags-only ruling removed.
+ *
+ *  Enter and comma both commit a tag. Comma because people type lists that
+ *  way unprompted, and a creator typing "bread, pastry" and getting one tag
+ *  called "bread, pastry" is a silent wrong answer. */
+/** Examples, not defaults — nothing is prefilled and nothing is submitted. */
+const TAG_PLACEHOLDER = 'sourdough, honey, eggs, soap'
+
 function TagStep({
   state,
   setState,
@@ -506,13 +519,86 @@ function TagStep({
   state: SellWalkthroughState
   setState: (next: SellWalkthroughState) => void
 }) {
-  // #316 — the shared hashtag box, so create and edit type tags the same way.
+  // Greyed examples rather than help text explaining what a tag is. A
+  // creator knows what they offer — most already market on other apps, so
+  // the register is the prompt, not an explanation. Farmers market
+  // vocabulary because that is the seed audience.
+  const add = (raw: string) => {
+    const label = raw.trim()
+    if (!isValidTagLabel(label)) return
+    // Compare normalized so "Bread" after "bread" is not a second chip; keep
+    // what was typed first, because that is what the creator already sees.
+    const already = state.tags.some((t) => normalizeTag(t) === normalizeTag(label))
+    setState({
+      ...state,
+      tags: already ? state.tags : [...state.tags, label],
+      tagDraft: '',
+    })
+  }
+
+  const remove = (label: string) =>
+    setState({ ...state, tags: state.tags.filter((t) => t !== label) })
+
   return (
-    <TagInput
-      idPrefix="sell-tag"
-      value={{ tags: state.tags, draft: state.tagDraft }}
-      onChange={(v) => setState({ ...state, tags: v.tags, tagDraft: v.draft })}
-    />
+    <div>
+      <label htmlFor="sell-tag-input" className="text-sm font-medium text-[var(--color-fg)]">
+        What you do
+      </label>
+
+      {state.tags.length > 0 && (
+        <ul data-testid="sell-tag-list" className="mt-2 flex flex-wrap gap-2">
+          {state.tags.map((tag) => (
+            <li key={tag}>
+              <span className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-sm">
+                {tag}
+                <button
+                  type="button"
+                  data-testid={`sell-tag-remove-${tag}`}
+                  aria-label={`Remove ${tag}`}
+                  onClick={() => remove(tag)}
+                  className="ml-1 min-h-[44px] text-neutral-500 hover:text-neutral-900"
+                >
+                  ×
+                </button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <input
+        id="sell-tag-input"
+        type="text"
+        data-testid="sell-tag-input"
+        value={state.tagDraft}
+        maxLength={TAG_MAX_LENGTH}
+        placeholder={TAG_PLACEHOLDER}
+        onChange={(e) => {
+          const v = e.target.value
+          if (v.endsWith(',')) add(v.slice(0, -1))
+          else setState({ ...state, tagDraft: v })
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            // Commits a tag; must not submit the step.
+            e.preventDefault()
+            add(state.tagDraft)
+          }
+        }}
+        className="input mt-2 min-h-[44px] w-full"
+      />
+
+      <button
+        type="button"
+        data-testid="sell-tag-add"
+        onClick={() => add(state.tagDraft)}
+        disabled={!isValidTagLabel(state.tagDraft)}
+        className="mt-2 min-h-[44px] text-sm font-medium text-[var(--color-accent)] disabled:opacity-40"
+      >
+        Add
+      </button>
+
+    </div>
   )
 }
 
