@@ -33,6 +33,24 @@ function setup(overrides: Partial<Parameters<typeof GatheringComposer>[0]> = {})
 
 const cont = () => fireEvent.click(screen.getByRole('button', { name: /^Continue$/ }))
 
+async function fillToSchedule() {
+  fireEvent.click(screen.getByTestId('gathering-kind-option-recurring'))
+  cont() // → details
+  await waitFor(() =>
+    expect(screen.getByTestId('gathering-title-input')).toBeInTheDocument(),
+  )
+  fireEvent.change(screen.getByTestId('gathering-title-input'), {
+    target: { value: 'Thursday Run Club' },
+  })
+  fireEvent.change(screen.getByTestId('gathering-description-input'), {
+    target: { value: 'Easy 5k, all paces.' },
+  })
+  cont() // → schedule
+  await waitFor(() =>
+    expect(screen.getByTestId('gathering-date-input')).toBeInTheDocument(),
+  )
+}
+
 describe('weeklyRrule', () => {
   it('derives a weekly BYDAY rule from a date', () => {
     // 2099-06-04. Assert the shape; the weekday letters are 2 uppercase chars.
@@ -66,23 +84,7 @@ describe('T081 — GatheringComposer step 1 (kind picker)', () => {
 })
 
 describe('T081 — recurring gathering happy path', () => {
-  async function fillToSchedule() {
-    fireEvent.click(screen.getByTestId('gathering-kind-option-recurring'))
-    cont() // → details
-    await waitFor(() =>
-      expect(screen.getByTestId('gathering-title-input')).toBeInTheDocument(),
-    )
-    fireEvent.change(screen.getByTestId('gathering-title-input'), {
-      target: { value: 'Thursday Run Club' },
-    })
-    fireEvent.change(screen.getByTestId('gathering-description-input'), {
-      target: { value: 'Easy 5k, all paces.' },
-    })
-    cont() // → schedule
-    await waitFor(() =>
-      expect(screen.getByTestId('gathering-date-input')).toBeInTheDocument(),
-    )
-  }
+
 
   it('derives a recurrence preview once a date is chosen', async () => {
     setup()
@@ -135,7 +137,9 @@ describe('T081 — recurring gathering happy path', () => {
     expect(arg.gatheringKind).toBe('recurring')
     expect(arg.title).toBe('Thursday Run Club')
     expect(arg.recurrenceRule).toMatch(/^FREQ=WEEKLY;BYDAY=[A-Z]{2}$/)
-    expect(arg.startsAt).toBe('2099-06-04T18:00:00')
+    // #262: an instant in the metro's zone, not a bare local time the
+    // database would read as UTC. 6pm in Sacramento in June is 01:00Z.
+    expect(arg.startsAt).toBe('2099-06-05T01:00:00.000Z')
     expect(arg.capacity).toBe(30)
     expect(arg.costCents).toBeNull()
     expect(arg.whatToBring).toBe('Water + shoes')
@@ -172,5 +176,31 @@ describe('T081 — open meetup needs no fixed time', () => {
     expect(arg.gatheringKind).toBe('open_meetup')
     expect(arg.startsAt).toBeUndefined()
     expect(arg.recurrenceRule).toBeUndefined()
+  })
+})
+
+// #262 — an optional end time, the same day as the start.
+describe('GatheringComposer — an end time', () => {
+  async function toReviewWith(end: string) {
+    const h = setup()
+    await fillToSchedule()
+    fireEvent.change(screen.getByTestId('gathering-date-input'), { target: { value: '2099-06-04' } })
+    fireEvent.change(screen.getByTestId('gathering-time-input'), { target: { value: '18:00' } })
+    fireEvent.change(screen.getByTestId('gathering-end-time-input'), { target: { value: end } })
+    cont()
+    return h
+  }
+
+  it('publishes the end as an instant in the metro’s zone', async () => {
+    const { createGathering } = await toReviewWith('20:00')
+    await waitFor(() => expect(screen.getByTestId('gathering-review-list')).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /Publish gathering/i }))
+    await waitFor(() => expect(createGathering).toHaveBeenCalledTimes(1))
+    expect((createGathering.mock.calls[0][0] as Record<string, unknown>).endsAt).toBe('2099-06-05T03:00:00.000Z')
+  })
+
+  it('refuses an end before the start', async () => {
+    await toReviewWith('17:00')
+    expect(screen.getByTestId('field-error-schedule')).toBeInTheDocument()
   })
 })

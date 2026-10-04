@@ -19,6 +19,8 @@ export interface PagePost {
   /** F072 — when it is. Null means undated, which is a first-class
    *  announcement and not a degraded event. */
   startsAt: string | null
+  /** #262 — optional, after the start. */
+  endsAt?: string | null
   /** F072 — where it is, in its own words. Null means at its Page's address;
    *  an announcement never borrows its Page's pin, but it does inherit its
    *  Page's whereabouts when it says nothing. */
@@ -31,6 +33,7 @@ interface Row {
   created_at: string
   updated_at: string
   starts_at: string | null
+  ends_at: string | null
   location: { label: string | null } | { label: string | null }[] | null
 }
 
@@ -42,7 +45,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, location:locations(label)')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, location:locations(label)')
     .eq('group_id', groupId)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -58,6 +61,7 @@ export async function resolvePagePosts(
       createdAt: r.created_at,
       updatedAt: r.updated_at,
       startsAt: r.starts_at,
+      endsAt: r.ends_at,
       locationLabel: loc?.label ?? null,
     }
   })
