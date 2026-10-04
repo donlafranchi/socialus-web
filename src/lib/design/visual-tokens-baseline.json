@@ -16,13 +16,6 @@
   "src/app/you/page.tsx": [
     "text-[17px]"
   ],
-  "src/components/BottomNav.tsx": [
-    "gap-[3px]",
-    "gap-[3px]",
-    "max-w-[420px]",
-    "text-[9px]",
-    "text-[9px]"
-  ],
   "src/components/EventCard.tsx": [
     "text-[11px]"
   ],
@@ -41,12 +34,6 @@
   "src/components/browse/BrowseMap.tsx": [
     "height:18px",
     "width:18px"
-  ],
-  "src/components/browse/BrowseSurface.tsx": [
-    "h-[calc(100dvh-3.5rem-185px)]",
-    "h-[calc(100dvh-3.5rem-61px)]",
-    "h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)]",
-    "top-[calc(3.5rem+61px)]"
   ],
   "src/components/browse/FollowingRow.tsx": [
     "w-[min(78vw,20rem)]"
