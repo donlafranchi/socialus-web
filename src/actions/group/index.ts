@@ -46,6 +46,7 @@ export {
 export {
   groupPostCreate,
   groupPostEdit,
+  groupPostDelete,
   groupPostCreateInput,
   groupPostEditInput,
   type GroupPostCreateInput,

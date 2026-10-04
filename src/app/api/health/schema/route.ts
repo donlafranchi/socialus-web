@@ -34,7 +34,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const REMEDY =
-  'Run Actions → "⚠️ Apply migrations to PRODUCTION" → Run workflow, from main.'
+  'In a terminal: gh workflow run apply.yml --ref main -f confirm=apply'
 
 export async function GET() {
   // An empty manifest would match every database, which is the failure this

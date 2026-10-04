@@ -76,6 +76,7 @@ const snapshot: BrowseSnapshot = {
   metros: [SAC],
   signedIn: false,
   failed: false,
+  happening: { today: [], thisWeek: [], thisWeekend: [] },
 }
 
 const renderAt = (w: number, props: { ownerPanelOpen?: boolean } = {}) => {

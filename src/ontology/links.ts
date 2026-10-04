@@ -225,14 +225,14 @@ export const LINK_TYPES: readonly LinkType[] = [
     from: 'Page',
     to: 'Tag',
     via: { table: 'page_tags', column: 'tag_id' },
-    writtenBy: ['group.activate'],
-    ruled: '2026-09-13',
+    writtenBy: ['group.activate', 'group.update'],
+    ruled: '2026-10-01',
     built: true,
     note:
       'Tags are the only vocabulary a CREATOR authors, and the only thing search matches. That ' +
       'ruling was narrowed on 2026-09-19 and not reversed: collections are platform vocabulary an ' +
-      'owner picks from, which is a different link with no table yet. Written once, at activation ' +
-      '— there is no tag editing on a live Page. T156 matches a lens on tags.normalized and ' +
+      'owner picks from, which is a different link with no table yet. Written at activation and ' +
+      'editable any time after (2026-10-01), never down to none. T156 matches a lens on tags.normalized and ' +
       'excludes hidden ones, so a tag taken down stops steering discovery rather than merely ' +
       'disappearing from display.',
   },

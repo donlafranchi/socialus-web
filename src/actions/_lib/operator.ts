@@ -21,12 +21,27 @@ export function operatorMemberId(env: EnvLike = process.env): string | null {
   return trimmed === '' ? null : trimmed
 }
 
+// #280 — the builder account for the operator persona. Its own variable, so
+// switching it off never touches the real operator.
+export function builderOperatorMemberId(env: EnvLike = process.env): string | null {
+  const raw = env.BUILDER_OPERATOR_MEMBER_ID?.trim()
+  return raw ? raw : null
+}
+
+export function isBuilderOperator(
+  memberId: string | null | undefined,
+  env: EnvLike = process.env,
+): boolean {
+  const builder = builderOperatorMemberId(env)
+  return builder !== null && !!memberId && memberId === builder
+}
+
 export function isOperator(
   memberId: string | null | undefined,
   env: EnvLike = process.env,
 ): boolean {
-  const operator = operatorMemberId(env)
-  if (operator === null) return false
   if (!memberId || memberId === 'self-bootstrap') return false
-  return memberId === operator
+  if (isBuilderOperator(memberId, env)) return true
+  const operator = operatorMemberId(env)
+  return operator !== null && memberId === operator
 }

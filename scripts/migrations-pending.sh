@@ -109,7 +109,7 @@ if [ -z "$found" ]; then
   echo "  Nothing needs running."
 else
   echo
-  echo "Re-run this workflow with \"Use workflow from\" set to one of the branches above."
+  echo "Re-run it from one of the branches above: gh workflow run apply.yml --ref <branch> -f confirm=apply"
   echo "(Newest first, at most $MAX_REFS shown.)"
 fi
 exit 3
