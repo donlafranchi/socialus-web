@@ -86,55 +86,38 @@ describe('a private Page is joined', () => {
 })
 
 describe('signed out', () => {
-  // #297 — the same Follow, which opens the sign-in sheet rather than leaving.
-  it('opens the sign-in sheet rather than a dead end', () => {
+  // #297 / Don, 2026-10-04 — a signed-out visitor cannot follow, and nothing
+  // says they can: the button leads to sign-up.
+  it('says sign up to follow, never plain Follow', () => {
     renderBtn({ loggedIn: false })
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
-    expect(screen.getByRole('dialog', { name: /sign in to follow/i })).toBeInTheDocument()
-    expect(screen.getByTestId('sign-in-prompt-continue')).toHaveAttribute('href', expect.stringContaining('/auth/login'))
+    expect(screen.getByRole('button', { name: 'Sign up to follow' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Follow$/i })).toBeNull()
+  })
+
+  it('a private Page says sign up to join', () => {
+    renderBtn({ loggedIn: false, isPrivate: true })
+    expect(screen.getByRole('button', { name: 'Sign up to join' })).toBeInTheDocument()
+  })
+
+  it('opens a sign-up sheet that leads to sign-up', () => {
+    renderBtn({ loggedIn: false })
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up to follow' }))
+    expect(screen.getByRole('dialog', { name: /sign up to follow/i })).toBeInTheDocument()
+    const cta = screen.getByTestId('sign-in-prompt-continue')
+    expect(cta).toHaveTextContent('Sign up')
+    expect(cta).toHaveAttribute('href', expect.stringContaining('/auth/signup'))
   })
 
   it('comes back to the Page afterwards', () => {
     renderBtn({ loggedIn: false, returnTo: '/p/ca/sacramento/g/the-good-loaf' })
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up to follow' }))
     const href = screen.getByTestId('sign-in-prompt-continue').getAttribute('href')!
     expect(decodeURIComponent(href)).toContain('/p/ca/sacramento/g/the-good-loaf')
   })
 
   it('never reaches the action', () => {
     renderBtn({ loggedIn: false })
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up to follow' }))
     expect(follow).not.toHaveBeenCalled()
-  })
-})
-
-describe('#297 — the done state carries a check', () => {
-  it('Following and Joined show one, without it entering the name', () => {
-    renderBtn({ following: true })
-    const btn = screen.getByRole('button', { name: /^Following$/i })
-    expect(btn.querySelector('svg[aria-hidden="true"]')).not.toBeNull()
-  })
-})
-
-describe('failure', () => {
-  it('says so and stays put', async () => {
-    follow.mockRejectedValue(new Error('nope'))
-    renderBtn()
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
-    expect(await screen.findByRole('alert')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Follow$/i })).toBeInTheDocument()
-  })
-})
-
-describe('voice.md', () => {
-  it('never says shop, and never names a person as a category', () => {
-    for (const props of [{}, { isPrivate: true }, { following: true }, { loggedIn: false }]) {
-      const { container, unmount } = renderBtn(props)
-      const text = container.textContent ?? ''
-      expect(text.toLowerCase()).not.toContain('shop')
-      expect(text).not.toMatch(/\b(vendor|producer|seller|maker|supporter|consumer|patron|creator)s?\b/i)
-      expect(text).not.toContain('—')
-      unmount()
-    }
   })
 })

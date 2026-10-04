@@ -41,8 +41,8 @@ export function FollowPageButton({
   const idle = isPrivate ? 'Join' : 'Follow'
   const done = isPrivate ? 'Joined' : 'Following'
 
-  // #297 — signed out, the same Follow opens the sign-in sheet, and the
-  // tap is kept: sign-in comes back to this Page.
+  // #297 — signed out, nobody can follow (Don, 2026-10-04): the button says
+  // so and opens the sign-up sheet. The tap is kept: sign-up comes back here.
   if (!loggedIn) {
     return (
       <>
@@ -52,7 +52,7 @@ export function FollowPageButton({
           onClick={() => setAsking(true)}
           className={buttonClass('primary')}
         >
-          {idle}
+          Sign up to {idle.toLowerCase()}
         </button>
         {asking && <SignInPrompt action="follow" currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
       </>

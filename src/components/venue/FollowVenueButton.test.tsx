@@ -35,7 +35,7 @@ describe('FollowVenueButton', () => {
     )
     const link = screen.getByTestId('follow-venue-signin')
     expect(link).toHaveAttribute('href', '/auth/login?next=/p/sf/ferry-building/l/blue-bottle')
-    expect(link).toHaveTextContent('Follow this venue')
+    expect(link).toHaveTextContent('Sign up to follow this venue')
   })
 
   it("auth'd, not following → renders 'Follow this venue' button", () => {
