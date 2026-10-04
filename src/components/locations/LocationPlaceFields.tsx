@@ -21,6 +21,8 @@ import { geocode, GeocodingUnavailableError, type GeocodingResult } from '@/lib/
 import { searchPlacesAction } from '@/app/_actions/location-actions'
 import { mergeMatches, type Suggestion } from '@/lib/places/suggestions'
 import { placeKindLabel } from '@/lib/places/search'
+import { PinAdjustMap } from './PinAdjustMap'
+import { AreaPickMap } from './AreaPickMap'
 
 export type PlaceMode = 'address' | 'neighbourhood'
 
@@ -42,12 +44,6 @@ export function isLocationPlaceFieldsComplete(s: LocationPlaceFieldsState): bool
   return s.mode === 'address' ? s.selectedAddress !== null : s.neighborhoodId !== null
 }
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-
-function staticMapUrl(lng: number, lat: number): string | null {
-  if (!MAPBOX_TOKEN) return null
-  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s+e11d48(${lng},${lat})/${lng},${lat},14,0/240x140@2x?access_token=${MAPBOX_TOKEN}`
-}
 
 export function LocationPlaceFields({
   state,
@@ -228,24 +224,15 @@ export function LocationPlaceFields({
             </p>
           )}
           {state.selectedAddress && (
-            <div className="mt-2 flex items-center gap-3" data-testid={`${idPrefix}-address-confirmed`}>
-              {staticMapUrl(state.selectedAddress.coordinates[0], state.selectedAddress.coordinates[1]) && (
-                // Decorative — the resolved address text beside it is the
-                // real confirmation, for a screen-reader user and for
-                // anyone whose network drops the image. A remote Mapbox
-                // static-image URL can't go through next/image without
-                // allowlisting the domain for a one-off decorative thumbnail.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={staticMapUrl(state.selectedAddress.coordinates[0], state.selectedAddress.coordinates[1])!}
-                  alt=""
-                  aria-hidden="true"
-                  width={80}
-                  height={47}
-                  className="rounded-md border border-neutral-200"
-                />
-              )}
+            <div className="mt-2 flex flex-col gap-2" data-testid={`${idPrefix}-address-confirmed`}>
               <span className="text-sm text-[var(--color-fg)]">{state.selectedAddress.name}</span>
+              {/* #348 — confirm it on the map, Airbnb-style. */}
+              <PinAdjustMap
+                center={state.selectedAddress.coordinates}
+                onChange={(coordinates) =>
+                  setState({ ...state, selectedAddress: { ...state.selectedAddress!, coordinates } })
+                }
+              />
             </div>
           )}
           <button
@@ -267,28 +254,97 @@ export function LocationPlaceFields({
         // suggestions, which leaves the mode set and the search box gone.
         // Found while embedding this component in the Page edit form, where an
         // owner changing their address would have hit the dead end.
-        <div>
-          <span className="text-sm font-medium text-[var(--color-fg)]">Where is it?</span>
-          <p
-            data-testid={`${idPrefix}-neighbourhood-chosen`}
-            className="mt-1 text-sm text-[var(--color-fg)]"
-          >
-            {state.neighborhoodId
-              ? state.addressQuery
-              : 'Search for a city or a neighbourhood.'}
-          </p>
-          <button
-            type="button"
-            data-testid={`${idPrefix}-mode-address`}
-            className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
-            onClick={() =>
-              setState({ ...state, mode: 'address', selectedAddress: null, neighborhoodId: null })
-            }
-          >
-            {state.neighborhoodId ? 'Choose somewhere else' : 'Search again'}
-          </button>
-        </div>
+        <NeighbourhoodPicker state={state} setState={setState} idPrefix={idPrefix} />
       )}
+    </div>
+  )
+}
+
+// #348 — neighbourhood only: a search box over our neighbourhoods and towns,
+// and the same places as outlines on a map to tap (Nextdoor, Zillow). Visitors
+// see the neighbourhood's name; its pin sits at the neighbourhood's centre.
+function NeighbourhoodPicker({
+  state,
+  setState,
+  idPrefix,
+}: {
+  state: LocationPlaceFieldsState
+  setState: (next: LocationPlaceFieldsState) => void
+  idPrefix: string
+}) {
+  const [query, setQuery] = useState('')
+  const [options, setOptions] = useState<{ id: string; name: string; parentName: string | null; kind: string }[]>([])
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const listId = `${idPrefix}-neighbourhood-options`
+
+  const choose = (placeId: string, name: string) => {
+    setState({ ...state, mode: 'neighbourhood', neighborhoodId: placeId, addressQuery: name, selectedAddress: null })
+    setQuery('')
+    setOptions([])
+  }
+
+  const search = (value: string) => {
+    setQuery(value)
+    if (debounce.current) clearTimeout(debounce.current)
+    if (value.trim().length < 2) return setOptions([])
+    debounce.current = setTimeout(async () => {
+      const res = await searchPlacesAction(value).catch(() => null)
+      setOptions(res && res.ok ? res.data : [])
+    }, 300)
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-[var(--color-fg)]">Neighbourhood or town</span>
+        <input
+          role="combobox"
+          aria-expanded={options.length > 0}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          autoComplete="off"
+          className="input"
+          data-testid={`${idPrefix}-neighbourhood-input`}
+          placeholder="Curtis Park, Carmichael, Davis…"
+          value={query}
+          onChange={(e) => search(e.target.value)}
+        />
+      </label>
+      {options.length > 0 && (
+        <ul id={listId} role="listbox" className="rounded-md border border-[var(--color-border)] bg-white">
+          {options.map((o) => (
+            <li
+              key={o.id}
+              role="option"
+              aria-selected={state.neighborhoodId === o.id}
+              tabIndex={0}
+              onClick={() => choose(o.id, o.name)}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), choose(o.id, o.name))}
+              className="flex min-h-tap cursor-pointer items-center justify-between gap-2 px-3 text-sm hover:bg-[var(--color-surface)]"
+            >
+              <span>{o.name}</span>
+              <span className="text-caption text-[var(--color-fg-muted)]">
+                {o.kind === 'neighborhood' && o.parentName ? o.parentName : placeKindLabel(o.kind)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <AreaPickMap selectedPlaceId={state.neighborhoodId} onPick={(p) => choose(p.placeId, p.name)} />
+      <p data-testid={`${idPrefix}-neighbourhood-chosen`} className="text-sm text-[var(--color-fg)]">
+        {state.neighborhoodId ? state.addressQuery : null}
+      </p>
+      <p className="text-caption text-[var(--color-fg-muted)]">
+        Only the neighbourhood shows to visitors, with its pin at the centre.
+      </p>
+      <button
+        type="button"
+        data-testid={`${idPrefix}-mode-address`}
+        className="flex min-h-tap items-center self-start text-sm text-[var(--color-accent)] underline"
+        onClick={() => setState({ ...state, mode: 'address', selectedAddress: null, neighborhoodId: null })}
+      >
+        Use a street address instead
+      </button>
     </div>
   )
 }
