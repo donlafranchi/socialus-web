@@ -9,7 +9,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { groupPostCreate, groupPostEdit, ActionError } from '@/actions'
+import { groupPostCreate, groupPostEdit, groupPostDelete, ActionError } from '@/actions'
 import { succeeded, failed, type ActionResult } from '@/app/you/sell/action-result'
 
 async function currentMemberId(): Promise<string | null> {
@@ -50,6 +50,18 @@ export async function editPagePostAction(input: {
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
   try {
     const r = await groupPostEdit(resolveActionContext({ actingMemberId: memberId }), input)
+    return succeeded({ postId: r.postId })
+  } catch (err) {
+    return asFailure(err)
+  }
+}
+
+/** #318 — soft delete: hidden everywhere, kept for reports and audit. */
+export async function deletePagePostAction(input: { postId: string }): Promise<ActionResult<{ postId: string }>> {
+  const memberId = await currentMemberId()
+  if (!memberId) return failed('Sign in first.', 'authorization')
+  try {
+    const r = await groupPostDelete(resolveActionContext({ actingMemberId: memberId }), input)
     return succeeded({ postId: r.postId })
   } catch (err) {
     return asFailure(err)

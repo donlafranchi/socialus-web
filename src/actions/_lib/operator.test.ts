@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isOperator, operatorMemberId } from './operator'
+import { isBuilderOperator, isOperator, operatorMemberId } from './operator'
 
 const OP = '11111111-1111-1111-1111-111111111111'
 
@@ -32,5 +32,22 @@ describe('operator identity fails closed', () => {
 
   it('ignores surrounding whitespace in the configured value', () => {
     expect(isOperator(OP, { OPERATOR_MEMBER_ID: ` ${OP} ` })).toBe(true)
+  })
+})
+
+describe('#280 — the builder operator persona', () => {
+  const BUILDER_OP = '33333333-3333-3333-3333-333333333333'
+  it('is an operator when named by BUILDER_OPERATOR_MEMBER_ID', () => {
+    const env = { OPERATOR_MEMBER_ID: OP, BUILDER_OPERATOR_MEMBER_ID: BUILDER_OP }
+    expect(isOperator(BUILDER_OP, env)).toBe(true)
+    expect(isOperator(OP, env)).toBe(true)
+  })
+  it('stands alone: no real operator configured still admits the builder one', () => {
+    expect(isOperator(BUILDER_OP, { BUILDER_OPERATOR_MEMBER_ID: BUILDER_OP })).toBe(true)
+    expect(isOperator(OP, { BUILDER_OPERATOR_MEMBER_ID: BUILDER_OP })).toBe(false)
+  })
+  it('names the builder operator, so the queue can show it builder reports', () => {
+    expect(isBuilderOperator(BUILDER_OP, { BUILDER_OPERATOR_MEMBER_ID: BUILDER_OP })).toBe(true)
+    expect(isBuilderOperator(OP, { OPERATOR_MEMBER_ID: OP })).toBe(false)
   })
 })

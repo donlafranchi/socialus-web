@@ -74,7 +74,7 @@ describe('every action targets a supported Node', () => {
 })
 
 describe('the production apply workflow keeps its safety properties', () => {
-  const s = code('migrations-apply-production.yml')
+  const s = code('apply.yml')
 
   it('still checks out full history for the wrong-ref guard', () => {
     expect(s).toMatch(/fetch-depth:\s*0/)

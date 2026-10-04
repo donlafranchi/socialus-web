@@ -17,10 +17,11 @@
 // their own Page, so the kind is read and the role derived from it through the
 // same function group.create writes with. One answer, in one place.
 //
-// WHY THERE IS NO DELETE. Acceptance 4 refuses deletion, and the way to refuse
-// it is to not build it. `page_posts` carries no INSERT/UPDATE/DELETE policy,
-// so a direct client write is already refused by RLS; the absence of a handler
-// closes the action layer's path too.
+// DELETE IS SOFT (#318, Don 2026-10-02, replacing F072 acceptance 4's "no
+// delete"). `group.post_delete` stamps `dissolved_at`; every reader already
+// filters it, so the post is hidden everywhere and the row stays for reports
+// and audit. `page_posts` still carries no INSERT/UPDATE/DELETE policy, so a
+// direct client write is refused by RLS; the handler is the only path.
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
@@ -40,19 +41,30 @@ const body = z.string().trim().min(1).max(5000)
  *  different acts: not mentioning the time is not the same as taking it off. */
 const startsAt = z.string().datetime({ offset: true }).nullable().optional()
 const locationId = z.string().uuid().nullable().optional()
+/** #262 — optional, only beside a start, and after it. The column's check
+ *  enforces the same, so an edit that clears the start cannot strand an end. */
+const endsAt = z.string().datetime({ offset: true }).nullable().optional()
 
-export const groupPostCreateInput = z.object({
-  groupId: z.string().uuid(),
-  body,
-  startsAt,
-  locationId,
-})
+const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) =>
+  !v.endsAt || (!!v.startsAt && new Date(v.endsAt) > new Date(v.startsAt))
+const END_MESSAGE = 'An end time needs a start time before it.'
+
+export const groupPostCreateInput = z
+  .object({
+    groupId: z.string().uuid(),
+    body,
+    startsAt,
+    endsAt,
+    locationId,
+  })
+  .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
 
 export const groupPostEditInput = z.object({
   postId: z.string().uuid(),
   body,
   startsAt,
+  endsAt,
   locationId,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
@@ -75,7 +87,7 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'location_id = $'
+type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
@@ -133,8 +145,8 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at)
-         values ($1, $2, $3, $4, $5, $6, $7, $7)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8)
          returning id, created_at`,
         [
           input.groupId,
@@ -147,6 +159,7 @@ export const groupPostCreate = defineHandler(
           'active',
           'listed',
           ctx.now(),
+          input.endsAt ?? null,
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -196,6 +209,9 @@ export const groupPostEdit = defineHandler(
       if (input.startsAt !== undefined) {
         patch.push({ clause: 'starts_at = $', value: input.startsAt })
       }
+      if (input.endsAt !== undefined) {
+        patch.push({ clause: 'ends_at = $', value: input.endsAt })
+      }
       if (input.locationId !== undefined) {
         patch.push({ clause: 'location_id = $', value: input.locationId })
       }
@@ -213,6 +229,44 @@ export const groupPostEdit = defineHandler(
       await appendEvent(txCtx, 'group_events', {
         group_id: post.group_id,
         event_kind: 'group.post_edited',
+        payload: { post_id: input.postId },
+      })
+
+      return { postId: input.postId, groupId: post.group_id }
+    })
+  },
+)
+
+export const groupPostDeleteInput = z.object({ postId: z.string().uuid() })
+export type GroupPostDeleteInput = z.infer<typeof groupPostDeleteInput>
+
+export const groupPostDelete = defineHandler(
+  'group.post_delete',
+  groupPostDeleteInput,
+  async (ctx: ActionContext, input: GroupPostDeleteInput): Promise<{ postId: string; groupId: string }> => {
+    const memberId = requireMember(ctx, 'group.post_delete')
+
+    return withTransaction(async (client) => {
+      const found = await client.query<{ id: string; group_id: string }>(
+        `select id, group_id from public.page_posts
+          where id = $1 and dissolved_at is null`,
+        [input.postId],
+      )
+      const post = found.rows[0]
+      if (!post) {
+        throw new NotFoundError(`group.post_delete: post ${input.postId} not found`)
+      }
+
+      await requireManagingRole(client, 'group.post_delete', post.group_id, memberId)
+
+      await client.query(
+        `update public.page_posts set dissolved_at = $2 where id = $1 and dissolved_at is null`,
+        [input.postId, ctx.now()],
+      )
+
+      await appendEvent({ ...ctx, db: client }, 'group_events', {
+        group_id: post.group_id,
+        event_kind: 'group.post_deleted',
         payload: { post_id: input.postId },
       })
 

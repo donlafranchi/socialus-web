@@ -56,6 +56,7 @@ export interface CreateGatheringInput {
   description: string
   gatheringKind: GatheringKind
   startsAt?: string
+  endsAt?: string
   recurrenceRule?: string
   capacity?: number
   costCents?: number | null
@@ -80,6 +81,7 @@ export async function createGatheringAction(
       locationId: input.locationId,
       scheduleKind: input.locationId ? SCHEDULE_KIND[input.gatheringKind] : undefined,
       startsAt: input.startsAt,
+      endsAt: input.endsAt,
       recurrenceRule: input.recurrenceRule,
       capacity: input.capacity ?? null,
       costCents: input.costCents ?? null,
