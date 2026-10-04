@@ -9,7 +9,7 @@
 // again. A prompt that discards the action trains people not to tap.
 
 import Link from 'next/link'
-import { promptFor, signInHref, type GatedAction } from '@/lib/auth/requires-account'
+import { promptFor, signInHref, signUpHref, type GatedAction } from '@/lib/auth/requires-account'
 import { Sheet } from '@/components/ui/Sheet'
 
 export function SignInPrompt({
@@ -21,19 +21,19 @@ export function SignInPrompt({
   currentPath: string
   onClose: () => void
 }) {
-  const { title, why } = promptFor(action)
+  const { title, why, signUp } = promptFor(action)
 
   // #297 — L19, on the shared sheet.
   return (
     <Sheet open title={title} onClose={onClose} testId="sign-in-prompt" description={why}>
       <div data-action={action}>
         <Link
-          href={signInHref(action, currentPath)}
+          href={(signUp ? signUpHref : signInHref)(action, currentPath)}
           data-testid="sign-in-prompt-continue"
           className="btn-primary w-full"
           data-autofocus
         >
-          Sign in
+          {signUp ? 'Sign up' : 'Sign in'}
         </Link>
         <button
           type="button"
