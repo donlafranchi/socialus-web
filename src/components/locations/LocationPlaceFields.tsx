@@ -61,6 +61,8 @@ export function LocationPlaceFields({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mountedRef = useRef(true)
   useEffect(() => {
+    // Set on every mount: Strict Mode (dev, evals) unmounts and remounts once.
+    mountedRef.current = true
     return () => {
       mountedRef.current = false
       if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -164,6 +166,10 @@ export function LocationPlaceFields({
           <label className="block" htmlFor={`${idPrefix}-address-input`}>
             <span className="text-sm font-medium text-[var(--color-fg)]">Where is it?</span>
           </label>
+          {/* nouns.md: the field says the address is public before anyone types. */}
+          <p id={`${idPrefix}-address-hint`} className="text-caption text-[var(--color-fg-muted)]">
+            Signed-in visitors see this address. Rather not? Give a neighbourhood instead.
+          </p>
           <div className="relative">
             <input
               id={`${idPrefix}-address-input`}
@@ -171,7 +177,7 @@ export function LocationPlaceFields({
               role="combobox"
               aria-expanded={suggestions.length > 0}
               aria-controls={`${idPrefix}-address-listbox`}
-              aria-describedby={addressError ? `${idPrefix}-address-error` : undefined}
+              aria-describedby={`${idPrefix}-address-hint${addressError ? ` ${idPrefix}-address-error` : ''}`}
               aria-autocomplete="list"
               className="input mt-1 w-full"
               placeholder="A street, a city, or a neighbourhood"
@@ -228,6 +234,7 @@ export function LocationPlaceFields({
               <span className="text-sm text-[var(--color-fg)]">{state.selectedAddress.name}</span>
               {/* #348 — confirm it on the map, Airbnb-style. */}
               <PinAdjustMap
+                key={state.selectedAddress.name}
                 center={state.selectedAddress.coordinates}
                 onChange={(coordinates) =>
                   setState({ ...state, selectedAddress: { ...state.selectedAddress!, coordinates } })

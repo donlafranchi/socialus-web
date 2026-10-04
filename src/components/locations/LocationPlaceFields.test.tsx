@@ -242,3 +242,26 @@ describe('#348 — neighbourhood only', () => {
     expect(screen.getByTestId('test-neighbourhood-chosen')).toHaveTextContent('Curtis Park')
   })
 })
+
+describe('address search under React Strict Mode (dev and evals)', () => {
+  it('still searches after Strict Mode mounts, unmounts and remounts the field', async () => {
+    const { StrictMode } = await import('react')
+    geocode.mockResolvedValue([{ name: '915 I St, Sacramento, CA, 95814', coordinates: [-121.494, 38.5817] }])
+    render(
+      <StrictMode>
+        <Harness />
+      </StrictMode>,
+    )
+    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: '915 I St, Sacramento, CA' } })
+    expect(await screen.findByText('915 I St, Sacramento, CA, 95814')).toBeInTheDocument()
+  })
+})
+
+describe('the address field says who sees it, before anyone types (nouns.md)', () => {
+  it('describes the address box with who sees the address', () => {
+    render(<Harness />)
+    const input = screen.getByTestId('test-address-input')
+    const hint = document.getElementById(input.getAttribute('aria-describedby')!.split(' ')[0]!)
+    expect(hint).toHaveTextContent(/signed-in visitors see this address/i)
+  })
+})
