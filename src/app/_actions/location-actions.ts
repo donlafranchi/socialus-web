@@ -115,6 +115,10 @@ export async function createLocationAction(
       // confirmation and then discarded it; persisting it here is the
       // fix-forward, not new scope.
       let description: string | null = null
+      // #348 — a town or neighbourhood the owner picked is the place, even
+      // when its centre falls inside a smaller one (Sacramento's centre is in
+      // East Sacramento). Only an address takes its place from the point.
+      let pickedPlaceId: string | null = null
 
       if ('address' in input && input.address) {
         geographyWkt = input.address.geographyWkt
@@ -162,6 +166,7 @@ export async function createLocationAction(
               })
         geographyWkt = `SRID=4326;POINT(${point.lng} ${point.lat})`
         kind = 'area'
+        pickedPlaceId = neighborhoodId
       }
 
       // Issue #180 — `place_id` is written here, and this is the only place
@@ -190,14 +195,14 @@ export async function createLocationAction(
            (member_id, kind, label, slug, geography, description, place_id)
          values (
            $1, $2, $3, $4, $5, $6,
-           (select place_id
+           coalesce($7::uuid, (select place_id
               from public.place_for_coords(
                 st_y(($5::geography)::geometry),
                 st_x(($5::geography)::geometry)
-              ))
+              )))
          )
          returning id, label, place_id`,
-        [memberId, kind, input.label, slug, geographyWkt, description],
+        [memberId, kind, input.label, slug, geographyWkt, description, pickedPlaceId],
       )
       const row = result.rows[0]
       if (!row) {

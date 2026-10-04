@@ -68,7 +68,10 @@ describe('a new Location records the Place it falls in', () => {
       address: { geographyWkt: 'SRID=4326;POINT(-121.5 38.6)', resolvedAddressText: 'x' },
     })
     const [sql, params] = query.mock.calls[0]
-    expect(params).toHaveLength(6)
+    // The seventh is the place an owner picked (#348): null for an address,
+    // and never a coordinate.
+    expect(params).toHaveLength(7)
+    expect(params[6]).toBeNull()
     expect(sql).toMatch(/st_y\(/i)
     expect(sql).toMatch(/st_x\(/i)
   })
@@ -125,5 +128,28 @@ describe('#348 — a neighbourhood Location pins at the neighbourhood centre', (
     await createLocationAction({ label: 'Somewhere', neighborhoodId: 'pl-8' })
     const [, params] = query.mock.calls[1] as [string, unknown[]]
     expect(params[4]).toMatch(/^SRID=4326;POINT\(-121\.\d+ 38\.\d+\)$/)
+  })
+})
+
+// #348 review: picking the town "Sacramento" showed visitors "East Sacramento",
+// because the town's centre falls inside one of its neighbourhoods and the
+// place was derived from the point. A picked place is the place.
+describe('#348 — a picked town or neighbourhood is the place recorded', () => {
+  it('records the picked place, not the smallest one under its pin', async () => {
+    query.mockResolvedValueOnce({
+      rows: [{ min_lng: -121.6, min_lat: 38.4, max_lng: -121.3, max_lat: 38.7, centre_lng: -121.44, centre_lat: 38.57 }],
+    })
+    query.mockResolvedValueOnce({ rows: [{ id: 'loc-5', label: 'Sacramento', place_id: 'pl-sac' }] })
+    await createLocationAction({ label: 'Sacramento', neighborhoodId: 'pl-sac' })
+    const [sql, params] = query.mock.calls[1] as [string, unknown[]]
+    expect(params).toContain('pl-sac')
+    expect(sql).toMatch(/coalesce\(\s*\$7/i)
+  })
+
+  it('an address still takes its place from the point', async () => {
+    query.mockResolvedValueOnce({ rows: [{ id: 'loc-6', label: 'Shop', place_id: 'pl-x' }] })
+    await createLocationAction({ label: 'Shop', address: { geographyWkt: 'SRID=4326;POINT(-121.49 38.58)', resolvedAddressText: '915 I St' } } as never)
+    const [, params] = query.mock.calls[0] as [string, unknown[]]
+    expect(params[6]).toBeNull()
   })
 })
