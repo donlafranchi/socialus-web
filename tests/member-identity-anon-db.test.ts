@@ -105,11 +105,12 @@ describe.skipIf(!RUNNABLE)('member identity, signed out', () => {
   })
 
   // #252 withholds the anchor too: where a Page is never reaches a signed-out caller.
-  it('a column added to groups later is granted to anon, unless it names a member or where the Page is', async () => {
+  // #293 withholds its phone and hours: signed in only, like where it is.
+  it('a column added to groups later is granted to anon, unless it names a member, where the Page is, or how to reach it', async () => {
     const { rows } = await client.query<{ column_name: string }>(
       `select column_name from information_schema.columns
         where table_schema = 'public' and table_name = 'groups'
-          and column_name not in ('founder_member_id', 'anchor_location_id')`,
+          and column_name not in ('founder_member_id', 'anchor_location_id', 'contact_phone', 'opening_hours')`,
     )
     const cols = rows.map((r) => `"${r.column_name}"`).join(', ')
     await expect(as('anon', `select ${cols} from public.groups where id = $1`, [PAGE])).resolves.toHaveLength(1)

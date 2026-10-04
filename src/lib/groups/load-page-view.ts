@@ -5,6 +5,7 @@
 // canonical route is the only thing rendering a Page, and so the next surface
 // that needs it does not copy the six reads and get one of them wrong.
 
+import { resolvePageContact, type PageContact } from './page-contact'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   resolveShopItems,
@@ -44,6 +45,8 @@ export interface PageView {
    *  anyone who does not run it: the count sits inside the composer, and
    *  nobody else has one. */
   followerCount: number
+  /** #293 — phone and hours, for signed-in visitors only; null signed out. */
+  contact: PageContact | null
 }
 
 export async function loadPageView(
@@ -85,6 +88,7 @@ export async function loadPageView(
   // `memberships_select_listed_group` except for whoever runs the Page), but a
   // read nobody renders is a read worth not making.
   const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
+  const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
 
   // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
   // this the Announcements section would not render at all and an
@@ -113,5 +117,6 @@ export async function loadPageView(
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
     followerCount,
+    contact,
   }
 }
