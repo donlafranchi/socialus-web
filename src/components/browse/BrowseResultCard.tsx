@@ -57,7 +57,7 @@ export function BrowseResultCard({
       tagline={browseCardTagline(result)}
       location={browseCardLocation(result)}
       imageUrl={result.photoUrl}
-      art={<DefaultArt seed={result.groupId} kind={artKindFor(result.groupKind)} />}
+      art={<DefaultArt kind={artKindFor(result.groupKind)} />}
       imageAlt={cardImageAlt({
         title: result.name,
         when: isPost && result.startsAt ? formatCardWhen(result.startsAt, undefined, undefined, result.endsAt) : null,

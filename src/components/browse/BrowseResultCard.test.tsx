@@ -120,6 +120,22 @@ describe('#299 — no photo shows default art, never the emoji', () => {
     expect(screen.getByTestId('default-art')).toBeInTheDocument()
     expect(screen.queryByTestId('tile-emoji')).toBeNull()
   })
+  // [guards F093.4 partial: the default art for a Page with no photo; not the other four things]
+  it('a withheld card without a photo shows its kind, not the sprout', () => {
+    render(<BrowseResultCard result={post({ photoUrl: null, withheld: true, body: null, startsAt: null, announcementCount: 2, groupKind: 'business' })} />)
+    expect(screen.getByTestId('default-art')).toHaveAttribute('data-kind', 'shop')
+    expect(screen.queryByTestId('tile-emoji')).toBeNull()
+  })
+  it('two Pages of the same kind get the same art', () => {
+    render(
+      <ul>
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-a', groupKind: 'interest' })} />
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-zz-different', groupKind: 'interest' })} />
+      </ul>,
+    )
+    const [a, b] = screen.getAllByTestId('default-art')
+    expect(a!.outerHTML).toBe(b!.outerHTML)
+  })
 })
 
 // #262 — an end reads as a range on the card.

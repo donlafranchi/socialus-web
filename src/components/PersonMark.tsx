@@ -33,7 +33,7 @@ export function initialFor(name: string): string {
 }
 
 /** Stable across loads, processes and people — a plain string hash, not random. */
-export function toneFor(name: string): (typeof TONES)[number] {
+function toneFor(name: string): (typeof TONES)[number] {
   let h = 0
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
   return TONES[h % TONES.length]

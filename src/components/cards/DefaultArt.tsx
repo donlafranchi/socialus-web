@@ -1,13 +1,15 @@
-// #299 — the art a card shows when there is no photo: one of PersonMark's
-// four neutral tones, chosen by the Page's id so it never changes, and the
-// kind's icon. No new colours (Don, 2026-10-01), and no emoji.
+// #299 — the art a card shows when there is no photo: its kind's icon on one
+// of PersonMark's light tones. Per kind, the same for every Page of that kind
+// (Don, 2026-10-01, which replaced art derived from a Page's id). No new
+// colours, and no emoji.
 
 import { Store, Wrench, Users } from 'lucide-react'
-import { TONE_CLASS, toneFor } from '@/components/PersonMark'
+import { TONE_CLASS } from '@/components/PersonMark'
 
 export type ArtKind = 'shop' | 'service' | 'group'
 
 const ICON = { shop: Store, service: Wrench, group: Users } as const
+const TONE = { shop: TONE_CLASS.a, service: TONE_CLASS.a, group: TONE_CLASS.a } as const
 
 /** A business sells; a practice serves; every other kind gathers people. */
 export function artKindFor(groupKind: string | null | undefined): ArtKind {
@@ -16,14 +18,14 @@ export function artKindFor(groupKind: string | null | undefined): ArtKind {
   return 'group'
 }
 
-export function DefaultArt({ seed, kind }: { seed: string; kind: ArtKind }) {
+export function DefaultArt({ kind }: { kind: ArtKind }) {
   const Icon = ICON[kind]
   return (
     <div
       data-testid="default-art"
       data-kind={kind}
       aria-hidden="true"
-      className={`flex h-full w-full items-center justify-center ${TONE_CLASS[toneFor(seed)]}`}
+      className={`flex h-full w-full items-center justify-center ${TONE[kind]}`}
     >
       <Icon size={40} strokeWidth={1.5} />
     </div>
