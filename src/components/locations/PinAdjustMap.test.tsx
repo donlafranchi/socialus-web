@@ -19,6 +19,7 @@ vi.mock('mapbox-gl/dist/mapbox-gl.css', () => ({}))
 
 beforeEach(() => {
   MapCtor.mockClear()
+  map.remove.mockClear()
   vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
 })
 afterEach(() => {
@@ -41,6 +42,14 @@ describe('#348 — confirm the pin', () => {
     render(<PinAdjustMap center={[-121.48, 38.56]} onChange={onChange} />)
     handlers.moveend!()
     expect(onChange).toHaveBeenCalledWith([-121.4801, 38.5602])
+  })
+
+  it('keeps the same map while the owner pans: the reported centre coming back is not a new address', async () => {
+    const { PinAdjustMap } = await import('./PinAdjustMap')
+    const { rerender } = render(<PinAdjustMap center={[-121.48, 38.56]} onChange={vi.fn()} />)
+    rerender(<PinAdjustMap center={[-121.4801, 38.5602]} onChange={vi.fn()} />)
+    expect(MapCtor).toHaveBeenCalledTimes(1)
+    expect(map.remove).not.toHaveBeenCalled()
   })
 
   it('without a map key, says the address is used as found, and draws no map', async () => {

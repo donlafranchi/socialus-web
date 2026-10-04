@@ -20,6 +20,9 @@ export function PinAdjustMap({
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
   const el = useRef<HTMLDivElement>(null)
   const report = useRef(onChange)
+  // Where the map opens. The centres it reports flow back in as `center`;
+  // following them would rebuild the map on every pan. A new address remounts.
+  const start = useRef(center)
   useEffect(() => {
     report.current = onChange
   }, [onChange])
@@ -27,16 +30,14 @@ export function PinAdjustMap({
   useEffect(() => {
     if (!token || !el.current) return
     mapboxgl.accessToken = token
-    const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center, zoom: 16 })
+    const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center: start.current, zoom: 16 })
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }))
     map.on('moveend', () => {
       const c = map.getCenter()
       report.current([Number(c.lng.toFixed(6)), Number(c.lat.toFixed(6))])
     })
     return () => map.remove()
-    // The map is created once per address; later centres come from the owner.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, center[0], center[1]])
+  }, [token])
 
   if (!token) {
     return (
