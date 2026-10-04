@@ -145,14 +145,14 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
 
 describe('ShopPublicPage — Beat 3 (items empty state)', () => {
   it('shows a visible empty state, not a hidden section, when there are no items', () => {
-    renderShop({ items: [] })
+    renderShop({ items: [], loggedIn: true })
     const empty = screen.getByTestId('shop-items-empty')
     expect(empty).toBeInTheDocument()
     expect(empty).toHaveTextContent(/check back soon/i)
   })
 
   it('lists items when present', () => {
-    renderShop({ items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }] })
+    renderShop({ items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true })
     expect(screen.queryByTestId('shop-items-empty')).not.toBeInTheDocument()
     expect(screen.getByText('Country Loaf')).toBeInTheDocument()
   })
@@ -260,7 +260,7 @@ describe('F070 — links out', () => {
   })
 
   it('renders a link per platform, off-platform and safely', () => {
-    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras' } } })
+    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras' } }, loggedIn: true })
     const a = screen.getByTestId('shop-social-instagram')
     expect(a).toHaveAttribute('href', 'https://instagram.com/claras')
     expect(a).toHaveAttribute('rel', 'noopener noreferrer')
@@ -269,7 +269,7 @@ describe('F070 — links out', () => {
   // The one that matters. A row that predates the CHECK, or anything that
   // bypassed the action layer, must not reach an href.
   it('withholds a link that is not https, rather than rendering it', () => {
-    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'javascript:alert(1)' } as never } })
+    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'javascript:alert(1)' } as never }, loggedIn: true })
     expect(screen.queryByTestId('shop-social-instagram')).toBeNull()
     expect(screen.queryByTestId('shop-social-links')).toBeNull()
   })
@@ -380,5 +380,38 @@ describe('#301 — the draft Page, in the owner view', () => {
     expect(screen.getByTestId('publish-item-name')).toHaveAttribute('data-done', 'true')
     expect(screen.getByTestId('publish-item-where')).toHaveAttribute('data-done', 'true')
     expect(screen.getByTestId('publish-item-description')).toHaveAttribute('data-done', 'false')
+  })
+})
+
+describe('#300 — the front door, signed out (F093 criterion 8)', () => {
+  const items = [{ id: 'i1', title: 'Country Loaf', kind: 'product' as const }]
+  const socialLinks = { instagram: 'https://instagram.com/claras' }
+
+  it('shows no listings and no links out signed out', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, items, loggedIn: false })
+    expect(screen.queryByText('Products & services')).toBeNull()
+    expect(screen.queryByText('Country Loaf')).toBeNull()
+    expect(screen.queryByTestId('shop-social-links')).toBeNull()
+  })
+
+  it('shows both once signed in', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, items, loggedIn: true })
+    expect(screen.getByText('Country Loaf')).toBeInTheDocument()
+    expect(screen.getByTestId('shop-social-links')).toBeInTheDocument()
+  })
+
+  it('names the Page, not a Shop or its founder, when nothing is listed', () => {
+    renderShop({ items: [], loggedIn: true })
+    const empty = screen.getByTestId('shop-items-empty')
+    expect(empty).toHaveTextContent("This Page hasn't listed anything yet")
+    expect(empty.textContent).not.toMatch(/Shop|Maya/)
+  })
+
+  it('centres the column for a visitor; only the owner gets the two-column grid', () => {
+    const { container, unmount } = renderShop({ loggedIn: true })
+    expect(container.querySelector('main')!.className).not.toMatch(/lg:grid/)
+    unmount()
+    const owner = renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123' })
+    expect(owner.container.querySelector('main')!.className).toMatch(/lg:grid/)
   })
 })
