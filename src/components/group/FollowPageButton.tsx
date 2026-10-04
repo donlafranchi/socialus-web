@@ -45,7 +45,7 @@ export function FollowPageButton({
   // so and opens the sign-up sheet. The tap is kept: sign-up comes back here.
   if (!loggedIn) {
     return (
-      <>
+      <div className="flex flex-col items-start gap-2">
         <button
           type="button"
           data-testid="page-follow-signin"
@@ -55,7 +55,7 @@ export function FollowPageButton({
           Sign up to {idle.toLowerCase()}
         </button>
         {asking && <SignInPrompt action="follow" currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
-      </>
+      </div>
     )
   }
 
@@ -76,7 +76,7 @@ export function FollowPageButton({
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col items-start gap-2">
       <button
         type="button"
         data-testid="page-follow"
