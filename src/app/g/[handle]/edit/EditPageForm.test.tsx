@@ -301,3 +301,25 @@ describe('#285 — tags can be edited any time', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 })
+
+// #301 — a draft is finished in Edit. Its link follows the name until it's
+// published, and the placeholder name is never shown as if it were real.
+describe('#301 — Edit on a draft', () => {
+  it('says the link follows the name until you publish, not that it cannot change', () => {
+    renderForm({ isDraft: true, initialName: 'untitled-draft', pagePath: '/g/untitled-draft-1a2b3c4d-zz9yy8', slug: 'untitled-draft-1a2b3c4d' })
+    const link = screen.getByTestId('edit-link-frozen')
+    expect(link).toHaveTextContent(/comes from the name/i)
+    expect(link).not.toHaveTextContent(/can.t/i)
+    expect(link).not.toHaveTextContent('untitled-draft')
+  })
+
+  it('leaves the name empty rather than showing the placeholder', () => {
+    renderForm({ isDraft: true, initialName: 'untitled-draft' })
+    expect(screen.getByTestId('edit-name')).toHaveValue('')
+  })
+
+  it('a live Page still says its link stays put', () => {
+    renderForm()
+    expect(screen.getByTestId('edit-link-frozen')).toHaveTextContent(/this link can.t/i)
+  })
+})

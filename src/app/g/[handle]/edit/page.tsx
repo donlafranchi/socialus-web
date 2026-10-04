@@ -17,6 +17,7 @@ import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditPageForm } from './EditPageForm'
 import { editPageAction } from './actions'
+import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   if (!owns) notFound()
 
   const pagePath = canonicalPagePath(shop.slug, shop.publicId)
+  const isDraft = shop.lifecycleState === 'draft'
 
   // #285 — the Page's tags, as the owner reads them. A tag taken down is not
   // offered back; saving leaves it off.
@@ -54,7 +56,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
 
   return (
     <main className="mx-auto w-full max-w-xl px-3 py-4">
-      <h1 className="text-lg font-semibold text-[var(--color-fg)]">Edit {shop.displayName}</h1>
+      <h1 className="text-lg font-semibold text-[var(--color-fg)]">
+        {isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
+      </h1>
       <p className="mt-1 mb-4 text-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
       <EditPageForm
         groupId={shop.groupId}
@@ -70,6 +74,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         // anchor's own label is the first (and today only) entry.
         initialAddressLabel={shop.placements[0]?.label ?? null}
         initialTags={initialTags}
+        isDraft={isDraft}
         onSave={editPageAction}
       />
     </main>
