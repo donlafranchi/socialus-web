@@ -113,7 +113,7 @@ export function ShopPublicPage({
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
             {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
-              ? `Your new ${artKindFor(shop.kind) === 'group' ? 'group' : artKindFor(shop.kind)}`
+              ? `Your new ${artKindFor(shop.kind) === 'group' ? 'group for meetups' : artKindFor(shop.kind)}`
               : shop.displayName}
           </h1>
           {badge && (

@@ -370,6 +370,11 @@ describe('#301 — the draft Page, in the owner view', () => {
     expect(screen.queryByText('untitled-draft')).toBeNull()
   })
 
+  it('names a group draft specifically, not "group" alone', () => {
+    renderShop({ shop: { ...draft, kind: 'interest' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group for meetups')
+  })
+
   it('knows what is done', () => {
     renderShop({ shop: { ...draft, displayName: 'Oak Park Sourdough', anchorLocationId: 'loc-1' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
     expect(screen.getByTestId('publish-item-name')).toHaveAttribute('data-done', 'true')
