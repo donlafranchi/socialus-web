@@ -10,6 +10,7 @@
 
 import Link from 'next/link'
 import { promptFor, signInHref, type GatedAction } from '@/lib/auth/requires-account'
+import { Sheet } from '@/components/ui/Sheet'
 
 export function SignInPrompt({
   action,
@@ -22,28 +23,15 @@ export function SignInPrompt({
 }) {
   const { title, why } = promptFor(action)
 
+  // #297 — L19, on the shared sheet.
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="sign-in-prompt-title"
-    >
-      <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-black/30" />
-      <div
-        data-testid="sign-in-prompt"
-        data-action={action}
-        className="relative w-full max-w-sm rounded-t-lg bg-white p-5 pb-8 shadow-bar sm:rounded-lg sm:pb-5"
-      >
-        <h2 id="sign-in-prompt-title" className="text-lg font-semibold text-[var(--color-fg)]">
-          {title}
-        </h2>
-        <p className="mt-2 text-sm text-[var(--color-fg-muted)]">{why}</p>
-
+    <Sheet open title={title} onClose={onClose} testId="sign-in-prompt" description={why}>
+      <div data-action={action}>
         <Link
           href={signInHref(action, currentPath)}
           data-testid="sign-in-prompt-continue"
-          className="btn-primary mt-4 w-full"
+          className="btn-primary w-full"
+          data-autofocus
         >
           Sign in
         </Link>
@@ -51,11 +39,11 @@ export function SignInPrompt({
           type="button"
           onClick={onClose}
           data-testid="sign-in-prompt-dismiss"
-          className="press mt-2 w-full py-2 text-sm text-[var(--color-fg-muted)] underline"
+          className="press mt-2 w-full py-2 text-body-sm text-[var(--color-fg-muted)] underline"
         >
           Not now
         </button>
       </div>
-    </div>
+    </Sheet>
   )
 }

@@ -28,7 +28,7 @@ import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapTog
 import { ViewPill } from '@/components/explore/ViewPill'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { ScopeSheet } from '@/components/explore/ScopeSheet'
+import { AreaPicker } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
 import { HappeningRows } from './HappeningRows'
@@ -174,7 +174,7 @@ export function BrowseSurface({
             </button>
           </div>
         </div>
-        <ScopeSheet
+        <AreaPicker
           open={scopeOpen}
           currentSlug={null}
           metros={snapshot.metros}
@@ -322,7 +322,7 @@ export function BrowseSurface({
 
       {layout === 'single' && <ViewPill view={view} onChange={setView} />}
 
-      <ScopeSheet
+      <AreaPicker
         open={scopeOpen}
         currentSlug={snapshot.metro.slug}
         metros={snapshot.metros}
