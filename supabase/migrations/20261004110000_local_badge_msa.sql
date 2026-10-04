@@ -28,3 +28,8 @@ $$;
 
 comment on function public.zip_is_proximal_to_location(text, uuid) is
   'True when the ZIP''s MSA (zip_metro_crosswalk) contains the Location''s point (a county boundary of that MSA covers it). #349: anywhere in the MSA counts as local. SECURITY DEFINER.';
+
+-- #347 follow-up: boundaries are written only by the loader. Row security
+-- already refuses anon and authenticated writes (no write policy); this drops
+-- the default table grants too, so a future policy can't open them by accident.
+revoke insert, update, delete, truncate on public.boundaries from anon, authenticated;
