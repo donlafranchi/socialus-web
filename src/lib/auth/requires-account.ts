@@ -31,6 +31,8 @@ interface Prompt {
   title: string
   /** Why an account, in plain words. Never "for security". */
   why: string
+  /** Leads to sign-up rather than sign-in: the visitor cannot do this yet. */
+  signUp?: boolean
 }
 
 // Written to be read by a stranger who has just tapped something and been
@@ -38,8 +40,10 @@ interface Prompt {
 // a demand and this is meant to be a reason.
 const PROMPTS: Record<GatedAction, Prompt> = {
   follow: {
-    title: 'Sign in to follow',
+    // Don, 2026-10-04: signed out, nobody can follow — the button leads to sign-up.
+    title: 'Sign up to follow',
     why: 'Following is kept with your account, so you can find it again and undo it.',
+    signUp: true,
   },
   'get-updates': {
     title: 'Sign in to get updates',
@@ -77,6 +81,11 @@ export function promptFor(action: GatedAction): Prompt {
 export function signInHref(action: GatedAction, currentPath: string): string {
   const next = `${currentPath}${currentPath.includes('?') ? '&' : '?'}intent=${action}`
   return `/auth/login?next=${encodeURIComponent(next)}`
+}
+
+/** The same, through sign-up. Sign-up and sign-in are one flow; this names it. */
+export function signUpHref(action: GatedAction, currentPath: string): string {
+  return signInHref(action, currentPath).replace('/auth/login', '/auth/signup')
 }
 
 /** The intent carried back from sign-in, if it names a real gated action. */
