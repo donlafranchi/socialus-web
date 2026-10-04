@@ -12,7 +12,7 @@
 
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
-import { isOperator } from '@/actions/_lib/operator'
+import { isBuilderOperator, isOperator } from '@/actions/_lib/operator'
 import { fetchReviewQueue, hiddenFor } from '@/lib/admin/reports-queue'
 import { ReportEntry } from './ReportEntry'
 import { decideReportAction, reverseDecisionAction } from './actions'
@@ -24,9 +24,10 @@ export const dynamic = 'force-dynamic'
 export default async function AdminReportsPage() {
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
-  if (!isOperator(data.user?.id ?? null)) notFound()
+  const viewer = data.user?.id ?? null
+  if (!isOperator(viewer)) notFound()
 
-  const queue = await fetchReviewQueue()
+  const queue = await fetchReviewQueue(50, { includeBuilders: isBuilderOperator(viewer) })
   const now = new Date()
 
   return (

@@ -59,7 +59,7 @@ export function BrowseResultCard({
       imageUrl={result.photoUrl}
       imageAlt={cardImageAlt({
         title: result.name,
-        when: isPost && result.startsAt ? formatCardWhen(result.startsAt) : null,
+        when: isPost && result.startsAt ? formatCardWhen(result.startsAt, undefined, undefined, result.endsAt) : null,
         place: result.locationLabel,
       })}
       href={result.href}
@@ -71,7 +71,7 @@ export function BrowseResultCard({
               // undated announcement says when it was posted, small.
               (result.startsAt ? (
                 <span data-testid="browse-post-when" className="text-lg font-semibold text-[var(--color-fg)]">
-                  {formatCardWhen(result.startsAt)}
+                  {formatCardWhen(result.startsAt, undefined, undefined, result.endsAt)}
                 </span>
               ) : (
                 <span data-testid="browse-post-when" className="text-xs text-[var(--color-fg-muted)]">

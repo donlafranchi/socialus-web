@@ -114,11 +114,15 @@ export const reportCreate = defineHandler(
         photo_url: string | null
         photo_hidden_at: Date | null
         photo_hide_locked_url: string | null
+        builder_on_real: boolean
       }>(
-        `select id, photo_url, photo_hidden_at, photo_hide_locked_url
+        // #280 — a builder's report on a real Page is stored and queued, and
+        // never hides anything a real member sees.
+        `select id, photo_url, photo_hidden_at, photo_hide_locked_url,
+                public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real
            from public.groups
           where id = $1`,
-        [input.subjectId],
+        [input.subjectId, reporterMemberId],
       )
       const subject = subjectRes.rows[0]
       if (!subject) {
@@ -199,6 +203,7 @@ export const reportCreate = defineHandler(
         subject.photo_hide_locked_url === subject.photo_url
 
       const shouldHide =
+        !subject.builder_on_real &&
         subject.photo_url !== null &&
         subject.photo_hidden_at === null &&
         !isLocked &&
