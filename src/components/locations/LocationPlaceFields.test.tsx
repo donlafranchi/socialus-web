@@ -265,3 +265,14 @@ describe('the address field says who sees it, before anyone types (nouns.md)', (
     expect(hint).toHaveTextContent(/signed-in visitors see this address/i)
   })
 })
+
+describe('#348 — drop a pin, no address needed', () => {
+  it('sets a pinned spot, and moving the map moves it', () => {
+    let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
+    render(<Harness onState={(s) => (latest = s)} />)
+    fireEvent.click(screen.getByRole('button', { name: /drop a pin instead/i }))
+    fireEvent.click(screen.getByTestId('pin-moved'))
+    expect(latest.selectedAddress).toEqual({ name: 'Pinned spot', coordinates: [-121.4999, 38.5811] })
+    expect(isLocationPlaceFieldsComplete(latest)).toBe(true)
+  })
+})

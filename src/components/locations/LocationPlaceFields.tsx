@@ -242,6 +242,17 @@ export function LocationPlaceFields({
               />
             </div>
           )}
+          {!state.selectedAddress && (
+            <button
+              type="button"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
+              onClick={() =>
+                setState({ ...state, mode: 'address', selectedAddress: { name: 'Pinned spot', coordinates: [-121.4944, 38.5816] }, neighborhoodId: null })
+              }
+            >
+              Drop a pin instead
+            </button>
+          )}
           <button
             type="button"
             data-testid={`${idPrefix}-mode-neighbourhood`}
