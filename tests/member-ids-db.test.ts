@@ -141,7 +141,11 @@ describe.skipIf(!RUNNABLE)('who founded, sells or hosts, to anyone', () => {
   ])('every other column of %s still answers', async (table, column, id, key) => {
     const cols = await allColumnsBut(table, column)
     // #252: signed out, a Page's anchor is withheld too (tests/front-door-db.test.ts).
-    const anonCols = table === 'groups' ? await allColumnsBut(table, column, 'anchor_location_id') : cols
+    // #293: and its phone and hours (tests/page-contact-db.test.ts).
+    const anonCols =
+      table === 'groups'
+        ? await allColumnsBut(table, column, 'anchor_location_id', 'contact_phone', 'opening_hours')
+        : cols
     expect(await as(null, `select ${anonCols} from public.${table} where ${key} = $1`, [id]), `${table} as anon`).toHaveLength(1)
     for (const sub of [STRANGER]) {
       expect(await as(sub, `select ${cols} from public.${table} where ${key} = $1`, [id]), `${table} as ${sub}`).toHaveLength(1)
