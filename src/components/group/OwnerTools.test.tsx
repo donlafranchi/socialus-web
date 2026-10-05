@@ -63,6 +63,23 @@ describe('the bar, under 1280', () => {
     expect(screen.getByRole('dialog', { name: 'What your Page shows' })).toBeInTheDocument()
   })
 
+  // Don, 2026-10-05: products, services and gatherings are added from the Page; for beta, a dated Post or a Post.
+  it('Add offers an event and a post, each opening the Page\'s composer; the event with its date showing', async () => {
+    const addWhen = vi.fn()
+    document.body.insertAdjacentHTML('beforeend', '<button data-testid="announce-add-when"></button><textarea id="page-post-body"></textarea>')
+    document.querySelector('[data-testid="announce-add-when"]')!.addEventListener('click', addWhen)
+    withEditor(<OwnerBar pagePath="/g/x" followerCount={0} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+    expect(screen.getByTestId('owner-add-event')).toHaveAttribute('href', '/g/x#announce')
+    expect(screen.getByTestId('owner-add-post')).toHaveAttribute('href', '/g/x#announce')
+    fireEvent.click(screen.getByTestId('owner-add-event'))
+    await new Promise((r) => requestAnimationFrame(() => r(null)))
+    expect(addWhen).toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    document.querySelector('[data-testid="announce-add-when"]')?.remove()
+    document.getElementById('page-post-body')?.remove()
+  })
+
   it('Edit your Page closes the sheet and the bar becomes one Done', () => {
     withEditor(<OwnerBar pagePath="/g/x" followerCount={0} />)
     fireEvent.click(screen.getByRole('button', { name: 'Settings' }))

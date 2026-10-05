@@ -29,6 +29,14 @@ function focusComposer() {
   requestAnimationFrame(() => document.getElementById('page-post-body')?.focus())
 }
 
+/** Don, 2026-10-05: hosting is a dated Post from the Page. Opens the composer with its date and time showing. */
+function focusEvent() {
+  requestAnimationFrame(() => {
+    document.querySelector<HTMLButtonElement>('[data-testid="announce-add-when"]')?.click()
+    document.getElementById('page-post-body')?.focus()
+  })
+}
+
 function NewPost({ pagePath, className = '' }: { pagePath: string; className?: string }) {
   // Secondary: the composer's own Post is the screen's one primary.
   return (
@@ -62,6 +70,14 @@ function GroupBody({ group, pagePath, followerCount = 0, done }: Props & { group
   if (group === 'add')
     return (
       <>
+        {/* Don, 2026-10-05: products, services and gatherings are added from the Page. For beta, Add
+            offers a dated Post (an event) and a Post; product and service listings come after beta. */}
+        <a href={`${pagePath}#${ANNOUNCE_ANCHOR}`} data-testid="owner-add-event" onClick={() => (done?.(), focusEvent())} className={buttonClass('secondary')}>
+          An event, with a date and time
+        </a>
+        <a href={`${pagePath}#${ANNOUNCE_ANCHOR}`} data-testid="owner-add-post" onClick={() => (done?.(), focusComposer())} className={buttonClass('secondary')}>
+          A post
+        </a>
         <p className="text-caption text-[var(--color-fg-muted)]">Turn on what helps. You can change it any time.</p>
         <Button variant="secondary" onClick={() => open('components')}>What your Page shows</Button>
       </>
