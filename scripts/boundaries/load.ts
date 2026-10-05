@@ -172,6 +172,32 @@ async function retire(db: Client, m: Metro) {
   )
 }
 
+// #349 — every ZIP whose land is mostly in the metro's counties counts as in
+// the metro. Census ZCTA-county relationship file, public domain. Adds and
+// refreshes; never removes a ZIP someone already relies on.
+async function zips(db: Client, m: Metro) {
+  const res = await fetch(TIGER.zctaCounty)
+  if (!res.ok) throw new Error(`${TIGER.zctaCounty}: ${res.status}`)
+  const best = new Map<string, { county: string; land: number }>()
+  for (const line of (await res.text()).split('\n').slice(1)) {
+    const f = line.split('|')
+    const zip = f[1]
+    const county = f[9]
+    const land = Number(f[16])
+    if (!zip || !county || !(land > 0)) continue
+    const cur = best.get(zip)
+    if (!cur || land > cur.land) best.set(zip, { county, land })
+  }
+  const inMetro = [...best].filter(([, b]) => b.county.startsWith(m.stateFips) && m.counties.includes(b.county.slice(2))).map(([z]) => z)
+  await db.query(
+    `insert into public.zip_metro_crosswalk (zip, msa_code, msa_name, state, source, refreshed_at)
+     select z, $2, $3, $4, 'Census ZCTA-county 2020', now() from unnest($1::text[]) as z
+     on conflict (zip) do update set msa_code = excluded.msa_code, msa_name = excluded.msa_name, refreshed_at = now()`,
+    [inMetro, m.msa, m.msaName, m.stateAbbr],
+  )
+  return inMetro.length
+}
+
 async function main() {
   const key = process.argv[2]
   const m = key ? METROS[key] : undefined
@@ -188,6 +214,7 @@ async function main() {
     await db.query(`delete from public.boundaries where msa_code = $1 and loaded_at < $2`, [m.msa, started])
     await syncPlaces(db, m)
     await retire(db, m)
+    console.log(`zips: ${await zips(db, m)}`)
     await db.query('commit')
   } catch (err) {
     await db.query('rollback')
