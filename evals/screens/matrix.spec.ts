@@ -39,7 +39,8 @@ for (const who of PERSONAS.filter((p) => (!personas || personas.has(p.key)) && i
           // Bounded: map tiles and polling can keep the network busy forever.
           await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
           if (route.act) await route.act(page)
-          await page.screenshot({ path: join(DIR, String(width), who.key, `${route.name}.png`), fullPage: true })
+          // The smoke slice gates on errors only; the pictures come from the nightly run.
+          if (!smoke) await page.screenshot({ path: join(DIR, String(width), who.key, `${route.name}.png`), fullPage: true })
         }
         expect(errors, `uncaught errors on ${route.name}`).toEqual([])
       })

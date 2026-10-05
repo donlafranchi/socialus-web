@@ -175,7 +175,8 @@ jobs:
   #                  fail against today's rulings and are excluded, by title)
   #   screens        on a PR or a merge, the smoke slice (#375): every route
   #                  signed out, and every route that differs by viewer as a
-  #                  member and an owner, at 390px. Nightly and
+  #                  member and an owner, at 390px; it gates on errors and
+  #                  captures no pictures. Nightly and
   #                  on demand (Actions → CI → Run workflow), the whole matrix:
   #                  every route, as every persona, at six widths. Uploaded as
   #                  the `screenshots` artifact.
@@ -205,7 +206,7 @@ jobs:
       # minutes), and nothing before the seed needs it.
       - name: Start a throwaway local stack (background)
         run: |
-          ( supabase start -x "$SUPABASE_UNUSED" > "$RUNNER_TEMP/stack.log" 2>&1; echo $? > "$RUNNER_TEMP/stack.exit" ) &
+          ( supabase start -x "$SUPABASE_UNUSED" 2>&1 | while IFS= read -r l; do echo "$(date +%T) $l"; done > "$RUNNER_TEMP/stack.log"; echo "${PIPESTATUS[0]}" > "$RUNNER_TEMP/stack.exit" ) &
         env:
           SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
