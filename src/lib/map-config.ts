@@ -8,6 +8,12 @@ export const MAP_DEFAULTS = {
   debounceMs: 300,
 }
 
+// #348 — a map to drop a pin on needs the public Mapbox token.
+export const mapAvailable = () => Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN)
+
+// #348 — outlines on the owner's location map: the foreground text colour.
+export const AREA_OUTLINE = '#1a1a1a'
+
 export const CLUSTER_CONFIG = {
   clusterMaxZoom: 14,
   clusterRadius: 50,

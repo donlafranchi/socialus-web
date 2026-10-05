@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { geocode, geocodingConfigured, GeocodingUnavailableError } from '@/lib/geocoding'
+import { geocode, geocodingConfigured } from '@/lib/geocoding'
 
 describe('geocode', () => {
   beforeEach(() => {
@@ -16,20 +16,8 @@ describe('geocode', () => {
     expect(result).toEqual([])
   })
 
-  // Amended (#107). This asserted that a missing token returns [] — the same
-  // answer as "no address matched". Production shipped without a token, every
-  // search came back empty, and the UI told people their address did not
-  // exist. An empty array is now reserved for a real miss.
-  it('refuses rather than returning empty when there is no token', async () => {
-    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', '')
-    await expect(geocode('Austin TX')).rejects.toBeInstanceOf(GeocodingUnavailableError)
-  })
-
-  it('refuses when Mapbox rejects the token', async () => {
-    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.bad')
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 401 })))
-    await expect(geocode('Austin TX')).rejects.toBeInstanceOf(GeocodingUnavailableError)
-  })
+  // #348 — no key or a refused key now falls back to the Census lookup instead
+  // of refusing; src/lib/geocoding.test.ts covers both.
 
   it('still returns empty for a genuine miss', async () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.good')

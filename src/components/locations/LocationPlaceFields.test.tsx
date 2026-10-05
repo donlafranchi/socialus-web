@@ -9,9 +9,23 @@ import {
   type LocationPlaceFieldsState,
 } from './LocationPlaceFields'
 
-const { geocode, listNeighborhoods } = vi.hoisted(() => ({
+const { geocode, listNeighborhoods, searchPlaces } = vi.hoisted(() => ({
   geocode: vi.fn(),
   listNeighborhoods: vi.fn(),
+  searchPlaces: vi.fn(async (_q: string) => ({ ok: true, data: [] as unknown[] })),
+}))
+
+// #348 — the maps are their own components with their own tests; here they
+// only report what the owner did.
+vi.mock('./PinAdjustMap', () => ({
+  PinAdjustMap: ({ onChange }: { onChange: (c: [number, number]) => void }) => (
+    <button type="button" data-testid="pin-moved" onClick={() => onChange([-121.4999, 38.5811])} />
+  ),
+}))
+vi.mock('./AreaPickMap', () => ({
+  AreaPickMap: ({ onPick }: { onPick: (p: { placeId: string; name: string }) => void }) => (
+    <button type="button" data-testid="area-tapped" onClick={() => onPick({ placeId: 'pl-curtis', name: 'Curtis Park' })} />
+  ),
 }))
 
 vi.mock('@/lib/geocoding', () => ({
@@ -21,7 +35,7 @@ vi.mock('@/lib/geocoding', () => ({
 }))
 vi.mock('@/app/_actions/location-actions', () => ({
   // Our own place search, stubbed: these tests are about the field, not the data.
-  searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
+  searchPlacesAction: searchPlaces,
   listNeighborhoodsAction: listNeighborhoods,
 }))
 
@@ -50,6 +64,8 @@ beforeEach(() => {
   geocode.mockReset()
   listNeighborhoods.mockReset()
   listNeighborhoods.mockResolvedValue([])
+  searchPlaces.mockReset()
+  searchPlaces.mockResolvedValue({ ok: true, data: [] })
 })
 afterEach(() => {
   vi.useRealTimers()
@@ -177,5 +193,95 @@ describe('neighbourhood mode shows something', () => {
     expect(setState).toHaveBeenCalledWith(
       expect.objectContaining({ mode: 'address', neighborhoodId: null, selectedAddress: null }),
     )
+  })
+})
+
+
+describe('#348 — the address, confirmed on a map', () => {
+  it('shows the pin map once an address is picked, and moving it moves the point', async () => {
+    geocode.mockResolvedValue([{ name: '2700 24th St, Sacramento, CA', coordinates: [-121.5, 38.58] }])
+    let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
+    render(<Harness onState={(s) => (latest = s)} />)
+    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: '2700 24th' } })
+    await vi.advanceTimersByTimeAsync(350)
+    fireEvent.click(await screen.findByTestId('test-address-suggestion-0'))
+    fireEvent.click(screen.getByTestId('pin-moved'))
+    expect(latest.selectedAddress?.coordinates).toEqual([-121.4999, 38.5811])
+    expect(latest.selectedAddress?.name).toBe('2700 24th St, Sacramento, CA')
+  })
+})
+
+describe('#348 — neighbourhood only', () => {
+  const toNeighbourhood = () => fireEvent.click(screen.getByTestId('test-mode-neighbourhood'))
+
+  it('offers a search box over neighbourhoods and towns, and picking one completes it', async () => {
+    searchPlaces.mockResolvedValue({ ok: true, data: [{ id: 'pl-cp', name: 'Curtis Park', kind: 'neighborhood', parentName: 'Sacramento' }] })
+    let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
+    render(<Harness onState={(s) => (latest = s)} />)
+    toNeighbourhood()
+    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood or town/i }), { target: { value: 'Curt' } })
+    await vi.advanceTimersByTimeAsync(350)
+    fireEvent.click(await screen.findByRole('option', { name: /Curtis Park/ }))
+    expect(latest.mode).toBe('neighbourhood')
+    expect(latest.neighborhoodId).toBe('pl-cp')
+    expect(isLocationPlaceFieldsComplete(latest)).toBe(true)
+  })
+
+  it('says only the neighbourhood will show', () => {
+    render(<Harness />)
+    toNeighbourhood()
+    expect(screen.getByText(/only the neighbourhood shows/i)).toBeInTheDocument()
+  })
+
+  it('a tap on the map picks it too', () => {
+    let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
+    render(<Harness onState={(s) => (latest = s)} />)
+    toNeighbourhood()
+    fireEvent.click(screen.getByTestId('area-tapped'))
+    expect(latest.neighborhoodId).toBe('pl-curtis')
+    expect(screen.getByTestId('test-neighbourhood-chosen')).toHaveTextContent('Curtis Park')
+  })
+})
+
+describe('address search under React Strict Mode (dev and evals)', () => {
+  it('still searches after Strict Mode mounts, unmounts and remounts the field', async () => {
+    const { StrictMode } = await import('react')
+    geocode.mockResolvedValue([{ name: '915 I St, Sacramento, CA, 95814', coordinates: [-121.494, 38.5817] }])
+    render(
+      <StrictMode>
+        <Harness />
+      </StrictMode>,
+    )
+    fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: '915 I St, Sacramento, CA' } })
+    expect(await screen.findByText('915 I St, Sacramento, CA, 95814')).toBeInTheDocument()
+  })
+})
+
+describe('the address field says who sees it, before anyone types (nouns.md)', () => {
+  it('describes the address box with who sees the address', () => {
+    render(<Harness />)
+    const input = screen.getByTestId('test-address-input')
+    const hint = document.getElementById(input.getAttribute('aria-describedby')!.split(' ')[0]!)
+    expect(hint).toHaveTextContent(/signed-in visitors see this address/i)
+  })
+})
+
+describe('#348 — drop a pin, no address needed', () => {
+  beforeEach(() => vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test'))
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('is offered only where there is a map to drop it on', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', '')
+    render(<Harness />)
+    expect(screen.queryByRole('button', { name: /drop a pin instead/i })).toBeNull()
+  })
+
+  it('sets a pinned spot, and moving the map moves it', () => {
+    let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
+    render(<Harness onState={(s) => (latest = s)} />)
+    fireEvent.click(screen.getByRole('button', { name: /drop a pin instead/i }))
+    fireEvent.click(screen.getByTestId('pin-moved'))
+    expect(latest.selectedAddress).toEqual({ name: 'Dropped pin', coordinates: [-121.4999, 38.5811] })
+    expect(isLocationPlaceFieldsComplete(latest)).toBe(true)
   })
 })

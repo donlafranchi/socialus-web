@@ -1,3 +1,5 @@
+import { censusGeocodeAction } from '@/app/_actions/census-geocode-actions'
+
 export interface GeocodingResult {
   name: string
   coordinates: [number, number]
@@ -20,10 +22,11 @@ export function geocodingConfigured(): boolean {
 
 export async function geocode(query: string): Promise<GeocodingResult[]> {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-  // No token is not "no results". Production shipped without one, every search
-  // came back empty, and the UI told people their address did not exist.
-  if (!token) throw new GeocodingUnavailableError()
   if (!query.trim()) return []
+  // #348 — no Mapbox key (a preview) or a refused one: the free Census lookup
+  // answers instead, for complete addresses. The provider is Don's call (A/B/C
+  // on #348); this function is the one place that changes.
+  if (!token) return censusGeocodeAction(query)
 
   const encoded = encodeURIComponent(query.trim())
   const res = await fetch(
@@ -32,7 +35,7 @@ export async function geocode(query: string): Promise<GeocodingResult[]> {
 
   // A 401/403 is the same class of problem as no token at all: the search
   // cannot run. Anything else is a genuine miss.
-  if (res.status === 401 || res.status === 403) throw new GeocodingUnavailableError()
+  if (res.status === 401 || res.status === 403) return censusGeocodeAction(query)
   if (!res.ok) return []
 
   const data = await res.json()
