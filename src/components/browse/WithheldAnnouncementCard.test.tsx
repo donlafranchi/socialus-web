@@ -44,17 +44,17 @@ describe('WithheldAnnouncementCard', () => {
 
   it('says how many, and names the period in words', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
-    expect(screen.getByTestId('withheld-count').textContent).toBe('3 announcements this week')
+    expect(screen.getByTestId('withheld-count').textContent).toBe('3 posts this week')
   })
 
   it('says one announcement rather than 1 announcements', () => {
     render(<WithheldAnnouncementCard result={{ ...RESULT, announcementCount: 1 }} />)
-    expect(screen.getByTestId('withheld-count').textContent).toBe('1 announcement this week')
+    expect(screen.getByTestId('withheld-count').textContent).toBe('1 post this week')
   })
 
   it('carries no nought when the Page has none this period', () => {
     render(<WithheldAnnouncementCard result={{ ...RESULT, announcementCount: 0 }} />)
-    expect(screen.getByTestId('withheld-count').textContent).toBe('Posted an announcement')
+    expect(screen.getByTestId('withheld-count').textContent).toBe('Posted something new')
   })
 
   it('says who can read it', () => {
@@ -75,7 +75,7 @@ describe('WithheldAnnouncementCard', () => {
     // Criterion 4, as a whole-card match so a line added later fails here.
     const { container } = render(<WithheldAnnouncementCard result={RESULT} />)
     expect(container.textContent).toBe(
-      "3 announcements this weekSacRiver FloatersThe details are for members and followers of this Page.Sign in to see what's happening",
+      "3 posts this weekSacRiver FloatersThe details are for members and followers of this Page.Sign in to see what's happening",
     )
   })
 

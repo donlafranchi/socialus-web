@@ -57,7 +57,7 @@ export default function CardGalleryPage() {
       </p>
       <ExampleBlock placeName="Boise City, ID" />
 
-      <h2 className="text-[17px] font-semibold mt-10 text-[var(--color-fg)]">Announcements</h2>
+      <h2 className="text-[17px] font-semibold mt-10 text-[var(--color-fg)]">Posts</h2>
       <CardGrid className="mt-3">
         <AnnouncementCard
           attribution="Clara’s Kitchen"

@@ -18,7 +18,7 @@ afterEach(cleanup)
 describe('the owner bar', () => {
   // #302 — Don, 2026-10-04: one Edit toggle on the Page itself, not a link to
   // a separate long form (Apple Contacts' Edit/Done).
-  it('offers an Edit toggle and Announce, in plain sight', () => {
+  it('offers an Edit toggle and New post, in plain sight', () => {
     render(
       <PageEditorProvider initial={EDITOR} onSave={async () => ({ ok: true })}>
         <OwnerBar pagePath="/g/oak-park-sourdough-7k3x8m" />
@@ -26,10 +26,10 @@ describe('the owner bar', () => {
     )
     expect(screen.getByRole('button', { name: 'Edit' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('link', { name: /edit/i })).toBeNull()
-    expect(screen.getByTestId('owner-announce')).toBeInTheDocument()
+    expect(screen.getByTestId('owner-announce')).toHaveTextContent('New post')
   })
 
-  it('Announce is secondary: the composer has the one primary', () => {
+  it('New post is secondary: the composer has the one primary', () => {
     render(<OwnerBar pagePath="/g/x-abc123" />)
     expect(screen.getByTestId('owner-announce').className).not.toMatch(/btn-primary/)
   })

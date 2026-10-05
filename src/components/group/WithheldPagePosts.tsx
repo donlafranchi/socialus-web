@@ -37,7 +37,7 @@ export function WithheldPagePosts({ posts }: { posts: BrowseResult[] }) {
 
   return (
     <section id={ANNOUNCE_ANCHOR} className="mt-8 scroll-mt-20" data-testid="page-posts-withheld">
-      <h2 className="text-lg font-medium">Announcements</h2>
+      <h2 className="text-lg font-medium">Posts</h2>
       <div
         data-testid="page-post-withheld"
         data-highlighted={marked ? 'true' : undefined}

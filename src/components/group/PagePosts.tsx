@@ -310,7 +310,7 @@ export function PagePosts({
 
   return (
     <section id={ANNOUNCE_ANCHOR} className="mt-8 scroll-mt-20" data-testid="page-posts">
-      <h2 className="text-lg font-medium">Announcements</h2>
+      <h2 className="text-lg font-medium">Posts</h2>
 
       {canPost && (
         <div className="mt-3 flex flex-col gap-3">
@@ -347,7 +347,7 @@ export function PagePosts({
               disabled={busy || draft.trim().length === 0 || audience !== 'anyone'}
               className="btn-primary disabled:opacity-50"
             >
-              {busy ? 'Announcing' : 'Announce'}
+              {busy ? 'Posting…' : 'Post'}
             </button>
           </div>
         </div>
@@ -382,7 +382,7 @@ export function PagePosts({
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   <label htmlFor={`edit-${post.id}`} className="sr-only">
-                    Edit your announcement
+                    Edit your post
                   </label>
                   <textarea
                     id={`edit-${post.id}`}

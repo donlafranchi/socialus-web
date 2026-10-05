@@ -43,7 +43,7 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
         className="btn-secondary press"
       >
         <Megaphone size={14} className="reacts mr-1.5" aria-hidden="true" />
-        Announce
+        New post
       </Link>
     </div>
   )

@@ -12,10 +12,10 @@ export function OwnerPanel({ pagePath }: { pagePath: string }) {
       <h2 className="text-title-3 text-[var(--color-fg)]">Your Page</h2>
       <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Only you see this.</p>
       <div className="mt-4 flex flex-col gap-2">
-        {/* Secondary: the composer's own Announce is the screen's one primary. */}
+        {/* Secondary: the composer's own Post is the screen's one primary. */}
         <Button href={`${pagePath}#${ANNOUNCE_ANCHOR}`} variant="secondary">
           <Megaphone size={16} aria-hidden="true" />
-          Announce
+          New post
         </Button>
         {/* #302 — edit in place, by section (Don, 2026-10-04). */}
         <EditToggle />

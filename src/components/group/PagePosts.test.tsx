@@ -73,20 +73,20 @@ async function pickAPlace(prefix = 'announce') {
 }
 
 describe('the word', () => {
-  it('is announcement, never bulletin and never post', () => {
+  // #365 — dispatch, 2026-10-05: "Post(s)" in everything people read.
+  it('is post, not announcement or bulletin', () => {
     const { container } = renderPosts({ posts: [POST] })
     // F080's safety line is Don's and says "post" as a verb, to anyone about
     // anything they share; the rule is about naming an announcement.
     const text = (container.textContent ?? '').replace(COPY.postingSafety, '')
-    expect(text).toMatch(/Announce/)
+    expect(text).toMatch(/Posts/)
     expect(text.toLowerCase()).not.toContain('bulletin')
-    // "post" as a word on its own. `data-testid` values are not copy.
-    expect(text.toLowerCase()).not.toMatch(/\bposts?\b/)
+    expect(text.toLowerCase()).not.toContain('announce')
   })
 
-  it('names the primary control Announce', () => {
+  it('names the primary control Post', () => {
     renderPosts()
-    expect(screen.getByTestId('page-post-send')).toHaveTextContent('Announce')
+    expect(screen.getByTestId('page-post-send')).toHaveTextContent('Post')
   })
 })
 

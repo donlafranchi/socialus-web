@@ -51,7 +51,7 @@ describe('empty — it hides', () => {
     // Absence, not emptiness — a heading with nothing under it is the thing
     // criterion 2b's presentation rules out.
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
-    expect(screen.queryByText(/nothing|no announcements|yet/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/nothing|no announcements|no posts|yet/i)).not.toBeInTheDocument()
   })
 })
 
@@ -63,19 +63,19 @@ describe('non-empty — it shows', () => {
     expect(screen.getByText('Pond Side Circle')).toBeInTheDocument()
   })
 
-  it('says announcement, and never post or bulletin', () => {
+  // #365 — dispatch, 2026-10-05: "Post(s)" in everything people read.
+  it('says posts, not announcements or bulletins', () => {
     render(<FollowingRow results={[result()]} />)
     const row = screen.getByTestId('browse-following')
     const text = row.textContent ?? ''
-    expect(text).toMatch(/announcement/i)
-    // The ruled nouns. "Bulletins" was cut; "post" is the internal word.
-    expect(text).not.toMatch(/\bposts?\b/i)
+    expect(text).toMatch(/\bposts\b/i)
+    expect(text).not.toMatch(/announcement/i)
     expect(text).not.toMatch(/\bbulletins?\b/i)
   })
 
   it('is labelled for a screen reader, not just visually', () => {
     render(<FollowingRow results={[result()]} />)
-    expect(screen.getByRole('region', { name: /announcement/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /posts/i })).toBeInTheDocument()
   })
 })
 
@@ -90,3 +90,4 @@ describe('FollowingRow — list structure', () => {
     expect(container.querySelectorAll('ul > li')).toHaveLength(2)
   })
 })
+
