@@ -10,6 +10,7 @@ import { OwnerPanel } from './OwnerPanel'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
+import { whereLine, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -56,6 +57,8 @@ interface Props {
   tags?: string[]
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
   contact?: PageContact | null
+  /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
+  where?: PageWhere | null
 }
 
 export function ShopPublicPage({
@@ -70,6 +73,7 @@ export function ShopPublicPage({
   posts = [],
   tags = [],
   contact = null,
+  where = null,
   withheldPosts = [],
   followerCount = 0,
 }: Props) {
@@ -223,6 +227,11 @@ export function ShopPublicPage({
             {shop.placements[0].label}
           </p>
         )}
+        {loggedIn && where && whereLine(where) && (
+          <p data-testid="shop-where" className="text-sm text-[var(--color-fg-muted)]">
+            {whereLine(where)}
+          </p>
+        )}
 
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
@@ -315,7 +324,7 @@ export function ShopPublicPage({
             className="mt-3 rounded border border-dashed border-gray-300 p-6 text-sm text-gray-500"
           >
             <p className="font-medium text-gray-600">Nothing listed yet</p>
-            <p className="mt-1">This Page hasn&apos;t listed anything yet — check back soon.</p>
+            <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
           </div>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
