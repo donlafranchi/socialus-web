@@ -131,3 +131,21 @@ describe('#302 — a section opens a sheet with only its own fields', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 })
+
+describe('hours hidden for now (Don, 2026-10-05)', () => {
+  it('the phone sheet has the phone, not hours, and leaves stored hours alone', async () => {
+    render(
+      <PageEditorProvider initial={{ ...initial, contact: { phone: '+19165550142', hours: { mon: [{ open: '09:00', close: '17:00' }] } } }} onSave={onSave}>
+        <EditToggle />
+        <SectionEditButton section="contact" />
+      </PageEditorProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /edit business phone/i }))
+    expect(screen.getByRole('dialog', { name: 'Business phone' })).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: /monday/i })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0]![0]).not.toHaveProperty('openingHours')
+  })
+})

@@ -29,6 +29,7 @@ import { formatUsPhone } from '@/lib/phone'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
+import { SHOW_OPENING_HOURS } from '@/lib/features'
 
 export type Section = 'about' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
@@ -36,7 +37,7 @@ export const SECTION_TITLE: Record<Section, string> = {
   about: 'About',
   photo: 'Photo',
   where: 'Where',
-  contact: 'Hours and phone',
+  contact: SHOW_OPENING_HOURS ? 'Hours and phone' : 'Business phone',
   tags: 'Tags',
   links: 'Links',
   components: 'What your Page shows',
@@ -137,7 +138,8 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     let patch: Partial<EditPageInput> = {}
     if (section === 'about') patch = { name, description }
     if (section === 'photo') patch = { photoUrl }
-    if (section === 'contact') patch = { contactPhone: phone.trim() === '' ? null : phone.trim(), openingHours: hours }
+    if (section === 'contact')
+      patch = { contactPhone: phone.trim() === '' ? null : phone.trim(), ...(SHOW_OPENING_HOURS ? { openingHours: hours } : {}) }
     if (section === 'components') patch = { contactComponent: contactOn }
     if (section === 'links') {
       const { links, problems } = linksFromHandles(handles)
@@ -232,14 +234,14 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
               <input type="tel" inputMode="tel" autoComplete="off" className="input" data-testid="edit-phone" placeholder="(916) 555-0142" value={phone} onChange={(e) => setPhone(e.target.value)} />
               <span className="text-caption text-[var(--color-fg-muted)]">Optional. Signed-in visitors can tap to call. This is not the phone you signed up with.</span>
             </label>
-            <HoursEditor value={hours} onChange={setHours} />
+            {SHOW_OPENING_HOURS && <HoursEditor value={hours} onChange={setHours} />}
           </>
         )}
         {section === 'tags' && <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />}
         {section === 'links' && <SocialHandleFields value={handles} onChange={setHandles} />}
         {section === 'components' && (
           <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
-            <span className="text-sm text-[var(--color-fg)]">Business hours and phone</span>
+            <span className="text-sm text-[var(--color-fg)]">{SHOW_OPENING_HOURS ? 'Business hours and phone' : 'Business phone'}</span>
             <input type="checkbox" role="switch" className="h-5 w-5" checked={contactOn} onChange={(e) => setContactOn(e.target.checked)} />
           </label>
         )}
