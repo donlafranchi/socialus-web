@@ -23,6 +23,8 @@ import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import type { ActionContext } from '../_lib/context'
+import { applyKindChange } from './change-kind'
+import { PAGE_KINDS, type PageKind } from '../../lib/groups/page-kind'
 
 export const groupUpdateDraftInput = z.object({
   groupId: z.string().uuid(),
@@ -58,6 +60,8 @@ export const groupUpdateDraftInput = z.object({
   businessStateOfFormation: z.string().max(80).nullable().optional(),
   // Don, 2026-10-04 — hours and phone as a component (see group.update).
   contactComponent: z.boolean().optional(),
+  // Page kinds (dispatch, 2026-10-05): changeable in settings.
+  pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
 })
 
 export type GroupUpdateDraftInput = z.infer<typeof groupUpdateDraftInput>
@@ -314,6 +318,10 @@ export const groupUpdateDraft = defineHandler(
           )
         }
         patched.push('tags')
+      }
+
+      if (input.pageKind !== undefined && (await applyKindChange(client, input.groupId, row.kind, input.pageKind))) {
+        patched.push('kind')
       }
 
       if (input.contactComponent !== undefined) {

@@ -30,8 +30,8 @@ beforeEach(() => {
 
 describe('#301 — startDraftAction', () => {
   it('creates a draft of the chosen kind, with nothing else, and lands on it', async () => {
-    await expect(startDraftAction('practice')).rejects.toThrow('REDIRECT /g/draft-a1b2-x7k2m9')
-    expect(groupCreate).toHaveBeenCalledWith(expect.anything(), { kind: 'practice', founderMemberId: 'm-1' })
+    await expect(startDraftAction('event_anchored')).rejects.toThrow('REDIRECT /g/draft-a1b2-x7k2m9')
+    expect(groupCreate).toHaveBeenCalledWith(expect.anything(), { kind: 'event_anchored', founderMemberId: 'm-1' })
   })
 
   it('refuses a kind it does not offer', async () => {

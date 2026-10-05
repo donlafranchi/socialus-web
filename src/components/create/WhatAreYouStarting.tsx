@@ -7,7 +7,8 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
-export type StartKind = 'business' | 'practice' | 'interest'
+// #363 — Business, Group, Organization, stored as business / interest / event_anchored.
+export type StartKind = 'business' | 'interest' | 'event_anchored'
 
 // Don, 2026-10-04: each kind is a question, with one line on what the Page
 // is for. The business and group questions are his; the third is drafted in
@@ -24,9 +25,9 @@ const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
     body: 'A Page for people who get together, where others can find your events and join.',
   },
   {
-    kind: 'practice',
-    title: 'Do you teach a class or lead a regular session?',
-    body: 'A Page for lessons, workshops and practice people come back to, from pottery to yoga.',
+    kind: 'event_anchored',
+    title: 'Do you run a nonprofit, school, church or festival that holds events?',
+    body: 'A Page for an organization and the events it puts on.',
   },
 ]
 

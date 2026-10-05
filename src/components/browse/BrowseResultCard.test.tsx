@@ -158,3 +158,14 @@ describe('the card with an end time', () => {
     expect(screen.getByTestId('browse-post-when')).toHaveTextContent(/7–9pm$/)
   })
 })
+
+// Page kinds (dispatch, 2026-10-05): the kind under the name, on cards too.
+describe('the kind line', () => {
+  it('says what kind of Page it is', () => {
+    render(<BrowseResultCard result={post({ groupKind: 'place' })} />)
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Group')
+    cleanup()
+    render(<BrowseResultCard result={post({ groupKind: 'event_anchored' })} />)
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Organization')
+  })
+})

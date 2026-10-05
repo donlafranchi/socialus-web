@@ -29,6 +29,7 @@ const initial = {
   contact: { phone: null, hours: null },
   contactOn: true,
   addressLabel: '3117 Broadway, Sacramento',
+  kind: 'business' as const,
 }
 
 function Page() {
@@ -147,5 +148,22 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSave).toHaveBeenCalled())
     expect(onSave.mock.calls[0]![0]).not.toHaveProperty('openingHours')
+  })
+})
+
+describe('Page kinds — changeable in settings (dispatch, 2026-10-05)', () => {
+  it('the kind sheet offers the three kinds and saves the one chosen', async () => {
+    render(
+      <PageEditorProvider initial={initial} onSave={onSave}>
+        <EditToggle />
+        <SectionEditButton section="kind" />
+      </PageEditorProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /edit kind of page/i }))
+    expect(screen.getAllByRole('radio')).toHaveLength(3)
+    fireEvent.click(screen.getByRole('radio', { name: /group/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group' }))
   })
 })

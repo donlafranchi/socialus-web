@@ -30,10 +30,18 @@ import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
+import { PAGE_KINDS, PAGE_KIND_LABEL, type PageKind } from '@/lib/groups/page-kind'
 
-export type Section = 'about' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
+const KIND_HINT: Record<PageKind, string> = {
+  business: 'You sell, serve or make something. Leads with how to reach you.',
+  group: 'People who meet up around something they share. Leads with Join and your next meetup.',
+  organization: 'A nonprofit, school, church or festival. Leads with your upcoming events.',
+}
+
+export type Section = 'kind' | 'about' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
 export const SECTION_TITLE: Record<Section, string> = {
+  kind: 'Kind of Page',
   about: 'About',
   photo: 'Photo',
   where: 'Where',
@@ -55,6 +63,7 @@ export interface EditorInitial {
   contact: { phone: string | null; hours: OpeningHours | null }
   contactOn: boolean
   addressLabel: string | null
+  kind: PageKind
 }
 
 type Save = (input: EditPageInput) => Promise<EditPageResult>
@@ -123,12 +132,13 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [phone, setPhone] = useState(initial.contact.phone ? formatUsPhone(initial.contact.phone) : '')
   const [hours, setHours] = useState(initial.contact.hours)
   const [contactOn, setContactOn] = useState(initial.contactOn)
+  const [kind, setKind] = useState<PageKind>(initial.kind)
   const [place, setPlace] = useState<LocationPlaceFieldsState>(initialLocationPlaceFieldsState)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, place })
+  const snapshot = () => JSON.stringify({ kind, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, place })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -136,6 +146,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     setError(null)
     const base = { groupId: initial.groupId, pagePath: initial.pagePath }
     let patch: Partial<EditPageInput> = {}
+    if (section === 'kind') patch = { pageKind: kind }
     if (section === 'about') patch = { name, description }
     if (section === 'photo') patch = { photoUrl }
     if (section === 'contact')
@@ -208,6 +219,20 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
       }
     >
       <div className="flex flex-col gap-4">
+        {section === 'kind' && (
+          <fieldset className="flex flex-col gap-2">
+            <legend className="sr-only">Kind of Page</legend>
+            {PAGE_KINDS.map((k) => (
+              <label key={k} className={`flex cursor-pointer gap-3 rounded-md border p-3 ${kind === k ? 'border-[var(--color-charcoal-700)]' : 'border-[var(--color-border)]'}`}>
+                <input type="radio" name="page-kind" className="mt-1 h-4 w-4" checked={kind === k} onChange={() => setKind(k)} aria-describedby={`kind-${k}-hint`} />
+                <span>
+                  <span className="block text-body-sm font-semibold text-[var(--color-fg)]">{PAGE_KIND_LABEL[k]}</span>
+                  <span id={`kind-${k}-hint`} className="block text-caption text-[var(--color-fg-muted)]">{KIND_HINT[k]}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+        )}
         {section === 'about' && (
           <>
             <label className="flex flex-col gap-1">

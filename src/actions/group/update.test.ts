@@ -258,3 +258,20 @@ describe('hours and phone, switched on or off', () => {
     expect(params).toEqual([GROUP, true])
   })
 })
+
+describe('Page kinds — the owner changes the kind in settings', () => {
+  it('a group made a business is stored as business and its stewards become owners', async () => {
+    install({ kind: 'interest' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business' })
+    expect(res.patched).toContain('kind')
+    expect(sql(/set kind = \$2/)[0]![1]).toEqual([GROUP, 'business'])
+    expect(sql(/update public\.group_memberships set role/)[0]![1]).toEqual([GROUP, 'owner', 'steward'])
+  })
+
+  it('choosing the kind it already is changes nothing', async () => {
+    install({ kind: 'practice' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'group' })
+    expect(res.patched).toEqual([])
+    expect(sql(/set kind/)).toEqual([])
+  })
+})

@@ -31,6 +31,8 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { NextUp } from './NextUp'
+import { PAGE_KIND_LABEL, pageKindOf, pageLayoutFor } from '@/lib/groups/page-kind'
 import { isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -69,7 +71,7 @@ interface Props {
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
-const DRAFT_HEADING: Record<string, string> = { business: 'business', interest: 'group or meetup', practice: 'class' }
+const DRAFT_HEADING: Record<string, string> = { business: 'business', interest: 'group or meetup', event_anchored: 'organization' }
 
 export function ShopPublicPage({
   shop,
@@ -90,6 +92,7 @@ export function ShopPublicPage({
   contactOn = false,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
+  const layout = pageLayoutFor(shop.kind)
 
   // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
   // single place `photo_hidden_at` is consulted; nothing here reads
@@ -176,6 +179,10 @@ export function ShopPublicPage({
             </div>
           )}
         </div>
+        <div className="-mt-2 flex items-center gap-2">
+          <p data-testid="page-kind" className="text-body-sm text-[var(--color-fg-muted)]">{PAGE_KIND_LABEL[pageKindOf(shop.kind)]}</p>
+          <SectionEditButton section="kind" />
+        </div>
 
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
@@ -249,14 +256,46 @@ export function ShopPublicPage({
         )}
         <SectionEditButton section="where" className="self-start" />
 
+        {/* Page kinds (dispatch, 2026-10-05): each kind leads with its own
+            thing. A business: how to reach it, then Follow. A group: Join and
+            its next meetup. An organization: its upcoming events. */}
+        {layout.lead === 'contact' && (
+          <>
+            {loggedIn && contact && <PageContactBlock contact={contact} />}
+            {contactOn && <SectionEditButton section="contact" className="self-start" />}
+          </>
+        )}
+        {/* #267 — not on your own Page: your row there is your authority, not
+            a follow, and "Following" would have offered to end it. */}
+        {!viewerOwnsPage && (
+          <div className="mt-2">
+            <FollowPageButton
+              groupId={shop.groupId}
+              isPrivate={shop.discoverability === 'private'}
+              join={layout.lead === 'join'}
+              loggedIn={loggedIn}
+              following={viewerFollows}
+              returnTo={pagePath}
+              onFollow={followPageAction}
+              onUnfollow={unfollowPageAction}
+            />
+          </div>
+        )}
+        {layout.lead !== 'contact' && loggedIn && (
+          <NextUp posts={posts} heading={layout.lead === 'join' ? 'Next meetup' : 'Upcoming events'} limit={layout.lead === 'join' ? 1 : 3} />
+        )}
+
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
 
-        {/* #293 — hours and phone, under the description (they sat in the name
-            row); a component, so a group shows them only once added. */}
-        {loggedIn && contact && <PageContactBlock contact={contact} />}
-        {contactOn && <SectionEditButton section="contact" className="self-start" />}
+
+        {layout.lead !== 'contact' && (
+          <>
+            {loggedIn && contact && <PageContactBlock contact={contact} />}
+            {contactOn && <SectionEditButton section="contact" className="self-start" />}
+          </>
+        )}
 
         {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
             moderated after they appear (#287). */}
@@ -288,21 +327,6 @@ export function ShopPublicPage({
         <SectionEditButton section="links" className="self-start" />
         <SectionEditButton section="components" className="self-start" />
 
-        {/* #267 — not on your own Page: your row there is your authority, not
-            a follow, and "Following" would have offered to end it. */}
-        {!viewerOwnsPage && (
-          <div className="mt-2">
-            <FollowPageButton
-              groupId={shop.groupId}
-              isPrivate={shop.discoverability === 'private'}
-              loggedIn={loggedIn}
-              following={viewerFollows}
-              returnTo={pagePath}
-              onFollow={followPageAction}
-              onUnfollow={unfollowPageAction}
-            />
-          </div>
-        )}
       </header>
 
       {/* F037 — owner-only Locally Owned claim management. Rendered only when the
@@ -339,7 +363,7 @@ export function ShopPublicPage({
         />
       )}
 
-      {loggedIn && (
+      {loggedIn && layout.productsAndServices && (
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>
         {items.length === 0 ? (
@@ -387,6 +411,7 @@ export function ShopPublicPage({
         contact: contact ?? { phone: null, hours: null },
         contactOn,
         addressLabel: shop.placements[0]?.label ?? null,
+        kind: pageKindOf(shop.kind),
       }}
     >
       {page}

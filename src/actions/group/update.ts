@@ -38,6 +38,8 @@ import { appendEvent } from '../_lib/event-log'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import type { ActionContext } from '../_lib/context'
+import { applyKindChange } from './change-kind'
+import { PAGE_KINDS, type PageKind } from '../../lib/groups/page-kind'
 
 export const groupUpdateInput = z.object({
   groupId: z.string().uuid(),
@@ -57,6 +59,8 @@ export const groupUpdateInput = z.object({
   // Don, 2026-10-04 — hours and phone as a component: on by default for
   // shops and services, off for groups until the owner adds them.
   contactComponent: z.boolean().optional(),
+  // Page kinds (dispatch, 2026-10-05): changeable in settings.
+  pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
 })
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
@@ -199,6 +203,10 @@ export const groupUpdate = defineHandler(
           throw new ValidationError('group.update: a Page needs at least one tag')
         }
         patched.push('tags')
+      }
+
+      if (input.pageKind !== undefined && (await applyKindChange(client, input.groupId, row.kind, input.pageKind))) {
+        patched.push('kind')
       }
 
       if (input.contactComponent !== undefined) {

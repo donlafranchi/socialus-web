@@ -9,7 +9,7 @@ import { resolveActionContext } from '@/lib/action-context'
 import { groupActivate, groupCreate, ActionError } from '@/actions'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 
-const KINDS = ['business', 'practice', 'interest'] as const
+const KINDS = ['business', 'interest', 'event_anchored'] as const
 
 export async function startDraftAction(kind: (typeof KINDS)[number]): Promise<void> {
   if (!(KINDS as readonly string[]).includes(kind)) throw new Error('Choose what you are starting.')

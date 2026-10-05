@@ -17,6 +17,8 @@ import { buttonClass } from '@/components/ui/Button'
 interface Props {
   groupId: string
   isPrivate: boolean
+  /** Page kinds (dispatch, 2026-10-05): a group is joined, like a private Page. */
+  join?: boolean
   loggedIn: boolean
   following: boolean
   returnTo?: string
@@ -27,6 +29,7 @@ interface Props {
 export function FollowPageButton({
   groupId,
   isPrivate,
+  join = false,
   loggedIn,
   following,
   returnTo,
@@ -38,8 +41,8 @@ export function FollowPageButton({
   const [error, setError] = useState<string | null>(null)
   const [asking, setAsking] = useState(false)
 
-  const idle = isPrivate ? 'Join' : 'Follow'
-  const done = isPrivate ? 'Joined' : 'Following'
+  const idle = isPrivate || join ? 'Join' : 'Follow'
+  const done = isPrivate || join ? 'Joined' : 'Following'
 
   // #297 — signed out, nobody can follow (Don, 2026-10-04): the button says
   // so and opens the sign-up sheet. The tap is kept: sign-up comes back here.
