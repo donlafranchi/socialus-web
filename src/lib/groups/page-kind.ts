@@ -1,43 +1,53 @@
-// #363 — every Page is an organization; its two types are business and group,
-// and the use cases are presets under them (ruled 2026-10-05; socialus-plan
-// planning/PAGE-KINDS.md). groups.kind holds the type, groups.use_case the
-// preset. The type sets the defaults; any component can be added to any Page.
+// #363 — purpose first, type for listing (Don ruled A, 2026-10-05). Every Page
+// has ONE primary purpose: what it mainly accomplishes. Beta's four match
+// Create's four answers, each a loop in socialus-plan
+// product/needs/member-journey.md. Type (business or social group) follows from
+// the purpose by default, can be changed in settings, and is what browsing,
+// filters and the Locally owned badge (business only) read. groups.purpose
+// holds the purpose, groups.kind the type. Members have no type.
 
 export type PageKind = 'business' | 'group'
-export type UseCase = 'selling' | 'service' | 'gathering' | 'testing_interest'
+export type Purpose = 'gather' | 'sell' | 'offer' | 'create'
 
 export const PAGE_KINDS: readonly PageKind[] = ['business', 'group']
 export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', group: 'Social group' }
 
-export const USE_CASES: Record<PageKind, UseCase[]> = {
-  business: ['selling', 'service'],
-  group: ['gathering', 'testing_interest'],
+export const PURPOSES: readonly Purpose[] = ['sell', 'gather', 'offer', 'create']
+
+/** Placeholder ([public-is-draft]): the purpose as the owner chooses it. */
+export const PURPOSE_LABEL: Record<Purpose, string> = {
+  gather: 'Gather',
+  sell: 'Sell',
+  offer: 'Offer a service or teach',
+  create: 'Be creative',
 }
-export const ALL_USE_CASES: readonly UseCase[] = [...USE_CASES.business, ...USE_CASES.group]
 
 /** Placeholder ([public-is-draft]): the second half of the kind line. */
-export const USE_CASE_LABEL: Record<UseCase, string> = {
-  selling: 'Shop',
-  service: 'Services',
-  gathering: 'Events',
-  testing_interest: 'Idea',
+export const PURPOSE_SHORT: Record<Purpose, string> = {
+  gather: 'Meets up',
+  sell: 'Shop',
+  offer: 'Services and classes',
+  create: 'Something new',
 }
+
+/** The type a purpose implies; the owner can change it. */
+export const TYPE_FOR_PURPOSE: Record<Purpose, PageKind> = { sell: 'business', offer: 'business', gather: 'group', create: 'group' }
 
 /** A stored kind from before the two types (place, interest…) reads as group. */
 export function pageKindOf(stored: string): PageKind {
   return stored === 'business' ? 'business' : 'group'
 }
 
-export function presetOf(stored: string, useCase: string | null | undefined): UseCase {
-  const fits = USE_CASES[pageKindOf(stored)]
-  return fits.includes(useCase as UseCase) ? (useCase as UseCase) : fits[0]!
+/** The stored purpose, or the one the type implies when there is none. */
+export function purposeOf(stored: string, purpose: string | null | undefined): Purpose {
+  return PURPOSES.includes(purpose as Purpose) ? (purpose as Purpose) : pageKindOf(stored) === 'business' ? 'sell' : 'gather'
 }
 
-/** "Social group · Events", or "Social group · Running" when the Page names its collection.
- *  With the use case unknown (Explore's feed carries none yet), the type alone. */
-export function kindLine(stored: string, useCase: string | null | undefined, collection: string | null | undefined): string {
+/** "Social group · Meets up", or "Social group · Running" when the Page names its collection.
+ *  With the purpose unknown (Explore's feed carries none yet), the type alone. */
+export function kindLine(stored: string, purpose: string | null | undefined, collection: string | null | undefined): string {
   const type = PAGE_KIND_LABEL[pageKindOf(stored)]
-  const second = collection?.trim() || (useCase === undefined ? null : USE_CASE_LABEL[presetOf(stored, useCase)])
+  const second = collection?.trim() || (purpose === undefined ? null : PURPOSE_SHORT[purposeOf(stored, purpose)])
   return second ? `${type} · ${second}` : type
 }
 

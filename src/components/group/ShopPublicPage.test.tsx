@@ -20,7 +20,7 @@ const SHOP: ResolvedShop = {
   publicDescription: 'Real bread, baked local.',
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
-  useCase: 'selling',
+  purpose: 'sell',
   category: null,
   photoUrl: null,
   socialLinks: {},
@@ -378,7 +378,7 @@ describe('#301 — the draft Page, in the owner view', () => {
   })
 
   it('names a group draft specifically, not "group" alone', () => {
-    renderShop({ shop: { ...draft, kind: 'group', useCase: 'gathering' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    renderShop({ shop: { ...draft, kind: 'group', purpose: 'gather' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
     expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group or meetup Page')
   })
 
@@ -488,7 +488,7 @@ describe('Locally owned is for businesses only', () => {
   const badge = { label: 'Locally owned' } as never
   const claim = { zip: null } as never
   it('a social group shows neither the badge nor the question, even if handed them', () => {
-    renderShop({ shop: { ...SHOP, kind: 'group', useCase: 'gathering' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
+    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'gather' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
     expect(screen.queryByTestId('local-owner-badge')).toBeNull()
     expect(screen.queryByText(/locally owned claim/i)).toBeNull()
   })
@@ -500,10 +500,10 @@ describe('Locally owned is for businesses only', () => {
 
 
 // #363 — an unnamed draft is called by its use case.
-describe('#363 — draft heading by use case', () => {
-  it('an idea draft reads "Your new idea Page"', () => {
-    renderShop({ shop: { ...SHOP, kind: 'group', useCase: 'testing_interest', lifecycleState: 'draft', displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
-    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new idea Page')
+describe('#363 — draft heading by purpose', () => {
+  it('a Be creative draft reads "Your new Page"', () => {
+    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'create', lifecycleState: 'draft', displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-name')).toHaveTextContent(/^Your new Page$/)
   })
 })
 
@@ -515,11 +515,11 @@ describe('#363 — the kind line and what each type leads with', () => {
   const later = new Date(Date.now() + 9 * 864e5).toISOString()
   const post = (id: string, body: string, startsAt: string | null) => ({ id, body, createdAt: soon, updatedAt: soon, startsAt, endsAt: null, locationLabel: null })
   const posts = [post('p-later', 'Star party', later), post('p-note', 'Thanks all', null), post('p-soon', 'Float day', soon)]
-  const GROUP = { ...SHOP, kind: 'group', useCase: 'gathering', category: null }
+  const GROUP = { ...SHOP, kind: 'group', purpose: 'gather', category: null }
 
-  it('says type · use case under the name, or type · collection', () => {
+  it('says type · purpose under the name, or type · collection', () => {
     renderShop({ loggedIn: true, shop: GROUP })
-    expect(screen.getByTestId('page-kind')).toHaveTextContent('Social group · Events')
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Social group · Meets up')
     cleanup()
     renderShop({ loggedIn: true, shop: { ...SHOP, category: 'Bakery' } })
     expect(screen.getByTestId('page-kind')).toHaveTextContent('Business · Bakery')

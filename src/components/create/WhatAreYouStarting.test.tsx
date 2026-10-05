@@ -7,10 +7,10 @@ import { WhatAreYouStarting } from './WhatAreYouStarting'
 afterEach(cleanup)
 
 describe('#301 — What are you starting?', () => {
-  it('asks one question with three answers, and nothing else', () => {
+  it('asks one question with four answers, and nothing else', () => {
     render(<WhatAreYouStarting onStart={vi.fn()} />)
     expect(screen.getByRole('heading', { level: 1, name: 'What are you starting?' })).toBeInTheDocument()
-    expect(screen.getAllByRole('radio')).toHaveLength(3)
+    expect(screen.getAllByRole('radio')).toHaveLength(4)
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
@@ -26,16 +26,21 @@ describe('#301 — What are you starting?', () => {
     expect(business).toHaveAccessibleDescription(/^A Page for /)
     const group = screen.getByRole('radio', { name: 'Do you manage a group or meetup, or host events regularly?' })
     expect(group).toHaveAccessibleDescription(/^A Page for /)
-    for (const radio of screen.getAllByRole('radio')) {
+    // The first three are questions (2026-10-04); the fourth is Don's own "Be creative" (2026-10-05).
+    const radios = screen.getAllByRole('radio')
+    for (const radio of radios.slice(0, 3)) {
       expect(radio.getAttribute('aria-label') ?? radio.closest('label')!.textContent).toMatch(/\?/)
     }
+    expect(screen.getByRole('radio', { name: 'Be creative' })).toHaveAccessibleDescription('Start anything that helps you find your people.')
   })
 
-  it('starts each as the right kind', async () => {
+  // Don ruled A, 2026-10-05: each answer is the Page's purpose.
+  it('starts each with its purpose', async () => {
     for (const [label, kind] of [
-      [/sell products or services/i, 'selling'],
-      [/see who.s interested/i, 'testing_interest'],
-      [/group or meetup/i, 'gathering'],
+      [/sell products or services/i, 'sell'],
+      [/group or meetup/i, 'gather'],
+      [/teach a class/i, 'offer'],
+      [/be creative/i, 'create'],
     ] as const) {
       const onStart = vi.fn(async () => {})
       const { unmount } = render(<WhatAreYouStarting onStart={onStart} />)

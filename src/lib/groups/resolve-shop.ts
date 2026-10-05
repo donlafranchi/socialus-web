@@ -46,8 +46,8 @@ export interface ResolvedShop {
    *  `groups.category`. Kept on the type so the column can be dropped in a
    *  separate, reversible cleanup rather than in the same change. */
   category: string | null
-  /** #363 — the preset under the type: selling, service, gathering, testing_interest. */
-  useCase: string | null
+  /** #363 — the purpose: gather, sell, offer or create. */
+  purpose: string | null
   /** T145/T160 — the stored URL. Never project this directly: every surface
    *  that renders a Page photo goes through `visiblePhotoUrl()`, which is
    *  what makes a hide a hide. */
@@ -115,7 +115,7 @@ interface ShopRow {
   slug: string
   public_id: string
   kind: string
-  use_case: string | null
+  purpose: string | null
   /** The Page's own name. What every kind but `business` is known by. */
   name: string | null
   /** The Page's own free text. Same story as `name`. */
@@ -175,7 +175,7 @@ export async function resolveShop(
   let query = supabase
     .from('groups')
     .select(
-      'id, slug, public_id, kind, use_case, name, description, lifecycle_state, category, ' +
+      'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, social_links, photo_hidden_at, discoverability, ' +
         'group_businesses(display_name, public_description)',
     )
@@ -235,7 +235,7 @@ export async function resolveShop(
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
-    useCase: row.use_case,
+    purpose: row.purpose,
     photoUrl: row.photo_url,
     // Normalised on read as well as on write: a row written before the column
     // had its CHECK, or by anything that bypassed the action layer, must not

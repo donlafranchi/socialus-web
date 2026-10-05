@@ -13,7 +13,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {} }) }))
 const EDITOR = {
   groupId: 'g1', pagePath: '/g/x', memberId: 'm1', name: 'N', description: '', photoUrl: null,
-  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, useCase: 'selling' as const, productsOn: true, where: emptyWhere,
+  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, purpose: 'sell' as const, productsOn: true, where: emptyWhere,
 }
 const withEditor = (ui: ReactNode) =>
   render(<PageEditorProvider initial={EDITOR} onSave={async () => ({ ok: true })}>{ui}</PageEditorProvider>)
@@ -34,10 +34,10 @@ describe('the panel, from 1280', () => {
     expect(screen.getByText('Nobody follows your Page yet')).toBeInTheDocument()
   })
 
-  it('Settings opens the type of Page', () => {
+  it('Settings opens what the Page is for', () => {
     withEditor(<OwnerPanel pagePath="/g/x" followerCount={0} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Type of Page' }))
-    expect(screen.getByRole('dialog', { name: 'Type of Page' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'What your Page is for' }))
+    expect(screen.getByRole('dialog', { name: 'What your Page is for' })).toBeInTheDocument()
   })
 })
 

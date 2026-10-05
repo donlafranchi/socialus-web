@@ -34,7 +34,7 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
-import { kindLine, pageKindOf, pageLayoutFor, presetOf, type UseCase } from '@/lib/groups/page-kind'
+import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -77,7 +77,7 @@ interface Props {
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
-const DRAFT_HEADING: Record<UseCase, string> = { selling: 'business', service: 'business', gathering: 'group or meetup', testing_interest: 'idea' }
+const DRAFT_HEADING: Record<Purpose, string> = { sell: 'business', offer: 'class or service', gather: 'group or meetup', create: '' }
 
 export function ShopPublicPage({
   shop,
@@ -149,7 +149,7 @@ export function ShopPublicPage({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <DefaultArt kind={artKindFor(shop.kind, shop.useCase)} />
+          <DefaultArt kind={artKindFor(shop.kind, shop.purpose)} />
         )}
       </div>
       <SectionEditButton section="photo" className="-mt-2 mb-2" />
@@ -158,7 +158,7 @@ export function ShopPublicPage({
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
             {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
-              ? `Your new ${DRAFT_HEADING[presetOf(shop.kind, shop.useCase)]} Page`
+              ? `Your new ${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)] ? `${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]} ` : ''}Page`
               : shop.displayName}
           </h1>
           <SectionEditButton section="about" />
@@ -190,7 +190,7 @@ export function ShopPublicPage({
         <div className="-mt-2 flex items-center gap-2">
           <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
             {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
-            {kindLine(shop.kind, shop.useCase, shop.category)}
+            {kindLine(shop.kind, shop.purpose, shop.category)}
           </p>
           <SectionEditButton section="kind" />
         </div>
@@ -430,7 +430,7 @@ export function ShopPublicPage({
         contactOn,
         addressLabel: shop.placements[0]?.label ?? null,
         kind: pageKindOf(shop.kind),
-        useCase: presetOf(shop.kind, shop.useCase),
+        purpose: purposeOf(shop.kind, shop.purpose),
         productsOn,
         where: whereValueFrom(where ?? null),
       }}

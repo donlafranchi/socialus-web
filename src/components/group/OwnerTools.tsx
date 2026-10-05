@@ -93,7 +93,7 @@ function GroupBody({ group, pagePath, followerCount = 0, done }: Props & { group
       >
         Edit your Page
       </Button>
-      <Button variant="secondary" onClick={() => open('kind')}>Type of Page</Button>
+      <Button variant="secondary" onClick={() => open('kind')}>What your Page is for</Button>
     </>
   )
 }

@@ -28,20 +28,12 @@ import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
-import { PAGE_KINDS, PAGE_KIND_LABEL, USE_CASES, type PageKind, type UseCase } from '@/lib/groups/page-kind'
-
-// #363 — the use cases in Don's words (socialus-plan planning/PAGE-KINDS.md).
-const USE_CASE_CHOICE: Record<UseCase, string> = {
-  selling: 'Selling something',
-  service: 'Offering a service, paid or free',
-  gathering: 'Gathering people, once or many times',
-  testing_interest: 'Testing interest in an idea',
-}
+import { PAGE_KINDS, PAGE_KIND_LABEL, PURPOSES, PURPOSE_LABEL, TYPE_FOR_PURPOSE, type PageKind, type Purpose } from '@/lib/groups/page-kind'
 
 export type Section = 'kind' | 'about' | 'name' | 'description' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
 export const SECTION_TITLE: Record<Section, string> = {
-  kind: 'Type of Page',
+  kind: 'What your Page is for',
   about: 'About',
   name: 'Name',
   description: 'Description',
@@ -66,7 +58,7 @@ export interface EditorInitial {
   contactOn: boolean
   addressLabel: string | null
   kind: PageKind
-  useCase: UseCase
+  purpose: Purpose
   productsOn: boolean
   where: WhereValue
 }
@@ -138,14 +130,14 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [hours, setHours] = useState(initial.contact.hours)
   const [contactOn, setContactOn] = useState(initial.contactOn)
   const [kind, setKind] = useState<PageKind>(initial.kind)
-  const [useCase, setUseCase] = useState<UseCase>(initial.useCase)
+  const [purpose, setPurpose] = useState<Purpose>(initial.purpose)
   const [productsOn, setProductsOn] = useState(initial.productsOn)
   const [where, setWhere] = useState<WhereValue>(initial.where)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ kind, useCase, productsOn, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
+  const snapshot = () => JSON.stringify({ kind, purpose, productsOn, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -153,7 +145,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     setError(null)
     const base = { groupId: initial.groupId, pagePath: initial.pagePath }
     let patch: Partial<EditPageInput> = {}
-    if (section === 'kind') patch = { pageKind: kind, useCase }
+    if (section === 'kind') patch = { pageKind: kind, purpose }
     if (section === 'about') patch = { name, description }
     if (section === 'name') {
       if (name.trim() === '') return setError('Give your Page a name.')
@@ -218,26 +210,36 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
       <div className="flex flex-col gap-4">
         {section === 'kind' && (
           <div className="flex flex-col gap-4">
-            {PAGE_KINDS.map((k) => (
-              <fieldset key={k} className="flex flex-col gap-2">
-                <legend className="mb-1 text-sm font-semibold text-[var(--color-fg)]">{PAGE_KIND_LABEL[k]}</legend>
-                {USE_CASES[k].map((u) => (
-                  <label key={u} className={`flex min-h-tap cursor-pointer items-center gap-3 rounded-md border px-3 ${useCase === u ? 'border-[var(--color-charcoal-700)]' : 'border-[var(--color-border)]'}`}>
-                    <input
-                      type="radio"
-                      name="page-use-case"
-                      className="h-4 w-4"
-                      checked={useCase === u}
-                      onChange={() => {
-                        setKind(k)
-                        setUseCase(u)
-                      }}
-                    />
-                    <span className="text-body-sm text-[var(--color-fg)]">{USE_CASE_CHOICE[u]}</span>
-                  </label>
+            {/* Don ruled A, 2026-10-05: purpose first; the type follows it, and the owner can change it. */}
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-semibold text-[var(--color-fg)]">What it&rsquo;s mainly for</legend>
+              {PURPOSES.map((p) => (
+                <label key={p} className={`flex min-h-tap cursor-pointer items-center gap-3 rounded-md border px-3 ${purpose === p ? 'border-[var(--color-charcoal-700)]' : 'border-[var(--color-border)]'}`}>
+                  <input
+                    type="radio"
+                    name="page-purpose"
+                    className="h-4 w-4"
+                    checked={purpose === p}
+                    onChange={() => {
+                      setPurpose(p)
+                      setKind(TYPE_FOR_PURPOSE[p])
+                    }}
+                  />
+                  <span className="text-body-sm text-[var(--color-fg)]">{PURPOSE_LABEL[p]}</span>
+                </label>
+              ))}
+            </fieldset>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-[var(--color-fg)]">Listed as</span>
+              <select className="input" data-testid="edit-page-type" value={kind} onChange={(e) => setKind(e.target.value as PageKind)}>
+                {PAGE_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {PAGE_KIND_LABEL[k]}
+                  </option>
                 ))}
-              </fieldset>
-            ))}
+              </select>
+              <span className="text-caption text-[var(--color-fg-muted)]">How people find it when they browse. Locally owned is for businesses.</span>
+            </label>
           </div>
         )}
         {section === 'about' && (

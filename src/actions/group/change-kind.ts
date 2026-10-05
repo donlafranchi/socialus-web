@@ -1,10 +1,11 @@
-// #363 — a Page's type (business or group) and its use case are changeable in
-// settings (ruled 2026-10-05). The managing role follows the type
-// (managingRoleForKind), so the founder's role swaps with it, or they lose their
-// own Page. A business keeps a group_businesses row; one left behind by a change
-// away is harmless and kept.
+// #363 — a Page's purpose, and its type, are changeable in settings (Don ruled
+// A, 2026-10-05: purpose first, type for listing). A new purpose brings its
+// type unless the owner names one. The managing role follows the type
+// (managingRoleForKind), so the founder's role swaps with it, or they lose
+// their own Page. A business keeps a group_businesses row; one left behind by a
+// change away is harmless and kept.
 
-import { pageKindOf, presetOf, type PageKind, type UseCase } from '../../lib/groups/page-kind'
+import { pageKindOf, purposeOf, TYPE_FOR_PURPOSE, type PageKind, type Purpose } from '../../lib/groups/page-kind'
 import { managingRoleForKind } from './constants'
 
 type Client = { query: (sql: string, params?: unknown[]) => Promise<unknown> }
@@ -12,14 +13,14 @@ type Client = { query: (sql: string, params?: unknown[]) => Promise<unknown> }
 export async function applyTypeChange(
   client: Client,
   groupId: string,
-  current: { kind: string; useCase: string | null },
-  next: { kind?: PageKind; useCase?: UseCase },
+  current: { kind: string; purpose: string | null },
+  next: { kind?: PageKind; purpose?: Purpose },
 ): Promise<boolean> {
   const from = pageKindOf(current.kind)
-  const to = next.kind ?? from
-  const useCase = presetOf(to, next.useCase ?? (to === from ? current.useCase : null))
-  if (to === current.kind && useCase === current.useCase) return false
-  await client.query(`update public.groups set kind = $2, use_case = $3 where id = $1`, [groupId, to, useCase])
+  const purpose = next.purpose ?? purposeOf(current.kind, current.purpose)
+  const to = next.kind ?? (next.purpose !== undefined && next.purpose !== current.purpose ? TYPE_FOR_PURPOSE[next.purpose] : from)
+  if (to === current.kind && purpose === current.purpose) return false
+  await client.query(`update public.groups set kind = $2, purpose = $3 where id = $1`, [groupId, to, purpose])
   const fromRole = managingRoleForKind(from)
   const toRole = managingRoleForKind(to)
   if (fromRole !== toRole) {

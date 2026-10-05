@@ -33,7 +33,7 @@ const initial = {
   contactOn: true,
   addressLabel: '3117 Broadway, Sacramento',
   kind: 'business' as const,
-  useCase: 'selling' as const,
+  purpose: 'sell' as const,
   productsOn: true,
   where: emptyWhere,
 }
@@ -157,8 +157,8 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
   })
 })
 
-describe('#363 — type and use case, changeable in settings (ruled 2026-10-05)', () => {
-  it('offers the four use cases under the two types and saves the one chosen', async () => {
+describe('#363 — purpose first, type for listing (Don ruled A, 2026-10-05)', () => {
+  const open = () => {
     render(
       <PageEditorProvider initial={initial} onSave={onSave}>
         <EditToggle />
@@ -166,13 +166,24 @@ describe('#363 — type and use case, changeable in settings (ruled 2026-10-05)'
       </PageEditorProvider>,
     )
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: /edit type of page/i }))
-    expect(screen.getByRole('group', { name: 'Business' })).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'Social group' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /edit what your page is for/i }))
+  }
+
+  it('offers the four purposes, and the type follows the one chosen', async () => {
+    open()
     expect(screen.getAllByRole('radio')).toHaveLength(4)
-    fireEvent.click(screen.getByRole('radio', { name: /testing interest/i }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Be creative' }))
+    expect(screen.getByTestId('edit-page-type')).toHaveValue('group')
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group', useCase: 'testing_interest' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group', purpose: 'create' }))
+  })
+
+  it('the owner can list it as a different type than its purpose implies', async () => {
+    open()
+    fireEvent.click(screen.getByRole('radio', { name: 'Offer a service or teach' }))
+    fireEvent.change(screen.getByTestId('edit-page-type'), { target: { value: 'group' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group', purpose: 'offer' }))
   })
 })
 
