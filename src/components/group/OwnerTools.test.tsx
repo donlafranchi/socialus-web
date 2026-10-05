@@ -33,10 +33,10 @@ describe('the panel, from 1280', () => {
     expect(screen.getByText('Nobody follows your Page yet')).toBeInTheDocument()
   })
 
-  it('Settings opens the kind of Page', () => {
+  it('Settings opens the type of Page', () => {
     withEditor(<OwnerPanel pagePath="/g/x" followerCount={0} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Kind of Page' }))
-    expect(screen.getByRole('dialog', { name: 'Kind of Page' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Type of Page' }))
+    expect(screen.getByRole('dialog', { name: 'Type of Page' })).toBeInTheDocument()
   })
 })
 
