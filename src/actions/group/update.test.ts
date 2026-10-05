@@ -246,3 +246,15 @@ describe('#285 — tags on a live Page can be edited any time (Don, 2026-10-01)'
     expect(appendEvent).toHaveBeenCalledTimes(1)
   })
 })
+
+// Don, 2026-10-04: hours and phone are a component an owner can add to a group.
+describe('hours and phone, switched on or off', () => {
+  it('records the choice in the Page metadata, touching nothing else', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, contactComponent: true })
+    expect(out.patched).toContain('components')
+    const [text, params] = sql(/jsonb_build_object\('contact'/)[0]!
+    expect(text).toMatch(/update public\.groups\s+set metadata/)
+    expect(params).toEqual([GROUP, true])
+  })
+})

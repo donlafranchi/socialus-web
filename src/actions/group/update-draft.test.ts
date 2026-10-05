@@ -191,3 +191,12 @@ describe('#301 — group.update_draft saves the tags', () => {
     expect(calls(/page_tags/)).toHaveLength(0)
   })
 })
+
+describe('hours and phone on a draft', () => {
+  it('records the switch', async () => {
+    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, contactComponent: false })
+    expect(out.patchedFields).toContain('components')
+    const call = (query.mock.calls as unknown as [string, unknown[]][]).find(([s]) => /jsonb_build_object\('contact'/.test(s))
+    expect(call![1]).toEqual([GROUP, false])
+  })
+})
