@@ -29,6 +29,7 @@ export async function postToPageAction(input: {
   body: string
   startsAt?: string | null
   locationId?: string | null
+  howToFind?: string | null
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
@@ -45,6 +46,7 @@ export async function editPagePostAction(input: {
   body: string
   startsAt?: string | null
   locationId?: string | null
+  howToFind?: string | null
 }): Promise<ActionResult<{ postId: string }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')

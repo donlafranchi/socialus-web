@@ -7,6 +7,7 @@
 
 import { resolvePageTags } from './page-tags'
 import { resolvePageContact, type PageContact } from './page-contact'
+import { resolvePageWhere, type PageWhere } from './page-where'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   resolveShopItems,
@@ -53,6 +54,8 @@ export interface PageView {
   tags: string[]
   /** #293 — phone and hours, for signed-in visitors only; null signed out. */
   contact: PageContact | null
+  /** #348 — where it is: signed-in visitors only; null signed out. */
+  where: PageWhere | null
 }
 
 export async function loadPageView(
@@ -101,6 +104,7 @@ export async function loadPageView(
       : 0
   const tags = auth.user ? await resolvePageTags(supabase, shop.groupId) : []
   const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
+  const where = auth.user ? await resolvePageWhere(supabase, shop.groupId) : null
 
   // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
   // this the Announcements section would not render at all and an
@@ -132,5 +136,6 @@ export async function loadPageView(
     draftTagCount,
     tags,
     contact,
+    where,
   }
 }
