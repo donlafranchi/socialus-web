@@ -29,9 +29,17 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
+import { UnclaimedBox } from './UnclaimedBox'
+import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { COPY } from '@/lib/copy'
 
 interface Props {
   shop: ResolvedShop
+  /** #353 — the unclaimed box's writes; the demo page passes stand-ins. */
+  unclaimedActions?: {
+    claim: typeof requestUnclaimedClaimAction
+    remove: typeof requestUnclaimedRemovalAction
+  }
   badge: LocalOwnerBadge | null
   items: ShopItem[]
   loggedIn: boolean
@@ -76,6 +84,7 @@ export function ShopPublicPage({
   where = null,
   withheldPosts = [],
   followerCount = 0,
+  unclaimedActions,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -136,6 +145,19 @@ export function ShopPublicPage({
           <DefaultArt kind={artKindFor(shop.kind)} />
         )}
       </div>
+      {/* #353 — a picture from their own site is credited and linked. */}
+      {photoUrl && shop.unclaimed?.photoCredit && (
+        <p data-testid="photo-credit" className="-mt-3 mb-4 text-xs text-gray-500">
+          Photo:{' '}
+          {shop.unclaimed.photoSourceUrl ? (
+            <a href={shop.unclaimed.photoSourceUrl} rel="noopener nofollow" target="_blank" className="underline">
+              {shop.unclaimed.photoCredit}
+            </a>
+          ) : (
+            shop.unclaimed.photoCredit
+          )}
+        </p>
+      )}
 
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -148,6 +170,12 @@ export function ShopPublicPage({
               className="chip chip-selected whitespace-nowrap text-xs"
             >
               {badge.label}
+            </span>
+          )}
+          {/* #353 — a neutral tag after the name (Yelp's placement). */}
+          {shop.unclaimed && (
+            <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+              {COPY.unclaimedLabel}
             </span>
           )}
 
@@ -235,6 +263,17 @@ export function ShopPublicPage({
 
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
+        )}
+        {shop.unclaimed?.publicInfoUrl && (
+          <a
+            data-testid="description-credit"
+            href={shop.unclaimed.publicInfoUrl}
+            rel="noopener nofollow"
+            target="_blank"
+            className="text-xs text-gray-500 underline"
+          >
+            {COPY.unclaimedDescriptionCredit}
+          </a>
         )}
 
         {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
@@ -336,6 +375,14 @@ export function ShopPublicPage({
           </ul>
         )}
       </section>
+      )}
+      {shop.unclaimed && (
+        <UnclaimedBox
+          groupId={shop.groupId}
+          pagePath={pagePath ?? `/g/${shop.publicId}`}
+          onClaim={unclaimedActions?.claim ?? requestUnclaimedClaimAction}
+          onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
+        />
       )}
      </div>
       {showOwnerPanel && pagePath ? (

@@ -24,6 +24,7 @@ const SHOP: ResolvedShop = {
   photoHiddenAt: null,
   discoverability: 'listed',
   placements: [],
+  unclaimed: null,
   founder: {
     handle: 'maya',
     displayName: 'Maya Rivera',
@@ -445,5 +446,31 @@ describe('Locally owned is for businesses only', () => {
   it('a service too', () => {
     renderShop({ shop: { ...SHOP, kind: 'practice' }, badge, loggedIn: true })
     expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
+  })
+})
+
+describe('ShopPublicPage — #353 an unclaimed Page', () => {
+  const UNCLAIMED: ResolvedShop = {
+    ...SHOP,
+    photoUrl: 'https://x/cover.webp',
+    founder: null,
+    unclaimed: { publicInfoUrl: 'https://bakery.example', photoCredit: 'Bakery (from their website)', photoSourceUrl: 'https://bakery.example/about' },
+  }
+
+  it('labels it, credits the picture and the description, and ends with Claim and Remove', () => {
+    renderShop({ shop: UNCLAIMED })
+    expect(screen.getByTestId('unclaimed-label')).toHaveTextContent('Unclaimed: added from public info')
+    expect(screen.getByTestId('photo-credit').querySelector('a')).toHaveAttribute('href', 'https://bakery.example/about')
+    expect(screen.getByTestId('description-credit')).toHaveAttribute('href', 'https://bakery.example')
+    expect(screen.getByTestId('unclaimed-claim')).toBeInTheDocument()
+    expect(screen.getByTestId('unclaimed-remove')).toBeInTheDocument()
+    expect(screen.queryByTestId('shop-founder')).toBeNull()
+  })
+
+  it('shows none of it on a member-made Page', () => {
+    renderShop()
+    for (const id of ['unclaimed-label', 'photo-credit', 'description-credit', 'unclaimed-box']) {
+      expect(screen.queryByTestId(id)).toBeNull()
+    }
   })
 })

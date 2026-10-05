@@ -57,10 +57,20 @@ export interface ResolvedShop {
   /** F067 — a private Page is joined; anything else is followed. */
   discoverability: string
   founder: ShopFounder | null
+  /** #353 — set on a real business added from public info, until claimed. */
+  unclaimed: ShopUnclaimed | null
   /** T143 — where this Page currently resolves to. A list, not a single
    *  point: at most one today (the anchor); bounded at two once
    *  appearances land (the anchor plus at most one active appearance). */
   placements: Placement[]
+}
+
+export interface ShopUnclaimed {
+  /** Their own site or social profile: what the description is credited to. */
+  publicInfoUrl: string | null
+  /** e.g. "Corner Bakery (from their website)". */
+  photoCredit: string | null
+  photoSourceUrl: string | null
 }
 
 export interface ShopItem {
@@ -123,6 +133,10 @@ interface ShopRow {
   social_links: unknown
   photo_hidden_at: string | null
   discoverability: string
+  unclaimed_at: string | null
+  public_info_url: string | null
+  photo_credit: string | null
+  photo_source_url: string | null
   group_businesses:
     | { display_name: string; public_description: string }[]
     | { display_name: string; public_description: string }
@@ -174,6 +188,7 @@ export async function resolveShop(
     .select(
       'id, slug, public_id, kind, name, description, lifecycle_state, category, ' +
         'photo_url, social_links, photo_hidden_at, discoverability, ' +
+        'unclaimed_at, public_info_url, photo_credit, photo_source_url, ' +
         'group_businesses(display_name, public_description)',
     )
     .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
@@ -240,7 +255,11 @@ export async function resolveShop(
     photoHiddenAt: row.photo_hidden_at,
     discoverability: row.discoverability,
     placements,
-    founder: founderRow
+    unclaimed: row.unclaimed_at
+      ? { publicInfoUrl: row.public_info_url, photoCredit: row.photo_credit, photoSourceUrl: row.photo_source_url }
+      : null,
+    // An unclaimed Page's founder is the system member, not a person to show.
+    founder: founderRow && !row.unclaimed_at
       ? {
           handle: founderRow.handle,
           displayName: founderRow.display_name,

@@ -56,3 +56,14 @@ export {
 } from './post'
 
 export { groupUpdate, groupUpdateInput, type GroupUpdateInput, type GroupUpdateResult } from './update'
+
+// #353 — unclaimed Pages: remove (hides at once), claim (a contact form), restore (operator).
+export {
+  groupUnclaimedRemove,
+  groupUnclaimedRemoveInput,
+  groupUnclaimedClaim,
+  groupUnclaimedClaimInput,
+  groupUnclaimedRestore,
+  groupUnclaimedRestoreInput,
+  DAILY_LIMIT_PER_DEVICE,
+} from './unclaimed'
