@@ -5,6 +5,7 @@
 // canonical route is the only thing rendering a Page, and so the next surface
 // that needs it does not copy the six reads and get one of them wrong.
 
+import { resolvePageTags } from './page-tags'
 import { resolvePageContact, type PageContact } from './page-contact'
 import { resolvePageWhere, type PageWhere } from './page-where'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -46,6 +47,8 @@ export interface PageView {
    *  anyone who does not run it: the count sits inside the composer, and
    *  nobody else has one. */
   followerCount: number
+  /** #316 — the Page's tags; empty signed out (F093). */
+  tags: string[]
   /** #293 — phone and hours, for signed-in visitors only; null signed out. */
   contact: PageContact | null
   /** #348 — where it is: signed-in visitors only; null signed out. */
@@ -91,6 +94,7 @@ export async function loadPageView(
   // `memberships_select_listed_group` except for whoever runs the Page), but a
   // read nobody renders is a read worth not making.
   const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
+  const tags = auth.user ? await resolvePageTags(supabase, shop.groupId) : []
   const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
   const where = auth.user ? await resolvePageWhere(supabase, shop.groupId) : null
 
@@ -121,6 +125,7 @@ export async function loadPageView(
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
     followerCount,
+    tags,
     contact,
     where,
   }

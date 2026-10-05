@@ -325,6 +325,22 @@ describe('#267 — the owner on their own Page', () => {
   })
 })
 
+describe('#316 — a Page shows its tags as #hashtags, signed in only', () => {
+  it('signed in, each tag is a chip', () => {
+    renderShop({ loggedIn: true, tags: ['Sourdough'] })
+    expect(screen.getByRole('link', { name: '#Sourdough' })).toBeInTheDocument()
+  })
+  it('sit under the description, like hashtags under a post', () => {
+    renderShop({ loggedIn: true, tags: ['Sourdough'] })
+    const desc = screen.getByText('Real bread, baked local.')
+    expect(desc.compareDocumentPosition(screen.getByTestId('tag-chips')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+  it('signed out, none, even if handed some', () => {
+    renderShop({ loggedIn: false, tags: ['Sourdough'] })
+    expect(screen.queryByTestId('tag-chips')).toBeNull()
+  })
+})
+
 describe('#293 — phone and hours on the Page', () => {
   it('shows them to a signed-in visitor', () => {
     renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } })

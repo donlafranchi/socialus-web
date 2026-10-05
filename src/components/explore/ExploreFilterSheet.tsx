@@ -19,6 +19,7 @@
 // Two groups left. Distance and Sort went with T156: see
 // `@/lib/browse/filters` for why each one could not stay honest.
 
+import { hashtag } from '@/components/tags/TagChips'
 import { useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import {
@@ -125,7 +126,7 @@ export function ExploreFilterSheet({
                   name={`${groupId}-tag-${tag}`}
                   /* The tag IS the label. Creators type their own — nothing
                      seeds a display name to look up (T159, #64). */
-                  label={tag}
+                  label={hashtag(tag)}
                   checked={draft.tags.includes(tag)}
                   onChange={() => setDraft((d) => toggleTag(d, tag))}
                 />
