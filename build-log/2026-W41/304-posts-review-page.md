@@ -1,0 +1,5 @@
+# change #304 — the review page, to F101
+
+`/admin/reports` becomes F101's Posts page: one row per reported subject (today, a Page's photo), waiting rows first, then severity, then oldest hidden; sort by most serious, oldest or most reports; Waiting or All. Each waiting row has full-width Approve and Remove (48 px) and swipes (right approves, left removes, the action's colour and word under the row). A decision waits five seconds behind an Undo toast before it reaches the server, so an undone one writes nothing; then it decides every open report on the row with the default reason (Approve: nothing wrong; Remove: not suitable). The next row moves up. Severity 1 asks once more before Approve. Photos are blurred until pressed and held, except spam-tier. A/R/J/K/U on a keyboard. "History and reasons" opens each report's history, with today's reversal and reason change.
+
+Waits on F078: report categories (so severity is null today and the badge doesn't show), Post rows, AI suggestions (F100), the poster's answer and reporter counters (F102), and criterion 15's 50-row browser timing test.
