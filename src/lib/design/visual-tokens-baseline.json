@@ -77,9 +77,6 @@
     "text-[15px]",
     "tracking-[0.08em]"
   ],
-  "src/components/group/ReportSheet.tsx": [
-    "w-[28rem]"
-  ],
   "src/components/sell/GatheringComposer.tsx": [
     "min-h-[5rem]"
   ],
