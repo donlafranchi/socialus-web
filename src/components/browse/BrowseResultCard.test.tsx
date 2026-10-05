@@ -163,7 +163,7 @@ describe('the card with an end time', () => {
 describe('the kind line', () => {
   it('says what kind of Page it is', () => {
     render(<BrowseResultCard result={post({ groupKind: 'group' })} />)
-    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Group')
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent(/^Social group$/)
     cleanup()
     render(<BrowseResultCard result={post({ groupKind: 'business' })} />)
     expect(screen.getByTestId('tile-kind')).toHaveTextContent('Business')

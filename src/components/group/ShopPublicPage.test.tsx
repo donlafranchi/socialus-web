@@ -503,7 +503,7 @@ describe('#363 — the kind line and what each type leads with', () => {
 
   it('says type · use case under the name, or type · collection', () => {
     renderShop({ loggedIn: true, shop: GROUP })
-    expect(screen.getByTestId('page-kind')).toHaveTextContent('Group · Events')
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Social group · Events')
     cleanup()
     renderShop({ loggedIn: true, shop: { ...SHOP, category: 'Bakery' } })
     expect(screen.getByTestId('page-kind')).toHaveTextContent('Business · Bakery')

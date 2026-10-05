@@ -7,7 +7,7 @@ export type PageKind = 'business' | 'group'
 export type UseCase = 'selling' | 'service' | 'gathering' | 'testing_interest'
 
 export const PAGE_KINDS: readonly PageKind[] = ['business', 'group']
-export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', group: 'Group' }
+export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', group: 'Social group' }
 
 export const USE_CASES: Record<PageKind, UseCase[]> = {
   business: ['selling', 'service'],
@@ -33,7 +33,7 @@ export function presetOf(stored: string, useCase: string | null | undefined): Us
   return fits.includes(useCase as UseCase) ? (useCase as UseCase) : fits[0]!
 }
 
-/** "Group · Events", or "Group · Running" when the Page names its collection.
+/** "Social group · Events", or "Social group · Running" when the Page names its collection.
  *  With the use case unknown (Explore's feed carries none yet), the type alone. */
 export function kindLine(stored: string, useCase: string | null | undefined, collection: string | null | undefined): string {
   const type = PAGE_KIND_LABEL[pageKindOf(stored)]
