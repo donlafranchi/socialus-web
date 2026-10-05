@@ -1,4 +1,4 @@
-// Page kinds (dispatch, 2026-10-05): a group leads with its next meetup (Meetup),
+// Page kinds (dispatch, 2026-10-05): a group leads with its next event (Meetup),
 // an organization with its upcoming events (Eventbrite organizer pages). Each
 // links down to the post itself.
 

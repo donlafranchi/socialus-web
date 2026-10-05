@@ -34,7 +34,7 @@ import { PAGE_KINDS, PAGE_KIND_LABEL, type PageKind } from '@/lib/groups/page-ki
 
 const KIND_HINT: Record<PageKind, string> = {
   business: 'You sell, serve or make something. Leads with how to reach you.',
-  group: 'People who meet up around something they share. Leads with Join and your next meetup.',
+  group: 'People who meet up around something they share. Leads with Join and your next event.',
   organization: 'A nonprofit, school, church or festival. Leads with your upcoming events.',
 }
 

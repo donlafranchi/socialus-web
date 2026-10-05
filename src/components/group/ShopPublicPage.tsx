@@ -282,7 +282,7 @@ export function ShopPublicPage({
           </div>
         )}
         {layout.lead !== 'contact' && loggedIn && (
-          <NextUp posts={posts} heading={layout.lead === 'join' ? 'Next meetup' : 'Upcoming events'} limit={layout.lead === 'join' ? 1 : 3} />
+          <NextUp posts={posts} heading={layout.lead === 'join' ? 'Next event' : 'Upcoming events'} limit={layout.lead === 'join' ? 1 : 3} />
         )}
 
         {shop.publicDescription && (

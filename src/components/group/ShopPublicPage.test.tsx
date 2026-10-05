@@ -511,10 +511,10 @@ describe('Page kinds — the kind line and what each kind leads with', () => {
     expect(screen.getByTestId('page-kind')).toHaveTextContent('Group')
   })
 
-  it('a group: Join, its next meetup, and no products & services', () => {
+  it('a group: Join, its next event, and no products & services', () => {
     renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'interest' }, posts })
     expect(screen.getByRole('button', { name: 'Join' })).toBeInTheDocument()
-    expect(screen.getByTestId('page-next-up')).toHaveTextContent(/next meetup/i)
+    expect(screen.getByTestId('page-next-up')).toHaveTextContent(/next event/i)
     expect(screen.getByTestId('page-next-up')).toHaveTextContent('Float day')
     expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
