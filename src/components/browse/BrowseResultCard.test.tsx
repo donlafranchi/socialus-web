@@ -159,13 +159,13 @@ describe('the card with an end time', () => {
   })
 })
 
-// Page kinds (dispatch, 2026-10-05): the kind under the name, on cards too.
+// The kind line under the name, on cards too (ruled 2026-10-05).
 describe('the kind line', () => {
   it('says what kind of Page it is', () => {
     render(<BrowseResultCard result={post({ groupKind: 'place' })} />)
-    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Group')
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Social group')
     cleanup()
-    render(<BrowseResultCard result={post({ groupKind: 'event_anchored' })} />)
-    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Organization')
+    render(<BrowseResultCard result={post({ groupKind: 'business' })} />)
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Business')
   })
 })

@@ -494,7 +494,7 @@ describe('#363 — draft heading by kind', () => {
   })
 })
 
-// Page kinds (dispatch, 2026-10-05): the kind under the name, and each kind
+// Page types (ruled 2026-10-05): the kind line under the name, and each preset
 // leads with its own thing. Precedent: Meetup (Join, next event), Google
 // Business Profile (Call), Eventbrite organizer pages (upcoming events).
 describe('Page kinds — the kind line and what each kind leads with', () => {
@@ -503,12 +503,12 @@ describe('Page kinds — the kind line and what each kind leads with', () => {
   const post = (id: string, body: string, startsAt: string | null) => ({ id, body, createdAt: soon, updatedAt: soon, startsAt, endsAt: null, locationLabel: null })
   const posts = [post('p-later', 'Star party', later), post('p-note', 'Thanks all', null), post('p-soon', 'Float day', soon)]
 
-  it('says the kind under the name', () => {
-    renderShop({ loggedIn: true })
-    expect(screen.getByTestId('page-kind')).toHaveTextContent('Business')
+  it('says the kind under the name: kind · main collection', () => {
+    renderShop({ loggedIn: true, shop: { ...SHOP, category: 'Bakery' } })
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Business · Bakery')
     cleanup()
-    renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'interest' } })
-    expect(screen.getByTestId('page-kind')).toHaveTextContent('Group')
+    renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'interest', category: null } })
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Social group')
   })
 
   it('a group: Join, its next event, and no products & services', () => {

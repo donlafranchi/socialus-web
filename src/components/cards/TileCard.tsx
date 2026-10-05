@@ -31,7 +31,7 @@ import { locationLine, type CardLocation } from './location'
 
 export interface TileCardProps {
   title: string
-  /** Page kinds (dispatch, 2026-10-05) — Business, Group or Organization, under the name. */
+  /** The kind line under the name (ruled 2026-10-05): "Business", "Social group". */
   kindLine?: string
   /** Optional. Reserves two lines whether present or not. */
   tagline?: string | null

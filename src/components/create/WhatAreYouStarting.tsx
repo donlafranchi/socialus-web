@@ -7,7 +7,9 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
-// #363 — Business, Group, Organization, stored as business / interest / event_anchored.
+// #363 — two types, Business and Social group; the questions are presets under
+// them (ruled 2026-10-05): business, a group or meetup (interest), an
+// organization that holds events (event_anchored).
 export type StartKind = 'business' | 'interest' | 'event_anchored'
 
 // Don, 2026-10-04: each kind is a question, with one line on what the Page
