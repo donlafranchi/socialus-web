@@ -249,6 +249,8 @@
     }
   ],
   "handlers": [
+    "builder.content_delete_all",
+    "builder.content_set_visible",
     "group.activate",
     "group.create",
     "group.follow",
