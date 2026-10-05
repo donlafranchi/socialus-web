@@ -11,17 +11,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Signed out is a state the app already handles everywhere. Failing to refresh
 // a token means signed out; it does not mean the request is unserviceable.
 
-const { getUser } = vi.hoisted(() => ({ getUser: vi.fn() }))
+const { getUser, signOut } = vi.hoisted(() => ({ getUser: vi.fn(), signOut: vi.fn() }))
 
 vi.mock('@supabase/ssr', () => ({
-  createServerClient: () => ({ auth: { getUser } }),
+  createServerClient: () => ({ auth: { getUser, signOut } }),
 }))
 
 import { proxy } from './proxy'
 import type { NextRequest } from 'next/server'
 
-function request(path = '/you', method = 'GET'): NextRequest {
-  const cookies = new Map<string, { name: string; value: string }>()
+function request(path = '/you', method = 'GET', initial: Record<string, string> = {}): NextRequest {
+  const cookies = new Map<string, { name: string; value: string }>(
+    Object.entries(initial).map(([name, value]) => [name, { name, value }]),
+  )
   return {
     cookies: {
       getAll: () => [...cookies.values()],
@@ -92,5 +94,32 @@ describe('proxy — F081, the phone comes first', () => {
     getUser.mockResolvedValue({ data: { user: unverified }, error: null })
     const res = await proxy(request('/explore'))
     expect(res.status).toBe(200)
+  })
+})
+
+describe('proxy — #400 a preview-pass session ends when its token rotates or it turns 30 days', () => {
+  const PREVIEW = { VERCEL_ENV: 'preview', PREVIEW_PASS_TOKEN: 'a'.repeat(32), PREVIEW_PASS_EMAIL: 'don@example.test' }
+  beforeEach(() => {
+    Object.assign(process.env, PREVIEW)
+    getUser.mockResolvedValue({ data: { user: { id: 'm1' } }, error: null })
+    signOut.mockResolvedValue({ error: null })
+  })
+
+  it('keeps a pass session made with the current token', async () => {
+    const { passCookieValue } = await import('./lib/auth/preview-pass')
+    await proxy(request('/you', 'GET', { su_preview_pass: passCookieValue(process.env, new Date()) }))
+    expect(signOut).not.toHaveBeenCalled()
+  })
+
+  it('signs out a pass session once the token is rotated', async () => {
+    const { passCookieValue } = await import('./lib/auth/preview-pass')
+    const old = passCookieValue({ ...PREVIEW, PREVIEW_PASS_TOKEN: 'b'.repeat(32) }, new Date())
+    await proxy(request('/you', 'GET', { su_preview_pass: old }))
+    expect(signOut).toHaveBeenCalledWith({ scope: 'local' })
+  })
+
+  it('leaves an ordinary session alone', async () => {
+    await proxy(request('/you'))
+    expect(signOut).not.toHaveBeenCalled()
   })
 })
