@@ -76,9 +76,11 @@ export const OBJECT_TYPES: readonly ObjectType[] = [
     status: 'live',
     definedIn: 'nouns.md § Page — the canonical definition',
     note:
-      'The person or people behind the listing. Every kind gets one, including a one-time ' +
-      'gathering; what differs between kinds is the tools offered, never whether it is a Page. ' +
-      'How many kinds there are is unruled, which is why no link is keyed to groups.kind.',
+      'The person or people behind the listing. Every Page has ONE primary purpose, what it ' +
+      'mainly accomplishes (gather, sell, offer, create; purposes.ts, each citing its loops), and ' +
+      'a type for listing (business or social group) that follows from the purpose and can be ' +
+      'changed (ruled 2026-10-05). The type decides browsing, filters and the Locally owned badge, ' +
+      'never whether it is a Page. No link is keyed to either.',
   },
   {
     name: 'Item',

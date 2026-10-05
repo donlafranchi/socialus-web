@@ -40,7 +40,7 @@ import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import type { ActionContext } from '../_lib/context'
 import { applyTypeChange } from './change-kind'
-import { PAGE_KINDS, ALL_USE_CASES, type PageKind, type UseCase } from '../../lib/groups/page-kind'
+import { PAGE_KINDS, PURPOSES, type PageKind, type Purpose } from '../../lib/groups/page-kind'
 
 export const groupUpdateInput = z.object({
   groupId: z.string().uuid(),
@@ -64,7 +64,7 @@ export const groupUpdateInput = z.object({
   productsComponent: z.boolean().optional(),
   // Page kinds (dispatch, 2026-10-05): changeable in settings.
   pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
-  useCase: z.enum(ALL_USE_CASES as [UseCase, ...UseCase[]]).optional(),
+  purpose: z.enum(PURPOSES as [Purpose, ...Purpose[]]).optional(),
 }).merge(whereInput)
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
@@ -94,10 +94,10 @@ export const groupUpdate = defineHandler(
       const groupRes = await client.query<{
         id: string
         kind: string
-        use_case: string | null
+        purpose: string | null
         lifecycle_state: string
       }>(
-        `select id, kind, use_case, lifecycle_state
+        `select id, kind, purpose, lifecycle_state
            from public.groups
           where id = $1
           for update`,
@@ -212,8 +212,8 @@ export const groupUpdate = defineHandler(
       }
 
       if (
-        (input.pageKind !== undefined || input.useCase !== undefined) &&
-        (await applyTypeChange(client, input.groupId, { kind: row.kind, useCase: row.use_case }, { kind: input.pageKind, useCase: input.useCase }))
+        (input.pageKind !== undefined || input.purpose !== undefined) &&
+        (await applyTypeChange(client, input.groupId, { kind: row.kind, purpose: row.purpose }, { kind: input.pageKind, purpose: input.purpose }))
       ) {
         patched.push('kind')
       }

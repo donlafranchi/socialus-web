@@ -6,30 +6,34 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import type { Purpose } from '@/lib/groups/page-kind'
 
-// #363 — each question is a use case, a preset under one of the two types
-// (ruled 2026-10-05): selling under business; gathering and testing interest
-// under group. Service is chosen later, in the Page's settings.
-export type StartKind = 'selling' | 'gathering' | 'testing_interest'
+// #363 — each answer is the Page's purpose (Don ruled A, 2026-10-05: purpose
+// first, type for listing). Don, 2026-10-04: each is a question with one line on
+// what the Page is for; Don, 2026-10-05: a fourth, in his words, "A be creative
+// option… we exist to help you find your people." Placeholder ([public-is-draft]).
+export type StartKind = Purpose
 
-// Don, 2026-10-04: each kind is a question, with one line on what the Page
-// is for. The first two are his; the third is drafted from the product's own
-// pitch for an idea. Placeholder ([public-is-draft]).
 const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
   {
-    kind: 'selling',
+    kind: 'sell',
     title: 'Have a business where you sell products or services?',
     body: 'A Page for your shop, farm, trade or studio, where people see what you offer and what’s new.',
   },
   {
-    kind: 'gathering',
+    kind: 'gather',
     title: 'Do you manage a group or meetup, or host events regularly?',
     body: 'A Page for people who get together, where others can find your events and join.',
   },
   {
-    kind: 'testing_interest',
-    title: 'Have an idea and want to see who’s interested?',
-    body: 'A Page where people can show they want it before you even start.',
+    kind: 'offer',
+    title: 'Do you teach a class or lead a regular session?',
+    body: 'A Page for lessons, workshops and practice people come back to, from pottery to yoga.',
+  },
+  {
+    kind: 'create',
+    title: 'Be creative',
+    body: 'Start anything that helps you find your people.',
   },
 ]
 

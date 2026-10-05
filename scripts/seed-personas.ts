@@ -91,8 +91,8 @@ select ${q(p.id!)}, ${OAK_PARK}, 'primary_home'
 values (${q(lid(i))}, ${q(o)}, 'permanent', ${q(`${pg.name}, main spot`)}, ${q(pg.locationSlug)},
   ST_GeogFromText('POINT(${lon} ${lat})'), ${OAK_PARK}, 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values (${q(gid(i))}, ${q(pg.kind)}, ${q(pg.useCase)}, ${q(pg.name)}, ${q(pg.slug)}, ${q(pg.publicId)},
+insert into public.groups (id, kind, purpose, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values (${q(gid(i))}, ${q(pg.kind)}, ${q(pg.purpose)}, ${q(pg.name)}, ${q(pg.slug)}, ${q(pg.publicId)},
   ${q(`A seeded ${pg.key} Page for the browser suite.`)}, 'active', ${q(vis)}, ${q(o)}, ${q(lid(i))})
 on conflict (id) do nothing;
 update public.groups set discoverability = ${q(vis)} where id = ${q(gid(i))};
@@ -130,7 +130,7 @@ select v.item, v.who, 'rsvp' from (values (${q(iid(i, 1))}::uuid, ${q(rsvp)}::uu
     if (pg.kind === 'business') {
       w(`insert into public.items (id, member_id, kind, title, description, brand_label, state, group_id) values
   (${q(iid(i, 2))}, ${q(o)}, 'product', 'Country sourdough loaf', 'Naturally leavened.', ${q(pg.name)}, 'published', ${q(gid(i))}),
-  (${q(iid(i, 3))}, ${q(o)}, 'service', 'Bread-baking lesson', 'One hour, at the shop.', ${q(pg.name)}, 'published', ${q(gid(i))})
+  (${q(iid(i, 3))}, ${q(o)}, 'offer', 'Bread-baking lesson', 'One hour, at the shop.', ${q(pg.name)}, 'published', ${q(gid(i))})
 on conflict (id) do nothing;
 insert into public.item_products (item_id, price_cents, price_unit) values (${q(iid(i, 2))}, 900, 'loaf') on conflict (item_id) do nothing;
 insert into public.item_services (item_id, rate_model, rate_cents) values (${q(iid(i, 3))}, 'hourly', 4000) on conflict (item_id) do nothing;
@@ -150,8 +150,8 @@ select ${q(iid(i, 2))}, ${q(rsvp)}, 'purchase'
 -- 3. Things a member posted without a Page: /m/<handle>/{p,s,e}/...
 insert into public.items (id, member_id, kind, title, description, state, group_id) values
   (${q(solo('01'))}, ${q(member)}, 'product', 'Jar of plum jam', 'From the backyard tree.', 'published', null),
-  (${q(solo('02'))}, ${q(member)}, 'service', 'Bike tune-up', 'Bring it round.', 'published', null),
-  (${q(solo('03'))}, ${q(member)}, 'gathering', 'Porch music night', 'Bring an instrument.', 'published', null)
+  (${q(solo('02'))}, ${q(member)}, 'offer', 'Bike tune-up', 'Bring it round.', 'published', null),
+  (${q(solo('03'))}, ${q(member)}, 'gather', 'Porch music night', 'Bring an instrument.', 'published', null)
 on conflict (id) do nothing;
 insert into public.item_products (item_id, price_cents, price_unit) values (${q(solo('01'))}, 600, 'jar') on conflict (item_id) do nothing;
 insert into public.item_services (item_id, rate_model, rate_cents) values (${q(solo('02'))}, 'flat', 2500) on conflict (item_id) do nothing;
