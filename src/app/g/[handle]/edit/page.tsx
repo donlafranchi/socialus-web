@@ -21,6 +21,7 @@ import { emptyWhere } from '@/components/locations/WhereFields'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
+import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +46,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   if (!owns) notFound()
 
   const pagePath = canonicalPagePath(shop.slug, shop.publicId)
+  const isDraft = shop.lifecycleState === 'draft'
   const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
   // group until its owner adds them.
@@ -76,7 +78,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
 
   return (
     <main className="mx-auto w-full max-w-xl px-3 py-4">
-      <h1 className="text-lg font-semibold text-[var(--color-fg)]">Edit {shop.displayName}</h1>
+      <h1 className="text-lg font-semibold text-[var(--color-fg)]">
+        {isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
+      </h1>
       <p className="mt-1 mb-4 text-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
       <EditPageForm
         groupId={shop.groupId}
@@ -94,6 +98,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         initialContact={contact}
         contactOn={contactOn}
         initialTags={initialTags}
+        isDraft={isDraft}
         initialWhere={initialWhere}
         onSave={editPageAction}
       />

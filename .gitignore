@@ -27,3 +27,4 @@ reports/mutation/
 # #269 — persona sessions and the screenshot matrix (local + CI artifact)
 evals/.auth/
 screenshots/
+builder-runs/
