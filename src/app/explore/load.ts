@@ -233,7 +233,7 @@ async function happeningRows(
 }
 
 /**
- * Signed out: one "Sign up to see what's happening" card for each Page that
+ * Signed out: one "Sign in to see what's happening" card for each Page that
  * posted something today. "Today" is when it was posted, never when it
  * happens — the withheld read counts by created_at so nobody can sweep it to
  * learn when things take place.

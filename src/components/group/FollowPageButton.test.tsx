@@ -94,6 +94,14 @@ describe('signed out', () => {
     expect(screen.queryByRole('button', { name: /^Follow$/i })).toBeNull()
   })
 
+  // Don, 2026-10-04: secondary; the front door's main button is "Sign in to see what's happening".
+  it('is the secondary button, not the primary', () => {
+    renderBtn({ loggedIn: false })
+    const btn = screen.getByRole('button', { name: 'Sign up to follow' })
+    expect(btn.className).not.toContain('bg-[var(--color-accent)]')
+    expect(btn.className).toContain('border')
+  })
+
   it('a private Page says sign up to join', () => {
     renderBtn({ loggedIn: false, isPrivate: true })
     expect(screen.getByRole('button', { name: 'Sign up to join' })).toBeInTheDocument()

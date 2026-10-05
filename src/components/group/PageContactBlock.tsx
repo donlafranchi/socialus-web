@@ -5,9 +5,20 @@ import { Phone } from 'lucide-react'
 import { formatUsPhone } from '@/lib/phone'
 import { weekFromToday } from '@/lib/groups/opening-hours'
 import type { PageContact } from '@/lib/groups/page-contact'
+import { SHOW_OPENING_HOURS } from '@/lib/features'
 
-export function PageContactBlock({ contact, now = new Date() }: { contact: PageContact; now?: Date }) {
-  if (!contact.phone && !contact.hours) return null
+export function PageContactBlock({
+  contact,
+  now = new Date(),
+  showHours = SHOW_OPENING_HOURS,
+}: {
+  contact: PageContact
+  now?: Date
+  /** Off by the hours flag (Don, 2026-10-05); on only where it's turned on. */
+  showHours?: boolean
+}) {
+  const hours = showHours ? contact.hours : null
+  if (!contact.phone && !hours) return null
   return (
     <section data-testid="page-contact" aria-label="Contact" className="mt-2 space-y-2">
       {contact.phone && (
@@ -20,9 +31,9 @@ export function PageContactBlock({ contact, now = new Date() }: { contact: PageC
           {formatUsPhone(contact.phone)}
         </a>
       )}
-      {contact.hours && (
+      {hours && (
         <dl className="text-sm text-[var(--color-fg)]">
-          {weekFromToday(contact.hours, now).map((d) => (
+          {weekFromToday(hours, now).map((d) => (
             <div key={d.day} data-testid="page-hours-day" className={`flex gap-3 ${d.today ? 'font-semibold' : ''}`}>
               <dt className="w-24 shrink-0">{d.today ? 'Today' : d.label}</dt>
               <dd className={d.text === 'Closed' ? 'text-[var(--color-fg-muted)]' : ''}>{d.text}</dd>
