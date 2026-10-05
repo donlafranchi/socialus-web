@@ -441,3 +441,20 @@ describe('an end time on it', () => {
     expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
   })
 })
+
+// #348 — an event's own meet spot: "How to find us", beside its place.
+describe('#348 — how to find us, on a post', () => {
+  it('shows under when and where', () => {
+    renderPosts({ posts: [{ ...postFixture(), howToFind: 'Meet at the boat ramp' }] })
+    expect(screen.getByTestId('page-post-how')).toHaveTextContent('How to find us: Meet at the boat ramp')
+  })
+
+  it('the composer takes it once a place is being set, and sends it', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Float Saturday.' } })
+    fireEvent.click(screen.getByTestId('announce-add-place'))
+    fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Meet at the boat ramp' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ howToFind: 'Meet at the boat ramp' })))
+  })
+})

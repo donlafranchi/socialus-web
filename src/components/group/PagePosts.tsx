@@ -59,6 +59,7 @@ interface PostInput {
   startsAt?: string | null
   endsAt?: string | null
   locationId?: string | null
+  howToFind?: string | null
 }
 
 interface EditInput {
@@ -241,6 +242,7 @@ export function PagePosts({
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
       locationId: resolved.locationId,
+      ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -256,6 +258,7 @@ export function PagePosts({
         startsAt: resolved.startsAt,
         endsAt: resolved.endsAt,
         locationLabel: resolved.locationLabel,
+        howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
       },
       ...items,
     ])
@@ -432,6 +435,11 @@ export function PagePosts({
                       {post.startsAt ? formatMetroDateTime(post.startsAt, undefined, undefined, post.endsAt) : null}
                       {post.startsAt && post.locationLabel ? ' · ' : null}
                       {post.locationLabel}
+                    </p>
+                  )}
+                  {post.howToFind && (
+                    <p className="mt-1 text-sm text-[var(--color-fg-muted)]" data-testid="page-post-how">
+                      How to find us: {post.howToFind}
                     </p>
                   )}
 
