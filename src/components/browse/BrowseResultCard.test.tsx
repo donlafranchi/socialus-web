@@ -140,6 +140,17 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   })
 })
 
+describe('#316 — a card shows its tags as #hashtags', () => {
+  it('each tag is a chip linking to Explore filtered by it', () => {
+    render(<BrowseResultCard result={post({ tags: ['Sourdough'] })} />)
+    expect(screen.getByRole('link', { name: '#Sourdough' })).toHaveAttribute('href', '/explore?category=sourdough')
+  })
+  it('a card with no tags (every signed-out card) shows none', () => {
+    render(<BrowseResultCard result={post({ tags: [] })} />)
+    expect(screen.queryByTestId('tag-chips')).toBeNull()
+  })
+})
+
 // #262 — an end reads as a range on the card.
 describe('the card with an end time', () => {
   it('leads with the range', () => {
