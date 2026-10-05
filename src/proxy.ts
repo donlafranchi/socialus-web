@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { needsPhoneVerification } from '@/lib/auth/phone'
-import { PASS_COOKIE, passCookieStillGood } from '@/lib/auth/preview-pass'
 
 /** The shapes Supabase uses for "this session cookie is no longer good". */
 function isStaleSession(message: string): boolean {
@@ -30,15 +29,6 @@ export async function proxy(request: NextRequest) {
       },
     }
   )
-
-  // #400 — a session the preview pass made ends at 30 days, or once the token
-  // it came from is rotated. A session from ordinary sign-in has no pass cookie
-  // and is untouched.
-  const pass = request.cookies.getAll().find((c) => c.name === PASS_COOKIE)?.value
-  if (pass && !passCookieStillGood(pass, process.env, new Date())) {
-    await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
-    response.cookies.delete(PASS_COOKIE)
-  }
 
   // A stale session cookie must not take the request down. This runs on every
   // matched route, so one expired refresh token turned into a 500 on every

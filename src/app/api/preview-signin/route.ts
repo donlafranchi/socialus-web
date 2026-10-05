@@ -6,8 +6,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { safeNext } from '@/lib/safe-next'
-import { PASS_COOKIE, passCookieValue, passEnabled, tokenMatches } from '@/lib/auth/preview-pass'
-import { previewPassTokenHash } from '@/actions/_lib/preview-pass-link'
+import { fingerprint, passEnabled, tokenMatches } from '@/lib/auth/preview-pass'
+import { previewPassTokenHash, sealPreviewPassSession } from '@/actions/_lib/preview-pass-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,18 +28,10 @@ export async function GET(request: NextRequest) {
       setAll: (cookies) => cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options)),
     },
   })
-  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' })
-  if (error) return notFound()
-
-  // Long-lived on purpose: the 30 days are checked against the issue time
-  // inside it, so the check outlives the browser's own expiry.
-  response.cookies.set(PASS_COOKIE, passCookieValue(env, new Date()), {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 400 * 86400,
-  })
+  const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' })
+  if (error || !data.session) return notFound()
+  // 30 days and this token's tag, in Supabase; older tokens' sessions end here.
+  if (!(await sealPreviewPassSession(data.session.access_token, fingerprint(env)))) return notFound()
   response.headers.set('Cache-Control', 'no-store')
   // The token is in this URL; never send it on as a Referer.
   response.headers.set('Referrer-Policy', 'no-referrer')

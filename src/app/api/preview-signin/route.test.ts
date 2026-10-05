@@ -3,9 +3,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
-const { verifyOtp, tokenHash } = vi.hoisted(() => ({ verifyOtp: vi.fn(), tokenHash: vi.fn() }))
+const { verifyOtp, tokenHash, seal } = vi.hoisted(() => ({ verifyOtp: vi.fn(), tokenHash: vi.fn(), seal: vi.fn() }))
 vi.mock('@supabase/ssr', () => ({ createServerClient: () => ({ auth: { verifyOtp } }) }))
-vi.mock('@/actions/_lib/preview-pass-link', () => ({ previewPassTokenHash: tokenHash }))
+vi.mock('@/actions/_lib/preview-pass-link', () => ({ previewPassTokenHash: tokenHash, sealPreviewPassSession: seal }))
 
 import { GET } from './route'
 
@@ -23,7 +23,8 @@ beforeEach(() => {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'pk',
   })
   tokenHash.mockResolvedValue('hashed')
-  verifyOtp.mockResolvedValue({ error: null })
+  verifyOtp.mockResolvedValue({ data: { session: { access_token: 'jwt' } }, error: null })
+  seal.mockResolvedValue(true)
 })
 
 describe('GET /api/preview-signin', () => {
@@ -40,13 +41,18 @@ describe('GET /api/preview-signin', () => {
     expect(tokenHash).not.toHaveBeenCalled()
   })
 
-  it('signs in and redirects to a same-site next, setting the pass cookie', async () => {
+  it('signs in, seals the session to 30 days and this token, and redirects to a same-site next', async () => {
     const res = await GET(req(`token=${TOKEN}&next=/admin/builders`))
     expect(verifyOtp).toHaveBeenCalledWith({ token_hash: 'hashed', type: 'magiclink' })
+    expect(seal).toHaveBeenCalledWith('jwt', expect.stringMatching(/^[0-9a-f]{32}$/))
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toBe('https://p.vercel.app/admin/builders')
-    expect(res.cookies.get('su_preview_pass')?.value).toMatch(/^[0-9a-f]{32}\.\d+$/)
     expect(res.headers.get('referrer-policy')).toBe('no-referrer')
+  })
+
+  it('fails closed when the session cannot be sealed', async () => {
+    seal.mockResolvedValue(false)
+    expect((await GET(req(`token=${TOKEN}`))).status).toBe(404)
   })
 
   it('never redirects off-site', async () => {
@@ -55,7 +61,7 @@ describe('GET /api/preview-signin', () => {
   })
 
   it('404s if the sign-in fails', async () => {
-    verifyOtp.mockResolvedValue({ error: { message: 'bad' } })
+    verifyOtp.mockResolvedValue({ data: { session: null }, error: { message: 'bad' } })
     expect((await GET(req(`token=${TOKEN}`))).status).toBe(404)
   })
 })
