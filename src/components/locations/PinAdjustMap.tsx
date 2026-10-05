@@ -54,9 +54,9 @@ export function PinAdjustMap({
           data-testid="pin-adjust-pin"
           aria-hidden="true"
           size={32}
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-[var(--color-fg)]"
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-[var(--color-pin)]"
           fill="currentColor"
-          stroke="white"
+          stroke="var(--color-pin-edge)"
         />
       </div>
       <p className="text-caption text-[var(--color-fg-muted)]">Move the map so the pin sits on your door.</p>

@@ -257,9 +257,8 @@ describe('T156 — a shared link reopens the same metro and search', () => {
 })
 
 describe('T156 — M3: the accent token is not used for text on white', () => {
-  // `--color-accent` is #0fab8e, which is 2.9:1 on white — short of AA at any
-  // text size. Asserted rather than noticed, because the surface it replaced
-  // used it for exactly these controls.
+  // Written when `--color-accent` was #0fab8e (2.9:1 on white). Navy (#325)
+  // passes, but these quiet controls stay charcoal so the accent marks actions.
   it('the empty state\u2019s controls are charcoal or muted, never accent', () => {
     render(<BrowseSurface initial={snapshot({ results: [] })} />)
     const clear = screen.getByRole('button', { name: /clear filters/i })
