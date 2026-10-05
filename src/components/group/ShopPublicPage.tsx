@@ -124,7 +124,7 @@ export function ShopPublicPage({
     <main
       className={
         showOwnerPanel
-          ? 'mx-auto w-full max-w-detail gutter pt-6 pb-[calc(var(--nav-clearance)+5rem)] md:pb-20 xl:grid xl:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] xl:gap-12 xl:pb-6'
+          ? 'mx-auto w-full max-w-detail gutter pt-6 pb-[calc(var(--nav-clearance)+var(--action-bar-h)+--spacing(4))] md:pb-20 xl:grid xl:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] xl:gap-12 xl:pb-6'
           : 'mx-auto w-full max-w-read gutter py-6 pb-nav'
       }
     >

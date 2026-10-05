@@ -17,12 +17,12 @@ describe('#363 — business and group, with presets', () => {
     expect(presetOf('group', null)).toBe('gathering')
   })
   it('labels the types plainly', () => {
-    expect(PAGE_KIND_LABEL).toEqual({ business: 'Business', group: 'Group' })
+    expect(PAGE_KIND_LABEL).toEqual({ business: 'Business', group: 'Social group' })
   })
   it('the kind line is type · use case, or type · collection when it has one', () => {
-    expect(kindLine('group', 'gathering', null)).toBe('Group · Events')
+    expect(kindLine('group', 'gathering', null)).toBe('Social group · Events')
     expect(kindLine('business', 'service', null)).toBe('Business · Services')
-    expect(kindLine('group', 'gathering', 'Running')).toBe('Group · Running')
+    expect(kindLine('group', 'gathering', 'Running')).toBe('Social group · Running')
     expect(kindLine('business', undefined, null)).toBe('Business')
   })
 })

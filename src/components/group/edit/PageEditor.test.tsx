@@ -165,7 +165,7 @@ describe('#363 — type and use case, changeable in settings (ruled 2026-10-05)'
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     fireEvent.click(screen.getByRole('button', { name: /edit type of page/i }))
     expect(screen.getByRole('group', { name: 'Business' })).toBeInTheDocument()
-    expect(screen.getByRole('group', { name: 'Group' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Social group' })).toBeInTheDocument()
     expect(screen.getAllByRole('radio')).toHaveLength(4)
     fireEvent.click(screen.getByRole('radio', { name: /testing interest/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
