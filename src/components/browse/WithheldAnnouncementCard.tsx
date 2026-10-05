@@ -14,6 +14,7 @@
 import Link from 'next/link'
 import { Megaphone } from 'lucide-react'
 import { Card } from '@/components/cards'
+import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import {
   WITHHELD_CTA,
@@ -35,15 +36,12 @@ export function WithheldAnnouncementCard({
       <div
         data-testid="tile-image"
         className="relative aspect-[3/2] w-full rounded-md overflow-hidden bg-[var(--color-surface)] flex items-center justify-center"
-        style={{ fontSize: 'clamp(2rem, 17cqw, 4rem)' }}
       >
         {result.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={result.photoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span data-testid="tile-emoji" aria-hidden>
-            🌱
-          </span>
+          <DefaultArt kind={artKindFor(result.groupKind)} />
         )}
         <span
           data-testid="withheld-count"

@@ -114,6 +114,32 @@ describe('the card image', () => {
   })
 })
 
+describe('#299 — no photo shows default art, never the emoji', () => {
+  it('a Page or post without a photo carries its kind and a neutral tone', () => {
+    render(<BrowseResultCard result={post({ photoUrl: null })} />)
+    expect(screen.getByTestId('default-art')).toBeInTheDocument()
+    expect(screen.queryByTestId('tile-emoji')).toBeNull()
+  })
+  it('a withheld card without a photo shows a plain tile, not the sprout and not a guessed kind', () => {
+    // The withheld read carries no Page kind, so no kind icon is drawn rather than a wrong one.
+    render(<BrowseResultCard result={post({ photoUrl: null, withheld: true, body: null, startsAt: null, announcementCount: 2, groupKind: '' })} />)
+    const art = screen.getByTestId('default-art')
+    expect(art).not.toHaveAttribute('data-kind')
+    expect(art.querySelector('svg')).toBeNull()
+    expect(screen.queryByTestId('tile-emoji')).toBeNull()
+  })
+  it('two Pages of the same kind get the same art', () => {
+    render(
+      <ul>
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-a', groupKind: 'interest' })} />
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-zz-different', groupKind: 'interest' })} />
+      </ul>,
+    )
+    const [a, b] = screen.getAllByTestId('default-art')
+    expect(a!.outerHTML).toBe(b!.outerHTML)
+  })
+})
+
 describe('#316 — a card shows its tags as #hashtags', () => {
   it('each tag is a chip linking to Explore filtered by it', () => {
     render(<BrowseResultCard result={post({ tags: ['Sourdough'] })} />)

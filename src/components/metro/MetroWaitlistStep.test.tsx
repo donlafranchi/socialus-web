@@ -140,7 +140,7 @@ describe('the popup (c7, c8)', () => {
   it('can be dismissed, and hands control back', async () => {
     renderStep()
     await joinBoise()
-    fireEvent.click(screen.getByRole('button', { name: /close|done|got it/i }))
+    fireEvent.click(screen.getByRole('button', { name: /got it/i }))
     await waitFor(() => expect(onDone).toHaveBeenCalled())
   })
 

@@ -1,6 +1,6 @@
 ---
 name: Work item
-about: Scenario, change, bug, or chore — per ops-pattern/PIPELINE.md
+about: Scenario, change, bug, or chore — per ops-pattern/process/PIPELINE.md
 title: ""
 labels: []
 ---
