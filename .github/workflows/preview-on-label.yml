@@ -1,0 +1,26 @@
+name: preview-on-label
+# #394 — Don ruled C (2026-10-05): previews build only for PRs labelled for
+# review. Labelling one later pushes an empty commit to its branch, which is the
+# push Vercel builds from (scripts/vercel-ignore.mjs then sees the label). A
+# GITHUB_TOKEN push starts no workflows, so CI does not rerun for it.
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: write
+jobs:
+  build-preview:
+    if: >-
+      (github.event.label.name == 'human-review' || github.event.label.name == 'needs-don') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: build a preview (labelled ${{ github.event.label.name }})"
+          git push
