@@ -32,7 +32,8 @@ jobs:
     name: Builder journeys
     if: github.event_name == 'workflow_dispatch' || vars.BUILDERS_DAILY_ENABLED == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    # Caps the Actions minutes a stuck run can spend (private repo, 2,000 a month).
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -40,7 +41,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # No --with-deps: the runner image has Chrome's libraries (#375).
+      - run: npx playwright install --only-shell chromium
 
       - name: Journeys against the live app
         env:
