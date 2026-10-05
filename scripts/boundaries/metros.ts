@@ -15,6 +15,8 @@ export interface NeighbourhoodSource {
 
 export interface Metro {
   msa: string
+  msaName: string
+  stateAbbr: string
   stateFips: string
   stateSlug: string
   counties: string[]
@@ -27,11 +29,15 @@ export const TIGER = {
   counties: 'https://www2.census.gov/geo/tiger/GENZ2025/shp/cb_2025_us_county_500k.zip',
   places: (state: string) => `https://www2.census.gov/geo/tiger/TIGER2025/PLACE/tl_2025_${state}_place.zip`,
   tracts: (state: string) => `https://www2.census.gov/geo/tiger/TIGER2025/TRACT/tl_2025_${state}_tract.zip`,
+  // ZIP areas (ZCTA) to counties, with each part's land area.
+  zctaCounty: 'https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt',
 }
 
 export const METROS: Record<string, Metro> = {
   sacramento: {
     msa: '40900',
+    msaName: 'Sacramento-Roseville-Folsom, CA',
+    stateAbbr: 'CA',
     stateFips: '06',
     stateSlug: 'ca',
     // El Dorado, Placer, Sacramento, Yolo.

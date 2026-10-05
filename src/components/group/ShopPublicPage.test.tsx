@@ -464,3 +464,23 @@ describe('#302 — the owner edits the Page in place', () => {
     expect(screen.queryByTestId('edit-section-about')).toBeNull()
   })
 })
+
+// Don, 2026-10-05: the local-owner badge and its question belong to business
+// kinds (shop, service), never to social groups.
+describe('Locally owned is for businesses only', () => {
+  const badge = { label: 'Locally owned' } as never
+  const claim = { zip: null } as never
+  it('a social group shows neither the badge nor the question, even if handed them', () => {
+    renderShop({ shop: { ...SHOP, kind: 'interest' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
+    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
+    expect(screen.queryByText(/locally owned claim/i)).toBeNull()
+  })
+  it('a shop still shows the badge', () => {
+    renderShop({ shop: { ...SHOP, kind: 'business' }, badge, loggedIn: true })
+    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
+  })
+  it('a service too', () => {
+    renderShop({ shop: { ...SHOP, kind: 'practice' }, badge, loggedIn: true })
+    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
+  })
+})
