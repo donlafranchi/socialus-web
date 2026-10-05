@@ -12,7 +12,7 @@ export interface UnclaimedSource {
 }
 
 export interface UnclaimedRequest {
-  kind: 'claim' | 'removal'
+  kind: 'claim' | 'removal' | 'photo removal'
   name: string | null
   contact: string
   text: string | null
@@ -24,6 +24,7 @@ export interface UnclaimedPageRow {
   publicId: string
   name: string
   hiddenAt: Date | null
+  photoHiddenAt: Date | null
   sources: UnclaimedSource[]
   requests: UnclaimedRequest[]
 }
@@ -34,15 +35,16 @@ export async function fetchUnclaimedPages(): Promise<UnclaimedPageRow[]> {
     public_id: string
     name: string
     unclaimed_hidden_at: Date | null
+    photo_hidden_at: Date | null
     sources: UnclaimedSource[] | null
     requests: (Omit<UnclaimedRequest, 'createdAt'> & { createdAt: string })[] | null
   }>(
-    `select g.id, g.public_id, coalesce(b.display_name, g.name, g.slug) as name, g.unclaimed_hidden_at,
+    `select g.id, g.public_id, coalesce(b.display_name, g.name, g.slug) as name, g.unclaimed_hidden_at, g.photo_hidden_at,
             (select json_agg(json_build_object('field', s.field, 'url', s.url, 'capturedOn', s.captured_on,
                                                'capturedBy', s.captured_by) order by s.created_at)
                from public.page_sources s where s.group_id = g.id) as sources,
             (select json_agg(r order by r."createdAt" desc) from (
-               select 'removal' as kind, null as name, contact, reason as text, created_at as "createdAt"
+               select case scope when 'photo' then 'photo removal' else 'removal' end as kind, null as name, contact, reason as text, created_at as "createdAt"
                  from public.page_removal_requests where group_id = g.id
                union all
                select 'claim', name, contact, message, created_at
@@ -57,6 +59,7 @@ export async function fetchUnclaimedPages(): Promise<UnclaimedPageRow[]> {
     publicId: r.public_id,
     name: r.name,
     hiddenAt: r.unclaimed_hidden_at,
+    photoHiddenAt: r.photo_hidden_at,
     sources: r.sources ?? [],
     requests: (r.requests ?? []).map((q) => ({ ...q, createdAt: new Date(q.createdAt) })),
   }))

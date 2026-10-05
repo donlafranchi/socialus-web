@@ -45,6 +45,10 @@ export const COPY = {
   unclaimedRemoveConfirm: 'I represent this business, or it is about me, and I want it removed.',
   unclaimedRemoveSend: 'Remove this Page',
   unclaimedRemoveSent: "Done. This Page is hidden now and we'll review it.",
+  unclaimedRemoveWhat: 'What should we remove?',
+  unclaimedRemoveWholePage: 'The whole Page',
+  unclaimedRemovePhoto: 'Just the photo',
+  unclaimedRemovePhotoSent: "Done. The photo is hidden now and we'll review it.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
 } as const

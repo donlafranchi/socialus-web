@@ -33,12 +33,13 @@ export default async function AdminUnclaimedPage() {
               {p.hiddenAt && (
                 <span className="chip text-xs">Hidden {p.hiddenAt.toISOString().slice(0, 10)}</span>
               )}
+              {p.photoHiddenAt && <span className="chip text-xs">Photo hidden</span>}
             </div>
             {p.requests.length > 0 && (
               <ul className="flex list-none flex-col gap-1 p-0">
                 {p.requests.map((r, i) => (
                   <li key={i}>
-                    <strong>{r.kind === 'removal' ? 'Remove' : 'Claim'}</strong> · {r.name ? `${r.name}, ` : ''}
+                    <strong>{r.kind === 'claim' ? 'Claim' : r.kind === 'removal' ? 'Remove' : 'Remove photo'}</strong> · {r.name ? `${r.name}, ` : ''}
                     {r.contact} · {r.createdAt.toISOString().slice(0, 10)}
                     {r.text ? <span className="block text-[var(--color-fg-muted)]">{r.text}</span> : null}
                   </li>
@@ -57,9 +58,16 @@ export default async function AdminUnclaimedPage() {
               </ul>
             </details>
             {p.hiddenAt && (
-              <form action={restoreUnclaimedAction.bind(null, p.groupId)}>
+              <form action={restoreUnclaimedAction.bind(null, p.groupId, 'page')}>
                 <button type="submit" className="btn-secondary text-sm">
-                  Restore
+                  Restore the Page
+                </button>
+              </form>
+            )}
+            {p.photoHiddenAt && (
+              <form action={restoreUnclaimedAction.bind(null, p.groupId, 'photo')}>
+                <button type="submit" className="btn-secondary text-sm">
+                  Restore the photo
                 </button>
               </form>
             )}

@@ -66,4 +66,6 @@ export {
   groupUnclaimedRestore,
   groupUnclaimedRestoreInput,
   DAILY_LIMIT_PER_DEVICE,
+  UNCLAIMED_REMOVAL_SCOPES,
+  type UnclaimedRemovalScope,
 } from './unclaimed'

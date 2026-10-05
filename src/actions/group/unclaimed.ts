@@ -52,8 +52,13 @@ async function requireUnderLimit(client: Client, table: string, device: string, 
   }
 }
 
+export const UNCLAIMED_REMOVAL_SCOPES = ['page', 'photo'] as const
+export type UnclaimedRemovalScope = (typeof UNCLAIMED_REMOVAL_SCOPES)[number]
+
 export const groupUnclaimedRemoveInput = z.object({
   groupId: z.string().uuid(),
+  // The whole Page, or just its photo (Don, 2026-10-05). Both hide at once.
+  scope: z.enum(UNCLAIMED_REMOVAL_SCOPES).default('page'),
   contact,
   reason: z.string().trim().max(1000).optional(),
   // The tick. Without it there is no request.
@@ -71,25 +76,39 @@ export const groupUnclaimedRemove = defineHandler(
       await requireUnderLimit(client, 'page_removal_requests', input.deviceHash, ctx.now(), 'group.unclaimed_remove')
 
       const req = await client.query<{ id: string }>(
-        `insert into public.page_removal_requests (group_id, contact, reason, device_hash, created_at)
-         values ($1, $2, $3, $4, $5) returning id`,
-        [input.groupId, input.contact, input.reason || null, input.deviceHash, ctx.now()],
+        `insert into public.page_removal_requests (group_id, scope, contact, reason, device_hash, created_at)
+         values ($1, $2, $3, $4, $5, $6) returning id`,
+        [input.groupId, input.scope, input.contact, input.reason || null, input.deviceHash, ctx.now()],
       )
-      if (!hidden) {
-        await client.query(`update public.groups set unclaimed_hidden_at = $2 where id = $1`, [input.groupId, ctx.now()])
-        // Recorded as the system's act; the request is who asked. Built field by
-        // field: spreading an anonymous context reads its throwing actingMemberId.
-        const sysCtx: ActionContext = {
-          actingMemberId: SYSTEM_MEMBER_ID,
-          viaDelegationId: null,
-          traceId: ctx.traceId,
-          db: client,
-          now: ctx.now,
+      // Recorded as the system's act; the request is who asked. Built field by
+      // field: spreading an anonymous context reads its throwing actingMemberId.
+      const sysCtx: ActionContext = {
+        actingMemberId: SYSTEM_MEMBER_ID,
+        viaDelegationId: null,
+        traceId: ctx.traceId,
+        db: client,
+        now: ctx.now,
+      }
+      const payload = { removal_request_id: req.rows[0]!.id }
+      if (input.scope === 'photo') {
+        // The same column a report hides a photo with, so every surface already honours it.
+        const res = await client.query(
+          `update public.groups set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`,
+          [input.groupId, ctx.now()],
+        )
+        if (res.rows.length > 0) {
+          await appendEvent(sysCtx, 'group_events', {
+            group_id: input.groupId,
+            event_kind: 'group.photo_hidden',
+            payload: { ...payload, reason: 'unclaimed_removal' },
+          })
         }
+      } else if (!hidden) {
+        await client.query(`update public.groups set unclaimed_hidden_at = $2 where id = $1`, [input.groupId, ctx.now()])
         await appendEvent(sysCtx, 'group_events', {
           group_id: input.groupId,
           event_kind: 'group.unclaimed_hidden',
-          payload: { removal_request_id: req.rows[0]!.id },
+          payload,
         })
       }
       return { hidden: true }
@@ -122,7 +141,10 @@ export const groupUnclaimedClaim = defineHandler(
   },
 )
 
-export const groupUnclaimedRestoreInput = z.object({ groupId: z.string().uuid() })
+export const groupUnclaimedRestoreInput = z.object({
+  groupId: z.string().uuid(),
+  scope: z.enum(UNCLAIMED_REMOVAL_SCOPES).default('page'),
+})
 
 export const groupUnclaimedRestore = defineHandler(
   'group.unclaimed_restore',
@@ -130,15 +152,17 @@ export const groupUnclaimedRestore = defineHandler(
   async (ctx: ActionContext, input): Promise<{ restored: boolean }> => {
     if (!isOperator(ctx.actingMemberId)) throw new AuthorizationError('group.unclaimed_restore: not permitted')
     return withTransaction(async (client) => {
+      const column = input.scope === 'photo' ? 'photo_hidden_at' : 'unclaimed_hidden_at'
+      // sql-injection-safe: `column` is one of two literals.
       const res = await client.query<{ id: string }>(
-        `update public.groups set unclaimed_hidden_at = null
-          where id = $1 and unclaimed_at is not null and unclaimed_hidden_at is not null returning id`,
+        `update public.groups set ${column} = null
+          where id = $1 and unclaimed_at is not null and ${column} is not null returning id`,
         [input.groupId],
       )
       if (res.rows.length === 0) return { restored: false }
       await appendEvent({ ...ctx, db: client }, 'group_events', {
         group_id: input.groupId,
-        event_kind: 'group.unclaimed_restored',
+        event_kind: input.scope === 'photo' ? 'group.photo_restored' : 'group.unclaimed_restored',
       })
       return { restored: true }
     })

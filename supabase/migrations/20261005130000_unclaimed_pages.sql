@@ -4,7 +4,9 @@
 -- it at once, before anyone reviews it; only an operator restores it.
 --
 -- One Page picture, credited (2026-10-05: one picture per Page, a gallery
--- comes after beta — newer than the four-photo guardrail, so it wins).
+-- comes after beta — newer than the four-photo guardrail, so it wins). It is
+-- the business's own photo (Don, 2026-10-05, #378 option A), removable on its
+-- own; the copyright exposure is an accepted risk in socialus-plan.
 
 alter table public.groups
   add column unclaimed_at timestamptz,
@@ -54,6 +56,8 @@ create trigger page_sources_append_only before update or delete on public.page_s
 create table public.page_removal_requests (
   id uuid primary key default gen_random_uuid(),
   group_id uuid not null references public.groups(id) on delete cascade,
+  -- The whole Page, or just its photo (Don, 2026-10-05: the photo is removable on its own).
+  scope text not null default 'page' check (scope in ('page', 'photo')),
   contact text not null check (length(contact) between 3 and 200),
   reason text check (reason is null or length(reason) <= 1000),
   device_hash text not null check (device_hash ~ '^[0-9a-f]{64}$'),

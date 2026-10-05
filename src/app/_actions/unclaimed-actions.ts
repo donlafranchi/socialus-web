@@ -8,7 +8,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { resolveAnonymousActionContext } from '@/lib/action-context'
-import { groupUnclaimedClaim, groupUnclaimedRemove } from '@/actions/group'
+import { groupUnclaimedClaim, groupUnclaimedRemove, type UnclaimedRemovalScope } from '@/actions/group'
 import { ActionError, ConflictError } from '@/actions/_lib/errors'
 
 const DEVICE_COOKIE = 'su_device'
@@ -48,6 +48,7 @@ export async function requestUnclaimedClaimAction(input: {
 
 export async function requestUnclaimedRemovalAction(input: {
   groupId: string
+  scope: UnclaimedRemovalScope
   contact: string
   reason?: string
   confirmed: boolean
@@ -57,6 +58,7 @@ export async function requestUnclaimedRemovalAction(input: {
   const result = await run(() =>
     groupUnclaimedRemove(resolveAnonymousActionContext(), {
       groupId: input.groupId,
+      scope: input.scope,
       contact: input.contact,
       reason: input.reason,
       confirmed: input.confirmed,

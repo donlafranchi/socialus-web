@@ -10,9 +10,12 @@ import type { UnclaimedResult } from '@/app/_actions/unclaimed-actions'
 interface Props {
   groupId: string
   pagePath: string
+  /** Offers "Just the photo" when there is one to remove (Don, 2026-10-05). */
+  hasPhoto: boolean
   onClaim: (input: { groupId: string; name: string; contact: string; message?: string }) => Promise<UnclaimedResult>
   onRemove: (input: {
     groupId: string
+    scope: 'page' | 'photo'
     contact: string
     reason?: string
     confirmed: boolean
@@ -22,7 +25,7 @@ interface Props {
 
 type Open = 'none' | 'claim' | 'remove'
 
-export function UnclaimedBox({ groupId, pagePath, onClaim, onRemove }: Props) {
+export function UnclaimedBox({ groupId, pagePath, hasPhoto, onClaim, onRemove }: Props) {
   const [open, setOpen] = useState<Open>('none')
   const [done, setDone] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -31,6 +34,7 @@ export function UnclaimedBox({ groupId, pagePath, onClaim, onRemove }: Props) {
   async function submit(form: HTMLFormElement) {
     const f = new FormData(form)
     const text = (k: string) => String(f.get(k) ?? '').trim()
+    const scope = f.get('scope') === 'photo' ? 'photo' : 'page'
     setBusy(true)
     setError(null)
     const result =
@@ -38,13 +42,17 @@ export function UnclaimedBox({ groupId, pagePath, onClaim, onRemove }: Props) {
         ? await onClaim({ groupId, name: text('name'), contact: text('contact'), message: text('message') || undefined })
         : await onRemove({
             groupId,
+            scope,
             contact: text('contact'),
             reason: text('reason') || undefined,
             confirmed: f.get('confirmed') === 'on',
             pagePath,
           })
     setBusy(false)
-    if (result.ok) setDone(open === 'claim' ? COPY.unclaimedClaimSent : COPY.unclaimedRemoveSent)
+    if (result.ok)
+      setDone(
+        open === 'claim' ? COPY.unclaimedClaimSent : scope === 'photo' ? COPY.unclaimedRemovePhotoSent : COPY.unclaimedRemoveSent,
+      )
     else setError(result.reason === 'limit' ? COPY.unclaimedLimit : COPY.unclaimedFailed)
   }
 
@@ -93,6 +101,19 @@ export function UnclaimedBox({ groupId, pagePath, onClaim, onRemove }: Props) {
                 </label>
               ) : (
                 <>
+                  {hasPhoto && (
+                    <fieldset className="flex flex-col gap-1 text-sm">
+                      <legend className="mb-1">{COPY.unclaimedRemoveWhat}</legend>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="scope" value="page" defaultChecked />
+                        {COPY.unclaimedRemoveWholePage}
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="radio" name="scope" value="photo" />
+                        {COPY.unclaimedRemovePhoto}
+                      </label>
+                    </fieldset>
+                  )}
                   <label className="flex flex-col gap-1 text-sm">
                     {COPY.unclaimedRemoveReason}
                     <textarea name="reason" maxLength={1000} rows={2} className="input" />

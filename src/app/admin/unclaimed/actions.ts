@@ -8,12 +8,12 @@ import { resolveActionContext } from '@/lib/action-context'
 import { groupUnclaimedRestore } from '@/actions/group'
 import { ActionError } from '@/actions/_lib/errors'
 
-export async function restoreUnclaimedAction(groupId: string): Promise<void> {
+export async function restoreUnclaimedAction(groupId: string, scope: 'page' | 'photo'): Promise<void> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) throw new Error('Not permitted.')
   try {
-    await groupUnclaimedRestore(resolveActionContext({ actingMemberId: data.user.id }), { groupId })
+    await groupUnclaimedRestore(resolveActionContext({ actingMemberId: data.user.id }), { groupId, scope })
   } catch (err) {
     throw err instanceof ActionError ? new Error(err.message) : err
   }

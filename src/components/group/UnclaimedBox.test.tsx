@@ -10,7 +10,7 @@ afterEach(cleanup)
 const setup = (result: { ok: true } | { ok: false; reason: 'limit' | 'failed' } = { ok: true }) => {
   const onClaim = vi.fn().mockResolvedValue(result)
   const onRemove = vi.fn().mockResolvedValue(result)
-  render(<UnclaimedBox groupId="g-1" pagePath="/g/abc" onClaim={onClaim} onRemove={onRemove} />)
+  render(<UnclaimedBox groupId="g-1" pagePath="/g/abc" hasPhoto onClaim={onClaim} onRemove={onRemove} />)
   return { onClaim, onRemove }
 }
 
@@ -27,11 +27,23 @@ describe('UnclaimedBox', () => {
     await waitFor(() => expect(screen.getByTestId('unclaimed-done')).toHaveTextContent('hidden now'))
     expect(onRemove).toHaveBeenCalledWith({
       groupId: 'g-1',
+      scope: 'page',
       contact: 'owner@example.com',
       reason: undefined,
       confirmed: true,
       pagePath: '/g/abc',
     })
+  })
+
+  it('Remove can take just the photo', async () => {
+    const { onRemove } = setup()
+    fireEvent.click(screen.getByTestId('unclaimed-remove'))
+    fireEvent.click(screen.getByLabelText('Just the photo'))
+    fill('contact', 'owner@example.com')
+    fireEvent.click(document.querySelector('[name="confirmed"]')!)
+    fireEvent.submit(screen.getByTestId('unclaimed-remove-form'))
+    await waitFor(() => expect(screen.getByTestId('unclaimed-done')).toHaveTextContent('The photo is hidden now'))
+    expect(onRemove.mock.calls[0]![0].scope).toBe('photo')
   })
 
   it('Claim sends name and contact', async () => {

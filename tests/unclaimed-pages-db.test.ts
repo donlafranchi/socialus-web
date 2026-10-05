@@ -27,6 +27,7 @@ const UNCLAIMED = 'c3000000-0000-4000-8000-000000000353'
 const OWNED = 'd3000000-0000-4000-8000-000000000353'
 const DEVICE = 'a'.repeat(64)
 const OTHER_DEVICE = 'b'.repeat(64)
+const PHOTO_DEVICE = 'c'.repeat(64)
 
 let pool: Pool
 let client: PoolClient
@@ -148,6 +149,29 @@ describe.skipIf(!RUNNABLE)('#353 unclaimed Pages', () => {
   it('a device past its daily limit is refused', async () => {
     for (let i = 1; i < DAILY_LIMIT_PER_DEVICE; i++) await remove()
     await expect(remove()).rejects.toThrow(/daily limit/)
+  })
+
+  it('a photo removal hides just the photo, at once, and an operator restores it', async () => {
+    const photoHidden = async () =>
+      (await client.query(`select photo_hidden_at from public.groups where id = $1`, [UNCLAIMED])).rows[0].photo_hidden_at
+    expect(await photoHidden()).toBeNull()
+    await groupUnclaimedRemove(resolveAnonymousActionContext(), {
+      groupId: UNCLAIMED,
+      scope: 'photo',
+      contact: 'owner@example.com',
+      confirmed: true,
+      deviceHash: PHOTO_DEVICE,
+    })
+    expect(await photoHidden()).not.toBeNull()
+    const prev = process.env.OPERATOR_MEMBER_ID
+    process.env.OPERATOR_MEMBER_ID = OPERATOR
+    try {
+      await groupUnclaimedRestore(resolveActionContext({ actingMemberId: OPERATOR }), { groupId: UNCLAIMED, scope: 'photo' })
+      expect(await photoHidden()).toBeNull()
+    } finally {
+      if (prev === undefined) delete process.env.OPERATOR_MEMBER_ID
+      else process.env.OPERATOR_MEMBER_ID = prev
+    }
   })
 
   it('only an operator restores', async () => {

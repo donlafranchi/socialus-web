@@ -380,6 +380,7 @@ export function ShopPublicPage({
         <UnclaimedBox
           groupId={shop.groupId}
           pagePath={pagePath ?? `/g/${shop.publicId}`}
+          hasPhoto={Boolean(photoUrl)}
           onClaim={unclaimedActions?.claim ?? requestUnclaimedClaimAction}
           onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
         />
