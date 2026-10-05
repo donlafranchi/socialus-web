@@ -31,6 +31,7 @@ const {
   getWithheldAnnouncements: vi.fn(),
 }))
 
+vi.mock('./page-metadata', () => ({ resolvePageMetadata: async () => null }))
 vi.mock('./resolve-shop', () => ({
   resolveShopItems,
   resolveLocalOwnerBadge,

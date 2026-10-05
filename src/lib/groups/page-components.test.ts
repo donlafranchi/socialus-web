@@ -15,3 +15,11 @@ describe('hours and phone, as a component', () => {
     expect(componentOn('business', { components: { contact: false } }, 'contact')).toBe(false)
   })
 })
+
+describe('#363 — Products & services is a component', () => {
+  it('on by default for a business, off for a group until added', () => {
+    expect(componentOn('business', null, 'products')).toBe(true)
+    expect(componentOn('group', null, 'products')).toBe(false)
+    expect(componentOn('group', { components: { products: true } }, 'products')).toBe(true)
+  })
+})

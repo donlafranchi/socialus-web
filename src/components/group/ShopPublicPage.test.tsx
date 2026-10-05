@@ -20,6 +20,7 @@ const SHOP: ResolvedShop = {
   publicDescription: 'Real bread, baked local.',
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
+  useCase: 'selling',
   category: null,
   photoUrl: null,
   socialLinks: {},
@@ -373,7 +374,7 @@ describe('#301 — the draft Page, in the owner view', () => {
   })
 
   it('names a group draft specifically, not "group" alone', () => {
-    renderShop({ shop: { ...draft, kind: 'interest' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    renderShop({ shop: { ...draft, kind: 'group', useCase: 'gathering' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
     expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group or meetup Page')
   })
 
@@ -471,7 +472,7 @@ describe('Locally owned is for businesses only', () => {
   const badge = { label: 'Locally owned' } as never
   const claim = { zip: null } as never
   it('a social group shows neither the badge nor the question, even if handed them', () => {
-    renderShop({ shop: { ...SHOP, kind: 'interest' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
+    renderShop({ shop: { ...SHOP, kind: 'group', useCase: 'gathering' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
     expect(screen.queryByTestId('local-owner-badge')).toBeNull()
     expect(screen.queryByText(/locally owned claim/i)).toBeNull()
   })
@@ -479,53 +480,45 @@ describe('Locally owned is for businesses only', () => {
     renderShop({ shop: { ...SHOP, kind: 'business' }, badge, loggedIn: true })
     expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
   })
-  it('an organization shows neither', () => {
-    renderShop({ shop: { ...SHOP, kind: 'event_anchored' }, badge, loggedIn: true })
-    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
-  })
 })
 
 
-// #363 — an unnamed draft is called by its kind.
-describe('#363 — draft heading by kind', () => {
-  it('an organization draft reads "Your new organization Page"', () => {
-    renderShop({ shop: { ...SHOP, kind: 'event_anchored', lifecycleState: 'draft', displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
-    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new organization Page')
+// #363 — an unnamed draft is called by its use case.
+describe('#363 — draft heading by use case', () => {
+  it('an idea draft reads "Your new idea Page"', () => {
+    renderShop({ shop: { ...SHOP, kind: 'group', useCase: 'testing_interest', lifecycleState: 'draft', displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new idea Page')
   })
 })
 
-// Page types (ruled 2026-10-05): the kind line under the name, and each preset
-// leads with its own thing. Precedent: Meetup (Join, next event), Google
-// Business Profile (Call), Eventbrite organizer pages (upcoming events).
-describe('Page kinds — the kind line and what each kind leads with', () => {
+// #363 — two types (ruled 2026-10-05): the kind line under the name, and the
+// type sets what leads. Precedent: Meetup (Join, next event), Google Business
+// Profile (Call).
+describe('#363 — the kind line and what each type leads with', () => {
   const soon = new Date(Date.now() + 2 * 864e5).toISOString()
   const later = new Date(Date.now() + 9 * 864e5).toISOString()
   const post = (id: string, body: string, startsAt: string | null) => ({ id, body, createdAt: soon, updatedAt: soon, startsAt, endsAt: null, locationLabel: null })
   const posts = [post('p-later', 'Star party', later), post('p-note', 'Thanks all', null), post('p-soon', 'Float day', soon)]
+  const GROUP = { ...SHOP, kind: 'group', useCase: 'gathering', category: null }
 
-  it('says the kind under the name: kind · main collection', () => {
+  it('says type · use case under the name, or type · collection', () => {
+    renderShop({ loggedIn: true, shop: GROUP })
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Group · Events')
+    cleanup()
     renderShop({ loggedIn: true, shop: { ...SHOP, category: 'Bakery' } })
     expect(screen.getByTestId('page-kind')).toHaveTextContent('Business · Bakery')
-    cleanup()
-    renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'interest', category: null } })
-    expect(screen.getByTestId('page-kind')).toHaveTextContent('Social group')
   })
 
-  it('a group: Join, its next event, and no products & services', () => {
-    renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'interest' }, posts })
+  it('a group: Join, its next event, and no products & services until added', () => {
+    renderShop({ loggedIn: true, shop: GROUP, posts })
     expect(screen.getByRole('button', { name: 'Join' })).toBeInTheDocument()
     expect(screen.getByTestId('page-next-up')).toHaveTextContent(/next event/i)
     expect(screen.getByTestId('page-next-up')).toHaveTextContent('Float day')
     expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
-  })
-
-  it('an organization: its upcoming events, soonest first, before its posts', () => {
-    renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'event_anchored' }, posts })
-    const up = screen.getByTestId('page-next-up')
-    expect(up).toHaveTextContent(/upcoming events/i)
-    expect(up.textContent!.indexOf('Float day')).toBeLessThan(up.textContent!.indexOf('Star party'))
-    expect(up.compareDocumentPosition(screen.getByTestId('page-posts')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    cleanup()
+    renderShop({ loggedIn: true, shop: GROUP, productsOn: true })
+    expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
   it('a business leads with how to reach it: contact before the description', () => {

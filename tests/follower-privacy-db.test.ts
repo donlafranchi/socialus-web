@@ -62,7 +62,7 @@ beforeAll(async () => {
 
   await client.query(
     `insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id)
-     values ($1,'interest','F067 Open Page','f067-open','active','listed',$2)`,
+     values ($1,'group','F067 Open Page','f067-open','active','listed',$2)`,
     [OPEN_PAGE, OWNER],
   )
   // The owner, an explicit member. And a follower, the way the handler writes one.
