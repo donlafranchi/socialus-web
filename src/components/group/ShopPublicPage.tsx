@@ -293,7 +293,7 @@ export function ShopPublicPage({
           >
             <p className="font-medium text-gray-600">Nothing listed yet</p>
             <p className="mt-1">
-              {shop.founder?.displayName ?? 'This Shop'} hasn&apos;t listed anything yet — check
+              {shop.founder?.displayName ?? 'This Shop'} hasn&apos;t listed anything yet. Check
               back soon.
             </p>
           </div>
