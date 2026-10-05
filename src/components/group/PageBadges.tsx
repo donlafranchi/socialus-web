@@ -29,14 +29,14 @@ export function PageBadges({ badges }: { badges: ShownBadge[] }) {
           onClick={() => setOpen(b)}
           className="press inline-flex min-h-tap items-center"
         >
-          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[var(--color-frame)] px-3 text-[13px] font-semibold text-white">
+          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-[var(--color-frame)] px-3 text-caption font-semibold text-white">
             <Award size={14} className="text-[var(--color-highlight-soft)]" aria-hidden="true" />
             {b.label}
           </span>
         </button>
       ))}
       {!all && badges.length > SHOWN && (
-        <button type="button" onClick={() => setAll(true)} className="press min-h-tap px-2 text-[13px] font-medium text-[var(--color-accent)]">
+        <button type="button" onClick={() => setAll(true)} className="press min-h-tap px-2 text-caption font-medium text-[var(--color-accent)]">
           +{badges.length - SHOWN} more
         </button>
       )}
