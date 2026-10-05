@@ -10,7 +10,11 @@ on:
 # could comment. The red tick looked like flakiness; the label never appeared,
 # so `needs-fix` — which CLAUDE.md tells every agent to watch for — had never
 # once been applied. Bug #189.
+#
+# `contents: read` too: naming any permission drops the rest to none, and on a
+# private repo (since 2026-10-05) that leaves checkout "Repository not found".
 permissions:
+  contents: read
   issues: write
   pull-requests: write
 
