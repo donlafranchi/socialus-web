@@ -24,6 +24,7 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
+import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
 import { useState } from 'react'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
@@ -59,6 +60,7 @@ interface PostInput {
   startsAt?: string | null
   endsAt?: string | null
   locationId?: string | null
+  howToFind?: string | null
 }
 
 interface EditInput {
@@ -194,13 +196,18 @@ export function PagePosts({
     let locationId: string | null = null
     let locationLabel: string | null = null
     if (w.addingPlace && isLocationPlaceFieldsComplete(w.place)) {
+      // #348 — a dropped pin is named by what's around it, as Google Maps does.
+      const named =
+        w.place.mode === 'address' && w.place.selectedAddress!.name === DROPPED_PIN
+          ? await pinLabel(w.place.selectedAddress!.coordinates[0], w.place.selectedAddress!.coordinates[1])
+          : w.place.selectedAddress?.name ?? ''
       const made = await onCreateLocation(
         w.place.mode === 'address'
           ? {
-              label: w.place.selectedAddress!.name,
+              label: named,
               address: {
                 geographyWkt: `SRID=4326;POINT(${w.place.selectedAddress!.coordinates[0]} ${w.place.selectedAddress!.coordinates[1]})`,
-                resolvedAddressText: w.place.selectedAddress!.name,
+                resolvedAddressText: named,
               },
             }
           : { label: w.place.addressQuery, neighborhoodId: w.place.neighborhoodId! },
@@ -241,6 +248,7 @@ export function PagePosts({
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
       locationId: resolved.locationId,
+      ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -256,6 +264,7 @@ export function PagePosts({
         startsAt: resolved.startsAt,
         endsAt: resolved.endsAt,
         locationLabel: resolved.locationLabel,
+        howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
       },
       ...items,
     ])
@@ -432,6 +441,11 @@ export function PagePosts({
                       {post.startsAt ? formatMetroDateTime(post.startsAt, undefined, undefined, post.endsAt) : null}
                       {post.startsAt && post.locationLabel ? ' · ' : null}
                       {post.locationLabel}
+                    </p>
+                  )}
+                  {post.howToFind && (
+                    <p className="mt-1 text-sm text-[var(--color-fg-muted)]" data-testid="page-post-how">
+                      How to find us: {post.howToFind}
                     </p>
                   )}
 

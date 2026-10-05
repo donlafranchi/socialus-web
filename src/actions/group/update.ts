@@ -29,6 +29,7 @@
 
 import { normalizeUsPhone } from '../../lib/phone'
 import { parseOpeningHours } from '../../lib/groups/opening-hours'
+import { whereInput, applyWhere, type WhereClause } from './where'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
@@ -57,7 +58,7 @@ export const groupUpdateInput = z.object({
   // Don, 2026-10-04 — hours and phone as a component: on by default for
   // shops and services, off for groups until the owner adds them.
   contactComponent: z.boolean().optional(),
-})
+}).merge(whereInput)
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
 export interface GroupUpdateResult {
@@ -76,6 +77,7 @@ type SpineClause =
   | 'contact_phone = $'
   | 'opening_hours = $'
   | 'social_links = $'
+  | WhereClause
 
 export const groupUpdate = defineHandler(
   'group.update',
@@ -211,6 +213,8 @@ export const groupUpdate = defineHandler(
         )
         patched.push('components')
       }
+      // #348 — where it is: the answer, its notes, the towns served.
+      await applyWhere(client, input.groupId, input, fragments, patched)
 
       if (patched.length === 0) return { groupId: input.groupId, patched }
 

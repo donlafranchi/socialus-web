@@ -7,7 +7,7 @@ Launch target: **2026-10-30**, one metro.
 
 Each section below carries a **Wire-up** block: enough concrete detail to hand
 straight to an implementing agent without re-deriving it. Classify the ticket by
-`ops-pattern/PIPELINE.md` before opening it; the suggested kind is noted per item.
+`ops-pattern/process/PIPELINE.md` before opening it; the suggested kind is noted per item.
 
 ## How to read the table
 
@@ -77,7 +77,7 @@ changes with no code. Item 9 is blocked on a scenario.
 | 5 | 10 Backups | chore | Nothing |
 | 6 | 7 Scheduled jobs | chore | Item 10 defines the first job |
 | 7 | 12 Uptime monitoring | chore | Production domain live |
-| 8 | 9 Content moderation | **scenario** | `ops-pattern` approval |
+| 8 | 9 Content moderation | **scenario** | `socialus-plan` approval |
 | 9 | 1, 2 Plan upgrades | chore | Two weeks before launch |
 
 ---
@@ -409,10 +409,10 @@ report control, a review queue, and the ability to delete an object and the row
 pointing at it.
 
 **This is a scenario, not a chore.** It changes behavior and needs acceptance
-checks, so per `CLAUDE.md` it goes to `ops-pattern` for a scenario before any
+checks, so per `CLAUDE.md` it goes to `socialus-plan` for a scenario before any
 ticket opens here. Do not let it arrive as a `change ·` ticket.
 
-**What the scenario needs to decide**, so `ops-pattern` has something to work
+**What the scenario needs to decide**, so `socialus-plan` has something to work
 with:
 
 | Question | Why it is load-bearing |
@@ -773,7 +773,7 @@ psql "$SUPABASE_DB_URL" -f supabase/seeds/the-good-place.sql
 - [ ] PostHog capturing the five agreed events (item 13)
 - [ ] Turnstile enforced server-side by Supabase (item 8)
 - [ ] Report control and review queue shipped, scenario approved in
-      `ops-pattern` first (item 9)
+      `socialus-plan` first (item 9)
 - [ ] OG images verified ([opengraph.xyz](https://opengraph.xyz))
 
 **First month**

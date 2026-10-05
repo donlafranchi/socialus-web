@@ -26,11 +26,16 @@ on:
   pull_request:
   push:
     branches: [main]
+  # The whole screenshot matrix (#375): ~45 minutes, so nightly, not per push.
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
 
 # A second push to a PR cancels the first. Not on main: those runs are the
-# record of what a merge did.
+# record of what a merge did. The event is in the key so a nightly run never
+# queues a merge's run behind it.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -58,7 +63,7 @@ jobs:
       - run: npm ci
 
       # Proves itself on a known-bad fixture first, then checks every tracked
-      # file ([guard-proves-itself]). Grammar: ops-pattern PIPELINE.md.
+      # file ([guard-proves-itself]). Grammar: ops-pattern/process/PIPELINE.md.
       - name: Markers — open questions and guard claims
         run: bash scripts/check-markers.sh
 
@@ -116,13 +121,14 @@ jobs:
           version: 2.117.0
 
       # Built from the migration files in this commit, thrown away with the
-      # runner. `db reset` applies every migration from empty, in order, which
-      # is also what makes the DB-bound suites meaningful rather than merely
-      # runnable.
+      # runner. `start` on a fresh runner applies every migration from empty,
+      # in order, then the seed, which is also what makes the DB-bound suites
+      # meaningful rather than merely runnable. Only the services the suites
+      # reach are started (#375): Postgres, auth, REST, storage and the gateway.
       - name: Start a throwaway local stack
-        run: |
-          supabase start
-          supabase db reset
+        run: supabase start -x "$SUPABASE_UNUSED"
+        env:
+          SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - run: npm ci
 
@@ -167,14 +173,21 @@ jobs:
   #   guard          one spec that MUST fail; this job stops if it passes
   #   mobile-chrome  the feature evals (evals/quarantine.ts lists the ones that
   #                  fail against today's rulings and are excluded, by title)
-  #   screens        every inventory route, as every persona, at six widths;
-  #                  uploaded as the `screenshots` artifact
+  #   screens        on a PR or a merge, the smoke slice (#375): every route
+  #                  signed out, and every route that differs by viewer as a
+  #                  member and an owner, at 390px; it gates on errors and
+  #                  captures no pictures. Nightly and
+  #                  on demand (Actions → CI → Run workflow), the whole matrix:
+  #                  every route, as every persona, at six widths. Uploaded as
+  #                  the `screenshots` artifact.
+  #
+  # The whole matrix ran on every push until #375 and was ~45 of this job's
+  # ~50 minutes. The smoke slice still loads every route on every PR.
   # ---------------------------------------------------------------------
   browser:
     name: Browser
     runs-on: ubuntu-24.04
-    # The matrix alone is ~45 minutes: 572 tests, six widths each.
-    timeout-minutes: 90
+    timeout-minutes: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 20 || 90 }}
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -184,22 +197,70 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: npm
-
       # Pinned, for the reason the test job gives (#164).
       - uses: supabase/setup-cli@v2
         with:
           version: 2.117.0
 
-      - name: Start a throwaway local stack
+      # First and in the background: the stack is the longest step (~1.5
+      # minutes), and nothing before the seed needs it.
+      - name: Start a throwaway local stack (background)
         run: |
-          supabase start
-          supabase db reset
+          ( supabase start -x "$SUPABASE_UNUSED" 2>&1 | while IFS= read -r l; do echo "$(date +%T) $l"; done > "$RUNNER_TEMP/stack.log"; echo "${PIPESTATUS[0]}" > "$RUNNER_TEMP/stack.exit" ) &
+        env:
+          SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
-      - run: npm ci
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Cache node_modules
+        id: node-modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node20-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Cache the Playwright browser
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      # No --with-deps: the runner image already carries Chrome's libraries, and
+      # the apt step it adds once stalled 11 minutes on a mirror (#375).
+      - run: npx playwright install --only-shell chromium
+
+      # Built while the stack is still starting. The bundle bakes in the
+      # stack's anon key, which on a default local stack is a fixed JWT signed
+      # with the CLI's default secret; computed here, checked below, and the
+      # build is redone if the stack handed out a different one.
+      - name: Local anon key
+        run: |
+          key=$(node -e "const c=require('crypto'),b=(o)=>Buffer.from(JSON.stringify(o)).toString('base64url'),h=b({alg:'HS256',typ:'JWT'}),p=b({iss:'supabase-demo',role:'anon',exp:1983812996});console.log(h+'.'+p+'.'+c.createHmac('sha256','super-secret-jwt-token-with-at-least-32-characters-long').update(h+'.'+p).digest('base64url'))")
+          echo "BUILT_ANON_KEY=$key" >> "$GITHUB_ENV"
+
+      - name: Cache the Next.js build
+        uses: actions/cache@v5
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - name: Build against the local stack
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.BUILT_ANON_KEY }}
+
+      - name: Wait for the stack
+        run: |
+          for _ in $(seq 1 300); do [ -f "$RUNNER_TEMP/stack.exit" ] && break; sleep 1; done
+          cat "$RUNNER_TEMP/stack.log"
+          [ "$(cat "$RUNNER_TEMP/stack.exit" 2>/dev/null)" = 0 ]
 
       - name: Read the stack's keys into the environment
         run: supabase status -o env | sed 's/="/=/; s/"$//' >> "$GITHUB_ENV"
@@ -213,13 +274,15 @@ jobs:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
 
-      - name: Build against the local stack
-        run: npm run build
+      - name: Rebuild if the stack's key differs
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.ANON_KEY }}
-
-      - run: npx playwright install --with-deps chromium
+        run: |
+          if [ "$ANON_KEY" != "$BUILT_ANON_KEY" ]; then
+            echo "::warning::The local stack's anon key is not the default one; rebuilding against it."
+            npm run build
+          fi
 
       # [guard-proves-itself]: watched failing on every run, before anything
       # below is believed.
@@ -233,17 +296,14 @@ jobs:
           fi
           echo "Self-test: the must-fail spec failed, as it must."
 
-      - name: Feature evals
+      # One run, so both share the server and the workers; a failing eval
+      # still lets every screen run.
+      - name: Feature evals and screenshot matrix
         env:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
-        run: npx playwright test --project=mobile-chrome
-
-      - name: Screenshot matrix
-        if: ${{ !cancelled() }}
-        env:
-          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
-        run: npx playwright test --project=screens
+          SCREENS_SCOPE: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 'smoke' || 'full' }}
+        run: npx playwright test --project=mobile-chrome --project=screens
 
       - name: Upload screenshots
         if: ${{ !cancelled() }}
