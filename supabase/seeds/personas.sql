@@ -239,8 +239,8 @@ insert into public.locations (id, member_id, kind, label, slug, geography, place
 values ('0c000000-0000-4000-8000-000000000001', '0a000000-0000-4000-8000-000000000011', 'permanent', 'QA Corner Bakery, main spot', 'qa-corner-bakery-shop',
   ST_GeogFromText('POINT(-121.4700 38.5410)'), (select id from public.places where slug = 'oak-park' limit 1), 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values ('0b000000-0000-4000-8000-000000000001', 'business', 'QA Corner Bakery', 'qa-corner-bakery', 'qa0b01',
+insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values ('0b000000-0000-4000-8000-000000000001', 'business', 'selling', 'QA Corner Bakery', 'qa-corner-bakery', 'qa0b01',
   'A seeded business Page for the browser suite.', 'active', 'listed', '0a000000-0000-4000-8000-000000000011', '0c000000-0000-4000-8000-000000000001')
 on conflict (id) do nothing;
 update public.groups set discoverability = 'listed' where id = '0b000000-0000-4000-8000-000000000001';
@@ -283,8 +283,8 @@ insert into public.locations (id, member_id, kind, label, slug, geography, place
 values ('0c000000-0000-4000-8000-000000000002', '0a000000-0000-4000-8000-000000000012', 'permanent', 'QA Oak Park Commons, main spot', 'qa-oak-park-commons-green',
   ST_GeogFromText('POINT(-121.4720 38.5420)'), (select id from public.places where slug = 'oak-park' limit 1), 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values ('0b000000-0000-4000-8000-000000000002', 'place', 'QA Oak Park Commons', 'qa-oak-park-commons', 'qa0p01',
+insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values ('0b000000-0000-4000-8000-000000000002', 'group', 'gathering', 'QA Oak Park Commons', 'qa-oak-park-commons', 'qa0p01',
   'A seeded place Page for the browser suite.', 'active', 'listed', '0a000000-0000-4000-8000-000000000012', '0c000000-0000-4000-8000-000000000002')
 on conflict (id) do nothing;
 update public.groups set discoverability = 'listed' where id = '0b000000-0000-4000-8000-000000000002';
@@ -313,8 +313,8 @@ insert into public.locations (id, member_id, kind, label, slug, geography, place
 values ('0c000000-0000-4000-8000-000000000003', '0a000000-0000-4000-8000-000000000013', 'permanent', 'QA River Run Club, main spot', 'qa-river-run-club-start',
   ST_GeogFromText('POINT(-121.4740 38.5430)'), (select id from public.places where slug = 'oak-park' limit 1), 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values ('0b000000-0000-4000-8000-000000000003', 'interest', 'QA River Run Club', 'qa-river-run-club', 'qa0n01',
+insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values ('0b000000-0000-4000-8000-000000000003', 'group', 'gathering', 'QA River Run Club', 'qa-river-run-club', 'qa0n01',
   'A seeded interest Page for the browser suite.', 'active', 'listed', '0a000000-0000-4000-8000-000000000013', '0c000000-0000-4000-8000-000000000003')
 on conflict (id) do nothing;
 update public.groups set discoverability = 'listed' where id = '0b000000-0000-4000-8000-000000000003';
@@ -343,8 +343,8 @@ insert into public.locations (id, member_id, kind, label, slug, geography, place
 values ('0c000000-0000-4000-8000-000000000004', '0a000000-0000-4000-8000-000000000014', 'permanent', 'QA Pottery Studio, main spot', 'qa-pottery-studio-room',
   ST_GeogFromText('POINT(-121.4760 38.5440)'), (select id from public.places where slug = 'oak-park' limit 1), 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values ('0b000000-0000-4000-8000-000000000004', 'practice', 'QA Pottery Studio', 'qa-pottery-studio', 'qa0r01',
+insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values ('0b000000-0000-4000-8000-000000000004', 'group', 'gathering', 'QA Pottery Studio', 'qa-pottery-studio', 'qa0r01',
   'A seeded practice Page for the browser suite.', 'active', 'listed', '0a000000-0000-4000-8000-000000000014', '0c000000-0000-4000-8000-000000000004')
 on conflict (id) do nothing;
 update public.groups set discoverability = 'listed' where id = '0b000000-0000-4000-8000-000000000004';
@@ -373,9 +373,9 @@ insert into public.locations (id, member_id, kind, label, slug, geography, place
 values ('0c000000-0000-4000-8000-000000000005', '0a000000-0000-4000-8000-000000000015', 'permanent', 'QA Street Fair, main spot', 'qa-street-fair-block',
   ST_GeogFromText('POINT(-121.4780 38.5450)'), (select id from public.places where slug = 'oak-park' limit 1), 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values ('0b000000-0000-4000-8000-000000000005', 'event_anchored', 'QA Street Fair', 'qa-street-fair', 'qa0e01',
-  'A seeded event anchored Page for the browser suite.', 'active', 'listed', '0a000000-0000-4000-8000-000000000015', '0c000000-0000-4000-8000-000000000005')
+insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values ('0b000000-0000-4000-8000-000000000005', 'group', 'testing_interest', 'QA Street Fair', 'qa-street-fair', 'qa0e01',
+  'A seeded event Page for the browser suite.', 'active', 'listed', '0a000000-0000-4000-8000-000000000015', '0c000000-0000-4000-8000-000000000005')
 on conflict (id) do nothing;
 update public.groups set discoverability = 'listed' where id = '0b000000-0000-4000-8000-000000000005';
 insert into public.group_memberships (group_id, member_id, role, source, relationship, confirmed_by_member_id, confirmed_at) values
@@ -403,8 +403,8 @@ insert into public.locations (id, member_id, kind, label, slug, geography, place
 values ('0c000000-0000-4000-8000-000000000006', '0a000000-0000-4000-8000-000000000016', 'permanent', 'QA Family, main spot', 'qa-family-home',
   ST_GeogFromText('POINT(-121.4800 38.5460)'), (select id from public.places where slug = 'oak-park' limit 1), 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values ('0b000000-0000-4000-8000-000000000006', 'family', 'QA Family', 'qa-family', 'qa0f01',
+insert into public.groups (id, kind, use_case, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values ('0b000000-0000-4000-8000-000000000006', 'group', 'gathering', 'QA Family', 'qa-family', 'qa0f01',
   'A seeded family Page for the browser suite.', 'active', 'private', '0a000000-0000-4000-8000-000000000016', '0c000000-0000-4000-8000-000000000006')
 on conflict (id) do nothing;
 update public.groups set discoverability = 'private' where id = '0b000000-0000-4000-8000-000000000006';

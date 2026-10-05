@@ -7,29 +7,29 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
-// #363 — two types, Business and Social group; the questions are presets under
-// them (ruled 2026-10-05): business, a group or meetup (interest), an
-// organization that holds events (event_anchored).
-export type StartKind = 'business' | 'interest' | 'event_anchored'
+// #363 — each question is a use case, a preset under one of the two types
+// (ruled 2026-10-05): selling under business; gathering and testing interest
+// under group. Service is chosen later, in the Page's settings.
+export type StartKind = 'selling' | 'gathering' | 'testing_interest'
 
 // Don, 2026-10-04: each kind is a question, with one line on what the Page
-// is for. The business and group questions are his; the third is drafted in
-// his voice. Placeholder ([public-is-draft]).
+// is for. The first two are his; the third is drafted from the product's own
+// pitch for an idea. Placeholder ([public-is-draft]).
 const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
   {
-    kind: 'business',
+    kind: 'selling',
     title: 'Have a business where you sell products or services?',
     body: 'A Page for your shop, farm, trade or studio, where people see what you offer and what’s new.',
   },
   {
-    kind: 'interest',
+    kind: 'gathering',
     title: 'Do you manage a group or meetup, or host events regularly?',
     body: 'A Page for people who get together, where others can find your events and join.',
   },
   {
-    kind: 'event_anchored',
-    title: 'Do you run a nonprofit, school, church or festival that holds events?',
-    body: 'A Page for an organization and the events it puts on.',
+    kind: 'testing_interest',
+    title: 'Have an idea and want to see who’s interested?',
+    body: 'A Page where people can show they want it before you even start.',
   },
 ]
 

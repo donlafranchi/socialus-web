@@ -58,7 +58,7 @@ beforeAll(async () => {
   )
   await client.query(
     `insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id)
-     values ($1,'interest','Identity Leak Page',$2,'active','listed',$3)`,
+     values ($1,'group','Identity Leak Page',$2,'active','listed',$3)`,
     [PAGE, SLUG, FOUNDER],
   )
   await client.query(

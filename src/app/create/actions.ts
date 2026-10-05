@@ -9,10 +9,11 @@ import { resolveActionContext } from '@/lib/action-context'
 import { groupActivate, groupCreate, ActionError } from '@/actions'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 
-const KINDS = ['business', 'interest', 'event_anchored'] as const
+// #363 — a use case, a preset under its type.
+const PRESETS = { selling: 'business', gathering: 'group', testing_interest: 'group' } as const
 
-export async function startDraftAction(kind: (typeof KINDS)[number]): Promise<void> {
-  if (!(KINDS as readonly string[]).includes(kind)) throw new Error('Choose what you are starting.')
+export async function startDraftAction(useCase: keyof typeof PRESETS): Promise<void> {
+  if (!Object.hasOwn(PRESETS, useCase)) throw new Error('Choose what you are starting.')
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
   if (!data.user) redirect(`/auth/login?next=${encodeURIComponent('/create')}`)
@@ -20,7 +21,8 @@ export async function startDraftAction(kind: (typeof KINDS)[number]): Promise<vo
   let groupId: string
   try {
     ;({ groupId } = await groupCreate(resolveActionContext({ actingMemberId: data.user.id }), {
-      kind,
+      kind: PRESETS[useCase],
+      useCase,
       founderMemberId: data.user.id,
     }))
   } catch (err) {
