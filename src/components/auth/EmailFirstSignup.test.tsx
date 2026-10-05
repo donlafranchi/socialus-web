@@ -160,3 +160,25 @@ describe('T090 — EmailFirstSignup', () => {
     expect(onAuthenticated).not.toHaveBeenCalled()
   })
 })
+
+describe('F081 criterion 5 — the signup screen says what the app is for', () => {
+  // [guards F081.5 partial: the line's presence; that no line about selling member information appears is not checked here]
+  it('shows Don\'s line when an account is being created', async () => {
+    const { COPY } = await import('@/lib/copy')
+    const deps = makeDeps({ checkEmailRegistered: vi.fn(async () => false) })
+    render(<EmailFirstSignup onAuthenticated={vi.fn()} deps={deps} />)
+    fillEmail('new@example.test')
+    clickSubmit()
+    await waitFor(() => screen.getByTestId('set-password-heading'))
+    expect(screen.getByTestId('signup-line')).toHaveTextContent(COPY.signupLine)
+  })
+
+  it('is absent when signing in', async () => {
+    const deps = makeDeps({ checkEmailRegistered: vi.fn(async () => true) })
+    render(<EmailFirstSignup onAuthenticated={vi.fn()} deps={deps} />)
+    fillEmail('back@example.test')
+    clickSubmit()
+    await waitFor(() => screen.getByTestId('enter-password-heading'))
+    expect(screen.queryByTestId('signup-line')).toBeNull()
+  })
+})
