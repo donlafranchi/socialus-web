@@ -330,3 +330,28 @@ describe('#285 — tags can be edited any time', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 })
+
+// Don, 2026-10-04 — hours and phone are a component: off for a group until added.
+describe('hours and phone on Edit, as a component', () => {
+  it('a group sees an offer to add them, not the fields', () => {
+    renderForm({ contactOn: false })
+    expect(screen.queryByTestId('edit-contact')).toBeNull()
+    expect(screen.getByRole('button', { name: /add business hours and phone/i })).toBeInTheDocument()
+  })
+
+  it('adding them shows the fields and saves the switch', async () => {
+    renderForm({ contactOn: false })
+    fireEvent.click(screen.getByRole('button', { name: /add business hours and phone/i }))
+    expect(screen.getByTestId('edit-contact')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ contactComponent: true })))
+  })
+
+  it('a shop has them already, and saving does not touch the switch', async () => {
+    renderForm()
+    expect(screen.getByTestId('edit-contact')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('contactComponent')
+  })
+})

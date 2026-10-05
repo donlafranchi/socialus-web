@@ -52,6 +52,8 @@ export const groupUpdateDraftInput = z.object({
     .nullable()
     .optional(),
   businessStateOfFormation: z.string().max(80).nullable().optional(),
+  // Don, 2026-10-04 — hours and phone as a component (see group.update).
+  contactComponent: z.boolean().optional(),
 })
 
 export type GroupUpdateDraftInput = z.infer<typeof groupUpdateDraftInput>
@@ -275,6 +277,17 @@ export const groupUpdateDraft = defineHandler(
             )
           }
         }
+      }
+
+      if (input.contactComponent !== undefined) {
+        await client.query(
+          `update public.groups
+              set metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{components}',
+                    coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('contact', $2::boolean))
+            where id = $1 and lifecycle_state = 'draft'`,
+          [input.groupId, input.contactComponent],
+        )
+        patched.push('components')
       }
 
       return { groupId: input.groupId, patchedFields: patched }
