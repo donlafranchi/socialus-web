@@ -1,32 +1,39 @@
-// #363 — a Page is a Business, a Group or an Organization (dispatch,
-// 2026-10-05). Stored in the existing six-value groups.kind column: no schema
-// change, and the SQL that already treats "business" and "everything else"
-// differently (managing role, standing presence, items) stays right.
+// #363 — every Page is an organization; its two types are Business and Social
+// group, and the use cases are presets under those two (ruled 2026-10-05).
+// Stored in the existing six-value groups.kind column, where the preset lives:
+// no schema change, and the SQL that already treats "business" and "everything
+// else" differently (managing role, standing presence, items) stays right.
 
-export type PageKind = 'business' | 'group' | 'organization'
+export type PageKind = 'business' | 'social'
 export type StoredKind = 'business' | 'interest' | 'event_anchored' | 'place' | 'practice' | 'family'
 
-export const PAGE_KINDS: readonly PageKind[] = ['business', 'group', 'organization']
+export const PAGE_KINDS: readonly PageKind[] = ['business', 'social']
 
-export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', group: 'Group', organization: 'Organization' }
+export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', social: 'Social group' }
 
 export function pageKindOf(stored: string): PageKind {
-  if (stored === 'business') return 'business'
-  if (stored === 'event_anchored') return 'organization'
-  return 'group'
+  return stored === 'business' ? 'business' : 'social'
 }
 
-export function storedKindFor(kind: PageKind): StoredKind {
-  return kind === 'business' ? 'business' : kind === 'organization' ? 'event_anchored' : 'interest'
+/** The stored value for a type: a social Page keeps its preset; a business
+ *  turning social starts as an interest group. */
+export function storedKindFor(kind: PageKind, current: string): StoredKind {
+  if (kind === 'business') return 'business'
+  return current === 'business' ? 'interest' : (current as StoredKind)
+}
+
+/** "Business · Bakery": the type, then the main collection when there is one. */
+export function kindLine(stored: string, collection: string | null | undefined): string {
+  const label = PAGE_KIND_LABEL[pageKindOf(stored)]
+  return collection?.trim() ? `${label} · ${collection.trim()}` : label
 }
 
 /** What a Page leads with, and whether it lists products & services. Precedent:
  *  Meetup leads a group with Join and its next event; Google Business Profile
  *  leads a business with Call; Eventbrite leads an organizer with its events. */
 export function pageLayoutFor(stored: string): { lead: 'join' | 'contact' | 'events'; productsAndServices: boolean } {
-  const kind = pageKindOf(stored)
-  if (kind === 'business') return { lead: 'contact', productsAndServices: true }
-  if (kind === 'organization') return { lead: 'events', productsAndServices: true }
+  if (stored === 'business') return { lead: 'contact', productsAndServices: true }
+  if (stored === 'event_anchored') return { lead: 'events', productsAndServices: false }
   return { lead: 'join', productsAndServices: false }
 }
 

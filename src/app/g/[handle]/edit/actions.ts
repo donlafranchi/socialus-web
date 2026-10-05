@@ -26,8 +26,8 @@ export interface EditPageInput {
   openingHours?: unknown
   /** Don, 2026-10-04 — hours and phone switched on or off. */
   contactComponent?: boolean
-  /** Page kinds (dispatch, 2026-10-05). */
-  pageKind?: 'business' | 'group' | 'organization'
+  /** Page types (ruled 2026-10-05). */
+  pageKind?: 'business' | 'social'
   /** #285 — the Page's whole tag set. */
   tags?: string[]
 }

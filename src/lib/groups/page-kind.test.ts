@@ -1,36 +1,36 @@
-// #363 — three Page kinds (dispatch, 2026-10-05), stored in the existing column.
+// #363 — two Page types (ruled 2026-10-05), stored in the existing column.
 import { describe, it, expect } from 'vitest'
-import { pageKindOf, storedKindFor, PAGE_KIND_LABEL, pageLayoutFor, upcomingPosts } from './page-kind'
+import { pageKindOf, storedKindFor, PAGE_KIND_LABEL, kindLine, pageLayoutFor, upcomingPosts } from './page-kind'
 
-describe('#363 — Business, Group, Organization', () => {
-  it('reads every stored kind as one of the three', () => {
+describe('#363 — two types, Business and Social group; use cases are presets (ruled 2026-10-05)', () => {
+  it('reads every stored kind as one of the two', () => {
     expect(pageKindOf('business')).toBe('business')
-    for (const k of ['interest', 'place', 'practice', 'family']) expect(pageKindOf(k)).toBe('group')
-    expect(pageKindOf('event_anchored')).toBe('organization')
+    for (const k of ['interest', 'place', 'practice', 'family', 'event_anchored']) expect(pageKindOf(k)).toBe('social')
   })
-  it('stores each of the three in the existing column', () => {
-    expect(storedKindFor('business')).toBe('business')
-    expect(storedKindFor('group')).toBe('interest')
-    expect(storedKindFor('organization')).toBe('event_anchored')
-  })
-  it('round-trips', () => {
-    for (const k of ['business', 'group', 'organization'] as const) expect(pageKindOf(storedKindFor(k))).toBe(k)
+  it('a change of type keeps a social preset, and starts a new social group as interest', () => {
+    expect(storedKindFor('business', 'practice')).toBe('business')
+    expect(storedKindFor('social', 'business')).toBe('interest')
+    expect(storedKindFor('social', 'event_anchored')).toBe('event_anchored')
   })
   it('labels them plainly', () => {
-    expect(PAGE_KIND_LABEL).toEqual({ business: 'Business', group: 'Group', organization: 'Organization' })
+    expect(PAGE_KIND_LABEL).toEqual({ business: 'Business', social: 'Social group' })
+  })
+  it('the kind line is kind · main collection', () => {
+    expect(kindLine('business', 'Bakery')).toBe('Business · Bakery')
+    expect(kindLine('interest', null)).toBe('Social group')
   })
 })
 
 describe('pageLayoutFor — per-kind lead and tools (dispatch, 2026-10-05)', () => {
-  it('a group leads with Join and its next meetup, and lists no products & services', () => {
+  it('a social group leads with Join and its next event, and lists no products & services', () => {
     expect(pageLayoutFor('interest')).toEqual({ lead: 'join', productsAndServices: false })
     expect(pageLayoutFor('practice')).toEqual({ lead: 'join', productsAndServices: false })
   })
   it('a business leads with contact', () => {
     expect(pageLayoutFor('business')).toEqual({ lead: 'contact', productsAndServices: true })
   })
-  it('an organization leads with upcoming events', () => {
-    expect(pageLayoutFor('event_anchored')).toEqual({ lead: 'events', productsAndServices: true })
+  it('an organization preset leads with upcoming events', () => {
+    expect(pageLayoutFor('event_anchored')).toEqual({ lead: 'events', productsAndServices: false })
   })
 })
 
