@@ -1,8 +1,10 @@
 // T074 — Unit tests for <ShopPublicPage> (F035 read surface).
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md story beats 1–6.
 
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {} }), usePathname: () => '/' }))
 import '@testing-library/jest-dom/vitest'
 import { ShopPublicPage } from './ShopPublicPage'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
@@ -345,7 +347,7 @@ describe('#300 — the Page on the new layout', () => {
     const panel = screen.getByTestId('owner-panel')
     expect(panel.className).toMatch(/\bhidden\b/)
     expect(panel.className).toMatch(/\blg:block\b/)
-    expect(panel.querySelector('a[href="/g/x-abc123/edit"]')).not.toBeNull()
+    expect(panel.querySelector('[data-testid="owner-edit-toggle"]')).not.toBeNull()
   })
 
   it('gives nobody else a panel', () => {
@@ -441,5 +443,24 @@ describe('#293 — phone and hours on the Page', () => {
   it('shows nothing signed out, even if handed them', () => {
     renderShop({ loggedIn: false, contact: { phone: '+19165550142', hours: null } })
     expect(screen.queryByTestId('page-contact')).toBeNull()
+  })
+})
+
+
+// #302 — edit in place, by section (Don, 2026-10-04).
+describe('#302 — the owner edits the Page in place', () => {
+  it('Edit shows a small edit button on each section', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123', viewerMemberId: 'm1', tags: ['sourdough'] })
+    expect(screen.queryByTestId('edit-section-about')).toBeNull()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]!)
+    for (const s of ['about', 'photo', 'where', 'tags', 'links', 'components']) {
+      expect(screen.getAllByTestId(`edit-section-${s}`).length).toBeGreaterThan(0)
+    }
+  })
+
+  it('a visitor never sees them', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false })
+    expect(screen.queryByTestId('owner-edit-toggle')).toBeNull()
+    expect(screen.queryByTestId('edit-section-about')).toBeNull()
   })
 })

@@ -6,6 +6,7 @@
 // that needs it does not copy the six reads and get one of them wrong.
 
 import { resolvePageTags } from './page-tags'
+import { componentOn } from './page-components'
 import { resolvePageContact, type PageContact } from './page-contact'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
@@ -49,6 +50,10 @@ export interface PageView {
   /** #301 — how many tags a draft has, for its owner's publish checklist.
    *  Zero for anyone else and for a live Page. */
   draftTagCount: number
+  /** #302 — for the owner's in-place editor: who's editing, and whether
+   *  hours and phone are on (Don, 2026-10-04). */
+  viewerMemberId: string | null
+  contactOn: boolean
   /** #316 — the Page's tags; empty signed out (F093). */
   tags: string[]
   /** #293 — phone and hours, for signed-in visitors only; null signed out. */
@@ -119,6 +124,10 @@ export async function loadPageView(
         return [] as BrowseResult[]
       })
 
+  const contactOn = owns
+    ? componentOn(shop.kind, ((await supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle()).data as { metadata?: unknown } | null)?.metadata, 'contact')
+    : false
+
   return {
     items,
     posts,
@@ -126,6 +135,8 @@ export async function loadPageView(
     badge,
     ownerClaim,
     viewerOwnsPage: owns,
+    viewerMemberId,
+    contactOn,
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
     followerCount,
