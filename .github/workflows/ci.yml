@@ -174,8 +174,8 @@ jobs:
   #   mobile-chrome  the feature evals (evals/quarantine.ts lists the ones that
   #                  fail against today's rulings and are excluded, by title)
   #   screens        on a PR or a merge, the smoke slice (#375): every route
-  #                  signed out at 390 and 1280px, and every route that differs
-  #                  by viewer as a member and an owner at 390px. Nightly and
+  #                  signed out, and every route that differs by viewer as a
+  #                  member and an owner, at 390px. Nightly and
   #                  on demand (Actions → CI → Run workflow), the whole matrix:
   #                  every route, as every persona, at six widths. Uploaded as
   #                  the `screenshots` artifact.
@@ -196,25 +196,32 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: npm
-
       # Pinned, for the reason the test job gives (#164).
       - uses: supabase/setup-cli@v2
         with:
           version: 2.117.0
 
-      # In the background: the stack is a minute or more of image pulls, and
-      # npm ci and the browser download need none of it.
+      # First and in the background: the stack is the longest step (~1.5
+      # minutes), and nothing before the seed needs it.
       - name: Start a throwaway local stack (background)
         run: |
           ( supabase start -x "$SUPABASE_UNUSED" > "$RUNNER_TEMP/stack.log" 2>&1; echo $? > "$RUNNER_TEMP/stack.exit" ) &
         env:
           SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
-      - run: npm ci
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Cache node_modules
+        id: node-modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node20-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.node-modules.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Cache the Playwright browser
         uses: actions/cache@v5
@@ -269,18 +276,14 @@ jobs:
           fi
           echo "Self-test: the must-fail spec failed, as it must."
 
-      - name: Feature evals
+      # One run, so both share the server and the workers; a failing eval
+      # still lets every screen run.
+      - name: Feature evals and screenshot matrix
         env:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
-        run: npx playwright test --project=mobile-chrome
-
-      - name: Screenshot matrix
-        if: ${{ !cancelled() }}
-        env:
-          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SCREENS_SCOPE: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 'smoke' || 'full' }}
-        run: npx playwright test --project=screens
+        run: npx playwright test --project=mobile-chrome --project=screens
 
       - name: Upload screenshots
         if: ${{ !cancelled() }}

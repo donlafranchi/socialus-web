@@ -19,8 +19,8 @@ SCREENS_WIDTHS=390,1280`. If another local Supabase stack already holds ports
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATABASE_URL` and `PLAYWRIGHT_PORT` at it.
 
 **What CI runs:** a PR or a merge runs the smoke slice (`SCREENS_SCOPE=smoke`,
-`SMOKE` in `routes.ts`): every route signed out at 390 and 1280px, and every
-route not marked `same` as a member and a business owner at 390px. The whole
+`SMOKE` in `routes.ts`): every route signed out, and every route not marked
+`same` as a member and a business owner, at 390px. The whole
 matrix runs nightly and from Actions → CI → Run workflow (#375).
 
 A run fails on a server error or an uncaught page error, never on looks: the

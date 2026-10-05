@@ -93,8 +93,9 @@ export const ROUTES: ScreenRoute[] = [
 export const WIDTHS = [390, 744, 1024, 1280, 1440, 1920] as const
 
 /**
- * SCREENS_SCOPE=smoke, what every PR runs (ci.yml): every route signed out at a
- * phone and a desktop width, and every route that differs by viewer as a member
- * and an owner at the phone width. The whole matrix runs nightly.
+ * SCREENS_SCOPE=smoke, what every PR runs (ci.yml): every route signed out, and
+ * every route that differs by viewer as a member and an owner, at the phone
+ * width. A server error is the same at any width; the whole matrix, every
+ * width, runs nightly.
  */
-export const SMOKE = { widths: [390, 1280], signedIn: ['member', 'ownerBusiness'], signedInWidths: [390] }
+export const SMOKE = { widths: [390], signedIn: ['member', 'ownerBusiness'] }

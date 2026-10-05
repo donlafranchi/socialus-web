@@ -22,8 +22,7 @@ const widths = only(process.env.SCREENS_WIDTHS)
 const smoke = process.env.SCREENS_SCOPE === 'smoke'
 
 const inScope = (who: string, same?: true) => !smoke || who === 'signedOut' || (!same && SMOKE.signedIn.includes(who))
-const widthsFor = (who: string): readonly number[] =>
-  !smoke ? WIDTHS : who === 'signedOut' ? SMOKE.widths : SMOKE.signedInWidths
+const widthsFor: readonly number[] = smoke ? SMOKE.widths : WIDTHS
 
 for (const who of PERSONAS.filter((p) => (!personas || personas.has(p.key)) && inScope(p.key))) {
   test.describe(who.key, () => {
@@ -33,7 +32,7 @@ for (const who of PERSONAS.filter((p) => (!personas || personas.has(p.key)) && i
       test(`${route.name}`, async ({ page }) => {
         const errors: string[] = []
         page.on('pageerror', (e) => errors.push(e.message))
-        for (const width of widthsFor(who.key).filter((w) => !widths || widths.has(String(w)))) {
+        for (const width of widthsFor.filter((w) => !widths || widths.has(String(w)))) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
           const res = await page.goto(route.path(who), { waitUntil: 'load' })
           expect(res?.status() ?? 0, `${route.name} at ${width}px`).toBeLessThan(500)
