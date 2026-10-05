@@ -281,7 +281,7 @@ describe('#348 — drop a pin, no address needed', () => {
     render(<Harness onState={(s) => (latest = s)} />)
     fireEvent.click(screen.getByRole('button', { name: /drop a pin instead/i }))
     fireEvent.click(screen.getByTestId('pin-moved'))
-    expect(latest.selectedAddress).toEqual({ name: 'Pinned spot', coordinates: [-121.4999, 38.5811] })
+    expect(latest.selectedAddress).toEqual({ name: 'Dropped pin', coordinates: [-121.4999, 38.5811] })
     expect(isLocationPlaceFieldsComplete(latest)).toBe(true)
   })
 })

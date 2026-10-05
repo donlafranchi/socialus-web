@@ -7,7 +7,12 @@ import { COPY } from '@/lib/copy'
 // F072 — a Page owner announces something, with a time and a place on it.
 
 const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
-vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction }))
+vi.mock('@/app/_actions/location-actions', () => ({
+  searchPlacesAction,
+  placeForPointAction: vi.fn(async () => ({ ok: true, data: { id: 'pl-curtis', name: 'Curtis Park' } })),
+}))
+vi.mock('@/lib/map-config', async (orig) => ({ ...(await orig<typeof import('@/lib/map-config')>()), mapAvailable: () => true }))
+vi.mock('@/components/locations/PinAdjustMap', () => ({ PinAdjustMap: () => null }))
 vi.mock('@/lib/geocoding', () => ({
   geocode: vi.fn(async () => []),
   GeocodingUnavailableError: class extends Error {},
@@ -456,5 +461,16 @@ describe('#348 — how to find us, on a post', () => {
     fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Meet at the boat ramp' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ howToFind: 'Meet at the boat ramp' })))
+  })
+})
+
+describe('#348 — an event at a dropped pin', () => {
+  it('is named by what is around it, not "Pinned spot"', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Float Saturday.' } })
+    fireEvent.click(screen.getByTestId('announce-add-place'))
+    fireEvent.click(screen.getByRole('button', { name: /drop a pin instead/i }))
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onCreateLocation).toHaveBeenCalledWith(expect.objectContaining({ label: 'Near Curtis Park' })))
   })
 })

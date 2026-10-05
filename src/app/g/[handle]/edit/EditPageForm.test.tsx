@@ -163,6 +163,8 @@ describe('the address, which the owner can change', () => {
     expect(onCreateLocation).toHaveBeenCalledWith(
       expect.objectContaining({ address: expect.objectContaining({ geographyWkt: 'SRID=4326;POINT(-121.47 38.55)' }) }),
     )
+    // A dropped pin is named by what's around it, as Google Maps does.
+    expect(onCreateLocation).toHaveBeenCalledWith(expect.objectContaining({ label: 'Near Curtis Park' }))
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
         expect.objectContaining({ anchorLocationId: 'loc-new', whereMode: 'visit', howToFind: 'Behind the barn', serviceAreaPlaceIds: [] }),

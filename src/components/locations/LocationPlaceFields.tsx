@@ -22,6 +22,7 @@ import { searchPlacesAction } from '@/app/_actions/location-actions'
 import { mergeMatches, type Suggestion } from '@/lib/places/suggestions'
 import { placeKindLabel } from '@/lib/places/search'
 import { PinAdjustMap } from './PinAdjustMap'
+import { DROPPED_PIN } from '@/lib/places/pin-label'
 import { AreaPickMap } from './AreaPickMap'
 import { mapAvailable } from '@/lib/map-config'
 
@@ -249,7 +250,7 @@ export function LocationPlaceFields({
               type="button"
               className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() =>
-                setState({ ...state, mode: 'address', selectedAddress: { name: 'Pinned spot', coordinates: [-121.4944, 38.5816] }, neighborhoodId: null })
+                setState({ ...state, mode: 'address', selectedAddress: { name: DROPPED_PIN, coordinates: [-121.4944, 38.5816] }, neighborhoodId: null })
               }
             >
               Drop a pin instead

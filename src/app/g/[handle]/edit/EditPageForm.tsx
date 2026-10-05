@@ -21,6 +21,7 @@ import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
+import { pinLabel } from '@/lib/places/pin-label'
 import { WhereFields, emptyWhere, type WhereValue } from '@/components/locations/WhereFields'
 import { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
@@ -143,11 +144,12 @@ export function EditPageForm({
         let input: Parameters<CreateLocation>[0]
         if (where.mode === 'visit') {
           const v = where.visit
+          const label = v.label ?? (v.areaOnly ? '' : await pinLabel(v.pin![0], v.pin![1]))
           input = v.areaOnly
             ? { label: v.area!.name, neighborhoodId: v.area!.id }
             : {
-                label: v.label ?? 'Pinned spot',
-                address: { geographyWkt: `SRID=4326;POINT(${v.pin![0]} ${v.pin![1]})`, resolvedAddressText: v.label ?? 'Pinned spot' },
+                label,
+                address: { geographyWkt: `SRID=4326;POINT(${v.pin![0]} ${v.pin![1]})`, resolvedAddressText: label },
               }
         } else {
           const anchor = await onMetroAnchor()
