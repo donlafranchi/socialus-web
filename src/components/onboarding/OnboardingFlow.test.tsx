@@ -131,3 +131,30 @@ describe('T163 — the metro step is unconditional', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 })
+
+describe('F081 — the phone comes first', () => {
+  const phoneAuth = {
+    sendCode: vi.fn(async () => ({ ok: true as const })),
+    verifyCode: vi.fn(async () => ({ ok: true as const })),
+  }
+
+  it('asks an unverified member for their phone before anything else', () => {
+    render(<OnboardingFlow actions={makeActions()} onNavigate={vi.fn()} phoneVerified={false} phoneAuth={phoneAuth} />)
+    expect(screen.getByTestId('phone-form')).toBeInTheDocument()
+    expect(screen.queryByTestId('onboarding-form')).toBeNull()
+  })
+
+  it('moves to the name once the code checks out', async () => {
+    render(<OnboardingFlow actions={makeActions()} onNavigate={vi.fn()} phoneVerified={false} phoneAuth={phoneAuth} />)
+    fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '9165550134' } })
+    fireEvent.click(screen.getByRole('button', { name: /text me a code/i }))
+    fireEvent.change(await screen.findByLabelText(/code/i), { target: { value: '123456' } })
+    fireEvent.click(screen.getByRole('button', { name: /verify/i }))
+    expect(await screen.findByTestId('onboarding-form')).toBeInTheDocument()
+  })
+
+  it('skips straight to the name for a verified member', () => {
+    render(<OnboardingFlow actions={makeActions()} onNavigate={vi.fn()} phoneVerified />)
+    expect(screen.getByTestId('onboarding-form')).toBeInTheDocument()
+  })
+})

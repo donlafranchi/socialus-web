@@ -5,6 +5,7 @@
 // canonical route is the only thing rendering a Page, and so the next surface
 // that needs it does not copy the six reads and get one of them wrong.
 
+import { resolvePageContact, type PageContact } from './page-contact'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   resolveShopItems,
@@ -47,6 +48,8 @@ export interface PageView {
   /** #301 — how many tags a draft has, for its owner's publish checklist.
    *  Zero for anyone else and for a live Page. */
   draftTagCount: number
+  /** #293 — phone and hours, for signed-in visitors only; null signed out. */
+  contact: PageContact | null
 }
 
 export async function loadPageView(
@@ -93,6 +96,7 @@ export async function loadPageView(
       ? ((await supabase.from('page_tags').select('tag_id', { count: 'exact', head: true }).eq('group_id', shop.groupId))
           .count ?? 0)
       : 0
+  const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
 
   // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
   // this the Announcements section would not render at all and an
@@ -122,5 +126,6 @@ export async function loadPageView(
     loggedIn: Boolean(auth.user),
     followerCount,
     draftTagCount,
+    contact,
   }
 }

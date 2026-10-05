@@ -1,0 +1,53 @@
+name: Boundaries
+
+# #347 — load a metro's boundary layers (counties, places, tracts,
+# neighbourhoods) from public data into production. Manual only, and only after
+# the boundaries migration is applied. Idempotent: run it again after a new
+# Census vintage or a city republishes its neighbourhoods.
+
+on:
+  workflow_dispatch:
+    inputs:
+      metro:
+        description: 'Metro key from scripts/boundaries/metros.ts'
+        required: true
+        default: sacramento
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: boundaries
+  cancel-in-progress: false
+
+jobs:
+  load:
+    name: Load boundaries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Load
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          METRO: ${{ inputs.metro }}
+        run: npx tsx scripts/boundaries/load.ts "$METRO"
