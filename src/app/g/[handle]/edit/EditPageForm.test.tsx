@@ -72,9 +72,13 @@ function renderForm(over: Partial<Parameters<typeof EditPageForm>[0]> = {}) {
   )
 }
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllEnvs()
+})
 
 beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
   searchPlacesAction.mockReset()
   searchPlacesAction.mockResolvedValue({
     ok: true,
@@ -164,6 +168,24 @@ describe('the address, which the owner can change', () => {
         expect.objectContaining({ anchorLocationId: 'loc-new', whereMode: 'visit', howToFind: 'Behind the barn', serviceAreaPlaceIds: [] }),
       ),
     )
+  })
+
+  it('People come to me, already saved: a new "How to find us" saves without setting the pin again', async () => {
+    renderForm({
+      initialWhere: {
+        mode: 'visit',
+        visit: { pin: null, label: null, howToFind: 'Old note', areaOnly: false, area: null },
+        travel: { towns: [] },
+        roaming: { usuallyAround: '' },
+      },
+    })
+    fireEvent.click(screen.getByTestId('edit-address-change'))
+    fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Side door' } })
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onCreateLocation).not.toHaveBeenCalled()
+    expect(onSave.mock.calls[0][0]).toEqual(expect.objectContaining({ whereMode: 'visit', howToFind: 'Side door' }))
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('anchorLocationId')
   })
 
   it('Show only my neighbourhood: saves the neighbourhood under the pin, not the pin', async () => {

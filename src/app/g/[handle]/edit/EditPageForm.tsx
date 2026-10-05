@@ -135,6 +135,9 @@ export function EditPageForm({
       // opened it and finished an answer; an untouched Page keeps its place.
       let anchorLocationId: string | undefined
       let whereFields: Partial<EditPageInput> = {}
+      // Already "People come to me", pin left as it is: only the note changes.
+      const noteOnly = changingAddress && where.mode === 'visit' && !where.visit.pin && initialWhere.mode === 'visit'
+      if (noteOnly) whereFields = { whereMode: 'visit', howToFind: where.visit.howToFind }
       const visitReady = where.mode === 'visit' && where.visit.pin && (!where.visit.areaOnly || where.visit.area)
       if (changingAddress && (visitReady || where.mode === 'travel' || where.mode === 'roaming')) {
         let input: Parameters<CreateLocation>[0]

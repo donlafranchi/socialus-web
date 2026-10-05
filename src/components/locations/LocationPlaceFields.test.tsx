@@ -267,6 +267,15 @@ describe('the address field says who sees it, before anyone types (nouns.md)', (
 })
 
 describe('#348 — drop a pin, no address needed', () => {
+  beforeEach(() => vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test'))
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('is offered only where there is a map to drop it on', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', '')
+    render(<Harness />)
+    expect(screen.queryByRole('button', { name: /drop a pin instead/i })).toBeNull()
+  })
+
   it('sets a pinned spot, and moving the map moves it', () => {
     let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
     render(<Harness onState={(s) => (latest = s)} />)

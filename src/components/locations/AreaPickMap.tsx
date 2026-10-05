@@ -16,7 +16,18 @@ export interface AreaPick {
 
 const SACRAMENTO: [number, number] = [-121.35, 38.62]
 
-export function AreaPickMap({ onPick, selectedPlaceId }: { onPick: (p: AreaPick) => void; selectedPlaceId?: string | null }) {
+type AreaKind = 'city' | 'neighborhood'
+
+export function AreaPickMap({
+  onPick,
+  selectedPlaceId,
+  kinds = ['city', 'neighborhood'],
+}: {
+  onPick: (p: AreaPick) => void
+  selectedPlaceId?: string | null
+  /** Towns only for "I go to them"; neighbourhoods sit above towns otherwise. */
+  kinds?: AreaKind[]
+}) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
   const el = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -37,7 +48,8 @@ export function AreaPickMap({ onPick, selectedPlaceId }: { onPick: (p: AreaPick)
         map.addLayer({ id: `${kind}-line`, type: 'line', source: 'areas', filter: ['==', ['get', 'kind'], kind], paint: { 'line-color': AREA_OUTLINE, 'line-width': kind === 'city' ? 1.5 : 0.75, 'line-opacity': 0.5 } })
       }
       const onClick = (e: mapboxgl.MapMouseEvent) => {
-        const hit = map.queryRenderedFeatures(e.point, { layers: ['neighborhood-fill', 'city-fill'] })[0]
+        const layers = (['neighborhood', 'city'] as const).filter((k) => kinds.includes(k)).map((k) => `${k}-fill`)
+        const hit = map.queryRenderedFeatures(e.point, { layers })[0]
         const p = hit?.properties as { placeId?: string; name?: string } | undefined
         if (p?.placeId && p.name) pick.current({ placeId: p.placeId, name: p.name })
       }
@@ -62,7 +74,9 @@ export function AreaPickMap({ onPick, selectedPlaceId }: { onPick: (p: AreaPick)
   return (
     <div className="flex flex-col gap-1">
       <div ref={el} data-testid="area-pick-map" className="h-56 overflow-hidden rounded-md border border-[var(--color-border)]" />
-      <p className="text-caption text-[var(--color-fg-muted)]">Or tap your neighbourhood on the map.</p>
+      <p className="text-caption text-[var(--color-fg-muted)]">
+        {kinds.includes('neighborhood') ? 'Or tap your neighbourhood on the map.' : 'Or tap a town on the map.'}
+      </p>
       {/* Don, 2026-10-04: the cities' neighbourhood data, used with visible credit. */}
       <p data-testid="area-pick-credit" className="text-caption text-[var(--color-fg-muted)]">
         Neighbourhoods: City of Sacramento and City of West Sacramento open data. Towns and counties: US Census Bureau.

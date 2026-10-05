@@ -11,6 +11,7 @@ import { geocode, type GeocodingResult } from '@/lib/geocoding'
 import { placeForPointAction, searchPlacesAction } from '@/app/_actions/location-actions'
 import { PinAdjustMap } from './PinAdjustMap'
 import { AreaPickMap } from './AreaPickMap'
+import { mapAvailable } from '@/lib/map-config'
 
 export type WhereMode = 'visit' | 'travel' | 'roaming'
 type Place = { id: string; name: string }
@@ -134,17 +135,20 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
           <button type="button" onClick={find} disabled={finding} className="min-h-tap text-sm font-medium text-[var(--color-accent)] underline">
             {finding ? 'Finding…' : 'Find it'}
           </button>
-          <button
-            type="button"
-            onClick={() => set({ pin: value.pin ?? SACRAMENTO, label: null })}
-            className="min-h-tap text-sm font-medium text-[var(--color-accent)] underline"
-          >
-            Drop a pin on the map instead
-          </button>
+          {/* With no map, a dropped pin would land on the city centre unseen. */}
+          {mapAvailable() && (
+            <button
+              type="button"
+              onClick={() => set({ pin: value.pin ?? SACRAMENTO, label: null })}
+              className="min-h-tap text-sm font-medium text-[var(--color-accent)] underline"
+            >
+              Drop a pin on the map instead
+            </button>
+          )}
         </div>
         {matches && matches.length === 0 && (
           <p className="text-caption text-[var(--color-fg-muted)]">
-            We couldn&rsquo;t find that address. Try the full street address, or drop a pin on the map.
+            We couldn&rsquo;t find that address. Try the full street address{mapAvailable() ? ', or drop a pin on the map' : ''}.
           </p>
         )}
         {matches && matches.length > 0 && (
@@ -251,7 +255,7 @@ function Travel({ value, onChange }: { value: WhereValue['travel']; onChange: (v
           ))}
         </ul>
       )}
-      <AreaPickMap onPick={(p) => toggle({ id: p.placeId, name: p.name })} />
+      <AreaPickMap kinds={['city']} onPick={(p) => toggle({ id: p.placeId, name: p.name })} />
     </div>
   )
 }

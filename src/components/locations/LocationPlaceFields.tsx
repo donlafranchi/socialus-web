@@ -23,6 +23,7 @@ import { mergeMatches, type Suggestion } from '@/lib/places/suggestions'
 import { placeKindLabel } from '@/lib/places/search'
 import { PinAdjustMap } from './PinAdjustMap'
 import { AreaPickMap } from './AreaPickMap'
+import { mapAvailable } from '@/lib/map-config'
 
 export type PlaceMode = 'address' | 'neighbourhood'
 
@@ -242,7 +243,8 @@ export function LocationPlaceFields({
               />
             </div>
           )}
-          {!state.selectedAddress && (
+          {/* #348 — with no map, a dropped pin would land on the city centre unseen. */}
+          {!state.selectedAddress && mapAvailable() && (
             <button
               type="button"
               className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"

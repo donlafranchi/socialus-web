@@ -22,8 +22,8 @@ vi.mock('./PinAdjustMap', () => ({
   ),
 }))
 vi.mock('./AreaPickMap', () => ({
-  AreaPickMap: ({ onPick }: { onPick: (p: { placeId: string; name: string }) => void }) => (
-    <button type="button" data-testid="town-tapped" onClick={() => onPick({ placeId: 'pl-davis', name: 'Davis' })} />
+  AreaPickMap: ({ onPick, kinds }: { onPick: (p: { placeId: string; name: string }) => void; kinds?: string[] }) => (
+    <button type="button" data-testid="town-tapped" data-kinds={kinds?.join(',')} onClick={() => onPick({ placeId: 'pl-davis', name: 'Davis' })} />
   ),
 }))
 
@@ -42,6 +42,7 @@ function Harness({ initial = emptyWhere }: { initial?: WhereValue }) {
 }
 
 beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
   latest = emptyWhere
   geocode.mockReset()
   placeForPoint.mockReset()
@@ -49,7 +50,10 @@ beforeEach(() => {
   searchPlaces.mockReset()
   searchPlaces.mockResolvedValue({ ok: true, data: [] })
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllEnvs()
+})
 
 describe('#348 — one question, three answers', () => {
   it('asks one question with three answers, and nothing else until one is chosen', () => {
@@ -86,6 +90,14 @@ describe('People come to me', () => {
     expect(latest.visit.label).toBeNull()
   })
 
+  it('offers a dropped pin only where there is a map to drop it on', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', '')
+    render(<Harness />)
+    choose()
+    expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /find it/i })).toBeInTheDocument()
+  })
+
   it('takes an optional one-line "How to find us"', () => {
     render(<Harness />)
     choose()
@@ -116,6 +128,12 @@ describe('I go to them', () => {
     expect(latest.travel.towns).toEqual([{ id: 'pl-davis', name: 'Davis' }])
     fireEvent.click(screen.getByRole('button', { name: /remove davis/i }))
     expect(latest.travel.towns).toEqual([])
+  })
+
+  it('the map offers towns, not neighbourhoods', () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('radio', { name: /i go to them/i }))
+    expect(screen.getByTestId('town-tapped')).toHaveAttribute('data-kinds', 'city')
   })
 })
 
