@@ -246,3 +246,33 @@ describe('#285 — tags on a live Page can be edited any time (Don, 2026-10-01)'
     expect(appendEvent).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('#348 — where it is, on a live Page', () => {
+  it('writes the answer and the note in the same update', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, whereMode: 'visit', howToFind: 'Behind the barn' })
+    expect(out.patched).toEqual(expect.arrayContaining(['where_mode', 'how_to_find']))
+    const [text] = sql(/update public\.groups/)[0]!
+    expect(text).toMatch(/where_mode = \$1/)
+    expect(text).toMatch(/how_to_find = \$2/)
+  })
+
+  it('towns served alone touch no column on the Page', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, serviceAreaPlaceIds: [] })
+    expect(sql(/update public\.groups/)).toHaveLength(0)
+    expect(sql(/delete from public\.page_service_areas/)).toHaveLength(1)
+  })
+})
+
+// Don, 2026-10-04: hours and phone are a component an owner can add to a group.
+describe('hours and phone, switched on or off', () => {
+  it('records the choice in the Page metadata, touching nothing else', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, contactComponent: true })
+    expect(out.patched).toContain('components')
+    const [text, params] = sql(/jsonb_build_object\('contact'/)[0]!
+    expect(text).toMatch(/update public\.groups\s+set metadata/)
+    expect(params).toEqual([GROUP, true])
+  })
+})

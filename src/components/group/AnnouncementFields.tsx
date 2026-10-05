@@ -47,6 +47,8 @@ export interface AnnouncementWhenWhere {
    *  keeps its place unless the creator says otherwise. */
   addingPlace: boolean
   place: LocationPlaceFieldsState
+  /** #348 — a one-line "How to find us" for this event's meet spot. */
+  howToFind: string
 }
 
 export const emptyWhenWhere: AnnouncementWhenWhere = {
@@ -55,6 +57,7 @@ export const emptyWhenWhere: AnnouncementWhenWhere = {
   endTime: '',
   addingPlace: false,
   place: initialLocationPlaceFieldsState,
+  howToFind: '',
 }
 
 export function AnnouncementFields({
@@ -161,12 +164,24 @@ export function AnnouncementFields({
               setState={(place) => onChange({ ...value, place })}
               idPrefix={`${idPrefix}-place`}
             />
+            <label className="mt-2 flex flex-col gap-1">
+              <span className="text-sm text-[var(--color-fg)]">
+                How to find us <span className="text-[var(--color-fg-muted)]">(optional)</span>
+              </span>
+              <input
+                className="input"
+                maxLength={140}
+                placeholder="Meet at the boat ramp, past the gate"
+                value={value.howToFind}
+                onChange={(e) => onChange({ ...value, howToFind: e.target.value })}
+              />
+            </label>
             <button
               type="button"
               data-testid={`${idPrefix}-drop-place`}
               className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() =>
-                onChange({ ...value, addingPlace: false, place: initialLocationPlaceFieldsState })
+                onChange({ ...value, addingPlace: false, place: initialLocationPlaceFieldsState, howToFind: '' })
               }
             >
               {placeLabel ? 'Leave it where it is' : 'At your Page’s address instead'}

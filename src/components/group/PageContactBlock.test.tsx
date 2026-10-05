@@ -20,6 +20,7 @@ describe('#293 — the contact block', () => {
       <PageContactBlock
         contact={{ phone: null, hours: { thu: [{ open: '07:00', close: '15:00' }], fri: [{ open: '08:00', close: '12:30' }] } }}
         now={THURSDAY}
+        showHours
       />,
     )
     const rows = screen.getAllByTestId('page-hours-day')
@@ -31,6 +32,26 @@ describe('#293 — the contact block', () => {
 
   it('renders nothing when the owner gave neither', () => {
     const { container } = render(<PageContactBlock contact={{ phone: null, hours: null }} now={THURSDAY} />)
+    expect(container).toBeEmptyDOMElement()
+  })
+})
+
+// Don, 2026-10-05: hours are hidden for now (they clutter the Page), behind a
+// flag. The data stays; the phone stays as one tap-to-call line.
+describe('hours hidden for now', () => {
+  it('shows the phone, never the hours, even with hours on file', () => {
+    render(
+      <PageContactBlock
+        contact={{ phone: '+19165550142', hours: { thu: [{ open: '07:00', close: '15:00' }] } }}
+        now={THURSDAY}
+      />,
+    )
+    expect(screen.getByRole('link', { name: /\(916\) 555-0142/ })).toBeInTheDocument()
+    expect(screen.queryAllByTestId('page-hours-day')).toHaveLength(0)
+  })
+
+  it('hours alone show nothing at all', () => {
+    const { container } = render(<PageContactBlock contact={{ phone: null, hours: { thu: [{ open: '07:00', close: '15:00' }] } }} now={THURSDAY} />)
     expect(container).toBeEmptyDOMElement()
   })
 })

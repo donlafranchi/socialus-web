@@ -19,7 +19,7 @@
   he previews it and merges himself, or tells you to merge. "Review" means
   the `human-review` label (it was `needs-don`).
 
-  Full rule: ops-pattern/PIPELINE.md § Who checks what.
+  Full rule: ops-pattern/process/PIPELINE.md § Who checks what.
 -->
 
 ## Don doesn't need to look.
