@@ -11,7 +11,7 @@
 // window sends the first at once, as Gmail does. Reversal later is unchanged:
 // the row's detail carries each report's history and its Undo.
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, ChevronDown, X } from 'lucide-react'
 import { Toast } from '@/components/Toast'
@@ -100,23 +100,30 @@ export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: Revie
     })
   }, [])
 
-  // Criterion 14: A approves, R removes, J/K move, U undoes.
+  // Criterion 14: A approves, R removes, J/K move, U undoes. Only while focus is
+  // in the list (WCAG 2.1.4): a stray key elsewhere decides nothing.
+  const listRef = useRef<HTMLUListElement>(null)
   const current = rows[Math.min(focus, rows.length - 1)]
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = e.target
-      if (e.metaKey || e.ctrlKey || e.altKey || (el instanceof Element && el.closest('input, textarea, select, [contenteditable]'))) return
-      const k = e.key.toLowerCase()
-      if (k === 'j') setFocus((f) => Math.min(f + 1, rows.length - 1))
-      else if (k === 'k') setFocus((f) => Math.max(f - 1, 0))
-      else if (k === 'u') undo()
-      else if ((k === 'a' || k === 'r') && current) decide(current, k === 'a' ? 'restored' : 'removed')
-      else return
-      e.preventDefault()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  })
+  const focusRow = (i: number) =>
+    requestAnimationFrame(() => {
+      const rowsEl = listRef.current?.querySelectorAll<HTMLElement>('[data-testid="review-row"]') ?? []
+      const row = rowsEl[Math.min(i, rowsEl.length - 1)]
+      ;(row?.querySelector<HTMLElement>('[data-testid="review-approve"]') ?? row?.querySelector<HTMLElement>('button'))?.focus()
+    })
+  const onListKey = (e: React.KeyboardEvent) => {
+    const el = e.target as Element
+    if (e.metaKey || e.ctrlKey || e.altKey || el.closest('input, textarea, select, [contenteditable]')) return
+    const k = e.key.toLowerCase()
+    const at = Math.min(focus, rows.length - 1)
+    if (k === 'j') focusRow(at + 1)
+    else if (k === 'k') focusRow(Math.max(at - 1, 0))
+    else if (k === 'u') undo()
+    else if ((k === 'a' || k === 'r') && current) {
+      decide(current, k === 'a' ? 'restored' : 'removed')
+      focusRow(at)
+    } else return
+    e.preventDefault()
+  }
 
   const bySeverity = [1, 2, 3, 4].map((n) => subjects.filter((s) => waiting(s) && s.severity === n).length)
 
@@ -157,18 +164,22 @@ export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: Revie
         </p>
       )}
 
-      <ul className="mt-4 flex list-none flex-col gap-3 p-0" data-testid="review-rows">
+      <ul ref={listRef} onKeyDown={onListKey} className="mt-4 flex list-none flex-col gap-3 p-0" data-testid="review-rows">
         {rows.map((s, i) => (
           <Row
             key={s.subjectId}
             subject={s}
             now={now}
             focused={i === Math.min(focus, rows.length - 1)}
+            onFocusRow={() => setFocus(i)}
             isWaiting={waiting(s)}
             confirming={confirming === s.subjectId}
             expanded={open === s.subjectId}
             onToggle={() => setOpen(open === s.subjectId ? null : s.subjectId)}
-            onDecide={(o) => decide(s, o)}
+            onDecide={(o) => {
+              decide(s, o)
+              focusRow(i)
+            }}
             onCancelConfirm={() => setConfirming(null)}
             detail={s.reports.map((r) => (
               <ReportEntry key={r.reportId} report={r} hiddenFor={hiddenFor(r.hiddenAt, now)} onDecide={onDecide} onReverse={onReverse} />
@@ -193,6 +204,7 @@ function Row({
   subject: s,
   now,
   focused,
+  onFocusRow,
   isWaiting,
   confirming,
   expanded,
@@ -204,6 +216,7 @@ function Row({
   subject: ReviewSubject
   now: Date
   focused: boolean
+  onFocusRow: () => void
   isWaiting: boolean
   confirming: boolean
   expanded: boolean
@@ -239,7 +252,9 @@ function Row({
       data-testid="review-row"
       data-subject={s.subjectId}
       data-focused={focused ? 'true' : undefined}
-      className={`relative overflow-hidden rounded-lg border ${focused ? 'border-[var(--color-accent)]' : 'border-[var(--color-border)]'}`}
+      aria-current={focused ? 'true' : undefined}
+      onFocus={onFocusRow}
+      className={`relative overflow-hidden rounded-lg border focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--color-focus)] ${focused ? 'border-[var(--color-accent)]' : 'border-[var(--color-border)]'}`}
     >
       {/* What the swipe will do, revealed under the row as it moves (criterion 6). */}
       {dx !== 0 && (
@@ -264,12 +279,11 @@ function Row({
           {s.photoUrl ? (
             <button
               type="button"
-              aria-label={blurred(s) ? 'Press and hold to see the photo' : 'Photo'}
+              aria-label={blurred(s) ? (peek ? 'Hide the photo' : 'Show the photo') : 'Photo'}
+              aria-pressed={blurred(s) ? peek : undefined}
               data-testid="review-thumb"
               data-blurred={blurred(s) && !peek ? 'true' : 'false'}
-              onPointerDown={() => setPeek(true)}
-              onPointerUp={() => setPeek(false)}
-              onPointerLeave={() => setPeek(false)}
+              onClick={() => blurred(s) && setPeek((p) => !p)}
               className="size-16 shrink-0 overflow-hidden rounded-md bg-[var(--color-surface)]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
