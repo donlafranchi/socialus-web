@@ -160,3 +160,11 @@ describe('F070 — group.update_draft accepts social links', () => {
     expect(sql).not.toMatch(/social_links/)
   })
 })
+
+describe('#348 — where it is, on a draft', () => {
+  it('writes the answer with the rest of the draft', async () => {
+    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, whereMode: 'roaming', usuallyAround: 'Midtown farmers markets' })
+    expect(out.patchedFields).toEqual(expect.arrayContaining(['where_mode', 'usually_around']))
+    expect(updateCall()![0]).toMatch(/usually_around = \$2/)
+  })
+})
