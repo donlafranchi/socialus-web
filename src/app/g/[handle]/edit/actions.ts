@@ -33,7 +33,7 @@ export interface EditPageInput {
   contactComponent?: boolean
   /** Page types (ruled 2026-10-05). */
   pageKind?: 'business' | 'group'
-  useCase?: 'selling' | 'service' | 'gathering' | 'testing_interest'
+  purpose?: 'gather' | 'sell' | 'offer' | 'create'
   /** #363 — Products & services switched on or off. */
   productsComponent?: boolean
   /** #285 — the Page's whole tag set. */
@@ -74,7 +74,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.contactComponent !== undefined ? { contactComponent: input.contactComponent } : {}),
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.pageKind !== undefined ? { pageKind: input.pageKind } : {}),
-      ...(input.useCase !== undefined ? { useCase: input.useCase } : {}),
+      ...(input.purpose !== undefined ? { purpose: input.purpose } : {}),
       ...(input.productsComponent !== undefined ? { productsComponent: input.productsComponent } : {}),
       ...(input.whereMode !== undefined ? { whereMode: input.whereMode } : {}),
       ...(input.howToFind !== undefined ? { howToFind: input.howToFind } : {}),

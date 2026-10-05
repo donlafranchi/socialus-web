@@ -11,7 +11,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {} }) }))
 const EDITOR = {
   groupId: 'g1', pagePath: '/g/x', memberId: 'm1', name: 'N', description: '', photoUrl: null,
-  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, useCase: 'selling' as const, productsOn: true, where: emptyWhere,
+  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, purpose: 'sell' as const, productsOn: true, where: emptyWhere,
 }
 
 afterEach(cleanup)

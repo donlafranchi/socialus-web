@@ -12,10 +12,10 @@ const TILE = 'bg-[var(--color-frame)] text-[var(--color-highlight-soft)]'
 
 /** #363 — a business sells or serves (its use case says which); a group gathers.
  *  Unknown (the signed-out withheld read carries no kind) draws no icon. */
-export function artKindFor(groupKind: string | null | undefined, useCase?: string | null): ArtKind | null {
+export function artKindFor(groupKind: string | null | undefined, purpose?: string | null): ArtKind | null {
   if (!groupKind) return null
-  if (groupKind !== 'business') return 'group'
-  return useCase === 'service' ? 'service' : 'shop'
+  if (purpose === 'offer') return 'service'
+  return groupKind === 'business' ? 'shop' : 'group'
 }
 
 export function DefaultArt({ kind }: { kind: ArtKind | null }) {

@@ -22,12 +22,12 @@ import { appendEvent } from '../_lib/event-log'
 import { toSlug } from '../../lib/slugify'
 import type { ActionContext } from '../_lib/context'
 import { GROUP_KINDS, DRAFT_NAME_PLACEHOLDER, managingRoleForKind } from './constants'
-import { ALL_USE_CASES, presetOf, type UseCase } from '../../lib/groups/page-kind'
+import { PURPOSES, purposeOf, type Purpose } from '../../lib/groups/page-kind'
 
 export const groupCreateInput = z.object({
   kind: z.enum(GROUP_KINDS),
   // #363 — the preset under the type; its first when absent.
-  useCase: z.enum(ALL_USE_CASES as [UseCase, ...UseCase[]]).optional(),
+  purpose: z.enum(PURPOSES as [Purpose, ...Purpose[]]).optional(),
   founderMemberId: z.string().uuid(),
   // `name` is required at draft time only when kind != 'business' (community
   // kinds carry name on the spine). For kind='business', the name shadows the
@@ -80,7 +80,7 @@ export const groupCreate = defineHandler(
       // 'active', which would skip the composer's curation step).
       const groupRes = await client.query<{ id: string; slug: string }>(
         `insert into public.groups
-           (kind, use_case, founder_member_id, name, slug, description, lifecycle_state)
+           (kind, purpose, founder_member_id, name, slug, description, lifecycle_state)
          values ($1, $6, $2, $3, $4, $5, 'draft')
          returning id, slug`,
         [
@@ -89,7 +89,7 @@ export const groupCreate = defineHandler(
           effectiveName,
           baseSlug,
           input.description ?? '',
-          presetOf(input.kind, input.useCase),
+          purposeOf(input.kind, input.purpose),
         ],
       )
       const row = groupRes.rows[0]

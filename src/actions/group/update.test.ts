@@ -38,12 +38,12 @@ function ctx(actingMemberId: string | null = OWNER): ActionContext {
 }
 
 function install(
-  opts: { found?: boolean; state?: string; kind?: string; useCase?: string; isManager?: boolean; rowCount?: number } = {},
+  opts: { found?: boolean; state?: string; kind?: string; purpose?: string; isManager?: boolean; rowCount?: number } = {},
 ) {
-  const { found = true, state = 'active', kind = 'business', useCase = kind === 'business' ? 'selling' : 'gathering', isManager = true, rowCount = 1 } = opts
+  const { found = true, state = 'active', kind = 'business', purpose = kind === 'business' ? 'sell' : 'gather', isManager = true, rowCount = 1 } = opts
   query.mockImplementation(async (sql: string) => {
     if (/from public\.groups/.test(sql) && /for update/.test(sql)) {
-      return { rows: found ? [{ id: GROUP, kind, use_case: useCase, lifecycle_state: state }] : [] }
+      return { rows: found ? [{ id: GROUP, kind, purpose: purpose, lifecycle_state: state }] : [] }
     }
     if (/from public\.group_memberships/.test(sql)) {
       return { rows: isManager ? [{ role: kind === 'business' ? 'owner' : 'steward' }] : [] }
@@ -277,18 +277,18 @@ describe('hours and phone, switched on or off', () => {
   })
 })
 
-describe('#363 — the owner changes the type and use case in settings', () => {
-  it('a group made a business is stored as business/selling and its stewards become owners', async () => {
+describe('#363 — the owner changes the purpose and type in settings', () => {
+  it('a gathering Page that starts selling becomes a business, and its stewards owners', async () => {
     install({ kind: 'group' })
-    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, purpose: 'sell' })
     expect(res.patched).toContain('kind')
-    expect(sql(/set kind = \$2, use_case = \$3/)[0]![1]).toEqual([GROUP, 'business', 'selling'])
+    expect(sql(/set kind = \$2, purpose = \$3/)[0]![1]).toEqual([GROUP, 'business', 'sell'])
     expect(sql(/update public\.group_memberships set role/)[0]![1]).toEqual([GROUP, 'owner', 'steward'])
   })
 
-  it('choosing the type and use case it already has changes nothing', async () => {
-    install({ kind: 'business', useCase: 'service' })
-    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business', useCase: 'service' })
+  it('choosing the purpose and type it already has changes nothing', async () => {
+    install({ kind: 'business', purpose: 'offer' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business', purpose: 'offer' })
     expect(res.patched).toEqual([])
     expect(sql(/set kind/)).toEqual([])
   })
