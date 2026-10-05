@@ -73,8 +73,8 @@ beforeAll(async () => {
   }
   await client.query(
     `insert into public.groups (id, kind, name, slug, description, lifecycle_state, discoverability, founder_member_id, unclaimed_at)
-     values ($1,'interest','U353 Bakery','u353-bakery','Bread.','active','listed',$2, now()),
-            ($3,'interest','U353 Owned','u353-owned','Mine.','active','listed',$4, null)`,
+     values ($1,'business','U353 Bakery','u353-bakery','Bread.','active','listed',$2, now()),
+            ($3,'business','U353 Owned','u353-owned','Mine.','active','listed',$4, null)`,
     [UNCLAIMED, SYSTEM_MEMBER_ID, OWNED, MEMBER],
   )
   await client.query(
