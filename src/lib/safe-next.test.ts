@@ -28,4 +28,10 @@ describe('safeNext', () => {
     expect(safeNext(null, '/onboarding')).toBe('/onboarding')
     expect(safeNext('//evil.com', '/onboarding')).toBe('/onboarding')
   })
+
+  it('rejects a control character or whitespace that new URL() would strip into an off-site path (#400)', () => {
+    expect(safeNext('/\t/evil.example')).toBe('/')
+    expect(safeNext('/\n/evil.example')).toBe('/')
+    expect(safeNext('/ok path')).toBe('/')
+  })
 })
