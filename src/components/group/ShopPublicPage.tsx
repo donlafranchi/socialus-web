@@ -11,6 +11,7 @@ import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
 import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
+import { whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
@@ -396,6 +397,7 @@ export function ShopPublicPage({
         contact: contact ?? { phone: null, hours: null },
         contactOn,
         addressLabel: shop.placements[0]?.label ?? null,
+        where: whereValueFrom(where ?? null),
       }}
     >
       {page}

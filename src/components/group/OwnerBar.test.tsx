@@ -1,3 +1,4 @@
+import { emptyWhere } from '@/components/locations/WhereFields'
 // The owner surface. Don, 2026-09-18: opening their page should open another
 // surface where these things can be changed and their tools become available.
 
@@ -10,7 +11,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {} }) }))
 const EDITOR = {
   groupId: 'g1', pagePath: '/g/x', memberId: 'm1', name: 'N', description: '', photoUrl: null,
-  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null,
+  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, where: emptyWhere,
 }
 
 afterEach(cleanup)

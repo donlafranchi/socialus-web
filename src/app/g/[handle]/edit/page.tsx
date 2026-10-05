@@ -17,7 +17,7 @@ import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditPageForm } from './EditPageForm'
 import { resolvePageWhere } from '@/lib/groups/page-where'
-import { emptyWhere } from '@/components/locations/WhereFields'
+import { whereValueFrom } from '@/components/locations/where-save'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
@@ -66,15 +66,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   // #348 — start the question from what's saved. A pin isn't carried over:
   // changing a location means setting it again.
   const saved = await resolvePageWhere(supabase, shop.groupId)
-  const initialWhere = saved
-    ? {
-        ...emptyWhere,
-        mode: saved.mode,
-        visit: { ...emptyWhere.visit, howToFind: saved.howToFind ?? '' },
-        travel: { towns: saved.towns },
-        roaming: { usuallyAround: saved.usuallyAround ?? '' },
-      }
-    : emptyWhere
+  const initialWhere = whereValueFrom(saved)
 
   return (
     <main className="mx-auto w-full max-w-xl px-3 py-4">

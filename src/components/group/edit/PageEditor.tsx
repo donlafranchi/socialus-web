@@ -5,7 +5,9 @@
 // section shows a small edit button, and tapping it opens a sheet with only that
 // section's fields and one Save that saves and closes (Google Business Profile's
 // Edit profile sections, Airbnb's listing editor). Done only leaves edit mode:
-// nothing is ever left unsaved, so there's no save bar.
+// nothing is ever left unsaved, so there's no save bar. Don, 2026-10-05: each
+// Add opens only its own fields, with pickers rather than long lists, and one
+// primary button (Save); the header's close is the way out.
 
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
@@ -16,13 +18,9 @@ import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { HoursEditor } from '@/components/group/HoursEditor'
 import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
-import {
-  LocationPlaceFields,
-  initialLocationPlaceFieldsState,
-  isLocationPlaceFieldsComplete,
-  type LocationPlaceFieldsState,
-} from '@/components/locations/LocationPlaceFields'
-import { createLocationAction } from '@/app/_actions/location-actions'
+import { WhereFields, type WhereValue } from '@/components/locations/WhereFields'
+import { wherePatch } from '@/components/locations/where-save'
+import { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import { isValidTagLabel } from '@/lib/groups/tags'
 import { formatUsPhone } from '@/lib/phone'
@@ -31,10 +29,12 @@ import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 
-export type Section = 'about' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
+export type Section = 'about' | 'name' | 'description' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
 export const SECTION_TITLE: Record<Section, string> = {
   about: 'About',
+  name: 'Name',
+  description: 'Description',
   photo: 'Photo',
   where: 'Where',
   contact: SHOW_OPENING_HOURS ? 'Hours and phone' : 'Business phone',
@@ -55,6 +55,7 @@ export interface EditorInitial {
   contact: { phone: string | null; hours: OpeningHours | null }
   contactOn: boolean
   addressLabel: string | null
+  where: WhereValue
 }
 
 type Save = (input: EditPageInput) => Promise<EditPageResult>
@@ -123,12 +124,12 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [phone, setPhone] = useState(initial.contact.phone ? formatUsPhone(initial.contact.phone) : '')
   const [hours, setHours] = useState(initial.contact.hours)
   const [contactOn, setContactOn] = useState(initial.contactOn)
-  const [place, setPlace] = useState<LocationPlaceFieldsState>(initialLocationPlaceFieldsState)
+  const [where, setWhere] = useState<WhereValue>(initial.where)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, place })
+  const snapshot = () => JSON.stringify({ name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -137,6 +138,11 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     const base = { groupId: initial.groupId, pagePath: initial.pagePath }
     let patch: Partial<EditPageInput> = {}
     if (section === 'about') patch = { name, description }
+    if (section === 'name') {
+      if (name.trim() === '') return setError('Give your Page a name.')
+      patch = { name }
+    }
+    if (section === 'description') patch = { description }
     if (section === 'photo') patch = { photoUrl }
     if (section === 'contact')
       patch = { contactPhone: phone.trim() === '' ? null : phone.trim(), ...(SHOW_OPENING_HOURS ? { openingHours: hours } : {}) }
@@ -154,26 +160,12 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     }
     setBusy(true)
     if (section === 'where') {
-      if (!isLocationPlaceFieldsComplete(place)) {
+      const w = await wherePatch(where, initial.where.mode, { createLocation: createLocationAction, metroAnchor: metroAnchorPlaceAction })
+      if (!w || !w.ok) {
         setBusy(false)
-        return setError('Choose an address or a neighbourhood first.')
+        return setError(w ? w.message : 'Choose how people find you, then finish that answer.')
       }
-      const made = await createLocationAction(
-        place.mode === 'address'
-          ? {
-              label: place.selectedAddress!.name,
-              address: {
-                geographyWkt: `SRID=4326;POINT(${place.selectedAddress!.coordinates[0]} ${place.selectedAddress!.coordinates[1]})`,
-                resolvedAddressText: place.selectedAddress!.name,
-              },
-            }
-          : { label: place.addressQuery, neighborhoodId: place.neighborhoodId! },
-      )
-      if (!made.ok) {
-        setBusy(false)
-        return setError(made.message)
-      }
-      patch = { anchorLocationId: made.data.id }
+      patch = w.patch
     }
     const res = await onSave({ ...base, ...patch } as EditPageInput)
     setBusy(false)
@@ -200,10 +192,9 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             </div>
           </div>
         ) : (
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={cancel}>Cancel</Button>
-            <Button onClick={save} disabled={busy} className="flex-1">{busy ? 'Saving…' : 'Save'}</Button>
-          </div>
+          <Button onClick={save} disabled={busy} className="w-full" data-testid="sheet-save">
+            {busy ? 'Saving…' : 'Save'}
+          </Button>
         )
       }
     >
@@ -220,11 +211,24 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             </label>
           </>
         )}
+        {section === 'name' && (
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-[var(--color-fg)]">Name</span>
+            <input className="input" data-testid="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </label>
+        )}
+        {section === 'description' && (
+          <label className="flex flex-col gap-1">
+            <span className="text-sm font-medium text-[var(--color-fg)]">Description</span>
+            <textarea className="input" rows={5} data-testid="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <span className="text-caption text-[var(--color-fg-muted)]">A line or two on what you do and who it&rsquo;s for.</span>
+          </label>
+        )}
         {section === 'photo' && <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />}
         {section === 'where' && (
           <>
             {initial.addressLabel && <p className="text-sm text-[var(--color-fg-muted)]">Now: {initial.addressLabel}</p>}
-            <LocationPlaceFields state={place} setState={setPlace} idPrefix="edit-address" />
+            <WhereFields value={where} onChange={setWhere} />
           </>
         )}
         {section === 'contact' && (
@@ -238,7 +242,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
           </>
         )}
         {section === 'tags' && <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />}
-        {section === 'links' && <SocialHandleFields value={handles} onChange={setHandles} />}
+        {section === 'links' && <SocialHandleFields compact value={handles} onChange={setHandles} />}
         {section === 'components' && (
           <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
             <span className="text-sm text-[var(--color-fg)]">{SHOW_OPENING_HOURS ? 'Business hours and phone' : 'Business phone'}</span>
