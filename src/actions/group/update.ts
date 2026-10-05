@@ -55,6 +55,9 @@ export const groupUpdateInput = z.object({
   openingHours: z.unknown().optional(),
   // #285 — the whole set, replacing the old one (Don, 2026-10-01: editable any time).
   tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional(),
+  // Don, 2026-10-04 — hours and phone as a component: on by default for
+  // shops and services, off for groups until the owner adds them.
+  contactComponent: z.boolean().optional(),
 }).merge(whereInput)
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
@@ -200,6 +203,16 @@ export const groupUpdate = defineHandler(
         patched.push('tags')
       }
 
+      if (input.contactComponent !== undefined) {
+        await client.query(
+          `update public.groups
+              set metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{components}',
+                    coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('contact', $2::boolean))
+            where id = $1`,
+          [input.groupId, input.contactComponent],
+        )
+        patched.push('components')
+      }
       // #348 — where it is: the answer, its notes, the towns served.
       await applyWhere(client, input.groupId, input, fragments, patched)
 

@@ -264,3 +264,15 @@ describe('#348 — where it is, on a live Page', () => {
     expect(sql(/delete from public\.page_service_areas/)).toHaveLength(1)
   })
 })
+
+// Don, 2026-10-04: hours and phone are a component an owner can add to a group.
+describe('hours and phone, switched on or off', () => {
+  it('records the choice in the Page metadata, touching nothing else', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, contactComponent: true })
+    expect(out.patched).toContain('components')
+    const [text, params] = sql(/jsonb_build_object\('contact'/)[0]!
+    expect(text).toMatch(/update public\.groups\s+set metadata/)
+    expect(params).toEqual([GROUP, true])
+  })
+})

@@ -4,6 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { parseOpeningHours, type OpeningHours } from './opening-hours'
+import { componentOn } from './page-components'
 
 export interface PageContact {
   phone: string | null
@@ -14,11 +15,13 @@ export async function resolvePageContact(supabase: SupabaseClient, groupId: stri
   try {
     const { data, error } = await supabase
       .from('groups')
-      .select('contact_phone, opening_hours')
+      .select('kind, metadata, contact_phone, opening_hours')
       .eq('id', groupId)
       .maybeSingle()
     if (error || !data) return null
-    const row = data as { contact_phone: string | null; opening_hours: unknown }
+    const row = data as { kind: string; metadata: unknown; contact_phone: string | null; opening_hours: unknown }
+    // A group shows hours and a phone only once its owner adds them.
+    if (!componentOn(row.kind, row.metadata, 'contact')) return null
     let hours: OpeningHours | null = null
     try {
       hours = parseOpeningHours(row.opening_hours)

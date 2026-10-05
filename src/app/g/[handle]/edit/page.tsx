@@ -18,6 +18,7 @@ import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditPageForm } from './EditPageForm'
 import { resolvePageWhere } from '@/lib/groups/page-where'
 import { emptyWhere } from '@/components/locations/WhereFields'
+import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
 
@@ -45,6 +46,10 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
 
   const pagePath = canonicalPagePath(shop.slug, shop.publicId)
   const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
+  // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
+  // group until its owner adds them.
+  const { data: meta } = await supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle()
+  const contactOn = componentOn(shop.kind, (meta as { metadata?: unknown } | null)?.metadata, 'contact')
 
   // #285 — the Page's tags, as the owner reads them. A tag taken down is not
   // offered back; saving leaves it off.
@@ -87,6 +92,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         // anchor's own label is the first (and today only) entry.
         initialAddressLabel={shop.placements[0]?.label ?? null}
         initialContact={contact}
+        contactOn={contactOn}
         initialTags={initialTags}
         initialWhere={initialWhere}
         onSave={editPageAction}

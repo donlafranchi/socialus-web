@@ -29,6 +29,8 @@ export interface EditPageInput {
   /** #293 — null clears either. */
   contactPhone?: string | null
   openingHours?: unknown
+  /** Don, 2026-10-04 — hours and phone switched on or off. */
+  contactComponent?: boolean
   /** #285 — the Page's whole tag set. */
   tags?: string[]
 }
@@ -52,6 +54,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
       ...(input.contactPhone !== undefined ? { contactPhone: input.contactPhone } : {}),
       ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),
+      ...(input.contactComponent !== undefined ? { contactComponent: input.contactComponent } : {}),
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.whereMode !== undefined ? { whereMode: input.whereMode } : {}),
       ...(input.howToFind !== undefined ? { howToFind: input.howToFind } : {}),

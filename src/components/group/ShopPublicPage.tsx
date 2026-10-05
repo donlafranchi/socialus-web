@@ -6,6 +6,8 @@
 // it stays unit-testable. The client islands are <FollowPageButton> and
 // <ReportControl>.
 
+import { OwnerPanel } from './OwnerPanel'
+import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
 import { whereLine, type PageWhere } from '@/lib/groups/page-where'
@@ -25,6 +27,7 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
 interface Props {
@@ -87,9 +90,22 @@ export function ShopPublicPage({
   // today nothing, and T146's default art once that lands. Neither reveals
   // that a photo exists, or that anyone reported it.
   const showHiddenNotice = viewerOwnsPage && photoUrl === null && shop.photoHiddenAt !== null
+  const showOwnerPanel = viewerOwnsPage && Boolean(pagePath)
+  // F093 criterion 8 — signed out is the front door: name, photo, description,
+  // the withheld card and Sign up to follow. Listings and links out wait.
+  const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6">
+    // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
+    // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
+    <main
+      className={
+        showOwnerPanel
+          ? 'mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12'
+          : 'mx-auto w-full max-w-read gutter py-6 pb-nav'
+      }
+    >
+     <div className="min-w-0">
       {isDraftPreview && (
         <div
           data-testid="shop-draft-banner"
@@ -110,12 +126,23 @@ export function ShopPublicPage({
         </div>
       )}
 
+      {/* #300 — the cover: the photo, or the default art when there is none or
+          it is hidden. Decorative: the name is right under it. */}
+      <div data-testid="page-cover" className="mb-4 aspect-[2/1] overflow-hidden rounded-lg md:aspect-[3/1]">
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <DefaultArt kind={artKindFor(shop.kind)} />
+        )}
+      </div>
+
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <h1 data-testid="shop-name" className="text-2xl font-semibold">
+          <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
             {shop.displayName}
           </h1>
-          {badge && (
+          {badge && isBusinessKind(shop.kind) && (
             <span
               data-testid="local-owner-badge"
               className="chip chip-selected whitespace-nowrap text-xs"
@@ -145,7 +172,11 @@ export function ShopPublicPage({
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
             ownership. The writes behind it re-check the managing role. */}
-        {viewerOwnsPage && pagePath ? <OwnerBar pagePath={pagePath} /> : null}
+        {viewerOwnsPage && pagePath ? (
+          <div className="lg:hidden">
+            <OwnerBar pagePath={pagePath} />
+          </div>
+        ) : null}
 
         {shop.founder && (
           <div data-testid="shop-founder" className="flex items-center gap-2">
@@ -215,9 +246,9 @@ export function ShopPublicPage({
             before the column had its CHECK must not reach one unchecked.
             rel="noopener noreferrer" because these point off-platform, and
             target="_blank" so a member does not lose the Page to follow one. */}
-        {socialLinksForDisplay(shop.socialLinks).length > 0 && (
+        {socialLinks.length > 0 && (
           <ul className="flex flex-wrap gap-3 mt-2" data-testid="shop-social-links">
-            {socialLinksForDisplay(shop.socialLinks).map((link) => (
+            {socialLinks.map((link) => (
               <li key={link.platform}>
                 <a
                   href={link.url}
@@ -253,7 +284,7 @@ export function ShopPublicPage({
       {/* F037 — owner-only Locally Owned claim management. Rendered only when the
           viewer is an active owner (ownerClaim resolved non-null); non-owners and
           anon never see it. */}
-      {ownerClaim && (
+      {ownerClaim && isBusinessKind(shop.kind) && (
         <LocallyOwnedClaim
           groupId={shop.groupId}
           claim={ownerClaim}
@@ -284,6 +315,7 @@ export function ShopPublicPage({
         />
       )}
 
+      {loggedIn && (
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>
         {items.length === 0 ? (
@@ -292,10 +324,7 @@ export function ShopPublicPage({
             className="mt-3 rounded border border-dashed border-gray-300 p-6 text-sm text-gray-500"
           >
             <p className="font-medium text-gray-600">Nothing listed yet</p>
-            <p className="mt-1">
-              {shop.founder?.displayName ?? 'This Shop'} hasn&apos;t listed anything yet. Check
-              back soon.
-            </p>
+            <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
           </div>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
@@ -307,6 +336,15 @@ export function ShopPublicPage({
           </ul>
         )}
       </section>
+      )}
+     </div>
+      {showOwnerPanel && pagePath ? (
+        <aside data-testid="owner-panel" className="hidden lg:block">
+          <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
+            <OwnerPanel pagePath={pagePath} />
+          </div>
+        </aside>
+      ) : null}
     </main>
   )
 }

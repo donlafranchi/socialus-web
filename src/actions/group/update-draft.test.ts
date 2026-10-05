@@ -168,3 +168,12 @@ describe('#348 — where it is, on a draft', () => {
     expect(updateCall()![0]).toMatch(/usually_around = \$2/)
   })
 })
+
+describe('hours and phone on a draft', () => {
+  it('records the switch', async () => {
+    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, contactComponent: false })
+    expect(out.patchedFields).toContain('components')
+    const call = (query.mock.calls as unknown as [string, unknown[]][]).find(([s]) => /jsonb_build_object\('contact'/.test(s))
+    expect(call![1]).toEqual([GROUP, false])
+  })
+})

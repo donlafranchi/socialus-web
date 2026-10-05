@@ -50,7 +50,7 @@ export function FollowPageButton({
           type="button"
           data-testid="page-follow-signin"
           onClick={() => setAsking(true)}
-          className={buttonClass('primary')}
+          className={buttonClass('secondary')}
         >
           Sign up to {idle.toLowerCase()}
         </button>

@@ -145,7 +145,7 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
 
 describe('ShopPublicPage — Beat 3 (items empty state)', () => {
   it('shows a visible empty state, not a hidden section, when there are no items', () => {
-    renderShop({ items: [] })
+    renderShop({ items: [], loggedIn: true })
     const empty = screen.getByTestId('shop-items-empty')
     expect(empty).toBeInTheDocument()
     expect(empty).toHaveTextContent(/check back soon/i)
@@ -154,7 +154,7 @@ describe('ShopPublicPage — Beat 3 (items empty state)', () => {
   })
 
   it('lists items when present', () => {
-    renderShop({ items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }] })
+    renderShop({ items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true })
     expect(screen.queryByTestId('shop-items-empty')).not.toBeInTheDocument()
     expect(screen.getByText('Country Loaf')).toBeInTheDocument()
   })
@@ -261,7 +261,7 @@ describe('F070 — links out', () => {
   })
 
   it('renders a link per platform, off-platform and safely', () => {
-    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras' } } })
+    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras' } }, loggedIn: true })
     const a = screen.getByTestId('shop-social-instagram')
     expect(a).toHaveAttribute('href', 'https://instagram.com/claras')
     expect(a).toHaveAttribute('rel', 'noopener noreferrer')
@@ -270,7 +270,7 @@ describe('F070 — links out', () => {
   // The one that matters. A row that predates the CHECK, or anything that
   // bypassed the action layer, must not reach an href.
   it('withholds a link that is not https, rather than rendering it', () => {
-    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'javascript:alert(1)' } as never } })
+    renderShop({ shop: { ...SHOP, socialLinks: { instagram: 'javascript:alert(1)' } as never }, loggedIn: true })
     expect(screen.queryByTestId('shop-social-instagram')).toBeNull()
     expect(screen.queryByTestId('shop-social-links')).toBeNull()
   })
@@ -327,6 +327,67 @@ describe('#267 — the owner on their own Page', () => {
   })
 })
 
+describe('#300 — the Page on the new layout', () => {
+  it('shows its photo as the cover', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoHiddenAt: null } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toHaveAttribute('src', 'https://example.test/p.jpg')
+  })
+
+  it('shows default art when there is no photo, or it is hidden', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: null } })
+    expect(screen.getByTestId('page-cover').querySelector('[data-testid="default-art"]')).not.toBeNull()
+    cleanup()
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoHiddenAt: '2026-10-01T00:00:00Z' } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
+  })
+
+  it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
+    renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
+    const panel = screen.getByTestId('owner-panel')
+    expect(panel.className).toMatch(/\bhidden\b/)
+    expect(panel.className).toMatch(/\blg:block\b/)
+    expect(panel.querySelector('a[href="/g/x-abc123/edit"]')).not.toBeNull()
+  })
+
+  it('gives nobody else a panel', () => {
+    renderShop({ viewerOwnsPage: false })
+    expect(screen.queryByTestId('owner-panel')).toBeNull()
+  })
+})
+
+describe('#300 — the front door, signed out (F093 criterion 8)', () => {
+  const items = [{ id: 'i1', title: 'Country Loaf', kind: 'product' as const }]
+  const socialLinks = { instagram: 'https://instagram.com/claras' }
+
+  it('shows no listings and no links out signed out', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, items, loggedIn: false })
+    expect(screen.queryByText('Products & services')).toBeNull()
+    expect(screen.queryByText('Country Loaf')).toBeNull()
+    expect(screen.queryByTestId('shop-social-links')).toBeNull()
+  })
+
+  it('shows both once signed in', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, items, loggedIn: true })
+    expect(screen.getByText('Country Loaf')).toBeInTheDocument()
+    expect(screen.getByTestId('shop-social-links')).toBeInTheDocument()
+  })
+
+  it('names the Page, not a Shop or its founder, when nothing is listed', () => {
+    renderShop({ items: [], loggedIn: true })
+    const empty = screen.getByTestId('shop-items-empty')
+    expect(empty).toHaveTextContent("This Page hasn't listed anything yet")
+    expect(empty.textContent).not.toMatch(/Shop|Maya/)
+  })
+
+  it('centres the column for a visitor; only the owner gets the two-column grid', () => {
+    const { container, unmount } = renderShop({ loggedIn: true })
+    expect(container.querySelector('main')!.className).not.toMatch(/lg:grid/)
+    unmount()
+    const owner = renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123' })
+    expect(owner.container.querySelector('main')!.className).toMatch(/lg:grid/)
+  })
+})
+
 describe('#316 — a Page shows its tags as #hashtags, signed in only', () => {
   it('signed in, each tag is a chip', () => {
     renderShop({ loggedIn: true, tags: ['Sourdough'] })
@@ -364,5 +425,25 @@ describe('#348 — where it is, under the location', () => {
   it('signed out, nothing, even if handed it', () => {
     renderShop({ loggedIn: false, where })
     expect(screen.queryByTestId('shop-where')).toBeNull()
+  })
+})
+
+// Don, 2026-10-05: the local-owner badge and its question belong to business
+// kinds (shop, service), never to social groups.
+describe('Locally owned is for businesses only', () => {
+  const badge = { label: 'Locally owned' } as never
+  const claim = { zip: null } as never
+  it('a social group shows neither the badge nor the question, even if handed them', () => {
+    renderShop({ shop: { ...SHOP, kind: 'interest' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
+    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
+    expect(screen.queryByText(/locally owned claim/i)).toBeNull()
+  })
+  it('a shop still shows the badge', () => {
+    renderShop({ shop: { ...SHOP, kind: 'business' }, badge, loggedIn: true })
+    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
+  })
+  it('a service too', () => {
+    renderShop({ shop: { ...SHOP, kind: 'practice' }, badge, loggedIn: true })
+    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
   })
 })

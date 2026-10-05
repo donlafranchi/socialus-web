@@ -94,6 +94,9 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
     test("Given no published items exist for this Shop | When the page renders | Then a visible empty-state shows instead of a hidden section", async ({
       page,
     }) => {
+      // F093 criterion 8 (2026-09-30) — signed out is the front door only, so
+      // the listings show to a signed-in visitor.
+      await signIn(page, ROSA.email, ROSA.password);
       await page.goto(SHOP.url);
 
       // Then — visible-but-empty Items section
