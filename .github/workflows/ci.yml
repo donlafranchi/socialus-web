@@ -186,7 +186,7 @@ jobs:
   browser:
     name: Browser
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 15 || 90 }}
+    timeout-minutes: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 20 || 90 }}
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -217,12 +217,14 @@ jobs:
       - run: npm ci
 
       - name: Cache the Playwright browser
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - run: npx playwright install --with-deps --only-shell chromium
+      # No --with-deps: the runner image already carries Chrome's libraries, and
+      # the apt step it adds once stalled 11 minutes on a mirror (#375).
+      - run: npx playwright install --only-shell chromium
 
       - name: Wait for the stack
         run: |
@@ -243,7 +245,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
 
       - name: Cache the Next.js build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .next/cache
           key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
