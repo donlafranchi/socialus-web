@@ -115,6 +115,10 @@ export async function createLocationAction(
       // confirmation and then discarded it; persisting it here is the
       // fix-forward, not new scope.
       let description: string | null = null
+      // #348 — a town or neighbourhood the owner picked is the place, even
+      // when its centre falls inside a smaller one (Sacramento's centre is in
+      // East Sacramento). Only an address takes its place from the point.
+      let pickedPlaceId: string | null = null
 
       if ('address' in input && input.address) {
         geographyWkt = input.address.geographyWkt
@@ -127,12 +131,16 @@ export async function createLocationAction(
           min_lat: number
           max_lng: number
           max_lat: number
+          centre_lng: number | null
+          centre_lat: number | null
         }>(
           `select
              st_xmin(geography::geometry) as min_lng,
              st_ymin(geography::geometry) as min_lat,
              st_xmax(geography::geometry) as max_lng,
-             st_ymax(geography::geometry) as max_lat
+             st_ymax(geography::geometry) as max_lat,
+             st_x(centroid::geometry) as centre_lng,
+             st_y(centroid::geometry) as centre_lat
            from public.places
           where id = $1 and kind in ('city', 'neighborhood') and deleted_at is null`,
           [neighborhoodId],
@@ -144,19 +152,21 @@ export async function createLocationAction(
             'neighborhood_not_found',
           )
         }
-        // Seeded by a fresh id, not the neighbourhood's own id — two
-        // Pages in the same neighbourhood must not land on the same
-        // point. Drawn toward the polygon's interior, not uniformly
-        // across the bbox (review binding note 7: the five seeded
-        // polygons are hand-drawn rectangles).
-        const point = deriveInteriorPoint(crypto.randomUUID(), {
-          minLng: bbox.min_lng,
-          minLat: bbox.min_lat,
-          maxLng: bbox.max_lng,
-          maxLat: bbox.max_lat,
-        })
+        // #348 — Don, 2026-10-04: a neighbourhood's pin is its centre point
+        // (the boundary layers carry one). Only a place without one falls back
+        // to a point drawn inside its shape.
+        const point =
+          bbox.centre_lng != null && bbox.centre_lat != null
+            ? { lng: bbox.centre_lng, lat: bbox.centre_lat }
+            : deriveInteriorPoint(crypto.randomUUID(), {
+                minLng: bbox.min_lng,
+                minLat: bbox.min_lat,
+                maxLng: bbox.max_lng,
+                maxLat: bbox.max_lat,
+              })
         geographyWkt = `SRID=4326;POINT(${point.lng} ${point.lat})`
         kind = 'area'
+        pickedPlaceId = neighborhoodId
       }
 
       // Issue #180 — `place_id` is written here, and this is the only place
@@ -185,14 +195,14 @@ export async function createLocationAction(
            (member_id, kind, label, slug, geography, description, place_id)
          values (
            $1, $2, $3, $4, $5, $6,
-           (select place_id
+           coalesce($7::uuid, (select place_id
               from public.place_for_coords(
                 st_y(($5::geography)::geometry),
                 st_x(($5::geography)::geometry)
-              ))
+              )))
          )
          returning id, label, place_id`,
-        [memberId, kind, input.label, slug, geographyWkt, description],
+        [memberId, kind, input.label, slug, geographyWkt, description, pickedPlaceId],
       )
       const row = result.rows[0]
       if (!row) {
@@ -280,4 +290,46 @@ export async function listNeighborhoodsAction(): Promise<Neighborhood[]> {
     )
     return result.rows.map((r) => ({ id: r.id, name: r.display_name, slug: r.slug }))
   })
+}
+
+/**
+ * #348 — the neighbourhood (or, outside one, the town) under a pin, so
+ * "Show only my neighbourhood" can name it. Worked out, never picked.
+ */
+export async function placeForPointAction(
+  lng: number,
+  lat: number,
+): Promise<ActionResult<{ id: string; name: string } | null>> {
+  return asResult(async () => {
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+    return withTransaction(async (client) => {
+      const res = await client.query<{ id: string; display_name: string }>(
+        `select p.id, p.display_name
+           from public.places p
+          where p.deleted_at is null and p.kind in ('neighborhood', 'city') and p.geography is not null
+            and st_covers(p.geography, st_setsrid(st_makepoint($1, $2), 4326)::geography)
+          order by (p.kind = 'neighborhood') desc, st_area(p.geography::geometry) asc
+          limit 1`,
+        [lng, lat],
+      )
+      const r = res.rows[0]
+      return r ? { id: r.id, name: r.display_name } : null
+    })
+  })
+}
+
+/** #348 — the metro's main town, the anchor for "I go to them" and "It moves". */
+export async function metroAnchorPlaceAction(msa = '40900'): Promise<ActionResult<{ id: string; name: string } | null>> {
+  return asResult(async () =>
+    withTransaction(async (client) => {
+      const res = await client.query<{ id: string; display_name: string }>(
+        `select p.id, p.display_name from public.places p
+          where p.kind = 'city' and p.msa_code = $1 and p.deleted_at is null
+          order by st_area(p.geography::geometry) desc nulls last limit 1`,
+        [msa],
+      )
+      const r = res.rows[0]
+      return r ? { id: r.id, name: r.display_name } : null
+    }),
+  )
 }

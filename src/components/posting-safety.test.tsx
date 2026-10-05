@@ -14,6 +14,9 @@ vi.mock('@/lib/geocoding', () => ({
 vi.mock('@/app/_actions/location-actions', () => ({
   searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
   listNeighborhoodsAction: vi.fn(async () => []),
+  createLocationAction: vi.fn(),
+  metroAnchorPlaceAction: vi.fn(),
+  placeForPointAction: vi.fn(),
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }))

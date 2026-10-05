@@ -144,7 +144,7 @@ describe.skipIf(!RUNNABLE)('who founded, sells or hosts, to anyone', () => {
     // #293: and its phone and hours (tests/page-contact-db.test.ts).
     const anonCols =
       table === 'groups'
-        ? await allColumnsBut(table, column, 'anchor_location_id', 'contact_phone', 'opening_hours')
+        ? await allColumnsBut(table, column, 'anchor_location_id', 'contact_phone', 'opening_hours', 'where_mode', 'how_to_find', 'usually_around')
         : cols
     expect(await as(null, `select ${anonCols} from public.${table} where ${key} = $1`, [id]), `${table} as anon`).toHaveLength(1)
     for (const sub of [STRANGER]) {

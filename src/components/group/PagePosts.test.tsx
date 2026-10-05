@@ -7,7 +7,12 @@ import { COPY } from '@/lib/copy'
 // F072 — a Page owner announces something, with a time and a place on it.
 
 const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
-vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction }))
+vi.mock('@/app/_actions/location-actions', () => ({
+  searchPlacesAction,
+  placeForPointAction: vi.fn(async () => ({ ok: true, data: { id: 'pl-curtis', name: 'Curtis Park' } })),
+}))
+vi.mock('@/lib/map-config', async (orig) => ({ ...(await orig<typeof import('@/lib/map-config')>()), mapAvailable: () => true }))
+vi.mock('@/components/locations/PinAdjustMap', () => ({ PinAdjustMap: () => null }))
 vi.mock('@/lib/geocoding', () => ({
   geocode: vi.fn(async () => []),
   GeocodingUnavailableError: class extends Error {},
@@ -439,5 +444,33 @@ describe('an end time on it', () => {
   it('shows the range back', () => {
     renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }] })
     expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
+  })
+})
+
+// #348 — an event's own meet spot: "How to find us", beside its place.
+describe('#348 — how to find us, on a post', () => {
+  it('shows under when and where', () => {
+    renderPosts({ posts: [{ ...postFixture(), howToFind: 'Meet at the boat ramp' }] })
+    expect(screen.getByTestId('page-post-how')).toHaveTextContent('How to find us: Meet at the boat ramp')
+  })
+
+  it('the composer takes it once a place is being set, and sends it', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Float Saturday.' } })
+    fireEvent.click(screen.getByTestId('announce-add-place'))
+    fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Meet at the boat ramp' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ howToFind: 'Meet at the boat ramp' })))
+  })
+})
+
+describe('#348 — an event at a dropped pin', () => {
+  it('is named by what is around it, not "Pinned spot"', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Float Saturday.' } })
+    fireEvent.click(screen.getByTestId('announce-add-place'))
+    fireEvent.click(screen.getByRole('button', { name: /drop a pin instead/i }))
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onCreateLocation).toHaveBeenCalledWith(expect.objectContaining({ label: 'Near Curtis Park' })))
   })
 })

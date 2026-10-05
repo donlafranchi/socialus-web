@@ -5,7 +5,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { PageEditorProvider, EditToggle, SectionEditButton } from './PageEditor'
+import { PageEditorProvider, EditToggle, SectionEditButton, usePageEditor, type Section } from './PageEditor'
+import { emptyWhere } from '@/components/locations/WhereFields'
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
@@ -13,6 +14,8 @@ vi.mock('@/components/media/PagePhotoPicker', () => ({ PagePhotoPicker: () => nu
 vi.mock('@/app/_actions/location-actions', () => ({
   searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
   createLocationAction: vi.fn(),
+  metroAnchorPlaceAction: vi.fn(),
+  placeForPointAction: vi.fn(),
 }))
 vi.mock('@/lib/geocoding', () => ({ geocode: vi.fn(async () => []), GeocodingUnavailableError: class extends Error {} }))
 
@@ -32,6 +35,7 @@ const initial = {
   kind: 'business' as const,
   useCase: 'selling' as const,
   productsOn: true,
+  where: emptyWhere,
 }
 
 function Page() {
@@ -103,22 +107,22 @@ describe('#302 — a section opens a sheet with only its own fields', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
-  it('Cancel with nothing changed just closes', () => {
+  it('closing with nothing changed just closes', () => {
     render(<Page />)
     openAbout()
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('Cancel with changes warns first', () => {
+  it('closing with changes warns first', () => {
     render(<Page />)
     openAbout()
     fireEvent.change(screen.getByRole('textbox', { name: /description/i }), { target: { value: 'Changed.' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     expect(screen.getByText(/discard your changes/i)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }))
     expect(screen.getByRole('textbox', { name: /description/i })).toHaveValue('Changed.')
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
     fireEvent.click(screen.getByRole('button', { name: 'Discard' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(onSave).not.toHaveBeenCalled()
@@ -169,5 +173,77 @@ describe('#363 — type and use case, changeable in settings (ruled 2026-10-05)'
     fireEvent.click(screen.getByRole('radio', { name: /testing interest/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group', useCase: 'testing_interest' }))
+  })
+})
+
+// Don, 2026-10-05: each Add on the draft opens only its own fields, with
+// pickers rather than long lists, and one primary button.
+function OpenOne({ section }: { section: Section }) {
+  const ctx = usePageEditor()
+  return <button onClick={() => ctx!.open(section)}>add {section}</button>
+}
+const openOne = (section: Section) => {
+  render(
+    <PageEditorProvider initial={initial} onSave={onSave}>
+      <OpenOne section={section} />
+    </PageEditorProvider>,
+  )
+  fireEvent.click(screen.getByRole('button', { name: `add ${section}` }))
+  return screen.getByRole('dialog')
+}
+
+describe('Don, 2026-10-05 — one section per sheet', () => {
+  it('Name asks for the name only', () => {
+    const d = openOne('name')
+    expect(d.querySelectorAll('input, textarea, select')).toHaveLength(1)
+    expect(screen.getByTestId('edit-name')).toBeInTheDocument()
+  })
+
+  it('Description asks for the description only', () => {
+    const d = openOne('description')
+    expect(d.querySelectorAll('input, textarea, select')).toHaveLength(1)
+    expect(screen.getByTestId('edit-description')).toBeInTheDocument()
+  })
+
+  it('a sheet has one primary button, Save', () => {
+    const d = openOne('description')
+    expect(d.querySelectorAll('[data-variant="primary"]')).toHaveLength(1)
+    expect(screen.getByTestId('sheet-save')).toHaveTextContent('Save')
+  })
+
+  it('Name saves only the name', async () => {
+    openOne('name')
+    fireEvent.change(screen.getByTestId('edit-name'), { target: { value: 'Oak Park Bread' } })
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, name: 'Oak Park Bread' }))
+  })
+
+  it('an empty name is refused', async () => {
+    openOne('name')
+    fireEvent.change(screen.getByTestId('edit-name'), { target: { value: ' ' } })
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/name/i)
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('Where asks the one question, not an address form', () => {
+    openOne('where')
+    expect(screen.getByRole('group', { name: /how do people find you/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('radio')).toHaveLength(3)
+  })
+
+  it('Where with no answer says so rather than saving', async () => {
+    openOne('where')
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/how people find you/i)
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('Links shows a picker, not every platform at once', () => {
+    openOne('links')
+    expect(screen.queryByTestId('social-instagram')).toBeNull()
+    fireEvent.change(screen.getByTestId('social-add'), { target: { value: 'instagram' } })
+    expect(screen.getByTestId('social-instagram')).toBeInTheDocument()
+    expect(screen.queryByTestId('social-facebook')).toBeNull()
   })
 })
