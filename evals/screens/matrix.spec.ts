@@ -7,34 +7,41 @@
 // screen looks: it is a capture, and the review happens on the pictures.
 //
 // Narrow a local run with SCREENS_PERSONAS, SCREENS_ROUTES and SCREENS_WIDTHS
-// (comma-separated keys, names and widths).
+// (comma-separated keys, names and widths). SCREENS_SCOPE=smoke is the PR slice
+// (routes.ts, SMOKE).
 import { test, expect } from '@playwright/test'
 import { join } from 'node:path'
 import { PERSONAS } from '../personas'
-import { ROUTES, WIDTHS } from './routes'
+import { ROUTES, SMOKE, WIDTHS } from './routes'
 
 const DIR = process.env.SCREENS_DIR ?? 'screenshots'
 const only = (env: string | undefined) => (env ? new Set(env.split(',').map((s) => s.trim())) : null)
 const personas = only(process.env.SCREENS_PERSONAS)
 const routes = only(process.env.SCREENS_ROUTES)
 const widths = only(process.env.SCREENS_WIDTHS)
+const smoke = process.env.SCREENS_SCOPE === 'smoke'
 
-for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
+const inScope = (who: string, same?: true) => !smoke || who === 'signedOut' || (!same && SMOKE.signedIn.includes(who))
+const widthsFor: readonly number[] = smoke ? SMOKE.widths : WIDTHS
+
+for (const who of PERSONAS.filter((p) => (!personas || personas.has(p.key)) && inScope(p.key))) {
   test.describe(who.key, () => {
     test.use({ storageState: who.email ? `evals/.auth/${who.key}.json` : { cookies: [], origins: [] } })
 
-    for (const route of ROUTES.filter((r) => !routes || routes.has(r.name))) {
+    for (const route of ROUTES.filter((r) => (!routes || routes.has(r.name)) && inScope(who.key, r.same))) {
       test(`${route.name}`, async ({ page }) => {
         const errors: string[] = []
         page.on('pageerror', (e) => errors.push(e.message))
-        for (const width of WIDTHS.filter((w) => !widths || widths.has(String(w)))) {
+        for (const width of widthsFor.filter((w) => !widths || widths.has(String(w)))) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
           const res = await page.goto(route.path(who), { waitUntil: 'load' })
           expect(res?.status() ?? 0, `${route.name} at ${width}px`).toBeLessThan(500)
-          // Bounded: map tiles and polling can keep the network busy forever.
-          await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
+          // Bounded: map tiles and polling can keep the network busy forever. Signed-in
+          // pages never settle, so this is 5s each; only a picture needs it (#375).
+          if (!smoke) await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
           if (route.act) await route.act(page)
-          await page.screenshot({ path: join(DIR, String(width), who.key, `${route.name}.png`), fullPage: true })
+          // The smoke slice gates on errors only; the pictures come from the nightly run.
+          if (!smoke) await page.screenshot({ path: join(DIR, String(width), who.key, `${route.name}.png`), fullPage: true })
         }
         expect(errors, `uncaught errors on ${route.name}`).toEqual([])
       })
