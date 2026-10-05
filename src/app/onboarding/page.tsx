@@ -19,9 +19,15 @@ export default async function OnboardingPage() {
     .eq('scope_kind', 'primary_home')
     .is('removed_at', null)
     .maybeSingle()
+  // F081 — a phone verified by text code, unless the login is a builder (#280).
+  // Off until PHONE_VERIFICATION_REQUIRED, which waits on the SMS provider.
+  const phoneVerified =
+    process.env.PHONE_VERIFICATION_REQUIRED !== '1' ||
+    Boolean(user.phone_confirmed_at) ||
+    user.app_metadata?.builder === true
   // #205 — onboarding writes no place now; the login carries the mark. A
   // member onboarded before that still has the place it wrote.
-  if (home || user.user_metadata?.onboarded === true) redirect('/')
+  if ((home || user.user_metadata?.onboarded === true) && phoneVerified) redirect('/')
 
   const { data: member } = await supabase
     .from('members')
@@ -42,6 +48,7 @@ export default async function OnboardingPage() {
     <OnboardingFlow
       initialDisplayName={m?.display_name ?? ''}
       metros={(metroRows ?? []) as { id: string; name: string }[]}
+      phoneVerified={phoneVerified}
     />
   )
 }
