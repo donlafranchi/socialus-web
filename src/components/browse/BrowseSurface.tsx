@@ -131,6 +131,13 @@ export function BrowseSurface({
     [snapshot.results, query, filters, now],
   )
 
+  // #331 — the map shows the tunable mix; filters and search narrow within it.
+  const mapVisible = useMemo(
+    () => applyBrowseFilters(searchBrowseResults(snapshot.map, query), filters, { now }),
+    [snapshot.map, query, filters, now],
+  )
+  const mapNarrowed = snapshot.map.length > 0 && mapVisible.length === 0
+
   const tagOptions = useMemo(() => browseTagOptions(snapshot.results), [snapshot.results])
 
   useScrollRestoration('explore', visible.length > 0)
@@ -314,7 +321,20 @@ export function BrowseSurface({
                   : 'h-[calc(100dvh-var(--nav-clearance)-var(--search-row-h)-var(--float-offset)-var(--tap))] overflow-hidden rounded-md md:h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h)-var(--float-offset)-var(--tap))]'
               }
             >
-              <BrowseMap results={visible} />
+              <div className="relative h-full">
+                <BrowseMap results={mapVisible} />
+                {mapNarrowed && (
+                  <div
+                    data-testid="map-empty"
+                    className="absolute inset-x-3 top-3 flex items-center justify-between gap-3 rounded-md bg-[var(--color-bg)] px-3 py-1 text-body-sm text-[var(--color-fg)] shadow-lift"
+                  >
+                    <span>Nothing on the map with these filters.</span>
+                    <button type="button" onClick={clearAll} className="press inline-flex min-h-tap items-center font-medium text-[var(--color-accent)] underline">
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

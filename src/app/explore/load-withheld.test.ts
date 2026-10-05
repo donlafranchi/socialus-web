@@ -37,6 +37,9 @@ vi.mock('@/lib/supabase-server', () => ({
   createClient: vi.fn(async () => ({ auth: { getUser }, from, rpc })),
 }))
 vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
+// #331 — the map's mix has its own tests; these are about the list and the rows.
+const { loadMapMix } = vi.hoisted(() => ({ loadMapMix: vi.fn(async () => []) }))
+vi.mock('@/lib/map/load-mix', () => ({ loadMapMix }))
 vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
 // `withWaitingCounts` stays real — it is a pure merge, and these tests assert
@@ -219,5 +222,22 @@ describe("what's happening", () => {
       .find((p) => Date.parse(p.to) - Date.parse(p.from) <= 25 * 3600_000)
     expect(todayCall).toBeDefined()
     expect(new Date(todayCall!.from).getTime()).toBeLessThanOrEqual(Date.now())
+  })
+})
+
+describe('#331 — the map mix', () => {
+  it('signed in, the map gets the mix for the metro', async () => {
+    loadMapMix.mockClear()
+    signedIn()
+    await loadBrowse(null)
+    expect(loadMapMix).toHaveBeenCalledWith(expect.anything(), METRO.id)
+  })
+
+  it('signed out, no pins: the mix is never read', async () => {
+    loadMapMix.mockClear()
+    signedOut()
+    const snap = await loadBrowse(null)
+    expect(loadMapMix).not.toHaveBeenCalled()
+    expect(snap.map).toEqual([])
   })
 })

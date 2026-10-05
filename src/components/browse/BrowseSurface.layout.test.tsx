@@ -8,16 +8,17 @@ import { BrowseSurface } from './BrowseSurface'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
+let params = new URLSearchParams()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => params,
 }))
 vi.mock('@/app/explore/actions', () => ({ browseFeedAction: vi.fn() }))
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
 vi.mock('next/dynamic', () => ({
   default: () =>
-    function MapStub() {
-      return <div data-testid="browse-map" />
+    function MapStub({ results = [] }: { results?: { name: string }[] }) {
+      return <div data-testid="browse-map" data-names={results.map((r) => r.name).join('|')} />
     },
 }))
 
@@ -71,6 +72,7 @@ const SAC = { id: 'm1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Rosev
 const snapshot: BrowseSnapshot = {
   results: Array.from({ length: 10 }, (_, i) => result(i)),
   following: [],
+  map: [],
   metro: SAC,
   chosen: false,
   metros: [SAC],
@@ -84,7 +86,10 @@ const renderAt = (w: number, props: { ownerPanelOpen?: boolean } = {}) => {
   return render(<BrowseSurface initial={snapshot} {...props} />)
 }
 
-beforeEach(() => stubWidth(390))
+beforeEach(() => {
+  stubWidth(390)
+  params = new URLSearchParams()
+})
 afterEach(cleanup)
 
 // [guards F059.5 partial: where things land on a real screen, which the F059 eval checks]
@@ -163,5 +168,22 @@ describe('T187 — 1024–1439px with the owner panel open', () => {
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
     expect(screen.queryByRole('tablist', { name: /view/i })).toBeNull()
+  })
+})
+
+describe('#331 — the map shows the tunable mix, narrowed by search and filters', () => {
+  const mix = [{ ...result(1), name: 'Bread class', bucket: 'dated' as const }, { ...result(2), name: 'Pottery', bucket: 'new' as const }]
+  it('the map gets the mix, not the list', () => {
+    stubWidth(1280)
+    render(<BrowseSurface initial={{ ...snapshot, map: mix }} />)
+    expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', 'Bread class|Pottery')
+  })
+
+  it('a search that empties the map offers to clear it', () => {
+    stubWidth(1280)
+    params = new URLSearchParams('q=zzz-nothing')
+    render(<BrowseSurface initial={{ ...snapshot, map: mix }} />)
+    expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', '')
+    expect(screen.getByTestId('map-empty')).toHaveTextContent('Clear filters')
   })
 })
