@@ -43,3 +43,11 @@ describe('#316 — typing tags', () => {
     expect(screen.getByTestId('t-list')).toHaveTextContent('#bread')
   })
 })
+
+// Path: well-worn — hashtags on Instagram and X are written with the # and no spaces.
+describe('#316 — the tag box suggests hashtags', () => {
+  it('its placeholder is written as hashtags', () => {
+    render(<TagInput idPrefix="t" value={{ tags: [], draft: '' }} onChange={() => {}} />)
+    expect(screen.getByTestId('t-input')).toHaveAttribute('placeholder', '#sourdough #honey #eggs')
+  })
+})

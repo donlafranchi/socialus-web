@@ -11,7 +11,7 @@ import { isValidTagLabel, normalizeTag, TAG_MAX_LENGTH } from '@/lib/groups/tags
 import { hashtag } from './TagChips'
 
 /** Examples, not defaults — nothing is prefilled and nothing is submitted. */
-const TAG_PLACEHOLDER = 'sourdough, honey, eggs, soap'
+const TAG_PLACEHOLDER = '#sourdough #honey #eggs'
 
 export interface TagInputValue {
   tags: string[]
