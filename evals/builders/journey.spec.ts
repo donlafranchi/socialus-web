@@ -117,12 +117,14 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
     }
     await expect(page.getByTestId('edit-tag-list')).toContainText(org.tags[0]!)
   })
+  // #348's "How do people find you?". Invented organizations have no address
+  // to look up, so they answer "It moves" and name the area they're usually in.
   await j.step('Where it is', null, async () => {
     const change = page.getByTestId('edit-address-change')
     if (await change.isVisible().catch(() => false)) await change.click()
-    const search = page.getByRole('combobox', { name: /where is it/i })
-    await search.fill(org.area)
-    await page.getByRole('option', { name: new RegExp(org.area, 'i') }).first().click({ timeout: 15_000 })
+    const where = page.getByRole('group', { name: 'How do people find you?' })
+    await where.getByRole('radio', { name: /It moves/ }).check()
+    await where.getByPlaceholder('Midtown farmers markets').fill(org.area)
   })
   await j.step('Photo', null, async () => {
     await page.getByTestId('page-photo-input').setInputFiles(await photoFile(page, org, 'cover'))
