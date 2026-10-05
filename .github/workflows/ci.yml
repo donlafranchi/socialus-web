@@ -26,11 +26,16 @@ on:
   pull_request:
   push:
     branches: [main]
+  # The whole screenshot matrix (#375): ~45 minutes, so nightly, not per push.
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
 
 # A second push to a PR cancels the first. Not on main: those runs are the
-# record of what a merge did.
+# record of what a merge did. The event is in the key so a nightly run never
+# queues a merge's run behind it.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -116,13 +121,14 @@ jobs:
           version: 2.117.0
 
       # Built from the migration files in this commit, thrown away with the
-      # runner. `db reset` applies every migration from empty, in order, which
-      # is also what makes the DB-bound suites meaningful rather than merely
-      # runnable.
+      # runner. `start` on a fresh runner applies every migration from empty,
+      # in order, then the seed, which is also what makes the DB-bound suites
+      # meaningful rather than merely runnable. Only the services the suites
+      # reach are started (#375): Postgres, auth, REST, storage and the gateway.
       - name: Start a throwaway local stack
-        run: |
-          supabase start
-          supabase db reset
+        run: supabase start -x "$SUPABASE_UNUSED"
+        env:
+          SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - run: npm ci
 
@@ -167,14 +173,20 @@ jobs:
   #   guard          one spec that MUST fail; this job stops if it passes
   #   mobile-chrome  the feature evals (evals/quarantine.ts lists the ones that
   #                  fail against today's rulings and are excluded, by title)
-  #   screens        every inventory route, as every persona, at six widths;
-  #                  uploaded as the `screenshots` artifact
+  #   screens        on a PR or a merge, the smoke slice (#375): every route
+  #                  signed out at 390 and 1280px, and every route that differs
+  #                  by viewer as a member and an owner at 390px. Nightly and
+  #                  on demand (Actions → CI → Run workflow), the whole matrix:
+  #                  every route, as every persona, at six widths. Uploaded as
+  #                  the `screenshots` artifact.
+  #
+  # The whole matrix ran on every push until #375 and was ~45 of this job's
+  # ~50 minutes. The smoke slice still loads every route on every PR.
   # ---------------------------------------------------------------------
   browser:
     name: Browser
     runs-on: ubuntu-24.04
-    # The matrix alone is ~45 minutes: 572 tests, six widths each.
-    timeout-minutes: 90
+    timeout-minutes: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 15 || 90 }}
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -194,12 +206,29 @@ jobs:
         with:
           version: 2.117.0
 
-      - name: Start a throwaway local stack
+      # In the background: the stack is a minute or more of image pulls, and
+      # npm ci and the browser download need none of it.
+      - name: Start a throwaway local stack (background)
         run: |
-          supabase start
-          supabase db reset
+          ( supabase start -x "$SUPABASE_UNUSED" > "$RUNNER_TEMP/stack.log" 2>&1; echo $? > "$RUNNER_TEMP/stack.exit" ) &
+        env:
+          SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - run: npm ci
+
+      - name: Cache the Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Wait for the stack
+        run: |
+          for _ in $(seq 1 300); do [ -f "$RUNNER_TEMP/stack.exit" ] && break; sleep 1; done
+          cat "$RUNNER_TEMP/stack.log"
+          [ "$(cat "$RUNNER_TEMP/stack.exit" 2>/dev/null)" = 0 ]
 
       - name: Read the stack's keys into the environment
         run: supabase status -o env | sed 's/="/=/; s/"$//' >> "$GITHUB_ENV"
@@ -213,13 +242,18 @@ jobs:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
 
+      - name: Cache the Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
       - name: Build against the local stack
         run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.ANON_KEY }}
-
-      - run: npx playwright install --with-deps chromium
 
       # [guard-proves-itself]: watched failing on every run, before anything
       # below is believed.
@@ -243,6 +277,7 @@ jobs:
         if: ${{ !cancelled() }}
         env:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          SCREENS_SCOPE: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 'smoke' || 'full' }}
         run: npx playwright test --project=screens
 
       - name: Upload screenshots

@@ -7,27 +7,33 @@
 // screen looks: it is a capture, and the review happens on the pictures.
 //
 // Narrow a local run with SCREENS_PERSONAS, SCREENS_ROUTES and SCREENS_WIDTHS
-// (comma-separated keys, names and widths).
+// (comma-separated keys, names and widths). SCREENS_SCOPE=smoke is the PR slice
+// (routes.ts, SMOKE).
 import { test, expect } from '@playwright/test'
 import { join } from 'node:path'
 import { PERSONAS } from '../personas'
-import { ROUTES, WIDTHS } from './routes'
+import { ROUTES, SMOKE, WIDTHS } from './routes'
 
 const DIR = process.env.SCREENS_DIR ?? 'screenshots'
 const only = (env: string | undefined) => (env ? new Set(env.split(',').map((s) => s.trim())) : null)
 const personas = only(process.env.SCREENS_PERSONAS)
 const routes = only(process.env.SCREENS_ROUTES)
 const widths = only(process.env.SCREENS_WIDTHS)
+const smoke = process.env.SCREENS_SCOPE === 'smoke'
 
-for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
+const inScope = (who: string, same?: true) => !smoke || who === 'signedOut' || (!same && SMOKE.signedIn.includes(who))
+const widthsFor = (who: string): readonly number[] =>
+  !smoke ? WIDTHS : who === 'signedOut' ? SMOKE.widths : SMOKE.signedInWidths
+
+for (const who of PERSONAS.filter((p) => (!personas || personas.has(p.key)) && inScope(p.key))) {
   test.describe(who.key, () => {
     test.use({ storageState: who.email ? `evals/.auth/${who.key}.json` : { cookies: [], origins: [] } })
 
-    for (const route of ROUTES.filter((r) => !routes || routes.has(r.name))) {
+    for (const route of ROUTES.filter((r) => (!routes || routes.has(r.name)) && inScope(who.key, r.same))) {
       test(`${route.name}`, async ({ page }) => {
         const errors: string[] = []
         page.on('pageerror', (e) => errors.push(e.message))
-        for (const width of WIDTHS.filter((w) => !widths || widths.has(String(w)))) {
+        for (const width of widthsFor(who.key).filter((w) => !widths || widths.has(String(w)))) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
           const res = await page.goto(route.path(who), { waitUntil: 'load' })
           expect(res?.status() ?? 0, `${route.name} at ${width}px`).toBeLessThan(500)
