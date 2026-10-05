@@ -10,3 +10,7 @@ export function componentOn(kind: string, metadata: unknown, key: ComponentKey):
   const set = (metadata as { components?: Record<string, unknown> } | null)?.components?.[key]
   return typeof set === 'boolean' ? set : DEFAULT_ON[key].includes(kind)
 }
+
+/** Don, 2026-10-05: Locally Owned is a business thing (shops and services);
+ *  social groups never show the badge or its question. */
+export const isBusinessKind = (kind: string) => kind === 'business' || kind === 'practice'

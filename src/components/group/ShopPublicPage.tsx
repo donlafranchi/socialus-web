@@ -29,6 +29,7 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
 interface Props {
@@ -141,7 +142,7 @@ export function ShopPublicPage({
               ? `Your new ${DRAFT_HEADING[shop.kind] ? `${DRAFT_HEADING[shop.kind]} ` : ''}Page`
               : shop.displayName}
           </h1>
-          {badge && (
+          {badge && isBusinessKind(shop.kind) && (
             <span
               data-testid="local-owner-badge"
               className="chip chip-selected whitespace-nowrap text-xs"
@@ -290,7 +291,7 @@ export function ShopPublicPage({
       {/* F037 — owner-only Locally Owned claim management. Rendered only when the
           viewer is an active owner (ownerClaim resolved non-null); non-owners and
           anon never see it. */}
-      {ownerClaim && (
+      {ownerClaim && isBusinessKind(shop.kind) && (
         <LocallyOwnedClaim
           groupId={shop.groupId}
           claim={ownerClaim}
