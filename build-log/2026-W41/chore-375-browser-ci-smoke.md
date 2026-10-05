@@ -3,5 +3,6 @@
 The Browser job took ~50 minutes a push, ~45 of them the screenshot matrix: 45 routes × 13 personas × 6 widths, 3,510 page loads. PRs and merges now run its smoke slice (`SCREENS_SCOPE=smoke`, `evals/screens/routes.ts` `SMOKE`): every route signed out, and the 26 routes that differ by viewer as a member and as a business owner, at 390px — 97 loads. The whole matrix runs nightly (10:00 UTC) and from Actions → CI → Run workflow. The guard and every feature eval still run on every push.
 
 - **Stack:** `supabase start -x` skips realtime, imgproxy, mailpit, postgres-meta, studio, edge-runtime, logflare, vector and supavisor; nothing the suites reach uses them. `db reset` after `start` is gone: a fresh `start` already applies every migration and the seed. In the Browser job it starts in the background while npm ci and the browser install run.
+- **Build:** runs while the stack starts, against the default local anon key; rebuilt if the stack reports another.
 - **Caches:** `node_modules`, the Playwright browser (headless shell only, no apt step: the runner image has Chrome's libraries, and the apt mirror once stalled 11 minutes) and `.next/cache`. Feature evals and the matrix run as one Playwright invocation.
 - **Check names unchanged:** `Lint, types, build`, `Unit tests`, `Browser`, `Migrations applied to production`.

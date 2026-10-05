@@ -233,6 +233,28 @@ jobs:
       # the apt step it adds once stalled 11 minutes on a mirror (#375).
       - run: npx playwright install --only-shell chromium
 
+      # Built while the stack is still starting. The bundle bakes in the
+      # stack's anon key, which on a default local stack is a fixed JWT signed
+      # with the CLI's default secret; computed here, checked below, and the
+      # build is redone if the stack handed out a different one.
+      - name: Local anon key
+        run: |
+          key=$(node -e "const c=require('crypto'),b=(o)=>Buffer.from(JSON.stringify(o)).toString('base64url'),h=b({alg:'HS256',typ:'JWT'}),p=b({iss:'supabase-demo',role:'anon',exp:1983812996});console.log(h+'.'+p+'.'+c.createHmac('sha256','super-secret-jwt-token-with-at-least-32-characters-long').update(h+'.'+p).digest('base64url'))")
+          echo "BUILT_ANON_KEY=$key" >> "$GITHUB_ENV"
+
+      - name: Cache the Next.js build
+        uses: actions/cache@v5
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - name: Build against the local stack
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.BUILT_ANON_KEY }}
+
       - name: Wait for the stack
         run: |
           for _ in $(seq 1 300); do [ -f "$RUNNER_TEMP/stack.exit" ] && break; sleep 1; done
@@ -251,18 +273,15 @@ jobs:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
 
-      - name: Cache the Next.js build
-        uses: actions/cache@v5
-        with:
-          path: .next/cache
-          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
-
-      - name: Build against the local stack
-        run: npm run build
+      - name: Rebuild if the stack's key differs
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ env.ANON_KEY }}
+        run: |
+          if [ "$ANON_KEY" != "$BUILT_ANON_KEY" ]; then
+            echo "::warning::The local stack's anon key is not the default one; rebuilding against it."
+            npm run build
+          fi
 
       # [guard-proves-itself]: watched failing on every run, before anything
       # below is believed.
