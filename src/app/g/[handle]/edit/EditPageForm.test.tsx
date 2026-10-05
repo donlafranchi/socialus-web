@@ -19,23 +19,34 @@ vi.mock('@/lib/geocoding', () => ({
   geocode: vi.fn(async () => []),
   GeocodingUnavailableError: class extends Error {},
 }))
-const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
-vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction }))
+const { searchPlacesAction, placeForPointAction } = vi.hoisted(() => ({
+  searchPlacesAction: vi.fn(async (_q?: string) => ({ ok: true, data: [] as unknown[] })),
+  placeForPointAction: vi.fn(async () => ({ ok: true, data: { id: 'pl-curtis', name: 'Curtis Park' } })),
+}))
+vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction, placeForPointAction }))
+vi.mock('@/components/locations/PinAdjustMap', () => ({
+  PinAdjustMap: ({ onChange }: { onChange: (c: [number, number]) => void }) => (
+    <button type="button" data-testid="pin-moved" onClick={() => onChange([-121.47, 38.55])} />
+  ),
+}))
+vi.mock('@/components/locations/AreaPickMap', () => ({
+  AreaPickMap: ({ onPick }: { onPick: (p: { placeId: string; name: string }) => void }) => (
+    <button type="button" data-testid="town-tapped" onClick={() => onPick({ placeId: 'pl-davis', name: 'Davis' })} />
+  ),
+}))
+const onMetroAnchor = vi.fn(async () => ({ ok: true, data: { id: 'pl-sac', name: 'Sacramento' } }) as const)
 
 const onSave = vi.fn(
   async (_input: unknown): Promise<{ ok: true } | { ok: false; message: string }> => ({ ok: true }),
 )
 const onCreateLocation = vi.fn(async () => ({ ok: true, data: { id: 'loc-new', label: 'x' } }) as const)
 
-/** Drive the embedded picker the way a person does: type, wait for the list,
- *  click a place. The combobox has its own suite; this is the handover. */
-async function pickOakPark() {
+/** #348 — People come to me, with a dropped pin. */
+function dropAPin() {
   fireEvent.click(screen.getByTestId('edit-address-change'))
-  fireEvent.change(screen.getByTestId('edit-address-address-input'), {
-    target: { value: 'Oak Park' },
-  })
-  await waitFor(() => screen.getByTestId('edit-address-address-suggestion-0'))
-  fireEvent.click(screen.getByTestId('edit-address-address-suggestion-0'))
+  fireEvent.click(screen.getByRole('radio', { name: /people come to me/i }))
+  fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
+  fireEvent.click(screen.getByTestId('pin-moved'))
 }
 
 function renderForm(over: Partial<Parameters<typeof EditPageForm>[0]> = {}) {
@@ -55,6 +66,7 @@ function renderForm(over: Partial<Parameters<typeof EditPageForm>[0]> = {}) {
       initialTags={['sourdough', 'rye']}
       onSave={onSave}
       onCreateLocation={onCreateLocation}
+      onMetroAnchor={onMetroAnchor}
       {...over}
     />,
   )
@@ -115,21 +127,22 @@ describe('the address, which the owner can change', () => {
     expect(screen.getByTestId('edit-address')).toHaveTextContent(/not set/i)
   })
 
-  it('opens the same picker creation uses, so the two cannot drift', () => {
+  it('opens one question with three answers', () => {
     renderForm()
     fireEvent.click(screen.getByTestId('edit-address-change'))
-    expect(screen.getByTestId('edit-address-address-input')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: /how do people find you/i })).toBeInTheDocument()
   })
 
-  it('leaves the address alone when the owner never opened the picker', async () => {
+  it('leaves the location alone when the owner never opened it', async () => {
     renderForm()
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(onSave).toHaveBeenCalled())
     expect(onCreateLocation).not.toHaveBeenCalled()
     expect(onSave.mock.calls[0][0]).not.toHaveProperty('anchorLocationId')
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('whereMode')
   })
 
-  it('leaves it alone when the picker was opened but nothing was chosen', async () => {
+  it('leaves it alone when it was opened but nothing was chosen', async () => {
     renderForm()
     fireEvent.click(screen.getByTestId('edit-address-change'))
     fireEvent.click(screen.getByTestId('edit-save'))
@@ -137,18 +150,53 @@ describe('the address, which the owner can change', () => {
     expect(onCreateLocation).not.toHaveBeenCalled()
   })
 
-  it('makes the Location and points the Page at it when one was chosen', async () => {
+  it('People come to me: saves the pin as the Location, with how to find us', async () => {
     renderForm()
-    await pickOakPark()
+    dropAPin()
+    fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Behind the barn' } })
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(onCreateLocation).toHaveBeenCalled())
     expect(onCreateLocation).toHaveBeenCalledWith(
-      expect.objectContaining({ neighborhoodId: 'pl-oak-park', label: 'Oak Park' }),
+      expect.objectContaining({ address: expect.objectContaining({ geographyWkt: 'SRID=4326;POINT(-121.47 38.55)' }) }),
     )
     await waitFor(() =>
       expect(onSave).toHaveBeenCalledWith(
-        expect.objectContaining({ anchorLocationId: 'loc-new' }),
+        expect.objectContaining({ anchorLocationId: 'loc-new', whereMode: 'visit', howToFind: 'Behind the barn', serviceAreaPlaceIds: [] }),
       ),
+    )
+  })
+
+  it('Show only my neighbourhood: saves the neighbourhood under the pin, not the pin', async () => {
+    renderForm()
+    dropAPin()
+    fireEvent.click(screen.getByRole('switch', { name: /show only my neighbourhood/i }))
+    await waitFor(() => expect(screen.getByText(/visitors see curtis park/i)).toBeInTheDocument())
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() =>
+      expect(onCreateLocation).toHaveBeenCalledWith({ label: 'Curtis Park', neighborhoodId: 'pl-curtis' }),
+    )
+  })
+
+  it('I go to them: anchors on the metro and saves the towns', async () => {
+    renderForm()
+    fireEvent.click(screen.getByTestId('edit-address-change'))
+    fireEvent.click(screen.getByRole('radio', { name: /i go to them/i }))
+    fireEvent.click(screen.getByTestId('town-tapped'))
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(onCreateLocation).toHaveBeenCalledWith({ label: 'Sacramento', neighborhoodId: 'pl-sac' }))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ whereMode: 'travel', serviceAreaPlaceIds: ['pl-davis'] })),
+    )
+  })
+
+  it('It moves: anchors on the metro and saves usually around', async () => {
+    renderForm()
+    fireEvent.click(screen.getByTestId('edit-address-change'))
+    fireEvent.click(screen.getByRole('radio', { name: /it moves/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: /usually around/i }), { target: { value: 'Midtown markets' } })
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ whereMode: 'roaming', usuallyAround: 'Midtown markets' })),
     )
   })
 
@@ -161,7 +209,7 @@ describe('the address, which the owner can change', () => {
       code: 'location_needs_place',
     } as never)
     renderForm()
-    await pickOakPark()
+    dropAPin()
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() =>
       expect(screen.getByTestId('edit-error')).toHaveTextContent(/never guess one/i),

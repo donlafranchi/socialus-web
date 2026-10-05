@@ -153,3 +153,21 @@ describe('#348 — a picked town or neighbourhood is the place recorded', () => 
     expect(params[6]).toBeNull()
   })
 })
+
+describe('#348 — the neighbourhood under a pin', () => {
+  it('prefers the neighbourhood, then the smallest town', async () => {
+    const { placeForPointAction } = await import('./location-actions')
+    query.mockResolvedValueOnce({ rows: [{ id: 'pl-cp', display_name: 'Curtis Park' }] })
+    const res = await placeForPointAction(-121.47, 38.55)
+    expect(res).toEqual({ ok: true, data: { id: 'pl-cp', name: 'Curtis Park' } })
+    const [sql, params] = query.mock.calls[0] as [string, unknown[]]
+    expect(sql).toMatch(/order by \(p\.kind = 'neighborhood'\) desc/)
+    expect(params).toEqual([-121.47, 38.55])
+  })
+
+  it('a pin outside every place has none', async () => {
+    const { placeForPointAction } = await import('./location-actions')
+    query.mockResolvedValueOnce({ rows: [] })
+    expect(await placeForPointAction(-122.4, 37.7)).toEqual({ ok: true, data: null })
+  })
+})

@@ -21,6 +21,11 @@ export interface EditPageInput {
   /** Issue #180 — where the Page is. `group.update` already accepted this;
    *  nothing but the form was missing. */
   anchorLocationId?: string
+  /** #348 — where it is. */
+  whereMode?: 'visit' | 'travel' | 'roaming'
+  howToFind?: string | null
+  usuallyAround?: string | null
+  serviceAreaPlaceIds?: string[]
   /** #293 — null clears either. */
   contactPhone?: string | null
   openingHours?: unknown
@@ -48,6 +53,10 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.contactPhone !== undefined ? { contactPhone: input.contactPhone } : {}),
       ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
+      ...(input.whereMode !== undefined ? { whereMode: input.whereMode } : {}),
+      ...(input.howToFind !== undefined ? { howToFind: input.howToFind } : {}),
+      ...(input.usuallyAround !== undefined ? { usuallyAround: input.usuallyAround } : {}),
+      ...(input.serviceAreaPlaceIds !== undefined ? { serviceAreaPlaceIds: input.serviceAreaPlaceIds } : {}),
       ...(input.anchorLocationId !== undefined
         ? { anchorLocationId: input.anchorLocationId }
         : {}),

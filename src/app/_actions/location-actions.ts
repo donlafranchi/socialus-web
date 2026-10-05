@@ -291,3 +291,45 @@ export async function listNeighborhoodsAction(): Promise<Neighborhood[]> {
     return result.rows.map((r) => ({ id: r.id, name: r.display_name, slug: r.slug }))
   })
 }
+
+/**
+ * #348 — the neighbourhood (or, outside one, the town) under a pin, so
+ * "Show only my neighbourhood" can name it. Worked out, never picked.
+ */
+export async function placeForPointAction(
+  lng: number,
+  lat: number,
+): Promise<ActionResult<{ id: string; name: string } | null>> {
+  return asResult(async () => {
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null
+    return withTransaction(async (client) => {
+      const res = await client.query<{ id: string; display_name: string }>(
+        `select p.id, p.display_name
+           from public.places p
+          where p.deleted_at is null and p.kind in ('neighborhood', 'city') and p.geography is not null
+            and st_covers(p.geography, st_setsrid(st_makepoint($1, $2), 4326)::geography)
+          order by (p.kind = 'neighborhood') desc, st_area(p.geography::geometry) asc
+          limit 1`,
+        [lng, lat],
+      )
+      const r = res.rows[0]
+      return r ? { id: r.id, name: r.display_name } : null
+    })
+  })
+}
+
+/** #348 — the metro's main town, the anchor for "I go to them" and "It moves". */
+export async function metroAnchorPlaceAction(msa = '40900'): Promise<ActionResult<{ id: string; name: string } | null>> {
+  return asResult(async () =>
+    withTransaction(async (client) => {
+      const res = await client.query<{ id: string; display_name: string }>(
+        `select p.id, p.display_name from public.places p
+          where p.kind = 'city' and p.msa_code = $1 and p.deleted_at is null
+          order by st_area(p.geography::geometry) desc nulls last limit 1`,
+        [msa],
+      )
+      const r = res.rows[0]
+      return r ? { id: r.id, name: r.display_name } : null
+    }),
+  )
+}

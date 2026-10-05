@@ -21,13 +21,8 @@ import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
-import {
-  LocationPlaceFields,
-  initialLocationPlaceFieldsState,
-  isLocationPlaceFieldsComplete,
-  type LocationPlaceFieldsState,
-} from '@/components/locations/LocationPlaceFields'
-import { createLocationAction } from '@/app/_actions/location-actions'
+import { WhereFields, emptyWhere, type WhereValue } from '@/components/locations/WhereFields'
+import { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput, EditPageResult } from './actions'
@@ -55,6 +50,8 @@ export function EditPageForm({
   initialTags = [],
   onSave,
   onCreateLocation = createLocationAction,
+  onMetroAnchor = metroAnchorPlaceAction,
+  initialWhere = emptyWhere,
 }: {
   groupId: string
   memberId: string
@@ -75,6 +72,10 @@ export function EditPageForm({
   onSave: (input: EditPageInput) => Promise<EditPageResult>
   /** Injected so the form can be tested without a server action. */
   onCreateLocation?: CreateLocation
+  /** #348 — the metro's main town, the anchor for "I go to them" and "It moves". */
+  onMetroAnchor?: typeof metroAnchorPlaceAction
+  /** #348 — where the Page is now, to start the question from. */
+  initialWhere?: WhereValue
 }) {
   const router = useRouter()
   const [name, setName] = useState(initialName)
@@ -91,7 +92,7 @@ export function EditPageForm({
   // Closed until asked for. An address the owner is not changing should not
   // look like one they have to re-enter.
   const [changingAddress, setChangingAddress] = useState(false)
-  const [place, setPlace] = useState<LocationPlaceFieldsState>(initialLocationPlaceFieldsState)
+  const [where, setWhere] = useState<WhereValue>(initialWhere)
   const [error, setError] = useState<string | null>(null)
   // #276 — what was last saved, so Done and leaving the page can tell a
   // change from none. Moves on every successful save.
@@ -130,19 +131,30 @@ export function EditPageForm({
         setError('Add at least one word that describes what you do.')
         return
       }
+      // #348 — where it is: one question, three answers. Only when the owner
+      // opened it and finished an answer; an untouched Page keeps its place.
       let anchorLocationId: string | undefined
-      if (changingAddress && isLocationPlaceFieldsComplete(place)) {
-        const made = await onCreateLocation(
-          place.mode === 'address'
-            ? {
-                label: place.selectedAddress!.name,
-                address: {
-                  geographyWkt: `SRID=4326;POINT(${place.selectedAddress!.coordinates[0]} ${place.selectedAddress!.coordinates[1]})`,
-                  resolvedAddressText: place.selectedAddress!.name,
-                },
+      let whereFields: Partial<EditPageInput> = {}
+      const visitReady = where.mode === 'visit' && where.visit.pin && (!where.visit.areaOnly || where.visit.area)
+      if (changingAddress && (visitReady || where.mode === 'travel' || where.mode === 'roaming')) {
+        let input: Parameters<CreateLocation>[0]
+        if (where.mode === 'visit') {
+          const v = where.visit
+          input = v.areaOnly
+            ? { label: v.area!.name, neighborhoodId: v.area!.id }
+            : {
+                label: v.label ?? 'Pinned spot',
+                address: { geographyWkt: `SRID=4326;POINT(${v.pin![0]} ${v.pin![1]})`, resolvedAddressText: v.label ?? 'Pinned spot' },
               }
-            : { label: place.addressQuery, neighborhoodId: place.neighborhoodId! },
-        )
+        } else {
+          const anchor = await onMetroAnchor()
+          if (!anchor.ok || !anchor.data) {
+            setError("We couldn't find the Sacramento area just now. Try again?")
+            return
+          }
+          input = { label: anchor.data.name, neighborhoodId: anchor.data.id }
+        }
+        const made = await onCreateLocation(input)
         if (!made.ok) {
           // The action's own message, which is written for the owner — "we
           // never guess one" — rather than a generic failure.
@@ -150,6 +162,12 @@ export function EditPageForm({
           return
         }
         anchorLocationId = made.data.id
+        whereFields = {
+          whereMode: where.mode!,
+          howToFind: where.mode === 'visit' ? where.visit.howToFind : null,
+          usuallyAround: where.mode === 'roaming' ? where.roaming.usuallyAround : null,
+          serviceAreaPlaceIds: where.mode === 'travel' ? where.travel.towns.map((t) => t.id) : [],
+        }
       }
 
       try {
@@ -163,6 +181,7 @@ export function EditPageForm({
           contactPhone: phone.trim() === '' ? null : phone.trim(),
           openingHours: hours,
           tags: tagSet,
+          ...whereFields,
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
         if (!result.ok) {
@@ -248,14 +267,14 @@ export function EditPageForm({
           </>
         ) : (
           <div className="mt-1">
-            <LocationPlaceFields state={place} setState={setPlace} idPrefix="edit-address" />
+            <WhereFields value={where} onChange={setWhere} />
             <button
               type="button"
               data-testid="edit-address-cancel"
               className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() => {
                 setChangingAddress(false)
-                setPlace(initialLocationPlaceFieldsState)
+                setWhere(initialWhere)
               }}
             >
               Keep it where it is
