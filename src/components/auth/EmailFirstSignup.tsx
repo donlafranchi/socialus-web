@@ -12,6 +12,7 @@
 // "confirm your email" state. Both paths are handled off `data.session`.
 'use client'
 
+import { COPY } from '@/lib/copy'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { safeNext } from '@/lib/safe-next'
@@ -247,6 +248,11 @@ export function EmailFirstSignup({
               {phase === 'new' ? 'Creating an account for ' : 'Enter your password for '}
               <strong>{email}</strong>
             </p>
+            {phase === 'new' && (
+              <p data-testid="signup-line" className="mt-3 text-sm text-neutral-600">
+                {COPY.signupLine}
+              </p>
+            )}
           </div>
           <form
             onSubmit={phase === 'new' ? handleCreateAccount : handleSignIn}
