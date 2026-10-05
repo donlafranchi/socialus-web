@@ -39,7 +39,7 @@ export function FollowMemberButton({
         href={`/auth/login?next=/m/${handle}`}
         className="btn-primary"
       >
-        Follow
+        Sign up to follow
       </a>
     )
   }

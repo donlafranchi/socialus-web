@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { ScopeSheet } from './ScopeSheet'
+import { AreaPicker } from './AreaPicker'
 
 const METROS = [
   { id: '1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', isOpen: true },
@@ -21,7 +21,7 @@ const onClose = vi.fn()
 
 function renderSheet(currentSlug: string | null = null) {
   return render(
-    <ScopeSheet
+    <AreaPicker
       open
       currentSlug={currentSlug}
       metros={METROS}
@@ -37,7 +37,7 @@ afterEach(() => {
   cleanup()
 })
 
-describe('ScopeSheet', () => {
+describe('AreaPicker', () => {
   it('separates where SocialUs runs from where it does not', async () => {
     renderSheet()
     await screen.findByTestId('scope-open-list')
@@ -110,7 +110,7 @@ describe('ScopeSheet', () => {
 
   it('renders nothing when closed', () => {
     render(
-      <ScopeSheet
+      <AreaPicker
         open={false}
         currentSlug={null}
         metros={METROS}

@@ -49,10 +49,11 @@ describe('BottomNav — thesis §2 visual spec', () => {
     )
   })
 
-  it('bar is 44px tall', () => {
+  // #296 — the design's bottom nav is 56px (--nav-bottom-h).
+  it('bar is 56px tall', () => {
     render(<BottomNav />)
-    expect(bar().className).toContain('h-11')
-    expect(bar().className).not.toContain('h-16')
+    expect(bar().className).toContain('h-nav-bottom')
+    expect(bar().className).not.toContain('h-11')
   })
 
   it('applies safe-area bottom padding below the bar', () => {
@@ -94,19 +95,20 @@ describe('BottomNav — thesis §2 visual spec', () => {
     expect(inactive.className).toContain('text-[var(--color-nav-inactive)]')
   })
 
-  it('each tab spans the full 44px bar height as a touch target', () => {
+  it('each tab spans the full bar height as a touch target', () => {
     render(<BottomNav />)
     const link = screen.getByRole('link', { name: 'You' })
     expect(link.className).toContain('h-full')
     expect(link.parentElement!.className).toContain('items-stretch')
   })
 
-  it('labels are 9px medium sitting 3px below the icon', () => {
+  // #296 — 12px is the type floor; 9px labels are gone.
+  it('labels are micro (12px) medium, just below the icon', () => {
     render(<BottomNav />)
     const link = screen.getByRole('link', { name: 'You' })
-    expect(link.className).toContain('text-[9px]')
+    expect(link.className).toContain('text-micro')
     expect(link.className).toContain('font-medium')
-    expect(link.className).toContain('gap-[3px]')
+    expect(link.className).not.toMatch(/text-\[\d+px\]/)
   })
 
   it('icons are 20px at 1.5 stroke weight on every tab', () => {
@@ -278,11 +280,10 @@ describe('BottomNav — create action (T158)', () => {
     expect(create().parentElement!.className).toContain('items-stretch')
   })
 
-  it('matches the tab type scale — 9px medium, 3px below a 20px/1.5 icon', () => {
+  it('matches the tab type scale — micro medium, below a 20px/1.5 icon', () => {
     render(<BottomNav />)
-    expect(create().className).toContain('text-[9px]')
+    expect(create().className).toContain('text-micro')
     expect(create().className).toContain('font-medium')
-    expect(create().className).toContain('gap-[3px]')
     const svg = create().querySelector('svg')!
     expect(svg.getAttribute('width')).toBe('20')
     expect(svg.getAttribute('stroke-width')).toBe('1.5')
@@ -318,5 +319,44 @@ describe('TopNavDesktop — create action (T158)', () => {
     for (const name of ['Explore', 'You']) {
       expect(within(nav).getByRole('link', { name })).toBeInTheDocument()
     }
+  })
+})
+
+describe('#296 — where the nav is hidden', () => {
+  for (const path of ['/auth/login', '/auth/password', '/onboarding', '/admin/reports']) {
+    it(`hides both navs on ${path}`, () => {
+      pathname.current = path
+      const { container } = render(
+        <>
+          <BottomNav />
+          <TopNavDesktop />
+        </>,
+      )
+      expect(container).toBeEmptyDOMElement()
+    })
+  }
+
+  it('shows them everywhere else', () => {
+    pathname.current = '/explore'
+    render(
+      <>
+        <BottomNav />
+        <TopNavDesktop />
+      </>,
+    )
+    expect(screen.getByTestId('bottom-nav')).toBeInTheDocument()
+    expect(screen.getByTestId('top-nav-desktop')).toBeInTheDocument()
+  })
+})
+
+describe('#296 — the header at 744 and up', () => {
+  it('is 64px and orders Explore, then Create', () => {
+    pathname.current = '/explore'
+    render(<TopNavDesktop />)
+    const nav = screen.getByTestId('top-nav-desktop')
+    expect(nav.className).toContain('h-nav-top')
+    const labels = within(nav).getAllByRole('link').map((l) => l.textContent)
+    expect(labels.indexOf('Create')).toBeGreaterThan(labels.indexOf('Explore'))
+    expect(labels.indexOf('You')).toBeGreaterThan(labels.indexOf('Create'))
   })
 })
