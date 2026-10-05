@@ -59,7 +59,7 @@ beforeAll(async () => {
   await client.query(
     `insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id) values
        ($1,'business','B267 Bakery','b267-bakery','active','listed',$3),
-       ($2,'interest','B267 Club','b267-club','active','listed',$4)`,
+       ($2,'group','B267 Club','b267-club','active','listed',$4)`,
     [SHOP, CLUB, OWNER, STEWARD],
   )
   await client.query(

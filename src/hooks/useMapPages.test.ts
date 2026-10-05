@@ -55,12 +55,13 @@ describe('rowsToMapPages', () => {
   // `product/systems/page-kind-tools.md` gives interest and practice a Location
   // anchor. A run club meets somewhere. `family` is the only ✕ — it is the
   // community set with privacy on, so nothing it has is public.
-  it('pins a community kind, which has a place like any other social group', () => {
-    expect(rowsToMapPages([row({ kind: 'interest' })])).toHaveLength(1)
-    expect(rowsToMapPages([row({ kind: 'practice' })])).toHaveLength(1)
+  // #363 — two types; a private group stays off the map by its privacy
+  // (the query reads listed Pages only), not its type.
+  it('pins a group, which has a place like any business', () => {
+    expect(rowsToMapPages([row({ kind: 'group' })])).toHaveLength(1)
   })
 
-  it('drops family, whose whole difference is that nothing of it is public', () => {
+  it('withholds a kind it does not know', () => {
     expect(rowsToMapPages([row({ kind: 'family' })])).toEqual([])
   })
 

@@ -38,12 +38,12 @@ function ctx(actingMemberId: string | null = OWNER): ActionContext {
 }
 
 function install(
-  opts: { found?: boolean; state?: string; kind?: string; isManager?: boolean; rowCount?: number } = {},
+  opts: { found?: boolean; state?: string; kind?: string; useCase?: string; isManager?: boolean; rowCount?: number } = {},
 ) {
-  const { found = true, state = 'active', kind = 'business', isManager = true, rowCount = 1 } = opts
+  const { found = true, state = 'active', kind = 'business', useCase = kind === 'business' ? 'selling' : 'gathering', isManager = true, rowCount = 1 } = opts
   query.mockImplementation(async (sql: string) => {
     if (/from public\.groups/.test(sql) && /for update/.test(sql)) {
-      return { rows: found ? [{ id: GROUP, kind, lifecycle_state: state }] : [] }
+      return { rows: found ? [{ id: GROUP, kind, use_case: useCase, lifecycle_state: state }] : [] }
     }
     if (/from public\.group_memberships/.test(sql)) {
       return { rows: isManager ? [{ role: kind === 'business' ? 'owner' : 'steward' }] : [] }
@@ -92,7 +92,7 @@ describe('only the managing role may edit', () => {
 
   // A non-business founder holds 'steward', never 'owner'.
   it('accepts the steward of a non-business Page', async () => {
-    install({ kind: 'interest' })
+    install({ kind: 'group' })
     const out = await groupUpdate(ctx(), { groupId: GROUP, description: 'Tuesdays' })
     expect(out.patched).toEqual(['description'])
     const [, params] = sql(/from public\.group_memberships/)[0]!
@@ -259,18 +259,18 @@ describe('hours and phone, switched on or off', () => {
   })
 })
 
-describe('Page types — the owner changes the type in settings', () => {
-  it('a group made a business is stored as business and its stewards become owners', async () => {
-    install({ kind: 'interest' })
+describe('#363 — the owner changes the type and use case in settings', () => {
+  it('a group made a business is stored as business/selling and its stewards become owners', async () => {
+    install({ kind: 'group' })
     const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business' })
     expect(res.patched).toContain('kind')
-    expect(sql(/set kind = \$2/)[0]![1]).toEqual([GROUP, 'business'])
+    expect(sql(/set kind = \$2, use_case = \$3/)[0]![1]).toEqual([GROUP, 'business', 'selling'])
     expect(sql(/update public\.group_memberships set role/)[0]![1]).toEqual([GROUP, 'owner', 'steward'])
   })
 
-  it('choosing the kind it already is changes nothing', async () => {
-    install({ kind: 'practice' })
-    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'social' })
+  it('choosing the type and use case it already has changes nothing', async () => {
+    install({ kind: 'business', useCase: 'service' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business', useCase: 'service' })
     expect(res.patched).toEqual([])
     expect(sql(/set kind/)).toEqual([])
   })
@@ -288,5 +288,14 @@ describe('#371 — the owner sets the Page\'s badges', () => {
   it('refuses a year that has not happened', async () => {
     install({ kind: 'business' })
     await expect(groupUpdate(ctx(), { groupId: GROUP, badges: { since: new Date().getFullYear() + 1 } })).rejects.toBeInstanceOf(ValidationError)
+  })
+})
+
+describe('#363 — any component can be added to any Page', () => {
+  it('a group turns on Products & services', async () => {
+    install({ kind: 'group' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, productsComponent: true })
+    expect(res.patched).toContain('components')
+    expect(sql(/jsonb_build_object\('products'/)[0]![1]).toEqual([GROUP, true])
   })
 })

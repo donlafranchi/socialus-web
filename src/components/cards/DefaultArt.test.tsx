@@ -38,8 +38,8 @@ describe('#299 — DefaultArt', () => {
 
   it('maps Page kinds to shop, service or group', () => {
     expect(artKindFor('business')).toBe('shop')
-    expect(artKindFor('practice')).toBe('service')
-    for (const k of ['interest', 'place', 'event', 'family']) expect(artKindFor(k)).toBe('group')
+    expect(artKindFor('business', 'service')).toBe('service')
+    for (const k of ['group', 'interest']) expect(artKindFor(k)).toBe('group')
   })
 
   it('draws no icon when the kind is unknown, rather than guessing one', () => {

@@ -29,7 +29,10 @@ export interface EditPageInput {
   /** #371 — the kind facts. */
   badges?: Record<string, boolean | number>
   /** Page types (ruled 2026-10-05). */
-  pageKind?: 'business' | 'social'
+  pageKind?: 'business' | 'group'
+  useCase?: 'selling' | 'service' | 'gathering' | 'testing_interest'
+  /** #363 — Products & services switched on or off. */
+  productsComponent?: boolean
   /** #285 — the Page's whole tag set. */
   tags?: string[]
 }
@@ -69,6 +72,8 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
       ...(input.pageKind !== undefined ? { pageKind: input.pageKind } : {}),
       ...(input.badges !== undefined ? { badges: input.badges } : {}),
+      ...(input.useCase !== undefined ? { useCase: input.useCase } : {}),
+      ...(input.productsComponent !== undefined ? { productsComponent: input.productsComponent } : {}),
       ...(input.anchorLocationId !== undefined
         ? { anchorLocationId: input.anchorLocationId }
         : {}),

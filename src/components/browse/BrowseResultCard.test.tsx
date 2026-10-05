@@ -131,8 +131,8 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   it('two Pages of the same kind get the same art', () => {
     render(
       <ul>
-        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-a', groupKind: 'interest' })} />
-        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-zz-different', groupKind: 'interest' })} />
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-a', groupKind: 'group' })} />
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-zz-different', groupKind: 'group' })} />
       </ul>,
     )
     const [a, b] = screen.getAllByTestId('default-art')
@@ -162,8 +162,8 @@ describe('the card with an end time', () => {
 // The kind line under the name, on cards too (ruled 2026-10-05).
 describe('the kind line', () => {
   it('says what kind of Page it is', () => {
-    render(<BrowseResultCard result={post({ groupKind: 'place' })} />)
-    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Social group')
+    render(<BrowseResultCard result={post({ groupKind: 'group' })} />)
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Group')
     cleanup()
     render(<BrowseResultCard result={post({ groupKind: 'business' })} />)
     expect(screen.getByTestId('tile-kind')).toHaveTextContent('Business')

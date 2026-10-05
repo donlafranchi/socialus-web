@@ -23,9 +23,9 @@ import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import type { ActionContext } from '../_lib/context'
-import { applyKindChange } from './change-kind'
+import { applyTypeChange } from './change-kind'
+import { PAGE_KINDS, ALL_USE_CASES, type PageKind, type UseCase } from '../../lib/groups/page-kind'
 import { parseBadges, sinceMax } from '../../lib/groups/badges'
-import { PAGE_KINDS, type PageKind } from '../../lib/groups/page-kind'
 
 export const groupUpdateDraftInput = z.object({
   groupId: z.string().uuid(),
@@ -61,6 +61,8 @@ export const groupUpdateDraftInput = z.object({
   businessStateOfFormation: z.string().max(80).nullable().optional(),
   // Don, 2026-10-04 — hours and phone as a component (see group.update).
   contactComponent: z.boolean().optional(),
+  // #363 — Products & services, on by default for a business; any Page may add it.
+  productsComponent: z.boolean().optional(),
   // Page kinds (dispatch, 2026-10-05): changeable in settings.
   pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
   // #371 — the kind facts; each the owner's claim (ruled 2026-10-05).
@@ -74,6 +76,7 @@ export const groupUpdateDraftInput = z.object({
       since: z.number().int().min(1800).nullable().optional(),
     })
     .optional(),
+  useCase: z.enum(ALL_USE_CASES as [UseCase, ...UseCase[]]).optional(),
 })
 
 export type GroupUpdateDraftInput = z.infer<typeof groupUpdateDraftInput>
@@ -113,9 +116,10 @@ export const groupUpdateDraft = defineHandler(
       const groupRes = await client.query<{
         id: string
         kind: string
+        use_case: string | null
         lifecycle_state: string
       }>(
-        `select id, kind, lifecycle_state
+        `select id, kind, use_case, lifecycle_state
            from public.groups
           where id = $1`,
         [input.groupId],
@@ -332,7 +336,10 @@ export const groupUpdateDraft = defineHandler(
         patched.push('tags')
       }
 
-      if (input.pageKind !== undefined && (await applyKindChange(client, input.groupId, row.kind, input.pageKind))) {
+      if (
+        (input.pageKind !== undefined || input.useCase !== undefined) &&
+        (await applyTypeChange(client, input.groupId, { kind: row.kind, useCase: row.use_case }, { kind: input.pageKind, useCase: input.useCase }))
+      ) {
         patched.push('kind')
       }
 
@@ -356,6 +363,17 @@ export const groupUpdateDraft = defineHandler(
                     coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('contact', $2::boolean))
             where id = $1 and lifecycle_state = 'draft'`,
           [input.groupId, input.contactComponent],
+        )
+        patched.push('components')
+      }
+
+      if (input.productsComponent !== undefined) {
+        await client.query(
+          `update public.groups
+              set metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{components}',
+                    coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('products', $2::boolean))
+            where id = $1 and lifecycle_state = 'draft'`,
+          [input.groupId, input.productsComponent],
         )
         patched.push('components')
       }

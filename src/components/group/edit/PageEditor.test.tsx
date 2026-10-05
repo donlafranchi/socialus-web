@@ -31,6 +31,8 @@ const initial = {
   addressLabel: '3117 Broadway, Sacramento',
   kind: 'business' as const,
   badges: {},
+  useCase: 'selling' as const,
+  productsOn: true,
 }
 
 function Page() {
@@ -152,8 +154,8 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
   })
 })
 
-describe('Page types — changeable in settings (ruled 2026-10-05)', () => {
-  it('the type sheet offers the two types and saves the one chosen', async () => {
+describe('#363 — type and use case, changeable in settings (ruled 2026-10-05)', () => {
+  it('offers the four use cases under the two types and saves the one chosen', async () => {
     render(
       <PageEditorProvider initial={initial} onSave={onSave}>
         <EditToggle />
@@ -162,10 +164,12 @@ describe('Page types — changeable in settings (ruled 2026-10-05)', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     fireEvent.click(screen.getByRole('button', { name: /edit type of page/i }))
-    expect(screen.getAllByRole('radio')).toHaveLength(2)
-    fireEvent.click(screen.getByRole('radio', { name: /social group/i }))
+    expect(screen.getByRole('group', { name: 'Business' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Group' })).toBeInTheDocument()
+    expect(screen.getAllByRole('radio')).toHaveLength(4)
+    fireEvent.click(screen.getByRole('radio', { name: /testing interest/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'social' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group', useCase: 'testing_interest' }))
   })
 })
 

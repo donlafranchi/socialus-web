@@ -29,9 +29,9 @@ export const BADGE_LABEL: Record<BadgeKey, string> = { ...Object.fromEntries(Obj
 export const BADGE_MEANING: Record<BadgeKey, string> = { ...Object.fromEntries(Object.entries(FACTS).map(([k, v]) => [k, v.meaning])), since: 'The year it started.' } as Record<BadgeKey, string>
 
 const ORDER: BadgeKey[] = ['family_owned', 'since', 'coop', 'nonprofit', 'free_to_join', 'everyone_welcome']
-const FIRST: Record<'business' | 'social', BadgeKey[]> = {
+const FIRST: Record<'business' | 'group', BadgeKey[]> = {
   business: ['family_owned', 'since', 'coop', 'everyone_welcome'],
-  social: ['since', 'free_to_join', 'everyone_welcome'],
+  group: ['since', 'free_to_join', 'everyone_welcome'],
 }
 
 export const sinceMax = () => new Date().getFullYear()
@@ -51,7 +51,7 @@ export function parseBadges(metadata: unknown): Badges {
 
 /** The badges a Page shows, Locally owned first. */
 export function pageBadges(stored: string, badges: Badges, localOwner: boolean): ShownBadge[] {
-  const social = pageKindOf(stored) === 'social'
+  const social = pageKindOf(stored) === 'group'
   const out: ShownBadge[] = []
   if (!social && localOwner)
     out.push({ key: 'locally_owned', label: 'Locally owned', says: 'Says locally owned', meaning: 'Owned by people whose business is registered in the Sacramento area.', source: 'registration' })

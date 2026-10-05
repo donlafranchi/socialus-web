@@ -34,8 +34,8 @@ import { NextUp } from './NextUp'
 import { PageBadges } from './PageBadges'
 import { pageBadges, type Badges } from '@/lib/groups/badges'
 import { Store, Users } from 'lucide-react'
-import { kindLine, pageKindOf, pageLayoutFor } from '@/lib/groups/page-kind'
-import { isBusinessKind } from '@/lib/groups/page-components'
+import { kindLine, pageKindOf, pageLayoutFor, presetOf, type UseCase } from '@/lib/groups/page-kind'
+import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
 interface Props {
@@ -66,6 +66,8 @@ interface Props {
   /** #302 — the owner's in-place editor (Don, 2026-10-04). */
   viewerMemberId?: string | null
   contactOn?: boolean
+  /** #363 — Products & services: on for a business, added by any other Page. */
+  productsOn?: boolean
   /** #316 — the Page's tags; empty signed out. */
   tags?: string[]
   /** #371 — the owner's kind facts; signed in only (F093 criterion 8). */
@@ -75,7 +77,7 @@ interface Props {
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
-const DRAFT_HEADING: Record<string, string> = { business: 'business', interest: 'group or meetup', event_anchored: 'organization' }
+const DRAFT_HEADING: Record<UseCase, string> = { selling: 'business', service: 'business', gathering: 'group or meetup', testing_interest: 'idea' }
 
 export function ShopPublicPage({
   shop,
@@ -95,6 +97,7 @@ export function ShopPublicPage({
   viewerMemberId = null,
   contactOn = false,
   badges = {},
+  productsOn = componentOn(shop.kind, null, 'products'),
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
@@ -146,7 +149,7 @@ export function ShopPublicPage({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <DefaultArt kind={artKindFor(shop.kind)} />
+          <DefaultArt kind={artKindFor(shop.kind, shop.useCase)} />
         )}
       </div>
       <SectionEditButton section="photo" className="-mt-2 mb-2" />
@@ -155,7 +158,7 @@ export function ShopPublicPage({
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
             {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
-              ? `Your new ${DRAFT_HEADING[shop.kind] ? `${DRAFT_HEADING[shop.kind]} ` : ''}Page`
+              ? `Your new ${DRAFT_HEADING[presetOf(shop.kind, shop.useCase)]} Page`
               : shop.displayName}
           </h1>
           <SectionEditButton section="about" />
@@ -179,7 +182,7 @@ export function ShopPublicPage({
         <div className="-mt-2 flex items-center gap-2">
           <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
             {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
-            {kindLine(shop.kind, shop.category)}
+            {kindLine(shop.kind, shop.useCase, shop.category)}
           </p>
           <SectionEditButton section="kind" />
         </div>
@@ -278,8 +281,8 @@ export function ShopPublicPage({
             />
           </div>
         )}
-        {layout.lead !== 'contact' && loggedIn && (
-          <NextUp posts={posts} heading={layout.lead === 'join' ? 'Next event' : 'Upcoming events'} limit={layout.lead === 'join' ? 1 : 3} />
+        {layout.lead === 'join' && loggedIn && (
+          <NextUp posts={posts} heading="Next event" limit={1} />
         )}
 
         {shop.publicDescription && (
@@ -362,7 +365,7 @@ export function ShopPublicPage({
         />
       )}
 
-      {loggedIn && layout.productsAndServices && (
+      {loggedIn && productsOn && (
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>
         {items.length === 0 ? (
@@ -417,6 +420,8 @@ export function ShopPublicPage({
         addressLabel: shop.placements[0]?.label ?? null,
         kind: pageKindOf(shop.kind),
         badges,
+        useCase: presetOf(shop.kind, shop.useCase),
+        productsOn,
       }}
     >
       {page}

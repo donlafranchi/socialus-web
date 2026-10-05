@@ -56,7 +56,7 @@ export function BrowseResultCard({
     <TileCard
       as={as}
       title={result.name}
-      kindLine={kindLine(result.groupKind, null)}
+      kindLine={kindLine(result.groupKind, undefined, null)}
       tagline={browseCardTagline(result)}
       location={browseCardLocation(result)}
       imageUrl={result.photoUrl}
