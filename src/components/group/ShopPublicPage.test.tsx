@@ -559,6 +559,12 @@ describe('#371 — badges', () => {
     expect(screen.getByRole('dialog', { name: 'Family-owned' })).toHaveTextContent("The owner says this. SocialUs hasn't checked it.")
   })
 
+  it('the sheet reads the claim as "Says …" (ruled 2026-10-05)', () => {
+    renderShop({ loggedIn: true, badges })
+    fireEvent.click(screen.getByRole('button', { name: 'Says family-owned' }))
+    expect(screen.getByRole('dialog', { name: 'Family-owned' })).toHaveTextContent('Says family-owned. Owned and run by a family.')
+  })
+
   it('Locally owned says where it comes from', () => {
     renderShop({ loggedIn: true, badge: { label: 'Locally owned' } })
     fireEvent.click(screen.getByRole('button', { name: 'Says locally owned' }))

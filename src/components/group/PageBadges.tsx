@@ -43,7 +43,9 @@ export function PageBadges({ badges }: { badges: ShownBadge[] }) {
       {open && (
         <Sheet open title={open.label} onClose={() => setOpen(null)} testId="badge-sheet">
           <div className="flex flex-col gap-2 text-body-sm text-[var(--color-fg)]">
-            <p>{open.meaning}</p>
+            <p>
+              <span className="font-semibold">{open.says}.</span> {open.meaning}
+            </p>
             <p className="text-[var(--color-fg-muted)]">
               {open.source === 'registration' ? 'Based on the business registration they gave us.' : "The owner says this. SocialUs hasn't checked it."}
             </p>
