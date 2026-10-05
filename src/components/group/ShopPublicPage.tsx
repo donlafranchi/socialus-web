@@ -7,6 +7,7 @@
 // <ReportControl>.
 
 import { PageContactBlock } from './PageContactBlock'
+import { whereLine, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -50,6 +51,8 @@ interface Props {
   followerCount?: number
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
   contact?: PageContact | null
+  /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
+  where?: PageWhere | null
 }
 
 export function ShopPublicPage({
@@ -63,6 +66,7 @@ export function ShopPublicPage({
   viewerFollows = false,
   posts = [],
   contact = null,
+  where = null,
   withheldPosts = [],
   followerCount = 0,
 }: Props) {
@@ -191,6 +195,11 @@ export function ShopPublicPage({
         {shop.placements[0] && (
           <p data-testid="shop-placement" className="text-sm text-gray-600">
             {shop.placements[0].label}
+          </p>
+        )}
+        {loggedIn && where && whereLine(where) && (
+          <p data-testid="shop-where" className="text-sm text-[var(--color-fg-muted)]">
+            {whereLine(where)}
           </p>
         )}
 

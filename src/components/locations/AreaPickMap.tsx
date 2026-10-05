@@ -63,6 +63,10 @@ export function AreaPickMap({ onPick, selectedPlaceId }: { onPick: (p: AreaPick)
     <div className="flex flex-col gap-1">
       <div ref={el} data-testid="area-pick-map" className="h-56 overflow-hidden rounded-md border border-[var(--color-border)]" />
       <p className="text-caption text-[var(--color-fg-muted)]">Or tap your neighbourhood on the map.</p>
+      {/* Don, 2026-10-04: the cities' neighbourhood data, used with visible credit. */}
+      <p data-testid="area-pick-credit" className="text-caption text-[var(--color-fg-muted)]">
+        Neighbourhoods: City of Sacramento and City of West Sacramento open data. Towns and counties: US Census Bureau.
+      </p>
     </div>
   )
 }

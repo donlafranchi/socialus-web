@@ -336,3 +336,15 @@ describe('#293 — phone and hours on the Page', () => {
     expect(screen.queryByTestId('page-contact')).toBeNull()
   })
 })
+
+describe('#348 — where it is, under the location', () => {
+  const where = { mode: 'visit' as const, howToFind: 'Trailhead behind the barn', usuallyAround: null, towns: [] }
+  it('a signed-in visitor reads how to find it', () => {
+    renderShop({ loggedIn: true, where })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('How to find us: Trailhead behind the barn')
+  })
+  it('signed out, nothing, even if handed it', () => {
+    renderShop({ loggedIn: false, where })
+    expect(screen.queryByTestId('shop-where')).toBeNull()
+  })
+})
