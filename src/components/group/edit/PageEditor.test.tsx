@@ -151,8 +151,8 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
   })
 })
 
-describe('Page kinds — changeable in settings (dispatch, 2026-10-05)', () => {
-  it('the kind sheet offers the three kinds and saves the one chosen', async () => {
+describe('Page types — changeable in settings (ruled 2026-10-05)', () => {
+  it('the type sheet offers the two types and saves the one chosen', async () => {
     render(
       <PageEditorProvider initial={initial} onSave={onSave}>
         <EditToggle />
@@ -160,10 +160,10 @@ describe('Page kinds — changeable in settings (dispatch, 2026-10-05)', () => {
       </PageEditorProvider>,
     )
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: /edit kind of page/i }))
-    expect(screen.getAllByRole('radio')).toHaveLength(3)
-    fireEvent.click(screen.getByRole('radio', { name: /group/i }))
+    fireEvent.click(screen.getByRole('button', { name: /edit type of page/i }))
+    expect(screen.getAllByRole('radio')).toHaveLength(2)
+    fireEvent.click(screen.getByRole('radio', { name: /social group/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'group' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'social' }))
   })
 })

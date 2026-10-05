@@ -259,7 +259,7 @@ describe('hours and phone, switched on or off', () => {
   })
 })
 
-describe('Page kinds — the owner changes the kind in settings', () => {
+describe('Page types — the owner changes the type in settings', () => {
   it('a group made a business is stored as business and its stewards become owners', async () => {
     install({ kind: 'interest' })
     const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'business' })
@@ -270,7 +270,7 @@ describe('Page kinds — the owner changes the kind in settings', () => {
 
   it('choosing the kind it already is changes nothing', async () => {
     install({ kind: 'practice' })
-    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'group' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, pageKind: 'social' })
     expect(res.patched).toEqual([])
     expect(sql(/set kind/)).toEqual([])
   })

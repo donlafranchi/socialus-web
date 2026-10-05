@@ -31,7 +31,8 @@ import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { NextUp } from './NextUp'
-import { PAGE_KIND_LABEL, pageKindOf, pageLayoutFor } from '@/lib/groups/page-kind'
+import { Store, Users } from 'lucide-react'
+import { kindLine, pageKindOf, pageLayoutFor } from '@/lib/groups/page-kind'
 import { isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 
@@ -179,7 +180,10 @@ export function ShopPublicPage({
           )}
         </div>
         <div className="-mt-2 flex items-center gap-2">
-          <p data-testid="page-kind" className="text-body-sm text-[var(--color-fg-muted)]">{PAGE_KIND_LABEL[pageKindOf(shop.kind)]}</p>
+          <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
+            {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
+            {kindLine(shop.kind, shop.category)}
+          </p>
           <SectionEditButton section="kind" />
         </div>
 
