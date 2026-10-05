@@ -8,11 +8,15 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
 export type StartKind = 'business' | 'practice' | 'interest'
+/** The answer chosen. `creative` starts a group Page, like `interest`, until #363's use cases land. */
+export type StartChoice = StartKind | 'creative'
+const KIND_FOR: Record<StartChoice, StartKind> = { business: 'business', practice: 'practice', interest: 'interest', creative: 'interest' }
 
 // Don, 2026-10-04: each kind is a question, with one line on what the Page
 // is for. The business and group questions are his; the third is drafted in
-// his voice. Placeholder ([public-is-draft]).
-const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
+// his voice. Placeholder ([public-is-draft]). Don, 2026-10-05: a fourth, in
+// his words, "A be creative option… we exist to help you find your people."
+const OPTIONS: { kind: StartChoice; title: string; body: string }[] = [
   {
     kind: 'business',
     title: 'Have a business where you sell products or services?',
@@ -28,10 +32,15 @@ const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
     title: 'Do you teach a class or lead a regular session?',
     body: 'A Page for lessons, workshops and practice people come back to, from pottery to yoga.',
   },
+  {
+    kind: 'creative',
+    title: 'Be creative',
+    body: 'Start anything that helps you find your people.',
+  },
 ]
 
 export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => Promise<void> }) {
-  const [kind, setKind] = useState<StartKind | null>(null)
+  const [kind, setKind] = useState<StartChoice | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,7 +50,7 @@ export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => 
     setBusy(true)
     setError(null)
     try {
-      await onStart(kind)
+      await onStart(KIND_FOR[kind])
     } catch (err) {
       setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
       setBusy(false)

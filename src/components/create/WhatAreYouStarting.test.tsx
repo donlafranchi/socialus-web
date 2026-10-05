@@ -7,10 +7,10 @@ import { WhatAreYouStarting } from './WhatAreYouStarting'
 afterEach(cleanup)
 
 describe('#301 — What are you starting?', () => {
-  it('asks one question with three answers, and nothing else', () => {
+  it('asks one question with four answers, and nothing else', () => {
     render(<WhatAreYouStarting onStart={vi.fn()} />)
     expect(screen.getByRole('heading', { level: 1, name: 'What are you starting?' })).toBeInTheDocument()
-    expect(screen.getAllByRole('radio')).toHaveLength(3)
+    expect(screen.getAllByRole('radio')).toHaveLength(4)
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
@@ -26,9 +26,12 @@ describe('#301 — What are you starting?', () => {
     expect(business).toHaveAccessibleDescription(/^A Page for /)
     const group = screen.getByRole('radio', { name: 'Do you manage a group or meetup, or host events regularly?' })
     expect(group).toHaveAccessibleDescription(/^A Page for /)
-    for (const radio of screen.getAllByRole('radio')) {
+    // The first three are questions (2026-10-04); the fourth is Don's own "Be creative" (2026-10-05).
+    const radios = screen.getAllByRole('radio')
+    for (const radio of radios.slice(0, 3)) {
       expect(radio.getAttribute('aria-label') ?? radio.closest('label')!.textContent).toMatch(/\?/)
     }
+    expect(radios).toHaveLength(4)
   })
 
   it('starts each as the right kind', async () => {
@@ -36,6 +39,8 @@ describe('#301 — What are you starting?', () => {
       [/sell products or services/i, 'business'],
       [/teach a class/i, 'practice'],
       [/group or meetup/i, 'interest'],
+      // Don, 2026-10-05 — Be creative starts a group Page until #363's use cases land.
+      [/be creative/i, 'interest'],
     ] as const) {
       const onStart = vi.fn(async () => {})
       const { unmount } = render(<WhatAreYouStarting onStart={onStart} />)
@@ -62,5 +67,14 @@ describe('#301 — What are you starting?', () => {
   it('says nothing is public until you publish', () => {
     render(<WhatAreYouStarting onStart={vi.fn()} />)
     expect(screen.getByText(/nothing is public until you publish/i)).toBeInTheDocument()
+  })
+})
+
+describe('Don, 2026-10-05 — a fourth answer, Be creative', () => {
+  it('reads in his words, and names no role', () => {
+    render(<WhatAreYouStarting onStart={vi.fn()} />)
+    const radio = screen.getByRole('radio', { name: 'Be creative' })
+    expect(radio).toHaveAccessibleDescription('Start anything that helps you find your people.')
+    expect(document.body.textContent).not.toMatch(/creator/i)
   })
 })
