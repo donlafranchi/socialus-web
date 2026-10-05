@@ -27,6 +27,8 @@
 // normalised — is deliberately identical to update_draft. Two handlers with one
 // rule each beats one handler with a mode flag.
 
+import { normalizeUsPhone } from '../../lib/phone'
+import { parseOpeningHours } from '../../lib/groups/opening-hours'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
@@ -47,6 +49,9 @@ export const groupUpdateInput = z.object({
   photoUrl: z.string().url().nullable().optional(),
   category: z.string().max(80).nullable().optional(),
   socialLinks: z.record(z.string(), z.string()).optional(),
+  // #293 — shown to signed-in visitors only. Null clears either.
+  contactPhone: z.string().max(40).nullable().optional(),
+  openingHours: z.unknown().optional(),
   // #285 — the whole set, replacing the old one (Don, 2026-10-01: editable any time).
   tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional(),
 })
@@ -65,6 +70,8 @@ type SpineClause =
   | 'anchor_location_id = $'
   | 'photo_url = $'
   | 'category = $'
+  | 'contact_phone = $'
+  | 'opening_hours = $'
   | 'social_links = $'
 
 export const groupUpdate = defineHandler(
@@ -156,6 +163,25 @@ export const groupUpdate = defineHandler(
         }
         fragments.push({ clause: 'social_links = $', value: JSON.stringify(links) })
         patched.push('social_links')
+      }
+
+      if (input.contactPhone !== undefined) {
+        const phone = input.contactPhone === null ? null : normalizeUsPhone(input.contactPhone)
+        if (input.contactPhone !== null && phone === null) {
+          throw new ValidationError('group.update: enter a US phone number, like (916) 555-0142')
+        }
+        fragments.push({ clause: 'contact_phone = $', value: phone })
+        patched.push('contact_phone')
+      }
+      if (input.openingHours !== undefined) {
+        let hours
+        try {
+          hours = parseOpeningHours(input.openingHours)
+        } catch (err) {
+          throw new ValidationError(`group.update: ${(err as Error).message}`)
+        }
+        fragments.push({ clause: 'opening_hours = $', value: hours === null ? null : JSON.stringify(hours) })
+        patched.push('opening_hours')
       }
 
       // At least one tag, as at publish: search matches tags, and an untagged
