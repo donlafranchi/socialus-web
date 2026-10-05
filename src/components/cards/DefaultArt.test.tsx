@@ -15,11 +15,15 @@ describe('#299 — DefaultArt', () => {
     expect(screen.getByTestId('default-art').outerHTML).toBe(first)
   })
 
-  it('uses only the existing PersonMark light tones', () => {
+  // Path: well-worn — the design language's default-art rule, in the Anodised
+  // palette: the kind's icon in gold on a navy frame (Don, 2026-10-04).
+  it('is a navy tile with the kind in gold, the same for every kind', () => {
     for (const kind of ['shop', 'service', 'group'] as const) {
       cleanup()
       render(<DefaultArt kind={kind} />)
-      expect(screen.getByTestId('default-art').className).toMatch(/bg-\[var\(--color-charcoal-100\)\]|bg-neutral-200/)
+      const art = screen.getByTestId('default-art')
+      expect(art.className).toContain('bg-[var(--color-frame)]')
+      expect(art.className).toContain('text-[var(--color-highlight-soft)]')
     }
   })
 
