@@ -3,10 +3,13 @@
 import { test as setup } from '@playwright/test'
 import { PERSONAS, PERSONA_PASSWORD } from '../personas'
 import { signIn } from '../helpers/auth'
+import { SMOKE } from './routes'
 
 export const authFile = (key: string) => `evals/.auth/${key}.json`
 
-for (const who of PERSONAS.filter((p) => p.email)) {
+const smoke = process.env.SCREENS_SCOPE === 'smoke'
+
+for (const who of PERSONAS.filter((p) => p.email && (!smoke || SMOKE.signedIn.includes(p.key)))) {
   setup(`sign in ${who.key}`, async ({ page }) => {
     await signIn(page, who.email!, PERSONA_PASSWORD)
     await page.context().storageState({ path: authFile(who.key) })
