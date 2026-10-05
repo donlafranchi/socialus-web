@@ -79,9 +79,9 @@ test.describe("Phase 1 — Groups (T055)", () => {
     });
 
     // #363 — the family kind is gone (ruled 2026-10-05): a private group is
-    // chosen, not implied by a type. A new Page with no use case starts on its
-    // type's first preset.
-    test("Given kind='group' is inserted with no use case | When the trigger fires | Then use_case reads back as 'gathering'", async () => {
+    // chosen, not implied by a type. A new Page with no purpose takes its
+    // type's (Don ruled A, 2026-10-05: purpose first, type for listing).
+    test("Given kind='group' is inserted with no purpose | When the trigger fires | Then purpose reads back as 'gather'", async () => {
       const ownerId = await seedMember("g-usecase");
 
       const { data, error } = await admin
@@ -92,10 +92,10 @@ test.describe("Phase 1 — Groups (T055)", () => {
           slug: `fam-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
         })
-        .select("id, use_case, discoverability")
+        .select("id, purpose, discoverability")
         .single();
       expect(error).toBeNull();
-      expect(data?.use_case).toBe("gathering");
+      expect(data?.purpose).toBe("gather");
       expect(data?.discoverability).toBe("listed");
 
       await admin.from("groups").delete().eq("id", data!.id);
@@ -144,21 +144,23 @@ test.describe("Phase 1 — Groups (T055)", () => {
       await cleanupMember(ownerId);
     });
 
-    test("Given the two types (business, group) | When a use case that doesn't fit the type is inserted | Then the CHECK rejects it", async () => {
+    test("Given purpose first, type for listing | When any purpose is stored with either type | Then both are accepted, and an unknown purpose or type is rejected", async () => {
       const ownerId = await seedMember("g-two");
-      for (const [kind, useCase] of [["business", "service"], ["group", "testing_interest"]]) {
+      for (const [kind, purpose] of [["business", "offer"], ["group", "create"], ["group", "offer"], ["business", "gather"]]) {
         const { data, error } = await admin
           .from("groups")
-          .insert({ kind, use_case: useCase, name: `K-${kind}`, slug: `k-${kind}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId })
+          .insert({ kind, purpose, name: `K-${kind}`, slug: `k-${kind}-${purpose}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId })
           .select("id")
           .single();
-        expect(error, `kind=${kind} rejected`).toBeNull();
+        expect(error, `kind=${kind} purpose=${purpose} accepted`).toBeNull();
         await admin.from("groups").delete().eq("id", data!.id);
       }
-      const { error } = await admin
-        .from("groups")
-        .insert({ kind: "business", use_case: "gathering", name: "Mismatch", slug: `k-mis-${ownerId.slice(0, 6)}`, founder_member_id: ownerId });
-      expect(error?.code).toBe("23514");
+      for (const row of [{ kind: "business", purpose: "selling" }, { kind: "interest", purpose: "gather" }]) {
+        const { error } = await admin
+          .from("groups")
+          .insert({ ...row, name: "Bad", slug: `k-bad-${row.kind}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId });
+        expect(error?.code, JSON.stringify(row)).toBe("23514");
+      }
       await cleanupMember(ownerId);
     });
 
