@@ -50,10 +50,6 @@
   --color-charcoal-900: #2b2b2b;
   --color-charcoal-700: #3c3c3c;
   --color-charcoal-100: #e8e8e8;
-  /* #299 — the two Anodised tokens default art needs (navy frame, gold on navy);
-     #325 adopts the rest of the palette. */
-  --color-frame: #12233a;
-  --color-highlight-soft: #ddbb74;
   /* T160 — the boundary of a form control, which is a different role from the
      hairline separator above. WCAG 1.4.11 wants >= 3:1 against the surface for
      anything a person has to find in order to operate it; charcoal-100 is
@@ -63,10 +59,55 @@
   --color-nav-inactive: #717171;
   --color-nav-border: #ebebeb;
 
-  /* Single brand accent — Tide */
-  --color-accent: #0fab8e;
-  --color-accent-hover: #0a8a72;
-  --color-accent-tint: #e8f7f2;
+  /* #325 — Anodised (Don, 2026-10-04; socialus-design/palette/palette-tokens.css).
+     Navy for actions; gold a highlight under 5% of a screen. Gold-300/400 only
+     on blue-700 or darker; on light, gold-600 for marks and gold-700 for text.
+     Gold is never the only cue for a state, and at most one gold fill a screen. */
+  --color-blue-50: #eef3f6;
+  --color-blue-100: #dce6ec;
+  --color-blue-200: #c5d6de;
+  --color-blue-300: #9db3c0;
+  --color-blue-400: #6c7d85;  /* 4.28:1 on white: not for small text */
+  --color-blue-500: #4e6676;
+  --color-blue-600: #35505f;
+  --color-blue-700: #24405a;  /* actions, links, focus, selected */
+  --color-blue-800: #1a3147;
+  --color-blue-900: #12233a;  /* frame */
+  --color-blue-950: #0b1828;
+
+  --color-gold-50: #fbf6ec;
+  --color-gold-100: #f5e9cf;
+  --color-gold-200: #ebd5a6;
+  --color-gold-300: #ddbb74;  /* on navy only */
+  --color-gold-400: #c9a04f;  /* on navy only */
+  --color-gold-500: #b08a3e;
+  --color-gold-600: #8f6e2e;  /* non-text marks on light */
+  --color-gold-700: #735624;  /* gold text on light */
+  --color-gold-800: #5a431d;
+
+  --color-accent: var(--color-blue-700);
+  --color-accent-hover: var(--color-blue-800);
+  --color-accent-tint: var(--color-blue-50);
+  --color-accent-text: var(--color-blue-700);
+
+  --color-frame: var(--color-blue-900);
+  --color-on-frame: #ffffff;
+  --color-on-frame-muted: var(--color-blue-200);
+  --color-highlight: var(--color-gold-400);       /* on frame or accent only */
+  --color-highlight-soft: var(--color-gold-300);  /* text on frame */
+  --color-highlight-mark: var(--color-gold-600);  /* bars and rules on light */
+  --color-highlight-text: var(--color-gold-700);
+  --color-highlight-tint: var(--color-gold-50);
+  --color-focus: var(--color-blue-700);
+  --color-focus-on-frame: var(--color-gold-300);
+
+  /* Feedback only. */
+  --color-success: #1e7a46;
+  --color-success-tint: #ecf7f0;
+  --color-warning: #8a5a00;
+  --color-warning-tint: #fdf3dc;
+  --color-danger: #b42318;
+  --color-danger-tint: #fef3f2;
 
   /* Typography */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -154,8 +195,12 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-fg);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+.on-frame :focus-visible {
+  outline-color: var(--color-focus-on-frame);
 }
 
 /* Component recipes */
