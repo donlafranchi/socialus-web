@@ -1,6 +1,6 @@
 # socialus-web — code repo
 
-SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `ops-pattern`; this repo is code.
+SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `socialus-plan`, the method in `ops-pattern`, design in `socialus-design`; this repo is code. Which folder holds what: `~/.claude/CLAUDE.md` § The repos.
 
 ## Naming
 
@@ -11,7 +11,7 @@ SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one me
 
 ## Before opening a ticket
 
-Classify it by `ops-pattern/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `ops-pattern` for one before ticketing it as anything else.
+Classify it by `ops-pattern/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
 
 ## Who checks what
 
@@ -23,7 +23,7 @@ That choice also decides the merge. **"Don doesn't need to look"** means merge i
 
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 
-Full rule, including when he looks: `ops-pattern/PIPELINE.md` § Who checks what.
+Full rule, including when he looks: `ops-pattern/process/PIPELINE.md` § Who checks what.
 
 ## The seeds are privileged
 
@@ -42,7 +42,7 @@ is evidence about the seed. Full note, including why the seeds stay:
 
 ## When a PR diverges from its scenario
 
-A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `ops-pattern`, not here. Don't quietly ship a different behavior than what was approved.
+A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `socialus-plan`, not here. Don't quietly ship a different behavior than what was approved.
 
 ## DECISION RULE (effective now)
 
@@ -83,7 +83,7 @@ Flag to Don
 
 ## Commits
 
-Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when Don looks: § Who checks what, above. Never rewrite history. Never cross-commit with `ops-pattern`.
+Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when Don looks: § Who checks what, above. Never rewrite history. Never cross-commit with `socialus-plan` or `ops-pattern`.
 
 ## Issue hygiene
 
@@ -91,10 +91,10 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 
 ## Rulings that bind this repo
 
-**ops-pattern `constraints/code.md`** — every ratified decision tagged as binding the
+**socialus-plan `constraints/code.md`** — every ratified decision tagged as binding the
 code tier, one line each, generated from `DECISIONS.md`. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
-the decision in ops-pattern. It lists only live rulings; superseded ones are gone.
+the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
 **If two rulings seem to conflict, the newer wins and work continues** — never stop
 to ask Don which is true (ops-pattern `[newer-decision-wins]`). Only two live
@@ -108,7 +108,7 @@ A test or script that discharges a scenario criterion says so on the line above 
 check covers several. A check that covers only part of a criterion says what it
 leaves out: `// [guards F093.4 partial: the call to sign in]`. A criterion counts as
 covered only when one check claims all of it, since partial checks never add up.
-ops-pattern builds a per-scenario coverage map from these, so a criterion with no
+socialus-plan builds a per-scenario coverage map from these, so a criterion with no
 marked check shows as unguarded instead of assumed. Mark only
 a check that has been seen failing against input it should reject
 ([guard-proves-itself]); a marker on a test that never ran is a false claim.
@@ -121,14 +121,14 @@ About one line of code or one migration → a comment on that line. About how to
 build an Issue → the Issue **body** (comments are not scanned). Never a PR
 description or commit message — neither can be edited to close it. A question
 whose answer changes behaviour is not a marker; stop and ask for a scenario
-change. Answering one removes the marker in the same commit. ops-pattern's
+change. Answering one removes the marker in the same commit. socialus-plan's
 `STATUS.md` indexes every marker; `scripts/check-markers.sh` fails CI on
 one missing an owner, a date or a question. Full rule:
 `ops-pattern/process/PIPELINE.md` § Open questions.
 
 ## The ontology
 
-The nouns live in ops-pattern `product/foundation/nouns.md`, the verbs in
+The nouns live in socialus-plan `product/foundation/nouns.md`, the verbs in
 `verbs.md`. **The links live in `src/ontology/links.ts`** — the relationships
 between nouns, which had no home before and so lived implicitly in foreign keys.
 
@@ -136,7 +136,7 @@ between nouns, which had no home before and so lived implicitly in foreign keys.
 same PR.** Not afterwards, not in a follow-up ticket. Each entry carries its
 `ruled:` date, which is the pointer back to the `DECISIONS.md` line.
 
-It is code, not a document, on purpose — ops-pattern's `CLAUDE.md` § Naming rules
+It is code, not a document, on purpose — socialus-plan's `CLAUDE.md` § Naming rules
 that a file only a script compares is fine, because nothing believes it, and a
 document called REGISTRY died in this project once already.
 `scripts/check-action-layer-conformance.ts` Rule 5 fails the PR when a link
@@ -145,7 +145,7 @@ creates. It runs at `npm test`. A link also carries the ruling behind it or it
 does not go in — a bare note that restates the foreign key fails there too.
 
 **`src/ontology/registry.json` is the same thing as data**, generated from those
-declarations by `npm run ontology:registry` and committed, because ops-pattern's
+declarations by `npm run ontology:registry` and committed, because socialus-plan's
 STATUS.md job reads it across repos with `git show` and cannot run a script here.
 Change a link, regenerate, commit both — a test compares them and goes red
 otherwise. Nothing is written into the JSON by hand.

@@ -25,6 +25,8 @@ export interface PagePost {
    *  an announcement never borrows its Page's pin, but it does inherit its
    *  Page's whereabouts when it says nothing. */
   locationLabel: string | null
+  /** #348 — an event's own meet spot, beside its place. */
+  howToFind?: string | null
 }
 
 interface Row {
@@ -34,6 +36,7 @@ interface Row {
   updated_at: string
   starts_at: string | null
   ends_at: string | null
+  how_to_find?: string | null
   location: { label: string | null } | { label: string | null }[] | null
 }
 
@@ -45,7 +48,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, location:locations(label)')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, location:locations(label)')
     .eq('group_id', groupId)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -63,6 +66,7 @@ export async function resolvePagePosts(
       startsAt: r.starts_at,
       endsAt: r.ends_at,
       locationLabel: loc?.label ?? null,
+      howToFind: r.how_to_find ?? null,
     }
   })
 }

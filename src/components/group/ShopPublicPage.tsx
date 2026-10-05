@@ -11,10 +11,12 @@ import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
 import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
+import { whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
+import { whereLine, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -71,6 +73,8 @@ interface Props {
   tags?: string[]
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
   contact?: PageContact | null
+  /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
+  where?: PageWhere | null
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
@@ -88,6 +92,7 @@ export function ShopPublicPage({
   posts = [],
   tags = [],
   contact = null,
+  where = null,
   withheldPosts = [],
   followerCount = 0,
   draftTagCount = 0,
@@ -261,6 +266,11 @@ export function ShopPublicPage({
             {shop.placements[0].label}
           </p>
         )}
+        {loggedIn && where && whereLine(where) && (
+          <p data-testid="shop-where" className="text-sm text-[var(--color-fg-muted)]">
+            {whereLine(where)}
+          </p>
+        )}
         <SectionEditButton section="where" className="self-start" />
 
         {/* Page kinds (dispatch, 2026-10-05): each kind leads with its own
@@ -381,7 +391,7 @@ export function ShopPublicPage({
             className="mt-3 rounded border border-dashed border-gray-300 p-6 text-sm text-gray-500"
           >
             <p className="font-medium text-gray-600">Nothing listed yet</p>
-            <p className="mt-1">This Page hasn&apos;t listed anything yet — check back soon.</p>
+            <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
           </div>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
@@ -423,6 +433,7 @@ export function ShopPublicPage({
         kind: pageKindOf(shop.kind),
         useCase: presetOf(shop.kind, shop.useCase),
         productsOn,
+        where: whereValueFrom(where ?? null),
       }}
     >
       {page}
