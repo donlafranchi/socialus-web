@@ -62,7 +62,7 @@ export function ExploreSearchBar({
   return (
     <div
       data-testid="explore-search-bar"
-      className="sticky top-0 z-30 border-b border-[var(--color-charcoal-100)] bg-white md:top-14"
+      className="sticky top-0 z-30 border-b border-[var(--color-charcoal-100)] bg-white md:top-nav-top"
     >
       <div className="mx-auto flex max-w-5xl items-center lg:max-w-none gap-2 px-3 py-2 md:px-6">
         {/* It used to print the resolved place name unconditionally, and with

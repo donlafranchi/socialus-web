@@ -48,6 +48,11 @@ const CREATE = { href: '/you?create=1', label: 'Create' }
 // parks it on the right-hand end, which is a different claim.
 const CREATE_AFTER = 1
 
+// #296 — no nav on sign-in, onboarding or admin: each is a flow or a tool, and
+// the nav is a way out of the thing you are meant to finish.
+const NO_NAV = [/^\/auth(\/|$)/, /^\/onboarding(\/|$)/, /^\/admin(\/|$)/]
+export const navHidden = (pathname: string | null) => NO_NAV.some((r) => r.test(pathname ?? '/'))
+
 /** F086 — on a phone the nav has no room for a name, so the You tab carries
  *  the mark instead. One glance, no tap. The name and the sign-out control
  *  live one tap away on /you, which is where this tab goes. */
@@ -61,6 +66,8 @@ export function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
   const navVisible = useNavVisible()
+
+  if (navHidden(pathname)) return null
 
   const handleClick = (href: string, isActive: boolean) => (e: React.MouseEvent) => {
     if (isActive) {
@@ -82,7 +89,7 @@ export function BottomNav() {
       }`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="mx-auto flex h-11 w-full max-w-[420px] items-stretch justify-around">
+      <ul className="mx-auto flex h-nav-bottom w-full max-w-form items-stretch justify-around">
         {TABS.map((t, i) => {
           const active = t.match(pathname ?? '/')
           const Icon = t.icon
@@ -94,7 +101,7 @@ export function BottomNav() {
                   onClick={handleClick(t.href, active)}
                   data-active={active ? 'true' : 'false'}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex h-full w-full flex-col items-center justify-center gap-[3px] px-3 text-[9px] font-medium ${
+                  className={`flex h-full w-full flex-col items-center justify-center gap-0.5 px-3 text-micro font-medium ${
                     active ? 'text-[var(--color-charcoal)]' : 'text-[var(--color-nav-inactive)]'
                   }`}
                 >
@@ -111,7 +118,7 @@ export function BottomNav() {
                   <Link
                     href={CREATE.href}
                     data-testid="nav-create"
-                    className="flex h-full w-full flex-col items-center justify-center gap-[3px] px-3 text-[9px] font-medium text-[var(--color-nav-inactive)]"
+                    className="flex h-full w-full flex-col items-center justify-center gap-0.5 px-3 text-micro font-medium text-[var(--color-nav-inactive)]"
                   >
                     <Plus size={20} strokeWidth={1.5} />
                     <span>{CREATE.label}</span>
@@ -128,39 +135,45 @@ export function BottomNav() {
 
 export function TopNavDesktop() {
   const pathname = usePathname()
+  if (navHidden(pathname)) return null
+  // #296 — 64px, from 744. Explore, then Create; who you are sits at the end.
   return (
     <nav
       data-testid="top-nav-desktop"
       aria-label="Primary"
-      className="hidden md:flex sticky top-0 z-40 w-full items-center gap-6 border-b border-neutral-200 bg-white px-6 h-14"
+      className="hidden md:flex sticky top-0 z-40 w-full items-center gap-6 border-b border-neutral-200 bg-white gutter h-nav-top"
     >
       <Link href="/" className="font-semibold text-[var(--color-accent)]">
         SocialUs
       </Link>
       <div className="flex items-center gap-4 text-sm">
-        {TABS.map((t) => {
+        {TABS.map((t, i) => {
           const active = t.match(pathname ?? '/')
           const Icon = t.icon
           return (
-            <Link
-              key={t.href}
-              href={t.href}
-              aria-current={active ? 'page' : undefined}
-              className={`inline-flex items-center gap-1.5 ${active ? 'text-[var(--color-accent)] font-medium' : 'text-neutral-600 hover:text-neutral-900'}`}
-            >
-              <Icon size={16} strokeWidth={active ? 2.25 : 1.75} />
-              {t.label}
-            </Link>
+            <Fragment key={t.href}>
+              <Link
+                href={t.href}
+                aria-current={active ? 'page' : undefined}
+                className={`inline-flex items-center gap-1.5 ${active ? 'text-[var(--color-accent)] font-medium' : 'text-neutral-600 hover:text-neutral-900'}`}
+              >
+                <Icon size={16} strokeWidth={active ? 2.25 : 1.75} />
+                {t.label}
+              </Link>
+              {/* #296 — the same order as the phone bar: Explore · Create · You. */}
+              {i === CREATE_AFTER - 1 && (
+                <Link
+                  href={CREATE.href}
+                  data-testid="desktop-nav-create"
+                  className="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900"
+                >
+                  <Plus size={16} strokeWidth={1.75} />
+                  {CREATE.label}
+                </Link>
+              )}
+            </Fragment>
           )
         })}
-        <Link
-          href={CREATE.href}
-          data-testid="desktop-nav-create"
-          className="inline-flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900"
-        >
-          <Plus size={16} strokeWidth={1.75} />
-          {CREATE.label}
-        </Link>
       </div>
       <div className="ml-auto">
         {/* F086 — who you are, and the way out. Replaces AuthCtaButtons here,

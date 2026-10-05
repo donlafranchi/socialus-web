@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { needsPhoneVerification } from '@/lib/auth/phone'
 
 /** The shapes Supabase uses for "this session cookie is no longer good". */
 function isStaleSession(message: string): boolean {
@@ -37,8 +38,10 @@ export async function proxy(request: NextRequest) {
   //
   // Supabase reports this both ways depending on where it fails: a rejected
   // promise, or a resolved one carrying `error`. Both are handled.
+  let user: Parameters<typeof needsPhoneVerification>[0]['user'] = null
   try {
-    const { error } = await supabase.auth.getUser()
+    const { data, error } = await supabase.auth.getUser()
+    user = data?.user ?? null
     if (error && !isStaleSession(error.message)) {
       console.warn('[proxy] getUser returned an error:', error.message)
     }
@@ -50,6 +53,20 @@ export async function proxy(request: NextRequest) {
       // is how a four-month outage happens.
       console.warn('[proxy] getUser failed unexpectedly:', message)
     }
+  }
+
+  // F081 — a signed-in member verifies a phone before anything else.
+  if (
+    needsPhoneVerification({
+      user,
+      pathname: request.nextUrl.pathname,
+      method: request.method,
+      env: process.env,
+    })
+  ) {
+    const redirect = NextResponse.redirect(new URL('/onboarding', request.url))
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+    return redirect
   }
 
   return response
