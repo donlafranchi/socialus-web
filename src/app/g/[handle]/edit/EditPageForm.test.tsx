@@ -271,7 +271,7 @@ describe('EditPageForm — unsaved changes', () => {
 
 describe('#293 — Contact: phone and hours', () => {
   it('saves the phone and hours the owner entered', async () => {
-    renderForm({ initialContact: { phone: null, hours: null } })
+    renderForm({ showHours: true,  initialContact: { phone: null, hours: null } })
     fireEvent.change(screen.getByLabelText(/business phone/i), { target: { value: '916 555 0142' } })
     fireEvent.click(screen.getByRole('checkbox', { name: /monday/i }))
     fireEvent.click(screen.getByTestId('edit-save'))
@@ -291,7 +291,7 @@ describe('#293 — Contact: phone and hours', () => {
   })
 
   it('counts a contact change as unsaved', () => {
-    renderForm({ initialContact: { phone: null, hours: null } })
+    renderForm({ showHours: true,  initialContact: { phone: null, hours: null } })
     fireEvent.click(screen.getByRole('checkbox', { name: /tuesday/i }))
     fireEvent.click(screen.getByRole('button', { name: /done/i }))
     expect(screen.getByTestId('edit-unsaved')).toBeInTheDocument()
@@ -356,13 +356,13 @@ describe('#301 — Edit on a draft', () => {
 // Don, 2026-10-04 — hours and phone are a component: off for a group until added.
 describe('hours and phone on Edit, as a component', () => {
   it('a group sees an offer to add them, not the fields', () => {
-    renderForm({ contactOn: false })
+    renderForm({ contactOn: false, showHours: true })
     expect(screen.queryByTestId('edit-contact')).toBeNull()
     expect(screen.getByRole('button', { name: /add business hours and phone/i })).toBeInTheDocument()
   })
 
   it('adding them shows the fields and saves the switch', async () => {
-    renderForm({ contactOn: false })
+    renderForm({ contactOn: false, showHours: true })
     fireEvent.click(screen.getByRole('button', { name: /add business hours and phone/i }))
     expect(screen.getByTestId('edit-contact')).toBeInTheDocument()
     fireEvent.click(screen.getByTestId('edit-save'))
@@ -375,5 +375,21 @@ describe('hours and phone on Edit, as a component', () => {
     fireEvent.click(screen.getByTestId('edit-save'))
     await waitFor(() => expect(onSave).toHaveBeenCalled())
     expect(onSave.mock.calls[0][0]).not.toHaveProperty('contactComponent')
+  })
+})
+
+describe('hours hidden for now (Don, 2026-10-05)', () => {
+  it('Edit offers the business phone, not hours, and leaves stored hours alone', async () => {
+    renderForm({ initialContact: { phone: '+19165550142', hours: { mon: [{ open: '09:00', close: '17:00' }] } } })
+    expect(screen.queryByRole('checkbox', { name: /monday/i })).toBeNull()
+    expect(screen.getByLabelText(/business phone/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('edit-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls[0][0]).not.toHaveProperty('openingHours')
+  })
+
+  it('a group is offered the phone alone', () => {
+    renderForm({ contactOn: false })
+    expect(screen.getByRole('button', { name: /^add a business phone$/i })).toBeInTheDocument()
   })
 })
