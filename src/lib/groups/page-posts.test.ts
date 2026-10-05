@@ -41,6 +41,7 @@ describe('resolvePagePosts', () => {
         updatedAt: '2026-09-15T10:00:00Z',
         startsAt: null,
         locationLabel: null,
+        howToFind: null,
       },
     ])
     expect(calls.order).toEqual(['created_at', { ascending: false }])
