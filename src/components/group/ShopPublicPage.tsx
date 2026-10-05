@@ -360,6 +360,8 @@ export function ShopPublicPage({
           onPost={postToPageAction}
           onEdit={editPagePostAction}
           onDelete={deletePagePostAction}
+          limit={3}
+          seeAllHref={pagePath ? `${pagePath}/posts` : undefined}
         />
       )}
 

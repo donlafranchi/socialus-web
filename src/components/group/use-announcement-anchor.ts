@@ -20,7 +20,7 @@ import { announcementAnchor, announcementIdFromHash } from './announcement-ancho
  *
  * Returns the id to mark, or null.
  */
-export function useAnnouncementAnchor(): string | null {
+export function useAnnouncementAnchor(shown = 0): string | null {
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const arrived = useRef(false)
 
@@ -53,7 +53,8 @@ export function useAnnouncementAnchor(): string | null {
       el.scrollIntoView?.({ behavior: 'auto', block: 'center' })
     })
     return () => cancelAnimationFrame(frame)
-  }, [])
+    // #367 — looks again when more posts are shown.
+  }, [shown])
 
   return highlighted
 }

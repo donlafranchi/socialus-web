@@ -24,11 +24,12 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
+import { buttonClass } from '@/components/ui/Button'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
-import { announcementAnchor } from './announcement-anchor'
+import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { createLocationAction } from '@/app/_actions/location-actions'
@@ -87,6 +88,14 @@ interface Props {
   onDelete?: (input: { postId: string }) => Promise<
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
   >
+  /** #367 — the latest few on the Page, then a link to the full list. */
+  limit?: number
+  seeAllHref?: string
+}
+
+const subscribeHash = (cb: () => void) => {
+  window.addEventListener('hashchange', cb)
+  return () => window.removeEventListener('hashchange', cb)
 }
 
 /** `yyyy-mm-dd` and `hh:mm` back out of an instant, for an edit form that has
@@ -134,6 +143,8 @@ export function PagePosts({
   onEdit,
   onCreateLocation = createLocationAction,
   onDelete,
+  limit,
+  seeAllHref,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -150,7 +161,11 @@ export function PagePosts({
   // with a compose box where you expected it. Shared with the signed-out list
   // (F093), because an `#announcement-<id>` link has to land the same way on
   // both and two copies of the effect is how they stop doing that.
-  const highlighted = useAnnouncementAnchor()
+  // #367 — a link to an older post opens the whole list, so it still lands.
+  const hashId = useSyncExternalStore(subscribeHash, () => announcementIdFromHash(window.location.hash), () => null)
+  const expanded = limit === undefined || (hashId !== null && items.findIndex((p) => p.id === hashId) >= limit)
+  const shown = expanded ? items : items.slice(0, limit)
+  const highlighted = useAnnouncementAnchor(shown.length)
 
   // A visitor looking at a Page with nothing on it sees no empty section. The
   // owner does, because the owner is the one who can fill it.
@@ -368,7 +383,7 @@ export function PagePosts({
         </div>
       ) : (
         <ul className="mt-4 flex flex-col gap-3">
-          {items.map((post) => (
+          {shown.map((post) => (
             <li
               key={post.id}
               id={announcementAnchor(post.id)}
@@ -515,6 +530,11 @@ export function PagePosts({
             </li>
           ))}
         </ul>
+      )}
+      {!expanded && seeAllHref && items.length > shown.length && (
+        <a href={seeAllHref} className={`${buttonClass('secondary')} mt-4 w-full`}>
+          See all posts
+        </a>
       )}
     </section>
   )

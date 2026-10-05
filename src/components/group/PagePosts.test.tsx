@@ -441,3 +441,27 @@ describe('an end time on it', () => {
     expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
   })
 })
+
+// #367 — the latest three, then "See all posts" (Instagram, Facebook Pages,
+// Airbnb's "Show all").
+describe('#367 — latest posts, then See all posts', () => {
+  const many = Array.from({ length: 5 }, (_, i) => ({ ...POST, id: `p${i}`, body: `Post number ${i}` }))
+  afterEach(() => window.history.replaceState(null, '', '/'))
+
+  it('shows the latest three and a link to all of them', () => {
+    renderPosts({ posts: many, limit: 3, seeAllHref: '/g/x-abc/posts' })
+    expect(screen.getAllByTestId('page-post')).toHaveLength(3)
+    expect(screen.getByRole('link', { name: 'See all posts' })).toHaveAttribute('href', '/g/x-abc/posts')
+  })
+
+  it('no link when there are no more to see', () => {
+    renderPosts({ posts: many.slice(0, 3), limit: 3, seeAllHref: '/g/x-abc/posts' })
+    expect(screen.queryByRole('link', { name: 'See all posts' })).toBeNull()
+  })
+
+  it('a link to an older post still lands on it', () => {
+    window.history.replaceState(null, '', '/#announcement-p4')
+    renderPosts({ posts: many, limit: 3, seeAllHref: '/g/x-abc/posts' })
+    expect(screen.getByText('Post number 4')).toBeInTheDocument()
+  })
+})

@@ -50,6 +50,7 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'page-private', inventory: ['S031', 'S037'], path: () => `/g/${pageHandle(family)}` },
   { name: 'page-not-found', inventory: ['S037'], path: () => '/g/no-such-page-zzzzzz' },
   { name: 'page-stale-handle', inventory: ['S038'], path: () => `/g/old-name-${interest.publicId}` },
+  { name: 'page-posts', inventory: [], path: (who) => `/g/${pageHandle(pageFor(who))}/posts` },
   { name: 'page-edit', inventory: ['S097', 'S098', 'S099', 'S100'], path: (who) => `/g/${pageHandle(pageFor(who))}/edit` },
   { name: 'join', inventory: ['S039', 'S040'], path: () => '/join' },
   { name: 'member-profile', inventory: ['S041', 'S042', 'S043', 'S044', 'S045'], path: (who) => `/m/${who.handle ?? member.handle}` },
