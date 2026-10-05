@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { safeNext } from '@/lib/safe-next'
+import { rememberedEmail, rememberEmail } from '@/lib/auth/remembered-email'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -13,7 +14,7 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
   const { signInWithOtp } = useAuth()
   const nextSafe = safeNext(next)
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(rememberedEmail)
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +34,7 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
       setError(err.message)
       return
     }
+    rememberEmail(value)
     setSentTo(value)
   }
 
@@ -68,9 +70,14 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
       <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="magic-link-form">
       <input
         type="email"
+        name="email"
         required
         autoFocus
         autoComplete="email"
+        inputMode="email"
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.com"
