@@ -81,7 +81,8 @@ export interface OwnerClaim {
   isProximal: boolean
 }
 
-const LOCAL_OWNER_LABEL = 'Claimed local owner'
+// Ruled 2026-09-30 / 2026-10-05: the chip reads the fact; "Says …" is its label.
+const LOCAL_OWNER_LABEL = 'Locally owned'
 
 /**
  * Split a place catch-all slug array at the `/g/` marker.

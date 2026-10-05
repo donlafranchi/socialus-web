@@ -278,7 +278,7 @@ describe('resolveLocalOwnerBadge', () => {
   it('returns the badge when page_local_owner_badge says so', async () => {
     const { supabase, calls } = makeBadgeStub(true)
     const badge = await resolveLocalOwnerBadge(supabase, { groupId: 'grp-1', anchorLocationId: 'loc-1' })
-    expect(badge).toEqual({ label: 'Claimed local owner' })
+    expect(badge).toEqual({ label: 'Locally owned' })
     expect(calls).toEqual([{ name: 'page_local_owner_badge', params: { p_group_id: 'grp-1' } }])
   })
 

@@ -31,16 +31,18 @@ import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PAGE_KINDS, PAGE_KIND_LABEL, type PageKind } from '@/lib/groups/page-kind'
+import { BADGE_LABEL, BADGE_MEANING, offeredBadges, sinceMax, type BadgeKey, type Badges } from '@/lib/groups/badges'
 
 const KIND_HINT: Record<PageKind, string> = {
   business: 'You sell, serve or make something. Leads with how to reach you.',
   social: 'People who get together around something they share, from a run club to a festival.',
 }
 
-export type Section = 'kind' | 'about' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
+export type Section = 'kind' | 'badges' | 'about' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
 export const SECTION_TITLE: Record<Section, string> = {
   kind: 'Type of Page',
+  badges: 'Badges',
   about: 'About',
   photo: 'Photo',
   where: 'Where',
@@ -63,6 +65,7 @@ export interface EditorInitial {
   contactOn: boolean
   addressLabel: string | null
   kind: PageKind
+  badges: Badges
 }
 
 type Save = (input: EditPageInput) => Promise<EditPageResult>
@@ -132,12 +135,13 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [hours, setHours] = useState(initial.contact.hours)
   const [contactOn, setContactOn] = useState(initial.contactOn)
   const [kind, setKind] = useState<PageKind>(initial.kind)
+  const [badges, setBadges] = useState<Badges>(initial.badges)
   const [place, setPlace] = useState<LocationPlaceFieldsState>(initialLocationPlaceFieldsState)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ kind, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, place })
+  const snapshot = () => JSON.stringify({ kind, badges, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, place })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -146,6 +150,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     const base = { groupId: initial.groupId, pagePath: initial.pagePath }
     let patch: Partial<EditPageInput> = {}
     if (section === 'kind') patch = { pageKind: kind }
+    if (section === 'badges') patch = { badges }
     if (section === 'about') patch = { name, description }
     if (section === 'photo') patch = { photoUrl }
     if (section === 'contact')
@@ -232,6 +237,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             ))}
           </fieldset>
         )}
+        {section === 'badges' && <BadgesFields kind={initial.kind} value={badges} onChange={setBadges} />}
         {section === 'about' && (
           <>
             <label className="flex flex-col gap-1">
@@ -276,5 +282,65 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
         )}
       </div>
     </Sheet>
+  )
+}
+
+const without = (b: Badges, k: BadgeKey): Badges => {
+  const n = { ...b }
+  delete n[k]
+  return n
+}
+
+function BadgesFields({ kind, value, onChange }: { kind: PageKind; value: Badges; onChange: (b: Badges) => void }) {
+  const { first, more } = offeredBadges(kind)
+  const row = (k: BadgeKey) =>
+    k === 'since' ? (
+      <label key={k} className="flex flex-col gap-1">
+        <span className="text-sm font-medium text-[var(--color-fg)]">{kind === 'social' ? 'Meeting since' : 'Since'} <span className="text-[var(--color-fg-muted)]">(year, optional)</span></span>
+        <input
+          type="number"
+          inputMode="numeric"
+          className="input"
+          min={1800}
+          max={sinceMax()}
+          placeholder="1998"
+          value={value.since ?? ''}
+          onChange={(e) => {
+            const y = e.target.value === '' ? undefined : Number(e.target.value)
+            const rest = without(value, 'since')
+            onChange(y ? { ...rest, since: y } : rest)
+          }}
+        />
+      </label>
+    ) : (
+      <label key={k} className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
+        <span>
+          <span className="block text-sm text-[var(--color-fg)]">{BADGE_LABEL[k]}</span>
+          <span className="block text-caption text-[var(--color-fg-muted)]">
+            {BADGE_MEANING[k]} Reads &ldquo;Says {BADGE_LABEL[k].toLowerCase()}&rdquo;.
+          </span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          aria-label={BADGE_LABEL[k]}
+          className="h-5 w-5 shrink-0"
+          checked={value[k] === true}
+          onChange={(e) => {
+            const rest = without(value, k)
+            onChange(e.target.checked ? { ...rest, [k]: true } : rest)
+          }}
+        />
+      </label>
+    )
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-caption text-[var(--color-fg-muted)]">
+        Each one is yours to say. Visitors see that you say it.{kind === 'business' ? ' Locally owned comes from your business registration.' : ''}
+      </p>
+      {first.map(row)}
+      <p className="mt-2 text-sm font-medium text-[var(--color-fg)]">More you can add</p>
+      {more.map(row)}
+    </div>
   )
 }

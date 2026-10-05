@@ -31,6 +31,8 @@ import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { NextUp } from './NextUp'
+import { PageBadges } from './PageBadges'
+import { pageBadges, type Badges } from '@/lib/groups/badges'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor } from '@/lib/groups/page-kind'
 import { isBusinessKind } from '@/lib/groups/page-components'
@@ -66,6 +68,8 @@ interface Props {
   contactOn?: boolean
   /** #316 — the Page's tags; empty signed out. */
   tags?: string[]
+  /** #371 — the owner's kind facts; signed in only (F093 criterion 8). */
+  badges?: Badges
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
   contact?: PageContact | null
 }
@@ -90,6 +94,7 @@ export function ShopPublicPage({
   draftTagCount = 0,
   viewerMemberId = null,
   contactOn = false,
+  badges = {},
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
@@ -154,14 +159,6 @@ export function ShopPublicPage({
               : shop.displayName}
           </h1>
           <SectionEditButton section="about" />
-          {badge && isBusinessKind(shop.kind) && (
-            <span
-              data-testid="local-owner-badge"
-              className="chip chip-selected whitespace-nowrap text-xs"
-            >
-              {badge.label}
-            </span>
-          )}
 
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
@@ -186,6 +183,8 @@ export function ShopPublicPage({
           </p>
           <SectionEditButton section="kind" />
         </div>
+        {loggedIn && <PageBadges badges={pageBadges(shop.kind, badges, Boolean(badge))} />}
+        <SectionEditButton section="badges" className="self-start" />
 
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
@@ -417,6 +416,7 @@ export function ShopPublicPage({
         contactOn,
         addressLabel: shop.placements[0]?.label ?? null,
         kind: pageKindOf(shop.kind),
+        badges,
       }}
     >
       {page}

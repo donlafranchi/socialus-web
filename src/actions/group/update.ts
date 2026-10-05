@@ -39,6 +39,7 @@ import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import type { ActionContext } from '../_lib/context'
 import { applyKindChange } from './change-kind'
+import { parseBadges, sinceMax } from '../../lib/groups/badges'
 import { PAGE_KINDS, type PageKind } from '../../lib/groups/page-kind'
 
 export const groupUpdateInput = z.object({
@@ -61,6 +62,17 @@ export const groupUpdateInput = z.object({
   contactComponent: z.boolean().optional(),
   // Page kinds (dispatch, 2026-10-05): changeable in settings.
   pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
+  // #371 — the kind facts; each the owner's claim (ruled 2026-10-05).
+  badges: z
+    .object({
+      family_owned: z.boolean().optional(),
+      coop: z.boolean().optional(),
+      nonprofit: z.boolean().optional(),
+      free_to_join: z.boolean().optional(),
+      everyone_welcome: z.boolean().optional(),
+      since: z.number().int().min(1800).nullable().optional(),
+    })
+    .optional(),
 })
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
@@ -207,6 +219,19 @@ export const groupUpdate = defineHandler(
 
       if (input.pageKind !== undefined && (await applyKindChange(client, input.groupId, row.kind, input.pageKind))) {
         patched.push('kind')
+      }
+
+      if (input.badges !== undefined) {
+        if (input.badges.since && input.badges.since > sinceMax()) {
+          throw new ValidationError('group.update: that year has not happened yet')
+        }
+        await client.query(
+          `update public.groups
+              set metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{badges}', $2::jsonb)
+            where id = $1`,
+          [input.groupId, JSON.stringify(parseBadges({ badges: input.badges }))],
+        )
+        patched.push('badges')
       }
 
       if (input.contactComponent !== undefined) {

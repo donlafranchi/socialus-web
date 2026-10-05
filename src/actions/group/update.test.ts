@@ -275,3 +275,18 @@ describe('Page types — the owner changes the type in settings', () => {
     expect(sql(/set kind/)).toEqual([])
   })
 })
+
+describe('#371 — the owner sets the Page\'s badges', () => {
+  it('stores the facts that are on, and a year', async () => {
+    install({ kind: 'business' })
+    const res = await groupUpdate(ctx(), { groupId: GROUP, badges: { family_owned: true, coop: false, since: 1998 } })
+    expect(res.patched).toContain('badges')
+    const [, params] = sql(/'\{badges\}'/)[0]!
+    expect(JSON.parse(params![1] as string)).toEqual({ family_owned: true, since: 1998 })
+  })
+
+  it('refuses a year that has not happened', async () => {
+    install({ kind: 'business' })
+    await expect(groupUpdate(ctx(), { groupId: GROUP, badges: { since: new Date().getFullYear() + 1 } })).rejects.toBeInstanceOf(ValidationError)
+  })
+})

@@ -63,7 +63,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await expect(page.getByText(new RegExp(`ZIP on file: ${PROXIMAL_ZIP}`, "i"))).toBeVisible();
     await expect(page.getByTestId("claim-edit")).toBeVisible();
     // …and the public badge now displays (F035 beat 2 lights up).
-    await expect(page.getByTestId("local-owner-badge")).toHaveText("Claimed local owner");
+    await expect(page.getByTestId("local-owner-badge")).toHaveText("Locally owned");
   });
 
   test("Beat 3 — Maya edits her ZIP; the badge persists", async ({ page }) => {
@@ -80,7 +80,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP_2);
     await page.getByTestId("claim-submit").click();
     await expect(page.getByText(new RegExp(`ZIP on file: ${PROXIMAL_ZIP_2}`, "i"))).toBeVisible();
-    await expect(page.getByTestId("local-owner-badge")).toHaveText("Claimed local owner");
+    await expect(page.getByTestId("local-owner-badge")).toHaveText("Locally owned");
   });
 
   test("Beat 4 — Maya removes her claim; the badge disappears", async ({ page }) => {

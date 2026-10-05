@@ -30,6 +30,7 @@ const initial = {
   contactOn: true,
   addressLabel: '3117 Broadway, Sacramento',
   kind: 'business' as const,
+  badges: {},
 }
 
 function Page() {
@@ -165,5 +166,35 @@ describe('Page types — changeable in settings (ruled 2026-10-05)', () => {
     fireEvent.click(screen.getByRole('radio', { name: /social group/i }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'social' }))
+  })
+})
+
+describe('#371 — the Badges sheet', () => {
+  const open = () => {
+    render(
+      <PageEditorProvider initial={{ ...initial, badges: { since: 1998 } }} onSave={onSave}>
+        <EditToggle />
+        <SectionEditButton section="badges" />
+      </PageEditorProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /edit badges/i }))
+  }
+
+  it('offers the facts that fit the type first, with what each will say', () => {
+    open()
+    const sheet = screen.getByRole('dialog', { name: 'Badges' })
+    expect(sheet).toHaveTextContent('Says family-owned')
+    expect(screen.queryByRole('switch', { name: /locally owned/i })).toBeNull()
+    expect(sheet).toHaveTextContent(/locally owned comes from your business registration/i)
+  })
+
+  it('saves the facts turned on, and the year', async () => {
+    open()
+    fireEvent.click(screen.getByRole('switch', { name: 'Family-owned' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, badges: { family_owned: true, since: 1998 } }),
+    )
   })
 })

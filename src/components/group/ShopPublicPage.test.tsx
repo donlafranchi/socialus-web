@@ -2,7 +2,7 @@
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md story beats 1–6.
 
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {} }), usePathname: () => '/' }))
 import '@testing-library/jest-dom/vitest'
@@ -133,10 +133,10 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
 })
 
 describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
-  it('renders the "Claimed local owner" badge when a badge is supplied', () => {
-    renderShop({ badge: { label: 'Claimed local owner' } })
+  it('renders the Locally owned badge when a badge is supplied', () => {
+    renderShop({ badge: { label: 'Locally owned' }, loggedIn: true })
     const badge = screen.getByTestId('local-owner-badge')
-    expect(badge).toHaveTextContent('Claimed local owner')
+    expect(badge).toHaveTextContent('Locally owned')
   })
 
   it('renders no badge (no negative space) when none is supplied', () => {
@@ -535,5 +535,38 @@ describe('Page kinds — the kind line and what each kind leads with', () => {
     const contact = screen.getByTestId('page-contact')
     expect(contact.compareDocumentPosition(screen.getByText(SHOP.publicDescription)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByTestId('page-next-up')).toBeNull()
+  })
+})
+
+
+// #371 — badges, launch scope (ruled 2026-10-05). Up to three under the kind
+// line, the rest behind "+N more"; each opens what it means and that the owner
+// says it. Google Business Profile attributes; Yelp's owner-reported attributes.
+describe('#371 — badges', () => {
+  const badges = { family_owned: true as const, since: 1998, coop: true as const, nonprofit: true as const }
+
+  it('shows three, then "+N more"', () => {
+    renderShop({ loggedIn: true, badge: { label: 'Locally owned' }, badges })
+    const row = screen.getByTestId('page-badges')
+    expect(within(row).getAllByRole('button', { name: /^Says / })).toHaveLength(3)
+    fireEvent.click(within(row).getByRole('button', { name: '+2 more' }))
+    expect(within(row).getAllByRole('button', { name: /^Says / })).toHaveLength(5)
+  })
+
+  it('each says it is the owner\'s claim', () => {
+    renderShop({ loggedIn: true, badges })
+    fireEvent.click(screen.getByRole('button', { name: 'Says family-owned' }))
+    expect(screen.getByRole('dialog', { name: 'Family-owned' })).toHaveTextContent("The owner says this. SocialUs hasn't checked it.")
+  })
+
+  it('Locally owned says where it comes from', () => {
+    renderShop({ loggedIn: true, badge: { label: 'Locally owned' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Says locally owned' }))
+    expect(screen.getByRole('dialog', { name: 'Locally owned' })).toHaveTextContent('Based on the business registration they gave us.')
+  })
+
+  it('signed out, none: the front door is name, photo, description and the withheld card', () => {
+    renderShop({ loggedIn: false, badge: { label: 'Locally owned' }, badges })
+    expect(screen.queryByTestId('page-badges')).toBeNull()
   })
 })
