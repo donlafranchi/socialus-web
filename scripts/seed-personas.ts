@@ -130,7 +130,7 @@ select v.item, v.who, 'rsvp' from (values (${q(iid(i, 1))}::uuid, ${q(rsvp)}::uu
     if (pg.kind === 'business') {
       w(`insert into public.items (id, member_id, kind, title, description, brand_label, state, group_id) values
   (${q(iid(i, 2))}, ${q(o)}, 'product', 'Country sourdough loaf', 'Naturally leavened.', ${q(pg.name)}, 'published', ${q(gid(i))}),
-  (${q(iid(i, 3))}, ${q(o)}, 'offer', 'Bread-baking lesson', 'One hour, at the shop.', ${q(pg.name)}, 'published', ${q(gid(i))})
+  (${q(iid(i, 3))}, ${q(o)}, 'service', 'Bread-baking lesson', 'One hour, at the shop.', ${q(pg.name)}, 'published', ${q(gid(i))})
 on conflict (id) do nothing;
 insert into public.item_products (item_id, price_cents, price_unit) values (${q(iid(i, 2))}, 900, 'loaf') on conflict (item_id) do nothing;
 insert into public.item_services (item_id, rate_model, rate_cents) values (${q(iid(i, 3))}, 'hourly', 4000) on conflict (item_id) do nothing;
@@ -150,8 +150,8 @@ select ${q(iid(i, 2))}, ${q(rsvp)}, 'purchase'
 -- 3. Things a member posted without a Page: /m/<handle>/{p,s,e}/...
 insert into public.items (id, member_id, kind, title, description, state, group_id) values
   (${q(solo('01'))}, ${q(member)}, 'product', 'Jar of plum jam', 'From the backyard tree.', 'published', null),
-  (${q(solo('02'))}, ${q(member)}, 'offer', 'Bike tune-up', 'Bring it round.', 'published', null),
-  (${q(solo('03'))}, ${q(member)}, 'gather', 'Porch music night', 'Bring an instrument.', 'published', null)
+  (${q(solo('02'))}, ${q(member)}, 'service', 'Bike tune-up', 'Bring it round.', 'published', null),
+  (${q(solo('03'))}, ${q(member)}, 'gathering', 'Porch music night', 'Bring an instrument.', 'published', null)
 on conflict (id) do nothing;
 insert into public.item_products (item_id, price_cents, price_unit) values (${q(solo('01'))}, 600, 'jar') on conflict (item_id) do nothing;
 insert into public.item_services (item_id, rate_model, rate_cents) values (${q(solo('02'))}, 'flat', 2500) on conflict (item_id) do nothing;
