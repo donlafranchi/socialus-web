@@ -52,13 +52,12 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     expect(h1).toHaveTextContent('Oak Park Sourdough')
   })
 
-  it('links the founder to their Member page when hasPublished=true; avatar is decorative', () => {
+  it('#303 — the founder is a name, never a link to a member profile; avatar is decorative', () => {
     renderShop()
     const founder = screen.getByTestId('shop-founder')
-    const link = screen.getByTestId('shop-founder-link')
-    expect(link).toHaveAttribute('href', '/m/maya')
+    expect(screen.queryByTestId('shop-founder-link')).not.toBeInTheDocument()
+    expect(founder.querySelector('a')).toBeNull()
     expect(founder).toHaveTextContent('Maya Rivera')
-    // a11y: avatar is decorative (alt="") so the link name isn't duplicated.
     expect(founder.querySelector('img')).toHaveAttribute('alt', '')
   })
 
