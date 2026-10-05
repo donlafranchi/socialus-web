@@ -192,6 +192,31 @@ async function ensureAnchorLocation(opts: {
   return data.id
 }
 
+/** #349 — "local" is now the metro whose county outline covers the Page's pin.
+ *  CI's database has no boundary layers loaded (the loader runs only in
+ *  production), so the fixture stands one in around Maya's anchor. */
+async function ensureMetroCounty(): Promise<void> {
+  const sb = adminClient()
+  const { error } = await sb.from('boundaries').upsert(
+    {
+      layer: 'county',
+      source_id: 'eval-f037-county',
+      name: 'Sacramento (eval)',
+      geography: 'SRID=4326;MULTIPOLYGON(((-121.9 38.0,-121.0 38.0,-121.0 38.8,-121.9 38.8,-121.9 38.0)))',
+      centroid: 'SRID=4326;POINT(-121.4944 38.5816)',
+      state_fips: '06',
+      county_fips: '067',
+      msa_code: '40900',
+      source: 'eval fixture',
+      source_url: 'https://example.test',
+      licence: 'test',
+      vintage: 'test',
+    },
+    { onConflict: 'layer,source_id' },
+  )
+  if (error) throw new Error(`ensureMetroCounty: ${error.message}`)
+}
+
 /** Lookup-or-create the active kind='business' Group + business row + Maya
  *  owner membership. Idempotent by founder + brand. */
 async function ensureBusinessGroup(opts: {
@@ -266,6 +291,7 @@ export async function seedF037Fixture(): Promise<SeededF037Fixture> {
   const mayaId = await ensureIdentity(MAYA)
   const rosaId = await ensureIdentity(ROSA)
   const placeId = await oakParkPlaceId()
+  await ensureMetroCounty()
   const anchorId = await ensureAnchorLocation({
     label: "Maya's Oak Park Kitchen — F037",
     founderMemberId: mayaId,
