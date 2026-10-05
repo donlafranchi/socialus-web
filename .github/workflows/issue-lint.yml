@@ -27,9 +27,17 @@ jobs:
     # Revisit after launch: this is a deliberate freeze, not a preference.
     runs-on: ubuntu-24.04
     steps:
+      # The Path: checker lives in the repo so it can prove itself on fixtures
+      # before it judges a body ([guard-proves-itself]). Don's decision rule, 2026-10-04.
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: scripts
+      - name: Path line checker — self-test
+        run: node scripts/check-path-line.cjs --self-test
       - uses: actions/github-script@v8
         with:
           script: |
+            const { checkPath } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-path-line.cjs`);
             const body = (context.payload.issue?.body || context.payload.pull_request?.body || "");
             const num = context.payload.issue?.number || context.payload.pull_request?.number;
             const isPR = !!context.payload.pull_request;
@@ -53,6 +61,9 @@ jobs:
               if (!/#\d+/.test(body)) problems.push("cites no Issue (`#123` or `closes #123`)");
             }
 
+            const pathProblem = checkPath(body);
+            if (pathProblem) problems.push(pathProblem);
+
             const label = "needs-fix";
             const { owner, repo } = context.repo;
             if (problems.length) {
@@ -61,6 +72,7 @@ jobs:
                 owner, repo, issue_number: num,
                 body: "needs-fix:\n" + problems.map(p => "- " + p).join("\n"),
               });
+              if (pathProblem) core.setFailed(pathProblem);
             } else {
               try {
                 await github.rest.issues.removeLabel({ owner, repo, issue_number: num, name: label });
