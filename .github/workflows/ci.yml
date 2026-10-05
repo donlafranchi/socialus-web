@@ -65,6 +65,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # The Path: line checker issue-lint runs on every Issue and PR body. Here it
+      # proves itself on its fixtures whenever the code changes ([guard-proves-itself]).
+      - name: Path line checker — self-test
+        run: node scripts/check-path-line.cjs --self-test
+
       - name: Types
         run: npx tsc --noEmit
 
