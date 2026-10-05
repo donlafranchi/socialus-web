@@ -55,7 +55,7 @@ export function SocialLinksFields({
                 onChange={(e) => set(platform, e.target.value)}
               />
               {invalid ? (
-                <span role="alert" className="text-xs text-[var(--color-danger,#b00)]">
+                <span role="alert" className="text-xs text-[var(--color-danger)]">
                   Needs to start with https://
                 </span>
               ) : null}

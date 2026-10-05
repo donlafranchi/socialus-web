@@ -15,8 +15,9 @@
 
   The block you keep also decides the merge. "Don doesn't need to look"
   means merge it yourself once the checks are green — don't park finished
-  work waiting on a review he cannot give. "Don, please look" means hold:
-  he previews it and merges himself, or tells you to merge.
+  work waiting on a review he cannot give. "Review" means hold:
+  he previews it and merges himself, or tells you to merge. "Review" means
+  the `human-review` label (it was `needs-don`).
 
   Full rule: ops-pattern/process/PIPELINE.md § Who checks what.
 -->
@@ -26,19 +27,26 @@
 <!-- One line saying why not. e.g. "Test-only — no behaviour changes." -->
 
 <!-- ─────────────── OR ─────────────── delete the block above and use this one,
-     and add the `needs-don` label.
+     and add the `human-review` label.
 
-## Don, please look
+## Review
 
 **Preview:** <paste the Vercel preview link from the comment below>
+**Branch:** `<branch>`
+
+- Item: short description of one thing Don checks
+- Item: …
+
+```
+gh workflow run apply.yml --ref <branch> -f confirm=apply
+```
+<!-- Keep the code block only when a migration applies before this merges. -->
 
 1.
 2.
 3.
 
 **What you should see:**
-
-**What I'm unsure about:** <the judgment call, or delete this line>
 
      Three steps, written for someone holding a phone who has not read the
      ticket. "Open the link, tap Create, choose Business" — not "navigate to

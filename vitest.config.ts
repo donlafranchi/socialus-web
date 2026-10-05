@@ -80,6 +80,7 @@ const PROBE_SUITES = [
 // Folding them in would have cost the suite the parallelism and blurred a
 // membership rule that is written down and still correct.
 const SUBPROCESS_SUITES = [
+  'tests/vercel-ignore.test.ts',
   'tests/ci-enforcement-rule-5.test.ts',
   'tests/runnable-gate.test.ts',
   'tests/ontology-registry.test.ts',
