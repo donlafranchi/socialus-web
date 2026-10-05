@@ -18,7 +18,7 @@ function pushOf(files: string[], env: Record<string, string> = {}) {
   }
   git('add', '-A')
   git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'change')
-  const r = spawnSync('bash', [SCRIPT], { cwd: dir, env: { PATH: process.env.PATH!, ...env } })
+  const r = spawnSync('bash', [SCRIPT], { cwd: dir, env: { PATH: process.env.PATH!, NODE_ENV: 'test', ...env } })
   return r.status === 0 ? 'skip' : 'build'
 }
 
