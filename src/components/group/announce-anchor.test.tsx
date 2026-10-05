@@ -15,7 +15,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { OwnerBar } from './OwnerBar'
+import { OwnerBar } from './OwnerTools'
 import { PagePosts } from './PagePosts'
 
 vi.mock('@/app/_actions/location-actions', () => ({ searchPlacesAction: vi.fn() }))

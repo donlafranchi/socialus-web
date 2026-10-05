@@ -342,12 +342,14 @@ describe('#300 — the Page on the new layout', () => {
     expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
   })
 
-  it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
+  // #369 — the panel from 1280; under it, the bar (owner-page-spec).
+  it('gives the owner a panel beside the Page from 1280, and the bar below it', () => {
     renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
     const panel = screen.getByTestId('owner-panel')
     expect(panel.className).toMatch(/\bhidden\b/)
-    expect(panel.className).toMatch(/\blg:block\b/)
-    expect(panel.querySelector('[data-testid="owner-edit-toggle"]')).not.toBeNull()
+    expect(panel.className).toMatch(/\bxl:block\b/)
+    expect(panel).toHaveTextContent('Edit your Page')
+    expect(screen.getByTestId('owner-bar').parentElement!.className).toMatch(/\bxl:hidden\b/)
   })
 
   it('gives nobody else a panel', () => {
@@ -411,10 +413,10 @@ describe('#300 — the front door, signed out (F093 criterion 8)', () => {
 
   it('centres the column for a visitor; only the owner gets the two-column grid', () => {
     const { container, unmount } = renderShop({ loggedIn: true })
-    expect(container.querySelector('main')!.className).not.toMatch(/lg:grid/)
+    expect(container.querySelector('main')!.className).not.toMatch(/xl:grid/)
     unmount()
     const owner = renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123' })
-    expect(owner.container.querySelector('main')!.className).toMatch(/lg:grid/)
+    expect(owner.container.querySelector('main')!.className).toMatch(/xl:grid/)
   })
 })
 
@@ -452,7 +454,7 @@ describe('#302 — the owner edits the Page in place', () => {
   it('Edit shows a small edit button on each section', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123', viewerMemberId: 'm1', tags: ['sourdough'] })
     expect(screen.queryByTestId('edit-section-about')).toBeNull()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]!)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit your Page' })[0]!)
     for (const s of ['about', 'photo', 'where', 'tags', 'links', 'components']) {
       expect(screen.getAllByTestId(`edit-section-${s}`).length).toBeGreaterThan(0)
     }

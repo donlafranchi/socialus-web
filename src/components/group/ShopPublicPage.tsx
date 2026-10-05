@@ -9,7 +9,7 @@
 import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
-import { OwnerPanel } from './OwnerPanel'
+import { OwnerBar, OwnerPanel } from './OwnerTools'
 import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
@@ -20,7 +20,6 @@ import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
-import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { socialLinksForDisplay } from '@/lib/groups/social-links'
 import { sendReportAction } from '@/app/_actions/report-actions'
@@ -111,12 +110,12 @@ export function ShopPublicPage({
   const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
   const page = (
-    // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
+    // #300 — T2 Detail: a centred read-width column; from 1280 (#369) the owner's
     // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
     <main
       className={
         showOwnerPanel
-          ? 'mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12'
+          ? 'mx-auto w-full max-w-detail gutter pt-6 pb-[calc(var(--nav-clearance)+5rem)] md:pb-20 xl:grid xl:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] xl:gap-12 xl:pb-6'
           : 'mx-auto w-full max-w-read gutter py-6 pb-nav'
       }
     >
@@ -199,11 +198,6 @@ export function ShopPublicPage({
           />
         ) : null}
 
-        {viewerOwnsPage && pagePath && !isDraftPreview ? (
-          <div className="lg:hidden">
-            <OwnerBar pagePath={pagePath} />
-          </div>
-        ) : null}
 
         {shop.founder && (
           <div data-testid="shop-founder" className="flex items-center gap-2">
@@ -389,11 +383,16 @@ export function ShopPublicPage({
       )}
      </div>
       {showOwnerPanel && pagePath && !isDraftPreview ? (
-        <aside data-testid="owner-panel" className="hidden lg:block">
-          <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
-            <OwnerPanel pagePath={pagePath} />
+        <>
+          <aside data-testid="owner-panel" className="hidden xl:block">
+            <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
+              <OwnerPanel pagePath={pagePath} followerCount={followerCount} />
+            </div>
+          </aside>
+          <div className="xl:hidden">
+            <OwnerBar pagePath={pagePath} followerCount={followerCount} />
           </div>
-        </aside>
+        </>
       ) : null}
     </main>
   )
