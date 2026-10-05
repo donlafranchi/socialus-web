@@ -44,6 +44,16 @@ is evidence about the seed. Full note, including why the seeds stay:
 
 A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `ops-pattern`, not here. Don't quietly ship a different behavior than what was approved.
 
+## DECISION RULE (effective now)
+
+1. Look first: what established platforms do for this exact case (2–3 named precedents with links).
+2. Choose the most relevant and elegant option.
+3. Well-worn path: decide and build yourself; label "Path: well-worn" with the precedents; no PM review needed.
+4. New territory (no clear path, conflicting precedents, or it touches a ruling, legal or privacy exposure, money, or member trust): label "Path: new territory" and bring A/B/C with a recommendation to dispatch, before building.
+5. If unsure, say which in one line and lean toward deciding.
+
+Well-worn UI work merges once green and reviewed, without needs-don.
+
 ## BUILD RULES (effective now)
 
 Docker

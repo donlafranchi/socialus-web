@@ -323,7 +323,7 @@ describe('TopNavDesktop — create action (T158)', () => {
 })
 
 describe('#296 — where the nav is hidden', () => {
-  for (const path of ['/auth/login', '/auth/password', '/onboarding', '/admin/reports']) {
+  for (const path of ['/auth/login', '/auth/password', '/onboarding', '/admin/reports', '/g/qa-corner-bakery-qa0b01/edit']) {
     it(`hides both navs on ${path}`, () => {
       pathname.current = path
       const { container } = render(
@@ -358,5 +358,13 @@ describe('#296 — the header at 744 and up', () => {
     const labels = within(nav).getAllByRole('link').map((l) => l.textContent)
     expect(labels.indexOf('Create')).toBeGreaterThan(labels.indexOf('Explore'))
     expect(labels.indexOf('You')).toBeGreaterThan(labels.indexOf('Create'))
+  })
+})
+
+describe('#358 — a full-height edit screen hides the nav', () => {
+  it('but the Page itself keeps it', () => {
+    pathname.current = '/g/qa-corner-bakery-qa0b01'
+    const { container } = render(<BottomNav />)
+    expect(container).not.toBeEmptyDOMElement()
   })
 })

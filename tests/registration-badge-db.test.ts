@@ -45,12 +45,22 @@ beforeAll(async () => {
   if (!RUNNABLE) return
   pool = new Pool({ connectionString: DATABASE_URL })
   client = await pool.connect()
-  const { rows } = await client.query<{ zip: string; place_id: string }>(
-    `select zc.zip, pl.id as place_id
+  const { rows } = await client.query<{ zip: string; msa_code: string; place_id: string }>(
+    `select zc.zip, zc.msa_code, pl.id as place_id
        from public.zip_metro_crosswalk zc join public.places pl on pl.msa_code = zc.msa_code
       limit 1`,
   )
-  const { zip, place_id } = rows[0]
+  const { zip, msa_code, place_id } = rows[0]
+  // #349 — "local" is the metro whose county outline covers the pin. A fresh
+  // database has no boundary layers loaded, so the test brings one.
+  await client.query(
+    `insert into public.boundaries (layer, source_id, name, geography, centroid, state_fips, county_fips, msa_code, source, source_url, licence, vintage)
+     values ('county', 'test-246', 'Test county',
+             'SRID=4326;MULTIPOLYGON(((-121.7 38.4,-121.3 38.4,-121.3 38.8,-121.7 38.8,-121.7 38.4)))'::geography,
+             'SRID=4326;POINT(-121.5 38.6)'::geography, '06', '067', $1, 'test', 'https://example.test', 'test', 'test')
+     on conflict (layer, source_id) do nothing`,
+    [msa_code],
+  )
   for (const [id, h] of [[OWNER, 'b246-owner'], [OTHER, 'b246-other']]) {
     await client.query(
       `insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -86,6 +96,7 @@ afterAll(async () => {
   await client.query(`delete from public.group_events where group_id in ($1,$2)`, [PAGE, BARE_PAGE])
   await client.query(`delete from public.groups where id in ($1,$2)`, [PAGE, BARE_PAGE])
   await client.query(`delete from public.locations where id = $1`, [LOCATION])
+  await client.query(`delete from public.boundaries where source_id = 'test-246'`)
   await client.query(`delete from public.member_events where member_id in ($1,$2)`, [OWNER, OTHER])
   await client.query(`delete from public.members where id in ($1,$2)`, [OWNER, OTHER])
   await client.query(`delete from auth.users where id in ($1,$2)`, [OWNER, OTHER])

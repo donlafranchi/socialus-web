@@ -416,6 +416,22 @@ describe('#300 — the front door, signed out (F093 criterion 8)', () => {
   })
 })
 
+describe('#316 — a Page shows its tags as #hashtags, signed in only', () => {
+  it('signed in, each tag is a chip', () => {
+    renderShop({ loggedIn: true, tags: ['Sourdough'] })
+    expect(screen.getByRole('link', { name: '#Sourdough' })).toBeInTheDocument()
+  })
+  it('sit under the description, like hashtags under a post', () => {
+    renderShop({ loggedIn: true, tags: ['Sourdough'] })
+    const desc = screen.getByText('Real bread, baked local.')
+    expect(desc.compareDocumentPosition(screen.getByTestId('tag-chips')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+  it('signed out, none, even if handed some', () => {
+    renderShop({ loggedIn: false, tags: ['Sourdough'] })
+    expect(screen.queryByTestId('tag-chips')).toBeNull()
+  })
+})
+
 describe('#293 — phone and hours on the Page', () => {
   it('shows them to a signed-in visitor', () => {
     renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } })
@@ -425,5 +441,25 @@ describe('#293 — phone and hours on the Page', () => {
   it('shows nothing signed out, even if handed them', () => {
     renderShop({ loggedIn: false, contact: { phone: '+19165550142', hours: null } })
     expect(screen.queryByTestId('page-contact')).toBeNull()
+  })
+})
+
+// Don, 2026-10-05: the local-owner badge and its question belong to business
+// kinds (shop, service), never to social groups.
+describe('Locally owned is for businesses only', () => {
+  const badge = { label: 'Locally owned' } as never
+  const claim = { zip: null } as never
+  it('a social group shows neither the badge nor the question, even if handed them', () => {
+    renderShop({ shop: { ...SHOP, kind: 'interest' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
+    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
+    expect(screen.queryByText(/locally owned claim/i)).toBeNull()
+  })
+  it('a shop still shows the badge', () => {
+    renderShop({ shop: { ...SHOP, kind: 'business' }, badge, loggedIn: true })
+    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
+  })
+  it('a service too', () => {
+    renderShop({ shop: { ...SHOP, kind: 'practice' }, badge, loggedIn: true })
+    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
   })
 })

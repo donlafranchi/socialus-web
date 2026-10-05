@@ -33,6 +33,7 @@ import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput, EditPageResult } from './actions'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { HoursEditor } from '@/components/group/HoursEditor'
+import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { formatUsPhone } from '@/lib/phone'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { PageContact } from '@/lib/groups/page-contact'
@@ -53,6 +54,8 @@ export function EditPageForm({
   initialSocialLinks,
   initialAddressLabel,
   initialContact = { phone: null, hours: null },
+  contactOn = true,
+  showHours = SHOW_OPENING_HOURS,
   initialTags = [],
   isDraft = false,
   onSave,
@@ -72,6 +75,11 @@ export function EditPageForm({
   initialAddressLabel: string | null
   /** #293 — the Page's business phone and opening hours. */
   initialContact?: PageContact
+  /** Don, 2026-10-04 — hours and phone are a component: on for shops and
+   *  services, off for a group until its owner adds them. */
+  contactOn?: boolean
+  /** Off by the hours flag (Don, 2026-10-05). */
+  showHours?: boolean
   /** #285 — editable any time (Don, 2026-10-01). */
   initialTags?: string[]
   /** #301 — a draft is finished here; its link follows the name until it's published. */
@@ -89,6 +97,7 @@ export function EditPageForm({
     handlesFromLinks(initialSocialLinks),
   )
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
+  const [showContact, setShowContact] = useState(contactOn)
   const [phone, setPhone] = useState(initialContact.phone ? formatUsPhone(initialContact.phone) : '')
   const [hours, setHours] = useState<OpeningHours | null>(initialContact.hours)
   const [tags, setTags] = useState<TagInputValue>({ tags: initialTags, draft: '' })
@@ -164,8 +173,8 @@ export function EditPageForm({
           description,
           photoUrl,
           socialLinks: links,
-          contactPhone: phone.trim() === '' ? null : phone.trim(),
-          openingHours: hours,
+          ...(showContact ? { contactPhone: phone.trim() === '' ? null : phone.trim(), ...(showHours ? { openingHours: hours } : {}) } : {}),
+          ...(showContact !== contactOn ? { contactComponent: showContact } : {}),
           tags: tagSet,
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
@@ -211,6 +220,15 @@ export function EditPageForm({
       </label>
 
       {/* #293 — shown to signed-in visitors only, never on the front door. */}
+      {!showContact ? (
+        <button
+          type="button"
+          onClick={() => setShowContact(true)}
+          className="flex min-h-tap items-center self-start text-sm font-medium text-[var(--color-accent)] underline"
+        >
+          {showHours ? 'Add business hours and phone' : 'Add a business phone'}
+        </button>
+      ) : (
       <section data-testid="edit-contact" className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-[var(--color-fg)]">Contact</h2>
         <label className="block">
@@ -229,8 +247,9 @@ export function EditPageForm({
             Optional. Signed-in visitors can tap to call. This is not the phone you signed up with.
           </span>
         </label>
-        <HoursEditor value={hours} onChange={setHours} />
+        {showHours && <HoursEditor value={hours} onChange={setHours} />}
       </section>
+      )}
       <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />
 
       {/* Where the Page is. Editable — this is the thing an owner moves. */}

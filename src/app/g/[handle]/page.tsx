@@ -60,6 +60,7 @@ export default async function PageAtCanonicalAddress({ params }: Props) {
       withheldPosts={view.withheldPosts}
       followerCount={view.followerCount}
       draftTagCount={view.draftTagCount}
+      tags={view.tags}
       contact={view.contact}
       pagePath={canonicalPagePath(shop.slug, shop.publicId)}
     />
