@@ -30,7 +30,12 @@ test.describe('F059 — list and map by width', () => {
     await expect(page.getByTestId('card-grid')).toBeVisible()
     const map = page.getByTestId('browse-map-pane')
     await expect(map).toBeVisible()
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+    // To the last card, not the page end: past it the footer (#296) rightly
+    // carries the split row, map and all, up with it.
+    await page.evaluate(() => {
+      const grid = document.querySelector('[data-testid="card-grid"]')!
+      window.scrollTo(0, grid.getBoundingClientRect().bottom + window.scrollY - window.innerHeight)
+    })
     await page.waitForTimeout(300)
     const box = await map.boundingBox()
     expect(box!.y).toBeGreaterThanOrEqual(0)

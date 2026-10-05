@@ -32,6 +32,10 @@ import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { EditPageInput, EditPageResult } from './actions'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
+import { HoursEditor } from '@/components/group/HoursEditor'
+import { formatUsPhone } from '@/lib/phone'
+import type { OpeningHours } from '@/lib/groups/opening-hours'
+import type { PageContact } from '@/lib/groups/page-contact'
 import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
 import { isValidTagLabel } from '@/lib/groups/tags'
 
@@ -47,6 +51,7 @@ export function EditPageForm({
   initialPhotoUrl,
   initialSocialLinks,
   initialAddressLabel,
+  initialContact = { phone: null, hours: null },
   initialTags = [],
   onSave,
   onCreateLocation = createLocationAction,
@@ -63,6 +68,8 @@ export function EditPageForm({
    *  owner never chose one — a different fact from "online", and saying
    *  online would be a claim they never made. */
   initialAddressLabel: string | null
+  /** #293 — the Page's business phone and opening hours. */
+  initialContact?: PageContact
   /** #285 — editable any time (Don, 2026-10-01). */
   initialTags?: string[]
   onSave: (input: EditPageInput) => Promise<EditPageResult>
@@ -78,6 +85,8 @@ export function EditPageForm({
     handlesFromLinks(initialSocialLinks),
   )
   const [photoUrl, setPhotoUrl] = useState<string | null>(initialPhotoUrl)
+  const [phone, setPhone] = useState(initialContact.phone ? formatUsPhone(initialContact.phone) : '')
+  const [hours, setHours] = useState<OpeningHours | null>(initialContact.hours)
   const [tags, setTags] = useState<TagInputValue>({ tags: initialTags, draft: '' })
   // Closed until asked for. An address the owner is not changing should not
   // look like one they have to re-enter.
@@ -86,7 +95,7 @@ export function EditPageForm({
   const [error, setError] = useState<string | null>(null)
   // #276 — what was last saved, so Done and leaving the page can tell a
   // change from none. Moves on every successful save.
-  const current = JSON.stringify({ name, description, handles, photoUrl, tags: tags.tags })
+  const current = JSON.stringify({ name, description, handles, photoUrl, phone, hours, tags: tags.tags })
   const [savedState, setSavedState] = useState(current)
   const unsaved = current !== savedState || changingAddress
   const [askingToLeave, setAskingToLeave] = useState(false)
@@ -151,6 +160,8 @@ export function EditPageForm({
           description,
           photoUrl,
           socialLinks: links,
+          contactPhone: phone.trim() === '' ? null : phone.trim(),
+          openingHours: hours,
           tags: tagSet,
           ...(anchorLocationId ? { anchorLocationId } : {}),
         })
@@ -195,6 +206,27 @@ export function EditPageForm({
         />
       </label>
 
+      {/* #293 — shown to signed-in visitors only, never on the front door. */}
+      <section data-testid="edit-contact" className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-[var(--color-fg)]">Contact</h2>
+        <label className="block">
+          <span className="text-sm font-medium text-[var(--color-fg)]">Business phone</span>
+          <input
+            type="tel"
+            inputMode="tel"
+            autoComplete="off"
+            className="input mt-1 w-full"
+            data-testid="edit-phone"
+            placeholder="(916) 555-0142"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <span className="mt-1 block text-xs text-[var(--color-fg-muted)]">
+            Optional. Signed-in visitors can tap to call. This is not the phone you signed up with.
+          </span>
+        </label>
+        <HoursEditor value={hours} onChange={setHours} />
+      </section>
       <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />
 
       {/* Where the Page is. Editable — this is the thing an owner moves. */}
@@ -208,7 +240,7 @@ export function EditPageForm({
             <button
               type="button"
               data-testid="edit-address-change"
-              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() => setChangingAddress(true)}
             >
               {initialAddressLabel ? 'Change it' : 'Add one'}
@@ -220,7 +252,7 @@ export function EditPageForm({
             <button
               type="button"
               data-testid="edit-address-cancel"
-              className="mt-1 flex min-h-[44px] items-center text-sm text-[var(--color-accent)] underline"
+              className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
               onClick={() => {
                 setChangingAddress(false)
                 setPlace(initialLocationPlaceFieldsState)

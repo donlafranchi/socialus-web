@@ -6,6 +6,9 @@
 // it stays unit-testable. The client islands are <FollowPageButton> and
 // <ReportControl>.
 
+import { TagChips } from '@/components/tags/TagChips'
+import { PageContactBlock } from './PageContactBlock'
+import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { FollowPageButton } from './FollowPageButton'
@@ -46,6 +49,10 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** #316 — the Page's tags; empty signed out. */
+  tags?: string[]
+  /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
+  contact?: PageContact | null
 }
 
 export function ShopPublicPage({
@@ -58,6 +65,8 @@ export function ShopPublicPage({
   pagePath,
   viewerFollows = false,
   posts = [],
+  tags = [],
+  contact = null,
   withheldPosts = [],
   followerCount = 0,
 }: Props) {
@@ -113,7 +122,9 @@ export function ShopPublicPage({
 
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
-          {/* #267 — not on your own Page. */}
+          {loggedIn && contact && <PageContactBlock contact={contact} />}
+
+        {/* #267 — not on your own Page. */}
           {!viewerOwnsPage && (
             <div className="ml-auto">
               <ReportControl
@@ -173,11 +184,6 @@ export function ShopPublicPage({
           </div>
         )}
 
-        {/* T159 — no category is shown. Categories are retired (tags are the
-            only vocabulary), and tags are NOT displayed here yet: a public
-            tag is member-contributed content other members see, which rule 1
-            bars from production until report-and-takedown exists (#13). */}
-
         {/* T143 — where this Page currently resolves to, shown to every
             viewer including the owner. Resolved at read time (see
             resolvePagePlacements); nothing here is stored on the Page. */}
@@ -190,6 +196,10 @@ export function ShopPublicPage({
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
+
+        {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
+            moderated after they appear (#287). */}
+        {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
 
         {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
             URL on read: this renders straight into href, and a row written

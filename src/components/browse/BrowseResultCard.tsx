@@ -9,6 +9,7 @@
 // it is, and an undated post is a first-class post rather than a degraded
 // event — it simply has no date line.
 
+import { TagChips } from '@/components/tags/TagChips'
 import { TileCard } from '@/components/cards'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen, formatPostedDate } from '@/lib/metro/metro-time'
@@ -63,18 +64,24 @@ export function BrowseResultCard({
       })}
       href={result.href}
       action={
-        isPost ? (
-          // #256 (F072 criterion 3): when it happens leads, large; an
-          // undated announcement says when it was posted, small.
-          result.startsAt ? (
-            <span data-testid="browse-post-when" className="text-lg font-semibold text-[var(--color-fg)]">
-              {formatCardWhen(result.startsAt, undefined, undefined, result.endsAt)}
-            </span>
-          ) : (
-            <span data-testid="browse-post-when" className="text-xs text-[var(--color-fg-muted)]">
-              {result.postedAt ? formatPostedDate(result.postedAt) : null}
-            </span>
-          )
+        isPost || result.tags.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {isPost &&
+              // #256 (F072 criterion 3): when it happens leads, large; an
+              // undated announcement says when it was posted, small.
+              (result.startsAt ? (
+                <span data-testid="browse-post-when" className="text-lg font-semibold text-[var(--color-fg)]">
+                  {formatCardWhen(result.startsAt, undefined, undefined, result.endsAt)}
+                </span>
+              ) : (
+                <span data-testid="browse-post-when" className="text-xs text-[var(--color-fg-muted)]">
+                  {result.postedAt ? formatPostedDate(result.postedAt) : null}
+                </span>
+              ))}
+            {/* #316 — outside the card's link: a chip is its own link. Signed
+                out, tags are never sent (F093), so there are none. */}
+            <TagChips tags={result.tags} />
+          </div>
         ) : null
       }
     />

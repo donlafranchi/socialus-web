@@ -12,6 +12,17 @@ export const COPY = {
   withheldCta: "Sign up to see what's happening",
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
+  // F081 criterion 5 — what the app is for, on the signup screen. Don's words, ruled 2026-10-01.
+  signupLine:
+    'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
+  // F081 — the text-message code at signup (2026-10-01). Placeholders ([public-is-draft]).
+  phoneTitle: 'Verify your phone',
+  phoneWhy: "Everyone here is a real person. We'll text you a code to check. Your number is never shown to anyone.",
+  phoneInvalid: 'Enter a US phone number, like (916) 555-0134.',
+  phoneSendFailed: "We couldn't send a code to that number. Check it and try again.",
+  phoneCodeTitle: 'Enter your code',
+  phoneCodeSent: 'We texted you a 6-digit code.',
+  phoneCodeWrong: "That code didn't match. Check it, or send a new one.",
   // F091 — Don's stem, 2026-09-19; each row completes it. The ellipsis is his.
   happeningStem: 'What’s happening…',
   happeningToday: 'today',

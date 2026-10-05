@@ -44,6 +44,43 @@ is evidence about the seed. Full note, including why the seeds stay:
 
 A PR whose behavior differs from the cited scenario's Acceptance stops and asks for a scenario change first — in `socialus-plan`, not here. Don't quietly ship a different behavior than what was approved.
 
+## DECISION RULE (effective now)
+
+1. Look first: what established platforms do for this exact case (2–3 named precedents with links).
+2. Choose the most relevant and elegant option.
+3. Well-worn path: decide and build yourself; label "Path: well-worn" with the precedents; no PM review needed.
+4. New territory (no clear path, conflicting precedents, or it touches a ruling, legal or privacy exposure, money, or member trust): label "Path: new territory" and bring A/B/C with a recommendation to dispatch, before building.
+5. If unsure, say which in one line and lean toward deciding.
+
+Well-worn UI work merges once green and reviewed, without needs-don.
+
+## BUILD RULES (effective now)
+
+Docker
+- Use Docker Desktop only. Never launch, install or depend on OrbStack.
+- Before any build run, confirm `docker context ls` shows desktop-linux as active; if not, run `docker context use desktop-linux`.
+- Run local Supabase on Docker Desktop and re-test migrations from scratch as usual.
+- If any docker command opens OrbStack or errors, stop and tell Don; don't work around it.
+
+Build concurrency
+- Max 2 changes building or testing at once.
+- Every Playwright run uses `--workers=2`.
+- Each change gets its own dev server port, and the server is shut down when the change finishes.
+- Close all headless browsers when a run ends; never leave them open between runs.
+
+Persona reviews
+- Run personas one after another as a background queue, never all at once.
+- Run at most 1 build change alongside the queue.
+- Share one dev server and one browser across all personas, with a separate session per persona.
+- Report each persona's findings as it finishes rather than waiting for all five.
+
+Parallelism rule
+- Parallelize work that waits on the network or the model.
+- Serialize work that drives browsers or builds.
+
+Flag to Don
+- If any rule would slow a deadline, say which one and why before breaking it.
+
 ## Commits
 
 Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when Don looks: § Who checks what, above. Never rewrite history. Never cross-commit with `socialus-plan` or `ops-pattern`.

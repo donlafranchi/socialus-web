@@ -2,12 +2,13 @@
   Keep exactly ONE of the two blocks below. Delete the other. It goes first,
   before anything else — Don reads the top of the PR and nothing more.
 
-  Which one? He looks when the change:
-    · alters anything a person sees or does — screen, control, copy, image, empty state
-    · adds a capability for the first time, rather than extending one that exists
-    · touches privacy, money, or public visibility
-    · has an acceptance criterion with a judgment word — clear, easy, minimal fumbling
-    · came back with a deviation, or a judgment call you had to make for him
+  Which one? (Don's decision rule, 2026-10-04.) He looks at:
+    · Path: new territory — no well-worn path, conflicting precedents, or it
+      touches a ruling, legal or privacy exposure, money, or member trust
+      (it reached him as A/B/C before building)
+    · new or changed user-facing copy, for tone
+    · a deviation, or an acceptance criterion with a judgment word
+  Path: well-worn work that passed the reviewer's first pass: he doesn't look.
 
   He does not look at: invisible migrations, tests, refactors, docs,
   infrastructure, dependency bumps.
@@ -47,6 +48,9 @@
      Can't describe it that way? Say so here and keep the label. That's a
      signal it needs his eyes more, not less.
 ──────────────────────────────────────────────────────────────────────────── -->
+
+Path: well-worn | new territory
+<!-- Keep one. List 2–3 precedents with links: what established platforms do for this exact case. issue-lint fails a PR without this line. -->
 
 ---
 

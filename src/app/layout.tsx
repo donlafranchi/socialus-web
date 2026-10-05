@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
+import { SiteFooter } from "@/components/shell/SiteFooter"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -50,8 +51,12 @@ export default function RootLayout({
     >
       <body className="h-full font-sans">
         <NavVisibilityProvider>
-          <TopNavDesktop />
-          {children}
+          <div className="flex min-h-full flex-col">
+            <TopNavDesktop />
+            {/* #296 — content stops growing at 1680 and centres above it. */}
+            <div className="mx-auto w-full max-w-shell flex-1">{children}</div>
+            <SiteFooter />
+          </div>
           <BottomNav />
         </NavVisibilityProvider>
       </body>
