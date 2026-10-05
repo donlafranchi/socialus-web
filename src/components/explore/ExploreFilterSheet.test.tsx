@@ -56,8 +56,8 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
 
   it('offers the tags as a multi-select, labelled as the creator typed them', () => {
     renderSheet()
-    expect(within(sheet()).getByRole('checkbox', { name: 'local food' })).toBeInTheDocument()
-    expect(within(sheet()).getByRole('checkbox', { name: 'repair' })).toBeInTheDocument()
+    expect(within(sheet()).getByRole('checkbox', { name: '#localfood' })).toBeInTheDocument()
+    expect(within(sheet()).getByRole('checkbox', { name: '#repair' })).toBeInTheDocument()
   })
 
   it('offers no distance control — there is no honest point to measure from', () => {
@@ -91,7 +91,7 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
     const value: BrowseFilters = { schedule: 'weekend', tags: ['repair'] }
     renderSheet({ value })
     expect(within(sheet()).getByRole('radio', { name: 'This weekend' })).toBeChecked()
-    expect(within(sheet()).getByRole('checkbox', { name: 'repair' })).toBeChecked()
+    expect(within(sheet()).getByRole('checkbox', { name: '#repair' })).toBeChecked()
   })
 })
 
@@ -123,8 +123,8 @@ describe('T115 — applying and clearing', () => {
 
   it('multi-selects tags', () => {
     renderSheet()
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'local food' }))
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'repair' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: '#localfood' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: '#repair' }))
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
     expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, tags: ['local food', 'repair'] })
   })
@@ -232,7 +232,7 @@ describe('T115 — review fixes', () => {
     // A search can drop a tag from the options while it stays selected; the
     // sheet must remain able to turn it off.
     renderSheet({ tags: ['local food'], value: { ...DEFAULT_BROWSE_FILTERS, tags: ['repair'] } })
-    const repair = within(sheet()).getByRole('checkbox', { name: 'repair' })
+    const repair = within(sheet()).getByRole('checkbox', { name: '#repair' })
     expect(repair).toBeChecked()
     fireEvent.click(repair)
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
