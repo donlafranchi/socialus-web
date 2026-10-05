@@ -36,7 +36,9 @@ export type PageKey = 'business' | 'place' | 'interest' | 'practice' | 'event' |
 
 export interface SeededPage {
   key: PageKey
+  /** #363 — the type, business or group; `key` keeps the old kind as the Page's flavour. */
   kind: string
+  useCase: string
   slug: string
   publicId: string
   name: string
@@ -72,12 +74,12 @@ export const PERSONAS: Persona[] = [
 ]
 
 export const PAGES: SeededPage[] = [
-  { key: 'business', kind: 'business', slug: 'qa-corner-bakery', publicId: 'qa0b01', name: 'QA Corner Bakery', private: false, locationSlug: 'qa-corner-bakery-shop' },
-  { key: 'place', kind: 'place', slug: 'qa-oak-park-commons', publicId: 'qa0p01', name: 'QA Oak Park Commons', private: false, locationSlug: 'qa-oak-park-commons-green' },
-  { key: 'interest', kind: 'interest', slug: 'qa-river-run-club', publicId: 'qa0n01', name: 'QA River Run Club', private: false, locationSlug: 'qa-river-run-club-start' },
-  { key: 'practice', kind: 'practice', slug: 'qa-pottery-studio', publicId: 'qa0r01', name: 'QA Pottery Studio', private: false, locationSlug: 'qa-pottery-studio-room' },
-  { key: 'event', kind: 'event_anchored', slug: 'qa-street-fair', publicId: 'qa0e01', name: 'QA Street Fair', private: false, locationSlug: 'qa-street-fair-block' },
-  { key: 'family', kind: 'family', slug: 'qa-family', publicId: 'qa0f01', name: 'QA Family', private: true, locationSlug: 'qa-family-home' },
+  { key: 'business', kind: 'business', useCase: 'selling', slug: 'qa-corner-bakery', publicId: 'qa0b01', name: 'QA Corner Bakery', private: false, locationSlug: 'qa-corner-bakery-shop' },
+  { key: 'place', kind: 'group', useCase: 'gathering', slug: 'qa-oak-park-commons', publicId: 'qa0p01', name: 'QA Oak Park Commons', private: false, locationSlug: 'qa-oak-park-commons-green' },
+  { key: 'interest', kind: 'group', useCase: 'gathering', slug: 'qa-river-run-club', publicId: 'qa0n01', name: 'QA River Run Club', private: false, locationSlug: 'qa-river-run-club-start' },
+  { key: 'practice', kind: 'group', useCase: 'gathering', slug: 'qa-pottery-studio', publicId: 'qa0r01', name: 'QA Pottery Studio', private: false, locationSlug: 'qa-pottery-studio-room' },
+  { key: 'event', kind: 'group', useCase: 'testing_interest', slug: 'qa-street-fair', publicId: 'qa0e01', name: 'QA Street Fair', private: false, locationSlug: 'qa-street-fair-block' },
+  { key: 'family', kind: 'group', useCase: 'gathering', slug: 'qa-family', publicId: 'qa0f01', name: 'QA Family', private: true, locationSlug: 'qa-family-home' },
 ]
 
 export const pageHandle = (page: SeededPage) => `${page.slug}-${page.publicId}`

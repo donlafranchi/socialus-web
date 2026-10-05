@@ -100,7 +100,7 @@ beforeAll(async () => {
     ).rows[0].id
     await client.query(
       `insert into public.groups (id, kind, name, slug, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-       values ($1,'interest',$3,$4,'Here.','active','listed',$2,$5)`,
+       values ($1,'group',$3,$4,'Here.','active','listed',$2,$5)`,
       [page, founder, name, name.toLowerCase().replace(/ /g, '-'), loc],
     )
     await client.query(

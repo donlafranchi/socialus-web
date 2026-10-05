@@ -105,7 +105,7 @@ describe('group.activate — what publishing needs', () => {
   })
 
   it('refuses a Page with no tags, saved or given, for every kind', async () => {
-    for (const kind of ['business', 'interest', 'practice']) {
+    for (const kind of ['business', 'group']) {
       installQueryRouter({ kind, savedTags: 0 })
       await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/tag/i)
       expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
@@ -119,7 +119,7 @@ describe('group.activate — what publishing needs', () => {
   })
 
   it('refuses a Page with no description, for every kind', async () => {
-    for (const kind of ['business', 'interest', 'practice']) {
+    for (const kind of ['business', 'group']) {
       installQueryRouter({ kind, description: '   ' })
       await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/description/i)
       expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
@@ -127,7 +127,7 @@ describe('group.activate — what publishing needs', () => {
   })
 
   it('refuses a Page with no location, for every kind', async () => {
-    for (const kind of ['business', 'interest', 'practice']) {
+    for (const kind of ['business', 'group']) {
       installQueryRouter({ kind, hasAnchor: false })
       await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/anchor|where/i)
       expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
@@ -136,7 +136,7 @@ describe('group.activate — what publishing needs', () => {
 
   it('refuses a Page still carrying the placeholder name', async () => {
     const { DRAFT_NAME_PLACEHOLDER } = await import('./constants')
-    installQueryRouter({ kind: 'interest', name: DRAFT_NAME_PLACEHOLDER })
+    installQueryRouter({ kind: 'group', name: DRAFT_NAME_PLACEHOLDER })
     await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow()
   })
 })

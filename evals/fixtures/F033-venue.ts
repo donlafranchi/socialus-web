@@ -357,7 +357,7 @@ async function ensureInterestGroup(opts: {
     const id = randomUUID()
     const { error } = await sb.from('groups').insert({
       id,
-      kind: 'interest',
+      kind: 'group',
       founder_member_id: opts.founderMemberId,
       name: opts.name,
       slug: opts.slug,

@@ -26,25 +26,12 @@ export interface KindControls {
   hasSocialLinks: boolean
 }
 
-// Source of truth: ops-pattern `product/systems/page-kind-tools.md` § The
-// mapping. That table is ratified and this mirrors it — it does not decide.
-//
-// CORRECTION (2026-09-17): the first version of this file had `interest` and
-// `practice` carrying no address, which contradicts that table's Location
-// anchor row (● for place, interest, practice, event_anchored, business; ✕ for
-// family only). A run club meets somewhere. Fixed here.
-//
-// `family` is the community set with privacy on — "one BEFORE INSERT trigger
-// defaulting it to private". Every tool it loses, it loses because nobody
-// outside can see it, not because a family cannot do it. That is why it is the
-// single ✕ on both rows below.
+// #363 — two types (ruled 2026-10-05). The family kind that carried no address
+// is now a private group; privacy, not type, keeps a Page off the map
+// (useMapPages reads listed Pages only).
 const CONTROLS: Record<GroupKind, KindControls> = {
   business: { hasAddress: true, appearsOnMap: true, hasSocialLinks: true },
-  place: { hasAddress: true, appearsOnMap: true, hasSocialLinks: true },
-  interest: { hasAddress: true, appearsOnMap: true, hasSocialLinks: true },
-  practice: { hasAddress: true, appearsOnMap: true, hasSocialLinks: true },
-  event_anchored: { hasAddress: true, appearsOnMap: true, hasSocialLinks: true },
-  family: { hasAddress: false, appearsOnMap: false, hasSocialLinks: false },
+  group: { hasAddress: true, appearsOnMap: true, hasSocialLinks: true },
 }
 
 const WITHOUT_PREMISES: KindControls = {

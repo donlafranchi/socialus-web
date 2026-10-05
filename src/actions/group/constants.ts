@@ -1,16 +1,8 @@
 // T070 — Shared constants for group action handlers.
-// Single source of truth for the group-kind enum + the draft-name placeholder
-// referenced by create.ts and activate.ts. Schema source is migration 014_groups
-// (groups.kind CHECK); keep this list in sync if the schema gains a kind.
+// #363 — the two types (ruled 2026-10-05); schema source is groups.kind's CHECK
+// in 20261004130000_page_types. Use cases are presets: page-kind.ts.
 
-export const GROUP_KINDS = [
-  'place',
-  'interest',
-  'practice',
-  'event_anchored',
-  'family',
-  'business',
-] as const
+export const GROUP_KINDS = ['business', 'group'] as const
 
 export type GroupKind = (typeof GROUP_KINDS)[number]
 

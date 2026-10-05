@@ -98,9 +98,9 @@ beforeAll(async () => {
   )
   await client.query(
     `insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-     values ($1,'interest','B246 Run Club','b246-run-club','active','listed',$2,$3),
+     values ($1,'group','B246 Run Club','b246-run-club','active','listed',$2,$3),
             ($4,'business','B246 Bakery','b246-bakery','active','listed',$5,null),
-            ($6,'interest','B246 Family','b246-family','active','private',$2,null)`,
+            ($6,'group','B246 Family','b246-family','active','private',$2,null)`,
     [GROUP, RUNNER, LOCATION, SHOP, SELLER, PRIV],
   )
   await client.query(`update public.groups set discoverability = 'private' where id = $1`, [PRIV])

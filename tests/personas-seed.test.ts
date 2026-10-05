@@ -15,9 +15,8 @@ describe('the persona seed', () => {
     expect(PERSONAS.map((p) => p.key)).toEqual(
       expect.arrayContaining(['signedOut', 'stranger', 'follower', 'member', 'applicant', 'rsvp', 'operator']),
     )
-    expect(new Set(PAGES.map((p) => p.kind))).toEqual(
-      new Set(['business', 'place', 'interest', 'practice', 'event_anchored', 'family']),
-    )
+    expect(new Set(PAGES.map((p) => p.kind))).toEqual(new Set(['business', 'group']))
+    expect(new Set(PAGES.map((p) => p.useCase))).toEqual(new Set(['selling', 'gathering', 'testing_interest']))
     for (const pg of PAGES) expect(PERSONAS.some((p) => p.owns === pg.key), pg.key).toBe(true)
   })
 

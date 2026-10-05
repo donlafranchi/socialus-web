@@ -38,8 +38,8 @@ import { appendEvent } from '../_lib/event-log'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import type { ActionContext } from '../_lib/context'
-import { applyKindChange } from './change-kind'
-import { PAGE_KINDS, type PageKind } from '../../lib/groups/page-kind'
+import { applyTypeChange } from './change-kind'
+import { PAGE_KINDS, ALL_USE_CASES, type PageKind, type UseCase } from '../../lib/groups/page-kind'
 
 export const groupUpdateInput = z.object({
   groupId: z.string().uuid(),
@@ -59,8 +59,11 @@ export const groupUpdateInput = z.object({
   // Don, 2026-10-04 — hours and phone as a component: on by default for
   // shops and services, off for groups until the owner adds them.
   contactComponent: z.boolean().optional(),
+  // #363 — Products & services, on by default for a business; any Page may add it.
+  productsComponent: z.boolean().optional(),
   // Page kinds (dispatch, 2026-10-05): changeable in settings.
   pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
+  useCase: z.enum(ALL_USE_CASES as [UseCase, ...UseCase[]]).optional(),
 })
 export type GroupUpdateInput = z.infer<typeof groupUpdateInput>
 
@@ -89,9 +92,10 @@ export const groupUpdate = defineHandler(
       const groupRes = await client.query<{
         id: string
         kind: string
+        use_case: string | null
         lifecycle_state: string
       }>(
-        `select id, kind, lifecycle_state
+        `select id, kind, use_case, lifecycle_state
            from public.groups
           where id = $1
           for update`,
@@ -205,7 +209,10 @@ export const groupUpdate = defineHandler(
         patched.push('tags')
       }
 
-      if (input.pageKind !== undefined && (await applyKindChange(client, input.groupId, row.kind, input.pageKind))) {
+      if (
+        (input.pageKind !== undefined || input.useCase !== undefined) &&
+        (await applyTypeChange(client, input.groupId, { kind: row.kind, useCase: row.use_case }, { kind: input.pageKind, useCase: input.useCase }))
+      ) {
         patched.push('kind')
       }
 
@@ -216,6 +223,17 @@ export const groupUpdate = defineHandler(
                     coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('contact', $2::boolean))
             where id = $1`,
           [input.groupId, input.contactComponent],
+        )
+        patched.push('components')
+      }
+
+      if (input.productsComponent !== undefined) {
+        await client.query(
+          `update public.groups
+              set metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{components}',
+                    coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('products', $2::boolean))
+            where id = $1`,
+          [input.groupId, input.productsComponent],
         )
         patched.push('components')
       }

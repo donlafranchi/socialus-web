@@ -184,11 +184,11 @@ test.describe("Phase 1 — Items (T056)", () => {
         const { data: g } = await admin
           .from("groups")
           .insert({
-            kind: "family",
+            kind: "group",
             name: "Private",
             slug: `priv-it-${ownerId.slice(0, 6)}`,
             founder_member_id: ownerId,
-            discoverability: null,
+            discoverability: "private",
           })
           .select("id")
           .single();
@@ -440,7 +440,7 @@ test.describe("Phase 1 — Items (T056)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "event_anchored",
+          kind: "group",
           name: "EvtA",
           slug: `evta-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -468,7 +468,7 @@ test.describe("Phase 1 — Items (T056)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "event_anchored",
+          kind: "group",
           name: "EvtB",
           slug: `evtb-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
