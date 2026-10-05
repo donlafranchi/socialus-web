@@ -18,7 +18,7 @@
   work waiting on a review he cannot give. "Don, please look" means hold:
   he previews it and merges himself, or tells you to merge.
 
-  Full rule: ops-pattern/PIPELINE.md § Who checks what.
+  Full rule: ops-pattern/process/PIPELINE.md § Who checks what.
 -->
 
 ## Don doesn't need to look.

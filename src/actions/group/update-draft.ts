@@ -20,6 +20,7 @@ import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/erro
 import { withTransaction } from '../_lib/db'
 import { toSlug } from '../../lib/slugify'
 import { managingRoleForKind, type GroupKind } from './constants'
+import { whereInput, applyWhere, type WhereClause } from './where'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import type { ActionContext } from '../_lib/context'
@@ -77,7 +78,7 @@ export const groupUpdateDraftInput = z.object({
     })
     .optional(),
   useCase: z.enum(ALL_USE_CASES as [UseCase, ...UseCase[]]).optional(),
-})
+}).merge(whereInput)
 
 export type GroupUpdateDraftInput = z.infer<typeof groupUpdateDraftInput>
 
@@ -97,6 +98,7 @@ type GroupSpineSetClause =
   | 'anchor_location_id = $'
   | 'photo_url = $'
   | 'social_links = $'
+  | WhereClause
 type GroupBusinessSetClause =
   | 'display_name = $'
   | 'public_description = $'
@@ -212,6 +214,9 @@ export const groupUpdateDraft = defineHandler(
         spineFragments.push({ clause: 'social_links = $', value: JSON.stringify(links) })
         patched.push('social_links')
       }
+
+      // #348 — where it is: the answer, its notes, the towns served.
+      await applyWhere(client, input.groupId, input, spineFragments, patched)
 
       if (spineFragments.length > 0) {
         const setSql = spineFragments

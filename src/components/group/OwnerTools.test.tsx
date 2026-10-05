@@ -1,3 +1,4 @@
+import { emptyWhere } from '@/components/locations/WhereFields'
 // #369 — the owner's tools (owner-page-spec, dispatch 2026-10-05): the Page as
 // people see it, then Tell people, People, Add to your Page, Settings. A bar
 // with sheets under 1280; a panel from 1280.
@@ -12,7 +13,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {} }) }))
 const EDITOR = {
   groupId: 'g1', pagePath: '/g/x', memberId: 'm1', name: 'N', description: '', photoUrl: null,
-  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, useCase: 'selling' as const, productsOn: true, badges: {},
+  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, useCase: 'selling' as const, productsOn: true, badges: {}, where: emptyWhere,
 }
 const withEditor = (ui: ReactNode) =>
   render(<PageEditorProvider initial={EDITOR} onSave={async () => ({ ok: true })}>{ui}</PageEditorProvider>)

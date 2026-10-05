@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { usePageEditor, type Section } from '@/components/group/edit/PageEditor'
 
 // #302 — the checklist opens the section's own sheet, in place.
-const SECTION_FOR: Record<string, Section> = { name: 'about', where: 'where', description: 'about', tags: 'tags', photo: 'photo' }
+const SECTION_FOR: Record<string, Section> = { name: 'name', where: 'where', description: 'description', tags: 'tags', photo: 'photo' }
 
 function AddOrChange({ editPath, section, children }: { editPath: string; section: Section; children: React.ReactNode }) {
   const ctx = usePageEditor()

@@ -41,6 +41,9 @@ const body = z.string().trim().min(1).max(5000)
  *  different acts: not mentioning the time is not the same as taking it off. */
 const startsAt = z.string().datetime({ offset: true }).nullable().optional()
 const locationId = z.string().uuid().nullable().optional()
+/** #348 — an event's own meet spot, beside its place: one line. */
+const howToFind = z.string().max(140).nullable().optional()
+const note = (v: string | null | undefined) => (v == null || v.trim() === '' ? null : v.trim())
 /** #262 — optional, only beside a start, and after it. The column's check
  *  enforces the same, so an edit that clears the start cannot strand an end. */
 const endsAt = z.string().datetime({ offset: true }).nullable().optional()
@@ -56,6 +59,7 @@ export const groupPostCreateInput = z
     startsAt,
     endsAt,
     locationId,
+    howToFind,
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -66,6 +70,7 @@ export const groupPostEditInput = z.object({
   startsAt,
   endsAt,
   locationId,
+  howToFind,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 
@@ -87,7 +92,7 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $'
+type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $' | 'how_to_find = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
@@ -145,8 +150,8 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9)
          returning id, created_at`,
         [
           input.groupId,
@@ -160,6 +165,7 @@ export const groupPostCreate = defineHandler(
           'listed',
           ctx.now(),
           input.endsAt ?? null,
+          note(input.howToFind),
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -214,6 +220,9 @@ export const groupPostEdit = defineHandler(
       }
       if (input.locationId !== undefined) {
         patch.push({ clause: 'location_id = $', value: input.locationId })
+      }
+      if (input.howToFind !== undefined) {
+        patch.push({ clause: 'how_to_find = $', value: note(input.howToFind) })
       }
       for (const f of patch) {
         params.push(f.value)

@@ -879,7 +879,7 @@ _11 strings across 7 files._
 
 ### 1. There is already a style guide. Nothing follows it.
 
-`ops-pattern/product/foundation/role-language.md` is a ratified copy discipline
+`socialus-plan/product/foundation/role-language.md` is a ratified copy discipline
 with **seven numbered rules and worked examples of the exact copy**. It is not a
 sketch — it specifies sign-up copy, the create prompt, gathering responses,
 empty states, and profile headers, and explains why each. It ends: *"this is a
