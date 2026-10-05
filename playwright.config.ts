@@ -16,7 +16,9 @@ const QUARANTINED = QUARANTINE.length ? new RegExp(QUARANTINE.map((q) => escape(
 //   screens        the screenshot matrix, as every persona (needs setup)
 //   guard          one spec that MUST fail; CI stops if it passes
 const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3000)
-const BASE_URL = `http://localhost:${PORT}`
+// #346 — the daily builder run points at the live app and starts no server.
+const EXTERNAL = process.env.BUILDERS_BASE_URL
+const BASE_URL = EXTERNAL ?? `http://localhost:${PORT}`
 
 export default defineConfig({
   testDir: './evals',
@@ -35,7 +37,7 @@ export default defineConfig({
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
-      testIgnore: [/screens\//, /_guard\//],
+      testIgnore: [/screens\//, /_guard\//, /builders\//],
       grepInvert: QUARANTINED,
     },
     {
@@ -47,8 +49,16 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     { name: 'guard', testMatch: /_guard\/must-fail\.spec\.ts/, retries: 0 },
+    {
+      // #346 — builder journeys, one kind at a time, at phone width (the storyboard).
+      name: 'builders',
+      testMatch: /builders\/journey\.spec\.ts/,
+      fullyParallel: false,
+      retries: 0,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, actionTimeout: 15_000, navigationTimeout: 30_000 },
+    },
   ],
-  webServer: {
+  webServer: EXTERNAL ? undefined : {
     // CI serves a production build; locally the dev server is reused.
     command: process.env.PLAYWRIGHT_WEB_COMMAND ?? 'npm run dev',
     url: BASE_URL,
