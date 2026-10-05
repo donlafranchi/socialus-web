@@ -34,7 +34,7 @@ describe('the noun that replaces "shop"', () => {
   })
 })
 
-describe('voice.md mechanics', () => {
+describe('voice-and-tone.md mechanics', () => {
   const strings = Object.values(PURPOSE_COPY).flatMap((c) => [c.choice, c.noun])
 
   it('uses no em dash', () => {
