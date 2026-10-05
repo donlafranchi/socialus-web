@@ -17,6 +17,11 @@ alter table public.groups
   add constraint groups_unclaimed_hidden_needs_unclaimed
     check (unclaimed_hidden_at is null or unclaimed_at is not null);
 
+-- groups is granted column by column (#246). These are public: the tag and the
+-- credits are on the front door, signed in or out.
+grant select (unclaimed_at, unclaimed_hidden_at, public_info_url, photo_credit, photo_source_url)
+  on public.groups to anon, authenticated;
+
 -- Restrictive: a hidden unclaimed Page answers no member and no visitor. The
 -- operator reads it server-side, outside RLS.
 create policy groups_unclaimed_not_hidden on public.groups as restrictive for select
