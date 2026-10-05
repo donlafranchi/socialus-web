@@ -1,40 +1,50 @@
-// #363 — every Page is an organization; its two types are Business and Social
-// group, and the use cases are presets under those two (ruled 2026-10-05).
-// Stored in the existing six-value groups.kind column, where the preset lives:
-// no schema change, and the SQL that already treats "business" and "everything
-// else" differently (managing role, standing presence, items) stays right.
+// #363 — every Page is an organization; its two types are business and group,
+// and the use cases are presets under them (ruled 2026-10-05; socialus-plan
+// planning/PAGE-KINDS.md). groups.kind holds the type, groups.use_case the
+// preset. The type sets the defaults; any component can be added to any Page.
 
-export type PageKind = 'business' | 'social'
-export type StoredKind = 'business' | 'interest' | 'event_anchored' | 'place' | 'practice' | 'family'
+export type PageKind = 'business' | 'group'
+export type UseCase = 'selling' | 'service' | 'gathering' | 'testing_interest'
 
-export const PAGE_KINDS: readonly PageKind[] = ['business', 'social']
+export const PAGE_KINDS: readonly PageKind[] = ['business', 'group']
+export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', group: 'Group' }
 
-export const PAGE_KIND_LABEL: Record<PageKind, string> = { business: 'Business', social: 'Social group' }
+export const USE_CASES: Record<PageKind, UseCase[]> = {
+  business: ['selling', 'service'],
+  group: ['gathering', 'testing_interest'],
+}
+export const ALL_USE_CASES: readonly UseCase[] = [...USE_CASES.business, ...USE_CASES.group]
 
+/** Placeholder ([public-is-draft]): the second half of the kind line. */
+export const USE_CASE_LABEL: Record<UseCase, string> = {
+  selling: 'Shop',
+  service: 'Services',
+  gathering: 'Events',
+  testing_interest: 'Idea',
+}
+
+/** A stored kind from before the two types (place, interest…) reads as group. */
 export function pageKindOf(stored: string): PageKind {
-  return stored === 'business' ? 'business' : 'social'
+  return stored === 'business' ? 'business' : 'group'
 }
 
-/** The stored value for a type: a social Page keeps its preset; a business
- *  turning social starts as an interest group. */
-export function storedKindFor(kind: PageKind, current: string): StoredKind {
-  if (kind === 'business') return 'business'
-  return current === 'business' ? 'interest' : (current as StoredKind)
+export function presetOf(stored: string, useCase: string | null | undefined): UseCase {
+  const fits = USE_CASES[pageKindOf(stored)]
+  return fits.includes(useCase as UseCase) ? (useCase as UseCase) : fits[0]!
 }
 
-/** "Business · Bakery": the type, then the main collection when there is one. */
-export function kindLine(stored: string, collection: string | null | undefined): string {
-  const label = PAGE_KIND_LABEL[pageKindOf(stored)]
-  return collection?.trim() ? `${label} · ${collection.trim()}` : label
+/** "Group · Events", or "Group · Running" when the Page names its collection.
+ *  With the use case unknown (Explore's feed carries none yet), the type alone. */
+export function kindLine(stored: string, useCase: string | null | undefined, collection: string | null | undefined): string {
+  const type = PAGE_KIND_LABEL[pageKindOf(stored)]
+  const second = collection?.trim() || (useCase === undefined ? null : USE_CASE_LABEL[presetOf(stored, useCase)])
+  return second ? `${type} · ${second}` : type
 }
 
-/** What a Page leads with, and whether it lists products & services. Precedent:
- *  Meetup leads a group with Join and its next event; Google Business Profile
- *  leads a business with Call; Eventbrite leads an organizer with its events. */
-export function pageLayoutFor(stored: string): { lead: 'join' | 'contact' | 'events'; productsAndServices: boolean } {
-  if (stored === 'business') return { lead: 'contact', productsAndServices: true }
-  if (stored === 'event_anchored') return { lead: 'events', productsAndServices: false }
-  return { lead: 'join', productsAndServices: false }
+/** What a Page leads with. Precedent: Meetup leads a group with Join and its
+ *  next event; Google Business Profile leads a business with Call. */
+export function pageLayoutFor(stored: string): { lead: 'join' | 'contact' } {
+  return { lead: pageKindOf(stored) === 'business' ? 'contact' : 'join' }
 }
 
 /** Dated posts not yet over, soonest first. An undated post is not an event. */

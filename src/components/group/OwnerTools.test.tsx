@@ -12,7 +12,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {} }) }))
 const EDITOR = {
   groupId: 'g1', pagePath: '/g/x', memberId: 'm1', name: 'N', description: '', photoUrl: null,
-  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const,
+  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, kind: 'business' as const, useCase: 'selling' as const, productsOn: true,
 }
 const withEditor = (ui: ReactNode) =>
   render(<PageEditorProvider initial={EDITOR} onSave={async () => ({ ok: true })}>{ui}</PageEditorProvider>)

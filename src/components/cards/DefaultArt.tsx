@@ -10,13 +10,12 @@ export type ArtKind = 'shop' | 'service' | 'group'
 const ICON = { shop: Store, service: Wrench, group: Users } as const
 const TILE = 'bg-[var(--color-frame)] text-[var(--color-highlight-soft)]'
 
-/** A business sells; a practice serves; every other kind gathers people.
+/** #363 — a business sells or serves (its use case says which); a group gathers.
  *  Unknown (the signed-out withheld read carries no kind) draws no icon. */
-export function artKindFor(groupKind: string | null | undefined): ArtKind | null {
+export function artKindFor(groupKind: string | null | undefined, useCase?: string | null): ArtKind | null {
   if (!groupKind) return null
-  if (groupKind === 'business') return 'shop'
-  if (groupKind === 'practice') return 'service'
-  return 'group'
+  if (groupKind !== 'business') return 'group'
+  return useCase === 'service' ? 'service' : 'shop'
 }
 
 export function DefaultArt({ kind }: { kind: ArtKind | null }) {

@@ -1,36 +1,38 @@
-// #363 — two Page types (ruled 2026-10-05), stored in the existing column.
+// #363 — two types, business and group; use cases are presets under them
+// (ruled 2026-10-05; socialus-plan planning/PAGE-KINDS.md).
 import { describe, it, expect } from 'vitest'
-import { pageKindOf, storedKindFor, PAGE_KIND_LABEL, kindLine, pageLayoutFor, upcomingPosts } from './page-kind'
+import { pageKindOf, presetOf, PAGE_KIND_LABEL, USE_CASES, kindLine, pageLayoutFor, upcomingPosts } from './page-kind'
 
-describe('#363 — two types, Business and Social group; use cases are presets (ruled 2026-10-05)', () => {
-  it('reads every stored kind as one of the two', () => {
+describe('#363 — business and group, with presets', () => {
+  it('reads business as business and everything else as group', () => {
     expect(pageKindOf('business')).toBe('business')
-    for (const k of ['interest', 'place', 'practice', 'family', 'event_anchored']) expect(pageKindOf(k)).toBe('social')
+    for (const k of ['group', 'interest', 'family']) expect(pageKindOf(k)).toBe('group')
   })
-  it('a change of type keeps a social preset, and starts a new social group as interest', () => {
-    expect(storedKindFor('business', 'practice')).toBe('business')
-    expect(storedKindFor('social', 'business')).toBe('interest')
-    expect(storedKindFor('social', 'event_anchored')).toBe('event_anchored')
+  it('selling and service under business; gathering and testing interest under group', () => {
+    expect(USE_CASES).toEqual({ business: ['selling', 'service'], group: ['gathering', 'testing_interest'] })
   })
-  it('labels them plainly', () => {
-    expect(PAGE_KIND_LABEL).toEqual({ business: 'Business', social: 'Social group' })
+  it('a use case that does not fit the type falls back to its first preset', () => {
+    expect(presetOf('business', 'service')).toBe('service')
+    expect(presetOf('business', 'gathering')).toBe('selling')
+    expect(presetOf('group', null)).toBe('gathering')
   })
-  it('the kind line is kind · main collection', () => {
-    expect(kindLine('business', 'Bakery')).toBe('Business · Bakery')
-    expect(kindLine('interest', null)).toBe('Social group')
+  it('labels the types plainly', () => {
+    expect(PAGE_KIND_LABEL).toEqual({ business: 'Business', group: 'Group' })
+  })
+  it('the kind line is type · use case, or type · collection when it has one', () => {
+    expect(kindLine('group', 'gathering', null)).toBe('Group · Events')
+    expect(kindLine('business', 'service', null)).toBe('Business · Services')
+    expect(kindLine('group', 'gathering', 'Running')).toBe('Group · Running')
+    expect(kindLine('business', undefined, null)).toBe('Business')
   })
 })
 
-describe('pageLayoutFor — per-kind lead and tools (dispatch, 2026-10-05)', () => {
-  it('a social group leads with Join and its next event, and lists no products & services', () => {
-    expect(pageLayoutFor('interest')).toEqual({ lead: 'join', productsAndServices: false })
-    expect(pageLayoutFor('practice')).toEqual({ lead: 'join', productsAndServices: false })
+describe('pageLayoutFor — the type sets the defaults', () => {
+  it('a group leads with Join and its next event', () => {
+    expect(pageLayoutFor('group')).toEqual({ lead: 'join' })
   })
   it('a business leads with contact', () => {
-    expect(pageLayoutFor('business')).toEqual({ lead: 'contact', productsAndServices: true })
-  })
-  it('an organization preset leads with upcoming events', () => {
-    expect(pageLayoutFor('event_anchored')).toEqual({ lead: 'events', productsAndServices: false })
+    expect(pageLayoutFor('business')).toEqual({ lead: 'contact' })
   })
 })
 

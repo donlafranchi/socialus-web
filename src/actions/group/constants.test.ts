@@ -11,10 +11,7 @@ describe('T132 — managingRoleForKind', () => {
     expect(managingRoleForKind('business')).toBe('owner')
   })
 
-  it.each(['place', 'interest', 'practice', 'event_anchored', 'family'] as const)(
-    'is steward for a %s Group',
-    (kind) => {
-      expect(managingRoleForKind(kind)).toBe('steward')
-    },
-  )
+  it('is steward for a group', () => {
+    expect(managingRoleForKind('group')).toBe('steward')
+  })
 })

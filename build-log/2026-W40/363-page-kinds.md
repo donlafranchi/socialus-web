@@ -1,8 +1,8 @@
-# change #363 — Page types: Business or Social group
+# change #363 — Page types: business and group, use cases as presets
 
-- Ruled 2026-10-05: every Page is an organization, its two types are Business and Social group, and the use cases are presets. Stored in the existing groups.kind: business, or the social preset (interest, event_anchored, practice, place, family). No migration.
-- Create's three questions are presets: business, a group or meetup (interest), an organization that holds events (event_anchored).
-- Settings: a "Type of Page" sheet. group.update and update_draft take `pageKind`, swap the managing role (owner ↔ steward), keep a social preset, and add a group_businesses row for a new business.
-- The Page leads by preset: a business with contact; a group with Join and its next event; an organization with its upcoming events. Social groups list no Products & services.
-- The kind line ("Business · Bakery", "Social group") under the name, on the Page and on Explore cards.
-- The `kind='business'` readers (resolve-product, resolve-service, resolve-venue-items, getDraftGroup) serve business-only features; unchanged.
+- Ruled 2026-10-05: every Page is an organization; two types, business and group. The use cases from socialus-plan planning/PAGE-KINDS.md are presets: selling and service under business, gathering and testing interest under group.
+- Migration 20261004130000_page_types: groups.kind becomes business | group, and a new groups.use_case (not null, checked against the type) is added. The six stored kinds map per PAGE-KINDS.md § The six existing values: business → business/selling; place, interest, practice, event_anchored, family → group/gathering, with family's privacy kept in discoverability. The three social groups stored as businesses become groups (as #362; either order applies). The discoverability trigger fills use_case and no longer infers private from a kind.
+- The type sets the defaults: a business leads with contact and lists Products & services; a group leads with Join and its next event. Products & services is now a component any Page can turn on.
+- Create's three questions are presets (selling, gathering, testing interest). Settings: "Type of Page" picks one of the four use cases under the two types; the managing role swaps with the type.
+- Kind line: type · collection, else type · use case ("Group · Events"). Cards show the type alone until Explore's feed carries the use case.
+- Fixtures, seeds and evals move to the two types.

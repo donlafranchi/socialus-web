@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { getUser, resolvePageTags } = vi.hoisted(() => ({ getUser: vi.fn(), resolvePageTags: vi.fn() }))
+vi.mock('./page-metadata', () => ({ resolvePageMetadata: async () => null }))
 vi.mock('./resolve-shop', () => ({
   resolveShopItems: vi.fn(async () => []),
   resolveLocalOwnerBadge: vi.fn(async () => null),

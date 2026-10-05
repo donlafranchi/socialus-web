@@ -33,9 +33,9 @@ describe('#301 — What are you starting?', () => {
 
   it('starts each as the right kind', async () => {
     for (const [label, kind] of [
-      [/sell products or services/i, 'business'],
-      [/nonprofit, school/i, 'event_anchored'],
-      [/group or meetup/i, 'interest'],
+      [/sell products or services/i, 'selling'],
+      [/see who.s interested/i, 'testing_interest'],
+      [/group or meetup/i, 'gathering'],
     ] as const) {
       const onStart = vi.fn(async () => {})
       const { unmount } = render(<WhatAreYouStarting onStart={onStart} />)
