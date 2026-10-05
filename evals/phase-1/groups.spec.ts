@@ -144,6 +144,23 @@ test.describe("Phase 1 — Groups (T055)", () => {
       await cleanupMember(ownerId);
     });
 
+    // #364 applies before its code reaches main, whose Create still inserts the
+    // old kinds: the trigger translates them instead of the CHECK refusing them.
+    test("Given an old kind (practice, interest, family) is inserted | When the trigger fires | Then it is stored as a group with the mapped purpose", async () => {
+      const ownerId = await seedMember("g-legacy");
+      for (const [kind, purpose, disc] of [["practice", "offer", "listed"], ["interest", "gather", "listed"], ["family", "gather", "private"]]) {
+        const { data, error } = await admin
+          .from("groups")
+          .insert({ kind, name: `L-${kind}`, slug: `l-${kind}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId })
+          .select("id, kind, purpose, discoverability")
+          .single();
+        expect(error, `kind=${kind}`).toBeNull();
+        expect([data?.kind, data?.purpose, data?.discoverability]).toEqual(["group", purpose, disc]);
+        await admin.from("groups").delete().eq("id", data!.id);
+      }
+      await cleanupMember(ownerId);
+    });
+
     test("Given purpose first, type for listing | When any purpose is stored with either type | Then both are accepted, and an unknown purpose or type is rejected", async () => {
       const ownerId = await seedMember("g-two");
       for (const [kind, purpose] of [["business", "offer"], ["group", "create"], ["group", "offer"], ["business", "gather"]]) {
@@ -155,7 +172,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
         expect(error, `kind=${kind} purpose=${purpose} accepted`).toBeNull();
         await admin.from("groups").delete().eq("id", data!.id);
       }
-      for (const row of [{ kind: "business", purpose: "selling" }, { kind: "interest", purpose: "gather" }]) {
+      for (const row of [{ kind: "business", purpose: "selling" }, { kind: "shop", purpose: "gather" }]) {
         const { error } = await admin
           .from("groups")
           .insert({ ...row, name: "Bad", slug: `k-bad-${row.kind}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId });
