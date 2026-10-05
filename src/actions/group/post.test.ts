@@ -306,3 +306,27 @@ describe('group.post — an end time', () => {
     expect(params).toContain(null)
   })
 })
+
+// #348 — an event's own meet spot: its place plus a one-line "how to find us".
+describe('group.post — how to find us', () => {
+  it('writes the note with the post', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Float Saturday.', howToFind: '  Meet at the boat ramp  ' })
+    const [sql, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(sql).toMatch(/how_to_find/i)
+    expect(params).toContain('Meet at the boat ramp')
+  })
+
+  it('an edit can change it, and a blank clears it', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Float Saturday.', howToFind: '   ' })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/how_to_find = \$\d/)
+    expect(params).toContain(null)
+  })
+
+  it('refuses a note longer than one line', async () => {
+    install()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', howToFind: 'x'.repeat(141) })).rejects.toThrow()
+  })
+})

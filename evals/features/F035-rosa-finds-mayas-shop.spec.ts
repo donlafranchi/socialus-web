@@ -107,7 +107,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
       const empty = page.getByTestId("shop-items-empty");
       await expect(empty).toBeVisible();
       await expect(empty).toContainText(
-        /hasn['’]t listed anything yet — check back soon/i,
+        /hasn['’]t listed anything yet\. check back soon/i,
       );
     });
   });
