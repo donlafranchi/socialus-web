@@ -39,7 +39,7 @@ export function FollowVenueButton({
         href={`/auth/login?next=${pathname ?? '/'}`}
         className="btn-primary"
       >
-        Follow this venue
+        Sign up to follow this venue
       </a>
     )
   }

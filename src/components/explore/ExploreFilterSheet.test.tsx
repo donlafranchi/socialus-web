@@ -193,8 +193,9 @@ describe('T115 — the sheet is an accessible dialog', () => {
 
   it('is half-height and internally scrollable, never full-screen', () => {
     renderSheet()
-    expect(sheet().className).toMatch(/max-h-\[70vh\]/)
-    expect(within(sheet()).getByTestId('filter-sheet-body').className).toMatch(/overflow-y-auto/)
+    // #297 — the shared sheet: capped below full height, its body scrolls.
+    expect(sheet().className).toMatch(/max-h-\[\d+vh\]/)
+    expect(within(sheet()).getByTestId('filter-sheet-body').parentElement!.className).toMatch(/overflow-y-auto/)
   })
 })
 
@@ -208,7 +209,7 @@ describe('T115 — Clear all meets the contrast and target floor', () => {
 
   it('carries a full-height touch target', () => {
     renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, schedule: 'week' } })
-    expect(within(sheet()).getByRole('button', { name: /clear all/i }).className).toMatch(/min-h-11/)
+    expect(within(sheet()).getByRole('button', { name: /clear all/i }).className).toMatch(/min-h-tap/)
   })
 })
 

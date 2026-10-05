@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react'
 import { completeOnboardingAction, type SaveProfileInput } from '@/app/onboarding/actions'
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
+import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
 
 export interface OnboardingActions {
   completeOnboarding: (
@@ -24,6 +25,8 @@ export function OnboardingFlow({
   onNavigate,
   metros = [],
   onJoinWaitlist = joinMetroWaitlistAction,
+  phoneVerified = true,
+  phoneAuth,
 }: {
   initialDisplayName?: string
   actions?: OnboardingActions
@@ -32,6 +35,9 @@ export function OnboardingFlow({
    *  step reports, never a reason to skip it. */
   metros?: MetroOption[]
   onJoinWaitlist?: typeof joinMetroWaitlistAction
+  /** F081 — false sends the member through the text-message code first. */
+  phoneVerified?: boolean
+  phoneAuth?: PhoneAuth
 }) {
   const router = useRouter()
   const navigate = onNavigate ?? ((url: string) => router.push(url))
@@ -43,6 +49,7 @@ export function OnboardingFlow({
   // it: the name is one field and one button, and keeping it that way is the
   // reason this flow reads as it does.
   const [askMetro, setAskMetro] = useState(false)
+  const [phoneDone, setPhoneDone] = useState(phoneVerified)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -72,6 +79,10 @@ export function OnboardingFlow({
     } finally {
       setBusy(false)
     }
+  }
+
+  if (!phoneDone) {
+    return <PhoneVerifyStep auth={phoneAuth} onVerified={() => setPhoneDone(true)} />
   }
 
   if (askMetro) {
