@@ -9,7 +9,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { groupUpdate, ActionError } from '@/actions'
+import { groupUpdate, groupUpdateDraft, ActionError } from '@/actions'
 
 export interface EditPageInput {
   groupId: string
@@ -45,9 +45,21 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
   if (error || !data.user) return { ok: false, message: 'You must be signed in.' }
 
   const ctx = resolveActionContext({ actingMemberId: data.user.id })
+  // #301 — a draft is finished on its own Page, so Edit serves drafts too;
+  // a draft writes through group.update_draft, which group.update refuses.
+  // A shop draft keeps its name and description on group_businesses, which
+  // the Page reads and group.activate checks.
+  const { data: row } = await supabase.from('groups').select('lifecycle_state, kind').eq('id', input.groupId).maybeSingle()
+  const r = row as { lifecycle_state?: string; kind?: string } | null
+  const isDraft = r?.lifecycle_state === 'draft'
+  const save = isDraft ? groupUpdateDraft : groupUpdate
+  const shopDraft = isDraft && r?.kind === 'business'
+
   try {
-    await groupUpdate(ctx, {
+    await save(ctx, {
       groupId: input.groupId,
+      ...(shopDraft && input.name !== undefined ? { businessDisplayName: input.name } : {}),
+      ...(shopDraft && input.description !== undefined ? { businessPublicDescription: input.description } : {}),
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),

@@ -35,6 +35,7 @@ import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { PageContact } from '@/lib/groups/page-contact'
 import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
 import { isValidTagLabel } from '@/lib/groups/tags'
+import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 
 type CreateLocation = typeof createLocationAction
 
@@ -52,6 +53,7 @@ export function EditPageForm({
   contactOn = true,
   showHours = SHOW_OPENING_HOURS,
   initialTags = [],
+  isDraft = false,
   onSave,
   onCreateLocation = createLocationAction,
   onMetroAnchor = metroAnchorPlaceAction,
@@ -78,6 +80,8 @@ export function EditPageForm({
   showHours?: boolean
   /** #285 — editable any time (Don, 2026-10-01). */
   initialTags?: string[]
+  /** #301 — a draft is finished here; its link follows the name until it's published. */
+  isDraft?: boolean
   onSave: (input: EditPageInput) => Promise<EditPageResult>
   /** Injected so the form can be tested without a server action. */
   onCreateLocation?: CreateLocation
@@ -87,7 +91,7 @@ export function EditPageForm({
   initialWhere?: WhereValue
 }) {
   const router = useRouter()
-  const [name, setName] = useState(initialName)
+  const [name, setName] = useState(isDraft && initialName === DRAFT_NAME_PLACEHOLDER ? '' : initialName)
   const [description, setDescription] = useState(initialDescription)
   // Handles in the form, URLs on the wire. The member types `donlafranchi`;
   // the column and every read path still get an https URL.
@@ -312,13 +316,21 @@ export function EditPageForm({
           missing feature. */}
       <div data-testid="edit-link-frozen">
         <span className="text-sm font-medium text-[var(--color-fg)]">Link</span>
-        <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
-          socialus.org{pagePath}
-        </p>
-        <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-          The name can change; this link can&rsquo;t. People have it already, and moving
-          it would break it. <span className="sr-only">Current link: {slug}</span>
-        </p>
+        {isDraft ? (
+          <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
+            Your link comes from the name. It stays the same once you publish.
+          </p>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
+              socialus.org{pagePath}
+            </p>
+            <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
+              The name can change; this link can&rsquo;t. People have it already, and moving
+              it would break it. <span className="sr-only">Current link: {slug}</span>
+            </p>
+          </>
+        )}
       </div>
 
       <div>

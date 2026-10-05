@@ -38,7 +38,8 @@ const TABS = [
 // page — is a ratified-as-open question and is deliberately unanswered here.
 // #274 — not /you/sell: that sends anyone without a business Page back to
 // /you, whose empty state said "Tap Create". /you?create=1 opens the flow.
-const CREATE = { href: '/you?create=1', label: 'Create' }
+// #301 — Create is one question now (/create); the walkthrough is retired.
+const CREATE = { href: '/create', label: 'Create' }
 
 // Between the tabs, not at an end. Three tabs give two interior slots; this is
 // the one that keeps You last, which is the order members already have.

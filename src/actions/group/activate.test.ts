@@ -46,6 +46,9 @@ function installQueryRouter(opts: {
   kind?: string
   businessDisplayName?: string | null
   hasAnchor?: boolean
+  description?: string
+  name?: string
+  savedTags?: number
 } = {}) {
   const kind = opts.kind ?? 'business'
   const hasAnchor = opts.hasAnchor ?? true
@@ -62,7 +65,8 @@ function installQueryRouter(opts: {
             lifecycle_state: 'draft',
             founder_member_id: FOUNDER_ID,
             anchor_location_id: hasAnchor ? 'loc-1' : null,
-            name: 'Real Name',
+            name: opts.name ?? 'Real Name',
+            description: opts.description ?? 'Bread, daily.',
           },
         ],
       }
@@ -72,6 +76,9 @@ function installQueryRouter(opts: {
     }
     if (/update public\.groups\s+set lifecycle_state = 'active'/i.test(sql)) {
       return { rows: [{ id: GROUP_ID }] }
+    }
+    if (/from public\.page_tags/i.test(sql) && /count/i.test(sql)) {
+      return { rows: [{ n: opts.savedTags ?? 1 }] }
     }
     if (/insert into public\.tags/i.test(sql)) {
       return { rows: [] }
@@ -87,22 +94,54 @@ beforeEach(() => {
   appendEvent.mockClear()
 })
 
-describe('group.activate — at least one tag is required at publish', () => {
-  it('refuses activation with no tags at all', async () => {
-    installQueryRouter()
-    await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/tag/i)
-    // Refused before promotion — no lifecycle_state write should have landed.
-    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+// #301 (2026-10-01): publishing needs a name, where it is (an address or an
+// area), a description and at least one tag ("Tags are set on the draft Page
+// and still required to publish", DECISIONS 2026-10-01; F082.8).
+describe('group.activate — what publishing needs', () => {
+  it('publishes with the tags already saved on the draft', async () => {
+    installQueryRouter({ savedTags: 2 })
+    await groupActivate(ctx(), { groupId: GROUP_ID })
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
   })
 
-  it('refuses activation when every tag is whitespace', async () => {
-    installQueryRouter()
-    await expect(
-      groupActivate(ctx(), { groupId: GROUP_ID, tags: ['   ', '\t'] }),
-    ).rejects.toThrow(/tag/i)
-    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+  it('refuses a Page with no tags, saved or given, for every kind', async () => {
+    for (const kind of ['business', 'interest', 'practice']) {
+      installQueryRouter({ kind, savedTags: 0 })
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/tag/i)
+      expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+    }
   })
 
+  it('a tag given at publish counts', async () => {
+    installQueryRouter({ savedTags: 0 })
+    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
+  })
+
+  it('refuses a Page with no description, for every kind', async () => {
+    for (const kind of ['business', 'interest', 'practice']) {
+      installQueryRouter({ kind, description: '   ' })
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/description/i)
+      expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+    }
+  })
+
+  it('refuses a Page with no location, for every kind', async () => {
+    for (const kind of ['business', 'interest', 'practice']) {
+      installQueryRouter({ kind, hasAnchor: false })
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/anchor|where/i)
+      expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+    }
+  })
+
+  it('refuses a Page still carrying the placeholder name', async () => {
+    const { DRAFT_NAME_PLACEHOLDER } = await import('./constants')
+    installQueryRouter({ kind: 'interest', name: DRAFT_NAME_PLACEHOLDER })
+    await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow()
+  })
+})
+
+describe('group.activate — tags, when given', () => {
   it('creates the tag and attaches it to the Page', async () => {
     installQueryRouter()
     await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['Sourdough'] })

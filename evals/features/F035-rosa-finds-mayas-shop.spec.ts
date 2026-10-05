@@ -196,7 +196,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
       expect(res?.status()).toBe(404);
     });
 
-    test("Given a draft Shop | When the founder (Maya) navigates to its URL | Then a draft preview renders with a banner and a Resume walkthrough link", async ({
+    test("Given a draft Shop | When the founder (Maya) navigates to its URL | Then a draft preview renders with a banner and Before you publish", async ({
       page,
     }) => {
       // Given — Maya, the founder, is logged in
@@ -213,14 +213,12 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
 
       const banner = page.getByTestId("shop-draft-banner");
       await expect(banner).toBeVisible();
-      await expect(banner).toContainText(/draft — not yet public/i);
+      await expect(banner).toContainText(/draft · only you can see this/i);
 
-      // Then — a "Resume walkthrough" affordance back into the Sell flow
-      // Why: scenario beat 6 — the draft preview carries a "Resume walkthrough"
-      // CTA so the owner can finish setup. Its absence would orphan the draft.
-      await expect(
-        banner.getByRole("link", { name: /resume walkthrough/i }),
-      ).toHaveAttribute("href", "/you/sell");
+      // Then — the draft is finished on the Page itself (#301, which retired the
+      // walkthrough): Before you publish, not a Resume walkthrough link.
+      await expect(page.getByTestId("before-you-publish")).toBeVisible();
+      await expect(page.getByRole("link", { name: /resume walkthrough/i })).toHaveCount(0);
     });
   });
 });

@@ -47,6 +47,9 @@ export interface PageView {
    *  anyone who does not run it: the count sits inside the composer, and
    *  nobody else has one. */
   followerCount: number
+  /** #301 — how many tags a draft has, for its owner's publish checklist.
+   *  Zero for anyone else and for a live Page. */
+  draftTagCount: number
   /** #316 — the Page's tags; empty signed out (F093). */
   tags: string[]
   /** #293 — phone and hours, for signed-in visitors only; null signed out. */
@@ -94,6 +97,11 @@ export async function loadPageView(
   // `memberships_select_listed_group` except for whoever runs the Page), but a
   // read nobody renders is a read worth not making.
   const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
+  const draftTagCount =
+    owns && shop.lifecycleState === 'draft'
+      ? ((await supabase.from('page_tags').select('tag_id', { count: 'exact', head: true }).eq('group_id', shop.groupId))
+          .count ?? 0)
+      : 0
   const tags = auth.user ? await resolvePageTags(supabase, shop.groupId) : []
   const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
   const where = auth.user ? await resolvePageWhere(supabase, shop.groupId) : null
@@ -125,6 +133,7 @@ export async function loadPageView(
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
     followerCount,
+    draftTagCount,
     tags,
     contact,
     where,

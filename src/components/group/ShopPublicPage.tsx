@@ -6,6 +6,9 @@
 // it stays unit-testable. The client islands are <FollowPageButton> and
 // <ReportControl>.
 
+import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
+import { publishDraftAction } from '@/app/create/actions'
+import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
@@ -53,6 +56,8 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** #301 — a draft's tag count, for its owner's publish checklist. */
+  draftTagCount?: number
   /** #316 — the Page's tags; empty signed out. */
   tags?: string[]
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
@@ -60,6 +65,9 @@ interface Props {
   /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
   where?: PageWhere | null
 }
+
+// Don, 2026-10-04: an unnamed draft is called what Create asked about.
+const DRAFT_HEADING: Record<string, string> = { business: 'business', interest: 'group or meetup', practice: 'class' }
 
 export function ShopPublicPage({
   shop,
@@ -76,6 +84,7 @@ export function ShopPublicPage({
   where = null,
   withheldPosts = [],
   followerCount = 0,
+  draftTagCount = 0,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -106,17 +115,10 @@ export function ShopPublicPage({
       }
     >
      <div className="min-w-0">
+      {/* #301 — a draft is finished here, on the Page, not in a walkthrough. */}
       {isDraftPreview && (
-        <div
-          data-testid="shop-draft-banner"
-          role="status"
-          className="mb-6 rounded border border-dashed border-gray-400 bg-gray-50 p-4 text-sm text-gray-700"
-        >
-          <p className="font-medium">Draft — not yet public.</p>
-          <p className="mt-1">
-            Only you can see this. <a href="/you/sell" className="underline">Resume walkthrough</a> to
-            finish setting up your Shop.
-          </p>
+        <div data-testid="shop-draft-banner" role="status" className="mb-4 text-caption font-medium text-[var(--color-fg-muted)]">
+          Draft · only you can see this
         </div>
       )}
 
@@ -140,7 +142,9 @@ export function ShopPublicPage({
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
-            {shop.displayName}
+            {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
+              ? `Your new ${DRAFT_HEADING[shop.kind] ? `${DRAFT_HEADING[shop.kind]} ` : ''}Page`
+              : shop.displayName}
           </h1>
           {badge && isBusinessKind(shop.kind) && (
             <span
@@ -172,7 +176,19 @@ export function ShopPublicPage({
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
             ownership. The writes behind it re-check the managing role. */}
-        {viewerOwnsPage && pagePath ? (
+        {isDraftPreview && viewerOwnsPage && pagePath ? (
+          <BeforeYouPublish
+            editPath={`${pagePath}/edit`}
+            hasName={shop.displayName !== DRAFT_NAME_PLACEHOLDER && shop.displayName.trim() !== ''}
+            hasPlace={Boolean(shop.anchorLocationId)}
+            hasDescription={shop.publicDescription.trim() !== ''}
+            hasTags={draftTagCount > 0}
+            hasPhoto={Boolean(photoUrl)}
+            onPublish={publishDraftAction.bind(null, shop.groupId)}
+          />
+        ) : null}
+
+        {viewerOwnsPage && pagePath && !isDraftPreview ? (
           <div className="lg:hidden">
             <OwnerBar pagePath={pagePath} />
           </div>
@@ -338,7 +354,7 @@ export function ShopPublicPage({
       </section>
       )}
      </div>
-      {showOwnerPanel && pagePath ? (
+      {showOwnerPanel && pagePath && !isDraftPreview ? (
         <aside data-testid="owner-panel" className="hidden lg:block">
           <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
             <OwnerPanel pagePath={pagePath} />

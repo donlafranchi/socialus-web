@@ -161,11 +161,12 @@ describe('ShopPublicPage — Beat 3 (items empty state)', () => {
 })
 
 describe('ShopPublicPage — Beat 6 (draft owner preview)', () => {
-  it('shows the draft banner + resume link for a draft row', () => {
+  // #301 — the walkthrough is retired; the draft is finished on the Page.
+  it('shows the draft banner for a draft row, with no way back to the walkthrough', () => {
     renderShop({ shop: { ...SHOP, lifecycleState: 'draft' } })
     const banner = screen.getByTestId('shop-draft-banner')
-    expect(banner).toHaveTextContent(/not yet public/i)
-    expect(banner.querySelector('a')).toHaveAttribute('href', '/you/sell')
+    expect(banner).toHaveTextContent(/draft/i)
+    expect(banner.querySelector('a[href="/you/sell"]')).toBeNull()
   })
 
   it('shows no draft banner for an active shop', () => {
@@ -352,6 +353,35 @@ describe('#300 — the Page on the new layout', () => {
   it('gives nobody else a panel', () => {
     renderShop({ viewerOwnsPage: false })
     expect(screen.queryByTestId('owner-panel')).toBeNull()
+  })
+})
+
+describe('#301 — the draft Page, in the owner view', () => {
+  const draft = { ...SHOP, lifecycleState: 'draft' as const, displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }
+
+  it('says it is a draft only you can see, and offers Before you publish', () => {
+    renderShop({ shop: draft, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-draft-banner')).toHaveTextContent(/draft.*only you can see this/i)
+    expect(screen.getByTestId('before-you-publish')).toBeInTheDocument()
+    expect(screen.queryByText(/resume walkthrough/i)).toBeNull()
+  })
+
+  it('calls an unnamed draft by its kind, never by the placeholder', () => {
+    renderShop({ shop: draft, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new business Page')
+    expect(screen.queryByText('untitled-draft')).toBeNull()
+  })
+
+  it('names a group draft specifically, not "group" alone', () => {
+    renderShop({ shop: { ...draft, kind: 'interest' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group or meetup Page')
+  })
+
+  it('knows what is done', () => {
+    renderShop({ shop: { ...draft, displayName: 'Oak Park Sourdough', anchorLocationId: 'loc-1' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('publish-item-name')).toHaveAttribute('data-done', 'true')
+    expect(screen.getByTestId('publish-item-where')).toHaveAttribute('data-done', 'true')
+    expect(screen.getByTestId('publish-item-description')).toHaveAttribute('data-done', 'false')
   })
 })
 
