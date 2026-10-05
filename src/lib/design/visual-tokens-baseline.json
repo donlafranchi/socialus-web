@@ -31,10 +31,6 @@
     "text-[11px]",
     "text-[11px]"
   ],
-  "src/components/browse/BrowseMap.tsx": [
-    "height:18px",
-    "width:18px"
-  ],
   "src/components/browse/FollowingRow.tsx": [
     "w-[min(78vw,20rem)]"
   ],

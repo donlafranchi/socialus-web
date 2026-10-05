@@ -20,8 +20,9 @@ function luminance(hex: string): number {
   return 0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!)
 }
 
+const hexOf = (v: string) => (v.startsWith('#') ? v : token(v))
 const ratio = (a: string, b: string) => {
-  const [x, y] = [luminance(token(a)), luminance(token(b))]
+  const [x, y] = [luminance(hexOf(a)), luminance(hexOf(b))]
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
 }
 
@@ -60,5 +61,28 @@ describe('#325 — Anodised colour pairings meet WCAG AA', () => {
 
   it('the bright golds stay off white: they fail as text there, which is why the rule exists', () => {
     expect(ratio('highlight', 'bg')).toBeLessThan(3)
+  })
+})
+
+// Mapbox light-v11 (MAP_DEFAULTS.style), sampled: land, water, park, road.
+const MAP_BASE = ['#f5f5f3', '#cad2d4', '#e2ebdc', '#ffffff']
+
+describe('Don, 2026-10-05 — map pins: navy, the selected one gold, legible on the base map', () => {
+  it.each(MAP_BASE)('a navy pin stands out on %s (3:1, WCAG 1.4.11)', (base) => {
+    expect(ratio('pin', base)).toBeGreaterThanOrEqual(3)
+    expect(ratio('cluster', base)).toBeGreaterThanOrEqual(3)
+  })
+
+  it.each(MAP_BASE)('the selected pin’s ring stands out on %s', (base) => {
+    expect(ratio('pin-selected-ring', base)).toBeGreaterThanOrEqual(3)
+  })
+
+  it('gold reads inside its navy ring, and a cluster’s count reads on navy', () => {
+    expect(ratio('pin-selected', 'pin-selected-ring')).toBeGreaterThanOrEqual(3)
+    expect(ratio('on-cluster', 'cluster')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('gold alone is too faint on the base map, which is why the selected pin is ringed', () => {
+    expect(ratio('pin-selected', MAP_BASE[0]!)).toBeLessThan(3)
   })
 })
