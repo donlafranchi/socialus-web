@@ -20,15 +20,16 @@ vi.mock('@supabase/ssr', () => ({
 import { proxy } from './proxy'
 import type { NextRequest } from 'next/server'
 
-function request(): NextRequest {
+function request(path = '/you', method = 'GET'): NextRequest {
   const cookies = new Map<string, { name: string; value: string }>()
   return {
     cookies: {
       getAll: () => [...cookies.values()],
       set: (name: string, value: string) => cookies.set(name, { name, value }),
     },
-    nextUrl: new URL('https://example.test/you'),
-    url: 'https://example.test/you',
+    method,
+    nextUrl: new URL(`https://example.test${path}`),
+    url: `https://example.test${path}`,
   } as unknown as NextRequest
 }
 
@@ -71,5 +72,25 @@ describe('proxy — a stale session must not 500 the request', () => {
     expect(res.status).toBe(200)
     expect(warn).toHaveBeenCalled()
     warn.mockRestore()
+  })
+})
+
+describe('proxy — F081, the phone comes first', () => {
+  const unverified = { id: 'm1', phone_confirmed_at: null, app_metadata: {} }
+
+  it('sends a signed-in member with no verified phone to onboarding', async () => {
+    process.env.PHONE_VERIFICATION_REQUIRED = '1'
+    getUser.mockResolvedValue({ data: { user: unverified }, error: null })
+    const res = await proxy(request('/explore'))
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toBe('https://example.test/onboarding')
+    delete process.env.PHONE_VERIFICATION_REQUIRED
+  })
+
+  it('does nothing while the requirement is off', async () => {
+    delete process.env.PHONE_VERIFICATION_REQUIRED
+    getUser.mockResolvedValue({ data: { user: unverified }, error: null })
+    const res = await proxy(request('/explore'))
+    expect(res.status).toBe(200)
   })
 })

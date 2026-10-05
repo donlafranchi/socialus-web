@@ -340,3 +340,15 @@ describe('#316 — a Page shows its tags as #hashtags, signed in only', () => {
     expect(screen.queryByTestId('tag-chips')).toBeNull()
   })
 })
+
+describe('#293 — phone and hours on the Page', () => {
+  it('shows them to a signed-in visitor', () => {
+    renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.getByTestId('page-phone')).toHaveAttribute('href', 'tel:+19165550142')
+  })
+
+  it('shows nothing signed out, even if handed them', () => {
+    renderShop({ loggedIn: false, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.queryByTestId('page-contact')).toBeNull()
+  })
+})

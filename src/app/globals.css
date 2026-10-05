@@ -5,8 +5,10 @@
   --foreground: #1a1a1a;
   /* Bottom-nav bar height (thesis §2). Sticky elements clear it via calc().
      Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys.
-     #294: the shell (#296) moves this to --nav-bottom-h. */
-  --nav-height: 44px;
+     #296: the design's 56px bottom nav. */
+  --nav-height: var(--nav-bottom-h);
+  /* Explore's sticky search row, measured (#187). */
+  --search-row-h: 61px;
 
   /* #294 — design tokens (socialus-owner-page-design/socialus-tokens.css,
      2026-10-01). No colour here: colours above and below stay as they are.
@@ -174,7 +176,7 @@ a:hover {
 }
 
 .btn-primary {
-  @apply press inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-medium;
+  @apply press inline-flex min-h-tap items-center justify-center rounded-md px-5 py-3 text-sm font-semibold;
   background-color: var(--color-accent);
   color: #fff;
 }
@@ -187,7 +189,7 @@ a:hover {
 }
 
 .btn-secondary {
-  @apply press inline-flex items-center justify-center rounded-md border px-5 py-3 text-sm font-medium;
+  @apply press inline-flex min-h-tap items-center justify-center rounded-md border px-5 py-3 text-sm font-semibold;
   border-color: var(--color-border);
   background-color: #fff;
   color: var(--color-fg);

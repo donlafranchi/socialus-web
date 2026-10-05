@@ -28,7 +28,7 @@ import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapTog
 import { ViewPill } from '@/components/explore/ViewPill'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { ScopeSheet } from '@/components/explore/ScopeSheet'
+import { AreaPicker } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
 import { HappeningRows } from './HappeningRows'
@@ -48,9 +48,9 @@ import type { FeedMetro } from '@/lib/feed/feed-metro'
 
 const BrowseMap = dynamic(() => import('./BrowseMap').then((m) => m.BrowseMap), { ssr: false })
 
-/** T187 — the map column sits under the top nav (3.5rem) and the search row. */
-const SPLIT_TOP = 'top-[calc(3.5rem+61px)]'
-const SPLIT_HEIGHT = 'h-[calc(100dvh-3.5rem-61px)]'
+/** T187 — the map column sits under the top nav and the search row. */
+const SPLIT_TOP = 'top-[calc(var(--nav-top-h)+var(--search-row-h))]'
+const SPLIT_HEIGHT = 'h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h))]'
 const MAP_PANE_ID = 'browse-map-pane'
 
 /** Long enough that a five-character search announces once, on settle. */
@@ -174,7 +174,7 @@ export function BrowseSurface({
             </button>
           </div>
         </div>
-        <ScopeSheet
+        <AreaPicker
           open={scopeOpen}
           currentSlug={null}
           metros={snapshot.metros}
@@ -311,7 +311,7 @@ export function BrowseSurface({
               className={
                 layout === 'split'
                   ? 'h-full overflow-hidden rounded-md'
-                  : 'h-[calc(100dvh-var(--nav-height)-env(safe-area-inset-bottom)-170px)] overflow-hidden rounded-md md:h-[calc(100dvh-3.5rem-185px)]'
+                  : 'h-[calc(100dvh-var(--nav-clearance)-var(--search-row-h)-var(--float-offset)-var(--tap))] overflow-hidden rounded-md md:h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h)-var(--float-offset)-var(--tap))]'
               }
             >
               <BrowseMap results={visible} />
@@ -322,7 +322,7 @@ export function BrowseSurface({
 
       {layout === 'single' && <ViewPill view={view} onChange={setView} />}
 
-      <ScopeSheet
+      <AreaPicker
         open={scopeOpen}
         currentSlug={snapshot.metro.slug}
         metros={snapshot.metros}

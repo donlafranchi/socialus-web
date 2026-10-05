@@ -6,6 +6,7 @@
 // that needs it does not copy the six reads and get one of them wrong.
 
 import { resolvePageTags } from './page-tags'
+import { resolvePageContact, type PageContact } from './page-contact'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   resolveShopItems,
@@ -47,6 +48,8 @@ export interface PageView {
   followerCount: number
   /** #316 — the Page's tags; empty signed out (F093). */
   tags: string[]
+  /** #293 — phone and hours, for signed-in visitors only; null signed out. */
+  contact: PageContact | null
 }
 
 export async function loadPageView(
@@ -89,6 +92,7 @@ export async function loadPageView(
   // read nobody renders is a read worth not making.
   const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
   const tags = auth.user ? await resolvePageTags(supabase, shop.groupId) : []
+  const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
 
   // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
   // this the Announcements section would not render at all and an
@@ -118,5 +122,6 @@ export async function loadPageView(
     loggedIn: Boolean(auth.user),
     followerCount,
     tags,
+    contact,
   }
 }

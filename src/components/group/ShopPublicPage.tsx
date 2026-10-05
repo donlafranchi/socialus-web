@@ -7,6 +7,8 @@
 // <ReportControl>.
 
 import { TagChips } from '@/components/tags/TagChips'
+import { PageContactBlock } from './PageContactBlock'
+import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { FollowPageButton } from './FollowPageButton'
@@ -49,6 +51,8 @@ interface Props {
   followerCount?: number
   /** #316 — the Page's tags; empty signed out. */
   tags?: string[]
+  /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
+  contact?: PageContact | null
 }
 
 export function ShopPublicPage({
@@ -62,6 +66,7 @@ export function ShopPublicPage({
   viewerFollows = false,
   posts = [],
   tags = [],
+  contact = null,
   withheldPosts = [],
   followerCount = 0,
 }: Props) {
@@ -117,7 +122,9 @@ export function ShopPublicPage({
 
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
-          {/* #267 — not on your own Page. */}
+          {loggedIn && contact && <PageContactBlock contact={contact} />}
+
+        {/* #267 — not on your own Page. */}
           {!viewerOwnsPage && (
             <div className="ml-auto">
               <ReportControl
