@@ -36,9 +36,10 @@ describe('WithheldAnnouncementCard', () => {
     )
   })
 
-  it('falls back to the tile emoji when the Page has no photo', () => {
+  it("shows its kind's default art when the Page has no photo", () => {
     render(<WithheldAnnouncementCard result={{ ...RESULT, photoUrl: null }} />)
-    expect(screen.getByTestId('tile-emoji')).toBeTruthy()
+    expect(screen.getByTestId('default-art')).toBeTruthy()
+    expect(screen.queryByTestId('tile-emoji')).toBeNull()
   })
 
   it('says how many, and names the period in words', () => {

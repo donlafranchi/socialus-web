@@ -23,7 +23,7 @@
 // counted. Passing neither renders no number at all, not a zero and not a
 // placeholder.
 
-import { useEffect, useId, useRef } from 'react'
+import { Sheet } from '@/components/ui/Sheet'
 
 interface Props {
   metroName: string
@@ -34,61 +34,34 @@ interface Props {
   onClose: () => void
 }
 
+// #299 — L05, on the shared sheet.
 export function MetroStandingDialog({ metroName, combined, target, message, onClose }: Props) {
-  // Both or neither. A half-supplied pair could only render something
-  // misleading, and silently dropping one is how a count comes back by
-  // accident.
   const showCount = typeof combined === 'number' && typeof target === 'number'
-  const titleId = useId()
-  const closeRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    closeRef.current?.focus()
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previousOverflow
-    }
-  }, [])
 
   return (
-    <>
-      <div aria-hidden="true" onClick={onClose} className="fixed inset-0 z-40 bg-black/30" />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        data-testid="metro-standing-dialog"
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') onClose()
-        }}
-        className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 rounded-lg border border-[var(--color-charcoal-100)] bg-white p-6 shadow-overlay md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
-      >
-        <h2 id={titleId} className="text-base font-semibold text-[var(--color-charcoal-900)]">
-          {metroName}
-        </h2>
-
-        {showCount ? (
-          <p
-            data-testid="metro-standing-count"
-            className="mt-4 text-3xl font-semibold text-[var(--color-charcoal-900)]"
-          >
-            {combined} <span className="text-base font-normal text-neutral-600">of {target}</span>
-          </p>
-        ) : null}
-
-        <p className={`${showCount ? 'mt-3' : 'mt-4'} text-sm text-neutral-600`}>{message}</p>
-
+    <Sheet
+      open
+      title={metroName}
+      onClose={onClose}
+      testId="metro-standing-dialog"
+      footer={
         <button
-          ref={closeRef}
           type="button"
           data-testid="metro-standing-close"
+          data-autofocus
           onClick={onClose}
-          className="mt-6 w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-sm font-semibold text-white"
+          className="w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-body-sm font-semibold text-white"
         >
           Got it
         </button>
-      </div>
-    </>
+      }
+    >
+      {showCount ? (
+        <p data-testid="metro-standing-count" className="text-display text-[var(--color-charcoal-900)]">
+          {combined} <span className="text-body font-normal text-neutral-600">of {target}</span>
+        </p>
+      ) : null}
+      <p className={`${showCount ? 'mt-3' : ''} text-body-sm text-neutral-600`}>{message}</p>
+    </Sheet>
   )
 }

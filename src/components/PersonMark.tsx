@@ -19,7 +19,7 @@
 /** A small, fixed set. Not a ramp, and not per-kind. */
 const TONES = ['a', 'b', 'c', 'd'] as const
 
-const TONE_CLASS: Record<(typeof TONES)[number], string> = {
+export const TONE_CLASS: Record<(typeof TONES)[number], string> = {
   a: 'bg-[var(--color-charcoal-100)] text-[var(--color-charcoal-900)]',
   b: 'bg-neutral-200 text-[var(--color-charcoal-900)]',
   c: 'bg-[var(--color-charcoal-700)] text-white',

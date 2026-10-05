@@ -9,6 +9,7 @@
 // it is, and an undated post is a first-class post rather than a degraded
 // event — it simply has no date line.
 
+import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { TileCard } from '@/components/cards'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
@@ -57,6 +58,7 @@ export function BrowseResultCard({
       tagline={browseCardTagline(result)}
       location={browseCardLocation(result)}
       imageUrl={result.photoUrl}
+      art={<DefaultArt kind={artKindFor(result.groupKind)} />}
       imageAlt={cardImageAlt({
         title: result.name,
         when: isPost && result.startsAt ? formatCardWhen(result.startsAt, undefined, undefined, result.endsAt) : null,

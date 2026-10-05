@@ -37,6 +37,8 @@ export interface TileCardProps {
   location: CardLocation
   imageUrl?: string | null
   emoji?: string
+  /** #299 — shown when there is no photo, in place of the emoji. */
+  art?: ReactNode
   href?: string | null
   action?: ReactNode
   /** #260 — what the image is, in the card's own words. Empty means decorative. */
@@ -51,6 +53,7 @@ export function TileCard({
   location,
   imageUrl,
   emoji = '🌱',
+  art,
   href,
   action,
   imageAlt = '',
@@ -66,6 +69,8 @@ export function TileCard({
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={imageUrl} alt={imageAlt} className="h-full w-full object-cover" />
+        ) : art ? (
+          art
         ) : (
           <span data-testid="tile-emoji" aria-hidden>
             {emoji}

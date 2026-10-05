@@ -47,9 +47,9 @@ export function Sheet({
   useEffect(() => {
     if (!open) return
     const opener = returnFocusTo?.current ?? (document.activeElement as HTMLElement | null)
-    const first = panel.current?.querySelector<HTMLElement>(
-      '[data-autofocus], input:not([disabled]), textarea, select',
-    )
+    const first =
+      panel.current?.querySelector<HTMLElement>('[data-autofocus]') ??
+      panel.current?.querySelector<HTMLElement>('input:not([disabled]), textarea, select')
     ;(first ?? panel.current?.querySelector<HTMLElement>(FOCUSABLE))?.focus()
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
