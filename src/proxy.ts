@@ -10,7 +10,20 @@ function isStaleSession(message: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
-  const response = NextResponse.next({ request })
+  // #405 — a sign-in code that landed anywhere but the callback (Supabase falls
+  // back to the Site URL when a redirect is not on its allowlist) is sent on to
+  // the callback, which is the only place it is exchanged.
+  const code = request.nextUrl.searchParams.get('code')
+  if (code && request.method === 'GET') {
+    const callback = new URL('/auth/callback', request.url)
+    callback.searchParams.set('code', code)
+    const next = new URL(request.nextUrl)
+    next.searchParams.delete('code')
+    callback.searchParams.set('next', next.pathname + next.search)
+    return NextResponse.redirect(callback)
+  }
+
+  let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,11 +33,16 @@ export async function proxy(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
+        // #405 — Supabase's pattern: the response is rebuilt from the updated
+        // request, so the page rendering now sees the refreshed session. Built
+        // before, it saw the spent refresh token and spent it again, which
+        // revokes the session. And a stale session never takes the PKCE code
+        // verifier with it: a sign-in started in this browser still needs it.
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value)
-            response.cookies.set(name, value, options)
-          })
+          const kept = cookiesToSet.filter(({ name, value }) => value || !name.endsWith('-code-verifier'))
+          kept.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          kept.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
     }
