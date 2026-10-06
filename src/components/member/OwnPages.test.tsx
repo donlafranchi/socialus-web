@@ -39,14 +39,14 @@ describe('#423 — restoring from You', () => {
     getOwnPages.mockResolvedValue([page({ lifecycleState: 'archived' })])
     render(<OwnPages memberId="m1" onRestore={onRestore} />)
     const state = await screen.findByTestId('own-page-archived')
-    expect(state).toHaveTextContent('Archived · only you can see it')
+    expect(state).toHaveTextContent('Archived · Only you can see this')
     expect(screen.getByRole('button', { name: 'Restore Oak Park Sourdough' })).toBeInTheDocument()
   })
 
-  it('shows a deleted Page with the date it is removed', async () => {
+  it('shows a deleted Page with the date it can be restored until', async () => {
     getOwnPages.mockResolvedValue([page({ lifecycleState: 'dissolved', deleteAfter: '2026-10-20T19:00:00Z', href: null })])
     render(<OwnPages memberId="m1" onRestore={onRestore} />)
-    expect(await screen.findByTestId('own-page-deleted')).toHaveTextContent('Deleted · removed October 20')
+    expect(await screen.findByTestId('own-page-deleted')).toHaveTextContent('Deleted · restore until October 20')
   })
 
   it('restores, then reads the list again', async () => {

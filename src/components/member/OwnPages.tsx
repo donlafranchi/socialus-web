@@ -58,11 +58,11 @@ export function OwnPages({
     const label =
       p.lifecycleState === 'archived' ? (
         <span data-testid="own-page-archived" className={STATE}>
-          Archived · only you can see it
+          Archived · Only you can see this
         </span>
       ) : (
         <span data-testid="own-page-deleted" className={STATE}>
-          Deleted · removed {p.deleteAfter ? formatRemovalDate(p.deleteAfter) : ''}
+          Deleted · restore until {p.deleteAfter ? formatRemovalDate(p.deleteAfter) : ''}
         </span>
       )
     return (

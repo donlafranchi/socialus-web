@@ -3,7 +3,7 @@
 // to change your mind; Etsy vacation mode and close shop; Google Business
 // Profile mark closed and remove).
 //
-//   archive  active → archived. Hidden from everyone but the owner (RLS,
+//   archive  active → archived. Hidden from everyone but its managers (RLS,
 //            groups_hidden_owner_only), restorable any time.
 //   delete   active|archived → dissolved, dissolved_at now, delete_after 14
 //            days on. purge_deleted_pages() removes it, with its posts, after.

@@ -4,7 +4,8 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
 // #423 — the PM, 2026-10-06: an owner archives or deletes their Page. Archived
-// is hidden from everyone but the owner; deleted is hidden at once, restorable
+// is hidden from everyone but the people who manage it (the managing role for
+// its kind, not the founder); deleted is hidden at once, restorable
 // for 14 days, then removed with its posts. Enforced in SQL, so every door
 // (the Page address, Explore, the map, PostgREST) answers the same way.
 
@@ -21,17 +22,27 @@ const RUNNABLE = requireRunnable({
 const OWNER = 'a4230000-0000-4000-8000-000000000001'
 const JOINED = 'a4230000-0000-4000-8000-000000000002'
 const STRANGER = 'a4230000-0000-4000-8000-000000000003'
+const CO_STEWARD = 'a4230000-0000-4000-8000-000000000004'
+const FOLLOWER = 'a4230000-0000-4000-8000-000000000005'
 const LIVE = 'c4230000-0000-4000-8000-000000000001'
 const ARCHIVED = 'c4230000-0000-4000-8000-000000000002'
 const DELETED = 'c4230000-0000-4000-8000-000000000003'
 const EXPIRED = 'c4230000-0000-4000-8000-000000000004'
 const PAGES = [LIVE, ARCHIVED, DELETED, EXPIRED]
+// Archived, founded by OWNER, who has since stepped down; CO_STEWARD manages it.
+const HANDED_OVER = 'c4230000-0000-4000-8000-000000000005'
+// Archived business founded by CO_STEWARD, who now holds 'steward' (which does
+// not manage a business); OWNER holds 'owner'.
+const SHOP = 'c4230000-0000-4000-8000-000000000006'
+const ALL_PAGES = [...PAGES, HANDED_OVER, SHOP]
 const post = (page: string) => `d${page.slice(1)}`
 const EXPIRED_ITEM = 'e4230000-0000-4000-8000-000000000004'
 const PEOPLE: [string, string][] = [
   [OWNER, 'p423-owner'],
   [JOINED, 'p423-joined'],
   [STRANGER, 'p423-stranger'],
+  [CO_STEWARD, 'p423-co-steward'],
+  [FOLLOWER, 'p423-follower'],
 ]
 
 let pool: Pool
@@ -114,8 +125,9 @@ beforeAll(async () => {
     )
     await client.query(
       `insert into public.group_memberships (group_id, member_id, role, source, relationship) values
-         ($1,$2,'steward','explicit','member'), ($1,$3,'member','explicit','member')`,
-      [id, OWNER, JOINED],
+         ($1,$2,'steward','explicit','member'), ($1,$3,'member','explicit','member'),
+         ($1,$4,'member','explicit','follower')`,
+      [id, OWNER, JOINED, FOLLOWER],
     )
     await client.query(
       `insert into public.page_posts (id, group_id, body, lifecycle_state, discoverability)
@@ -123,6 +135,24 @@ beforeAll(async () => {
       [post(id), id, `${name} post`],
     )
   }
+  for (const [id, kind, name, founder] of [
+    [HANDED_OVER, 'group', 'P423 Handed Over', OWNER],
+    [SHOP, 'business', 'P423 Shop', CO_STEWARD],
+  ]) {
+    await client.query(
+      `insert into public.groups (id, kind, name, slug, description, lifecycle_state, discoverability,
+         founder_member_id, anchor_location_id)
+       values ($1,$2,$3,$4,'Here.','archived','listed',$5,$6)`,
+      [id, kind, name, name.toLowerCase().replace(/ /g, '-'), founder, loc],
+    )
+  }
+  await client.query(
+    `insert into public.group_memberships (group_id, member_id, role, source, relationship, left_at) values
+       ($1,$2,'steward','explicit','member',now()), ($1,$3,'steward','explicit','member',null),
+       ($1,$4,'member','explicit','member',null),
+       ($5,$2,'owner','explicit','member',null), ($5,$3,'steward','explicit','member',null)`,
+    [HANDED_OVER, OWNER, CO_STEWARD, JOINED, SHOP],
+  )
   await client.query(
     `insert into public.items (id, member_id, kind, title, state, group_id)
      values ($1,$2,'gathering','P423 expired run','published',$3)`,
@@ -135,10 +165,10 @@ afterAll(async () => {
   const people = PEOPLE.map(([id]) => id)
   await client.query(`delete from public.item_events where item_id = $1`, [EXPIRED_ITEM])
   await client.query(`delete from public.items where id = $1`, [EXPIRED_ITEM])
-  await client.query(`delete from public.page_posts where group_id = any($1)`, [PAGES])
-  await client.query(`delete from public.group_memberships where group_id = any($1)`, [PAGES])
-  await client.query(`delete from public.group_events where group_id = any($1)`, [PAGES])
-  await client.query(`delete from public.groups where id = any($1)`, [PAGES])
+  await client.query(`delete from public.page_posts where group_id = any($1)`, [ALL_PAGES])
+  await client.query(`delete from public.group_memberships where group_id = any($1)`, [ALL_PAGES])
+  await client.query(`delete from public.group_events where group_id = any($1)`, [ALL_PAGES])
+  await client.query(`delete from public.groups where id = any($1)`, [ALL_PAGES])
   await client.query(`delete from public.location_events where acting_member_id = any($1)`, [people])
   await client.query(`delete from public.locations where member_id = any($1)`, [people])
   await client.query(`delete from public.member_events where member_id = any($1)`, [people])
@@ -148,11 +178,12 @@ afterAll(async () => {
   await pool.end()
 })
 
-describe.skipIf(!RUNNABLE)('#423 — an archived or deleted Page answers only its owner', () => {
+describe.skipIf(!RUNNABLE)('#423 — an archived or deleted Page answers only the people who manage it', () => {
   const OTHERS: [string, string | null][] = [
     ['signed out', null],
     ['a stranger', STRANGER],
     ['a member who joined it', JOINED],
+    ['a follower', FOLLOWER],
   ]
 
   for (const [who, sub] of OTHERS) {
@@ -167,6 +198,27 @@ describe.skipIf(!RUNNABLE)('#423 — an archived or deleted Page answers only it
   it('the owner still reads both, to restore them', async () => {
     const pages = await ids(OWNER, `select id from public.groups where id = any($1)`, [PAGES])
     expect(pages.sort()).toEqual([...PAGES].sort())
+  })
+
+  it('a steward who did not found it reads it; the founder who stepped down does not', async () => {
+    expect(await ids(CO_STEWARD, `select id from public.groups where id = $1`, [HANDED_OVER])).toEqual([HANDED_OVER])
+    expect(await ids(OWNER, `select id from public.groups where id = $1`, [HANDED_OVER])).toEqual([])
+    expect(await ids(JOINED, `select id from public.groups where id = $1`, [HANDED_OVER])).toEqual([])
+  })
+
+  it('a business answers its owner, not its founder who is now only a steward, since owner is what manages a business', async () => {
+    expect(await ids(OWNER, `select id from public.groups where id = $1`, [SHOP])).toEqual([SHOP])
+    expect(await ids(CO_STEWARD, `select id from public.groups where id = $1`, [SHOP])).toEqual([])
+  })
+
+  // Definer, so the groups policy does not recurse through group_memberships'.
+  it('names the manager through a definer function with a pinned search path', async () => {
+    const r = await client.query(
+      `select p.prosecdef as definer, p.proconfig as config
+         from pg_proc p where p.oid = 'public.current_member_managing_group_ids()'::regprocedure`,
+    )
+    expect(r.rows[0]).toEqual({ definer: true, config: ['search_path=""'] })
+    expect(await ids(null, `select id from public.current_member_managing_group_ids() as id`)).toEqual([])
   })
 
   it('Explore and the map leave both out, even for the owner', async () => {

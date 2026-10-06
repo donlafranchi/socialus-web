@@ -180,7 +180,7 @@ describe('ShopPublicPage — Beat 6 (draft owner preview)', () => {
   // #423 — only the owner reaches an archived Page; it says so.
   it('tells the owner an archived Page is hidden', () => {
     renderShop({ shop: { ...SHOP, lifecycleState: 'archived' }, viewerOwnsPage: true, pagePath: '/g/x' })
-    expect(screen.getByTestId('shop-archived-banner')).toHaveTextContent('Archived · only you can see this')
+    expect(screen.getByTestId('shop-archived-banner')).toHaveTextContent('Archived · Only you can see this')
   })
 })
 

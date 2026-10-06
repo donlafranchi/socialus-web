@@ -10,6 +10,9 @@
 // who made the thing, and that is who this list is for. A co-steward seeing it
 // under "yours" is a different question.
 //
+// Except a hidden Page (#423, archived or deleted): that goes by who MANAGES it
+// (the PM, 2026-10-06), since only a manager can see or restore it.
+//
 // Drafts are included deliberately. RLS (`groups_select_active_or_own_draft`)
 // already admits a founder's own draft, and a member whose half-finished Page
 // vanished until they published it would be back in exactly the situation this
@@ -82,11 +85,16 @@ export async function getOwnPages(
   // #253 — groups.founder_member_id answers nobody; the founder's own ids come
   // from a function that reads it as them.
   void memberId
-  const { data: ids } = await supabase.rpc('current_member_founded_group_ids')
+  const [{ data: foundedIds }, { data: managingIds }] = await Promise.all([
+    supabase.rpc('current_member_founded_group_ids'),
+    supabase.rpc('current_member_managing_group_ids'),
+  ])
+  const founded = new Set((foundedIds as string[] | null) ?? [])
+  const managing = new Set((managingIds as string[] | null) ?? [])
   const { data, error } = await supabase
     .from('groups')
     .select(SELECT)
-    .in('id', (ids as string[] | null) ?? [])
+    .in('id', [...new Set([...founded, ...managing])])
     // #423 — a deleted Page stays here, to restore, until its delete_after.
     .or('dissolved_at.is.null,delete_after.not.is.null')
     .order('updated_at', { ascending: false })
@@ -99,9 +107,11 @@ export async function getOwnPages(
     return []
   }
 
-  const rows = ((data ?? []) as unknown as Row[]).filter(
-    (r) => r.lifecycle_state !== 'dissolved' || (r.delete_after != null && new Date(r.delete_after) > now),
-  )
+  const rows = ((data ?? []) as unknown as Row[]).filter((r) => {
+    if (r.lifecycle_state === 'draft' || r.lifecycle_state === 'active') return founded.has(r.id)
+    if (!managing.has(r.id)) return false
+    return r.lifecycle_state !== 'dissolved' || (r.delete_after != null && new Date(r.delete_after) > now)
+  })
 
   // Issue #175 — every Page here links, including a draft.
   //
