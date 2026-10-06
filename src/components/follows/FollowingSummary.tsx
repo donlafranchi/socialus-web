@@ -8,13 +8,14 @@
 // Omitted entirely when the Member follows nothing (the empty-state with the
 // explore CTA lives on /you/following, per T109).
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { getMemberFollows, type FollowEntry } from '@/lib/follows/get-member-follows'
 import { FollowCard } from './FollowCard'
 
-export function FollowingSummary({ memberId }: { memberId: string }) {
+/** `empty`, when given, shows in place of nothing once the Member is known to follow nothing (#303, You). */
+export function FollowingSummary({ memberId, empty }: { memberId: string; empty?: ReactNode }) {
   const [entries, setEntries] = useState<FollowEntry[] | null>(null)
 
   useEffect(() => {
@@ -31,17 +32,17 @@ export function FollowingSummary({ memberId }: { memberId: string }) {
     }
   }, [memberId])
 
-  // Loading or zero follows → render nothing (section omitted from /you).
-  if (!entries || entries.length === 0) return null
+  if (!entries) return null
+  if (entries.length === 0) return empty ?? null
 
   return (
     <section className="mt-6" data-testid="following-summary">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold text-neutral-700">Following</h2>
+        <h2 className="text-title-3 text-[var(--color-fg)]">Following</h2>
         <Link
           href="/you/following"
           data-testid="following-more"
-          className="text-sm font-medium text-[var(--color-accent)] hover:underline"
+          className="press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-accent)]"
         >
           More
         </Link>

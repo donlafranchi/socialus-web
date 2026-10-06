@@ -109,7 +109,7 @@ describe('failure', () => {
   })
 })
 
-describe('voice.md', () => {
+describe('voice-and-tone.md', () => {
   it('names no person as a category, uses no em dash, and is not an account', () => {
     for (const props of [{}, { displayName: null }, { displayName: '', handle: '' }]) {
       const { container, unmount } = renderBadge(props)

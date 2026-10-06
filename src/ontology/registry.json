@@ -11,7 +11,7 @@
       "name": "Page",
       "status": "live",
       "definedIn": "nouns.md § Page — the canonical definition",
-      "note": "The person or people behind the listing. Every kind gets one, including a one-time gathering; what differs between kinds is the tools offered, never whether it is a Page. How many kinds there are is unruled, which is why no link is keyed to groups.kind."
+      "note": "The person or people behind the listing. Every Page has ONE primary purpose, what it mainly accomplishes (gather, sell, offer, create; purposes.ts, each citing its loops), and a type for listing (business or social group) that follows from the purpose and can be changed (ruled 2026-10-05). The type decides browsing, filters and the Locally owned badge, never whether it is a Page. No link is keyed to either."
     },
     {
       "name": "Item",
@@ -51,6 +51,51 @@
     "Follower",
     "Patron",
     "Vendor"
+  ],
+  "pagePurposes": [
+    {
+      "value": "gather",
+      "loops": [
+        1,
+        4,
+        5,
+        6,
+        7
+      ],
+      "journey": "socialus-plan product/needs/member-journey.md § What the loops currently run on",
+      "defaultType": "group",
+      "ruled": "2026-10-05"
+    },
+    {
+      "value": "sell",
+      "loops": [
+        9
+      ],
+      "journey": "socialus-plan product/needs/member-journey.md § What the loops currently run on",
+      "defaultType": "business",
+      "ruled": "2026-10-05"
+    },
+    {
+      "value": "offer",
+      "loops": [
+        8,
+        11
+      ],
+      "journey": "socialus-plan product/needs/member-journey.md § What the loops currently run on",
+      "defaultType": "business",
+      "ruled": "2026-10-05"
+    },
+    {
+      "value": "create",
+      "loops": [
+        5,
+        6,
+        9
+      ],
+      "journey": "socialus-plan product/needs/member-journey.md § What the loops currently run on",
+      "defaultType": "group",
+      "ruled": "2026-10-05"
+    }
   ],
   "links": [
     {

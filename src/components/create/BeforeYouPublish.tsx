@@ -7,6 +7,21 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { usePageEditor, type Section } from '@/components/group/edit/PageEditor'
+
+// #302 — the checklist opens the section's own sheet, in place.
+const SECTION_FOR: Record<string, Section> = { name: 'name', where: 'where', description: 'description', tags: 'tags', photo: 'photo' }
+
+function AddOrChange({ editPath, section, children }: { editPath: string; section: Section; children: React.ReactNode }) {
+  const ctx = usePageEditor()
+  const cls = 'press min-h-tap text-body-sm font-medium text-[var(--color-charcoal-900)] underline'
+  if (!ctx) return <Link href={editPath} className={cls}>{children}</Link>
+  return (
+    <button type="button" className={cls} onClick={() => (ctx.setEditing(true), ctx.open(section))}>
+      {children}
+    </button>
+  )
+}
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
@@ -70,10 +85,10 @@ export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, 
               {i.label}
               <span className="sr-only">{i.done ? ', done' : ', not yet'}</span>
             </span>
-            <Link href={editPath} className="text-body-sm font-medium text-[var(--color-charcoal-900)] underline">
+            <AddOrChange editPath={editPath} section={SECTION_FOR[i.key]}>
               {i.done ? 'Change' : 'Add'}
               <span className="sr-only"> {i.label}</span>
-            </Link>
+            </AddOrChange>
           </li>
         ))}
       </ul>

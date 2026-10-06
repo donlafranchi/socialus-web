@@ -10,6 +10,9 @@ import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
+import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
+import { whereValueFrom } from '@/components/locations/where-save'
+import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
@@ -30,7 +33,10 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
-import { isBusinessKind } from '@/lib/groups/page-components'
+import { NextUp } from './NextUp'
+import { Store, Users } from 'lucide-react'
+import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
+import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
@@ -66,6 +72,11 @@ interface Props {
   followerCount?: number
   /** #301 — a draft's tag count, for its owner's publish checklist. */
   draftTagCount?: number
+  /** #302 — the owner's in-place editor (Don, 2026-10-04). */
+  viewerMemberId?: string | null
+  contactOn?: boolean
+  /** #363 — Products & services: on for a business, added by any other Page. */
+  productsOn?: boolean
   /** #316 — the Page's tags; empty signed out. */
   tags?: string[]
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
@@ -75,7 +86,7 @@ interface Props {
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
-const DRAFT_HEADING: Record<string, string> = { business: 'business', interest: 'group or meetup', practice: 'class' }
+const DRAFT_HEADING: Record<Purpose, string> = { sell: 'business', offer: 'class or service', gather: 'group or meetup', create: '' }
 
 export function ShopPublicPage({
   shop,
@@ -94,8 +105,12 @@ export function ShopPublicPage({
   followerCount = 0,
   draftTagCount = 0,
   unclaimedActions,
+  viewerMemberId = null,
+  contactOn = false,
+  productsOn = componentOn(shop.kind, null, 'products'),
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
+  const layout = pageLayoutFor(shop.kind)
 
   // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
   // single place `photo_hidden_at` is consulted; nothing here reads
@@ -113,7 +128,7 @@ export function ShopPublicPage({
   // the withheld card and Sign up to follow. Listings and links out wait.
   const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
-  return (
+  const page = (
     // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
     // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
     <main
@@ -144,7 +159,7 @@ export function ShopPublicPage({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <DefaultArt kind={artKindFor(shop.kind)} />
+          <DefaultArt kind={artKindFor(shop.kind, shop.purpose)} />
         )}
       </div>
       {/* #353 — a picture from their own site is credited and linked. */}
@@ -160,14 +175,16 @@ export function ShopPublicPage({
           )}
         </p>
       )}
+      <SectionEditButton section="photo" className="-mt-2 mb-2" />
 
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
             {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
-              ? `Your new ${DRAFT_HEADING[shop.kind] ? `${DRAFT_HEADING[shop.kind]} ` : ''}Page`
+              ? `Your new ${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)] ? `${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]} ` : ''}Page`
               : shop.displayName}
           </h1>
+          <SectionEditButton section="about" />
           {badge && isBusinessKind(shop.kind) && (
             <span
               data-testid="local-owner-badge"
@@ -185,7 +202,6 @@ export function ShopPublicPage({
 
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
-          {loggedIn && contact && <PageContactBlock contact={contact} />}
 
         {/* #267 — not on your own Page. */}
           {!viewerOwnsPage && (
@@ -199,6 +215,13 @@ export function ShopPublicPage({
               />
             </div>
           )}
+        </div>
+        <div className="-mt-2 flex items-center gap-2">
+          <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
+            {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
+            {kindLine(shop.kind, shop.purpose, shop.category)}
+          </p>
+          <SectionEditButton section="kind" />
         </div>
 
         {/* Owner only, and absent from the markup for everyone else — this
@@ -224,42 +247,22 @@ export function ShopPublicPage({
 
         {shop.founder && (
           <div data-testid="shop-founder" className="flex items-center gap-2">
-            {/* T137 — link only when the founder has published something;
-                otherwise render the name as plain text. The Shop is public regardless
-                (Groups are public-by-default); only the personal-profile link is gated. */}
-            {shop.founder.hasPublished ? (
-              <a
-                href={`/m/${shop.founder.handle}`}
-                data-testid="shop-founder-link"
-                className="flex items-center gap-2"
-              >
-                {shop.founder.avatarUrl && (
-                  // Decorative: the adjacent name text labels the link.
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={shop.founder.avatarUrl}
-                    alt=""
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                )}
-                <span className="text-sm text-gray-700">{shop.founder.displayName}</span>
-              </a>
-            ) : (
-              <span
-                data-testid="shop-founder-text"
-                className="flex items-center gap-2"
-              >
-                {shop.founder.avatarUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={shop.founder.avatarUrl}
-                    alt=""
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                )}
-                <span className="text-sm text-gray-700">{shop.founder.displayName}</span>
-              </span>
-            )}
+            {/* #303 — no public member profile (Don, 2026-10-01): the founder is
+                a name, never a link. */}
+            <span
+              data-testid="shop-founder-text"
+              className="flex items-center gap-2"
+            >
+              {shop.founder.avatarUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={shop.founder.avatarUrl}
+                  alt=""
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              )}
+              <span className="text-sm text-gray-700">{shop.founder.displayName}</span>
+            </span>
           </div>
         )}
 
@@ -275,6 +278,36 @@ export function ShopPublicPage({
           <p data-testid="shop-where" className="text-sm text-[var(--color-fg-muted)]">
             {whereLine(where)}
           </p>
+        )}
+        <SectionEditButton section="where" className="self-start" />
+
+        {/* Page kinds (dispatch, 2026-10-05): each kind leads with its own
+            thing. A business: how to reach it, then Follow. A group: Join and
+            its next meetup. An organization: its upcoming events. */}
+        {layout.lead === 'contact' && (
+          <>
+            {loggedIn && contact && <PageContactBlock contact={contact} />}
+            {contactOn && <SectionEditButton section="contact" className="self-start" />}
+          </>
+        )}
+        {/* #267 — not on your own Page: your row there is your authority, not
+            a follow, and "Following" would have offered to end it. */}
+        {!viewerOwnsPage && (
+          <div className="mt-2">
+            <FollowPageButton
+              groupId={shop.groupId}
+              isPrivate={shop.discoverability === 'private'}
+              join={layout.lead === 'join'}
+              loggedIn={loggedIn}
+              following={viewerFollows}
+              returnTo={pagePath}
+              onFollow={followPageAction}
+              onUnfollow={unfollowPageAction}
+            />
+          </div>
+        )}
+        {layout.lead === 'join' && loggedIn && (
+          <NextUp posts={posts} heading="Next event" limit={1} />
         )}
 
         {shop.publicDescription && (
@@ -292,9 +325,18 @@ export function ShopPublicPage({
           </a>
         )}
 
+
+        {layout.lead !== 'contact' && (
+          <>
+            {loggedIn && contact && <PageContactBlock contact={contact} />}
+            {contactOn && <SectionEditButton section="contact" className="self-start" />}
+          </>
+        )}
+
         {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
             moderated after they appear (#287). */}
         {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
+        <SectionEditButton section="tags" className="self-start" />
 
         {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
             URL on read: this renders straight into href, and a row written
@@ -318,22 +360,9 @@ export function ShopPublicPage({
             ))}
           </ul>
         )}
+        <SectionEditButton section="links" className="self-start" />
+        <SectionEditButton section="components" className="self-start" />
 
-        {/* #267 — not on your own Page: your row there is your authority, not
-            a follow, and "Following" would have offered to end it. */}
-        {!viewerOwnsPage && (
-          <div className="mt-2">
-            <FollowPageButton
-              groupId={shop.groupId}
-              isPrivate={shop.discoverability === 'private'}
-              loggedIn={loggedIn}
-              following={viewerFollows}
-              returnTo={pagePath}
-              onFollow={followPageAction}
-              onUnfollow={unfollowPageAction}
-            />
-          </div>
-        )}
       </header>
 
       {/* F037 — owner-only Locally Owned claim management. Rendered only when the
@@ -370,7 +399,7 @@ export function ShopPublicPage({
         />
       )}
 
-      {loggedIn && (
+      {loggedIn && productsOn && (
       <section className="mt-8">
         <h2 className="text-lg font-medium">Products &amp; services</h2>
         {items.length === 0 ? (
@@ -410,5 +439,30 @@ export function ShopPublicPage({
         </aside>
       ) : null}
     </main>
+  )
+  if (!viewerOwnsPage || !pagePath) return page
+  return (
+    <PageEditorProvider
+      onSave={editPageAction}
+      initial={{
+        groupId: shop.groupId,
+        pagePath,
+        memberId: viewerMemberId ?? '',
+        name: shop.displayName,
+        description: shop.publicDescription,
+        photoUrl: shop.photoUrl,
+        socialLinks: shop.socialLinks,
+        tags,
+        contact: contact ?? { phone: null, hours: null },
+        contactOn,
+        addressLabel: shop.placements[0]?.label ?? null,
+        kind: pageKindOf(shop.kind),
+        purpose: purposeOf(shop.kind, shop.purpose),
+        productsOn,
+        where: whereValueFrom(where ?? null),
+      }}
+    >
+      {page}
+    </PageEditorProvider>
   )
 }

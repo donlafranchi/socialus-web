@@ -16,7 +16,8 @@
 // overflow menu is how Don came to say there was no way to edit a Page.
 
 import Link from 'next/link'
-import { Pencil, Megaphone } from 'lucide-react'
+import { Megaphone } from 'lucide-react'
+import { EditToggle } from './edit/PageEditor'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 
 export function OwnerBar({ pagePath }: { pagePath: string }) {
@@ -26,7 +27,6 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
   // address lived under a catch-all and Next.js refuses a static segment after
   // one. The canonical address is a single dynamic segment, so the edit
   // surface hangs off the Page it edits, which is where it belongs.
-  const managePath = `${pagePath}/edit`
   return (
     <div
       data-testid="owner-bar"
@@ -35,14 +35,12 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
       <span className="text-xs font-medium text-[var(--color-fg-muted)] mr-auto">
         Your Page — only you see this
       </span>
-      <Link href={managePath} data-testid="owner-edit" className="btn-secondary press">
-        <Pencil size={14} className="reacts mr-1.5" aria-hidden="true" />
-        Edit
-      </Link>
+      {/* #302 — edit in place, by section (Don, 2026-10-04). */}
+      <EditToggle />
       <Link
         href={`${pagePath}#${ANNOUNCE_ANCHOR}`}
         data-testid="owner-announce"
-        className="btn-primary press"
+        className="btn-secondary press"
       >
         <Megaphone size={14} className="reacts mr-1.5" aria-hidden="true" />
         Announce

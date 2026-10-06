@@ -34,6 +34,7 @@ import { writeFileSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { LINK_TYPES } from '../src/ontology/links'
 import { OBJECT_TYPES, REJECTED_AS_NOUNS } from '../src/ontology/objects'
+import { PAGE_PURPOSES } from '../src/ontology/purposes'
 import { listHandlers } from '../src/actions'
 
 const OUT = resolve(__dirname, '..', 'src', 'ontology', 'registry.json')
@@ -65,6 +66,9 @@ export function buildRegistry(): string {
         // Words that name a relation to a Page and not a kind of person.
         // Exported so nothing downstream reinvents them as types.
         rejectedAsNouns: [...REJECTED_AS_NOUNS],
+        // A Page's purpose (2026-10-05), each pointing at the journey loops it
+        // serves. Additive: no reader of schema 2 has to change.
+        pagePurposes: PAGE_PURPOSES.map((p) => ({ ...p, loops: [...p.loops] })),
         links: LINK_TYPES.map((l) => ({
           name: l.name,
           from: l.from,

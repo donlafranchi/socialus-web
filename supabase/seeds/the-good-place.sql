@@ -336,12 +336,12 @@ values
    'A four-day-a-week bakery run out of the Orchard Hill community kitchen. Bread on Wednesday and Saturday, cakes to order.',
    'listed', 'active', current_date - 400, '{"demo_seed":"the-good-place"}'::jsonb),
 
-  ('40000000-0000-4000-8000-000000000002', 'Pond Side Circle', 'pond-side-circle', 'interest',
+  ('40000000-0000-4000-8000-000000000002', 'Pond Side Circle', 'pond-side-circle', 'group',
    '30000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000003',
    'Neighbours who look after the commons and decide together what happens in it. Anyone can join; showing up is the only requirement.',
    'listed', 'active', current_date - 620, '{"demo_seed":"the-good-place"}'::jsonb),
 
-  ('40000000-0000-4000-8000-000000000003', 'Repair Cafe Regulars', 'repair-cafe-regulars', 'event_anchored',
+  ('40000000-0000-4000-8000-000000000003', 'Repair Cafe Regulars', 'repair-cafe-regulars', 'group',
    '30000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000003',
    'The people who keep turning up to the monthly Repair Cafe with a soldering iron and a spare afternoon.',
    'listed', 'active', current_date - 240, '{"demo_seed":"the-good-place"}'::jsonb)

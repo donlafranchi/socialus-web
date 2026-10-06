@@ -90,15 +90,9 @@ describe('T070 — groupCreate input validation', () => {
     expect(parsed.success).toBe(false)
   })
 
-  it('accepts all six group kinds', () => {
-    for (const kind of [
-      'place',
-      'interest',
-      'practice',
-      'event_anchored',
-      'family',
-      'business',
-    ]) {
+  // #363 — two types (ruled 2026-10-05).
+  it('accepts both types', () => {
+    for (const kind of ['business', 'group']) {
       const parsed = groupCreateInput.safeParse({
         kind,
         founderMemberId: '00000000-0000-0000-0000-000000000001',

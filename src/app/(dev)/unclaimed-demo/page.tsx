@@ -9,6 +9,7 @@ import { demoClaim, demoRemove } from './actions'
 const SHOP: ResolvedShop = {
   groupId: '00000000-0000-4000-8000-000000000353',
   kind: 'business',
+  purpose: 'sell',
   slug: 'example-corner-bakery',
   publicId: 'demo353',
   displayName: 'Example Corner Bakery',

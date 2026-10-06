@@ -1,8 +1,10 @@
 // T074 — Unit tests for <ShopPublicPage> (F035 read surface).
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md story beats 1–6.
 
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {} }), usePathname: () => '/' }))
 import '@testing-library/jest-dom/vitest'
 import { ShopPublicPage } from './ShopPublicPage'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
@@ -18,6 +20,7 @@ const SHOP: ResolvedShop = {
   publicDescription: 'Real bread, baked local.',
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
+  purpose: 'sell',
   category: null,
   photoUrl: null,
   socialLinks: {},
@@ -53,13 +56,12 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     expect(h1).toHaveTextContent('Oak Park Sourdough')
   })
 
-  it('links the founder to their Member page when hasPublished=true; avatar is decorative', () => {
+  it('#303 — the founder is a name, never a link to a member profile; avatar is decorative', () => {
     renderShop()
     const founder = screen.getByTestId('shop-founder')
-    const link = screen.getByTestId('shop-founder-link')
-    expect(link).toHaveAttribute('href', '/m/maya')
+    expect(screen.queryByTestId('shop-founder-link')).not.toBeInTheDocument()
+    expect(founder.querySelector('a')).toBeNull()
     expect(founder).toHaveTextContent('Maya Rivera')
-    // a11y: avatar is decorative (alt="") so the link name isn't duplicated.
     expect(founder.querySelector('img')).toHaveAttribute('alt', '')
   })
 
@@ -150,7 +152,7 @@ describe('ShopPublicPage — Beat 3 (items empty state)', () => {
     const empty = screen.getByTestId('shop-items-empty')
     expect(empty).toBeInTheDocument()
     expect(empty).toHaveTextContent(/check back soon/i)
-    // voice.md: no em dashes, anywhere.
+    // voice-and-tone.md: no em dashes, anywhere.
     expect(empty.textContent).not.toContain('\u2014')
   })
 
@@ -348,7 +350,7 @@ describe('#300 — the Page on the new layout', () => {
     const panel = screen.getByTestId('owner-panel')
     expect(panel.className).toMatch(/\bhidden\b/)
     expect(panel.className).toMatch(/\blg:block\b/)
-    expect(panel.querySelector('a[href="/g/x-abc123/edit"]')).not.toBeNull()
+    expect(panel.querySelector('[data-testid="owner-edit-toggle"]')).not.toBeNull()
   })
 
   it('gives nobody else a panel', () => {
@@ -374,7 +376,7 @@ describe('#301 — the draft Page, in the owner view', () => {
   })
 
   it('names a group draft specifically, not "group" alone', () => {
-    renderShop({ shop: { ...draft, kind: 'interest' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    renderShop({ shop: { ...draft, kind: 'group', purpose: 'gather' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
     expect(screen.getByTestId('shop-name')).toHaveTextContent('Your new group or meetup Page')
   })
 
@@ -447,6 +449,25 @@ describe('#293 — phone and hours on the Page', () => {
   })
 })
 
+
+// #302 — edit in place, by section (Don, 2026-10-04).
+describe('#302 — the owner edits the Page in place', () => {
+  it('Edit shows a small edit button on each section', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123', viewerMemberId: 'm1', tags: ['sourdough'] })
+    expect(screen.queryByTestId('edit-section-about')).toBeNull()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]!)
+    for (const s of ['about', 'photo', 'where', 'tags', 'links', 'components']) {
+      expect(screen.getAllByTestId(`edit-section-${s}`).length).toBeGreaterThan(0)
+    }
+  })
+
+  it('a visitor never sees them', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false })
+    expect(screen.queryByTestId('owner-edit-toggle')).toBeNull()
+    expect(screen.queryByTestId('edit-section-about')).toBeNull()
+  })
+})
+
 describe('#348 — where it is, under the location', () => {
   const where = { mode: 'visit' as const, howToFind: 'Trailhead behind the barn', usuallyAround: null, towns: [] }
   it('a signed-in visitor reads how to find it', () => {
@@ -465,7 +486,7 @@ describe('Locally owned is for businesses only', () => {
   const badge = { label: 'Locally owned' } as never
   const claim = { zip: null } as never
   it('a social group shows neither the badge nor the question, even if handed them', () => {
-    renderShop({ shop: { ...SHOP, kind: 'interest' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
+    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'gather' }, badge, ownerClaim: claim, viewerOwnsPage: true, pagePath: '/g/x-abc123', loggedIn: true })
     expect(screen.queryByTestId('local-owner-badge')).toBeNull()
     expect(screen.queryByText(/locally owned claim/i)).toBeNull()
   })
@@ -473,9 +494,52 @@ describe('Locally owned is for businesses only', () => {
     renderShop({ shop: { ...SHOP, kind: 'business' }, badge, loggedIn: true })
     expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
   })
-  it('a service too', () => {
-    renderShop({ shop: { ...SHOP, kind: 'practice' }, badge, loggedIn: true })
-    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
+})
+
+
+// #363 — an unnamed draft is called by its use case.
+describe('#363 — draft heading by purpose', () => {
+  it('a Be creative draft reads "Your new Page"', () => {
+    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'create', lifecycleState: 'draft', displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }, viewerOwnsPage: true, pagePath: '/g/draft-x' })
+    expect(screen.getByTestId('shop-name')).toHaveTextContent(/^Your new Page$/)
+  })
+})
+
+// #363 — two types (ruled 2026-10-05): the kind line under the name, and the
+// type sets what leads. Precedent: Meetup (Join, next event), Google Business
+// Profile (Call).
+describe('#363 — the kind line and what each type leads with', () => {
+  const soon = new Date(Date.now() + 2 * 864e5).toISOString()
+  const later = new Date(Date.now() + 9 * 864e5).toISOString()
+  const post = (id: string, body: string, startsAt: string | null) => ({ id, body, createdAt: soon, updatedAt: soon, startsAt, endsAt: null, locationLabel: null })
+  const posts = [post('p-later', 'Star party', later), post('p-note', 'Thanks all', null), post('p-soon', 'Float day', soon)]
+  const GROUP = { ...SHOP, kind: 'group', purpose: 'gather', category: null }
+
+  it('says type · purpose under the name, or type · collection', () => {
+    renderShop({ loggedIn: true, shop: GROUP })
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Social group · Meets up')
+    cleanup()
+    renderShop({ loggedIn: true, shop: { ...SHOP, category: 'Bakery' } })
+    expect(screen.getByTestId('page-kind')).toHaveTextContent('Business · Bakery')
+  })
+
+  it('a group: Join, its next event, and no products & services until added', () => {
+    renderShop({ loggedIn: true, shop: GROUP, posts })
+    expect(screen.getByRole('button', { name: 'Join' })).toBeInTheDocument()
+    expect(screen.getByTestId('page-next-up')).toHaveTextContent(/next event/i)
+    expect(screen.getByTestId('page-next-up')).toHaveTextContent('Float day')
+    expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+    cleanup()
+    renderShop({ loggedIn: true, shop: GROUP, productsOn: true })
+    expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
+  })
+
+  it('a business leads with how to reach it: contact before the description', () => {
+    renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } as never })
+    const contact = screen.getByTestId('page-contact')
+    expect(contact.compareDocumentPosition(screen.getByText(SHOP.publicDescription)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByTestId('page-next-up')).toBeNull()
   })
 })
 

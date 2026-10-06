@@ -68,7 +68,7 @@ beforeAll(async () => {
   // ...and a run club, managed by role='steward'. Same person, different word.
   await client.query(
     `insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id)
-     values ($1,'interest','F072 Run Club','f072-run-club','active','listed',$2)`,
+     values ($1,'group','F072 Run Club','f072-run-club','active','listed',$2)`,
     [CLUB, OWNER],
   )
   await client.query(
