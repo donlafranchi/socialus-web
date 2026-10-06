@@ -68,7 +68,9 @@ void FIXTURE_RUTH;
 // only sound when these run in order — pin the block to a single worker.
 test.describe.configure({ mode: "serial" });
 
-test.describe("F036 — Maya creates a business Group through the Sell walkthrough", () => {
+// #336 — /you/sell and the walkthrough are retired to Create (Don, 2026-10-05); the flow is kept, unrouted,
+// for when product and service listings are due (socialus-plan ROADMAP § Later). Skipped, not deleted.
+test.describe.skip("F036 — Maya creates a business Group through the Sell walkthrough", () => {
   test.describe('"Sell" CTA visible on /you for any Member', () => {
     test("Given an auth'd Member with no business Group on /you | When the page loads | Then a 'Sell' CTA is visible routing to the walkthrough", async ({
       page,

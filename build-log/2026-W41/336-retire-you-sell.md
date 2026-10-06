@@ -1,0 +1,3 @@
+# change #336 — retire /you/sell, keep its flow
+
+Don, 2026-10-05: "this is useful stuff but it should be product/service based and from a page not from you"; "let's not throw it away and add this information in the appropriate place for when it's time is due." `/you/sell` redirects to Create; Join's main button and the venue page's Host go to Create. The product, service and gathering composers, their Add buttons and their server actions stay in the tree, unrouted (paths in the page's header comment, the issue and socialus-plan ROADMAP § Later). Browser evals for the retired flow (F036, and the /you/sell beats of F034, F038, F040) are skipped with a pointer, not deleted; F033's Host beat expects Create. Stacked on #379, which takes the walkthrough's entry off You.

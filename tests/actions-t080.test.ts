@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { itemCreateInput } from '../src/actions/item'
 
@@ -97,14 +97,29 @@ describe('T080 — create.ts branches the child insert on kind', () => {
   })
 })
 
-describe('T080 — /you/sell row is data-driven', () => {
+// #336 — /you/sell is retired to Create (Don, 2026-10-05); its flow is kept,
+// unrouted, for when product and service listings are due.
+describe('#336 — /you/sell redirects to Create, and its flow is kept', () => {
   const src = readFileSync(resolve(APP_DIR, 'you', 'sell', 'page.tsx'), 'utf8')
 
-  it('drops the upcoming-bundles placeholder paragraph', () => {
-    expect(src).not.toMatch(/land in upcoming bundles/)
+  it('redirects to Create and renders nothing of its own', () => {
+    expect(src).toMatch(/redirect\('\/create'\)/)
+    expect(src).not.toMatch(/AddProductButton/)
   })
 
-  it('keeps the product composer entry', () => {
-    expect(src).toMatch(/AddProductButton/)
+  it('keeps the composers, their triggers and their actions in the tree', () => {
+    for (const f of [
+      'src/components/sell/ProductComposer.tsx',
+      'src/components/sell/ServiceComposer.tsx',
+      'src/components/sell/GatheringComposer.tsx',
+      'src/components/sell/AddProductButton.tsx',
+      'src/components/sell/AddServiceButton.tsx',
+      'src/components/sell/AddGatheringButton.tsx',
+      'src/app/you/sell/product/actions.ts',
+      'src/app/you/sell/service/actions.ts',
+      'src/app/you/sell/gathering/actions.ts',
+    ]) {
+      expect(existsSync(resolve(__dirname, '..', f)), f).toBe(true)
+    }
   })
 })
