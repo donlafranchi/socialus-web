@@ -26,7 +26,8 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import { resolvePlacePath } from '@/lib/places/resolve-path'
 import { PlaceBreadcrumb } from '@/components/place-breadcrumb'
-import { splitGroupSlug } from '@/lib/groups/resolve-shop'
+import { splitGroupSlug, resolveShop } from '@/lib/groups/resolve-shop'
+import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { splitItemSlug, resolveProduct } from '@/lib/items/resolve-product'
 import { ProductPublicPage } from '@/components/item/ProductPublicPage'
 import { splitServiceSlug, resolveService } from '@/lib/items/resolve-service'
@@ -168,7 +169,7 @@ export default async function PlacePage({ params }: Props) {
     if (!product) {
       notFound()
     }
-    const groupHref = `/p/${itemSplit.placeSegments.join('/')}/g/${itemSplit.groupSlug}`
+    const groupHref = await pageHrefForSlug(supabase, itemSplit.groupSlug)
     return <ProductPublicPage product={product} groupHref={groupHref} />
   }
 
@@ -183,7 +184,7 @@ export default async function PlacePage({ params }: Props) {
     if (!service) {
       notFound()
     }
-    const groupHref = `/p/${serviceSplit.placeSegments.join('/')}/g/${serviceSplit.groupSlug}`
+    const groupHref = await pageHrefForSlug(supabase, serviceSplit.groupSlug)
     return <ServicePublicPage service={service} groupHref={groupHref} />
   }
 
@@ -198,9 +199,8 @@ export default async function PlacePage({ params }: Props) {
     if (!gathering) {
       notFound()
     }
-    const placePath = gatheringSplit.placeSegments.join('/')
-    const groupHref = `/p/${placePath}/g/${gatheringSplit.groupSlug}`
-    const shareUrl = `${groupHref}/e/${gatheringSplit.itemSlug}`
+    const groupHref = await pageHrefForSlug(supabase, gatheringSplit.groupSlug)
+    const shareUrl = `/p/${gatheringSplit.placeSegments.join('/')}/g/${gatheringSplit.groupSlug}/e/${gatheringSplit.itemSlug}`
     return (
       <GatheringPublicPage
         gathering={gathering}
@@ -291,4 +291,10 @@ export default async function PlacePage({ params }: Props) {
       </section>
     </main>
   )
+}
+
+/** #411 — an item links back to its Page at /g/<id>, the only Page address. */
+async function pageHrefForSlug(supabase: Awaited<ReturnType<typeof createClient>>, groupSlug: string): Promise<string | null> {
+  const shop = await resolveShop(supabase, groupSlug)
+  return shop ? canonicalPagePath(shop.publicId) : null
 }
