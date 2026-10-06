@@ -176,12 +176,9 @@ test.describe('F033 — Viewer finds a venue page', () => {
     }) => {
       await signIn(page, VIEWER.email, VIEWER.password)
       await page.goto(DRAKES.url)
-      // Why: verb-first composer — the entry point is the venue, and the Location
-      // is pre-attached (location=<id>) so the most natural use case is one tap.
-      await expect(page.getByTestId('venue-host-cta')).toHaveAttribute(
-        'href',
-        `/you/sell?compose=gathering&location=${SEEDED.drakesLocationId}`,
-      )
+      // #336 — hosting is a dated Post from a Page; /you/sell is retired, so
+      // the venue's Host goes to Create (Don, 2026-10-05).
+      await expect(page.getByTestId('venue-host-cta')).toHaveAttribute('href', '/create')
     })
 
     test('Given an anon visitor | When they see the Host CTA | Then it routes to sign-in with a return URL back to this venue', async ({

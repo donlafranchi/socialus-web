@@ -251,7 +251,8 @@ export default async function PlacePage({ params }: Props) {
       : [null, null]
     const venuePath = `/p/${slug.join('/')}`
     const hostHref = loggedIn
-      ? `/you/sell?compose=gathering&location=${venue.locationId}`
+      ? // #336 — hosting is a dated Post from a Page; Create starts one.
+        '/create'
       : `/auth/login?next=${encodeURIComponent(`${venuePath}?action=host`)}`
     // Content sections (T105) — public, so they run for anon too. Owning Group
     // scopes "What's happening here"; nearby excludes it.

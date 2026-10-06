@@ -130,7 +130,9 @@ test.describe("F034 — A member hosts a recurring gathering", () => {
     });
   });
 
-  test.describe("Beat 5 — 'Host a gathering' is reachable from /you/sell", () => {
+  // #336 — /you/sell and the walkthrough are retired to Create (Don, 2026-10-05); the flow is kept, unrouted,
+  // for when product and service listings are due (socialus-plan ROADMAP § Later). Skipped, not deleted.
+  test.describe.skip("Beat 5 — 'Host a gathering' is reachable from /you/sell", () => {
     test("Given Jordan owns a business Group and is signed in | When he opens /you/sell | Then a 'Host a gathering' affordance for that Group is present", async ({
       page,
     }) => {
