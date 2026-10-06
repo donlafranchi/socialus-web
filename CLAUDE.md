@@ -15,13 +15,15 @@ Classify it by `ops-pattern/process/PIPELINE.md`'s five kinds first: scenario, c
 
 ## Who checks what
 
-Agents own whether a change is **correct**. Don owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app on the Vercel preview link.
+Agents own whether a change is **correct**. Don owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app: **socialus.org itself, after merge, while previews are off** (Don, 2026-10-05: no previews until the 10-23 feature freeze; nobody uses production yet).
 
-Every PR opens with one of two things, before anything else: **"Don doesn't need to look."** plus a reason, or **the preview link, three plain-language steps, and what he should expect to see** — then the `human-review` label. `.github/pull_request_template.md` carries both blocks; keep one, delete the other.
+Every PR opens with one of two things, before anything else: **"Don doesn't need to look."** plus a reason, or **where to look on socialus.org after it merges, three plain-language steps, and what he should expect to see** — then the `human-review` label. `.github/pull_request_template.md` carries both blocks; keep one, delete the other.
 
-That choice also decides the merge. **"Don doesn't need to look"** means merge it yourself once the checks are green — he is not proficient in code, so a review that spends his attention on code he cannot judge buys nothing, and waiting for one only parks finished work. **`human-review`** means hold: say so, name what to look at on the preview, and he merges himself in GitHub or tells you to merge. Hold only for what he must judge — product wording, a UI he needs to see, a scope or role-model decision, anything with a real trade-off.
+That choice also decides the merge. **"Don doesn't need to look"** means merge it yourself once the checks are green — he is not proficient in code, so a review that spends his attention on code he cannot judge buys nothing, and waiting for one only parks finished work. **`human-review`** means: while previews are off, **merge on green plus the reviewer's first pass**, and Don reviews live on socialus.org and asks for fixes forward. Unfinished work hides behind a flag. **Migrations still go to Don, in order, before their PR merges.** (When `PREVIEWS_MODE` is `labelled` again, `human-review` means hold for his look at the preview.) Hold only for what he must judge — product wording, a UI he needs to see, a scope or role-model decision, anything with a real trade-off.
 
-**A `human-review` PR body opens with `## Review`** (Don, 2026-10-05): the preview link, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
+**A `human-review` PR body opens with `## Review`** (Don, 2026-10-05): "Review on socialus.org after merge" with the page to open, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
+
+**A UI PR (touching `src/app` or `src/components`) carries the reviewer's first pass:** a `Reviewed by:` section with the UX checklist from the PR template (the PM, 2026-10-05). If the pass can't run, label it `review-skipped` and say why in the body. The `review` check fails a UI PR with neither, so an unattended merge can't take it.
 
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 
@@ -63,6 +65,13 @@ Docker
 - Before any build run, confirm `docker context ls` shows desktop-linux as active; if not, run `docker context use desktop-linux`.
 - Run local Supabase on Docker Desktop and re-test migrations from scratch as usual.
 - If any docker command opens OrbStack or errors, stop and tell Don; don't work around it.
+
+Pushing
+- Push once, when a change is ready to review, not after every commit: every push to a PR runs CI (and, with previews on, a build).
+- Keep stacks to at most two PRs deep; rebase or merge the base first. A deep stack multiplies merges, conflicts and CI runs.
+
+Previews
+- `PREVIEWS_MODE` (Vercel environment, and the GitHub repo variable of the same name) is `off` until the 10-23 freeze: only `main` builds. `labelled` builds previews only for PRs labelled `human-review` (`scripts/vercel-ignore.mjs`).
 
 Build concurrency
 - Max 2 changes building or testing at once.

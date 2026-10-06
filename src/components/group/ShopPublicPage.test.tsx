@@ -152,7 +152,7 @@ describe('ShopPublicPage — Beat 3 (items empty state)', () => {
     const empty = screen.getByTestId('shop-items-empty')
     expect(empty).toBeInTheDocument()
     expect(empty).toHaveTextContent(/check back soon/i)
-    // voice.md: no em dashes, anywhere.
+    // voice-and-tone.md: no em dashes, anywhere.
     expect(empty.textContent).not.toContain('\u2014')
   })
 

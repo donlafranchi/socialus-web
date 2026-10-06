@@ -133,22 +133,52 @@ describe('F101 — one tap, then a five-second Undo', () => {
 
   it('R removes the focused row from the keyboard, and U undoes', () => {
     show(two())
-    fireEvent.keyDown(window, { key: 'r' })
+    const list = screen.getByTestId('review-rows')
+    fireEvent.keyDown(screen.getAllByTestId('review-approve')[0]!, { key: 'r' })
     expect(screen.getAllByTestId('review-row')).toHaveLength(1)
-    fireEvent.keyDown(window, { key: 'u' })
+    fireEvent.keyDown(list, { key: 'u' })
     expect(screen.getAllByTestId('review-row')).toHaveLength(2)
   })
 
-  it('a photo is blurred until pressed and held, unless the row is spam-tier', () => {
+  // #398 — WCAG 2.1.4: single-key shortcuts only while focus is in the list.
+  it('a key pressed outside the list decides nothing', () => {
+    show(two())
+    fireEvent.keyDown(window, { key: 'r' })
+    fireEvent.keyDown(document.body, { key: 'a' })
+    expect(screen.getAllByTestId('review-row')).toHaveLength(2)
+  })
+
+  // #398 — WCAG 2.2.1: the Undo waits while someone is on it.
+  it('the Undo toast waits while it is hovered or focused', async () => {
+    show(two())
+    fireEvent.click(screen.getAllByTestId('review-remove')[0]!)
+    fireEvent.mouseEnter(screen.getByTestId('toast'))
+    await act(async () => {
+      vi.advanceTimersByTime(10_000)
+    })
+    expect(onDecide).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(screen.getAllByTestId('review-row')).toHaveLength(2)
+  })
+
+  it('the row in hand is marked, not by colour alone', () => {
+    show(two())
+    expect(screen.getAllByTestId('review-row')[0]).toHaveAttribute('aria-current', 'true')
+  })
+
+  // #398 — WCAG 2.1.1: shown and hidden from a tap or a keyboard, not by holding.
+  it('a photo is blurred until chosen, unless the row is spam-tier', () => {
     const s = two()
     s[1]!.severity = 4
     show(s)
     const thumb = (id: string) => document.querySelector(`[data-subject="${id}"] [data-testid="review-thumb"]`)!
     const [first, second] = [thumb('a'), thumb('b')]
     expect(first).toHaveAttribute('data-blurred', 'true')
-    fireEvent.pointerDown(first!)
+    expect(first).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(first!)
     expect(first).toHaveAttribute('data-blurred', 'false')
-    fireEvent.pointerUp(first!)
+    expect(first).toHaveAccessibleName('Hide the photo')
+    fireEvent.click(first!)
     expect(first).toHaveAttribute('data-blurred', 'true')
     expect(second).toHaveAttribute('data-blurred', 'false')
   })
