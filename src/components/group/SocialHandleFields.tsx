@@ -61,7 +61,7 @@ export function SocialHandleFields({
               </span>
               <span
                 className={`mt-0.5 flex items-stretch overflow-hidden rounded-md border ${
-                  problem ? 'border-[var(--color-danger,#b00)]' : 'border-[var(--color-border)]'
+                  problem ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)]'
                 }`}
               >
                 <span
@@ -88,7 +88,7 @@ export function SocialHandleFields({
                 />
               </span>
               {problem ? (
-                <span role="alert" className="text-xs text-[var(--color-danger,#b00)]">
+                <span role="alert" className="text-xs text-[var(--color-danger)]">
                   {problem}
                 </span>
               ) : null}
