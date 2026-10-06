@@ -13,9 +13,6 @@
   "src/app/join/page.tsx": [
     "tracking-[0.2em]"
   ],
-  "src/app/you/page.tsx": [
-    "text-[17px]"
-  ],
   "src/components/EventCard.tsx": [
     "text-[11px]"
   ],
