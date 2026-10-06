@@ -481,7 +481,7 @@ export function SellWalkthrough({
       // T073b: dialog accessible name must NOT match any step input's label
       // (e.g. "Name") or Playwright's getByLabel resolves to both. F087 makes
       // that tighter, since the step headings now carry the chosen noun — so
-      // this takes voice.md's own button vocabulary, which collides with none
+      // this takes voice-and-tone.md's own button vocabulary, which collides with none
       // of them and never says Page.
       dialogLabel="Create something"
     />
