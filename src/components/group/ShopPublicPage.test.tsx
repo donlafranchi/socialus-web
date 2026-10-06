@@ -25,6 +25,7 @@ const SHOP: ResolvedShop = {
   photoUrl: null,
   socialLinks: {},
   photoHiddenAt: null,
+  photoRemovedAt: null,
   discoverability: 'listed',
   placements: [],
   founder: {
@@ -341,6 +342,11 @@ describe('#300 — the Page on the new layout', () => {
     expect(screen.getByTestId('page-cover').querySelector('[data-testid="default-art"]')).not.toBeNull()
     cleanup()
     renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoHiddenAt: '2026-10-01T00:00:00Z' } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
+  })
+
+  it('shows default art when the operator removed the photo', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoRemovedAt: '2026-10-01T00:00:00Z' } })
     expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
   })
 

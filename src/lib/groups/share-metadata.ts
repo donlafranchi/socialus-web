@@ -1,6 +1,6 @@
 // #409 — what a shared Page link shows in a preview: its name, description,
 // one canonical address and its picture (the site's when it has none, or when
-// its picture is hidden). A draft has no preview and is not indexed.
+// its picture is hidden or removed). A draft has no preview and is not indexed.
 
 import type { Metadata } from 'next'
 import { siteOrigin } from '@/lib/site-url'
@@ -15,6 +15,7 @@ interface PageForMetadata {
   lifecycleState: string
   photoUrl: string | null
   photoHiddenAt: string | null
+  photoRemovedAt: string | null
 }
 
 export function shareMetadata(page: PageForMetadata): Metadata {
@@ -25,7 +26,7 @@ export function shareMetadata(page: PageForMetadata): Metadata {
   }
   const origin = siteOrigin()
   const url = `${origin}${canonicalPagePath(page.slug, page.publicId)}`
-  const photo = visiblePhotoUrl({ photo_url: page.photoUrl, photo_hidden_at: page.photoHiddenAt })
+  const photo = visiblePhotoUrl({ photo_url: page.photoUrl, photo_hidden_at: page.photoHiddenAt, photo_removed_at: page.photoRemovedAt })
   const image = photo ? { url: photo } : { url: `${origin}/og-default`, width: 1200, height: 630 }
   return {
     title: `${title} — SocialUs`,

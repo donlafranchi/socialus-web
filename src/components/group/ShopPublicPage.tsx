@@ -110,6 +110,7 @@ export function ShopPublicPage({
   const photoUrl = visiblePhotoUrl({
     photo_url: shop.photoUrl,
     photo_hidden_at: shop.photoHiddenAt,
+    photo_removed_at: shop.photoRemovedAt,
   })
   // Only the owner is told. Everyone else sees what a photoless Page shows —
   // today nothing, and T146's default art once that lands. Neither reveals

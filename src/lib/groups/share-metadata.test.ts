@@ -11,6 +11,7 @@ const PAGE = {
   lifecycleState: 'active',
   photoUrl: 'https://cdn.example/cover.webp',
   photoHiddenAt: null,
+  photoRemovedAt: null,
 }
 
 beforeEach(() => {
@@ -32,8 +33,8 @@ describe('#409 — a published Page previews when shared', () => {
     expect(m.twitter).toMatchObject({ card: 'summary_large_image', images: ['https://cdn.example/cover.webp'] })
   })
 
-  it('falls back to the site picture when the Page has none, or its picture is hidden', () => {
-    for (const p of [{ ...PAGE, photoUrl: null }, { ...PAGE, photoHiddenAt: '2026-10-01T00:00:00Z' }]) {
+  it('falls back to the site picture when the Page has none, or its picture is hidden or removed', () => {
+    for (const p of [{ ...PAGE, photoUrl: null }, { ...PAGE, photoHiddenAt: '2026-10-01T00:00:00Z' }, { ...PAGE, photoRemovedAt: '2026-10-02T00:00:00Z' }]) {
       const m = shareMetadata(p)
       expect(m.openGraph?.images).toEqual([{ url: 'https://www.socialus.org/og-default', width: 1200, height: 630 }])
     }
