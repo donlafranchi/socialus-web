@@ -5,8 +5,11 @@
 // segment after one. The canonical address is a single dynamic segment, so the
 // edit surface sits where it belongs, at `/g/<slug>-<id>/edit`.
 //
+// #412 — the PM, 2026-10-06: section cards, each with one Edit that opens that
+// section's sheet (EditCards).
+//
 // A non-owner gets 404, not 403: the surface does not announce itself. The
-// check is server-side and the form is not rendered at all for anyone else —
+// check is server-side and the cards are not rendered at all for anyone else —
 // and the write behind it re-checks the managing role, so this is a courtesy
 // rather than the boundary.
 
@@ -15,13 +18,14 @@ import { createClient } from '@/lib/supabase-server'
 import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
 import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
-import { EditPageForm } from './EditPageForm'
+import { EditCards } from '@/components/group/edit/EditCards'
 import { resolvePageWhere } from '@/lib/groups/page-where'
 import { whereValueFrom } from '@/components/locations/where-save'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
+import { pageKindOf, purposeOf } from '@/lib/groups/page-kind'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,7 +55,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
   // group until its owner adds them.
   const { data: meta } = await supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle()
-  const contactOn = componentOn(shop.kind, (meta as { metadata?: unknown } | null)?.metadata, 'contact')
+  const metadata = (meta as { metadata?: unknown } | null)?.metadata
+  const contactOn = componentOn(shop.kind, metadata, 'contact')
+  const productsOn = componentOn(shop.kind, metadata, 'products')
 
   // #285 — the Page's tags, as the owner reads them. A tag taken down is not
   // offered back; saving leaves it off.
@@ -74,25 +80,28 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         {isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
       </h1>
       <p className="mt-1 mb-4 text-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
-      <EditPageForm
-        groupId={shop.groupId}
-        memberId={auth.user.id}
-        pagePath={pagePath}
+      <EditCards
         slug={shop.slug}
-        initialName={shop.displayName}
-        initialDescription={shop.publicDescription}
-        initialPhotoUrl={shop.photoUrl}
-        initialSocialLinks={shop.socialLinks}
-        // Issue #180 — where the Page is, in the words it was saved with.
-        // `placements` is T143's read-time resolution of exactly that; the
-        // anchor's own label is the first (and today only) entry.
-        initialAddressLabel={shop.placements[0]?.label ?? null}
-        initialContact={contact}
-        contactOn={contactOn}
-        initialTags={initialTags}
         isDraft={isDraft}
-        initialWhere={initialWhere}
         onSave={editPageAction}
+        initial={{
+          groupId: shop.groupId,
+          pagePath,
+          memberId: auth.user.id,
+          name: isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? '' : shop.displayName,
+          description: shop.publicDescription,
+          photoUrl: shop.photoUrl,
+          socialLinks: shop.socialLinks,
+          tags: initialTags,
+          contact,
+          contactOn,
+          // Issue #180 — where the Page is, in the words it was saved with.
+          addressLabel: shop.placements[0]?.label ?? null,
+          kind: pageKindOf(shop.kind),
+          purpose: purposeOf(shop.kind, shop.purpose),
+          productsOn,
+          where: initialWhere,
+        }}
       />
     </main>
   )
