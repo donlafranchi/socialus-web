@@ -1,12 +1,13 @@
 // #394 — Vercel's Ignored Build Step. Exit 0 skips the build, exit 1 builds.
-// Don ruled C (2026-10-05): previews build only for main and for branches whose
-// open PR is labelled human-review (or needs-don); everything else skips, to
-// stay under the Hobby plan's 100 deployments a day. Production always builds.
-// Labelling a PR later re-triggers a build (.github/workflows/preview-on-label.yml).
-//
-// The label check needs GITHUB_READ_TOKEN (Pull requests: read) in Vercel's
-// environment. Without it this falls back to #386: skip only docs- and
-// test-only pushes. If GitHub can't be asked, it builds rather than lose a preview.
+// Production (main) always builds. Everything else follows PREVIEWS_MODE in
+// Vercel's environment:
+//   off (the default) — no previews at all. Don, 2026-10-05: until the 10-23
+//     feature freeze socialus.org is the review surface; nobody uses it yet.
+//   labelled — previews only for a branch whose open PR is labelled
+//     human-review (or needs-don), Don's earlier C; labelling later re-triggers a
+//     build (.github/workflows/preview-on-label.yml). Reads labels with
+//     GITHUB_READ_TOKEN (Pull requests: read); without it, #386's rule (skip
+//     docs- and test-only pushes); if GitHub can't be asked, it builds.
 
 import { execFileSync } from 'node:child_process'
 
@@ -16,6 +17,7 @@ const QUIET = [/^docs\//, /^build-log\//, /^\.github\//, /^tests\//, /^evals\//,
 /** Pure: 'build' or 'skip', and why. `labels` is null when GitHub wasn't asked or couldn't answer. */
 export function decide({ env, changed, labels, asked }) {
   if (env.VERCEL_ENV === 'production') return ['build', 'production always builds']
+  if ((env.PREVIEWS_MODE ?? 'off') !== 'labelled') return ['skip', 'PREVIEWS_MODE is off: no previews until it is set to labelled']
   if (changed && changed.length > 0 && changed.every((f) => QUIET.some((r) => r.test(f))))
     return ['skip', 'only docs, tests, build-log, .github or markdown changed']
   if (!asked) return ['build', 'no GITHUB_READ_TOKEN, so no label check (#386 rule only)']
@@ -52,7 +54,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const asked = Boolean(process.env.GITHUB_READ_TOKEN)
   const env = process.env
   const changed = changedFiles()
-  const labels = asked && env.VERCEL_ENV !== 'production' ? await prLabels() : null
+  const labels = asked && env.VERCEL_ENV !== 'production' && env.PREVIEWS_MODE === 'labelled' ? await prLabels() : null
   const [verdict, why] = decide({ env, changed, labels, asked })
   console.log(`vercel-ignore: ${verdict} (${why})`)
   process.exit(verdict === 'skip' ? 0 : 1)

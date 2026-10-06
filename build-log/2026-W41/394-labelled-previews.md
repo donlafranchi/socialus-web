@@ -1,3 +1,5 @@
 # chore #394 — previews only for main and labelled PRs
 
 Don ruled C (2026-10-05). `scripts/vercel-ignore.mjs` (replacing #386's shell script) builds production always, skips docs- and test-only pushes, and otherwise builds a preview only when the branch's open PR is labelled human-review or needs-don, asked of GitHub with `GITHUB_READ_TOKEN` from Vercel's environment. With no token it keeps #386's rule; if GitHub can't be asked it builds. `.github/workflows/preview-on-label.yml` pushes an empty commit when a PR is labelled, so labelling later builds a preview.
+
+**Then (Don, 2026-10-05): no previews until the 10-23 freeze.** `PREVIEWS_MODE` (Vercel env; GitHub repo variable for the label workflow) defaults to `off`: only production builds. `labelled` restores the label-only previews above. CLAUDE.md and the PR template: review on socialus.org after merge; human-review PRs merge on green plus the first pass while previews are off; migrations still go to Don first. New build rules: push once when ready; stacks at most two deep.

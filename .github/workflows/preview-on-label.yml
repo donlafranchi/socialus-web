@@ -10,7 +10,10 @@ permissions:
   contents: write
 jobs:
   build-preview:
+    # Dormant unless the repo variable PREVIEWS_MODE is `labelled` (Don, 2026-10-05:
+    # no previews until the freeze), so it spends no Actions minutes meanwhile.
     if: >-
+      vars.PREVIEWS_MODE == 'labelled' &&
       (github.event.label.name == 'human-review' || github.event.label.name == 'needs-don') &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04

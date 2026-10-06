@@ -10,8 +10,18 @@ const SCRIPT = resolve('scripts/vercel-ignore.mjs')
 type In = { env: Record<string, string>; changed: string[] | null; labels: string[] | null; asked: boolean }
 const v = (o: In) => (decide(o) as [string, string])[0]
 
-describe('#394 — previews only for main and labelled PRs (Don ruled C, 2026-10-05)', () => {
-  const preview = { VERCEL_ENV: 'preview' }
+describe('Don, 2026-10-05 — no previews until the freeze: PREVIEWS_MODE off by default', () => {
+  it('any branch skips, labelled or not, code or docs', () => {
+    expect(v({ env: { VERCEL_ENV: 'preview' }, changed: ['src/app/page.tsx'], labels: ['human-review'], asked: true })).toBe('skip')
+    expect(v({ env: { VERCEL_ENV: 'preview', PREVIEWS_MODE: 'off' }, changed: ['src/app/page.tsx'], labels: null, asked: false })).toBe('skip')
+  })
+  it('production still builds', () => {
+    expect(v({ env: { VERCEL_ENV: 'production' }, changed: ['src/app/page.tsx'], labels: null, asked: false })).toBe('build')
+  })
+})
+
+describe('#394 — PREVIEWS_MODE=labelled: previews only for labelled PRs (Don ruled C, 2026-10-05)', () => {
+  const preview = { VERCEL_ENV: 'preview', PREVIEWS_MODE: 'labelled' }
   const code = ['src/app/page.tsx']
 
   it('production always builds, even docs-only', () => {
@@ -54,12 +64,15 @@ function pushOf(files: string[], env: Record<string, string> = {}) {
   return r.status === 0 ? 'skip' : 'build'
 }
 
-describe('#386 — the script itself, with no token (the fallback)', () => {
-  it.each([[['docs/a.md']], [['.github/workflows/ci.yml']], [['tests/a.test.ts', 'evals/x.spec.ts', 'README.md']]])('skips %j', (files) => {
-    expect(pushOf(files)).toBe('skip')
+describe('the script itself, run on a throwaway repo', () => {
+  it('by default a preview of a code change skips', () => {
+    expect(pushOf(['src/app/page.tsx'])).toBe('skip')
   })
-  it.each([[['src/app/page.tsx']], [['docs/a.md', 'package.json']], [['supabase/migrations/1.sql']]])('builds %j', (files) => {
-    expect(pushOf(files)).toBe('build')
+  it.each([[['docs/a.md']], [['.github/workflows/ci.yml']], [['tests/a.test.ts', 'evals/x.spec.ts', 'README.md']]])('labelled, no token: skips %j', (files) => {
+    expect(pushOf(files, { PREVIEWS_MODE: 'labelled' })).toBe('skip')
+  })
+  it.each([[['src/app/page.tsx']], [['docs/a.md', 'package.json']], [['supabase/migrations/1.sql']]])('labelled, no token: builds %j', (files) => {
+    expect(pushOf(files, { PREVIEWS_MODE: 'labelled' })).toBe('build')
   })
   it('production always builds', () => {
     expect(pushOf(['docs/a.md'], { VERCEL_ENV: 'production' })).toBe('build')
