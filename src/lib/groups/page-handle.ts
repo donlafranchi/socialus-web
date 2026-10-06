@@ -37,15 +37,16 @@ function foldCrockford(raw: string): string {
     .replace(/o/g, '0')
 }
 
-/** The canonical handle for a Page: slug, a hyphen, the ID. */
-export function pageHandle(slug: string, publicId: string): string {
-  return `${slug}-${publicId}`
+/** The canonical handle for a Page: its id alone (#411; the PM, 2026-10-06).
+ *  A rename cannot move it, so no shared link breaks. */
+export function pageHandle(publicId: string): string {
+  return publicId
 }
 
-/** The canonical path. One segment, no geography — a place path is an index
- *  that forwards here, never a second home for this Page. */
-export function canonicalPagePath(slug: string, publicId: string): string {
-  return `/g/${pageHandle(slug, publicId)}`
+/** The canonical path. One segment, no geography, no name — a place path or a
+ *  name-and-id form is an older address that forwards here. */
+export function canonicalPagePath(publicId: string): string {
+  return `/g/${pageHandle(publicId)}`
 }
 
 export interface ParsedPageHandle {
@@ -67,15 +68,14 @@ export function parsePageHandle(handle: string): ParsedPageHandle | null {
   const trimmed = handle.trim()
   if (!trimmed) return null
   const cut = trimmed.lastIndexOf('-')
-  // `-abc123` has an empty slug; a Page whose whole address is an ID is not a
-  // shape this produces, and accepting it would serve a second address.
-  if (cut <= 0) return null
+  // `-abc123` is no shape this or any older version produced.
+  if (cut === 0) return null
 
   const tail = foldCrockford(trimmed.slice(cut + 1))
   if (tail.length !== PUBLIC_ID_LENGTH) return null
   for (const ch of tail) if (!ID_CHARS.has(ch)) return null
 
-  return { publicId: tail, slug: trimmed.slice(0, cut).toLowerCase() }
+  return { publicId: tail, slug: cut < 0 ? '' : trimmed.slice(0, cut).toLowerCase() }
 }
 
 /**
@@ -85,6 +85,6 @@ export function parsePageHandle(handle: string): ParsedPageHandle | null {
  * a second copy of the Page at the address they used. That rule is what keeps
  * an index path (and a stale slug) a pointer rather than an alternative home.
  */
-export function isCanonicalHandle(handle: string, slug: string, publicId: string): boolean {
-  return handle === pageHandle(slug, publicId)
+export function isCanonicalHandle(handle: string, publicId: string): boolean {
+  return handle === pageHandle(publicId)
 }

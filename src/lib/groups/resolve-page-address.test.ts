@@ -26,26 +26,33 @@ const supabase = {} as Parameters<typeof resolvePageByHandle>[0]
 beforeEach(() => resolveShop.mockReset())
 
 describe('resolvePageByHandle', () => {
-  it('resolves by the id, not the slug', async () => {
+  it('serves the id alone, which is the canonical address (#411)', async () => {
     resolveShop.mockResolvedValueOnce(SHOP)
-    const found = await resolvePageByHandle(supabase, 'joes-pizza-7k3x8m')
+    const found = await resolvePageByHandle(supabase, '7k3x8m')
     expect(resolveShop).toHaveBeenCalledWith(supabase, '7k3x8m', { by: 'publicId' })
     expect(found?.shop).toBe(SHOP)
     expect(found?.redirectTo).toBeNull()
+  })
+
+  it('redirects the name-and-id form to the id alone', async () => {
+    resolveShop.mockResolvedValueOnce(SHOP)
+    const found = await resolvePageByHandle(supabase, 'joes-pizza-7k3x8m')
+    expect(resolveShop).toHaveBeenCalledWith(supabase, '7k3x8m', { by: 'publicId' })
+    expect(found?.redirectTo).toBe('/g/7k3x8m')
   })
 
   it('serves a stale slug by redirecting to the canonical address, never by rendering it', async () => {
     resolveShop.mockResolvedValueOnce(SHOP)
     const found = await resolvePageByHandle(supabase, 'the-old-name-7k3x8m')
     expect(found?.shop).toBe(SHOP)
-    expect(found?.redirectTo).toBe('/g/joes-pizza-7k3x8m')
+    expect(found?.redirectTo).toBe('/g/7k3x8m')
   })
 
   it('redirects an address typed in upper case', async () => {
     resolveShop.mockResolvedValueOnce(SHOP)
     const found = await resolvePageByHandle(supabase, 'JOES-PIZZA-7K3X8M')
     expect(resolveShop).toHaveBeenCalledWith(supabase, '7k3x8m', { by: 'publicId' })
-    expect(found?.redirectTo).toBe('/g/joes-pizza-7k3x8m')
+    expect(found?.redirectTo).toBe('/g/7k3x8m')
   })
 
   it('falls back to the whole handle as a slug when no id matches', async () => {
@@ -58,7 +65,7 @@ describe('resolvePageByHandle', () => {
     const found = await resolvePageByHandle(supabase, 'mayas-bakery')
     expect(resolveShop).toHaveBeenNthCalledWith(1, supabase, 'bakery', { by: 'publicId' })
     expect(resolveShop).toHaveBeenNthCalledWith(2, supabase, 'mayas-bakery', {})
-    expect(found?.redirectTo).toBe('/g/mayas-bakery-q4vw2n')
+    expect(found?.redirectTo).toBe('/g/q4vw2n')
   })
 
   it('tries a handle with no id-shaped tail as a slug straight away', async () => {
@@ -66,7 +73,7 @@ describe('resolvePageByHandle', () => {
     const found = await resolvePageByHandle(supabase, 'sourdough-co')
     expect(resolveShop).toHaveBeenCalledTimes(1)
     expect(resolveShop).toHaveBeenCalledWith(supabase, 'sourdough-co', {})
-    expect(found?.redirectTo).toBe('/g/sourdough-co-zt9w4p')
+    expect(found?.redirectTo).toBe('/g/zt9w4p')
   })
 
   it('is null when neither the id nor the slug finds anything', async () => {
@@ -81,7 +88,7 @@ describe('resolvePageByHandle', () => {
 
   it('resolves a draft at its canonical address, because its owner previews it there', async () => {
     resolveShop.mockResolvedValueOnce({ ...SHOP, lifecycleState: 'draft' })
-    const found = await resolvePageByHandle(supabase, 'joes-pizza-7k3x8m')
+    const found = await resolvePageByHandle(supabase, '7k3x8m')
     expect(found?.shop.lifecycleState).toBe('draft')
     expect(found?.redirectTo).toBeNull()
   })

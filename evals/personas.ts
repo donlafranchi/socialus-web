@@ -82,6 +82,6 @@ export const PAGES: SeededPage[] = [
   { key: 'family', kind: 'group', purpose: 'gather', slug: 'qa-family', publicId: 'qa0f01', name: 'QA Family', private: true, locationSlug: 'qa-family-home' },
 ]
 
-export const pageHandle = (page: SeededPage) => `${page.slug}-${page.publicId}`
+export const pageHandle = (page: SeededPage) => page.publicId
 export const persona = (key: PersonaKey) => PERSONAS.find((x) => x.key === key)!
 export const page = (key: PageKey) => PAGES.find((x) => x.key === key)!

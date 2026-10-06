@@ -12,18 +12,20 @@ import {
 
 // Issue #175 — a Page a member created has no reachable URL.
 //
-// The ruling (ops-pattern planning/URL-IDENTITY.md, Don 2026-09-21): a Page's
-// canonical URL is a cosmetic slug plus a short non-sequential ID. These tests
-// hold the two constraints behind it — no geography in the address, and
-// nothing in it derived from a member.
+// The ruling (ops-pattern planning/URL-IDENTITY.md, 2026-09-21): no geography
+// in the address and nothing in it derived from a member. #411 (the PM,
+// 2026-10-06; socialus-plan planning/research/url-plan-2026-10-06.md): the
+// canonical address is the id alone, /g/<id>; any slug in front of it is an
+// older form that redirects.
 
 describe('the canonical Page address', () => {
-  it('is one segment: slug, hyphen, id', () => {
-    expect(canonicalPagePath('joes-pizza', '7k3x8m')).toBe('/g/joes-pizza-7k3x8m')
+  it('is the id alone, so a rename cannot move it', () => {
+    expect(canonicalPagePath('7k3x8m')).toBe('/g/7k3x8m')
+    expect(pageHandle('7k3x8m')).toBe('7k3x8m')
   })
 
   it('carries no place path — a metro today, a neighbourhood later, and the address survives both', () => {
-    const path = canonicalPagePath('sacriver-floaters', 'q4vw2n')
+    const path = canonicalPagePath('q4vw2n')
     expect(path).not.toMatch(/\/(ca|sacramento|p)\//)
     expect(path.split('/').filter(Boolean)).toHaveLength(2)
   })
@@ -66,9 +68,13 @@ describe('what resolves a Page', () => {
     expect(parsePageHandle('joes-pizza-7k3x8m9')).toBeNull()
   })
 
-  it('refuses a handle with no slug in front of the id', () => {
+  it('accepts the id on its own, which is the canonical form', () => {
+    expect(parsePageHandle('7k3x8m')).toEqual({ slug: '', publicId: '7k3x8m' })
+    expect(parsePageHandle('7K3X8M')?.publicId).toBe('7k3x8m')
+  })
+
+  it('refuses a hyphen with nothing in front of the id', () => {
     expect(parsePageHandle('-7k3x8m')).toBeNull()
-    expect(parsePageHandle('7k3x8m')).toBeNull()
   })
 
   it('refuses empty input', () => {
@@ -98,16 +104,16 @@ describe('reading an address aloud', () => {
 })
 
 describe('one address per Page', () => {
-  it('a stale slug is not canonical, so it redirects rather than being served as a second copy', () => {
-    expect(isCanonicalHandle('joes-pizza-7k3x8m', 'joes-pizza', '7k3x8m')).toBe(true)
-    expect(isCanonicalHandle('old-name-7k3x8m', 'joes-pizza', '7k3x8m')).toBe(false)
-    expect(isCanonicalHandle('JOES-PIZZA-7K3X8M', 'joes-pizza', '7k3x8m')).toBe(false)
+  it('any slug in front of the id is an older form, so it redirects rather than being served as a second copy', () => {
+    expect(isCanonicalHandle('7k3x8m', '7k3x8m')).toBe(true)
+    expect(isCanonicalHandle('joes-pizza-7k3x8m', '7k3x8m')).toBe(false)
+    expect(isCanonicalHandle('7K3X8M', '7k3x8m')).toBe(false)
   })
 
   it('round-trips its own output', () => {
-    const h = pageHandle('sourdough-co', 'zt9w4p')
-    expect(parsePageHandle(h)).toEqual({ slug: 'sourdough-co', publicId: 'zt9w4p' })
-    expect(isCanonicalHandle(h, 'sourdough-co', 'zt9w4p')).toBe(true)
+    const h = pageHandle('zt9w4p')
+    expect(parsePageHandle(h)).toEqual({ slug: '', publicId: 'zt9w4p' })
+    expect(isCanonicalHandle(h, 'zt9w4p')).toBe(true)
   })
 })
 

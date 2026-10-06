@@ -205,7 +205,7 @@ function pointOf(ewkb: string | null): { longitude: number | null; latitude: num
 }
 
 /**
- * The canonical Page address — `/g/<slug>-<id>`, or null with no id to resolve by.
+ * The canonical Page address — `/g/<id>` (#411), or null with no id to resolve by.
  *
  * Issue #175. This used to be `/p/<place_path>/g/<slug>`, and `place_path` is
  * null for every Page a member created, so every one of those cards rendered
@@ -213,11 +213,9 @@ function pointOf(ewkb: string | null): { longitude: number | null; latitude: num
  * 2026-09-21), which is what fixes it — and `place_path` stays in the row
  * because breadcrumbs and scoping still want it.
  */
-export function browseHref(slug: string | null, publicId: string | null): string | null {
-  const s = slug?.trim()
+export function browseHref(publicId: string | null): string | null {
   const id = publicId?.trim()
-  if (!s || !id) return null
-  return canonicalPagePath(s, id)
+  return id ? canonicalPagePath(id) : null
 }
 
 /**
@@ -236,7 +234,7 @@ export function resultHref(
   r: Pick<BrowseFeedRow, 'slug' | 'result_kind' | 'result_id'>,
   publicId: string | null,
 ): string | null {
-  const page = browseHref(r.slug, publicId)
+  const page = browseHref(publicId)
   // No Page path means no link at all. A bare '#announcement-…' would be a
   // link that looks live and goes nowhere, which is worse than no link.
   if (!page) return null

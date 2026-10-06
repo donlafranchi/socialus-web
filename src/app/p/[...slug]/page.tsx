@@ -288,7 +288,7 @@ export default async function PlacePage({ params }: Props) {
     if (!shop || shop.lifecycleState === 'dissolved') {
       notFound()
     }
-    permanentRedirect(canonicalPagePath(shop.slug, shop.publicId))
+    permanentRedirect(canonicalPagePath(shop.publicId))
   }
 
 

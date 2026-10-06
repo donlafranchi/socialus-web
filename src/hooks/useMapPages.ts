@@ -111,7 +111,7 @@ export function rowsToMapPages(rows: MapPageRow[]): MapPage[] {
       // Issue #175 — the address is on the row. It used to need a second
       // round trip through `locations.place_id`, which is null for every Page
       // a member made, so every one of those pins was unclickable.
-      href: r.public_id ? canonicalPagePath(r.slug ?? r.id, r.public_id) : null,
+      href: r.public_id ? canonicalPagePath(r.public_id) : null,
     })
   }
   return out

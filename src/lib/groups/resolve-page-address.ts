@@ -53,7 +53,7 @@ export async function resolvePageByHandle(
   // so there is one answer to it.
   if (shop.lifecycleState === 'dissolved') return null
 
-  const canonical = canonicalPagePath(shop.slug, shop.publicId)
+  const canonical = canonicalPagePath(shop.publicId)
   return {
     shop,
     redirectTo: `/g/${handle}` === canonical ? null : canonical,

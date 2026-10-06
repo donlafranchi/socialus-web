@@ -45,7 +45,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   })
   if (!owns) notFound()
 
-  const pagePath = canonicalPagePath(shop.slug, shop.publicId)
+  const pagePath = canonicalPagePath(shop.publicId)
   const isDraft = shop.lifecycleState === 'draft'
   const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a

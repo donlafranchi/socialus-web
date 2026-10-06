@@ -21,5 +21,5 @@ export default async function ManageRedirect({
   const supabase = await createClient()
   const shop = await resolveShop(supabase, slug[slug.length - 1])
   if (!shop || shop.lifecycleState === 'dissolved') notFound()
-  permanentRedirect(`${canonicalPagePath(shop.slug, shop.publicId)}/edit`)
+  permanentRedirect(`${canonicalPagePath(shop.publicId)}/edit`)
 }
