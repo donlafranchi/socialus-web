@@ -33,6 +33,7 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
@@ -175,9 +176,11 @@ export function ShopPublicPage({
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
 
-        {/* #267 — not on your own Page. */}
-          {!viewerOwnsPage && (
-            <div className="ml-auto">
+          <div className="ml-auto flex items-center">
+            {/* #409 — anyone can share a published Page, signed in or out. */}
+            {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
+            {/* #267 — not on your own Page. */}
+            {!viewerOwnsPage && (
               <ReportControl
                 subjectId={shop.groupId}
                 subjectLabel={shop.displayName}
@@ -185,8 +188,8 @@ export function ShopPublicPage({
                 returnTo={pagePath}
                 onSend={sendReportAction}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div className="-mt-2 flex items-center gap-2">
           <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">

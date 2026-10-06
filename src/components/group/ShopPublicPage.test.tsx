@@ -541,3 +541,18 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.queryByTestId('page-next-up')).toBeNull()
   })
 })
+
+describe('ShopPublicPage — #409 Share', () => {
+  it('is there for everyone on a published Page, signed in or out', () => {
+    for (const loggedIn of [false, true]) {
+      renderShop({ loggedIn, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+      expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
+  it('is not on a draft', () => {
+    renderShop({ shop: { ...SHOP, lifecycleState: 'draft' }, viewerOwnsPage: true, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
+  })
+})
