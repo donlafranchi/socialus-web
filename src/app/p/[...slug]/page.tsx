@@ -21,16 +21,12 @@
 // inner `/p/` markers and render the appropriate view. ADR-20 did not
 // anticipate the Next.js limit; revisit before the b1.1 Group surface work.
 
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
 import { resolvePlacePath } from '@/lib/places/resolve-path'
 import { PlaceBreadcrumb } from '@/components/place-breadcrumb'
-import {
-  splitGroupSlug,
-  resolveShop,
-} from '@/lib/groups/resolve-shop'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { splitGroupSlug } from '@/lib/groups/resolve-shop'
 import { splitItemSlug, resolveProduct } from '@/lib/items/resolve-product'
 import { ProductPublicPage } from '@/components/item/ProductPublicPage'
 import { splitServiceSlug, resolveService } from '@/lib/items/resolve-service'
@@ -139,22 +135,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  // Group (Page) index — /p/[…place]/g/[slug]. The route redirects to the
-  // canonical address (#175); the title is kept so anything that reads
-  // metadata without following the redirect still sees the Page's name rather
-  // than "Not found".
-  const groupSplit = splitGroupSlug(slug)
-  if (groupSplit) {
-    const shop = await resolveShop(supabase, groupSplit.groupSlug)
-    if (!shop) {
-      return { title: 'Not found — SocialUs' }
-    }
-    return {
-      title: `${shop.displayName} — SocialUs`,
-      description:
-        shop.publicDescription || `${shop.displayName} on SocialUs.`,
-    }
-  }
+  // #411 — /p/[…place]/g/[slug] is no Page address; not forwarded while there
+  // are no members to protect.
+  if (splitGroupSlug(slug)) return { title: 'Not found — SocialUs' }
 
   const resolved = await resolvePlacePath(supabase, slug)
   if (!resolved) {
@@ -275,22 +258,9 @@ export default async function PlacePage({ params }: Props) {
     )
   }
 
-  // Group (Page) dispatch — an INDEX now, not a home.
-  //
-  // Issue #175 / the URL ruling of 2026-09-21: a place path links to a Page's
-  // canonical address and never renders a Page inline at an index path.
-  // Rendering here is what produced two live addresses for one Page, neither
-  // of them canonical. RLS is still the visibility gate — a draft, dissolved
-  // or nonexistent slug yields no row and 404s.
-  const groupSplit = splitGroupSlug(slug)
-  if (groupSplit) {
-    const shop = await resolveShop(supabase, groupSplit.groupSlug)
-    if (!shop || shop.lifecycleState === 'dissolved') {
-      notFound()
-    }
-    permanentRedirect(canonicalPagePath(shop.publicId))
-  }
-
+  // #411 — /p/[…place]/g/[slug] is no Page address; not forwarded while there
+  // are no members to protect.
+  if (splitGroupSlug(slug)) notFound()
 
   const resolved = await resolvePlacePath(supabase, slug)
 

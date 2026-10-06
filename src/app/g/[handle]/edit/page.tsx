@@ -10,10 +10,10 @@
 // and the write behind it re-checks the managing role, so this is a courtesy
 // rather than the boundary.
 
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
-import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
+import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditPageForm } from './EditPageForm'
 import { resolvePageWhere } from '@/lib/groups/page-where'
@@ -31,13 +31,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) notFound()
 
-  const found = await resolvePageByHandle(supabase, handle)
-  if (!found) notFound()
-  // One address for the edit surface too, for the same reason the Page has
-  // one: a stale slug resolves and then corrects itself.
-  if (found.redirectTo) permanentRedirect(`${found.redirectTo}/edit`)
+  const shop = await resolvePageById(supabase, handle)
+  if (!shop) notFound()
 
-  const { shop } = found
   const owns = await viewerOwnsPage(supabase, {
     groupId: shop.groupId,
     viewerMemberId: auth.user.id,

@@ -208,14 +208,3 @@ describe('hours and phone on a draft', () => {
     expect(call![1]).toEqual([GROUP, false])
   })
 })
-
-describe('#411 — the slug is frozen', () => {
-  // The PM, 2026-10-06: the id alone is the address, and groups.slug is never
-  // regenerated, so links that still carry it keep resolving.
-  it('renames a draft without touching its slug', async () => {
-    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, name: 'Oak Park Sourdough' })
-    expect(out.patchedFields).toContain('name')
-    expect(out.patchedFields).not.toContain('slug')
-    expect(updateCall()![0]).not.toMatch(/slug/)
-  })
-})

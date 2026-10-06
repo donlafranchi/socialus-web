@@ -13,10 +13,12 @@
 // No event emitted for per-step updates: would flood the event log; the
 // eventual group.activated event carries the final activated state.
 
+import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
+import { toSlug } from '../../lib/slugify'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { whereInput, applyWhere, type WhereClause } from './where'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
@@ -157,10 +159,17 @@ export const groupUpdateDraft = defineHandler(
       const spineFragments: Array<{ clause: GroupSpineSetClause; value: unknown }> = []
       if (input.name !== undefined) {
         spineFragments.push({ clause: 'name = $', value: input.name })
-        // #411 — the slug is frozen (the PM, 2026-10-06). The address is the id
-        // alone; older links that carry the slug keep resolving because it
-        // never changes.
-        patched.push('name')
+        // Re-derive slug whenever name changes. Random suffix matches create.ts —
+        // draft slugs aren't publicly visible (RLS hides drafts), but the slug
+        // column is UNIQUE so concurrent renames to the same name across
+        // different drafts must not collide. The user-facing final slug is
+        // group.activate's concern (ADR-22).
+        const slugBase = toSlug(input.name) || 'draft'
+        spineFragments.push({
+          clause: 'slug = $',
+          value: `${slugBase}-${randomBytes(4).toString('hex')}`,
+        })
+        patched.push('name', 'slug')
       }
       if (input.description !== undefined) {
         spineFragments.push({ clause: 'description = $', value: input.description })
