@@ -139,7 +139,9 @@ test.describe("F040 — A producer lists a service", () => {
     });
   });
 
-  test.describe("Beat 6 — 'Add a service' is reachable from /you/sell", () => {
+  // #336 — /you/sell and the walkthrough are retired to Create (Don, 2026-10-05); the flow is kept, unrouted,
+  // for when product and service listings are due (socialus-plan ROADMAP § Later). Skipped, not deleted.
+  test.describe.skip("Beat 6 — 'Add a service' is reachable from /you/sell", () => {
     test("Given Tomas owns a business Group and is signed in | When he opens /you/sell | Then an 'Add a service' affordance for that Group is present", async ({
       page,
     }) => {

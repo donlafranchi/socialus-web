@@ -11,14 +11,9 @@ function supabase() {
   )
 }
 
-// INTERIM TARGET — the seller entry point is `/you` until the You rebuild lands.
-// `/register-vendor` is being retired with the vendor/market sweep. `/you` is the
-// ratified producer/organizing surface, and its SellCta already handles all three
-// routing branches (no shop → walkthrough, draft → resume, active shop → /you/sell).
-// Anonymous visitors go through the magic-link flow first: /you renders an empty
-// signed-out shell and SellCta hides without a memberId, so landing a stranger
-// there directly would show them nothing. Revisit when /you is rebuilt.
-const SELLER_ENTRY = '/you'
+// #336 — starting a Page is Create (one question, #301); /you/sell and its
+// walkthrough are retired. Anonymous visitors sign in first and come back here.
+const SELLER_ENTRY = '/create'
 const SELLER_ENTRY_SIGNED_OUT = `/auth/login?next=${encodeURIComponent(SELLER_ENTRY)}`
 
 export default function JoinPage() {
