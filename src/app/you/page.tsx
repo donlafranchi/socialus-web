@@ -73,6 +73,7 @@ export default async function YouPage() {
             label="Password"
             value="Sign in without an email"
             testId="settings-password"
+            wrap
             action={<Link href="/you/password" className={LINK}>Set or change</Link>}
           />
         </ul>
@@ -98,11 +99,11 @@ function Section({ title, testId, action, children }: { title: string; testId: s
   )
 }
 
-function Row({ label, value, testId, action }: { label: string; value: string; testId: string; action?: ReactNode }) {
+function Row({ label, value, testId, action, wrap }: { label: string; value: string; testId: string; action?: ReactNode; wrap?: boolean }) {
   return (
     <li className="flex min-h-tap items-center gap-3 px-4 py-2" data-testid={testId}>
       <span className="w-20 shrink-0 text-body-sm text-[var(--color-fg-muted)]">{label}</span>
-      <span className="min-w-0 flex-1 truncate text-body-sm text-[var(--color-fg)]">{value}</span>
+      <span className={`min-w-0 flex-1 text-body-sm text-[var(--color-fg)] ${wrap ? '' : 'truncate'}`}>{value}</span>
       {action}
     </li>
   )
