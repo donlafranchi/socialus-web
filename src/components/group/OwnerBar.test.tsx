@@ -1,32 +1,38 @@
+import { emptyWhere } from '@/components/locations/WhereFields'
 // The owner surface. Don, 2026-09-18: opening their page should open another
 // surface where these things can be changed and their tools become available.
 
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { OwnerBar } from './OwnerBar'
+import { PageEditorProvider } from './edit/PageEditor'
+
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {} }) }))
+const EDITOR = {
+  groupId: 'g1', pagePath: '/g/x', memberId: 'm1', name: 'N', description: '', photoUrl: null,
+  socialLinks: {}, tags: ['t'], contact: { phone: null, hours: null }, contactOn: true, addressLabel: null, where: emptyWhere,
+}
 
 afterEach(cleanup)
 
 describe('the owner bar', () => {
-  it('offers edit and announce, in plain sight rather than an overflow menu', () => {
-    render(<OwnerBar pagePath="/g/oak-park-sourdough-7k3x8m" />)
-    expect(screen.getByTestId('owner-edit')).toHaveAttribute(
-      'href',
-      '/g/oak-park-sourdough-7k3x8m/edit',
+  // #302 — Don, 2026-10-04: one Edit toggle on the Page itself, not a link to
+  // a separate long form (Apple Contacts' Edit/Done).
+  it('offers an Edit toggle and Announce, in plain sight', () => {
+    render(
+      <PageEditorProvider initial={EDITOR} onSave={async () => ({ ok: true })}>
+        <OwnerBar pagePath="/g/oak-park-sourdough-7k3x8m" />
+      </PageEditorProvider>,
     )
+    expect(screen.getByRole('button', { name: 'Edit' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('link', { name: /edit/i })).toBeNull()
     expect(screen.getByTestId('owner-announce')).toBeInTheDocument()
   })
 
-  // Issue #175 — edit hangs off the Page's own address now, rather than being
-  // reassembled into a second top-level route. The canonical address is one
-  // dynamic segment, so a child route is allowed; the catch-all it used to
-  // live under is what forced `/manage/<slug>` in the first place.
-  it('hangs the edit surface off the Page, not off a parallel route', () => {
-    render(<OwnerBar pagePath="/g/sacriver-floaters-q4vw2n" />)
-    const href = screen.getByTestId('owner-edit').getAttribute('href')
-    expect(href).toBe('/g/sacriver-floaters-q4vw2n/edit')
-    expect(href).not.toContain('/manage/')
+  it('Announce is secondary: the composer has the one primary', () => {
+    render(<OwnerBar pagePath="/g/x-abc123" />)
+    expect(screen.getByTestId('owner-announce').className).not.toMatch(/btn-primary/)
   })
 
   it('says whose it is and that nobody else sees it', () => {

@@ -10,6 +10,9 @@ import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
+import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
+import { whereValueFrom } from '@/components/locations/where-save'
+import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
@@ -58,6 +61,9 @@ interface Props {
   followerCount?: number
   /** #301 — a draft's tag count, for its owner's publish checklist. */
   draftTagCount?: number
+  /** #302 — the owner's in-place editor (Don, 2026-10-04). */
+  viewerMemberId?: string | null
+  contactOn?: boolean
   /** #316 — the Page's tags; empty signed out. */
   tags?: string[]
   /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
@@ -85,6 +91,8 @@ export function ShopPublicPage({
   withheldPosts = [],
   followerCount = 0,
   draftTagCount = 0,
+  viewerMemberId = null,
+  contactOn = false,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
 
@@ -104,7 +112,7 @@ export function ShopPublicPage({
   // the withheld card and Sign up to follow. Listings and links out wait.
   const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
-  return (
+  const page = (
     // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
     // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
     <main
@@ -138,6 +146,7 @@ export function ShopPublicPage({
           <DefaultArt kind={artKindFor(shop.kind)} />
         )}
       </div>
+      <SectionEditButton section="photo" className="-mt-2 mb-2" />
 
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -146,6 +155,7 @@ export function ShopPublicPage({
               ? `Your new ${DRAFT_HEADING[shop.kind] ? `${DRAFT_HEADING[shop.kind]} ` : ''}Page`
               : shop.displayName}
           </h1>
+          <SectionEditButton section="about" />
           {badge && isBusinessKind(shop.kind) && (
             <span
               data-testid="local-owner-badge"
@@ -157,7 +167,6 @@ export function ShopPublicPage({
 
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
-          {loggedIn && contact && <PageContactBlock contact={contact} />}
 
         {/* #267 — not on your own Page. */}
           {!viewerOwnsPage && (
@@ -248,14 +257,21 @@ export function ShopPublicPage({
             {whereLine(where)}
           </p>
         )}
+        <SectionEditButton section="where" className="self-start" />
 
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
 
+        {/* #293 — hours and phone, under the description (they sat in the name
+            row); a component, so a group shows them only once added. */}
+        {loggedIn && contact && <PageContactBlock contact={contact} />}
+        {contactOn && <SectionEditButton section="contact" className="self-start" />}
+
         {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
             moderated after they appear (#287). */}
         {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
+        <SectionEditButton section="tags" className="self-start" />
 
         {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
             URL on read: this renders straight into href, and a row written
@@ -279,6 +295,8 @@ export function ShopPublicPage({
             ))}
           </ul>
         )}
+        <SectionEditButton section="links" className="self-start" />
+        <SectionEditButton section="components" className="self-start" />
 
         {/* #267 — not on your own Page: your row there is your authority, not
             a follow, and "Following" would have offered to end it. */}
@@ -362,5 +380,27 @@ export function ShopPublicPage({
         </aside>
       ) : null}
     </main>
+  )
+  if (!viewerOwnsPage || !pagePath) return page
+  return (
+    <PageEditorProvider
+      onSave={editPageAction}
+      initial={{
+        groupId: shop.groupId,
+        pagePath,
+        memberId: viewerMemberId ?? '',
+        name: shop.displayName,
+        description: shop.publicDescription,
+        photoUrl: shop.photoUrl,
+        socialLinks: shop.socialLinks,
+        tags,
+        contact: contact ?? { phone: null, hours: null },
+        contactOn,
+        addressLabel: shop.placements[0]?.label ?? null,
+        where: whereValueFrom(where ?? null),
+      }}
+    >
+      {page}
+    </PageEditorProvider>
   )
 }
