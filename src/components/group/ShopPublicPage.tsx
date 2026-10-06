@@ -137,6 +137,13 @@ export function ShopPublicPage({
         </div>
       )}
 
+      {/* #423 — archived: only the owner reaches it. Copy is a placeholder ([public-is-draft]). */}
+      {shop.lifecycleState === 'archived' && (
+        <div data-testid="shop-archived-banner" role="status" className="mb-4 text-caption font-medium text-[var(--color-fg-muted)]">
+          Archived · only you can see this
+        </div>
+      )}
+
       {showHiddenNotice && (
         <div className="mb-6">
           <HiddenPhotoNotice />

@@ -29,6 +29,9 @@ import {
   groupPostCreate,
   groupPostEdit,
   groupPostDelete,
+  groupArchive,
+  groupDelete,
+  groupRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
@@ -43,6 +46,11 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // because a live Page's slug is frozen and the edit is an event.
   'group.update': groupUpdate as unknown as NamedActionHandler<unknown, unknown>,
   'group.activate': groupActivate as unknown as NamedActionHandler<unknown, unknown>,
+  // #423 — owner-only: archive hides a Page from everyone else; delete hides
+  // it at once and the purge removes it 14 days on; restore undoes either.
+  'group.archive': groupArchive as unknown as NamedActionHandler<unknown, unknown>,
+  'group.delete': groupDelete as unknown as NamedActionHandler<unknown, unknown>,
+  'group.restore': groupRestore as unknown as NamedActionHandler<unknown, unknown>,
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
   'item.attach_location': itemAttachLocation as unknown as NamedActionHandler<unknown, unknown>,
@@ -103,6 +111,7 @@ export {
   memberSavedSearchRestore,
 } from './member'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
+export { groupArchive, groupDelete, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
   groupPostCreate,

@@ -156,3 +156,13 @@ describe('getMemberFollows — tombstone', () => {
     expect(await getMemberFollows(client, 'me')).toEqual([])
   })
 })
+
+describe('#423 — a deleted Page leaves Following', () => {
+  // Its owner still reads the row (to restore it from Your Pages); Following
+  // is not where it lives any more.
+  it('asks only for Pages that are not deleted', async () => {
+    const { client, calls } = makeClient(GROUP_DATA)
+    await getMemberFollows(client, 'me')
+    expect(calls.groups).toContainEqual(['is', ['dissolved_at', null]])
+  })
+})

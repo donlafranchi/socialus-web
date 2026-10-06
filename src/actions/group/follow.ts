@@ -64,7 +64,7 @@ export const groupFollow = defineHandler(
     return withTransaction(async (client) => {
       const grp = await client.query<{ id: string; discoverability: string }>(
         `select id, discoverability from public.groups
-          where id = $1 and dissolved_at is null`,
+          where id = $1 and dissolved_at is null and lifecycle_state <> 'archived'`,
         [input.groupId],
       )
       const row = grp.rows[0]

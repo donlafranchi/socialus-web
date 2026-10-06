@@ -17,7 +17,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
 
-export type GroupLifecycleState = 'draft' | 'active' | 'dissolved'
+export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
 
 export interface ShopFounder {
   handle: string

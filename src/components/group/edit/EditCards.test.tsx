@@ -202,3 +202,21 @@ describe('#412 — the link and the way back', () => {
     expect(screen.getByRole('link', { name: 'Done' })).toHaveAttribute('href', initial.pagePath)
   })
 })
+
+describe('#423 — Page settings, last', () => {
+  const ok = vi.fn(async () => ({ ok: true as const }))
+  const settings = { lifecycleState: 'active' as const, onArchive: ok, onRestore: ok, onDelete: ok }
+
+  it('sits after every other group, before Done', () => {
+    const { container } = render(<EditCards initial={initial} onSave={onSave} slug="oak-park-sourdough" isDraft={false} settings={settings} />)
+    const groups = [...container.querySelectorAll('details')]
+    expect(groups.at(-1)!.querySelector('summary')!.textContent).toBe('Page settings')
+    const done = screen.getByRole('link', { name: 'Done' })
+    expect(groups.at(-1)!.compareDocumentPosition(done) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('is not offered on a draft', () => {
+    render(<EditCards initial={initial} onSave={onSave} slug="oak-park-sourdough" isDraft settings={settings} />)
+    expect(screen.queryByTestId('page-settings')).toBeNull()
+  })
+})

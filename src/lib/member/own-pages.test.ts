@@ -11,7 +11,7 @@ const MEMBER = 'm-1'
 
 function client(rows: unknown[], error: { message: string } | null = null) {
   const q: Record<string, unknown> = {}
-  for (const m of ['select', 'eq', 'in', 'is', 'order']) {
+  for (const m of ['select', 'eq', 'in', 'is', 'or', 'order']) {
     q[m] = vi.fn(() => q)
   }
   q.limit = vi.fn(async () => ({ data: rows, error }))
@@ -48,13 +48,39 @@ describe('getOwnPages', () => {
 
   // #253 — groups.founder_member_id answers nobody, so the founder's own Pages
   // come from current_member_founded_group_ids(), read as the founder.
-  it('asks for the founder’s own Pages by id, never by the founder column, and excludes dissolved ones', async () => {
+  it('asks for the founder’s own Pages by id, never by the founder column, and only dissolved ones still restorable', async () => {
     const c = client([row()])
     await getOwnPages(c as never, MEMBER)
     expect(c.rpc).toHaveBeenCalledWith('current_member_founded_group_ids')
     expect(c._q.in).toHaveBeenCalledWith('id', ['g-1'])
     expect(c._q.eq).not.toHaveBeenCalledWith('founder_member_id', expect.anything())
-    expect(c._q.is).toHaveBeenCalledWith('dissolved_at', null)
+    expect(c._q.or).toHaveBeenCalledWith('dissolved_at.is.null,delete_after.not.is.null')
+    expect(c._q.select).toHaveBeenCalledWith(expect.stringContaining('delete_after'))
+  })
+
+  // #423 — archived and deleted Pages come back here, and only here, to restore.
+  describe('#423 — archived and deleted Pages', () => {
+    const NOW = new Date('2026-10-06T12:00:00Z')
+
+    it('lists an archived Page, still linked, so its owner can look at it', async () => {
+      const c = client([row({ lifecycle_state: 'archived' })])
+      const [p] = await getOwnPages(c as never, MEMBER, NOW)
+      expect(p).toMatchObject({ lifecycleState: 'archived', deleteAfter: null, href: '/g/sacriver-floaters-q4vw2n' })
+    })
+
+    it('lists a deleted Page with the date it goes, and no link, since its address is gone', async () => {
+      const c = client([row({ lifecycle_state: 'dissolved', delete_after: '2026-10-20T12:00:00Z' })])
+      const [p] = await getOwnPages(c as never, MEMBER, NOW)
+      expect(p).toMatchObject({ lifecycleState: 'dissolved', deleteAfter: '2026-10-20T12:00:00Z', href: null })
+    })
+
+    it('leaves out a deleted Page whose 14 days have passed, and one with no date', async () => {
+      const c = client([
+        row({ id: 'g-2', lifecycle_state: 'dissolved', delete_after: '2026-10-06T11:59:59Z' }),
+        row({ id: 'g-3', lifecycle_state: 'dissolved', delete_after: null }),
+      ])
+      expect(await getOwnPages(c as never, MEMBER, NOW)).toEqual([])
+    })
   })
 
   it('includes drafts — a half-finished Page vanishing is the same bug again', async () => {

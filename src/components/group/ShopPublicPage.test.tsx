@@ -174,6 +174,13 @@ describe('ShopPublicPage — Beat 6 (draft owner preview)', () => {
   it('shows no draft banner for an active shop', () => {
     renderShop()
     expect(screen.queryByTestId('shop-draft-banner')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('shop-archived-banner')).not.toBeInTheDocument()
+  })
+
+  // #423 — only the owner reaches an archived Page; it says so.
+  it('tells the owner an archived Page is hidden', () => {
+    renderShop({ shop: { ...SHOP, lifecycleState: 'archived' }, viewerOwnsPage: true, pagePath: '/g/x' })
+    expect(screen.getByTestId('shop-archived-banner')).toHaveTextContent('Archived · only you can see this')
   })
 })
 

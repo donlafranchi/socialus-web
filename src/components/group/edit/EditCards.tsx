@@ -14,6 +14,7 @@ import { socialLinksForDisplay } from '@/lib/groups/social-links'
 import { PAGE_KIND_LABEL, PURPOSE_LABEL } from '@/lib/groups/page-kind'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
+import { PageSettings, type PageSettingsProps } from './PageSettings'
 
 const NOT_SET = 'Not set yet'
 const DESCRIPTION_MAX = 60
@@ -100,11 +101,14 @@ export function EditCards({
   onSave,
   slug,
   isDraft,
+  settings,
 }: {
   initial: EditorInitial
   onSave: (input: EditPageInput) => Promise<EditPageResult>
   slug: string
   isDraft: boolean
+  /** #423 — archive and delete, for a live or archived Page. */
+  settings?: Pick<PageSettingsProps, 'lifecycleState' | 'onArchive' | 'onRestore' | 'onDelete'>
 }) {
   return (
     <PageEditorProvider initial={initial} onSave={onSave}>
@@ -132,6 +136,8 @@ export function EditCards({
             </>
           )}
         </section>
+
+        {settings && !isDraft && <PageSettings groupId={initial.groupId} pagePath={initial.pagePath} name={initial.name} {...settings} />}
 
         <Button href={initial.pagePath} variant="secondary" className="w-full">
           Done

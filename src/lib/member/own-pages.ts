@@ -29,11 +29,14 @@ export interface OwnPage {
   description: string | null
   photoUrl: string | null
   location: CardLocation
-  /** 'draft' | 'active' | 'dissolved' — shown, because a draft looks identical otherwise. */
+  /** 'draft' | 'active' | 'archived' | 'dissolved' — shown, because a draft looks identical otherwise. */
   lifecycleState: string
-  /** The canonical address. Never null: every Page has a public id, including
-   *  a draft, whose owner previews it at the address it will keep. */
-  href: string
+  /** #423 — a deleted Page's removal date (ISO); null otherwise. */
+  deleteAfter: string | null
+  /** The canonical address. Every Page has one, including a draft, whose owner
+   *  previews it at the address it will keep. Null only for a deleted Page,
+   *  whose address answers nobody. */
+  href: string | null
 }
 
 interface Row {
@@ -47,11 +50,12 @@ interface Row {
   photo_url: string | null
   photo_hidden_at: string | null
   lifecycle_state: string
+  delete_after?: string | null
   anchor: { label: string | null; kind: string | null } | null
 }
 
 const SELECT =
-  'id, name, slug, public_id, kind, category, description, photo_url, photo_hidden_at, lifecycle_state,' +
+  'id, name, slug, public_id, kind, category, description, photo_url, photo_hidden_at, lifecycle_state, delete_after,' +
   ' anchor:locations!groups_anchor_location_id_fkey(label, kind)'
 
 /**
@@ -73,6 +77,7 @@ function scaleFor(anchor: Row['anchor']): CardLocation {
 export async function getOwnPages(
   supabase: Pick<SupabaseClient, 'from' | 'rpc'>,
   memberId: string,
+  now: Date = new Date(),
 ): Promise<OwnPage[]> {
   // #253 — groups.founder_member_id answers nobody; the founder's own ids come
   // from a function that reads it as them.
@@ -82,7 +87,8 @@ export async function getOwnPages(
     .from('groups')
     .select(SELECT)
     .in('id', (ids as string[] | null) ?? [])
-    .is('dissolved_at', null)
+    // #423 — a deleted Page stays here, to restore, until its delete_after.
+    .or('dissolved_at.is.null,delete_after.not.is.null')
     .order('updated_at', { ascending: false })
     .limit(50)
 
@@ -93,7 +99,9 @@ export async function getOwnPages(
     return []
   }
 
-  const rows = (data ?? []) as unknown as Row[]
+  const rows = ((data ?? []) as unknown as Row[]).filter(
+    (r) => r.lifecycle_state !== 'dissolved' || (r.delete_after != null && new Date(r.delete_after) > now),
+  )
 
   // Issue #175 — every Page here links, including a draft.
   //
@@ -118,7 +126,8 @@ export async function getOwnPages(
       photoUrl: visiblePhotoUrl({ photo_url: r.photo_url, photo_hidden_at: r.photo_hidden_at }),
       location: scaleFor(r.anchor),
       lifecycleState: r.lifecycle_state,
-      href: canonicalPagePath(r.slug ?? 'page', r.public_id),
+      deleteAfter: r.delete_after ?? null,
+      href: r.lifecycle_state === 'dissolved' ? null : canonicalPagePath(r.slug ?? 'page', r.public_id),
     }
   })
 }
