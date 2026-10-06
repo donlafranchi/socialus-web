@@ -69,6 +69,12 @@ export default async function YouPage() {
           <Row label="Name" value={name ?? 'Not set'} testId="settings-name" />
           <Row label="Metro" value={metro ?? 'Not set'} testId="settings-metro" />
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
+          <Row
+            label="Password"
+            value="Sign in without an email"
+            testId="settings-password"
+            action={<Link href="/you/password" className={LINK}>Set or change</Link>}
+          />
         </ul>
         <div className="mt-4">
           <SignOutButton />
@@ -92,11 +98,12 @@ function Section({ title, testId, action, children }: { title: string; testId: s
   )
 }
 
-function Row({ label, value, testId }: { label: string; value: string; testId: string }) {
+function Row({ label, value, testId, action }: { label: string; value: string; testId: string; action?: ReactNode }) {
   return (
     <li className="flex min-h-tap items-center gap-3 px-4 py-2" data-testid={testId}>
       <span className="w-20 shrink-0 text-body-sm text-[var(--color-fg-muted)]">{label}</span>
       <span className="min-w-0 flex-1 truncate text-body-sm text-[var(--color-fg)]">{value}</span>
+      {action}
     </li>
   )
 }
