@@ -77,7 +77,7 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
               {error}
             </p>
           )}
-          <Button variant="secondary" size="sm" className="mt-3" disabled={busy} onClick={toggleArchive}>
+          <Button variant="secondary" className="mt-3" disabled={busy} onClick={toggleArchive}>
             {archived ? 'Restore' : 'Archive'}
           </Button>
         </section>
@@ -89,7 +89,6 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
           </p>
           <Button
             variant="secondary"
-            size="sm"
             className="mt-3 text-red-700"
             disabled={busy}
             onClick={() => {

@@ -99,3 +99,13 @@ describe('#423 — Page settings', () => {
     })
   })
 })
+
+describe('#423 review — every control is a 44px target', () => {
+  it('Archive, Restore and Delete Page are full-height buttons', () => {
+    renderSettings('active')
+    for (const name of ['Archive', 'Delete Page']) expect(screen.getByRole('button', { name })).toHaveClass('min-h-tap')
+    cleanup()
+    renderSettings('archived')
+    expect(screen.getByRole('button', { name: 'Restore' })).toHaveClass('min-h-tap')
+  })
+})

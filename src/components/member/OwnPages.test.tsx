@@ -74,3 +74,11 @@ describe('#423 — restoring from You', () => {
     expect(screen.queryByRole('button', { name: /restore/i })).toBeNull()
   })
 })
+
+describe('#423 review — Restore is a 44px target', () => {
+  it('is a full-height button', async () => {
+    getOwnPages.mockResolvedValue([page({ lifecycleState: 'archived' })])
+    render(<OwnPages memberId="m1" onRestore={onRestore} />)
+    expect(await screen.findByRole('button', { name: 'Restore Oak Park Sourdough' })).toHaveClass('min-h-tap')
+  })
+})

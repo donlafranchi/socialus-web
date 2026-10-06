@@ -70,7 +70,6 @@ export function OwnPages({
         {label}
         <Button
           variant="secondary"
-          size="sm"
           aria-label={`Restore ${p.name}`}
           disabled={busy === p.groupId}
           onClick={() => restore(p.groupId)}
