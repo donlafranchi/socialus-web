@@ -29,6 +29,9 @@ import {
   groupPostCreate,
   groupPostEdit,
   groupPostDelete,
+  groupUnclaimedRemove,
+  groupUnclaimedClaim,
+  groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
@@ -79,6 +82,11 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // T167 — F076 c13-15: the same step for someone with no account. Separate
   // handler because this one has no acting member to guard on at all.
   'metro.waitlist_join_anonymous': metroWaitlistJoinAnonymous as unknown as NamedActionHandler<unknown, unknown>,
+  // #353 — an unclaimed Page. Remove and claim take no account; a removal hides
+  // the Page at once. Restore is operator-only, checked in the handler.
+  'group.unclaimed_remove': groupUnclaimedRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unclaimed_claim': groupUnclaimedClaim as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unclaimed_restore': groupUnclaimedRestore as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {

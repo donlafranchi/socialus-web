@@ -31,6 +31,11 @@ export interface EditPageInput {
   openingHours?: unknown
   /** Don, 2026-10-04 — hours and phone switched on or off. */
   contactComponent?: boolean
+  /** Page types (ruled 2026-10-05). */
+  pageKind?: 'business' | 'group'
+  purpose?: 'gather' | 'sell' | 'offer' | 'create'
+  /** #363 — Products & services switched on or off. */
+  productsComponent?: boolean
   /** #285 — the Page's whole tag set. */
   tags?: string[]
 }
@@ -68,6 +73,9 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),
       ...(input.contactComponent !== undefined ? { contactComponent: input.contactComponent } : {}),
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
+      ...(input.pageKind !== undefined ? { pageKind: input.pageKind } : {}),
+      ...(input.purpose !== undefined ? { purpose: input.purpose } : {}),
+      ...(input.productsComponent !== undefined ? { productsComponent: input.productsComponent } : {}),
       ...(input.whereMode !== undefined ? { whereMode: input.whereMode } : {}),
       ...(input.howToFind !== undefined ? { howToFind: input.howToFind } : {}),
       ...(input.usuallyAround !== undefined ? { usuallyAround: input.usuallyAround } : {}),

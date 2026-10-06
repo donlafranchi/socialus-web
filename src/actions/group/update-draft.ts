@@ -24,6 +24,8 @@ import { whereInput, applyWhere, type WhereClause } from './where'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import type { ActionContext } from '../_lib/context'
+import { applyTypeChange } from './change-kind'
+import { PAGE_KINDS, PURPOSES, type PageKind, type Purpose } from '../../lib/groups/page-kind'
 
 export const groupUpdateDraftInput = z.object({
   groupId: z.string().uuid(),
@@ -59,6 +61,11 @@ export const groupUpdateDraftInput = z.object({
   businessStateOfFormation: z.string().max(80).nullable().optional(),
   // Don, 2026-10-04 — hours and phone as a component (see group.update).
   contactComponent: z.boolean().optional(),
+  // #363 — Products & services, on by default for a business; any Page may add it.
+  productsComponent: z.boolean().optional(),
+  // Page kinds (dispatch, 2026-10-05): changeable in settings.
+  pageKind: z.enum(PAGE_KINDS as [PageKind, ...PageKind[]]).optional(),
+  purpose: z.enum(PURPOSES as [Purpose, ...Purpose[]]).optional(),
 }).merge(whereInput)
 
 export type GroupUpdateDraftInput = z.infer<typeof groupUpdateDraftInput>
@@ -99,9 +106,10 @@ export const groupUpdateDraft = defineHandler(
       const groupRes = await client.query<{
         id: string
         kind: string
+        purpose: string | null
         lifecycle_state: string
       }>(
-        `select id, kind, lifecycle_state
+        `select id, kind, purpose, lifecycle_state
            from public.groups
           where id = $1`,
         [input.groupId],
@@ -321,6 +329,13 @@ export const groupUpdateDraft = defineHandler(
         patched.push('tags')
       }
 
+      if (
+        (input.pageKind !== undefined || input.purpose !== undefined) &&
+        (await applyTypeChange(client, input.groupId, { kind: row.kind, purpose: row.purpose }, { kind: input.pageKind, purpose: input.purpose }))
+      ) {
+        patched.push('kind')
+      }
+
       if (input.contactComponent !== undefined) {
         await client.query(
           `update public.groups
@@ -328,6 +343,17 @@ export const groupUpdateDraft = defineHandler(
                     coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('contact', $2::boolean))
             where id = $1 and lifecycle_state = 'draft'`,
           [input.groupId, input.contactComponent],
+        )
+        patched.push('components')
+      }
+
+      if (input.productsComponent !== undefined) {
+        await client.query(
+          `update public.groups
+              set metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{components}',
+                    coalesce(metadata->'components', '{}'::jsonb) || jsonb_build_object('products', $2::boolean))
+            where id = $1 and lifecycle_state = 'draft'`,
+          [input.groupId, input.productsComponent],
         )
         patched.push('components')
       }

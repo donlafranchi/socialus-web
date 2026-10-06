@@ -134,11 +134,11 @@ test.describe("Phase 1 — discoverable_items (T057)", () => {
     const { data: g } = await admin
       .from("groups")
       .insert({
-        kind: "family",
+        kind: "group",
         name: "Private fam",
         slug: `di-priv-${ownerId.slice(0, 6)}`,
         founder_member_id: ownerId,
-        discoverability: null,
+        discoverability: "private",
       })
       .select("id")
       .single();

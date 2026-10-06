@@ -78,24 +78,25 @@ test.describe("Phase 1 — Groups (T055)", () => {
       await cleanupMember(ownerId);
     });
 
-    test("Given kind='family' is inserted with discoverability unset | When the trigger fires | Then discoverability reads back as 'private'", async () => {
-      const ownerId = await seedMember("g-fam");
+    // #363 — the family kind is gone (ruled 2026-10-05): a private group is
+    // chosen, not implied by a type. A new Page with no purpose takes its
+    // type's (Don ruled A, 2026-10-05: purpose first, type for listing).
+    test("Given kind='group' is inserted with no purpose | When the trigger fires | Then purpose reads back as 'gather'", async () => {
+      const ownerId = await seedMember("g-usecase");
 
       const { data, error } = await admin
         .from("groups")
         .insert({
-          kind: "family",
+          kind: "group",
           name: "The Smiths",
           slug: `fam-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
-          discoverability: null,
         })
-        .select("id, discoverability")
+        .select("id, purpose, discoverability")
         .single();
       expect(error).toBeNull();
-      // Why: groups.md absolutes audit (2026-05-19) Absolute 4 — family-kind
-      // defaults private; encoded by trg_groups_default_discoverability.
-      expect(data?.discoverability).toBe("private");
+      expect(data?.purpose).toBe("gather");
+      expect(data?.discoverability).toBe("listed");
 
       await admin.from("groups").delete().eq("id", data!.id);
       await cleanupMember(ownerId);
@@ -128,7 +129,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data, error } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Private Circle",
           slug: `priv-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -143,27 +144,39 @@ test.describe("Phase 1 — Groups (T055)", () => {
       await cleanupMember(ownerId);
     });
 
-    test("Given the spine ships kind in (place/interest/practice/event_anchored/family/business) | When we insert one of each | Then all six succeed", async () => {
-      const ownerId = await seedMember("g-six");
-      const kinds = ["place", "interest", "practice", "event_anchored", "family", "business"];
-      const ids: string[] = [];
-      for (const k of kinds) {
+    // #364 applies before its code reaches main, whose Create still inserts the
+    // old kinds: the trigger translates them instead of the CHECK refusing them.
+    test("Given an old kind (practice, interest, family) is inserted | When the trigger fires | Then it is stored as a group with the mapped purpose", async () => {
+      const ownerId = await seedMember("g-legacy");
+      for (const [kind, purpose, disc] of [["practice", "offer", "listed"], ["interest", "gather", "listed"], ["family", "gather", "private"]]) {
         const { data, error } = await admin
           .from("groups")
-          .insert({
-            kind: k,
-            name: `K-${k}`,
-            slug: `k-${k}-${ownerId.slice(0, 6)}`,
-            founder_member_id: ownerId,
-            discoverability: "listed",
-          })
+          .insert({ kind, name: `L-${kind}`, slug: `l-${kind}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId })
+          .select("id, kind, purpose, discoverability")
+          .single();
+        expect(error, `kind=${kind}`).toBeNull();
+        expect([data?.kind, data?.purpose, data?.discoverability]).toEqual(["group", purpose, disc]);
+        await admin.from("groups").delete().eq("id", data!.id);
+      }
+      await cleanupMember(ownerId);
+    });
+
+    test("Given purpose first, type for listing | When any purpose is stored with either type | Then both are accepted, and an unknown purpose or type is rejected", async () => {
+      const ownerId = await seedMember("g-two");
+      for (const [kind, purpose] of [["business", "offer"], ["group", "create"], ["group", "offer"], ["business", "gather"]]) {
+        const { data, error } = await admin
+          .from("groups")
+          .insert({ kind, purpose, name: `K-${kind}`, slug: `k-${kind}-${purpose}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId })
           .select("id")
           .single();
-        expect(error, `kind=${k} rejected`).toBeNull();
-        ids.push(data!.id);
+        expect(error, `kind=${kind} purpose=${purpose} accepted`).toBeNull();
+        await admin.from("groups").delete().eq("id", data!.id);
       }
-      for (const id of ids) {
-        await admin.from("groups").delete().eq("id", id);
+      for (const row of [{ kind: "business", purpose: "selling" }, { kind: "shop", purpose: "gather" }]) {
+        const { error } = await admin
+          .from("groups")
+          .insert({ ...row, name: "Bad", slug: `k-bad-${row.kind}-${ownerId.slice(0, 6)}`, founder_member_id: ownerId });
+        expect(error?.code, JSON.stringify(row)).toBe("23514");
       }
       await cleanupMember(ownerId);
     });
@@ -174,7 +187,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
         const { data: g } = await admin
           .from("groups")
           .insert({
-            kind: "interest",
+            kind: "group",
             name: "Listed Group",
             slug: `rls-listed-${ownerId.slice(0, 6)}`,
             founder_member_id: ownerId,
@@ -196,11 +209,11 @@ test.describe("Phase 1 — Groups (T055)", () => {
         const { data: g } = await admin
           .from("groups")
           .insert({
-            kind: "family",
+            kind: "group",
             name: "Private Family",
             slug: `rls-priv-${ownerId.slice(0, 6)}`,
             founder_member_id: ownerId,
-            discoverability: null,
+            discoverability: "private",
           })
           .select("id")
           .single();
@@ -218,7 +231,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
         const { data: g } = await admin
           .from("groups")
           .insert({
-            kind: "interest",
+            kind: "group",
             name: "Dissolved Group",
             slug: `rls-dis-${ownerId.slice(0, 6)}`,
             founder_member_id: ownerId,
@@ -329,7 +342,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Source CHECK probe",
           slug: `src-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -356,7 +369,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "place",
+          kind: "group",
           name: "Soft Probe",
           slug: `soft-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -388,11 +401,11 @@ test.describe("Phase 1 — Groups (T055)", () => {
         const { data: g } = await admin
           .from("groups")
           .insert({
-            kind: "family",
+            kind: "group",
             name: "Private Roster",
             slug: `rls-mem-priv-${ownerId.slice(0, 6)}`,
             founder_member_id: ownerId,
-            discoverability: null,
+            discoverability: "private",
           })
           .select("id")
           .single();
@@ -418,7 +431,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
         const { data: g } = await admin
           .from("groups")
           .insert({
-            kind: "interest",
+            kind: "group",
             name: "Listed Roster",
             slug: `rls-mem-listed-${ownerId.slice(0, 6)}`,
             founder_member_id: ownerId,
@@ -468,7 +481,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Evt CHECK probe",
           slug: `evt-bad-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -493,7 +506,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Audit probe",
           slug: `evt-audit-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -518,7 +531,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Evt RLS probe",
           slug: `evt-rls-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -582,7 +595,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Stewarded Circle",
           slug: `stand-stew-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,
@@ -613,7 +626,7 @@ test.describe("Phase 1 — Groups (T055)", () => {
       const { data: g } = await admin
         .from("groups")
         .insert({
-          kind: "interest",
+          kind: "group",
           name: "Plain Member",
           slug: `stand-none-${ownerId.slice(0, 6)}`,
           founder_member_id: ownerId,

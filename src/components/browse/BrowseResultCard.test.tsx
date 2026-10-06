@@ -131,8 +131,8 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   it('two Pages of the same kind get the same art', () => {
     render(
       <ul>
-        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-a', groupKind: 'interest' })} />
-        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-zz-different', groupKind: 'interest' })} />
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-a', groupKind: 'group' })} />
+        <BrowseResultCard result={post({ photoUrl: null, groupId: 'g-zz-different', groupKind: 'group' })} />
       </ul>,
     )
     const [a, b] = screen.getAllByTestId('default-art')
@@ -156,5 +156,16 @@ describe('the card with an end time', () => {
   it('leads with the range', () => {
     render(<BrowseResultCard result={post({ startsAt: '2026-09-11T02:00:00Z', endsAt: '2026-09-11T04:00:00Z' })} />)
     expect(screen.getByTestId('browse-post-when')).toHaveTextContent(/7–9pm$/)
+  })
+})
+
+// The kind line under the name, on cards too (ruled 2026-10-05).
+describe('the kind line', () => {
+  it('says what kind of Page it is', () => {
+    render(<BrowseResultCard result={post({ groupKind: 'group' })} />)
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent(/^Social group$/)
+    cleanup()
+    render(<BrowseResultCard result={post({ groupKind: 'business' })} />)
+    expect(screen.getByTestId('tile-kind')).toHaveTextContent('Business')
   })
 })

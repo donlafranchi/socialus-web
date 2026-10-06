@@ -22,25 +22,50 @@ name: CI
 # not set here — it is an escape hatch for a local iteration loop, and its own
 # message says never in a merge.
 
+# THE CI DIET (#402). Actions minutes ran out on 2026-10-05 (~11,300 job-minutes
+# in two days against 2,000 free a month). What a push spends now:
+#   · a draft PR: nothing. Marking it ready runs everything.
+#   · a PR touching only docs, markdown, build-log or tests: nothing; main
+#     runs it all after the merge.
+#   · any other PR push: Lint/types/build, Unit tests, Migrations applied.
+#   · Browser: on a ready PR labelled human-review (or needs-don), on every
+#     push to main, nightly as the smoke slice, and the whole matrix weekly.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'build-log/**'
+      - 'tests/**'
+      - '**/*.test.ts'
+      - '**/*.test.tsx'
   push:
     branches: [main]
-  # The whole screenshot matrix (#375): ~45 minutes, so nightly, not per push.
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '0 10 * * *'   # nightly: Browser, smoke slice
+    - cron: '0 11 * * 0'   # Sunday: the whole screenshot matrix (~45 minutes)
   workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run the whole screenshot matrix'
+        type: boolean
+        default: false
 
 # A second push to a PR cancels the first. Not on main: those runs are the
 # record of what a merge did. The event is in the key so a nightly run never
-# queues a merge's run behind it.
+# queues a merge's run behind it, and a label gets its own lane so adding one
+# never cancels a push's checks.
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
+  group: ci-${{ github.event_name }}-${{ github.event.action == 'labeled' && 'label' || 'run' }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   quality:
     name: Lint, types, build
+    # #402 — not on a draft, not again when a label is added, not nightly
+    # (main's own push already ran it).
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.action != 'labeled')
     # PINNED, not ubuntu-latest. The `ubuntu-latest` label migrates to Ubuntu 26
     # from 2026-10-19 — eleven days before launch. An unpinned runner would
     # change the OS, the preinstalled toolchain and the default package
@@ -95,6 +120,9 @@ jobs:
 
   test:
     name: Unit tests
+    # #402 — not on a draft, not again when a label is added, not nightly
+    # (main's own push already ran it).
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.action != 'labeled')
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -173,21 +201,27 @@ jobs:
   #   guard          one spec that MUST fail; this job stops if it passes
   #   mobile-chrome  the feature evals (evals/quarantine.ts lists the ones that
   #                  fail against today's rulings and are excluded, by title)
-  #   screens        on a PR or a merge, the smoke slice (#375): every route
+  #   screens        on a PR, a merge or nightly, the smoke slice (#375): every route
   #                  signed out, and every route that differs by viewer as a
   #                  member and an owner, at 390px; it gates on errors and
-  #                  captures no pictures. Nightly and
-  #                  on demand (Actions → CI → Run workflow), the whole matrix:
-  #                  every route, as every persona, at six widths. Uploaded as
-  #                  the `screenshots` artifact.
+  #                  captures no pictures. Sundays and on demand (Actions →
+  #                  CI → Run workflow → full), the whole matrix: every route,
+  #                  as every persona, at six widths, uploaded as the
+  #                  `screenshots` artifact.
   #
-  # The whole matrix ran on every push until #375 and was ~45 of this job's
-  # ~50 minutes. The smoke slice still loads every route on every PR.
+  # Which pushes run this job at all is #402's diet, at the top of this file.
   # ---------------------------------------------------------------------
   browser:
     name: Browser
+    # #402 — main, schedule and dispatch always; a PR only when it is ready and
+    # carries human-review (or needs-don), and on that label being added.
+    if: >-
+      github.event_name != 'pull_request' || (
+        !github.event.pull_request.draft && (
+          (github.event.action == 'labeled' && (github.event.label.name == 'human-review' || github.event.label.name == 'needs-don')) ||
+          (github.event.action != 'labeled' && (contains(github.event.pull_request.labels.*.name, 'human-review') || contains(github.event.pull_request.labels.*.name, 'needs-don')))))
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 20 || 90 }}
+    timeout-minutes: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 90 || 20 }}
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -302,7 +336,7 @@ jobs:
         env:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
-          SCREENS_SCOPE: ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && 'smoke' || 'full' }}
+          SCREENS_SCOPE: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 'full' || 'smoke' }}
         run: npx playwright test --project=mobile-chrome --project=screens
 
       - name: Upload screenshots
@@ -360,7 +394,7 @@ jobs:
     name: Migrations applied to production
     # On main too, so a merge that lands a migration production lacks goes red
     # where everyone sees it (2026-10-01).
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: (github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.action != 'labeled') || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     # PINNED, not ubuntu-latest — same reasoning as every other job here.
     runs-on: ubuntu-24.04
     timeout-minutes: 10

@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { safeNext } from '@/lib/safe-next'
 import { rememberedEmail, rememberEmail } from '@/lib/auth/remembered-email'
+import { Button } from '@/components/ui/Button'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -41,8 +42,8 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
   if (sentTo) {
     return (
       <div className="w-full text-center" data-testid="magic-sent-message">
-        <h1 className="mb-3 text-2xl font-semibold">Check your email</h1>
-        <p className="mb-6 text-sm text-neutral-600">
+        <h1 className="mb-3 text-title-1 text-[var(--color-fg)]">Check your email</h1>
+        <p className="mb-6 text-body-sm text-[var(--color-fg-muted)]">
           We sent a sign-in link to <strong>{sentTo}</strong>. Open it on this device to finish — no password needed.
         </p>
         <button
@@ -51,7 +52,7 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
             setSentTo(null)
             setError(null)
           }}
-          className="text-sm text-[var(--color-accent)] underline"
+          className="press min-h-tap text-body-sm font-medium text-[var(--color-accent)] underline"
         >
           Use a different email
         </button>
@@ -61,10 +62,10 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
 
   return (
     <>
-      <h1 className="mb-2 text-2xl font-semibold" data-testid="login-heading">
+      <h1 className="mb-2 text-title-1 text-[var(--color-fg)]" data-testid="login-heading">
         Sign in to SocialUs
       </h1>
-      <p className="mb-5 text-sm text-neutral-600">
+      <p className="mb-5 text-body-sm text-[var(--color-fg-muted)]">
         Enter your email and we’ll send you a link. No password — new here or not, this is the way in.
       </p>
       <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="magic-link-form">
@@ -86,18 +87,13 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
         data-testid="email-input"
       />
       {error && (
-        <p data-testid="auth-error" className="text-sm text-red-600" role="alert">
+        <p data-testid="auth-error" className="text-body-sm text-[var(--color-danger,#b00)]" role="alert">
           {error}
         </p>
       )}
-      <button
-        type="submit"
-        disabled={submitting}
-        data-testid="submit-button"
-        className="w-full rounded-full bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
-      >
+      <Button type="submit" disabled={submitting} data-testid="submit-button" className="w-full">
         {submitting ? 'Sending…' : 'Email me a sign-in link'}
-      </button>
+      </Button>
       </form>
     </>
   )

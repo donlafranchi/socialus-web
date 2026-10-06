@@ -88,6 +88,7 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'playground', inventory: [], path: () => '/playground', same: true },
   { name: 'composer-demo', inventory: ['S094'], path: () => '/composer-demo', same: true },
   { name: 'add-entity-demo', inventory: ['S072'], path: () => '/add-entity-demo', same: true },
+  { name: 'unclaimed-demo', inventory: [], path: () => '/unclaimed-demo', same: true },
 ]
 
 export const WIDTHS = [390, 744, 1024, 1280, 1440, 1920] as const

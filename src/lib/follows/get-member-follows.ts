@@ -101,7 +101,8 @@ async function readPeople(
       displayName: isTombstone ? TOMBSTONE_NAME : m!.display_name,
       thumbnailUrl: isTombstone ? null : m!.avatar_url,
       createdAt: f.created_at,
-      href: isTombstone || !m ? '#' : `/m/${m.handle}`,
+      // #303 — no public member profile to link to.
+      href: '#',
       isTombstone,
     }
   })

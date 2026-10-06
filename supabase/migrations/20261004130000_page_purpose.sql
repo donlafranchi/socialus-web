@@ -52,12 +52,27 @@ alter table public.groups
 -- A new Page without a purpose takes its type's: sell for a business, gather
 -- for a group. The family kind that defaulted to private is gone (privacy is
 -- chosen, not implied).
+--
+-- BACKWARD COMPATIBLE ON PURPOSE. This applies before its code reaches main
+-- (#364 is stacked), and main's Create still inserts the old kinds. A BEFORE
+-- INSERT trigger runs ahead of the CHECK, so an old kind is translated here, as
+-- the backfill above maps it: practice -> an offer group; place, interest,
+-- event_anchored -> a gather group; family -> a private gather group.
 create or replace function public.groups_default_discoverability()
 returns trigger
 language plpgsql
 set search_path = public, pg_catalog
 as $$
 begin
+  if NEW.kind in ('place', 'interest', 'event_anchored', 'family', 'practice') then
+    if NEW.purpose is null then
+      NEW.purpose := case NEW.kind when 'practice' then 'offer' else 'gather' end;
+    end if;
+    if NEW.kind = 'family' then
+      NEW.discoverability := 'private';
+    end if;
+    NEW.kind := 'group';
+  end if;
   if NEW.discoverability is null then
     NEW.discoverability := 'listed';
   end if;

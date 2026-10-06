@@ -6,27 +6,34 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import type { Purpose } from '@/lib/groups/page-kind'
 
-export type StartKind = 'business' | 'practice' | 'interest'
+// #363 — each answer is the Page's purpose (Don ruled A, 2026-10-05: purpose
+// first, type for listing). Don, 2026-10-04: each is a question with one line on
+// what the Page is for; Don, 2026-10-05: a fourth, in his words, "A be creative
+// option… we exist to help you find your people." Placeholder ([public-is-draft]).
+export type StartKind = Purpose
 
-// Don, 2026-10-04: each kind is a question, with one line on what the Page
-// is for. The business and group questions are his; the third is drafted in
-// his voice. Placeholder ([public-is-draft]).
 const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
   {
-    kind: 'business',
+    kind: 'sell',
     title: 'Have a business where you sell products or services?',
     body: 'A Page for your shop, farm, trade or studio, where people see what you offer and what’s new.',
   },
   {
-    kind: 'interest',
+    kind: 'gather',
     title: 'Do you manage a group or meetup, or host events regularly?',
     body: 'A Page for people who get together, where others can find your events and join.',
   },
   {
-    kind: 'practice',
+    kind: 'offer',
     title: 'Do you teach a class or lead a regular session?',
     body: 'A Page for lessons, workshops and practice people come back to, from pottery to yoga.',
+  },
+  {
+    kind: 'create',
+    title: 'Be creative',
+    body: 'Start anything that helps you find your people.',
   },
 ]
 

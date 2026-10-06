@@ -478,7 +478,7 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
     const [all, onlyBusiness] = await inRollback(async (q) => {
       const { placeId, mkPage } = await seed(q)
       await mkPage('t156-shop', { kind: 'business' })
-      await mkPage('t156-runclub', { kind: 'interest' })
+      await mkPage('t156-runclub', { kind: 'group' })
       return [
         slugs(await q(call({ p_place_id: `'${placeId}'::uuid` }))),
         slugs(
