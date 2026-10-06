@@ -136,7 +136,9 @@ test.describe("F038 — A producer lists a product", () => {
     });
   });
 
-  test.describe("Beat 6 — 'Add a product' is reachable from /you/sell", () => {
+  // #336 — /you/sell and the walkthrough are retired to Create (Don, 2026-10-05); the flow is kept, unrouted,
+  // for when product and service listings are due (socialus-plan ROADMAP § Later). Skipped, not deleted.
+  test.describe.skip("Beat 6 — 'Add a product' is reachable from /you/sell", () => {
     test("Given Maya owns a business Group and is signed in | When she opens /you/sell | Then an 'Add a product' affordance for that Group is present", async ({
       page,
     }) => {
