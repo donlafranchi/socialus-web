@@ -1,0 +1,31 @@
+name: review
+# #396 — a UI PR carries the reviewer's first pass (with the UX checklist), or is
+# labelled review-skipped with a reason (the PM, 2026-10-05; socialus-ops
+# process/PIPELINE.md § A reviewer's first pass). Re-runs on edits, pushes and
+# label changes, so an unattended merge never takes a PR that skipped it.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled, ready_for_review]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  first-pass:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: scripts
+      - name: Review checker — self-test
+        run: node scripts/check-review.cjs --self-test
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const { checkReview } = require(`${process.env.GITHUB_WORKSPACE}/scripts/check-review.cjs`);
+            const pr = context.payload.pull_request;
+            const files = await github.paginate(github.rest.pulls.listFiles, { ...context.repo, pull_number: pr.number, per_page: 100 });
+            const problem = checkReview({ body: pr.body, files: files.map((f) => f.filename), labels: pr.labels.map((l) => l.name) });
+            if (problem) core.setFailed(problem);
+            else core.info('review: first pass present, skipped with a reason, or not a UI PR');

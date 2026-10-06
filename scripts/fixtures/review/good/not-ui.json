@@ -1,0 +1,9 @@
+{
+  "body": "docs only",
+  "files": [
+    "docs/a.md",
+    "src/lib/x.ts",
+    "src/components/Foo.test.tsx"
+  ],
+  "labels": []
+}

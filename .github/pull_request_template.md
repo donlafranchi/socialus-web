@@ -72,6 +72,27 @@ Path: well-worn | new territory
      BEFORE this merges (one ready at a time):
      gh workflow run apply.yml --ref <this-branch> -f confirm=apply -->
 
+## Reviewer's first pass
+
+<!-- UI PRs (src/app, src/components): the `review` check fails without this
+     section, unless the PR is labelled review-skipped and says why here
+     ("Review skipped: <why>"). socialus-ops PIPELINE.md § A reviewer's first pass. -->
+
+Reviewed by: <agent>
+Personas and widths: <e.g. owner, signed out · 390, 1280>
+
+- [ ] WCAG 2.1 AA: contrast via tokens, visible focus in a logical order, labels and alt text, 44px tap targets
+- [ ] Every state present: empty, loading, error, offline or slow, signed out
+- [ ] One primary action per screen
+- [ ] Thumb reach on a phone
+- [ ] No horizontal scroll at 390
+- [ ] Copy follows the voice rules (socialus-plan product/foundation/voice-and-tone.md)
+- [ ] Nielsen pass: status visible, undo or a way back, consistent, errors prevented
+- [ ] Images optimised (no new raw img warnings, sizes set)
+
+Fixed: <one line each>
+Judgement calls for Don: <one line each, or none>
+
 ## How it was verified
 
 <!-- One of: live DB · local Postgres · unit tests only · not verified.
