@@ -65,7 +65,7 @@ function Card({ section, initial }: { section: Section; initial: EditorInitial }
         <button
           type="button"
           data-testid={`edit-section-${section}`}
-          aria-label={`Edit ${title.toLowerCase()}`}
+          aria-label={`Edit ${title[0]!.toLowerCase()}${title.slice(1)}`}
           onClick={() => ctx?.open(section)}
           className="press -my-2 -mr-2 inline-flex min-h-tap items-center rounded-md px-3 text-body-sm font-medium text-[var(--color-accent)] hover:bg-[var(--color-surface)]"
         >

@@ -149,7 +149,7 @@ describe('#412 — each card says what is set now', () => {
 describe('#412 — one Edit per card, in its header', () => {
   it('each card has exactly one Edit, named for its section, 44px tall', () => {
     renderCards()
-    for (const [s, title] of [['name', 'name'], ['description', 'description'], ['photo', 'photo'], ['where', 'where'], ['tags', 'tags'], ['links', 'links']]) {
+    for (const [s, title] of [['name', 'name'], ['description', 'description'], ['photo', 'photo'], ['where', 'where'], ['tags', 'tags'], ['links', 'links'], ['kind', 'what your Page is for'], ['components', 'what your Page shows']]) {
       const buttons = within(card(s!)).getAllByRole('button')
       expect(buttons).toHaveLength(1)
       expect(buttons[0]).toHaveAccessibleName(`Edit ${title}`)
