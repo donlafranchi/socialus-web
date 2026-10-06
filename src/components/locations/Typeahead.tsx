@@ -72,7 +72,9 @@ export function Typeahead<T>({
     } else if (e.key === 'Enter') {
       e.preventDefault()
       if (expanded && active >= 0) pick(options[active]!)
-    } else if (e.key === 'Escape') {
+    } else if (e.key === 'Escape' && open && results) {
+      // Close the suggestions only; the sheet around them stays open.
+      e.stopPropagation()
       setOpen(false)
       setActive(-1)
     }
