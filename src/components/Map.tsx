@@ -4,16 +4,13 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_DEFAULTS, CLUSTER_CONFIG } from '@/lib/map-config'
+import { stylePin, styleCluster } from '@/lib/map-pins'
 import { useMapPages, type Bounds, type MapPage } from '@/hooks/useMapPages'
 import { SearchBar } from './SearchBar'
 import { PageDetailCard } from './group/PageDetailCard'
 
 const SOURCE_ID = 'pages'
 
-// One pin colour for every Page. The old palette keyed off ownership tier — a
-// vendor concept, retired with the funnel. Colouring by Page kind is a design
-// call for design-language.md, not something a rewire should decide.
-const PAGE_PIN_HEX = '#374151'
 
 function pagesToGeoJSON(pages: MapPage[]): GeoJSON.FeatureCollection {
   return {
@@ -34,6 +31,14 @@ export function Map() {
   const markersRef = useRef<Record<string, mapboxgl.Marker>>({})
   const pagesRef = useRef<MapPage[]>([])
   const [selectedPage, setSelectedPage] = useState<MapPage | null>(null)
+  const selectedIdRef = useRef<string | null>(null)
+  // The selected pin is gold (the highlight); every other pin and cluster navy.
+  useEffect(() => {
+    selectedIdRef.current = selectedPage?.id ?? null
+    for (const [key, marker] of Object.entries(markersRef.current)) {
+      if (key.startsWith('pin-')) stylePin(marker.getElement(), { selected: key === `pin-${selectedPage?.id}` })
+    }
+  }, [selectedPage])
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
   const [noResultsQuery, setNoResultsQuery] = useState<string | null>(null)
   const categoryFilterRef = useRef<string | null>(null)
@@ -147,20 +152,7 @@ export function Map() {
         if (!markersRef.current[key]) {
           const el = document.createElement('div')
           el.setAttribute('data-testid', 'map-cluster')
-          el.textContent = String(count)
-          el.style.width = '36px'
-          el.style.height = '36px'
-          el.style.borderRadius = '50%'
-          el.style.backgroundColor = '#374151'
-          el.style.color = 'white'
-          el.style.display = 'flex'
-          el.style.alignItems = 'center'
-          el.style.justifyContent = 'center'
-          el.style.fontSize = '13px'
-          el.style.fontWeight = '700'
-          el.style.border = '2px solid white'
-          el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
-          el.style.cursor = 'pointer'
+          styleCluster(el, count)
 
           el.addEventListener('click', (e) => {
             e.stopPropagation()
@@ -179,20 +171,11 @@ export function Map() {
         newMarkerIds.add(key)
 
         if (!markersRef.current[key]) {
-          // Pins used to be coloured by ownership tier, which was a vendor
-          // concept and is gone with the funnel. One colour for every Page for
-          // now; colouring by Page kind is a design call, not a rewire.
           const el = document.createElement('div')
           el.setAttribute('data-testid', 'map-pin')
           el.setAttribute('data-kind', String(props.kind ?? ''))
           el.setAttribute('data-page-id', id)
-          el.style.width = '24px'
-          el.style.height = '24px'
-          el.style.borderRadius = '50%'
-          el.style.backgroundColor = PAGE_PIN_HEX
-          el.style.border = '2px solid white'
-          el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
-          el.style.cursor = 'pointer'
+          stylePin(el, { selected: id === selectedIdRef.current })
 
           el.addEventListener('click', (e) => {
             e.stopPropagation()

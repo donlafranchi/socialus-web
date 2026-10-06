@@ -21,8 +21,8 @@ import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
-import { pinLabel } from '@/lib/places/pin-label'
 import { WhereFields, emptyWhere, type WhereValue } from '@/components/locations/WhereFields'
+import { wherePatch } from '@/components/locations/where-save'
 import { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
@@ -147,45 +147,14 @@ export function EditPageForm({
       }
       // #348 — where it is: one question, three answers. Only when the owner
       // opened it and finished an answer; an untouched Page keeps its place.
-      let anchorLocationId: string | undefined
       let whereFields: Partial<EditPageInput> = {}
-      // Already "People come to me", pin left as it is: only the note changes.
-      const noteOnly = changingAddress && where.mode === 'visit' && !where.visit.pin && initialWhere.mode === 'visit'
-      if (noteOnly) whereFields = { whereMode: 'visit', howToFind: where.visit.howToFind }
-      const visitReady = where.mode === 'visit' && where.visit.pin && (!where.visit.areaOnly || where.visit.area)
-      if (changingAddress && (visitReady || where.mode === 'travel' || where.mode === 'roaming')) {
-        let input: Parameters<CreateLocation>[0]
-        if (where.mode === 'visit') {
-          const v = where.visit
-          const label = v.label ?? (v.areaOnly ? '' : await pinLabel(v.pin![0], v.pin![1]))
-          input = v.areaOnly
-            ? { label: v.area!.name, neighborhoodId: v.area!.id }
-            : {
-                label,
-                address: { geographyWkt: `SRID=4326;POINT(${v.pin![0]} ${v.pin![1]})`, resolvedAddressText: label },
-              }
-        } else {
-          const anchor = await onMetroAnchor()
-          if (!anchor.ok || !anchor.data) {
-            setError("We couldn't find the Sacramento area just now. Try again?")
-            return
-          }
-          input = { label: anchor.data.name, neighborhoodId: anchor.data.id }
-        }
-        const made = await onCreateLocation(input)
-        if (!made.ok) {
-          // The action's own message, which is written for the owner — "we
-          // never guess one" — rather than a generic failure.
-          setError(made.message)
+      if (changingAddress) {
+        const w = await wherePatch(where, initialWhere.mode, { createLocation: onCreateLocation, metroAnchor: onMetroAnchor })
+        if (w && !w.ok) {
+          setError(w.message)
           return
         }
-        anchorLocationId = made.data.id
-        whereFields = {
-          whereMode: where.mode!,
-          howToFind: where.mode === 'visit' ? where.visit.howToFind : null,
-          usuallyAround: where.mode === 'roaming' ? where.roaming.usuallyAround : null,
-          serviceAreaPlaceIds: where.mode === 'travel' ? where.travel.towns.map((t) => t.id) : [],
-        }
+        if (w) whereFields = w.patch
       }
 
       try {
@@ -200,7 +169,6 @@ export function EditPageForm({
           ...(showContact !== contactOn ? { contactComponent: showContact } : {}),
           tags: tagSet,
           ...whereFields,
-          ...(anchorLocationId ? { anchorLocationId } : {}),
         })
         if (!result.ok) {
           setError(result.message)

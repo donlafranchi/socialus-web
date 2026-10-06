@@ -29,6 +29,9 @@ import {
   groupPostCreate,
   groupPostEdit,
   groupPostDelete,
+  groupUnclaimedRemove,
+  groupUnclaimedClaim,
+  groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
@@ -83,6 +86,11 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // #388 — builder content, all at once. Operator-only, checked in the handlers.
   'builder.content_set_visible': builderContentSetVisible as unknown as NamedActionHandler<unknown, unknown>,
   'builder.content_delete_all': builderContentDeleteAll as unknown as NamedActionHandler<unknown, unknown>,
+  // #353 — an unclaimed Page. Remove and claim take no account; a removal hides
+  // the Page at once. Restore is operator-only, checked in the handler.
+  'group.unclaimed_remove': groupUnclaimedRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unclaimed_claim': groupUnclaimedClaim as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unclaimed_restore': groupUnclaimedRestore as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {

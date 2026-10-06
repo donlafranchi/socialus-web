@@ -8,11 +8,11 @@ import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { groupActivate, groupCreate, ActionError } from '@/actions'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { PURPOSES, TYPE_FOR_PURPOSE, type Purpose } from '@/lib/groups/page-kind'
 
-const KINDS = ['business', 'practice', 'interest'] as const
-
-export async function startDraftAction(kind: (typeof KINDS)[number]): Promise<void> {
-  if (!(KINDS as readonly string[]).includes(kind)) throw new Error('Choose what you are starting.')
+// #363 — Create's answer is the Page's purpose; its type follows (Don, 2026-10-05).
+export async function startDraftAction(purpose: Purpose): Promise<void> {
+  if (!PURPOSES.includes(purpose)) throw new Error('Choose what you are starting.')
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
   if (!data.user) redirect(`/auth/login?next=${encodeURIComponent('/create')}`)
@@ -20,7 +20,8 @@ export async function startDraftAction(kind: (typeof KINDS)[number]): Promise<vo
   let groupId: string
   try {
     ;({ groupId } = await groupCreate(resolveActionContext({ actingMemberId: data.user.id }), {
-      kind,
+      kind: TYPE_FOR_PURPOSE[purpose],
+      purpose,
       founderMemberId: data.user.id,
     }))
   } catch (err) {

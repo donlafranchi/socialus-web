@@ -36,10 +36,11 @@ describe('#299 — DefaultArt', () => {
     expect(art.textContent).toBe('')
   })
 
-  it('maps Page kinds to shop, service or group', () => {
+  it('maps Page types and purposes to shop, service or group', () => {
     expect(artKindFor('business')).toBe('shop')
-    expect(artKindFor('practice')).toBe('service')
-    for (const k of ['interest', 'place', 'event', 'family']) expect(artKindFor(k)).toBe('group')
+    expect(artKindFor('business', 'offer')).toBe('service')
+    expect(artKindFor('group', 'offer')).toBe('service')
+    for (const k of ['group', 'interest']) expect(artKindFor(k)).toBe('group')
   })
 
   it('draws no icon when the kind is unknown, rather than guessing one', () => {

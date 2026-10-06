@@ -59,6 +59,9 @@ export default async function PageAtCanonicalAddress({ params }: Props) {
       posts={view.posts}
       withheldPosts={view.withheldPosts}
       followerCount={view.followerCount}
+      viewerMemberId={view.viewerMemberId}
+      contactOn={view.contactOn}
+      productsOn={view.productsOn}
       draftTagCount={view.draftTagCount}
       tags={view.tags}
       contact={view.contact}

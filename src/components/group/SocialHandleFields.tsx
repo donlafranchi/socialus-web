@@ -14,20 +14,31 @@
 // Validation runs as they type but only complains about something they have
 // actually finished typing a character of, and says what IS allowed.
 
+//
+// #302 — `compact` (the Links sheet) shows only the links the Page has, and an
+// "Add a link" picker for the rest, instead of every platform at once (Google
+// Business Profile's "Add social profile").
+
+import { useState } from 'react'
 import { PLATFORM_LABELS, SOCIAL_PLATFORMS, type SocialPlatform } from '@/lib/groups/social-links'
 import { PLATFORM_FIELDS, checkHandle } from '@/lib/groups/social-handles'
 
 export function SocialHandleFields({
   value,
   onChange,
+  compact = false,
 }: {
   /** Handles, not URLs. */
   value: Partial<Record<SocialPlatform, string>>
   onChange: (next: Partial<Record<SocialPlatform, string>>) => void
+  compact?: boolean
 }) {
   const set = (platform: SocialPlatform, raw: string) => {
     onChange({ ...value, [platform]: raw })
   }
+  const [added, setAdded] = useState<SocialPlatform[]>(() => SOCIAL_PLATFORMS.filter((p) => (value[p] ?? '').trim() !== ''))
+  const shown = compact ? added : SOCIAL_PLATFORMS
+  const rest = SOCIAL_PLATFORMS.filter((p) => !added.includes(p))
 
   return (
     <fieldset data-testid="social-handle-fields">
@@ -37,7 +48,7 @@ export function SocialHandleFields({
       </p>
 
       <div className="mt-2 space-y-2">
-        {SOCIAL_PLATFORMS.map((platform) => {
+        {shown.map((platform) => {
           const raw = value[platform] ?? ''
           const field = PLATFORM_FIELDS[platform]
           const result = checkHandle(platform, raw)
@@ -50,7 +61,7 @@ export function SocialHandleFields({
               </span>
               <span
                 className={`mt-0.5 flex items-stretch overflow-hidden rounded-md border ${
-                  problem ? 'border-[var(--color-danger,#b00)]' : 'border-[var(--color-border)]'
+                  problem ? 'border-[var(--color-danger)]' : 'border-[var(--color-border)]'
                 }`}
               >
                 <span
@@ -73,10 +84,11 @@ export function SocialHandleFields({
                   placeholder={platform === 'website' ? 'oakparkbakery.com' : 'yourname'}
                   value={raw}
                   onChange={(e) => set(platform, e.target.value)}
+                  autoFocus={compact && raw === '' && added.at(-1) === platform}
                 />
               </span>
               {problem ? (
-                <span role="alert" className="text-xs text-[var(--color-danger,#b00)]">
+                <span role="alert" className="text-xs text-[var(--color-danger)]">
                   {problem}
                 </span>
               ) : null}
@@ -84,6 +96,26 @@ export function SocialHandleFields({
           )
         })}
       </div>
+      {compact && rest.length > 0 && (
+        <label className="mt-3 block">
+          <span className="sr-only">Add a link</span>
+          <select
+            data-testid="social-add"
+            className="input"
+            value=""
+            onChange={(e) => setAdded([...added, e.target.value as SocialPlatform])}
+          >
+            <option value="" disabled>
+              {added.length === 0 ? 'Add a link…' : 'Add another link…'}
+            </option>
+            {rest.map((p) => (
+              <option key={p} value={p}>
+                {PLATFORM_LABELS[p]}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
     </fieldset>
   )
 }

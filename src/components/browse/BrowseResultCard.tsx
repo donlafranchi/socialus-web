@@ -9,6 +9,7 @@
 // it is, and an undated post is a first-class post rather than a degraded
 // event — it simply has no date line.
 
+import { kindLine } from '@/lib/groups/page-kind'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { TileCard } from '@/components/cards'
@@ -55,6 +56,7 @@ export function BrowseResultCard({
     <TileCard
       as={as}
       title={result.name}
+      kindLine={kindLine(result.groupKind, undefined, null)}
       tagline={browseCardTagline(result)}
       location={browseCardLocation(result)}
       imageUrl={result.photoUrl}

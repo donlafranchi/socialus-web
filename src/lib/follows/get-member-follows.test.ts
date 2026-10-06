@@ -59,7 +59,7 @@ describe('getMemberFollows — union + ordering', () => {
     expect(result.map((e) => e.kind)).toEqual(['group', 'venue', 'person'])
   })
 
-  it('maps a followed Person to /m/[handle] with avatar thumbnail', async () => {
+  it('#303 — maps a followed Person with avatar thumbnail and no profile link', async () => {
     const { client } = makeClient(PERSON_DATA)
     const [person] = await getMemberFollows(client, 'me')
     expect(person).toMatchObject({
@@ -67,7 +67,7 @@ describe('getMemberFollows — union + ordering', () => {
       entityId: 'p1',
       displayName: 'Alice',
       thumbnailUrl: 'a.png',
-      href: '/m/alice',
+      href: '#',
       isTombstone: false,
     })
   })

@@ -81,7 +81,7 @@ beforeAll(async () => {
 
   await client.query(
     `insert into public.groups (id, kind, name, slug, lifecycle_state, founder_member_id, photo_url)
-     values ($1, 'interest', 'F058 Probe Page', 'f058-probe-page', 'active', $2,
+     values ($1,'group', 'F058 Probe Page', 'f058-probe-page', 'active', $2,
              'https://cdn.test.invalid/photo.jpg')`,
     [GROUP, OWNER],
   )

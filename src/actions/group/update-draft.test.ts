@@ -192,19 +192,19 @@ describe('#301 — group.update_draft saves the tags', () => {
   })
 })
 
+describe('#348 — where it is, on a draft', () => {
+  it('writes the answer with the rest of the draft', async () => {
+    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, whereMode: 'roaming', usuallyAround: 'Midtown farmers markets' })
+    expect(out.patchedFields).toEqual(expect.arrayContaining(['where_mode', 'usually_around']))
+    expect(updateCall()![0]).toMatch(/usually_around = \$2/)
+  })
+})
+
 describe('hours and phone on a draft', () => {
   it('records the switch', async () => {
     const out = await groupUpdateDraft(ctx(), { groupId: GROUP, contactComponent: false })
     expect(out.patchedFields).toContain('components')
     const call = (query.mock.calls as unknown as [string, unknown[]][]).find(([s]) => /jsonb_build_object\('contact'/.test(s))
     expect(call![1]).toEqual([GROUP, false])
-  })
-})
-
-describe('#348 — where it is, on a draft', () => {
-  it('writes the answer with the rest of the draft', async () => {
-    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, whereMode: 'roaming', usuallyAround: 'Midtown farmers markets' })
-    expect(out.patchedFields).toEqual(expect.arrayContaining(['where_mode', 'usually_around']))
-    expect(updateCall()![0]).toMatch(/usually_around = \$2/)
   })
 })

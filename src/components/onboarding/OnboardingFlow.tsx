@@ -10,6 +10,7 @@ import { completeOnboardingAction, type SaveProfileInput } from '@/app/onboardin
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
 import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
+import { AuthCard } from '@/components/shell/AuthCard'
 
 export interface OnboardingActions {
   completeOnboarding: (
@@ -87,11 +88,11 @@ export function OnboardingFlow({
 
   if (askMetro) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
-        <div className="card space-y-4 p-6">
+      <AuthCard>
+        <div className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-xl font-semibold">Where are you, and why?</h1>
-            <p className="text-sm text-[var(--color-fg-muted)]">
+            <h1 className="text-title-1 text-[var(--color-fg)]">Where are you, and why?</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">
               We are not everywhere yet. Tell us where you are and we will tell you where it stands.
             </p>
           </div>
@@ -101,16 +102,16 @@ export function OnboardingFlow({
             onDone={() => navigate('/')}
           />
         </div>
-      </main>
+      </AuthCard>
     )
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
-      <form data-testid="onboarding-form" onSubmit={submit} className="card space-y-4 p-6">
+    <AuthCard>
+      <form data-testid="onboarding-form" onSubmit={submit} className="space-y-4">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold">What should we call you?</h1>
-          <p className="text-sm text-[var(--color-fg-muted)]">This is the name your neighbors will see.</p>
+          <h1 className="text-title-1 text-[var(--color-fg)]">What should we call you?</h1>
+          <p className="text-body-sm text-[var(--color-fg-muted)]">This is the name your neighbors will see.</p>
         </div>
 
         <div className="space-y-2">
@@ -120,7 +121,7 @@ export function OnboardingFlow({
           <input
             id="onboarding-name"
             data-testid="onboarding-name"
-            className="card w-full p-2 text-sm"
+            className="input"
             placeholder="Your name"
             autoFocus
             maxLength={60}
@@ -137,7 +138,7 @@ export function OnboardingFlow({
               id="onboarding-name-error"
               data-testid="onboarding-error"
               role="alert"
-              className="text-sm text-red-600"
+              className="text-body-sm text-[var(--color-danger,#b00)]"
             >
               {error}
             </p>
@@ -154,6 +155,6 @@ export function OnboardingFlow({
           Continue
         </button>
       </form>
-    </main>
+    </AuthCard>
   )
 }

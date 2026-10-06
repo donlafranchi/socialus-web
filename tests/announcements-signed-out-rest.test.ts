@@ -113,7 +113,7 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
     await client.query(
       `insert into public.groups
          (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id, anchor_location_id, photo_url)
-       values ($1,'interest','F093 Floaters','f093-floaters','active','listed',$2,$3,$4)`,
+       values ($1,'group','F093 Floaters','f093-floaters','active','listed',$2,$3,$4)`,
       [GROUP, OWNER, LOCATION, PHOTO],
     )
     await client.query(
