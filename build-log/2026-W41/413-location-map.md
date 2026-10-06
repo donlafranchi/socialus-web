@@ -1,0 +1,3 @@
+### change #413 — find the front door: address typeahead, neighbourhood typeahead, draggable pin
+
+"People come to me" now suggests addresses as the owner types (300ms, 3+ letters, the same geocode "Find it" used) in an ARIA combobox, and offers "Or type a neighbourhood", searching the metro's neighbourhoods in `places` (`searchNeighborhoodsAction`, no migration). Either one puts the pin on a map; the pin is draggable, a tap on the map moves it, and its point feeds `visit.pin` and the existing where-save path unchanged. With no map key the address field falls back to the typed lookup with "Find it". Precedents: Google Business Profile "Business location", Airbnb listing location, Yelp for Business. Path: well-worn.
