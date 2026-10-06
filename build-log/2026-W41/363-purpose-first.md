@@ -1,0 +1,5 @@
+# change #363 — purpose first, type for listing (rework)
+
+Don ruled A (2026-10-05): every Page has ONE primary purpose, what it mainly accomplishes: gather, sell, offer (a service, or teaching) or create. Beta's four are Create's four answers. Type (business or social group) follows the purpose by default (sell and offer list as businesses; gather and create as social groups), can be changed in settings, and drives browsing, filters and the Locally owned badge.
+
+The migration (now `20261004130000_page_purpose.sql`, never applied) adds `groups.purpose` instead of `use_case`, keeps `groups.kind` as the type, and maps the six old kinds: business to sell; place, interest, event_anchored to gather; practice to offer; family to gather, made private. Types are kept (business stays business, the rest group), so no founder's role moves. Create's answers set the purpose (the three questions plus Be creative). Settings: "What your Page is for" offers the four purposes, then "Listed as" for the type. `src/ontology/purposes.ts` declares each purpose with the member-journey loops it serves; registry.json gains `pagePurposes`. Members still have no type.

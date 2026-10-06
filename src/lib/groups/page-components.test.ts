@@ -4,15 +4,22 @@ import { componentOn } from './page-components'
 // Path: well-worn — Google Business Profile shows hours only for categories that
 // have them; a component an owner can add (Don, 2026-10-04).
 describe('hours and phone, as a component', () => {
-  it('on by default for shops and services', () => {
+  it('on by default for a business', () => {
     expect(componentOn('business', {}, 'contact')).toBe(true)
-    expect(componentOn('practice', null, 'contact')).toBe(true)
   })
-  it('off by default for groups', () => {
-    for (const kind of ['interest', 'place', 'event_anchored', 'family']) expect(componentOn(kind, {}, 'contact')).toBe(false)
+  it('off by default for groups and organizations (#363: practice is a group now)', () => {
+    for (const kind of ['interest', 'place', 'practice', 'event_anchored', 'family']) expect(componentOn(kind, {}, 'contact')).toBe(false)
   })
   it('an owner can add it to a group, or take it off a shop', () => {
     expect(componentOn('interest', { components: { contact: true } }, 'contact')).toBe(true)
     expect(componentOn('business', { components: { contact: false } }, 'contact')).toBe(false)
+  })
+})
+
+describe('#363 — Products & services is a component', () => {
+  it('on by default for a business, off for a group until added', () => {
+    expect(componentOn('business', null, 'products')).toBe(true)
+    expect(componentOn('group', null, 'products')).toBe(false)
+    expect(componentOn('group', { components: { products: true } }, 'products')).toBe(true)
   })
 })

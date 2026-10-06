@@ -111,7 +111,7 @@ describe('group.post_create — only the managing role can post', () => {
   })
 
   it("lets a run club's steward post — the managing role is not always 'owner'", async () => {
-    install({ kind: 'interest', roles: { [OTHER]: 'steward' } })
+    install({ kind: 'group', roles: { [OTHER]: 'steward' } })
     const r = await groupPostCreate(ctx(OTHER), { groupId: GROUP, body: 'Run on Sunday.' })
     expect(r.postId).toBe(POST)
   })

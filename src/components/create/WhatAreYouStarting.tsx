@@ -6,41 +6,39 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
+import type { Purpose } from '@/lib/groups/page-kind'
 
-export type StartKind = 'business' | 'practice' | 'interest'
-/** The answer chosen. `creative` starts a group Page, like `interest`, until #363's use cases land. */
-export type StartChoice = StartKind | 'creative'
-const KIND_FOR: Record<StartChoice, StartKind> = { business: 'business', practice: 'practice', interest: 'interest', creative: 'interest' }
+// #363 — each answer is the Page's purpose (Don ruled A, 2026-10-05: purpose
+// first, type for listing). Don, 2026-10-04: each is a question with one line on
+// what the Page is for; Don, 2026-10-05: a fourth, in his words, "A be creative
+// option… we exist to help you find your people." Placeholder ([public-is-draft]).
+export type StartKind = Purpose
 
-// Don, 2026-10-04: each kind is a question, with one line on what the Page
-// is for. The business and group questions are his; the third is drafted in
-// his voice. Placeholder ([public-is-draft]). Don, 2026-10-05: a fourth, in
-// his words, "A be creative option… we exist to help you find your people."
-const OPTIONS: { kind: StartChoice; title: string; body: string }[] = [
+const OPTIONS: { kind: StartKind; title: string; body: string }[] = [
   {
-    kind: 'business',
+    kind: 'sell',
     title: 'Have a business where you sell products or services?',
     body: 'A Page for your shop, farm, trade or studio, where people see what you offer and what’s new.',
   },
   {
-    kind: 'interest',
+    kind: 'gather',
     title: 'Do you manage a group or meetup, or host events regularly?',
     body: 'A Page for people who get together, where others can find your events and join.',
   },
   {
-    kind: 'practice',
+    kind: 'offer',
     title: 'Do you teach a class or lead a regular session?',
     body: 'A Page for lessons, workshops and practice people come back to, from pottery to yoga.',
   },
   {
-    kind: 'creative',
+    kind: 'create',
     title: 'Be creative',
     body: 'Start anything that helps you find your people.',
   },
 ]
 
 export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => Promise<void> }) {
-  const [kind, setKind] = useState<StartChoice | null>(null)
+  const [kind, setKind] = useState<StartKind | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -50,7 +48,7 @@ export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => 
     setBusy(true)
     setError(null)
     try {
-      await onStart(KIND_FOR[kind])
+      await onStart(kind)
     } catch (err) {
       setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
       setBusy(false)

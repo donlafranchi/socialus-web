@@ -5,6 +5,7 @@
 // canonical route is the only thing rendering a Page, and so the next surface
 // that needs it does not copy the six reads and get one of them wrong.
 
+import { resolvePageMetadata } from './page-metadata'
 import { resolvePageTags } from './page-tags'
 import { componentOn } from './page-components'
 import { resolvePageContact, type PageContact } from './page-contact'
@@ -55,6 +56,8 @@ export interface PageView {
    *  hours and phone are on (Don, 2026-10-04). */
   viewerMemberId: string | null
   contactOn: boolean
+  /** #363 — Products & services: on for a business, added by any other Page. */
+  productsOn: boolean
   /** #316 — the Page's tags; empty signed out (F093). */
   tags: string[]
   /** #293 — phone and hours, for signed-in visitors only; null signed out. */
@@ -128,9 +131,14 @@ export async function loadPageView(
         return [] as BrowseResult[]
       })
 
-  const contactOn = owns
-    ? componentOn(shop.kind, ((await supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle()).data as { metadata?: unknown } | null)?.metadata, 'contact')
-    : false
+  // One read of metadata: the owner's components, and whether a signed-in
+  // visitor sees Products & services (#363: a component any Page can add).
+  const metadata =
+    owns || auth.user
+      ? await resolvePageMetadata(supabase, shop.groupId)
+      : null
+  const contactOn = owns ? componentOn(shop.kind, metadata, 'contact') : false
+  const productsOn = componentOn(shop.kind, metadata, 'products')
 
   return {
     items,
@@ -141,6 +149,7 @@ export async function loadPageView(
     viewerOwnsPage: owns,
     viewerMemberId,
     contactOn,
+    productsOn,
     viewerFollows: follows,
     loggedIn: Boolean(auth.user),
     followerCount,

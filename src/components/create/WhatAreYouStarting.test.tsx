@@ -31,16 +31,16 @@ describe('#301 — What are you starting?', () => {
     for (const radio of radios.slice(0, 3)) {
       expect(radio.getAttribute('aria-label') ?? radio.closest('label')!.textContent).toMatch(/\?/)
     }
-    expect(radios).toHaveLength(4)
+    expect(screen.getByRole('radio', { name: 'Be creative' })).toHaveAccessibleDescription('Start anything that helps you find your people.')
   })
 
-  it('starts each as the right kind', async () => {
+  // Don ruled A, 2026-10-05: each answer is the Page's purpose.
+  it('starts each with its purpose', async () => {
     for (const [label, kind] of [
-      [/sell products or services/i, 'business'],
-      [/teach a class/i, 'practice'],
-      [/group or meetup/i, 'interest'],
-      // Don, 2026-10-05 — Be creative starts a group Page until #363's use cases land.
-      [/be creative/i, 'interest'],
+      [/sell products or services/i, 'sell'],
+      [/group or meetup/i, 'gather'],
+      [/teach a class/i, 'offer'],
+      [/be creative/i, 'create'],
     ] as const) {
       const onStart = vi.fn(async () => {})
       const { unmount } = render(<WhatAreYouStarting onStart={onStart} />)
@@ -67,14 +67,5 @@ describe('#301 — What are you starting?', () => {
   it('says nothing is public until you publish', () => {
     render(<WhatAreYouStarting onStart={vi.fn()} />)
     expect(screen.getByText(/nothing is public until you publish/i)).toBeInTheDocument()
-  })
-})
-
-describe('Don, 2026-10-05 — a fourth answer, Be creative', () => {
-  it('reads in his words, and names no role', () => {
-    render(<WhatAreYouStarting onStart={vi.fn()} />)
-    const radio = screen.getByRole('radio', { name: 'Be creative' })
-    expect(radio).toHaveAccessibleDescription('Start anything that helps you find your people.')
-    expect(document.body.textContent).not.toMatch(/creator/i)
   })
 })

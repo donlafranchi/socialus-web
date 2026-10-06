@@ -31,6 +31,8 @@ import { locationLine, type CardLocation } from './location'
 
 export interface TileCardProps {
   title: string
+  /** The kind line under the name (ruled 2026-10-05): "Business", "Social group". */
+  kindLine?: string
   /** Optional. Reserves two lines whether present or not. */
   tagline?: string | null
   /** Required. Every card has a location — see location.ts. */
@@ -49,6 +51,7 @@ export interface TileCardProps {
 
 export function TileCard({
   title,
+  kindLine,
   tagline,
   location,
   imageUrl,
@@ -88,6 +91,11 @@ export function TileCard({
         >
           {title}
         </p>
+        {kindLine && (
+          <p data-testid="tile-kind" className="text-caption leading-5 text-[var(--color-fg-muted)] line-clamp-1">
+            {kindLine}
+          </p>
+        )}
         <p
           data-testid="tile-tagline"
           className="text-sm leading-5 text-[var(--color-fg-muted)] mt-1 line-clamp-2 min-h-[2.5rem]"

@@ -28,10 +28,12 @@ import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
+import { PAGE_KINDS, PAGE_KIND_LABEL, PURPOSES, PURPOSE_LABEL, TYPE_FOR_PURPOSE, type PageKind, type Purpose } from '@/lib/groups/page-kind'
 
-export type Section = 'about' | 'name' | 'description' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
+export type Section = 'kind' | 'about' | 'name' | 'description' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
 export const SECTION_TITLE: Record<Section, string> = {
+  kind: 'What your Page is for',
   about: 'About',
   name: 'Name',
   description: 'Description',
@@ -55,6 +57,9 @@ export interface EditorInitial {
   contact: { phone: string | null; hours: OpeningHours | null }
   contactOn: boolean
   addressLabel: string | null
+  kind: PageKind
+  purpose: Purpose
+  productsOn: boolean
   where: WhereValue
 }
 
@@ -124,12 +129,15 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [phone, setPhone] = useState(initial.contact.phone ? formatUsPhone(initial.contact.phone) : '')
   const [hours, setHours] = useState(initial.contact.hours)
   const [contactOn, setContactOn] = useState(initial.contactOn)
+  const [kind, setKind] = useState<PageKind>(initial.kind)
+  const [purpose, setPurpose] = useState<Purpose>(initial.purpose)
+  const [productsOn, setProductsOn] = useState(initial.productsOn)
   const [where, setWhere] = useState<WhereValue>(initial.where)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
+  const snapshot = () => JSON.stringify({ kind, purpose, productsOn, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -137,6 +145,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     setError(null)
     const base = { groupId: initial.groupId, pagePath: initial.pagePath }
     let patch: Partial<EditPageInput> = {}
+    if (section === 'kind') patch = { pageKind: kind, purpose }
     if (section === 'about') patch = { name, description }
     if (section === 'name') {
       if (name.trim() === '') return setError('Give your Page a name.')
@@ -146,7 +155,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     if (section === 'photo') patch = { photoUrl }
     if (section === 'contact')
       patch = { contactPhone: phone.trim() === '' ? null : phone.trim(), ...(SHOW_OPENING_HOURS ? { openingHours: hours } : {}) }
-    if (section === 'components') patch = { contactComponent: contactOn }
+    if (section === 'components') patch = { contactComponent: contactOn, productsComponent: productsOn }
     if (section === 'links') {
       const { links, problems } = linksFromHandles(handles)
       const bad = Object.entries(problems)[0]
@@ -199,6 +208,40 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
       }
     >
       <div className="flex flex-col gap-4">
+        {section === 'kind' && (
+          <div className="flex flex-col gap-4">
+            {/* Don ruled A, 2026-10-05: purpose first; the type follows it, and the owner can change it. */}
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-semibold text-[var(--color-fg)]">What it&rsquo;s mainly for</legend>
+              {PURPOSES.map((p) => (
+                <label key={p} className={`flex min-h-tap cursor-pointer items-center gap-3 rounded-md border px-3 ${purpose === p ? 'border-[var(--color-charcoal-700)]' : 'border-[var(--color-border)]'}`}>
+                  <input
+                    type="radio"
+                    name="page-purpose"
+                    className="h-4 w-4"
+                    checked={purpose === p}
+                    onChange={() => {
+                      setPurpose(p)
+                      setKind(TYPE_FOR_PURPOSE[p])
+                    }}
+                  />
+                  <span className="text-body-sm text-[var(--color-fg)]">{PURPOSE_LABEL[p]}</span>
+                </label>
+              ))}
+            </fieldset>
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-[var(--color-fg)]">Listed as</span>
+              <select className="input" data-testid="edit-page-type" value={kind} onChange={(e) => setKind(e.target.value as PageKind)}>
+                {PAGE_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {PAGE_KIND_LABEL[k]}
+                  </option>
+                ))}
+              </select>
+              <span className="text-caption text-[var(--color-fg-muted)]">How people find it when they browse. Locally owned is for businesses.</span>
+            </label>
+          </div>
+        )}
         {section === 'about' && (
           <>
             <label className="flex flex-col gap-1">
@@ -244,10 +287,16 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
         {section === 'tags' && <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />}
         {section === 'links' && <SocialHandleFields compact value={handles} onChange={setHandles} />}
         {section === 'components' && (
-          <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
-            <span className="text-sm text-[var(--color-fg)]">{SHOW_OPENING_HOURS ? 'Business hours and phone' : 'Business phone'}</span>
-            <input type="checkbox" role="switch" className="h-5 w-5" checked={contactOn} onChange={(e) => setContactOn(e.target.checked)} />
-          </label>
+          <>
+            <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
+              <span className="text-sm text-[var(--color-fg)]">{SHOW_OPENING_HOURS ? 'Business hours and phone' : 'Business phone'}</span>
+              <input type="checkbox" role="switch" className="h-5 w-5" checked={contactOn} onChange={(e) => setContactOn(e.target.checked)} />
+            </label>
+            <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
+              <span className="text-sm text-[var(--color-fg)]">Products &amp; services</span>
+              <input type="checkbox" role="switch" className="h-5 w-5" checked={productsOn} onChange={(e) => setProductsOn(e.target.checked)} />
+            </label>
+          </>
         )}
         {error && (
           <p role="alert" className="text-sm text-[var(--color-fg)]">

@@ -91,9 +91,9 @@ select ${q(p.id!)}, ${OAK_PARK}, 'primary_home'
 values (${q(lid(i))}, ${q(o)}, 'permanent', ${q(`${pg.name}, main spot`)}, ${q(pg.locationSlug)},
   ST_GeogFromText('POINT(${lon} ${lat})'), ${OAK_PARK}, 'listed')
 on conflict (id) do nothing;
-insert into public.groups (id, kind, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
-values (${q(gid(i))}, ${q(pg.kind)}, ${q(pg.name)}, ${q(pg.slug)}, ${q(pg.publicId)},
-  ${q(`A seeded ${pg.kind.replace('_', ' ')} Page for the browser suite.`)}, 'active', ${q(vis)}, ${q(o)}, ${q(lid(i))})
+insert into public.groups (id, kind, purpose, name, slug, public_id, description, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
+values (${q(gid(i))}, ${q(pg.kind)}, ${q(pg.purpose)}, ${q(pg.name)}, ${q(pg.slug)}, ${q(pg.publicId)},
+  ${q(`A seeded ${pg.key} Page for the browser suite.`)}, 'active', ${q(vis)}, ${q(o)}, ${q(lid(i))})
 on conflict (id) do nothing;
 update public.groups set discoverability = ${q(vis)} where id = ${q(gid(i))};
 `)
