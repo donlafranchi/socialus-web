@@ -105,7 +105,7 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
       ) : null}
 
       {error ? (
-        <p role="alert" className="mt-1 text-sm text-[var(--color-danger,#b00)]">
+        <p role="alert" className="mt-1 text-sm text-[var(--color-danger)]">
           {error}
         </p>
       ) : null}

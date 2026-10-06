@@ -15,8 +15,11 @@
 
   The block you keep also decides the merge. "Don doesn't need to look"
   means merge it yourself once the checks are green — don't park finished
-  work waiting on a review he cannot give. "Don, please look" means hold:
-  he previews it and merges himself, or tells you to merge.
+  work waiting on a review he cannot give. "Review" means the `human-review`
+  label (it was `needs-don`). While PREVIEWS_MODE is off (until the 10-23
+  freeze, Don 2026-10-05) a Review PR also merges on green plus the reviewer's
+  first pass, and Don reviews it live on socialus.org. Migrations still go to
+  him first, in order.
 
   Full rule: ops-pattern/process/PIPELINE.md § Who checks what.
 -->
@@ -26,19 +29,26 @@
 <!-- One line saying why not. e.g. "Test-only — no behaviour changes." -->
 
 <!-- ─────────────── OR ─────────────── delete the block above and use this one,
-     and add the `needs-don` label.
+     and add the `human-review` label.
 
-## Don, please look
+## Review
 
-**Preview:** <paste the Vercel preview link from the comment below>
+**Review on socialus.org after merge:** <the page to open, e.g. socialus.org/explore>
+**Branch:** `<branch>`
+
+- Item: short description of one thing Don checks
+- Item: …
+
+```
+gh workflow run apply.yml --ref <branch> -f confirm=apply
+```
+<!-- Keep the code block only when a migration applies before this merges. -->
 
 1.
 2.
 3.
 
 **What you should see:**
-
-**What I'm unsure about:** <the judgment call, or delete this line>
 
      Three steps, written for someone holding a phone who has not read the
      ticket. "Open the link, tap Create, choose Business" — not "navigate to
@@ -63,6 +73,27 @@ Path: well-worn | new territory
 <!-- "None", or the migration file and the command Don runs to apply it
      BEFORE this merges (one ready at a time):
      gh workflow run apply.yml --ref <this-branch> -f confirm=apply -->
+
+## Reviewer's first pass
+
+<!-- UI PRs (src/app, src/components): the `review` check fails without this
+     section, unless the PR is labelled review-skipped and says why here
+     ("Review skipped: <why>"). socialus-ops PIPELINE.md § A reviewer's first pass. -->
+
+Reviewed by: <agent>
+Personas and widths: <e.g. owner, signed out · 390, 1280>
+
+- [ ] WCAG 2.1 AA: contrast via tokens, visible focus in a logical order, labels and alt text, 44px tap targets
+- [ ] Every state present: empty, loading, error, offline or slow, signed out
+- [ ] One primary action per screen
+- [ ] Thumb reach on a phone
+- [ ] No horizontal scroll at 390
+- [ ] Copy follows the voice rules (socialus-plan product/foundation/voice-and-tone.md)
+- [ ] Nielsen pass: status visible, undo or a way back, consistent, errors prevented
+- [ ] Images optimised (no new raw img warnings, sizes set)
+
+Fixed: <one line each>
+Judgement calls for Don: <one line each, or none>
 
 ## How it was verified
 

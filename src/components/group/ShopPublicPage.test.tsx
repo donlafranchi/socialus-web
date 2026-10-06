@@ -55,13 +55,12 @@ describe('ShopPublicPage — Beat 1 (header)', () => {
     expect(h1).toHaveTextContent('Oak Park Sourdough')
   })
 
-  it('links the founder to their Member page when hasPublished=true; avatar is decorative', () => {
+  it('#303 — the founder is a name, never a link to a member profile; avatar is decorative', () => {
     renderShop()
     const founder = screen.getByTestId('shop-founder')
-    const link = screen.getByTestId('shop-founder-link')
-    expect(link).toHaveAttribute('href', '/m/maya')
+    expect(screen.queryByTestId('shop-founder-link')).not.toBeInTheDocument()
+    expect(founder.querySelector('a')).toBeNull()
     expect(founder).toHaveTextContent('Maya Rivera')
-    // a11y: avatar is decorative (alt="") so the link name isn't duplicated.
     expect(founder.querySelector('img')).toHaveAttribute('alt', '')
   })
 
@@ -152,7 +151,7 @@ describe('ShopPublicPage — Beat 3 (items empty state)', () => {
     const empty = screen.getByTestId('shop-items-empty')
     expect(empty).toBeInTheDocument()
     expect(empty).toHaveTextContent(/check back soon/i)
-    // voice.md: no em dashes, anywhere.
+    // voice-and-tone.md: no em dashes, anywhere.
     expect(empty.textContent).not.toContain('\u2014')
   })
 

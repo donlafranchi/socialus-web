@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { PIN_COLORS } from '@/lib/map-config'
+import { stylePin } from '@/lib/map-pins'
 import type { OwnershipTier } from '@/lib/types'
 
 interface MapPreviewProps {
@@ -12,7 +12,7 @@ interface MapPreviewProps {
   ownershipTier: OwnershipTier
 }
 
-export function MapPreview({ latitude, longitude, ownershipTier }: MapPreviewProps) {
+export function MapPreview({ latitude, longitude }: MapPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
 
@@ -29,14 +29,10 @@ export function MapPreview({ latitude, longitude, ownershipTier }: MapPreviewPro
       interactive: false,
     })
 
-    const pinConfig = PIN_COLORS[ownershipTier]
+    // Every pin is navy (Don, 2026-10-05); ownership no longer colours pins.
     const el = document.createElement('div')
-    el.style.width = '24px'
-    el.style.height = '24px'
-    el.style.borderRadius = '50%'
-    el.style.backgroundColor = pinConfig.hex
-    el.style.border = '2px solid white'
-    el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
+    stylePin(el)
+    el.style.cursor = ''
 
     new mapboxgl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(map)
 
@@ -46,7 +42,7 @@ export function MapPreview({ latitude, longitude, ownershipTier }: MapPreviewPro
       map.remove()
       mapRef.current = null
     }
-  }, [latitude, longitude, ownershipTier])
+  }, [latitude, longitude])
 
   return (
     <div

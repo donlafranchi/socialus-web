@@ -1,7 +1,7 @@
 // F067 — the control on a Page.
 //
 // Privacy decides the word: a private Page is joined, anything else is
-// followed (Don, 2026-09-15). voice.md applies to every string here: no
+// followed (Don, 2026-09-15). voice-and-tone.md applies to every string here: no
 // person-nouns, no em dashes, and nothing is called a shop.
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
@@ -148,7 +148,7 @@ describe('failure', () => {
   })
 })
 
-describe('voice.md', () => {
+describe('voice-and-tone.md', () => {
   it('never says shop, and never names a person as a category', () => {
     for (const props of [{}, { isPrivate: true }, { following: true }, { loggedIn: false }]) {
       const { container, unmount } = renderBtn(props)

@@ -54,7 +54,7 @@ describe('#301 — What are you starting?', () => {
   it('says nothing in the voice rules forbid', () => {
     const { container } = render(<WhatAreYouStarting onStart={vi.fn()} />)
     expect(container.textContent).not.toMatch(/\bnever\b/i)
-    // voice.md: nobody just posts here.
+    // voice-and-tone.md: nobody just posts here.
     expect(container.textContent).not.toMatch(/\bpost(s|ing)?\b/i)
   })
 

@@ -269,7 +269,7 @@ select v.item, v.who, 'rsvp' from (values ('0d000000-0000-4000-8000-000000000101
  where not exists (select 1 from public.item_responses r where r.item_id = v.item and r.responder_member_id = v.who);
 insert into public.items (id, member_id, kind, title, description, brand_label, state, group_id) values
   ('0d000000-0000-4000-8000-000000000102', '0a000000-0000-4000-8000-000000000011', 'product', 'Country sourdough loaf', 'Naturally leavened.', 'QA Corner Bakery', 'published', '0b000000-0000-4000-8000-000000000001'),
-  ('0d000000-0000-4000-8000-000000000103', '0a000000-0000-4000-8000-000000000011', 'offer', 'Bread-baking lesson', 'One hour, at the shop.', 'QA Corner Bakery', 'published', '0b000000-0000-4000-8000-000000000001')
+  ('0d000000-0000-4000-8000-000000000103', '0a000000-0000-4000-8000-000000000011', 'service', 'Bread-baking lesson', 'One hour, at the shop.', 'QA Corner Bakery', 'published', '0b000000-0000-4000-8000-000000000001')
 on conflict (id) do nothing;
 insert into public.item_products (item_id, price_cents, price_unit) values ('0d000000-0000-4000-8000-000000000102', 900, 'loaf') on conflict (item_id) do nothing;
 insert into public.item_services (item_id, rate_model, rate_cents) values ('0d000000-0000-4000-8000-000000000103', 'hourly', 4000) on conflict (item_id) do nothing;
@@ -432,8 +432,8 @@ select v.item, v.who, 'rsvp' from (values ('0d000000-0000-4000-8000-000000000601
 -- 3. Things a member posted without a Page: /m/<handle>/{p,s,e}/...
 insert into public.items (id, member_id, kind, title, description, state, group_id) values
   ('0d000000-0000-4000-8000-000000009901', '0a000000-0000-4000-8000-000000000003', 'product', 'Jar of plum jam', 'From the backyard tree.', 'published', null),
-  ('0d000000-0000-4000-8000-000000009902', '0a000000-0000-4000-8000-000000000003', 'offer', 'Bike tune-up', 'Bring it round.', 'published', null),
-  ('0d000000-0000-4000-8000-000000009903', '0a000000-0000-4000-8000-000000000003', 'gather', 'Porch music night', 'Bring an instrument.', 'published', null)
+  ('0d000000-0000-4000-8000-000000009902', '0a000000-0000-4000-8000-000000000003', 'service', 'Bike tune-up', 'Bring it round.', 'published', null),
+  ('0d000000-0000-4000-8000-000000009903', '0a000000-0000-4000-8000-000000000003', 'gathering', 'Porch music night', 'Bring an instrument.', 'published', null)
 on conflict (id) do nothing;
 insert into public.item_products (item_id, price_cents, price_unit) values ('0d000000-0000-4000-8000-000000009901', 600, 'jar') on conflict (item_id) do nothing;
 insert into public.item_services (item_id, rate_model, rate_cents) values ('0d000000-0000-4000-8000-000000009902', 'flat', 2500) on conflict (item_id) do nothing;
