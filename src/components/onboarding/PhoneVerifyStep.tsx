@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { normalizeUsPhone } from '@/lib/auth/phone'
 import { COPY } from '@/lib/copy'
+import { AuthCard } from '@/components/shell/AuthCard'
 
 type Result = { ok: true } | { ok: false; message: string }
 
@@ -69,18 +70,18 @@ export function PhoneVerifyStep({ auth = supabaseAuth, onVerified }: { auth?: Ph
   }
 
   const errorLine = error && (
-    <p role="alert" data-testid="phone-error" className="text-sm text-red-600">
+    <p role="alert" data-testid="phone-error" className="text-body-sm text-[var(--color-danger,#b00)]">
       {error}
     </p>
   )
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-12">
+    <AuthCard>
       {phone === null ? (
-        <form data-testid="phone-form" onSubmit={send} className="card space-y-4 p-6">
+        <form data-testid="phone-form" onSubmit={send} className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-xl font-semibold">{COPY.phoneTitle}</h1>
-            <p className="text-sm text-[var(--color-fg-muted)]">{COPY.phoneWhy}</p>
+            <h1 className="text-title-1 text-[var(--color-fg)]">{COPY.phoneTitle}</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">{COPY.phoneWhy}</p>
           </div>
           <div className="space-y-2">
             <label htmlFor="phone-number" className="text-sm font-medium">
@@ -92,7 +93,7 @@ export function PhoneVerifyStep({ auth = supabaseAuth, onVerified }: { auth?: Ph
               type="tel"
               inputMode="tel"
               autoComplete="tel-national"
-              className="card w-full p-2 text-sm"
+              className="input"
               placeholder="(916) 555-0134"
               autoFocus
               value={raw}
@@ -113,10 +114,10 @@ export function PhoneVerifyStep({ auth = supabaseAuth, onVerified }: { auth?: Ph
           </button>
         </form>
       ) : (
-        <form data-testid="code-form" onSubmit={verify} className="card space-y-4 p-6">
+        <form data-testid="code-form" onSubmit={verify} className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-xl font-semibold">{COPY.phoneCodeTitle}</h1>
-            <p className="text-sm text-[var(--color-fg-muted)]">{COPY.phoneCodeSent}</p>
+            <h1 className="text-title-1 text-[var(--color-fg)]">{COPY.phoneCodeTitle}</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">{COPY.phoneCodeSent}</p>
           </div>
           <div className="space-y-2">
             <label htmlFor="phone-code" className="text-sm font-medium">
@@ -128,7 +129,7 @@ export function PhoneVerifyStep({ auth = supabaseAuth, onVerified }: { auth?: Ph
               inputMode="numeric"
               autoComplete="one-time-code"
               maxLength={6}
-              className="card w-full p-2 text-sm tracking-widest"
+              className="input tracking-widest"
               autoFocus
               value={code}
               onChange={(e) => {
@@ -159,6 +160,6 @@ export function PhoneVerifyStep({ auth = supabaseAuth, onVerified }: { auth?: Ph
           </button>
         </form>
       )}
-    </main>
+    </AuthCard>
   )
 }
