@@ -109,3 +109,18 @@ describe('#423 review — every control is a 44px target', () => {
     expect(screen.getByRole('button', { name: 'Restore' })).toHaveClass('min-h-tap')
   })
 })
+
+// Tidy and contained (the PM, 2026-10-06): each card's one action sits in its
+// header, as every Edit Page card's Edit does.
+describe('tidy — the action is in the card header', () => {
+  it('Archive and Delete Page each sit in their own card header', () => {
+    renderSettings('active')
+    expect(screen.getByRole('button', { name: 'Archive' }).closest('header')?.parentElement).toBe(screen.getByTestId('page-settings-archive'))
+    expect(screen.getByRole('button', { name: 'Delete Page' }).closest('header')?.parentElement).toBe(screen.getByTestId('page-settings-delete'))
+  })
+
+  it('Restore takes Archive’s place in the header', () => {
+    renderSettings('archived')
+    expect(screen.getByRole('button', { name: 'Restore' }).closest('header')?.parentElement).toBe(screen.getByTestId('page-settings-archive'))
+  })
+})

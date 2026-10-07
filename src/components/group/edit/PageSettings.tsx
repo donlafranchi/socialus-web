@@ -65,8 +65,13 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
         <ChevronDown size={20} aria-hidden="true" className="shrink-0 transition-transform group-open:rotate-180" />
       </summary>
       <div className="mt-2 flex flex-col gap-3">
-        <section data-testid="page-settings-archive" aria-label={archived ? 'Archived' : 'Archive'} className="card p-4">
-          <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">{archived ? 'Archived' : 'Archive'}</h3>
+        <section data-testid="page-settings-archive" aria-label={archived ? 'Archived' : 'Archive'} className="card border border-[var(--color-border)] p-4">
+          <header className="flex items-center justify-between gap-3">
+            <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">{archived ? 'Archived' : 'Archive'}</h3>
+            <Button variant="secondary" className="shrink-0" disabled={busy} onClick={toggleArchive}>
+              {archived ? 'Restore' : 'Archive'}
+            </Button>
+          </header>
           <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">
             {archived
               ? 'Only you can see this Page. Restore it to show it to everyone again.'
@@ -77,28 +82,27 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
               {error}
             </p>
           )}
-          <Button variant="secondary" className="mt-3" disabled={busy} onClick={toggleArchive}>
-            {archived ? 'Restore' : 'Archive'}
-          </Button>
         </section>
 
-        <section data-testid="page-settings-delete" aria-label="Delete" className="card p-4">
-          <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">Delete</h3>
+        <section data-testid="page-settings-delete" aria-label="Delete" className="card border border-[var(--color-border)] p-4">
+          <header className="flex items-center justify-between gap-3">
+            <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">Delete</h3>
+            <Button
+              variant="secondary"
+              className="shrink-0 text-red-700"
+              disabled={busy}
+              onClick={() => {
+                setTyped('')
+                setDeleteError(null)
+                setSheetOpen(true)
+              }}
+            >
+              Delete Page
+            </Button>
+          </header>
           <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">
             Remove this Page and its posts. You can restore it from You for 14 days.
           </p>
-          <Button
-            variant="secondary"
-            className="mt-3 text-red-700"
-            disabled={busy}
-            onClick={() => {
-              setTyped('')
-              setDeleteError(null)
-              setSheetOpen(true)
-            }}
-          >
-            Delete Page
-          </Button>
         </section>
       </div>
 

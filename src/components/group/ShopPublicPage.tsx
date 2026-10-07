@@ -150,7 +150,7 @@ export function ShopPublicPage({
 
       {/* #423 — archived: only the people who manage it reach it. Copy is a placeholder ([public-is-draft]). */}
       {shop.lifecycleState === 'archived' && (
-        <div data-testid="shop-archived-banner" role="status" className="mb-4 text-caption font-medium text-[var(--color-fg-muted)]">
+        <div data-testid="shop-archived-banner" role="status" className="mb-4 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-body-sm font-medium text-[var(--color-fg)]">
           Archived · Only you can see this
         </div>
       )}
