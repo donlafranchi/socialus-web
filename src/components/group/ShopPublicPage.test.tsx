@@ -164,9 +164,9 @@ describe('ShopPublicPage — Beat 3 (items)', () => {
     expect(empty.textContent).not.toContain('\u2014')
   })
 
-  // bug #341 — a private Page lists nothing.
-  it('a private Page never shows one, even with items', () => {
-    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'gather', discoverability: 'private' }, items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true, productsOn: true })
+  // bug #341 — a private family Page shows no card until its owner adds one (#363's ruling).
+  it('a private group Page shows none by default', () => {
+    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'gather', discoverability: 'private' }, loggedIn: true })
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
   })
 

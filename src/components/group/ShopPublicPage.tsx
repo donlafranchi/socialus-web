@@ -144,8 +144,8 @@ export function ShopPublicPage({
   const showFound = loggedIn && (tags.length > 0 || socialLinks.length > 0)
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
-  // bug #341 — a private Page lists nothing.
-  const showProducts = loggedIn && productsOn && shop.discoverability !== 'private'
+  // #363 — off for a social group until its owner adds it (bug #341).
+  const showProducts = loggedIn && productsOn
   const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
 
   const page = (
