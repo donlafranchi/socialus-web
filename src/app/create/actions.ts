@@ -31,7 +31,7 @@ export async function startDraftAction(purpose: Purpose): Promise<void> {
   const { data: row } = await supabase.from('groups').select('slug, public_id').eq('id', groupId).single()
   const r = row as { slug: string; public_id: string } | null
   if (!r) throw new Error("That didn't go through. Try again?")
-  redirect(canonicalPagePath(r.slug, r.public_id))
+  redirect(canonicalPagePath(r.public_id))
 }
 
 /** #301 — Publish from the draft's checklist. group.activate re-checks the
@@ -47,5 +47,5 @@ export async function publishDraftAction(groupId: string): Promise<void> {
   }
   const { data: row } = await supabase.from('groups').select('slug, public_id').eq('id', groupId).single()
   const r = row as { slug: string; public_id: string } | null
-  redirect(r ? canonicalPagePath(r.slug, r.public_id) : '/you')
+  redirect(r ? canonicalPagePath(r.public_id) : '/you')
 }

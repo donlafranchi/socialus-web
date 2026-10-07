@@ -1,0 +1,5 @@
+# change #331 — the default map is a tunable mix
+
+Don, 2026-10-05: "map defaults should be a mix … capture that somewhere where we can play with it … things with dates as well as other interesting, new, or recent pages/posts." Signed in, Explore's map shows a mix of four buckets read from browse_feed: dated (upcoming posts, soonest first), new Pages (created within `newDays`), recently active Pages and posts, and interesting (curated Page ids). Proportions, the cap, `newDays` and the curated ids live in one row, `app_settings` key `map_mix`, which the PM edits in the Supabase dashboard; no deploy. It starts with an even split and a cap of 60. A malformed edit falls back to the defaults. A short bucket hands its room to the others. Filters and search narrow within the mix; an empty map offers "Clear filters". Pins cluster on screen until zoom 14. Signed out: no pins, the mix is never read. Each shown pin's bucket is counted per day in `map_mix_log` (no member, no session), so beta data can tune the mix; revisit by 2026-11-15.
+
+Migration `20261005100000_map_mix.sql`. Stacked on #325 (navy pins, gold selected).

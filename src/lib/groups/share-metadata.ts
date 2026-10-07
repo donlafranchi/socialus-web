@@ -25,7 +25,7 @@ export function shareMetadata(page: PageForMetadata): Metadata {
     return { title: `${title} — SocialUs`, description, robots: { index: false, follow: false } }
   }
   const origin = siteOrigin()
-  const url = `${origin}${canonicalPagePath(page.slug, page.publicId)}`
+  const url = `${origin}${canonicalPagePath(page.publicId)}`
   const photo = visiblePhotoUrl({ photo_url: page.photoUrl, photo_hidden_at: page.photoHiddenAt, photo_removed_at: page.photoRemovedAt })
   const image = photo ? { url: photo } : { url: `${origin}/og-default`, width: 1200, height: 630 }
   return {

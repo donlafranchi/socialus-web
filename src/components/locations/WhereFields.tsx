@@ -8,9 +8,11 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { geocode, type GeocodingResult } from '@/lib/geocoding'
-import { placeForPointAction, searchPlacesAction } from '@/app/_actions/location-actions'
+import { placeForPointAction, searchNeighborhoodsAction, searchPlacesAction } from '@/app/_actions/location-actions'
+import type { NeighborhoodMatch } from '@/lib/places/neighborhood-search'
 import { PinAdjustMap } from './PinAdjustMap'
 import { AreaPickMap } from './AreaPickMap'
+import { Typeahead } from './Typeahead'
 import { mapAvailable } from '@/lib/map-config'
 
 export type WhereMode = 'visit' | 'travel' | 'roaming'
@@ -94,6 +96,8 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
   const [query, setQuery] = useState('')
   const [matches, setMatches] = useState<GeocodingResult[] | null>(null)
   const [finding, setFinding] = useState(false)
+  // Choosing an address clears the neighbourhood field and the other way round.
+  const [picks, setPicks] = useState({ address: 0, area: 0 })
   const set = (patch: Partial<WhereValue['visit']>) => onChange({ ...value, ...patch })
 
   // The neighbourhood follows the pin; it's worked out, never picked.
@@ -117,63 +121,98 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
     setFinding(false)
   }
 
+  const notFound = (
+    <>We couldn&rsquo;t find that address. Try the full street address{mapAvailable() ? ', or drop a pin on the map' : ''}.</>
+  )
+  const dropPin = mapAvailable() && (
+    <button
+      type="button"
+      onClick={() => set({ pin: value.pin ?? SACRAMENTO, label: null })}
+      className="min-h-tap self-start text-sm font-medium text-[var(--color-accent)] underline"
+    >
+      Drop a pin on the map instead
+    </button>
+  )
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <label className="flex flex-col gap-1">
-          <span className="text-sm text-[var(--color-fg)]">Address</span>
-          <input
-            className="input"
+      {/* #413 — with a map, the address suggests as you type and a neighbourhood is a second way in; without one, the lookup runs on request. */}
+      {mapAvailable() ? (
+        <>
+          <Typeahead<GeocodingResult>
+            key={`address-${picks.area}`}
+            label="Address"
             placeholder="915 I St, Sacramento"
             autoComplete="street-address"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), find())}
+            minChars={3}
+            search={geocode}
+            optionKey={(m) => m.name}
+            optionLabel={(m) => m.name}
+            onPick={(m) => {
+              setPicks((p) => ({ ...p, address: p.address + 1 }))
+              set({ pin: m.coordinates, label: m.name, area: null })
+            }}
+            emptyMessage={notFound}
           />
-        </label>
-        <div className="flex flex-wrap gap-x-4">
-          <button type="button" onClick={find} disabled={finding} className="min-h-tap text-sm font-medium text-[var(--color-accent)] underline">
+          <Typeahead<NeighborhoodMatch>
+            key={`area-${picks.address}`}
+            label="Or type a neighbourhood"
+            placeholder="Curtis Park, Midtown…"
+            minChars={2}
+            search={async (q) => {
+              const res = await searchNeighborhoodsAction(q)
+              return res.ok ? res.data : []
+            }}
+            optionKey={(n) => n.placeId}
+            optionLabel={(n) => n.name}
+            onPick={(n) => {
+              setPicks((p) => ({ ...p, area: p.area + 1 }))
+              set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name } })
+            }}
+          />
+          {dropPin}
+        </>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <label className="flex flex-col gap-1">
+            <span className="text-sm text-[var(--color-fg)]">Address</span>
+            <input
+              className="input"
+              placeholder="915 I St, Sacramento"
+              autoComplete="street-address"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), find())}
+            />
+          </label>
+          <button type="button" onClick={find} disabled={finding} className="min-h-tap self-start text-sm font-medium text-[var(--color-accent)] underline">
             {finding ? 'Finding…' : 'Find it'}
           </button>
-          {/* With no map, a dropped pin would land on the city centre unseen. */}
-          {mapAvailable() && (
-            <button
-              type="button"
-              onClick={() => set({ pin: value.pin ?? SACRAMENTO, label: null })}
-              className="min-h-tap text-sm font-medium text-[var(--color-accent)] underline"
-            >
-              Drop a pin on the map instead
-            </button>
+          {matches && matches.length === 0 && <p className="text-caption text-[var(--color-fg-muted)]">{notFound}</p>}
+          {matches && matches.length > 0 && (
+            <ul className="flex flex-col">
+              {matches.map((m) => (
+                <li key={m.name}>
+                  <button
+                    type="button"
+                    className="min-h-tap w-full text-left text-sm hover:bg-[var(--color-surface)]"
+                    onClick={() => {
+                      set({ pin: m.coordinates, label: m.name, area: null })
+                      setMatches(null)
+                    }}
+                  >
+                    {m.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-        {matches && matches.length === 0 && (
-          <p className="text-caption text-[var(--color-fg-muted)]">
-            We couldn&rsquo;t find that address. Try the full street address{mapAvailable() ? ', or drop a pin on the map' : ''}.
-          </p>
-        )}
-        {matches && matches.length > 0 && (
-          <ul className="flex flex-col">
-            {matches.map((m) => (
-              <li key={m.name}>
-                <button
-                  type="button"
-                  className="min-h-tap w-full text-left text-sm hover:bg-[var(--color-surface)]"
-                  onClick={() => {
-                    set({ pin: m.coordinates, label: m.name })
-                    setMatches(null)
-                  }}
-                >
-                  {m.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      )}
       {value.pin && (
         <>
-          {value.label && <p className="text-sm text-[var(--color-fg)]">{value.label}</p>}
-          <PinAdjustMap key={value.label ?? 'pin'} center={value.pin} onChange={(pin) => set({ pin })} />
+          {(value.label ?? value.area?.name) && <p className="text-sm text-[var(--color-fg)]">{value.label ?? value.area?.name}</p>}
+          <PinAdjustMap center={value.pin} onChange={(pin) => set({ pin })} />
         </>
       )}
       <label className="flex flex-col gap-1">

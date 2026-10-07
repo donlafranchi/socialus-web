@@ -66,7 +66,7 @@ type RpcClient = Pick<SupabaseClient, 'rpc'>
  * nothing about two shapes.
  */
 export function mapWithheldRow(r: WithheldAnnouncementRow): BrowseResult {
-  const page = browseHref(r.slug, r.public_id)
+  const page = browseHref(r.public_id)
   return {
     resultKind: 'post',
     resultId: r.result_id,

@@ -69,14 +69,14 @@ describe('getOwnPages', () => {
   it('links every Page to its canonical address, carrying no place path', async () => {
     const c = client([row()])
     const out = await getOwnPages(c as never, MEMBER)
-    expect(out[0].href).toBe('/g/sacriver-floaters-q4vw2n')
+    expect(out[0].href).toBe('/g/q4vw2n')
   })
 
   it('links a draft too — its address is the one it keeps when it goes live', async () => {
     const c = client([row(), row({ id: 'g-2', lifecycle_state: 'draft', public_id: 'zt9w4p' })])
     const out = await getOwnPages(c as never, MEMBER)
-    expect(out.find((p) => p.groupId === 'g-1')?.href).toBe('/g/sacriver-floaters-q4vw2n')
-    expect(out.find((p) => p.groupId === 'g-2')?.href).toBe('/g/sacriver-floaters-zt9w4p')
+    expect(out.find((p) => p.groupId === 'g-1')?.href).toBe('/g/q4vw2n')
+    expect(out.find((p) => p.groupId === 'g-2')?.href).toBe('/g/zt9w4p')
   })
 
   it('asks for the public id, without which nothing here has an address', async () => {

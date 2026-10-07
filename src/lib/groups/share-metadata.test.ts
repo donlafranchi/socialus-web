@@ -21,7 +21,7 @@ beforeEach(() => {
 describe('#409 — a published Page previews when shared', () => {
   it('names the Page, describes it, points at its one address and shows its picture', () => {
     const m = shareMetadata(PAGE)
-    const url = 'https://www.socialus.org/g/oak-park-sourdough-7k3x8m'
+    const url = 'https://www.socialus.org/g/7k3x8m'
     expect(m.alternates?.canonical).toBe(url)
     expect(m.openGraph).toMatchObject({
       title: 'Oak Park Sourdough',

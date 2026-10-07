@@ -63,6 +63,7 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
     // T169 — empty by default, which is every signed-out load. The row hides.
     following: [],
     happening: { today: [], thisWeek: [], thisWeekend: [] },
+    map: [],
     metro: SAC,
     chosen: false,
     metros: [SAC, PDX],

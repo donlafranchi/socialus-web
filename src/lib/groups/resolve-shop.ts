@@ -61,10 +61,20 @@ export interface ResolvedShop {
   /** F067 — a private Page is joined; anything else is followed. */
   discoverability: string
   founder: ShopFounder | null
+  /** #353 — set on a real business added from public info, until claimed. */
+  unclaimed: ShopUnclaimed | null
   /** T143 — where this Page currently resolves to. A list, not a single
    *  point: at most one today (the anchor); bounded at two once
    *  appearances land (the anchor plus at most one active appearance). */
   placements: Placement[]
+}
+
+export interface ShopUnclaimed {
+  /** Their own site or social profile: what the description is credited to. */
+  publicInfoUrl: string | null
+  /** e.g. "Corner Bakery (from their website)". */
+  photoCredit: string | null
+  photoSourceUrl: string | null
 }
 
 export interface ShopItem {
@@ -129,6 +139,10 @@ interface ShopRow {
   photo_hidden_at: string | null
   photo_removed_at?: string | null
   discoverability: string
+  unclaimed_at: string | null
+  public_info_url: string | null
+  photo_credit: string | null
+  photo_source_url: string | null
   group_businesses:
     | { display_name: string; public_description: string }[]
     | { display_name: string; public_description: string }
@@ -180,6 +194,7 @@ export async function resolveShop(
     .select(
       'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
+        'unclaimed_at, public_info_url, photo_credit, photo_source_url, ' +
         'group_businesses(display_name, public_description)',
     )
     .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
@@ -229,12 +244,11 @@ export async function resolveShop(
     kind: row.kind,
     slug: row.slug,
     publicId: row.public_id,
-    // T156 — a business keeps its public name in the `group_businesses` child;
-    // every other kind of Page keeps it on the `groups` row and has no child
-    // at all. Falling back is what makes resolving a run club worth doing:
-    // without it the 404 is replaced by a Page with no name on it.
-    displayName: biz?.display_name ?? row.name ?? '',
-    publicDescription: biz?.public_description ?? row.description ?? '',
+    // #410 — the groups row is the one source of a Page's name and
+    // description; the database keeps a business's group_businesses copy equal
+    // to it. Reading the copy first is what left a renamed Page on its old name.
+    displayName: row.name || biz?.display_name || '',
+    publicDescription: row.description || biz?.public_description || '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
@@ -248,7 +262,11 @@ export async function resolveShop(
     photoRemovedAt: row.photo_removed_at ?? null,
     discoverability: row.discoverability,
     placements,
-    founder: founderRow
+    unclaimed: row.unclaimed_at
+      ? { publicInfoUrl: row.public_info_url, photoCredit: row.photo_credit, photoSourceUrl: row.photo_source_url }
+      : null,
+    // An unclaimed Page's founder is the system member, not a person to show.
+    founder: founderRow && !row.unclaimed_at
       ? {
           handle: founderRow.handle,
           displayName: founderRow.display_name,

@@ -10,7 +10,7 @@ import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
-import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
+import { PageEditorProvider } from './edit/PageEditor'
 import { whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
@@ -39,9 +39,17 @@ import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
+import { UnclaimedBox } from './UnclaimedBox'
+import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { COPY } from '@/lib/copy'
 
 interface Props {
   shop: ResolvedShop
+  /** #353 — the unclaimed box's writes; the demo page passes stand-ins. */
+  unclaimedActions?: {
+    claim: typeof requestUnclaimedClaimAction
+    remove: typeof requestUnclaimedRemovalAction
+  }
   badge: LocalOwnerBadge | null
   items: ShopItem[]
   loggedIn: boolean
@@ -97,6 +105,7 @@ export function ShopPublicPage({
   withheldPosts = [],
   followerCount = 0,
   draftTagCount = 0,
+  unclaimedActions,
   viewerMemberId = null,
   contactOn = false,
   productsOn = componentOn(shop.kind, null, 'products'),
@@ -155,7 +164,19 @@ export function ShopPublicPage({
           <DefaultArt kind={artKindFor(shop.kind, shop.purpose)} />
         )}
       </div>
-      <SectionEditButton section="photo" className="-mt-2 mb-2" />
+      {/* #353 — a picture from their own site is credited and linked. */}
+      {photoUrl && shop.unclaimed?.photoCredit && (
+        <p data-testid="photo-credit" className="-mt-3 mb-4 text-xs text-gray-500">
+          Photo:{' '}
+          {shop.unclaimed.photoSourceUrl ? (
+            <a href={shop.unclaimed.photoSourceUrl} rel="noopener nofollow" target="_blank" className="underline">
+              {shop.unclaimed.photoCredit}
+            </a>
+          ) : (
+            shop.unclaimed.photoCredit
+          )}
+        </p>
+      )}
 
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -164,13 +185,18 @@ export function ShopPublicPage({
               ? `Your new ${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)] ? `${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]} ` : ''}Page`
               : shop.displayName}
           </h1>
-          <SectionEditButton section="about" />
           {badge && isBusinessKind(shop.kind) && (
             <span
               data-testid="local-owner-badge"
               className="chip chip-selected whitespace-nowrap text-xs"
             >
               {badge.label}
+            </span>
+          )}
+          {/* #353 — a neutral tag after the name (Yelp's placement). */}
+          {shop.unclaimed && (
+            <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+              {COPY.unclaimedLabel}
             </span>
           )}
 
@@ -197,7 +223,6 @@ export function ShopPublicPage({
             {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
             {kindLine(shop.kind, shop.purpose, shop.category)}
           </p>
-          <SectionEditButton section="kind" />
         </div>
 
         {/* Owner only, and absent from the markup for everyone else — this
@@ -255,17 +280,11 @@ export function ShopPublicPage({
             {whereLine(where)}
           </p>
         )}
-        <SectionEditButton section="where" className="self-start" />
 
         {/* Page kinds (dispatch, 2026-10-05): each kind leads with its own
             thing. A business: how to reach it, then Follow. A group: Join and
             its next meetup. An organization: its upcoming events. */}
-        {layout.lead === 'contact' && (
-          <>
-            {loggedIn && contact && <PageContactBlock contact={contact} />}
-            {contactOn && <SectionEditButton section="contact" className="self-start" />}
-          </>
-        )}
+        {layout.lead === 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
         {/* #267 — not on your own Page: your row there is your authority, not
             a follow, and "Following" would have offered to end it. */}
         {!viewerOwnsPage && (
@@ -289,19 +308,24 @@ export function ShopPublicPage({
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
-
-
-        {layout.lead !== 'contact' && (
-          <>
-            {loggedIn && contact && <PageContactBlock contact={contact} />}
-            {contactOn && <SectionEditButton section="contact" className="self-start" />}
-          </>
+        {shop.unclaimed?.publicInfoUrl && (
+          <a
+            data-testid="description-credit"
+            href={shop.unclaimed.publicInfoUrl}
+            rel="noopener nofollow"
+            target="_blank"
+            className="text-xs text-gray-500 underline"
+          >
+            {COPY.unclaimedDescriptionCredit}
+          </a>
         )}
+
+
+        {layout.lead !== 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
 
         {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
             moderated after they appear (#287). */}
         {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
-        <SectionEditButton section="tags" className="self-start" />
 
         {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
             URL on read: this renders straight into href, and a row written
@@ -325,8 +349,6 @@ export function ShopPublicPage({
             ))}
           </ul>
         )}
-        <SectionEditButton section="links" className="self-start" />
-        <SectionEditButton section="components" className="self-start" />
 
       </header>
 
@@ -386,6 +408,15 @@ export function ShopPublicPage({
         )}
       </section>
       )}
+      {shop.unclaimed && (
+        <UnclaimedBox
+          groupId={shop.groupId}
+          pagePath={pagePath ?? `/g/${shop.publicId}`}
+          hasPhoto={Boolean(photoUrl)}
+          onClaim={unclaimedActions?.claim ?? requestUnclaimedClaimAction}
+          onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
+        />
+      )}
      </div>
       {showOwnerPanel && pagePath && !isDraftPreview ? (
         <aside data-testid="owner-panel" className="hidden lg:block">
@@ -396,7 +427,9 @@ export function ShopPublicPage({
       ) : null}
     </main>
   )
-  if (!viewerOwnsPage || !pagePath) return page
+  // #412 — the owner edits on the Edit Page; only a draft's checklist opens
+  // a section's sheet here, in place.
+  if (!viewerOwnsPage || !pagePath || !isDraftPreview) return page
   return (
     <PageEditorProvider
       onSave={editPageAction}
@@ -404,7 +437,7 @@ export function ShopPublicPage({
         groupId: shop.groupId,
         pagePath,
         memberId: viewerMemberId ?? '',
-        name: shop.displayName,
+        name: shop.displayName === DRAFT_NAME_PLACEHOLDER ? '' : shop.displayName,
         description: shop.publicDescription,
         photoUrl: shop.photoUrl,
         socialLinks: shop.socialLinks,
