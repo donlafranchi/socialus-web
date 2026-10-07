@@ -1,0 +1,5 @@
+# bug #246 — the member-id sweep
+
+- **What was still open on main:** everything in #246's tables had closed (#249, #253) except two: `place_events` (who created or edited each place) was readable by anyone, signed out included, and `tags.created_by` by any signed-in member. Both closed in `20261007010000_place_and_tag_authors.sql`.
+- **The reusable part:** `tests/visibility.test.ts` now finds every selectable column holding a member's id from the catalog (a foreign key to members or auth.users, or a name ending `member_id`, `founder`, `created_by`) and reads it as every viewer. Any row naming someone else is red unless `MEMBER_ID_READS` in `evals/visibility/matrix.ts` names the ruling that lets a party see it. Signed out and a stranger get no exceptions. A new table added open is red without anyone adding a row. Its guard is a bad table it must catch, by foreign key and by name.
+- **Out of scope, unchanged:** a post's URL still carries its poster's handle; #414 replaces it with `/p/<id>`.

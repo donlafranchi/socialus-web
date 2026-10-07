@@ -8,7 +8,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { PERSONAS } from '../evals/personas'
-import { RESOURCES, VIEWERS, cellFor, type Cell, type Viewer } from '../evals/visibility/matrix'
+import { MEMBER_ID_READS, RESOURCES, VIEWERS, cellFor, parentTable, type Cell, type Viewer } from '../evals/visibility/matrix'
 
 const DATABASE_URL =
   process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL
@@ -114,6 +114,60 @@ describe.skipIf(!safety.safe)('every viewer reads what the matrix says', () => {
       expect(bad, `${r.name}`).toEqual([])
     })
   }
+})
+
+// #246 — every selectable column holding a member's id, found from the catalog.
+const MEMBER_ID_COLUMNS = `
+  select distinct k.relname as t, a.attname as c
+    from pg_class k
+    join pg_attribute a on a.attrelid = k.oid and a.attnum > 0 and not a.attisdropped
+   where k.relnamespace = 'public'::regnamespace and k.relkind in ('r', 'p', 'v', 'm')
+     and a.atttypid = 'uuid'::regtype
+     and (has_column_privilege('anon', k.oid, a.attnum, 'select') or has_column_privilege('authenticated', k.oid, a.attnum, 'select'))
+     and (a.attname ~ '(member_id|founder|created_by)$'
+          or exists (select 1 from pg_constraint f where f.conrelid = k.oid and f.contype = 'f' and a.attnum = any (f.conkey)
+                       and f.confrelid in ('public.members'::regclass, 'auth.users'::regclass)))
+   order by 1, 2`
+
+/** "table.column (n)" for each column where the viewer reads someone else's id and no ruling allows it. */
+async function memberIdLeaks(viewer: Viewer): Promise<string[]> {
+  const { rows } = await client.query<{ t: string; c: string }>(MEMBER_ID_COLUMNS)
+  const self = sub(viewer)
+  const leaks: string[] = []
+  for (const { t, c } of rows) {
+    // A stranger is party to nothing, so no ruling lets them read anyone.
+    if (self && viewer !== 'stranger' && MEMBER_ID_READS[`${parentTable(t)}.${c}`]) continue
+    const n = await readAs(viewer, `select count(*)::int n from public."${t}" where "${c}" is not null and "${c}" is distinct from ${self ? `'${self}'::uuid` : 'null'}`)
+    if (n > 0) leaks.push(`${t}.${c} (${n})`)
+  }
+  return leaks
+}
+
+describe.skipIf(!safety.safe)("no viewer reads another member's id without a ruling (#246)", () => {
+  for (const v of VIEWERS) {
+    it(v, async () => {
+      expect(await memberIdLeaks(v)).toEqual([])
+    })
+  }
+
+  it('the sweep finds a new table that hands out member ids (guard)', async () => {
+    await client.query('savepoint sweep_guard')
+    try {
+      await client.query('create table public.vis_bad_member_ids (member_id uuid references public.members (id))')
+      await client.query(`insert into public.vis_bad_member_ids values ('${PERSONAS.find((p) => p.key === 'member')!.id}')`)
+      await client.query('alter table public.vis_bad_member_ids enable row level security')
+      await client.query('create policy open_to_all on public.vis_bad_member_ids for select using (true)')
+      await client.query('alter table public.vis_bad_member_ids add column founder uuid')
+      await client.query(`update public.vis_bad_member_ids set founder = member_id`)
+      await client.query('grant select on public.vis_bad_member_ids to anon, authenticated')
+      expect(await memberIdLeaks('signedOut')).toContain('vis_bad_member_ids.member_id (1)')
+      expect(await memberIdLeaks('stranger')).toContain('vis_bad_member_ids.member_id (1)')
+      // found by its name alone, with no foreign key
+      expect(await memberIdLeaks('stranger')).toContain('vis_bad_member_ids.founder (1)')
+    } finally {
+      await client.query('rollback to savepoint sweep_guard')
+    }
+  })
 })
 
 describe.skipIf(!safety.safe)('the matrix can fail (guard)', () => {
