@@ -52,55 +52,113 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('#412 — cards grouped under collapsible headings', () => {
-  it('groups the cards, in order, and opens only the first group', () => {
-    const { container } = renderCards()
-    const groups = [...container.querySelectorAll('details')]
-    expect(groups.map((g) => g.querySelector('summary')!.textContent)).toEqual(['About your Page', 'Location', 'Contact', 'Tags and links'])
-    expect(groups.map((g) => g.open)).toEqual([true, false, false, false])
-  })
+// #452 — the PM, 2026-10-06: fewer groups. Basics, Location, Contact, Tags & links, then Page settings.
+describe('#452 — fewer groups', () => {
+  const order = () => [...screen.getByTestId('edit-cards').querySelectorAll('[data-testid^="edit-card-"]')].map((c) => c.getAttribute('data-testid')!.slice('edit-card-'.length))
 
-  it('puts each card in its group', () => {
+  it('Basics, Location, Contact, Tags & links, Values & badges, then Page settings', () => {
     renderCards()
-    const inGroup = (g: string) => [...screen.getByTestId(`edit-group-${g}`).querySelectorAll('[data-testid^="edit-card-"]')].map((c) => c.getAttribute('data-testid'))
-    expect(inGroup('about')).toEqual(['edit-card-name', 'edit-card-description', 'edit-card-photo', 'edit-card-kind', 'edit-card-components'])
-    expect(inGroup('location')).toEqual(['edit-card-where'])
-    expect(inGroup('contact')).toEqual(['edit-card-contact'])
-    expect(inGroup('found')).toEqual(['edit-card-tags', 'edit-card-links'])
+    expect(order()).toEqual(['basics', 'where', 'contact', 'found', 'values', 'kind', 'components'])
+    expect(within(card('where')).getByRole('heading')).toHaveTextContent('Location')
+    expect(within(card('found')).getByRole('heading')).toHaveTextContent('Tags & links')
+    expect(screen.getByRole('heading', { level: 2, name: 'Page settings' })).toBeInTheDocument()
   })
 
-  it('each heading is a keyboard-reachable toggle', () => {
+  it('no collapsible groups, and no loose Link card', () => {
     const { container } = renderCards()
-    for (const s of container.querySelectorAll('summary')) expect(s.className).toMatch(/\bmin-h-tap\b/)
+    expect(container.querySelectorAll('details')).toHaveLength(0)
+    expect(screen.queryByTestId('edit-link-frozen')).toBeNull()
   })
 
-  it('has no Contact group where hours and phone are off', () => {
+  it('has no Contact card where the phone is off', () => {
     renderCards({ contactOn: false })
-    expect(screen.queryByTestId('edit-group-contact')).toBeNull()
     expect(screen.queryByTestId('edit-card-contact')).toBeNull()
+  })
+
+  it('Basics holds the photo, name and description in one sheet', async () => {
+    renderCards()
+    expect(within(card('basics')).getByTestId('edit-summary')).toHaveTextContent('Oak Park Sourdough')
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Basics' }))
+    const sheet = screen.getByRole('dialog', { name: 'Basics' })
+    expect(within(sheet).getByTestId('edit-name')).toHaveValue('Oak Park Sourdough')
+    expect(within(sheet).getByTestId('edit-description')).toBeInTheDocument()
+    fireEvent.change(within(sheet).getByTestId('edit-name'), { target: { value: 'Oak Park Bread' } })
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, name: 'Oak Park Bread', description: initial.description, photoUrl: initial.photoUrl }),
+    )
+  })
+
+  it('Basics will not save without a name', async () => {
+    renderCards()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Basics' }))
+    fireEvent.change(screen.getByTestId('edit-name'), { target: { value: ' ' } })
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Give your Page a name.')
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('Tags & links folds in the link, which has no edit of its own', () => {
+    renderCards()
+    expect(card('found')).toHaveTextContent('socialus.org/g/7k3x8m')
+    expect(card('found')).toHaveTextContent('The name can change; this link can’t.')
+    expect(within(card('found')).getAllByRole('button')).toHaveLength(1)
+  })
+
+  it('Tags & links edits tags and links in one sheet', async () => {
+    renderCards()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Tags & links' }))
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['bread', 'coffee', 'pastry'], socialLinks: expect.any(Object) })))
+  })
+})
+
+// #465 — the PM, 2026-10-06: planned, not built. Owner-only (this page is), nothing to tap.
+describe('#465 — Values & badges, coming soon', () => {
+  it('is a card marked Coming soon with one line and nothing to tap', () => {
+    renderCards()
+    const values = card('values')
+    expect(within(values).getByRole('heading')).toHaveTextContent('Values & badges')
+    expect(values).toHaveTextContent('Coming soon')
+    expect(within(values).queryAllByRole('button')).toHaveLength(0)
+    expect(within(values).queryAllByRole('link')).toHaveLength(0)
+  })
+})
+
+// #108 — the description shows its limit as it nears it.
+describe('#108 — the description limit', () => {
+  it('stops at 2000 characters and counts down near the end', () => {
+    renderCards()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Basics' }))
+    const box = screen.getByTestId('edit-description')
+    expect(box).toHaveAttribute('maxLength', '2000')
+    expect(screen.queryByTestId('description-count')).toBeNull()
+    fireEvent.change(box, { target: { value: 'x'.repeat(1950) } })
+    expect(screen.getByTestId('description-count')).toHaveTextContent('50 characters left')
   })
 })
 
 describe('#412 — each card says what is set now', () => {
-  it('the name', () => {
+  it('Basics: the name, the first line of the description cut short, and the photo', () => {
     renderCards()
-    expect(within(card('name')).getByTestId('edit-summary')).toHaveTextContent('Oak Park Sourdough')
-  })
-
-  it('the first line of the description, cut short', () => {
-    renderCards()
-    const s = within(card('description')).getByTestId('edit-summary').textContent!
-    expect(s.startsWith('Real bread, baked in Oak Park')).toBe(true)
-    expect(s.endsWith('…')).toBe(true)
+    const s = within(card('basics')).getByTestId('edit-summary').textContent!
+    expect(s).toMatch(/^Oak Park Sourdough · Real bread, baked in Oak Park/)
     expect(s).not.toMatch(/Second line/)
+    expect(s).toMatch(/Photo set$/)
+    cleanup()
+    renderCards({ photoUrl: null, name: '' }, true)
+    expect(within(card('basics')).getByTestId('edit-summary')).toHaveTextContent(/^Not set yet · .* · No photo$/)
   })
 
-  it('how many tags, and the first of them', () => {
+  it('Tags & links: how many tags, the first of them, and which links', () => {
     renderCards()
-    expect(within(card('tags')).getByTestId('edit-summary')).toHaveTextContent('3 tags: bread, coffee, …')
+    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('3 tags: bread, coffee, … · Instagram, Facebook')
     cleanup()
-    renderCards({ tags: ['bread'] })
-    expect(within(card('tags')).getByTestId('edit-summary')).toHaveTextContent('1 tag: bread')
+    renderCards({ tags: ['bread'], socialLinks: {} })
+    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('1 tag: bread · No links')
+    cleanup()
+    renderCards({ tags: [], socialLinks: {} })
+    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('Not set yet')
   })
 
   it('where it is, or that it is not set yet', () => {
@@ -119,84 +177,55 @@ describe('#412 — each card says what is set now', () => {
     expect(within(card('contact')).getByTestId('edit-summary')).toHaveTextContent('Not set yet')
   })
 
-  it('which links', () => {
-    renderCards()
-    expect(within(card('links')).getByTestId('edit-summary')).toHaveTextContent('Instagram, Facebook')
-    cleanup()
-    renderCards({ socialLinks: {} })
-    expect(within(card('links')).getByTestId('edit-summary')).toHaveTextContent('Not set yet')
-  })
-
-  it('whether there is a photo', () => {
-    renderCards()
-    expect(within(card('photo')).getByTestId('edit-summary')).toHaveTextContent('Photo set')
-    cleanup()
-    renderCards({ photoUrl: null })
-    expect(within(card('photo')).getByTestId('edit-summary')).toHaveTextContent('No photo')
-  })
-
   it('what the Page is for', () => {
     renderCards()
     expect(within(card('kind')).getByTestId('edit-summary')).toHaveTextContent('Sell · Listed as Business')
   })
-
-  it('an unnamed draft has no name yet', () => {
-    renderCards({ name: '' }, true)
-    expect(within(card('name')).getByTestId('edit-summary')).toHaveTextContent('Not set yet')
-  })
 })
 
-describe('#412 — one Edit per card, in its header', () => {
-  it('each card has exactly one Edit, named for its section, 44px tall', () => {
+// #453 — the PM, 2026-10-06: a pencil icon button in each card header, not the word Edit.
+describe('#453 — one pencil per card, in its header', () => {
+  it('each editable card has exactly one pencil, named "Edit <section>", 44px, no visible word', () => {
     renderCards()
-    for (const [s, title] of [['name', 'name'], ['description', 'description'], ['photo', 'photo'], ['where', 'where'], ['tags', 'tags'], ['links', 'links'], ['kind', 'what your Page is for'], ['components', 'what your Page shows']]) {
+    for (const [s, title] of [['basics', 'Basics'], ['where', 'Location'], ['contact', 'Business phone'], ['found', 'Tags & links'], ['kind', 'What your Page is for'], ['components', 'What your Page shows']]) {
       const buttons = within(card(s!)).getAllByRole('button')
       expect(buttons).toHaveLength(1)
       expect(buttons[0]).toHaveAccessibleName(`Edit ${title}`)
-      expect(buttons[0]!.className).toMatch(/\bmin-h-tap\b/)
+      expect(buttons[0]!.className).toMatch(/\bsize-tap\b/)
+      expect(buttons[0]).toHaveTextContent('')
+      expect(buttons[0]!.querySelector('svg')).not.toBeNull()
       expect(card(s!).querySelector('header')).toContainElement(buttons[0]!)
     }
   })
 
-  it('Edit opens that section only, and Save saves it and closes', async () => {
+  it('a pencil opens that section only, and Save saves it and closes', async () => {
     renderCards()
-    fireEvent.click(screen.getByRole('button', { name: 'Edit description' }))
-    const sheet = screen.getByRole('dialog', { name: 'Description' })
-    expect(within(sheet).queryByTestId('edit-name')).toBeNull()
-    fireEvent.change(screen.getByTestId('edit-description'), { target: { value: 'Bread, daily.' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Edit What your Page is for' }))
+    expect(screen.getByRole('dialog', { name: 'What your Page is for' })).toBeInTheDocument()
     fireEvent.click(screen.getByTestId('sheet-save'))
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, description: 'Bread, daily.' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ groupId: 'g1', pagePath: initial.pagePath, pageKind: 'business', purpose: 'sell' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(refresh).toHaveBeenCalled()
   })
 
-  it('a card in a closed group opens its sheet too', () => {
+  it('the Location pencil opens the Where sheet', () => {
     renderCards()
-    fireEvent.click(screen.getByRole('button', { name: 'Edit where' }))
-    expect(screen.getByRole('dialog', { name: 'Where' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Location' }))
+    expect(screen.getByRole('dialog', { name: 'Location' })).toBeInTheDocument()
   })
 
-  it('the words and photo sheets ask for nothing sensitive', () => {
+  it('the Basics sheet asks for nothing sensitive', () => {
     renderCards()
-    fireEvent.click(screen.getByRole('button', { name: 'Edit photo' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Basics' }))
     expect(within(screen.getByRole('dialog')).getByText(COPY.postingSafety)).toBeInTheDocument()
   })
 })
 
 describe('#412 — the link and the way back', () => {
-  it('a live Page keeps its frozen-link note, word for word, with no Edit', () => {
-    renderCards()
-    const link = screen.getByTestId('edit-link-frozen')
-    expect(link).toHaveTextContent('socialus.org/g/7k3x8m')
-    expect(link).toHaveTextContent('The name can change; this link can’t. People have it already, and moving it would break it.')
-    expect(within(link).queryByRole('button')).toBeNull()
-  })
-
   it('a draft shows the link it keeps when it publishes (#411)', () => {
     renderCards({}, true)
-    const link = screen.getByTestId('edit-link-frozen')
-    expect(link).toHaveTextContent('socialus.org/g/7k3x8m')
-    expect(link).toHaveTextContent('It stays the same when you publish.')
+    expect(card('found')).toHaveTextContent('socialus.org/g/7k3x8m')
+    expect(card('found')).toHaveTextContent('It stays the same when you publish.')
   })
 
   // Tidy and contained (the PM, 2026-10-06): the way out sits in the page's
@@ -214,16 +243,17 @@ describe('#423 — Page settings, last', () => {
   const ok = vi.fn(async () => ({ ok: true as const }))
   const settings = { lifecycleState: 'active' as const, onArchive: ok, onRestore: ok, onDelete: ok }
 
-  it('sits after every other group and the link, last on the page', () => {
-    const { container } = render(<EditCards title="Edit P" initial={initial} onSave={onSave} isDraft={false} settings={settings} />)
-    const groups = [...container.querySelectorAll('details')]
-    expect(groups.at(-1)!.querySelector('summary')!.textContent).toBe('Page settings')
-    const link = screen.getByTestId('edit-link-frozen')
-    expect(link.compareDocumentPosition(groups.at(-1)!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  it('holds what the Page is for, what it shows, then Archive and Delete, last on the page', () => {
+    render(<EditCards title="Edit P" initial={initial} onSave={onSave} isDraft={false} settings={settings} />)
+    const section = screen.getByTestId('edit-settings')
+    expect(section).toBe(screen.getByTestId('edit-cards').lastElementChild)
+    const inside = [...section.querySelectorAll('[data-testid^="edit-card-"], [data-testid^="page-settings-"]')].map((c) => c.getAttribute('data-testid'))
+    expect(inside).toEqual(['edit-card-kind', 'edit-card-components', 'page-settings-archive', 'page-settings-delete'])
   })
 
-  it('is not offered on a draft', () => {
+  it('a draft gets what it is for and what it shows, but no Archive or Delete', () => {
     render(<EditCards title="Edit P" initial={initial} onSave={onSave} isDraft settings={settings} />)
+    expect(screen.getByTestId('edit-card-kind')).toBeInTheDocument()
     expect(screen.queryByTestId('page-settings')).toBeNull()
   })
 })
