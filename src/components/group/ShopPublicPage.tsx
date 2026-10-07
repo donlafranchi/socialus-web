@@ -144,8 +144,8 @@ export function ShopPublicPage({
   const showFound = loggedIn && (tags.length > 0 || socialLinks.length > 0)
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
-  // bug #341 — listings wait until after beta, and a private Page lists nothing.
-  const showProducts = loggedIn && productsOn && items.length > 0 && shop.discoverability !== 'private'
+  // bug #341 — a private Page lists nothing.
+  const showProducts = loggedIn && productsOn && shop.discoverability !== 'private'
   const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
 
   const page = (
@@ -372,13 +372,21 @@ export function ShopPublicPage({
 
       {showProducts && (
         <PageSection id="products" title="Products & services">
-          <ul className="flex flex-col gap-2">
-            {items.map((item) => (
-              <li key={item.id} className="card p-3 text-sm">
-                {item.title}
-              </li>
-            ))}
-          </ul>
+          {/* F035 beat 3 — visible but empty: the Page is real, and listings will come. */}
+          {items.length === 0 ? (
+            <div data-testid="shop-items-empty" className="text-body-sm text-[var(--color-fg-muted)]">
+              <p className="font-medium text-[var(--color-fg)]">Nothing listed yet</p>
+              <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {items.map((item) => (
+                <li key={item.id} className="card p-3 text-sm">
+                  {item.title}
+                </li>
+              ))}
+            </ul>
+          )}
         </PageSection>
       )}
 

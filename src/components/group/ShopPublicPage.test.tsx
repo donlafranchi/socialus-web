@@ -156,13 +156,15 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
 })
 
 describe('ShopPublicPage — Beat 3 (items)', () => {
-  // bug #341 — listings wait until after beta (the PM, 2026-10-05), so an empty
-  // Products & services card is a loose end on every Page that has it on.
-  it('shows no empty Products & services card', () => {
+  // F035 beat 3: visible-but-empty says the Page is real and listings will come.
+  it('shows a visible empty state, not a hidden section, when there are no items', () => {
     renderShop({ items: [], loggedIn: true })
-    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+    const empty = screen.getByTestId('shop-items-empty')
+    expect(empty).toHaveTextContent(/check back soon/i)
+    expect(empty.textContent).not.toContain('\u2014')
   })
 
+  // bug #341 — a private Page lists nothing.
   it('a private Page never shows one, even with items', () => {
     renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'gather', discoverability: 'private' }, items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true, productsOn: true })
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
@@ -559,7 +561,7 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
     cleanup()
-    renderShop({ loggedIn: true, shop: GROUP, productsOn: true, items: [{ id: 'i1', title: 'Float', kind: 'product' }] })
+    renderShop({ loggedIn: true, shop: GROUP, productsOn: true })
     expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
@@ -638,7 +640,7 @@ describe('#458 — a header block, then contained sections', () => {
   it('then About, Location, Contact, Tags & links and Posts, each titled and contained', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
     renderShop(full)
-    expect(sections()).toEqual(['about', 'location', 'contact', 'found', 'posts'])
+    expect(sections()).toEqual(['about', 'location', 'contact', 'found', 'posts', 'products'])
     for (const el of document.querySelectorAll('main section[data-section]')) {
       expect(el.querySelector('h2')).not.toBeNull()
       expect(el.className).toMatch(/\bcard\b/)
