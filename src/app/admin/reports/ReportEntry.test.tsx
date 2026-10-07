@@ -222,3 +222,15 @@ describe('F078 — a reported Post', () => {
     expect(screen.queryByText(/Photo removed/)).toBeNull()
   })
 })
+
+describe('F102 criterion 5 — the reporter\'s counters, operator only', () => {
+  it('shows filed, upheld, dismissed and open on the report', () => {
+    renderEntry({ reporter: { filed: 4, upheld: 1, dismissed: 2, open: 1 } })
+    expect(screen.getByTestId('reporter-record')).toHaveTextContent('4 filed · 1 upheld · 2 dismissed · 1 open')
+  })
+
+  it('shows nothing when there is no record to show', () => {
+    renderEntry()
+    expect(screen.queryByTestId('reporter-record')).toBeNull()
+  })
+})

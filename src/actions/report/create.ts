@@ -53,6 +53,41 @@ const MAX_OPEN_REPORTS_PER_REPORTER = 5
 // Constants, not configuration: a threshold in code is reversible in one edit,
 // a threshold in the schema is a migration and a production apply.
 const MAX_OPEN_REPORTS_TOTAL = 20
+
+// F102 criteria 6–7 and F078 criterion 10: counters on the act of reporting,
+// never a score on the person. A report the operator dismissed (approved the
+// content it was about) tightens what that reporter's later reports may hide.
+const DAY_MS = 86_400_000
+const CAP_AFTER_A_DISMISSAL = 1
+const COOL_DOWN_DAYS = 14
+const STRIKES_BEFORE_NO_HIDING = 3
+
+/** The latest decision on each of this reporter's reports, when it dismissed it. */
+async function dismissalTimes(client: Queryable, reporterId: string): Promise<Date[]> {
+  const res = await client.query<{ decided_at: Date }>(
+    `select x.decided_at
+       from (select distinct on (d.report_id) d.outcome, d.decided_at
+               from public.report_decisions d
+               join public.reports r on r.id = d.report_id
+              where r.reporter_member_id = $1
+              order by d.report_id, d.decided_at desc) x
+      where x.outcome = 'restored'
+      order by x.decided_at desc`,
+    [reporterId],
+  )
+  return res.rows.map((r) => new Date(r.decided_at))
+}
+
+function hideCapFor(dismissed: Date[], now: Date): { cap: number; hidesAnything: boolean } {
+  const recent = dismissed.filter((d) => now.getTime() - d.getTime() <= 30 * DAY_MS)
+  const struckOut = dismissed.length >= STRIKES_BEFORE_NO_HIDING
+  // Two dismissed in 30 days start a cool-down that runs 14 days from the latest.
+  const coolingDown = recent.length >= 2 && now.getTime() - recent[0]!.getTime() < COOL_DOWN_DAYS * DAY_MS
+  return {
+    cap: recent.length > 0 ? CAP_AFTER_A_DISMISSAL : MAX_OPEN_REPORTS_PER_REPORTER,
+    hidesAnything: !struckOut && !coolingDown,
+  }
+}
 const MAX_REPORTS_PER_SUBJECT = 2
 
 export const reportCreateInput = z.object({
@@ -268,6 +303,7 @@ export const reportCreate = defineHandler(
         [reporterMemberId],
       )
       const openByReporter = Number(openRes.rows[0]?.count ?? '0')
+      const limits = hideCapFor(await dismissalTimes(client, reporterMemberId), ctx.now())
 
       // Refuse before writing. A stored report that nobody will ever read is
       // still a row in the operator's queue.
@@ -331,7 +367,11 @@ export const reportCreate = defineHandler(
         subject.hideable &&
         !subject.alreadyHidden &&
         !subject.locked &&
-        (urgent || (reachesBar && priorBySameMember === 0 && openByReporter < MAX_OPEN_REPORTS_PER_REPORTER))
+        // [open-question owner=don raised=2026-10-07] F102 criterion 7 says a cool-down hides
+        // nothing; F078 criterion 8 says sensitive content and threat of harm hide whatever
+        // the bar. Built to the cautious reading: those two still hide from a reporter with
+        // a record (and still text the operator). Which is meant?
+        (urgent || (limits.hidesAnything && reachesBar && priorBySameMember === 0 && openByReporter < limits.cap))
 
       if (!shouldHide) {
         return { reportId, photoHidden: false }

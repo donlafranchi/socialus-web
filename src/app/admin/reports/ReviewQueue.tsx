@@ -304,6 +304,11 @@ function Row({
               )}
             </div>
             <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.coordinated && (
+              <p data-testid="review-coordinated" className="mt-0.5 text-caption font-medium text-[var(--color-fg)]">
+                Possible coordinated reporting
+              </p>
+            )}
             {s.reasons.length > 0 && (
               <p data-testid="review-reasons" className="mt-0.5 text-caption text-[var(--color-fg)]">
                 {s.reasons.map((r) => (r.count > 1 ? `${categoryLabel(r.category).split(' — ')[0]} ×${r.count}` : categoryLabel(r.category).split(' — ')[0])).join(' · ')}

@@ -83,6 +83,8 @@ function installQueryRouter(
     postExists?: boolean
     postHiddenAt?: Date | null
     postLockedBody?: string | null
+    /** When this reporter's earlier reports were dismissed (the operator approved the content). */
+    dismissedAt?: Date[]
   } = {},
 ) {
   const {
@@ -97,6 +99,7 @@ function installQueryRouter(
     postExists = true,
     postHiddenAt = null,
     postLockedBody = null,
+    dismissedAt = [],
   } = opts
 
   query.mockReset()
@@ -150,6 +153,7 @@ function installQueryRouter(
       }
     }
     if (/update public\.page_posts/i.test(sql)) return { rows: [{ id: POST_ID }] }
+    if (/from public\.report_decisions/i.test(sql)) return { rows: dismissedAt.map((d) => ({ decided_at: d })) }
     if (/insert into public\.member_notices/i.test(sql)) return { rows: [] }
     if (/update public\.groups/i.test(sql) && /photo_hidden_at/i.test(sql)) {
       return { rows: [{ id: GROUP_ID }] }
@@ -642,5 +646,51 @@ describe('report.create — a Post', () => {
   it('the hide bar applies as it does to a photo', async () => {
     installQueryRouter({ hideBar: 0.5 })
     expect((await report('spam')).photoHidden).toBe(false)
+  })
+})
+
+// F102 criteria 6–7 and F078 criterion 10 — counters on the act of reporting.
+describe('report.create — the reporter\'s record limits only the hide', () => {
+  const day = 86_400_000
+  const ago = (n: number) => new Date(NOW.getTime() - n * day)
+  const report = (category: 'other' | 'spam' | 'sensitive_content' = 'spam') =>
+    reportCreate(ctx(), { subjectKind: 'group', category, subjectId: GROUP_ID, body: 'Reported.' })
+
+  // [guards F102.6]
+  it('after one dismissed report in 30 days the cap drops from 5 open to 1', async () => {
+    installQueryRouter({ dismissedAt: [ago(10)], openReportsByReporter: 1 })
+    expect((await report()).photoHidden).toBe(false)
+    installQueryRouter({ dismissedAt: [ago(10)], openReportsByReporter: 0 })
+    expect((await report()).photoHidden).toBe(true)
+  })
+
+  it('a dismissal older than 30 days no longer counts', async () => {
+    installQueryRouter({ dismissedAt: [ago(31)], openReportsByReporter: 4 })
+    expect((await report()).photoHidden).toBe(true)
+  })
+
+  // [guards F102.7]
+  it('two dismissed in 30 days start a 14-day cool-down: stored and queued, nothing hides', async () => {
+    installQueryRouter({ dismissedAt: [ago(3), ago(20)], openReportsByReporter: 0 })
+    const r = await report()
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/insert into public\.reports/i)).toHaveLength(1)
+  })
+
+  it('the cool-down ends 14 days after the second dismissal', async () => {
+    installQueryRouter({ dismissedAt: [ago(15), ago(20)], openReportsByReporter: 0 })
+    expect((await report()).photoHidden).toBe(true)
+  })
+
+  // [guards F078.10]
+  it('three strikes: after three dismissed reports, ever, nothing the reporter files hides', async () => {
+    installQueryRouter({ dismissedAt: [ago(200), ago(150), ago(100)], openReportsByReporter: 0 })
+    expect((await report()).photoHidden).toBe(false)
+  })
+
+  it('sensitive content still hides from a reporter with a record, and still texts the operator', async () => {
+    installQueryRouter({ dismissedAt: [ago(3), ago(20)] })
+    expect((await report('sensitive_content')).photoHidden).toBe(true)
+    expect(textOperator).toHaveBeenCalled()
   })
 })

@@ -251,3 +251,47 @@ describe('F101 — the two buttons are 48px tall', () => {
     for (const id of ['review-approve', 'review-remove']) expect(screen.getByTestId(id).className).toContain('min-h-12!')
   })
 })
+
+describe('F102 criterion 8 — coordinated reporting is flagged, not acted on', () => {
+  const at = (h: number) => new Date(Date.UTC(2026, 9, 3, h))
+  const r = (id: string, over: Partial<QueuedReport> = {}) =>
+    report(id, 'page-1', { posterId: 'poster-1', reporterAgeDays: 400, reportedAt: at(1), ...over })
+
+  // [guards F102.8]
+  it('three reports in a day, two from accounts under a week old, mark the row', () => {
+    const s = groupBySubject([r('a', { reporterAgeDays: 1 }), r('b', { reporterAgeDays: 2, reportedAt: at(5) }), r('c', { reportedAt: at(9) })])
+    expect(s[0]!.coordinated).toBe(true)
+  })
+
+  it('not with only one new account', () => {
+    expect(groupBySubject([r('a', { reporterAgeDays: 1 }), r('b', { reportedAt: at(5) }), r('c', { reportedAt: at(9) })])[0]!.coordinated).toBe(false)
+  })
+
+  it('not when the three are spread over more than 24 hours', () => {
+    const s = groupBySubject([r('a', { reporterAgeDays: 1 }), r('b', { reporterAgeDays: 2, reportedAt: at(30) }), r('c', { reportedAt: at(60) })])
+    expect(s[0]!.coordinated).toBe(false)
+  })
+
+  it('counts one poster\'s reports across their Page and their post together', () => {
+    const s = groupBySubject([
+      r('a', { reporterAgeDays: 1 }),
+      r('b', { reporterAgeDays: 2, reportedAt: at(5), subjectKind: 'post', postId: 'p1' }),
+      r('c', { reportedAt: at(9), subjectKind: 'post', postId: 'p1' }),
+    ])
+    expect(s.every((x) => x.coordinated)).toBe(true)
+  })
+
+  it('adds one tier of priority within a severity, and says so on the row', () => {
+    const base = [r('a', { category: 'spam' })]
+    const flagged = [
+      report('x', 'page-2', { posterId: 'poster-2', category: 'spam', reporterAgeDays: 1, reportedAt: at(1), hiddenAt: day(9) }),
+      report('y', 'page-2', { posterId: 'poster-2', category: 'spam', reporterAgeDays: 1, reportedAt: at(2), hiddenAt: day(9) }),
+      report('z', 'page-2', { posterId: 'poster-2', category: 'spam', reporterAgeDays: 400, reportedAt: at(3), hiddenAt: day(9) }),
+    ]
+    const subjects = groupBySubject([...base, ...flagged])
+    expect(orderSubjects(subjects)[0]!.subjectId).toBe('page-2')
+    show(subjects)
+    expect(screen.getAllByTestId('review-coordinated')).toHaveLength(1)
+    expect(screen.getByTestId('review-coordinated')).toHaveTextContent(/possible coordinated reporting/i)
+  })
+})

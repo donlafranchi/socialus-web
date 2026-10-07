@@ -141,6 +141,9 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       const row = q.find((r) => r.reportId === reportId)!
       expect(row).toMatchObject({ subjectKind: 'post', postId: POST, groupId: PAGE, contentText: 'A post', photoUrl: null, category: 'spam' })
       expect(row.hiddenAt).not.toBeNull()
+      expect(row.posterId).toBe(OWNER)
+      expect(row.reporter).toEqual({ filed: 1, upheld: 0, dismissed: 0, open: 1 })
+      expect(typeof row.reporterAgeDays).toBe('number')
     })
 
     it('approve restores the audience it had and locks those words', async () => {
