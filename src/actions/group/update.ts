@@ -112,7 +112,8 @@ export const groupUpdate = defineHandler(
           `group.update: group ${input.groupId} is still a draft; use group.update_draft`,
         )
       }
-      if (row.lifecycle_state !== 'active') {
+      // #423 — an archived Page is hidden, not finished: its owner may still edit it.
+      if (row.lifecycle_state !== 'active' && row.lifecycle_state !== 'archived') {
         throw new ValidationError(
           `group.update: group ${input.groupId} is ${row.lifecycle_state} and cannot be edited`,
         )
@@ -247,14 +248,14 @@ export const groupUpdate = defineHandler(
       if (fragments.length > 0) {
         const setSql = fragments.map((f, i) => `${f.clause}${i + 1}`).join(', ')
         const whereIdx = fragments.length + 1
-        // Re-assert 'active' in the WHERE: a concurrent dissolve between the
+        // Re-assert the state in the WHERE: a concurrent dissolve between the
         // SELECT and this UPDATE must not be written over.
         // sql-injection-safe: enum-constrained by SpineClause
         const updateRes = await client.query(
           `update public.groups
               set ${setSql}
             where id = $${whereIdx}
-              and lifecycle_state = 'active'`,
+              and lifecycle_state in ('active', 'archived')`,
           [...fragments.map((f) => f.value), input.groupId],
         )
         if (updateRes.rowCount === 0) {

@@ -103,6 +103,13 @@ describe('group.follow — guards', () => {
     expect(calls(/insert into public\.group_memberships/i)).toHaveLength(0)
   })
 
+  // #423 — an archived Page is hidden from everyone but its owner; it takes no followers.
+  it('asks only for a Page that is not archived', async () => {
+    install()
+    await groupFollow(ctx(), { groupId: GROUP })
+    expect(calls(/from public\.groups/i)[0]![0]).toMatch(/lifecycle_state <> 'archived'/)
+  })
+
   it('grants no role beyond the plain one — F067 acceptance 4', async () => {
     install()
     await groupFollow(ctx(), { groupId: GROUP })
