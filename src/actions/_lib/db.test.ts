@@ -16,6 +16,7 @@ vi.mock('pg', () => ({
 
 beforeEach(() => {
   made.length = 0
+  ;(globalThis as { __socialusPool?: unknown }).__socialusPool = null
   vi.resetModules()
   process.env.DATABASE_URL = 'postgresql://u:p@127.0.0.1:5432/db'
   delete process.env.VERCEL
