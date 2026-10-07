@@ -2,7 +2,7 @@
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md story beats 1–6.
 
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {} }), usePathname: () => '/' }))
 import '@testing-library/jest-dom/vitest'
@@ -147,14 +147,17 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
   })
 })
 
-describe('ShopPublicPage — Beat 3 (items empty state)', () => {
-  it('shows a visible empty state, not a hidden section, when there are no items', () => {
+describe('ShopPublicPage — Beat 3 (items)', () => {
+  // bug #341 — listings wait until after beta (the PM, 2026-10-05), so an empty
+  // Products & services card is a loose end on every Page that has it on.
+  it('shows no empty Products & services card', () => {
     renderShop({ items: [], loggedIn: true })
-    const empty = screen.getByTestId('shop-items-empty')
-    expect(empty).toBeInTheDocument()
-    expect(empty).toHaveTextContent(/check back soon/i)
-    // voice-and-tone.md: no em dashes, anywhere.
-    expect(empty.textContent).not.toContain('\u2014')
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+  })
+
+  it('a private Page never shows one, even with items', () => {
+    renderShop({ shop: { ...SHOP, kind: 'group', purpose: 'gather', discoverability: 'private' }, items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true, productsOn: true })
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
   })
 
   it('lists items when present', () => {
@@ -358,12 +361,12 @@ describe('#300 — the Page on the new layout', () => {
     expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
   })
 
-  it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
+  it('gives the owner a panel beside the Page on a laptop, with the Edit pencil', () => {
     renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
     const panel = screen.getByTestId('owner-panel')
     expect(panel.className).toMatch(/\bhidden\b/)
     expect(panel.className).toMatch(/\blg:block\b/)
-    expect(panel.querySelector('a[data-testid="owner-edit"]')).toHaveAttribute('href', '/g/x-abc123/edit')
+    expect(panel.querySelector('a[aria-label="Edit Page"]')).toHaveAttribute('href', '/g/x-abc123/edit')
   })
 
   it('gives nobody else a panel', () => {
@@ -468,7 +471,7 @@ describe('#293 — phone and hours on the Page', () => {
 describe('#412 — the owner edits from the Edit Page, not in place', () => {
   it('the Page has Edit links to the Edit Page, and no section edit buttons', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123', viewerMemberId: 'm1', tags: ['sourdough'] })
-    const edits = screen.getAllByRole('link', { name: 'Edit' })
+    const edits = screen.getAllByRole('link', { name: 'Edit Page' })
     expect(edits.length).toBeGreaterThan(0)
     for (const e of edits) expect(e).toHaveAttribute('href', '/g/x-abc123/edit')
     expect(screen.queryByRole('button', { name: /^edit/i })).toBeNull()
@@ -478,7 +481,7 @@ describe('#412 — the owner edits from the Edit Page, not in place', () => {
   it('a visitor sees no Edit at all', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: false })
     expect(screen.queryByTestId('owner-edit')).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /^Edit/ })).toBeNull()
   })
 
   it("a draft's checklist still opens the section it names", () => {
@@ -555,7 +558,7 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
     cleanup()
-    renderShop({ loggedIn: true, shop: GROUP, productsOn: true })
+    renderShop({ loggedIn: true, shop: GROUP, productsOn: true, items: [{ id: 'i1', title: 'Float', kind: 'product' }] })
     expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
@@ -605,5 +608,106 @@ describe('ShopPublicPage — #409 Share', () => {
   it('is not on a draft', () => {
     renderShop({ shop: { ...SHOP, lifecycleState: 'draft' }, viewerOwnsPage: true, pagePath: '/g/oak-park-sourdough-7k3x8m' })
     expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
+  })
+})
+
+// #458 — the PM, 2026-10-06: a header block, then titled, contained sections
+// (Google Business Profile's listing, Airbnb's listing page, a Facebook Page).
+describe('#458 — a header block, then contained sections', () => {
+  const where = { mode: 'visit' as const, howToFind: 'Side door', usuallyAround: null, towns: [] }
+  const full = {
+    loggedIn: true,
+    pagePath: '/g/7k3x8m',
+    where,
+    tags: ['sourdough'],
+    contact: { phone: '+19165550142', hours: null } as never,
+    shop: { ...SHOP, placements: [{ source: 'anchor' as const, kind: 'point' as const, label: '3117 Broadway', lng: -121.47, lat: 38.55 }], socialLinks: { instagram: 'https://instagram.com/oakpark' } },
+    posts: [{ id: 'p1', body: 'Bread', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }],
+  }
+  const sections = () => [...document.querySelectorAll('main section[data-section]')].map((el) => el.getAttribute('data-section'))
+
+  it('the header holds the photo, name, kind, Share and Follow', () => {
+    renderShop(full)
+    const header = screen.getByTestId('page-header')
+    for (const id of ['page-cover', 'shop-name', 'page-kind']) expect(header).toContainElement(screen.getByTestId(id))
+    expect(header).toContainElement(screen.getByRole('button', { name: 'Share' }))
+    expect(header).toContainElement(screen.getByRole('button', { name: /follow/i }))
+  })
+
+  it('then About, Location, Contact, Tags & links and Posts, each titled and contained', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
+    renderShop(full)
+    expect(sections()).toEqual(['about', 'location', 'contact', 'found', 'posts'])
+    for (const el of document.querySelectorAll('main section[data-section]')) {
+      expect(el.querySelector('h2')).not.toBeNull()
+      expect(el.className).toMatch(/\bcard\b/)
+    }
+    expect(screen.getByRole('heading', { level: 2, name: 'Tags & links' })).toBeInTheDocument()
+    vi.unstubAllEnvs()
+  })
+
+  it('nothing loose between the header and the sections', () => {
+    renderShop(full)
+    const header = screen.getByTestId('page-header')
+    for (const id of ['shop-placement', 'shop-where', 'page-contact', 'tag-chips', 'shop-social-links']) {
+      const el = screen.getByTestId(id)
+      expect(header).not.toContainElement(el)
+      expect(el.closest('section[data-section]')).not.toBeNull()
+    }
+  })
+
+  it('Location: where it is, how to find it, and a small map at the pin', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
+    renderShop(full)
+    const loc = screen.getByTestId('page-section-location')
+    expect(loc).toHaveTextContent('3117 Broadway')
+    expect(loc).toHaveTextContent('How to find us: Side door')
+    const map = within(loc).getByRole('img', { name: 'Map of 3117 Broadway' })
+    expect(map.getAttribute('src')).toContain('-121.47,38.55')
+    vi.unstubAllEnvs()
+  })
+
+  it('signed out: About and Posts only — no location, map, contact or tags', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
+    renderShop({ ...full, loggedIn: false, withheldPosts: [] })
+    expect(sections()).not.toContain('location')
+    expect(sections()).not.toContain('contact')
+    expect(sections()).not.toContain('found')
+    expect(document.querySelector('img[src*="mapbox"]')).toBeNull()
+    vi.unstubAllEnvs()
+  })
+
+  it('a long About is collapsed, with More to open it', () => {
+    renderShop({ ...full, shop: { ...full.shop, publicDescription: 'Bread. '.repeat(80) } })
+    const about = screen.getByTestId('page-section-about')
+    const more = within(about).getByRole('button', { name: 'More' })
+    expect(about.querySelector('[data-testid="page-about-text"]')!.className).toMatch(/\bline-clamp-/)
+    fireEvent.click(more)
+    expect(about.querySelector('[data-testid="page-about-text"]')!.className).not.toMatch(/\bline-clamp-/)
+  })
+
+  it('a short About has nothing to open', () => {
+    renderShop(full)
+    expect(within(screen.getByTestId('page-section-about')).queryByRole('button', { name: 'More' })).toBeNull()
+  })
+
+  // bug #339 — never the literal placeholder "a location".
+  it('a placement with no words shows no empty line', () => {
+    renderShop({ ...full, shop: { ...full.shop, placements: [{ ...full.shop.placements[0]!, label: '' }] } })
+    expect(screen.queryByTestId('shop-placement')).toBeNull()
+    expect(document.body.textContent).not.toMatch(/a location/)
+  })
+})
+
+// bug #338 — a member's row is membership, not a follow: nothing offers to undo it.
+describe('#338 — a member of an open Page', () => {
+  it('sees Member, not a Following toggle', () => {
+    renderShop({ loggedIn: true, viewerFollows: true, viewerIsMember: true })
+    expect(screen.queryByRole('button', { name: /following/i })).toBeNull()
+    expect(screen.getByTestId('viewer-member')).toHaveTextContent('Member')
+  })
+  it('a follower still gets Following', () => {
+    renderShop({ loggedIn: true, viewerFollows: true, viewerIsMember: false })
+    expect(screen.getByRole('button', { name: /following/i })).toBeInTheDocument()
   })
 })
