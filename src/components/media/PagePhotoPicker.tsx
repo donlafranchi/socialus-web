@@ -14,6 +14,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { uploadImage } from '@/lib/media/upload-image'
 import { COPY } from '@/lib/copy'
+import { recordUploadAction } from '@/app/_actions/origin-actions'
 
 export interface PagePhotoPickerProps {
   memberId: string
@@ -42,6 +43,8 @@ export function PagePhotoPicker({ memberId, value, onChange, label = 'Photo', pr
       setBusy(true)
       try {
         const { url } = await uploadImage(file, memberId)
+        // F102 criterion 13 — where it came from; best-effort, never blocks the photo.
+        void recordUploadAction({ url }).catch(() => undefined)
         onChange(url)
       } catch (err) {
         // Never rethrow. A photo is optional and a failed upload must not trap
