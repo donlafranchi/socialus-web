@@ -21,6 +21,7 @@ const SHOP: ResolvedShop = {
   photoUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200',
   socialLinks: {},
   photoHiddenAt: null,
+  photoRemovedAt: null,
   discoverability: 'listed',
   placements: [],
   founder: null,
