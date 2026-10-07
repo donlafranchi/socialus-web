@@ -14,7 +14,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { reportCreate, ActionError } from '@/actions'
+import { reportCreate, reportAnswer, ActionError } from '@/actions'
 import type { ReportCategory } from '@/lib/reports/categories'
 
 async function requireMemberId(): Promise<string> {
@@ -54,4 +54,19 @@ export async function sendPostReportAction(input: {
   body: string
 }): Promise<{ ok: true }> {
   return sendReportAction({ ...input, subjectKind: 'post' })
+}
+
+/** F102 — the poster's one answer to a hide: the report was mistaken, malicious or misuse. */
+export async function answerNoticeAction(input: {
+  noticeId: string
+  reason: 'mistaken' | 'malicious' | 'misusing_reports'
+  note: string
+}): Promise<void> {
+  const memberId = await requireMemberId()
+  try {
+    await reportAnswer(resolveActionContext({ actingMemberId: memberId }), input)
+  } catch (err) {
+    if (err instanceof ActionError) throw new Error(err.message)
+    throw err
+  }
 }

@@ -55,6 +55,14 @@ export interface QueuedReport {
   postId?: string
   /** What was reported, in its own words, for the row's excerpt. */
   contentText?: string | null
+  /** The member who posted what was reported (operator-only). */
+  posterId?: string
+  /** F102 — the poster's one answer to the hide, if they gave it. */
+  answer?: { kind: 'fix_and_repost' | 'wrong'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
+  /** F102 — how old the reporter's account was when they reported. */
+  reporterAgeDays?: number
+  /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
+  reporter?: { filed: number; upheld: number; dismissed: number; open: number }
   reportId: string
   /** What the reporter wrote, in their own words. */
   body: string
@@ -185,8 +193,20 @@ export async function fetchReviewQueue(
             s.url             as photo_url,
             s.content_text    as content_text,
             m.display_name    as owner_display_name,
-            m.handle          as owner_handle
+            m.handle          as owner_handle,
+            pg.founder_member_id as poster_id,
+            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note)
+               from public.report_answers a
+               join public.member_notices n on n.id = a.notice_id
+              where n.subject_kind = r.subject_kind and n.subject_id = r.subject_id
+              order by a.created_at desc limit 1) as answer,
+            extract(epoch from (r.created_at - rm.created_at)) / 86400 as reporter_age_days,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id)::int as r_filed,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.reviewed_at is null and x.removed_at is null)::int as r_open,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.outcome = 'removed')::int as r_upheld,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.outcome = 'restored')::int as r_dismissed
        from public.reports r
+       left join public.members rm on rm.id = r.reporter_member_id
        join subjects s on s.report_id = r.id
        join public.groups  pg on pg.id = s.group_id
        left join public.members m on m.id = pg.founder_member_id
@@ -205,6 +225,10 @@ export async function fetchReviewQueue(
   return rows.map((r: Record<string, unknown>) => ({
     postId: (r.post_id as string | null) ?? undefined,
     contentText: (r.content_text as string | null) ?? null,
+    posterId: (r.poster_id as string | null) ?? undefined,
+    answer: (r.answer as QueuedReport['answer']) ?? null,
+    reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
+    reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
     reportId: r.report_id as string,
     body: r.body as string,
     category: (r.category as ReportCategory | null) ?? null,
@@ -224,3 +248,20 @@ export async function fetchReviewQueue(
 }
 
 export { hiddenFor } from './hidden-for'
+
+/** F102 criterion 11 — answers the posters gave this week, and reporters now in a cool-down (two dismissed in 30 days, the latest under 14 days ago). */
+export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: number }> {
+  const { rows } = await getPool().query(
+    `select
+       (select count(*)::int from public.report_answers where created_at > now() - interval '7 days') as answers,
+       (select count(*)::int from (
+          select r.reporter_member_id
+            from (select distinct on (d.report_id) d.report_id, d.outcome, d.decided_at
+                    from public.report_decisions d order by d.report_id, d.decided_at desc) x
+            join public.reports r on r.id = x.report_id
+           where x.outcome = 'restored' and x.decided_at > now() - interval '30 days'
+           group by r.reporter_member_id
+          having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
+  )
+  return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}

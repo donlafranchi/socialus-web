@@ -34,11 +34,11 @@ export function FollowingRow({ results }: { results: BrowseResult[] }) {
   return (
     <section
       data-testid="browse-following"
-      aria-label="Announcements from Pages you follow"
+      aria-label="Posts from Pages you follow"
       className="px-3 pt-4 md:px-6"
     >
       <h2 className="mb-3 text-sm font-semibold text-[var(--color-charcoal-900)]">
-        Announcements from Pages you follow
+        Posts from Pages you follow
       </h2>
       <ul
         // `snap-x` so a flick lands on a card rather than between two.

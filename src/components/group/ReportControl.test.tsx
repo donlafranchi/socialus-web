@@ -278,3 +278,17 @@ describe('which image is reported', () => {
     expect((send.mock.calls[0] as unknown as [{ subjectKind?: string }])[0].subjectKind).toBeUndefined()
   })
 })
+
+// F102 criterion 10 — kindly, before sending.
+describe('F102 — threat of harm', () => {
+  it('tells the reporter to call 911 if someone is in danger now, once that reason is picked', () => {
+    render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    expect(screen.queryByTestId('report-911')).toBeNull()
+    fireEvent.click(screen.getByLabelText('Threat of harm'))
+    expect(screen.getByTestId('report-911')).toHaveTextContent(/911/)
+    fireEvent.click(screen.getByLabelText('Spam'))
+    expect(screen.queryByTestId('report-911')).toBeNull()
+  })
+})

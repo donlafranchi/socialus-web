@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
-import { reportCreate, reportDecide, reportReverse } from '@/actions'
+import { reportCreate, reportDecide, reportReverse, reportAnswer, groupPostEdit } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
-import { fetchReviewQueue } from '@/lib/admin/reports-queue'
+import { fetchReviewQueue, fetchWeekSummary } from '@/lib/admin/reports-queue'
 import { databaseWriteSafety } from './support/write-safe'
 
 // F078 criterion 1 — a hidden Post is private, so every existing read path
@@ -58,7 +58,7 @@ beforeAll(async () => {
      values ($1,'interest','B478 Hall','b478-hall','Here.','active','listed',$2)`,
     [PAGE, OWNER],
   )
-  await client.query(`insert into public.group_memberships (group_id, member_id, role) values ($1,$2,'organizer')`, [PAGE, OWNER])
+  await client.query(`insert into public.group_memberships (group_id, member_id, role) values ($1,$2,'steward')`, [PAGE, OWNER])
   await client.query(
     `insert into public.page_posts (id, group_id, body, lifecycle_state, discoverability) values ($1,$2,'A post','active','listed')`,
     [POST, PAGE],
@@ -141,6 +141,32 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       const row = q.find((r) => r.reportId === reportId)!
       expect(row).toMatchObject({ subjectKind: 'post', postId: POST, groupId: PAGE, contentText: 'A post', photoUrl: null, category: 'spam' })
       expect(row.hiddenAt).not.toBeNull()
+      expect(row.posterId).toBe(OWNER)
+      expect(row.reporter).toEqual({ filed: 1, upheld: 0, dismissed: 0, open: 1 })
+      expect(typeof row.reporterAgeDays).toBe('number')
+    })
+
+    it('the poster answers once, and the operator\'s row carries the answer', async () => {
+      const notice = (await client.query(`select id from public.member_notices where subject_id = $1`, [POST])).rows[0]
+      // The first test deleted its notice to keep the table clean; make the hide's notice again.
+      const nid =
+        notice?.id ??
+        (
+          await client.query(
+            `insert into public.member_notices (member_id, kind, report_id, subject_kind, subject_id, category, message, page_id)
+             values ($1,'content_hidden',$2,'post',$3,'spam','We hid it.',$4) returning id`,
+            [OWNER, reportId, POST, PAGE],
+          )
+        ).rows[0].id
+      await reportAnswer(ctx(OWNER), { noticeId: nid, reason: 'malicious', note: 'He reports everything.' })
+      await expect(reportAnswer(ctx(OWNER), { noticeId: nid, reason: 'mistaken', note: 'again' })).rejects.toThrow(/answered already/)
+      await expect(reportAnswer(ctx(READER), { noticeId: nid, reason: 'mistaken', note: 'not mine' })).rejects.toThrow()
+      const row = (await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.reportId === reportId)!
+      expect(row.answer).toEqual({ kind: 'wrong', reason: 'malicious', note: 'He reports everything.' })
+      const week = await fetchWeekSummary()
+      expect(week.answers).toBeGreaterThanOrEqual(1)
+      expect(typeof week.coolDowns).toBe('number')
+      expect((await state()).discoverability).toBe('private')
     })
 
     it('approve restores the audience it had and locks those words', async () => {
@@ -170,5 +196,43 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       await reportReverse(ctx(OWNER), { decisionId: d2, reasonCode: 'reported_by_mistake' })
       expect(await read(READER)).toHaveLength(1)
     })
+  })
+
+})
+
+describe.skipIf(!RUNNABLE)('F102 — fix and repost', () => {
+  const POST2 = 'd7000000-0000-4000-8000-000000000479'
+  const ctx = (id: string): ActionContext =>
+    ({ actingMemberId: id, viaDelegationId: null, traceId: 't', db: {} as never, now: () => new Date() }) as ActionContext
+  const st = async () => (await client.query(`select discoverability, hidden_at, repost_used from public.page_posts where id = $1`, [POST2])).rows[0]
+
+  beforeAll(async () => {
+    await client.query(`insert into public.page_posts (id, group_id, body, lifecycle_state, discoverability) values ($1,$2,'Original words','active','listed')`, [POST2, PAGE])
+  })
+  afterAll(async () => {
+    await client.query(`delete from public.reports where subject_id = $1`, [POST2])
+    await client.query(`delete from public.member_notices where subject_id = $1`, [POST2])
+    await client.query(`delete from public.page_posts where id = $1`, [POST2])
+  })
+
+  it('editing a hidden post shows it again at once, keeps its reports, and answers its notice', async () => {
+    await reportCreate(ctx(READER), { subjectKind: 'post', category: 'threat_of_harm', subjectId: POST2, body: 'Ad.' })
+    expect((await st()).discoverability).toBe('private')
+    await groupPostEdit(ctx(OWNER), { postId: POST2, body: 'Fixed words' })
+    const s1 = await st()
+    expect(s1.discoverability).toBe('listed')
+    expect(s1.repost_used).toBe(true)
+    expect((await client.query(`select count(*)::int as n from public.reports where subject_id = $1`, [POST2])).rows[0].n).toBe(1)
+    const ans = await client.query(`select a.kind from public.report_answers a join public.member_notices n on n.id = a.notice_id where n.subject_id = $1`, [POST2])
+    expect(ans.rows.map((r) => r.kind)).toEqual(['fix_and_repost'])
+  })
+
+  it('a second hide offers no second repost: editing leaves it down', async () => {
+    await client.query(
+      `update public.page_posts set hidden_at = now(), hidden_prior_discoverability = discoverability, discoverability = 'private' where id = $1`,
+      [POST2],
+    )
+    await groupPostEdit(ctx(OWNER), { postId: POST2, body: 'Fixed again' })
+    expect((await st()).discoverability).toBe('private')
   })
 })

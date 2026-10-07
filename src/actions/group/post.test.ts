@@ -62,6 +62,9 @@ function install(
     postExists?: boolean
     groupExists?: boolean
     discoverability?: string
+    hiddenAt?: Date | null
+    removedAt?: Date | null
+    repostUsed?: boolean
   } = {},
 ) {
   const {
@@ -70,6 +73,9 @@ function install(
     postExists = true,
     groupExists = true,
     discoverability = 'listed',
+    hiddenAt = null,
+    removedAt = null,
+    repostUsed = false,
   } = opts
   query.mockReset()
   query.mockImplementation(async (sql: string, params: unknown[] = []) => {
@@ -80,12 +86,13 @@ function install(
     }
     if (/from public\.page_posts/i.test(sql)) {
       return postExists
-        ? { rows: [{ id: POST, group_id: GROUP }], rowCount: 1 }
+        ? { rows: [{ id: POST, group_id: GROUP, hidden_at: hiddenAt, removed_at: removedAt, repost_used: repostUsed }], rowCount: 1 }
         : { rows: [], rowCount: 0 }
     }
     if (/insert into public\.page_posts/i.test(sql)) {
       return { rows: [{ id: POST, created_at: NOW }], rowCount: 1 }
     }
+    if (/insert into public\.report_answers/i.test(sql)) return { rows: [], rowCount: 1 }
     if (/update public\.page_posts/i.test(sql)) {
       return { rows: [{ id: POST, updated_at: NOW }], rowCount: 1 }
     }
@@ -231,6 +238,7 @@ describe('group.post_edit — in place, by the managing role only', () => {
     install()
     const r = await groupPostEdit(ctx(), { postId: POST, body: 'Sourdough is back Friday.' })
     expect(r.postId).toBe(POST)
+    expect(r.reposted).toBe(false)
     const [sql] = calls(/update public\.page_posts/i)[0]!
     expect(sql).toMatch(/^\s*update public\.page_posts/i)
     expect(sql).not.toMatch(/insert/i)
@@ -375,6 +383,56 @@ describe('#450 — an email address in a Page post is refused', () => {
     expect(err).toBeInstanceOf(ValidationError)
     expect(err.message).toBe(MESSAGE)
     expect(calls(/update public\.page_posts/i)).toEqual([])
+  })
+})
+
+// F102 criteria 1–2 — fix and repost: the poster edits what was hidden and it
+// shows again at once; the reports stay on the row; once per post; never after
+// a person removed it.
+describe('F102 — fix and repost', () => {
+  const HIDDEN = new Date('2026-10-07T12:00:00Z')
+  const reposts = () => (query.mock.calls as [string, unknown[]][]).filter(([q]) => /repost_used = true/i.test(q))
+
+  it('editing a post a report hid puts it back at once, to the audience it had', async () => {
+    install({ hiddenAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    const [q] = reposts()[0]!
+    expect(q).toMatch(/discoverability = coalesce\(hidden_prior_discoverability/)
+    expect(q).toMatch(/hidden_at = null/)
+  })
+
+  it('leaves its reports on the row: nothing about a report is written', async () => {
+    install({ hiddenAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    const all = (query.mock.calls as [string][]).map(([q]) => q).join('\n')
+    expect(all).not.toMatch(/update public\.reports|delete from public\.reports/i)
+  })
+
+  it('records the poster\'s answer as "fix and repost"', async () => {
+    install({ hiddenAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    const [q, params] = (query.mock.calls as [string, unknown[]][]).find(([x]) => /insert into public\.report_answers/i.test(x))!
+    expect(q).toMatch(/fix_and_repost/)
+    expect(params).toContain(OWNER)
+  })
+
+  it('an ordinary edit of a visible post changes nothing about hiding', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'More words.' })
+    expect(reposts()).toHaveLength(0)
+  })
+
+  // [guards F102.2 partial: no second repost]
+  it('a second hide offers no second repost: the post stays down', async () => {
+    install({ hiddenAt: HIDDEN, repostUsed: true })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Again.' })
+    expect(reposts()).toHaveLength(0)
+  })
+
+  it('a post a person removed cannot be reposted by editing it', async () => {
+    install({ hiddenAt: HIDDEN, removedAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Again.' })
+    expect(reposts()).toHaveLength(0)
   })
 })
 
