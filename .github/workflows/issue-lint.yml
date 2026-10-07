@@ -12,7 +12,8 @@ on:
 # once been applied. Bug #189.
 #
 # `contents: read` too: naming any permission drops the rest to none, and on a
-# private repo (since 2026-10-05) that leaves checkout "Repository not found".
+# private repo that leaves checkout "Repository not found". (The repo is public
+# since 2026-10-05; keep the line so it still works if it goes private again.)
 permissions:
   contents: read
   issues: write
