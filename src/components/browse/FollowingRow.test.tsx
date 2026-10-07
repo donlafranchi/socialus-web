@@ -63,19 +63,18 @@ describe('non-empty — it shows', () => {
     expect(screen.getByText('Pond Side Circle')).toBeInTheDocument()
   })
 
-  it('says announcement, and never post or bulletin', () => {
+  // #365 (2026-10-05) supersedes the earlier "announcement is the word": it is Post(s) now.
+  it('says posts, and never announcement or bulletin', () => {
     render(<FollowingRow results={[result()]} />)
-    const row = screen.getByTestId('browse-following')
-    const text = row.textContent ?? ''
-    expect(text).toMatch(/announcement/i)
-    // The ruled nouns. "Bulletins" was cut; "post" is the internal word.
-    expect(text).not.toMatch(/\bposts?\b/i)
+    const text = screen.getByTestId('browse-following').textContent ?? ''
+    expect(text).toMatch(/\bposts\b/i)
+    expect(text).not.toMatch(/announcement/i)
     expect(text).not.toMatch(/\bbulletins?\b/i)
   })
 
   it('is labelled for a screen reader, not just visually', () => {
     render(<FollowingRow results={[result()]} />)
-    expect(screen.getByRole('region', { name: /announcement/i })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /posts from pages you follow/i })).toBeInTheDocument()
   })
 })
 
@@ -90,3 +89,14 @@ describe('FollowingRow — list structure', () => {
     expect(container.querySelectorAll('ul > li')).toHaveLength(2)
   })
 })
+
+// #365 — Post(s), not Announcement(s), in everything people read.
+describe('#365 — the row says posts', () => {
+  it('reads "Posts from Pages you follow", in its heading and its label', () => {
+    render(<FollowingRow results={[result()]} />)
+    expect(screen.getByRole('heading', { name: 'Posts from Pages you follow' })).toBeInTheDocument()
+    expect(screen.getByTestId('browse-following')).toHaveAttribute('aria-label', 'Posts from Pages you follow')
+    expect(document.body.textContent ?? '').not.toMatch(/announcement/i)
+  })
+})
+
