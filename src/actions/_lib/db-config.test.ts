@@ -63,3 +63,41 @@ describe('resolveConnectionString', () => {
       .toEqual({ ok: true, connectionString: 'postgresql://a', source: 'DATABASE_URL' })
   })
 })
+
+// bug #457 — on Vercel every function instance opens its own pool. The
+// session-mode pooler (port 5432) allows 15 clients in all, so a few
+// instances exhausted it (EMAXCONNSESSION) and Pages and Explore failed.
+// Supabase's guidance for serverless is the transaction-mode pooler, port 6543.
+import { toTransactionPooler } from './db-config'
+
+describe('toTransactionPooler', () => {
+  const session = 'postgresql://postgres.abcdef:secret@aws-0-us-west-1.pooler.supabase.com:5432/postgres'
+  const vercel = { VERCEL: '1' }
+
+  it('moves the session pooler to the transaction pooler on Vercel', () => {
+    const out = toTransactionPooler(session, vercel)
+    expect(new URL(out).port).toBe('6543')
+    expect(new URL(out).hostname).toBe('aws-0-us-west-1.pooler.supabase.com')
+    expect(new URL(out).username).toBe('postgres.abcdef')
+    expect(new URL(out).password).toBe('secret')
+  })
+  it('leaves a transaction-pooler URL alone', () => {
+    const url = session.replace(':5432', ':6543')
+    expect(toTransactionPooler(url, vercel)).toBe(url)
+  })
+  it('leaves the direct host, localhost and other hosts alone', () => {
+    for (const url of [
+      'postgresql://postgres:pw@db.abcdef.supabase.co:5432/postgres',
+      'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+      'postgresql://u:p@example.com:5432/db',
+    ]) {
+      expect(toTransactionPooler(url, vercel)).toBe(url)
+    }
+  })
+  it('does nothing off Vercel (CI, local, scripts keep their connection)', () => {
+    expect(toTransactionPooler(session, {})).toBe(session)
+  })
+  it('does not throw on a string that is not a URL', () => {
+    expect(toTransactionPooler('not a url', vercel)).toBe('not a url')
+  })
+})
