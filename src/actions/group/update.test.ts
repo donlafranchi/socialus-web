@@ -328,3 +328,44 @@ describe('#450 — an email address in Page text is refused on save', () => {
     expect(res.patched).toContain('description')
   })
 })
+
+// F099 criteria 1, 5, 12 — the Page picture: one for every kind, the owner's own upload, apart from the Page's photo.
+describe('F099 — the Page picture', () => {
+  const PICTURE = `https://x.supabase.co/storage/v1/object/public/media/${OWNER}/55555555-5555-4555-8555-555555555555.webp`
+
+  // [guards F099.1]
+  it('sets the Page picture and patches nothing else, so the Page photo stays', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, pictureUrl: PICTURE })
+    expect(out.patched).toEqual(['picture_url'])
+    const [text, params] = sql(/update public\.groups/)[0]!
+    expect(text).toMatch(/picture_url = \$1/)
+    expect(text).not.toMatch(/\bphoto_url\b/)
+    expect(params?.[0]).toBe(PICTURE)
+  })
+
+  // [guards F099.12]
+  it('removes it on an explicit null, and the event says which field changed', async () => {
+    install()
+    const out = await groupUpdate(ctx(), { groupId: GROUP, pictureUrl: null })
+    expect(out.patched).toEqual(['picture_url'])
+    const call = appendEvent.mock.calls[0] as unknown as [unknown, string, { payload: { fields: string[] } }]
+    expect(call[2].payload.fields).toEqual(['picture_url'])
+  })
+
+  // [guards F099.5]
+  it("refuses a picture that is not in the uploader's own folder", async () => {
+    install()
+    const theirs = PICTURE.replace(OWNER, '99999999-9999-4999-8999-999999999999')
+    await expect(groupUpdate(ctx(), { groupId: GROUP, pictureUrl: theirs })).rejects.toBeInstanceOf(ValidationError)
+    expect(sql(/update public\.groups/)).toHaveLength(0)
+  })
+
+  it('a different picture starts unhidden; the same one keeps the state a report put it in', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, pictureUrl: PICTURE })
+    const [text] = sql(/update public\.groups/)[0]!
+    expect(text).toMatch(/picture_hidden_at = case when \$1 is distinct from picture_url then null else picture_hidden_at end/)
+    expect(text).toMatch(/picture_removed_at = case when \$1 is distinct from picture_url then null else picture_removed_at end/)
+  })
+})

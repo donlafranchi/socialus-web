@@ -14,6 +14,7 @@
 
 import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { visiblePhotoUrl } from './visible-photo-url'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
 import { maskEmails } from '../text/contact-info'
@@ -53,6 +54,8 @@ export interface ResolvedShop {
    *  that renders a Page photo goes through `visiblePhotoUrl()`, which is
    *  what makes a hide a hide. */
   photoUrl: string | null
+  /** F099 — the Page picture, resolved: null when none, hidden or removed. */
+  pictureUrl?: string | null
   /** F070 — the Page's links out. Empty object means none. */
   socialLinks: SocialLinks
   /** T160 — non-null means hidden pending operator review (T159). */
@@ -136,6 +139,9 @@ interface ShopRow {
   lifecycle_state: string
   category: string | null
   photo_url: string | null
+  picture_url?: string | null
+  picture_hidden_at?: string | null
+  picture_removed_at?: string | null
   social_links: unknown
   photo_hidden_at: string | null
   photo_removed_at?: string | null
@@ -194,7 +200,7 @@ export async function resolveShop(
     .from('groups')
     .select(
       'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
-        'photo_url, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
+        'photo_url, picture_url, picture_hidden_at, picture_removed_at, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
         'unclaimed_at, public_info_url, photo_credit, photo_source_url, ' +
         'group_businesses(display_name, public_description)',
     )
@@ -256,6 +262,11 @@ export async function resolveShop(
     category: row.category,
     purpose: row.purpose,
     photoUrl: row.photo_url,
+    pictureUrl: visiblePhotoUrl({
+      photo_url: row.picture_url ?? null,
+      photo_hidden_at: row.picture_hidden_at ?? null,
+      photo_removed_at: row.picture_removed_at ?? null,
+    }),
     // Normalised on read as well as on write: a row written before the column
     // had its CHECK, or by anything that bypassed the action layer, must not
     // reach an href unchecked.

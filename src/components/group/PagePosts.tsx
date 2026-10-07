@@ -94,6 +94,8 @@ interface Props {
   memberId?: string | null
   /** F099 — the Page's name, and its kind's placeholder: what a post without a photo of its own shows. */
   pageName?: string
+  /** F099 — the Page picture, resolved (null when none, hidden or removed). */
+  pictureUrl?: string | null
   artKind?: ArtKind | null
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
@@ -154,6 +156,7 @@ export function PagePosts({
   isPrivate = false,
   memberId = null,
   pageName = '',
+  pictureUrl = null,
   artKind = null,
   onPost,
   onEdit,
@@ -434,7 +437,7 @@ export function PagePosts({
               ) : (
                 <>
                   {/* F099 criterion 6 — exactly one image on every post card:
-                      its own photo, else the Page picture (not built yet),
+                      its own photo, else the Page picture,
                       else the kind's placeholder. Alt: the owner's words (the
                       post's first line); the placeholder's is the Page's name. */}
                   <div className="mb-2 h-32 w-full overflow-hidden rounded-md">
@@ -445,6 +448,9 @@ export function PagePosts({
                         alt={post.body.split('\n')[0].slice(0, 120)}
                         className="h-full w-full object-cover"
                       />
+                    ) : pictureUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pictureUrl} alt={pageName || 'Page'} className="h-full w-full object-cover" />
                     ) : (
                       <div role="img" aria-label={pageName || 'Page'} className="h-full w-full">
                         <DefaultArt kind={artKind} />

@@ -367,6 +367,7 @@ export function ShopPublicPage({
           isPrivate={shop.discoverability === 'private'}
           memberId={viewerOwnsPage ? viewerMemberId : null}
           pageName={shop.displayName}
+          pictureUrl={shop.pictureUrl ?? null}
           artKind={artKindFor(shop.kind, shop.purpose)}
           onPost={postToPageAction}
           onEdit={editPagePostAction}

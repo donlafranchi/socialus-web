@@ -597,6 +597,15 @@ describe('F099 — a post photo', () => {
     expect(screen.getByRole('img', { name: 'Maya’s Bakery' })).toBeInTheDocument()
   })
 
+  // [guards F099.6]
+  it('a post without a photo of its own shows the Page picture, named for the Page', () => {
+    renderPosts({ posts: [postFixture()], pageName: 'Maya’s Bakery', pictureUrl: 'https://x/pic.webp', artKind: 'shop' } as never)
+    const post = screen.getByTestId('page-post')
+    expect(post.querySelectorAll('img')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Maya’s Bakery' })).toHaveAttribute('src', 'https://x/pic.webp')
+    expect(screen.queryByTestId('default-art')).toBeNull()
+  })
+
   // [guards F099.10]
   it('the photo’s alt is the owner’s words: the first line of the post', () => {
     renderPosts({ posts: [postFixture({ photoUrl: PHOTO, body: 'Bread class is on.\nBring an apron.' } as never)] })
