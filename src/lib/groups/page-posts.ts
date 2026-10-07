@@ -28,6 +28,8 @@ export interface PagePost {
   locationLabel: string | null
   /** #348 — an event's own meet spot, beside its place. */
   howToFind?: string | null
+  /** #286 — the post's own tags; empty means it carries its Page's. */
+  tags?: string[]
 }
 
 interface Row {
@@ -39,6 +41,7 @@ interface Row {
   ends_at: string | null
   how_to_find?: string | null
   location: { label: string | null } | { label: string | null }[] | null
+  post_tags?: { tags: { label: string } | { label: string }[] | null }[] | null
 }
 
 /** Ordered by recency, matching browse. A read failure yields no posts rather
@@ -49,7 +52,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, location:locations(label)')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -66,6 +69,9 @@ export async function resolvePagePosts(
       updatedAt: r.updated_at,
       startsAt: r.starts_at,
       endsAt: r.ends_at,
+      tags: (r.post_tags ?? [])
+        .map((t) => (Array.isArray(t.tags) ? t.tags[0] : t.tags)?.label)
+        .filter((l): l is string => Boolean(l)),
       locationLabel: loc?.label ?? null,
       howToFind: maskEmailsOrNull(r.how_to_find ?? null),
     }

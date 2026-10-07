@@ -75,6 +75,7 @@ function install(
     if (/update public\.page_posts/i.test(sql)) {
       return { rows: [{ id: POST, updated_at: NOW }], rowCount: 1 }
     }
+    if (/public\.tags|public\.post_tags/i.test(sql)) return { rows: [], rowCount: 0 }
     throw new Error('unexpected: ' + sql)
   })
 }
@@ -348,5 +349,45 @@ describe('#450 — an email address in a Page post is refused', () => {
     expect(err).toBeInstanceOf(ValidationError)
     expect(err.message).toBe(MESSAGE)
     expect(calls(/update public\.page_posts/i)).toEqual([])
+  })
+})
+
+describe('#286 — tags on posts', () => {
+  const calls = (re: RegExp) => (query.mock.calls as [string, unknown[]][]).filter(([q]) => re.test(q))
+
+  it('a new post carries the tags it was given', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Concert Friday', tags: ['Concert', 'live music'] })
+    expect(calls(/insert into public\.tags/).map(([, p]) => p[1])).toEqual(['concert', 'live music'])
+    expect(calls(/insert into public\.post_tags/)).toHaveLength(2)
+    expect(calls(/insert into public\.post_tags/)[0]![1]).toEqual([POST, 'concert'])
+  })
+
+  it('a post with no tags writes none, and so carries its Page\'s', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves are in' })
+    expect(calls(/post_tags/)).toHaveLength(0)
+  })
+
+  it('an edit replaces the set, and an empty set clears the post\'s own', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday', tags: ['concert'] })
+    expect(calls(/delete from public\.post_tags/)[0]![1]).toEqual([POST, ['concert']])
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday', tags: [] })
+    expect(calls(/delete from public\.post_tags/)[0]![1]).toEqual([POST, []])
+    expect(calls(/insert into public\.post_tags/)).toHaveLength(0)
+  })
+
+  it('an edit that does not mention tags leaves them alone', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday' })
+    expect(calls(/post_tags/)).toHaveLength(0)
+  })
+
+  it('only the managing role can tag', async () => {
+    install({ roles: {} })
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['y'] })).rejects.toThrow()
+    expect(calls(/post_tags/)).toHaveLength(0)
   })
 })

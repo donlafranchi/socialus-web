@@ -42,6 +42,7 @@ describe('resolvePagePosts', () => {
         startsAt: null,
         locationLabel: null,
         howToFind: null,
+        tags: [],
       },
     ])
     expect(calls.order).toEqual(['created_at', { ascending: false }])
