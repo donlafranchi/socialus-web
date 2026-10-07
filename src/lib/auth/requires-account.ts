@@ -22,6 +22,7 @@ export const GATED_ACTIONS = [
   'report',
   'respond',
   'message',
+  'map',
 ] as const
 
 export type GatedAction = (typeof GATED_ACTIONS)[number]
@@ -60,6 +61,12 @@ const PROMPTS: Record<GatedAction, Prompt> = {
   respond: {
     title: 'Sign in to respond',
     why: 'The organizer needs a count they can trust.',
+  },
+  // #334 (ruling 2026-10-01): signed out, Explore is list only. Copy is a placeholder ([public-is-draft]).
+  map: {
+    title: 'Sign up to see the map',
+    why: 'The map is for members, so what is on it stays with the people here.',
+    signUp: true,
   },
   message: {
     title: 'Sign in to send this',

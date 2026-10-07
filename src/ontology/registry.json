@@ -333,6 +333,8 @@
     "report.answer",
     "report.create",
     "report.decide",
+    "report.purge",
+    "report.purge_target",
     "report.reverse"
   ]
 }
