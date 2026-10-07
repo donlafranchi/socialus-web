@@ -39,3 +39,24 @@ export function resolveConnectionString(
   }
   return { ok: false, reason: 'unconfigured', message: UNCONFIGURED_MESSAGE }
 }
+
+/**
+ * bug #457 — on Vercel every function instance opens its own pool, and the
+ * session-mode pooler (port 5432) allows only 15 clients in all, so a few
+ * instances exhausted it (EMAXCONNSESSION) and Pages and Explore failed.
+ * Supabase's guidance for serverless is the transaction-mode pooler, port 6543,
+ * on the same host. This moves a Supabase session-pooler URL to it on Vercel
+ * only; CI, local and scripts keep the connection they were given. Nothing is
+ * logged: the string holds a password.
+ */
+export function toTransactionPooler(connectionString: string, env: Record<string, string | undefined>): string {
+  if (env.VERCEL !== '1') return connectionString
+  try {
+    const url = new URL(connectionString)
+    if (!url.hostname.endsWith('.pooler.supabase.com') || url.port !== '5432') return connectionString
+    url.port = '6543'
+    return url.toString()
+  } catch {
+    return connectionString
+  }
+}

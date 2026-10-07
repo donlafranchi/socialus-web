@@ -376,7 +376,9 @@ jobs:
       - name: Which screens this PR changes
         id: changed
         if: github.event_name == 'pull_request'
-        run: npx tsx scripts/changed-routes.ts --base ${{ github.event.pull_request.base.sha }} --github-output
+        run: |
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+          npx tsx scripts/changed-routes.ts --base ${{ github.event.pull_request.base.sha }} --github-output
       - name: Review bundle
         if: github.event_name == 'pull_request' && steps.changed.outputs.routes != ''
         env:
