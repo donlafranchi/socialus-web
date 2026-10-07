@@ -6,19 +6,21 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import '@testing-library/jest-dom/vitest'
 import { WhereFields, emptyWhere, type WhereValue } from './WhereFields'
 
-const { geocode, placeForPoint, searchPlaces } = vi.hoisted(() => ({
+const { geocode, placeForPoint, searchPlaces, searchNeighborhoods } = vi.hoisted(() => ({
   geocode: vi.fn(),
   placeForPoint: vi.fn(),
   searchPlaces: vi.fn(),
+  searchNeighborhoods: vi.fn(),
 }))
 vi.mock('@/lib/geocoding', () => ({ geocode }))
 vi.mock('@/app/_actions/location-actions', () => ({
   placeForPointAction: placeForPoint,
   searchPlacesAction: searchPlaces,
+  searchNeighborhoodsAction: searchNeighborhoods,
 }))
 vi.mock('./PinAdjustMap', () => ({
-  PinAdjustMap: ({ onChange }: { onChange: (c: [number, number]) => void }) => (
-    <button type="button" data-testid="pin-moved" onClick={() => onChange([-121.5, 38.58])} />
+  PinAdjustMap: ({ center, onChange }: { center: [number, number]; onChange: (c: [number, number]) => void }) => (
+    <button type="button" data-testid="pin-moved" data-center={center.join(',')} onClick={() => onChange([-121.5, 38.58])} />
   ),
 }))
 vi.mock('./AreaPickMap', () => ({
@@ -49,6 +51,8 @@ beforeEach(() => {
   placeForPoint.mockResolvedValue({ ok: true, data: { id: 'pl-curtis', name: 'Curtis Park' } })
   searchPlaces.mockReset()
   searchPlaces.mockResolvedValue({ ok: true, data: [] })
+  searchNeighborhoods.mockReset()
+  searchNeighborhoods.mockResolvedValue({ ok: true, data: [] })
 })
 afterEach(() => {
   cleanup()
@@ -69,15 +73,102 @@ describe('#348 — one question, three answers', () => {
 describe('People come to me', () => {
   const choose = () => fireEvent.click(screen.getByRole('radio', { name: /people come to me/i }))
 
-  it('finds an address, then shows it on the map to confirm', async () => {
-    geocode.mockResolvedValue([{ name: '915 I ST, SACRAMENTO, CA, 95814', coordinates: [-121.494, 38.5817] }])
+  const address = () => screen.getByRole('combobox', { name: /^address/i })
+  const FOUND = [
+    { name: '915 I ST, SACRAMENTO, CA, 95814', coordinates: [-121.494, 38.5817] },
+    { name: '915 J ST, SACRAMENTO, CA, 95814', coordinates: [-121.493, 38.5807] },
+  ]
+
+  it('suggests addresses as the owner types, and a chosen one goes on the map', async () => {
+    geocode.mockResolvedValue(FOUND)
     render(<Harness />)
     choose()
-    fireEvent.change(screen.getByRole('textbox', { name: /address/i }), { target: { value: '915 I St, Sacramento' } })
-    fireEvent.click(screen.getByRole('button', { name: /find it/i }))
-    fireEvent.click(await screen.findByRole('button', { name: /915 I ST/ }))
+    expect(screen.queryByTestId('pin-moved')).toBeNull()
+    fireEvent.change(address(), { target: { value: '915 I St' } })
+    fireEvent.click(await screen.findByRole('option', { name: /915 I ST/ }))
+    expect(geocode).toHaveBeenCalledWith('915 I St')
     expect(latest.visit.pin).toEqual([-121.494, 38.5817])
     expect(latest.visit.label).toBe('915 I ST, SACRAMENTO, CA, 95814')
+    expect(screen.getByTestId('pin-moved')).toHaveAttribute('data-center', '-121.494,38.5817')
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+
+  it('waits for three letters and a pause before it searches', async () => {
+    geocode.mockResolvedValue(FOUND)
+    render(<Harness />)
+    choose()
+    fireEvent.change(address(), { target: { value: '91' } })
+    await new Promise((r) => setTimeout(r, 400))
+    expect(geocode).not.toHaveBeenCalled()
+    fireEvent.change(address(), { target: { value: '915' } })
+    fireEvent.change(address(), { target: { value: '915 I' } })
+    fireEvent.change(address(), { target: { value: '915 I St' } })
+    await screen.findAllByRole('option')
+    expect(geocode).toHaveBeenCalledTimes(1)
+    expect(geocode).toHaveBeenCalledWith('915 I St')
+  })
+
+  it('the suggestions are a listbox the arrow keys and Enter work', async () => {
+    geocode.mockResolvedValue(FOUND)
+    render(<Harness />)
+    choose()
+    expect(address()).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.change(address(), { target: { value: '915 I St' } })
+    await screen.findAllByRole('option')
+    expect(address()).toHaveAttribute('aria-expanded', 'true')
+    expect(address()).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+    fireEvent.keyDown(address(), { key: 'ArrowDown' })
+    fireEvent.keyDown(address(), { key: 'ArrowDown' })
+    const active = screen.getByRole('option', { name: /915 J ST/ })
+    expect(address()).toHaveAttribute('aria-activedescendant', active.id)
+    expect(active).toHaveAttribute('aria-selected', 'true')
+    fireEvent.keyDown(address(), { key: 'Enter' })
+    expect(latest.visit.pin).toEqual([-121.493, 38.5807])
+    expect(address()).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('says so when nothing matches the address', async () => {
+    geocode.mockResolvedValue([])
+    render(<Harness />)
+    choose()
+    fireEvent.change(address(), { target: { value: 'zzzz' } })
+    expect(await screen.findByText(/couldn.t find that address/i)).toBeInTheDocument()
+  })
+
+  it('or types a neighbourhood: the pin starts at its centre, named, ready to drag to the door', async () => {
+    searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
+    render(<Harness />)
+    choose()
+    fireEvent.change(screen.getByRole('combobox', { name: /or type a neighbourhood/i }), { target: { value: 'Curt' } })
+    fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
+    expect(searchNeighborhoods).toHaveBeenCalledWith('Curt')
+    expect(latest.visit.pin).toEqual([-121.49, 38.55])
+    expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' })
+    expect(latest.visit.label).toBeNull()
+    expect(screen.getByTestId('pin-moved')).toHaveAttribute('data-center', '-121.49,38.55')
+    expect(screen.getByText('Curtis Park')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('pin-moved'))
+    expect(latest.visit.pin).toEqual([-121.5, 38.58])
+  })
+
+  it('the two ways in replace each other: choosing one clears the other', async () => {
+    geocode.mockResolvedValue(FOUND)
+    searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
+    render(<Harness />)
+    choose()
+    fireEvent.change(address(), { target: { value: '915 I St' } })
+    fireEvent.click(await screen.findByRole('option', { name: /915 I ST/ }))
+    const area = screen.getByRole('combobox', { name: /or type a neighbourhood/i })
+    fireEvent.change(area, { target: { value: 'Curt' } })
+    fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
+    expect(address()).toHaveValue('')
+    fireEvent.change(address(), { target: { value: '915 I St' } })
+    fireEvent.click(await screen.findByRole('option', { name: /915 I ST/ }))
+    expect(screen.getByRole('combobox', { name: /or type a neighbourhood/i })).toHaveValue('')
+  })
+
+  it('shows the map for a pin already set', () => {
+    render(<Harness initial={{ ...emptyWhere, mode: 'visit', visit: { ...emptyWhere.visit, pin: [-121.4, 38.5] } }} />)
     expect(screen.getByTestId('pin-moved')).toBeInTheDocument()
   })
 
@@ -90,12 +181,20 @@ describe('People come to me', () => {
     expect(latest.visit.label).toBeNull()
   })
 
-  it('offers a dropped pin only where there is a map to drop it on', () => {
+  it('with no map, there is nothing to drop a pin or drag it on: the address is looked up on request', async () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', '')
+    geocode.mockResolvedValue(FOUND)
     render(<Harness />)
     choose()
     expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
-    expect(screen.getByRole('button', { name: /find it/i })).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: /neighbourhood/i })).toBeNull()
+    const field = screen.getByRole('textbox', { name: /^address/i })
+    fireEvent.change(field, { target: { value: '915 I St, Sacramento' } })
+    await new Promise((r) => setTimeout(r, 400))
+    expect(geocode).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: /find it/i }))
+    fireEvent.click(await screen.findByRole('button', { name: /915 I ST/ }))
+    expect(latest.visit.pin).toEqual([-121.494, 38.5817])
   })
 
   it('takes an optional one-line "How to find us"', () => {

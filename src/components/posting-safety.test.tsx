@@ -2,7 +2,7 @@
 // reasons, to post nothing sensitive. The words are Don's, in src/lib/copy.ts.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import type { ReactNode } from 'react'
 import { COPY } from '@/lib/copy'
@@ -34,13 +34,23 @@ import { ProductComposer } from './sell/ProductComposer'
 import { ServiceComposer } from './sell/ServiceComposer'
 import { GatheringComposer } from './sell/GatheringComposer'
 import { PagePosts } from './group/PagePosts'
-import { EditPageForm } from '@/app/g/[handle]/edit/EditPageForm'
+import { EditCards } from './group/edit/EditCards'
+import { emptyWhere } from './locations/WhereFields'
 
 afterEach(() => cleanup())
 
 const noop = vi.fn()
 const asyncNoop = vi.fn(async () => ({}) as never)
 const message = () => screen.getByText(COPY.postingSafety)
+
+// #412 — a live Page is edited section by section; its words and photo are
+// posted from the sheets the Edit Page's cards open.
+const editCards = () => (
+  <EditCards isDraft={false} onSave={asyncNoop} initial={{
+    groupId: 'g1', pagePath: '/g/p', memberId: 'm1', name: 'P', description: '', photoUrl: null, socialLinks: {}, tags: [],
+    contact: { phone: null, hours: null }, contactOn: false, addressLabel: null, kind: 'business', purpose: 'sell', productsOn: true, where: emptyWhere,
+  }} />
+)
 
 describe('F080 — the safety message where a member posts', () => {
   const postProps = { groupId: 'g1', posts: [], followerCount: 0, onPost: asyncNoop, onEdit: asyncNoop,
@@ -71,11 +81,8 @@ describe('F080 — the safety message where a member posts', () => {
       <SellWalkthrough memberId="m1" createDraft={asyncNoop} updateDraft={asyncNoop} activate={asyncNoop}
         createLocation={asyncNoop} availableLocations={[]} redirect={noop} showToast={noop} onAbandon={noop} />
     )],
-    ['saving a live Page', () => (
-      <EditPageForm groupId="g1" memberId="m1" pagePath="/g/p" slug="p" initialName="P" initialDescription=""
-        initialPhotoUrl={null} initialSocialLinks={{}} initialAddressLabel={null}
-        onSave={asyncNoop} onCreateLocation={asyncNoop} />
-    )],
+    ['saving a live Page, its words', editCards, 'Edit description'],
+    ['saving a live Page, its photo', editCards, 'Edit photo'],
     ['announcing', () => <PagePosts {...postProps} canPost />],
     ['publishing a product', () => (
       <ProductComposer createProduct={asyncNoop} createLocation={asyncNoop} availableLocations={[]}
@@ -88,8 +95,9 @@ describe('F080 — the safety message where a member posts', () => {
     ['publishing a gathering', () => (
       <GatheringComposer createGathering={asyncNoop} redirect={noop} showToast={noop} onAbandon={noop} />
     )],
-  ])('shows when %s', (_what, ui) => {
+  ] as [string, () => ReactNode, string?][])('shows when %s', (_what, ui, open) => {
     render(ui())
+    if (open) fireEvent.click(screen.getByRole('button', { name: open }))
     expect(message()).toBeInTheDocument()
   })
 

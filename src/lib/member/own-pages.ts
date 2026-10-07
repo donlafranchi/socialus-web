@@ -118,7 +118,7 @@ export async function getOwnPages(
       photoUrl: visiblePhotoUrl({ photo_url: r.photo_url, photo_hidden_at: r.photo_hidden_at }),
       location: scaleFor(r.anchor),
       lifecycleState: r.lifecycle_state,
-      href: canonicalPagePath(r.slug ?? 'page', r.public_id),
+      href: canonicalPagePath(r.public_id),
     }
   })
 }

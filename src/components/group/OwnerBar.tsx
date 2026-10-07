@@ -17,7 +17,6 @@
 
 import Link from 'next/link'
 import { Megaphone } from 'lucide-react'
-import { EditToggle } from './edit/PageEditor'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 
 export function OwnerBar({ pagePath }: { pagePath: string }) {
@@ -35,8 +34,10 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
       <span className="text-xs font-medium text-[var(--color-fg-muted)] mr-auto">
         Your Page — only you see this
       </span>
-      {/* #302 — edit in place, by section (Don, 2026-10-04). */}
-      <EditToggle />
+      {/* #412 — Edit goes to the Edit Page's section cards (the PM, 2026-10-06). */}
+      <Link href={`${pagePath}/edit`} data-testid="owner-edit" className="btn-secondary press">
+        Edit
+      </Link>
       <Link
         href={`${pagePath}#${ANNOUNCE_ANCHOR}`}
         data-testid="owner-announce"

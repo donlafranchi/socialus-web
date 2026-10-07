@@ -72,7 +72,7 @@ describe('WithheldPagePosts', () => {
   it('puts the ask on the card, and brings them back to this Page', () => {
     render(<WithheldPagePosts posts={[PAGE]} />)
     expect(screen.getByTestId('withheld-cta').getAttribute('href')).toBe(
-      '/auth/login?next=%2Fg%2Fsacriver-floaters-3k8x0p',
+      '/auth/login?next=%2Fg%2F3k8x0p',
     )
   })
 

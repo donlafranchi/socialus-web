@@ -56,6 +56,8 @@ export interface ResolvedShop {
   socialLinks: SocialLinks
   /** T160 — non-null means hidden pending operator review (T159). */
   photoHiddenAt: string | null
+  /** Non-null means the operator removed it; `visiblePhotoUrl()` reads it. */
+  photoRemovedAt: string | null
   /** F067 — a private Page is joined; anything else is followed. */
   discoverability: string
   founder: ShopFounder | null
@@ -135,6 +137,7 @@ interface ShopRow {
   photo_url: string | null
   social_links: unknown
   photo_hidden_at: string | null
+  photo_removed_at?: string | null
   discoverability: string
   unclaimed_at: string | null
   public_info_url: string | null
@@ -190,7 +193,7 @@ export async function resolveShop(
     .from('groups')
     .select(
       'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
-        'photo_url, social_links, photo_hidden_at, discoverability, ' +
+        'photo_url, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
         'unclaimed_at, public_info_url, photo_credit, photo_source_url, ' +
         'group_businesses(display_name, public_description)',
     )
@@ -241,12 +244,11 @@ export async function resolveShop(
     kind: row.kind,
     slug: row.slug,
     publicId: row.public_id,
-    // T156 — a business keeps its public name in the `group_businesses` child;
-    // every other kind of Page keeps it on the `groups` row and has no child
-    // at all. Falling back is what makes resolving a run club worth doing:
-    // without it the 404 is replaced by a Page with no name on it.
-    displayName: biz?.display_name ?? row.name ?? '',
-    publicDescription: biz?.public_description ?? row.description ?? '',
+    // #410 — the groups row is the one source of a Page's name and
+    // description; the database keeps a business's group_businesses copy equal
+    // to it. Reading the copy first is what left a renamed Page on its old name.
+    displayName: row.name || biz?.display_name || '',
+    publicDescription: row.description || biz?.public_description || '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
@@ -257,6 +259,7 @@ export async function resolveShop(
     // reach an href unchecked.
     socialLinks: normaliseSocialLinks(row.social_links).links,
     photoHiddenAt: row.photo_hidden_at,
+    photoRemovedAt: row.photo_removed_at ?? null,
     discoverability: row.discoverability,
     placements,
     unclaimed: row.unclaimed_at
