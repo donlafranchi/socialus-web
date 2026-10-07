@@ -20,6 +20,7 @@ import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { loadPageView } from '@/lib/groups/load-page-view'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
+import { shareMetadata } from '@/lib/groups/share-metadata'
 
 interface Props {
   params: Promise<{ handle: string }>
@@ -30,10 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createClient()
   const found = await resolvePageByHandle(supabase, handle)
   if (!found) return { title: 'Not found — SocialUs' }
-  return {
-    title: `${found.shop.displayName} — SocialUs`,
-    description: found.shop.publicDescription || `${found.shop.displayName} on SocialUs.`,
-  }
+  return shareMetadata(found.shop)
 }
 
 export default async function PageAtCanonicalAddress({ params }: Props) {
