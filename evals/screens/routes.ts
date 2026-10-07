@@ -41,9 +41,12 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S012', 'S013'],
     path: () => '/explore',
     act: async (page) => {
-      // Under 1024px the pill switches to the map; wider, the map is already beside the list.
-      const pill = page.getByTestId('view-pill')
-      if (await pill.isVisible().catch(() => false)) await pill.click()
+      // Under 1024px the bottom dock opens to the map switch; wider, the map is already beside the list.
+      const dock = page.getByTestId('explore-dock-toggle')
+      if (await dock.isVisible().catch(() => false)) {
+        await dock.click()
+        await page.getByTestId('view-pill').click()
+      }
     },
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },

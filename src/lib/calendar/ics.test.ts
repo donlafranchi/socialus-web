@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { buildIcs, cardImageAlt } from './ics'
 
 // #260 — "Add to calendar" downloads a standard .ics built from what the page
@@ -12,6 +12,26 @@ const EVENT = {
   url: 'https://www.socialus.org/g/b-bakery#announcement-post-1',
   now: new Date('2026-09-30T12:00:00Z'),
 }
+
+afterEach(() => vi.useRealTimers())
+
+// bug #340 — the link is built on the server and again in the browser; a stamp
+// taken from the clock differs between the two and React reports a mismatch.
+describe('the DTSTAMP', () => {
+  it('is the same on the server and in the browser, whatever the time', () => {
+    const { now: _now, ...noClock } = EVENT
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-01T00:00:00Z'))
+    const server = buildIcs(noClock)
+    vi.setSystemTime(new Date('2026-10-01T00:00:07Z'))
+    expect(buildIcs(noClock)).toBe(server)
+  })
+
+  it('is taken from the event when no time is given, never invented', () => {
+    const { now: _now, ...noClock } = EVENT
+    expect(buildIcs(noClock)).toContain('\r\nDTSTAMP:20260911T020000Z\r\n')
+  })
+})
 
 describe('buildIcs', () => {
   it('is one VEVENT in a VCALENDAR, with CRLF line ends', () => {

@@ -12,6 +12,7 @@
 // `members.home_metro_id`. Nothing here survives or falls with Items.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 
 /** The seeded Sacramento CSA — migration 031's one seeded row. */
 export const DEFAULT_METRO_SLUG = 'sacramento-roseville-ca'
@@ -32,6 +33,8 @@ export interface FeedMetro {
    * relabel the surface while the results underneath stayed identical.
    */
   isOpen: boolean
+  /** [lng, lat] of the metro's centre; absent for the waitlist-only metros. The map opens here. */
+  center?: [number, number]
   /**
    * How many people are waiting here, as of the last cache refresh.
    *
@@ -51,7 +54,7 @@ export interface FeedMetro {
 type FromClient = Pick<SupabaseClient, 'from'>
 
 const TABLE = 'metro_polygons'
-const COLUMNS = 'id, slug, name, is_open'
+const COLUMNS = 'id, slug, name, is_open, centroid'
 
 async function one(
   supabase: FromClient,
@@ -72,10 +75,19 @@ interface MetroRow {
   slug: string
   name: string
   is_open: boolean
+  centroid?: string | null
 }
 
 function toMetro(row: MetroRow | null): FeedMetro | null {
-  return row ? { id: row.id, slug: row.slug, name: row.name, isOpen: row.is_open } : null
+  if (!row) return null
+  const c = decodeEwkbPoint(row.centroid)
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    isOpen: row.is_open,
+    ...(c ? { center: [c.longitude, c.latitude] as [number, number] } : {}),
+  }
 }
 
 /**

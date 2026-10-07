@@ -46,11 +46,11 @@ describe('T115 — one row, three elements', () => {
     expect(pill).toHaveAttribute('data-place-chosen', 'false')
   })
 
-  it('asks rather than naming the launch stand-in, even when one resolves', () => {
-    renderBar({ placeName: 'The Good Place', placeChosen: false })
+  it('names the default metro even when nobody picked it (#329)', () => {
+    renderBar({ placeName: 'Sacramento-Roseville, CA', placeChosen: false })
     const pill = screen.getByTestId('explore-location-pill')
-    expect(pill).toHaveTextContent('Choose your area')
-    expect(pill.textContent).not.toMatch(/good place/i)
+    expect(pill).toHaveTextContent('Sacramento-Roseville, CA')
+    expect(pill).toHaveAttribute('data-place-chosen', 'true')
   })
 
   // Still one row, three elements (F045 thesis §5) — the locality is now the
@@ -150,5 +150,17 @@ describe('the location pill as the scope control', () => {
     expect(pill.tagName).toBe('BUTTON')
     fireEvent.click(pill)
     expect(onOpenScope).toHaveBeenCalledOnce()
+  })
+})
+
+describe('#328 — the bottom dock can open search', () => {
+  it('opens and focuses the search input when asked from outside', () => {
+    const { rerender } = renderBar({ searchRequest: 0 })
+    expect(screen.queryByTestId('search-input')).toBeNull()
+    rerender(
+      <ExploreSearchBar placeName="West Sacramento" query="" onQueryChange={onQueryChange} filtersActive={false}
+        onOpenFilters={onOpenFilters} onOpenScope={onOpenScope} searchRequest={1} />,
+    )
+    expect(screen.getByTestId('search-input')).toHaveFocus()
   })
 })

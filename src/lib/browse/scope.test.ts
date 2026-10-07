@@ -57,4 +57,28 @@ describe('T156 — resolveBrowseScope', () => {
   it('returns null when nothing resolves at all', async () => {
     expect(await resolveBrowseScope(client([]), {})).toBeNull()
   })
+
+  // #329/#330 — the pill remembers.
+  it("a member's default metro beats the one derived from their zip", async () => {
+    const scope = await resolveBrowseScope(client(), { memberMetroId: 'metro-sac', memberDefaultMetroId: 'metro-pdx' })
+    expect(scope).toEqual({ metro: PDX, chosen: true })
+  })
+
+  it('a remembered slug is used when nothing is requested, and counts as chosen', async () => {
+    const scope = await resolveBrowseScope(client(), { rememberedSlug: 'portland-vancouver-or-wa' })
+    expect(scope).toEqual({ metro: PDX, chosen: true })
+  })
+
+  it('an explicit ?metro= beats a remembered slug', async () => {
+    const scope = await resolveBrowseScope(client(), {
+      requestedSlug: 'sacramento-roseville-ca',
+      rememberedSlug: 'portland-vancouver-or-wa',
+    })
+    expect(scope?.metro).toEqual(SAC)
+  })
+
+  it('a stale remembered slug falls through to the zip metro', async () => {
+    const scope = await resolveBrowseScope(client(), { rememberedSlug: 'atlantis-xx', memberMetroId: 'metro-pdx' })
+    expect(scope?.metro).toEqual(PDX)
+  })
 })

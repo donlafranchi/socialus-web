@@ -35,6 +35,7 @@
 // a separate decision, not something to fake here.
 
 import { getPool } from '@/actions/_lib/db'
+import type { ReportCategory } from '@/lib/reports/categories'
 
 export interface PastDecision {
   decisionId: string
@@ -53,6 +54,8 @@ export interface QueuedReport {
   reportId: string
   /** What the reporter wrote, in their own words. */
   body: string
+  /** The reason the reporter chose; null on reports filed before F078 criterion 9. */
+  category: ReportCategory | null
   reportedAt: Date
   /** Null when the report did not hide anything — see report.create's limits. */
   hiddenAt: Date | null
@@ -131,6 +134,7 @@ export async function fetchReviewQueue(
   const { rows } = await getPool().query(
     `select r.id              as report_id,
             r.body            as body,
+            r.category        as category,
             r.created_at      as reported_at,
             g.photo_hidden_at as hidden_at,
             g.photo_removed_at as removed_at,
@@ -158,6 +162,7 @@ export async function fetchReviewQueue(
   return rows.map((r: Record<string, unknown>) => ({
     reportId: r.report_id as string,
     body: r.body as string,
+    category: (r.category as ReportCategory | null) ?? null,
     reportedAt: r.reported_at as Date,
     hiddenAt: (r.hidden_at as Date | null) ?? null,
     removedAt: (r.removed_at as Date | null) ?? null,

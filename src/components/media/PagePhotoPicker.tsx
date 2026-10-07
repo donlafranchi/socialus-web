@@ -13,6 +13,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { uploadImage } from '@/lib/media/upload-image'
+import { COPY } from '@/lib/copy'
 
 export interface PagePhotoPickerProps {
   memberId: string
@@ -25,6 +26,8 @@ export interface PagePhotoPickerProps {
 export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // F080 — the uploader's word, asked for every photo and never remembered.
+  const [confirmed, setConfirmed] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const onPick = useCallback(
@@ -50,6 +53,7 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
         // Let the same file be re-picked after a failure; without this the
         // input holds the old value and change never fires again.
         if (inputRef.current) inputRef.current.value = ''
+        setConfirmed(false)
       }
     },
     [memberId, onChange],
@@ -80,9 +84,18 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
 
       {/* A bare file input looks like nothing in most browsers (#234). The
           button is what a person sees and presses; the input only chooses. */}
+      <label className="mt-2 flex min-h-11 items-center gap-3 text-sm text-[var(--color-fg)]">
+        <input
+          type="checkbox"
+          checked={confirmed}
+          onChange={(e) => setConfirmed(e.target.checked)}
+          className="h-4 w-4 shrink-0"
+        />
+        {COPY.photoConfirm}
+      </label>
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || !confirmed}
         className="btn-secondary mt-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-50"
         onClick={() => inputRef.current?.click()}
       >
@@ -95,7 +108,7 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
         accept="image/*"
         aria-hidden="true"
         tabIndex={-1}
-        disabled={busy}
+        disabled={busy || !confirmed}
         className="sr-only"
         onChange={(e) => onPick(e.target.files?.[0])}
       />

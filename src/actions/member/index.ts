@@ -70,3 +70,11 @@ export {
   type MemberBusinessJurisdictionRemoveInput,
   type MemberBusinessJurisdictionRemoveResult,
 } from './business-jurisdiction-remove'
+
+// #329/#330 — default metro
+export {
+  memberDefaultMetroSet,
+  memberDefaultMetroSetInput,
+  type MemberDefaultMetroSetInput,
+  type MemberDefaultMetroSetResult,
+} from './default-metro-set'

@@ -36,6 +36,8 @@ vi.mock('../_lib/db', () => ({
   ),
 }))
 vi.mock('../_lib/event-log', () => ({ appendEvent }))
+const { textOperator } = vi.hoisted(() => ({ textOperator: vi.fn(async () => ({ sent: true })) }))
+vi.mock('@/lib/notify/operator-sms', () => ({ textOperator }))
 
 import { reportCreate } from './create'
 import { AuthorizationError } from '../_lib/errors'
@@ -129,6 +131,7 @@ describe('report.create — the happy path', () => {
     installQueryRouter()
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'This photo does not belong on a neighbourhood app.',
     })
@@ -152,6 +155,7 @@ describe('report.create — the happy path', () => {
     installQueryRouter()
     await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: '   it is a stolen photo   ',
     })
@@ -162,21 +166,21 @@ describe('report.create — the happy path', () => {
   it('rejects a body that is only whitespace', async () => {
     installQueryRouter()
     await expect(
-      reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: '     ' }),
+      reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: '     ' }),
     ).rejects.toThrow()
     expect(callsMatching(/insert into public\.reports/i)).toHaveLength(0)
   })
 
   it('stores repeat reports as separate rows', async () => {
     installQueryRouter({ priorReportsBySameMember: 1, photoHiddenAt: new Date() })
-    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'again' })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'again' })
     expect(callsMatching(/insert into public\.reports/i)).toHaveLength(1)
   })
 
   it('rejects a report against a Page that does not exist', async () => {
     installQueryRouter({ groupExists: false })
     await expect(
-      reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' }),
+      reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' }),
     ).rejects.toThrow(/not found/i)
     expect(callsMatching(/insert into public\.reports/i)).toHaveLength(0)
   })
@@ -188,6 +192,7 @@ describe('report.create — sign-in required', () => {
     await expect(
       reportCreate(ctx('self-bootstrap'), {
         subjectKind: 'group',
+        category: 'other',
         subjectId: GROUP_ID,
         body: 'x',
       }),
@@ -198,7 +203,7 @@ describe('report.create — sign-in required', () => {
   it('rejects an empty acting member — anonymous reporting is out of v1', async () => {
     installQueryRouter()
     await expect(
-      reportCreate(ctx(''), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' }),
+      reportCreate(ctx(''), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' }),
     ).rejects.toBeInstanceOf(AuthorizationError)
     expect(callsMatching(/insert into public\.reports/i)).toHaveLength(0)
   })
@@ -209,6 +214,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ priorReportsBySameMember: 1 })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'still bad',
     })
@@ -224,6 +230,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ photoHideLockedUrl: PHOTO })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'I still object',
     })
@@ -237,6 +244,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ photoHideLockedUrl: 'https://cdn.example.test/pages/OLD.jpg' })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'the new one is worse',
     })
@@ -247,6 +255,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ openReportsByReporter: 5 })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'number six',
     })
@@ -260,6 +269,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ openReportsByReporter: 4 })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'number five',
     })
@@ -270,6 +280,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ photoUrl: null })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'the text is the problem',
     })
@@ -282,6 +293,7 @@ describe('report.create — the three limits', () => {
     installQueryRouter({ photoHiddenAt: new Date('2026-09-13T00:00:00Z') })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'someone else already flagged this',
     })
@@ -293,7 +305,7 @@ describe('report.create — the three limits', () => {
 describe('report.create — no visible state', () => {
   it('writes nothing but the report row, the hide, and the two events', async () => {
     installQueryRouter()
-    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
 
     const writes = (query.mock.calls as QueryCall[])
       .map(([sql]) => sql)
@@ -306,7 +318,7 @@ describe('report.create — no visible state', () => {
 
   it('touches no counter, badge, flag, ordering column or notification table', async () => {
     installQueryRouter()
-    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
 
     const all = (query.mock.calls as QueryCall[]).map(([sql]) => sql).join('\n')
     expect(all).not.toMatch(/notification/i)
@@ -316,7 +328,7 @@ describe('report.create — no visible state', () => {
 
   it('the update only ever nulls-in a hide — it never writes photo_url', async () => {
     installQueryRouter()
-    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
     const [hide] = callsMatching(/update public\.groups/i)
     // Hiding is a projection concern. The URL and the storage object both
     // survive, which is exactly what makes a restore possible.
@@ -326,7 +338,7 @@ describe('report.create — no visible state', () => {
   it('never puts the report body or the reporter id into an event payload', async () => {
     installQueryRouter()
     const body = 'a very identifying sentence'
-    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body })
 
     for (const call of appendEvent.mock.calls) {
       const payload = JSON.stringify((call[2] as EventRow).payload ?? {})
@@ -341,6 +353,7 @@ describe('report.create — the body bound is applied to the trimmed text', () =
     installQueryRouter()
     await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'x'.repeat(2000) + '\n  ',
     })
@@ -353,6 +366,7 @@ describe('report.create — the body bound is applied to the trimmed text', () =
     await expect(
       reportCreate(ctx(), {
         subjectKind: 'group',
+        category: 'other',
         subjectId: GROUP_ID,
         body: 'x'.repeat(2001),
       }),
@@ -366,6 +380,7 @@ describe('#280 — a builder report on a real Page', () => {
     installQueryRouter({ builderOnReal: true })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
+      category: 'other',
       subjectId: GROUP_ID,
       body: 'Testing the report flow.',
     })
@@ -375,9 +390,82 @@ describe('#280 — a builder report on a real Page', () => {
 
   it('asks the database whether the reporter is a builder and the Page is not', async () => {
     installQueryRouter()
-    await reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
     const [subject] = callsMatching(/from public\.groups/i)
     expect(subject![0]).toMatch(/is_builder\(\$2\)/)
     expect(subject![1]).toContain(REPORTER_ID)
+  })
+})
+
+describe('F078/F080 — the reporter picks a reason', () => {
+  beforeEach(() => textOperator.mockClear())
+
+  // [guards F078.9]
+  it('refuses a report with no reason chosen', async () => {
+    installQueryRouter()
+    await expect(
+      reportCreate(ctx(), { subjectKind: 'group', subjectId: GROUP_ID, body: 'x' }),
+    ).rejects.toThrow()
+    await expect(
+      reportCreate(ctx(), { subjectKind: 'group', category: 'children', subjectId: GROUP_ID, body: 'x' }),
+    ).rejects.toThrow()
+  })
+
+  it('stores the reason with the report', async () => {
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'x' })
+    const [insert] = callsMatching(/insert into public\.reports/i)
+    expect(insert![0]).toMatch(/category/)
+    expect(insert![1]).toContain('spam')
+  })
+})
+
+describe('F080 — sensitive content hides at any bar and texts Don', () => {
+  beforeEach(() => textOperator.mockClear())
+
+  // [guards F080.4 partial: the hide and the text are triggered; delivery is Twilio's]
+  it('hides even past the per-member and open-report limits', async () => {
+    installQueryRouter({ priorReportsBySameMember: 1, openReportsByReporter: 6 })
+    const res = await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'x' })
+    expect(res.photoHidden).toBe(true)
+  })
+
+  it('threat of harm does the same', async () => {
+    installQueryRouter({ priorReportsBySameMember: 1 })
+    const res = await reportCreate(ctx(), { subjectKind: 'group', category: 'threat_of_harm', subjectId: GROUP_ID, body: 'x' })
+    expect(res.photoHidden).toBe(true)
+  })
+
+  it('an ordinary reason still respects the limits', async () => {
+    installQueryRouter({ priorReportsBySameMember: 1 })
+    const res = await reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'x' })
+    expect(res.photoHidden).toBe(false)
+  })
+
+  it('texts Don for sensitive content and threat of harm, and only those', async () => {
+    for (const category of ['sensitive_content', 'threat_of_harm'] as const) {
+      installQueryRouter()
+      await reportCreate(ctx(), { subjectKind: 'group', category, subjectId: GROUP_ID, body: 'x' })
+    }
+    expect(textOperator).toHaveBeenCalledTimes(2)
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'x' })
+    expect(textOperator).toHaveBeenCalledTimes(2)
+  })
+
+  it('never texts Don about a builder\'s report on a real Page', async () => {
+    installQueryRouter({ builderOnReal: true })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'x' })
+    expect(textOperator).not.toHaveBeenCalled()
+  })
+
+  it('the text names the category and the queue, never the reporter or what they wrote', async () => {
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'secret words' })
+    const [message] = textOperator.mock.calls[0] as unknown as [string]
+    expect(message).toMatch(/sensitive content/i)
+    expect(message).toMatch(/\/admin\/reports/)
+    expect(message).not.toContain('secret words')
+    expect(message).not.toContain(REPORTER_ID)
   })
 })

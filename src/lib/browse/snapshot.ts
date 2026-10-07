@@ -33,6 +33,8 @@ export interface BrowseSnapshot {
   map: MixedResult[]
   /** Null when no metro resolves at all — the no-scope state. */
   metro: FeedMetro | null
+  /** #476 — the neighbourhood the member narrowed to, or null for the whole metro. */
+  area: { id: string; name: string } | null
   /** Did a person pick this metro, or did it fall out of a default? */
   chosen: boolean
   metros: FeedMetro[]
