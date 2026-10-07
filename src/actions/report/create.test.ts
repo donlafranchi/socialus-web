@@ -699,6 +699,7 @@ describe('F099 — report.create on one image', () => {
             : [],
         }
       }
+      if (/from public\.report_decisions/i.test(sql)) return { rows: [] }
       if (/count/i.test(sql) && /reporter_member_id/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: '0' }] }
       if (/count/i.test(sql) && /reviewed_at is null/i.test(sql)) return { rows: [{ count: '0' }] }
       if (/insert into public\.reports/i.test(sql)) return { rows: [{ id: REPORT_ID }] }
