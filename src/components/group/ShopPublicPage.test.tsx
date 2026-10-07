@@ -143,10 +143,10 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
 })
 
 describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
-  it('renders the "Claimed local owner" badge when a badge is supplied', () => {
+  // Cut from beta (ruled 2026-10-06): no badge, even when one resolves.
+  it('renders no badge in beta, even when one is supplied', () => {
     renderShop({ badge: { label: 'Claimed local owner' } })
-    const badge = screen.getByTestId('local-owner-badge')
-    expect(badge).toHaveTextContent('Claimed local owner')
+    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
   })
 
   it('renders no badge (no negative space) when none is supplied', () => {
@@ -520,10 +520,7 @@ describe('Locally owned is for businesses only', () => {
     expect(screen.queryByTestId('local-owner-badge')).toBeNull()
     expect(screen.queryByText(/locally owned claim/i)).toBeNull()
   })
-  it('a shop still shows the badge', () => {
-    renderShop({ shop: { ...SHOP, kind: 'business' }, badge, loggedIn: true })
-    expect(screen.getByTestId('local-owner-badge')).toBeInTheDocument()
-  })
+
 })
 
 
@@ -712,5 +709,28 @@ describe('#338 — a member of an open Page', () => {
   it('a follower still gets Following', () => {
     renderShop({ loggedIn: true, viewerFollows: true, viewerIsMember: false })
     expect(screen.getByRole('button', { name: /following/i })).toBeInTheDocument()
+  })
+})
+
+// Badges are cut from beta, Locally owned included (ruled 2026-10-06), and the
+// claim card's "Add ZIP" was a second primary on the owner's Page.
+describe('no badge and no Locally owned claim in beta', () => {
+  it('shows neither, even if handed them', () => {
+    renderShop({ badge: { label: 'Locally owned' } as never, ownerClaim: { zip: null } as never, viewerOwnsPage: true, pagePath: '/g/x', loggedIn: true })
+    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
+    expect(screen.queryByRole('button', { name: /add zip/i })).toBeNull()
+  })
+})
+
+describe('#472 first pass — nothing loose', () => {
+  it('the next event sits in its own card', () => {
+    const soon = new Date(Date.now() + 864e5).toISOString()
+    renderShop({ loggedIn: true, shop: { ...SHOP, kind: 'group', purpose: 'gather' }, posts: [{ id: 'p', body: 'Float', createdAt: soon, updatedAt: soon, startsAt: soon, endsAt: null, locationLabel: null }] })
+    expect(screen.getByTestId('page-next-up').className).toMatch(/\bcard\b/)
+  })
+
+  it('the founder line says what it is', () => {
+    renderShop({ loggedIn: true })
+    expect(screen.getByTestId('shop-founder')).toHaveTextContent('Started by Maya Rivera')
   })
 })

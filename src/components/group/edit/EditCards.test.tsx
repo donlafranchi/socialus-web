@@ -187,7 +187,7 @@ describe('#412 — each card says what is set now', () => {
 describe('#453 — one pencil per card, in its header', () => {
   it('each editable card has exactly one pencil, named "Edit <section>", 44px, no visible word', () => {
     renderCards()
-    for (const [s, title] of [['basics', 'Basics'], ['where', 'Location'], ['contact', 'Business phone'], ['found', 'Tags & links'], ['kind', 'What your Page is for'], ['components', 'What your Page shows']]) {
+    for (const [s, title] of [['basics', 'Basics'], ['where', 'Location'], ['contact', 'Contact'], ['found', 'Tags & links'], ['kind', 'What your Page is for'], ['components', 'What your Page shows']]) {
       const buttons = within(card(s!)).getAllByRole('button')
       expect(buttons).toHaveLength(1)
       expect(buttons[0]).toHaveAccessibleName(`Edit ${title}`)

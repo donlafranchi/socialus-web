@@ -51,6 +51,7 @@ function renderPosts(over: Partial<Parameters<typeof PagePosts>[0]> = {}) {
       onPost={onPost}
       onEdit={onEdit}
       onCreateLocation={onCreateLocation as never}
+      startComposing
       {...over}
     />,
   )
@@ -89,6 +90,30 @@ describe('the word', () => {
   it('names the primary control Announce', () => {
     renderPosts()
     expect(screen.getByTestId('page-post-send')).toHaveTextContent('Announce')
+  })
+})
+
+// The reviewer's first pass on #472: the form is rarely used, so it opens from
+// the owner's Announce (Google Business Profile's "Add update" opens on request).
+describe('the composer opens from Announce', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'))
+
+  it('is closed until asked for', () => {
+    renderPosts({ startComposing: false, posts: [POST] })
+    expect(screen.queryByTestId('page-post-body')).toBeNull()
+  })
+
+  it('opens when the page is opened at #announce', async () => {
+    window.history.replaceState(null, '', '/g/x#announce')
+    renderPosts({ startComposing: false })
+    expect(await screen.findByTestId('page-post-body')).toBeInTheDocument()
+  })
+
+  it('opens when Announce is tapped on the same page', async () => {
+    renderPosts({ startComposing: false })
+    window.history.replaceState(null, '', '/g/x#announce')
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    expect(await screen.findByTestId('page-post-body')).toBeInTheDocument()
   })
 })
 
