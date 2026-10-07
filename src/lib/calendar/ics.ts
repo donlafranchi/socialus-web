@@ -22,7 +22,9 @@ export function buildIcs(e: CalendarEvent): string {
     'PRODID:-//SocialUs//EN',
     'BEGIN:VEVENT',
     `UID:${e.uid}`,
-    `DTSTAMP:${utc(e.now ?? new Date())}`,
+    // bug #340 — from the event, not the clock: the server and the browser both
+    // build this link and must agree.
+    `DTSTAMP:${utc(e.now ?? new Date(e.start))}`,
     `DTSTART:${utc(new Date(e.start))}`,
     ...(e.end ? [`DTEND:${utc(new Date(e.end))}`] : []),
     `SUMMARY:${text(e.title)}`,

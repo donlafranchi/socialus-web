@@ -20,7 +20,8 @@ vi.mock('next/navigation', () => ({
 
 const browseFeedAction = vi.fn()
 vi.mock('@/app/explore/actions', () => ({
-  browseFeedAction: (slug: string | null) => browseFeedAction(slug),
+  browseFeedAction: (...args: unknown[]) => browseFeedAction(...args),
+  searchAreasAction: async () => [{ id: 'p-1', name: 'Midtown' }],
 }))
 
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
@@ -64,6 +65,7 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
     following: [],
     happening: { today: [], thisWeek: [], thisWeekend: [] },
     map: [],
+    area: null,
     metro: SAC,
     chosen: false,
     metros: [SAC, PDX],
@@ -139,6 +141,7 @@ describe('T156 — the results region', () => {
 
   it('the view pill points at it', () => {
     render(<BrowseSurface initial={snapshot()} />)
+    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
     expect(screen.getByTestId('view-pill')).toHaveAttribute('aria-controls', 'browse-results')
   })
 })
@@ -316,5 +319,33 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
     // The public half is now empty…
     expect(screen.getByTestId('browse-empty')).toBeInTheDocument()
     expect(screen.getByTestId('browse-following')).toBeInTheDocument()
+  })
+})
+
+// #476 — a neighbourhood narrows Explore to that place.
+describe('#476 — picking a neighbourhood', () => {
+  const MIDTOWN = { id: 'p-1', name: 'Midtown' }
+
+  it('asks for that place, in the current metro', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ area: MIDTOWN, chosen: true }))
+    render(<BrowseSurface initial={snapshot()} />)
+    fireEvent.click(screen.getByTestId('explore-location-pill'))
+    fireEvent.change(screen.getByTestId('scope-search'), { target: { value: 'mid' } })
+    fireEvent.click(await screen.findByTestId('scope-area-p-1'))
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith('sacramento-roseville-ca', 'p-1'))
+  })
+
+  it('names the neighbourhood on the pill and keeps it in the link', async () => {
+    render(<BrowseSurface initial={snapshot({ area: MIDTOWN })} />)
+    expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Midtown')
+    await waitFor(() => expect(replace).toHaveBeenCalledWith(expect.stringContaining('area=p-1'), { scroll: false }))
+  })
+
+  it('"All of" the metro clears it', async () => {
+    browseFeedAction.mockResolvedValue(snapshot())
+    render(<BrowseSurface initial={snapshot({ area: MIDTOWN })} />)
+    fireEvent.click(screen.getByTestId('explore-location-pill'))
+    fireEvent.click(screen.getByTestId('scope-area-clear'))
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith('sacramento-roseville-ca', null))
   })
 })

@@ -29,6 +29,8 @@ interface ExploreSearchBarProps {
   onOpenScope: () => void
   /** T187 — the docked List | Map switch, when the layout calls for one. */
   viewSwitch?: ReactNode
+  /** #328 — bump to open the search input from outside (the bottom dock). */
+  searchRequest?: number
 }
 
 export function ExploreSearchBar({
@@ -40,6 +42,7 @@ export function ExploreSearchBar({
   onOpenFilters,
   onOpenScope,
   viewSwitch,
+  searchRequest = 0,
 }: ExploreSearchBarProps) {
   // An existing query keeps the input open, so a shared `?q=` link shows the
   // terms it filtered by rather than a collapsed icon.
@@ -50,6 +53,12 @@ export function ExploreSearchBar({
   useEffect(() => {
     if (expanded) inputRef.current?.focus()
   }, [expanded])
+
+  const [seenRequest, setSeenRequest] = useState(searchRequest)
+  if (searchRequest !== seenRequest) {
+    setSeenRequest(searchRequest)
+    if (searchRequest > 0) setExpanded(true)
+  }
 
   const collapse = () => {
     onQueryChange('')

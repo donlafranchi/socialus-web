@@ -76,3 +76,45 @@ describe('T156 — groupPins', () => {
     expect(groupPins([row()])[0].name).toBe('Sourdough Co')
   })
 })
+
+// #475 — a place known only as an area is not a point: it groups with others at
+// the same centroid, whatever Page they belong to, into one area marker.
+describe('#475 — area markers', () => {
+  const area = (over: Partial<BrowseResult> = {}) =>
+    row({ locationKind: 'area', locationId: 'loc-midtown', locationLabel: 'Midtown', ...over })
+
+  it('an exact address is an address pin; an area-only place is an area pin', () => {
+    expect(groupPins([row({ locationKind: 'permanent' })])[0]!.kind).toBe('address')
+    expect(groupPins([area()])[0]!.kind).toBe('area')
+  })
+
+  it('a row with no known kind is treated as an address, as before', () => {
+    expect(groupPins([row()])[0]!.kind).toBe('address')
+  })
+
+  it('items from different Pages sharing a centroid are ONE area marker with a count', () => {
+    const pins = groupPins([
+      area({ groupId: 'g1', resultId: 'a' }),
+      area({ groupId: 'g2', resultId: 'b', name: 'Other', locationId: 'loc-other', longitude: -121.4, latitude: 38.5 }),
+      area({ groupId: 'g3', resultId: 'c', locationId: null }),
+    ])
+    expect(pins).toHaveLength(1)
+    expect(pins[0]!.kind).toBe('area')
+    expect(pins[0]!.results).toHaveLength(3)
+  })
+
+  it('an area marker is named for the place, not for one of its Pages, and links nowhere', () => {
+    const [pin] = groupPins([area(), area({ resultId: 'b', groupId: 'g2' })])
+    expect(pin!.name).toBe('Midtown')
+    expect(pin!.href).toBeNull()
+  })
+
+  it('areas at different centroids stay separate, and never merge with an address pin', () => {
+    const pins = groupPins([
+      area(),
+      area({ resultId: 'b', longitude: -121.9, latitude: 38.9, locationLabel: 'Davis' }),
+      row({ locationKind: 'permanent', resultId: 'c' }),
+    ])
+    expect(pins.map((p) => p.kind).sort()).toEqual(['address', 'area', 'area'])
+  })
+})

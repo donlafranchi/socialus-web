@@ -37,7 +37,9 @@
 // held had already been shipped to the browser. That is the prerequisite this
 // change buys, not a refactor.
 
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
+import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
 import { getBrowseFeed } from '@/lib/feed/browse-feed'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
@@ -47,16 +49,19 @@ import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/fe
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { loadMapMix } from '@/lib/map/load-mix'
+import { withLocationKinds } from '@/lib/map/location-kinds'
 import type { MixedResult } from '@/lib/map/mix'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { BrowseSnapshot, HappeningSnapshot } from '@/lib/browse/snapshot'
 
 export type { BrowseSnapshot }
 
+type FeedScope = { metroId: string } | { placeId: string }
+
 /** The corpus a client-side filter is allowed to treat as "everything". */
 export const BROWSE_LIMIT = 100
 
-export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSnapshot> {
+export async function loadBrowse(requestedSlug: string | null, areaId: string | null = null): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
   // The switcher's options depend on nothing else, so they start first rather
@@ -68,8 +73,14 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
 
   // Sequential because the scope depends on it: precedence is requested slug,
   // then this, then the default.
-  const memberMetroId = user ? await homeMetroId(supabase, user.id) : null
-  const scope = await resolveBrowseScope(supabase, { memberMetroId, requestedSlug })
+  const member = user ? await memberMetros(supabase, user.id) : null
+  const rememberedSlug = user ? null : await rememberedMetroSlug()
+  const scope = await resolveBrowseScope(supabase, {
+    memberMetroId: member?.home ?? null,
+    memberDefaultMetroId: member?.default ?? null,
+    requestedSlug,
+    ...(rememberedSlug ? { rememberedSlug } : {}),
+  })
   // The CACHED counts, merged here so the picker can order by them and the
   // popup can show one — the same figure in both places, which is the whole
   // point. A failure costs the ordering and the number, never the picker.
@@ -78,22 +89,27 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     await waitingCountByMetro().catch(() => new Map<string, number>()),
   )
 
-  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS, map: [] as MixedResult[] }
+  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'] }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
   }
 
+  // #476 — a neighbourhood narrows every read below to that place. An id that
+  // is not a neighbourhood is ignored, never an error: the whole metro shows.
+  const area = areaId ? await neighborhood(supabase, areaId) : null
+  const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
+
   // Started before the public read is awaited: it depends on the member and
   // the scope, neither of which the public read can change.
   const followingPromise = user
-    ? followedFeed(supabase, user.id, scope.metro.id)
+    ? followedFeed(supabase, user.id, feedScope)
     : Promise.resolve([] as BrowseResult[])
 
   // F091 — signed in, the rows are posts. Signed out, only the today row
   // fills, with the front door's withheld card (Don, 2026-10-01).
   const happeningPromise = user
-    ? happeningRows(supabase, scope.metro.id)
-    : signedOutToday(supabase, scope.metro.id)
+    ? happeningRows(supabase, feedScope)
+    : signedOutToday(supabase, feedScope)
 
   // F093 — SIGNED OUT, ANNOUNCEMENTS COME FROM THE WITHHELD PATH.
   //
@@ -111,7 +127,9 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
   const signedOut = !user
   // #331 — signed out, no pins (the front door, F093).
   const mapPromise = user
-    ? loadMapMix(supabase, scope.metro.id).catch((error) => {
+    ? loadMapMix(supabase, scope.metro.id, new Date(), area?.id)
+        .then((rows) => withLocationKinds(supabase, rows))
+        .catch((error) => {
         console.error('[loadBrowse] map mix failed:', (error as Error).message)
         return [] as MixedResult[]
       })
@@ -119,7 +137,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
   let withheldFailed = false
   const withheldPromise = signedOut
     ? getWithheldAnnouncements(supabase, {
-        scope: { metroId: scope.metro.id },
+        scope: feedScope,
         // The period the count on the card is over, in the metro's own week.
         period: metroWeekBounds(),
         limit: BROWSE_LIMIT,
@@ -132,7 +150,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
 
   try {
     const results = await getBrowseFeed(supabase, {
-      scope: { metroId: scope.metro.id },
+      scope: feedScope,
       resultKinds: signedOut ? ['page'] : null,
       limit: BROWSE_LIMIT,
     })
@@ -145,6 +163,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
       results: mergeByRecency(results, withheld),
       following,
       metro: scope.metro,
+      area,
       chosen: scope.chosen,
       failed: withheldFailed,
     }
@@ -160,6 +179,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
       happening: await happeningPromise,
       map: await mapPromise,
       metro: scope.metro,
+      area,
       chosen: scope.chosen,
       failed: true,
     }
@@ -196,13 +216,13 @@ function mergeByRecency(a: BrowseResult[], b: BrowseResult[]): BrowseResult[] {
 async function followedFeed(
   supabase: Awaited<ReturnType<typeof createClient>>,
   memberId: string,
-  metroId: string,
+  scope: FeedScope,
 ): Promise<BrowseResult[]> {
   try {
     const following = await resolveFollowedPageIds(supabase, memberId)
     // Called even when `following` is empty — see the note at the top.
     return await getBrowseFeed(supabase, {
-      scope: { metroId },
+      scope,
       audience: { audience: 'following', following },
       limit: BROWSE_LIMIT,
     })
@@ -222,12 +242,12 @@ const ROW_LIMIT = 20
  */
 async function happeningRows(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  metroId: string,
+  scope: FeedScope,
 ): Promise<HappeningSnapshot> {
   const w = happeningWindows()
   const row = (win: { from: string; to: string }) =>
     getBrowseFeed(supabase, {
-      scope: { metroId },
+      scope,
       resultKinds: ['post'],
       startsFrom: win.from,
       startsBefore: win.to,
@@ -251,11 +271,11 @@ async function happeningRows(
  */
 async function signedOutToday(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  metroId: string,
+  scope: FeedScope,
 ): Promise<HappeningSnapshot> {
   try {
     const rows = await getWithheldAnnouncements(supabase, {
-      scope: { metroId },
+      scope,
       period: happeningWindows().postedToday,
       limit: ROW_LIMIT,
     })
@@ -266,15 +286,40 @@ async function signedOutToday(
   }
 }
 
-/** The member's derived home metro. Null is normal — the rural fallback. */
-async function homeMetroId(
+/** The member's zip-derived metro and their own default-metro setting. Null is normal. */
+async function memberMetros(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-): Promise<string | null> {
+): Promise<{ home: string | null; default: string | null }> {
   const { data } = await supabase
     .from('members')
-    .select('home_metro_id')
+    .select('home_metro_id, default_metro_id')
     .eq('id', userId)
     .maybeSingle()
-  return (data as { home_metro_id: string | null } | null)?.home_metro_id ?? null
+  const row = data as { home_metro_id: string | null; default_metro_id?: string | null } | null
+  return { home: row?.home_metro_id ?? null, default: row?.default_metro_id ?? null }
+}
+
+/** Signed-out visitors: the last metro they picked here. A missing cookie store is not an error. */
+async function rememberedMetroSlug(): Promise<string | null> {
+  try {
+    return (await cookies()).get(METRO_COOKIE)?.value || null
+  } catch {
+    return null
+  }
+}
+
+/** #476 — a neighbourhood by id, or null when the id is not one. */
+async function neighborhood(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  id: string,
+): Promise<{ id: string; name: string } | null> {
+  const { data } = await supabase
+    .from('places')
+    .select('id, display_name')
+    .eq('id', id)
+    .eq('kind', 'neighborhood')
+    .maybeSingle()
+  const row = data as { id: string; display_name: string } | null
+  return row ? { id: row.id, name: row.display_name } : null
 }

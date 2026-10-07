@@ -11,6 +11,7 @@ import {
   memberBusinessJurisdictionRemove,
   memberPlaceInterestAdd,
   memberPlaceInterestRemove,
+  memberDefaultMetroSet,
   memberInterestsAdd,
   memberFollow,
   memberUnfollow,
@@ -63,6 +64,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.business_jurisdiction.remove': memberBusinessJurisdictionRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.place_interest.add': memberPlaceInterestAdd as unknown as NamedActionHandler<unknown, unknown>,
   'member.place_interest.remove': memberPlaceInterestRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'member.default_metro.set': memberDefaultMetroSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.interests.add': memberInterestsAdd as unknown as NamedActionHandler<unknown, unknown>,
   'member.follow': memberFollow as unknown as NamedActionHandler<unknown, unknown>,
   'member.unfollow': memberUnfollow as unknown as NamedActionHandler<unknown, unknown>,
@@ -116,6 +118,7 @@ export function listHandlers(): string[] {
 export {
   memberCreate,
   memberPlaceInterestAdd,
+  memberDefaultMetroSet,
   memberInterestsAdd,
   memberFollow,
   memberUnfollow,

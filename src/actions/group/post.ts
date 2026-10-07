@@ -159,9 +159,9 @@ async function requireManagingRole(
   verb: string,
   groupId: string,
   memberId: string,
-): Promise<void> {
-  const found = await client.query<{ kind: string; role: string | null }>(
-    `select g.kind, m.role
+): Promise<{ discoverability: string }> {
+  const found = await client.query<{ kind: string; role: string | null; discoverability: string }>(
+    `select g.kind, m.role, g.discoverability
        from public.groups g
        left join public.group_memberships m
          on m.group_id = g.id and m.member_id = $2 and m.left_at is null
@@ -175,6 +175,7 @@ async function requireManagingRole(
   if (row.role !== managingRoleForKind(row.kind as GroupKind)) {
     throw new AuthorizationError(`${verb}: only the people who manage this Page can post`)
   }
+  return { discoverability: row.discoverability }
 }
 
 export const groupPostCreate = defineHandler(
@@ -186,7 +187,7 @@ export const groupPostCreate = defineHandler(
     const memberId = requireMember(ctx, 'group.post_create')
 
     return withTransaction(async (client) => {
-      await requireManagingRole(client, 'group.post_create', input.groupId, memberId)
+      const page = await requireManagingRole(client, 'group.post_create', input.groupId, memberId)
 
       // Live and listed on write. A post has no draft state of its own: the
       // owner decides to say something by saying it, and the Page's own
@@ -207,7 +208,10 @@ export const groupPostCreate = defineHandler(
           input.startsAt ?? null,
           input.locationId ?? null,
           'active',
-          'listed',
+          // #337 — a post takes its Page's privacy, so a private Page's post is
+          // never listed. Before this every post said 'listed' and only the
+          // Page's own privacy kept it from a stranger.
+          page.discoverability,
           ctx.now(),
           input.endsAt ?? null,
           note(input.howToFind),

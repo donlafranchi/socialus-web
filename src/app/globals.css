@@ -18,6 +18,7 @@
   --action-bar-h: 64px;
   --nav-clearance: calc(var(--nav-bottom-h) + env(safe-area-inset-bottom, 0px));
   --float-offset: calc(var(--nav-clearance) + 16px);
+  --float-offset-top-nav: calc(env(safe-area-inset-bottom, 0px) + 24px);
   --panel-w: 360px;
   --tap: 44px;
 
@@ -26,6 +27,7 @@
   --pin-size-sm: 18px;
   --pin-grow: 8px;
   --cluster-size: 36px;
+  --area-size: 56px;
 
   /* Layers: one scale. */
   --z-sticky: 30;
@@ -116,6 +118,9 @@
   --color-pin-selected-ring: var(--color-blue-900);
   --color-cluster: var(--color-blue-700);
   --color-on-cluster: #ffffff;
+  /* Area markers (#475): translucent gold, the one fill no pin or cluster uses. */
+  --color-area: var(--color-gold-600);
+  --color-on-area: var(--color-gold-800);
 
   /* Feedback only. */
   --color-success: #1e7a46;

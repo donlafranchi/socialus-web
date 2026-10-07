@@ -56,6 +56,8 @@ vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
 // every signed-out assertion about `failed` into a test of the wrong thing.
 vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
+const { cookieGet } = vi.hoisted(() => ({ cookieGet: vi.fn() }))
+vi.mock('next/headers', () => ({ cookies: async () => ({ get: cookieGet }) }))
 
 import { loadBrowse } from './load'
 
@@ -77,6 +79,7 @@ beforeEach(() => {
   getWithheldAnnouncements.mockResolvedValue([])
   listFeedMetros.mockResolvedValue([METRO])
   waitingCountByMetro.mockResolvedValue(new Map([[METRO.id, 12]]))
+  cookieGet.mockReturnValue(undefined)
   resolveBrowseScope.mockResolvedValue({ metro: METRO, chosen: false })
   resolveFollowedPageIds.mockResolvedValue([])
   from.mockReturnValue({
@@ -219,3 +222,70 @@ describe('the waiting counts the picker sorts by', () => {
     expect(snap.failed).toBe(false)
   })
 })
+
+// #329/#330 — the pill remembers the member's metro.
+describe('the remembered metro', () => {
+  it("passes a member's default metro setting to the scope", async () => {
+    signedIn()
+    from.mockReturnValue({
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: { home_metro_id: 'h', default_metro_id: 'd' } }) }),
+      }),
+    })
+    await loadBrowse(null)
+    expect(resolveBrowseScope.mock.calls[0]![1]).toMatchObject({ memberMetroId: 'h', memberDefaultMetroId: 'd' })
+  })
+
+  it('signed out, falls back to the last metro picked on this device', async () => {
+    signedOut()
+    cookieGet.mockReturnValue({ value: 'portland-vancouver-or-wa' })
+    await loadBrowse(null)
+    expect(resolveBrowseScope.mock.calls[0]![1]).toMatchObject({ rememberedSlug: 'portland-vancouver-or-wa' })
+  })
+
+  it("signed in, the device cookie never overrides the member's own setting", async () => {
+    signedIn()
+    cookieGet.mockReturnValue({ value: 'portland-vancouver-or-wa' })
+    await loadBrowse(null)
+    expect(resolveBrowseScope.mock.calls[0]![1].rememberedSlug).toBeUndefined()
+  })
+})
+
+// #476 — a neighbourhood picked on Explore narrows every read to that place.
+describe('a picked neighbourhood', () => {
+  const AREA = { id: 'p-1', display_name: 'Midtown', kind: 'neighborhood' }
+  const withPlaces = (row: unknown) =>
+    from.mockImplementation((table: string) => ({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({ maybeSingle: async () => ({ data: table === 'places' ? row : null }) }),
+          maybeSingle: async () => ({ data: table === 'places' ? row : { home_metro_id: null } }),
+        }),
+      }),
+    }))
+
+  it('scopes the feed to the place and names it on the snapshot', async () => {
+    signedIn()
+    withPlaces(AREA)
+    const snap = await loadBrowse(null, 'p-1')
+    const scopes = getBrowseFeed.mock.calls.map(([, o]) => o.scope)
+    expect(scopes.length).toBeGreaterThan(0)
+    for (const s of scopes) expect(s).toEqual({ placeId: 'p-1' })
+    expect(snap.area).toEqual({ id: 'p-1', name: 'Midtown' })
+  })
+
+  it('ignores an id that is not a neighbourhood and reads the whole metro', async () => {
+    signedIn()
+    withPlaces(null)
+    const snap = await loadBrowse(null, 'nope')
+    for (const [, o] of getBrowseFeed.mock.calls) expect(o.scope).toEqual({ metroId: METRO.id })
+    expect(snap.area).toBeNull()
+  })
+
+  it('no area, no change', async () => {
+    signedOut()
+    const snap = await loadBrowse(null)
+    expect(snap.area).toBeNull()
+  })
+})
+

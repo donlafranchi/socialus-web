@@ -54,6 +54,8 @@ export async function resolvePagePosts(
     .from('page_posts')
     .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
+    // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
+    .is('dissolved_at', null)
     .order('created_at', { ascending: false })
     .limit(50)
   if (error || !data) return []

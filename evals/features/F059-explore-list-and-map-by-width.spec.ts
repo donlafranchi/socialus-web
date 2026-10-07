@@ -5,22 +5,24 @@ import { test, expect } from '@playwright/test'
 
 // [guards F059.5 partial: the 1024–1439px owner-panel switch, which nothing opens yet]
 test.describe('F059 — list and map by width', () => {
-  test('under 1024px the pill stays on screen, above the nav, while the cards scroll', async ({ page }) => {
+  test('under 1024px the dock stays on screen, above the nav, while the cards scroll', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/explore')
-    const pill = page.getByTestId('view-pill')
-    await expect(pill).toBeVisible()
+    const dock = page.getByTestId('explore-dock-toggle')
+    await expect(dock).toBeVisible()
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
     await page.waitForTimeout(300)
-    const box = await pill.boundingBox()
+    const box = await dock.boundingBox()
     expect(box).not.toBeNull()
     expect(box!.y).toBeGreaterThan(0)
     expect(box!.y + box!.height).toBeLessThanOrEqual(844 - 44)
     await expect(page.getByTestId('card-grid').getByRole('button', { name: /^(map|list)$/i })).toHaveCount(0)
 
-    await pill.click()
+    await dock.click()
+    await page.getByTestId('view-pill').click()
     await expect(page.getByTestId('browse-map')).toBeVisible()
-    await expect(pill).toHaveText('List')
+    await dock.click()
+    await expect(page.getByTestId('view-pill')).toHaveText('List')
   })
 
   test('from 1024px list and map sit side by side and the map stays put', async ({ page }) => {

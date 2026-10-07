@@ -54,15 +54,27 @@ const calls = (re: RegExp): QueryCall[] =>
   (query.mock.calls as QueryCall[]).filter(([sql]) => re.test(sql))
 
 function install(
-  opts: { roles?: Record<string, string>; kind?: string; postExists?: boolean; groupExists?: boolean } = {},
+  opts: {
+    roles?: Record<string, string>
+    kind?: string
+    postExists?: boolean
+    groupExists?: boolean
+    discoverability?: string
+  } = {},
 ) {
-  const { roles = { [OWNER]: 'owner' }, kind = 'business', postExists = true, groupExists = true } = opts
+  const {
+    roles = { [OWNER]: 'owner' },
+    kind = 'business',
+    postExists = true,
+    groupExists = true,
+    discoverability = 'listed',
+  } = opts
   query.mockReset()
   query.mockImplementation(async (sql: string, params: unknown[] = []) => {
     if (/join public\.group_memberships/i.test(sql)) {
       if (!groupExists) return { rows: [], rowCount: 0 }
       const memberId = String(params[1])
-      return { rows: [{ kind, role: roles[memberId] ?? null }], rowCount: 1 }
+      return { rows: [{ kind, role: roles[memberId] ?? null, discoverability }], rowCount: 1 }
     }
     if (/from public\.page_posts/i.test(sql)) {
       return postExists
@@ -133,6 +145,19 @@ describe('group.post_create — only the managing role can post', () => {
     expect(params).toContain('active')
     expect(params).toContain('listed')
   })
+
+  // #337 — a post takes its Page's privacy. Before this the write said 'listed'
+  // for every Page, and only the Page's own privacy kept a private Page's post
+  // from a stranger.
+  for (const d of ['private', 'unlisted']) {
+    it(`writes a post on a ${d} Page as ${d}, never listed`, async () => {
+      install({ discoverability: d })
+      await groupPostCreate(ctx(), { groupId: GROUP, body: 'Members only.' })
+      const [, params] = calls(/insert into public\.page_posts/i)[0]!
+      expect(params).toContain(d)
+      expect(params).not.toContain('listed')
+    })
+  }
 
   // F072 absorbed F073 on 2026-09-21, so the deferral this used to assert is
   // discharged. What replaces it is the property that made the deferral safe

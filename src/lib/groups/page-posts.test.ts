@@ -7,6 +7,7 @@ function client(result: { data: unknown; error: unknown }) {
   const chain = {
     select: vi.fn((..._a: unknown[]) => chain),
     eq: vi.fn((...a: unknown[]) => { calls.eq = a; return chain }),
+    is: vi.fn((...a: unknown[]) => { calls.is = a; return chain }),
     order: vi.fn((...a: unknown[]) => { calls.order = a; return chain }),
     limit: vi.fn(async () => result),
   }
@@ -53,6 +54,14 @@ describe('resolvePagePosts', () => {
     await resolvePagePosts(supabase, 'g1')
     const eqArgs = chain.eq.mock.calls.map((c) => c[0])
     expect(eqArgs).toEqual(['group_id'])
+  })
+
+  // #461 — a deleted post is gone, from its owner too: the owner's own-rows
+  // policy still reads it, so the resolver leaves out what was deleted.
+  it('leaves out a deleted post, for the owner as for everyone', async () => {
+    const { supabase, calls } = client({ data: [], error: null })
+    await resolvePagePosts(supabase, 'g1')
+    expect(calls.is).toEqual(['dissolved_at', null])
   })
 
   it('yields no posts when the read fails, rather than throwing', async () => {
