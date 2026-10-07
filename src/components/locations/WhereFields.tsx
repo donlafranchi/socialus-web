@@ -167,7 +167,7 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
             optionLabel={(n) => n.name}
             onPick={(n) => {
               setPicks((p) => ({ ...p, area: p.area + 1 }))
-              set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name } })
+              set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name }, areaOnly: true })
             }}
           />
           {dropPin}

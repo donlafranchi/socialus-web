@@ -136,7 +136,7 @@ describe('People come to me', () => {
     expect(await screen.findByText(/couldn.t find that address/i)).toBeInTheDocument()
   })
 
-  it('or types a neighbourhood: the pin starts at its centre, named, ready to drag to the door', async () => {
+  it('or types a neighbourhood: the pin starts at its centre, named', async () => {
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
     render(<Harness />)
     choose()
