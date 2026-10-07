@@ -8,4 +8,4 @@ Don, 2026-10-01: we can't enforce the sensitive-content rule, so we rely on repo
 - **Queue:** shows the reason above what the reporter wrote.
 - **Posting ask:** unchanged. `COPY.postingSafety` already covers children, pets and anyone who can't speak up for themselves.
 
-Tests: handler, SMS sender, report sheet, server action and queue entry, each seen failing first. **Migration: `20261006100000_report_category.sql`.** Re-dated 2026-10-05 to sort after production and every pending branch.
+Tests: handler, SMS sender, report sheet, server action and queue entry, each seen failing first. **Migration: `20261007170000_report_category.sql`.** Re-dated 2026-10-07 to sort after production and every pending branch.
