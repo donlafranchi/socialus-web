@@ -9,13 +9,22 @@ import { getOwnPages } from './own-pages'
 
 const MEMBER = 'm-1'
 
-function client(rows: unknown[], error: { message: string } | null = null) {
+// By default the member founded and manages every row; `ids` overrides either.
+function client(
+  rows: unknown[],
+  error: { message: string } | null = null,
+  ids: { founded?: string[]; managing?: string[] } = {},
+) {
   const q: Record<string, unknown> = {}
-  for (const m of ['select', 'eq', 'in', 'is', 'order']) {
+  for (const m of ['select', 'eq', 'in', 'is', 'or', 'order']) {
     q[m] = vi.fn(() => q)
   }
   q.limit = vi.fn(async () => ({ data: rows, error }))
-  const rpc = vi.fn(async () => ({ data: rows.map((r) => (r as { id: string }).id), error: null }))
+  const all = rows.map((r) => (r as { id: string }).id)
+  const rpc = vi.fn(async (name: string) => ({
+    data: name === 'current_member_managing_group_ids' ? (ids.managing ?? all) : (ids.founded ?? all),
+    error: null,
+  }))
   return { from: vi.fn(() => q), rpc, _q: q }
 }
 
@@ -48,13 +57,61 @@ describe('getOwnPages', () => {
 
   // #253 — groups.founder_member_id answers nobody, so the founder's own Pages
   // come from current_member_founded_group_ids(), read as the founder.
-  it('asks for the founder’s own Pages by id, never by the founder column, and excludes dissolved ones', async () => {
+  it('asks for the founder’s own Pages by id, never by the founder column, and only dissolved ones still restorable', async () => {
     const c = client([row()])
     await getOwnPages(c as never, MEMBER)
     expect(c.rpc).toHaveBeenCalledWith('current_member_founded_group_ids')
     expect(c._q.in).toHaveBeenCalledWith('id', ['g-1'])
     expect(c._q.eq).not.toHaveBeenCalledWith('founder_member_id', expect.anything())
-    expect(c._q.is).toHaveBeenCalledWith('dissolved_at', null)
+    expect(c._q.or).toHaveBeenCalledWith('dissolved_at.is.null,delete_after.not.is.null')
+    expect(c._q.select).toHaveBeenCalledWith(expect.stringContaining('delete_after'))
+  })
+
+  // #423 — archived and deleted Pages come back here, and only here, to restore.
+  describe('#423 — archived and deleted Pages', () => {
+    const NOW = new Date('2026-10-06T12:00:00Z')
+
+    it('lists an archived Page, still linked, so its owner can look at it', async () => {
+      const c = client([row({ lifecycle_state: 'archived' })])
+      const [p] = await getOwnPages(c as never, MEMBER, NOW)
+      expect(p).toMatchObject({ lifecycleState: 'archived', deleteAfter: null, href: '/g/q4vw2n' })
+    })
+
+    it('lists a deleted Page with the date it goes, and no link, since its address is gone', async () => {
+      const c = client([row({ lifecycle_state: 'dissolved', delete_after: '2026-10-20T12:00:00Z' })])
+      const [p] = await getOwnPages(c as never, MEMBER, NOW)
+      expect(p).toMatchObject({ lifecycleState: 'dissolved', deleteAfter: '2026-10-20T12:00:00Z', href: null })
+    })
+
+    it('leaves out a deleted Page whose 14 days have passed, and one with no date', async () => {
+      const c = client([
+        row({ id: 'g-2', lifecycle_state: 'dissolved', delete_after: '2026-10-06T11:59:59Z' }),
+        row({ id: 'g-3', lifecycle_state: 'dissolved', delete_after: null }),
+      ])
+      expect(await getOwnPages(c as never, MEMBER, NOW)).toEqual([])
+    })
+
+    // The PM, 2026-10-06: a hidden Page goes by who manages it, not who founded it.
+    it('lists a hidden Page the member manages but did not found', async () => {
+      const c = client([row({ id: 'g-9', lifecycle_state: 'archived' })], null, { founded: [], managing: ['g-9'] })
+      const out = await getOwnPages(c as never, MEMBER, NOW)
+      expect(c.rpc).toHaveBeenCalledWith('current_member_managing_group_ids')
+      expect(c._q.in).toHaveBeenCalledWith('id', ['g-9'])
+      expect(out.map((p) => p.groupId)).toEqual(['g-9'])
+    })
+
+    it('leaves out a hidden Page the member founded but no longer manages', async () => {
+      const c = client([row({ id: 'g-9', lifecycle_state: 'archived' })], null, { founded: ['g-9'], managing: [] })
+      expect(await getOwnPages(c as never, MEMBER, NOW)).toEqual([])
+    })
+
+    it('still lists only founded Pages while they are live or drafts', async () => {
+      const c = client([row({ id: 'g-9' }), row({ id: 'g-8', lifecycle_state: 'draft' })], null, {
+        founded: [],
+        managing: ['g-9', 'g-8'],
+      })
+      expect(await getOwnPages(c as never, MEMBER, NOW)).toEqual([])
+    })
   })
 
   it('includes drafts — a half-finished Page vanishing is the same bug again', async () => {

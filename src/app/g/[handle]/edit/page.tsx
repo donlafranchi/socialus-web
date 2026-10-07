@@ -24,6 +24,7 @@ import { whereValueFrom } from '@/components/locations/where-save'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
+import { archivePageAction, deletePageAction, restorePageAction } from '@/app/_actions/page-lifecycle-actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { pageKindOf, purposeOf } from '@/lib/groups/page-kind'
 
@@ -76,6 +77,13 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         title={isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
         isDraft={isDraft}
         onSave={editPageAction}
+        // #423 — archive and delete; the handlers re-check the managing role.
+        settings={{
+          lifecycleState: shop.lifecycleState === 'archived' ? 'archived' : 'active',
+          onArchive: archivePageAction,
+          onRestore: restorePageAction,
+          onDelete: deletePageAction,
+        }}
         initial={{
           groupId: shop.groupId,
           pagePath,

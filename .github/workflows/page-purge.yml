@@ -1,0 +1,53 @@
+name: Page purge (daily)
+
+# #423 — a Page its owner deleted is restorable from You for 14 days, then
+# removed for good, with its posts. This runs public.purge_deleted_pages(),
+# which removes only Pages whose delete_after has passed, never sooner.
+#
+# The schedule waits for the repository variable PAGE_PURGE_ENABLED=true, set
+# by the PM once the archive-and-delete migration is applied; until then
+# nothing is removed on a timer. Manual runs always work, and are as safe as
+# the schedule: the function itself refuses anything inside its 14 days.
+
+on:
+  schedule:
+    - cron: '23 11 * * *' # 04:23 Pacific
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: page-purge
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    name: Remove Pages past their 14 days
+    if: github.event_name == 'workflow_dispatch' || vars.PAGE_PURGE_ENABLED == 'true'
+    # PINNED, not ubuntu-latest — same reasoning as apply.yml.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Purge
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+        run: |
+          n="$(psql "$SUPABASE_DB_URL" -tAX -v ON_ERROR_STOP=1 -c 'select public.purge_deleted_pages()')"
+          echo "Removed $n Page(s) past their 14 days." | tee -a "$GITHUB_STEP_SUMMARY"
