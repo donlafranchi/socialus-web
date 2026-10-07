@@ -77,21 +77,68 @@ async function pickAPlace(prefix = 'announce') {
   fireEvent.click(screen.getByTestId(`${prefix}-place-address-suggestion-0`))
 }
 
+// The noun is Post (ruled 2026-10-05; tone approved 2026-10-06); the verb stays outward, Announce.
 describe('the word', () => {
-  it('is announcement, never bulletin and never post', () => {
+  it('heads the section Posts, never Announcements or bulletin', () => {
     const { container } = renderPosts({ posts: [POST] })
-    // F080's safety line is Don's and says "post" as a verb, to anyone about
-    // anything they share; the rule is about naming an announcement.
-    const text = (container.textContent ?? '').replace(COPY.postingSafety, '')
-    expect(text).toMatch(/Announce/)
-    expect(text.toLowerCase()).not.toContain('bulletin')
-    // "post" as a word on its own. `data-testid` values are not copy.
-    expect(text.toLowerCase()).not.toMatch(/\bposts?\b/)
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/^Posts$/)
+    expect((container.textContent ?? '').toLowerCase()).not.toContain('bulletin')
+    expect(container.textContent).not.toMatch(/Announcements/)
   })
 
   it('names the primary control Announce', () => {
     renderPosts()
     expect(screen.getByTestId('page-post-send')).toHaveTextContent('Announce')
+  })
+})
+
+// #462 — the PM, 2026-10-06: the latest three as cards in a row, newest on the
+// left; See all posts opens the rest as a list, newest first (Google Business
+// Profile's updates; Facebook Pages and Instagram keep the rest a tap away).
+describe('#462 — the latest three in a row, then See all posts', () => {
+  const five = ['2026-09-21', '2026-09-25', '2026-09-23', '2026-09-24', '2026-09-22'].map((d, i) =>
+    postFixture({ id: `p-${d}`, body: `Post ${i}`, createdAt: `${d}T12:00:00.000Z`, updatedAt: `${d}T12:00:00.000Z` }),
+  )
+  const ids = (el: HTMLElement) => [...el.querySelectorAll('[data-testid="page-post"]')].map((li) => li.id.replace('announcement-', ''))
+
+  it('shows the newest three in a row that scrolls inside its own section', () => {
+    renderPosts({ canPost: false, posts: five })
+    const row = screen.getByTestId('page-posts-latest')
+    expect(ids(row)).toEqual(['p-2026-09-25', 'p-2026-09-24', 'p-2026-09-23'])
+    expect(row.className).toMatch(/\boverflow-x-auto\b/)
+    expect(row.className).toMatch(/\bflex\b/)
+    expect(screen.queryByTestId('page-posts-all')).toBeNull()
+  })
+
+  it('See all posts opens every post as a list, newest first', () => {
+    renderPosts({ canPost: false, posts: five })
+    const more = screen.getByRole('button', { name: 'See all posts' })
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(more)
+    const all = screen.getByTestId('page-posts-all')
+    expect(ids(all)).toEqual(['p-2026-09-25', 'p-2026-09-24', 'p-2026-09-23', 'p-2026-09-22', 'p-2026-09-21'])
+    expect(all.className).toMatch(/\bflex-col\b/)
+    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
+  })
+
+  it('three or fewer: the row, and nothing to see all of', () => {
+    renderPosts({ canPost: false, posts: five.slice(0, 3) })
+    expect(screen.getByTestId('page-posts-latest')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
+  })
+
+  it('a link to an older post still lands on it', async () => {
+    window.history.replaceState(null, '', '/g/x-abc#announcement-p-2026-09-21')
+    renderPosts({ canPost: false, posts: five })
+    await waitFor(() => expect(document.getElementById('announcement-p-2026-09-21')).toHaveAttribute('data-highlighted', 'true'))
+    window.history.replaceState(null, '', '/')
+  })
+
+  it('the owner edits in the list: Edit on a card opens it there', () => {
+    renderPosts({ canPost: true, posts: five })
+    fireEvent.click(screen.getAllByTestId('page-post-edit')[1]!)
+    expect(screen.getByTestId('page-posts-all')).toBeInTheDocument()
+    expect(screen.getByTestId('page-post-edit-body')).toHaveValue('Post 3')
   })
 })
 
