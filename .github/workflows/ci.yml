@@ -52,6 +52,10 @@ on:
         description: 'Run the whole screenshot matrix'
         type: boolean
         default: false
+      journeys:
+        description: 'Run the builder journeys (the nightly job), against this stack'
+        type: boolean
+        default: false
 
 # A second push to a PR cancels the first. Not on main: those runs are the
 # record of what a merge did. The event is in the key so a nightly run never
@@ -240,7 +244,7 @@ jobs:
       github.event_name != 'pull_request' || (
         !github.event.pull_request.draft && github.event.action != 'labeled' && needs.changes.outputs.runtime == 'true')
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 90 || 20 }}
+    timeout-minutes: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 90 || ((github.event.schedule == '0 10 * * *' || inputs.journeys) && 40 || 20) }}
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -400,6 +404,40 @@ jobs:
           path: screenshots/
           retention-days: 14
           if-no-files-found: warn
+
+      # #433 — the builder journeys, overnight (socialus-ops PIPELINE-build.md §
+      # Day and night): a builder persona of each kind creates, publishes and
+      # posts the way a person would, on this throwaway stack. The 10:00 UTC
+      # run finishes before the 5am handoff. Friction that last night's run
+      # did not have is a finding: the step fails and the summary lists it.
+      - name: Builder journeys (nightly, local stack)
+        if: (github.event_name == 'schedule' && github.event.schedule == '0 10 * * *') || (github.event_name == 'workflow_dispatch' && inputs.journeys)
+        env:
+          BUILDER_SEED: ci-throwaway-seed-not-a-secret
+          BUILDER_NEW_PER_KIND: '1'
+          BUILDER_OUT: journey-run
+          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npx tsx scripts/builders.ts provision
+          npx playwright test --project=builders --workers=1 --reporter=line || echo "::warning::Some journeys got stuck; see the friction log."
+          npx tsx scripts/builders/storyboard.ts journey-run || echo "No manifest; no storyboard."
+          mkdir -p baseline
+          for id in $(gh run list --workflow CI --branch main --event schedule --status success --limit 7 --json databaseId -q '.[].databaseId'); do
+            gh run download "$id" -n journey-friction -D baseline 2>/dev/null && break
+          done
+          cat journey-run/friction.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          npx tsx scripts/builders/friction-diff.ts "$( [ -f baseline/friction.md ] && echo baseline/friction.md || echo none )" journey-run/friction.md | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the journey friction log
+        if: ${{ !cancelled() && ((github.event_name == 'schedule' && github.event.schedule == '0 10 * * *') || (github.event_name == 'workflow_dispatch' && inputs.journeys)) }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: journey-friction
+          path: journey-run/
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Upload the Playwright report
         if: ${{ !cancelled() }}
