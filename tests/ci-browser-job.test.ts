@@ -23,3 +23,18 @@ describe('the browser job', () => {
     expect(job).toContain("github.event_name != 'pull_request'")
   })
 })
+
+// chore #433 — the builder journeys run overnight, not on every push, and each
+// night is compared with the last (new friction is a finding).
+describe('the nightly builder journeys', () => {
+  const full = readFileSync('.github/workflows/ci.yml', 'utf8')
+  const step = full.slice(full.indexOf('Builder journeys (nightly'))
+  it('run only on the nightly schedule', () => {
+    expect(full).toContain('Builder journeys (nightly')
+    expect(step.slice(0, 400)).toContain("github.event.schedule == '0 10 * * *'")
+  })
+  it('compare with the last night and keep their log for the next', () => {
+    expect(step).toContain('friction-diff.ts')
+    expect(step).toContain('journey-friction')
+  })
+})

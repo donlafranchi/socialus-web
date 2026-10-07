@@ -1,0 +1,8 @@
+{
+  "body": "Reviewed by: r\n- [x] WCAG 2.1 AA: ok\n- [x] Every state present\n- [x] One primary action\n- [x] Thumb reach\n- [x] No horizontal scroll at 390\n- [x] Copy follows voice rules\n- [x] Nielsen pass\n- [x] Images optimised\n- [x] Tidy and contained: ok\n- [x] Tidiness verdict at 390 and 1280: neat; most cluttered: none",
+  "files": [
+    "src/app/explore/page.tsx",
+    "src/actions/group/x.ts"
+  ],
+  "labels": []
+}

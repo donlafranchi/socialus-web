@@ -37,7 +37,7 @@ export default defineConfig({
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
-      testIgnore: [/screens\//, /_guard\//, /builders\//],
+      testIgnore: [/screens\//, /_guard\//, /builders\//, /smoke\//],
       grepInvert: QUARANTINED,
     },
     {
@@ -56,6 +56,17 @@ export default defineConfig({
       timeout: 240_000,
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      // #432 — the live smoke: read-only, on production, as builder accounts.
+      name: 'smoke-live',
+      testMatch: /smoke\/live\.spec\.ts/,
+      // One persona's screens run in order on one worker, signed in once; a failure does not skip the rest.
+      fullyParallel: false,
+      retries: 0,
+      timeout: 120_000,
+      use: { ...devices['Desktop Chrome'], actionTimeout: 15_000, navigationTimeout: 30_000 },
+    },
+    { name: 'smoke-guard', testMatch: /smoke\/must-fail\.spec\.ts/, retries: 0 },
     { name: 'guard', testMatch: /_guard\/must-fail\.spec\.ts/, retries: 0 },
     {
       // #346 — builder journeys, one kind at a time, at phone width (the storyboard).

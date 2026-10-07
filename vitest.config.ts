@@ -89,7 +89,14 @@ const SUBPROCESS_SUITES = [
   'tests/ci-migration-gate-message.test.ts',
   'src/lib/migrations/manifest.test.ts',
   'tests/migrations-apply-guard.test.ts',
+  'tests/supabase-start-retry.test.ts',
 ]
+
+// #430 — the visibility matrix reads the seeded personas and Pages, which only
+// the Browser job and a local `seed-personas --apply` have. It is its own
+// project, run on purpose (`npm run test:visibility`; the Browser job runs it),
+// so the unit job's stack, which is not seeded, never sees it.
+const VISIBILITY_SUITES = ['tests/visibility.test.ts']
 
 // `.claude/**` is load-bearing here, not housekeeping. A git worktree created
 // inside the repo carries a full copy of tests/, and Vitest will happily run
@@ -115,7 +122,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'jsdom',
           setupFiles: [],
-          exclude: [...EXCLUDE, ...PROBE_SUITES, ...SUBPROCESS_SUITES],
+          exclude: [...EXCLUDE, ...PROBE_SUITES, ...SUBPROCESS_SUITES, ...VISIBILITY_SUITES],
         },
       },
       {
@@ -154,6 +161,22 @@ export default defineConfig({
           hookTimeout: 60_000,
         },
       },
+      ...(process.env.VISIBILITY_MATRIX === '1'
+        ? [
+            {
+              ...shared,
+              test: {
+                name: 'visibility',
+                environment: 'node' as const,
+                setupFiles: [],
+                include: VISIBILITY_SUITES,
+                exclude: EXCLUDE,
+                testTimeout: 60_000,
+                hookTimeout: 60_000,
+              },
+            },
+          ]
+        : []),
     ],
   },
 })
