@@ -7,6 +7,10 @@
 --   page_founder_public  — its founder's name, to its roster
 --   member_public_pages  — its name, in a member's own list
 --   page_posts           — its posts, to a founder who no longer manages it
+--   group_memberships    — its roster, to its members (each still reads their own row)
+--
+-- RSVPs to its items need nothing here: item_responses' party policy reads
+-- items, which 20261007020000 already closed.
 --
 -- ORDER: after 20261007020000_archived_pages_every_path and #472's 20261007150000,
 -- which production already holds.
@@ -77,3 +81,6 @@ $$;
 
 create policy page_posts_page_hidden_owner_only on public.page_posts as restrictive for select
   using (not public.page_hidden_from_caller(group_id));
+
+create policy memberships_page_hidden_owner_only on public.group_memberships as restrictive for select
+  using (member_id = (select auth.uid()) or not public.page_hidden_from_caller(group_id));
