@@ -25,8 +25,10 @@ const SHOP: ResolvedShop = {
   photoUrl: null,
   socialLinks: {},
   photoHiddenAt: null,
+  photoRemovedAt: null,
   discoverability: 'listed',
   placements: [],
+  unclaimed: null,
   founder: {
     handle: 'maya',
     displayName: 'Maya Rivera',
@@ -351,6 +353,11 @@ describe('#300 — the Page on the new layout', () => {
     expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
   })
 
+  it('shows default art when the operator removed the photo', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoRemovedAt: '2026-10-01T00:00:00Z' } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
+  })
+
   it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
     renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
     const panel = screen.getByTestId('owner-panel')
@@ -557,5 +564,46 @@ describe('#363 — the kind line and what each type leads with', () => {
     const contact = screen.getByTestId('page-contact')
     expect(contact.compareDocumentPosition(screen.getByText(SHOP.publicDescription)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByTestId('page-next-up')).toBeNull()
+  })
+})
+
+describe('ShopPublicPage — #353 an unclaimed Page', () => {
+  const UNCLAIMED: ResolvedShop = {
+    ...SHOP,
+    photoUrl: 'https://x/cover.webp',
+    founder: null,
+    unclaimed: { publicInfoUrl: 'https://bakery.example', photoCredit: 'Bakery (from their website)', photoSourceUrl: 'https://bakery.example/about' },
+  }
+
+  it('labels it, credits the picture and the description, and ends with Claim and Remove', () => {
+    renderShop({ shop: UNCLAIMED })
+    expect(screen.getByTestId('unclaimed-label')).toHaveTextContent('Unclaimed: added from public info')
+    expect(screen.getByTestId('photo-credit').querySelector('a')).toHaveAttribute('href', 'https://bakery.example/about')
+    expect(screen.getByTestId('description-credit')).toHaveAttribute('href', 'https://bakery.example')
+    expect(screen.getByTestId('unclaimed-claim')).toBeInTheDocument()
+    expect(screen.getByTestId('unclaimed-remove')).toBeInTheDocument()
+    expect(screen.queryByTestId('shop-founder')).toBeNull()
+  })
+
+  it('shows none of it on a member-made Page', () => {
+    renderShop()
+    for (const id of ['unclaimed-label', 'photo-credit', 'description-credit', 'unclaimed-box']) {
+      expect(screen.queryByTestId(id)).toBeNull()
+    }
+  })
+})
+
+describe('ShopPublicPage — #409 Share', () => {
+  it('is there for everyone on a published Page, signed in or out', () => {
+    for (const loggedIn of [false, true]) {
+      renderShop({ loggedIn, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+      expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
+  it('is not on a draft', () => {
+    renderShop({ shop: { ...SHOP, lifecycleState: 'draft' }, viewerOwnsPage: true, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

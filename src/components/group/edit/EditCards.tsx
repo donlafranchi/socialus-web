@@ -99,13 +99,11 @@ function Group({ id, title, open = false, sections, initial }: { id: string; tit
 export function EditCards({
   initial,
   onSave,
-  slug,
   isDraft,
   settings,
 }: {
   initial: EditorInitial
   onSave: (input: EditPageInput) => Promise<EditPageResult>
-  slug: string
   isDraft: boolean
   /** #423 — archive and delete, for a live or archived Page. */
   settings?: Pick<PageSettingsProps, 'lifecycleState' | 'onArchive' | 'onRestore' | 'onDelete'>
@@ -125,13 +123,15 @@ export function EditCards({
         <section data-testid="edit-link-frozen" aria-label="Link" className="card p-4">
           <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">Link</h3>
           {isDraft ? (
-            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Your link comes from the name. It stays the same once you publish.</p>
+            <>
+              <p className="mt-1 break-all text-body-sm text-[var(--color-fg-muted)]">socialus.org{initial.pagePath}</p>
+              <p className="mt-1 text-caption text-[var(--color-fg-muted)]">It stays the same when you publish.</p>
+            </>
           ) : (
             <>
               <p className="mt-1 break-all text-body-sm text-[var(--color-fg-muted)]">socialus.org{initial.pagePath}</p>
               <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-                The name can change; this link can&rsquo;t. People have it already, and moving it would break it.{' '}
-                <span className="sr-only">Current link: {slug}</span>
+                The name can change; this link can&rsquo;t. People have it already, and moving it would break it.
               </p>
             </>
           )}

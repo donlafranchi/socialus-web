@@ -32,7 +32,7 @@ vi.mock('@/components/locations/AreaPickMap', () => ({
 const onSave = vi.fn(async (_i: unknown): Promise<{ ok: true } | { ok: false; message: string }> => ({ ok: true }))
 const initial: EditorInitial = {
   groupId: 'g1',
-  pagePath: '/g/oak-park-sourdough-7k3x8m',
+  pagePath: '/g/7k3x8m',
   memberId: 'm1',
   name: 'Oak Park Sourdough',
   description: 'Real bread.',

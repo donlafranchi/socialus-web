@@ -9,13 +9,14 @@
 // Navy pins, the selected one gold (Don, 2026-10-05), drawn by the one
 // marker helper so the tokens decide the colour.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MAP_DEFAULTS } from '@/lib/map-config'
+import { MAP_DEFAULTS, CLUSTER_CONFIG } from '@/lib/map-config'
 import { groupPins, type BrowsePin } from '@/lib/browse/pins'
-import { stylePin } from '@/lib/map-pins'
+import { stylePin, styleCluster } from '@/lib/map-pins'
+import { gridCluster } from '@/lib/browse/cluster'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
@@ -42,39 +43,73 @@ export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
     }
   }, [])
 
-  useEffect(() => {
+  const pinsRef = useRef<BrowsePin[]>([])
+  const selectedRef = useRef<string | null>(null)
+
+  // #331 — draw pins, clustering ones that sit close together on screen until
+  // CLUSTER_CONFIG.clusterMaxZoom. Redrawn on every move, from the same pins.
+  const draw = useCallback(() => {
     const map = mapRef.current
     if (!map) return
-
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = []
-
-    const pins = groupPins(results)
-    const bounds = new mapboxgl.LngLatBounds()
-
-    for (const pin of pins) {
+    const pins = pinsRef.current
+    const byKey = new Map(pins.map((p) => [p.key, p]))
+    const groups =
+      map.getZoom() >= CLUSTER_CONFIG.clusterMaxZoom
+        ? pins.map((p) => ({ keys: [p.key] }))
+        : gridCluster(pins.map((p) => ({ key: p.key, ...map.project([p.longitude, p.latitude]) })))
+    for (const g of groups) {
+      const members = g.keys.map((k) => byKey.get(k)!)
       const el = document.createElement('div')
-      stylePin(el, { small: true })
+      if (members.length > 1) {
+        styleCluster(el, members.length)
+        el.setAttribute('data-testid', 'map-cluster')
+        const bounds = new mapboxgl.LngLatBounds()
+        for (const m of members) bounds.extend([m.longitude, m.latitude])
+        el.addEventListener('click', () => map.fitBounds(bounds, { padding: 80, maxZoom: CLUSTER_CONFIG.clusterMaxZoom }))
+        const c = bounds.getCenter()
+        markersRef.current.push(new mapboxgl.Marker(el).setLngLat(c).addTo(map))
+        continue
+      }
+      const pin = members[0]!
+      stylePin(el, { small: true, selected: pin.groupId === selectedRef.current })
       el.setAttribute('data-testid', 'map-pin')
       el.setAttribute('data-group-id', pin.groupId)
       el.setAttribute('data-result-count', String(pin.results.length))
-      el.dataset.pinKey = pin.groupId
+      const bucket = (pin.results[0] as { bucket?: string } | undefined)?.bucket
+      if (bucket) el.setAttribute('data-bucket', bucket)
       el.addEventListener('click', () => setSelected(pin))
-      markersRef.current.push(
-        new mapboxgl.Marker(el).setLngLat([pin.longitude, pin.latitude]).addTo(map),
-      )
-      bounds.extend([pin.longitude, pin.latitude])
+      markersRef.current.push(new mapboxgl.Marker(el).setLngLat([pin.longitude, pin.latitude]).addTo(map))
     }
-
-    if (pins.length > 0) map.fitBounds(bounds, { padding: 60, maxZoom: 13, duration: 0 })
-  }, [results])
+  }, [])
 
   useEffect(() => {
-    for (const m of markersRef.current) {
-      const el = m.getElement()
-      stylePin(el, { small: true, selected: el.dataset.pinKey === selected?.groupId })
+    const map = mapRef.current
+    if (!map) return
+    map.on('moveend', draw)
+    return () => {
+      map.off('moveend', draw)
     }
-  }, [selected, results])
+  }, [draw])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const pins = groupPins(results)
+    pinsRef.current = pins
+    if (pins.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds()
+      for (const p of pins) bounds.extend([p.longitude, p.latitude])
+      map.fitBounds(bounds, { padding: 60, maxZoom: 13, duration: 0 })
+    }
+    draw()
+  }, [results, draw])
+
+  useEffect(() => {
+    selectedRef.current = selected?.groupId ?? null
+    draw()
+  }, [selected, draw])
 
   // T187 — without a token Mapbox throws, and the map now mounts on every
   // desktop load; a missing token must cost the map, not the page.

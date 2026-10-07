@@ -1,28 +1,29 @@
 'use client'
 
-// #348 — confirm an address on a map. The pin stays fixed at the centre and
-// the owner moves the map under it to the exact spot: Airbnb's host-location
-// pattern, which avoids fiddly pin-dragging on a phone.
+// #413 — put the pin on the front door: drag it, or tap the map where it goes
+// (Google Business Profile's "Business location", Airbnb's listing location).
+// Replaces #348's fixed centre pin under a panned map.
 
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MapPin } from 'lucide-react'
 import { MAP_DEFAULTS } from '@/lib/map-config'
 
-export function PinAdjustMap({
-  center,
-  onChange,
-}: {
-  center: [number, number]
-  onChange: (coords: [number, number]) => void
-}) {
+type LngLat = [number, number]
+const round = (c: { lng: number; lat: number }): LngLat => [Number(c.lng.toFixed(6)), Number(c.lat.toFixed(6))]
+const same = (a: LngLat, b: LngLat) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6
+
+const PIN_SVG =
+  '<svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z" fill="currentColor" stroke="var(--color-pin-edge)" stroke-width="1.5"/><circle cx="12" cy="9" r="2.5" fill="var(--color-pin-edge)"/></svg>'
+
+export function PinAdjustMap({ center, onChange }: { center: LngLat; onChange: (coords: LngLat) => void }) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
   const el = useRef<HTMLDivElement>(null)
   const report = useRef(onChange)
-  // Where the map opens. The centres it reports flow back in as `center`;
-  // following them would rebuild the map on every pan. A new address remounts.
-  const start = useRef(center)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
+  const markerRef = useRef<mapboxgl.Marker | null>(null)
+  // Where the pin is now. A `center` equal to it is our own report coming back.
+  const at = useRef(center)
   useEffect(() => {
     report.current = onChange
   }, [onChange])
@@ -30,14 +31,41 @@ export function PinAdjustMap({
   useEffect(() => {
     if (!token || !el.current) return
     mapboxgl.accessToken = token
-    const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center: start.current, zoom: 16 })
+    const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center: at.current, zoom: 16 })
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }))
-    map.on('moveend', () => {
-      const c = map.getCenter()
-      report.current([Number(c.lng.toFixed(6)), Number(c.lat.toFixed(6))])
+    const pin = document.createElement('div')
+    pin.className = 'size-tap flex cursor-grab items-end justify-center text-[var(--color-pin)]'
+    pin.innerHTML = PIN_SVG
+    const marker = new mapboxgl.Marker({ element: pin, draggable: true, anchor: 'bottom' }).setLngLat(at.current).addTo(map)
+    pin.setAttribute('aria-label', 'Front door pin')
+    const moved = (c: LngLat) => {
+      at.current = c
+      report.current(c)
+    }
+    marker.on('dragend', () => moved(round(marker.getLngLat())))
+    map.on('click', (e: mapboxgl.MapMouseEvent) => {
+      const c = round(e.lngLat)
+      marker.setLngLat(c)
+      moved(c)
     })
-    return () => map.remove()
+    mapRef.current = map
+    markerRef.current = marker
+    return () => {
+      marker.remove()
+      map.remove()
+      mapRef.current = null
+      markerRef.current = null
+    }
   }, [token])
+
+  const [lng, lat] = center
+  useEffect(() => {
+    const next: LngLat = [lng, lat]
+    if (same(next, at.current)) return
+    at.current = next
+    markerRef.current?.setLngLat(next)
+    mapRef.current?.easeTo({ center: next })
+  }, [lng, lat])
 
   if (!token) {
     return (
@@ -48,18 +76,8 @@ export function PinAdjustMap({
   }
   return (
     <div data-testid="pin-adjust" className="flex flex-col gap-1">
-      <div className="relative h-56 overflow-hidden rounded-md border border-[var(--color-border)]">
-        <div ref={el} className="absolute inset-0" />
-        <MapPin
-          data-testid="pin-adjust-pin"
-          aria-hidden="true"
-          size={32}
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-[var(--color-pin)]"
-          fill="currentColor"
-          stroke="var(--color-pin-edge)"
-        />
-      </div>
-      <p className="text-caption text-[var(--color-fg-muted)]">Move the map so the pin sits on your door.</p>
+      <div ref={el} className="h-56 overflow-hidden rounded-md border border-[var(--color-border)]" />
+      <p className="text-caption text-[var(--color-fg-muted)]">Drag the pin to your front door, or tap the map where it is.</p>
     </div>
   )
 }

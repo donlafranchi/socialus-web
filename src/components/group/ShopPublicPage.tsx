@@ -33,14 +33,23 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
+import { UnclaimedBox } from './UnclaimedBox'
+import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { COPY } from '@/lib/copy'
 
 interface Props {
   shop: ResolvedShop
+  /** #353 — the unclaimed box's writes; the demo page passes stand-ins. */
+  unclaimedActions?: {
+    claim: typeof requestUnclaimedClaimAction
+    remove: typeof requestUnclaimedRemovalAction
+  }
   badge: LocalOwnerBadge | null
   items: ShopItem[]
   loggedIn: boolean
@@ -96,6 +105,7 @@ export function ShopPublicPage({
   withheldPosts = [],
   followerCount = 0,
   draftTagCount = 0,
+  unclaimedActions,
   viewerMemberId = null,
   contactOn = false,
   productsOn = componentOn(shop.kind, null, 'products'),
@@ -109,6 +119,7 @@ export function ShopPublicPage({
   const photoUrl = visiblePhotoUrl({
     photo_url: shop.photoUrl,
     photo_hidden_at: shop.photoHiddenAt,
+    photo_removed_at: shop.photoRemovedAt,
   })
   // Only the owner is told. Everyone else sees what a photoless Page shows —
   // today nothing, and T146's default art once that lands. Neither reveals
@@ -160,6 +171,19 @@ export function ShopPublicPage({
           <DefaultArt kind={artKindFor(shop.kind, shop.purpose)} />
         )}
       </div>
+      {/* #353 — a picture from their own site is credited and linked. */}
+      {photoUrl && shop.unclaimed?.photoCredit && (
+        <p data-testid="photo-credit" className="-mt-3 mb-4 text-xs text-gray-500">
+          Photo:{' '}
+          {shop.unclaimed.photoSourceUrl ? (
+            <a href={shop.unclaimed.photoSourceUrl} rel="noopener nofollow" target="_blank" className="underline">
+              {shop.unclaimed.photoCredit}
+            </a>
+          ) : (
+            shop.unclaimed.photoCredit
+          )}
+        </p>
+      )}
 
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -176,13 +200,21 @@ export function ShopPublicPage({
               {badge.label}
             </span>
           )}
+          {/* #353 — a neutral tag after the name (Yelp's placement). */}
+          {shop.unclaimed && (
+            <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+              {COPY.unclaimedLabel}
+            </span>
+          )}
 
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
 
-        {/* #267 — not on your own Page. */}
-          {!viewerOwnsPage && (
-            <div className="ml-auto">
+          <div className="ml-auto flex items-center">
+            {/* #409 — anyone can share a published Page, signed in or out. */}
+            {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
+            {/* #267 — not on your own Page. */}
+            {!viewerOwnsPage && (
               <ReportControl
                 subjectId={shop.groupId}
                 subjectLabel={shop.displayName}
@@ -190,8 +222,8 @@ export function ShopPublicPage({
                 returnTo={pagePath}
                 onSend={sendReportAction}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div className="-mt-2 flex items-center gap-2">
           <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
@@ -283,6 +315,17 @@ export function ShopPublicPage({
         {shop.publicDescription && (
           <p className="text-sm text-gray-600">{shop.publicDescription}</p>
         )}
+        {shop.unclaimed?.publicInfoUrl && (
+          <a
+            data-testid="description-credit"
+            href={shop.unclaimed.publicInfoUrl}
+            rel="noopener nofollow"
+            target="_blank"
+            className="text-xs text-gray-500 underline"
+          >
+            {COPY.unclaimedDescriptionCredit}
+          </a>
+        )}
 
 
         {layout.lead !== 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
@@ -371,6 +414,15 @@ export function ShopPublicPage({
           </ul>
         )}
       </section>
+      )}
+      {shop.unclaimed && (
+        <UnclaimedBox
+          groupId={shop.groupId}
+          pagePath={pagePath ?? `/g/${shop.publicId}`}
+          hasPhoto={Boolean(photoUrl)}
+          onClaim={unclaimedActions?.claim ?? requestUnclaimedClaimAction}
+          onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
+        />
       )}
      </div>
       {showOwnerPanel && pagePath && !isDraftPreview ? (

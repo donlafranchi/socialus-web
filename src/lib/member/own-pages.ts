@@ -137,7 +137,7 @@ export async function getOwnPages(
       location: scaleFor(r.anchor),
       lifecycleState: r.lifecycle_state,
       deleteAfter: r.delete_after ?? null,
-      href: r.lifecycle_state === 'dissolved' ? null : canonicalPagePath(r.slug ?? 'page', r.public_id),
+      href: r.lifecycle_state === 'dissolved' ? null : canonicalPagePath(r.public_id),
     }
   })
 }

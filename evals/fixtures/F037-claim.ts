@@ -41,7 +41,9 @@ export const SHOP = {
   brandName: 'Oak Park Sourdough — F037',
   slug: 'oak-park-sourdough-f037',
   publicDescription: 'Naturally-leavened sourdough baked at home in Oak Park.',
-  url: '/p/ca/sacramento/oak-park/g/oak-park-sourdough-f037',
+  // #411 — /g/<id> is the only Page address; the id is pinned so the spec can build it.
+  publicId: 'f037sh',
+  url: '/g/f037sh',
 } as const
 
 // ZIPs from the migration-025 Sacramento crosswalk (MSA 40900) — proximal to the
@@ -235,7 +237,10 @@ async function ensureBusinessGroup(opts: {
         .maybeSingle()
     ).data
   const existing = await lookup()
-  if (existing) return existing.id
+  if (existing) {
+    await sb.from('groups').update({ public_id: SHOP.publicId }).eq('id', existing.id)
+    return existing.id
+  }
 
   const id = randomUUID()
   const { error: groupErr } = await sb.from('groups').insert({
@@ -245,6 +250,7 @@ async function ensureBusinessGroup(opts: {
     anchor_location_id: opts.anchorLocationId,
     name: SHOP.brandName,
     slug: SHOP.slug,
+    public_id: SHOP.publicId,
     description: '',
     discoverability: 'listed',
     lifecycle_state: 'active',

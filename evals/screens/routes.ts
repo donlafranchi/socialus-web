@@ -51,7 +51,6 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'page-business', inventory: ['S028', 'S029', 'S030'], path: () => `/g/${pageHandle(business)}` },
   { name: 'page-private', inventory: ['S031', 'S037'], path: () => `/g/${pageHandle(family)}` },
   { name: 'page-not-found', inventory: ['S037'], path: () => '/g/no-such-page-zzzzzz', same: true },
-  { name: 'page-stale-handle', inventory: ['S038'], path: () => `/g/old-name-${interest.publicId}`, same: true },
   { name: 'page-edit', inventory: ['S097', 'S098', 'S099', 'S100'], path: (who) => `/g/${pageHandle(pageFor(who))}/edit` },
   { name: 'join', inventory: ['S039', 'S040'], path: () => '/join' },
   { name: 'member-profile', inventory: ['S041', 'S042', 'S043', 'S044', 'S045'], path: (who) => `/m/${who.handle ?? member.handle}` },
@@ -73,7 +72,6 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'auth-password', inventory: ['S086', 'S087', 'S088', 'S089', 'S090'], path: () => '/auth/password', same: true },
   { name: 'auth-signup-redirect', inventory: ['S091'], path: () => '/auth/signup', same: true },
   { name: 'business-redirect', inventory: ['S092'], path: () => `/business/${business.slug}`, same: true },
-  { name: 'manage-redirect', inventory: ['S101'], path: () => `/manage/${business.slug}`, same: true },
   { name: 'map-redirect', inventory: ['S102'], path: () => '/map', same: true },
   { name: 'qr-redirect', inventory: ['S109'], path: () => '/qr', same: true },
   { name: 'register-business-redirect', inventory: ['S110'], path: () => '/register-business', same: true },
@@ -88,6 +86,7 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'playground', inventory: [], path: () => '/playground', same: true },
   { name: 'composer-demo', inventory: ['S094'], path: () => '/composer-demo', same: true },
   { name: 'add-entity-demo', inventory: ['S072'], path: () => '/add-entity-demo', same: true },
+  { name: 'unclaimed-demo', inventory: [], path: () => '/unclaimed-demo', same: true },
 ]
 
 export const WIDTHS = [390, 744, 1024, 1280, 1440, 1920] as const

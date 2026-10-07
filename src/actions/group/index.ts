@@ -66,3 +66,16 @@ export {
   type GroupLifecycleResult,
   type PageLifecycleState,
 } from './lifecycle'
+
+// #353 — unclaimed Pages: remove (hides at once), claim (a contact form), restore (operator).
+export {
+  groupUnclaimedRemove,
+  groupUnclaimedRemoveInput,
+  groupUnclaimedClaim,
+  groupUnclaimedClaimInput,
+  groupUnclaimedRestore,
+  groupUnclaimedRestoreInput,
+  DAILY_LIMIT_PER_DEVICE,
+  UNCLAIMED_REMOVAL_SCOPES,
+  type UnclaimedRemovalScope,
+} from './unclaimed'

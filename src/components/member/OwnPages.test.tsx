@@ -25,7 +25,7 @@ const page = (over: Partial<OwnPage>): OwnPage => ({
   location: { scale: 'none' },
   lifecycleState: 'active',
   deleteAfter: null,
-  href: '/g/oak-park-sourdough-7k3x8m',
+  href: '/g/7k3x8m',
   ...over,
 })
 

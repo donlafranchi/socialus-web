@@ -46,7 +46,7 @@ const message = () => screen.getByText(COPY.postingSafety)
 // #412 — a live Page is edited section by section; its words and photo are
 // posted from the sheets the Edit Page's cards open.
 const editCards = () => (
-  <EditCards slug="p" isDraft={false} onSave={asyncNoop} initial={{
+  <EditCards isDraft={false} onSave={asyncNoop} initial={{
     groupId: 'g1', pagePath: '/g/p', memberId: 'm1', name: 'P', description: '', photoUrl: null, socialLinks: {}, tags: [],
     contact: { phone: null, hours: null }, contactOn: false, addressLabel: null, kind: 'business', purpose: 'sell', productsOn: true, where: emptyWhere,
   }} />

@@ -86,7 +86,7 @@ export const LINK_TYPES: readonly LinkType[] = [
     writtenBy: ['group.create'],
     ruled: null,
     built: true,
-    note: 'Ownership, not membership. The founder column is also what a member\'s own-Pages list reads.',
+    note: 'Ownership, not membership. The founder column is also what a member\'s own-Pages list reads. An unclaimed Page (#353, a real business added from public info) is founded by the system member and has no owner until claimed.',
   },
   {
     name: 'a Member authored an Item',

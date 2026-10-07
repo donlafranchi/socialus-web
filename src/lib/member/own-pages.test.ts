@@ -74,7 +74,7 @@ describe('getOwnPages', () => {
     it('lists an archived Page, still linked, so its owner can look at it', async () => {
       const c = client([row({ lifecycle_state: 'archived' })])
       const [p] = await getOwnPages(c as never, MEMBER, NOW)
-      expect(p).toMatchObject({ lifecycleState: 'archived', deleteAfter: null, href: '/g/sacriver-floaters-q4vw2n' })
+      expect(p).toMatchObject({ lifecycleState: 'archived', deleteAfter: null, href: '/g/q4vw2n' })
     })
 
     it('lists a deleted Page with the date it goes, and no link, since its address is gone', async () => {
@@ -126,14 +126,14 @@ describe('getOwnPages', () => {
   it('links every Page to its canonical address, carrying no place path', async () => {
     const c = client([row()])
     const out = await getOwnPages(c as never, MEMBER)
-    expect(out[0].href).toBe('/g/sacriver-floaters-q4vw2n')
+    expect(out[0].href).toBe('/g/q4vw2n')
   })
 
   it('links a draft too — its address is the one it keeps when it goes live', async () => {
     const c = client([row(), row({ id: 'g-2', lifecycle_state: 'draft', public_id: 'zt9w4p' })])
     const out = await getOwnPages(c as never, MEMBER)
-    expect(out.find((p) => p.groupId === 'g-1')?.href).toBe('/g/sacriver-floaters-q4vw2n')
-    expect(out.find((p) => p.groupId === 'g-2')?.href).toBe('/g/sacriver-floaters-zt9w4p')
+    expect(out.find((p) => p.groupId === 'g-1')?.href).toBe('/g/q4vw2n')
+    expect(out.find((p) => p.groupId === 'g-2')?.href).toBe('/g/zt9w4p')
   })
 
   it('asks for the public id, without which nothing here has an address', async () => {

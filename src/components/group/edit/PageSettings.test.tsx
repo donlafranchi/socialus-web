@@ -21,7 +21,7 @@ function renderSettings(lifecycleState: 'active' | 'archived' = 'active') {
   return render(
     <PageSettings
       groupId="g1"
-      pagePath="/g/oak-park-sourdough-7k3x8m"
+      pagePath="/g/7k3x8m"
       name="Oak Park Sourdough"
       lifecycleState={lifecycleState}
       onArchive={onArchive}
@@ -42,7 +42,7 @@ describe('#423 — Page settings', () => {
     renderSettings()
     expect(screen.getByTestId('page-settings')).toHaveTextContent('Page settings')
     fireEvent.click(screen.getByRole('button', { name: 'Archive' }))
-    await waitFor(() => expect(onArchive).toHaveBeenCalledWith({ groupId: 'g1', pagePath: '/g/oak-park-sourdough-7k3x8m' }))
+    await waitFor(() => expect(onArchive).toHaveBeenCalledWith({ groupId: 'g1', pagePath: '/g/7k3x8m' }))
     expect(refresh).toHaveBeenCalled()
   })
 
@@ -84,7 +84,7 @@ describe('#423 — Page settings', () => {
       type('Oak Park Sourdough')
       fireEvent.click(confirm())
       await waitFor(() =>
-        expect(onDelete).toHaveBeenCalledWith({ groupId: 'g1', pagePath: '/g/oak-park-sourdough-7k3x8m', confirmName: 'Oak Park Sourdough' }),
+        expect(onDelete).toHaveBeenCalledWith({ groupId: 'g1', pagePath: '/g/7k3x8m', confirmName: 'Oak Park Sourdough' }),
       )
       await waitFor(() => expect(push).toHaveBeenCalledWith('/you'))
     })

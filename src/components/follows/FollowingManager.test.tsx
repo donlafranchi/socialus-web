@@ -33,7 +33,7 @@ vi.mock('@/app/_actions/saved-search-actions', () => ({
 }))
 
 const PERSON: FollowEntry = { kind: 'person', entityId: 'p1', displayName: 'Alice', thumbnailUrl: 'a.png', createdAt: '2026-06-10T00:00:00Z', href: '/m/alice', isTombstone: false }
-const GROUP: FollowEntry = { kind: 'group', entityId: 'g1', displayName: 'Run Club', thumbnailUrl: null, createdAt: '2026-06-15T00:00:00Z', href: '/p/g/run-club', isTombstone: false }
+const GROUP: FollowEntry = { kind: 'group', entityId: 'g1', displayName: 'Run Club', thumbnailUrl: null, createdAt: '2026-06-15T00:00:00Z', href: '/g/r7nc1b', isTombstone: false }
 const VENUE: FollowEntry = { kind: 'venue', entityId: 'ss1', displayName: 'Blue Bottle', thumbnailUrl: null, createdAt: '2026-06-12T00:00:00Z', href: '/p/l/blue-bottle', isTombstone: false }
 const ALL = [GROUP, VENUE, PERSON]
 
