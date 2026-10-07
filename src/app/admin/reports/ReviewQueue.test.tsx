@@ -15,6 +15,7 @@ const day = (n: number) => new Date(Date.UTC(2026, 9, n))
 const report = (id: string, groupId: string, over: Partial<QueuedReport> = {}): QueuedReport => ({
   reportId: id,
   body: `Report ${id}`,
+  category: null,
   reportedAt: day(3),
   hiddenAt: day(3),
   removedAt: null,
