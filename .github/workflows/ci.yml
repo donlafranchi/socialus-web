@@ -252,7 +252,11 @@ jobs:
       OPERATOR_MEMBER_ID: 0a000000-0000-4000-8000-000000000006
       PLAYWRIGHT_WEB_COMMAND: npm run start
     steps:
+      # Full history: "Which screens this PR changes" diffs base...HEAD, and a
+      # shallow clone has no merge base, so the step failed every ready PR.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       # Pinned, for the reason the test job gives (#164).
       - uses: supabase/setup-cli@v2
@@ -376,7 +380,9 @@ jobs:
       - name: Which screens this PR changes
         id: changed
         if: github.event_name == 'pull_request'
-        run: npx tsx scripts/changed-routes.ts --base ${{ github.event.pull_request.base.sha }} --github-output
+        run: |
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+          npx tsx scripts/changed-routes.ts --base ${{ github.event.pull_request.base.sha }} --github-output
       - name: Review bundle
         if: github.event_name == 'pull_request' && steps.changed.outputs.routes != ''
         env:

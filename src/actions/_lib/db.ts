@@ -11,9 +11,11 @@
 // wrapper enforces this.
 
 import { Pool, type PoolClient } from 'pg'
-import { resolveConnectionString } from './db-config'
+import { resolveConnectionString, toTransactionPooler } from './db-config'
 
-let pool: Pool | null = null
+// One pool per instance, kept on globalThis so a dev reload never opens a second.
+const g = globalThis as unknown as { __socialusPool?: Pool | null }
+let pool: Pool | null = g.__socialusPool ?? null
 
 /**
  * Is a connection string configured at all? Answers without opening a
@@ -34,14 +36,23 @@ export function getPool(): Pool {
   if (!resolved.ok) {
     throw new Error(resolved.message)
   }
-  const { connectionString } = resolved
+  // bug #457 — serverless: a small pool per instance, through the transaction
+  // pooler on Vercel (db-config.ts). No prepared statements are used (every
+  // query here is unnamed, which node-postgres runs without caching a
+  // statement), no session state outlives a transaction, and no connection is
+  // opened per request. An idle function exits instead of holding a client.
+  const max = Number.parseInt(process.env.DB_POOL_MAX ?? '', 10)
   pool = new Pool({
-    connectionString,
-    // Modest defaults for the action layer; tune per environment later.
-    max: 10,
-    idleTimeoutMillis: 30_000,
+    connectionString: toTransactionPooler(resolved.connectionString, process.env),
+    max: Number.isFinite(max) && max > 0 ? max : 3,
+    idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 5_000,
+    allowExitOnIdle: true,
   })
+  pool.on('error', () => {
+    // An idle client the pooler dropped: the next query opens a fresh one.
+  })
+  g.__socialusPool = pool
   return pool
 }
 
@@ -76,5 +87,6 @@ export async function closePool(): Promise<void> {
   if (pool) {
     await pool.end()
     pool = null
+    g.__socialusPool = null
   }
 }

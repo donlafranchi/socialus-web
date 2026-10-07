@@ -4,6 +4,7 @@
 // per the 2026-09-21 ruling. Older forms are not forwarded while there are no
 // members to protect; they are not found.
 
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
@@ -17,10 +18,13 @@ interface Props {
   params: Promise<{ handle: string }>
 }
 
+// bug #457 — resolved once per request: generateMetadata and the page both ask,
+// and each ask reads through the database pool.
+const shopFor = cache(async (handle: string) => resolvePageById(await createClient(), handle))
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
-  const supabase = await createClient()
-  const shop = await resolvePageById(supabase, handle)
+  const shop = await shopFor(handle)
   if (!shop) return { title: 'Not found — SocialUs' }
   return shareMetadata(shop)
 }
@@ -29,7 +33,7 @@ export default async function PageAtCanonicalAddress({ params }: Props) {
   const { handle } = await params
   const supabase = await createClient()
 
-  const shop = await resolvePageById(supabase, handle)
+  const shop = await shopFor(handle)
   if (!shop) notFound()
   const view = await loadPageView(supabase, shop)
 
