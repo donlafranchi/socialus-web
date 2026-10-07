@@ -244,12 +244,11 @@ export async function resolveShop(
     kind: row.kind,
     slug: row.slug,
     publicId: row.public_id,
-    // T156 — a business keeps its public name in the `group_businesses` child;
-    // every other kind of Page keeps it on the `groups` row and has no child
-    // at all. Falling back is what makes resolving a run club worth doing:
-    // without it the 404 is replaced by a Page with no name on it.
-    displayName: biz?.display_name ?? row.name ?? '',
-    publicDescription: biz?.public_description ?? row.description ?? '',
+    // #410 — the groups row is the one source of a Page's name and
+    // description; the database keeps a business's group_businesses copy equal
+    // to it. Reading the copy first is what left a renamed Page on its old name.
+    displayName: row.name || biz?.display_name || '',
+    publicDescription: row.description || biz?.public_description || '',
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
