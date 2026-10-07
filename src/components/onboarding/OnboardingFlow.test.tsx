@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
+import { COPY } from '@/lib/copy'
 import '@testing-library/jest-dom/vitest'
 import { OnboardingFlow, type OnboardingActions } from './OnboardingFlow'
 
-// T089 — onboarding is one field. Real DB writes are the F030 eval's job.
+// T089 → #222 — onboarding is the F081 signup screen. Real DB writes are the F030 eval's job.
 
 afterEach(() => cleanup())
 
@@ -11,79 +12,78 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 function makeActions(over: Partial<OnboardingActions> = {}): OnboardingActions {
   return {
-    completeOnboarding: vi.fn(async () => ({ ok: true as const })),
+    completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: { name: 'Sacramento-Roseville, CA' } })),
     ...over,
   }
 }
 
-const continueBtn = () => screen.getByRole('button', { name: /Continue/i })
+const continueBtn = () => screen.getByTestId('onboarding-continue')
 
-describe('T089 — OnboardingFlow', () => {
-  it('asks only for a display name', () => {
+function fill({ legal = 'Maya Rivera', display = 'Maya', zip = '95819', adult = true } = {}) {
+  fireEvent.change(screen.getByTestId('onboarding-legal-name'), { target: { value: legal } })
+  fireEvent.change(screen.getByTestId('onboarding-name'), { target: { value: display } })
+  fireEvent.change(screen.getByTestId('onboarding-zip'), { target: { value: zip } })
+  if (adult) fireEvent.click(screen.getByTestId('onboarding-adult'))
+}
+
+// #222 (F081) — one screen: legal name, zip, display name, and the 18+ box with
+// the Terms beside it. The email is the login, already given.
+describe('F081 — the signup screen', () => {
+  it('asks for exactly the fields F081 names, and the 18+ box', () => {
     render(<OnboardingFlow actions={makeActions()} onNavigate={vi.fn()} />)
-    expect(screen.getByTestId('onboarding-name')).toBeInTheDocument()
-    expect(screen.queryByTestId('onboarding-handle')).toBeNull()
-    expect(screen.queryByTestId('onboarding-locality')).toBeNull()
-    expect(screen.queryByTestId('onboarding-interests')).toBeNull()
+    for (const id of ['onboarding-legal-name', 'onboarding-name', 'onboarding-zip', 'onboarding-adult']) {
+      expect(screen.getByTestId(id)).toBeInTheDocument()
+    }
+    expect(screen.getByTestId('onboarding-form').querySelectorAll('input')).toHaveLength(4)
   })
 
-  // T163 amended this: Continue no longer goes home, it goes to the metro
-  // step, which is now unconditional (Don's ruling 2026-09-14). Home is where
-  // the METRO step lands, and that hand-off is covered in MetroWaitlistStep's
-  // own tests. What this one still owns is the trimmed name reaching the action.
-  it('writes the trimmed name and advances on Continue', async () => {
+  it('the 18+ box starts unticked and has the Terms link beside it', () => {
+    render(<OnboardingFlow actions={makeActions()} onNavigate={vi.fn()} />)
+    const box = screen.getByTestId('onboarding-adult') as HTMLInputElement
+    expect(box.checked).toBe(false)
+    const label = screen.getByTestId('onboarding-adult-label')
+    expect(label).toHaveTextContent(/18 or older/i)
+    expect(within(label).getByRole('link', { name: /terms/i })).toHaveAttribute('href', '/terms')
+  })
+
+  it('says what the app is for, and never asks whether the person makes or finds', () => {
+    render(<OnboardingFlow actions={makeActions()} onNavigate={vi.fn()} />)
+    expect(screen.getByTestId('signup-line')).toHaveTextContent(COPY.signupLine)
+    expect(document.body.textContent).not.toMatch(/make or find|make things|find things|here to make|here to find/i)
+  })
+
+  it('sends the trimmed fields and the confirmation to the action', async () => {
     const actions = makeActions()
-    const onNavigate = vi.fn()
-    render(
-      <OnboardingFlow
-        actions={actions}
-        onNavigate={onNavigate}
-        metros={[{ id: 'm1', name: 'Boise City-Mountain Home-Ontario, ID-OR' }]}
-      />,
-    )
-    fireEvent.change(screen.getByTestId('onboarding-name'), { target: { value: '  Maya  ' } })
+    render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
+    fill({ legal: '  Maya Rivera ', display: '  Maya  ', zip: ' 95819 ' })
     fireEvent.click(continueBtn())
     await waitFor(() =>
-      expect(actions.completeOnboarding).toHaveBeenCalledWith({ displayName: 'Maya' }),
+      expect(actions.completeOnboarding).toHaveBeenCalledWith({
+        legalName: 'Maya Rivera',
+        displayName: 'Maya',
+        zip: '95819',
+        adultConfirmed: true,
+      }),
     )
-    // Advanced rather than navigated: the name form is gone, the metro question
-    // is on screen, and nothing has gone home yet.
-    expect(await screen.findByRole('combobox')).toBeInTheDocument()
-    expect(screen.queryByTestId('onboarding-form')).toBeNull()
-    expect(onNavigate).not.toHaveBeenCalled()
   })
 
-  it('lands home once the metro step is done', async () => {
+  it('without the 18+ box it stops, says so, and calls nothing', async () => {
     const actions = makeActions()
-    const onNavigate = vi.fn()
-    const onJoinWaitlist = vi.fn(async () => ({
-      open: true as const,
-      metroName: 'Sacramento-Roseville, CA',
-      standing: { combined: 0, target: 0 },
-      message: '',
-    }))
-    render(
-      <OnboardingFlow
-        actions={actions}
-        onNavigate={onNavigate}
-        metros={[{ id: 'm1', name: 'Sacramento-Roseville, CA' }]}
-        onJoinWaitlist={onJoinWaitlist}
-      />,
-    )
-    fireEvent.change(screen.getByTestId('onboarding-name'), { target: { value: 'Maya' } })
+    render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
+    fill({ adult: false })
     fireEvent.click(continueBtn())
-    const select = await screen.findByRole('combobox')
-    fireEvent.change(select, { target: { value: 'm1' } })
-    fireEvent.click(screen.getByRole('radio', { name: /find/i }))
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
-    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/'))
+    expect(await screen.findByTestId('onboarding-error')).toHaveTextContent(/18/)
+    expect(actions.completeOnboarding).not.toHaveBeenCalled()
   })
 
-  it('requires a name', async () => {
+  it('requires each field and names the one that is missing', async () => {
     const actions = makeActions()
     render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
     fireEvent.click(continueBtn())
-    await waitFor(() => expect(screen.getByTestId('onboarding-error')).toBeInTheDocument())
+    expect(await screen.findByTestId('onboarding-error')).toBeInTheDocument()
+    fill({ zip: '958' })
+    fireEvent.click(continueBtn())
+    await waitFor(() => expect(screen.getByTestId('onboarding-error')).toHaveTextContent(/zip/i))
     expect(actions.completeOnboarding).not.toHaveBeenCalled()
   })
 
@@ -97,11 +97,9 @@ describe('T089 — OnboardingFlow', () => {
     })
     const onNavigate = vi.fn()
     render(<OnboardingFlow actions={actions} onNavigate={onNavigate} />)
-    fireEvent.change(screen.getByTestId('onboarding-name'), { target: { value: 'Maya' } })
+    fill()
     fireEvent.click(continueBtn())
-    await waitFor(() =>
-      expect(screen.getByTestId('onboarding-error')).toHaveTextContent('could not finish'),
-    )
+    await waitFor(() => expect(screen.getByTestId('onboarding-error')).toHaveTextContent('could not finish'))
     expect(onNavigate).not.toHaveBeenCalled()
   })
 
@@ -111,24 +109,51 @@ describe('T089 — OnboardingFlow', () => {
   })
 })
 
-describe('T163 — the metro step is unconditional', () => {
-  it('asks every signup, even when the metro list came back empty', async () => {
-    // Don's ruling 2026-09-14. The guard this replaces meant a failed metro
-    // query skipped the question silently; the step now renders and reports
-    // the failure itself.
-    const completeOnboarding = vi.fn(async () => ({ ok: true }) as const)
+describe('F081 — the zip decides the metro, and the screen shows it', () => {
+  it('shows which metro, then goes home on Continue', async () => {
+    const onNavigate = vi.fn()
+    render(<OnboardingFlow actions={makeActions()} onNavigate={onNavigate} />)
+    fill()
+    fireEvent.click(continueBtn())
+    expect(await screen.findByTestId('onboarding-metro')).toHaveTextContent('Sacramento-Roseville, CA')
+    expect(screen.queryByRole('combobox')).toBeNull() // nobody picks a metro at signup
+    expect(onNavigate).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByTestId('onboarding-metro-continue'))
+    expect(onNavigate).toHaveBeenCalledWith('/')
+  })
+
+  it('a zip with no metro goes on to the waitlist question, which names where we are not yet', async () => {
+    const actions = makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null })) })
+    render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} metros={[{ id: 'm1', name: 'Boise City, ID' }]} />)
+    fill({ zip: '83702' })
+    fireEvent.click(continueBtn())
+    expect(await screen.findByRole('combobox')).toBeInTheDocument()
+    expect(screen.queryByTestId('onboarding-metro')).toBeNull()
+  })
+
+  it('lands home once the waitlist step is done', async () => {
+    const actions = makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null })) })
+    const onNavigate = vi.fn()
+    const onJoinWaitlist = vi.fn(async () => ({
+      open: false as const,
+      metroName: 'Boise City, ID',
+      standing: { combined: 1, target: 300 },
+      message: '',
+    }))
     render(
       <OnboardingFlow
-        actions={{ completeOnboarding }}
-        metros={[]}
-        onNavigate={() => {}}
+        actions={actions}
+        onNavigate={onNavigate}
+        metros={[{ id: 'm1', name: 'Boise City, ID' }]}
+        onJoinWaitlist={onJoinWaitlist}
       />,
     )
-    fireEvent.change(screen.getByTestId('onboarding-name'), {
-      target: { value: 'Ada' },
-    })
-    fireEvent.click(screen.getByTestId('onboarding-continue'))
-    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    fill({ zip: '83702' })
+    fireEvent.click(continueBtn())
+    fireEvent.change(await screen.findByRole('combobox'), { target: { value: 'm1' } })
+    fireEvent.click(screen.getByRole('radio', { name: /find/i }))
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    await waitFor(() => expect(onJoinWaitlist).toHaveBeenCalled())
   })
 })
 
