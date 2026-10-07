@@ -190,7 +190,8 @@ export const RESOURCES: Resource[] = [
         setup,
         sql: `select count(*)::int n from public.group_url_prefixes(array['${PLACE}'::uuid])`,
         total: 1,
-        cells: { ownerPlace: own(1) },
+        // A deleted Page has no address for anyone, its owner included.
+        cells: state === 'archived' ? { ownerPlace: own(1) } : {},
         rest: NONE,
       },
       {
