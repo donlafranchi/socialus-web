@@ -42,7 +42,7 @@ export default async function YouPage() {
   const [{ data: me }, metros, { data: notices }] = await Promise.all([
     supabase.from('members').select('display_name, default_metro_id, home_metro_id').eq('id', user.id).maybeSingle(),
     listFeedMetros(supabase).catch(() => []),
-    supabase.from('member_notices').select('id, message, created_at, subject_kind, page_id, report_answers(kind)').order('created_at', { ascending: false }).limit(10),
+    supabase.from('member_notices').select('id, message, created_at, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
   ])
   const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null } | null
   const name = row?.display_name ?? null
@@ -131,7 +131,7 @@ type NoticeRow = {
   message: string
   created_at: string
   subject_kind: 'group' | 'post'
-  page_id: string | null
+  page: { public_id: string } | { public_id: string }[] | null
   report_answers: { kind: 'fix_and_repost' | 'wrong' } | { kind: 'fix_and_repost' | 'wrong' }[] | null
 }
 
@@ -143,7 +143,7 @@ function toNotices(rows: unknown): Notice[] {
       message: n.message,
       createdAt: n.created_at,
       subjectKind: n.subject_kind,
-      pageId: n.page_id,
+      pageHandle: (Array.isArray(n.page) ? n.page[0] : n.page)?.public_id ?? null,
       answer: a?.kind ?? null,
       closed: Date.now() - new Date(n.created_at).getTime() > CLOSES_AFTER_MS,
     }

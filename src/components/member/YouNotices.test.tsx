@@ -10,7 +10,7 @@ const notice = (over: Partial<Notice> = {}): Notice => ({
   message: 'Someone reported a post on Oak Park Bakery as "Spam", so we\'ve hidden it.',
   createdAt: '2026-10-07T12:00:00Z',
   subjectKind: 'post',
-  pageId: 'g1',
+  pageHandle: 'qa0b01',
   answer: null,
   closed: false,
   ...over,
@@ -32,7 +32,7 @@ describe('F078 — YouNotices', () => {
 describe('F102 criteria 1–4 — the poster answers first', () => {
   it('a hidden post offers "Fix it" (to its Page) and "Say it\'s a mistake"', () => {
     render(<YouNotices notices={[notice()]} onAnswer={vi.fn()} />)
-    expect(screen.getByRole('link', { name: /fix it/i })).toHaveAttribute('href', '/g/g1')
+    expect(screen.getByRole('link', { name: /fix it/i })).toHaveAttribute('href', '/g/qa0b01')
     expect(screen.getByRole('button', { name: /say it.s a mistake/i })).toBeInTheDocument()
   })
 

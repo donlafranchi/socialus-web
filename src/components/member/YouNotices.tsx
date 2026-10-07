@@ -7,13 +7,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { canonicalPagePath } from '@/lib/groups/page-handle'
 
 export interface Notice {
   id: string
   message: string
   createdAt: string
   subjectKind: 'group' | 'post'
-  pageId: string | null
+  /** The Page's address id (not its row id), where "Fix it" leads. */
+  pageHandle: string | null
   /** What the poster did about it, if anything. */
   answer: 'fix_and_repost' | 'wrong' | null
   /** An unanswered hide closes itself after 14 days. */
@@ -89,8 +91,8 @@ function NoticeRow({ notice: n, onAnswer }: { notice: Notice; onAnswer?: (a: Ans
 
       {canAnswer && !open && (
         <div className="mt-2 flex flex-wrap gap-2">
-          {n.subjectKind === 'post' && n.pageId && (
-            <Link href={`/g/${n.pageId}`} className="btn-secondary inline-flex min-h-tap items-center">
+          {n.subjectKind === 'post' && n.pageHandle && (
+            <Link href={canonicalPagePath(n.pageHandle)} className="btn-secondary inline-flex min-h-tap items-center">
               Fix it
             </Link>
           )}
