@@ -89,6 +89,7 @@ const SUBPROCESS_SUITES = [
   'tests/ci-migration-gate-message.test.ts',
   'src/lib/migrations/manifest.test.ts',
   'tests/migrations-apply-guard.test.ts',
+  'tests/supabase-start-retry.test.ts',
 ]
 
 // #430 — the visibility matrix reads the seeded personas and Pages, which only
