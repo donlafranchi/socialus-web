@@ -115,6 +115,7 @@ export function listHandlers(): string[] {
 export {
   memberCreate,
   memberPlaceInterestAdd,
+  memberDefaultMetroSet,
   memberInterestsAdd,
   memberFollow,
   memberUnfollow,
