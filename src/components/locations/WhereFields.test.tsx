@@ -30,10 +30,11 @@ vi.mock('./AreaPickMap', () => ({
 }))
 
 let latest: WhereValue
-function Harness({ initial = emptyWhere }: { initial?: WhereValue }) {
+function Harness({ initial = emptyWhere, savedPin }: { initial?: WhereValue; savedPin?: [number, number] | null }) {
   const [v, setV] = useState(initial)
   return (
     <WhereFields
+      savedPin={savedPin}
       value={v}
       onChange={(n) => {
         latest = n
@@ -151,6 +152,20 @@ describe('People come to me', () => {
     expect(latest.visit.pin).toEqual([-121.5, 38.58])
   })
 
+  // bug #440 — a neighbourhood pick saved and published a street address.
+  it('a neighbourhood pick shows only the neighbourhood, and keeps the one picked', async () => {
+    placeForPoint.mockResolvedValue({ ok: true, data: { id: 'pl-other', name: 'Somewhere else' } })
+    searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
+    render(<Harness />)
+    choose()
+    fireEvent.change(screen.getByRole('combobox', { name: /or type a neighbourhood/i }), { target: { value: 'Curt' } })
+    fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
+    expect(latest.visit.areaOnly).toBe(true)
+    expect(screen.getByRole('switch', { name: /show only my neighbourhood/i })).toHaveAttribute('aria-checked', 'true')
+    await new Promise((r) => setTimeout(r, 0))
+    expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' })
+  })
+
   it('the two ways in replace each other: choosing one clears the other', async () => {
     geocode.mockResolvedValue(FOUND)
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
@@ -176,6 +191,21 @@ describe('People come to me', () => {
   it('offers "Drop a pin" only until there is a pin', () => {
     render(<Harness initial={{ ...emptyWhere, mode: 'visit', visit: { ...emptyWhere.visit, pin: [-121.4, 38.5] } }} />)
     expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
+  })
+
+  // #455 — the PM, 2026-10-06: the map opens on the saved pin, not on the default point.
+  it('opens the map on the saved pin, leaving it unchanged until it is moved', () => {
+    render(<Harness savedPin={[-121.47, 38.57]} initial={{ ...emptyWhere, mode: 'visit' }} />)
+    expect(screen.getByTestId('pin-moved')).toHaveAttribute('data-center', '-121.47,38.57')
+    expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
+    fireEvent.click(screen.getByTestId('pin-moved'))
+    expect(latest.visit.pin).toEqual([-121.5, 38.58])
+  })
+
+  it('a Page with no saved pin still starts with "Drop a pin"', () => {
+    render(<Harness savedPin={null} initial={{ ...emptyWhere, mode: 'visit' }} />)
+    expect(screen.queryByTestId('pin-moved')).toBeNull()
+    expect(screen.getByRole('button', { name: /drop a pin/i })).toBeInTheDocument()
   })
 
   it('or drops a pin with no address, and moving the map moves it', () => {
