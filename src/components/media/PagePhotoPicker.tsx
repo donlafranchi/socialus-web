@@ -89,7 +89,7 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
           type="checkbox"
           checked={confirmed}
           onChange={(e) => setConfirmed(e.target.checked)}
-          className="h-4 w-4"
+          className="h-4 w-4 shrink-0"
         />
         {COPY.photoConfirm}
       </label>

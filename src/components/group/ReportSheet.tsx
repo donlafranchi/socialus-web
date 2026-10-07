@@ -86,7 +86,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
                 value={c.value}
                 checked={category === c.value}
                 onChange={() => setCategory(c.value)}
-                className="h-4 w-4 accent-[var(--color-charcoal-700)]"
+                className="h-4 w-4 shrink-0 accent-[var(--color-charcoal-700)]"
               />
               {c.label}
             </label>
