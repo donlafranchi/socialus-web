@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, groupPostEdit } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
-import { fetchReviewQueue } from '@/lib/admin/reports-queue'
+import { fetchReviewQueue, fetchWeekSummary } from '@/lib/admin/reports-queue'
 import { databaseWriteSafety } from './support/write-safe'
 
 // F078 criterion 1 — a hidden Post is private, so every existing read path
@@ -163,6 +163,9 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       await expect(reportAnswer(ctx(READER), { noticeId: nid, reason: 'mistaken', note: 'not mine' })).rejects.toThrow()
       const row = (await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.reportId === reportId)!
       expect(row.answer).toEqual({ kind: 'wrong', reason: 'malicious', note: 'He reports everything.' })
+      const week = await fetchWeekSummary()
+      expect(week.answers).toBeGreaterThanOrEqual(1)
+      expect(typeof week.coolDowns).toBe('number')
       expect((await state()).discoverability).toBe('private')
     })
 

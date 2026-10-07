@@ -215,3 +215,20 @@ export async function fetchReviewQueue(
 }
 
 export { hiddenFor } from './hidden-for'
+
+/** F102 criterion 11 — answers the posters gave this week, and reporters now in a cool-down (two dismissed in 30 days, the latest under 14 days ago). */
+export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: number }> {
+  const { rows } = await getPool().query(
+    `select
+       (select count(*)::int from public.report_answers where created_at > now() - interval '7 days') as answers,
+       (select count(*)::int from (
+          select r.reporter_member_id
+            from (select distinct on (d.report_id) d.report_id, d.outcome, d.decided_at
+                    from public.report_decisions d order by d.report_id, d.decided_at desc) x
+            join public.reports r on r.id = x.report_id
+           where x.outcome = 'restored' and x.decided_at > now() - interval '30 days'
+           group by r.reporter_member_id
+          having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
+  )
+  return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}

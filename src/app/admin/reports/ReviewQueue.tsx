@@ -35,7 +35,18 @@ interface Pending {
   outcome: Outcome
 }
 
-export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: ReviewSubject[]; onDecide: Decide; onReverse: Reverse }) {
+export function ReviewQueue({
+  subjects,
+  onDecide,
+  onReverse,
+  summary,
+}: {
+  subjects: ReviewSubject[]
+  onDecide: Decide
+  onReverse: Reverse
+  /** F102 criterion 11 — the week in one line. */
+  summary?: { answers: number; coolDowns: number }
+}) {
   const router = useRouter()
   const [sort, setSort] = useState<SortKey>('severity')
   const [showAll, setShowAll] = useState(false)
@@ -159,6 +170,14 @@ export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: Revie
           </select>
         </div>
       </header>
+
+      {summary && (
+        <p data-testid="review-summary" className="mt-2 text-caption text-[var(--color-fg-muted)]">
+          This week: {summary.answers === 0 ? 'no answers from posters' : `${summary.answers} answer${summary.answers === 1 ? '' : 's'} from posters`}
+          {' · '}
+          {summary.coolDowns === 0 ? 'no cool-downs' : `${summary.coolDowns} reporter${summary.coolDowns === 1 ? '' : 's'} cooling down`}
+        </p>
+      )}
 
       {error && (
         <p role="alert" className="mt-3 text-body-sm text-[var(--color-danger,#b00)]">

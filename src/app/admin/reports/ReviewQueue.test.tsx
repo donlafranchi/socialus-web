@@ -41,7 +41,8 @@ const decided: PastDecision = {
 
 const onDecide = vi.fn(async () => {})
 const onReverse = vi.fn(async () => {})
-const show = (subjects: ReviewSubject[]) => render(<ReviewQueue subjects={subjects} onDecide={onDecide} onReverse={onReverse} />)
+const show = (subjects: ReviewSubject[], summary?: { answers: number; coolDowns: number }) =>
+  render(<ReviewQueue subjects={subjects} onDecide={onDecide} onReverse={onReverse} summary={summary} />)
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -311,5 +312,22 @@ describe('F101 criterion 2 / F102 — the poster\'s answer is on the row', () =>
   it('says nothing when there is no answer', () => {
     show(groupBySubject([report('r1', 'a')]))
     expect(screen.queryByTestId('review-answer')).toBeNull()
+  })
+})
+
+describe('F102 criterion 11 — the week in one line', () => {
+  it('says how many answers came in and how many reporters are cooling down', () => {
+    show(groupBySubject([report('r1', 'a')]), { answers: 3, coolDowns: 1 })
+    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: 3 answers from posters · 1 reporter cooling down')
+  })
+
+  it('is plain when there is nothing to say', () => {
+    show(groupBySubject([report('r1', 'a')]), { answers: 0, coolDowns: 0 })
+    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: no answers from posters · no cool-downs')
+  })
+
+  it('is absent when no summary is given', () => {
+    show(groupBySubject([report('r1', 'a')]))
+    expect(screen.queryByTestId('review-summary')).toBeNull()
   })
 })
