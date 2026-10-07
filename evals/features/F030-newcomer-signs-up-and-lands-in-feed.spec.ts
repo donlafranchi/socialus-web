@@ -73,14 +73,20 @@ test.describe('F030 — A newcomer signs up and lands in the feed', () => {
       await signUpWithPassword(page, email, 'F030-newcomer-pass')
       await page.waitForURL((url) => url.pathname === '/onboarding')
 
-      // One field, one button. No handle / locality / interests steps — the
-      // home locality is defaulted to The Good Place server-side.
+      // #222 (F081): one screen — legal name, display name, zip, the 18+ box. No
+      // handle / locality / interests steps, and nobody picks a metro: the zip does.
       await expect(page.getByTestId('onboarding-name')).toBeVisible()
       await expect(page.getByTestId('onboarding-handle')).toHaveCount(0)
       await expect(page.getByTestId('onboarding-locality')).toHaveCount(0)
       await expect(page.getByTestId('onboarding-interests')).toHaveCount(0)
+      await page.getByTestId('onboarding-legal-name').fill('New Comer Smith')
       await page.getByTestId('onboarding-name').fill('New Comer')
-      await page.getByRole('button', { name: /Continue/i }).click()
+      await page.getByTestId('onboarding-zip').fill('95819')
+      await page.getByTestId('onboarding-adult').check()
+      await page.getByTestId('onboarding-continue').click()
+      // The screen shows which metro the zip decided.
+      await expect(page.getByTestId('onboarding-metro')).toContainText('Sacramento')
+      await page.getByTestId('onboarding-metro-continue').click()
 
       // Lands on / — the feed renders against the defaulted primary_home.
       await page.waitForURL((url) => url.pathname === '/')

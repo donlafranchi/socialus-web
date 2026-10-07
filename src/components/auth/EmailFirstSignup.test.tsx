@@ -182,3 +182,12 @@ describe('F081 criterion 5 — the signup screen says what the app is for', () =
     expect(screen.queryByTestId('signup-line')).toBeNull()
   })
 })
+
+describe('#489 — the signup screen links About, Terms and Privacy', () => {
+  it('on the first screen, before anything is typed', () => {
+    render(<EmailFirstSignup onAuthenticated={() => {}} deps={{}} />)
+    for (const [name, href] of [['About', '/about'], ['Terms', '/terms'], ['Privacy', '/privacy']]) {
+      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href)
+    }
+  })
+})
