@@ -248,13 +248,20 @@ describe.skipIf(!RUNNABLE)('#388 — with the switch on, builder content shows; 
     switchOn = false
   })
 
-  for (const [who, sub] of [['signed out', null], ['a real member', REAL]] as [string, string | null][]) {
-    it(`${who} sees the builder Page and its post`, async () => {
-      expect(await feed(sub)).toEqual(expect.arrayContaining([B_PAGE, B_POST]))
-      expect(await ids(sub, `select id from public.groups where id = $1`, [B_PAGE])).toEqual([B_PAGE])
-      expect(await ids(sub, `select id from public.page_posts where id = $1`, [B_POST])).toEqual([B_POST])
-    })
-  }
+  it('a real member sees the builder Page and its post', async () => {
+    expect(await feed(REAL)).toEqual(expect.arrayContaining([B_PAGE, B_POST]))
+    expect(await ids(REAL, `select id from public.groups where id = $1`, [B_PAGE])).toEqual([B_PAGE])
+    expect(await ids(REAL, `select id from public.page_posts where id = $1`, [B_POST])).toEqual([B_POST])
+  })
+
+  // F093 — signed out gets a Page's front door and never its posts, builder
+  // content or not; the switch changes whose content shows, not that rule.
+  it('signed out sees the builder Page, and its post no more than any post', async () => {
+    const shown = await feed(null)
+    expect(shown).toContain(B_PAGE)
+    expect(shown).not.toContain(B_POST)
+    expect(await ids(null, `select id from public.groups where id = $1`, [B_PAGE])).toEqual([B_PAGE])
+  })
 
   it("a builder follow or join still never counts in a real Page's numbers", async () => {
     const followers = await as<{ n: number }>(
