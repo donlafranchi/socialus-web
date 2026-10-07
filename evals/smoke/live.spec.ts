@@ -58,7 +58,6 @@ async function signIn(page: Page, persona: PersonaKey) {
 
 for (const who of personas) {
   test.describe(who, () => {
-    test.describe.configure({ mode: 'serial' })
     let context: BrowserContext
     let page: Page
     let firstPage = '/explore'

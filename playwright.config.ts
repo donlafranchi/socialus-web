@@ -60,6 +60,8 @@ export default defineConfig({
       // #432 — the live smoke: read-only, on production, as builder accounts.
       name: 'smoke-live',
       testMatch: /smoke\/live\.spec\.ts/,
+      // One persona's screens run in order on one worker, signed in once; a failure does not skip the rest.
+      fullyParallel: false,
       retries: 0,
       timeout: 120_000,
       use: { ...devices['Desktop Chrome'], actionTimeout: 15_000, navigationTimeout: 30_000 },

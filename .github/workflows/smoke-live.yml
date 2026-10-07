@@ -78,7 +78,7 @@ jobs:
         run: |
           [ -n "$BUILDER_SEED" ] || { echo "::error::BUILDER_SEED is not set."; exit 1; }
           echo "Routes: $SMOKE_ROUTES" >> "$GITHUB_STEP_SUMMARY"
-          npx playwright test --project=smoke-live --workers=2 --reporter=line,json 2>&1 | tee smoke.log
+          npx playwright test --project=smoke-live --workers=2 --reporter=line 2>&1 | tee smoke.log
           test "${PIPESTATUS[0]}" -eq 0
 
       - uses: actions/upload-artifact@v6
