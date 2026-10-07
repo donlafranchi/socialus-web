@@ -155,7 +155,7 @@ jobs:
       # meaningful rather than merely runnable. Only the services the suites
       # reach are started (#375): Postgres, auth, REST, storage and the gateway.
       - name: Start a throwaway local stack
-        run: supabase start -x "$SUPABASE_UNUSED"
+        run: bash scripts/supabase-start.sh -x "$SUPABASE_UNUSED"
         env:
           SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
@@ -259,7 +259,7 @@ jobs:
       # minutes), and nothing before the seed needs it.
       - name: Start a throwaway local stack (background)
         run: |
-          ( supabase start -x "$SUPABASE_UNUSED" 2>&1 | while IFS= read -r l; do echo "$(date +%T) $l"; done > "$RUNNER_TEMP/stack.log"; echo "${PIPESTATUS[0]}" > "$RUNNER_TEMP/stack.exit" ) &
+          ( bash scripts/supabase-start.sh -x "$SUPABASE_UNUSED" 2>&1 | while IFS= read -r l; do echo "$(date +%T) $l"; done > "$RUNNER_TEMP/stack.log"; echo "${PIPESTATUS[0]}" > "$RUNNER_TEMP/stack.exit" ) &
         env:
           SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 

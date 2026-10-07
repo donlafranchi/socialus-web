@@ -78,7 +78,7 @@ jobs:
           version: 2.117.0
 
       - name: Start a throwaway local stack
-        run: supabase start
+        run: bash scripts/supabase-start.sh
 
       # The real check: every migration, from an empty database, in order.
       # This is what would have caught a migration that only applies when

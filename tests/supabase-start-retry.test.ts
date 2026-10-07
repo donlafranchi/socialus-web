@@ -3,7 +3,7 @@
 // one evening. scripts/supabase-start.sh retries the start; CI uses it.
 
 import { describe, it, expect } from 'vitest'
-import { execFileSync, spawnSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import { mkdtempSync, writeFileSync, chmodSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -58,4 +58,3 @@ describe('CI uses it', () => {
   })
 })
 
-void execFileSync
