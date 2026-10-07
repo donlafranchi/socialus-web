@@ -8,10 +8,12 @@
 
 import type { QueuedReport } from './reports-queue'
 import type { ReasonCode } from './reason-codes'
+import { SEVERITY_OF_REPORT_CATEGORY, type ReportCategory } from '@/lib/reports/categories'
 
 export type Severity = 1 | 2 | 3 | 4
 
 export interface ReviewSubject {
+  subjectKind: 'group' | 'post'
   subjectId: string
   name: string
   slug: string | null
@@ -21,6 +23,10 @@ export interface ReviewSubject {
   /** Reports with no decision yet. A reversal is itself a decision (the opposite outcome). */
   openReportIds: string[]
   severity: Severity | null
+  /** The reasons the reporters chose, most reported first. */
+  reasons: { category: ReportCategory; count: number }[]
+  /** What was reported, for the excerpt. */
+  contentText: string | null
   hiddenAt: Date | null
   status: 'hidden' | 'restored' | 'removed'
 }
@@ -30,8 +36,13 @@ export const isOpen = (r: QueuedReport) => r.history.length === 0
 export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
   const by = new Map<string, ReviewSubject>()
   for (const r of [...queue].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())) {
-    const s = by.get(r.groupId) ?? {
-      subjectId: r.groupId,
+    const isPost = r.subjectKind === 'post' && !!r.postId
+    const key = isPost ? `post:${r.postId}` : `group:${r.groupId}`
+    const s = by.get(key) ?? {
+      subjectKind: isPost ? ('post' as const) : ('group' as const),
+      subjectId: isPost ? r.postId! : r.groupId,
+      contentText: r.contentText ?? null,
+      reasons: [],
       name: r.groupName,
       slug: r.groupSlug,
       photoUrl: r.photoUrl,
@@ -43,9 +54,28 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
     }
     s.reports.push(r)
     if (isOpen(r)) s.openReportIds.push(r.reportId)
-    by.set(r.groupId, s)
+    by.set(key, s)
+  }
+  for (const s of by.values()) {
+    s.severity = severityOf(s)
+    s.reasons = tally(s)
   }
   return [...by.values()]
+}
+
+const tiers = (s: ReviewSubject) =>
+  s.reports.filter(isOpen).flatMap((r) => (r.category ? [SEVERITY_OF_REPORT_CATEGORY[r.category]] : []))
+
+/** F101 criterion 3 (shadow): the most serious tier among the open reports' reasons. */
+const severityOf = (s: ReviewSubject): Severity | null => {
+  const t = tiers(s)
+  return t.length ? (Math.min(...t) as Severity) : null
+}
+
+const tally = (s: ReviewSubject) => {
+  const counts = new Map<ReportCategory, number>()
+  for (const r of s.reports) if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1)
+  return [...counts].map(([category, count]) => ({ category, count })).sort((a, b) => b.count - a.count)
 }
 
 export type SortKey = 'severity' | 'age' | 'count'

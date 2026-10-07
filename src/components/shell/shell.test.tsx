@@ -10,6 +10,7 @@ import { SiteFooter } from './SiteFooter'
 import { EmptyState } from './EmptyState'
 import { TextPage } from './TextPage'
 import { TEXT_PAGES } from '@/lib/text-pages'
+import { CREATOR_RULES } from '@/lib/creator-rules'
 
 afterEach(() => {
   cleanup()
@@ -33,6 +34,26 @@ describe('#296 — the footer', () => {
   })
 })
 
+// F082 criterion 7 — the rules are one click away whether or not the member is publishing.
+describe('F082 — the rules page', () => {
+  // [guards F082.7]
+  it('is linked from the footer', () => {
+    render(<SiteFooter />)
+    expect(screen.getByRole('link', { name: 'Rules' })).toHaveAttribute('href', '/rules')
+  })
+
+  // [guards F082.7]
+  it('sets out every rule with its reason', async () => {
+    const { default: RulesPage } = await import('@/app/rules/page')
+    render(<RulesPage />)
+    expect(screen.getByRole('heading', { level: 1, name: 'The rules' })).toBeInTheDocument()
+    for (const { rule, reason } of CREATOR_RULES) {
+      expect(screen.getByText(rule)).toBeInTheDocument()
+      expect(screen.getByText(reason)).toBeInTheDocument()
+    }
+  })
+})
+
 describe('#296 — the empty and error state', () => {
   it('says what happened and offers one way on', () => {
     render(<EmptyState title="We couldn't find that" body="It may have moved." action={{ href: '/explore', label: 'Go to Explore' }} />)
@@ -42,15 +63,30 @@ describe('#296 — the empty and error state', () => {
 })
 
 describe('#296 — About, Terms and Privacy', () => {
-  it('each has a page, and Terms and Privacy are placeholders until Don\'s drafts land', () => {
+  it('each has a page, and Terms and Privacy are drafts live for the beta (#489)', () => {
     expect(Object.keys(TEXT_PAGES).sort()).toEqual(['about', 'privacy', 'terms'])
-    expect(TEXT_PAGES.terms.status).toBe('placeholder')
-    expect(TEXT_PAGES.privacy.status).toBe('placeholder')
+    expect(TEXT_PAGES.terms.status).toBe('draft')
+    expect(TEXT_PAGES.privacy.status).toBe('draft')
   })
 
   it('a placeholder says plainly it is not in effect', () => {
-    render(<TextPage page={TEXT_PAGES.terms} />)
+    render(<TextPage page={{ slug: 'terms', title: 'Terms', status: 'placeholder', body: [] }} />)
     expect(screen.getByRole('heading', { level: 1, name: 'Terms' })).toBeInTheDocument()
     expect(screen.getByTestId('text-page-placeholder')).toHaveTextContent(/not yet in effect/i)
+  })
+})
+
+describe('#489 — a draft legal page says it is a draft, and never prints the counsel list', () => {
+  it('shows the draft note on Terms and Privacy', () => {
+    render(<TextPage page={TEXT_PAGES.terms} />)
+    expect(screen.getByTestId('text-page-draft')).toBeInTheDocument()
+  })
+  it('does not render what counsel must supply', () => {
+    render(<TextPage page={TEXT_PAGES.privacy} />)
+    for (const item of TEXT_PAGES.privacy.counsel ?? []) expect(screen.queryByText(item)).toBeNull()
+  })
+  it('About carries no draft note', () => {
+    render(<TextPage page={TEXT_PAGES.about} />)
+    expect(screen.queryByTestId('text-page-draft')).toBeNull()
   })
 })

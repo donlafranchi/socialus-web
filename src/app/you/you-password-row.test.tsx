@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest'
 
 // #407 — the Password row's line is a sentence, not a value: at 390 it was cut to "Sign in without a…".
 
-const query = { select: () => query, eq: () => query, maybeSingle: async () => ({ data: null }) }
+const query = { select: () => query, eq: () => query, order: () => query, limit: async () => ({ data: [] }), maybeSingle: async () => ({ data: null }) }
 vi.mock('@/lib/supabase-server', () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: { id: 'u1', email: 'maya@example.test' } } }) },

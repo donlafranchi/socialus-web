@@ -2,19 +2,22 @@
 
 // T089 — Onboarding server actions (F030).
 //
-// Onboarding asks for one thing: a display name. Everything else is derived:
-//   - saveProfileAction        → members.display_name (owner-update RLS; profile
-//                                edits are not declarations, so no event).
+// Onboarding asks for the four fields F081 names (legal name, zip, display name,
+// plus the email the login already has) and the 18+ box. The metro is derived
+// from the zip, never picked.
+//   - completeOnboardingAction → what the flow calls: member.signup_profile.set,
+//                                then the login marked onboarded. No place (#205).
 //   - addInterestsAction       → member.interests.add (action layer; emits).
-//   - completeOnboardingAction → what the flow calls: the name, then the login
-//                                marked onboarded. No place (#205).
 //
 // Interests go through the action layer (resolveActionContext →
 // invoke) exactly like createProductAction (T078).
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { memberInterestsAdd, ActionError } from '@/actions'
+import { memberInterestsAdd, memberSignupProfileSet, ActionError } from '@/actions'
+import { NotFoundError } from '@/actions/_lib/errors'
+import { validateSignupProfile, type SignupProfileInput, type SignupProfileField } from '@/lib/signup/profile'
+import { metroForZip } from '@/lib/signup/zip-metro'
 
 async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
@@ -23,15 +26,18 @@ async function requireMemberId(): Promise<string> {
   return data.user.id
 }
 
-export interface SaveProfileInput {
-  displayName: string
-}
+export type SaveProfileInput = SignupProfileInput
 
 export type SaveProfileResult =
-  | { ok: true }
-  | { ok: false; field: 'displayName'; message: string }
+  | { ok: true; /** The metro the zip decided, shown to the person; null when the zip has none. */ metro: { name: string } | null }
+  | { ok: false; field: SignupProfileField; message: string }
 
-export async function saveProfileAction(input: SaveProfileInput): Promise<SaveProfileResult> {
+/**
+ * The whole of onboarding (F081): the four fields and the 18+ box, the metro
+ * the zip decides, and the login marked onboarded. #205 — no place is written
+ * for anyone; home is that metro, or nothing.
+ */
+export async function completeOnboardingAction(input: SaveProfileInput): Promise<SaveProfileResult> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -39,54 +45,36 @@ export async function saveProfileAction(input: SaveProfileInput): Promise<SavePr
   } = await supabase.auth.getUser()
   if (authErr || !user) throw new Error('You must be signed in.')
 
-  const displayName = input.displayName?.trim() ?? ''
-  if (displayName.length < 1 || displayName.length > 60) {
-    return { ok: false, field: 'displayName', message: 'Add a name (1–60 characters).' }
-  }
+  const checked = validateSignupProfile(input)
+  if (!checked.ok) return checked
 
-  const { data: updated, error } = await supabase
-    .from('members')
-    .update({ display_name: displayName })
-    .eq('id', user.id)
-    .select('id')
-
-  if (error) throw error
-
-  // An UPDATE that matches no row is NOT an error in supabase-js. That happens
-  // when the Member has an auth.users row but no members row — the auth-signup
-  // hook (migration 006) returns early with only a WARNING when its Vault
-  // secrets are unset, so nothing ever creates the row. Left silent here, the
-  // failure surfaced one step later as an opaque FK violation on
-  // member_place_interests.member_id. Fail here, where the cause is knowable.
-  if (!updated || updated.length === 0) {
-    console.error(
-      `[onboarding] saveProfileAction: no members row for auth user ${user.id}. ` +
-        'The auth-signup hook did not create it — check vault.decrypted_secrets ' +
-        '(auth_signup_hook_url / auth_signup_hook_secret) and net._http_response.',
-    )
-    return {
-      ok: false,
-      field: 'displayName',
-      message: 'We could not finish setting up your account. Please contact support.',
+  const metro = await metroForZip(supabase, checked.value.zip)
+  try {
+    await memberSignupProfileSet(resolveActionContext({ actingMemberId: user.id }), {
+      ...checked.value,
+      adultConfirmed: true,
+      metroId: metro?.id ?? null,
+    })
+  } catch (err) {
+    if (err instanceof NotFoundError) {
+      // The auth-signup hook (migration 006) returns early with only a WARNING
+      // when its Vault secrets are unset, so nothing ever creates the members
+      // row. Fail here, where the cause is knowable, not as an FK error later.
+      console.error(
+        `[onboarding] no members row for auth user ${user.id}. The auth-signup hook did not create it — ` +
+          'check vault.decrypted_secrets (auth_signup_hook_url / auth_signup_hook_secret) and net._http_response.',
+      )
+      return {
+        ok: false,
+        field: 'displayName',
+        message: 'We could not finish setting up your account. Please contact support.',
+      }
     }
+    throw err
   }
 
-  return { ok: true }
-}
-
-/**
- * The whole of onboarding: save the display name and mark the login onboarded.
- * #205 — no place is written for anyone (F081 criterion 7). Home is the metro
- * the member's zip determines, which lands with F081's zip step.
- */
-export async function completeOnboardingAction(
-  input: SaveProfileInput,
-): Promise<SaveProfileResult> {
-  const res = await saveProfileAction(input)
-  if (!res.ok) return res
-  const supabase = await createClient()
   await supabase.auth.updateUser({ data: { onboarded: true } })
-  return { ok: true }
+  return { ok: true, metro: metro ? { name: metro.name } : null }
 }
 
 export async function addInterestsAction(input: {
