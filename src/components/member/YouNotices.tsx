@@ -15,7 +15,7 @@ export function YouNotices({ notices }: { notices: Notice[] }) {
       <ul className="divide-y divide-[var(--color-border)] rounded-lg border border-[var(--color-border)]">
         {notices.map((n) => (
           <li key={n.id} className="px-4 py-3">
-            <p className="text-body-sm text-[var(--color-fg)]">{n.message}</p>
+            <p className="break-words text-body-sm text-[var(--color-fg)]">{n.message}</p>
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
               {new Date(n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </p>

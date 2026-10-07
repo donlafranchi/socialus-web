@@ -18,4 +18,9 @@ describe('F078 — YouNotices', () => {
     const { container } = render(<YouNotices notices={[]} />)
     expect(container).toBeEmptyDOMElement()
   })
+
+  it('wraps an unbroken long name instead of widening the page', () => {
+    render(<YouNotices notices={[notice]} />)
+    expect(screen.getByText(notice.message)).toHaveClass('break-words')
+  })
 })
