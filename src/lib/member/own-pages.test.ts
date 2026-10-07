@@ -114,6 +114,20 @@ describe('getOwnPages', () => {
     })
   })
 
+  // #454 — the PM, 2026-10-06: a deleted Page sorted above the live ones.
+  it('lists live Pages first, then drafts, archived and deleted, each by name', async () => {
+    const NOW = new Date('2026-10-06T12:00:00Z')
+    const c = client([
+      row({ id: 'g-del', name: 'Alder', lifecycle_state: 'dissolved', delete_after: '2026-10-20T00:00:00Z' }),
+      row({ id: 'g-arc', name: 'Birch', lifecycle_state: 'archived' }),
+      row({ id: 'g-z', name: 'Zinnia', lifecycle_state: 'active' }),
+      row({ id: 'g-draft', name: 'Aster', lifecycle_state: 'draft' }),
+      row({ id: 'g-a', name: 'acacia', lifecycle_state: 'active' }),
+    ])
+    const out = await getOwnPages(c as never, MEMBER, NOW)
+    expect(out.map((p) => p.name)).toEqual(['acacia', 'Zinnia', 'Aster', 'Birch', 'Alder'])
+  })
+
   it('includes drafts — a half-finished Page vanishing is the same bug again', async () => {
     const c = client([row({ id: 'g-2', lifecycle_state: 'draft' })])
     const out = await getOwnPages(c as never, MEMBER)
