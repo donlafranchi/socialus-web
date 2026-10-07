@@ -38,6 +38,7 @@ import {
   emptyWhenWhere,
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
+import { Sheet } from '@/components/ui/Sheet'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
@@ -81,6 +82,8 @@ interface Props {
   /** How many people get updates from this Page. Owner-only; see
    *  countPageFollowers for why it is a count and never a roster. */
   followerCount?: number
+  /** #337 — a private Page's posts are for its members, so there is no reach to choose. */
+  isPrivate?: boolean
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -137,6 +140,7 @@ export function PagePosts({
   posts,
   canPost,
   followerCount = 0,
+  isPrivate = false,
   onPost,
   onEdit,
   onCreateLocation = createLocationAction,
@@ -442,7 +446,7 @@ export function PagePosts({
                           setEditWhen(whenWhereFrom(post))
                           setError(null)
                         }}
-                        className="text-xs underline"
+                        className="inline-flex min-h-tap items-center px-1 text-xs underline"
                       >
                         Edit
                       </button>
@@ -455,27 +459,25 @@ export function PagePosts({
                           setShowAll(true)
                           setConfirmingDelete(post.id)
                         }}
-                        className="text-xs underline"
+                        className="inline-flex min-h-tap items-center px-1 text-xs underline"
                       >
                         Delete
                       </button>
                     )}
                   </div>
-                  {confirmingDelete === post.id && onDelete && (
-                    <div
-                      role="alertdialog"
-                      aria-label="Delete this post?"
-                      data-testid="page-post-delete-confirm"
-                      className="mt-2 flex flex-col gap-2 rounded-md border border-[var(--color-control-border)] p-3"
-                    >
-                      <p className="text-body-sm text-[var(--color-fg)]">
-                        Delete this post? It comes off your Page and Explore.
-                      </p>
+                  <Sheet
+                    open={confirmingDelete === post.id && !!onDelete}
+                    title="Delete this post?"
+                    description="It comes off your Page and Explore."
+                    onClose={() => setConfirmingDelete(null)}
+                    testId="page-post-delete-confirm"
+                    footer={
                       <div className="flex gap-2">
                         <button
                           type="button"
                           disabled={busy}
                           onClick={async () => {
+                            if (!onDelete) return
                             setBusy(true)
                             const r = await onDelete({ postId: post.id })
                             setBusy(false)
@@ -494,8 +496,10 @@ export function PagePosts({
                           Keep it
                         </button>
                       </div>
-                    </div>
-                  )}
+                    }
+                  >
+                    <></>
+                  </Sheet>
                 </>
               )}
             </li>
@@ -523,12 +527,14 @@ export function PagePosts({
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
 
-          <AudienceSwitch
-            value={audience}
-            onChange={setAudience}
-            followerCount={followerCount}
-            idPrefix="announce"
-          />
+          {!isPrivate && (
+            <AudienceSwitch
+              value={audience}
+              onChange={setAudience}
+              followerCount={followerCount}
+              idPrefix="announce"
+            />
+          )}
 
           <PostingSafetyNote />
 
