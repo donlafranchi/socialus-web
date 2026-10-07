@@ -13,10 +13,10 @@
 // and the write behind it re-checks the managing role, so this is a courtesy
 // rather than the boundary.
 
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
-import { resolvePageByHandle } from '@/lib/groups/resolve-page-address'
+import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditCards } from '@/components/group/edit/EditCards'
 import { resolvePageWhere } from '@/lib/groups/page-where'
@@ -35,13 +35,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) notFound()
 
-  const found = await resolvePageByHandle(supabase, handle)
-  if (!found) notFound()
-  // One address for the edit surface too, for the same reason the Page has
-  // one: a stale slug resolves and then corrects itself.
-  if (found.redirectTo) permanentRedirect(`${found.redirectTo}/edit`)
+  const shop = await resolvePageById(supabase, handle)
+  if (!shop) notFound()
 
-  const { shop } = found
   const owns = await viewerOwnsPage(supabase, {
     groupId: shop.groupId,
     viewerMemberId: auth.user.id,
@@ -49,7 +45,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   })
   if (!owns) notFound()
 
-  const pagePath = canonicalPagePath(shop.slug, shop.publicId)
+  const pagePath = canonicalPagePath(shop.publicId)
   const isDraft = shop.lifecycleState === 'draft'
   const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
@@ -81,7 +77,6 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
       </h1>
       <p className="mt-1 mb-4 text-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
       <EditCards
-        slug={shop.slug}
         isDraft={isDraft}
         onSave={editPageAction}
         initial={{

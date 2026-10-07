@@ -25,7 +25,7 @@ vi.mock('@/lib/geocoding', () => ({ geocode: vi.fn(async () => []), GeocodingUna
 const onSave = vi.fn(async (_i: unknown): Promise<{ ok: true } | { ok: false; message: string }> => ({ ok: true }))
 const initial: EditorInitial = {
   groupId: 'g1',
-  pagePath: '/g/oak-park-sourdough-7k3x8m',
+  pagePath: '/g/7k3x8m',
   memberId: 'm1',
   name: 'Oak Park Sourdough',
   description: 'Real bread, baked in Oak Park every morning before the sun is up, by people who love it.\nSecond line.',
@@ -42,7 +42,7 @@ const initial: EditorInitial = {
 }
 
 const renderCards = (over: Partial<EditorInitial> = {}, isDraft = false) =>
-  render(<EditCards initial={{ ...initial, ...over }} onSave={onSave} slug="oak-park-sourdough" isDraft={isDraft} />)
+  render(<EditCards initial={{ ...initial, ...over }} onSave={onSave} isDraft={isDraft} />)
 
 const card = (s: string) => screen.getByTestId(`edit-card-${s}`)
 
@@ -187,14 +187,16 @@ describe('#412 — the link and the way back', () => {
   it('a live Page keeps its frozen-link note, word for word, with no Edit', () => {
     renderCards()
     const link = screen.getByTestId('edit-link-frozen')
-    expect(link).toHaveTextContent('socialus.org/g/oak-park-sourdough-7k3x8m')
+    expect(link).toHaveTextContent('socialus.org/g/7k3x8m')
     expect(link).toHaveTextContent('The name can change; this link can’t. People have it already, and moving it would break it.')
     expect(within(link).queryByRole('button')).toBeNull()
   })
 
-  it('a draft says its link follows the name', () => {
+  it('a draft shows the link it keeps when it publishes (#411)', () => {
     renderCards({}, true)
-    expect(screen.getByTestId('edit-link-frozen')).toHaveTextContent('Your link comes from the name. It stays the same once you publish.')
+    const link = screen.getByTestId('edit-link-frozen')
+    expect(link).toHaveTextContent('socialus.org/g/7k3x8m')
+    expect(link).toHaveTextContent('It stays the same when you publish.')
   })
 
   it('Done goes back to the Page', () => {

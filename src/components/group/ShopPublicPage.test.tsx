@@ -25,6 +25,7 @@ const SHOP: ResolvedShop = {
   photoUrl: null,
   socialLinks: {},
   photoHiddenAt: null,
+  photoRemovedAt: null,
   discoverability: 'listed',
   placements: [],
   founder: {
@@ -344,6 +345,11 @@ describe('#300 — the Page on the new layout', () => {
     expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
   })
 
+  it('shows default art when the operator removed the photo', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoRemovedAt: '2026-10-01T00:00:00Z' } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
+  })
+
   it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
     renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
     const panel = screen.getByTestId('owner-panel')
@@ -550,5 +556,20 @@ describe('#363 — the kind line and what each type leads with', () => {
     const contact = screen.getByTestId('page-contact')
     expect(contact.compareDocumentPosition(screen.getByText(SHOP.publicDescription)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByTestId('page-next-up')).toBeNull()
+  })
+})
+
+describe('ShopPublicPage — #409 Share', () => {
+  it('is there for everyone on a published Page, signed in or out', () => {
+    for (const loggedIn of [false, true]) {
+      renderShop({ loggedIn, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+      expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
+  it('is not on a draft', () => {
+    renderShop({ shop: { ...SHOP, lifecycleState: 'draft' }, viewerOwnsPage: true, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

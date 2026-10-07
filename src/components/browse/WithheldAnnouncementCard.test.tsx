@@ -68,7 +68,7 @@ describe('WithheldAnnouncementCard', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
     const cta = screen.getByTestId('withheld-cta')
     expect(cta.textContent).toBe("Sign in to see what's happening")
-    expect(cta.getAttribute('href')).toBe('/auth/login?next=%2Fg%2Fsacriver-floaters-3k8x0p')
+    expect(cta.getAttribute('href')).toBe('/auth/login?next=%2Fg%2F3k8x0p')
   })
 
   it('carries nothing else — no body, no time, no place', () => {
@@ -96,7 +96,7 @@ describe('WithheldAnnouncementCard', () => {
     // Criterion 10 — somewhere a signed-out reader CAN read.
     render(<WithheldAnnouncementCard result={RESULT} />)
     expect(screen.getByTestId('withheld-link').getAttribute('href')).toBe(
-      '/g/sacriver-floaters-3k8x0p#announcement-11111111-1111-4111-8111-111111111111',
+      '/g/3k8x0p#announcement-11111111-1111-4111-8111-111111111111',
     )
   })
 

@@ -55,7 +55,7 @@ test.describe("F040 — A producer lists a service", () => {
       await expect(attribution).toHaveText(STUDIO.brandName);
       await expect(attribution).toHaveAttribute(
         "href",
-        new RegExp(`/g/${STUDIO.slug}$`),
+        /\/g\/[0-9a-z]{6}$/,
       );
 
       // Then — the service-area section renders (driven by a non-null
