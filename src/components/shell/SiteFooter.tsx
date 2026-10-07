@@ -9,6 +9,7 @@ import { navHidden } from '@/components/BottomNav'
 
 const LINKS = [
   { href: '/about', label: 'About' },
+  { href: '/rules', label: 'Rules' },
   { href: '/terms', label: 'Terms' },
   { href: '/privacy', label: 'Privacy' },
 ]

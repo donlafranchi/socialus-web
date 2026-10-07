@@ -10,6 +10,7 @@ import { SiteFooter } from './SiteFooter'
 import { EmptyState } from './EmptyState'
 import { TextPage } from './TextPage'
 import { TEXT_PAGES } from '@/lib/text-pages'
+import { CREATOR_RULES } from '@/lib/creator-rules'
 
 afterEach(() => {
   cleanup()
@@ -30,6 +31,26 @@ describe('#296 — the footer', () => {
     pathname.current = '/auth/login'
     const { container } = render(<SiteFooter />)
     expect(container).toBeEmptyDOMElement()
+  })
+})
+
+// F082 criterion 7 — the rules are one click away whether or not the member is publishing.
+describe('F082 — the rules page', () => {
+  // [guards F082.7]
+  it('is linked from the footer', () => {
+    render(<SiteFooter />)
+    expect(screen.getByRole('link', { name: 'Rules' })).toHaveAttribute('href', '/rules')
+  })
+
+  // [guards F082.7]
+  it('sets out every rule with its reason', async () => {
+    const { default: RulesPage } = await import('@/app/rules/page')
+    render(<RulesPage />)
+    expect(screen.getByRole('heading', { level: 1, name: 'The rules' })).toBeInTheDocument()
+    for (const { rule, reason } of CREATOR_RULES) {
+      expect(screen.getByText(rule)).toBeInTheDocument()
+      expect(screen.getByText(reason)).toBeInTheDocument()
+    }
   })
 })
 

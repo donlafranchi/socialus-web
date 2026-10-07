@@ -20,6 +20,7 @@ vi.mock('../_lib/db', () => ({
 vi.mock('../_lib/event-log', () => ({ appendEvent }))
 
 import { groupActivate } from './activate'
+import { RULES_VERSION } from '../../lib/creator-rules'
 import type { ActionContext } from '../_lib/context'
 
 const GROUP_ID = '11111111-1111-1111-1111-111111111111'
@@ -80,6 +81,9 @@ function installQueryRouter(opts: {
     if (/from public\.page_tags/i.test(sql) && /count/i.test(sql)) {
       return { rows: [{ n: opts.savedTags ?? 1 }] }
     }
+    if (/insert into public\.creator_rules_agreements/i.test(sql)) {
+      return { rows: [] }
+    }
     if (/insert into public\.tags/i.test(sql)) {
       return { rows: [] }
     }
@@ -100,28 +104,28 @@ beforeEach(() => {
 describe('group.activate — what publishing needs', () => {
   it('publishes with the tags already saved on the draft', async () => {
     installQueryRouter({ savedTags: 2 })
-    await groupActivate(ctx(), { groupId: GROUP_ID })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })
     expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
   })
 
   it('refuses a Page with no tags, saved or given, for every kind', async () => {
     for (const kind of ['business', 'group']) {
       installQueryRouter({ kind, savedTags: 0 })
-      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/tag/i)
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })).rejects.toThrow(/tag/i)
       expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
     }
   })
 
   it('a tag given at publish counts', async () => {
     installQueryRouter({ savedTags: 0 })
-    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })
     expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
   })
 
   it('refuses a Page with no description, for every kind', async () => {
     for (const kind of ['business', 'group']) {
       installQueryRouter({ kind, description: '   ' })
-      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/description/i)
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })).rejects.toThrow(/description/i)
       expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
     }
   })
@@ -129,7 +133,7 @@ describe('group.activate — what publishing needs', () => {
   it('refuses a Page with no location, for every kind', async () => {
     for (const kind of ['business', 'group']) {
       installQueryRouter({ kind, hasAnchor: false })
-      await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/anchor|where/i)
+      await expect(groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })).rejects.toThrow(/anchor|where/i)
       expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
     }
   })
@@ -137,14 +141,14 @@ describe('group.activate — what publishing needs', () => {
   it('refuses a Page still carrying the placeholder name', async () => {
     const { DRAFT_NAME_PLACEHOLDER } = await import('./constants')
     installQueryRouter({ kind: 'group', name: DRAFT_NAME_PLACEHOLDER })
-    await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow()
+    await expect(groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })).rejects.toThrow()
   })
 })
 
 describe('group.activate — tags, when given', () => {
   it('creates the tag and attaches it to the Page', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['Sourdough'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['Sourdough'] })
 
     const [tagCall] = callsMatching(/insert into public\.tags/i)
     expect(tagCall).toBeDefined()
@@ -160,7 +164,7 @@ describe('group.activate — tags, when given', () => {
     // The insert returns no row when the tag exists, which is why the attach
     // selects by normalized form instead of relying on `returning`.
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })
     expect(callsMatching(/insert into public\.tags/i)[0]![0]).toMatch(/on conflict \(normalized\) do nothing/i)
     expect(callsMatching(/insert into public\.page_tags/i)).toHaveLength(1)
   })
@@ -168,6 +172,7 @@ describe('group.activate — tags, when given', () => {
   it('writes one tag when the same word is sent twice in different shapes', async () => {
     installQueryRouter()
     await groupActivate(ctx(), {
+      rulesVersion: RULES_VERSION,
       groupId: GROUP_ID,
       tags: ['Sourdough', ' sour dough ', 'SOURDOUGH'],
     })
@@ -177,22 +182,61 @@ describe('group.activate — tags, when given', () => {
 
   it('writes every distinct tag', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['bread', 'pastry', 'cake'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['bread', 'pastry', 'cake'] })
     expect(callsMatching(/insert into public\.page_tags/i)).toHaveLength(3)
   })
 
   it('drops an over-long tag rather than truncating it', async () => {
     installQueryRouter()
     await expect(
-      groupActivate(ctx(), { groupId: GROUP_ID, tags: ['a'.repeat(41)] }),
+      groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['a'.repeat(41)] }),
     ).rejects.toThrow()
   })
 
   it('never writes a category or a suggestion — both are retired', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, tags: ['sourdough'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })
     expect(callsMatching(/set category = /i)).toHaveLength(0)
     expect(callsMatching(/group_category_suggestions/i)).toHaveLength(0)
   })
 })
 
+
+// F082 criteria 1, 4, 6 — publishing takes the rules agreement, every time, and
+// the agreement is recorded with the version and when. Drafts never ask.
+describe('group.activate — the rules agreement (F082)', () => {
+  // [guards F082.4]
+  it('refuses to publish without an agreement, and publishes nothing', async () => {
+    installQueryRouter()
+    await expect(groupActivate(ctx(), { groupId: GROUP_ID })).rejects.toThrow(/rules/i)
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+    expect(callsMatching(/creator_rules_agreements/i)).toHaveLength(0)
+  })
+
+  // [guards F082.6]
+  it('refuses an agreement to an earlier version of the rules', async () => {
+    installQueryRouter()
+    await expect(
+      groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION - 1 }),
+    ).rejects.toThrow(/rules/i)
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
+  })
+
+  // [guards F082.6]
+  it('records who agreed, to which version, for which Page, in the same transaction as the publish', async () => {
+    installQueryRouter()
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })
+    const [sql, params] = callsMatching(/insert into public\.creator_rules_agreements/i)[0]!
+    expect(params).toEqual([FOUNDER_ID, GROUP_ID, RULES_VERSION])
+    expect(sql).not.toMatch(/\$4/)
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
+  })
+
+  it('records nothing when the publish itself is refused', async () => {
+    installQueryRouter({ description: '' })
+    await expect(
+      groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION }),
+    ).rejects.toThrow(/description/i)
+    expect(callsMatching(/creator_rules_agreements/i)).toHaveLength(0)
+  })
+})

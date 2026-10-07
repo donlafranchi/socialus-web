@@ -3,6 +3,7 @@
 // #301 — L14, on the draft Page in the owner view. Publishing needs a name,
 // where it is (an address or an area), a description and a tag; a photo is
 // optional.
+// F082 — and the rules, agreed to before every Publish (never before a draft).
 // Copy is the design's placeholder ([public-is-draft]).
 
 import { useState } from 'react'
@@ -24,6 +25,7 @@ function AddOrChange({ editPath, section, children }: { editPath: string; sectio
 }
 import { Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { CREATOR_RULES, RULES_VERSION } from '@/lib/creator-rules'
 
 interface Props {
   editPath: string
@@ -32,12 +34,14 @@ interface Props {
   hasDescription: boolean
   hasTags: boolean
   hasPhoto: boolean
-  onPublish: () => Promise<void>
+  /** Called with the rules version the member agreed to. */
+  onPublish: (rulesVersion: number) => Promise<void>
 }
 
 export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasTags, hasPhoto, onPublish }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [agreed, setAgreed] = useState(false)
   const items = [
     { key: 'name', label: 'Name', done: hasName },
     { key: 'where', label: 'Where it is', done: hasPlace },
@@ -54,7 +58,7 @@ export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, 
     setBusy(true)
     setError(null)
     try {
-      await onPublish()
+      await onPublish(RULES_VERSION)
     } catch (err) {
       setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
       setBusy(false)
@@ -98,12 +102,35 @@ export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, 
           publish.
         </p>
       )}
+      <div data-testid="creator-rules" className="mt-4 border-t border-[var(--color-border)] pt-4">
+        <h3 className="text-title-3 text-[var(--color-fg)]">The rules</h3>
+        <ul className="mt-2 flex flex-col gap-3">
+          {CREATOR_RULES.map((r) => (
+            <li key={r.rule}>
+              <p className="text-body-sm font-medium text-[var(--color-fg)]">{r.rule}</p>
+              <p className="text-caption text-[var(--color-fg-muted)]">{r.reason}</p>
+            </li>
+          ))}
+        </ul>
+        <label className="mt-3 flex min-h-tap items-center gap-3 text-body-sm text-[var(--color-fg)]">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="size-5 accent-[var(--color-charcoal-700)]"
+          />
+          I agree to these rules
+        </label>
+        <Link href="/rules" className="press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline">
+          Read the rules
+        </Link>
+      </div>
       {error && (
         <p role="alert" className="mt-2 text-body-sm text-[var(--color-fg)]">
           {error}
         </p>
       )}
-      <Button className="mt-3 w-full" onClick={publish} disabled={!ready || busy}>
+      <Button className="mt-3 w-full" onClick={publish} disabled={!ready || !agreed || busy}>
         Publish
       </Button>
     </section>

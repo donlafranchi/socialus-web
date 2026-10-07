@@ -1,8 +1,9 @@
 // #301 — Start makes a kind-only draft and lands on it.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { getUser, groupCreate, redirect, single } = vi.hoisted(() => ({
+const { getUser, groupCreate, groupActivate, redirect, single } = vi.hoisted(() => ({
   getUser: vi.fn(),
+  groupActivate: vi.fn(),
   groupCreate: vi.fn(),
   redirect: vi.fn((to: string) => {
     throw new Error(`REDIRECT ${to}`)
@@ -17,9 +18,9 @@ vi.mock('@/lib/supabase-server', () => ({
   }),
 }))
 vi.mock('@/lib/action-context', () => ({ resolveActionContext: (o: unknown) => o }))
-vi.mock('@/actions', () => ({ groupCreate, groupActivate: vi.fn(), ActionError: class extends Error {} }))
+vi.mock('@/actions', () => ({ groupCreate, groupActivate, ActionError: class extends Error {} }))
 
-import { startDraftAction } from './actions'
+import { startDraftAction, publishDraftAction } from './actions'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -42,5 +43,14 @@ describe('#301 — startDraftAction', () => {
   it('sends someone signed out to sign in, and back here', async () => {
     getUser.mockResolvedValue({ data: { user: null } })
     await expect(startDraftAction('sell')).rejects.toThrow('REDIRECT /auth/login?next=%2Fcreate')
+  })
+})
+
+// F082 — the version the member agreed to travels with the publish.
+describe('F082 — publishDraftAction', () => {
+  // [guards F082.6]
+  it('sends the rules version the member agreed to with the publish', async () => {
+    await expect(publishDraftAction('g-1', 3)).rejects.toThrow('REDIRECT /g/x7k2m9')
+    expect(groupActivate).toHaveBeenCalledWith(expect.anything(), { groupId: 'g-1', rulesVersion: 3 })
   })
 })
