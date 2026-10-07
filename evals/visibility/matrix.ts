@@ -31,6 +31,8 @@ export interface Resource {
   total: number
   /** The builder-content switch for this resource's cells (default on, as in beta). */
   switch?: 'on' | 'off'
+  /** SQL run as the database owner before each viewer reads, rolled back after (e.g. archive a seeded Page). */
+  setup?: string
   cells: Partial<Record<Viewer, Cell>>
   /** Cell for every viewer not listed. */
   rest: Cell
@@ -40,6 +42,12 @@ const NONE: Cell = { reach: 'none', rows: 0 }
 const all = (rows: number): Cell => ({ reach: 'all', rows })
 const own = (rows: number): Cell => ({ reach: 'own', rows })
 const parties = (rows: number, pending?: string): Cell => ({ reach: 'parties', rows, ...(pending ? { pending } : {}) })
+
+// The place Page from supabase/seeds/personas.sql, and its main spot.
+const PLACE = '0b000000-0000-4000-8000-000000000002'
+const PLACE_LOCATION = '0c000000-0000-4000-8000-000000000002'
+const ARCHIVE_PLACE = `update public.groups set lifecycle_state = 'archived' where id = '${PLACE}'`
+const DELETE_PLACE = `update public.groups set lifecycle_state = 'dissolved', dissolved_at = now(), delete_after = now() + interval '14 days' where id = '${PLACE}'`
 
 const OWNERS = ['ownerBusiness', 'ownerPlace', 'ownerInterest', 'ownerPractice', 'ownerEvent', 'ownerFamily'] as const
 
@@ -148,6 +156,34 @@ export const RESOURCES: Resource[] = [
     cells: {},
     rest: NONE,
   },
+  // #439 — an archived or deleted Page answers the people who manage it, by
+  // every path: its row, its posts, its items, and the definer functions
+  // that read past RLS. The operator reads it on the operator page (over the
+  // pool, as Facebook and Google moderators do in their own tools), not here.
+  ...(['archived', 'deleted'] as const).flatMap((state): Resource[] => {
+    const setup = state === 'archived' ? ARCHIVE_PLACE : DELETE_PLACE
+    return [
+      { name: `A ${state} Page (groups)`, setup, sql: `select count(*)::int n from public.groups where id = '${PLACE}'`, total: 1, cells: { ownerPlace: own(1) }, rest: NONE },
+      { name: `A ${state} Page's posts (page_posts)`, setup, sql: `select count(*)::int n from public.page_posts where group_id = '${PLACE}'`, total: 2, cells: { ownerPlace: own(2) }, rest: NONE },
+      { name: `A ${state} Page's items (items)`, setup, sql: `select count(*)::int n from public.items where group_id = '${PLACE}'`, total: 1, cells: { ownerPlace: own(1) }, rest: NONE },
+      {
+        name: `A ${state} Page's items, read past RLS (venue_hosted_items)`,
+        setup,
+        sql: `select count(*)::int n from public.venue_hosted_items('${PLACE_LOCATION}', '${PLACE}')`,
+        total: 1,
+        cells: {},
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page's member count (page_listed_member_counts)`,
+        setup,
+        sql: `select count(*)::int n from public.page_listed_member_counts(array['${PLACE}'::uuid])`,
+        total: 1,
+        cells: {},
+        rest: NONE,
+      },
+    ]
+  }),
   {
     name: 'A builder Page, switch on (the beta default)',
     sql: "select count(*)::int n from public.groups where slug = 'qa-visibility-builder'",
