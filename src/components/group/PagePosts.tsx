@@ -39,6 +39,8 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { Sheet } from '@/components/ui/Sheet'
+import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
+import { DefaultArt, type ArtKind } from '@/components/cards/DefaultArt'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
@@ -65,6 +67,8 @@ interface PostInput {
   endsAt?: string | null
   locationId?: string | null
   howToFind?: string | null
+  /** F099 — one photo of its own, or none. */
+  photoUrl?: string | null
 }
 
 interface EditInput {
@@ -73,6 +77,8 @@ interface EditInput {
   startsAt?: string | null
   endsAt?: string | null
   locationId?: string | null
+  /** F099 — absent leaves the photo alone; null removes it. */
+  photoUrl?: string | null
 }
 
 interface Props {
@@ -84,6 +90,11 @@ interface Props {
   followerCount?: number
   /** #337 — a private Page's posts are for its members, so there is no reach to choose. */
   isPrivate?: boolean
+  /** F099 — the signed-in member whose folder a post photo is uploaded to. Without one, no photo control. */
+  memberId?: string | null
+  /** F099 — the Page's name, and its kind's placeholder: what a post without a photo of its own shows. */
+  pageName?: string
+  artKind?: ArtKind | null
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -141,6 +152,9 @@ export function PagePosts({
   canPost,
   followerCount = 0,
   isPrivate = false,
+  memberId = null,
+  pageName = '',
+  artKind = null,
   onPost,
   onEdit,
   onCreateLocation = createLocationAction,
@@ -151,6 +165,8 @@ export function PagePosts({
   const [draft, setDraft] = useState('')
   const [when, setWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
   const [audience, setAudience] = useState<Audience>('anyone')
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [editPhoto, setEditPhoto] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -281,6 +297,7 @@ export function PagePosts({
       endsAt: resolved.endsAt,
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
+      ...(photo ? { photoUrl: photo } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -297,9 +314,11 @@ export function PagePosts({
         endsAt: resolved.endsAt,
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
+        photoUrl: photo,
       },
       ...items,
     ])
+    setPhoto(null)
     setDraft('')
     setWhen(emptyWhenWhere)
   }
@@ -325,6 +344,8 @@ export function PagePosts({
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
+      // Only a changed photo is sent: absent leaves it, null removes it.
+      ...(editPhoto !== (items.find((p) => p.id === postId)?.photoUrl ?? null) ? { photoUrl: editPhoto } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -342,6 +363,7 @@ export function PagePosts({
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
               ...(editWhen.addingPlace ? { locationLabel: resolved.locationLabel } : {}),
+              photoUrl: editPhoto,
             }
           : p,
       ),
@@ -380,6 +402,15 @@ export function PagePosts({
                     idPrefix="page-post-edit"
                     placeLabel={post.locationLabel}
                   />
+                  {memberId && (
+                    <PagePhotoPicker
+                      memberId={memberId}
+                      value={editPhoto}
+                      onChange={setEditPhoto}
+                      label="Photo (optional)"
+                      previewAlt="The photo on this post"
+                    />
+                  )}
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -402,6 +433,24 @@ export function PagePosts({
                 </div>
               ) : (
                 <>
+                  {/* F099 criterion 6 — exactly one image on every post card:
+                      its own photo, else the Page picture (not built yet),
+                      else the kind's placeholder. Alt: the owner's words (the
+                      post's first line); the placeholder's is the Page's name. */}
+                  <div className="mb-2 h-32 w-full overflow-hidden rounded-md">
+                    {post.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={post.photoUrl}
+                        alt={post.body.split('\n')[0].slice(0, 120)}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div role="img" aria-label={pageName || 'Page'} className="h-full w-full">
+                        <DefaultArt kind={artKind} />
+                      </div>
+                    )}
+                  </div>
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
 
                   {/* When and where it is — the announcement's own, not its
@@ -444,6 +493,7 @@ export function PagePosts({
                           setEditingId(post.id)
                           setEditDraft(post.body)
                           setEditWhen(whenWhereFrom(post))
+                          setEditPhoto(post.photoUrl ?? null)
                           setError(null)
                         }}
                         className="inline-flex min-h-tap items-center px-1 text-xs underline"
@@ -526,6 +576,16 @@ export function PagePosts({
           />
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
+
+          {memberId && (
+            <PagePhotoPicker
+              memberId={memberId}
+              value={photo}
+              onChange={setPhoto}
+              label="Photo (optional)"
+              previewAlt="The photo on this post"
+            />
+          )}
 
           {!isPrivate && (
             <AudienceSwitch

@@ -365,6 +365,9 @@ export function ShopPublicPage({
           canPost={viewerOwnsPage}
           followerCount={followerCount}
           isPrivate={shop.discoverability === 'private'}
+          memberId={viewerOwnsPage ? viewerMemberId : null}
+          pageName={shop.displayName}
+          artKind={artKindFor(shop.kind, shop.purpose)}
           onPost={postToPageAction}
           onEdit={editPagePostAction}
           onDelete={deletePagePostAction}
