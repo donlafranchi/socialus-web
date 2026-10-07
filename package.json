@@ -16,6 +16,7 @@
     "check:action-layer": "tsx scripts/check-action-layer-conformance.ts",
     "mutate": "stryker run",
     "db:push": "supabase db push",
+    "moderation:eval": "tsx scripts/moderation-eval.ts",
     "ontology:registry": "tsx scripts/ontology-registry.ts",
     "migrations:manifest": "tsx scripts/generate-migration-manifest.ts"
   },
