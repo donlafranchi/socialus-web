@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { WhereFields, emptyWhere, type WhereValue } from './WhereFields'
+import { wherePatch } from './where-save'
 
 const { geocode, placeForPoint, searchPlaces, searchNeighborhoods } = vi.hoisted(() => ({
   geocode: vi.fn(),
@@ -135,7 +136,7 @@ describe('People come to me', () => {
     expect(await screen.findByText(/couldn.t find that address/i)).toBeInTheDocument()
   })
 
-  it('or types a neighbourhood: the pin starts at its centre, named, ready to drag to the door', async () => {
+  it('or types a neighbourhood: the pin starts at its centre, named', async () => {
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
     render(<Harness />)
     choose()
@@ -149,6 +150,25 @@ describe('People come to me', () => {
     expect(screen.getByText('Curtis Park')).toBeInTheDocument()
     fireEvent.click(screen.getByTestId('pin-moved'))
     expect(latest.visit.pin).toEqual([-121.5, 38.58])
+  })
+
+  // bug #440 — 2026-10-04: a neighbourhood is given instead of a street address, and only it shows.
+  it('picking a neighbourhood shows only the neighbourhood, and saves it, never an address', async () => {
+    searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
+    render(<Harness />)
+    choose()
+    fireEvent.change(screen.getByRole('combobox', { name: /or type a neighbourhood/i }), { target: { value: 'Curt' } })
+    fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
+    expect(latest.visit.areaOnly).toBe(true)
+    expect(screen.getByRole('switch', { name: /show only my neighbourhood/i })).toHaveAttribute('aria-checked', 'true')
+    await waitFor(() => expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' }))
+
+    const createLocation = vi.fn().mockResolvedValue({ ok: true, data: { id: 'loc-1' } })
+    const label = vi.fn().mockResolvedValue('1 Some St, Sacramento')
+    const saved = await wherePatch(latest, null, { createLocation, metroAnchor: vi.fn(), label } as never)
+    expect(saved).toMatchObject({ ok: true })
+    expect(createLocation).toHaveBeenCalledWith({ label: 'Curtis Park', neighborhoodId: 'pl-curtis' })
+    expect(label).not.toHaveBeenCalled()
   })
 
   it('the two ways in replace each other: choosing one clears the other', async () => {
