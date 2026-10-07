@@ -45,6 +45,7 @@ const parties = (rows: number, pending?: string): Cell => ({ reach: 'parties', r
 
 // The place Page from supabase/seeds/personas.sql, and its main spot.
 const PLACE = '0b000000-0000-4000-8000-000000000002'
+const PLACE_GATHERING = '0d000000-0000-4000-8000-000000000201'
 const PLACE_LOCATION = '0c000000-0000-4000-8000-000000000002'
 const ARCHIVE_PLACE = `update public.groups set lifecycle_state = 'archived' where id = '${PLACE}'`
 const DELETE_PLACE = `update public.groups set lifecycle_state = 'dissolved', dissolved_at = now(), delete_after = now() + interval '14 days' where id = '${PLACE}'`
@@ -216,6 +217,22 @@ export const RESOURCES: Resource[] = [
         sql: `select count(*)::int n from public.page_posts where group_id = '${PLACE}'`,
         total: 2,
         cells: {},
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page's roster, others' rows (group_memberships)`,
+        setup,
+        sql: `select count(*)::int n from public.group_memberships where group_id = '${PLACE}' and member_id is distinct from auth.uid()`,
+        total: 4,
+        cells: { ownerPlace: parties(3) },
+        rest: NONE,
+      },
+      {
+        name: `RSVPs to a ${state} Page's gathering, others' (item_responses)`,
+        setup,
+        sql: `select count(*)::int n from public.item_responses where item_id = '${PLACE_GATHERING}' and responder_member_id is distinct from auth.uid()`,
+        total: 2,
+        cells: { ownerPlace: parties(2) },
         rest: NONE,
       },
     ]
