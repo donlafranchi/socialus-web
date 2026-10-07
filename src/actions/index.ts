@@ -39,7 +39,9 @@ import {
   groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
+import { originRecord } from './origin'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge } from './report'
+export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
 import type { NamedActionHandler } from './_lib/handler'
@@ -94,6 +96,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'report.answer': reportAnswer as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge_target': reportPurgeTarget as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge': reportPurge as unknown as NamedActionHandler<unknown, unknown>,
+  // F102 criterion 13 — where a post or upload came from; operator-only, kept a year.
+  'origin.record': originRecord as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
   // T167 — F076 c13-15: the same step for someone with no account. Separate

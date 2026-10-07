@@ -21,6 +21,9 @@ import '@testing-library/jest-dom/vitest'
 const { uploadImage } = vi.hoisted(() => ({ uploadImage: vi.fn() }))
 vi.mock('@/lib/media/upload-image', () => ({ uploadImage }))
 
+const { recordUploadAction } = vi.hoisted(() => ({ recordUploadAction: vi.fn(async () => undefined) }))
+vi.mock('@/app/_actions/origin-actions', () => ({ recordUploadAction }))
+
 import { PagePhotoPicker } from './PagePhotoPicker'
 import { COPY } from '@/lib/copy'
 
@@ -36,6 +39,28 @@ beforeEach(() => {
 })
 
 describe('F070 · T145 — PagePhotoPicker', () => {
+  // [guards F102.13 partial: uploads; posts are recorded by the post action]
+  it('F102 — a stored photo records where it came from, and a failed record does not fail the upload', async () => {
+    const onChange = vi.fn()
+    recordUploadAction.mockClear()
+    recordUploadAction.mockRejectedValueOnce(new Error('down'))
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={onChange} />)
+    confirm()
+    fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith(URL_A))
+    expect(recordUploadAction).toHaveBeenCalledWith({ url: URL_A })
+  })
+
+  it('F102 — a photo that did not upload records nothing', async () => {
+    recordUploadAction.mockClear()
+    uploadImage.mockRejectedValueOnce(new Error('no'))
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
+    confirm()
+    fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+    expect(recordUploadAction).not.toHaveBeenCalled()
+  })
+
   // [guards F080.5 partial: the ask at posting; this is the per-photo confirmation]
   it('F080 — choosing a photo waits until the uploader confirms it shows no children', () => {
     render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
