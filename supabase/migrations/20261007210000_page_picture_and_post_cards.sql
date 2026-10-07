@@ -2,7 +2,7 @@
 -- card shows. Path: well-worn (Facebook: a Page's profile picture is shown on
 -- every post it makes; a post may carry its own photo).
 --
--- ORDER: after 20261007190000_post_photos (the page_posts photo columns).
+-- ORDER: after 20261007200000_post_photos (the page_posts photo columns).
 --
 -- 1. groups gains a Page picture: a second image, with its own hide and remove
 --    state, separate from groups.photo_url (the Page's photo, which stays where
