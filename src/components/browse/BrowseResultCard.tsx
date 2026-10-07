@@ -61,11 +61,19 @@ export function BrowseResultCard({
       location={browseCardLocation(result)}
       imageUrl={result.photoUrl}
       art={<DefaultArt kind={artKindFor(result.groupKind)} />}
-      imageAlt={cardImageAlt({
-        title: result.name,
-        when: isPost && result.startsAt ? formatCardWhen(result.startsAt, undefined, undefined, result.endsAt) : null,
-        place: result.locationLabel,
-      })}
+      imageAlt={
+        // F099 criterion 10: the owner's words for a post's own photo, the
+        // Page's name for the Page picture; the default (title, when, place)
+        // for everything else, as before.
+        isPost && result.photoSource === 'page'
+          ? result.name
+          : (isPost && result.photoSource === 'post' && result.body?.split('\n')[0]?.trim().slice(0, 120)) ||
+            cardImageAlt({
+              title: result.name,
+              when: isPost && result.startsAt ? formatCardWhen(result.startsAt, undefined, undefined, result.endsAt) : null,
+              place: result.locationLabel,
+            })
+      }
       href={result.href}
       action={
         isPost || result.tags.length > 0 ? (

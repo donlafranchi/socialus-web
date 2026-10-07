@@ -114,6 +114,27 @@ describe('the card image', () => {
   })
 })
 
+// F099 criterion 10 — a post's own photo says the owner's words; the Page picture says the Page's name.
+describe('F099 — the alt text of a post card image', () => {
+  // [guards F099.10]
+  it("a post's own photo: the first line of the owner's words", () => {
+    render(<BrowseResultCard result={post({ photoUrl: 'https://cdn.test/p.webp', photoSource: 'post', body: 'Bread class is on.\nBring flour.' })} />)
+    expect(screen.getByRole('img').getAttribute('alt')).toBe('Bread class is on.')
+  })
+
+  // [guards F099.10]
+  it("the Page picture: the Page's name", () => {
+    render(<BrowseResultCard result={post({ photoUrl: 'https://cdn.test/g.webp', photoSource: 'page' })} />)
+    expect(screen.getByRole('img').getAttribute('alt')).toBe('SacRiver Floaters')
+  })
+
+  // [guards F099.6]
+  it('no image: the kind placeholder, and the card still has its one image', () => {
+    render(<BrowseResultCard result={post({ photoUrl: null, photoSource: null })} />)
+    expect(screen.getByTestId('default-art')).toBeInTheDocument()
+  })
+})
+
 describe('#299 — no photo shows default art, never the emoji', () => {
   it('a Page or post without a photo carries its kind and a neutral tone', () => {
     render(<BrowseResultCard result={post({ photoUrl: null })} />)
