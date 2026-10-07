@@ -184,3 +184,70 @@ describe('F101 — one tap, then a five-second Undo', () => {
     expect(second).toHaveAttribute('data-blurred', 'false')
   })
 })
+
+describe('F101 / F078 — Posts as rows, severity from the reason, reasons counted', () => {
+  const post = (id: string, postId: string, over: Partial<QueuedReport> = {}) =>
+    report(id, 'page-1', { subjectKind: 'post', postId, photoUrl: null, contentText: 'Buy my watches now', ...over })
+
+  it('a Post is its own row, apart from its Page\'s photo, and says what it is', () => {
+    const subjects = groupBySubject([report('r1', 'page-1'), post('r2', 'p1'), post('r3', 'p1')])
+    expect(subjects).toHaveLength(2)
+    const p = subjects.find((x) => x.subjectKind === 'post')!
+    expect(p.subjectId).toBe('p1')
+    expect(p.reports).toHaveLength(2)
+    show(subjects)
+    expect(screen.getAllByTestId('review-kind').map((e) => e.textContent).sort()).toEqual(['Page photo', 'Post'])
+  })
+
+  // [guards F101.3 partial: shadow mode, where the reporter's reason sets the tier]
+  it('severity is the most serious tier among the open reports\' reasons', () => {
+    const subjects = groupBySubject([
+      post('r1', 'p1', { category: 'spam' }),
+      post('r2', 'p1', { category: 'harassment' }),
+      post('r3', 'p1', { category: 'sensitive_content' }),
+    ])
+    expect(subjects[0]!.severity).toBe(1)
+    const spamOnly = groupBySubject([post('r4', 'p2', { category: 'spam' })])
+    expect(spamOnly[0]!.severity).toBe(4)
+  })
+
+  it('a decided report no longer counts toward severity', () => {
+    const subjects = groupBySubject([post('r1', 'p1', { category: 'sensitive_content', history: [decided] }), post('r2', 'p1', { category: 'spam' })])
+    expect(subjects[0]!.severity).toBe(4)
+  })
+
+  it('no reasons given means no severity, as before', () => {
+    expect(groupBySubject([report('r1', 'a')])[0]!.severity).toBeNull()
+  })
+
+  it('shows the severity badge and the reasons with counts', () => {
+    show(groupBySubject([post('r1', 'p1', { category: 'harassment' }), post('r2', 'p1', { category: 'harassment' }), post('r3', 'p1', { category: 'spam' })]))
+    expect(screen.getByTestId('review-severity')).toHaveTextContent('Severity 2')
+    expect(screen.getByTestId('review-reasons')).toHaveTextContent('Harassment ×2')
+    expect(screen.getByTestId('review-reasons')).toHaveTextContent('Spam')
+  })
+
+  it('the excerpt is the content that was reported, not the reporter\'s words', () => {
+    show(groupBySubject([post('r1', 'p1', { body: 'reporter wrote this', contentText: 'x'.repeat(200) })]))
+    const text = screen.getByTestId('review-excerpt').textContent!
+    expect(text).not.toContain('reporter wrote')
+    expect(text.length).toBeLessThanOrEqual(120)
+  })
+
+  it('deciding on a Post row decides its open report ids', async () => {
+    show(groupBySubject([post('r1', 'p1', { category: 'spam' }), post('r2', 'p1', { category: 'spam' })]))
+    fireEvent.click(screen.getByTestId('review-remove'))
+    await act(async () => {
+      vi.advanceTimersByTime(5000)
+    })
+    expect(onDecide).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('F101 — the two buttons are 48px tall', () => {
+  // [guards F101.5 partial: the height; jsdom has no layout, so this is the class that wins over min-h-tap]
+  it('Approve and Remove force min-h-12 over the button\'s own 44px floor', () => {
+    show(groupBySubject([report('r1', 'a')]))
+    for (const id of ['review-approve', 'review-remove']) expect(screen.getByTestId(id).className).toContain('min-h-12!')
+  })
+})
