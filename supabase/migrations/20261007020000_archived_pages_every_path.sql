@@ -223,13 +223,33 @@ as $$
    group by v.group_id
 $$;
 
--- The groups subquery runs as the caller, so the groups policies decide,
--- groups_hidden_owner_only included.
+-- True when the item's Page is archived or deleted and the caller doesn't
+-- manage it: the one thing groups_hidden_owner_only adds. Definer, so it asks
+-- only about the Page's state; who may read a live Page's items (members, RSVP
+-- parties, a private Page's people) stays with the permissive policies.
+create or replace function public.page_hidden_from_caller(p_group_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.groups g
+     where g.id = p_group_id
+       and g.lifecycle_state not in ('draft', 'active')
+       and g.id not in (select public.current_member_managing_group_ids())
+  )
+$$;
+
+revoke all on function public.page_hidden_from_caller(uuid) from public;
+grant execute on function public.page_hidden_from_caller(uuid) to anon, authenticated;
+
 create policy items_page_hidden_owner_only on public.items as restrictive for select
   using (
     group_id is null
     or member_id = (select auth.uid())
-    or group_id in (select g.id from public.groups g)
+    or not public.page_hidden_from_caller(group_id)
   );
 
 -- The view drops a Page's items the moment its state changes, as it already
