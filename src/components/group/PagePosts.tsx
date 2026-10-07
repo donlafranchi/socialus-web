@@ -81,6 +81,8 @@ interface Props {
   /** How many people get updates from this Page. Owner-only; see
    *  countPageFollowers for why it is a count and never a roster. */
   followerCount?: number
+  /** #337 — a private Page's posts are for its members, so there is no reach to choose. */
+  isPrivate?: boolean
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -137,6 +139,7 @@ export function PagePosts({
   posts,
   canPost,
   followerCount = 0,
+  isPrivate = false,
   onPost,
   onEdit,
   onCreateLocation = createLocationAction,
@@ -523,12 +526,14 @@ export function PagePosts({
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
 
-          <AudienceSwitch
-            value={audience}
-            onChange={setAudience}
-            followerCount={followerCount}
-            idPrefix="announce"
-          />
+          {!isPrivate && (
+            <AudienceSwitch
+              value={audience}
+              onChange={setAudience}
+              followerCount={followerCount}
+              idPrefix="announce"
+            />
+          )}
 
           <PostingSafetyNote />
 

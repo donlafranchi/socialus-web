@@ -364,6 +364,7 @@ export function ShopPublicPage({
           posts={posts}
           canPost={viewerOwnsPage}
           followerCount={followerCount}
+          isPrivate={shop.discoverability === 'private'}
           onPost={postToPageAction}
           onEdit={editPagePostAction}
           onDelete={deletePagePostAction}

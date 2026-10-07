@@ -303,6 +303,17 @@ describe('who sees this', () => {
     expect(screen.getByTestId('announce-audience-switch')).toBeInTheDocument()
   })
 
+  // #337 — a private Page's posts are for its members; the switch would say
+  // more than happens (the 2026-09-30 line is replaced, option A).
+  it('is not offered on a private Page, and the post still goes', async () => {
+    renderPosts({ isPrivate: true })
+    expect(screen.queryByTestId('announce-audience')).toBeNull()
+    expect(screen.queryByText('Anyone')).toBeNull()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'x' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+  })
+
   it('will not post with it, and says why', async () => {
     // Follower delivery does not exist. Telling a creator they reached 42
     // people who receive nothing is a lie; hiding the setting is a different
