@@ -11,12 +11,14 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
   }, [error])
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, sans-serif', padding: '2rem', textAlign: 'center' }}>
-        <h1>Something went wrong</h1>
-        <p>It&apos;s on our side. Try again in a moment.</p>
-        <button type="button" onClick={reset}>
-          Try again
-        </button>
+      <body style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
+        <main style={{ margin: '0 auto', maxWidth: '24rem' }}>
+          <h1>Something went wrong</h1>
+          <p>It&apos;s on our side. Try again in a moment.</p>
+          <button type="button" onClick={reset}>
+            Try again
+          </button>
+        </main>
       </body>
     </html>
   )
