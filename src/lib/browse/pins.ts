@@ -18,6 +18,8 @@
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 export interface BrowsePin {
+  /** #475 — an exact address (teardrop) or a place known only as an area (disc). */
+  kind: 'address' | 'area'
   /** Stable across renders: the Page and the place, not the array index. */
   key: string
   longitude: number
@@ -41,6 +43,25 @@ export function groupPins(results: readonly BrowseResult[]): BrowsePin[] {
 
   for (const r of results) {
     if (r.longitude == null || r.latitude == null) continue
+    if (r.locationKind === 'area') {
+      // An area is not a point: everything at one centroid is ONE marker, whatever
+      // Page it belongs to. The count on the disc is the number of items.
+      const key = `area@${r.longitude.toFixed(6)},${r.latitude.toFixed(6)}`
+      const existing = pins.get(key)
+      if (existing) existing.results.push(r)
+      else
+        pins.set(key, {
+          kind: 'area',
+          key,
+          longitude: r.longitude,
+          latitude: r.latitude,
+          groupId: key,
+          name: r.locationLabel ?? 'This area',
+          href: null,
+          results: [r],
+        })
+      continue
+    }
     const key = `${r.groupId}@${placeKey(r)}`
     const existing = pins.get(key)
     if (existing) {
@@ -48,6 +69,7 @@ export function groupPins(results: readonly BrowseResult[]): BrowsePin[] {
       continue
     }
     pins.set(key, {
+      kind: 'address',
       key,
       longitude: r.longitude,
       latitude: r.latitude,
