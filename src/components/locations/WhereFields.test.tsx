@@ -172,6 +172,12 @@ describe('People come to me', () => {
     expect(screen.getByTestId('pin-moved')).toBeInTheDocument()
   })
 
+  // Tidy and contained (the PM, 2026-10-06): once the map is showing, "Drop a pin" has nothing left to do.
+  it('offers "Drop a pin" only until there is a pin', () => {
+    render(<Harness initial={{ ...emptyWhere, mode: 'visit', visit: { ...emptyWhere.visit, pin: [-121.4, 38.5] } }} />)
+    expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
+  })
+
   it('or drops a pin with no address, and moving the map moves it', () => {
     render(<Harness />)
     choose()
