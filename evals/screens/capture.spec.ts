@@ -6,7 +6,7 @@
 //   <width>/<persona>/<route>.png        full page, every <details> group opened
 //   <width>/<persona>/<route>.txt        the page text, for the visibility and copy reviews
 //   <width>/<persona>/<route>.axe.json   axe-core WCAG 2.1 A/AA violations
-//   manifest.json                        what was captured
+//   <width>/<persona>/<route>.meta.json  status and axe violation count (one file per capture, so parallel workers never collide)
 //
 // Narrow with CAPTURE_ROUTES, CAPTURE_PERSONAS, CAPTURE_WIDTHS (comma-separated).
 // Like the screens matrix it fails on a server error or an uncaught page error,
@@ -23,8 +23,6 @@ const only = (env: string | undefined) => (env ? new Set(env.split(',').map((s) 
 const personas = only(process.env.CAPTURE_PERSONAS)
 const routes = only(process.env.CAPTURE_ROUTES)
 const widths = [...(only(process.env.CAPTURE_WIDTHS) ?? new Set(['390', '1280']))].map(Number)
-
-const taken: { width: number; persona: string; route: string; status: number; axeViolations: number }[] = []
 
 for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
   test.describe(who.key, () => {
@@ -52,15 +50,10 @@ for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
             join(dir, `${route.name}.axe.json`),
             JSON.stringify((axe?.violations ?? []).map((v) => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length, sample: v.nodes[0]?.html?.slice(0, 160) })), null, 2),
           )
-          taken.push({ width, persona: who.key, route: route.name, status, axeViolations: axe?.violations.length ?? -1 })
+          writeFileSync(join(dir, `${route.name}.meta.json`), JSON.stringify({ width, persona: who.key, route: route.name, status, axeViolations: axe?.violations.length ?? -1 }))
         }
         expect(errors, `uncaught errors on ${route.name}`).toEqual([])
       })
     }
   })
 }
-
-test.afterAll(() => {
-  mkdirSync(DIR, { recursive: true })
-  writeFileSync(join(DIR, 'manifest.json'), JSON.stringify({ widths, captured: taken }, null, 2))
-})
