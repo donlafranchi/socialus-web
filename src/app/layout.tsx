@@ -4,6 +4,7 @@ import "./globals.css"
 import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
+import { siteMetadataBase } from "@/lib/site-url"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,6 +29,7 @@ const SITE_DESCRIPTION =
   "volunteer where it's needed, and share an idea before you build it."
 
 export const metadata: Metadata = {
+  metadataBase: siteMetadataBase(),
   title: SITE_NAME,
   description: SITE_DESCRIPTION,
   // The root defined no openGraph until T148, so a shared link to the home

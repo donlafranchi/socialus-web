@@ -9,6 +9,12 @@
 // falls through to window.location.origin and links land on localhost.
 const CANONICAL_ORIGIN = 'https://www.socialus.org'
 
+/** #444 — the root layout's metadataBase, so relative metadata URLs resolve
+ *  against the canonical host (www.socialus.org in production). */
+export function siteMetadataBase(): URL {
+  return new URL(siteOrigin())
+}
+
 /** Canonical public origin. Use for anything published: OG tags, share links. */
 export function siteOrigin(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim()
