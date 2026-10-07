@@ -45,9 +45,12 @@ const parties = (rows: number, pending?: string): Cell => ({ reach: 'parties', r
 
 // The place Page from supabase/seeds/personas.sql, and its main spot.
 const PLACE = '0b000000-0000-4000-8000-000000000002'
+const PLACE_GATHERING = '0d000000-0000-4000-8000-000000000201'
 const PLACE_LOCATION = '0c000000-0000-4000-8000-000000000002'
 const ARCHIVE_PLACE = `update public.groups set lifecycle_state = 'archived' where id = '${PLACE}'`
 const DELETE_PLACE = `update public.groups set lifecycle_state = 'dissolved', dissolved_at = now(), delete_after = now() + interval '14 days' where id = '${PLACE}'`
+
+const FOUNDER_STEPS_DOWN = `update public.group_memberships set role = 'member' where group_id = '${PLACE}' and member_id = '0a000000-0000-4000-8000-000000000012'`
 
 const OWNERS = ['ownerBusiness', 'ownerPlace', 'ownerInterest', 'ownerPractice', 'ownerEvent', 'ownerFamily'] as const
 
@@ -181,6 +184,55 @@ export const RESOURCES: Resource[] = [
         total: 1,
         // A deleted Page's memberships are no longer listed, so even its owner counts nothing.
         cells: state === 'archived' ? { ownerPlace: own(1) } : {},
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page's address (group_url_prefixes)`,
+        setup,
+        sql: `select count(*)::int n from public.group_url_prefixes(array['${PLACE}'::uuid])`,
+        total: 1,
+        // A deleted Page has no address for anyone, its owner included.
+        cells: state === 'archived' ? { ownerPlace: own(1) } : {},
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page's founder (page_founder_public)`,
+        setup,
+        sql: `select count(*)::int n from public.page_founder_public('${PLACE}')`,
+        total: 1,
+        cells: { ownerPlace: own(1) },
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page in your own list (member_public_pages)`,
+        setup,
+        sql: `select count(*)::int n from public.member_public_pages(auth.uid()) where slug = 'qa-oak-park-commons'`,
+        total: 1,
+        cells: state === 'archived' ? { ownerPlace: own(1) } : {},
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page's posts, to a founder who no longer manages it (page_posts)`,
+        setup: `${setup}; ${FOUNDER_STEPS_DOWN}`,
+        sql: `select count(*)::int n from public.page_posts where group_id = '${PLACE}'`,
+        total: 2,
+        cells: {},
+        rest: NONE,
+      },
+      {
+        name: `A ${state} Page's roster, others' rows (group_memberships)`,
+        setup,
+        sql: `select count(*)::int n from public.group_memberships where group_id = '${PLACE}' and member_id is distinct from auth.uid()`,
+        total: 4,
+        cells: { ownerPlace: parties(3) },
+        rest: NONE,
+      },
+      {
+        name: `RSVPs to a ${state} Page's gathering, others' (item_responses)`,
+        setup,
+        sql: `select count(*)::int n from public.item_responses where item_id = '${PLACE_GATHERING}' and responder_member_id is distinct from auth.uid()`,
+        total: 2,
+        cells: { ownerPlace: parties(2) },
         rest: NONE,
       },
     ]

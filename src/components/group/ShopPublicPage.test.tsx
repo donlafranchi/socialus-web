@@ -561,6 +561,18 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
+  // bug #341 — a private family Page lists nothing unless its owner adds Products & services
+  // (2026-10-05: the type sets the defaults; any Page can add any component).
+  it('a private family Page shows no Products & services card, to its owner or its members', () => {
+    const FAMILY = { ...GROUP, discoverability: 'private' } as typeof GROUP
+    renderShop({ loggedIn: true, shop: FAMILY, viewerOwnsPage: true })
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+    expect(screen.queryByTestId('shop-items-empty')).toBeNull()
+    cleanup()
+    renderShop({ loggedIn: true, shop: FAMILY })
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+  })
+
   // #458 (the PM, 2026-10-06) set one order for every Page: About, Location, Contact.
   it('a business shows how to reach it in its Contact section, and no next event', () => {
     renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } as never })
