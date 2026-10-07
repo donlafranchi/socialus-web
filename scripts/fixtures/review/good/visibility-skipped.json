@@ -1,0 +1,9 @@
+{
+  "body": "Review skipped: Docker is down; the pass runs when it's back.",
+  "files": [
+    "src/actions/group/x.ts"
+  ],
+  "labels": [
+    "review-skipped"
+  ]
+}
