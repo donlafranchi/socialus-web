@@ -993,7 +993,7 @@ Beyond `role-language.md`:
 
 - **`design-language.md`** — *"Trust microcopy next to a primary CTA states
   what's true right now, in the present tense — never a promise about the
-  future."* ("Listing costs nothing," not "no fees, ever.")
+  future."* ("Listing costs nothing" states a present fact; it does not promise a future price.)
 - **`people-first.md`** — no ranking of people; the platform is about people,
   not businesses. Bears directly on "Featured Maker" and on follower counts.
 - **`model.md`** — *"Item is the database word and never reaches the UI."*
