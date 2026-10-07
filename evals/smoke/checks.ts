@@ -3,7 +3,7 @@
 // what" is the visibility matrix (tests/visibility.test.ts); this looks at what
 // actually rendered on production.
 const EMAIL = /[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}/gi
-const ERROR_PAGE = /Application error|Internal Server Error|This page couldn.t load|Unhandled Runtime Error/i
+const ERROR_PAGE = /Application error|Internal Server Error|This page couldn.t load|Unhandled Runtime Error|Something went wrong/i
 
 /** Addresses the product itself may show anyone (not a builder account's). */
 const isPublic = (e: string) => /@socialus\.org$/i.test(e) && !/^builder\+/i.test(e)
