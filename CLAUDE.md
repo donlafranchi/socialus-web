@@ -23,7 +23,7 @@ That choice also decides the merge. **"Don doesn't need to look"** means merge i
 
 **A `human-review` PR body opens with `## Review`** (Don, 2026-10-05): "Review on socialus.org after merge" with the page to open, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
 
-**A UI PR (touching `src/app` or `src/components`) carries the reviewer's first pass:** a `Reviewed by:` section with the UX checklist from the PR template (the PM, 2026-10-05). If the pass can't run, label it `review-skipped` and say why in the body. The `review` check fails a UI PR with neither, so an unattended merge can't take it.
+**A UI PR (touching `src/app` or `src/components`) carries the reviewer's first pass:** a `Reviewed by:` section with the UX checklist from the PR template (the PM, 2026-10-05). If the pass can't run, label it `review-skipped` and say why in the body. The `review` check fails a UI PR with neither, so an unattended merge can't take it. A PR touching `src/app`, `src/actions` or `supabase/` also needs a `## Visibility review` section (`Reviewed by:`, personas, matrix rows, a `Verdict:` line) or the same label and reason (`socialus-ops` `PIPELINE-build.md` step 10).
 
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 
