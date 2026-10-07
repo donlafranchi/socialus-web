@@ -36,6 +36,7 @@ import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/con
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
+import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { appendEvent } from '../_lib/event-log'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
@@ -51,6 +52,8 @@ export const groupUpdateInput = z.object({
   description: z.string().max(2000).optional(),
   anchorLocationId: z.string().uuid().nullable().optional(),
   photoUrl: z.string().url().nullable().optional(),
+  // F099 — the Page picture: one for every kind, apart from photoUrl (the Page's photo).
+  pictureUrl: z.string().url().max(2000).nullable().optional(),
   category: z.string().max(80).nullable().optional(),
   socialLinks: z.record(z.string(), z.string()).optional(),
   // #293 — shown to signed-in visitors only. Null clears either.
@@ -81,6 +84,7 @@ type SpineClause =
   | 'description = $'
   | 'anchor_location_id = $'
   | 'photo_url = $'
+  | 'picture_url = $'
   | 'category = $'
   | 'contact_phone = $'
   | 'opening_hours = $'
@@ -169,6 +173,13 @@ export const groupUpdate = defineHandler(
         fragments.push({ clause: 'photo_url = $', value: input.photoUrl })
         patched.push('photo_url')
       }
+      if (input.pictureUrl !== undefined) {
+        if (input.pictureUrl !== null && !isOwnMediaUrl(input.pictureUrl, ctx.actingMemberId)) {
+          throw new ValidationError('group.update: that picture didn’t come from your uploads')
+        }
+        fragments.push({ clause: 'picture_url = $', value: input.pictureUrl })
+        patched.push('picture_url')
+      }
       if (input.category !== undefined) {
         fragments.push({ clause: 'category = $', value: input.category })
         patched.push('category')
@@ -251,7 +262,18 @@ export const groupUpdate = defineHandler(
       if (patched.length === 0) return { groupId: input.groupId, patched }
 
       if (fragments.length > 0) {
-        const setSql = fragments.map((f, i) => `${f.clause}${i + 1}`).join(', ')
+        const pictureAt = fragments.findIndex((f) => f.clause === 'picture_url = $') + 1
+        const setSql = [
+          ...fragments.map((f, i) => `${f.clause}${i + 1}`),
+          // A different picture starts unhidden and unremoved; the same URL keeps
+          // the state a report put it in (the Page photo's rule, scoped to the URL).
+          ...(pictureAt
+            ? [
+                `picture_hidden_at = case when $${pictureAt} is distinct from picture_url then null else picture_hidden_at end`,
+                `picture_removed_at = case when $${pictureAt} is distinct from picture_url then null else picture_removed_at end`,
+              ]
+            : []),
+        ].join(', ')
         const whereIdx = fragments.length + 1
         // Re-assert the state in the WHERE: a concurrent dissolve between the
         // SELECT and this UPDATE must not be written over.

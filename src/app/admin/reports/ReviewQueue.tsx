@@ -35,6 +35,8 @@ interface Pending {
   outcome: Outcome
 }
 
+const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo' } as const
+
 export function ReviewQueue({
   subjects,
   onDecide,
@@ -342,7 +344,7 @@ function Row({
               </p>
             )}
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{s.subjectKind === 'post' ? 'Post' : 'Page photo'}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
+              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{SUBJECT_LABEL[s.subjectKind]}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
               {age ? ` · hidden ${age}` : ''}
             </p>
           </div>

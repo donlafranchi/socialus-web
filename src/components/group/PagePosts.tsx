@@ -41,6 +41,7 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { Sheet } from '@/components/ui/Sheet'
+import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { DefaultArt, type ArtKind } from '@/components/cards/DefaultArt'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
@@ -100,7 +101,20 @@ interface Props {
   memberId?: string | null
   /** F099 — the Page's name, and its kind's placeholder: what a post without a photo of its own shows. */
   pageName?: string
+  /** F099 — the Page picture, resolved (null when none, hidden or removed). */
+  pictureUrl?: string | null
   artKind?: ArtKind | null
+  /** F099 criterion 8 — a visitor may report the image on a post card: its own photo, or the Page picture. */
+  report?: {
+    loggedIn: boolean
+    returnTo?: string
+    onSend: (input: {
+      subjectId: string
+      subjectKind: 'page_picture' | 'post_photo'
+      category: ReportCategory
+      body: string
+    }) => Promise<{ ok: true }>
+  }
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -163,7 +177,9 @@ export function PagePosts({
   isPrivate = false,
   memberId = null,
   pageName = '',
+  pictureUrl = null,
   artKind = null,
+  report,
   onPost,
   onEdit,
   onCreateLocation = createLocationAction,
@@ -445,10 +461,10 @@ export function PagePosts({
               ) : (
                 <>
                   {/* F099 criterion 6 — exactly one image on every post card:
-                      its own photo, else the Page picture (not built yet),
+                      its own photo, else the Page picture,
                       else the kind's placeholder. Alt: the owner's words (the
                       post's first line); the placeholder's is the Page's name. */}
-                  <div className="mb-2 h-32 w-full overflow-hidden rounded-md">
+                  <div className="relative mb-2 h-32 w-full overflow-hidden rounded-md">
                     {post.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -456,12 +472,34 @@ export function PagePosts({
                         alt={post.body.split('\n')[0].slice(0, 120)}
                         className="h-full w-full object-cover"
                       />
+                    ) : pictureUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pictureUrl} alt={pageName || 'Page'} className="h-full w-full object-cover" />
                     ) : (
                       <div role="img" aria-label={pageName || 'Page'} className="h-full w-full">
                         <DefaultArt kind={artKind} />
                       </div>
                     )}
+                    {/* F099 criterion 8 — each image is reportable on its own. A
+                        placeholder is no one's picture, so there is nothing to report. */}
+                    {report && !canPost && (post.photoUrl || pictureUrl) && (
+                      <div className="absolute right-1 top-1 rounded-full bg-white/90">
+                        <ReportControl
+                          subjectId={post.photoUrl ? post.id : groupId}
+                          subjectKind={post.photoUrl ? 'post_photo' : 'page_picture'}
+                          subjectLabel={post.photoUrl ? 'this photo' : 'this picture'}
+                          loggedIn={report.loggedIn}
+                          returnTo={report.returnTo}
+                          onSend={report.onSend as never}
+                        />
+                      </div>
+                    )}
                   </div>
+                  {canPost && post.photoHidden && (
+                    <div className="mb-2">
+                      <HiddenPhotoNotice which="post" />
+                    </div>
+                  )}
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
 
                   {/* When and where it is — the announcement's own, not its

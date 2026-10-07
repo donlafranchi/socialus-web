@@ -121,6 +121,8 @@ export interface BrowseFeedRow {
   photo_url: string | null
   photo_hidden_at: string | null
   photo_removed_at: string | null
+  /** F099 — on a post row, which image photo_url is: 'post' (its own) or 'page' (the Page picture). */
+  photo_source?: 'post' | 'page' | null
   description: string | null
   body: string | null
   tags: string[] | null
@@ -150,6 +152,8 @@ export interface BrowseResult {
   href: string | null
   /** Already through `visiblePhotoUrl` — a hidden or removed photo is gone. */
   photoUrl: string | null
+  /** F099 — which image a post card shows, for its alt text; null when none or on a Page row. */
+  photoSource?: 'post' | 'page' | null
   /** A Page's free text. Null on a post row. */
   description: string | null
   /** A post's own words. Null on a Page row. */
@@ -260,6 +264,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
       photo_hidden_at: r.photo_hidden_at,
       photo_removed_at: r.photo_removed_at,
     }),
+    photoSource: r.photo_source ?? null,
     description: maskEmailsOrNull(r.description),
     body: maskEmailsOrNull(r.body),
     tags: r.tags ?? [],

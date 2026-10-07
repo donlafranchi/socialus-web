@@ -51,8 +51,7 @@ export interface PastDecision {
 }
 
 export interface QueuedReport {
-  /** F078 criterion 1 — a Post or a Page's photo. Absent means a Page photo. */
-  subjectKind?: 'group' | 'post'
+  /** Set for a reported post body ('post'). */
   postId?: string
   /** What was reported, in its own words, for the row's excerpt. */
   contentText?: string | null
@@ -74,6 +73,11 @@ export interface QueuedReport {
   hiddenAt: Date | null
   /** Non-null means the photo is currently removed. Reversible. */
   removedAt: Date | null
+  /** What was reported: the Page's photo, a post body, the Page picture, or one post's photo. */
+  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo'
+  /** The id of the thing reported: a Page for 'group' and 'page_picture', a post for 'post' and 'post_photo'. */
+  subjectId: string
+  /** The Page it belongs to, for the name and owner. */
   groupId: string
   groupName: string
   groupSlug: string | null
@@ -145,20 +149,49 @@ export async function fetchReviewQueue(
   { includeBuilders = false }: { includeBuilders?: boolean } = {},
 ): Promise<QueuedReport[]> {
   const { rows } = await getPool().query(
-    `select r.id              as report_id,
+    `with subjects as (
+       -- One row per report, shaped the same whichever image it is about. Each
+       -- branch is written out in full: the table and columns differ.
+       select r.id as report_id, r.subject_kind, r.subject_id, g.id as group_id,
+              g.photo_url as url, g.photo_hidden_at as hidden_at, g.photo_removed_at as removed_at,
+              g.description as content_text
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'group'
+       union all
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              g.picture_url, g.picture_hidden_at, g.picture_removed_at, null::text
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'page_picture'
+       union all
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              pp.photo_url, pp.photo_hidden_at, pp.photo_removed_at, null::text
+         from public.reports r
+         join public.page_posts pp on pp.id = r.subject_id
+         join public.groups g on g.id = pp.group_id
+        where r.subject_kind = 'post_photo'
+       union all
+       -- A post body is hidden or removed on its own, and has no image to show.
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              null::text, p.hidden_at, p.removed_at, p.body
+         from public.reports r
+         join public.page_posts p on p.id = r.subject_id
+         join public.groups g on g.id = p.group_id
+        where r.subject_kind = 'post'
+     )
+     select r.id              as report_id,
             r.body            as body,
             r.category        as category,
             r.created_at      as reported_at,
-            r.subject_kind    as subject_kind,
-            p.id              as post_id,
-            -- A post is hidden or removed on its own; a Page's photo on the Page.
-            case when p.id is not null then p.hidden_at else g.photo_hidden_at end as hidden_at,
-            case when p.id is not null then p.removed_at else g.photo_removed_at end as removed_at,
+            s.hidden_at       as hidden_at,
+            s.removed_at      as removed_at,
+            s.subject_kind    as subject_kind,
+            s.subject_id      as subject_id,
+            case when s.subject_kind = 'post' then s.subject_id end as post_id,
             pg.id             as group_id,
             pg.name           as group_name,
             pg.slug           as group_slug,
-            case when p.id is not null then null else g.photo_url end as photo_url,
-            case when p.id is not null then p.body else g.description end as content_text,
+            s.url             as photo_url,
+            s.content_text    as content_text,
             m.display_name    as owner_display_name,
             m.handle          as owner_handle,
             pg.founder_member_id as poster_id,
@@ -174,15 +207,14 @@ export async function fetchReviewQueue(
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.outcome = 'restored')::int as r_dismissed
        from public.reports r
        left join public.members rm on rm.id = r.reporter_member_id
-       left join public.groups g     on r.subject_kind = 'group' and g.id = r.subject_id
-       left join public.page_posts p on r.subject_kind = 'post'  and p.id = r.subject_id
-       join public.groups pg         on pg.id = coalesce(g.id, p.group_id)
+       join subjects s on s.report_id = r.id
+       join public.groups  pg on pg.id = s.group_id
        left join public.members m on m.id = pg.founder_member_id
-      where (g.id is not null or p.id is not null)
+      where true
         -- #280 — builder reports and builder Pages reach only the builder operator.
         and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(pg.founder_member_id)))
       order by (r.reviewed_at is not null),          -- undecided first
-               case when p.id is not null then p.hidden_at else g.photo_hidden_at end asc nulls last,
+               s.hidden_at asc nulls last,
                r.created_at asc
       limit $1`,
     [limit, includeBuilders],
@@ -191,7 +223,6 @@ export async function fetchReviewQueue(
   const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))
 
   return rows.map((r: Record<string, unknown>) => ({
-    subjectKind: ((r.subject_kind as string) === 'post' ? 'post' : 'group') as 'group' | 'post',
     postId: (r.post_id as string | null) ?? undefined,
     contentText: (r.content_text as string | null) ?? null,
     posterId: (r.poster_id as string | null) ?? undefined,
@@ -204,6 +235,8 @@ export async function fetchReviewQueue(
     reportedAt: r.reported_at as Date,
     hiddenAt: (r.hidden_at as Date | null) ?? null,
     removedAt: (r.removed_at as Date | null) ?? null,
+    subjectKind: r.subject_kind as QueuedReport['subjectKind'],
+    subjectId: r.subject_id as string,
     groupId: r.group_id as string,
     groupName: r.group_name as string,
     groupSlug: (r.group_slug as string | null) ?? null,

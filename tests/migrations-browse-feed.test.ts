@@ -180,6 +180,7 @@ describe.skipIf(!RUNNABLE)('T156 — browse_feed, as shipped', () => {
       'photo_url',
       'photo_hidden_at',
       'photo_removed_at',
+      'photo_source',
       'description',
       'body',
       'tags',
@@ -742,5 +743,66 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
       return q(call({ p_place_id: `'${placeId}'::uuid`, p_limit: '1' }))
     })
     expect(rows).toHaveLength(1)
+  })
+  // F099 criteria 6, 7 — the one image a post card shows, resolved in SQL.
+  describe('F099 — the image on a post', () => {
+    const POST_PHOTO = 'https://x.supabase.co/storage/v1/object/public/media/m/post.webp'
+    const PICTURE = 'https://x.supabase.co/storage/v1/object/public/media/m/picture.webp'
+    const PAGE_PHOTO = 'https://x.supabase.co/storage/v1/object/public/media/m/page.webp'
+
+    const postRow = async (setup: string) =>
+      (
+        await inRollback(async (q) => {
+          const { placeId, mkPage, mkPost } = await seed(q)
+          await mkPage('f099-page')
+          await mkPost((await q(`select id from public.groups where slug = 'f099-page'`))[0]!.id as string, 'f099 post')
+          await q(`update public.groups set photo_url = '${PAGE_PHOTO}' where slug = 'f099-page'`)
+          await q(setup)
+          return q(call({ p_place_id: `'${placeId}'::uuid` }))
+        })
+      ).find((r) => r.result_kind === 'post')!
+
+    // [guards F099.6]
+    it("shows the post's own photo, and says so", async () => {
+      const r = await postRow(`update public.page_posts set photo_url = '${POST_PHOTO}' where body = 'f099 post'`)
+      expect(r.photo_url).toBe(POST_PHOTO)
+      expect(r.photo_source).toBe('post')
+    })
+
+    // [guards F099.6]
+    it("falls to the Page picture when the post has no photo, never to the Page's photo", async () => {
+      const r = await postRow(`update public.groups set picture_url = '${PICTURE}' where slug = 'f099-page'`)
+      expect(r.photo_url).toBe(PICTURE)
+      expect(r.photo_source).toBe('page')
+    })
+
+    // [guards F099.6]
+    it('has no image at all when neither is set, so the card draws the placeholder', async () => {
+      const r = await postRow(`select 1`)
+      expect(r.photo_url).toBeNull()
+      expect(r.photo_source).toBeNull()
+    })
+
+    // [guards F099.7]
+    it('a hidden or removed post photo never leaves the database: the Page picture stands in', async () => {
+      for (const col of ['photo_hidden_at', 'photo_removed_at']) {
+        const r = await postRow(
+          `update public.page_posts set photo_url = '${POST_PHOTO}', ${col} = now() where body = 'f099 post';
+           update public.groups set picture_url = '${PICTURE}' where slug = 'f099-page'`,
+        )
+        expect(JSON.stringify(r), col).not.toContain(POST_PHOTO)
+        expect(r.photo_url, col).toBe(PICTURE)
+      }
+    })
+
+    // [guards F099.7]
+    it('a hidden Page picture and a hidden post photo leave no image, and no hidden URL in the row', async () => {
+      const r = await postRow(
+        `update public.page_posts set photo_url = '${POST_PHOTO}', photo_hidden_at = now() where body = 'f099 post';
+         update public.groups set picture_url = '${PICTURE}', picture_removed_at = now() where slug = 'f099-page'`,
+      )
+      expect(r.photo_url).toBeNull()
+      expect(JSON.stringify(r)).not.toMatch(/post\.webp|picture\.webp/)
+    })
   })
 })

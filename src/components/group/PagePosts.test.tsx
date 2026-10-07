@@ -597,6 +597,15 @@ describe('F099 — a post photo', () => {
     expect(screen.getByRole('img', { name: 'Maya’s Bakery' })).toBeInTheDocument()
   })
 
+  // [guards F099.6]
+  it('a post without a photo of its own shows the Page picture, named for the Page', () => {
+    renderPosts({ posts: [postFixture()], pageName: 'Maya’s Bakery', pictureUrl: 'https://x/pic.webp', artKind: 'shop' } as never)
+    const post = screen.getByTestId('page-post')
+    expect(post.querySelectorAll('img')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Maya’s Bakery' })).toHaveAttribute('src', 'https://x/pic.webp')
+    expect(screen.queryByTestId('default-art')).toBeNull()
+  })
+
   // [guards F099.10]
   it('the photo’s alt is the owner’s words: the first line of the post', () => {
     renderPosts({ posts: [postFixture({ photoUrl: PHOTO, body: 'Bread class is on.\nBring an apron.' } as never)] })
@@ -644,6 +653,50 @@ describe('F099 — a post photo', () => {
   it('no photo control is offered without a signed-in member to own the upload', () => {
     renderPosts()
     expect(screen.queryByTestId('page-photo-input')).toBeNull()
+  })
+
+  // [guards F099.8]
+  describe('reporting one image', () => {
+    const onSend = vi.fn(async (_i: unknown) => ({ ok: true as const }))
+    const report = { loggedIn: true, returnTo: '/g/x', onSend }
+    const send = async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+      fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+      fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
+      fireEvent.click(screen.getByRole('button', { name: /send/i }))
+    }
+
+    it("a visitor reports a post's own photo as that post's photo", async () => {
+      onSend.mockClear()
+      renderPosts({ canPost: false, report, groupId: 'g1', posts: [postFixture({ id: 'pp-9', photoUrl: PHOTO } as never)] } as never)
+      await send()
+      await waitFor(() => expect(onSend).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'post_photo', subjectId: 'pp-9' })))
+    })
+
+    it('a visitor reports the Page picture when that is the image', async () => {
+      onSend.mockClear()
+      renderPosts({ canPost: false, report, groupId: 'g1', pictureUrl: 'https://x/pic.webp', posts: [postFixture()] } as never)
+      await send()
+      await waitFor(() => expect(onSend).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'page_picture', subjectId: 'g1' })))
+    })
+
+    it('offers nothing on a placeholder (no image to report), and nothing to the owner', () => {
+      renderPosts({ canPost: false, report, posts: [postFixture()] } as never)
+      expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+      cleanup()
+      renderPosts({ canPost: true, report, posts: [postFixture({ photoUrl: PHOTO } as never)] } as never)
+      expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+    })
+  })
+
+  // [guards F099.8]
+  it("tells the owner which post's photo is hidden, and no one else", () => {
+    renderPosts({ canPost: true, posts: [postFixture({ photoHidden: true } as never)] })
+    expect(screen.getByTestId('hidden-photo-notice')).toHaveTextContent(/photo on your post is hidden/i)
+    cleanup()
+    renderPosts({ canPost: false, posts: [postFixture({ photoHidden: true } as never)] })
+    expect(screen.queryByTestId('hidden-photo-notice')).toBeNull()
   })
 })
 

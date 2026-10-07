@@ -220,3 +220,24 @@ describe('#450 — an email address in draft Page text is refused on save', () =
     },
   )
 })
+
+// F099 criterion 1 — a draft Page may set its Page picture, apart from its photo.
+describe('F099 — group.update_draft accepts a Page picture', () => {
+  const PICTURE = `https://x.supabase.co/storage/v1/object/public/media/${OWNER}/55555555-5555-4555-8555-555555555555.webp`
+
+  // [guards F099.1]
+  it('writes picture_url and not photo_url', async () => {
+    const result = await groupUpdateDraft(ctx(), { groupId: GROUP, pictureUrl: PICTURE })
+    const [sql, params] = updateCall() ?? ['', []]
+    expect(sql).toMatch(/picture_url = \$/)
+    expect(sql).not.toMatch(/\bphoto_url\b/)
+    expect(params).toContain(PICTURE)
+    expect(result.patchedFields).toEqual(['picture_url'])
+  })
+
+  // [guards F099.5]
+  it("refuses a picture outside the uploader's own folder", async () => {
+    await expect(groupUpdateDraft(ctx(), { groupId: GROUP, pictureUrl: PHOTO })).rejects.toThrow(/uploads/)
+    expect(updateCall()).toBeUndefined()
+  })
+})

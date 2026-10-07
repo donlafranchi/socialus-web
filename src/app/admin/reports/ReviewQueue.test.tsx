@@ -19,6 +19,8 @@ const report = (id: string, groupId: string, over: Partial<QueuedReport> = {}): 
   reportedAt: day(3),
   hiddenAt: day(3),
   removedAt: null,
+  subjectKind: 'group',
+  subjectId: groupId,
   groupId,
   groupName: `Page ${groupId}`,
   groupSlug: groupId,
@@ -250,6 +252,19 @@ describe('F101 — the two buttons are 48px tall', () => {
   it('Approve and Remove force min-h-12 over the button\'s own 44px floor', () => {
     show(groupBySubject([report('r1', 'a')]))
     for (const id of ['review-approve', 'review-remove']) expect(screen.getByTestId(id).className).toContain('min-h-12!')
+  })
+})
+
+describe('F099 — the row names the image', () => {
+  it('says Page photo, Page picture or Post photo by what was reported', () => {
+    show(
+      groupBySubject([
+        report('r1', 'a'),
+        report('r2', 'b', { subjectKind: 'page_picture' }),
+        report('r3', 'c', { subjectKind: 'post_photo', subjectId: 'p1' }),
+      ]),
+    )
+    expect(screen.getAllByTestId('review-kind').map((e) => e.textContent).sort()).toEqual(['Page photo', 'Page picture', 'Post photo'])
   })
 })
 

@@ -13,7 +13,9 @@ import { SEVERITY_OF_REPORT_CATEGORY, type ReportCategory } from '@/lib/reports/
 export type Severity = 1 | 2 | 3 | 4
 
 export interface ReviewSubject {
-  subjectKind: 'group' | 'post'
+  /** F099 — which image, or the post body, it is. */
+  subjectKind: QueuedReport['subjectKind']
+  /** The key: the Page's id for its photo, the post's id for a post body, `kind:id` for any other image. */
   subjectId: string
   name: string
   slug: string | null
@@ -40,11 +42,18 @@ export const isOpen = (r: QueuedReport) => r.history.length === 0
 export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
   const by = new Map<string, ReviewSubject>()
   for (const r of [...queue].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())) {
-    const isPost = r.subjectKind === 'post' && !!r.postId
-    const key = isPost ? `post:${r.postId}` : `group:${r.groupId}`
+    // The Page's photo is keyed by its Page and a post body by its post id; any
+    // other image by its own kind and id, so one Page's photo, picture and
+    // posts never merge.
+    const key =
+      r.subjectKind === 'group'
+        ? r.groupId
+        : r.subjectKind === 'post'
+          ? (r.postId ?? r.subjectId)
+          : `${r.subjectKind}:${r.subjectId}`
     const s = by.get(key) ?? {
-      subjectKind: isPost ? ('post' as const) : ('group' as const),
-      subjectId: isPost ? r.postId! : r.groupId,
+      subjectKind: r.subjectKind,
+      subjectId: key,
       contentText: r.contentText ?? null,
       reasons: [],
       coordinated: false,

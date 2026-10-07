@@ -1,0 +1,5 @@
+### F099 · #460 (2 of 2) — the Page picture, the post card's one image, per-image reports
+
+`groups` gains a Page picture with its own hide/remove state (migration `20261007210000`), apart from `photo_url`. `browse_feed` is recreated (return type gains `photo_source`): a post row's `photo_url` is the post's visible photo, else the Page's visible picture, else null, resolved in SQL with hidden/removed always null on the row; the card words its alt from the source (the owner's words, or the Page's name) and draws the kind placeholder when null. `group.update` / `update_draft` take `pictureUrl` (own folder only); Edit has a second "Page picture" picker. `reports.subject_kind` widens to `page_picture` and `post_photo`; `report.create`, `report.decide` and `report.reverse` act on the one image; the queue and the owner's notice name which. Visitors report an image from a ⋯ on the post card's image.
+
+Not done: the retired Home feed and the signed-out withheld card are untouched (criterion 11: the withheld card is unchanged, 2026-09-27).

@@ -27,6 +27,8 @@ const REPORT: QueuedReport = {
   reportedAt: new Date('2026-09-15T09:00:00Z'),
   hiddenAt: new Date('2026-09-15T09:00:00Z'),
   removedAt: null,
+  subjectKind: 'group',
+  subjectId: 'g1',
   groupId: 'g1',
   groupName: 'Oak Park Bakery',
   groupSlug: 'oak-park-bakery',
@@ -220,6 +222,19 @@ describe('F078 — a reported Post', () => {
     renderEntry({ ...post, removedAt: new Date('2026-09-16T09:00:00Z') })
     expect(screen.getByText(/^Removed/)).toBeInTheDocument()
     expect(screen.queryByText(/Photo removed/)).toBeNull()
+  })
+})
+
+// F099 criterion 8 — the reviewer is told which image a report is about.
+describe('F099 — which image', () => {
+  // [guards F099.8]
+  it.each([
+    ['group', 'Photo removed'],
+    ['page_picture', 'Page picture removed'],
+    ['post_photo', 'Post photo removed'],
+  ] as const)('a removed %s reads %s', (subjectKind, text) => {
+    render(<ReportEntry report={{ ...REPORT, subjectKind, removedAt: new Date('2026-09-16T09:00:00Z') }} hiddenFor={null} onDecide={vi.fn()} onReverse={vi.fn()} />)
+    expect(screen.getByText(new RegExp(text))).toBeInTheDocument()
   })
 })
 
