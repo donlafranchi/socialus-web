@@ -76,7 +76,9 @@ if (require.main === module) {
     const log = execFileSync('git', ['log', `--since=${process.argv[j + 1]}`, '--format=%H', 'origin/main'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean)
     base = log.length ? `${log[log.length - 1]}^` : 'origin/main'
   }
-  const out = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { encoding: 'utf8' })
+  // Two dots: in CI HEAD is the PR's merge commit, so base..HEAD is exactly the PR's changes
+  // and needs no merge-base history (the checkout is shallow).
+  const out = execFileSync('git', ['diff', '--name-only', base, 'HEAD'], { encoding: 'utf8' })
   const result = changedRoutes(out.split('\n').filter(Boolean))
   console.log(JSON.stringify(result))
   if (process.argv.includes('--github-output') && process.env.GITHUB_OUTPUT) {

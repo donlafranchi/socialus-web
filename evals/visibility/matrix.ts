@@ -171,7 +171,7 @@ export const RESOURCES: Resource[] = [
         setup,
         sql: `select count(*)::int n from public.venue_hosted_items('${PLACE_LOCATION}', '${PLACE}')`,
         total: 1,
-        cells: {},
+        cells: { ownerPlace: own(1) },
         rest: NONE,
       },
       {
@@ -179,7 +179,7 @@ export const RESOURCES: Resource[] = [
         setup,
         sql: `select count(*)::int n from public.page_listed_member_counts(array['${PLACE}'::uuid])`,
         total: 1,
-        cells: {},
+        cells: { ownerPlace: own(1) },
         rest: NONE,
       },
     ]

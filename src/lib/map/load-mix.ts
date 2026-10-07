@@ -1,6 +1,7 @@
 // #331 — the default map's pins, server-side: the PM's settings row, four
 // reads from browse_feed (one per bucket), the mix, and a log of what was shown.
 
+import { after } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getBrowseFeed, type BrowseResult } from '@/lib/feed/browse-feed'
 import { getPool } from '@/actions/_lib/db'
@@ -35,7 +36,15 @@ export async function loadMapMix(supabase: RpcClient, metroId: string, now = new
   // A failed bucket costs that bucket, not the map.
   const lists = await Promise.all(BUCKETS.map((b) => read(b).catch(() => [] as BrowseResult[])))
   const mix = buildMix(Object.fromEntries(BUCKETS.map((b, i) => [b, lists[i]!])) as Record<Bucket, BrowseResult[]>, cfg)
-  await logMix(metroId, mix, now).catch((e) => console.error('[map-mix] log failed:', (e as Error).message))
+  // bug #457 — fire-and-forget: the log never holds the page or a connection
+  // against the response, and a failed log never fails the map. after() keeps
+  // the function alive until it finishes where Next provides it.
+  const log = () => logMix(metroId, mix, now).catch((e) => console.error('[map-mix] log failed:', (e as Error).message))
+  try {
+    after(log)
+  } catch {
+    void log()
+  }
   return mix
 }
 
