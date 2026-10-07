@@ -20,7 +20,7 @@ vi.mock('@/lib/follows/get-member-follows', () => ({
 vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const ENTRIES: FollowEntry[] = [
-  { kind: 'group', entityId: 'g1', displayName: 'Run Club', thumbnailUrl: null, createdAt: '2026-06-15T00:00:00Z', href: '/p/g/run-club', isTombstone: false },
+  { kind: 'group', entityId: 'g1', displayName: 'Run Club', thumbnailUrl: null, createdAt: '2026-06-15T00:00:00Z', href: '/g/r7nc1b', isTombstone: false },
   { kind: 'venue', entityId: 'ss1', displayName: 'Blue Bottle', thumbnailUrl: null, createdAt: '2026-06-12T00:00:00Z', href: '/p/l/blue-bottle', isTombstone: false },
   { kind: 'person', entityId: 'p1', displayName: 'Alice', thumbnailUrl: 'a.png', createdAt: '2026-06-10T00:00:00Z', href: '/m/alice', isTombstone: false },
 ]
@@ -41,7 +41,7 @@ describe('FollowingSummary', () => {
     expect(cards[0]).toHaveTextContent('Run Club')
     expect(cards[1]).toHaveTextContent('Blue Bottle')
     expect(cards[2]).toHaveTextContent('Alice')
-    expect(cards[0]).toHaveAttribute('href', '/p/g/run-club')
+    expect(cards[0]).toHaveAttribute('href', '/g/r7nc1b')
     expect(cards[2]).toHaveAttribute('href', '/m/alice')
   })
 

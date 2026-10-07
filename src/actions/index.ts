@@ -29,10 +29,17 @@ import {
   groupPostCreate,
   groupPostEdit,
   groupPostDelete,
+  groupArchive,
+  groupDelete,
+  groupRestore,
+  groupUnclaimedRemove,
+  groupUnclaimedClaim,
+  groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { reportCreate, reportDecide, reportReverse } from './report'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
+import { builderContentSetVisible, builderContentDeleteAll } from './builder'
 import type { NamedActionHandler } from './_lib/handler'
 
 const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
@@ -43,6 +50,11 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // because a live Page's slug is frozen and the edit is an event.
   'group.update': groupUpdate as unknown as NamedActionHandler<unknown, unknown>,
   'group.activate': groupActivate as unknown as NamedActionHandler<unknown, unknown>,
+  // #423 — owner-only: archive hides a Page from everyone else; delete hides
+  // it at once and the purge removes it 14 days on; restore undoes either.
+  'group.archive': groupArchive as unknown as NamedActionHandler<unknown, unknown>,
+  'group.delete': groupDelete as unknown as NamedActionHandler<unknown, unknown>,
+  'group.restore': groupRestore as unknown as NamedActionHandler<unknown, unknown>,
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
   'item.attach_location': itemAttachLocation as unknown as NamedActionHandler<unknown, unknown>,
@@ -79,6 +91,14 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // T167 — F076 c13-15: the same step for someone with no account. Separate
   // handler because this one has no acting member to guard on at all.
   'metro.waitlist_join_anonymous': metroWaitlistJoinAnonymous as unknown as NamedActionHandler<unknown, unknown>,
+  // #388 — builder content, all at once. Operator-only, checked in the handlers.
+  'builder.content_set_visible': builderContentSetVisible as unknown as NamedActionHandler<unknown, unknown>,
+  'builder.content_delete_all': builderContentDeleteAll as unknown as NamedActionHandler<unknown, unknown>,
+  // #353 — an unclaimed Page. Remove and claim take no account; a removal hides
+  // the Page at once. Restore is operator-only, checked in the handler.
+  'group.unclaimed_remove': groupUnclaimedRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unclaimed_claim': groupUnclaimedClaim as unknown as NamedActionHandler<unknown, unknown>,
+  'group.unclaimed_restore': groupUnclaimedRestore as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {
@@ -103,6 +123,7 @@ export {
   memberSavedSearchRestore,
 } from './member'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
+export { groupArchive, groupDelete, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
   groupPostCreate,

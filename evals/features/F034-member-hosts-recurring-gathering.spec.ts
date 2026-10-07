@@ -71,7 +71,7 @@ test.describe("F034 — A member hosts a recurring gathering", () => {
       await expect(attribution).toHaveText(CREW.brandName);
       await expect(attribution).toHaveAttribute(
         "href",
-        new RegExp(`/g/${CREW.slug}$`),
+        /\/g\/[0-9a-z]{6}$/,
       );
 
       // Then — the Share-link affordance is present. Why: AC — "a 'Share link'

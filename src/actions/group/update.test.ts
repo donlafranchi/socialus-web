@@ -115,6 +115,16 @@ describe('which rows are editable', () => {
     )
   })
 
+  // #423 — an archived Page is still its owner's to edit before bringing it back.
+  it('edits an archived Page, and keeps it archived', async () => {
+    install({ state: 'archived' })
+    const out = await groupUpdate(ctx(), { groupId: GROUP, name: 'x' })
+    expect(out.patched).toEqual(['name'])
+    const [text] = sql(/update public\.groups/)[0]!
+    expect(text).toMatch(/lifecycle_state in \('active', 'archived'\)/)
+    expect(text).not.toMatch(/set[^]*lifecycle_state =/)
+  })
+
   it('reports a missing Page as missing', async () => {
     install({ found: false })
     await expect(groupUpdate(ctx(), { groupId: GROUP, name: 'x' })).rejects.toBeInstanceOf(

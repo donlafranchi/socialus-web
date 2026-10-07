@@ -40,7 +40,7 @@ const PERSON_DATA = {
 }
 const GROUP_DATA = {
   group_memberships: [{ group_id: 'g1', joined_at: '2026-06-15T00:00:00Z' }],
-  groups: [{ id: 'g1', slug: 'run-club', name: 'Run Club' }],
+  groups: [{ id: 'g1', public_id: 'r7nc1b', name: 'Run Club' }],
 }
 const VENUE_DATA = {
   member_saved_searches: [
@@ -72,7 +72,7 @@ describe('getMemberFollows — union + ordering', () => {
     })
   })
 
-  it('maps a Group to /p/g/[slug] with no thumbnail (groups have no image column)', async () => {
+  it('maps a Group to its address, /g/<id> (#411), with no thumbnail (groups have no image column)', async () => {
     const { client } = makeClient(GROUP_DATA)
     const [group] = await getMemberFollows(client, 'me')
     expect(group).toMatchObject({
@@ -80,7 +80,7 @@ describe('getMemberFollows — union + ordering', () => {
       entityId: 'g1',
       displayName: 'Run Club',
       thumbnailUrl: null,
-      href: '/p/g/run-club',
+      href: '/g/r7nc1b',
       isTombstone: false,
     })
   })
@@ -154,5 +154,15 @@ describe('getMemberFollows — tombstone', () => {
   it('returns an empty list when the member follows nothing', async () => {
     const { client } = makeClient({})
     expect(await getMemberFollows(client, 'me')).toEqual([])
+  })
+})
+
+describe('#423 — a deleted Page leaves Following', () => {
+  // Its owner still reads the row (to restore it from Your Pages); Following
+  // is not where it lives any more.
+  it('asks only for Pages that are not deleted', async () => {
+    const { client, calls } = makeClient(GROUP_DATA)
+    await getMemberFollows(client, 'me')
+    expect(calls.groups).toContainEqual(['is', ['dissolved_at', null]])
   })
 })

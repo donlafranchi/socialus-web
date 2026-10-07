@@ -1,0 +1,1196 @@
+[
+  {
+    "key": "davis-food-co-op",
+    "name": "Davis Food Co-op",
+    "purpose": "sell",
+    "town": "Davis",
+    "neighbourhood": null,
+    "address": "620 G St, Davis, CA 95616",
+    "website": "https://davisfood.coop/",
+    "social": {
+      "instagram": "https://www.instagram.com/davisfoodcoop/"
+    },
+    "description": "A member-owned grocery in Davis stocking produce, meat and pantry goods with an emphasis on local growers. Claim this Page to tell your own story.",
+    "photo_url": "https://davisfood.coop/wp-content/uploads/2026/02/dfc-logo.png",
+    "photo_page_url": "https://davisfood.coop/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://davisfood.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://davisfood.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://davisfood.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://davisfood.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://davisfood.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://davisfood.coop/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists daily hours and a current remodel notice for the deli and bakery; logo uploaded 2026-02."
+  },
+  {
+    "key": "sacramento-natural-foods-co-op",
+    "name": "Sacramento Natural Foods Co-op",
+    "purpose": "sell",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": "2820 R St, Sacramento, CA",
+    "website": "https://sac.coop/",
+    "social": {
+      "instagram": "https://www.instagram.com/sacfoodcoop/"
+    },
+    "description": "A community-owned grocery on R Street selling organic and regional food, with a deli serving made-to-order meals. Claim this Page to tell your own story.",
+    "photo_url": "https://sac.coop/wp-content/uploads/2026/06/grocery_home.webp",
+    "photo_page_url": "https://sac.coop/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://sac.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://sac.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://sac.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://sac.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://sac.coop/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://sac.coop/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists member board meetings on Nov 9 and Dec 8, 2026; homepage image uploaded 2026-06."
+  },
+  {
+    "key": "bike-dog-brewing",
+    "name": "Bike Dog Brewing Company",
+    "purpose": "sell",
+    "town": "West Sacramento",
+    "neighbourhood": null,
+    "address": null,
+    "website": "https://bikedogbrewing.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/bikedogbrewing"
+    },
+    "description": "A craft brewery with its production brewery in West Sacramento and taprooms in East Sacramento and on Broadway, pouring its own beers. Claim this Page to tell your own story.",
+    "photo_url": "https://bikedogbrewing.com/wp-content/uploads/2017/07/Logo.png",
+    "photo_page_url": "https://bikedogbrewing.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://bikedogbrewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://bikedogbrewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://bikedogbrewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://bikedogbrewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://bikedogbrewing.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site calendar lists taproom events on Oct 6-7, 2026 and new can art uploaded 2026-05."
+  },
+  {
+    "key": "davis-farmers-market",
+    "name": "Davis Farmers Market",
+    "purpose": "sell",
+    "town": "Davis",
+    "neighbourhood": "Central Park",
+    "address": "301 C St, Davis, CA",
+    "website": "https://www.davisfarmersmarket.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/davis.farmers.market/"
+    },
+    "description": "A year-round farmers market in Davis Central Park on Saturday mornings and Wednesday evenings, with local growers, food makers and crafts. Claim this Page to tell your own story.",
+    "photo_url": "https://www.davisfarmersmarket.org/wp-content/uploads/2025/05/davis-farmers-market-50-logo-primary.png",
+    "photo_page_url": "https://www.davisfarmersmarket.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.davisfarmersmarket.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.davisfarmersmarket.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.davisfarmersmarket.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.davisfarmersmarket.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.davisfarmersmarket.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://www.davisfarmersmarket.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site announces its 50th anniversary celebration on Aug 1, 2026 and lists current market days."
+  },
+  {
+    "key": "capital-books-on-k",
+    "name": "Capital Books On K",
+    "purpose": "sell",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": "1011 K St, Sacramento, CA 95814",
+    "website": "https://capitalbooksonk.com/",
+    "social": {
+      "instagram": "https://instagram.com/capitalbooksonk"
+    },
+    "description": "An independent bookshop on K Street carrying new books across genres alongside games and collectible cards, and hosting reading groups. Claim this Page to tell your own story.",
+    "photo_url": "https://capitalbooksonk.com/wp-content/uploads/2023/06/merch.jpg",
+    "photo_page_url": "https://capitalbooksonk.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://capitalbooksonk.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://capitalbooksonk.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://capitalbooksonk.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://capitalbooksonk.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://capitalbooksonk.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://capitalbooksonk.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists book club meetings on Aug 23, 2026 and current weekly hours."
+  },
+  {
+    "key": "auburn-alehouse",
+    "name": "Auburn Alehouse",
+    "purpose": "sell",
+    "town": "Auburn",
+    "neighbourhood": null,
+    "address": "289 Washington St, Auburn, CA 95603",
+    "website": "https://auburnalehouse.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/auburnalehouse/"
+    },
+    "description": "A brewpub on Washington Street in Auburn, brewing its own beers and serving food. Claim this Page to tell your own story.",
+    "photo_url": "https://auburnalehouse.com/cdn/shop/files/auburnalehousebrewpub.jpg?v=1714412875&width=1800",
+    "photo_page_url": "https://auburnalehouse.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://auburnalehouse.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://auburnalehouse.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://auburnalehouse.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://auburnalehouse.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://auburnalehouse.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://auburnalehouse.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site shows current daily hours, a seasonal Oktoberfest beer and a homepage banner uploaded 2026-08-21."
+  },
+  {
+    "key": "davis-arts-center",
+    "name": "Davis Arts Center",
+    "purpose": "service",
+    "town": "Davis",
+    "neighbourhood": null,
+    "address": "1919 F St, Davis, CA 95616",
+    "website": "https://www.davisartscenter.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/davisartscenter/"
+    },
+    "description": "A community arts center in Davis running classes and camps in ceramics, printmaking and other media for youth and adults. Claim this Page to tell your own story.",
+    "photo_url": "https://www.davisartscenter.org/wp-content/uploads/2025/12/Davis-Arts-Center-Main-Logo.png",
+    "photo_page_url": "https://www.davisartscenter.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.davisartscenter.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.davisartscenter.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.davisartscenter.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.davisartscenter.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.davisartscenter.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://www.davisartscenter.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists fall classes with images uploaded 2026-08 and October workshops."
+  },
+  {
+    "key": "meissner-sewing",
+    "name": "Meissner Sewing & Vacuum",
+    "purpose": "service",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": "2417 Cormorant Way, Sacramento, CA 95815",
+    "website": "https://meissnersewing.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/meissnersewingandvacuum/"
+    },
+    "description": "A family-run sewing shop with stores in Sacramento and Folsom offering sewing classes and machine service and repair. Claim this Page to tell your own story.",
+    "photo_url": "https://meissnersewing.com/cdn/shop/files/Meissner_Sewing_Logo.png?v=1776874455&width=1200",
+    "photo_page_url": "https://meissnersewing.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://meissnersewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://meissnersewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://meissnersewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://meissnersewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://meissnersewing.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://meissnersewing.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site promotes its 96th anniversary event on Oct 16-17 (operating since 1930, so 2026)."
+  },
+  {
+    "key": "granite-arch-climbing-center",
+    "name": "Granite Arch Climbing Center",
+    "purpose": "service",
+    "town": "Rancho Cordova",
+    "neighbourhood": null,
+    "address": "11335-G Folsom Blvd, Rancho Cordova, CA 95742",
+    "website": "https://www.granitearch.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/granitearchclimbing/"
+    },
+    "description": "An indoor climbing gym in Rancho Cordova with roped and bouldering walls, youth programs and technique clinics. Claim this Page to tell your own story.",
+    "photo_url": "https://static.wixstatic.com/media/1309c3_0923628c8d714e2681742e7f7360185c~mv2.jpg",
+    "photo_page_url": "https://www.granitearch.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.granitearch.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.granitearch.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.granitearch.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.granitearch.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.granitearch.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://www.granitearch.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists footwork and mobility clinics on Oct 17, 2026 and current daily hours."
+  },
+  {
+    "key": "rocknasium",
+    "name": "Rocknasium",
+    "purpose": "service",
+    "town": "Davis",
+    "neighbourhood": null,
+    "address": "720 Olive Dr, Suite S, Davis, CA 95616",
+    "website": "https://www.rocknasium.com/",
+    "description": "A climbing and fitness gym in Davis offering climbing instruction, studio classes and kids programs. Claim this Page to tell your own story.",
+    "photo_url": "https://www.rocknasium.com/wp-content/uploads/2018/07/green-logo-wide-350.png",
+    "photo_page_url": "https://www.rocknasium.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.rocknasium.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.rocknasium.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.rocknasium.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.rocknasium.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.rocknasium.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists current weekly hours and a Summer Camp 2026 program."
+  },
+  {
+    "key": "roseville-theatre-arts-academy",
+    "name": "Roseville Theatre Arts Academy",
+    "purpose": "service",
+    "town": "Roseville",
+    "neighbourhood": null,
+    "address": "241 Vernon St, Roseville, CA 95678",
+    "website": "https://www.rosevilletheatreartsacademy.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/rosevillertaa"
+    },
+    "description": "A youth theatre school in Roseville teaching acting, singing and dance through age-grouped classes and staged productions. Claim this Page to tell your own story.",
+    "photo_url": "https://images.squarespace-cdn.com/content/v1/6001f92e14b6d07fbbad9291/1611863865975-05SDINAG6W0FA6IUXHL0/RTAA_SiteLogo.png?format=1500w",
+    "photo_page_url": "https://www.rosevilletheatreartsacademy.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.rosevilletheatreartsacademy.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.rosevilletheatreartsacademy.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.rosevilletheatreartsacademy.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.rosevilletheatreartsacademy.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.rosevilletheatreartsacademy.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://www.rosevilletheatreartsacademy.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own events page lists James and the Giant Peach Oct 16-25, 2026 and a gala on Nov 14, 2026."
+  },
+  {
+    "key": "encore-studio-of-performing-arts",
+    "name": "Encore! Studio of Performing Arts",
+    "purpose": "service",
+    "town": "Elk Grove",
+    "neighbourhood": null,
+    "address": null,
+    "website": "https://canudance.com/",
+    "description": "An Elk Grove dance studio teaching several dance styles to children and adults, with musical-theatre themed recitals. Claim this Page to tell your own story.",
+    "photo_url": "https://canudance.com/wp-content/uploads/2026/05/cropped-EncoreLogo_2026.png",
+    "photo_page_url": "https://canudance.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://canudance.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://canudance.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://canudance.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://canudance.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site carries a 2026 logo and a 41-years badge uploaded 2026-06 (serving Elk Grove since 1985)."
+  },
+  {
+    "key": "sacramento-bicycle-kitchen",
+    "name": "Sacramento Bicycle Kitchen",
+    "purpose": "service",
+    "town": "Sacramento",
+    "neighbourhood": "Midtown",
+    "address": "1915 I St, Sacramento, CA",
+    "website": "https://www.sacbikekitchen.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sacbikekitchen/"
+    },
+    "description": "A nonprofit do-it-yourself bike shop in Midtown where people fix their own bikes with shared tools and volunteer help, plus repair classes and used parts. Claim this Page to tell your own story.",
+    "photo_url": "https://www.sacbikekitchen.org/wp-content/uploads/2014/12/SBK-shopW.jpg",
+    "photo_page_url": "https://www.sacbikekitchen.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.sacbikekitchen.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.sacbikekitchen.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.sacbikekitchen.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.sacbikekitchen.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.sacbikekitchen.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://www.sacbikekitchen.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site posts a 2026 Second Saturday schedule, a 20th anniversary on Jul 11, 2026 and a sale on Aug 22, 2026."
+  },
+  {
+    "key": "soil-born-farms",
+    "name": "Soil Born Farms",
+    "purpose": "gather",
+    "town": "Rancho Cordova",
+    "neighbourhood": "American River Ranch",
+    "address": "2140 Chase Dr, Rancho Cordova, CA 95670",
+    "website": "https://soilborn.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/soil_born_farms/"
+    },
+    "description": "An urban farm and education nonprofit at the American River Ranch that runs garden workshops, nature walks and family days. Claim this Page to tell your own story.",
+    "photo_url": "https://soilborn.org/wp-content/uploads/2024/05/sunflowers-Gina-Marraccini-1.jpg",
+    "photo_page_url": "https://soilborn.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://soilborn.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://soilborn.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://soilborn.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://soilborn.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://soilborn.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://soilborn.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists workshops and walks on Oct 10, 17 and 24, 2026."
+  },
+  {
+    "key": "sacramento-tree-foundation",
+    "name": "Sacramento Tree Foundation",
+    "purpose": "gather",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": "6045 Midway St, Sacramento, CA 95828",
+    "website": "https://sactree.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sactree"
+    },
+    "description": "A regional nonprofit that organises volunteer tree plantings, acorn harvests and creek cleanups to grow the urban forest. Claim this Page to tell your own story.",
+    "photo_url": "https://sactree.org/wp-content/uploads/2020/06/2017-Acorn-Harvest-3-scaled.jpg",
+    "photo_page_url": "https://sactree.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://sactree.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://sactree.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://sactree.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://sactree.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://sactree.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://sactree.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own events page lists plantings on Oct 3, 2026 and a creek cleanup on Aug 15, 2026."
+  },
+  {
+    "key": "sierra-2-center",
+    "name": "Sierra 2 Center for the Arts & Community",
+    "purpose": "gather",
+    "town": "Sacramento",
+    "neighbourhood": "Curtis Park",
+    "address": "2791 24th St, Sacramento, CA 95818",
+    "website": "https://sierra2.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sierra2center/"
+    },
+    "description": "A neighbourhood-run community center in Curtis Park hosting workshops, performances, a senior activity center and local events. Claim this Page to tell your own story.",
+    "photo_url": "https://sierra2.org/wp-content/uploads/2025/03/Homepage_About-Us_030525.webp",
+    "photo_page_url": "https://sierra2.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://sierra2.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://sierra2.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://sierra2.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://sierra2.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://sierra2.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://sierra2.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists a neighbourhood association membership meeting on Dec 9 and seasonal events for late 2026."
+  },
+  {
+    "key": "sacramento-area-bicycle-advocates",
+    "name": "Sacramento Area Bicycle Advocates",
+    "purpose": "gather",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": null,
+    "website": "https://sacbike.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sacbike/"
+    },
+    "description": "A member nonprofit working for safer streets for people on bikes, running bike valet, education programs and community rides. Claim this Page to tell your own story.",
+    "photo_url": "https://sacbike.org/wp-content/uploads/2025/02/SABA-text-aub_03.png",
+    "photo_page_url": "https://sacbike.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://sacbike.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://sacbike.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://sacbike.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://sacbike.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://sacbike.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site promotes its Velo Ball fundraiser on Oct 17, 2026."
+  },
+  {
+    "key": "elk-grove-historical-society",
+    "name": "Elk Grove Historical Society",
+    "purpose": "gather",
+    "town": "Elk Grove",
+    "neighbourhood": "Heritage Park",
+    "address": null,
+    "website": "https://elkgrovehistoricalsociety.com/",
+    "description": "A volunteer-run history group that opens Elk Grove's Heritage Park and the Rhoads School House for monthly tours and seasonal events. Claim this Page to tell your own story.",
+    "photo_url": "https://elkgrovehistoricalsociety.com/wp-content/uploads/2026/07/cropped-Untitled-design-31.png",
+    "photo_page_url": "https://elkgrovehistoricalsociety.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://elkgrovehistoricalsociety.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://elkgrovehistoricalsociety.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://elkgrovehistoricalsociety.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://elkgrovehistoricalsociety.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists First Saturday tours February through October and a 50th-year Rhoads School celebration; logo uploaded 2026-07."
+  },
+  {
+    "key": "american-river-parkway-foundation",
+    "name": "American River Parkway Foundation",
+    "purpose": "gather",
+    "town": "Carmichael",
+    "neighbourhood": null,
+    "address": "5700 Arden Way, Carmichael, CA 95608",
+    "website": "https://arpf.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/arpfsac/"
+    },
+    "description": "A nonprofit that organises volunteers to clean up, restore and look after the American River Parkway, with education and community events. Claim this Page to tell your own story.",
+    "photo_url": "https://arpf.org/wp-content/uploads/2026/08/parkway-winter.png",
+    "photo_page_url": "https://arpf.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://arpf.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://arpf.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://arpf.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://arpf.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://arpf.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://arpf.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own homepage features wreath workshop and parkway graphics uploaded 2026-08 and 2026-09."
+  },
+  {
+    "key": "b-street-theatre",
+    "name": "B Street Theatre",
+    "purpose": "creative",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": null,
+    "website": "https://bstreettheatre.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/bstreettheatre/"
+    },
+    "description": "A professional theatre company performing at The Sofia, staging plays, new musicals and concerts, with youth and adult classes. Claim this Page to tell your own story.",
+    "photo_url": "https://bstreettheatre.org/wp-content/themes/bstreetTwentyNineteen/images/sofia-logo-133x60.png",
+    "photo_page_url": "https://bstreettheatre.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://bstreettheatre.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://bstreettheatre.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://bstreettheatre.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://bstreettheatre.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://bstreettheatre.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists its 2026-27 season including Primary Trust from Oct 7 and a Nov 7 soiree; page modified 2026-10-02."
+  },
+  {
+    "key": "capital-stage",
+    "name": "Capital Stage",
+    "purpose": "creative",
+    "town": "Sacramento",
+    "neighbourhood": null,
+    "address": "2215 J St, Sacramento, CA 95816",
+    "website": "https://capstage.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/capstage/"
+    },
+    "description": "A theatre company producing contemporary plays on J Street in Sacramento, with classes and community programs. Claim this Page to tell your own story.",
+    "photo_url": "https://capstage.org/wp-content/uploads/CapStage-website-logo-75x75-1.png",
+    "photo_page_url": "https://capstage.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://capstage.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://capstage.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://capstage.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://capstage.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://capstage.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://capstage.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists its 2026/27 season opener running Sep 23 to Oct 25, 2026."
+  },
+  {
+    "key": "blue-line-arts",
+    "name": "Blue Line Arts",
+    "purpose": "creative",
+    "town": "Roseville",
+    "neighbourhood": null,
+    "address": "405 Vernon St, Suite 100, Roseville, CA 95678",
+    "website": "https://www.bluelinearts.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/bluelinearts/"
+    },
+    "description": "A nonprofit gallery in Roseville presenting exhibitions, public art and art workshops for families and artists. Claim this Page to tell your own story.",
+    "photo_url": "https://www.bluelinearts.org/wp-content/themes/bla2025/images/logo2025.png",
+    "photo_page_url": "https://www.bluelinearts.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://www.bluelinearts.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://www.bluelinearts.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://www.bluelinearts.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://www.bluelinearts.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://www.bluelinearts.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://www.bluelinearts.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists a gala on Oct 10, 2026 and an exhibition running Oct 17 to Nov 15, 2026."
+  },
+  {
+    "key": "sutter-street-theatre",
+    "name": "Sutter Street Theatre",
+    "purpose": "creative",
+    "town": "Folsom",
+    "neighbourhood": null,
+    "address": "717 Sutter St, Folsom, CA 95630",
+    "website": "https://sutterstreettheatre.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/sutterstreettheatre/"
+    },
+    "description": "A community theatre on Sutter Street in Folsom staging musicals and plays, with a theatre academy for young performers. Claim this Page to tell your own story.",
+    "photo_url": "https://sutterstreettheatre.com/wp-content/uploads/2025/10/SST-Logo-Horizontal_Oswald_350.png",
+    "photo_page_url": "https://sutterstreettheatre.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://sutterstreettheatre.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://sutterstreettheatre.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://sutterstreettheatre.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://sutterstreettheatre.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://sutterstreettheatre.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://sutterstreettheatre.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists Evil Dead The Musical Oct 2 to Nov 8, 2026 and a radio show Oct 10-11, 2026."
+  },
+  {
+    "key": "archival-gallery",
+    "name": "Archival Gallery",
+    "purpose": "creative",
+    "town": "Sacramento",
+    "neighbourhood": "East Sacramento",
+    "address": "3223 Folsom Blvd, Sacramento, CA",
+    "website": "https://archivalgallery.com/",
+    "social": {
+      "instagram": "https://instagram.com/archivalgallery"
+    },
+    "description": "An East Sacramento gallery and gift shop showing work by regional artists, including paintings and ceramics. Claim this Page to tell your own story.",
+    "photo_url": "https://archivalgallery.com/wp-content/uploads/2026/10/AG_GiftShop_Oct2026_SideWall-edited-1024x576.jpg",
+    "photo_page_url": "https://archivalgallery.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://archivalgallery.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://archivalgallery.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://archivalgallery.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://archivalgallery.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://archivalgallery.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://archivalgallery.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists an exhibition Sep 30 to Oct 31, 2026 with a reception on Oct 10."
+  },
+  {
+    "key": "pence-gallery",
+    "name": "Pence Gallery",
+    "purpose": "creative",
+    "town": "Davis",
+    "neighbourhood": null,
+    "address": "212 D St, Davis, CA 95616",
+    "website": "https://pencegallery.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/pencegallery/"
+    },
+    "description": "A nonprofit art gallery in Davis with rotating exhibitions, talks and art classes. Claim this Page to tell your own story.",
+    "photo_url": "https://pencegallery.org/wp-content/uploads/2026/05/Pence-Building_donate-1024x768.jpg",
+    "photo_page_url": "https://pencegallery.org/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://pencegallery.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://pencegallery.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://pencegallery.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "address",
+        "url": "https://pencegallery.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://pencegallery.org/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://pencegallery.org/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists four exhibitions running October through November 2026."
+  },
+  {
+    "key": "auburn-symphony",
+    "name": "Auburn Symphony",
+    "purpose": "creative",
+    "town": "Auburn",
+    "neighbourhood": null,
+    "address": null,
+    "website": "https://auburnsymphony.com/",
+    "social": {
+      "instagram": "https://instagram.com/auburnsymphony"
+    },
+    "description": "A community orchestra in Auburn performing a season of classical and family concerts, with music education outreach. Claim this Page to tell your own story.",
+    "photo_url": "https://auburnsymphony.com/wp-content/uploads/2024/06/Auburn-Symphony-Final-Logo-WIDE-color.png",
+    "photo_page_url": "https://auburnsymphony.com/",
+    "sources": [
+      {
+        "field": "name",
+        "url": "https://auburnsymphony.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "description",
+        "url": "https://auburnsymphony.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "website",
+        "url": "https://auburnsymphony.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "photo",
+        "url": "https://auburnsymphony.com/",
+        "captured_on": "2026-10-05"
+      },
+      {
+        "field": "social",
+        "url": "https://auburnsymphony.com/",
+        "captured_on": "2026-10-05"
+      }
+    ],
+    "still_trading_evidence": "Own site lists the 2026-27 season starting with Masterworks I on Oct 17-18, 2026."
+  }
+]

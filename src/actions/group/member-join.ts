@@ -44,7 +44,7 @@ export const groupMemberJoin = defineHandler(
 
       // Group must exist and not be dissolved — can't join a dead Group.
       const grp = await client.query<{ id: string }>(
-        `select id from public.groups where id = $1 and dissolved_at is null`,
+        `select id from public.groups where id = $1 and dissolved_at is null and lifecycle_state <> 'archived'`,
         [input.groupId],
       )
       if (grp.rowCount === 0) {

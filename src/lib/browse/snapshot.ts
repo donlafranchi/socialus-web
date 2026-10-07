@@ -8,6 +8,7 @@
 
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
+import type { MixedResult } from '@/lib/map/mix'
 
 /** F091 — the rows under "What's happening…". Empty for a signed-out reader. */
 export interface HappeningSnapshot {
@@ -28,6 +29,8 @@ export interface BrowseSnapshot {
    */
   following: BrowseResult[]
   happening: HappeningSnapshot
+  /** #331 — the default map's pins: a tunable mix of four buckets. Always `[]` signed out (no pins). */
+  map: MixedResult[]
   /** Null when no metro resolves at all — the no-scope state. */
   metro: FeedMetro | null
   /** Did a person pick this metro, or did it fall out of a default? */

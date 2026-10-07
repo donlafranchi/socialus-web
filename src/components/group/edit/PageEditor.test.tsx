@@ -1,11 +1,13 @@
-// #302 — Don, 2026-10-04: edit in place, by section. One Edit/Done toggle; each
-// section opens a sheet with its own fields and one Save that saves and closes.
-// Precedent: Google Business Profile's Edit profile sections, Apple Contacts.
+// #302 — each section opens a sheet with its own fields and one Save that saves
+// and closes. #412 — the sheets open from the Edit Page's cards, not from
+// buttons on the Page. Precedent: Google Business Profile's Edit profile.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { PageEditorProvider, EditToggle, SectionEditButton, usePageEditor, type Section } from './PageEditor'
+import * as PageEditor from './PageEditor'
+import { PageEditorProvider, usePageEditor, type EditorInitial, type Section } from './PageEditor'
+import { COPY } from '@/lib/copy'
 import { emptyWhere } from '@/components/locations/WhereFields'
 
 const refresh = vi.fn()
@@ -20,9 +22,9 @@ vi.mock('@/app/_actions/location-actions', () => ({
 vi.mock('@/lib/geocoding', () => ({ geocode: vi.fn(async () => []), GeocodingUnavailableError: class extends Error {} }))
 
 const onSave = vi.fn(async (_i: unknown): Promise<{ ok: true } | { ok: false; message: string }> => ({ ok: true }))
-const initial = {
+const initial: EditorInitial = {
   groupId: 'g1',
-  pagePath: '/g/oak-park-sourdough-7k3x8m',
+  pagePath: '/g/7k3x8m',
   memberId: 'm1',
   name: 'Oak Park Sourdough',
   description: 'Real bread.',
@@ -32,19 +34,22 @@ const initial = {
   contact: { phone: null, hours: null },
   contactOn: true,
   addressLabel: '3117 Broadway, Sacramento',
-  kind: 'business' as const,
-  purpose: 'sell' as const,
+  kind: 'business',
+  purpose: 'sell',
   productsOn: true,
   where: emptyWhere,
 }
 
-function Page() {
+// Don, 2026-10-05: each Add on the draft opens only its own fields, with
+// pickers rather than long lists, and one primary button.
+function OpenOne({ section }: { section: Section }) {
+  const ctx = usePageEditor()
+  return <button onClick={() => ctx!.open(section)}>open {section}</button>
+}
+function Page({ sections = ['about', 'tags'] as Section[], init = initial }) {
   return (
-    <PageEditorProvider initial={initial} onSave={onSave}>
-      <EditToggle />
-      <h1>Oak Park Sourdough</h1>
-      <SectionEditButton section="about" />
-      <SectionEditButton section="tags" />
+    <PageEditorProvider initial={init} onSave={onSave}>
+      {sections.map((s) => <OpenOne key={s} section={s} />)}
     </PageEditorProvider>
   )
 }
@@ -55,28 +60,20 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-describe('#302 — the owner sees the Page as visitors do, with one Edit toggle', () => {
-  it('hides the section edit buttons until Edit is on', () => {
-    render(<Page />)
-    expect(screen.queryByRole('button', { name: /edit about/i })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    expect(screen.getByRole('button', { name: /edit about/i })).toBeInTheDocument()
+describe('#412 — no edit mode on the Page itself', () => {
+  it('has no Edit/Done toggle and no per-section edit buttons to sprinkle', () => {
+    expect(PageEditor).not.toHaveProperty('EditToggle')
+    expect(PageEditor).not.toHaveProperty('SectionEditButton')
   })
 
-  it('Done just leaves edit mode: nothing is ever left unsaved', () => {
+  it('opens nothing until asked', () => {
     render(<Page />)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }))
-    expect(screen.queryByRole('button', { name: /edit about/i })).toBeNull()
-    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })
 
 describe('#302 — a section opens a sheet with only its own fields', () => {
-  const openAbout = () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: /edit about/i }))
-  }
+  const openAbout = () => fireEvent.click(screen.getByRole('button', { name: 'open about' }))
 
   it('shows that section and no other', () => {
     render(<Page />)
@@ -130,8 +127,7 @@ describe('#302 — a section opens a sheet with only its own fields', () => {
 
   it('tags refuse to save empty, as at publish', async () => {
     render(<Page />)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: /edit tags/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'open tags' }))
     fireEvent.click(screen.getByTestId('edit-tag-remove-sourdough'))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/at least one/i)
@@ -141,14 +137,8 @@ describe('#302 — a section opens a sheet with only its own fields', () => {
 
 describe('hours hidden for now (Don, 2026-10-05)', () => {
   it('the phone sheet has the phone, not hours, and leaves stored hours alone', async () => {
-    render(
-      <PageEditorProvider initial={{ ...initial, contact: { phone: '+19165550142', hours: { mon: [{ open: '09:00', close: '17:00' }] } } }} onSave={onSave}>
-        <EditToggle />
-        <SectionEditButton section="contact" />
-      </PageEditorProvider>,
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: /edit business phone/i }))
+    render(<Page sections={['contact']} init={{ ...initial, contact: { phone: '+19165550142', hours: { mon: [{ open: '09:00', close: '17:00' }] } } }} />)
+    fireEvent.click(screen.getByRole('button', { name: 'open contact' }))
     expect(screen.getByRole('dialog', { name: 'Business phone' })).toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: /monday/i })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -159,14 +149,8 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
 
 describe('#363 — purpose first, type for listing (Don ruled A, 2026-10-05)', () => {
   const open = () => {
-    render(
-      <PageEditorProvider initial={initial} onSave={onSave}>
-        <EditToggle />
-        <SectionEditButton section="kind" />
-      </PageEditorProvider>,
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
-    fireEvent.click(screen.getByRole('button', { name: /edit what your page is for/i }))
+    render(<Page sections={['kind']} />)
+    fireEvent.click(screen.getByRole('button', { name: 'open kind' }))
   }
 
   it('offers the four purposes, and the type follows the one chosen', async () => {
@@ -187,19 +171,9 @@ describe('#363 — purpose first, type for listing (Don ruled A, 2026-10-05)', (
   })
 })
 
-// Don, 2026-10-05: each Add on the draft opens only its own fields, with
-// pickers rather than long lists, and one primary button.
-function OpenOne({ section }: { section: Section }) {
-  const ctx = usePageEditor()
-  return <button onClick={() => ctx!.open(section)}>add {section}</button>
-}
 const openOne = (section: Section) => {
-  render(
-    <PageEditorProvider initial={initial} onSave={onSave}>
-      <OpenOne section={section} />
-    </PageEditorProvider>,
-  )
-  fireEvent.click(screen.getByRole('button', { name: `add ${section}` }))
+  render(<Page sections={[section]} />)
+  fireEvent.click(screen.getByRole('button', { name: `open ${section}` }))
   return screen.getByRole('dialog')
 }
 
@@ -256,5 +230,17 @@ describe('Don, 2026-10-05 — one section per sheet', () => {
     fireEvent.change(screen.getByTestId('social-add'), { target: { value: 'instagram' } })
     expect(screen.getByTestId('social-instagram')).toBeInTheDocument()
     expect(screen.queryByTestId('social-facebook')).toBeNull()
+  })
+})
+
+describe('F080 — the sheets that post words or a photo ask for nothing sensitive', () => {
+  it.each(['about', 'name', 'description', 'photo'] as Section[])('%s shows the line', (s) => {
+    const d = openOne(s)
+    expect(d).toHaveTextContent(COPY.postingSafety)
+  })
+
+  it('tags do not', () => {
+    const d = openOne('tags')
+    expect(d).not.toHaveTextContent(COPY.postingSafety)
   })
 })

@@ -17,6 +17,7 @@ import { createClient } from '@/lib/supabase-server'
 import { withTransaction } from '@/actions/_lib/db'
 import { deriveInteriorPoint } from '@/lib/geo/interior-point'
 import { rankPlaces, type PlaceMatch } from '@/lib/places/search'
+import { searchNeighborhoods, type NeighborhoodMatch } from '@/lib/places/neighborhood-search'
 import { succeeded, failed, type ActionResult } from '@/app/you/sell/action-result'
 import { ActionError } from '@/actions'
 
@@ -315,6 +316,14 @@ export async function placeForPointAction(
       const r = res.rows[0]
       return r ? { id: r.id, name: r.display_name } : null
     })
+  })
+}
+
+/** #413 — "Or type a neighbourhood": the metro's neighbourhoods by name, with a point for the pin. */
+export async function searchNeighborhoodsAction(query: string, msa = '40900'): Promise<ActionResult<NeighborhoodMatch[]>> {
+  return asResult(async () => {
+    if (query.trim().length < 2 || !/^\d{5}$/.test(msa)) return []
+    return withTransaction((client) => searchNeighborhoods(client, query, msa))
   })
 }
 

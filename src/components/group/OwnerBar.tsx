@@ -17,7 +17,6 @@
 
 import Link from 'next/link'
 import { Megaphone } from 'lucide-react'
-import { EditToggle } from './edit/PageEditor'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 
 export function OwnerBar({ pagePath }: { pagePath: string }) {
@@ -28,23 +27,19 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
   // one. The canonical address is a single dynamic segment, so the edit
   // surface hangs off the Page it edits, which is where it belongs.
   return (
-    <div
-      data-testid="owner-bar"
-      className="rounded-md bg-[var(--color-surface)] p-3 flex flex-wrap items-center gap-2"
-    >
-      <span className="text-xs font-medium text-[var(--color-fg-muted)] mr-auto">
-        Your Page — only you see this
-      </span>
-      {/* #302 — edit in place, by section (Don, 2026-10-04). */}
-      <EditToggle />
-      <Link
-        href={`${pagePath}#${ANNOUNCE_ANCHOR}`}
-        data-testid="owner-announce"
-        className="btn-secondary press"
-      >
-        <Megaphone size={14} className="reacts mr-1.5" aria-hidden="true" />
-        Announce
-      </Link>
+    <div data-testid="owner-bar" className="flex flex-col gap-2 rounded-md bg-[var(--color-surface)] p-3">
+      <span className="text-xs font-medium text-[var(--color-fg-muted)]">Your Page — only you see this</span>
+      {/* Both tools on one row, in the panel's order, so neither wraps loose under the label. */}
+      <div className="grid grid-cols-2 gap-2">
+        <Link href={`${pagePath}#${ANNOUNCE_ANCHOR}`} data-testid="owner-announce" className="btn-secondary press">
+          <Megaphone size={14} className="reacts mr-1.5" aria-hidden="true" />
+          Announce
+        </Link>
+        {/* #412 — Edit goes to the Edit Page's section cards (the PM, 2026-10-06). */}
+        <Link href={`${pagePath}/edit`} data-testid="owner-edit" className="btn-secondary press">
+          Edit
+        </Link>
+      </div>
     </div>
   )
 }

@@ -102,41 +102,60 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
   })
   if (!created) return j.halt()
 
-  await j.step('Open Edit', 'Edit, where everything else is filled in', async () => {
+  // #412 — Edit is section cards; each Edit opens one sheet whose Save saves
+  // and closes it.
+  const section = async (name: string, fill: () => Promise<void>) => {
+    const edit = page.getByTestId(`edit-section-${name}`)
+    if (!(await edit.isVisible())) await page.getByTestId(`edit-card-${name}`).locator('xpath=ancestor::details/summary').click()
+    await edit.click()
+    await fill()
+    await page.getByTestId('sheet-save').click()
+    await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30_000 })
+  }
+  await j.step('Open Edit', 'Edit: the Page in section cards', async () => {
     await page.goto(`${new URL(pageUrl).pathname}/edit`)
-    await expect(page.getByTestId('edit-page-form')).toBeVisible()
+    await expect(page.getByTestId('edit-cards')).toBeVisible()
   })
   await j.step('Name and description', null, async () => {
-    await page.getByTestId('edit-name').fill(org.name)
-    await page.getByTestId('edit-description').fill(org.description)
+    await section('name', () => page.getByTestId('edit-name').fill(org.name))
+    await section('description', () => page.getByTestId('edit-description').fill(org.description))
   })
   await j.step('Tags', null, async () => {
-    for (const tag of org.tags) {
-      await page.getByTestId('edit-tag-input').fill(tag)
-      await page.getByTestId('edit-tag-input').press('Enter')
-    }
-    await expect(page.getByTestId('edit-tag-list')).toContainText(org.tags[0]!)
+    await section('tags', async () => {
+      for (const tag of org.tags) {
+        await page.getByTestId('edit-tag-input').fill(tag)
+        await page.getByTestId('edit-tag-input').press('Enter')
+      }
+      await expect(page.getByTestId('edit-tag-list')).toContainText(org.tags[0]!)
+    })
   })
   // #348's "How do people find you?". Invented organizations have no address
   // to look up, so they answer "It moves" and name the area they're usually in.
   await j.step('Where it is', null, async () => {
-    const change = page.getByTestId('edit-address-change')
-    if (await change.isVisible().catch(() => false)) await change.click()
-    const where = page.getByRole('group', { name: 'How do people find you?' })
-    await where.getByRole('radio', { name: /It moves/ }).check()
-    await where.getByPlaceholder('Midtown farmers markets').fill(org.area)
+    await section('where', async () => {
+      const where = page.getByRole('group', { name: 'How do people find you?' })
+      await where.getByRole('radio', { name: /It moves/ }).check()
+      await where.getByPlaceholder('Midtown farmers markets').fill(org.area)
+    })
   })
   await j.step('Photo', null, async () => {
-    await page.getByTestId('page-photo-input').setInputFiles(await photoFile(page, org, 'cover'))
-    await expect(page.getByTestId('page-photo-preview')).toBeVisible({ timeout: 30_000 })
+    await section('photo', async () => {
+      await page.getByTestId('page-photo-input').setInputFiles(await photoFile(page, org, 'cover'))
+      await expect(page.getByTestId('page-photo-preview')).toBeVisible({ timeout: 30_000 })
+    })
   })
-  await j.step('Links', null, async () => {
-    if (org.instagram) await page.getByTestId('social-instagram').fill(org.instagram)
-    if (org.website) await page.getByTestId('social-website').fill(org.website)
-  })
-  const saved = await j.step('Save', 'Filled in: name, description, tags, area, photo and links', async () => {
-    await page.getByTestId('edit-save').click()
-    await expect(page.getByTestId('edit-saved')).toBeVisible({ timeout: 30_000 })
+  const saved = await j.step('Links', 'Filled in: name, description, tags, area, photo and links', async () => {
+    if (!org.instagram && !org.website) return
+    await section('links', async () => {
+      if (org.instagram) {
+        await page.getByTestId('social-add').selectOption('instagram')
+        await page.getByTestId('social-instagram').fill(org.instagram)
+      }
+      if (org.website) {
+        await page.getByTestId('social-add').selectOption('website')
+        await page.getByTestId('social-website').fill(org.website)
+      }
+    })
   })
   if (!saved) return j.halt()
 

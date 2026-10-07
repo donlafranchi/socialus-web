@@ -136,6 +136,14 @@ describe('resolveShop — where the Page is', () => {
 })
 
 describe('resolveShop', () => {
+  it('carries an operator removal, so no surface shows a removed photo', async () => {
+    const shop = await resolveShop(
+      makeSupabaseStub({ group: { ...ACTIVE_ROW, photo_url: 'https://x/p.jpg', photo_removed_at: '2026-10-02T00:00:00Z' } }),
+      'oak-park-sourdough',
+    )
+    expect(shop?.photoRemovedAt).toBe('2026-10-02T00:00:00Z')
+  })
+
   it('returns null when RLS yields no row (draft-to-non-owner, dissolved, nonexistent)', async () => {
     const shop = await resolveShop(makeSupabaseStub({ group: null }), 'whatever')
     expect(shop).toBeNull()
@@ -430,15 +438,22 @@ describe('T156 — resolveShop takes the Page kind as a parameter', () => {
     expect(shop?.publicDescription).toBe('We float the river on Sundays.')
     expect(shop?.kind).toBe('interest')
   })
+})
 
-  it('a business still prefers its group_businesses name over the groups row', async () => {
-    const { supabase } = makeRecordingStub({
-      ...ACTIVE_ROW,
-      name: 'oak-park-sourdough-llc',
-      description: 'internal',
-    })
-    const shop = await resolveShop(supabase, 'oak-park-sourdough')
-    expect(shop?.displayName).toBe('Oak Park Sourdough')
-    expect(shop?.publicDescription).toBe('Real bread, baked local.')
+describe('resolveShop — bug #410, one name', () => {
+  it('shows the name and description on the groups row, the ones Explore shows', async () => {
+    const shop = await resolveShop(
+      makeSupabaseStub({
+        group: {
+          ...ACTIVE_ROW,
+          name: 'Lil Mouse House',
+          description: 'Mouse Motels and Rat Resorts.',
+          group_businesses: [{ display_name: 'Hella Awesome Widgets', public_description: 'Old words.' }],
+        },
+      }),
+      'oak-park-sourdough',
+    )
+    expect(shop?.displayName).toBe('Lil Mouse House')
+    expect(shop?.publicDescription).toBe('Mouse Motels and Rat Resorts.')
   })
 })

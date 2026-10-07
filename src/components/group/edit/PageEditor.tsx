@@ -1,19 +1,18 @@
 'use client'
 
-// #302 — Don, 2026-10-04: edit in place, by section. The owner sees their Page
-// as visitors do, with one Edit/Done toggle (Apple Contacts); in edit mode each
-// section shows a small edit button, and tapping it opens a sheet with only that
-// section's fields and one Save that saves and closes (Google Business Profile's
-// Edit profile sections, Airbnb's listing editor). Done only leaves edit mode:
-// nothing is ever left unsaved, so there's no save bar. Don, 2026-10-05: each
-// Add opens only its own fields, with pickers rather than long lists, and one
-// primary button (Save); the header's close is the way out.
+// #302 — edit by section: each opens a sheet with only that section's fields
+// and one Save that saves and closes (Google Business Profile's Edit profile
+// sections, Airbnb's listing editor). Don, 2026-10-05: each Add opens only its
+// own fields, with pickers rather than long lists, and one primary button
+// (Save); the header's close is the way out. #412 — the PM, 2026-10-06: the
+// sheets open from the Edit Page's cards (EditCards) and the draft checklist,
+// not from edit buttons sprinkled over the Page.
 
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
-import { Button, buttonClass } from '@/components/ui/Button'
+import { Button } from '@/components/ui/Button'
+import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { HoursEditor } from '@/components/group/HoursEditor'
@@ -66,56 +65,18 @@ export interface EditorInitial {
 type Save = (input: EditPageInput) => Promise<EditPageResult>
 
 interface Ctx {
-  editing: boolean
-  setEditing: (v: boolean) => void
   open: (s: Section) => void
 }
 const EditorContext = createContext<Ctx | null>(null)
 export const usePageEditor = () => useContext(EditorContext)
 
 export function PageEditorProvider({ initial, onSave, children }: { initial: EditorInitial; onSave: Save; children: ReactNode }) {
-  const [editing, setEditing] = useState(false)
   const [section, setSection] = useState<Section | null>(null)
   return (
-    <EditorContext.Provider value={{ editing, setEditing, open: setSection }}>
+    <EditorContext.Provider value={{ open: setSection }}>
       {children}
       {section && <SectionSheet key={section} section={section} initial={initial} onSave={onSave} onClose={() => setSection(null)} />}
     </EditorContext.Provider>
-  )
-}
-
-/** The owner bar's one toggle. Done only leaves edit mode. */
-export function EditToggle({ className = '' }: { className?: string }) {
-  const ctx = usePageEditor()
-  if (!ctx) return null
-  return (
-    <button
-      type="button"
-      data-testid="owner-edit-toggle"
-      aria-pressed={ctx.editing}
-      onClick={() => ctx.setEditing(!ctx.editing)}
-      className={`${buttonClass(ctx.editing ? 'primary' : 'secondary')} ${className}`}
-    >
-      {ctx.editing ? 'Done' : 'Edit'}
-    </button>
-  )
-}
-
-/** A section's small edit affordance, shown only in edit mode. */
-export function SectionEditButton({ section, className = '' }: { section: Section; className?: string }) {
-  const ctx = usePageEditor()
-  if (!ctx?.editing) return null
-  return (
-    <button
-      type="button"
-      data-testid={`edit-section-${section}`}
-      aria-label={`Edit ${SECTION_TITLE[section].toLowerCase()}`}
-      onClick={() => ctx.open(section)}
-      className={`press inline-flex min-h-tap items-center gap-1 rounded-full px-3 text-body-sm font-medium text-[var(--color-accent)] hover:bg-[var(--color-surface)] ${className}`}
-    >
-      <Pencil size={14} aria-hidden="true" />
-      Edit
-    </button>
   )
 }
 
@@ -298,6 +259,8 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             </label>
           </>
         )}
+        {/* F080 — said where a member posts words or a photo. */}
+        {(section === 'about' || section === 'name' || section === 'description' || section === 'photo') && <PostingSafetyNote />}
         {error && (
           <p role="alert" className="text-sm text-[var(--color-fg)]">
             {error}
