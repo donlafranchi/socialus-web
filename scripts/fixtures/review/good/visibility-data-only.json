@@ -1,0 +1,7 @@
+{
+  "body": "## Visibility review\n\nReviewed by: v\nPersonas checked: all\nMatrix rows touched: groups.select\nVerdict: no change to who sees what",
+  "files": [
+    "supabase/migrations/20261007000000_x.sql"
+  ],
+  "labels": []
+}

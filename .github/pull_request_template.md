@@ -97,6 +97,24 @@ Personas and widths: <e.g. owner, signed out · 390, 1280>
 Fixed: <one line each>
 Judgement calls for Don: <one line each, or none>
 
+## Journey check
+
+<!-- A builder persona did the real flow end to end (CI browser job, evals/builders).
+     List the journeys run and any new friction, or write "n/a: no flow changed".
+     socialus-ops PIPELINE-build.md step 9. -->
+
+## Visibility review
+
+<!-- PRs touching src/app, src/actions or supabase/: who sees what, as signed out,
+     member, owner, operator and builder. The `review` check fails without
+     `Reviewed by:` and a `Verdict:` line (or the review-skipped label and a reason).
+     socialus-ops PIPELINE-build.md step 10. -->
+
+Reviewed by: <agent>
+Personas checked: <e.g. signedOut, member, ownerBusiness, operator>
+Matrix rows touched: <e.g. pages.select as signedOut, or none>
+Verdict: <one line: nothing leaks, or what does>
+
 ## How it was verified
 
 <!-- One of: live DB · local Postgres · unit tests only · not verified.

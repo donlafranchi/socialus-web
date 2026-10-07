@@ -1,0 +1,7 @@
+{
+  "body": "migration only",
+  "files": [
+    "supabase/migrations/20261007000000_x.sql"
+  ],
+  "labels": []
+}
