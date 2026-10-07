@@ -1,0 +1,111 @@
+name: smoke-live
+
+# #432 — the live smoke (socialus-ops PIPELINE-build.md step 14, and § Day and
+# night). Overnight, open the screens that changed in what merged today, on
+# production, as builder accounts, and look: READ-ONLY. It signs in and opens
+# and reads pages; it never creates, edits or deletes. 10:30 UTC finishes
+# before the 5am handoff.
+#
+# A [guard-proves-itself] spec that asserts a nonexistent route loads runs
+# first and must FAIL, or nothing below is believed.
+#
+# On failure it opens (or comments on) a `bug · live:` Issue, labelled
+# launch-blocking, so the next shift's fix loop picks it up.
+on:
+  schedule:
+    - cron: '30 10 * * *'
+  workflow_dispatch:
+    inputs:
+      routes:
+        description: 'Routes to smoke (comma-separated names from evals/screens/routes.ts); empty = what merged in the last 26 hours'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: smoke-live
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Live smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --only-shell chromium
+
+      - name: Which screens changed
+        id: changed
+        env:
+          INPUT_ROUTES: ${{ inputs.routes }}
+        run: |
+          if [ -n "$INPUT_ROUTES" ]; then
+            echo "routes=$INPUT_ROUTES" >> "$GITHUB_OUTPUT"
+          else
+            npx tsx scripts/changed-routes.ts --since "26 hours ago" --github-output
+          fi
+          echo "Smoking: $(grep '^routes=' "$GITHUB_OUTPUT" | tail -1)"
+
+      # The smoke can fail (self-test): watched failing before anything below.
+      - name: The live smoke can fail (self-test)
+        env:
+          BUILDERS_BASE_URL: https://www.socialus.org
+        run: |
+          if npx playwright test --project=smoke-guard; then
+            echo "::error::evals/smoke/must-fail.spec.ts passed. The live smoke is not catching anything; nothing below can be believed."
+            exit 1
+          fi
+          echo "Self-test: the must-fail spec failed, as it must."
+
+      - name: Open the changed screens on production, read-only
+        id: smoke
+        env:
+          BUILDERS_BASE_URL: https://www.socialus.org
+          BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
+          SMOKE_ROUTES: ${{ steps.changed.outputs.routes || 'root,explore' }}
+          SMOKE_OUT: smoke-out
+        run: |
+          [ -n "$BUILDER_SEED" ] || { echo "::error::BUILDER_SEED is not set."; exit 1; }
+          echo "Routes: $SMOKE_ROUTES" >> "$GITHUB_STEP_SUMMARY"
+          npx playwright test --project=smoke-live --workers=2 --reporter=line,json 2>&1 | tee smoke.log
+          test "${PIPESTATUS[0]}" -eq 0
+
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: smoke-live
+          path: |
+            smoke-out/
+            smoke.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: File a live bug
+        if: ${{ failure() && steps.smoke.conclusion == 'failure' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const log = fs.existsSync('smoke.log') ? fs.readFileSync('smoke.log', 'utf8') : '';
+            const failed = [...new Set((log.match(/\[smoke-live\][^\n]+/g) || []).slice(0, 12))].join('\n');
+            const title = 'bug · live: the overnight smoke found a problem';
+            const run = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const body = `**Kind:** bug\n**Scenario:** none\n**Path:** well-worn: a failing read-only smoke of production is a regression to fix forward.\n\nThe overnight live smoke (read-only, builder accounts) failed: ${run}\n\n\`\`\`\n${failed}\n\`\`\`\n\nScreenshots and page text are in the run's \`smoke-live\` artifact. A screen that errors, or an email or other data shown to someone it should not be, is launch-blocking.`;
+            const open = await github.paginate(github.rest.issues.listForRepo, { ...context.repo, state: 'open', labels: 'bug', per_page: 100 });
+            const existing = open.find((i) => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: existing.number, body: `Again: ${run}\n\n\`\`\`\n${failed}\n\`\`\`` });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['bug', 'launch-blocking', 'area:ops'] });
+            }
