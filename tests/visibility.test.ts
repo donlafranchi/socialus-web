@@ -33,9 +33,10 @@ export function judge(cell: Cell, actual: number): string {
 let pool: Pool
 let client: PoolClient
 
-async function readAs(viewer: Viewer, sql: string): Promise<number> {
+async function readAs(viewer: Viewer, sql: string, setup?: string): Promise<number> {
   await client.query('savepoint v')
   try {
+    if (setup) await client.query(setup)
     const id = sub(viewer)
     if (id) await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: id, role: 'authenticated' })])
     await client.query(`set local role ${id ? 'authenticated' : 'anon'}`)
@@ -106,7 +107,7 @@ describe.skipIf(!safety.safe)('every viewer reads what the matrix says', () => {
       const pending: string[] = []
       for (const v of VIEWERS) {
         const cell = cellFor(r, v)
-        const problem = judge(cell, await readAs(v, r.sql))
+        const problem = judge(cell, await readAs(v, r.sql, r.setup))
         if (problem) bad.push(`${v}: ${problem}`)
         if (cell.pending) pending.push(`${v}: ${cell.pending}`)
       }
