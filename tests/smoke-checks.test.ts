@@ -22,6 +22,9 @@ describe('leaks', () => {
   it('flags an error page', () => {
     expect(leaks('member', 'Application error: a server-side exception has occurred', 'x@y.org')).toEqual(['an error page: "Application error"'])
   })
+  it("flags the app's own error screen", () => {
+    expect(leaks('member', "Something went wrong\n\nIt's on our side. Try again in a moment.\nTry again", 'x@y.org')).toEqual(['an error page: "Something went wrong"'])
+  })
   it('is empty for ordinary text', () => {
     expect(leaks('member', 'QA Corner Bakery\nFollow\nAnnouncements', 'a@b.co')).toEqual([])
   })
