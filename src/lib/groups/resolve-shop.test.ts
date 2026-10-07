@@ -136,6 +136,14 @@ describe('resolveShop — where the Page is', () => {
 })
 
 describe('resolveShop', () => {
+  it('carries an operator removal, so no surface shows a removed photo', async () => {
+    const shop = await resolveShop(
+      makeSupabaseStub({ group: { ...ACTIVE_ROW, photo_url: 'https://x/p.jpg', photo_removed_at: '2026-10-02T00:00:00Z' } }),
+      'oak-park-sourdough',
+    )
+    expect(shop?.photoRemovedAt).toBe('2026-10-02T00:00:00Z')
+  })
+
   it('returns null when RLS yields no row (draft-to-non-owner, dissolved, nonexistent)', async () => {
     const shop = await resolveShop(makeSupabaseStub({ group: null }), 'whatever')
     expect(shop).toBeNull()
