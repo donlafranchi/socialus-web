@@ -319,6 +319,7 @@
     "member.business_jurisdiction.remove",
     "member.business_jurisdiction.set",
     "member.create",
+    "member.default_metro.set",
     "member.follow",
     "member.interests.add",
     "member.place_interest.add",

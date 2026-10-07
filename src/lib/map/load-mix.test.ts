@@ -12,6 +12,7 @@ vi.mock('./mix', async (orig) => ({
 }))
 
 import { loadMapMix } from './load-mix'
+import { getBrowseFeed } from '@/lib/feed/browse-feed'
 
 const supabase = {
   from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null }) }) }) }),
@@ -32,5 +33,15 @@ describe('loadMapMix', () => {
     await new Promise((r) => setTimeout(r, 0))
     expect(err).toHaveBeenCalled()
     err.mockRestore()
+  })
+
+  // #476 — a neighbourhood narrows the map to that place.
+  it('reads from the neighbourhood when one is picked', async () => {
+    query.mockResolvedValue({ rows: [] })
+    vi.mocked(getBrowseFeed).mockClear()
+    await loadMapMix(supabase, '0c000000-0000-4000-8000-000000000001', new Date(), 'place-1')
+    const scopes = vi.mocked(getBrowseFeed).mock.calls.map((c) => c[1].scope)
+    expect(scopes.length).toBeGreaterThan(0)
+    for (const s of scopes) expect(s).toEqual({ placeId: 'place-1' })
   })
 })

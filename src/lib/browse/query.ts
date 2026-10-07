@@ -12,6 +12,8 @@ export interface BrowseUrlState {
   /** Chosen metro slug. Absent when nobody picked one. */
   metro?: string | null
   q?: string
+  /** #476 — a neighbourhood's place id, when one is picked. */
+  area?: string | null
   tags?: string[]
   schedule?: ScheduleFilter
 }
@@ -19,6 +21,7 @@ export interface BrowseUrlState {
 export function browseQueryString(s: BrowseUrlState): string {
   const sp = new URLSearchParams()
   if (s.metro) sp.set('metro', s.metro)
+  if (s.area) sp.set('area', s.area)
   if (s.q) sp.set('q', s.q)
   if (s.tags?.length) sp.set('category', s.tags.join(','))
   if (s.schedule && s.schedule !== 'any') sp.set('schedule', s.schedule)

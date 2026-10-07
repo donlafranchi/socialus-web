@@ -26,3 +26,10 @@ describe('T156 — browseQueryString', () => {
     })
   })
 })
+
+describe('#476 — the neighbourhood is in the link', () => {
+  it('carries ?area= when one is picked, and nothing when not', () => {
+    expect(browseQueryString({ metro: 'sac', area: 'place-1' })).toBe('metro=sac&area=place-1')
+    expect(browseQueryString({ metro: 'sac', area: null })).toBe('metro=sac')
+  })
+})
