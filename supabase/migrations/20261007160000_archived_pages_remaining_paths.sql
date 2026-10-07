@@ -8,7 +8,8 @@
 --   member_public_pages  — its name, in a member's own list
 --   page_posts           — its posts, to a founder who no longer manages it
 --
--- ORDER: after 20261007020000_archived_pages_every_path.
+-- ORDER: after 20261007020000_archived_pages_every_path and #472's 20261007150000,
+-- which production already holds.
 
 create or replace function public.group_url_prefixes(p_group_ids uuid[])
 returns table (group_id uuid, slug text, place_path text)
