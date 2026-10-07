@@ -312,3 +312,19 @@ describe('#363 — any component can be added to any Page', () => {
     expect(sql(/jsonb_build_object\('products'/)[0]![1]).toEqual([GROUP, true])
   })
 })
+
+describe('#450 — an email address in Page text is refused on save', () => {
+  it.each(['name', 'description', 'howToFind', 'usuallyAround'] as const)('refuses one in %s, before any write', async (field) => {
+    install()
+    const err = await groupUpdate(ctx(), { groupId: GROUP, [field]: 'owned by someone@example.com' }).catch((e) => e)
+    expect(err).toBeInstanceOf(ValidationError)
+    expect(err.message).toBe('Take out the email address. People can reach you through your Page.')
+    expect(sql(/update public\.groups/)).toEqual([])
+  })
+
+  it('still saves a handle or a link', async () => {
+    install()
+    const res = await groupUpdate(ctx(), { groupId: GROUP, description: 'Follow @floaters at https://example.com' })
+    expect(res.patched).toContain('description')
+  })
+})

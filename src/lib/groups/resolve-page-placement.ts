@@ -90,10 +90,9 @@ async function resolveAnchorPlacement(
   return {
     source: 'anchor',
     kind: 'point',
-    // The resolved address T142 persists on creation. A Location without
-    // one (pre-T142 row, or a future caller that skips it) falls back to
-    // a generic label rather than rendering nothing.
-    label: loc.description?.trim() || 'a location',
+    // The resolved address T142 persists on creation. bug #339: a Location
+    // without one gets no label, and surfaces show no line for it.
+    label: loc.description?.trim() || '',
     lng: loc.lng,
     lat: loc.lat,
   }

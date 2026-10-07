@@ -143,3 +143,16 @@ describe('the time and the place an announcement carries', () => {
     expect(selected).toContain('locations(label)')
   })
 })
+
+// bug #450 — an address already stored in a post is hidden on the Page.
+describe('resolvePagePosts — contact details', () => {
+  it('hides an email address in a post body and how to find it', async () => {
+    const { supabase } = client({
+      data: [{ id: 'a', body: 'Write to a@example.com', created_at: 'x', updated_at: 'x', starts_at: null, how_to_find: 'ask b@example.com', location: null }],
+      error: null,
+    })
+    const [p] = await resolvePagePosts(supabase, 'g1')
+    expect(p!.body).not.toContain('@example.com')
+    expect(p!.howToFind).not.toContain('@example.com')
+  })
+})

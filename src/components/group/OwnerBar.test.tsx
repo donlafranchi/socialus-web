@@ -9,18 +9,15 @@ import { OwnerBar } from './OwnerBar'
 afterEach(cleanup)
 
 describe('the owner bar', () => {
-  // #412 — the PM, 2026-10-06: Edit goes to the Edit Page's section cards,
-  // not an edit mode with buttons sprinkled over the Page.
-  it('offers Edit, to the Edit Page, and Announce, in plain sight', () => {
-    render(<OwnerBar pagePath="/g/oak-park-sourdough-7k3x8m" />)
-    expect(screen.getByRole('link', { name: 'Edit' })).toHaveAttribute('href', '/g/oak-park-sourdough-7k3x8m/edit')
-    expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
-    expect(screen.getByTestId('owner-announce')).toBeInTheDocument()
-  })
-
-  it('Announce is secondary: the composer has the one primary', () => {
-    render(<OwnerBar pagePath="/g/x-abc123" />)
-    expect(screen.getByTestId('owner-announce').className).not.toMatch(/btn-primary/)
+  // #456 — the PM, 2026-10-06: one primary action; Edit is the pencil (LinkedIn, Google Business Profile).
+  it('Announce is the one primary, and Edit is a pencil to the Edit Page', () => {
+    render(<OwnerBar pagePath="/g/7k3x8m" />)
+    expect(screen.getByTestId('owner-announce').className).toMatch(/\bbtn-primary\b/)
+    const edit = screen.getByRole('link', { name: 'Edit Page' })
+    expect(edit).toHaveAttribute('href', '/g/7k3x8m/edit')
+    expect(edit).toHaveTextContent('')
+    expect(edit.className).toMatch(/\bsize-tap\b/)
+    expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
   })
 
   it('says whose it is and that nobody else sees it', () => {

@@ -16,6 +16,7 @@
 import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
+import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/contact-info'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import { toSlug } from '../../lib/slugify'
@@ -100,6 +101,10 @@ export const groupUpdateDraft = defineHandler(
     ctx: ActionContext,
     input: GroupUpdateDraftInput,
   ): Promise<GroupUpdateDraftResult> => {
+    // #450 — see group.update.
+    if (anyContainsEmail(input.name, input.description, input.businessDisplayName, input.businessPublicDescription, input.howToFind, input.usuallyAround)) {
+      throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
+    }
     return withTransaction(async (client) => {
       // Load the row + verify (a) it exists, (b) it's in draft state, (c) caller
       // is an owner. Three refusals, three distinct error codes.

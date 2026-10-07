@@ -102,12 +102,10 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
   })
   if (!created) return j.halt()
 
-  // #412 — Edit is section cards; each Edit opens one sheet whose Save saves
-  // and closes it.
+  // #412 — Edit is section cards; each pencil opens one sheet whose Save saves
+  // and closes it. #452 — Basics, Location, Contact, Tags & links, Page settings.
   const section = async (name: string, fill: () => Promise<void>) => {
-    const edit = page.getByTestId(`edit-section-${name}`)
-    if (!(await edit.isVisible())) await page.getByTestId(`edit-card-${name}`).locator('xpath=ancestor::details/summary').click()
-    await edit.click()
+    await page.getByTestId(`edit-section-${name}`).click()
     await fill()
     await page.getByTestId('sheet-save').click()
     await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30_000 })
@@ -117,11 +115,13 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
     await expect(page.getByTestId('edit-cards')).toBeVisible()
   })
   await j.step('Name and description', null, async () => {
-    await section('name', () => page.getByTestId('edit-name').fill(org.name))
-    await section('description', () => page.getByTestId('edit-description').fill(org.description))
+    await section('basics', async () => {
+      await page.getByTestId('edit-name').fill(org.name)
+      await page.getByTestId('edit-description').fill(org.description)
+    })
   })
   await j.step('Tags', null, async () => {
-    await section('tags', async () => {
+    await section('found', async () => {
       for (const tag of org.tags) {
         await page.getByTestId('edit-tag-input').fill(tag)
         await page.getByTestId('edit-tag-input').press('Enter')
@@ -139,14 +139,14 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
     })
   })
   await j.step('Photo', null, async () => {
-    await section('photo', async () => {
+    await section('basics', async () => {
       await page.getByTestId('page-photo-input').setInputFiles(await photoFile(page, org, 'cover'))
       await expect(page.getByTestId('page-photo-preview')).toBeVisible({ timeout: 30_000 })
     })
   })
   const saved = await j.step('Links', 'Filled in: name, description, tags, area, photo and links', async () => {
     if (!org.instagram && !org.website) return
-    await section('links', async () => {
+    await section('found', async () => {
       if (org.instagram) {
         await page.getByTestId('social-add').selectOption('instagram')
         await page.getByTestId('social-instagram').fill(org.instagram)

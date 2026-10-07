@@ -44,6 +44,7 @@ import { announcementAnchor } from '@/components/group/announcement-anchor'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
+import { maskEmails, maskEmailsOrNull } from '../text/contact-info'
 
 /** What a row IS. A Page and one of its posts are different results. */
 export type BrowseResultKind = 'page' | 'post'
@@ -249,15 +250,16 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     groupId: r.group_id,
     groupKind: r.group_kind,
     slug: r.slug,
-    name: r.name,
+    // #450 — stored Page text may carry an address; a card never shows it.
+    name: maskEmails(r.name),
     href: resultHref(r, publicId),
     photoUrl: visiblePhotoUrl({
       photo_url: r.photo_url,
       photo_hidden_at: r.photo_hidden_at,
       photo_removed_at: r.photo_removed_at,
     }),
-    description: r.description,
-    body: r.body,
+    description: maskEmailsOrNull(r.description),
+    body: maskEmailsOrNull(r.body),
     tags: r.tags ?? [],
     startsAt: r.starts_at ?? null,
     locationId: r.location_id,

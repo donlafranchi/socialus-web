@@ -8,7 +8,7 @@ vi.mock('./resolve-shop', () => ({
   resolveLocalOwnerBadge: vi.fn(async () => null),
   resolveOwnerClaim: vi.fn(async () => null),
   viewerOwnsPage: vi.fn(async () => false),
-  viewerFollowsPage: vi.fn(async () => false),
+  viewerRelationship: vi.fn(async () => null),
 }))
 vi.mock('./page-posts', () => ({ resolvePagePosts: vi.fn(async () => []) }))
 vi.mock('@/lib/follows/follower-count', () => ({ countPageFollowers: vi.fn(async () => 0) }))

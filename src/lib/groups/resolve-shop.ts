@@ -16,6 +16,7 @@ import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
+import { maskEmails } from '../text/contact-info'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
 
@@ -247,8 +248,9 @@ export async function resolveShop(
     // #410 — the groups row is the one source of a Page's name and
     // description; the database keeps a business's group_businesses copy equal
     // to it. Reading the copy first is what left a renamed Page on its old name.
-    displayName: row.name || biz?.display_name || '',
-    publicDescription: row.description || biz?.public_description || '',
+    // #450 — an address stored before the save check is masked, not shown.
+    displayName: maskEmails(row.name || biz?.display_name || ''),
+    publicDescription: maskEmails(row.description || biz?.public_description || ''),
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
@@ -384,7 +386,15 @@ export async function viewerFollowsPage(
   supabase: SupabaseClient,
   args: { groupId: string; viewerMemberId: string | null },
 ): Promise<boolean> {
-  if (!args.viewerMemberId) return false
+  return (await viewerRelationship(supabase, args)) !== null
+}
+
+/** bug #338 — which row the viewer holds: a follow, a membership, or none. */
+export async function viewerRelationship(
+  supabase: SupabaseClient,
+  args: { groupId: string; viewerMemberId: string | null },
+): Promise<'member' | 'follower' | null> {
+  if (!args.viewerMemberId) return null
   const { data } = await supabase
     .from('group_memberships')
     .select('relationship')
@@ -393,7 +403,7 @@ export async function viewerFollowsPage(
     .is('left_at', null)
     .limit(1)
     .maybeSingle()
-  return Boolean(data)
+  return (data as { relationship?: 'member' | 'follower' } | null)?.relationship ?? null
 }
 
 export async function resolveOwnerClaim(

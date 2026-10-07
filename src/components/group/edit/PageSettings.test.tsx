@@ -40,7 +40,7 @@ afterEach(cleanup)
 describe('#423 — Page settings', () => {
   it('archives a live Page in one tap', async () => {
     renderSettings()
-    expect(screen.getByTestId('page-settings')).toHaveTextContent('Page settings')
+    expect(screen.getByTestId('page-settings-archive')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Archive' }))
     await waitFor(() => expect(onArchive).toHaveBeenCalledWith({ groupId: 'g1', pagePath: '/g/7k3x8m' }))
     expect(refresh).toHaveBeenCalled()

@@ -1,7 +1,8 @@
 // T156 — the browse read helper. One query, Pages and posts together.
 
 import { describe, it, expect, vi } from 'vitest'
-import { getBrowseFeed, type BrowseFeedRow, resultHref } from './browse-feed'
+import { getBrowseFeed, type BrowseFeedRow, resultHref, mapBrowseRow } from './browse-feed'
+import { EMAIL_MASK } from '../text/contact-info'
 
 // EWKB point, little-endian, SRID 4326 — lon -121, lat 38.
 const POINT = '0101000020E6100000000000000040' + '5EC0' + '0000000000004340'
@@ -289,5 +290,15 @@ describe('resultHref', () => {
     expect(resultHref(row(), null)).toBeNull()
     // #411 — the id alone is the address, so a Page with no slug still has one.
     expect(resultHref(row({ slug: null }), 'abc123')).toBe('/g/abc123#announcement-p-1')
+  })
+})
+
+describe('#450 — a card never shows an email address stored in Page text', () => {
+  it('masks the name, description and post body, keeping the rest', () => {
+    const page = mapBrowseRow({ ...PAGE_ROW, name: 'Floats (a@example.com)', description: 'owned by someone@example.com' }, 'abc123')
+    expect(page.name).toBe(`Floats (${EMAIL_MASK})`)
+    expect(page.description).toBe(`owned by ${EMAIL_MASK}`)
+    const post = mapBrowseRow({ ...POST_ROW, body: 'RSVP Someone@Example.com.' }, 'abc123')
+    expect(post.body).toBe(`RSVP ${EMAIL_MASK}.`)
   })
 })

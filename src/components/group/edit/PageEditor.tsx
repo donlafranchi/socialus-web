@@ -27,18 +27,21 @@ import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
 import type { EditPageInput, EditPageResult } from '@/app/g/[handle]/edit/actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
+import { DescriptionField } from './DescriptionField'
 import { PAGE_KINDS, PAGE_KIND_LABEL, PURPOSES, PURPOSE_LABEL, TYPE_FOR_PURPOSE, type PageKind, type Purpose } from '@/lib/groups/page-kind'
 
-export type Section = 'kind' | 'about' | 'name' | 'description' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
+export type Section = 'basics' | 'found' | 'kind' | 'about' | 'name' | 'description' | 'photo' | 'where' | 'contact' | 'tags' | 'links' | 'components'
 
 export const SECTION_TITLE: Record<Section, string> = {
+  basics: 'Basics',
+  found: 'Tags & links',
   kind: 'What your Page is for',
   about: 'About',
   name: 'Name',
   description: 'Description',
   photo: 'Photo',
-  where: 'Where',
-  contact: SHOW_OPENING_HOURS ? 'Hours and phone' : 'Business phone',
+  where: 'Location',
+  contact: 'Contact',
   tags: 'Tags',
   links: 'Links',
   components: 'What your Page shows',
@@ -60,6 +63,8 @@ export interface EditorInitial {
   purpose: Purpose
   productsOn: boolean
   where: WhereValue
+  /** #455 — the saved pin, so the Location sheet opens on it. */
+  savedPin?: [number, number] | null
 }
 
 type Save = (input: EditPageInput) => Promise<EditPageResult>
@@ -108,6 +113,10 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     let patch: Partial<EditPageInput> = {}
     if (section === 'kind') patch = { pageKind: kind, purpose }
     if (section === 'about') patch = { name, description }
+    if (section === 'basics') {
+      if (name.trim() === '') return setError('Give your Page a name.')
+      patch = { name, description, photoUrl }
+    }
     if (section === 'name') {
       if (name.trim() === '') return setError('Give your Page a name.')
       patch = { name }
@@ -117,16 +126,16 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     if (section === 'contact')
       patch = { contactPhone: phone.trim() === '' ? null : phone.trim(), ...(SHOW_OPENING_HOURS ? { openingHours: hours } : {}) }
     if (section === 'components') patch = { contactComponent: contactOn, productsComponent: productsOn }
-    if (section === 'links') {
+    if (section === 'links' || section === 'found') {
       const { links, problems } = linksFromHandles(handles)
       const bad = Object.entries(problems)[0]
       if (bad) return setError(`${bad[0]}: ${bad[1]}`)
       patch = { socialLinks: links }
     }
-    if (section === 'tags') {
+    if (section === 'tags' || section === 'found') {
       const set = [...tags.tags, tags.draft].filter(isValidTagLabel)
       if (set.length === 0) return setError('Add at least one word that describes what you do.')
-      patch = { tags: set }
+      patch = { ...patch, tags: set }
     }
     setBusy(true)
     if (section === 'where') {
@@ -203,16 +212,14 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             </label>
           </div>
         )}
-        {section === 'about' && (
+        {section === 'basics' && <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />}
+        {(section === 'about' || section === 'basics') && (
           <>
             <label className="flex flex-col gap-1">
               <span className="text-sm font-medium text-[var(--color-fg)]">Name</span>
               <input className="input" data-testid="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
             </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-[var(--color-fg)]">Description</span>
-              <textarea className="input" rows={5} data-testid="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} />
-            </label>
+            <DescriptionField value={description} onChange={setDescription} />
           </>
         )}
         {section === 'name' && (
@@ -222,17 +229,13 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
           </label>
         )}
         {section === 'description' && (
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-[var(--color-fg)]">Description</span>
-            <textarea className="input" rows={5} data-testid="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} />
-            <span className="text-caption text-[var(--color-fg-muted)]">A line or two on what you do and who it&rsquo;s for.</span>
-          </label>
+          <DescriptionField value={description} onChange={setDescription} hint="A line or two on what you do and who it’s for." />
         )}
         {section === 'photo' && <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />}
         {section === 'where' && (
           <>
             {initial.addressLabel && <p className="text-sm text-[var(--color-fg-muted)]">Now: {initial.addressLabel}</p>}
-            <WhereFields value={where} onChange={setWhere} />
+            <WhereFields value={where} onChange={setWhere} savedPin={initial.savedPin ?? null} />
           </>
         )}
         {section === 'contact' && (
@@ -245,8 +248,8 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             {SHOW_OPENING_HOURS && <HoursEditor value={hours} onChange={setHours} />}
           </>
         )}
-        {section === 'tags' && <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />}
-        {section === 'links' && <SocialHandleFields compact value={handles} onChange={setHandles} />}
+        {(section === 'tags' || section === 'found') && <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />}
+        {(section === 'links' || section === 'found') && <SocialHandleFields compact value={handles} onChange={setHandles} />}
         {section === 'components' && (
           <>
             <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
@@ -260,7 +263,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
           </>
         )}
         {/* F080 — said where a member posts words or a photo. */}
-        {(section === 'about' || section === 'name' || section === 'description' || section === 'photo') && <PostingSafetyNote />}
+        {(section === 'basics' || section === 'about' || section === 'name' || section === 'description' || section === 'photo') && <PostingSafetyNote />}
         {error && (
           <p role="alert" className="text-sm text-[var(--color-fg)]">
             {error}

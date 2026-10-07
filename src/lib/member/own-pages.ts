@@ -77,6 +77,8 @@ function scaleFor(anchor: Row['anchor']): CardLocation {
   return { scale: 'address', label }
 }
 
+const STATE_ORDER = ['active', 'draft', 'archived', 'dissolved']
+
 export async function getOwnPages(
   supabase: Pick<SupabaseClient, 'from' | 'rpc'>,
   memberId: string,
@@ -112,6 +114,10 @@ export async function getOwnPages(
     if (!managing.has(r.id)) return false
     return r.lifecycle_state !== 'dissolved' || (r.delete_after != null && new Date(r.delete_after) > now)
   })
+  // #454 — live first, then drafts, archived and deleted, each by name
+  // (Facebook's and Google Business Profile's lists put closed ones last).
+  const rank = (s: string) => STATE_ORDER.indexOf(s) >>> 0
+  rows.sort((a, b) => rank(a.lifecycle_state) - rank(b.lifecycle_state) || (a.name ?? '').localeCompare(b.name ?? '', 'en', { sensitivity: 'base' }))
 
   // Issue #175 — every Page here links, including a draft.
   //

@@ -32,6 +32,7 @@ import { parseOpeningHours } from '../../lib/groups/opening-hours'
 import { whereInput, applyWhere, type WhereClause } from './where'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { z } from 'zod'
+import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/contact-info'
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
@@ -90,6 +91,10 @@ export const groupUpdate = defineHandler(
   'group.update',
   groupUpdateInput,
   async (ctx: ActionContext, input: GroupUpdateInput): Promise<GroupUpdateResult> => {
+    // #450 — Page text is public; an address belongs behind the Page, not on it.
+    if (anyContainsEmail(input.name, input.description, input.howToFind, input.usuallyAround)) {
+      throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
+    }
     return withTransaction(async (client) => {
       const groupRes = await client.query<{
         id: string

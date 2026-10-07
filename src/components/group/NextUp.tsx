@@ -11,8 +11,8 @@ export function NextUp({ posts, heading, limit }: { posts: PagePost[]; heading: 
   const next = upcomingPosts(posts).slice(0, limit)
   if (next.length === 0) return null
   return (
-    <section data-testid="page-next-up" aria-label={heading} className="mt-2 flex flex-col gap-2">
-      <h2 className="text-body-sm font-semibold text-[var(--color-fg)]">{heading}</h2>
+    <section data-testid="page-next-up" data-section="next" aria-label={heading} className="card flex flex-col gap-3 border border-[var(--color-border)] p-4">
+      <h2 className="text-title-3 text-[var(--color-fg)]">{heading}</h2>
       <ul className="flex flex-col gap-2">
         {next.map((p) => (
           <li key={p.id}>

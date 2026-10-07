@@ -21,6 +21,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { announcementAnchor } from '@/components/group/announcement-anchor'
 import { browseHref, type BrowseResult } from './browse-feed'
 import { clampLimit } from './locality-feed'
+import { maskEmails } from '../text/contact-info'
 
 /** One row per Page, exactly as `announcements_withheld` returns it. Read the
  *  shape as the ruling: which Page, that it posted, how many this period. */
@@ -75,7 +76,7 @@ export function mapWithheldRow(r: WithheldAnnouncementRow): BrowseResult {
     // four things and this is not one of them.
     groupKind: '',
     slug: r.slug,
-    name: r.name,
+    name: maskEmails(r.name), // #450
     // Criterion 9 — lands on the Page's withheld card, marked, via the latest
     // announcement's anchor. Null rather
     // than a bare fragment when the Page has no address: a link that looks

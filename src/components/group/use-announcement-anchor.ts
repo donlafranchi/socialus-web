@@ -20,7 +20,7 @@ import { announcementAnchor, announcementIdFromHash } from './announcement-ancho
  *
  * Returns the id to mark, or null.
  */
-export function useAnnouncementAnchor(): string | null {
+export function useAnnouncementAnchor(key?: unknown): string | null {
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const arrived = useRef(false)
 
@@ -53,7 +53,8 @@ export function useAnnouncementAnchor(): string | null {
       el.scrollIntoView?.({ behavior: 'auto', block: 'center' })
     })
     return () => cancelAnimationFrame(frame)
-  }, [])
+    // `key` re-looks once a list that was folded away opens (#462).
+  }, [key])
 
   return highlighted
 }

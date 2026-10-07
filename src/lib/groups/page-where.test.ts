@@ -48,3 +48,13 @@ describe('#348 — the line a visitor reads', () => {
     expect(whereLine({ mode: 'visit', howToFind: null, usuallyAround: null, towns: [] })).toBeNull()
   })
 })
+import { describe as d450, it as i450, expect as e450 } from 'vitest'
+import { whereLine as wl450 } from './page-where'
+
+// bug #450 — an address stored before save checks existed is hidden on the Page.
+d450('whereLine — contact details', () => {
+  i450('hides an email address in how to find us and usually around', () => {
+    e450(wl450({ mode: 'visit', howToFind: 'ask a@example.com', usuallyAround: null, towns: [] })).not.toContain('@example.com')
+    e450(wl450({ mode: 'roaming', howToFind: null, usuallyAround: 'b@example.com', towns: [] })).not.toContain('@example.com')
+  })
+})
