@@ -8,6 +8,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { getWithheldAnnouncements, mapWithheldRow } from './withheld-announcements'
 import { mapBrowseRow, type BrowseFeedRow } from './browse-feed'
+import { EMAIL_MASK } from '../text/contact-info'
 
 const ROW = {
   result_id: '11111111-1111-4111-8111-111111111111',
@@ -168,5 +169,11 @@ describe('mapBrowseRow — the signed-in path is untouched', () => {
 
   it('has no count, because a member reads the announcement itself', () => {
     expect(mapBrowseRow(full, ROW.public_id).announcementCount).toBeNull()
+  })
+})
+
+describe('#450 — the withheld card masks an email address in the Page name', () => {
+  it('masks it', () => {
+    expect(mapWithheldRow({ ...ROW, name: 'Floats someone@example.com' }).name).toBe(`Floats ${EMAIL_MASK}`)
   })
 })

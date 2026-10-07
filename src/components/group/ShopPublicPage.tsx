@@ -11,7 +11,7 @@ import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
 import { PageEditorProvider } from './edit/PageEditor'
-import { whereValueFrom } from '@/components/locations/where-save'
+import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
@@ -32,16 +32,20 @@ import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
-import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
-import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
 import { COPY } from '@/lib/copy'
+import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
+import { SHOW_OPENING_HOURS } from '@/lib/features'
+import { PageSection } from './PageSection'
+import { AboutText } from './AboutText'
+import { PageMap } from './PageMap'
 
 interface Props {
   shop: ResolvedShop
@@ -63,6 +67,8 @@ interface Props {
   pagePath?: string
   /** F067 — whether the viewer already follows or belongs to this Page. */
   viewerFollows?: boolean
+  /** bug #338 — their row is a membership, not a follow. */
+  viewerIsMember?: boolean
   /** F072 — what this Page has said, newest first. RLS decides what is in
    *  here; the owner's own drafts-of-a-draft-Page come back for the owner. */
   posts?: PagePost[]
@@ -98,6 +104,7 @@ export function ShopPublicPage({
   viewerOwnsPage = false,
   pagePath,
   viewerFollows = false,
+  viewerIsMember = false,
   posts = [],
   tags = [],
   contact = null,
@@ -130,6 +137,17 @@ export function ShopPublicPage({
   // the withheld card and Sign up to follow. Listings and links out wait.
   const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
+  const placement = shop.placements[0]
+  const placeLabel = placement?.label.trim() || null
+  const how = loggedIn && where ? whereLine(where) : null
+  const hasContact = loggedIn && contact && (contact.phone || (SHOW_OPENING_HOURS && contact.hours))
+  const showFound = loggedIn && (tags.length > 0 || socialLinks.length > 0)
+  // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
+  const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
+  // #363 — off for a social group until its owner adds it (bug #341).
+  const showProducts = loggedIn && productsOn
+  const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
+
   const page = (
     // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
     // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
@@ -140,96 +158,82 @@ export function ShopPublicPage({
           : 'mx-auto w-full max-w-read gutter py-6 pb-nav'
       }
     >
-     <div className="min-w-0">
+     <div className="flex min-w-0 flex-col gap-4">
       {/* #301 — a draft is finished here, on the Page, not in a walkthrough. */}
       {isDraftPreview && (
-        <div data-testid="shop-draft-banner" role="status" className="mb-4 text-caption font-medium text-[var(--color-fg-muted)]">
+        <div data-testid="shop-draft-banner" role="status" className="text-caption font-medium text-[var(--color-fg-muted)]">
           Draft · only you can see this
         </div>
       )}
 
       {/* #423 — archived: only the people who manage it reach it. Copy is a placeholder ([public-is-draft]). */}
       {shop.lifecycleState === 'archived' && (
-        <div data-testid="shop-archived-banner" role="status" className="mb-4 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-body-sm font-medium text-[var(--color-fg)]">
+        <div data-testid="shop-archived-banner" role="status" className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-body-sm font-medium text-[var(--color-fg)]">
           Archived · Only you can see this
         </div>
       )}
 
-      {showHiddenNotice && (
-        <div className="mb-6">
-          <HiddenPhotoNotice />
-        </div>
-      )}
+      {showHiddenNotice && <HiddenPhotoNotice />}
 
-      {/* #300 — the cover: the photo, or the default art when there is none or
-          it is hidden. Decorative: the name is right under it. */}
-      <div data-testid="page-cover" className="mb-4 aspect-[2/1] overflow-hidden rounded-lg md:aspect-[3/1]">
-        {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photoUrl} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <DefaultArt kind={artKindFor(shop.kind, shop.purpose)} />
-        )}
-      </div>
-      {/* #353 — a picture from their own site is credited and linked. */}
-      {photoUrl && shop.unclaimed?.photoCredit && (
-        <p data-testid="photo-credit" className="-mt-3 mb-4 text-xs text-gray-500">
-          Photo:{' '}
-          {shop.unclaimed.photoSourceUrl ? (
-            <a href={shop.unclaimed.photoSourceUrl} rel="noopener nofollow" target="_blank" className="underline">
-              {shop.unclaimed.photoCredit}
-            </a>
+      {/* #458 — the header block: photo, name, kind, Share and Follow. */}
+      <header data-testid="page-header" className="flex flex-col gap-3">
+        {/* #300 — the cover: the photo, or the default art when there is none or
+            it is hidden. Decorative: the name is right under it. */}
+        <div data-testid="page-cover" className="aspect-[2/1] overflow-hidden rounded-lg md:aspect-[3/1]">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            shop.unclaimed.photoCredit
+            <DefaultArt kind={artKindFor(shop.kind, shop.purpose)} />
           )}
-        </p>
-      )}
+        </div>
+        {/* #353 — a picture from their own site is credited and linked. */}
+        {photoUrl && shop.unclaimed?.photoCredit && (
+          <p data-testid="photo-credit" className="-mt-2 text-caption text-[var(--color-fg-muted)]">
+            Photo:{' '}
+            {shop.unclaimed.photoSourceUrl ? (
+              <a href={shop.unclaimed.photoSourceUrl} rel="noopener nofollow" target="_blank" className="underline">
+                {shop.unclaimed.photoCredit}
+              </a>
+            ) : (
+              shop.unclaimed.photoCredit
+            )}
+          </p>
+        )}
 
-      <header className="flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
-            {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
-              ? `Your new ${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)] ? `${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]} ` : ''}Page`
-              : shop.displayName}
-          </h1>
-          {badge && isBusinessKind(shop.kind) && (
-            <span
-              data-testid="local-owner-badge"
-              className="chip chip-selected whitespace-nowrap text-xs"
-            >
-              {badge.label}
-            </span>
-          )}
-          {/* #353 — a neutral tag after the name (Yelp's placement). */}
-          {shop.unclaimed && (
-            <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
-              {COPY.unclaimedLabel}
-            </span>
-          )}
-
-          {/* T160 — every viewer but the owner gets this, signed in or not. A
-              signed-out member is sent to sign-in, never to a dead end. */}
-
-          <div className="ml-auto flex items-center">
+        <div className="flex items-start gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 data-testid="shop-name" className="text-title-1 md:text-title-1-lg">
+                {isDraftPreview && shop.displayName === DRAFT_NAME_PLACEHOLDER
+                  ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
+                  : shop.displayName}
+              </h1>
+              {badge && isBusinessKind(shop.kind) && (
+                <span data-testid="local-owner-badge" className="chip chip-selected whitespace-nowrap text-xs">
+                  {badge.label}
+                </span>
+              )}
+              {/* #353 — a neutral tag after the name (Yelp's placement). */}
+              {shop.unclaimed && (
+                <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+                  {COPY.unclaimedLabel}
+                </span>
+              )}
+            </div>
+            <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
+              {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
+              {kindLine(shop.kind, shop.purpose, shop.category)}
+            </p>
+          </div>
+          <div className="ml-auto flex shrink-0 items-center">
             {/* #409 — anyone can share a published Page, signed in or out. */}
             {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
-            {/* #267 — not on your own Page. */}
+            {/* #267 — not on your own Page. A signed-out member is sent to sign-in (T160). */}
             {!viewerOwnsPage && (
-              <ReportControl
-                subjectId={shop.groupId}
-                subjectLabel={shop.displayName}
-                loggedIn={loggedIn}
-                returnTo={pagePath}
-                onSend={sendReportAction}
-              />
+              <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} />
             )}
           </div>
-        </div>
-        <div className="-mt-2 flex items-center gap-2">
-          <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
-            {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
-            {kindLine(shop.kind, shop.purpose, shop.category)}
-          </p>
         </div>
 
         {/* Owner only, and absent from the markup for everyone else — this
@@ -253,132 +257,105 @@ export function ShopPublicPage({
           </div>
         ) : null}
 
-        {shop.founder && (
-          <div data-testid="shop-founder" className="flex items-center gap-2">
-            {/* #303 — no public member profile (Don, 2026-10-01): the founder is
-                a name, never a link. */}
-            <span
-              data-testid="shop-founder-text"
-              className="flex items-center gap-2"
-            >
-              {shop.founder.avatarUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={shop.founder.avatarUrl}
-                  alt=""
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              )}
-              <span className="text-sm text-gray-700">{shop.founder.displayName}</span>
+        {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
+        {!viewerOwnsPage &&
+          (memberOfOpenPage ? (
+            <span data-testid="viewer-member" className="chip self-start whitespace-nowrap text-xs">
+              Member
             </span>
-          </div>
-        )}
-
-        {/* T143 — where this Page currently resolves to, shown to every
-            viewer including the owner. Resolved at read time (see
-            resolvePagePlacements); nothing here is stored on the Page. */}
-        {shop.placements[0] && (
-          <p data-testid="shop-placement" className="text-sm text-gray-600">
-            {shop.placements[0].label}
-          </p>
-        )}
-        {loggedIn && where && whereLine(where) && (
-          <p data-testid="shop-where" className="text-sm text-[var(--color-fg-muted)]">
-            {whereLine(where)}
-          </p>
-        )}
-
-        {/* Page kinds (dispatch, 2026-10-05): each kind leads with its own
-            thing. A business: how to reach it, then Follow. A group: Join and
-            its next meetup. An organization: its upcoming events. */}
-        {layout.lead === 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
-        {/* #267 — not on your own Page: your row there is your authority, not
-            a follow, and "Following" would have offered to end it. */}
-        {!viewerOwnsPage && (
-          <div className="mt-2">
-            <FollowPageButton
-              groupId={shop.groupId}
-              isPrivate={shop.discoverability === 'private'}
-              join={layout.lead === 'join'}
-              loggedIn={loggedIn}
-              following={viewerFollows}
-              returnTo={pagePath}
-              onFollow={followPageAction}
-              onUnfollow={unfollowPageAction}
-            />
-          </div>
-        )}
-        {layout.lead === 'join' && loggedIn && (
-          <NextUp posts={posts} heading="Next event" limit={1} />
-        )}
-
-        {shop.publicDescription && (
-          <p className="text-sm text-gray-600">{shop.publicDescription}</p>
-        )}
-        {shop.unclaimed?.publicInfoUrl && (
-          <a
-            data-testid="description-credit"
-            href={shop.unclaimed.publicInfoUrl}
-            rel="noopener nofollow"
-            target="_blank"
-            className="text-xs text-gray-500 underline"
-          >
-            {COPY.unclaimedDescriptionCredit}
-          </a>
-        )}
-
-
-        {layout.lead !== 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
-
-        {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
-            moderated after they appear (#287). */}
-        {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
-
-        {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
-            URL on read: this renders straight into href, and a row written
-            before the column had its CHECK must not reach one unchecked.
-            rel="noopener noreferrer" because these point off-platform, and
-            target="_blank" so a member does not lose the Page to follow one. */}
-        {socialLinks.length > 0 && (
-          <ul className="flex flex-wrap gap-3 mt-2" data-testid="shop-social-links">
-            {socialLinks.map((link) => (
-              <li key={link.platform}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid={`shop-social-${link.platform}`}
-                  className="text-sm underline text-[var(--color-accent)]"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-
+          ) : (
+            <div>
+              <FollowPageButton
+                groupId={shop.groupId}
+                isPrivate={shop.discoverability === 'private'}
+                join={layout.lead === 'join'}
+                loggedIn={loggedIn}
+                following={viewerFollows}
+                returnTo={pagePath}
+                onFollow={followPageAction}
+                onUnfollow={unfollowPageAction}
+              />
+            </div>
+          ))}
       </header>
 
-      {/* F037 — owner-only Locally Owned claim management. Rendered only when the
-          viewer is an active owner (ownerClaim resolved non-null); non-owners and
-          anon never see it. */}
-      {ownerClaim && isBusinessKind(shop.kind) && (
-        <LocallyOwnedClaim
-          groupId={shop.groupId}
-          claim={ownerClaim}
-          onSet={setJurisdictionAction}
-          onRemove={removeJurisdictionAction}
-        />
+      {/* Page kinds (dispatch, 2026-10-05): a group leads with its next meetup (Meetup). */}
+      {layout.lead === 'join' && loggedIn && <NextUp posts={posts} heading="Next event" limit={1} />}
+
+      {(shop.publicDescription || shop.unclaimed?.publicInfoUrl || shop.founder) && (
+        <PageSection id="about" title="About">
+          {shop.publicDescription && <AboutText text={shop.publicDescription} />}
+          {shop.unclaimed?.publicInfoUrl && (
+            <a data-testid="description-credit" href={shop.unclaimed.publicInfoUrl} rel="noopener nofollow" target="_blank" className="self-start text-caption text-[var(--color-fg-muted)] underline">
+              {COPY.unclaimedDescriptionCredit}
+            </a>
+          )}
+          {shop.founder && (
+            // #303 — no public member profile (Don, 2026-10-01): the founder is a name, never a link.
+            <div data-testid="shop-founder" className="flex items-center gap-2">
+              <span data-testid="shop-founder-text" className="flex items-center gap-2">
+                {shop.founder.avatarUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={shop.founder.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                )}
+                <span className="text-body-sm text-[var(--color-fg-muted)]">Started by {shop.founder.displayName}</span>
+              </span>
+            </div>
+          )}
+        </PageSection>
       )}
 
-      {/* F072 — what the Page has said, above what it lists. Acceptance 2
-          puts a post at the top of its Page; the owner's composer lives here
-          too, so saying something and seeing it are the same place. */}
-      {/* F093 — one list or the other, never both. Two of them would mean two
-          Announcements headings and two elements carrying the same
-          `announcement-<id>`, and a fragment would land on whichever rendered
-          first. Which one is decided by whether a withheld read happened at
-          all, which `loadPageView` only does when there is no member. */}
+      {/* F093 criterion 8 — signed out sees no location and no map pin. */}
+      {loggedIn && (placeLabel || how) && (
+        <PageSection id="location" title="Location">
+          {/* T143 — where this Page resolves to, at read time. */}
+          {placeLabel && (
+            <p data-testid="shop-placement" className="text-body-sm text-[var(--color-fg)]">
+              {placeLabel}
+            </p>
+          )}
+          {how && (
+            <p data-testid="shop-where" className="text-body-sm text-[var(--color-fg-muted)]">
+              {how}
+            </p>
+          )}
+          {placement && placeLabel && <PageMap lng={placement.lng} lat={placement.lat} label={placeLabel} area={placement.kind === 'area'} />}
+        </PageSection>
+      )}
+
+      {hasContact && contact && (
+        <PageSection id="contact" title="Contact">
+          <PageContactBlock contact={contact} />
+        </PageSection>
+      )}
+
+      {showFound && (
+        <PageSection id="found" title="Tags & links">
+          {/* #316 — the Page's tags as #hashtags, signed in only (F093); moderated after they appear (#287). */}
+          {tags.length > 0 && <TagChips tags={tags} />}
+          {/* F070 — `socialLinksForDisplay` re-checks every URL on read; off-platform, in a new tab. */}
+          {socialLinks.length > 0 && (
+            <ul className="flex flex-wrap gap-3" data-testid="shop-social-links">
+              {socialLinks.map((link) => (
+                <li key={link.platform}>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid={`shop-social-${link.platform}`}
+                    className="press inline-flex min-h-tap items-center text-body-sm text-[var(--color-accent)] underline"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </PageSection>
+      )}
+
+      {/* F093 — one list or the other, never both: two would mean two
+          elements carrying the same `announcement-<id>`. */}
       {withheldPosts.length > 0 ? (
         <WithheldPagePosts posts={withheldPosts} />
       ) : (
@@ -393,28 +370,32 @@ export function ShopPublicPage({
         />
       )}
 
-      {loggedIn && productsOn && (
-      <section className="mt-8">
-        <h2 className="text-lg font-medium">Products &amp; services</h2>
-        {items.length === 0 ? (
-          <div
-            data-testid="shop-items-empty"
-            className="mt-3 rounded border border-dashed border-gray-300 p-6 text-sm text-gray-500"
-          >
-            <p className="font-medium text-gray-600">Nothing listed yet</p>
-            <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
-          </div>
-        ) : (
-          <ul className="mt-3 flex flex-col gap-2">
-            {items.map((item) => (
-              <li key={item.id} className="card p-3 text-sm">
-                {item.title}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {showProducts && (
+        <PageSection id="products" title="Products & services">
+          {/* F035 beat 3 — visible but empty: the Page is real, and listings will come. */}
+          {items.length === 0 ? (
+            <div data-testid="shop-items-empty" className="text-body-sm text-[var(--color-fg-muted)]">
+              <p className="font-medium text-[var(--color-fg)]">Nothing listed yet</p>
+              <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {items.map((item) => (
+                <li key={item.id} className="card p-3 text-sm">
+                  {item.title}
+                </li>
+              ))}
+            </ul>
+          )}
+        </PageSection>
       )}
+
+      {/* F037 — owner-only Locally Owned claim management; non-owners and anon never see it. */}
+      {/* [open-question owner=cowork raised=2026-10-06] Badges are cut from beta, Locally owned included (DECISIONS 2026-10-06), but F037's eval still requires this claim card; retire F037 for beta or keep the card? */}
+      {ownerClaim && isBusinessKind(shop.kind) && (
+        <LocallyOwnedClaim groupId={shop.groupId} claim={ownerClaim} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
+      )}
+
       {shop.unclaimed && (
         <UnclaimedBox
           groupId={shop.groupId}
@@ -451,11 +432,12 @@ export function ShopPublicPage({
         tags,
         contact: contact ?? { phone: null, hours: null },
         contactOn,
-        addressLabel: shop.placements[0]?.label ?? null,
+        addressLabel: shop.placements[0]?.label || null,
         kind: pageKindOf(shop.kind),
         purpose: purposeOf(shop.kind, shop.purpose),
         productsOn,
-        where: whereValueFrom(where ?? null),
+        where: whereValueFrom(where ?? null, shop.placements[0]),
+        savedPin: savedPinFrom(shop.placements[0]),
       }}
     >
       {page}

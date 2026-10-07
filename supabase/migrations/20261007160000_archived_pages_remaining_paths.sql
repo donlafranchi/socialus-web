@@ -1,9 +1,9 @@
 -- bug #439, the rest: the read paths the first pass (20261007020000) left,
--- found by its review. Each answered someone who belongs to an archived or
+-- found by its review (#472's 20261007150000 took group_url_prefixes). Each
+-- answered someone who belongs to an archived or
 -- deleted Page without managing it, where groups_hidden_owner_only says only
 -- its managers. page_hidden_from_caller() (20261007020000) is the one test.
 --
---   group_url_prefixes   — its address, to members and its founder
 --   page_founder_public  — its founder's name, to its roster
 --   member_public_pages  — its name, in a member's own list
 --   page_posts           — its posts, to a founder who no longer manages it
@@ -14,32 +14,6 @@
 --
 -- ORDER: after 20261007020000_archived_pages_every_path and #472's 20261007150000,
 -- which production already holds.
-
-create or replace function public.group_url_prefixes(p_group_ids uuid[])
-returns table (group_id uuid, slug text, place_path text)
-language sql
-stable
-security definer
-set search_path = public, pg_catalog
-as $$
-  select
-    g.id,
-    g.slug,
-    public.place_url_path(l.place_id)
-  from public.groups g
-  left join public.locations l
-    on l.id = g.anchor_location_id
-   and l.deleted_at is null
-  where g.id = any(p_group_ids)
-    and g.dissolved_at is null
-    and public.builder_visible(g.founder_member_id)
-    and (
-      (g.lifecycle_state = 'active' and g.discoverability = 'listed')
-      or g.id in (select public.current_member_explicit_group_ids())
-      or g.id in (select public.current_member_founded_group_ids())
-    )
-    and not public.page_hidden_from_caller(g.id)
-$$;
 
 create or replace function public.page_founder_public(p_group_id uuid)
 returns table (handle text, display_name text, avatar_url text, has_published boolean)

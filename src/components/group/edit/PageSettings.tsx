@@ -10,7 +10,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Sheet } from '@/components/ui/Sheet'
 import { Field } from '@/components/ui/Field'
@@ -59,12 +58,8 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
   }
 
   return (
-    <details data-testid="page-settings" className="group">
-      <summary className="press flex min-h-tap cursor-pointer list-none items-center justify-between gap-3 text-title-3 text-[var(--color-fg)] [&::-webkit-details-marker]:hidden">
-        Page settings
-        <ChevronDown size={20} aria-hidden="true" className="shrink-0 transition-transform group-open:rotate-180" />
-      </summary>
-      <div className="mt-2 flex flex-col gap-3">
+    <div data-testid="page-settings" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         <section data-testid="page-settings-archive" aria-label={archived ? 'Archived' : 'Archive'} className="card border border-[var(--color-border)] p-4">
           <header className="flex items-center justify-between gap-3">
             <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">{archived ? 'Archived' : 'Archive'}</h3>
@@ -139,6 +134,6 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
           )}
         </Field>
       </Sheet>
-    </details>
+    </div>
   )
 }

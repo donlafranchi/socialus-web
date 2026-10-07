@@ -52,9 +52,10 @@ describe('the Announce button', () => {
     ).not.toBeNull()
   })
 
-  it('lands on the composer itself, not merely somewhere on the page', () => {
+  it('lands on the composer itself, open, not merely somewhere on the page', async () => {
     render(<OwnerBar pagePath="/g/x-abc123" />)
     const fragment = (screen.getByTestId('owner-announce').getAttribute('href') ?? '').split('#')[1]
+    window.history.replaceState(null, '', `/g/x-abc123#${fragment}`)
 
     render(
       <PagePosts
@@ -68,8 +69,9 @@ describe('the Announce button', () => {
       />,
     )
 
-    const target = document.getElementById(fragment)
+    const target = document.getElementById(fragment!)
     expect(target).not.toBeNull()
-    expect(target).toContainElement(screen.getByTestId('page-post-body'))
+    expect(target).toContainElement(await screen.findByTestId('page-post-body'))
+    window.history.replaceState(null, '', '/')
   })
 })

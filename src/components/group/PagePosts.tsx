@@ -25,11 +25,11 @@
 // behind one.
 
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
-import { announcementAnchor } from './announcement-anchor'
+import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { createLocationAction } from '@/app/_actions/location-actions'
@@ -44,6 +44,9 @@ import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
 import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPlaceFields'
 
 const BODY_LIMIT = 5000
+const LATEST = 3
+const latestIds = (posts: PagePost[]) =>
+  [...posts].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
 const TRY_AGAIN = "That didn't go through. Mind trying again?"
 /** F072 § Not this rules out all-day announcements, so a date with no time has
  *  nothing to become. Said as a sentence rather than refused silently. */
@@ -85,6 +88,8 @@ interface Props {
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
   >
   onCreateLocation?: CreateLocation
+  /** The form opens from the owner's Announce (#announce); tests start with it open. */
+  startComposing?: boolean
   /** #318 — soft delete, after a confirm. */
   onDelete?: (input: { postId: string }) => Promise<
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
@@ -136,6 +141,7 @@ export function PagePosts({
   onEdit,
   onCreateLocation = createLocationAction,
   onDelete,
+  startComposing = false,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -152,7 +158,29 @@ export function PagePosts({
   // with a compose box where you expected it. Shared with the signed-out list
   // (F093), because an `#announcement-<id>` link has to land the same way on
   // both and two copies of the effect is how they stop doing that.
-  const highlighted = useAnnouncementAnchor()
+  // #462 — newest first; the latest three in a row, the rest a tap away.
+  const sorted = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const [showAll, setShowAll] = useState(false)
+  // A link to an older post opens the list, so the post it names is there to land on.
+  useEffect(() => {
+    const id = announcementIdFromHash(window.location.hash)
+    if (!id || !posts.some((p) => p.id === id) || latestIds(posts).includes(id)) return
+    const frame = requestAnimationFrame(() => setShowAll(true))
+    return () => cancelAnimationFrame(frame)
+  }, [posts])
+  const highlighted = useAnnouncementAnchor(showAll)
+  // #472 first pass — the form is rarely used, so it waits for Announce
+  // (Google Business Profile's "Add update" opens on request).
+  const [composing, setComposing] = useState(startComposing)
+  useEffect(() => {
+    if (!canPost) return
+    const open = () => {
+      if (window.location.hash === `#${ANNOUNCE_ANCHOR}`) requestAnimationFrame(() => setComposing(true))
+    }
+    open()
+    window.addEventListener('hashchange', open)
+    return () => window.removeEventListener('hashchange', open)
+  }, [canPost])
 
   // A visitor looking at a Page with nothing on it sees no empty section. The
   // owner does, because the owner is the one who can fill it.
@@ -317,11 +345,167 @@ export function PagePosts({
     setEditingId(null)
   }
 
-  return (
-    <section id={ANNOUNCE_ANCHOR} className="mt-8 scroll-mt-20" data-testid="page-posts">
-      <h2 className="text-lg font-medium">Announcements</h2>
+  const renderPost = (post: PagePost, compact: boolean) => (
+            <li
+              key={post.id}
+              id={announcementAnchor(post.id)}
+              data-testid="page-post"
+              // The mark is a ring rather than a background: it says "this
+              // one" without restyling the announcement into something that
+              // looks like a different kind of thing.
+              data-highlighted={highlighted === post.id ? 'true' : undefined}
+              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
+            >
+              {editingId === post.id ? (
+                <div className="flex flex-col gap-3">
+                  <label htmlFor={`edit-${post.id}`} className="sr-only">
+                    Edit your post
+                  </label>
+                  <textarea
+                    id={`edit-${post.id}`}
+                    data-testid="page-post-edit-body"
+                    value={editDraft}
+                    maxLength={BODY_LIMIT}
+                    rows={3}
+                    onChange={(e) => setEditDraft(e.target.value)}
+                    className="w-full rounded border border-[var(--color-control-border)] p-3 text-sm"
+                  />
+                  <AnnouncementFields
+                    value={editWhen}
+                    onChange={setEditWhen}
+                    idPrefix="page-post-edit"
+                    placeLabel={post.locationLabel}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      data-testid="page-post-edit-save"
+                      onClick={() => saveEdit(post.id)}
+                      disabled={busy || editDraft.trim().length === 0}
+                      className="btn-primary disabled:opacity-50"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="page-post-edit-cancel"
+                      onClick={() => setEditingId(null)}
+                      className="text-sm underline"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
 
-      {canPost && (
+                  {/* When and where it is — the announcement's own, not its
+                      Page's. Shown above the line that says when it was
+                      written, because what is happening matters more than
+                      when somebody typed it. */}
+                  {(post.startsAt || post.locationLabel) && (
+                    <p className="mt-2 text-sm text-[var(--color-fg)]" data-testid="page-post-when">
+                      {post.startsAt ? formatMetroDateTime(post.startsAt, undefined, undefined, post.endsAt) : null}
+                      {post.startsAt && post.locationLabel ? ' · ' : null}
+                      {post.locationLabel}
+                    </p>
+                  )}
+                  {post.howToFind && (
+                    <p className="mt-1 text-sm text-[var(--color-fg-muted)]" data-testid="page-post-how">
+                      How to find us: {post.howToFind}
+                    </p>
+                  )}
+
+                  {post.startsAt && (
+                    <div className="mt-2">
+                      <AddToCalendarLink
+                        uid={`${post.id}@socialus.org`}
+                        title={post.body.split('\n')[0].slice(0, 120)}
+                        start={post.startsAt}
+                        end={post.endsAt}
+                        location={post.locationLabel ?? null}
+                      />
+                    </div>
+                  )}
+
+                  <div className="mt-2 flex items-center gap-3">
+                    <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    {canPost && (
+                      <button
+                        type="button"
+                        data-testid="page-post-edit"
+                        onClick={() => {
+                          setShowAll(true)
+                          setEditingId(post.id)
+                          setEditDraft(post.body)
+                          setEditWhen(whenWhereFrom(post))
+                          setError(null)
+                        }}
+                        className="text-xs underline"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {canPost && onDelete && (
+                      <button
+                        type="button"
+                        data-testid="page-post-delete"
+                        onClick={() => {
+                          setShowAll(true)
+                          setConfirmingDelete(post.id)
+                        }}
+                        className="text-xs underline"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                  {confirmingDelete === post.id && onDelete && (
+                    <div
+                      role="alertdialog"
+                      aria-label="Delete this post?"
+                      data-testid="page-post-delete-confirm"
+                      className="mt-2 flex flex-col gap-2 rounded-md border border-[var(--color-control-border)] p-3"
+                    >
+                      <p className="text-body-sm text-[var(--color-fg)]">
+                        Delete this post? It comes off your Page and Explore.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={async () => {
+                            setBusy(true)
+                            const r = await onDelete({ postId: post.id })
+                            setBusy(false)
+                            setConfirmingDelete(null)
+                            if (!r.ok) {
+                              setError(r.message || TRY_AGAIN)
+                              return
+                            }
+                            setItems(items.filter((p) => p.id !== post.id))
+                          }}
+                          className="btn-primary"
+                        >
+                          Delete post
+                        </button>
+                        <button type="button" onClick={() => setConfirmingDelete(null)} className="btn-secondary">
+                          Keep it
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </li>
+  )
+
+  return (
+    <section id={ANNOUNCE_ANCHOR} aria-labelledby="page-posts-title" className="card scroll-mt-20 border border-[var(--color-border)] p-4" data-testid="page-posts" data-section="posts">
+      <h2 id="page-posts-title" className="text-title-3 text-[var(--color-fg)]">Posts</h2>
+
+      {canPost && composing && (
         <div className="mt-3 flex flex-col gap-3">
           <label htmlFor="page-post-body" className="sr-only">
             What do you want people to know?
@@ -375,160 +559,26 @@ export function PagePosts({
         >
           <p>Nothing here yet. Tell people what&apos;s going on.</p>
         </div>
-      ) : (
-        <ul className="mt-4 flex flex-col gap-3">
-          {items.map((post) => (
-            <li
-              key={post.id}
-              id={announcementAnchor(post.id)}
-              data-testid="page-post"
-              // The mark is a ring rather than a background: it says "this
-              // one" without restyling the announcement into something that
-              // looks like a different kind of thing.
-              data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card p-3 scroll-mt-24${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
-            >
-              {editingId === post.id ? (
-                <div className="flex flex-col gap-3">
-                  <label htmlFor={`edit-${post.id}`} className="sr-only">
-                    Edit your announcement
-                  </label>
-                  <textarea
-                    id={`edit-${post.id}`}
-                    data-testid="page-post-edit-body"
-                    value={editDraft}
-                    maxLength={BODY_LIMIT}
-                    rows={3}
-                    onChange={(e) => setEditDraft(e.target.value)}
-                    className="w-full rounded border border-[var(--color-control-border)] p-3 text-sm"
-                  />
-                  <AnnouncementFields
-                    value={editWhen}
-                    onChange={setEditWhen}
-                    idPrefix="page-post-edit"
-                    placeLabel={post.locationLabel}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      data-testid="page-post-edit-save"
-                      onClick={() => saveEdit(post.id)}
-                      disabled={busy || editDraft.trim().length === 0}
-                      className="btn-primary disabled:opacity-50"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="page-post-edit-cancel"
-                      onClick={() => setEditingId(null)}
-                      className="text-sm underline"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <p className="whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]">{post.body}</p>
-
-                  {/* When and where it is — the announcement's own, not its
-                      Page's. Shown above the line that says when it was
-                      written, because what is happening matters more than
-                      when somebody typed it. */}
-                  {(post.startsAt || post.locationLabel) && (
-                    <p className="mt-2 text-sm text-[var(--color-fg)]" data-testid="page-post-when">
-                      {post.startsAt ? formatMetroDateTime(post.startsAt, undefined, undefined, post.endsAt) : null}
-                      {post.startsAt && post.locationLabel ? ' · ' : null}
-                      {post.locationLabel}
-                    </p>
-                  )}
-                  {post.howToFind && (
-                    <p className="mt-1 text-sm text-[var(--color-fg-muted)]" data-testid="page-post-how">
-                      How to find us: {post.howToFind}
-                    </p>
-                  )}
-
-                  {post.startsAt && (
-                    <div className="mt-2">
-                      <AddToCalendarLink
-                        uid={`${post.id}@socialus.org`}
-                        title={post.body.split('\n')[0].slice(0, 120)}
-                        start={post.startsAt}
-                        end={post.endsAt}
-                        location={post.locationLabel ?? null}
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-2 flex items-center gap-3">
-                    <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
-                    {canPost && (
-                      <button
-                        type="button"
-                        data-testid="page-post-edit"
-                        onClick={() => {
-                          setEditingId(post.id)
-                          setEditDraft(post.body)
-                          setEditWhen(whenWhereFrom(post))
-                          setError(null)
-                        }}
-                        className="text-xs underline"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {canPost && onDelete && (
-                      <button
-                        type="button"
-                        data-testid="page-post-delete"
-                        onClick={() => setConfirmingDelete(post.id)}
-                        className="text-xs underline"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                  {confirmingDelete === post.id && onDelete && (
-                    <div
-                      role="alertdialog"
-                      aria-label="Delete this post?"
-                      data-testid="page-post-delete-confirm"
-                      className="mt-2 flex flex-col gap-2 rounded-md border border-[var(--color-control-border)] p-3"
-                    >
-                      <p className="text-body-sm text-[var(--color-fg)]">
-                        Delete this post? It comes off your Page and Explore.
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={async () => {
-                            setBusy(true)
-                            const r = await onDelete({ postId: post.id })
-                            setBusy(false)
-                            setConfirmingDelete(null)
-                            if (!r.ok) {
-                              setError(r.message || TRY_AGAIN)
-                              return
-                            }
-                            setItems(items.filter((p) => p.id !== post.id))
-                          }}
-                          className="btn-primary"
-                        >
-                          Delete post
-                        </button>
-                        <button type="button" onClick={() => setConfirmingDelete(null)} className="btn-secondary">
-                          Keep it
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </li>
-          ))}
+      ) : showAll ? (
+        <ul data-testid="page-posts-all" className="mt-4 flex flex-col gap-3">
+          {sorted.map((post) => renderPost(post, false))}
         </ul>
+      ) : (
+        // A row that scrolls inside its own section, never the page.
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling region must take focus to scroll by keyboard (WCAG 2.1.1)
+        <ul data-testid="page-posts-latest" tabIndex={0} aria-label="Latest posts" className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
+          {sorted.slice(0, LATEST).map((post) => renderPost(post, true))}
+        </ul>
+      )}
+      {sorted.length > LATEST && (
+        <button
+          type="button"
+          aria-expanded={showAll}
+                    onClick={() => setShowAll(!showAll)}
+          className="press mt-3 inline-flex min-h-tap items-center text-body-sm font-semibold text-[var(--color-accent)] underline"
+        >
+          {showAll ? 'Show the latest' : 'See all posts'}
+        </button>
       )}
     </section>
   )

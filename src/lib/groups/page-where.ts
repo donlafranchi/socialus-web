@@ -3,6 +3,7 @@
 // signed-out read would be refused; the loader never makes one.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { maskEmails } from '@/lib/text/contact-info'
 
 export interface PageWhere {
   mode: 'visit' | 'travel' | 'roaming' | null
@@ -29,12 +30,12 @@ const list = (names: string[]) => (names.length < 2 ? names.join('') : `${names.
 
 /** The one line a visitor reads, or null when there's nothing to add. */
 export function whereLine(w: PageWhere): string | null {
-  if (w.mode === 'visit') return w.howToFind ? `How to find us: ${w.howToFind}` : null
+  if (w.mode === 'visit') return w.howToFind ? `How to find us: ${maskEmails(w.howToFind)}` : null
   if (w.mode === 'travel') {
     return w.towns.length === 0 ? 'Comes to you anywhere in the Sacramento area' : `Comes to you in ${list(w.towns.map((t) => t.name))}`
   }
   if (w.mode === 'roaming') {
-    return w.usuallyAround ? `Around the Sacramento area, usually ${w.usuallyAround}` : 'Around the Sacramento area'
+    return w.usuallyAround ? `Around the Sacramento area, usually ${maskEmails(w.usuallyAround)}` : 'Around the Sacramento area'
   }
   return null
 }

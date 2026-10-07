@@ -9,6 +9,7 @@
 // Supabase-client-shaped so it runs from the server component that renders the
 // Page, the same convention resolveShopItems() follows.
 
+import { maskEmails, maskEmailsOrNull } from '@/lib/text/contact-info'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface PagePost {
@@ -60,13 +61,13 @@ export async function resolvePagePosts(
     const loc = Array.isArray(r.location) ? r.location[0] : r.location
     return {
       id: r.id,
-      body: r.body,
+      body: maskEmails(r.body),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
       startsAt: r.starts_at,
       endsAt: r.ends_at,
       locationLabel: loc?.label ?? null,
-      howToFind: r.how_to_find ?? null,
+      howToFind: maskEmailsOrNull(r.how_to_find ?? null),
     }
   })
 }

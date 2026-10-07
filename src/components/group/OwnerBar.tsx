@@ -18,6 +18,7 @@
 import Link from 'next/link'
 import { Megaphone } from 'lucide-react'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
+import { PencilButton } from '@/components/ui/PencilButton'
 
 export function OwnerBar({ pagePath }: { pagePath: string }) {
   // Issue #175 — the owner surface is a CHILD of the Page now.
@@ -29,16 +30,14 @@ export function OwnerBar({ pagePath }: { pagePath: string }) {
   return (
     <div data-testid="owner-bar" className="flex flex-col gap-2 rounded-md bg-[var(--color-surface)] p-3">
       <span className="text-xs font-medium text-[var(--color-fg-muted)]">Your Page — only you see this</span>
-      {/* Both tools on one row, in the panel's order, so neither wraps loose under the label. */}
-      <div className="grid grid-cols-2 gap-2">
-        <Link href={`${pagePath}#${ANNOUNCE_ANCHOR}`} data-testid="owner-announce" className="btn-secondary press">
+      {/* Both tools on one row, so neither wraps loose under the label. */}
+      <div className="flex items-center gap-2">
+        <Link href={`${pagePath}#${ANNOUNCE_ANCHOR}`} data-testid="owner-announce" className="btn-primary press flex-1">
           <Megaphone size={14} className="reacts mr-1.5" aria-hidden="true" />
           Announce
         </Link>
-        {/* #412 — Edit goes to the Edit Page's section cards (the PM, 2026-10-06). */}
-        <Link href={`${pagePath}/edit`} data-testid="owner-edit" className="btn-secondary press">
-          Edit
-        </Link>
+        {/* #456 — the PM, 2026-10-06: one primary; Edit is the pencil, to the Edit Page's cards. */}
+        <PencilButton href={`${pagePath}/edit`} label="Edit Page" testId="owner-edit" />
       </div>
     </div>
   )

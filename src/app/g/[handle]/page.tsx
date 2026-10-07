@@ -46,6 +46,7 @@ export default async function PageAtCanonicalAddress({ params }: Props) {
       ownerClaim={view.ownerClaim}
       viewerOwnsPage={view.viewerOwnsPage}
       viewerFollows={view.viewerFollows}
+      viewerIsMember={view.viewerIsMember}
       posts={view.posts}
       withheldPosts={view.withheldPosts}
       followerCount={view.followerCount}
