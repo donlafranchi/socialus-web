@@ -15,3 +15,6 @@ export {
   type ReportReverseInput,
   type ReportDecisionResult,
 } from './review'
+
+// #491 — purge
+export { reportPurgeTarget, reportPurge, PURGE_REASONS, type PurgeReason } from './purge'
