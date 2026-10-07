@@ -403,14 +403,14 @@ describe('#285 — tags can be edited any time', () => {
   })
 })
 
-// #301 — a draft is finished in Edit. Its link follows the name until it's
-// published, and the placeholder name is never shown as if it were real.
+// #301 — a draft is finished in Edit, and the placeholder name is never shown
+// as if it were real. #411 — its link is the id alone, the one it keeps.
 describe('#301 — Edit on a draft', () => {
-  it('says the link follows the name until you publish, not that it cannot change', () => {
-    renderForm({ isDraft: true, initialName: 'untitled-draft', pagePath: '/g/untitled-draft-1a2b3c4d-zz9yy8', slug: 'untitled-draft-1a2b3c4d' })
+  it('shows the link it will keep when it publishes', () => {
+    renderForm({ isDraft: true, initialName: 'untitled-draft', pagePath: '/g/zz9yy8', slug: 'untitled-draft-1a2b3c4d' })
     const link = screen.getByTestId('edit-link-frozen')
-    expect(link).toHaveTextContent(/comes from the name/i)
-    expect(link).not.toHaveTextContent(/can.t/i)
+    expect(link).toHaveTextContent('socialus.org/g/zz9yy8')
+    expect(link).toHaveTextContent(/stays the same when you publish/i)
     expect(link).not.toHaveTextContent('untitled-draft')
   })
 

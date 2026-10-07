@@ -54,7 +54,7 @@ test.describe("F038 — A producer lists a product", () => {
       await expect(attribution).toHaveText(SHOP.brandName);
       await expect(attribution).toHaveAttribute(
         "href",
-        new RegExp(`/g/${SHOP.slug}$`),
+        /\/g\/[0-9a-z]{6}$/,
       );
 
       // Then — pickup point (item_locations → locations.label) renders

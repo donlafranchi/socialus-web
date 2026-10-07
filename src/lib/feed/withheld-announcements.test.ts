@@ -64,7 +64,7 @@ describe('mapWithheldRow', () => {
     // Criterion 9. The same fragment #212 built — one constant, written by the
     // feed and read by the Page.
     expect(mapWithheldRow(ROW).href).toBe(
-      '/g/sacriver-floaters-3k8x0p#announcement-11111111-1111-4111-8111-111111111111',
+      '/g/3k8x0p#announcement-11111111-1111-4111-8111-111111111111',
     )
   })
 

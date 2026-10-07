@@ -165,7 +165,7 @@ export async function sellActivateAction(input: {
         'shop_url_unresolved',
       )
     }
-    return { destinationUrl: canonicalPagePath(group.slug, group.public_id) }
+    return { destinationUrl: canonicalPagePath(group.public_id) }
   })
   return { destinationUrl }
   })

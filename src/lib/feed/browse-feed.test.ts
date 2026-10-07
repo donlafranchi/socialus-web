@@ -91,7 +91,7 @@ describe('T156 — getBrowseFeed projection', () => {
 
   it('links to the canonical address, which carries no place path (#175)', async () => {
     const [row] = await getBrowseFeed(client() as never, { scope: { metroId: 'm1' } })
-    expect(row.href).toBe('/g/folsom-coffee-7k3x8m')
+    expect(row.href).toBe('/g/7k3x8m')
   })
 
   it('still links when the place path did not resolve — that null was the bug', async () => {
@@ -101,7 +101,7 @@ describe('T156 — getBrowseFeed projection', () => {
       client([{ ...PAGE_ROW, place_path: null }]) as never,
       { scope: { metroId: 'm1' } },
     )
-    expect(row.href).toBe('/g/folsom-coffee-7k3x8m')
+    expect(row.href).toBe('/g/7k3x8m')
   })
 
   it('leaves href null when the Page has no public id to resolve by', async () => {
@@ -276,17 +276,18 @@ describe('resultHref', () => {
     ({ slug: 'sacriver-floaters', result_kind: 'post', result_id: 'p-1', ...over }) as never
 
   it('sends an announcement to its own fragment on the Page', () => {
-    expect(resultHref(row(), 'abc123')).toBe('/g/sacriver-floaters-abc123#announcement-p-1')
+    expect(resultHref(row(), 'abc123')).toBe('/g/abc123#announcement-p-1')
   })
 
   it('sends a Page to its Page, with no fragment', () => {
-    expect(resultHref(row({ result_kind: 'page' }), 'abc123')).toBe('/g/sacriver-floaters-abc123')
+    expect(resultHref(row({ result_kind: 'page' }), 'abc123')).toBe('/g/abc123')
   })
 
   it('is null when the Page has no address — never a bare fragment', () => {
     // A bare '#announcement-…' is a link that looks live and goes nowhere,
     // which is worse than the card having no link at all.
     expect(resultHref(row(), null)).toBeNull()
-    expect(resultHref(row({ slug: null }), 'abc123')).toBeNull()
+    // #411 — the id alone is the address, so a Page with no slug still has one.
+    expect(resultHref(row({ slug: null }), 'abc123')).toBe('/g/abc123#announcement-p-1')
   })
 })

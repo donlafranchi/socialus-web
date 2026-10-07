@@ -48,14 +48,18 @@ export const SHOP = {
   // The place path is illustrative: resolveShop() resolves by group slug alone
   // (src ignores the place segments before /g/), so any valid /p/.../g/<slug>
   // path renders. We use the scenario's canonical path for readability.
-  url: '/p/ca/sacramento/oak-park/g/oak-park-sourdough-f035',
+  // #411 — /g/<id> is the only Page address; the id is pinned so the spec can build it.
+  publicId: 'f035sh',
+  url: '/g/f035sh',
 } as const
 
 export const DRAFT_SHOP = {
   brandName: 'Twelfth Street Pies',
   slug: 'twelfth-street-pies-f035-draft',
   publicDescription: 'Coming soon.',
-  url: '/p/ca/sacramento/oak-park/g/twelfth-street-pies-f035-draft',
+  // #411 — /g/<id> is the only Page address; the id is pinned so the spec can build it.
+  publicId: 'f035dr',
+  url: '/g/f035dr',
 } as const
 
 export interface SeededF035Fixture {
@@ -193,6 +197,7 @@ async function ensureLocation(opts: {
 async function ensureBusinessGroup(opts: {
   brandName: string
   slug: string
+  publicId: string
   publicDescription: string
   founderMemberId: string
   anchorLocationId: string
@@ -210,7 +215,10 @@ async function ensureBusinessGroup(opts: {
         .maybeSingle()
     ).data
   const existing = await lookup()
-  if (existing) return existing.id
+  if (existing) {
+    await sb.from('groups').update({ public_id: opts.publicId }).eq('id', existing.id)
+    return existing.id
+  }
 
   const id = randomUUID()
   const { error: groupErr } = await sb.from('groups').insert({
@@ -220,6 +228,7 @@ async function ensureBusinessGroup(opts: {
     anchor_location_id: opts.anchorLocationId,
     name: opts.brandName,
     slug: opts.slug,
+    public_id: opts.publicId,
     description: '',
     // Business defaults to 'listed' (trg_groups_default_discoverability); set
     // explicitly so the public-read RLS (active + listed) is unambiguous.
@@ -272,6 +281,7 @@ export async function seedF035Fixture(): Promise<SeededF035Fixture> {
   const activeGroupId = await ensureBusinessGroup({
     brandName: SHOP.brandName,
     slug: SHOP.slug,
+    publicId: SHOP.publicId,
     publicDescription: SHOP.publicDescription,
     founderMemberId: mayaId,
     anchorLocationId: anchorId,
@@ -281,6 +291,7 @@ export async function seedF035Fixture(): Promise<SeededF035Fixture> {
   const draftGroupId = await ensureBusinessGroup({
     brandName: DRAFT_SHOP.brandName,
     slug: DRAFT_SHOP.slug,
+    publicId: DRAFT_SHOP.publicId,
     publicDescription: DRAFT_SHOP.publicDescription,
     founderMemberId: mayaId,
     anchorLocationId: anchorId,

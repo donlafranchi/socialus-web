@@ -116,7 +116,7 @@ describe('withinBounds', () => {
 describe('the pin links to the Page', () => {
   it('builds the canonical address from the row, with no second read', () => {
     const [p] = rowsToMapPages([row()])
-    expect(p.href).toBe('/g/claras-kitchen-7k3x8m')
+    expect(p.href).toBe('/g/7k3x8m')
   })
 
   it('carries no place path — the address survives a move from metros to neighbourhoods', () => {

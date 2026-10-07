@@ -285,9 +285,10 @@ export function EditPageForm({
       <div data-testid="edit-link-frozen">
         <span className="text-sm font-medium text-[var(--color-fg)]">Link</span>
         {isDraft ? (
-          <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-            Your link comes from the name. It stays the same once you publish.
-          </p>
+          <>
+            <p className="mt-1 text-sm text-[var(--color-fg-muted)]">socialus.org{pagePath}</p>
+            <p className="mt-1 text-xs text-[var(--color-fg-muted)]">It stays the same when you publish.</p>
+          </>
         ) : (
           <>
             <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
