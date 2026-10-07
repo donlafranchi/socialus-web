@@ -124,7 +124,7 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
   const notFound = (
     <>We couldn&rsquo;t find that address. Try the full street address{mapAvailable() ? ', or drop a pin on the map' : ''}.</>
   )
-  const dropPin = mapAvailable() && (
+  const dropPin = mapAvailable() && !value.pin && (
     <button
       type="button"
       onClick={() => set({ pin: value.pin ?? SACRAMENTO, label: null })}
