@@ -1,6 +1,7 @@
 // chore #428 — which screens can this diff change, and who should look at them?
 //
 //   npx tsx scripts/changed-routes.ts --base <sha>      prints JSON
+//   npx tsx scripts/changed-routes.ts --since "26 hours ago"   everything merged to main since then
 //   npx tsx scripts/changed-routes.ts --base <sha> --github-output   also writes routes= / personas= to $GITHUB_OUTPUT
 //
 // A route is a name in evals/screens/routes.ts. A change it cannot place under
@@ -68,7 +69,13 @@ export function changedRoutes(files: string[]): ChangedRoutes {
 
 if (require.main === module) {
   const i = process.argv.indexOf('--base')
-  const base = i > 0 ? process.argv[i + 1] : 'origin/main'
+  const j = process.argv.indexOf('--since')
+  let base = i > 0 ? process.argv[i + 1]! : 'origin/main'
+  if (j > 0) {
+    // Everything merged to main since then: from the parent of the oldest such commit.
+    const log = execFileSync('git', ['log', `--since=${process.argv[j + 1]}`, '--format=%H', 'origin/main'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean)
+    base = log.length ? `${log[log.length - 1]}^` : 'origin/main'
+  }
   const out = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], { encoding: 'utf8' })
   const result = changedRoutes(out.split('\n').filter(Boolean))
   console.log(JSON.stringify(result))
