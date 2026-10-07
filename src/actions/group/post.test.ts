@@ -38,6 +38,8 @@ const GROUP = '11111111-1111-1111-1111-111111111111'
 const OWNER = '22222222-2222-2222-2222-222222222222'
 const OTHER = '33333333-3333-3333-3333-333333333333'
 const POST = '44444444-4444-4444-4444-444444444444'
+const PHOTO = `https://x.supabase.co/storage/v1/object/public/media/${OWNER}/55555555-5555-4555-8555-555555555555.webp`
+const OTHERS_PHOTO = `https://x.supabase.co/storage/v1/object/public/media/${OTHER}/55555555-5555-4555-8555-555555555555.webp`
 const NOW = new Date('2026-09-15T12:00:00Z')
 
 function ctx(actingMemberId: string = OWNER): ActionContext {
@@ -431,5 +433,71 @@ describe('F102 — fix and repost', () => {
     install({ hiddenAt: HIDDEN, removedAt: HIDDEN })
     await groupPostEdit(ctx(), { postId: POST, body: 'Again.' })
     expect(reposts()).toHaveLength(0)
+  })
+})
+
+// F099 criteria 3, 5, 12 — a post may carry one photo of its own.
+describe('F099 — a post photo', () => {
+  // [guards F099.3]
+  it('stores the photo on the post when one is given, and none when it is not', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Bread class.', photoUrl: PHOTO })
+    expect(calls(/insert into public\.page_posts/i)[0]![1]).toContain(PHOTO)
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'No photo.' })
+    expect(calls(/insert into public\.page_posts/i)[0]![1]).toContain(null)
+  })
+
+  // [guards F099.3]
+  it('refuses a second photo: the field takes one URL, never a list', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: [PHOTO, PHOTO] as never }),
+    ).rejects.toBeInstanceOf(ValidationError)
+  })
+
+  // [guards F099.5]
+  it("refuses a photo that is not in the uploader's own folder", async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: OTHERS_PHOTO }),
+    ).rejects.toBeInstanceOf(ValidationError)
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: 'https://evil.example/a.webp' }),
+    ).rejects.toBeInstanceOf(ValidationError)
+    expect(calls(/insert into public\.page_posts/i)).toHaveLength(0)
+  })
+
+  // [guards F099.4]
+  it('writes nothing to the Page: no photo column of groups is touched', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: PHOTO })
+    expect(calls(/update public\.groups/i)).toHaveLength(0)
+  })
+
+  it('an edit that leaves the photo out leaves it alone', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Friday.' })
+    expect(calls(/update public\.page_posts/i)[0]![0]).not.toMatch(/photo_url/)
+  })
+
+  it('an edit can set the photo', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Friday.', photoUrl: PHOTO })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/photo_url = \$/)
+    expect(params).toContain(PHOTO)
+  })
+
+  // [guards F099.12]
+  it('removing the photo clears it, makes a fresh upload start unhidden, and records an event', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Friday.', photoUrl: null })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/photo_url = \$/)
+    expect(params).toContain(null)
+    const [, , row] = appendEvent.mock.calls[0]!
+    expect(row.event_kind).toBe('group.post_edited')
+    expect(row.payload).toMatchObject({ post_id: POST, photo: 'removed' })
   })
 })
