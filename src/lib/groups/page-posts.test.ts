@@ -43,6 +43,7 @@ describe('resolvePagePosts', () => {
         startsAt: null,
         locationLabel: null,
         howToFind: null,
+        hiddenAt: null,
       },
     ])
     expect(calls.order).toEqual(['created_at', { ascending: false }])
@@ -163,5 +164,14 @@ describe('resolvePagePosts — contact details', () => {
     const [p] = await resolvePagePosts(supabase, 'g1')
     expect(p!.body).not.toContain('@example.com')
     expect(p!.howToFind).not.toContain('@example.com')
+  })
+
+  it('carries when a post was hidden, for the people who can still see it', async () => {
+    const { supabase } = client({
+      data: [{ id: 'a', body: 'x', created_at: 't', updated_at: 't', starts_at: null, location: null, hidden_at: '2026-10-07T12:00:00Z' }],
+      error: null,
+    })
+    const [p] = await resolvePagePosts(supabase, 'g1')
+    expect(p!.hiddenAt).toBe('2026-10-07T12:00:00Z')
   })
 })

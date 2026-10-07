@@ -14,7 +14,7 @@ describe('#280 — builders in the report queue', () => {
   it('leaves builder reports and builder Pages out by default', async () => {
     await fetchReviewQueue()
     const [sql, params] = query.mock.calls[0] as unknown as [string, unknown[]]
-    expect(sql).toMatch(/\$2 or \(not public\.is_builder\(r\.reporter_member_id\) and not public\.is_builder\(g\.founder_member_id\)\)/)
+    expect(sql).toMatch(/\$2 or \(not public\.is_builder\(r\.reporter_member_id\) and not public\.is_builder\(pg\.founder_member_id\)\)/)
     expect(params[1]).toBe(false)
   })
 

@@ -54,6 +54,19 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
   const triggerRef = externalRef ?? localRef
   const menuRef = useRef<HTMLDivElement>(null)
   const menuId = useId()
+  // Fixed to the screen, not absolute in the trigger's box: a Post sits in a row
+  // that scrolls sideways, which would clip the menu (and push it off the left edge);
+  // it follows the trigger when anything scrolls.
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 8 })
+  const MENU_W = 224
+  const place = () => {
+    const r = triggerRef.current?.getBoundingClientRect()
+    if (r) setPos({ top: r.bottom + 4, left: Math.max(8, Math.min(r.right - MENU_W, window.innerWidth - MENU_W - 8)) })
+  }
+  const toggle = () => {
+    place()
+    setOpen((o) => !o)
+  }
 
   // Dismiss on an outside click, the way every menu on the web does.
   useEffect(() => {
@@ -63,8 +76,23 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
       if (menuRef.current?.contains(t) || triggerRef.current?.contains(t)) return
       setOpen(false)
     }
+    const follow = place
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
     document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    window.addEventListener('scroll', follow, true)
+    window.addEventListener('resize', follow)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+      window.removeEventListener('scroll', follow, true)
+      window.removeEventListener('resize', follow)
+    }
     // triggerRef is a ref container, stable for the life of the component —
     // listing it would re-run the listener wiring on every parent render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +112,7 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         className="inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-charcoal-900)] hover:bg-neutral-100"
       >
         <MoreHorizontal size={20} aria-hidden="true" />
@@ -102,7 +130,8 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
               close()
             }
           }}
-          className="absolute right-0 z-40 mt-1 min-w-56 overflow-hidden rounded-md border border-[var(--color-charcoal-100)] bg-white py-1 shadow-overlay"
+          style={{ position: 'fixed', top: pos.top, left: pos.left }}
+          className="z-40 min-w-56 overflow-hidden rounded-md border border-[var(--color-charcoal-100)] bg-white py-1 shadow-overlay"
         >
           {items.map((item) =>
             item.href ? (

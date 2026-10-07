@@ -25,7 +25,7 @@ import { ReportControl } from './ReportControl'
 import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { socialLinksForDisplay } from '@/lib/groups/social-links'
-import { sendReportAction } from '@/app/_actions/report-actions'
+import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
 import { WithheldPagePosts } from './WithheldPagePosts'
@@ -368,6 +368,9 @@ export function ShopPublicPage({
           onPost={postToPageAction}
           onEdit={editPagePostAction}
           onDelete={deletePagePostAction}
+          onReport={sendPostReportAction}
+          loggedIn={loggedIn}
+          returnTo={pagePath}
         />
       )}
 
