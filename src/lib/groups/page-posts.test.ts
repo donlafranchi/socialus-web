@@ -44,6 +44,7 @@ describe('resolvePagePosts', () => {
         locationLabel: null,
         howToFind: null,
         photoUrl: null,
+        photoHidden: false,
         hiddenAt: null,
       },
     ])
@@ -202,4 +203,17 @@ describe('a post photo', () => {
     const [p] = await resolvePagePosts(supabase, 'g1')
     expect(p!.photoUrl).toBeNull()
   })
+
+  // [guards F099.8]
+  it('says a post photo is hidden (for its owner’s notice), without returning its URL', async () => {
+    const hidden = client({ data: [row({ photo_hidden_at: '2026-10-01T00:00:00Z' })], error: null })
+    const [h] = await resolvePagePosts(hidden.supabase, 'g1')
+    expect(h!.photoUrl).toBeNull()
+    expect(h!.photoHidden).toBe(true)
+    const removed = client({ data: [row({ photo_removed_at: '2026-10-01T00:00:00Z' })], error: null })
+    expect((await resolvePagePosts(removed.supabase, 'g1'))[0]!.photoHidden).toBe(false)
+    const none = client({ data: [row({ photo_url: null })], error: null })
+    expect((await resolvePagePosts(none.supabase, 'g1'))[0]!.photoHidden).toBe(false)
+  })
 })
+

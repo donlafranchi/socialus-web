@@ -62,9 +62,11 @@ export interface ReportDecisionResult {
   reversedDecisionId: string | null
 }
 
-type SubjectRow = { subject_kind: 'group' | 'post'; subject_id: string; group_id: string }
+type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo'
 
-const eventKind = (kind: 'group' | 'post', outcome: Outcome) =>
+type SubjectRow = { subject_kind: SubjectKind; subject_id: string; group_id: string }
+
+const eventKind = (kind: SubjectKind, outcome: Outcome) =>
   kind === 'post'
     ? outcome === 'restored'
       ? 'group.post_restored'
@@ -91,10 +93,13 @@ function requireNote(input: { reasonCode: ReasonCode; reasonNote?: string }, ver
 }
 
 /**
- * Apply an outcome to the Page. Both directions are projection changes — the
- * URL and the bytes are never touched, which is what makes this reversible.
+ * Apply an outcome to the image that was reported. Both directions are
+ * projection changes — the URL and the bytes are never touched, which is what
+ * makes this reversible. One query per kind, each written out in full: the table
+ * and columns differ (the Page's photo, the Page picture, one post's photo), and
+ * a name built from input is how an injection gets in.
  */
-type Subject = { kind: 'group' | 'post'; id: string; groupId: string }
+type Subject = { kind: SubjectKind; id: string; groupId: string }
 
 /** F078 criterion 1 — a hidden Post is private (managers only), so the same two
  *  outcomes apply to it: restoring puts back the audience it had and locks that
@@ -126,27 +131,33 @@ async function projectPost(client: Client, postId: string, outcome: Outcome, now
 
 async function project(client: Client, subject: Subject, outcome: Outcome, now: Date) {
   if (subject.kind === 'post') return projectPost(client, subject.id, outcome, now)
-  const groupId = subject.id
+  const kind = subject.kind
+  const subjectId = subject.id
   if (outcome === 'restored') {
     // The lock is granted against the URL restored, so replacing the photo
     // drops it on its own and cannot outlive what it covers.
-    await client.query(
-      `update public.groups
-          set photo_hidden_at = null,
-              photo_removed_at = null,
-              photo_hide_locked_url = photo_url
-        where id = $1`,
-      [groupId],
-    )
+    const sql =
+      kind === 'post_photo'
+        ? `update public.page_posts
+              set photo_hidden_at = null, photo_removed_at = null, photo_hide_locked_url = photo_url
+            where id = $1`
+        : kind === 'page_picture'
+          ? `update public.groups
+                set picture_hidden_at = null, picture_removed_at = null, picture_hide_locked_url = picture_url
+              where id = $1`
+          : `update public.groups
+                set photo_hidden_at = null, photo_removed_at = null, photo_hide_locked_url = photo_url
+              where id = $1`
+    await client.query(sql, [subjectId])
     return
   }
-  await client.query(
-    `update public.groups
-        set photo_removed_at = $2,
-            photo_hidden_at = null
-      where id = $1`,
-    [groupId, now],
-  )
+  const sql =
+    kind === 'post_photo'
+      ? `update public.page_posts set photo_removed_at = $2, photo_hidden_at = null where id = $1`
+      : kind === 'page_picture'
+        ? `update public.groups set picture_removed_at = $2, picture_hidden_at = null where id = $1`
+        : `update public.groups set photo_removed_at = $2, photo_hidden_at = null where id = $1`
+  await client.query(sql, [subjectId, now])
 }
 
 async function insertDecision(
@@ -211,8 +222,8 @@ export const reportDecide = defineHandler(
         `select r.subject_kind, r.subject_id,
                 coalesce(p.group_id, g.id) as group_id
            from public.reports r
-           left join public.groups g on r.subject_kind = 'group' and g.id = r.subject_id
-           left join public.page_posts p on r.subject_kind = 'post' and p.id = r.subject_id
+           left join public.groups g on r.subject_kind in ('group', 'page_picture') and g.id = r.subject_id
+           left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
           where r.id = $1 and coalesce(p.group_id, g.id) is not null
           for update of r`,
         [input.reportId],
@@ -267,7 +278,7 @@ export const reportReverse = defineHandler(
         id: string
         report_id: string
         group_id: string
-        subject_kind: 'group' | 'post'
+        subject_kind: SubjectKind
         subject_id: string
         outcome: Outcome
         already_reversed: boolean
@@ -284,7 +295,7 @@ export const reportReverse = defineHandler(
                 ) as already_reversed
            from public.report_decisions d
            join public.reports r on r.id = d.report_id
-           left join public.page_posts p on r.subject_kind = 'post' and p.id = r.subject_id
+           left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
           where d.id = $1
           for update of d`,
         [input.decisionId],

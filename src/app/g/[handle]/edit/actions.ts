@@ -17,6 +17,8 @@ export interface EditPageInput {
   name?: string
   description?: string
   photoUrl?: string | null
+  /** F099 — the Page picture. */
+  pictureUrl?: string | null
   socialLinks?: Record<string, string>
   /** Issue #180 — where the Page is. `group.update` already accepted this;
    *  nothing but the form was missing. */
@@ -68,6 +70,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.name !== undefined ? { name: input.name } : {}),
       ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
+      ...(input.pictureUrl !== undefined ? { pictureUrl: input.pictureUrl } : {}),
       ...(input.socialLinks !== undefined ? { socialLinks: input.socialLinks } : {}),
       ...(input.contactPhone !== undefined ? { contactPhone: input.contactPhone } : {}),
       ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),

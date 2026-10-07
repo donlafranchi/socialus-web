@@ -12,7 +12,12 @@ import { emptyWhere } from '@/components/locations/WhereFields'
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
-vi.mock('@/components/media/PagePhotoPicker', () => ({ PagePhotoPicker: () => null }))
+// F099 — a stand-in per picker, so a test can pick for each by its label.
+vi.mock('@/components/media/PagePhotoPicker', () => ({
+  PagePhotoPicker: ({ label = 'Photo', onChange }: { label?: string; onChange: (u: string | null) => void }) => (
+    <button type="button" data-testid={`pick-${label}`} onClick={() => onChange(`https://x/${label}.webp`)} />
+  ),
+}))
 vi.mock('@/app/_actions/location-actions', () => ({
   searchPlacesAction: vi.fn(async () => ({ ok: true, data: [] })),
   createLocationAction: vi.fn(),
@@ -242,5 +247,53 @@ describe('F080 — the sheets that post words or a photo ask for nothing sensiti
   it('tags do not', () => {
     const d = openOne('tags')
     expect(d).not.toHaveTextContent(COPY.postingSafety)
+  })
+})
+
+// F099 criteria 1, 13 — every Page may set one Page picture, apart from its photo.
+describe('F099 — the Page picture', () => {
+  const openPhoto = () => fireEvent.click(screen.getByRole('button', { name: 'open photo' }))
+
+  // [guards F099.1]
+  it('is a second picker beside the Page photo, in the same place for every kind', () => {
+    for (const kind of ['business', 'group'] as const) {
+      render(<Page sections={['photo']} init={{ ...initial, kind }} />)
+      openPhoto()
+      expect(screen.getByTestId('pick-Photo')).toBeInTheDocument()
+      expect(screen.getByTestId('pick-Page picture')).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
+  // [guards F099.13]
+  it('saves the picture without touching the photo', async () => {
+    render(<Page sections={['photo']} />)
+    openPhoto()
+    fireEvent.click(screen.getByTestId('pick-Page picture'))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    const sent = onSave.mock.calls[0]![0] as Record<string, unknown>
+    expect(sent.pictureUrl).toBe('https://x/Page picture.webp')
+    expect(sent).not.toHaveProperty('photoUrl')
+  })
+
+  it('says in plain words when the picture shows, wherever it is chosen', () => {
+    for (const section of ['photo', 'basics'] as const) {
+      render(<Page sections={[section]} />)
+      fireEvent.click(screen.getByRole('button', { name: `open ${section}` }))
+      expect(screen.getByText('Shown when a post has no photo of its own.')).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
+  it('saves the photo without touching the picture', async () => {
+    render(<Page sections={['photo']} />)
+    openPhoto()
+    fireEvent.click(screen.getByTestId('pick-Photo'))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    const sent = onSave.mock.calls[0]![0] as Record<string, unknown>
+    expect(sent.photoUrl).toBe('https://x/Photo.webp')
+    expect(sent).not.toHaveProperty('pictureUrl')
   })
 })

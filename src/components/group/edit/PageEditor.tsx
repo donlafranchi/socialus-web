@@ -54,6 +54,8 @@ export interface EditorInitial {
   name: string
   description: string
   photoUrl: string | null
+  /** F099 — the Page picture, apart from the photo. Starts empty. */
+  pictureUrl?: string | null
   socialLinks: SocialLinks
   tags: string[]
   contact: { phone: string | null; hours: OpeningHours | null }
@@ -90,6 +92,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [name, setName] = useState(initial.name)
   const [description, setDescription] = useState(initial.description)
   const [photoUrl, setPhotoUrl] = useState(initial.photoUrl)
+  const [pictureUrl, setPictureUrl] = useState(initial.pictureUrl ?? null)
   const [handles, setHandles] = useState<Partial<Record<SocialPlatform, string>>>(() => handlesFromLinks(initial.socialLinks))
   const [tags, setTags] = useState<TagInputValue>({ tags: initial.tags, draft: '' })
   const [phone, setPhone] = useState(initial.contact.phone ? formatUsPhone(initial.contact.phone) : '')
@@ -103,7 +106,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ kind, purpose, productsOn, name, description, photoUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
+  const snapshot = () => JSON.stringify({ kind, purpose, productsOn, name, description, photoUrl, pictureUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -111,18 +114,20 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     setError(null)
     const base = { groupId: initial.groupId, pagePath: initial.pagePath }
     let patch: Partial<EditPageInput> = {}
+    // F099 — the picture is sent only when it changed: it is the Page picture, not the photo.
+    const picturePatch = pictureUrl !== (initial.pictureUrl ?? null) ? { pictureUrl } : {}
     if (section === 'kind') patch = { pageKind: kind, purpose }
     if (section === 'about') patch = { name, description }
     if (section === 'basics') {
       if (name.trim() === '') return setError('Give your Page a name.')
-      patch = { name, description, photoUrl }
+      patch = { name, description, photoUrl, ...picturePatch }
     }
     if (section === 'name') {
       if (name.trim() === '') return setError('Give your Page a name.')
       patch = { name }
     }
     if (section === 'description') patch = { description }
-    if (section === 'photo') patch = { photoUrl }
+    if (section === 'photo') patch = { ...(photoUrl !== initial.photoUrl ? { photoUrl } : {}), ...picturePatch }
     if (section === 'contact')
       patch = { contactPhone: phone.trim() === '' ? null : phone.trim(), ...(SHOW_OPENING_HOURS ? { openingHours: hours } : {}) }
     if (section === 'components') patch = { contactComponent: contactOn, productsComponent: productsOn }
@@ -212,7 +217,13 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             </label>
           </div>
         )}
-        {section === 'basics' && <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />}
+        {section === 'basics' && (
+          <>
+            <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />
+            <PagePhotoPicker memberId={initial.memberId} value={pictureUrl} onChange={setPictureUrl} label="Page picture" previewAlt="The Page picture" />
+            <span className="-mt-2 text-caption text-[var(--color-fg-muted)]">Shown when a post has no photo of its own.</span>
+          </>
+        )}
         {(section === 'about' || section === 'basics') && (
           <>
             <label className="flex flex-col gap-1">
@@ -231,7 +242,13 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
         {section === 'description' && (
           <DescriptionField value={description} onChange={setDescription} hint="A line or two on what you do and who it’s for." />
         )}
-        {section === 'photo' && <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />}
+        {section === 'photo' && (
+          <>
+            <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />
+            <PagePhotoPicker memberId={initial.memberId} value={pictureUrl} onChange={setPictureUrl} label="Page picture" previewAlt="The Page picture" />
+            <span className="-mt-2 text-caption text-[var(--color-fg-muted)]">Shown when a post has no photo of its own.</span>
+          </>
+        )}
         {section === 'where' && (
           <>
             {initial.addressLabel && <p className="text-sm text-[var(--color-fg-muted)]">Now: {initial.addressLabel}</p>}

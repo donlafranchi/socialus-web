@@ -52,17 +52,18 @@ function ctx(actingMemberId: string | null = OPERATOR): ActionContext {
   }
 }
 
-function install(opts: { reportFound?: boolean; priorFound?: boolean; priorOutcome?: 'restored' | 'removed'; alreadyReversed?: boolean; kind?: 'group' | 'post' } = {}) {
+function install(opts: { reportFound?: boolean; priorFound?: boolean; priorOutcome?: 'restored' | 'removed'; alreadyReversed?: boolean; subjectKind?: string; subjectId?: string } = {}) {
   const {
     reportFound = true,
     priorFound = true,
     priorOutcome = 'removed',
     alreadyReversed = false,
-    kind = 'group',
+    subjectKind = 'group',
+    subjectId = GROUP_ID,
   } = opts
   query.mockImplementation(async (sql: string) => {
     if (/from public\.reports r\b[\s\S]*for update of r/.test(sql)) {
-      return { rows: reportFound ? [{ group_id: GROUP_ID, subject_kind: kind, subject_id: kind === 'post' ? POST_ID : GROUP_ID }] : [] }
+      return { rows: reportFound ? [{ group_id: GROUP_ID, subject_kind: subjectKind, subject_id: subjectId }] : [] }
     }
     if (/from public\.report_decisions d/.test(sql)) {
       return {
@@ -72,8 +73,8 @@ function install(opts: { reportFound?: boolean; priorFound?: boolean; priorOutco
                 id: DECISION_ID,
                 report_id: REPORT_ID,
                 group_id: GROUP_ID,
-                subject_kind: kind,
-                subject_id: kind === 'post' ? POST_ID : GROUP_ID,
+                subject_kind: subjectKind,
+                subject_id: subjectId,
                 outcome: priorOutcome,
                 already_reversed: alreadyReversed,
               },
@@ -274,7 +275,7 @@ describe('deciding on a reported Post', () => {
     reportDecide(ctx(), { reportId: REPORT_ID, outcome, reasonCode: outcome === 'restored' ? 'nothing_wrong' : 'not_suitable' })
 
   it('approve puts the post back to the audience it had, and locks that wording against re-hiding', async () => {
-    install({ kind: 'post' })
+    install({ subjectKind: 'post', subjectId: POST_ID })
     await decide('restored')
     const [q, params] = sql(/update public\.page_posts/)[0]!
     expect(q).toMatch(/discoverability = coalesce\(hidden_prior_discoverability/)
@@ -285,7 +286,7 @@ describe('deciding on a reported Post', () => {
   })
 
   it('remove keeps it down and stamps when', async () => {
-    install({ kind: 'post' })
+    install({ subjectKind: 'post', subjectId: POST_ID })
     await decide('removed')
     const [q, params] = sql(/update public\.page_posts/)[0]!
     expect(q).toMatch(/removed_at = \$2/)
@@ -294,18 +295,52 @@ describe('deciding on a reported Post', () => {
   })
 
   it('the event names the post, on its Page', async () => {
-    install({ kind: 'post' })
+    install({ subjectKind: 'post', subjectId: POST_ID })
     await decide('removed')
     expect(appendEvent.mock.calls.some((c) => (c[2] as EventRow).event_kind === 'group.post_removed' && (c[2] as EventRow).group_id === GROUP_ID)).toBe(true)
   })
 
   it('reversing a removal restores the post; reversing a restore takes it down again', async () => {
-    install({ kind: 'post', priorOutcome: 'removed' })
+    install({ subjectKind: 'post', subjectId: POST_ID, priorOutcome: 'removed' })
     await reportReverse(ctx(), { decisionId: DECISION_ID, reasonCode: 'reported_by_mistake' })
     expect(sql(/update public\.page_posts/)[0]![0]).toMatch(/discoverability = coalesce\(hidden_prior_discoverability/)
     query.mockReset()
-    install({ kind: 'post', priorOutcome: 'restored' })
+    install({ subjectKind: 'post', subjectId: POST_ID, priorOutcome: 'restored' })
     await reportReverse(ctx(), { decisionId: DECISION_ID, reasonCode: 'not_suitable' })
     expect(sql(/update public\.page_posts/)[0]![0]).toMatch(/discoverability = 'private'/)
+  })
+})
+
+// F099 criteria 7, 8, 12 — a decision applies to the image that was reported, and only it.
+describe('F099 — a decision on one image', () => {
+  // [guards F099.8]
+  it.each([
+    ['restored', /update public\.page_posts[\s\S]*photo_hidden_at = null[\s\S]*photo_hide_locked_url = photo_url/],
+    ['removed', /update public\.page_posts[\s\S]*photo_removed_at = \$2/],
+  ] as const)("%s on a post photo changes that post's photo and nothing on groups", async (outcome, re) => {
+    install({ subjectKind: 'post_photo', subjectId: POST_ID })
+    await reportDecide(ctx(), { reportId: REPORT_ID, outcome, reasonCode: 'not_suitable' })
+    const [u] = sql(/update public\.page_posts/)
+    expect(u![0]).toMatch(re)
+    expect(u![1]).toContain(POST_ID)
+    expect(sql(/update public\.groups/)).toHaveLength(0)
+    expect((appendEvent.mock.calls[0]![2] as EventRow).group_id).toBe(GROUP_ID)
+  })
+
+  // [guards F099.8]
+  it("a decision on a Page picture changes picture_*, never the Page's photo", async () => {
+    install({ subjectKind: 'page_picture', subjectId: GROUP_ID })
+    await reportDecide(ctx(), { reportId: REPORT_ID, outcome: 'removed', reasonCode: 'not_suitable' })
+    const [u] = sql(/update public\.groups/)
+    expect(u![0]).toMatch(/picture_removed_at/)
+    expect(u![0]).not.toMatch(/\bphoto_(removed|hidden)_at/)
+  })
+
+  it('reversing a decision on a post photo undoes it on that photo', async () => {
+    install({ subjectKind: 'post_photo', subjectId: POST_ID, priorOutcome: 'removed' })
+    await reportReverse(ctx(), { decisionId: DECISION_ID, reasonCode: 'not_suitable' })
+    const [u] = sql(/update public\.page_posts/)
+    expect(u![0]).toMatch(/photo_hidden_at = null/)
+    expect(sql(/update public\.groups/)).toHaveLength(0)
   })
 })

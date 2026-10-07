@@ -90,6 +90,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
           name: isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? '' : shop.displayName,
           description: shop.publicDescription,
           photoUrl: shop.photoUrl,
+          pictureUrl: shop.pictureUrl,
           socialLinks: shop.socialLinks,
           tags: initialTags,
           contact,

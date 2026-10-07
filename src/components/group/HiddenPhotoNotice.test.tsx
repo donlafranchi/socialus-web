@@ -39,6 +39,26 @@ describe('HiddenPhotoNotice', () => {
     // The component takes no props at all, which is the strongest form of the
     // guarantee: there is no parameter through which a reporter's identity or
     // a report's text could ever reach this surface.
-    expect(HiddenPhotoNotice.length).toBe(0)
+    // F099: it now takes one prop, a closed set of three words naming which image.
+    // Anything else handed to it is not rendered.
+    expect(HiddenPhotoNotice.length).toBeLessThanOrEqual(1)
+    cleanup()
+    const extra: Record<string, unknown> = { which: 'post', reporter: 'Alice Reporter', body: 'secret words' }
+    render(<HiddenPhotoNotice {...(extra as { which: 'post' })} />)
+    const text = screen.getByTestId('hidden-photo-notice').textContent ?? ''
+    expect(text).not.toMatch(/Alice|secret/)
+  })
+})
+
+// F099 criterion 8 — the poster's notice names which image.
+describe('which image', () => {
+  // [guards F099.8]
+  it.each([
+    [undefined, /Your photo is hidden/],
+    ['picture', /Your Page picture is hidden/],
+    ['post', /The photo on your post is hidden/],
+  ] as const)('%s: names it', (which, text) => {
+    render(<HiddenPhotoNotice which={which} />)
+    expect(screen.getByTestId('hidden-photo-notice')).toHaveTextContent(text)
   })
 })

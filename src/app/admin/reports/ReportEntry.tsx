@@ -40,6 +40,9 @@ interface Props {
   }) => Promise<void>
 }
 
+/** F099 — which image a report is about. 'Photo' is the Page's own, as it always was. */
+const IMAGE_LABEL = { group: 'Photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo' } as const
+
 export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
   const [shown, setShown] = useState(false)
   const [picking, setPicking] = useState<Outcome | null>(null)
@@ -111,7 +114,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
 
       <p className="text-xs text-[var(--color-fg-muted)]">
         {report.removedAt
-          ? report.subjectKind === 'post' ? 'Removed' : 'Photo removed'
+          ? report.subjectKind === 'post' ? 'Removed' : `${IMAGE_LABEL[report.subjectKind]} removed`
           : hiddenFor
             ? `Hidden ${hiddenFor}`
             : 'Not hidden'}{' '}

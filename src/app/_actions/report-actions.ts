@@ -25,7 +25,8 @@ async function requireMemberId(): Promise<string> {
 }
 
 export async function sendReportAction(input: {
-  subjectKind?: 'group' | 'post'
+  /** The Page's photo when omitted; F099 — or one of the other images. */
+  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo'
   subjectId: string
   category: ReportCategory
   body: string

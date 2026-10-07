@@ -92,9 +92,11 @@ function hideCapFor(dismissed: Date[], now: Date): { cap: number; hidesAnything:
 const MAX_REPORTS_PER_SUBJECT = 2
 
 export const reportCreateInput = z.object({
-  // A Page photo ('group') or a Post ('post'). Items never join
-  // (model.md § There are no Items).
-  subjectKind: z.enum(['group', 'post']),
+  // What is reported: the Page's photo ('group', the original subject), a Post
+  // body ('post'), the Page picture, or one post's photo (F099 criterion 8: each
+  // image reportable on its own, and a report hides that one image only). Items
+  // never join (model.md § There are no Items).
+  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -144,57 +146,105 @@ const BAR_OF_LOCATION = `coalesce((select min(mp.hide_bar)
                             join public.metro_polygons mp on st_intersects(l.geography, mp.geography)
                            where l.id = %LOCATION%), 0)`
 
+/** What the subject's `update` is called for: one image on a Page or a post. */
+function imageSubject(
+  r: {
+    group_id: string
+    photo_url: string | null
+    photo_hidden_at: Date | null
+    photo_hide_locked_url: string | null
+    builder_on_real: boolean
+    reporter_is_builder: boolean
+    founder_member_id: string
+    name: string
+    hide_bar: string | number
+  },
+  hide: Subject['hide'],
+): Subject {
+  return {
+    groupId: r.group_id,
+    founderId: r.founder_member_id,
+    pageName: r.name,
+    hideBar: r.hide_bar,
+    builderOnReal: r.builder_on_real,
+    reporterIsBuilder: r.reporter_is_builder,
+    hideable: r.photo_url !== null,
+    alreadyHidden: r.photo_hidden_at !== null,
+    // Locked while the hide-locked url = the image's url; replacing the image
+    // un-locks it on its own.
+    locked: r.photo_hide_locked_url !== null && r.photo_hide_locked_url === r.photo_url,
+    hiddenEventKind: 'group.photo_hidden',
+    hide,
+  }
+}
+
+type ImageRow = Parameters<typeof imageSubject>[0]
+
 async function loadSubject(
   client: Queryable,
-  kind: 'group' | 'post',
+  kind: ReportCreateInput['subjectKind'],
   id: string,
   reporterId: string,
 ): Promise<Subject | null> {
-  if (kind === 'group') {
-    const res = await client.query<{
-      photo_url: string | null
-      photo_hidden_at: Date | null
-      photo_hide_locked_url: string | null
-      builder_on_real: boolean
-      reporter_is_builder: boolean
-      founder_member_id: string
-      name: string
-      hide_bar: string | number
-    }>(
-      // #280 — a builder's report on a real Page is stored and queued, and
-      // never hides anything a real member sees.
-      `select photo_url, photo_hidden_at, photo_hide_locked_url,
-              public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
-              public.is_builder($2) as reporter_is_builder,
-              founder_member_id, name,
-              ${BAR_OF_LOCATION.replace('%LOCATION%', 'groups.anchor_location_id')} as hide_bar
-         from public.groups
-        where id = $1`,
+  // One query per kind, each written out in full: the table and the columns
+  // differ, and a name built from input is how an injection gets in. #280 — a
+  // builder's report on a real Page is stored and queued, and never hides
+  // anything a real member sees.
+  if (kind === 'group' || kind === 'page_picture') {
+    const picture = kind === 'page_picture'
+    const res = await client.query<ImageRow>(
+      picture
+        ? `select id as group_id, picture_url as photo_url, picture_hidden_at as photo_hidden_at,
+                  picture_hide_locked_url as photo_hide_locked_url,
+                  public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+                  public.is_builder($2) as reporter_is_builder,
+                  founder_member_id, name,
+                  ${BAR_OF_LOCATION.replace('%LOCATION%', 'groups.anchor_location_id')} as hide_bar
+             from public.groups
+            where id = $1`
+        : `select id as group_id, photo_url, photo_hidden_at, photo_hide_locked_url,
+                  public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+                  public.is_builder($2) as reporter_is_builder,
+                  founder_member_id, name,
+                  ${BAR_OF_LOCATION.replace('%LOCATION%', 'groups.anchor_location_id')} as hide_bar
+             from public.groups
+            where id = $1`,
       [id, reporterId],
     )
     const g = res.rows[0]
     if (!g) return null
-    return {
-      groupId: id,
-      founderId: g.founder_member_id,
-      pageName: g.name,
-      hideBar: g.hide_bar,
-      builderOnReal: g.builder_on_real,
-      reporterIsBuilder: g.reporter_is_builder,
-      hideable: g.photo_url !== null,
-      alreadyHidden: g.photo_hidden_at !== null,
-      // Locked while photo_hide_locked_url = photo_url; replacing the photo
-      // un-locks it on its own.
-      locked: g.photo_hide_locked_url !== null && g.photo_hide_locked_url === g.photo_url,
-      hiddenEventKind: 'group.photo_hidden',
-      hide: async (c, now) => {
-        const r = await c.query<{ id: string }>(
-          `update public.groups set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`,
-          [id, now],
-        )
-        return r.rows.length > 0
-      },
-    }
+    return imageSubject(g, async (c, now) => {
+      const r = await c.query<{ id: string }>(
+        picture
+          ? `update public.groups set picture_hidden_at = $2 where id = $1 and picture_hidden_at is null returning id`
+          : `update public.groups set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`,
+        [id, now],
+      )
+      return r.rows.length > 0
+    })
+  }
+
+  if (kind === 'post_photo') {
+    const res = await client.query<ImageRow>(
+      `select g.id as group_id, pp.photo_url, pp.photo_hidden_at, pp.photo_hide_locked_url,
+              public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder,
+              g.founder_member_id, g.name,
+              ${BAR_OF_LOCATION.replace('%LOCATION%', 'coalesce(pp.location_id, g.anchor_location_id)')} as hide_bar
+         from public.page_posts pp
+         join public.groups g on g.id = pp.group_id
+        where pp.id = $1 and pp.dissolved_at is null`,
+      [id, reporterId],
+    )
+    const p = res.rows[0]
+    if (!p) return null
+    return imageSubject(p, async (c, now) => {
+      const r = await c.query<{ id: string }>(
+        `update public.page_posts set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`,
+        [id, now],
+      )
+      return r.rows.length > 0
+    })
   }
 
   const res = await client.query<{
@@ -281,7 +331,6 @@ export const reportCreate = defineHandler(
       if (!subject) {
         throw new NotFoundError(`report.create: ${input.subjectKind} ${input.subjectId} not found`)
       }
-
       // The two counts are read BEFORE the insert, so this report never counts
       // itself against its own limits.
       const priorRes = await client.query<{ count: string }>(
@@ -387,7 +436,7 @@ export const reportCreate = defineHandler(
       await appendEvent(txCtx, 'group_events', {
         group_id: subject.groupId,
         event_kind: subject.hiddenEventKind,
-        payload: { report_id: reportId, reason: 'reported' },
+        payload: { report_id: reportId, reason: 'reported', subject_kind: input.subjectKind },
       })
 
       // F078 criterion 3 — the poster is told, in-app, the reporter's chosen

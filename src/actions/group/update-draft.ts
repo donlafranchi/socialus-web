@@ -23,6 +23,7 @@ import { toSlug } from '../../lib/slugify'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { whereInput, applyWhere, type WhereClause } from './where'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
+import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import type { ActionContext } from '../_lib/context'
 import { applyTypeChange } from './change-kind'
@@ -43,6 +44,8 @@ export const groupUpdateDraftInput = z.object({
   // handler records where it landed. Keeping the bytes out of the action layer
   // is what lets the same handler serve the composer and any later surface.
   photoUrl: z.string().url().nullable().optional(),
+  // F099 — the Page picture, apart from photoUrl.
+  pictureUrl: z.string().url().max(2000).nullable().optional(),
   // F070 — the Page's links out, {platform: https-url}. Validated here and
   // again by the CHECK constraints on the column: this layer explains, the
   // database refuses. The value is rendered as href on a public Page, so an
@@ -86,6 +89,7 @@ type GroupSpineSetClause =
   | 'description = $'
   | 'anchor_location_id = $'
   | 'photo_url = $'
+  | 'picture_url = $'
   | 'social_links = $'
   | WhereClause
 type GroupBusinessSetClause =
@@ -192,6 +196,13 @@ export const groupUpdateDraft = defineHandler(
       if (input.photoUrl !== undefined) {
         spineFragments.push({ clause: 'photo_url = $', value: input.photoUrl })
         patched.push('photo_url')
+      }
+      if (input.pictureUrl !== undefined) {
+        if (input.pictureUrl !== null && !isOwnMediaUrl(input.pictureUrl, ctx.actingMemberId)) {
+          throw new ValidationError('group.update_draft: that picture didn’t come from your uploads')
+        }
+        spineFragments.push({ clause: 'picture_url = $', value: input.pictureUrl })
+        patched.push('picture_url')
       }
 
       // Social links. Normalised rather than trusted: unknown platforms are
