@@ -372,7 +372,7 @@ export async function viewerOwnsPage(
     .is('left_at', null)
     .limit(1)
     .maybeSingle()
-  return (data as { relationship?: 'member' | 'follower' } | null)?.relationship ?? null
+  return Boolean(data)
 }
 
 /**
