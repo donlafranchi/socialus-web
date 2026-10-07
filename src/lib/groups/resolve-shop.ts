@@ -56,6 +56,8 @@ export interface ResolvedShop {
   socialLinks: SocialLinks
   /** T160 — non-null means hidden pending operator review (T159). */
   photoHiddenAt: string | null
+  /** Non-null means the operator removed it; `visiblePhotoUrl()` reads it. */
+  photoRemovedAt: string | null
   /** F067 — a private Page is joined; anything else is followed. */
   discoverability: string
   founder: ShopFounder | null
@@ -125,6 +127,7 @@ interface ShopRow {
   photo_url: string | null
   social_links: unknown
   photo_hidden_at: string | null
+  photo_removed_at?: string | null
   discoverability: string
   group_businesses:
     | { display_name: string; public_description: string }[]
@@ -176,7 +179,7 @@ export async function resolveShop(
     .from('groups')
     .select(
       'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
-        'photo_url, social_links, photo_hidden_at, discoverability, ' +
+        'photo_url, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
         'group_businesses(display_name, public_description)',
     )
     .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
@@ -242,6 +245,7 @@ export async function resolveShop(
     // reach an href unchecked.
     socialLinks: normaliseSocialLinks(row.social_links).links,
     photoHiddenAt: row.photo_hidden_at,
+    photoRemovedAt: row.photo_removed_at ?? null,
     discoverability: row.discoverability,
     placements,
     founder: founderRow

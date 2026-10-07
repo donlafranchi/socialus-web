@@ -11,6 +11,7 @@ import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { loadPageView } from '@/lib/groups/load-page-view'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
+import { shareMetadata } from '@/lib/groups/share-metadata'
 
 interface Props {
   params: Promise<{ handle: string }>
@@ -21,10 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createClient()
   const shop = await resolvePageById(supabase, handle)
   if (!shop) return { title: 'Not found — SocialUs' }
-  return {
-    title: `${shop.displayName} — SocialUs`,
-    description: shop.publicDescription || `${shop.displayName} on SocialUs.`,
-  }
+  return shareMetadata(shop)
 }
 
 export default async function PageAtCanonicalAddress({ params }: Props) {
