@@ -157,10 +157,10 @@ async function projectReportRow(
 ) {
   await client.query(
     `update public.reports
-        set reviewed_at = $2,
+        set reviewed_at = $2::timestamptz,
             reviewed_by_member_id = $3,
-            outcome = $4,
-            removed_at = case when $4 = 'removed' then $2 else null end
+            outcome = $4::text,
+            removed_at = case when $4::text = 'removed' then $2::timestamptz else null end
       where id = $1`,
     [reportId, now, operator, outcome],
   )
