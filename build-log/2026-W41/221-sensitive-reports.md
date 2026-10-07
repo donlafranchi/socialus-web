@@ -9,3 +9,5 @@ Don, 2026-10-01: we can't enforce the sensitive-content rule, so we rely on repo
 - **Posting ask:** unchanged. `COPY.postingSafety` already covers children, pets and anyone who can't speak up for themselves.
 
 Tests: handler, SMS sender, report sheet, server action and queue entry, each seen failing first. **Migration: `20261007170000_report_category.sql`.** Re-dated 2026-10-07 to sort after production and every pending branch.
+
+**Photo confirmation (#221, F080 criterion 5):** choosing a Page photo waits until the uploader ticks "This photo has no children in it." The tick clears after every upload, so each photo asks. It is the uploader's word, not a check; nothing is pre-screened. The copy is a placeholder in `COPY.photoConfirm`.
