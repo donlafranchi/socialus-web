@@ -48,6 +48,14 @@ export default defineConfig({
       timeout: 240_000,
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      // #428 — the review bundle for the screens a diff changes (screenshots, text, axe).
+      name: 'capture',
+      testMatch: /screens\/capture\.spec\.ts/,
+      dependencies: ['setup'],
+      timeout: 240_000,
+      use: { ...devices['Desktop Chrome'] },
+    },
     { name: 'guard', testMatch: /_guard\/must-fail\.spec\.ts/, retries: 0 },
     {
       // #346 — builder journeys, one kind at a time, at phone width (the storyboard).
