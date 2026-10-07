@@ -78,3 +78,11 @@ export {
   type MemberDefaultMetroSetInput,
   type MemberDefaultMetroSetResult,
 } from './default-metro-set'
+
+// #222 (F081) — signup profile
+export {
+  memberSignupProfileSet,
+  memberSignupProfileSetInput,
+  type MemberSignupProfileSetInput,
+  type MemberSignupProfileSetResult,
+} from './signup-profile-set'
