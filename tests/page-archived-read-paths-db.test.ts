@@ -182,7 +182,7 @@ describe.skipIf(!RUNNABLE)("#439 — an archived Page's items and address answer
     const fn = (
       await client.query(
         `select t.tgfoid::regprocedure::text as fn from pg_trigger t
-          where t.tgrelid = 'public.groups'::regclass and t.tgname = 'trg_refresh_discoverable_items_on_page'`,
+          where t.tgrelid = 'public.groups'::regclass and t.tgname = 'trg_refresh_discoverable_items_on_page_state'`,
       )
     ).rows[0]?.fn
     expect(fn).toBeTruthy()
