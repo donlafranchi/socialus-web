@@ -135,7 +135,8 @@ async function memberIdLeaks(viewer: Viewer): Promise<string[]> {
   const self = sub(viewer)
   const leaks: string[] = []
   for (const { t, c } of rows) {
-    if (self && MEMBER_ID_READS[`${parentTable(t)}.${c}`]) continue
+    // A stranger is party to nothing, so no ruling lets them read anyone.
+    if (self && viewer !== 'stranger' && MEMBER_ID_READS[`${parentTable(t)}.${c}`]) continue
     const n = await readAs(viewer, `select count(*)::int n from public."${t}" where "${c}" is not null and "${c}" is distinct from ${self ? `'${self}'::uuid` : 'null'}`)
     if (n > 0) leaks.push(`${t}.${c} (${n})`)
   }
@@ -156,9 +157,13 @@ describe.skipIf(!safety.safe)("no viewer reads another member's id without a rul
       await client.query(`insert into public.vis_bad_member_ids values ('${PERSONAS.find((p) => p.key === 'member')!.id}')`)
       await client.query('alter table public.vis_bad_member_ids enable row level security')
       await client.query('create policy open_to_all on public.vis_bad_member_ids for select using (true)')
+      await client.query('alter table public.vis_bad_member_ids add column founder uuid')
+      await client.query(`update public.vis_bad_member_ids set founder = member_id`)
       await client.query('grant select on public.vis_bad_member_ids to anon, authenticated')
       expect(await memberIdLeaks('signedOut')).toContain('vis_bad_member_ids.member_id (1)')
       expect(await memberIdLeaks('stranger')).toContain('vis_bad_member_ids.member_id (1)')
+      // found by its name alone, with no foreign key
+      expect(await memberIdLeaks('stranger')).toContain('vis_bad_member_ids.founder (1)')
     } finally {
       await client.query('rollback to savepoint sweep_guard')
     }
