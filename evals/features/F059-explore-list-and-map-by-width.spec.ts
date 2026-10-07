@@ -5,7 +5,8 @@ import { test, expect } from '@playwright/test'
 
 // [guards F059.5 partial: the 1024–1439px owner-panel switch, which nothing opens yet]
 test.describe('F059 — list and map by width', () => {
-  test('under 1024px the dock stays on screen, above the nav, while the cards scroll', async ({ page }) => {
+  // #334 (ruling 2026-10-01): signed out is list only at every width; the Map control opens sign-up.
+  test('under 1024px the dock stays on screen, above the nav, and its Map opens sign-up', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/explore')
     const dock = page.getByTestId('explore-dock-toggle')
@@ -20,32 +21,18 @@ test.describe('F059 — list and map by width', () => {
 
     await dock.click()
     await page.getByTestId('view-pill').click()
-    await expect(page.getByTestId('browse-map')).toBeVisible()
-    await dock.click()
-    await expect(page.getByTestId('view-pill')).toHaveText('List')
+    await expect(page.getByTestId('sign-in-prompt')).toBeVisible()
+    await expect(page.getByTestId('browse-map')).toHaveCount(0)
   })
 
-  test('from 1024px list and map sit side by side and the map stays put', async ({ page }) => {
+  test('from 1024px a signed-out visitor still gets the list only, with Map opening sign-up', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/explore')
-    await expect(page.getByTestId('view-pill')).toHaveCount(0)
     await expect(page.getByTestId('card-grid')).toBeVisible()
-    const map = page.getByTestId('browse-map-pane')
-    await expect(map).toBeVisible()
-    // To the last card, not the page end: past it the footer (#296) rightly
-    // carries the split row, map and all, up with it.
-    await page.evaluate(() => {
-      const grid = document.querySelector('[data-testid="card-grid"]')!
-      window.scrollTo(0, grid.getBoundingClientRect().bottom + window.scrollY - window.innerHeight)
-    })
-    await page.waitForTimeout(300)
-    const box = await map.boundingBox()
-    expect(box!.y).toBeGreaterThanOrEqual(0)
-    expect(box!.y).toBeLessThan(800)
-
-    await page.getByRole('button', { name: 'Hide map' }).click()
-    await expect(map).toHaveCount(0)
-    await page.getByRole('button', { name: 'Show map' }).click()
-    await expect(page.getByTestId('browse-map-pane')).toBeVisible()
+    await expect(page.getByTestId('browse-map-pane')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Hide map' })).toHaveCount(0)
+    await page.getByTestId('explore-dock-toggle').click()
+    await page.getByTestId('view-pill').click()
+    await expect(page.getByTestId('sign-in-prompt-continue')).toHaveAttribute('href', /\/auth\/signup/)
   })
 })

@@ -151,7 +151,7 @@ describe.skipIf(!RUNNABLE)("a Page's front door, signed out", () => {
     const { rows } = await client.query<{ column_name: string }>(
       `select column_name from information_schema.columns
         where table_schema = 'public' and table_name = 'groups'
-          and column_name not in ('founder_member_id', 'anchor_location_id', 'contact_phone', 'opening_hours', 'where_mode', 'how_to_find', 'usually_around')`,
+          and column_name not in ('founder_member_id', 'anchor_location_id', 'contact_phone', 'opening_hours', 'where_mode', 'how_to_find', 'usually_around', 'photo_purged_at')`,
     )
     const cols = rows.map((r) => `"${r.column_name}"`).join(', ')
     expect(await as(null, `select ${cols} from public.groups where id = $1`, [PAGE])).toHaveLength(1)
