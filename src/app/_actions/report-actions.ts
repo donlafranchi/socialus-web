@@ -25,6 +25,7 @@ async function requireMemberId(): Promise<string> {
 }
 
 export async function sendReportAction(input: {
+  subjectKind?: 'group' | 'post'
   subjectId: string
   category: ReportCategory
   body: string
@@ -33,7 +34,7 @@ export async function sendReportAction(input: {
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
     await reportCreate(ctx, {
-      subjectKind: 'group',
+      subjectKind: input.subjectKind ?? 'group',
       category: input.category,
       subjectId: input.subjectId,
       body: input.body,
@@ -43,4 +44,13 @@ export async function sendReportAction(input: {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err
   }
+}
+
+/** F078 criterion 1 — the same report, about a Post. */
+export async function sendPostReportAction(input: {
+  subjectId: string
+  category: ReportCategory
+  body: string
+}): Promise<{ ok: true }> {
+  return sendReportAction({ ...input, subjectKind: 'post' })
 }

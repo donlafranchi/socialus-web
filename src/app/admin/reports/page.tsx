@@ -10,6 +10,7 @@
 // Reads go server-side over DATABASE_URL. `reports` has no client SELECT policy
 // and must not gain one.
 
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { isBuilderOperator, isOperator } from '@/actions/_lib/operator'
@@ -34,6 +35,11 @@ export default async function AdminReportsPage() {
     // F101 / #304 — phone-first (#12): one column, full-bleed at 375, capped at
     // the read width on a laptop.
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="admin-reports">
+      <p className="mb-3 text-body-sm">
+        <Link href="/admin/reports/purge" className="underline" data-testid="purge-link">
+          Removed photos
+        </Link>
+      </p>
       <ReviewQueue subjects={groupBySubject(queue)} onDecide={decideReportAction} onReverse={reverseDecisionAction} />
     </main>
   )

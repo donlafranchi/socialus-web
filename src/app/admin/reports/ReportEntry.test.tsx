@@ -205,3 +205,20 @@ describe('F078 — the operator sees the reason the reporter chose', () => {
     expect(screen.queryByTestId('report-category')).toBeNull()
   })
 })
+
+describe('F078 — a reported Post', () => {
+  const post = { subjectKind: 'post' as const, postId: 'p1', photoUrl: null, contentText: 'Buy my watches now.' }
+
+  it('shows the words that were reported, not a photo or a "no photo" line', () => {
+    renderEntry(post)
+    expect(screen.getByTestId('reported-post')).toHaveTextContent('Buy my watches now.')
+    expect(screen.queryByText(/has no photo/i)).toBeNull()
+    expect(screen.queryByTestId('show-photo')).toBeNull()
+  })
+
+  it('says removed, not photo removed', () => {
+    renderEntry({ ...post, removedAt: new Date('2026-09-16T09:00:00Z') })
+    expect(screen.getByText(/^Removed/)).toBeInTheDocument()
+    expect(screen.queryByText(/Photo removed/)).toBeNull()
+  })
+})
