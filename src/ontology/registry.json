@@ -326,6 +326,7 @@
     "member.place_interest.remove",
     "member.saved_search.remove",
     "member.saved_search.restore",
+    "member.signup_profile.set",
     "member.unfollow",
     "metro.waitlist_join",
     "metro.waitlist_join_anonymous",
