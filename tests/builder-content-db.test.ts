@@ -72,7 +72,7 @@ describe.skipIf(!RUNNABLE)('#388 delete all builder content', () => {
         `insert into public.group_memberships (group_id, member_id, role, source, relationship) values
            ($1,$2,'member','soft_via_follow','follower'),
            ($3,$4,'member','soft_via_follow','follower'),
-           ($3,$5,'member','soft_via_follow','follower')`,
+           ($5,$4,'member','soft_via_follow','follower')`,
         [M_PAGE, BUILDER, M_PAGE, MEMBER2, B_PAGE],
       )
 
