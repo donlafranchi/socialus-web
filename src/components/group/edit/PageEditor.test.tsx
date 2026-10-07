@@ -139,7 +139,7 @@ describe('hours hidden for now (Don, 2026-10-05)', () => {
   it('the phone sheet has the phone, not hours, and leaves stored hours alone', async () => {
     render(<Page sections={['contact']} init={{ ...initial, contact: { phone: '+19165550142', hours: { mon: [{ open: '09:00', close: '17:00' }] } } }} />)
     fireEvent.click(screen.getByRole('button', { name: 'open contact' }))
-    expect(screen.getByRole('dialog', { name: 'Business phone' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Contact' })).toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: /monday/i })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(onSave).toHaveBeenCalled())

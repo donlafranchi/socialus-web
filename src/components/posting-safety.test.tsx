@@ -69,7 +69,7 @@ describe('F080 — the safety message where a member posts', () => {
   })
 
   it('shows the short line at posting, never the full one', () => {
-    render(<PagePosts {...postProps} canPost />)
+    render(<PagePosts {...postProps} canPost startComposing />)
     expect(screen.queryByText(COPY.postingSafetyFull)).toBeNull()
   })
 
@@ -82,7 +82,7 @@ describe('F080 — the safety message where a member posts', () => {
         createLocation={asyncNoop} availableLocations={[]} redirect={noop} showToast={noop} onAbandon={noop} />
     )],
     ['saving a live Page, its words and photo (Basics, #452)', editCards, 'Edit Basics'],
-    ['announcing', () => <PagePosts {...postProps} canPost />],
+    ['announcing', () => <PagePosts {...postProps} canPost startComposing />],
     ['publishing a product', () => (
       <ProductComposer createProduct={asyncNoop} createLocation={asyncNoop} availableLocations={[]}
         redirect={noop} showToast={noop} onAbandon={noop} />

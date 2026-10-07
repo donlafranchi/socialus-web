@@ -45,15 +45,16 @@ export function AudienceSwitch({
   const on = value === 'anyone'
   return (
     <div data-testid={`${idPrefix}-audience`}>
-      <span className="text-sm font-medium text-[var(--color-fg)]">Who sees this</span>
+      <span id={`${idPrefix}-audience-title`} className="text-sm font-medium text-[var(--color-fg)]">Who sees this</span>
       <div className="mt-1 flex items-center gap-3">
         <button
           type="button"
           role="switch"
           aria-checked={on}
+          aria-labelledby={`${idPrefix}-audience-title`}
           data-testid={`${idPrefix}-audience-switch`}
           onClick={() => onChange(on ? 'followers' : 'anyone')}
-          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors before:absolute before:-inset-2.5 before:content-[''] ${
             on ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-control-border)]'
           }`}
         >

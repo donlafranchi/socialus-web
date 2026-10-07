@@ -7,8 +7,9 @@ import { COPY } from '@/lib/copy'
 /** Criterion 5: a count named as a period. No nought — "0 this week" beside a
  *  card that exists to say the Page is posting contradicts itself. */
 export function withheldCountLabel(count: number): string {
-  if (count <= 0) return 'Posted an announcement'
-  return `${count} announcement${count === 1 ? '' : 's'} ${METRO_WEEK_LABEL}`
+  // The noun is Post (ruled 2026-10-05).
+  if (count <= 0) return 'A new post'
+  return `${count} post${count === 1 ? '' : 's'} ${METRO_WEEK_LABEL}`
 }
 
 export const WITHHELD_DETAILS = 'The details are for members and followers of this Page.'

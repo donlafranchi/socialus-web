@@ -116,7 +116,7 @@ export function EditCards({
         <section data-testid="edit-card-values" aria-label="Values & badges" className="card border border-[var(--color-border)] p-4">
           <header className="flex items-center justify-between gap-3">
             <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">Values &amp; badges</h3>
-            <span className="chip whitespace-nowrap text-xs">Coming soon</span>
+            <span className="whitespace-nowrap text-caption font-medium text-[var(--color-fg-muted)]">Coming soon</span>
           </header>
           <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">Soon you&rsquo;ll be able to show what you&rsquo;re about and what you stand for.</p>
         </section>

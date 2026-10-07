@@ -32,13 +32,11 @@ import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
-import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
-import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
-import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
+import { componentOn } from '@/lib/groups/page-components'
 import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
 import { COPY } from '@/lib/copy'
@@ -54,6 +52,7 @@ interface Props {
     claim: typeof requestUnclaimedClaimAction
     remove: typeof requestUnclaimedRemovalAction
   }
+  /** Badges are cut from beta, Locally owned included (ruled 2026-10-06): accepted, not shown. */
   badge: LocalOwnerBadge | null
   items: ShopItem[]
   loggedIn: boolean
@@ -97,10 +96,8 @@ const DRAFT_HEADING: Record<Purpose, string> = { sell: 'business', offer: 'class
 
 export function ShopPublicPage({
   shop,
-  badge,
   items,
   loggedIn,
-  ownerClaim = null,
   viewerOwnsPage = false,
   pagePath,
   viewerFollows = false,
@@ -209,11 +206,6 @@ export function ShopPublicPage({
                   ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
                   : shop.displayName}
               </h1>
-              {badge && isBusinessKind(shop.kind) && (
-                <span data-testid="local-owner-badge" className="chip chip-selected whitespace-nowrap text-xs">
-                  {badge.label}
-                </span>
-              )}
               {/* #353 — a neutral tag after the name (Yelp's placement). */}
               {shop.unclaimed && (
                 <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
@@ -298,7 +290,7 @@ export function ShopPublicPage({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={shop.founder.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
                 )}
-                <span className="text-body-sm text-[var(--color-fg-muted)]">{shop.founder.displayName}</span>
+                <span className="text-body-sm text-[var(--color-fg-muted)]">Started by {shop.founder.displayName}</span>
               </span>
             </div>
           )}
@@ -388,11 +380,6 @@ export function ShopPublicPage({
             </ul>
           )}
         </PageSection>
-      )}
-
-      {/* F037 — owner-only Locally Owned claim management; non-owners and anon never see it. */}
-      {ownerClaim && isBusinessKind(shop.kind) && (
-        <LocallyOwnedClaim groupId={shop.groupId} claim={ownerClaim} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
       )}
 
       {shop.unclaimed && (

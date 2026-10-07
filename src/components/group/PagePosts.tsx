@@ -88,6 +88,8 @@ interface Props {
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
   >
   onCreateLocation?: CreateLocation
+  /** The form opens from the owner's Announce (#announce); tests start with it open. */
+  startComposing?: boolean
   /** #318 — soft delete, after a confirm. */
   onDelete?: (input: { postId: string }) => Promise<
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
@@ -139,6 +141,7 @@ export function PagePosts({
   onEdit,
   onCreateLocation = createLocationAction,
   onDelete,
+  startComposing = false,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -166,6 +169,18 @@ export function PagePosts({
     return () => cancelAnimationFrame(frame)
   }, [posts])
   const highlighted = useAnnouncementAnchor(showAll)
+  // #472 first pass — the form is rarely used, so it waits for Announce
+  // (Google Business Profile's "Add update" opens on request).
+  const [composing, setComposing] = useState(startComposing)
+  useEffect(() => {
+    if (!canPost) return
+    const open = () => {
+      if (window.location.hash === `#${ANNOUNCE_ANCHOR}`) requestAnimationFrame(() => setComposing(true))
+    }
+    open()
+    window.addEventListener('hashchange', open)
+    return () => window.removeEventListener('hashchange', open)
+  }, [canPost])
 
   // A visitor looking at a Page with nothing on it sees no empty section. The
   // owner does, because the owner is the one who can fill it.
@@ -339,12 +354,12 @@ export function PagePosts({
               // one" without restyling the announcement into something that
               // looks like a different kind of thing.
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
+              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
             >
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   <label htmlFor={`edit-${post.id}`} className="sr-only">
-                    Edit your announcement
+                    Edit your post
                   </label>
                   <textarea
                     id={`edit-${post.id}`}
@@ -490,7 +505,7 @@ export function PagePosts({
     <section id={ANNOUNCE_ANCHOR} aria-labelledby="page-posts-title" className="card scroll-mt-20 border border-[var(--color-border)] p-4" data-testid="page-posts" data-section="posts">
       <h2 id="page-posts-title" className="text-title-3 text-[var(--color-fg)]">Posts</h2>
 
-      {canPost && (
+      {canPost && composing && (
         <div className="mt-3 flex flex-col gap-3">
           <label htmlFor="page-post-body" className="sr-only">
             What do you want people to know?
@@ -550,7 +565,8 @@ export function PagePosts({
         </ul>
       ) : (
         // A row that scrolls inside its own section, never the page.
-        <ul data-testid="page-posts-latest" className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling region must take focus to scroll by keyboard (WCAG 2.1.1)
+        <ul data-testid="page-posts-latest" tabIndex={0} aria-label="Latest posts" className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
           {sorted.slice(0, LATEST).map((post) => renderPost(post, true))}
         </ul>
       )}

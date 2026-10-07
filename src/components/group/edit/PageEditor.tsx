@@ -41,7 +41,7 @@ export const SECTION_TITLE: Record<Section, string> = {
   description: 'Description',
   photo: 'Photo',
   where: 'Location',
-  contact: SHOW_OPENING_HOURS ? 'Hours and phone' : 'Business phone',
+  contact: 'Contact',
   tags: 'Tags',
   links: 'Links',
   components: 'What your Page shows',
