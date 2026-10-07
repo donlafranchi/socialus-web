@@ -42,15 +42,30 @@ describe('#296 — the empty and error state', () => {
 })
 
 describe('#296 — About, Terms and Privacy', () => {
-  it('each has a page, and Terms and Privacy are placeholders until Don\'s drafts land', () => {
+  it('each has a page, and Terms and Privacy are drafts live for the beta (#489)', () => {
     expect(Object.keys(TEXT_PAGES).sort()).toEqual(['about', 'privacy', 'terms'])
-    expect(TEXT_PAGES.terms.status).toBe('placeholder')
-    expect(TEXT_PAGES.privacy.status).toBe('placeholder')
+    expect(TEXT_PAGES.terms.status).toBe('draft')
+    expect(TEXT_PAGES.privacy.status).toBe('draft')
   })
 
   it('a placeholder says plainly it is not in effect', () => {
-    render(<TextPage page={TEXT_PAGES.terms} />)
+    render(<TextPage page={{ slug: 'terms', title: 'Terms', status: 'placeholder', body: [] }} />)
     expect(screen.getByRole('heading', { level: 1, name: 'Terms' })).toBeInTheDocument()
     expect(screen.getByTestId('text-page-placeholder')).toHaveTextContent(/not yet in effect/i)
+  })
+})
+
+describe('#489 — a draft legal page says it is a draft, and never prints the counsel list', () => {
+  it('shows the draft note on Terms and Privacy', () => {
+    render(<TextPage page={TEXT_PAGES.terms} />)
+    expect(screen.getByTestId('text-page-draft')).toBeInTheDocument()
+  })
+  it('does not render what counsel must supply', () => {
+    render(<TextPage page={TEXT_PAGES.privacy} />)
+    for (const item of TEXT_PAGES.privacy.counsel ?? []) expect(screen.queryByText(item)).toBeNull()
+  })
+  it('About carries no draft note', () => {
+    render(<TextPage page={TEXT_PAGES.about} />)
+    expect(screen.queryByTestId('text-page-draft')).toBeNull()
   })
 })

@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { safeNext } from '@/lib/safe-next'
 import { rememberedEmail, rememberEmail } from '@/lib/auth/remembered-email'
+import Link from 'next/link'
 import { offerToSaveLogin } from '@/lib/auth/save-login'
 
 type Phase = 'email' | 'new' | 'returning' | 'magic-sent' | 'confirm-email'
@@ -196,6 +197,12 @@ export function EmailFirstSignup({
 
   return (
     <div className="w-full space-y-4" data-testid="email-first-signup">
+      {/* #489 — the footer is hidden on phones and on this screen; the three pages are one tap away. */}
+      <nav aria-label="About SocialUs" className="flex justify-center gap-4 text-xs text-neutral-500">
+        <Link href="/about" className="underline">About</Link>
+        <Link href="/terms" className="underline">Terms</Link>
+        <Link href="/privacy" className="underline">Privacy</Link>
+      </nav>
       {phase === 'email' && (
         <>
           <button
