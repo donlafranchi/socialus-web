@@ -236,6 +236,7 @@ describe('group.post_edit — in place, by the managing role only', () => {
     install()
     const r = await groupPostEdit(ctx(), { postId: POST, body: 'Sourdough is back Friday.' })
     expect(r.postId).toBe(POST)
+    expect(r.reposted).toBe(false)
     const [sql] = calls(/update public\.page_posts/i)[0]!
     expect(sql).toMatch(/^\s*update public\.page_posts/i)
     expect(sql).not.toMatch(/insert/i)

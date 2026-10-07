@@ -88,6 +88,8 @@ export interface GroupPostCreateResult {
 export interface GroupPostEditResult {
   postId: string
   groupId: string
+  /** F102: the edit showed a hidden post again (fix and repost). */
+  reposted: boolean
 }
 
 /** Closed set. The SET clause is built from these literals, never from input —
@@ -282,7 +284,7 @@ export const groupPostEdit = defineHandler(
         payload: { post_id: input.postId, ...(reposted ? { reposted: true } : {}) },
       })
 
-      return { postId: input.postId, groupId: post.group_id }
+      return { postId: input.postId, groupId: post.group_id, reposted }
     })
   },
 )
