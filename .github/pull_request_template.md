@@ -91,6 +91,8 @@ Personas and widths: <e.g. owner, signed out · 390, 1280>
 - [ ] Copy follows the voice rules (socialus-plan product/foundation/voice-and-tone.md)
 - [ ] Nielsen pass: status visible, undo or a way back, consistent, errors prevented
 - [ ] Images optimised (no new raw img warnings, sizes set)
+- [ ] Tidy and contained: related information sits in its own card or section with a clear header; one edit or action affordance per card, in the header; consistent spacing; long or rarely used content collapsed; nothing floats loose
+- [ ] Tidiness verdict at 390 and 1280: "Is the information on this screen neat, tidy and organized? What is the one thing that looks most cluttered?" (one line; fix rule-level clutter first)
 
 Fixed: <one line each>
 Judgement calls for Don: <one line each, or none>

@@ -1,5 +1,5 @@
 {
-  "body": "Reviewed by: r\n- [x] WCAG 2.1 AA: contrast, focus, labels, 44px targets\n- [x] Every state present\n- [x] One primary action\n- [x] Thumb reach\n- [x] No horizontal scroll at 390\n- [x] Copy follows voice rules\n- [x] Nielsen pass\n- [ ] Images optimised: n/a, no images",
+  "body": "Reviewed by: r\n- [x] WCAG 2.1 AA: contrast, focus, labels, 44px targets\n- [x] Every state present\n- [x] One primary action\n- [x] Thumb reach\n- [x] No horizontal scroll at 390\n- [x] Copy follows voice rules\n- [x] Nielsen pass\n- [ ] Images optimised: n/a, no images\n- [x] Tidy and contained: related information in cards with a header, one edit affordance per card, long content collapsed\n- [x] Tidiness verdict at 390 and 1280: neat, tidy and organized? the most cluttered thing: none",
   "files": [
     "src/components/ui/Button.tsx"
   ],

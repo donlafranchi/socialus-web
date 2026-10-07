@@ -8,7 +8,7 @@ const path = require('path')
 
 const UI = /^src\/(app|components)\//
 const TEST = /\.test\.tsx?$/
-const CHECKLIST = ['WCAG', 'state', 'primary action', 'thumb', 'horizontal scroll', 'voice', 'Nielsen', 'image']
+const CHECKLIST = ['WCAG', 'state', 'primary action', 'thumb', 'horizontal scroll', 'voice', 'Nielsen', 'image', 'tidy and contained', 'tidiness verdict']
 
 /** null when fine, else the problem. `files` are the PR's changed paths; `labels` its label names. */
 function checkReview({ body, files, labels }) {
