@@ -27,64 +27,17 @@ export const PUBLIC_ID_LENGTH = 6
 
 const ID_CHARS = new Set(PUBLIC_ID_ALPHABET)
 
-/** Crockford's decoding rules: the look-alikes fold onto the character they
- *  look like, rather than being rejected. Someone reading an address off a
- *  poster types what they see and still arrives. */
-function foldCrockford(raw: string): string {
-  return raw
-    .toLowerCase()
-    .replace(/[il]/g, '1')
-    .replace(/o/g, '0')
+/** The only Page address: /g/<id> (#411; the PM, 2026-10-06). One segment,
+ *  no geography, no name, so a rename cannot move it. Older forms are not
+ *  forwarded while there are no members to protect; they are not found. */
+export function canonicalPagePath(publicId: string): string {
+  return `/g/${publicId}`
 }
 
-/** The canonical handle for a Page: slug, a hyphen, the ID. */
-export function pageHandle(slug: string, publicId: string): string {
-  return `${slug}-${publicId}`
-}
-
-/** The canonical path. One segment, no geography — a place path is an index
- *  that forwards here, never a second home for this Page. */
-export function canonicalPagePath(slug: string, publicId: string): string {
-  return `/g/${pageHandle(slug, publicId)}`
-}
-
-export interface ParsedPageHandle {
-  /** The ID, folded and lower-cased — what to look the Page up by. */
-  publicId: string
-  /** Everything before it. Display only; never used to resolve. */
-  slug: string
-}
-
-/**
- * Split a handle into the part that resolves and the part that does not.
- *
- * Returns null when there is no trailing ID, which is what tells a route this
- * is not an address it can serve. A bare slug is deliberately NOT accepted:
- * serving one would make the slug identity again, which is the whole thing the
- * scheme removes.
- */
-export function parsePageHandle(handle: string): ParsedPageHandle | null {
-  const trimmed = handle.trim()
-  if (!trimmed) return null
-  const cut = trimmed.lastIndexOf('-')
-  // `-abc123` has an empty slug; a Page whose whole address is an ID is not a
-  // shape this produces, and accepting it would serve a second address.
-  if (cut <= 0) return null
-
-  const tail = foldCrockford(trimmed.slice(cut + 1))
-  if (tail.length !== PUBLIC_ID_LENGTH) return null
-  for (const ch of tail) if (!ID_CHARS.has(ch)) return null
-
-  return { publicId: tail, slug: trimmed.slice(0, cut).toLowerCase() }
-}
-
-/**
- * Whether the handle a reader arrived on is already the canonical one.
- *
- * False means redirect — permanently, and to the canonical form, never serving
- * a second copy of the Page at the address they used. That rule is what keeps
- * an index path (and a stale slug) a pointer rather than an alternative home.
- */
-export function isCanonicalHandle(handle: string, slug: string, publicId: string): boolean {
-  return handle === pageHandle(slug, publicId)
+/** Whether a route segment is a Page id exactly as minted: lower case, the
+ *  right length, every character from the alphabet. Anything else is no Page. */
+export function isPageId(segment: string): boolean {
+  if (segment.length !== PUBLIC_ID_LENGTH) return false
+  for (const ch of segment) if (!ID_CHARS.has(ch)) return false
+  return true
 }

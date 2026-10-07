@@ -17,7 +17,7 @@ function AddOrChange({ editPath, section, children }: { editPath: string; sectio
   const cls = 'press min-h-tap text-body-sm font-medium text-[var(--color-charcoal-900)] underline'
   if (!ctx) return <Link href={editPath} className={cls}>{children}</Link>
   return (
-    <button type="button" className={cls} onClick={() => (ctx.setEditing(true), ctx.open(section))}>
+    <button type="button" className={cls} onClick={() => ctx.open(section)}>
       {children}
     </button>
   )

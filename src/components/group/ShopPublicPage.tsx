@@ -10,7 +10,7 @@ import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
 import { OwnerPanel } from './OwnerPanel'
-import { PageEditorProvider, SectionEditButton } from './edit/PageEditor'
+import { PageEditorProvider } from './edit/PageEditor'
 import { whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
@@ -33,6 +33,7 @@ import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/ap
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
@@ -118,6 +119,7 @@ export function ShopPublicPage({
   const photoUrl = visiblePhotoUrl({
     photo_url: shop.photoUrl,
     photo_hidden_at: shop.photoHiddenAt,
+    photo_removed_at: shop.photoRemovedAt,
   })
   // Only the owner is told. Everyone else sees what a photoless Page shows —
   // today nothing, and T146's default art once that lands. Neither reveals
@@ -175,7 +177,6 @@ export function ShopPublicPage({
           )}
         </p>
       )}
-      <SectionEditButton section="photo" className="-mt-2 mb-2" />
 
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
@@ -184,7 +185,6 @@ export function ShopPublicPage({
               ? `Your new ${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)] ? `${DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]} ` : ''}Page`
               : shop.displayName}
           </h1>
-          <SectionEditButton section="about" />
           {badge && isBusinessKind(shop.kind) && (
             <span
               data-testid="local-owner-badge"
@@ -203,9 +203,11 @@ export function ShopPublicPage({
           {/* T160 — every viewer but the owner gets this, signed in or not. A
               signed-out member is sent to sign-in, never to a dead end. */}
 
-        {/* #267 — not on your own Page. */}
-          {!viewerOwnsPage && (
-            <div className="ml-auto">
+          <div className="ml-auto flex items-center">
+            {/* #409 — anyone can share a published Page, signed in or out. */}
+            {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
+            {/* #267 — not on your own Page. */}
+            {!viewerOwnsPage && (
               <ReportControl
                 subjectId={shop.groupId}
                 subjectLabel={shop.displayName}
@@ -213,15 +215,14 @@ export function ShopPublicPage({
                 returnTo={pagePath}
                 onSend={sendReportAction}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div className="-mt-2 flex items-center gap-2">
           <p data-testid="page-kind" className="flex items-center gap-1.5 text-body-sm text-[var(--color-fg-muted)]">
             {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
             {kindLine(shop.kind, shop.purpose, shop.category)}
           </p>
-          <SectionEditButton section="kind" />
         </div>
 
         {/* Owner only, and absent from the markup for everyone else — this
@@ -279,17 +280,11 @@ export function ShopPublicPage({
             {whereLine(where)}
           </p>
         )}
-        <SectionEditButton section="where" className="self-start" />
 
         {/* Page kinds (dispatch, 2026-10-05): each kind leads with its own
             thing. A business: how to reach it, then Follow. A group: Join and
             its next meetup. An organization: its upcoming events. */}
-        {layout.lead === 'contact' && (
-          <>
-            {loggedIn && contact && <PageContactBlock contact={contact} />}
-            {contactOn && <SectionEditButton section="contact" className="self-start" />}
-          </>
-        )}
+        {layout.lead === 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
         {/* #267 — not on your own Page: your row there is your authority, not
             a follow, and "Following" would have offered to end it. */}
         {!viewerOwnsPage && (
@@ -326,17 +321,11 @@ export function ShopPublicPage({
         )}
 
 
-        {layout.lead !== 'contact' && (
-          <>
-            {loggedIn && contact && <PageContactBlock contact={contact} />}
-            {contactOn && <SectionEditButton section="contact" className="self-start" />}
-          </>
-        )}
+        {layout.lead !== 'contact' && loggedIn && contact && <PageContactBlock contact={contact} />}
 
         {/* #316 — the Page's tags as #hashtags, signed in only (F093). Tags are
             moderated after they appear (#287). */}
         {loggedIn && tags.length > 0 && <TagChips tags={tags} />}
-        <SectionEditButton section="tags" className="self-start" />
 
         {/* F070 — the Page's links out. `socialLinksForDisplay` re-checks every
             URL on read: this renders straight into href, and a row written
@@ -360,8 +349,6 @@ export function ShopPublicPage({
             ))}
           </ul>
         )}
-        <SectionEditButton section="links" className="self-start" />
-        <SectionEditButton section="components" className="self-start" />
 
       </header>
 
@@ -440,7 +427,9 @@ export function ShopPublicPage({
       ) : null}
     </main>
   )
-  if (!viewerOwnsPage || !pagePath) return page
+  // #412 — the owner edits on the Edit Page; only a draft's checklist opens
+  // a section's sheet here, in place.
+  if (!viewerOwnsPage || !pagePath || !isDraftPreview) return page
   return (
     <PageEditorProvider
       onSave={editPageAction}
@@ -448,7 +437,7 @@ export function ShopPublicPage({
         groupId: shop.groupId,
         pagePath,
         memberId: viewerMemberId ?? '',
-        name: shop.displayName,
+        name: shop.displayName === DRAFT_NAME_PLACEHOLDER ? '' : shop.displayName,
         description: shop.publicDescription,
         photoUrl: shop.photoUrl,
         socialLinks: shop.socialLinks,

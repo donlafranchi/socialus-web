@@ -25,6 +25,7 @@ const SHOP: ResolvedShop = {
   photoUrl: null,
   socialLinks: {},
   photoHiddenAt: null,
+  photoRemovedAt: null,
   discoverability: 'listed',
   placements: [],
   unclaimed: null,
@@ -345,12 +346,17 @@ describe('#300 — the Page on the new layout', () => {
     expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
   })
 
+  it('shows default art when the operator removed the photo', () => {
+    renderShop({ shop: { ...SHOP, photoUrl: 'https://example.test/p.jpg', photoRemovedAt: '2026-10-01T00:00:00Z' } })
+    expect(screen.getByTestId('page-cover').querySelector('img')).toBeNull()
+  })
+
   it('gives the owner a panel beside the Page on a laptop, with Edit', () => {
     renderShop({ viewerOwnsPage: true, pagePath: '/g/x-abc123' })
     const panel = screen.getByTestId('owner-panel')
     expect(panel.className).toMatch(/\bhidden\b/)
     expect(panel.className).toMatch(/\blg:block\b/)
-    expect(panel.querySelector('[data-testid="owner-edit-toggle"]')).not.toBeNull()
+    expect(panel.querySelector('a[data-testid="owner-edit"]')).toHaveAttribute('href', '/g/x-abc123/edit')
   })
 
   it('gives nobody else a panel', () => {
@@ -450,21 +456,32 @@ describe('#293 — phone and hours on the Page', () => {
 })
 
 
-// #302 — edit in place, by section (Don, 2026-10-04).
-describe('#302 — the owner edits the Page in place', () => {
-  it('Edit shows a small edit button on each section', () => {
+// #412 — the PM, 2026-10-06: the owner edits on the Edit Page's cards; the
+// Page itself carries no edit buttons sprinkled through it.
+describe('#412 — the owner edits from the Edit Page, not in place', () => {
+  it('the Page has Edit links to the Edit Page, and no section edit buttons', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123', viewerMemberId: 'm1', tags: ['sourdough'] })
-    expect(screen.queryByTestId('edit-section-about')).toBeNull()
-    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0]!)
-    for (const s of ['about', 'photo', 'where', 'tags', 'links', 'components']) {
-      expect(screen.getAllByTestId(`edit-section-${s}`).length).toBeGreaterThan(0)
-    }
+    const edits = screen.getAllByRole('link', { name: 'Edit' })
+    expect(edits.length).toBeGreaterThan(0)
+    for (const e of edits) expect(e).toHaveAttribute('href', '/g/x-abc123/edit')
+    expect(screen.queryByRole('button', { name: /^edit/i })).toBeNull()
+    expect(document.querySelector('[data-testid^="edit-section-"]')).toBeNull()
   })
 
-  it('a visitor never sees them', () => {
+  it('a visitor sees no Edit at all', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: false })
-    expect(screen.queryByTestId('owner-edit-toggle')).toBeNull()
-    expect(screen.queryByTestId('edit-section-about')).toBeNull()
+    expect(screen.queryByTestId('owner-edit')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
+  })
+
+  it("a draft's checklist still opens the section it names", () => {
+    const draft = { ...SHOP, lifecycleState: 'draft' as const, displayName: 'untitled-draft', anchorLocationId: null, publicDescription: '' }
+    renderShop({ shop: draft, loggedIn: true, viewerOwnsPage: true, pagePath: '/g/draft-x', viewerMemberId: 'm1' })
+    fireEvent.click(screen.getByRole('button', { name: /^add\s*description/i }))
+    expect(screen.getByRole('dialog', { name: 'Description' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    fireEvent.click(screen.getByRole('button', { name: /^add\s*name/i }))
+    expect(screen.getByTestId('edit-name')).toHaveValue('')
   })
 })
 
@@ -566,5 +583,20 @@ describe('ShopPublicPage — #353 an unclaimed Page', () => {
     for (const id of ['unclaimed-label', 'photo-credit', 'description-credit', 'unclaimed-box']) {
       expect(screen.queryByTestId(id)).toBeNull()
     }
+  })
+})
+
+describe('ShopPublicPage — #409 Share', () => {
+  it('is there for everyone on a published Page, signed in or out', () => {
+    for (const loggedIn of [false, true]) {
+      renderShop({ loggedIn, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+      expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
+  it('is not on a draft', () => {
+    renderShop({ shop: { ...SHOP, lifecycleState: 'draft' }, viewerOwnsPage: true, pagePath: '/g/oak-park-sourdough-7k3x8m' })
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

@@ -2,7 +2,6 @@
 // they are the owner bar). Never a separate manage view.
 
 import { Megaphone } from 'lucide-react'
-import { EditToggle } from './edit/PageEditor'
 import { Button } from '@/components/ui/Button'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 
@@ -17,8 +16,10 @@ export function OwnerPanel({ pagePath }: { pagePath: string }) {
           <Megaphone size={16} aria-hidden="true" />
           Announce
         </Button>
-        {/* #302 — edit in place, by section (Don, 2026-10-04). */}
-        <EditToggle />
+        {/* #412 — Edit goes to the Edit Page's section cards (the PM, 2026-10-06). */}
+        <Button href={`${pagePath}/edit`} variant="secondary" data-testid="owner-edit">
+          Edit
+        </Button>
       </div>
     </div>
   )
