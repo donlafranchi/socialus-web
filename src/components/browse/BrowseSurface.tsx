@@ -25,10 +25,10 @@ import { CardGrid } from '@/components/cards'
 import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
-import { ViewPill } from '@/components/explore/ViewPill'
+import { ExploreDock } from '@/components/explore/ExploreDock'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { AreaPicker } from '@/components/explore/AreaPicker'
+import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
 import { HappeningRows } from './HappeningRows'
@@ -42,7 +42,7 @@ import {
   parseBrowseFilters,
   searchBrowseResults,
 } from '@/lib/browse/filters'
-import { browseFeedAction } from '@/app/explore/actions'
+import { browseFeedAction, searchAreasAction } from '@/app/explore/actions'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
@@ -83,6 +83,7 @@ export function BrowseSurface({
   const showMap = layout === 'split' ? !mapCollapsed : view === 'map'
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
+  const [searchRequest, setSearchRequest] = useState(0)
   const [, startTransition] = useTransition()
   // One clock per mount, so the week/weekend boundaries stay stable across
   // renders instead of shifting under a memo.
@@ -114,17 +115,36 @@ export function BrowseSurface({
     })
   }, [])
 
+  const metroSlugNow = snapshot.metro?.slug ?? null
+  const chooseArea = useCallback(
+    (area: AreaOption | null) => {
+      setScopeOpen(false)
+      const request = ++requestRef.current
+      startTransition(async () => {
+        try {
+          const next = await browseFeedAction(metroSlugNow, area?.id ?? null)
+          if (requestRef.current === request) setSnapshot(next)
+        } catch {
+          if (requestRef.current === request) setSnapshot((s) => ({ ...s, results: [], failed: true }))
+        }
+      })
+    },
+    [metroSlugNow],
+  )
+  const searchAreas = useCallback((query: string) => searchAreasAction(metroSlugNow ?? '', query), [metroSlugNow])
+
   const metroSlug = snapshot.chosen ? (snapshot.metro?.slug ?? null) : null
 
   useEffect(() => {
     const qs = browseQueryString({
       metro: metroSlug,
+      area: snapshot.area?.id ?? null,
       q: query,
       tags: filters.tags,
       schedule: filters.schedule,
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [metroSlug, query, filters, router])
+  }, [metroSlug, snapshot.area, query, filters, router])
 
   const visible = useMemo(
     () => applyBrowseFilters(searchBrowseResults(snapshot.results, query), filters, { now }),
@@ -143,6 +163,8 @@ export function BrowseSurface({
   useScrollRestoration('explore', visible.length > 0)
 
   const metroName = snapshot.metro?.name ?? null
+  // #476 — the pill names the neighbourhood when one is picked.
+  const placeLabel = snapshot.area?.name ?? metroName
 
   // One live region for both announcements — the result count and the metro.
   // Debounced so a five-character search announces once rather than five
@@ -198,13 +220,14 @@ export function BrowseSurface({
       data-testid="browse-page"
     >
       <ExploreSearchBar
-        placeName={metroName}
+        placeName={placeLabel}
         placeChosen={snapshot.chosen}
         query={query}
         onQueryChange={setQuery}
         filtersActive={hasBrowseFilters(filters)}
         onOpenFilters={() => setSheetOpen(true)}
         onOpenScope={() => setScopeOpen(true)}
+        searchRequest={searchRequest}
         viewSwitch={layout === 'docked' ? <ListMapToggle view={view} onChange={setView} /> : undefined}
       />
 
@@ -322,7 +345,7 @@ export function BrowseSurface({
               }
             >
               <div className="relative h-full">
-                <BrowseMap results={mapVisible} />
+                <BrowseMap results={mapVisible} center={snapshot.metro?.center} />
                 {mapNarrowed && (
                   <div
                     data-testid="map-empty"
@@ -340,7 +363,16 @@ export function BrowseSurface({
         )}
       </div>
 
-      {layout === 'single' && <ViewPill view={view} onChange={setView} />}
+      {layout === 'single' && (
+        <ExploreDock
+          view={view}
+          filtersActive={hasBrowseFilters(filters)}
+          onSearch={() => setSearchRequest((n) => n + 1)}
+          onFilter={() => setSheetOpen(true)}
+          onMetro={() => setScopeOpen(true)}
+          onViewChange={setView}
+        />
+      )}
 
       <AreaPicker
         open={scopeOpen}
@@ -348,6 +380,10 @@ export function BrowseSurface({
         metros={snapshot.metros}
         onClose={() => setScopeOpen(false)}
         onChoose={chooseMetro}
+        onSearchAreas={searchAreas}
+        currentAreaId={snapshot.area?.id ?? null}
+        onChooseArea={chooseArea}
+        onClearArea={() => chooseArea(null)}
       />
 
       <ExploreFilterSheet

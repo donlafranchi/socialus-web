@@ -30,10 +30,15 @@
 // (`listFeedMetros`), through the surface, so the picker and the feed can
 // never disagree about which metros exist.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { splitByOpen, type FeedMetro } from '@/lib/feed/feed-metro'
 import { MetroNotCoveredPanel } from './MetroNotCoveredPanel'
 import { Sheet } from '@/components/ui/Sheet'
+
+export interface AreaOption {
+  id: string
+  name: string
+}
 
 export function AreaPicker({
   open,
@@ -41,16 +46,45 @@ export function AreaPicker({
   metros,
   onClose,
   onChoose,
+  onSearchAreas,
+  currentAreaId = null,
+  onChooseArea,
+  onClearArea,
 }: {
   open: boolean
   currentSlug: string | null
   metros: readonly FeedMetro[]
   onClose: () => void
   onChoose: (metro: FeedMetro) => void
+  /** #476 — type-to-search neighbourhoods in the current metro. Absent when there are none. */
+  onSearchAreas?: (query: string) => Promise<AreaOption[]>
+  currentAreaId?: string | null
+  onChooseArea?: (area: AreaOption) => void
+  onClearArea?: () => void
 }) {
   const [q, setQ] = useState('')
   // A metro the platform does not serve, opened for a closer look. Not a scope.
   const [looking, setLooking] = useState<FeedMetro | null>(null)
+  const [areas, setAreas] = useState<AreaOption[]>([])
+  // Stale answers for a cleared box never show.
+  const shownAreas = q.trim() && onSearchAreas ? areas : []
+  const currentName = metros.find((m) => m.slug === currentSlug)?.name ?? 'this metro'
+
+  // Debounced, and a slow earlier answer never overwrites a newer one.
+  useEffect(() => {
+    const term = q.trim()
+    if (!onSearchAreas || !term) return
+    let live = true
+    const id = setTimeout(() => {
+      onSearchAreas(term)
+        .then((found) => live && setAreas(found))
+        .catch(() => live && setAreas([]))
+    }, 200)
+    return () => {
+      live = false
+      clearTimeout(id)
+    }
+  }, [q, onSearchAreas])
 
   const all = metros
   const needle = q.trim().toLowerCase()
@@ -109,6 +143,43 @@ export function AreaPicker({
           onChange={(e) => setQ(e.target.value)}
           className="input mt-3 w-full"
         />
+
+        {currentAreaId && onClearArea ? (
+          <button
+            type="button"
+            data-testid="scope-area-clear"
+            onClick={onClearArea}
+            className="nudge mt-3 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-medium hover:bg-[var(--color-surface)]"
+          >
+            All of {currentName}
+          </button>
+        ) : null}
+
+        {shownAreas.length > 0 && onChooseArea ? (
+          <>
+            <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Neighbourhoods in {currentName}
+            </h3>
+            <ul className="mt-1" data-testid="scope-areas">
+              {shownAreas.map((a) => (
+                <li key={a.id}>
+                  <button
+                    type="button"
+                    data-testid={`scope-area-${a.id}`}
+                    data-current={a.id === currentAreaId ? 'true' : undefined}
+                    onClick={() => onChooseArea(a)}
+                    className="nudge flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm hover:bg-[var(--color-surface)]"
+                  >
+                    <span className="truncate">{a.name}</span>
+                    {a.id === currentAreaId ? (
+                      <span className="text-xs font-medium text-[var(--color-accent)]">Showing</span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
 
         <>
             <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">

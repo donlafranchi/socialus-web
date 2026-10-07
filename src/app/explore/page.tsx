@@ -21,10 +21,10 @@ export const dynamic = 'force-dynamic'
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ metro?: string }>
+  searchParams: Promise<{ metro?: string; area?: string }>
 }) {
-  const { metro } = await searchParams
-  const snapshot = await loadBrowse(metro ?? null)
+  const { metro, area } = await searchParams
+  const snapshot = await loadBrowse(metro ?? null, area ?? null)
 
   return (
     <Suspense fallback={<ExploreSkeleton />}>

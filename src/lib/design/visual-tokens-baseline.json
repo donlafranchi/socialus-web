@@ -60,10 +60,6 @@
     "min-w-[6rem]",
     "text-[22px]"
   ],
-  "src/components/explore/ViewPill.tsx": [
-    "bottom-[calc(env(safe-area-inset-bottom)+24px)]",
-    "bottom-[calc(var(--nav-height)+env(safe-area-inset-bottom)+16px)]"
-  ],
   "src/components/feed/ItemFeedCard.tsx": [
     "text-[11px]",
     "text-[13px]",

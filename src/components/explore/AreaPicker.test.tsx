@@ -121,3 +121,59 @@ describe('AreaPicker', () => {
     expect(screen.queryByTestId('scope-sheet')).toBeNull()
   })
 })
+
+// #476 — pick a neighbourhood from a type-to-search list, in the current metro.
+describe('#476 — neighbourhoods', () => {
+  const onChooseArea = vi.fn()
+  const onClearArea = vi.fn()
+  const search = vi.fn(async (q: string) => (q.startsWith('mid') ? [{ id: 'p-1', name: 'Midtown' }] : []))
+
+  function renderWithAreas(currentAreaId: string | null = null, onSearchAreas: typeof search | undefined = search) {
+    return render(
+      <AreaPicker
+        open
+        currentSlug="sacramento-roseville-ca"
+        metros={METROS}
+        onClose={onClose}
+        onChoose={onChoose}
+        onSearchAreas={onSearchAreas}
+        currentAreaId={currentAreaId}
+        onChooseArea={onChooseArea}
+        onClearArea={onClearArea}
+      />,
+    )
+  }
+
+  afterEach(() => {
+    onChooseArea.mockClear()
+    onClearArea.mockClear()
+    search.mockClear()
+  })
+
+  it('searches the neighbourhoods as you type and picks one', async () => {
+    renderWithAreas()
+    fireEvent.change(screen.getByTestId('scope-search'), { target: { value: 'mid' } })
+    const row = await screen.findByTestId('scope-area-p-1')
+    expect(search).toHaveBeenCalledWith('mid')
+    fireEvent.click(row)
+    expect(onChooseArea).toHaveBeenCalledWith({ id: 'p-1', name: 'Midtown' })
+  })
+
+  it('shows no neighbourhood group before anything is typed', () => {
+    renderWithAreas()
+    expect(screen.queryByTestId('scope-areas')).toBeNull()
+    expect(search).not.toHaveBeenCalled()
+  })
+
+  it('offers the whole metro back once a neighbourhood is picked', () => {
+    renderWithAreas('p-1')
+    fireEvent.click(screen.getByTestId('scope-area-clear'))
+    expect(onClearArea).toHaveBeenCalled()
+  })
+
+  it('has no neighbourhood group when the metro has none to offer', () => {
+    renderWithAreas(null, undefined)
+    fireEvent.change(screen.getByTestId('scope-search'), { target: { value: 'mid' } })
+    expect(screen.queryByTestId('scope-areas')).toBeNull()
+  })
+})

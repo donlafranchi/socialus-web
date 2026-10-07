@@ -26,14 +26,23 @@ export interface BrowseScope {
 
 export async function resolveBrowseScope(
   supabase: FromClient,
-  opts: { memberMetroId?: string | null; requestedSlug?: string | null },
+  opts: {
+    memberMetroId?: string | null
+    /** The member's own "default metro" setting (You page). Beats the zip-derived one. */
+    memberDefaultMetroId?: string | null
+    requestedSlug?: string | null
+    /** Last metro picked on this device (cookie). Used when nothing is requested. */
+    rememberedSlug?: string | null
+  },
 ): Promise<BrowseScope | null> {
-  const metro = await resolveFeedMetro(supabase, opts)
+  const requested = opts.requestedSlug?.trim() || opts.rememberedSlug?.trim() || null
+  const memberMetroId = opts.memberDefaultMetroId ?? opts.memberMetroId
+  const metro = await resolveFeedMetro(supabase, { memberMetroId, requestedSlug: requested })
   if (!metro) return null
 
-  const requested = opts.requestedSlug?.trim()
   if (requested && metro.slug === requested) return { metro, chosen: true }
 
-  const stored = opts.memberMetroId && metro.id === opts.memberMetroId
-  return { metro, chosen: Boolean(stored) && metro.slug !== DEFAULT_METRO_SLUG }
+  const stored = memberMetroId && metro.id === memberMetroId
+  const picked = Boolean(opts.memberDefaultMetroId) && metro.id === opts.memberDefaultMetroId
+  return { metro, chosen: picked || (Boolean(stored) && metro.slug !== DEFAULT_METRO_SLUG) }
 }

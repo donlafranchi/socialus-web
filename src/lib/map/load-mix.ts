@@ -12,10 +12,10 @@ type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
 const PER_BUCKET = 100
 const DAY = 24 * 60 * 60 * 1000
 
-export async function loadMapMix(supabase: RpcClient, metroId: string, now = new Date()): Promise<MixedResult[]> {
+export async function loadMapMix(supabase: RpcClient, metroId: string, now = new Date(), placeId?: string | null): Promise<MixedResult[]> {
   const { data } = await supabase.from('app_settings').select('value').eq('key', 'map_mix').maybeSingle()
   const cfg = parseMixConfig((data as { value?: unknown } | null)?.value)
-  const scope = { metroId }
+  const scope = placeId ? { placeId } : { metroId }
   const read = (b: Bucket): Promise<BrowseResult[]> => {
     if (cfg.weights[b] === 0) return Promise.resolve([])
     if (b === 'dated')
