@@ -42,7 +42,7 @@ const initial: EditorInitial = {
 }
 
 const renderCards = (over: Partial<EditorInitial> = {}, isDraft = false) =>
-  render(<EditCards initial={{ ...initial, ...over }} onSave={onSave} isDraft={isDraft} />)
+  render(<EditCards title="Edit Oak Park Sourdough" initial={{ ...initial, ...over }} onSave={onSave} isDraft={isDraft} />)
 
 const card = (s: string) => screen.getByTestId(`edit-card-${s}`)
 
@@ -199,9 +199,14 @@ describe('#412 — the link and the way back', () => {
     expect(link).toHaveTextContent('It stays the same when you publish.')
   })
 
-  it('Done goes back to the Page', () => {
+  // Tidy and contained (the PM, 2026-10-06): the way out sits in the page's
+  // header, not loose under the last card (Apple HIG's Done in the nav bar).
+  it('Done goes back to the Page, from the page header', () => {
     renderCards()
-    expect(screen.getByRole('link', { name: 'Done' })).toHaveAttribute('href', initial.pagePath)
+    const header = screen.getByTestId('edit-header')
+    expect(within(header).getByRole('heading', { level: 1, name: 'Edit Oak Park Sourdough' })).toBeInTheDocument()
+    expect(within(header).getByRole('link', { name: 'Done' })).toHaveAttribute('href', initial.pagePath)
+    expect(screen.getAllByRole('link', { name: 'Done' })).toHaveLength(1)
   })
 })
 
@@ -210,7 +215,7 @@ describe('#423 — Page settings, last', () => {
   const settings = { lifecycleState: 'active' as const, onArchive: ok, onRestore: ok, onDelete: ok }
 
   it('sits after every other group, before Done', () => {
-    const { container } = render(<EditCards initial={initial} onSave={onSave} isDraft={false} settings={settings} />)
+    const { container } = render(<EditCards title="Edit P" initial={initial} onSave={onSave} isDraft={false} settings={settings} />)
     const groups = [...container.querySelectorAll('details')]
     expect(groups.at(-1)!.querySelector('summary')!.textContent).toBe('Page settings')
     const done = screen.getByRole('link', { name: 'Done' })
@@ -218,7 +223,7 @@ describe('#423 — Page settings, last', () => {
   })
 
   it('is not offered on a draft', () => {
-    render(<EditCards initial={initial} onSave={onSave} isDraft settings={settings} />)
+    render(<EditCards title="Edit P" initial={initial} onSave={onSave} isDraft settings={settings} />)
     expect(screen.queryByTestId('page-settings')).toBeNull()
   })
 })

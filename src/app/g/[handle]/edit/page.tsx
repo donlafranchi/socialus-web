@@ -72,12 +72,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   const initialWhere = whereValueFrom(saved)
 
   return (
-    <main className="mx-auto w-full max-w-xl px-3 py-4">
-      <h1 className="text-lg font-semibold text-[var(--color-fg)]">
-        {isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
-      </h1>
-      <p className="mt-1 mb-4 text-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
+    <main className="mx-auto w-full max-w-form gutter py-6 pb-nav">
       <EditCards
+        title={isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
         isDraft={isDraft}
         onSave={editPageAction}
         // #423 — archive and delete; the handlers re-check the managing role.
