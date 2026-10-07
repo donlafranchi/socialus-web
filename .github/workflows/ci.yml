@@ -358,6 +358,32 @@ jobs:
           SCREENS_SCOPE: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 'full' || 'smoke' }}
         run: npx playwright test --project=mobile-chrome --project=screens
 
+      # #428 — the review bundle: only the screens this PR can change, as the
+      # personas worth looking at them as, with every group opened, axe results
+      # and the page text. Reviewers read it from the artifact.
+      - name: Which screens this PR changes
+        id: changed
+        if: github.event_name == 'pull_request'
+        run: npx tsx scripts/changed-routes.ts --base ${{ github.event.pull_request.base.sha }} --github-output
+      - name: Review bundle
+        if: github.event_name == 'pull_request' && steps.changed.outputs.routes != ''
+        env:
+          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
+          CAPTURE_ROUTES: ${{ steps.changed.outputs.routes }}
+          CAPTURE_PERSONAS: ${{ steps.changed.outputs.personas }}
+          CAPTURE_WIDTHS: ${{ steps.changed.outputs.widths }}
+        run: npx playwright test --project=capture
+
+      - name: Upload the review bundle
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: review-bundle
+          path: review-bundle/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload screenshots
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6

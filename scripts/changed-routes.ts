@@ -4,7 +4,7 @@
 //   npx tsx scripts/changed-routes.ts --base <sha> --github-output   also writes routes= / personas= to $GITHUB_OUTPUT
 //
 // A route is a name in evals/screens/routes.ts. A change it cannot place under
-// src/ falls back to the smoke slice (`fallback: 'smoke'`) rather than to nothing.
+// src/ falls back to the common screens (explore, page, you; `fallback: 'smoke'`) rather than to nothing.
 import { execFileSync } from 'node:child_process'
 import { appendFileSync } from 'node:fs'
 import { PERSONAS } from '../evals/personas'
@@ -50,15 +50,20 @@ export interface ChangedRoutes {
 export function changedRoutes(files: string[]): ChangedRoutes {
   const routes = new Set<string>()
   let unplaced = false
+  let fallbackUsed = false
   for (const f of files.filter((x) => !IGNORED.test(x))) {
     const hit = ROUTE_MAP.find(([re]) => re.test(f))
     if (hit) hit[1].forEach((r) => routes.add(r))
     else if (/^src\//.test(f)) unplaced = true
   }
+  if (unplaced && routes.size === 0) {
+    fallbackUsed = true
+    ;['explore', 'page', 'you'].forEach((r) => routes.add(r))
+  }
   const list = [...routes]
   const ownerOnly = list.length > 0 && list.every((r) => r === 'page-edit')
   const personas = ownerOnly ? OWNER_ONLY : PERSONAS.map((p) => p.key)
-  return { routes: list, personas, widths: [390, 1280], ...(unplaced && list.length === 0 ? { fallback: 'smoke' as const } : {}) }
+  return { routes: list, personas, widths: [390, 1280], ...(unplaced && fallbackUsed ? { fallback: 'smoke' as const } : {}) }
 }
 
 if (require.main === module) {

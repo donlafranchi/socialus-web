@@ -39,9 +39,9 @@ describe('changedRoutes', () => {
     }
   })
 
-  it('falls back to the smoke slice for a runtime change it cannot place', () => {
+  it('falls back to the common screens for a runtime change it cannot place', () => {
     const r = changedRoutes(['src/lib/some-helper.ts'])
-    expect(r.routes).toEqual([])
+    expect(r.routes).toEqual(['explore', 'page', 'you'])
     expect(r.fallback).toBe('smoke')
   })
 
