@@ -77,7 +77,7 @@ export function PagePhotoPicker({ memberId, value, onChange, label = 'Photo', pr
           />
           <button
             type="button"
-            className="text-sm underline text-[var(--color-fg-muted)]"
+            className="inline-flex min-h-tap items-center px-1 text-sm underline text-[var(--color-fg-muted)]"
             onClick={() => onChange(null)}
           >
             Remove
