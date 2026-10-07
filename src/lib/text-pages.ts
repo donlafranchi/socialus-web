@@ -69,6 +69,7 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'A Page shows the area it is in, and an exact address only when the owner has made one public.',
       'When something is reported, an automated first pass may read the reported post before a person makes the call. A person always decides.',
       'You can archive or delete a Page you run. A deleted Page can be restored for 14 days.',
+      'When you post or upload, we record the internet address and time it came from, to keep SocialUs safe. Only operators can see it, and it is deleted after one year.',
     ],
     counsel: [
       'Retention periods for each kind of data, and for removed content',
