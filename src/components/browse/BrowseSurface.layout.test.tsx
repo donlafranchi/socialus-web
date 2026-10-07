@@ -82,9 +82,12 @@ const snapshot: BrowseSnapshot = {
   happening: { today: [], thisWeek: [], thisWeekend: [] },
 }
 
-const renderAt = (w: number, props: { ownerPanelOpen?: boolean } = {}) => {
+// Layout tests describe a member's Explore (list and map); the signed-out
+// ruling (#334) has its own block below.
+const renderAt = (w: number, props: { ownerPanelOpen?: boolean; signedIn?: boolean } = {}) => {
   stubWidth(w)
-  return render(<BrowseSurface initial={snapshot} {...props} />)
+  const { signedIn = true, ...rest } = props
+  return render(<BrowseSurface initial={{ ...snapshot, signedIn }} {...rest} />)
 }
 
 beforeEach(() => {
@@ -187,15 +190,53 @@ describe('#331 — the map shows the tunable mix, narrowed by search and filters
   const mix = [{ ...result(1), name: 'Bread class', bucket: 'dated' as const }, { ...result(2), name: 'Pottery', bucket: 'new' as const }]
   it('the map gets the mix, not the list', () => {
     stubWidth(1280)
-    render(<BrowseSurface initial={{ ...snapshot, map: mix }} />)
+    render(<BrowseSurface initial={{ ...snapshot, signedIn: true, map: mix }} />)
     expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', 'Bread class|Pottery')
   })
 
   it('a search that empties the map offers to clear it', () => {
     stubWidth(1280)
     params = new URLSearchParams('q=zzz-nothing')
-    render(<BrowseSurface initial={{ ...snapshot, map: mix }} />)
+    render(<BrowseSurface initial={{ ...snapshot, signedIn: true, map: mix }} />)
     expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', '')
     expect(screen.getByTestId('map-empty')).toHaveTextContent('Clear filters')
+  })
+})
+
+// #334 — ruling 2026-10-01: signed-out Explore is list only, and the Map pill
+// opens sign-up. A signed-out visitor never gets the map, at any width.
+describe('#334 — signed out: list only, Map opens sign-up', () => {
+  for (const w of [390, 744, 1024, 1280, 1440]) {
+    it(`shows the list and no map at ${w}px`, () => {
+      renderAt(w, { signedIn: false })
+      expect(screen.getByTestId('card-grid')).toBeInTheDocument()
+      expect(screen.queryByTestId('browse-map')).toBeNull()
+      expect(screen.queryByTestId('browse-map-pane')).toBeNull()
+      expect(screen.queryByTestId('map-collapse-handle')).toBeNull()
+    })
+  }
+
+  it('the Map control opens the sign-up sheet instead of the map', () => {
+    renderAt(1280, { signedIn: false })
+    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
+    fireEvent.click(screen.getByTestId('view-pill'))
+    const sheet = screen.getByTestId('sign-in-prompt')
+    expect(sheet).toBeInTheDocument()
+    expect(screen.getByTestId('sign-in-prompt-continue').getAttribute('href')).toMatch(/^\/auth\/signup\?next=/)
+    expect(screen.queryByTestId('browse-map')).toBeNull()
+  })
+
+  it('the sheet can be dismissed and the list is still there', () => {
+    renderAt(390, { signedIn: false })
+    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
+    fireEvent.click(screen.getByTestId('view-pill'))
+    fireEvent.click(screen.getByTestId('sign-in-prompt-dismiss'))
+    expect(screen.queryByTestId('sign-in-prompt')).toBeNull()
+    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
+  })
+
+  it('a member still gets the map beside the list at 1280', () => {
+    renderAt(1280, { signedIn: true })
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
   })
 })
