@@ -8,6 +8,13 @@ export const MAP_DEFAULTS = {
   debounceMs: 300,
 }
 
+// #330 — Explore's map opens on a metro, never the middle of the US. The
+// fallback is the one metro we run (Sacramento), for a metro with no centroid.
+export const METRO_VIEW = {
+  fallbackCenter: [-121.4944, 38.5816] as [number, number],
+  zoom: 9,
+}
+
 // #348 — a map to drop a pin on needs the public Mapbox token.
 export const mapAvailable = () => Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN)
 

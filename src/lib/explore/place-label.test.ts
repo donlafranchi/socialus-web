@@ -11,11 +11,10 @@ describe('placePillLabel', () => {
     expect(placePillLabel({ placeName: 'Sacramento', chosen: true })).toBe('Sacramento')
   })
 
-  // THE FIX.
-  it('never prints the launch stand-in as if it were the member’s place', () => {
-    const label = placePillLabel({ placeName: 'The Good Place', chosen: false })
-    expect(label).toBe(NO_PLACE_CHOSEN_LABEL)
-    expect(label).not.toMatch(/good place/i)
+  // #329 — PM, 2026-10-07: the pill is never blank. It names the member's
+  // metro by default, chosen or not.
+  it('names the default metro too, when nobody picked one', () => {
+    expect(placePillLabel({ placeName: 'Sacramento-Roseville, CA', chosen: false })).toBe('Sacramento-Roseville, CA')
   })
 
   it('asks rather than asserts when there is no origin at all', () => {
@@ -32,8 +31,8 @@ describe('placePillLabel', () => {
     expect(NO_PLACE_CHOSEN_LABEL).not.toMatch(/locality|metro|place_id|default|null/i)
   })
 
-  it('marks the unanswered case so it can be styled as a prompt, not a fact', () => {
-    expect(isPlacePrompt({ placeName: 'The Good Place', chosen: false })).toBe(true)
-    expect(isPlacePrompt({ placeName: 'Sacramento', chosen: true })).toBe(false)
+  it('marks only the no-metro case as a prompt', () => {
+    expect(isPlacePrompt({ placeName: null, chosen: false })).toBe(true)
+    expect(isPlacePrompt({ placeName: 'Sacramento', chosen: false })).toBe(false)
   })
 })

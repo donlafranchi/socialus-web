@@ -129,3 +129,16 @@ describe('T155 — DEFAULT_METRO_SLUG', () => {
     expect(DEFAULT_METRO_SLUG).toBe('sacramento-roseville-ca')
   })
 })
+
+describe('#330 — a metro knows its centre', () => {
+  it('decodes the centroid so the map can open on it', async () => {
+    const rows = [{ ...SAC, centroid: '0101000020e61000000000000000605ec00000000000404340' }]
+    const m = await resolveFeedMetro(client(rows as never), { requestedSlug: SAC.slug })
+    expect(m?.center).toEqual([-121.5, 38.5])
+  })
+
+  it('has no centre when the metro carries no centroid (the waitlist-only ones)', async () => {
+    const m = await resolveFeedMetro(client(), { requestedSlug: SAC.slug })
+    expect(m?.center).toBeUndefined()
+  })
+})

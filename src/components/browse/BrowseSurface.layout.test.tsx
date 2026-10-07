@@ -73,6 +73,7 @@ const snapshot: BrowseSnapshot = {
   results: Array.from({ length: 10 }, (_, i) => result(i)),
   following: [],
   map: [],
+  area: null,
   metro: SAC,
   chosen: false,
   metros: [SAC],
@@ -106,26 +107,38 @@ describe('T187 — nothing sits between rows of results', () => {
   }
 })
 
-describe('T187 — under 1024px, a floating pill', () => {
-  it('floats at bottom centre, above the nav and the safe area', () => {
+describe('#328 — under 1024px, one control at the bottom right', () => {
+  it('floats at bottom right, above the nav and the safe area', () => {
     renderAt(390)
-    const pill = screen.getByTestId('view-pill')
-    expect(pill.className).toMatch(/\bfixed\b/)
-    expect(pill.className).toMatch(/left-1\/2/)
-    expect(pill.className).toContain('var(--nav-height)')
-    expect(pill.className).toContain('env(safe-area-inset-bottom)')
-    expect(pill.closest('[data-testid="card-grid"]')).toBeNull()
+    const dock = screen.getByTestId('explore-dock')
+    expect(dock.className).toMatch(/\bfixed\b/)
+    expect(dock.className).toMatch(/\bright-/)
+    expect(dock.className).toContain('var(--nav-height)')
+    expect(dock.className).toContain('env(safe-area-inset-bottom)')
+    expect(dock.closest('[data-testid="card-grid"]')).toBeNull()
   })
 
-  it('reads Map over the list and List over the map, swapping the view', () => {
+  it('opens into the four actions, and the view switch swaps list and map', () => {
     renderAt(744)
     expect(screen.queryByTestId('browse-map')).toBeNull()
+    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
+    for (const id of ['search', 'filter', 'metro']) {
+      expect(screen.getByTestId(`explore-dock-${id}`)).toBeInTheDocument()
+    }
     fireEvent.click(screen.getByRole('button', { name: 'Map' }))
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
     expect(screen.queryByTestId('card-grid')).toBeNull()
+    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
     fireEvent.click(screen.getByRole('button', { name: 'List' }))
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
     expect(screen.queryByTestId('browse-map')).toBeNull()
+  })
+
+  it('Filter opens the filter sheet and Change area opens the metro picker', () => {
+    renderAt(390)
+    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
+    fireEvent.click(screen.getByRole('button', { name: 'Change area' }))
+    expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
   })
 })
 

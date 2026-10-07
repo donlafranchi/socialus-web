@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MAP_DEFAULTS, CLUSTER_CONFIG } from '@/lib/map-config'
+import { MAP_DEFAULTS, METRO_VIEW, CLUSTER_CONFIG } from '@/lib/map-config'
 import { groupPins, type BrowsePin } from '@/lib/browse/pins'
 import { stylePin, styleCluster } from '@/lib/map-pins'
 import { gridCluster } from '@/lib/browse/cluster'
@@ -21,7 +21,12 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
-export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
+export function BrowseMap({ results, center }: { results: readonly BrowseResult[]; center?: [number, number] }) {
+  const metroCenter = center ?? METRO_VIEW.fallbackCenter
+  const metroCenterRef = useRef(metroCenter)
+  useEffect(() => {
+    metroCenterRef.current = metroCenter
+  })
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -33,8 +38,8 @@ export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: MAP_DEFAULTS.style,
-      center: MAP_DEFAULTS.center,
-      zoom: MAP_DEFAULTS.zoom,
+      center: metroCenterRef.current,
+      zoom: METRO_VIEW.zoom,
     })
     mapRef.current = map
     return () => {
@@ -105,6 +110,14 @@ export function BrowseMap({ results }: { results: readonly BrowseResult[] }) {
     }
     draw()
   }, [results, draw])
+
+  // Nothing pinned: the view follows the metro, so a metro change moves the map.
+  const [lng, lat] = metroCenter
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || pinsRef.current.length > 0) return
+    map.jumpTo({ center: [lng, lat], zoom: METRO_VIEW.zoom })
+  }, [lng, lat])
 
   useEffect(() => {
     selectedRef.current = selected?.groupId ?? null

@@ -12,6 +12,9 @@ import { FollowingSummary } from '@/components/follows/FollowingSummary'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { AuthCard } from '@/components/shell/AuthCard'
 import { Button } from '@/components/ui/Button'
+import { DefaultMetro } from '@/components/member/DefaultMetro'
+import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
+import { saveDefaultMetroAction } from '@/app/explore/actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,12 +37,13 @@ export default async function YouPage() {
     )
   }
 
-  const [{ data: me }, { data: wait }] = await Promise.all([
-    supabase.from('members').select('display_name').eq('id', user.id).maybeSingle(),
-    supabase.from('metro_waitlist').select('metro_polygons(name)').eq('member_id', user.id).maybeSingle(),
+  const [{ data: me }, metros] = await Promise.all([
+    supabase.from('members').select('display_name, default_metro_id, home_metro_id').eq('id', user.id).maybeSingle(),
+    listFeedMetros(supabase).catch(() => []),
   ])
-  const name = (me as { display_name: string | null } | null)?.display_name ?? null
-  const metro = (wait as unknown as { metro_polygons: { name: string } | null } | null)?.metro_polygons?.name ?? null
+  const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null } | null
+  const name = row?.display_name ?? null
+  const openMetros = splitByOpen(metros).open
 
   return (
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="you-page">
@@ -67,7 +71,13 @@ export default async function YouPage() {
       <Section title="Settings" testId="settings-panel">
         <ul className="divide-y divide-[var(--color-border)] rounded-lg border border-[var(--color-border)]">
           <Row label="Name" value={name ?? 'Not set'} testId="settings-name" />
-          <Row label="Metro" value={metro ?? 'Not set'} testId="settings-metro" />
+          <Row label="Metro" testId="settings-metro">
+            <DefaultMetro
+              metros={openMetros}
+              currentId={row?.default_metro_id ?? row?.home_metro_id ?? null}
+              onSave={saveDefaultMetroAction}
+            />
+          </Row>
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
           <Row
             label="Password"
@@ -99,11 +109,11 @@ function Section({ title, testId, action, children }: { title: string; testId: s
   )
 }
 
-function Row({ label, value, testId, action, wrap }: { label: string; value: string; testId: string; action?: ReactNode; wrap?: boolean }) {
+function Row({ label, value, testId, action, wrap, children }: { label: string; value?: string; testId: string; action?: ReactNode; wrap?: boolean; children?: ReactNode }) {
   return (
     <li className="flex min-h-tap items-center gap-3 px-4 py-2" data-testid={testId}>
       <span className="w-20 shrink-0 text-body-sm text-[var(--color-fg-muted)]">{label}</span>
-      <span className={`min-w-0 flex-1 text-body-sm text-[var(--color-fg)] ${wrap ? '' : 'truncate'}`}>{value}</span>
+      {children ?? <span className={`min-w-0 flex-1 text-body-sm text-[var(--color-fg)] ${wrap ? '' : 'truncate'}`}>{value}</span>}
       {action}
     </li>
   )

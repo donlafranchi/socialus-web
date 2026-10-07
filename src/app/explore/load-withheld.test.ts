@@ -230,7 +230,7 @@ describe('#331 — the map mix', () => {
     loadMapMix.mockClear()
     signedIn()
     await loadBrowse(null)
-    expect(loadMapMix).toHaveBeenCalledWith(expect.anything(), METRO.id)
+    expect(loadMapMix).toHaveBeenCalledWith(expect.anything(), METRO.id, expect.any(Date), undefined)
   })
 
   it('signed out, no pins: the mix is never read', async () => {

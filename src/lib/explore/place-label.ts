@@ -17,15 +17,17 @@
  */
 export interface PillPlace {
   placeName: string | null
-  /** Did a person actually pick this place? */
-  chosen: boolean
+  /** Kept for callers; the label no longer depends on it. */
+  chosen?: boolean
 }
 
 /** Shown when no place has been chosen. Plain words, no invented locality. */
 export const NO_PLACE_CHOSEN_LABEL = 'Choose your area'
 
 export function placePillLabel(origin: PillPlace | null): string {
-  if (!origin || !origin.chosen) return NO_PLACE_CHOSEN_LABEL
+  // #329 (PM, 2026-10-07): never blank. The metro's name shows whether the
+  // member picked it or it came from their zip or the platform default.
+  if (!origin) return NO_PLACE_CHOSEN_LABEL
   const name = origin.placeName?.trim()
   return name ? name : NO_PLACE_CHOSEN_LABEL
 }
