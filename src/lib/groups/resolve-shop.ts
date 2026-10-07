@@ -16,6 +16,7 @@ import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
+import { maskEmails } from '../text/contact-info'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
 
@@ -247,8 +248,9 @@ export async function resolveShop(
     // #410 — the groups row is the one source of a Page's name and
     // description; the database keeps a business's group_businesses copy equal
     // to it. Reading the copy first is what left a renamed Page on its old name.
-    displayName: row.name || biz?.display_name || '',
-    publicDescription: row.description || biz?.public_description || '',
+    // #450 — an address stored before the save check is masked, not shown.
+    displayName: maskEmails(row.name || biz?.display_name || ''),
+    publicDescription: maskEmails(row.description || biz?.public_description || ''),
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,

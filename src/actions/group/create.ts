@@ -17,6 +17,8 @@
 import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
+import { ValidationError } from '../_lib/errors'
+import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/contact-info'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import { toSlug } from '../../lib/slugify'
@@ -53,6 +55,10 @@ export const groupCreate = defineHandler(
   'group.create',
   groupCreateInput,
   async (ctx: ActionContext, input: GroupCreateInput): Promise<GroupCreateResult> => {
+    // #450 — see group.update.
+    if (anyContainsEmail(input.name, input.businessDisplayName, input.description)) {
+      throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
+    }
     // For business kind, prefer the composer's step-1 brand name; fall back to
     // `name` if supplied; fall back to a placeholder otherwise. update_draft
     // overrides on subsequent step submits.

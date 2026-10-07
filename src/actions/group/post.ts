@@ -25,7 +25,8 @@
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
-import { AuthorizationError, NotFoundError } from '../_lib/errors'
+import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
+import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/contact-info'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -138,6 +139,8 @@ export const groupPostCreate = defineHandler(
   'group.post_create',
   groupPostCreateInput,
   async (ctx: ActionContext, input: GroupPostCreateInput): Promise<GroupPostCreateResult> => {
+    // #450 — a post is public Page text; see group.update.
+    if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_create')
 
     return withTransaction(async (client) => {
@@ -187,6 +190,8 @@ export const groupPostEdit = defineHandler(
   'group.post_edit',
   groupPostEditInput,
   async (ctx: ActionContext, input: GroupPostEditInput): Promise<GroupPostEditResult> => {
+    // #450 — a post is public Page text; see group.update.
+    if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_edit')
 
     return withTransaction(async (client) => {
