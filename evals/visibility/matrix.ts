@@ -135,6 +135,20 @@ export const RESOURCES: Resource[] = [
     rest: NONE,
   },
   {
+    name: 'Who edited a place (place_events): only yourself',
+    sql: 'select count(*)::int n from public.place_events',
+    total: 14,
+    cells: {},
+    rest: NONE,
+  },
+  {
+    name: 'Who made a tag (tags.created_by): nobody, by table',
+    sql: 'select count(created_by)::int n from public.tags',
+    total: 2,
+    cells: {},
+    rest: NONE,
+  },
+  {
     name: 'A builder Page, switch on (the beta default)',
     sql: "select count(*)::int n from public.groups where slug = 'qa-visibility-builder'",
     total: 1,
@@ -163,3 +177,24 @@ export const VIEWERS: Viewer[] = ['signedOut', 'stranger', 'follower', 'member',
 
 /** The cell for a viewer. */
 export const cellFor = (r: Resource, v: Viewer): Cell => r.cells[v] ?? r.rest
+
+// #246 — the member-id sweep. Every column a viewer can select that holds a
+// member's id (a foreign key to members or auth.users, or a name ending in
+// member_id, founder or created_by) is read as each viewer, and any row naming
+// someone else is a leak, unless the column is listed here with the ruling
+// that lets a party see it. The sweep finds new tables by itself, so a table
+// added open is red without anyone remembering to add a row.
+//
+// Signed out reads no one's id, ever: this list applies to signed-in viewers.
+export const MEMBER_ID_READS: Record<string, string> = {
+  'group_memberships.member_id': "2026-09-30: membership is scoped to the Page; its members see each other, and its owner sees its followers",
+  'group_memberships.confirmed_by_member_id': 'same: who confirmed a join, seen by that Page\'s members',
+  'group_events.acting_member_id': "same: a Page's members see its activity",
+  'item_responses.responder_member_id': '2026-09-30: whoever is party to an RSVP sees it',
+  'item_events.acting_member_id': "same: an item's organiser sees who acted on it",
+  'location_events.acting_member_id': "a location's owner sees who acted on it",
+  'group_category_suggestions.member_id': "a Page's founder sees who suggested a category for it",
+}
+
+/** The table a partition belongs to: member_events_y2026m10 → member_events. */
+export const parentTable = (table: string) => table.replace(/_y\d{4}m\d{2}$/, '')
