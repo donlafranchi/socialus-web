@@ -8,7 +8,8 @@ const OWN = (memberId: string) =>
 export function isOwnMediaUrl(url: string, memberId: string): boolean {
   try {
     const u = new URL(url)
-    return u.protocol === 'https:' && !u.search && !u.hash && OWN(memberId).test(u.pathname)
+    const local = u.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(u.hostname)
+    return (u.protocol === 'https:' || local) && !u.search && !u.hash && OWN(memberId).test(u.pathname)
   } catch {
     return false
   }
