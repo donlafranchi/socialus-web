@@ -1,0 +1,165 @@
+// chore #430 — the visibility matrix: who may read what, one row per resource
+// and viewer. tests/visibility.test.ts runs every cell against the local stack
+// as that viewer (`anon`, or `authenticated` with the persona's id) and fails
+// on any difference, so a policy that opens up, or closes, is noticed.
+//
+// A cell is { reach, rows }. reach is the word the PM reads: none, own (rows
+// that are the viewer's), parties (rows of things the viewer belongs to) or
+// all. rows is the count the seeded stack must return for that viewer.
+// `pending` marks a cell whose present behaviour is asserted but whose
+// intended behaviour needs a ruling (it conflicts with a ruling, or none
+// covers it): it is listed in the test output, never silently accepted.
+//
+// Persona rows come from evals/personas.ts and supabase/seeds/personas.sql.
+// The `builder` viewer is made inside the test's transaction (a builder member,
+// a builder Page and a builder membership, rolled back), so the seed and the
+// screenshot matrix stay as they are.
+import type { PersonaKey } from '../personas'
+
+export type Viewer = PersonaKey | 'builder'
+export type Reach = 'none' | 'own' | 'parties' | 'all'
+export interface Cell {
+  reach: Reach
+  rows: number
+  pending?: string
+}
+export interface Resource {
+  name: string
+  /** A query returning one row with a `n` count. */
+  sql: string
+  /** Rows the resource holds in the seeded stack, seen as the superuser. */
+  total: number
+  /** The builder-content switch for this resource's cells (default on, as in beta). */
+  switch?: 'on' | 'off'
+  cells: Partial<Record<Viewer, Cell>>
+  /** Cell for every viewer not listed. */
+  rest: Cell
+}
+
+const NONE: Cell = { reach: 'none', rows: 0 }
+const all = (rows: number): Cell => ({ reach: 'all', rows })
+const own = (rows: number): Cell => ({ reach: 'own', rows })
+const parties = (rows: number, pending?: string): Cell => ({ reach: 'parties', rows, ...(pending ? { pending } : {}) })
+
+const OWNERS = ['ownerBusiness', 'ownerPlace', 'ownerInterest', 'ownerPractice', 'ownerEvent', 'ownerFamily'] as const
+
+export const RESOURCES: Resource[] = [
+  {
+    name: 'Pages listed (groups)',
+    sql: "select count(*)::int n from public.groups where discoverability = 'listed' and slug like 'qa-%' and slug <> 'qa-visibility-builder'",
+    total: 5,
+    cells: {},
+    rest: all(5),
+  },
+  {
+    name: 'Private Page (groups)',
+    sql: "select count(*)::int n from public.groups where slug = 'qa-family'",
+    total: 1,
+    cells: {
+      member: parties(1, "the 2026-09-30 ruling says signed-out and signed-in non-participants see a private Page's front door; the database shows it to members and its steward only"),
+      applicant: parties(1, 'same: see the member row'),
+      ownerFamily: own(1),
+    },
+    rest: { reach: 'none', rows: 0, pending: "same: the 2026-09-30 ruling says a private Page's front door shows to everyone" },
+  },
+  {
+    name: 'Posts of listed Pages (page_posts)',
+    sql: "select count(*)::int n from public.page_posts p join public.groups g on g.id = p.group_id where g.discoverability = 'listed' and g.slug like 'qa-%'",
+    total: 10,
+    cells: { signedOut: NONE },
+    rest: all(10),
+  },
+  {
+    name: "Posts of a private Page (page_posts)",
+    sql: "select count(*)::int n from public.page_posts p join public.groups g on g.id = p.group_id where g.slug = 'qa-family'",
+    total: 2,
+    cells: {
+      ownerFamily: own(2),
+      member: { reach: 'none', rows: 0, pending: 'a confirmed member of a private Page cannot read its posts (the select policy admits listed posts and the founder only); needs a ruling' },
+    },
+    rest: NONE,
+  },
+  {
+    name: 'Members (members): only yourself',
+    sql: 'select count(*)::int n from public.members',
+    total: 13,
+    cells: { signedOut: NONE },
+    rest: own(1),
+  },
+  {
+    name: 'Member privacy settings (member_privacy): only yours',
+    sql: 'select count(*)::int n from public.member_privacy',
+    total: 13,
+    cells: { signedOut: NONE },
+    rest: own(1),
+  },
+  {
+    name: 'Page rosters (group_memberships)',
+    sql: "select count(*)::int n from public.group_memberships where group_id::text like '0b000000-%'",
+    total: 23,
+    cells: {
+      follower: parties(5),
+      member: parties(18),
+      applicant: parties(18),
+      ownerBusiness: parties(4),
+      ownerPlace: parties(4),
+      ownerInterest: parties(4),
+      ownerPractice: parties(4),
+      ownerEvent: parties(4),
+      ownerFamily: parties(3),
+      builder: parties(4),
+    },
+    rest: NONE,
+  },
+  {
+    name: 'RSVPs (item_responses)',
+    sql: "select count(*)::int n from public.item_responses where responder_member_id::text like '0a000000-%'",
+    total: 13,
+    cells: {
+      member: parties(12),
+      rsvp: parties(13),
+      ownerBusiness: parties(2),
+      ownerPlace: parties(2),
+      ownerInterest: parties(2),
+      ownerPractice: parties(2),
+      ownerEvent: parties(2),
+      ownerFamily: parties(2),
+    },
+    rest: NONE,
+  },
+  {
+    name: 'Reports (reports): never by table',
+    sql: 'select count(*)::int n from public.reports',
+    total: 1,
+    cells: {},
+    rest: NONE,
+  },
+  {
+    name: 'A builder Page, switch on (the beta default)',
+    sql: "select count(*)::int n from public.groups where slug = 'qa-visibility-builder'",
+    total: 1,
+    switch: 'on',
+    cells: {},
+    rest: all(1),
+  },
+  {
+    name: 'A builder Page, switch off',
+    sql: "select count(*)::int n from public.groups where slug = 'qa-visibility-builder'",
+    total: 1,
+    switch: 'off',
+    cells: { builder: own(1) },
+    rest: NONE,
+  },
+  {
+    name: "A builder's join of a real Page, switch on or off: never counts",
+    sql: "select count(*)::int n from public.group_memberships where member_id = '0a000000-0000-4000-8000-000000000007'",
+    total: 1,
+    cells: { builder: own(1) },
+    rest: NONE,
+  },
+]
+
+export const VIEWERS: Viewer[] = ['signedOut', 'stranger', 'follower', 'member', 'applicant', 'rsvp', 'operator', ...OWNERS, 'builder']
+
+/** The cell for a viewer. */
+export const cellFor = (r: Resource, v: Viewer): Cell => r.cells[v] ?? r.rest

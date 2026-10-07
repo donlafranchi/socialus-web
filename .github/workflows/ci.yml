@@ -337,6 +337,14 @@ jobs:
             npm run build
           fi
 
+      # #430 — the visibility matrix: every persona (and a builder) reads what
+      # evals/visibility/matrix.ts says, and the matrix rejects an open table.
+      - name: Visibility matrix
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SUPABASE_URL: http://127.0.0.1:54321
+        run: npm run test:visibility
+
       # [guard-proves-itself]: watched failing on every run, before anything
       # below is believed.
       - name: The browser suite can fail (self-test)
