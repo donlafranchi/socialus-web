@@ -10,6 +10,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { groupPostCreate, groupPostEdit, groupPostDelete, ActionError } from '@/actions'
+import { recordOrigin } from './origin-actions'
 import { succeeded, failed, type ActionResult } from '@/app/you/sell/action-result'
 
 async function currentMemberId(): Promise<string | null> {
@@ -36,6 +37,7 @@ export async function postToPageAction(input: {
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
   try {
     const r = await groupPostCreate(resolveActionContext({ actingMemberId: memberId }), input)
+    await recordOrigin(memberId, 'post', r.postId)
     return succeeded({ postId: r.postId, createdAt: r.createdAt })
   } catch (err) {
     return asFailure(err)

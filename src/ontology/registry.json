@@ -330,6 +330,7 @@
     "member.unfollow",
     "metro.waitlist_join",
     "metro.waitlist_join_anonymous",
+    "origin.record",
     "report.answer",
     "report.create",
     "report.decide",

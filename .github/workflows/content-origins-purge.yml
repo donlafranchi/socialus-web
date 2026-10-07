@@ -1,0 +1,52 @@
+name: Content origins purge (daily)
+
+# F102 criterion 13 — the address and time a post or upload came from is kept
+# one year, then deleted. This runs public.purge_content_origins(), which removes
+# only rows older than a year, never sooner.
+#
+# The schedule waits for the repository variable CONTENT_ORIGINS_PURGE_ENABLED=true,
+# set once the migration is applied; manual runs always work and are as safe as the
+# schedule.
+
+on:
+  schedule:
+    - cron: '41 11 * * *' # 04:23 Pacific
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: content-origins-purge
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    name: Delete origins older than a year
+    if: github.event_name == 'workflow_dispatch' || vars.CONTENT_ORIGINS_PURGE_ENABLED == 'true'
+    # PINNED, not ubuntu-latest — same reasoning as apply.yml.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Purge
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+        run: |
+          n="$(psql "$SUPABASE_DB_URL" -tAX -v ON_ERROR_STOP=1 -c 'select public.purge_content_origins()')"
+          echo "Deleted $n origin record(s) older than a year." | tee -a "$GITHUB_STEP_SUMMARY"
