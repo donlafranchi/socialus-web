@@ -35,13 +35,14 @@ export async function startDraftAction(purpose: Purpose): Promise<void> {
 }
 
 /** #301 — Publish from the draft's checklist. group.activate re-checks the
- *  name, where it is and the description, and that the caller founded it. */
-export async function publishDraftAction(groupId: string): Promise<void> {
+ *  name, where it is and the description, and that the caller founded it.
+ *  F082 — and that the member agreed to the current rules. */
+export async function publishDraftAction(groupId: string, rulesVersion: number): Promise<void> {
   const supabase = await createClient()
   const { data } = await supabase.auth.getUser()
   if (!data.user) redirect('/auth/login')
   try {
-    await groupActivate(resolveActionContext({ actingMemberId: data.user.id }), { groupId })
+    await groupActivate(resolveActionContext({ actingMemberId: data.user.id }), { groupId, rulesVersion })
   } catch (err) {
     throw err instanceof ActionError ? new Error(err.message) : err
   }
