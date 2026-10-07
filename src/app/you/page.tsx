@@ -12,6 +12,7 @@ import { FollowingSummary } from '@/components/follows/FollowingSummary'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { AuthCard } from '@/components/shell/AuthCard'
 import { Button } from '@/components/ui/Button'
+import { YouNotices } from '@/components/member/YouNotices'
 import { DefaultMetro } from '@/components/member/DefaultMetro'
 import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
 import { saveDefaultMetroAction } from '@/app/explore/actions'
@@ -37,9 +38,10 @@ export default async function YouPage() {
     )
   }
 
-  const [{ data: me }, metros] = await Promise.all([
+  const [{ data: me }, metros, { data: notices }] = await Promise.all([
     supabase.from('members').select('display_name, default_metro_id, home_metro_id').eq('id', user.id).maybeSingle(),
     listFeedMetros(supabase).catch(() => []),
+    supabase.from('member_notices').select('id, message, created_at').order('created_at', { ascending: false }).limit(10),
   ])
   const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null } | null
   const name = row?.display_name ?? null
@@ -52,6 +54,10 @@ export default async function YouPage() {
         <p className="mt-0.5 text-body-sm text-[var(--color-fg-muted)]">{user.email}</p>
         <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Only you see this page.</p>
       </header>
+
+      <YouNotices
+        notices={((notices ?? []) as { id: string; message: string; created_at: string }[]).map((n) => ({ id: n.id, message: n.message, createdAt: n.created_at }))}
+      />
 
       <Section title="Your Pages" testId="your-pages-section" action={<Link href="/create" className={LINK}>Start something</Link>}>
         <OwnPages memberId={user.id} />
