@@ -62,6 +62,17 @@ export interface ReportDecisionResult {
   reversedDecisionId: string | null
 }
 
+type SubjectRow = { subject_kind: 'group' | 'post'; subject_id: string; group_id: string }
+
+const eventKind = (kind: 'group' | 'post', outcome: Outcome) =>
+  kind === 'post'
+    ? outcome === 'restored'
+      ? 'group.post_restored'
+      : 'group.post_removed'
+    : outcome === 'restored'
+      ? 'group.photo_restored'
+      : 'group.photo_removed'
+
 type Client = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
 function requireOperator(ctx: ActionContext, verb: string): string {
@@ -83,7 +94,39 @@ function requireNote(input: { reasonCode: ReasonCode; reasonNote?: string }, ver
  * Apply an outcome to the Page. Both directions are projection changes — the
  * URL and the bytes are never touched, which is what makes this reversible.
  */
-async function project(client: Client, groupId: string, outcome: Outcome, now: Date) {
+type Subject = { kind: 'group' | 'post'; id: string; groupId: string }
+
+/** F078 criterion 1 — a hidden Post is private (managers only), so the same two
+ *  outcomes apply to it: restoring puts back the audience it had and locks that
+ *  wording against re-hiding; removing keeps it down and stamps when. */
+async function projectPost(client: Client, postId: string, outcome: Outcome, now: Date) {
+  if (outcome === 'restored') {
+    await client.query(
+      `update public.page_posts
+          set discoverability = coalesce(hidden_prior_discoverability, discoverability),
+              hidden_at = null,
+              hidden_prior_discoverability = null,
+              removed_at = null,
+              hide_locked_body = body
+        where id = $1`,
+      [postId],
+    )
+    return
+  }
+  await client.query(
+    `update public.page_posts
+        set removed_at = $2,
+            hidden_prior_discoverability = coalesce(hidden_prior_discoverability, discoverability),
+            hidden_at = coalesce(hidden_at, $2),
+            discoverability = 'private'
+      where id = $1`,
+    [postId, now],
+  )
+}
+
+async function project(client: Client, subject: Subject, outcome: Outcome, now: Date) {
+  if (subject.kind === 'post') return projectPost(client, subject.id, outcome, now)
+  const groupId = subject.id
   if (outcome === 'restored') {
     // The lock is granted against the URL restored, so replacing the photo
     // drops it on its own and cannot outlive what it covers.
@@ -164,16 +207,19 @@ export const reportDecide = defineHandler(
     requireNote(input, 'report.decide')
 
     return withTransaction(async (client) => {
-      const res = await client.query<{ group_id: string }>(
-        `select r.subject_id as group_id
+      const res = await client.query<SubjectRow>(
+        `select r.subject_kind, r.subject_id,
+                coalesce(p.group_id, g.id) as group_id
            from public.reports r
-           join public.groups g on g.id = r.subject_id
-          where r.id = $1 and r.subject_kind = 'group'
+           left join public.groups g on r.subject_kind = 'group' and g.id = r.subject_id
+           left join public.page_posts p on r.subject_kind = 'post' and p.id = r.subject_id
+          where r.id = $1 and coalesce(p.group_id, g.id) is not null
           for update of r`,
         [input.reportId],
       )
       const row = res.rows[0]
       if (!row) throw new NotFoundError(`report.decide: report ${input.reportId} not found`)
+      const subject: Subject = { kind: row.subject_kind, id: row.subject_id, groupId: row.group_id }
 
       const now = ctx.now()
       const decisionId = await insertDecision(client, {
@@ -184,12 +230,12 @@ export const reportDecide = defineHandler(
         reasonCode: input.reasonCode,
         reasonNote: input.reasonNote,
       })
-      await project(client, row.group_id, input.outcome, now)
+      await project(client, subject, input.outcome, now)
       await projectReportRow(client, input.reportId, input.outcome, operator, now)
 
       await appendEvent({ ...ctx, db: client }, 'group_events', {
-        group_id: row.group_id,
-        event_kind: input.outcome === 'restored' ? 'group.photo_restored' : 'group.photo_removed',
+        group_id: subject.groupId,
+        event_kind: eventKind(subject.kind, input.outcome),
         payload: {
           report_id: input.reportId,
           decision_id: decisionId,
@@ -201,7 +247,7 @@ export const reportDecide = defineHandler(
       return {
         decisionId,
         reportId: input.reportId,
-        groupId: row.group_id,
+        groupId: subject.groupId,
         outcome: input.outcome,
         reversedDecisionId: null,
       }
@@ -221,12 +267,16 @@ export const reportReverse = defineHandler(
         id: string
         report_id: string
         group_id: string
+        subject_kind: 'group' | 'post'
+        subject_id: string
         outcome: Outcome
         already_reversed: boolean
       }>(
         `select d.id,
                 d.report_id,
-                r.subject_id as group_id,
+                coalesce(p.group_id, r.subject_id) as group_id,
+                r.subject_kind,
+                r.subject_id,
                 d.outcome,
                 exists (
                   select 1 from public.report_decisions x
@@ -234,6 +284,7 @@ export const reportReverse = defineHandler(
                 ) as already_reversed
            from public.report_decisions d
            join public.reports r on r.id = d.report_id
+           left join public.page_posts p on r.subject_kind = 'post' and p.id = r.subject_id
           where d.id = $1
           for update of d`,
         [input.decisionId],
@@ -261,7 +312,7 @@ export const reportReverse = defineHandler(
         reasonNote: input.reasonNote,
         reverses: prior.id,
       })
-      await project(client, prior.group_id, outcome, now)
+      await project(client, { kind: prior.subject_kind, id: prior.subject_id, groupId: prior.group_id }, outcome, now)
       await projectReportRow(client, prior.report_id, outcome, operator, now)
 
       await appendEvent({ ...ctx, db: client }, 'group_events', {

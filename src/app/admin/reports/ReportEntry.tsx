@@ -106,14 +106,18 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
 
       <p className="text-xs text-[var(--color-fg-muted)]">
         {report.removedAt
-          ? 'Photo removed'
+          ? report.subjectKind === 'post' ? 'Removed' : 'Photo removed'
           : hiddenFor
             ? `Hidden ${hiddenFor}`
             : 'Not hidden'}{' '}
         · reported {report.reportedAt.toISOString().slice(0, 10)}
       </p>
 
-      {report.photoUrl ? (
+      {report.subjectKind === 'post' ? (
+        <p data-testid="reported-post" className="whitespace-pre-wrap rounded-md bg-[var(--color-surface)] p-3 text-sm text-[var(--color-fg)]">
+          {report.contentText}
+        </p>
+      ) : report.photoUrl ? (
         <div className="relative overflow-hidden rounded-md bg-[var(--color-surface)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
