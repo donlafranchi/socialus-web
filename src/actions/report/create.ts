@@ -25,6 +25,7 @@ import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
 import { textOperator } from '@/lib/notify/operator-sms'
+import { hiddenNoticeMessage } from '@/lib/reports/notices'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -55,9 +56,9 @@ const MAX_OPEN_REPORTS_TOTAL = 20
 const MAX_REPORTS_PER_SUBJECT = 2
 
 export const reportCreateInput = z.object({
-  // 'group' is the only value today. Posts join when posts exist; Items never
-  // do (model.md § There are no Items).
-  subjectKind: z.literal('group'),
+  // A Page photo ('group') or a Post ('post'). Items never join
+  // (model.md § There are no Items).
+  subjectKind: z.enum(['group', 'post']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -79,6 +80,133 @@ export interface ReportCreateResult {
    * changes nothing visible to anyone.
    */
   photoHidden: boolean
+}
+
+interface Subject {
+  groupId: string
+  founderId: string
+  pageName: string
+  hideBar: string | number
+  builderOnReal: boolean
+  reporterIsBuilder: boolean
+  /** Something there to hide: a Page with a photo, any Post. */
+  hideable: boolean
+  alreadyHidden: boolean
+  /** A restore is sticky for what was reviewed. */
+  locked: boolean
+  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden'
+  /** False when a concurrent report got there first. */
+  hide: (client: Queryable, now: Date) => Promise<boolean>
+}
+
+type Queryable = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
+
+// F078 criterion 7: the metro's bar, 0 when the metro cannot be resolved.
+// min() so an overlap leans toward hiding.
+const BAR_OF_LOCATION = `coalesce((select min(mp.hide_bar)
+                            from public.locations l
+                            join public.metro_polygons mp on st_intersects(l.geography, mp.geography)
+                           where l.id = %LOCATION%), 0)`
+
+async function loadSubject(
+  client: Queryable,
+  kind: 'group' | 'post',
+  id: string,
+  reporterId: string,
+): Promise<Subject | null> {
+  if (kind === 'group') {
+    const res = await client.query<{
+      photo_url: string | null
+      photo_hidden_at: Date | null
+      photo_hide_locked_url: string | null
+      builder_on_real: boolean
+      reporter_is_builder: boolean
+      founder_member_id: string
+      name: string
+      hide_bar: string | number
+    }>(
+      // #280 — a builder's report on a real Page is stored and queued, and
+      // never hides anything a real member sees.
+      `select photo_url, photo_hidden_at, photo_hide_locked_url,
+              public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder,
+              founder_member_id, name,
+              ${BAR_OF_LOCATION.replace('%LOCATION%', 'groups.anchor_location_id')} as hide_bar
+         from public.groups
+        where id = $1`,
+      [id, reporterId],
+    )
+    const g = res.rows[0]
+    if (!g) return null
+    return {
+      groupId: id,
+      founderId: g.founder_member_id,
+      pageName: g.name,
+      hideBar: g.hide_bar,
+      builderOnReal: g.builder_on_real,
+      reporterIsBuilder: g.reporter_is_builder,
+      hideable: g.photo_url !== null,
+      alreadyHidden: g.photo_hidden_at !== null,
+      // Locked while photo_hide_locked_url = photo_url; replacing the photo
+      // un-locks it on its own.
+      locked: g.photo_hide_locked_url !== null && g.photo_hide_locked_url === g.photo_url,
+      hiddenEventKind: 'group.photo_hidden',
+      hide: async (c, now) => {
+        const r = await c.query<{ id: string }>(
+          `update public.groups set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`,
+          [id, now],
+        )
+        return r.rows.length > 0
+      },
+    }
+  }
+
+  const res = await client.query<{
+    group_id: string
+    body: string
+    hidden_at: Date | null
+    hide_locked_body: string | null
+    builder_on_real: boolean
+    reporter_is_builder: boolean
+    founder_member_id: string
+    name: string
+    hide_bar: string | number
+  }>(
+    `select p.group_id, p.body, p.hidden_at, p.hide_locked_body,
+            public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
+            public.is_builder($2) as reporter_is_builder,
+            g.founder_member_id, g.name,
+            ${BAR_OF_LOCATION.replace('%LOCATION%', 'coalesce(p.location_id, g.anchor_location_id)')} as hide_bar
+       from public.page_posts p
+       join public.groups g on g.id = p.group_id
+      where p.id = $1 and p.dissolved_at is null`,
+    [id, reporterId],
+  )
+  const p = res.rows[0]
+  if (!p) return null
+  return {
+    groupId: p.group_id,
+    founderId: p.founder_member_id,
+    pageName: p.name,
+    hideBar: p.hide_bar,
+    builderOnReal: p.builder_on_real,
+    reporterIsBuilder: p.reporter_is_builder,
+    hideable: true,
+    alreadyHidden: p.hidden_at !== null,
+    locked: p.hide_locked_body !== null && p.hide_locked_body === p.body,
+    hiddenEventKind: 'group.post_hidden',
+    // Hidden means private (managers only): every read path already honours it.
+    hide: async (c, now) => {
+      const r = await c.query<{ id: string }>(
+        `update public.page_posts
+            set hidden_at = $2, hidden_prior_discoverability = discoverability, discoverability = 'private'
+          where id = $1 and hidden_at is null
+          returning id`,
+        [id, now],
+      )
+      return r.rows.length > 0
+    },
+  }
 }
 
 export const reportCreate = defineHandler(
@@ -112,28 +240,10 @@ export const reportCreate = defineHandler(
     let textAfterCommit = false
     const result = await withTransaction(async (client) => {
       // `reports.subject_id` carries no foreign key — it is polymorphic by
-      // design, so posts join later without a change of shape. The handler is
-      // what keeps it honest.
-      const subjectRes = await client.query<{
-        id: string
-        photo_url: string | null
-        photo_hidden_at: Date | null
-        photo_hide_locked_url: string | null
-        builder_on_real: boolean
-        reporter_is_builder: boolean
-      }>(
-        // #280 — a builder's report on a real Page is stored and queued, and
-        // never hides anything a real member sees.
-        `select id, photo_url, photo_hidden_at, photo_hide_locked_url,
-                public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
-                public.is_builder($2) as reporter_is_builder
-           from public.groups
-          where id = $1`,
-        [input.subjectId, reporterMemberId],
-      )
-      const subject = subjectRes.rows[0]
+      // design. The handler is what keeps it honest.
+      const subject = await loadSubject(client, input.subjectKind, input.subjectId, reporterMemberId)
       if (!subject) {
-        throw new NotFoundError(`report.create: group ${input.subjectId} not found`)
+        throw new NotFoundError(`report.create: ${input.subjectKind} ${input.subjectId} not found`)
       }
 
       // The two counts are read BEFORE the insert, so this report never counts
@@ -188,7 +298,7 @@ export const reportCreate = defineHandler(
       // the migration that accompanies this ticket keeps that column out of
       // every browser read path.
       await appendEvent(txCtx, 'group_events', {
-        group_id: input.subjectId,
+        group_id: subject.groupId,
         event_kind: 'group.reported',
         payload: { report_id: reportId, subject_kind: input.subjectKind },
       })
@@ -205,46 +315,59 @@ export const reportCreate = defineHandler(
       //                         the lock cannot outlive the photo it was
       //                         granted for. Nothing here clears it.
       //   the open-report cap — decouples the hide from an unbounded reporter.
-      const isLocked =
-        subject.photo_hide_locked_url !== null &&
-        subject.photo_hide_locked_url === subject.photo_url
-
       // F078 criterion 8 — sensitive content and threat of harm hide whatever
       // the per-member limits say. The restore lock still holds: Don has
       // already looked at that photo.
       const urgent = URGENT_CATEGORIES.includes(input.category)
-      if (urgent && !subject.reporter_is_builder && !subject.builder_on_real) textAfterCommit = true
+      if (urgent && !subject.reporterIsBuilder && !subject.builderOnReal) textAfterCommit = true
+
+      // F078 criteria 6–8. No classifier yet, so no report carries a score: above
+      // a bar of 0 a report is below it and only queues. Urgent categories hide
+      // at any bar.
+      const reachesBar = Number(subject.hideBar) === 0
 
       const shouldHide =
-        !subject.builder_on_real &&
-        subject.photo_url !== null &&
-        subject.photo_hidden_at === null &&
-        !isLocked &&
-        (urgent || (priorBySameMember === 0 && openByReporter < MAX_OPEN_REPORTS_PER_REPORTER))
+        !subject.builderOnReal &&
+        subject.hideable &&
+        !subject.alreadyHidden &&
+        !subject.locked &&
+        (urgent || (reachesBar && priorBySameMember === 0 && openByReporter < MAX_OPEN_REPORTS_PER_REPORTER))
 
       if (!shouldHide) {
         return { reportId, photoHidden: false }
       }
 
-      // `photo_hidden_at is null` in the WHERE re-asserts the read above, so a
-      // concurrent report cannot produce two hides and two events.
-      const hideRes = await client.query<{ id: string }>(
-        `update public.groups
-            set photo_hidden_at = $2
-          where id = $1
-            and photo_hidden_at is null
-          returning id`,
-        [input.subjectId, ctx.now()],
-      )
-      if (hideRes.rows.length === 0) {
+      // The WHERE re-asserts the read above, so a concurrent report cannot
+      // produce two hides and two events.
+      if (!(await subject.hide(client, ctx.now()))) {
         return { reportId, photoHidden: false }
       }
 
       await appendEvent(txCtx, 'group_events', {
-        group_id: input.subjectId,
-        event_kind: 'group.photo_hidden',
+        group_id: subject.groupId,
+        event_kind: subject.hiddenEventKind,
         payload: { report_id: reportId, reason: 'reported' },
       })
+
+      // F078 criterion 3 — the poster is told, in-app, the reporter's chosen
+      // reason. Sensitive content stays operator-only until the NCMEC plan is
+      // settled (ruled 2026-10-07): a child's picture never goes back to the poster.
+      if (input.category !== 'sensitive_content' && !subject.reporterIsBuilder) {
+        await client.query(
+          `insert into public.member_notices
+             (member_id, kind, report_id, subject_kind, subject_id, category, message, created_at)
+           values ($1, 'content_hidden', $2, $3, $4, $5, $6, $7)`,
+          [
+            subject.founderId,
+            reportId,
+            input.subjectKind,
+            input.subjectId,
+            input.category,
+            hiddenNoticeMessage(subject.pageName, input.category, input.subjectKind),
+            ctx.now(),
+          ],
+        )
+      }
 
       return { reportId, photoHidden: true }
     })
@@ -254,7 +377,7 @@ export const reportCreate = defineHandler(
     if (textAfterCommit) {
       const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.socialus.org'
       await textOperator(
-        `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? ' and hid a Page photo' : ''}. Review: ${site}/admin/reports`,
+        `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? (input.subjectKind === 'post' ? ' and hid a Post' : ' and hid a Page photo') : ''}. Review: ${site}/admin/reports`,
       )
     }
     return result

@@ -51,6 +51,11 @@ export interface PastDecision {
 }
 
 export interface QueuedReport {
+  /** F078 criterion 1 — a Post or a Page's photo. Absent means a Page photo. */
+  subjectKind?: 'group' | 'post'
+  postId?: string
+  /** What was reported, in its own words, for the row's excerpt. */
+  contentText?: string | null
   reportId: string
   /** What the reporter wrote, in their own words. */
   body: string
@@ -136,22 +141,28 @@ export async function fetchReviewQueue(
             r.body            as body,
             r.category        as category,
             r.created_at      as reported_at,
-            g.photo_hidden_at as hidden_at,
-            g.photo_removed_at as removed_at,
-            g.id              as group_id,
-            g.name            as group_name,
-            g.slug            as group_slug,
-            g.photo_url       as photo_url,
+            r.subject_kind    as subject_kind,
+            p.id              as post_id,
+            -- A post is hidden or removed on its own; a Page's photo on the Page.
+            case when p.id is not null then p.hidden_at else g.photo_hidden_at end as hidden_at,
+            case when p.id is not null then p.removed_at else g.photo_removed_at end as removed_at,
+            pg.id             as group_id,
+            pg.name           as group_name,
+            pg.slug           as group_slug,
+            case when p.id is not null then null else g.photo_url end as photo_url,
+            case when p.id is not null then p.body else g.description end as content_text,
             m.display_name    as owner_display_name,
             m.handle          as owner_handle
        from public.reports r
-       join public.groups  g on g.id = r.subject_id
-       left join public.members m on m.id = g.founder_member_id
-      where r.subject_kind = 'group'
+       left join public.groups g     on r.subject_kind = 'group' and g.id = r.subject_id
+       left join public.page_posts p on r.subject_kind = 'post'  and p.id = r.subject_id
+       join public.groups pg         on pg.id = coalesce(g.id, p.group_id)
+       left join public.members m on m.id = pg.founder_member_id
+      where (g.id is not null or p.id is not null)
         -- #280 — builder reports and builder Pages reach only the builder operator.
-        and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(g.founder_member_id)))
+        and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(pg.founder_member_id)))
       order by (r.reviewed_at is not null),          -- undecided first
-               g.photo_hidden_at asc nulls last,
+               case when p.id is not null then p.hidden_at else g.photo_hidden_at end asc nulls last,
                r.created_at asc
       limit $1`,
     [limit, includeBuilders],
@@ -160,6 +171,9 @@ export async function fetchReviewQueue(
   const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))
 
   return rows.map((r: Record<string, unknown>) => ({
+    subjectKind: ((r.subject_kind as string) === 'post' ? 'post' : 'group') as 'group' | 'post',
+    postId: (r.post_id as string | null) ?? undefined,
+    contentText: (r.content_text as string | null) ?? null,
     reportId: r.report_id as string,
     body: r.body as string,
     category: (r.category as ReportCategory | null) ?? null,
