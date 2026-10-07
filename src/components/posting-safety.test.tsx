@@ -81,8 +81,7 @@ describe('F080 — the safety message where a member posts', () => {
       <SellWalkthrough memberId="m1" createDraft={asyncNoop} updateDraft={asyncNoop} activate={asyncNoop}
         createLocation={asyncNoop} availableLocations={[]} redirect={noop} showToast={noop} onAbandon={noop} />
     )],
-    ['saving a live Page, its words', editCards, 'Edit description'],
-    ['saving a live Page, its photo', editCards, 'Edit photo'],
+    ['saving a live Page, its words and photo (Basics, #452)', editCards, 'Edit Basics'],
     ['announcing', () => <PagePosts {...postProps} canPost />],
     ['publishing a product', () => (
       <ProductComposer createProduct={asyncNoop} createLocation={asyncNoop} availableLocations={[]}
