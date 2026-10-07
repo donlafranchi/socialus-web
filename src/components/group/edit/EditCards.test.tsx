@@ -214,12 +214,12 @@ describe('#423 — Page settings, last', () => {
   const ok = vi.fn(async () => ({ ok: true as const }))
   const settings = { lifecycleState: 'active' as const, onArchive: ok, onRestore: ok, onDelete: ok }
 
-  it('sits after every other group, before Done', () => {
+  it('sits after every other group and the link, last on the page', () => {
     const { container } = render(<EditCards title="Edit P" initial={initial} onSave={onSave} isDraft={false} settings={settings} />)
     const groups = [...container.querySelectorAll('details')]
     expect(groups.at(-1)!.querySelector('summary')!.textContent).toBe('Page settings')
-    const done = screen.getByRole('link', { name: 'Done' })
-    expect(groups.at(-1)!.compareDocumentPosition(done) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const link = screen.getByTestId('edit-link-frozen')
+    expect(link.compareDocumentPosition(groups.at(-1)!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('is not offered on a draft', () => {
