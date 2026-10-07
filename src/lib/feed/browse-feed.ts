@@ -160,6 +160,8 @@ export interface BrowseResult {
   startsAt: string | null
   locationId: string | null
   locationLabel: string | null
+  /** #475 — stamped by the map read: an exact address, or only an area. Absent means unknown (treated as an address). */
+  locationKind?: 'permanent' | 'recurring_temporary' | 'area'
   /** Map pin. Null when nothing resolvable was projected. */
   longitude: number | null
   latitude: number | null

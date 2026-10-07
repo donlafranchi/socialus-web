@@ -49,6 +49,7 @@ import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/fe
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { loadMapMix } from '@/lib/map/load-mix'
+import { withLocationKinds } from '@/lib/map/location-kinds'
 import type { MixedResult } from '@/lib/map/mix'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { BrowseSnapshot, HappeningSnapshot } from '@/lib/browse/snapshot'
@@ -126,7 +127,9 @@ export async function loadBrowse(requestedSlug: string | null, areaId: string | 
   const signedOut = !user
   // #331 — signed out, no pins (the front door, F093).
   const mapPromise = user
-    ? loadMapMix(supabase, scope.metro.id, new Date(), area?.id).catch((error) => {
+    ? loadMapMix(supabase, scope.metro.id, new Date(), area?.id)
+        .then((rows) => withLocationKinds(supabase, rows))
+        .catch((error) => {
         console.error('[loadBrowse] map mix failed:', (error as Error).message)
         return [] as MixedResult[]
       })

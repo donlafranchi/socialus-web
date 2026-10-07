@@ -303,6 +303,17 @@ describe('who sees this', () => {
     expect(screen.getByTestId('announce-audience-switch')).toBeInTheDocument()
   })
 
+  // #337 — a private Page's posts are for its members; the switch would say
+  // more than happens (the 2026-09-30 line is replaced, option A).
+  it('is not offered on a private Page, and the post still goes', async () => {
+    renderPosts({ isPrivate: true })
+    expect(screen.queryByTestId('announce-audience')).toBeNull()
+    expect(screen.queryByText('Anyone')).toBeNull()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'x' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+  })
+
   it('will not post with it, and says why', async () => {
     // Follower delivery does not exist. Telling a creator they reached 42
     // people who receive nothing is a lie; hiding the setting is a different
@@ -453,10 +464,28 @@ describe('#318 — deleting a post', () => {
   it('asks before it deletes, and Keep it changes nothing', () => {
     renderPosts({ posts: [postFixture()], onDelete })
     fireEvent.click(screen.getByTestId('page-post-delete'))
-    expect(screen.getByRole('alertdialog', { name: /delete this post/i })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /delete this post/i })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /keep it/i }))
     expect(onDelete).not.toHaveBeenCalled()
     expect(screen.getAllByTestId('page-post')).toHaveLength(1)
+  })
+
+  // #461 — the confirm is the app's one sheet, and Escape or the backdrop is Keep it.
+  it('confirms in a sheet, and the sheet closing changes nothing', () => {
+    renderPosts({ posts: [postFixture()], onDelete })
+    fireEvent.click(screen.getByTestId('page-post-delete'))
+    expect(screen.getByRole('dialog', { name: /delete this post/i })).toHaveAttribute('aria-modal', 'true')
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(onDelete).not.toHaveBeenCalled()
+  })
+
+  // #461 — the review found Delete under 44px.
+  it('Delete and Edit are full-size tap targets', () => {
+    renderPosts({ posts: [postFixture()], onDelete })
+    for (const id of ['page-post-delete', 'page-post-edit']) {
+      expect(screen.getByTestId(id).className).toMatch(/\bmin-h-tap\b/)
+    }
   })
 
   it('deletes on confirm and takes the post off the Page', async () => {

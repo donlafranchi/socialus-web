@@ -22,8 +22,10 @@ const { uploadImage } = vi.hoisted(() => ({ uploadImage: vi.fn() }))
 vi.mock('@/lib/media/upload-image', () => ({ uploadImage }))
 
 import { PagePhotoPicker } from './PagePhotoPicker'
+import { COPY } from '@/lib/copy'
 
 const URL_A = 'https://x.supabase.co/storage/v1/object/public/media/m/a.webp'
+const confirm = () => fireEvent.click(screen.getByLabelText(COPY.photoConfirm))
 const file = () => new File(['x'], 'photo.jpg', { type: 'image/jpeg' })
 
 afterEach(cleanup)
@@ -34,10 +36,29 @@ beforeEach(() => {
 })
 
 describe('F070 · T145 — PagePhotoPicker', () => {
+  // [guards F080.5 partial: the ask at posting; this is the per-photo confirmation]
+  it('F080 — choosing a photo waits until the uploader confirms it shows no children', () => {
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
+    const choose = screen.getByRole('button', { name: /choose a photo/i })
+    expect(choose).toBeDisabled()
+    fireEvent.click(screen.getByLabelText(COPY.photoConfirm))
+    expect(choose).toBeEnabled()
+  })
+
+  it('F080 — each photo asks again: the confirmation clears after an upload', async () => {
+    render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
+    fireEvent.click(screen.getByLabelText(COPY.photoConfirm))
+    confirm()
+    fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
+    await waitFor(() => expect(uploadImage).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(screen.getByLabelText(COPY.photoConfirm)).not.toBeChecked())
+  })
+
   it('uploads the chosen file and reports the URL', async () => {
     const onChange = vi.fn()
     render(<PagePhotoPicker memberId="m1" value={null} onChange={onChange} />)
 
+    confirm()
     fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(URL_A))
@@ -68,6 +89,7 @@ describe('F070 · T145 — PagePhotoPicker', () => {
     const onChange = vi.fn()
     render(<PagePhotoPicker memberId="m1" value={null} onChange={onChange} />)
 
+    confirm()
     fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
@@ -79,9 +101,11 @@ describe('F070 · T145 — PagePhotoPicker', () => {
     const onChange = vi.fn()
     render(<PagePhotoPicker memberId="m1" value={null} onChange={onChange} />)
 
+    confirm()
     fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
 
+    confirm()
     fireEvent.change(screen.getByTestId('page-photo-input'), { target: { files: [file()] } })
     await waitFor(() => expect(onChange).toHaveBeenCalledWith(URL_A))
     expect(screen.queryByRole('alert')).toBeNull()
@@ -103,6 +127,7 @@ describe('the photo control looks and acts like a button', () => {
     render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
     const input = screen.getByTestId('page-photo-input') as HTMLInputElement
     const click = vi.spyOn(input, 'click')
+    confirm()
     fireEvent.click(screen.getByRole('button', { name: /choose a photo/i }))
     expect(click).toHaveBeenCalledTimes(1)
   })

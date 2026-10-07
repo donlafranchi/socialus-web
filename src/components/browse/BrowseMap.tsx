@@ -15,7 +15,8 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_DEFAULTS, METRO_VIEW, CLUSTER_CONFIG } from '@/lib/map-config'
 import { groupPins, type BrowsePin } from '@/lib/browse/pins'
-import { stylePin, styleCluster } from '@/lib/map-pins'
+import { styleTeardrop, styleAreaMarker, styleCluster } from '@/lib/map-pins'
+import { spreadCoincident } from '@/lib/browse/spread'
 import { gridCluster } from '@/lib/browse/cluster'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -58,12 +59,25 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
     if (!map) return
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = []
-    const pins = pinsRef.current
+    const all = pinsRef.current
+    // #475 — an area is a disc, never clustered with pins or spread: it is not a point.
+    for (const area of all.filter((p) => p.kind === 'area')) {
+      const el = document.createElement('div')
+      styleAreaMarker(el, area.results.length, { selected: area.groupId === selectedRef.current })
+      el.setAttribute('data-testid', 'map-area')
+      el.setAttribute('data-result-count', String(area.results.length))
+      el.setAttribute('role', 'button')
+      el.setAttribute('aria-label', `${area.name}: ${area.results.length} here`)
+      el.addEventListener('click', () => setSelected(area))
+      markersRef.current.push(new mapboxgl.Marker(el).setLngLat([area.longitude, area.latitude]).addTo(map))
+    }
+    const pins = all.filter((p) => p.kind === 'address')
     const byKey = new Map(pins.map((p) => [p.key, p]))
-    const groups =
-      map.getZoom() >= CLUSTER_CONFIG.clusterMaxZoom
-        ? pins.map((p) => ({ keys: [p.key] }))
-        : gridCluster(pins.map((p) => ({ key: p.key, ...map.project([p.longitude, p.latitude]) })))
+    const clustering = map.getZoom() < CLUSTER_CONFIG.clusterMaxZoom
+    const projected = pins.map((p) => ({ key: p.key, ...map.project([p.longitude, p.latitude]) }))
+    const groups: { keys: string[]; at?: { x: number; y: number } }[] = clustering
+      ? gridCluster(projected)
+      : spreadCoincident(projected).map((p) => ({ keys: [p.key], at: p }))
     for (const g of groups) {
       const members = g.keys.map((k) => byKey.get(k)!)
       const el = document.createElement('div')
@@ -78,14 +92,20 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
         continue
       }
       const pin = members[0]!
-      stylePin(el, { small: true, selected: pin.groupId === selectedRef.current })
+      styleTeardrop(el, { selected: pin.groupId === selectedRef.current })
       el.setAttribute('data-testid', 'map-pin')
       el.setAttribute('data-group-id', pin.groupId)
       el.setAttribute('data-result-count', String(pin.results.length))
       const bucket = (pin.results[0] as { bucket?: string } | undefined)?.bucket
       if (bucket) el.setAttribute('data-bucket', bucket)
       el.addEventListener('click', () => setSelected(pin))
-      markersRef.current.push(new mapboxgl.Marker(el).setLngLat([pin.longitude, pin.latitude]).addTo(map))
+      // The tip of the teardrop is the address; a spread pin is moved in screen space and back.
+      const at = g.at ? map.unproject([g.at.x, g.at.y]) : null
+      markersRef.current.push(
+        new mapboxgl.Marker(el, { anchor: 'bottom' })
+          .setLngLat(at ? [at.lng, at.lat] : [pin.longitude, pin.latitude])
+          .addTo(map),
+      )
     }
   }, [])
 
@@ -147,19 +167,39 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
           className="absolute bottom-4 left-4 right-4 rounded-md border border-neutral-200 bg-white p-3 shadow-overlay"
         >
           <p className="text-sm font-medium text-[var(--color-fg)]">{selected.name}</p>
-          {/* What is here, not just that something is. Several rows at one
-              address is the normal case now, not an edge. */}
-          <ul className="mt-1 space-y-0.5">
-            {selected.results.slice(0, 3).map((r) => (
-              <li key={r.resultId} className="truncate text-xs text-[var(--color-fg-muted)]">
-                {r.resultKind === 'post' ? (r.body ?? 'Posted') : (r.description ?? r.name)}
-              </li>
-            ))}
-          </ul>
-          {selected.results.length > 3 && (
-            <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-              {selected.results.length - 3} more here
-            </p>
+          {selected.kind === 'area' ? (
+            // #475 — an area has no front door: say how many are here and list them.
+            <>
+              <p className="text-xs text-[var(--color-fg-muted)]">{selected.results.length} here</p>
+              <ul className="mt-1 max-h-40 space-y-0.5 overflow-y-auto">
+                {selected.results.map((r) => (
+                  <li key={`${r.resultKind}:${r.resultId}`} className="truncate text-sm">
+                    {r.href ? (
+                      <Link href={r.href} className="inline-flex min-h-11 items-center font-medium text-[var(--color-charcoal-900)] underline">
+                        {r.name}
+                      </Link>
+                    ) : (
+                      r.name
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
+              {/* What is here, not just that something is. Several rows at one
+                  address is the normal case now, not an edge. */}
+              <ul className="mt-1 space-y-0.5">
+                {selected.results.slice(0, 3).map((r) => (
+                  <li key={r.resultId} className="truncate text-xs text-[var(--color-fg-muted)]">
+                    {r.resultKind === 'post' ? (r.body ?? 'Posted') : (r.description ?? r.name)}
+                  </li>
+                ))}
+              </ul>
+              {selected.results.length > 3 && (
+                <p className="mt-1 text-xs text-[var(--color-fg-muted)]">{selected.results.length - 3} more here</p>
+              )}
+            </>
           )}
           <div className="mt-2 flex items-center gap-3">
             {selected.href && (

@@ -86,3 +86,13 @@ describe('Don, 2026-10-05 — map pins: navy, the selected one gold, legible on 
     expect(ratio('pin-selected', MAP_BASE[0]!)).toBeLessThan(3)
   })
 })
+
+describe('#475 — the area disc: translucent gold, count in deep gold', () => {
+  it('the count reads on the lightest the disc can look over the base map (gold-200 stands in for the blend)', () => {
+    expect(ratio('on-area', 'gold-200')).toBeGreaterThanOrEqual(4.5)
+  })
+  it('the disc fill is not the navy of pins and clusters', () => {
+    expect(token('area')).not.toBe(token('pin'))
+    expect(token('area')).not.toBe(token('cluster'))
+  })
+})

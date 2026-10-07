@@ -17,6 +17,7 @@
 import { useRef, useState } from 'react'
 import { PageOverflowMenu } from './PageOverflowMenu'
 import { ReportSheet } from './ReportSheet'
+import type { ReportCategory } from '@/lib/reports/categories'
 import { signInHref as gatedSignInHref } from '@/lib/auth/requires-account'
 
 interface Props {
@@ -25,7 +26,7 @@ interface Props {
   loggedIn: boolean
   /** Path to come back to after signing in. */
   returnTo?: string
-  onSend: (input: { subjectId: string; body: string }) => Promise<{ ok: true }>
+  onSend: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true }>
 }
 
 export function ReportControl({ subjectId, subjectLabel, loggedIn, returnTo, onSend }: Props) {
@@ -68,8 +69,8 @@ export function ReportControl({ subjectId, subjectLabel, loggedIn, returnTo, onS
         subjectLabel={subjectLabel}
         returnFocusTo={triggerRef}
         onClose={() => setSheetOpen(false)}
-        onSend={async (body) => {
-          await onSend({ subjectId, body })
+        onSend={async (category, body) => {
+          await onSend({ subjectId, category, body })
           setSheetOpen(false)
           setConfirmed(true)
         }}
