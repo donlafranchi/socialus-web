@@ -153,6 +153,12 @@ describe('sending', () => {
     expect(screen.getByRole('radio', { name: /sensitive content.*children.*animals.*fend for themselves/i })).toBeInTheDocument()
   })
 
+  it('keeps every radio full size beside a wrapped label', () => {
+    renderControl()
+    openAndSend('x', null)
+    for (const r of screen.getAllByRole('radio')) expect(r.className).toContain('shrink-0')
+  })
+
   it('passes the subject and the member\'s own words to the action', async () => {
     renderControl()
     openAndSend('the photo is stolen')
