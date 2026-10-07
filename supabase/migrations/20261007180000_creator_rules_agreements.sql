@@ -6,7 +6,7 @@
 -- seen only by Don and operators. Nothing typed, nothing checked (criterion 2),
 -- no badge (criterion 3): this is a record, never a projection.
 --
--- ORDER: applies after 20261007160000_archived_pages_remaining_paths. Touches
+-- ORDER: applies after 20261007170000_member_default_metro. Touches
 -- nothing that migration redefines.
 
 create table public.creator_rules_agreements (
