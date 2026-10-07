@@ -20,6 +20,7 @@ import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from './constants'
+import { RULES_VERSION } from '../../lib/creator-rules'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 
 // T159 — a Page declares at least one tag at publish, and no category.
@@ -33,6 +34,10 @@ import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from
 export const groupActivateInput = z.object({
   groupId: z.string().uuid(),
   tags: z.array(z.string().min(1).max(TAG_MAX_LENGTH)).min(1).max(MAX_TAGS_PER_PAGE).optional(),
+  // F082 — the rules version the member agreed to. Optional in the type so a
+  // caller that never asks (the retired sell walkthrough) gets the refusal
+  // below, not a type error that invites passing a number nobody agreed to.
+  rulesVersion: z.number().int().optional(),
 })
 
 export type GroupActivateInput = z.infer<typeof groupActivateInput>
@@ -87,6 +92,15 @@ export const groupActivate = defineHandler(
       if (ctx.actingMemberId !== row.founder_member_id) {
         throw new AuthorizationError(
           `group.activate: acting member ${ctx.actingMemberId} is not the founder of group ${input.groupId}`,
+        )
+      }
+
+      // F082 — publishing takes the rules agreement, every Page, at the current
+      // version (an earlier one is not agreement to these rules). A draft never
+      // asks: this handler is the publish, create and update_draft are not.
+      if (input.rulesVersion !== RULES_VERSION) {
+        throw new ValidationError(
+          `group.activate: group ${input.groupId} needs the member's agreement to the current rules (version ${RULES_VERSION}) to publish`,
         )
       }
 
@@ -165,6 +179,15 @@ export const groupActivate = defineHandler(
           `group.activate: group ${input.groupId} was no longer in draft state at promotion time (concurrent activate?)`,
         )
       }
+
+      // F082 criterion 6 — the agreement, with its version and the time (the
+      // column's default), in the same transaction as the publish. Seen only
+      // by Don and operators: the table has no client policy.
+      await client.query(
+        `insert into public.creator_rules_agreements (member_id, group_id, rules_version)
+         values ($1, $2, $3)`,
+        [ctx.actingMemberId, input.groupId, RULES_VERSION],
+      )
 
       // T159 — tag writes, same transaction as the promote above. Deferred
       // to publish rather than patched progressively, for T144's reason: a
