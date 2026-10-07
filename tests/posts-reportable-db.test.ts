@@ -3,6 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { reportCreate, reportDecide, reportReverse } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
+import { fetchReviewQueue } from '@/lib/admin/reports-queue'
 import { databaseWriteSafety } from './support/write-safe'
 
 // F078 criterion 1 — a hidden Post is private, so every existing read path
@@ -133,6 +134,13 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       const notices = await client.query(`select message from public.member_notices where member_id = $1 and subject_id = $2`, [OWNER, POST])
       expect(notices.rows).toHaveLength(1)
       await client.query(`delete from public.member_notices where subject_id = $1`, [POST])
+    })
+
+    it('the review queue lists the post as its own subject, with its words and when it was hidden', async () => {
+      const q = await fetchReviewQueue(200, { includeBuilders: true })
+      const row = q.find((r) => r.reportId === reportId)!
+      expect(row).toMatchObject({ subjectKind: 'post', postId: POST, groupId: PAGE, contentText: 'A post', photoUrl: null, category: 'spam' })
+      expect(row.hiddenAt).not.toBeNull()
     })
 
     it('approve restores the audience it had and locks those words', async () => {

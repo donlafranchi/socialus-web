@@ -19,6 +19,7 @@ import { buttonClass } from '@/components/ui/Button'
 import { hiddenFor } from '@/lib/admin/hidden-for'
 import { DEFAULT_REASON, blurred, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
 import type { Outcome, ReasonCode } from '@/lib/admin/reason-codes'
+import { categoryLabel } from '@/lib/reports/categories'
 import { ReportEntry } from './ReportEntry'
 
 type Decide = (input: { reportId: string; outcome: Outcome; reasonCode: ReasonCode; reasonNote?: string }) => Promise<void>
@@ -229,7 +230,8 @@ function Row({
   const start = useRef<number | null>(null)
   const [peek, setPeek] = useState(false)
   const first = s.reports[0]
-  const excerpt = first ? (first.body.length > 120 ? `${first.body.slice(0, 119)}…` : first.body) : ''
+  const text = s.contentText ?? first?.body ?? ''
+  const excerpt = text.length > 120 ? `${text.slice(0, 119)}…` : text
   const age = hiddenFor(s.hiddenAt, now)
 
   const down = (e: ReactPointerEvent) => {
@@ -301,9 +303,14 @@ function Row({
                 </span>
               )}
             </div>
-            <p className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.reasons.length > 0 && (
+              <p data-testid="review-reasons" className="mt-0.5 text-caption text-[var(--color-fg)]">
+                {s.reasons.map((r) => (r.count > 1 ? `${categoryLabel(r.category).split(' — ')[0]} ×${r.count}` : categoryLabel(r.category).split(' — ')[0])).join(' · ')}
+              </p>
+            )}
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · Page photo · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
+              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{s.subjectKind === 'post' ? 'Post' : 'Page photo'}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
               {age ? ` · hidden ${age}` : ''}
             </p>
           </div>
