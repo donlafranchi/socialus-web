@@ -73,7 +73,7 @@ beforeAll(async () => {
     [ITEM, OWNER, PAGE],
   )
   await client.query(
-    `insert into public.item_locations (item_id, location_id, schedule_kind, status) values ($1,$2,'permanent','approved')`,
+    `insert into public.item_locations (item_id, location_id, schedule_kind, status) values ($1,$2,'ongoing','approved')`,
     [ITEM, LOCATION],
   )
   await client.query(

@@ -179,7 +179,8 @@ export const RESOURCES: Resource[] = [
         setup,
         sql: `select count(*)::int n from public.page_listed_member_counts(array['${PLACE}'::uuid])`,
         total: 1,
-        cells: { ownerPlace: own(1) },
+        // A deleted Page's memberships are no longer listed, so even its owner counts nothing.
+        cells: state === 'archived' ? { ownerPlace: own(1) } : {},
         rest: NONE,
       },
     ]
