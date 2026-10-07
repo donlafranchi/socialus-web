@@ -14,7 +14,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { isBuilderOperator, isOperator } from '@/actions/_lib/operator'
-import { fetchReviewQueue } from '@/lib/admin/reports-queue'
+import { fetchReviewQueue, fetchWeekSummary } from '@/lib/admin/reports-queue'
 import { groupBySubject } from '@/lib/admin/review-subjects'
 import { ReviewQueue } from './ReviewQueue'
 import { decideReportAction, reverseDecisionAction } from './actions'
@@ -29,7 +29,10 @@ export default async function AdminReportsPage() {
   const viewer = data.user?.id ?? null
   if (!isOperator(viewer)) notFound()
 
-  const queue = await fetchReviewQueue(200, { includeBuilders: isBuilderOperator(viewer) })
+  const [queue, summary] = await Promise.all([
+    fetchReviewQueue(200, { includeBuilders: isBuilderOperator(viewer) }),
+    fetchWeekSummary(),
+  ])
 
   return (
     // F101 / #304 — phone-first (#12): one column, full-bleed at 375, capped at
@@ -40,7 +43,7 @@ export default async function AdminReportsPage() {
           Removed photos
         </Link>
       </p>
-      <ReviewQueue subjects={groupBySubject(queue)} onDecide={decideReportAction} onReverse={reverseDecisionAction} />
+      <ReviewQueue subjects={groupBySubject(queue)} summary={summary} onDecide={decideReportAction} onReverse={reverseDecisionAction} />
     </main>
   )
 }

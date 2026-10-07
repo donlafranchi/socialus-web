@@ -100,6 +100,11 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
           {categoryLabel(report.category)}
         </p>
       )}
+      {report.reporter && (
+        <p data-testid="reporter-record" className="text-xs text-[var(--color-fg-muted)]">
+          {report.reporter.filed} filed · {report.reporter.upheld} upheld · {report.reporter.dismissed} dismissed · {report.reporter.open} open
+        </p>
+      )}
       <blockquote className="border-l-2 border-[var(--color-border)] pl-3 text-sm text-[var(--color-fg)]">
         {report.body}
       </blockquote>

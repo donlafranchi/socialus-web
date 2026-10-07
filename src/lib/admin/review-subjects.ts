@@ -25,6 +25,10 @@ export interface ReviewSubject {
   severity: Severity | null
   /** The reasons the reporters chose, most reported first. */
   reasons: { category: ReportCategory; count: number }[]
+  /** F102 — what the poster said, from whichever report carries it. */
+  answer: QueuedReport['answer']
+  /** F102 criterion 8 — a flag for the operator, never acted on automatically. */
+  coordinated: boolean
   /** What was reported, for the excerpt. */
   contentText: string | null
   hiddenAt: Date | null
@@ -43,6 +47,8 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
       subjectId: isPost ? r.postId! : r.groupId,
       contentText: r.contentText ?? null,
       reasons: [],
+      coordinated: false,
+      answer: null,
       name: r.groupName,
       slug: r.groupSlug,
       photoUrl: r.photoUrl,
@@ -56,7 +62,10 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
     if (isOpen(r)) s.openReportIds.push(r.reportId)
     by.set(key, s)
   }
+  const flagged = coordinatedPosters(queue)
   for (const s of by.values()) {
+    s.answer = s.reports.find((r) => r.answer)?.answer ?? null
+    s.coordinated = s.reports.some((r) => r.posterId && flagged.has(r.posterId))
     s.severity = severityOf(s)
     s.reasons = tally(s)
   }
@@ -78,6 +87,23 @@ const tally = (s: ReviewSubject) => {
   return [...counts].map(([category, count]) => ({ category, count })).sort((a, b) => b.count - a.count)
 }
 
+const DAY = 86_400_000
+
+/** F102 criterion 8: three or more reports on one poster's content within 24 hours, at least two from accounts under 7 days old. */
+function coordinatedPosters(queue: QueuedReport[]): Set<string> {
+  const byPoster = new Map<string, QueuedReport[]>()
+  for (const r of queue) if (r.posterId) byPoster.set(r.posterId, [...(byPoster.get(r.posterId) ?? []), r])
+  const out = new Set<string>()
+  for (const [poster, rs] of byPoster) {
+    const sorted = [...rs].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())
+    for (let i = 0; i < sorted.length; i++) {
+      const window = sorted.filter((r) => r.reportedAt.getTime() >= sorted[i]!.reportedAt.getTime() && r.reportedAt.getTime() - sorted[i]!.reportedAt.getTime() <= DAY)
+      if (window.length >= 3 && window.filter((r) => (r.reporterAgeDays ?? Infinity) < 7).length >= 2) out.add(poster)
+    }
+  }
+  return out
+}
+
 export type SortKey = 'severity' | 'age' | 'count'
 
 const t = (d: Date | null) => (d ? d.getTime() : Number.POSITIVE_INFINITY)
@@ -91,6 +117,9 @@ export function orderSubjects(subjects: ReviewSubject[], key: SortKey = 'severit
     if (key === 'severity') {
       const sev = (a.severity ?? 5) - (b.severity ?? 5)
       if (sev) return sev
+      // One tier of priority within a severity (F102 criterion 8).
+      const flag = Number(b.coordinated) - Number(a.coordinated)
+      if (flag) return flag
     }
     return t(a.hiddenAt) - t(b.hiddenAt)
   })

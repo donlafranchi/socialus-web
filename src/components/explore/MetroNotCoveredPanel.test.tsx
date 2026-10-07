@@ -178,7 +178,8 @@ describe('signed in — unchanged, and still sees its number', () => {
     signedIn()
     renderPanel()
     await waitFor(() => expect(screen.getByTestId('waitlist-join')).toBeInTheDocument())
-    expect(screen.queryByTestId('waitlist-email')).not.toBeInTheDocument()
+    // The join button shows before the session resolves; wait for the email field to go.
+    await waitFor(() => expect(screen.queryByTestId('waitlist-email')).not.toBeInTheDocument())
   })
 
   it('still shows the combined count a member is entitled to see', async () => {

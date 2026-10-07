@@ -697,6 +697,16 @@ describe('F078 — reporting a Post', () => {
     expect(screen.getByTestId('page-post-hidden')).toHaveTextContent(/hidden while we take a look/i)
   })
 
+  it('fix and repost: saving an edit the server reposted drops the hidden line at once', async () => {
+    onEdit.mockResolvedValueOnce({ ok: true as const, data: { postId: 'pp-1', reposted: true } } as never)
+    renderPosts({ canPost: true, startComposing: false, posts: [{ ...postFixture(), hiddenAt: '2026-10-07T12:00:00Z' } as never] })
+    fireEvent.click(screen.getByTestId('page-post-edit'))
+    fireEvent.change(screen.getByTestId('page-post-edit-body'), { target: { value: 'Fixed.' } })
+    fireEvent.click(screen.getByTestId('page-post-edit-save'))
+    await waitFor(() => expect(screen.queryByTestId('page-post-edit-body')).toBeNull())
+    expect(screen.queryByTestId('page-post-hidden')).toBeNull()
+  })
+
   it('a post nobody has hidden says nothing of the kind', () => {
     renderPosts({ canPost: true, startComposing: false, posts: [postFixture()] })
     expect(screen.queryByTestId('page-post-hidden')).toBeNull()

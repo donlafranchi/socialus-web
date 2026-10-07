@@ -27,6 +27,7 @@ type Reverse = (input: { decisionId: string; reasonCode: ReasonCode; reasonNote?
 
 const UNDO_MS = 5000
 const SWIPE_PX = 96
+const REASON_WORD = { mistaken: 'Mistaken', malicious: 'Malicious', misusing_reports: 'Misusing reports' } as const
 const WORD: Record<Outcome, string> = { restored: 'Approve', removed: 'Remove' }
 
 interface Pending {
@@ -34,7 +35,18 @@ interface Pending {
   outcome: Outcome
 }
 
-export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: ReviewSubject[]; onDecide: Decide; onReverse: Reverse }) {
+export function ReviewQueue({
+  subjects,
+  onDecide,
+  onReverse,
+  summary,
+}: {
+  subjects: ReviewSubject[]
+  onDecide: Decide
+  onReverse: Reverse
+  /** F102 criterion 11 — the week in one line. */
+  summary?: { answers: number; coolDowns: number }
+}) {
   const router = useRouter()
   const [sort, setSort] = useState<SortKey>('severity')
   const [showAll, setShowAll] = useState(false)
@@ -158,6 +170,14 @@ export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: Revie
           </select>
         </div>
       </header>
+
+      {summary && (
+        <p data-testid="review-summary" className="mt-2 text-caption text-[var(--color-fg-muted)]">
+          This week: {summary.answers === 0 ? 'no answers from posters' : `${summary.answers} answer${summary.answers === 1 ? '' : 's'} from posters`}
+          {' · '}
+          {summary.coolDowns === 0 ? 'no cool-downs' : `${summary.coolDowns} reporter${summary.coolDowns === 1 ? '' : 's'} cooling down`}
+        </p>
+      )}
 
       {error && (
         <p role="alert" className="mt-3 text-body-sm text-[var(--color-danger,#b00)]">
@@ -304,6 +324,18 @@ function Row({
               )}
             </div>
             <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.answer && (
+              <p data-testid="review-answer" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
+                {s.answer.kind === 'fix_and_repost'
+                  ? 'Poster fixed it and reposted.'
+                  : `Poster: ${REASON_WORD[s.answer.reason ?? 'mistaken']}${s.answer.note ? ` — ${s.answer.note}` : ''}`}
+              </p>
+            )}
+            {s.coordinated && (
+              <p data-testid="review-coordinated" className="mt-0.5 text-caption font-medium text-[var(--color-fg)]">
+                Possible coordinated reporting
+              </p>
+            )}
             {s.reasons.length > 0 && (
               <p data-testid="review-reasons" className="mt-0.5 text-caption text-[var(--color-fg)]">
                 {s.reasons.map((r) => (r.count > 1 ? `${categoryLabel(r.category).split(' — ')[0]} ×${r.count}` : categoryLabel(r.category).split(' — ')[0])).join(' · ')}

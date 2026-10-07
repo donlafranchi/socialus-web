@@ -105,7 +105,7 @@ interface Props {
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
   onEdit: (input: EditInput) => Promise<
-    { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
+    { ok: true; data: { postId: string; reposted?: boolean } } | { ok: false; message: string; code: string }
   >
   onCreateLocation?: CreateLocation
   /** The form opens from the owner's Announce (#announce); tests start with it open. */
@@ -371,6 +371,8 @@ export function PagePosts({
               body,
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
+              // F102: a hidden post the edit reposted shows again at once.
+              ...(r.data.reposted ? { hiddenAt: null } : {}),
               ...(editWhen.addingPlace ? { locationLabel: resolved.locationLabel } : {}),
               photoUrl: editPhoto,
             }

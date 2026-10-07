@@ -96,6 +96,8 @@ export interface GroupPostCreateResult {
 export interface GroupPostEditResult {
   postId: string
   groupId: string
+  /** F102: the edit showed a hidden post again (fix and repost). */
+  reposted: boolean
 }
 
 /** Closed set. The SET clause is built from these literals, never from input —
@@ -210,8 +212,14 @@ export const groupPostEdit = defineHandler(
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
 
     return withTransaction(async (client) => {
-      const found = await client.query<{ id: string; group_id: string }>(
-        `select id, group_id from public.page_posts
+      const found = await client.query<{
+        id: string
+        group_id: string
+        hidden_at: Date | null
+        removed_at: Date | null
+        repost_used: boolean
+      }>(
+        `select id, group_id, hidden_at, removed_at, repost_used from public.page_posts
           where id = $1 and dissolved_at is null`,
         [input.postId],
       )
@@ -265,15 +273,45 @@ export const groupPostEdit = defineHandler(
         params,
       )
 
+      // F102 criterion 2 — fix and repost. Editing a post a report hid shows it
+      // again at once, once; its reports stay on the row for review. Never after
+      // a person removed it, and a second hide offers no second repost.
+      const reposted = post.hidden_at !== null && post.removed_at === null && !post.repost_used
+      if (reposted) {
+        await client.query(
+          `update public.page_posts
+              set discoverability = coalesce(hidden_prior_discoverability, discoverability),
+                  hidden_at = null,
+                  hidden_prior_discoverability = null,
+                  repost_used = true
+            where id = $1`,
+          [input.postId],
+        )
+        await client.query(
+          `insert into public.report_answers (notice_id, member_id, kind)
+           select id, $2, 'fix_and_repost'
+             from public.member_notices
+            where subject_kind = 'post' and subject_id = $1 and kind = 'content_hidden'
+            order by created_at desc
+            limit 1
+           on conflict (notice_id) do nothing`,
+          [input.postId, memberId],
+        )
+      }
+
       const txCtx: ActionContext = { ...ctx, db: client }
       await appendEvent(txCtx, 'group_events', {
         group_id: post.group_id,
         event_kind: 'group.post_edited',
         // F099 criterion 12 — removing the photo is on the record.
-        payload: { post_id: input.postId, ...(input.photoUrl === null ? { photo: 'removed' } : {}) },
+        payload: {
+          post_id: input.postId,
+          ...(reposted ? { reposted: true } : {}),
+          ...(input.photoUrl === null ? { photo: 'removed' } : {}),
+        },
       })
 
-      return { postId: input.postId, groupId: post.group_id }
+      return { postId: input.postId, groupId: post.group_id, reposted }
     })
   },
 )

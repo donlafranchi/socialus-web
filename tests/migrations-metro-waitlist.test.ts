@@ -79,17 +79,19 @@ const query = async <T>(sql: string, params: unknown[] = []): Promise<T[]> => {
   }
 }
 
+// tests/announcements-signed-out-rest.test.ts seeds a throwaway 'f093-metro' polygon while this
+// file counts; the catalog counts leave it out so the two can share a database.
 describe.skipIf(!RUNNABLE)('T163 — the metro catalog (c1)', () => {
   it('holds every US metro — 184 CSAs plus the 112 metros in no CSA', async () => {
     const [{ n }] = await query<{ n: string }>(
-      `select count(*)::text as n from public.metro_polygons`,
+      `select count(*)::text as n from public.metro_polygons where slug <> 'f093-metro'`,
     )
     expect(Number(n)).toBe(296)
   })
 
   it('records which code space each row is in', async () => {
     const rows = await query<{ code_kind: string; n: string }>(
-      `select code_kind, count(*)::text as n from public.metro_polygons group by code_kind order by code_kind`,
+      `select code_kind, count(*)::text as n from public.metro_polygons where slug <> 'f093-metro' group by code_kind order by code_kind`,
     )
     const by = Object.fromEntries(rows.map((r) => [r.code_kind, Number(r.n)]))
     expect(by.csa).toBe(184)
@@ -114,7 +116,7 @@ describe.skipIf(!RUNNABLE)('T163 — the metro catalog (c1)', () => {
 
   it('opens exactly one metro — crossing a threshold never opens one (c12)', async () => {
     const [{ n }] = await query<{ n: string }>(
-      `select count(*)::text as n from public.metro_polygons where is_open`,
+      `select count(*)::text as n from public.metro_polygons where is_open and slug <> 'f093-metro'`,
     )
     expect(Number(n)).toBe(1)
   })
@@ -123,7 +125,7 @@ describe.skipIf(!RUNNABLE)('T163 — the metro catalog (c1)', () => {
     // A person PICKS their metro (criterion 2 forbids IP, defaults and
     // nearest-match), so an unopened metro needs no boundary.
     const [{ n }] = await query<{ n: string }>(
-      `select count(*)::text as n from public.metro_polygons where geography is not null`,
+      `select count(*)::text as n from public.metro_polygons where geography is not null and slug <> 'f093-metro'`,
     )
     expect(Number(n)).toBe(1)
   })
