@@ -42,7 +42,7 @@ const initial: EditorInitial = {
 }
 
 const renderCards = (over: Partial<EditorInitial> = {}, isDraft = false) =>
-  render(<EditCards initial={{ ...initial, ...over }} onSave={onSave} isDraft={isDraft} />)
+  render(<EditCards title="Edit Oak Park Sourdough" initial={{ ...initial, ...over }} onSave={onSave} isDraft={isDraft} />)
 
 const card = (s: string) => screen.getByTestId(`edit-card-${s}`)
 
@@ -199,8 +199,13 @@ describe('#412 — the link and the way back', () => {
     expect(link).toHaveTextContent('It stays the same when you publish.')
   })
 
-  it('Done goes back to the Page', () => {
+  // Tidy and contained (the PM, 2026-10-06): the way out sits in the page's
+  // header, not loose under the last card (Apple HIG's Done in the nav bar).
+  it('Done goes back to the Page, from the page header', () => {
     renderCards()
-    expect(screen.getByRole('link', { name: 'Done' })).toHaveAttribute('href', initial.pagePath)
+    const header = screen.getByTestId('edit-header')
+    expect(within(header).getByRole('heading', { level: 1, name: 'Edit Oak Park Sourdough' })).toBeInTheDocument()
+    expect(within(header).getByRole('link', { name: 'Done' })).toHaveAttribute('href', initial.pagePath)
+    expect(screen.getAllByRole('link', { name: 'Done' })).toHaveLength(1)
   })
 })

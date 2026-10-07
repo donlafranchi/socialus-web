@@ -59,7 +59,7 @@ function Card({ section, initial }: { section: Section; initial: EditorInitial }
   const ctx = usePageEditor()
   const title = SECTION_TITLE[section]
   return (
-    <section data-testid={`edit-card-${section}`} aria-label={title} className="card p-4">
+    <section data-testid={`edit-card-${section}`} aria-label={title} className="card border border-[var(--color-border)] p-4">
       <header className="flex items-center justify-between gap-3">
         <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">{title}</h3>
         <button
@@ -96,16 +96,28 @@ function Group({ id, title, open = false, sections, initial }: { id: string; tit
 }
 
 export function EditCards({
+  title,
   initial,
   onSave,
   isDraft,
 }: {
+  title: string
   initial: EditorInitial
   onSave: (input: EditPageInput) => Promise<EditPageResult>
   isDraft: boolean
 }) {
   return (
     <PageEditorProvider initial={initial} onSave={onSave}>
+      {/* The way out sits in the header, not loose under the last card (Apple HIG's Done in the nav bar). */}
+      <header data-testid="edit-header" className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-title-1 text-[var(--color-fg)]">{title}</h1>
+          <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">Only you can see this.</p>
+        </div>
+        <Button href={initial.pagePath} variant="secondary" className="shrink-0">
+          Done
+        </Button>
+      </header>
       <div data-testid="edit-cards" className="flex flex-col gap-4">
         <Group id="about" title="About your Page" open sections={['name', 'description', 'photo', 'kind', 'components']} initial={initial} />
         <Group id="location" title="Location" sections={['where']} initial={initial} />
@@ -116,7 +128,7 @@ export function EditCards({
         {/* The LINK, which is the thing that cannot move (#180). Shown, not
             hidden, with the reason: a field that quietly is not there reads
             as a missing feature. */}
-        <section data-testid="edit-link-frozen" aria-label="Link" className="card p-4">
+        <section data-testid="edit-link-frozen" aria-label="Link" className="card border border-[var(--color-border)] p-4">
           <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">Link</h3>
           {isDraft ? (
             <>
@@ -132,10 +144,6 @@ export function EditCards({
             </>
           )}
         </section>
-
-        <Button href={initial.pagePath} variant="secondary" className="w-full">
-          Done
-        </Button>
       </div>
     </PageEditorProvider>
   )
