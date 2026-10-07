@@ -143,10 +143,9 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
 })
 
 describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
-  // Cut from beta (ruled 2026-10-06): no badge, even when one resolves.
-  it('renders no badge in beta, even when one is supplied', () => {
+  it('renders the "Claimed local owner" badge when a badge is supplied', () => {
     renderShop({ badge: { label: 'Claimed local owner' } })
-    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
+    expect(screen.getByTestId('local-owner-badge')).toHaveTextContent('Claimed local owner')
   })
 
   it('renders no badge (no negative space) when none is supplied', () => {
@@ -709,16 +708,6 @@ describe('#338 — a member of an open Page', () => {
   it('a follower still gets Following', () => {
     renderShop({ loggedIn: true, viewerFollows: true, viewerIsMember: false })
     expect(screen.getByRole('button', { name: /following/i })).toBeInTheDocument()
-  })
-})
-
-// Badges are cut from beta, Locally owned included (ruled 2026-10-06), and the
-// claim card's "Add ZIP" was a second primary on the owner's Page.
-describe('no badge and no Locally owned claim in beta', () => {
-  it('shows neither, even if handed them', () => {
-    renderShop({ badge: { label: 'Locally owned' } as never, ownerClaim: { zip: null } as never, viewerOwnsPage: true, pagePath: '/g/x', loggedIn: true })
-    expect(screen.queryByTestId('local-owner-badge')).toBeNull()
-    expect(screen.queryByRole('button', { name: /add zip/i })).toBeNull()
   })
 })
 

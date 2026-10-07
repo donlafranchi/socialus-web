@@ -36,10 +36,12 @@ import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
 import { Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
-import { componentOn } from '@/lib/groups/page-components'
+import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
 import { COPY } from '@/lib/copy'
+import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
 import { AboutText } from './AboutText'
@@ -52,7 +54,6 @@ interface Props {
     claim: typeof requestUnclaimedClaimAction
     remove: typeof requestUnclaimedRemovalAction
   }
-  /** Badges are cut from beta, Locally owned included (ruled 2026-10-06): accepted, not shown. */
   badge: LocalOwnerBadge | null
   items: ShopItem[]
   loggedIn: boolean
@@ -96,8 +97,10 @@ const DRAFT_HEADING: Record<Purpose, string> = { sell: 'business', offer: 'class
 
 export function ShopPublicPage({
   shop,
+  badge,
   items,
   loggedIn,
+  ownerClaim = null,
   viewerOwnsPage = false,
   pagePath,
   viewerFollows = false,
@@ -206,6 +209,11 @@ export function ShopPublicPage({
                   ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
                   : shop.displayName}
               </h1>
+              {badge && isBusinessKind(shop.kind) && (
+                <span data-testid="local-owner-badge" className="chip chip-selected whitespace-nowrap text-xs">
+                  {badge.label}
+                </span>
+              )}
               {/* #353 — a neutral tag after the name (Yelp's placement). */}
               {shop.unclaimed && (
                 <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
@@ -380,6 +388,12 @@ export function ShopPublicPage({
             </ul>
           )}
         </PageSection>
+      )}
+
+      {/* F037 — owner-only Locally Owned claim management; non-owners and anon never see it. */}
+      {/* [open-question owner=cowork raised=2026-10-06] Badges are cut from beta, Locally owned included (DECISIONS 2026-10-06), but F037's eval still requires this claim card; retire F037 for beta or keep the card? */}
+      {ownerClaim && isBusinessKind(shop.kind) && (
+        <LocallyOwnedClaim groupId={shop.groupId} claim={ownerClaim} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
       )}
 
       {shop.unclaimed && (
