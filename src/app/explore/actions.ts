@@ -15,6 +15,8 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
+import { resolveActionContext } from '@/lib/action-context'
+import { memberDefaultMetroSet } from '@/actions'
 import { METRO_COOKIE, METRO_COOKIE_MAX_AGE } from '@/lib/browse/remembered-metro'
 import { withTransaction } from '@/actions/_lib/db'
 import { searchNeighborhoods } from '@/lib/places/neighborhood-search'
@@ -28,8 +30,7 @@ export async function browseFeedAction(metroSlug: string | null, areaId: string 
       const supabase = await createClient()
       const { data } = await supabase.auth.getUser()
       if (data.user) {
-        const { error } = await supabase.from('members').update({ default_metro_id: snapshot.metro.id }).eq('id', data.user.id)
-        if (error) console.error('[browseFeedAction] default metro not saved:', error.message)
+        await memberDefaultMetroSet(resolveActionContext({ actingMemberId: data.user.id }), { metroId: snapshot.metro.id })
       }
     } catch (error) {
       console.error('[browseFeedAction] metro not remembered:', (error as Error).message)
@@ -51,8 +52,12 @@ export async function saveDefaultMetroAction(slug: string): Promise<{ ok: boolea
     .maybeSingle()
   const row = metro as { id: string; slug: string } | null
   if (!row) return { ok: false }
-  const { error } = await supabase.from('members').update({ default_metro_id: row.id }).eq('id', data.user.id)
-  if (error) return { ok: false }
+  try {
+    await memberDefaultMetroSet(resolveActionContext({ actingMemberId: data.user.id }), { metroId: row.id })
+  } catch (error) {
+    console.error('[saveDefaultMetroAction] not saved:', (error as Error).message)
+    return { ok: false }
+  }
   ;(await cookies()).set(METRO_COOKIE, row.slug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
   return { ok: true }
 }

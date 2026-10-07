@@ -18,6 +18,7 @@
   --action-bar-h: 64px;
   --nav-clearance: calc(var(--nav-bottom-h) + env(safe-area-inset-bottom, 0px));
   --float-offset: calc(var(--nav-clearance) + 16px);
+  --float-offset-top-nav: calc(env(safe-area-inset-bottom, 0px) + 24px);
   --panel-w: 360px;
   --tap: 44px;
 

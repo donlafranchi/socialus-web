@@ -113,8 +113,7 @@ describe('#328 — under 1024px, one control at the bottom right', () => {
     const dock = screen.getByTestId('explore-dock')
     expect(dock.className).toMatch(/\bfixed\b/)
     expect(dock.className).toMatch(/\bright-/)
-    expect(dock.className).toContain('var(--nav-height)')
-    expect(dock.className).toContain('env(safe-area-inset-bottom)')
+    expect(dock.className).toContain('var(--float-offset)')
     expect(dock.closest('[data-testid="card-grid"]')).toBeNull()
   })
 
