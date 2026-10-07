@@ -16,7 +16,7 @@ const {
   resolveLocalOwnerBadge,
   resolveOwnerClaim,
   viewerOwnsPage,
-  viewerFollowsPage,
+  viewerRelationship,
   countPageFollowers,
   getWithheldAnnouncements,
 } = vi.hoisted(() => ({
@@ -26,7 +26,7 @@ const {
   resolveLocalOwnerBadge: vi.fn(),
   resolveOwnerClaim: vi.fn(),
   viewerOwnsPage: vi.fn(),
-  viewerFollowsPage: vi.fn(),
+  viewerRelationship: vi.fn(),
   countPageFollowers: vi.fn(),
   getWithheldAnnouncements: vi.fn(),
 }))
@@ -37,7 +37,7 @@ vi.mock('./resolve-shop', () => ({
   resolveLocalOwnerBadge,
   resolveOwnerClaim,
   viewerOwnsPage,
-  viewerFollowsPage,
+  viewerRelationship,
 }))
 vi.mock('./page-posts', () => ({ resolvePagePosts }))
 vi.mock('@/lib/follows/follower-count', () => ({ countPageFollowers }))
@@ -57,7 +57,7 @@ beforeEach(() => {
   resolveLocalOwnerBadge.mockResolvedValue(null)
   resolveOwnerClaim.mockResolvedValue(null)
   viewerOwnsPage.mockResolvedValue(false)
-  viewerFollowsPage.mockResolvedValue(false)
+  viewerRelationship.mockResolvedValue(null)
   countPageFollowers.mockResolvedValue(0)
   resolvePagePosts.mockResolvedValue([])
   getWithheldAnnouncements.mockResolvedValue([withheldRow])

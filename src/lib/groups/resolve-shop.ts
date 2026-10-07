@@ -372,7 +372,7 @@ export async function viewerOwnsPage(
     .is('left_at', null)
     .limit(1)
     .maybeSingle()
-  return Boolean(data)
+  return (data as { relationship?: 'member' | 'follower' } | null)?.relationship ?? null
 }
 
 /**
@@ -386,7 +386,15 @@ export async function viewerFollowsPage(
   supabase: SupabaseClient,
   args: { groupId: string; viewerMemberId: string | null },
 ): Promise<boolean> {
-  if (!args.viewerMemberId) return false
+  return (await viewerRelationship(supabase, args)) !== null
+}
+
+/** bug #338 — which row the viewer holds: a follow, a membership, or none. */
+export async function viewerRelationship(
+  supabase: SupabaseClient,
+  args: { groupId: string; viewerMemberId: string | null },
+): Promise<'member' | 'follower' | null> {
+  if (!args.viewerMemberId) return null
   const { data } = await supabase
     .from('group_memberships')
     .select('relationship')
@@ -395,7 +403,7 @@ export async function viewerFollowsPage(
     .is('left_at', null)
     .limit(1)
     .maybeSingle()
-  return Boolean(data)
+  return (data as { relationship?: 'member' | 'follower' } | null)?.relationship ?? null
 }
 
 export async function resolveOwnerClaim(

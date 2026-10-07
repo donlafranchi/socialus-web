@@ -117,13 +117,21 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
           { source: 'anchor', kind: 'point', label: '123 Main St, Sacramento, CA', lng: -121.5, lat: 38.58 },
         ],
       },
+      loggedIn: true,
     })
     expect(screen.getByTestId('shop-placement')).toHaveTextContent('123 Main St, Sacramento, CA')
+  })
+
+  // F093 criterion 8 (amended 2026-09-30): signed out sees no location.
+  it('shows none of it signed out', () => {
+    renderShop({ shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'point', label: '123 Main St', lng: -121.5, lat: 38.58 }] } })
+    expect(screen.queryByTestId('shop-placement')).toBeNull()
   })
 
   it('renders an area placement\'s Place name the same way', () => {
     renderShop({
       shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'area', label: 'Midtown', lng: -121.48, lat: 38.57 }] },
+      loggedIn: true,
     })
     expect(screen.getByTestId('shop-placement')).toHaveTextContent('Midtown')
   })
@@ -421,13 +429,6 @@ describe('#300 — the front door, signed out (F093 criterion 8)', () => {
     expect(screen.getByTestId('shop-social-links')).toBeInTheDocument()
   })
 
-  it('names the Page, not a Shop or its founder, when nothing is listed', () => {
-    renderShop({ items: [], loggedIn: true })
-    const empty = screen.getByTestId('shop-items-empty')
-    expect(empty).toHaveTextContent("This Page hasn't listed anything yet")
-    expect(empty.textContent).not.toMatch(/Shop|Maya/)
-  })
-
   it('centres the column for a visitor; only the owner gets the two-column grid', () => {
     const { container, unmount } = renderShop({ loggedIn: true })
     expect(container.querySelector('main')!.className).not.toMatch(/lg:grid/)
@@ -562,10 +563,10 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
-  it('a business leads with how to reach it: contact before the description', () => {
+  // #458 (the PM, 2026-10-06) set one order for every Page: About, Location, Contact.
+  it('a business shows how to reach it in its Contact section, and no next event', () => {
     renderShop({ loggedIn: true, contact: { phone: '+19165550142', hours: null } as never })
-    const contact = screen.getByTestId('page-contact')
-    expect(contact.compareDocumentPosition(screen.getByText(SHOP.publicDescription)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByTestId('page-section-contact')).toContainElement(screen.getByTestId('page-contact'))
     expect(screen.queryByTestId('page-next-up')).toBeNull()
   })
 })

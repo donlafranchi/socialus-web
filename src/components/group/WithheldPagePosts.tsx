@@ -36,8 +36,8 @@ export function WithheldPagePosts({ posts }: { posts: BrowseResult[] }) {
   const marked = highlighted !== null && ids.includes(highlighted)
 
   return (
-    <section id={ANNOUNCE_ANCHOR} className="mt-8 scroll-mt-20" data-testid="page-posts-withheld">
-      <h2 className="text-lg font-medium">Announcements</h2>
+    <section id={ANNOUNCE_ANCHOR} className="card scroll-mt-20 border border-[var(--color-border)] p-4" data-testid="page-posts-withheld" data-section="posts">
+      <h2 className="text-title-3 text-[var(--color-fg)]">Posts</h2>
       <div
         data-testid="page-post-withheld"
         data-highlighted={marked ? 'true' : undefined}

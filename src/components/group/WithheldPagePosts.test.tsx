@@ -33,10 +33,10 @@ afterEach(() => {
 })
 
 describe('WithheldPagePosts', () => {
-  it('renders the Announcements section rather than nothing', () => {
+  it('renders the Posts section rather than nothing', () => {
     render(<WithheldPagePosts posts={[PAGE]} />)
     expect(screen.getByTestId('page-posts-withheld')).toBeInTheDocument()
-    expect(screen.getByText('Announcements')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Posts' })).toBeInTheDocument()
   })
 
   it('renders nothing at all when the Page has no announcements', () => {
@@ -79,7 +79,7 @@ describe('WithheldPagePosts', () => {
   it('says nothing about what the announcements say, when, or where', () => {
     const { container } = render(<WithheldPagePosts posts={[PAGE]} />)
     expect(container.textContent).toBe(
-      "Announcements3 announcements this weekThe details are for members and followers of this Page.Sign in to see what's happening",
+      "Posts3 announcements this weekThe details are for members and followers of this Page.Sign in to see what's happening",
     )
   })
 })

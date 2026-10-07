@@ -95,7 +95,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
           contact,
           contactOn,
           // Issue #180 — where the Page is, in the words it was saved with.
-          addressLabel: shop.placements[0]?.label ?? null,
+          addressLabel: shop.placements[0]?.label || null,
           kind: pageKindOf(shop.kind),
           purpose: purposeOf(shop.kind, shop.purpose),
           productsOn,

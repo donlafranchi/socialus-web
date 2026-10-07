@@ -487,7 +487,7 @@ export function PagePosts({
   )
 
   return (
-    <section id={ANNOUNCE_ANCHOR} aria-labelledby="page-posts-title" className="card scroll-mt-20 border border-[var(--color-border)] p-4" data-testid="page-posts">
+    <section id={ANNOUNCE_ANCHOR} aria-labelledby="page-posts-title" className="card scroll-mt-20 border border-[var(--color-border)] p-4" data-testid="page-posts" data-section="posts">
       <h2 id="page-posts-title" className="text-title-3 text-[var(--color-fg)]">Posts</h2>
 
       {canPost && (

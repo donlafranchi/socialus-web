@@ -16,7 +16,7 @@ import {
   resolveLocalOwnerBadge,
   resolveOwnerClaim,
   viewerOwnsPage,
-  viewerFollowsPage,
+  viewerRelationship,
   type ResolvedShop,
   type ShopItem,
   type LocalOwnerBadge,
@@ -44,6 +44,8 @@ export interface PageView {
   ownerClaim: OwnerClaim | null
   viewerOwnsPage: boolean
   viewerFollows: boolean
+  /** bug #338 — their row is a membership, not a follow. */
+  viewerIsMember: boolean
   loggedIn: boolean
   /** F072 criterion 4 — how many people get updates from this Page. Zero for
    *  anyone who does not run it: the count sits inside the composer, and
@@ -83,7 +85,7 @@ export async function loadPageView(
   ])
 
   const viewerMemberId = auth.user?.id ?? null
-  const [ownerClaim, owns, follows] = await Promise.all([
+  const [ownerClaim, owns, relationship] = await Promise.all([
     resolveOwnerClaim(supabase, {
       groupId: shop.groupId,
       anchorLocationId: shop.anchorLocationId,
@@ -97,7 +99,7 @@ export async function loadPageView(
       // 'steward', not 'owner'.
       kind: shop.kind,
     }),
-    viewerFollowsPage(supabase, { groupId: shop.groupId, viewerMemberId }),
+    viewerRelationship(supabase, { groupId: shop.groupId, viewerMemberId }),
   ])
 
   // Asked for only when there is somewhere to show it. RLS would return zero
@@ -150,7 +152,8 @@ export async function loadPageView(
     viewerMemberId,
     contactOn,
     productsOn,
-    viewerFollows: follows,
+    viewerFollows: relationship !== null,
+    viewerIsMember: relationship === 'member',
     loggedIn: Boolean(auth.user),
     followerCount,
     draftTagCount,
