@@ -12,6 +12,7 @@ const { resolvePagePlacements } = vi.hoisted(() => ({
 }))
 vi.mock('./resolve-page-placement', () => ({ resolvePagePlacements }))
 
+import { EMAIL_MASK } from '../text/contact-info'
 import {
   splitGroupSlug,
   resolveShop,
@@ -455,5 +456,18 @@ describe('resolveShop — bug #410, one name', () => {
     )
     expect(shop?.displayName).toBe('Lil Mouse House')
     expect(shop?.publicDescription).toBe('Mouse Motels and Rat Resorts.')
+  })
+})
+
+describe('#450 — the Page view masks an email address stored in its text', () => {
+  it('masks the name and description of a Page', async () => {
+    const { supabase } = makeRecordingStub({
+      ...RUN_CLUB_ROW,
+      name: 'Floats owner@example.com',
+      description: 'We float. Owned by Someone+river@mail.example.com.',
+    })
+    const shop = await resolveShop(supabase, 'sacriver-floaters')
+    expect(shop?.displayName).toBe(`Floats ${EMAIL_MASK}`)
+    expect(shop?.publicDescription).toBe(`We float. Owned by ${EMAIL_MASK}.`)
   })
 })

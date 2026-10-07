@@ -330,3 +330,23 @@ describe('group.post — how to find us', () => {
     await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', howToFind: 'x'.repeat(141) })).rejects.toThrow()
   })
 })
+
+describe('#450 — an email address in a Page post is refused', () => {
+  const MESSAGE = 'Take out the email address. People can reach you through your Page.'
+
+  it('on create, before any write', async () => {
+    install()
+    const err = await groupPostCreate(ctx(), { groupId: GROUP, body: 'RSVP to someone@example.com' }).catch((e) => e)
+    expect(err).toBeInstanceOf(ValidationError)
+    expect(err.message).toBe(MESSAGE)
+    expect(calls(/insert into public\.page_posts/i)).toEqual([])
+  })
+
+  it('on edit, including the meet spot', async () => {
+    install()
+    const err = await groupPostEdit(ctx(), { postId: POST, body: 'See you', howToFind: 'ask someone@example.com' }).catch((e) => e)
+    expect(err).toBeInstanceOf(ValidationError)
+    expect(err.message).toBe(MESSAGE)
+    expect(calls(/update public\.page_posts/i)).toEqual([])
+  })
+})

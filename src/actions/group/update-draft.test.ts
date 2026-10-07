@@ -208,3 +208,15 @@ describe('hours and phone on a draft', () => {
     expect(call![1]).toEqual([GROUP, false])
   })
 })
+
+describe('#450 — an email address in draft Page text is refused on save', () => {
+  it.each(['name', 'description', 'businessDisplayName', 'businessPublicDescription', 'howToFind', 'usuallyAround'] as const)(
+    'refuses one in %s, before any write',
+    async (field) => {
+      const err = await groupUpdateDraft(ctx(), { groupId: GROUP, [field]: 'Reach Owner@Example.com' }).catch((e) => e)
+      expect(err).toBeInstanceOf(ValidationError)
+      expect(err.message).toBe('Take out the email address. People can reach you through your Page.')
+      expect(updateCall()).toBeUndefined()
+    },
+  )
+})
