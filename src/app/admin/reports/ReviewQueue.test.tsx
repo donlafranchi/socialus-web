@@ -186,3 +186,18 @@ describe('F101 — one tap, then a five-second Undo', () => {
     expect(second).toHaveAttribute('data-blurred', 'false')
   })
 })
+
+describe('F099 — the row names the image', () => {
+  it('says Page photo, Page picture or Post photo by what was reported', () => {
+    show(
+      groupBySubject([
+        report('r1', 'a'),
+        report('r2', 'b', { subjectKind: 'page_picture' }),
+        report('r3', 'c', { subjectKind: 'post_photo', subjectId: 'p1' }),
+      ]),
+    )
+    expect(screen.getByText(/· Page photo ·/)).toBeInTheDocument()
+    expect(screen.getByText(/· Page picture ·/)).toBeInTheDocument()
+    expect(screen.getByText(/· Post photo ·/)).toBeInTheDocument()
+  })
+})

@@ -33,6 +33,8 @@ interface Pending {
   outcome: Outcome
 }
 
+const SUBJECT_LABEL = { group: 'Page photo', page_picture: 'Page picture', post_photo: 'Post photo' } as const
+
 export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: ReviewSubject[]; onDecide: Decide; onReverse: Reverse }) {
   const router = useRouter()
   const [sort, setSort] = useState<SortKey>('severity')
@@ -303,7 +305,7 @@ function Row({
             </div>
             <p className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · Page photo · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
+              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · {SUBJECT_LABEL[s.kind]} · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
               {age ? ` · hidden ${age}` : ''}
             </p>
           </div>
