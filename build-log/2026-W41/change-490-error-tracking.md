@@ -1,0 +1,3 @@
+### change #490 — error tracking in production (closes the accepted risk due 2026-10-16)
+
+`@sentry/nextjs`, errors only, **off until `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` are set**, free Developer plan (a free plan stops at its quota; no pay-as-you-go). `instrumentation.ts` (server, `onRequestError`), `instrumentation-client.ts` (browser), `error.tsx` and a new `global-error.tsx` report. Every event passes `src/lib/observability/scrub.ts` first: user, cookies, auth headers, request bodies, query strings and free-form extras removed; emails and phone numbers cut from every string. Runbook, turn-on steps and what is not done: `docs/error-tracking.md`. A person must create the Sentry account and set the DSN in Vercel; creating the account is not something the lane does.

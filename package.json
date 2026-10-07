@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@jsquash/webp": "^1.5.0",
+    "@sentry/nextjs": "^11.5.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
     "lucide-react": "^1.11.0",
