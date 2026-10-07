@@ -137,3 +137,11 @@ describe('bug #70 — server-side origin on a preview deployment', () => {
     expect(siteOrigin()).toBe('https://www.socialus.org')
   })
 })
+
+describe('#444 — metadataBase, so every published URL names the canonical host', () => {
+  it('is the configured site URL', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://www.socialus.org/')
+    const { siteMetadataBase } = await import('./site-url')
+    expect(siteMetadataBase().href).toBe('https://www.socialus.org/')
+  })
+})
