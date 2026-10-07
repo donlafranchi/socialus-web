@@ -6,6 +6,7 @@ import { pinLabel } from '@/lib/places/pin-label'
 import type { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import type { EditPageInput } from '@/app/g/[handle]/edit/actions'
 import type { PageWhere } from '@/lib/groups/page-where'
+import type { Placement } from '@/lib/groups/resolve-page-placement'
 import { emptyWhere, type WhereValue } from './WhereFields'
 
 export interface WhereDeps {
@@ -14,17 +15,27 @@ export interface WhereDeps {
   label?: typeof pinLabel
 }
 
-/** Start the question from what's saved. A pin isn't carried over: changing a location means setting it again. */
-export function whereValueFrom(saved: PageWhere | null): WhereValue {
+/** Start the question from what's saved. The pin isn't in the value (the map opens on it, #455); an unmoved pin saves only the note. */
+export function whereValueFrom(saved: PageWhere | null, placement?: Pick<Placement, 'kind' | 'label' | 'lng' | 'lat'> | null): WhereValue {
   if (!saved) return emptyWhere
+  const area = placement?.kind === 'area'
   return {
     ...emptyWhere,
     mode: saved.mode,
-    visit: { ...emptyWhere.visit, howToFind: saved.howToFind ?? '' },
+    visit: {
+      ...emptyWhere.visit,
+      howToFind: saved.howToFind ?? '',
+      areaOnly: area,
+      area: area ? { id: '', name: placement!.label } : null,
+    },
     travel: { towns: saved.towns },
     roaming: { usuallyAround: saved.usuallyAround ?? '' },
   }
 }
+
+/** #455 — the saved front-door pin the Location sheet opens on, or null for none. */
+export const savedPinFrom = (placement?: Pick<Placement, 'lng' | 'lat'> | null): [number, number] | null =>
+  placement ? [placement.lng, placement.lat] : null
 
 export type WherePatch = { ok: true; patch: Partial<EditPageInput> } | { ok: false; message: string }
 

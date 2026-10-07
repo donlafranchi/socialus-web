@@ -40,7 +40,16 @@ const ANSWERS: { mode: WhereMode; title: string; body: string }[] = [
   { mode: 'roaming', title: 'It moves, or it’s online', body: 'Markets, pop-ups, a different spot each time, or no spot at all.' },
 ]
 
-export function WhereFields({ value, onChange }: { value: WhereValue; onChange: (v: WhereValue) => void }) {
+export function WhereFields({
+  value,
+  onChange,
+  savedPin = null,
+}: {
+  value: WhereValue
+  onChange: (v: WhereValue) => void
+  /** #455 — where the Page's pin is saved, so the map opens there. Not part of the value: an unmoved pin isn't a change. */
+  savedPin?: [number, number] | null
+}) {
   const set = (patch: Partial<WhereValue>) => onChange({ ...value, ...patch })
   return (
     <fieldset className="flex flex-col gap-3" aria-label="How do people find you?">
@@ -73,7 +82,7 @@ export function WhereFields({ value, onChange }: { value: WhereValue; onChange: 
           </label>
         ))}
       </div>
-      {value.mode === 'visit' && <Visit value={value.visit} onChange={(visit) => set({ visit })} />}
+      {value.mode === 'visit' && <Visit value={value.visit} savedPin={savedPin} onChange={(visit) => set({ visit })} />}
       {value.mode === 'travel' && <Travel value={value.travel} onChange={(travel) => set({ travel })} />}
       {value.mode === 'roaming' && (
         <label className="flex flex-col gap-1">
@@ -92,7 +101,15 @@ export function WhereFields({ value, onChange }: { value: WhereValue; onChange: 
   )
 }
 
-function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: WhereValue['visit']) => void }) {
+function Visit({
+  value,
+  savedPin,
+  onChange,
+}: {
+  value: WhereValue['visit']
+  savedPin: [number, number] | null
+  onChange: (v: WhereValue['visit']) => void
+}) {
   const [query, setQuery] = useState('')
   const [matches, setMatches] = useState<GeocodingResult[] | null>(null)
   const [finding, setFinding] = useState(false)
@@ -100,10 +117,11 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
   const [picks, setPicks] = useState({ address: 0, area: 0 })
   const set = (patch: Partial<WhereValue['visit']>) => onChange({ ...value, ...patch })
 
-  // The neighbourhood follows the pin; it's worked out, never picked.
+  // The neighbourhood follows the pin, except right after one was picked by name (#440).
   const pinKey = value.pin?.join(',')
+  const [pickedAt, setPickedAt] = useState<string | null>(null)
   useEffect(() => {
-    if (!value.pin || !value.areaOnly) return
+    if (!value.pin || !value.areaOnly || pinKey === pickedAt) return
     let live = true
     placeForPointAction(value.pin[0], value.pin[1]).then((res) => {
       if (live && res.ok) onChange({ ...value, area: res.data })
@@ -124,7 +142,8 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
   const notFound = (
     <>We couldn&rsquo;t find that address. Try the full street address{mapAvailable() ? ', or drop a pin on the map' : ''}.</>
   )
-  const dropPin = mapAvailable() && !value.pin && (
+  const shownPin = value.pin ?? savedPin
+  const dropPin = mapAvailable() && !shownPin && (
     <button
       type="button"
       onClick={() => set({ pin: value.pin ?? SACRAMENTO, label: null })}
@@ -167,7 +186,9 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
             optionLabel={(n) => n.name}
             onPick={(n) => {
               setPicks((p) => ({ ...p, area: p.area + 1 }))
-              set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name } })
+              setPickedAt(n.centroid.join(','))
+              // #440 — a neighbourhood picked is a neighbourhood shown, never a street address.
+              set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name }, areaOnly: true })
             }}
           />
           {dropPin}
@@ -209,10 +230,10 @@ function Visit({ value, onChange }: { value: WhereValue['visit']; onChange: (v: 
           )}
         </div>
       )}
-      {value.pin && (
+      {shownPin && (
         <>
           {(value.label ?? value.area?.name) && <p className="text-sm text-[var(--color-fg)]">{value.label ?? value.area?.name}</p>}
-          <PinAdjustMap center={value.pin} onChange={(pin) => set({ pin })} />
+          <PinAdjustMap center={shownPin} onChange={(pin) => set({ pin })} />
         </>
       )}
       <label className="flex flex-col gap-1">

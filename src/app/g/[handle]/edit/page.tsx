@@ -20,7 +20,7 @@ import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditCards } from '@/components/group/edit/EditCards'
 import { resolvePageWhere } from '@/lib/groups/page-where'
-import { whereValueFrom } from '@/components/locations/where-save'
+import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
 import { editPageAction } from './actions'
@@ -66,10 +66,9 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
     .map((r) => r.tags?.label)
     .filter((l): l is string => Boolean(l))
 
-  // #348 — start the question from what's saved. A pin isn't carried over:
-  // changing a location means setting it again.
+  // #348 — start the question from what's saved; #455 — the map opens on the saved pin.
   const saved = await resolvePageWhere(supabase, shop.groupId)
-  const initialWhere = whereValueFrom(saved)
+  const initialWhere = whereValueFrom(saved, shop.placements[0])
 
   return (
     <main className="mx-auto w-full max-w-form gutter py-6 pb-nav">
@@ -101,6 +100,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
           purpose: purposeOf(shop.kind, shop.purpose),
           productsOn,
           where: initialWhere,
+          savedPin: savedPinFrom(shop.placements[0]),
         }}
       />
     </main>

@@ -60,6 +60,8 @@ export interface EditorInitial {
   purpose: Purpose
   productsOn: boolean
   where: WhereValue
+  /** #455 — the saved pin, so the Location sheet opens on it. */
+  savedPin?: [number, number] | null
 }
 
 type Save = (input: EditPageInput) => Promise<EditPageResult>
@@ -232,7 +234,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
         {section === 'where' && (
           <>
             {initial.addressLabel && <p className="text-sm text-[var(--color-fg-muted)]">Now: {initial.addressLabel}</p>}
-            <WhereFields value={where} onChange={setWhere} />
+            <WhereFields value={where} onChange={setWhere} savedPin={initial.savedPin ?? null} />
           </>
         )}
         {section === 'contact' && (
