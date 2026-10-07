@@ -58,6 +58,8 @@ export interface QueuedReport {
   contentText?: string | null
   /** The member who posted what was reported (operator-only). */
   posterId?: string
+  /** F102 — the poster's one answer to the hide, if they gave it. */
+  answer?: { kind: 'fix_and_repost' | 'wrong'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
   /** F102 — how old the reporter's account was when they reported. */
   reporterAgeDays?: number
   /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
@@ -160,6 +162,11 @@ export async function fetchReviewQueue(
             m.display_name    as owner_display_name,
             m.handle          as owner_handle,
             pg.founder_member_id as poster_id,
+            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note)
+               from public.report_answers a
+               join public.member_notices n on n.id = a.notice_id
+              where n.subject_kind = r.subject_kind and n.subject_id = r.subject_id
+              order by a.created_at desc limit 1) as answer,
             extract(epoch from (r.created_at - rm.created_at)) / 86400 as reporter_age_days,
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id)::int as r_filed,
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.reviewed_at is null and x.removed_at is null)::int as r_open,
@@ -188,6 +195,7 @@ export async function fetchReviewQueue(
     postId: (r.post_id as string | null) ?? undefined,
     contentText: (r.content_text as string | null) ?? null,
     posterId: (r.poster_id as string | null) ?? undefined,
+    answer: (r.answer as QueuedReport['answer']) ?? null,
     reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
     reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
     reportId: r.report_id as string,

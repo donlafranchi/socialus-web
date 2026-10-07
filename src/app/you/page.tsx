@@ -12,7 +12,8 @@ import { FollowingSummary } from '@/components/follows/FollowingSummary'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { AuthCard } from '@/components/shell/AuthCard'
 import { Button } from '@/components/ui/Button'
-import { YouNotices } from '@/components/member/YouNotices'
+import { YouNotices, type Notice } from '@/components/member/YouNotices'
+import { answerNoticeAction } from '@/app/_actions/report-actions'
 import { DefaultMetro } from '@/components/member/DefaultMetro'
 import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
 import { saveDefaultMetroAction } from '@/app/explore/actions'
@@ -41,7 +42,7 @@ export default async function YouPage() {
   const [{ data: me }, metros, { data: notices }] = await Promise.all([
     supabase.from('members').select('display_name, default_metro_id, home_metro_id').eq('id', user.id).maybeSingle(),
     listFeedMetros(supabase).catch(() => []),
-    supabase.from('member_notices').select('id, message, created_at').order('created_at', { ascending: false }).limit(10),
+    supabase.from('member_notices').select('id, message, created_at, subject_kind, page_id, report_answers(kind)').order('created_at', { ascending: false }).limit(10),
   ])
   const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null } | null
   const name = row?.display_name ?? null
@@ -55,9 +56,7 @@ export default async function YouPage() {
         <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Only you see this page.</p>
       </header>
 
-      <YouNotices
-        notices={((notices ?? []) as { id: string; message: string; created_at: string }[]).map((n) => ({ id: n.id, message: n.message, createdAt: n.created_at }))}
-      />
+      <YouNotices notices={toNotices(notices)} onAnswer={answerNoticeAction} />
 
       <Section title="Your Pages" testId="your-pages-section" action={<Link href="/create" className={LINK}>Start something</Link>}>
         <OwnPages memberId={user.id} />
@@ -123,4 +122,30 @@ function Row({ label, value, testId, action, wrap, children }: { label: string; 
       {action}
     </li>
   )
+}
+
+const CLOSES_AFTER_MS = 14 * 86_400_000
+
+type NoticeRow = {
+  id: string
+  message: string
+  created_at: string
+  subject_kind: 'group' | 'post'
+  page_id: string | null
+  report_answers: { kind: 'fix_and_repost' | 'wrong' } | { kind: 'fix_and_repost' | 'wrong' }[] | null
+}
+
+function toNotices(rows: unknown): Notice[] {
+  return ((rows ?? []) as NoticeRow[]).map((n) => {
+    const a = Array.isArray(n.report_answers) ? n.report_answers[0] : n.report_answers
+    return {
+      id: n.id,
+      message: n.message,
+      createdAt: n.created_at,
+      subjectKind: n.subject_kind,
+      pageId: n.page_id,
+      answer: a?.kind ?? null,
+      closed: Date.now() - new Date(n.created_at).getTime() > CLOSES_AFTER_MS,
+    }
+  })
 }

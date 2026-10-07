@@ -395,8 +395,8 @@ export const reportCreate = defineHandler(
       if (input.category !== 'sensitive_content' && !subject.reporterIsBuilder) {
         await client.query(
           `insert into public.member_notices
-             (member_id, kind, report_id, subject_kind, subject_id, category, message, created_at)
-           values ($1, 'content_hidden', $2, $3, $4, $5, $6, $7)`,
+             (member_id, kind, report_id, subject_kind, subject_id, category, message, created_at, page_id)
+           values ($1, 'content_hidden', $2, $3, $4, $5, $6, $7, $8)`,
           [
             subject.founderId,
             reportId,
@@ -405,6 +405,7 @@ export const reportCreate = defineHandler(
             input.category,
             hiddenNoticeMessage(subject.pageName, input.category, input.subjectKind),
             ctx.now(),
+            subject.groupId,
           ],
         )
       }

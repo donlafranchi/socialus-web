@@ -15,3 +15,4 @@ export {
   type ReportReverseInput,
   type ReportDecisionResult,
 } from './review'
+export { reportAnswer, reportAnswerInput, ANSWER_WINDOW_DAYS, type ReportAnswerInput } from './answer'

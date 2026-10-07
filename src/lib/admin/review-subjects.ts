@@ -25,6 +25,8 @@ export interface ReviewSubject {
   severity: Severity | null
   /** The reasons the reporters chose, most reported first. */
   reasons: { category: ReportCategory; count: number }[]
+  /** F102 — what the poster said, from whichever report carries it. */
+  answer: QueuedReport['answer']
   /** F102 criterion 8 — a flag for the operator, never acted on automatically. */
   coordinated: boolean
   /** What was reported, for the excerpt. */
@@ -46,6 +48,7 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
       contentText: r.contentText ?? null,
       reasons: [],
       coordinated: false,
+      answer: null,
       name: r.groupName,
       slug: r.groupSlug,
       photoUrl: r.photoUrl,
@@ -61,6 +64,7 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
   }
   const flagged = coordinatedPosters(queue)
   for (const s of by.values()) {
+    s.answer = s.reports.find((r) => r.answer)?.answer ?? null
     s.coordinated = s.reports.some((r) => r.posterId && flagged.has(r.posterId))
     s.severity = severityOf(s)
     s.reasons = tally(s)

@@ -295,3 +295,21 @@ describe('F102 criterion 8 — coordinated reporting is flagged, not acted on', 
     expect(screen.getByTestId('review-coordinated')).toHaveTextContent(/possible coordinated reporting/i)
   })
 })
+
+describe('F101 criterion 2 / F102 — the poster\'s answer is on the row', () => {
+  it('shows what the poster said, so the operator decides with both sides', () => {
+    show(groupBySubject([report('r1', 'a', { answer: { kind: 'wrong', reason: 'malicious', note: 'He reports everything I post.' } })]))
+    expect(screen.getByTestId('review-answer')).toHaveTextContent('Poster: Malicious')
+    expect(screen.getByTestId('review-answer')).toHaveTextContent('He reports everything I post.')
+  })
+
+  it('says when the poster fixed it and reposted', () => {
+    show(groupBySubject([report('r1', 'a', { answer: { kind: 'fix_and_repost', reason: null, note: null } })]))
+    expect(screen.getByTestId('review-answer')).toHaveTextContent(/fixed it and reposted/i)
+  })
+
+  it('says nothing when there is no answer', () => {
+    show(groupBySubject([report('r1', 'a')]))
+    expect(screen.queryByTestId('review-answer')).toBeNull()
+  })
+})

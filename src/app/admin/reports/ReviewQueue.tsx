@@ -27,6 +27,7 @@ type Reverse = (input: { decisionId: string; reasonCode: ReasonCode; reasonNote?
 
 const UNDO_MS = 5000
 const SWIPE_PX = 96
+const REASON_WORD = { mistaken: 'Mistaken', malicious: 'Malicious', misusing_reports: 'Misusing reports' } as const
 const WORD: Record<Outcome, string> = { restored: 'Approve', removed: 'Remove' }
 
 interface Pending {
@@ -304,6 +305,13 @@ function Row({
               )}
             </div>
             <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.answer && (
+              <p data-testid="review-answer" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
+                {s.answer.kind === 'fix_and_repost'
+                  ? 'Poster fixed it and reposted.'
+                  : `Poster: ${REASON_WORD[s.answer.reason ?? 'mistaken']}${s.answer.note ? ` — ${s.answer.note}` : ''}`}
+              </p>
+            )}
             {s.coordinated && (
               <p data-testid="review-coordinated" className="mt-0.5 text-caption font-medium text-[var(--color-fg)]">
                 Possible coordinated reporting

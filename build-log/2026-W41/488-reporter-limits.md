@@ -6,3 +6,12 @@
 - **Coordinated reporting (criterion 8):** three or more reports on one poster's content in 24 hours, two from accounts under 7 days old, flags the row "Possible coordinated reporting" and ranks it first within its severity. A flag only.
 - **911 (criterion 10):** picking Threat of harm shows a kind line to call 911 first if someone is in danger now. Placeholder copy.
 - No migration.
+
+### F102 (#488) slice 2 — the poster answers first
+
+- **A hide leaves one notice; the poster gives one answer** (`report_answers`, unique per notice):
+  - **Fix it** (posts only): the poster edits the post and it shows again at once, once. Its reports stay on the row. Never after a person removed it, and a second hide offers no second repost (`page_posts.repost_used`). The edit records the answer as "fix and repost".
+  - **Say it's a mistake:** Mistaken, Malicious or Misusing reports, plus a note of at most 280 characters. The content stays hidden until a person decides. The operator's row shows what the poster said.
+- **No answer is no work:** an unanswered hide closes itself after 14 days; the notice says so and takes no answer. (Nothing is scheduled: closed is read from the notice's age.)
+- A Page photo has only the mistake answer: a replaced photo does not yet clear its hide (existing behaviour, not changed here).
+- Migration `20261007230000_report_answers.sql`. The AI reading the poster's rebuttal (F100 criterion 1) waits on #495.

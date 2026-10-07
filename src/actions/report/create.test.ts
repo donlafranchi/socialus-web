@@ -555,6 +555,14 @@ describe('report.create — the poster is told (F078 criterion 3)', () => {
     expect(JSON.stringify(params)).toContain('Spam')
   })
 
+  it('names the Page, so "Fix it" has somewhere to lead', async () => {
+    installQueryRouter()
+    await report('spam')
+    const [sql, params] = callsMatching(/insert into public\.member_notices/i)[0]!
+    expect(sql).toMatch(/page_id/)
+    expect(params).toContain(GROUP_ID)
+  })
+
   it('never carries what the reporter wrote or who they are', async () => {
     installQueryRouter()
     await reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'secret words from reporter' })
