@@ -39,7 +39,7 @@ import {
   groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
-import { reportCreate, reportDecide, reportReverse } from './report'
+import { reportCreate, reportDecide, reportReverse, reportPurgeTarget, reportPurge } from './report'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
 import type { NamedActionHandler } from './_lib/handler'
@@ -90,6 +90,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // past one by recording a new decision that points at it.
   'report.decide': reportDecide as unknown as NamedActionHandler<unknown, unknown>,
   'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
+  'report.purge_target': reportPurgeTarget as unknown as NamedActionHandler<unknown, unknown>,
+  'report.purge': reportPurge as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
   // T167 — F076 c13-15: the same step for someone with no account. Separate
@@ -147,6 +149,8 @@ export {
   reportCreate,
   reportDecide,
   reportReverse,
+  reportPurgeTarget,
+  reportPurge,
   reportCreateInput,
   type ReportCreateInput,
   type ReportCreateResult,

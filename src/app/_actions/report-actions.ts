@@ -25,9 +25,9 @@ async function requireMemberId(): Promise<string> {
 }
 
 export async function sendReportAction(input: {
+  /** The Page's photo when omitted; F099 — or one of the other images. */
+  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo'
   subjectId: string
-  /** F099 — the Page's photo when omitted. */
-  subjectKind?: 'group' | 'page_picture' | 'post_photo'
   category: ReportCategory
   body: string
 }): Promise<{ ok: true }> {
@@ -45,4 +45,13 @@ export async function sendReportAction(input: {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err
   }
+}
+
+/** F078 criterion 1 — the same report, about a Post. */
+export async function sendPostReportAction(input: {
+  subjectId: string
+  category: ReportCategory
+  body: string
+}): Promise<{ ok: true }> {
+  return sendReportAction({ ...input, subjectKind: 'post' })
 }

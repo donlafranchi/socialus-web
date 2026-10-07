@@ -8,14 +8,15 @@
 
 import type { QueuedReport } from './reports-queue'
 import type { ReasonCode } from './reason-codes'
+import { SEVERITY_OF_REPORT_CATEGORY, type ReportCategory } from '@/lib/reports/categories'
 
 export type Severity = 1 | 2 | 3 | 4
 
 export interface ReviewSubject {
-  /** The key: the Page's id for its photo (as before), `kind:id` for any other image. */
+  /** F099 — which image, or the post body, it is. */
+  subjectKind: QueuedReport['subjectKind']
+  /** The key: the Page's id for its photo, the post's id for a post body, `kind:id` for any other image. */
   subjectId: string
-  /** F099 — which image it is. */
-  kind: QueuedReport['subjectKind']
   name: string
   slug: string | null
   photoUrl: string | null
@@ -24,6 +25,10 @@ export interface ReviewSubject {
   /** Reports with no decision yet. A reversal is itself a decision (the opposite outcome). */
   openReportIds: string[]
   severity: Severity | null
+  /** The reasons the reporters chose, most reported first. */
+  reasons: { category: ReportCategory; count: number }[]
+  /** What was reported, for the excerpt. */
+  contentText: string | null
   hiddenAt: Date | null
   status: 'hidden' | 'restored' | 'removed'
 }
@@ -33,12 +38,20 @@ export const isOpen = (r: QueuedReport) => r.history.length === 0
 export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
   const by = new Map<string, ReviewSubject>()
   for (const r of [...queue].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())) {
-    // The Page's photo is keyed by its Page, as it always was; any other image by
-    // its own kind and id, so one Page's photo, picture and posts never merge.
-    const key = r.subjectKind === 'group' ? r.groupId : `${r.subjectKind}:${r.subjectId}`
+    // The Page's photo is keyed by its Page and a post body by its post id; any
+    // other image by its own kind and id, so one Page's photo, picture and
+    // posts never merge.
+    const key =
+      r.subjectKind === 'group'
+        ? r.groupId
+        : r.subjectKind === 'post'
+          ? (r.postId ?? r.subjectId)
+          : `${r.subjectKind}:${r.subjectId}`
     const s = by.get(key) ?? {
+      subjectKind: r.subjectKind,
       subjectId: key,
-      kind: r.subjectKind,
+      contentText: r.contentText ?? null,
+      reasons: [],
       name: r.groupName,
       slug: r.groupSlug,
       photoUrl: r.photoUrl,
@@ -52,7 +65,26 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
     if (isOpen(r)) s.openReportIds.push(r.reportId)
     by.set(key, s)
   }
+  for (const s of by.values()) {
+    s.severity = severityOf(s)
+    s.reasons = tally(s)
+  }
   return [...by.values()]
+}
+
+const tiers = (s: ReviewSubject) =>
+  s.reports.filter(isOpen).flatMap((r) => (r.category ? [SEVERITY_OF_REPORT_CATEGORY[r.category]] : []))
+
+/** F101 criterion 3 (shadow): the most serious tier among the open reports' reasons. */
+const severityOf = (s: ReviewSubject): Severity | null => {
+  const t = tiers(s)
+  return t.length ? (Math.min(...t) as Severity) : null
+}
+
+const tally = (s: ReviewSubject) => {
+  const counts = new Map<ReportCategory, number>()
+  for (const r of s.reports) if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1)
+  return [...counts].map(([category, count]) => ({ category, count })).sort((a, b) => b.count - a.count)
 }
 
 export type SortKey = 'severity' | 'age' | 'count'

@@ -277,6 +277,15 @@ describe('F099 — the Page picture', () => {
     expect(sent).not.toHaveProperty('photoUrl')
   })
 
+  it('says in plain words when the picture shows, wherever it is chosen', () => {
+    for (const section of ['photo', 'basics'] as const) {
+      render(<Page sections={[section]} />)
+      fireEvent.click(screen.getByRole('button', { name: `open ${section}` }))
+      expect(screen.getByText('Shown when a post has no photo of its own.')).toBeInTheDocument()
+      cleanup()
+    }
+  })
+
   it('saves the photo without touching the picture', async () => {
     render(<Page sections={['photo']} />)
     openPhoto()

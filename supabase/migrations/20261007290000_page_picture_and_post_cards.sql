@@ -2,7 +2,8 @@
 -- card shows. Path: well-worn (Facebook: a Page's profile picture is shown on
 -- every post it makes; a post may carry its own photo).
 --
--- ORDER: after 20261007200000_post_photos (the page_posts photo columns).
+-- ORDER: after 20261007230000_post_photos (the page_posts photo columns) and
+-- 20261007220000_posts_reportable (reports/member_notices kinds 'group', 'post').
 --
 -- 1. groups gains a Page picture: a second image, with its own hide and remove
 --    state, separate from groups.photo_url (the Page's photo, which stays where
@@ -27,13 +28,19 @@ comment on column public.groups.picture_url is
   'F099: the Page picture, one for every kind, set by the owner. Separate from photo_url. A post without a photo of its own shows this, else its kind''s placeholder.';
 
 -- 3. Criterion 8: each image is reportable on its own. 'group' stays the Page's
---    photo; 'page_picture' (subject_id = the Page) and 'post_photo' (subject_id =
---    the post) join it. subject_id carries no foreign key by design; the handler
---    keeps it honest.
+--    photo and 'post' the post's words (20261007220000); 'page_picture'
+--    (subject_id = the Page) and 'post_photo' (subject_id = the post) join
+--    them. subject_id carries no foreign key by design; the handler keeps it
+--    honest. A hide tells the poster, so member_notices takes the same kinds.
 alter table public.reports drop constraint reports_subject_kind_check;
 alter table public.reports
   add constraint reports_subject_kind_check
-  check (subject_kind in ('group', 'page_picture', 'post_photo'));
+  check (subject_kind in ('group', 'post', 'page_picture', 'post_photo'));
+
+alter table public.member_notices drop constraint member_notices_subject_kind_check;
+alter table public.member_notices
+  add constraint member_notices_subject_kind_check
+  check (subject_kind in ('group', 'post', 'page_picture', 'post_photo'));
 
 drop function public.browse_feed(
   uuid, uuid, text[], text[], text, uuid[], text[],

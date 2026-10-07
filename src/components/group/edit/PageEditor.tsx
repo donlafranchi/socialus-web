@@ -221,6 +221,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
           <>
             <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />
             <PagePhotoPicker memberId={initial.memberId} value={pictureUrl} onChange={setPictureUrl} label="Page picture" previewAlt="The Page picture" />
+            <span className="-mt-2 text-caption text-[var(--color-fg-muted)]">Shown when a post has no photo of its own.</span>
           </>
         )}
         {(section === 'about' || section === 'basics') && (
@@ -245,6 +246,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
           <>
             <PagePhotoPicker memberId={initial.memberId} value={photoUrl} onChange={setPhotoUrl} />
             <PagePhotoPicker memberId={initial.memberId} value={pictureUrl} onChange={setPictureUrl} label="Page picture" previewAlt="The Page picture" />
+            <span className="-mt-2 text-caption text-[var(--color-fg-muted)]">Shown when a post has no photo of its own.</span>
           </>
         )}
         {section === 'where' && (

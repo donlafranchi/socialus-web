@@ -37,6 +37,7 @@ const OPERATOR = '11111111-1111-1111-1111-111111111111'
 const OWNER = '22222222-2222-2222-2222-222222222222'
 const REPORT_ID = '33333333-3333-3333-3333-333333333333'
 const GROUP_ID = '44444444-4444-4444-4444-444444444444'
+const POST_ID = '77777777-7777-7777-7777-777777777777'
 const DECISION_ID = '55555555-5555-5555-5555-555555555555'
 const NEW_DECISION = '66666666-6666-6666-6666-666666666666'
 const NOW = new Date('2026-09-17T12:00:00Z')
@@ -268,10 +269,50 @@ describe('report-bombing is refused, not merely un-hidden', () => {
   })
 })
 
+// F078 criterion 1 — the same two buttons decide a reported Post.
+describe('deciding on a reported Post', () => {
+  const decide = (outcome: 'restored' | 'removed') =>
+    reportDecide(ctx(), { reportId: REPORT_ID, outcome, reasonCode: outcome === 'restored' ? 'nothing_wrong' : 'not_suitable' })
+
+  it('approve puts the post back to the audience it had, and locks that wording against re-hiding', async () => {
+    install({ subjectKind: 'post', subjectId: POST_ID })
+    await decide('restored')
+    const [q, params] = sql(/update public\.page_posts/)[0]!
+    expect(q).toMatch(/discoverability = coalesce\(hidden_prior_discoverability/)
+    expect(q).toMatch(/hide_locked_body = body/)
+    expect(q).toMatch(/hidden_at = null/)
+    expect(params).toEqual([POST_ID])
+    expect(sql(/update public\.groups/)).toHaveLength(0)
+  })
+
+  it('remove keeps it down and stamps when', async () => {
+    install({ subjectKind: 'post', subjectId: POST_ID })
+    await decide('removed')
+    const [q, params] = sql(/update public\.page_posts/)[0]!
+    expect(q).toMatch(/removed_at = \$2/)
+    expect(q).not.toMatch(/[^_]discoverability = coalesce/)
+    expect(params).toEqual([POST_ID, NOW])
+  })
+
+  it('the event names the post, on its Page', async () => {
+    install({ subjectKind: 'post', subjectId: POST_ID })
+    await decide('removed')
+    expect(appendEvent.mock.calls.some((c) => (c[2] as EventRow).event_kind === 'group.post_removed' && (c[2] as EventRow).group_id === GROUP_ID)).toBe(true)
+  })
+
+  it('reversing a removal restores the post; reversing a restore takes it down again', async () => {
+    install({ subjectKind: 'post', subjectId: POST_ID, priorOutcome: 'removed' })
+    await reportReverse(ctx(), { decisionId: DECISION_ID, reasonCode: 'reported_by_mistake' })
+    expect(sql(/update public\.page_posts/)[0]![0]).toMatch(/discoverability = coalesce\(hidden_prior_discoverability/)
+    query.mockReset()
+    install({ subjectKind: 'post', subjectId: POST_ID, priorOutcome: 'restored' })
+    await reportReverse(ctx(), { decisionId: DECISION_ID, reasonCode: 'not_suitable' })
+    expect(sql(/update public\.page_posts/)[0]![0]).toMatch(/discoverability = 'private'/)
+  })
+})
+
 // F099 criteria 7, 8, 12 — a decision applies to the image that was reported, and only it.
 describe('F099 — a decision on one image', () => {
-  const POST_ID = '77777777-7777-7777-7777-777777777777'
-
   // [guards F099.8]
   it.each([
     ['restored', /update public\.page_posts[\s\S]*photo_hidden_at = null[\s\S]*photo_hide_locked_url = photo_url/],

@@ -139,12 +139,13 @@ describe.skipIf(!RUNNABLE)('who founded, sells or hosts, to anyone', () => {
     ['items', 'member_id', GATHERING, 'id'],
     ['item_gatherings', 'host_member_id', GATHERING, 'item_id'],
   ])('every other column of %s still answers', async (table, column, id, key) => {
-    const cols = await allColumnsBut(table, column)
+    // photo_purged_at is the operator's alone (#491): no signed-in or signed-out caller reads it.
+    const cols = table === 'groups' ? await allColumnsBut(table, column, 'photo_purged_at') : await allColumnsBut(table, column)
     // #252: signed out, a Page's anchor is withheld too (tests/front-door-db.test.ts).
     // #293: and its phone and hours (tests/page-contact-db.test.ts).
     const anonCols =
       table === 'groups'
-        ? await allColumnsBut(table, column, 'anchor_location_id', 'contact_phone', 'opening_hours', 'where_mode', 'how_to_find', 'usually_around')
+        ? await allColumnsBut(table, column, 'anchor_location_id', 'contact_phone', 'opening_hours', 'where_mode', 'how_to_find', 'usually_around', 'photo_purged_at')
         : cols
     expect(await as(null, `select ${anonCols} from public.${table} where ${key} = $1`, [id]), `${table} as anon`).toHaveLength(1)
     for (const sub of [STRANGER]) {

@@ -19,6 +19,7 @@ import { buttonClass } from '@/components/ui/Button'
 import { hiddenFor } from '@/lib/admin/hidden-for'
 import { DEFAULT_REASON, blurred, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
 import type { Outcome, ReasonCode } from '@/lib/admin/reason-codes'
+import { categoryLabel } from '@/lib/reports/categories'
 import { ReportEntry } from './ReportEntry'
 
 type Decide = (input: { reportId: string; outcome: Outcome; reasonCode: ReasonCode; reasonNote?: string }) => Promise<void>
@@ -33,7 +34,7 @@ interface Pending {
   outcome: Outcome
 }
 
-const SUBJECT_LABEL = { group: 'Page photo', page_picture: 'Page picture', post_photo: 'Post photo' } as const
+const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo' } as const
 
 export function ReviewQueue({ subjects, onDecide, onReverse }: { subjects: ReviewSubject[]; onDecide: Decide; onReverse: Reverse }) {
   const router = useRouter()
@@ -231,7 +232,8 @@ function Row({
   const start = useRef<number | null>(null)
   const [peek, setPeek] = useState(false)
   const first = s.reports[0]
-  const excerpt = first ? (first.body.length > 120 ? `${first.body.slice(0, 119)}…` : first.body) : ''
+  const text = s.contentText ?? first?.body ?? ''
+  const excerpt = text.length > 120 ? `${text.slice(0, 119)}…` : text
   const age = hiddenFor(s.hiddenAt, now)
 
   const down = (e: ReactPointerEvent) => {
@@ -303,9 +305,14 @@ function Row({
                 </span>
               )}
             </div>
-            <p className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.reasons.length > 0 && (
+              <p data-testid="review-reasons" className="mt-0.5 text-caption text-[var(--color-fg)]">
+                {s.reasons.map((r) => (r.count > 1 ? `${categoryLabel(r.category).split(' — ')[0]} ×${r.count}` : categoryLabel(r.category).split(' — ')[0])).join(' · ')}
+              </p>
+            )}
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · {SUBJECT_LABEL[s.kind]} · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
+              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{SUBJECT_LABEL[s.subjectKind]}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
               {age ? ` · hidden ${age}` : ''}
             </p>
           </div>
@@ -316,21 +323,21 @@ function Row({
             <div className="mt-3 flex flex-col gap-2" data-testid="review-confirm">
               <p className="text-body-sm text-[var(--color-fg)]">Approve something reported as the most serious kind?</p>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" className={`${buttonClass('secondary')} min-h-12`} onClick={onCancelConfirm}>
+                <button type="button" className={`${buttonClass('secondary')} min-h-12!`} onClick={onCancelConfirm}>
                   Not yet
                 </button>
-                <button type="button" className={`${buttonClass('secondary')} min-h-12`} onClick={() => onDecide('restored')}>
+                <button type="button" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onDecide('restored')}>
                   Approve
                 </button>
               </div>
             </div>
           ) : (
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button type="button" data-testid="review-approve" className={`${buttonClass('secondary')} min-h-12`} onClick={() => onDecide('restored')}>
+              <button type="button" data-testid="review-approve" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onDecide('restored')}>
                 <Check size={16} aria-hidden="true" />
                 Approve
               </button>
-              <button type="button" data-testid="review-remove" className={`${buttonClass('secondary')} min-h-12`} onClick={() => onDecide('removed')}>
+              <button type="button" data-testid="review-remove" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onDecide('removed')}>
                 <X size={16} aria-hidden="true" />
                 Remove
               </button>

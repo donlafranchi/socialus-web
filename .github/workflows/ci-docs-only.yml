@@ -1,0 +1,40 @@
+name: CI (docs only)
+
+# The four required checks never report on a PR that touches only docs: ci.yml
+# skips it with paths-ignore, so the PR sat BLOCKED with every check green
+# (#485). This is GitHub's documented pattern: a twin workflow on the inverse
+# paths whose jobs carry the same names and succeed at once. A PR that also
+# touches code runs both; a real failure under the same name still blocks.
+# Keep the globs in step with paths-ignore in ci.yml.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - 'build-log/**'
+      - 'tests/**'
+      - '**/*.test.ts'
+      - '**/*.test.tsx'
+
+jobs:
+  quality:
+    name: Lint, types, build
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "docs-only change; the full job runs only when code changes"
+  test:
+    name: Unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "docs-only change"
+  browser:
+    name: Browser
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "docs-only change"
+  migrations:
+    name: Migrations applied to production
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "docs-only change"

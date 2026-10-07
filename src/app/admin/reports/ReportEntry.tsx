@@ -41,7 +41,7 @@ interface Props {
 }
 
 /** F099 — which image a report is about. 'Photo' is the Page's own, as it always was. */
-const IMAGE_LABEL = { group: 'Photo', page_picture: 'Page picture', post_photo: 'Post photo' } as const
+const IMAGE_LABEL = { group: 'Photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo' } as const
 
 export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
   const [shown, setShown] = useState(false)
@@ -109,14 +109,18 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
 
       <p className="text-xs text-[var(--color-fg-muted)]">
         {report.removedAt
-          ? `${IMAGE_LABEL[report.subjectKind]} removed`
+          ? report.subjectKind === 'post' ? 'Removed' : `${IMAGE_LABEL[report.subjectKind]} removed`
           : hiddenFor
             ? `Hidden ${hiddenFor}`
             : 'Not hidden'}{' '}
         · reported {report.reportedAt.toISOString().slice(0, 10)}
       </p>
 
-      {report.photoUrl ? (
+      {report.subjectKind === 'post' ? (
+        <p data-testid="reported-post" className="whitespace-pre-wrap rounded-md bg-[var(--color-surface)] p-3 text-sm text-[var(--color-fg)]">
+          {report.contentText}
+        </p>
+      ) : report.photoUrl ? (
         <div className="relative overflow-hidden rounded-md bg-[var(--color-surface)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

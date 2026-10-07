@@ -26,6 +26,8 @@
 
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
 import { useEffect, useState } from 'react'
+import { ReportControl } from './ReportControl'
+import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
@@ -40,8 +42,6 @@ import {
 } from './AnnouncementFields'
 import { Sheet } from '@/components/ui/Sheet'
 import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
-import { ReportControl } from '@/components/group/ReportControl'
-import type { ReportCategory } from '@/lib/reports/categories'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { DefaultArt, type ArtKind } from '@/components/cards/DefaultArt'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
@@ -86,6 +86,10 @@ interface EditInput {
 
 interface Props {
   groupId: string
+  /** F078 — reporting a Post. Offered to everyone who does not manage the Page. */
+  onReport?: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true }>
+  loggedIn?: boolean
+  returnTo?: string
   posts: PagePost[]
   canPost: boolean
   /** How many people get updates from this Page. Owner-only; see
@@ -164,6 +168,9 @@ function metroClock(iso: string): string {
 
 export function PagePosts({
   groupId,
+  onReport,
+  loggedIn = false,
+  returnTo,
   posts,
   canPost,
   followerCount = 0,
@@ -522,8 +529,17 @@ export function PagePosts({
                     </div>
                   )}
 
+                  {canPost && post.hiddenAt && (
+                    <p className="mt-2 text-sm text-[var(--color-fg-muted)]" data-testid="page-post-hidden">
+                      Hidden while we take a look. Nobody else can see it right now.
+                    </p>
+                  )}
+
                   <div className="mt-2 flex items-center gap-3">
                     <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    {!canPost && onReport && (
+                      <ReportControl subjectId={post.id} subjectLabel="this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
+                    )}
                     {canPost && (
                       <button
                         type="button"

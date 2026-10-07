@@ -28,6 +28,7 @@ import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapTog
 import { ExploreDock } from '@/components/explore/ExploreDock'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { FollowingRow } from './FollowingRow'
@@ -78,11 +79,13 @@ export function BrowseSurface({
   // panel open, one view at a time behind a switch docked in the search row.
   const wide = useMediaQuery('(min-width: 1024px)')
   const extraWide = useMediaQuery('(min-width: 1440px)')
-  const layout = !wide ? 'single' : ownerPanelOpen && !extraWide ? 'docked' : 'split'
+  // #334 — signed out is list only at every width: the dock stays, and its Map opens sign-up.
+  const layout = !snapshot.signedIn || !wide ? 'single' : ownerPanelOpen && !extraWide ? 'docked' : 'split'
   const showList = layout === 'split' || view === 'list'
   const showMap = layout === 'split' ? !mapCollapsed : view === 'map'
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
+  const [mapPromptOpen, setMapPromptOpen] = useState(false)
   const [searchRequest, setSearchRequest] = useState(0)
   const [, startTransition] = useTransition()
   // One clock per mount, so the week/weekend boundaries stay stable across
@@ -370,9 +373,11 @@ export function BrowseSurface({
           onSearch={() => setSearchRequest((n) => n + 1)}
           onFilter={() => setSheetOpen(true)}
           onMetro={() => setScopeOpen(true)}
-          onViewChange={setView}
+          onViewChange={(v) => (snapshot.signedIn || v === 'list' ? setView(v) : setMapPromptOpen(true))}
         />
       )}
+
+      {mapPromptOpen && <SignInPrompt action="map" currentPath="/explore" onClose={() => setMapPromptOpen(false)} />}
 
       <AreaPicker
         open={scopeOpen}

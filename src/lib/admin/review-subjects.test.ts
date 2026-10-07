@@ -20,7 +20,7 @@ describe('groupBySubject', () => {
       report({ reportId: 'd', subjectKind: 'post_photo', subjectId: 'p1' }),
     ])
     expect(subjects).toHaveLength(3)
-    expect(subjects.find((s) => s.kind === 'post_photo')!.reports.map((r) => r.reportId)).toEqual(['c', 'd'])
+    expect(subjects.find((s) => s.subjectKind === 'post_photo')!.reports.map((r) => r.reportId)).toEqual(['c', 'd'])
   })
 
   it('leaves a Page-photo subject keyed by its Page, as before', () => {

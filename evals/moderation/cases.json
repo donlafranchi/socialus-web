@@ -1,0 +1,13 @@
+[
+  { "id": "clean-bakery", "text": "Oak Park Bakery\nFresh sourdough every Saturday at the farmers market.", "reporterReason": "Spam", "label": { "outcome": "approve", "severity": 4 } },
+  { "id": "clean-kids-craft", "text": "Saturday kids' craft table\nAges 5 to 10, 10am to noon, bring an apron. All welcome.", "reporterReason": "Something else", "label": { "outcome": "approve", "severity": 4 } },
+  { "id": "clean-dog-walker", "text": "Mia's dog walking\nGroup walks along the river path, weekday mornings.", "reporterReason": "Sensitive content", "label": { "outcome": "approve", "severity": 3 } },
+  { "id": "clean-band", "text": "Friday night jazz at the Hall\nDoors at 7, music at 8. Bring a friend.", "reporterReason": "Violence", "label": { "outcome": "approve", "severity": 4 } },
+  { "id": "border-grumpy", "text": "The Corner Cafe\nHonestly the service here is slow and the owner never smiles. Go elsewhere.", "reporterReason": "Harassment", "label": { "outcome": "approve", "severity": 2 } },
+  { "id": "border-promo", "text": "Sam's Lawn Care\nBest prices in town, call now, limited slots this week!", "reporterReason": "Spam", "label": { "outcome": "approve", "severity": 4 } },
+  { "id": "viol-harass", "text": "Neighbourhood watch\nEveryone on Pine Street should know that the woman at number 12 is a lazy, disgusting fraud and nobody should speak to her.", "reporterReason": "Harassment", "label": { "outcome": "remove", "severity": 2 } },
+  { "id": "viol-threat", "text": "Parking dispute\nMove your truck off my curb tonight or I will come find you and make you regret it.", "reporterReason": "Threat of harm", "label": { "outcome": "remove", "severity": 2 } },
+  { "id": "viol-spam", "text": "BUY CHEAP WATCHES\nclick here click here click here win a free phone www.example.invalid", "reporterReason": "Spam", "label": { "outcome": "remove", "severity": 4 } },
+  { "id": "viol-violence", "text": "Fight night\nSign up to beat someone bloody in the park lot, winner takes the cash, no rules.", "reporterReason": "Violence", "label": { "outcome": "remove", "severity": 2 } },
+  { "id": "viol-animal", "text": "Backyard puppies\nThe runt is not worth feeding, I leave it out in the cold to see if it makes it. Videos soon.", "reporterReason": "Sensitive content", "label": { "outcome": "remove", "severity": 3 } }
+]
