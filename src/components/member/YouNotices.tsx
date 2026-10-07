@@ -136,9 +136,14 @@ function NoticeRow({ notice: n, onAnswer }: { notice: Notice; onAnswer?: (a: Ans
               {error}
             </p>
           )}
-          <button type="button" className="btn-primary min-h-tap" disabled={!reason || !note.trim() || sending} onClick={send}>
-            {sending ? 'Sending…' : 'Send'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-primary min-h-tap" disabled={!reason || !note.trim() || sending} onClick={send}>
+              {sending ? 'Sending…' : 'Send'}
+            </button>
+            <button type="button" className="btn-secondary min-h-tap" onClick={() => setOpen(false)}>
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </li>

@@ -36,6 +36,14 @@ describe('F102 criteria 1–4 — the poster answers first', () => {
     expect(screen.getByRole('button', { name: /say it.s a mistake/i })).toBeInTheDocument()
   })
 
+  it('the form has a way back to the two choices', () => {
+    render(<YouNotices notices={[notice()]} onAnswer={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: /say it.s a mistake/i }))
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.getByRole('link', { name: /fix it/i })).toBeInTheDocument()
+  })
+
   it('a hidden photo has no repost, only the mistake answer', () => {
     render(<YouNotices notices={[notice({ subjectKind: 'group' })]} onAnswer={vi.fn()} />)
     expect(screen.queryByRole('link', { name: /fix it/i })).toBeNull()
