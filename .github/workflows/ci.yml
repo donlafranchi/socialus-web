@@ -22,13 +22,14 @@ name: CI
 # not set here — it is an escape hatch for a local iteration loop, and its own
 # message says never in a merge.
 
-# THE CI DIET (#402). Actions minutes ran out on 2026-10-05 (~11,300 job-minutes
-# in two days against 2,000 free a month). What a push spends now:
+# WHAT A PUSH SPENDS (#402, relaxed by #427). socialus-web is public, so standard
+# runner minutes are free; the diet of 2026-10-05 (private repo, 2,000 a month)
+# is over, and the browser suite now guards every change that can break it.
 #   · a draft PR: nothing. Marking it ready runs everything.
 #   · a PR touching only docs, markdown, build-log or tests: nothing; main
 #     runs it all after the merge.
 #   · any other PR push: Lint/types/build, Unit tests, Migrations applied.
-#   · Browser: on a ready PR labelled human-review (or needs-don), on every
+#   · Browser: on every ready PR that touches src/ or supabase/, on every
 #     push to main, nightly as the smoke slice, and the whole matrix weekly.
 on:
   pull_request:
@@ -211,15 +212,33 @@ jobs:
   #
   # Which pushes run this job at all is #402's diet, at the top of this file.
   # ---------------------------------------------------------------------
+  # #427 — whether this PR touches anything the browser suite can see. Main,
+  # schedule and dispatch always say yes. Cheap: one API call, no checkout.
+  changes:
+    name: Which suites
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    outputs:
+      runtime: ${{ steps.files.outputs.runtime }}
+    steps:
+      - id: files
+        uses: actions/github-script@v8
+        with:
+          script: |
+            if (context.eventName !== 'pull_request') { core.setOutput('runtime', 'true'); return }
+            const files = await github.paginate(github.rest.pulls.listFiles, { ...context.repo, pull_number: context.payload.pull_request.number, per_page: 100 })
+            const hit = files.some((f) => /^(src|supabase)\//.test(f.filename))
+            core.info(hit ? 'touches src/ or supabase/: the browser job runs' : 'no src/ or supabase/ change: the browser job is skipped')
+            core.setOutput('runtime', String(hit))
+
   browser:
     name: Browser
-    # #402 — main, schedule and dispatch always; a PR only when it is ready and
-    # carries human-review (or needs-don), and on that label being added.
+    needs: changes
+    # #427 — main, schedule and dispatch always; a PR when it is ready and
+    # touches src/ or supabase/. Not again when a label is added.
     if: >-
       github.event_name != 'pull_request' || (
-        !github.event.pull_request.draft && (
-          (github.event.action == 'labeled' && (github.event.label.name == 'human-review' || github.event.label.name == 'needs-don')) ||
-          (github.event.action != 'labeled' && (contains(github.event.pull_request.labels.*.name, 'human-review') || contains(github.event.pull_request.labels.*.name, 'needs-don')))))
+        !github.event.pull_request.draft && github.event.action != 'labeled' && needs.changes.outputs.runtime == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 90 || 20 }}
     env:
