@@ -46,6 +46,8 @@ import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
 import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
+import { loadMapMix } from '@/lib/map/load-mix'
+import type { MixedResult } from '@/lib/map/mix'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { BrowseSnapshot, HappeningSnapshot } from '@/lib/browse/snapshot'
 
@@ -76,7 +78,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     await waitingCountByMetro().catch(() => new Map<string, number>()),
   )
 
-  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS }
+  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS, map: [] as MixedResult[] }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
   }
@@ -107,6 +109,13 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
   // difference between a directory and a place that is visibly alive, which
   // is the whole reason this ruling is not "announcements require an account".
   const signedOut = !user
+  // #331 — signed out, no pins (the front door, F093).
+  const mapPromise = user
+    ? loadMapMix(supabase, scope.metro.id).catch((error) => {
+        console.error('[loadBrowse] map mix failed:', (error as Error).message)
+        return [] as MixedResult[]
+      })
+    : Promise.resolve([] as MixedResult[])
   let withheldFailed = false
   const withheldPromise = signedOut
     ? getWithheldAnnouncements(supabase, {
@@ -132,6 +141,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
     return {
       ...base,
       happening: await happeningPromise,
+      map: await mapPromise,
       results: mergeByRecency(results, withheld),
       following,
       metro: scope.metro,
@@ -148,6 +158,7 @@ export async function loadBrowse(requestedSlug: string | null): Promise<BrowseSn
       results: [],
       following: await followingPromise,
       happening: await happeningPromise,
+      map: await mapPromise,
       metro: scope.metro,
       chosen: scope.chosen,
       failed: true,

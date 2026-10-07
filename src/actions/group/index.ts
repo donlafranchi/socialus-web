@@ -56,3 +56,26 @@ export {
 } from './post'
 
 export { groupUpdate, groupUpdateInput, type GroupUpdateInput, type GroupUpdateResult } from './update'
+// #423 — the owner archives, deletes (14 days to restore) and restores a Page.
+export {
+  groupArchive,
+  groupDelete,
+  groupRestore,
+  groupDeleteInput,
+  DELETE_GRACE_DAYS,
+  type GroupLifecycleResult,
+  type PageLifecycleState,
+} from './lifecycle'
+
+// #353 — unclaimed Pages: remove (hides at once), claim (a contact form), restore (operator).
+export {
+  groupUnclaimedRemove,
+  groupUnclaimedRemoveInput,
+  groupUnclaimedClaim,
+  groupUnclaimedClaimInput,
+  groupUnclaimedRestore,
+  groupUnclaimedRestoreInput,
+  DAILY_LIMIT_PER_DEVICE,
+  UNCLAIMED_REMOVAL_SCOPES,
+  type UnclaimedRemovalScope,
+} from './unclaimed'

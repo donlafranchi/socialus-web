@@ -7,6 +7,11 @@ import { databaseWriteSafety } from './support/write-safe'
 // makes shows to a real member or counts in a number; builders see each
 // other's. Enforced in SQL, so every door (Explore, search, the map, the
 // signed-out front door, PostgREST, crawlers) answers the same way.
+//
+// #388 — Don, 2026-10-05: a switch, "builder content visible to members", on
+// by default in beta. Off, everything above holds; on, builder content shows,
+// and a builder's follows, joins and RSVPs still never count. The switch is
+// flipped inside each query's own transaction, so parallel suites never see it.
 
 const DATABASE_URL =
   process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL
@@ -39,9 +44,12 @@ let pool: Pool
 let client: PoolClient
 let metroId: string
 
+let switchOn = false
+
 async function as<T>(sub: string | null, sql: string, params: unknown[] = []) {
   await client.query('begin')
   try {
+    await client.query(`update public.builder_content set visible = $1`, [switchOn])
     if (sub) {
       await client.query(`select set_config('request.jwt.claims', $1, true)`, [
         JSON.stringify({ sub, role: 'authenticated' }),
@@ -155,7 +163,7 @@ afterAll(async () => {
   await pool.end()
 })
 
-describe.skipIf(!RUNNABLE)('#280 — builder content is invisible to real members', () => {
+describe.skipIf(!RUNNABLE)('#280 — with the switch off, builder content is invisible to real members', () => {
   const VIEWERS: [string, string | null][] = [
     ['signed out', null],
     ['a real member', REAL],
@@ -229,5 +237,44 @@ describe.skipIf(!RUNNABLE)('#280 — builders see each other', () => {
     expect(await ids(BUILDER2, `select id from public.items where id = $1`, [B_ITEM])).toEqual([B_ITEM])
     const posted = await as<{ id: string }>(BUILDER2, `select public.posted_item_id('b280-builder', 'gathering', 'e3000000') as id`)
     expect(posted[0].id).toBe(B_ITEM)
+  })
+})
+
+describe.skipIf(!RUNNABLE)('#388 — with the switch on, builder content shows; builder relations still never count', () => {
+  beforeAll(() => {
+    switchOn = true
+  })
+  afterAll(() => {
+    switchOn = false
+  })
+
+  it('a real member sees the builder Page and its post', async () => {
+    expect(await feed(REAL)).toEqual(expect.arrayContaining([B_PAGE, B_POST]))
+    expect(await ids(REAL, `select id from public.groups where id = $1`, [B_PAGE])).toEqual([B_PAGE])
+    expect(await ids(REAL, `select id from public.page_posts where id = $1`, [B_POST])).toEqual([B_POST])
+  })
+
+  // F093 — signed out gets a Page's front door and never its posts, builder
+  // content or not; the switch changes whose content shows, not that rule.
+  it('signed out sees the builder Page, and its post no more than any post', async () => {
+    const shown = await feed(null)
+    expect(shown).toContain(B_PAGE)
+    expect(shown).not.toContain(B_POST)
+    expect(await ids(null, `select id from public.groups where id = $1`, [B_PAGE])).toEqual([B_PAGE])
+  })
+
+  it("a builder follow or join still never counts in a real Page's numbers", async () => {
+    const followers = await as<{ n: number }>(
+      REAL_OWNER,
+      `select count(*)::int as n from public.group_memberships where group_id = $1 and relationship = 'follower'`,
+      [R_PAGE],
+    )
+    expect(followers[0].n).toBe(0)
+    const members = await as<{ members: number }>(
+      REAL_OWNER,
+      `select members from public.page_listed_member_counts($1)`,
+      [[R_PAGE]],
+    )
+    expect(members[0]?.members ?? 0).toBe(1)
   })
 })
