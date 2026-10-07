@@ -47,7 +47,7 @@ beforeEach(() => {
 describe('sendReportAction', () => {
   it('refuses an anonymous caller before touching the handler', async () => {
     anon()
-    await expect(sendReportAction({ subjectId: GROUP, body: 'x' })).rejects.toThrow(
+    await expect(sendReportAction({ subjectId: GROUP, category: 'spam', body: 'x' })).rejects.toThrow(
       /signed in/i,
     )
     expect(create).not.toHaveBeenCalled()
@@ -55,16 +55,16 @@ describe('sendReportAction', () => {
 
   it('passes the subject and the body through as a group report', async () => {
     signedIn()
-    await sendReportAction({ subjectId: GROUP, body: 'this photo is stolen' })
+    await sendReportAction({ subjectId: GROUP, category: 'spam', body: 'this photo is stolen' })
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({ actingMemberId: MEMBER }),
-      { subjectKind: 'group', subjectId: GROUP, body: 'this photo is stolen' },
+      { subjectKind: 'group', category: 'spam', subjectId: GROUP, body: 'this photo is stolen' },
     )
   })
 
   it('returns ok and nothing else — never whether the photo was hidden', async () => {
     signedIn()
-    const result = await sendReportAction({ subjectId: GROUP, body: 'x' })
+    const result = await sendReportAction({ subjectId: GROUP, category: 'spam', body: 'x' })
     expect(result).toEqual({ ok: true })
     expect(JSON.stringify(result)).not.toMatch(/photoHidden|hidden|rep-1/i)
   })
@@ -72,7 +72,7 @@ describe('sendReportAction', () => {
   it('surfaces an ActionError as a plain Error the component can show', async () => {
     signedIn()
     create.mockRejectedValue(new ActionError('validation_error', 'body must not be empty'))
-    await expect(sendReportAction({ subjectId: GROUP, body: '  ' })).rejects.toThrow(
+    await expect(sendReportAction({ subjectId: GROUP, category: 'spam', body: '  ' })).rejects.toThrow(
       /body must not be empty/,
     )
   })
