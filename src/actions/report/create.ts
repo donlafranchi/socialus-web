@@ -25,6 +25,7 @@ import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
 import { textOperator } from '@/lib/notify/operator-sms'
+import { assessAfterReport } from '@/lib/moderation/after-report'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -248,6 +249,9 @@ export const reportCreate = defineHandler(
 
       return { reportId, photoHidden: true }
     })
+
+    // F100 — the AI reads it after the response; shadow mode changes nothing.
+    assessAfterReport(result.reportId)
 
     // After the commit, so a text never announces a report that rolled back.
     // Names the reason and where to look; never the reporter or what they wrote.

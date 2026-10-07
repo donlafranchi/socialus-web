@@ -38,6 +38,8 @@ vi.mock('../_lib/db', () => ({
 vi.mock('../_lib/event-log', () => ({ appendEvent }))
 const { textOperator } = vi.hoisted(() => ({ textOperator: vi.fn(async () => ({ sent: true })) }))
 vi.mock('@/lib/notify/operator-sms', () => ({ textOperator }))
+const { assessAfterReport } = vi.hoisted(() => ({ assessAfterReport: vi.fn() }))
+vi.mock('@/lib/moderation/after-report', () => ({ assessAfterReport }))
 
 import { reportCreate } from './create'
 import { AuthorizationError } from '../_lib/errors'
@@ -467,5 +469,21 @@ describe('F080 — sensitive content hides at any bar and texts Don', () => {
     expect(message).toMatch(/\/admin\/reports/)
     expect(message).not.toContain('secret words')
     expect(message).not.toContain(REPORTER_ID)
+  })
+})
+
+describe('report.create — the AI read (F100 criterion 1)', () => {
+  it('is scheduled once the report is stored, with its id', async () => {
+    installQueryRouter()
+    assessAfterReport.mockClear()
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'x' })
+    expect(assessAfterReport).toHaveBeenCalledWith(REPORT_ID)
+  })
+
+  it('a report that is refused is never read', async () => {
+    installQueryRouter({ priorReportsBySameMember: 2 })
+    assessAfterReport.mockClear()
+    await expect(reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'x' })).rejects.toThrow()
+    expect(assessAfterReport).not.toHaveBeenCalled()
   })
 })
