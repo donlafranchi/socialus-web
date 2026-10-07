@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os'
 import { builderEmail, builderPassword } from '../../src/lib/builders/credentials'
 import { ROSTER, BUILDER_FOR, photoFor, todaysNew, postFor, type BuilderKind, type Org, type Post } from './roster'
 import { Journey, recordPage, knownPages } from './run-log'
+import { readOwnPages, type OwnPagesPage } from '../../src/lib/builders/own-pages'
 
 const SEED = process.env.BUILDER_SEED ?? ''
 const TEMPLATE = process.env.BUILDER_EMAIL_TEMPLATE || undefined
@@ -41,18 +42,8 @@ async function signIn(page: Page, kind: BuilderKind) {
   await page.waitForURL((u) => !u.pathname.startsWith('/auth'), { timeout: 30_000 })
 }
 
-/** The builder's own Pages, by name, from You. */
-async function ownPages(page: Page): Promise<Map<string, string>> {
-  await page.goto('/you')
-  const own = new Map<string, string>()
-  await page.getByTestId('you-page').waitFor()
-  for (const a of await page.locator('[data-testid="own-page-live"], [data-testid="own-page-draft"]').all()) {
-    const name = (await a.getAttribute('title')) ?? (await a.innerText()).split('\n')[0]!.trim()
-    const href = (await a.getAttribute('href')) ?? (await a.locator('a').first().getAttribute('href')) ?? ''
-    if (name) own.set(name, href)
-  }
-  return own
-}
+/** The builder's own Pages, by name, from You — once the list has settled (#477). */
+const ownPages = (page: Page) => readOwnPages(page as unknown as OwnPagesPage)
 
 async function photoFile(page: Page, org: Org, which: 'cover' | 'post'): Promise<string> {
   const res = await page.request.get(photoFor(org.key)[which].url)
