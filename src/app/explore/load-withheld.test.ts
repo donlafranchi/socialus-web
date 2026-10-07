@@ -40,6 +40,8 @@ vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
 // #331 — the map's mix has its own tests; these are about the list and the rows.
 const { loadMapMix } = vi.hoisted(() => ({ loadMapMix: vi.fn(async () => []) }))
 vi.mock('@/lib/map/load-mix', () => ({ loadMapMix }))
+const { withLocationKinds } = vi.hoisted(() => ({ withLocationKinds: vi.fn(async (_c: unknown, rows: unknown[]) => rows) }))
+vi.mock('@/lib/map/location-kinds', () => ({ withLocationKinds }))
 vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
 // `withWaitingCounts` stays real — it is a pure merge, and these tests assert
@@ -239,5 +241,18 @@ describe('#331 — the map mix', () => {
     const snap = await loadBrowse(null)
     expect(loadMapMix).not.toHaveBeenCalled()
     expect(snap.map).toEqual([])
+  })
+})
+
+// #475 — the map's rows say whether each place is an address or only an area.
+describe('#475 — the map rows carry their location kind', () => {
+  it('signed in, the mix passes through the kind read', async () => {
+    signedIn()
+    const mixed = [{ resultId: 'm1', locationId: 'l1' }]
+    loadMapMix.mockResolvedValueOnce(mixed as never)
+    withLocationKinds.mockResolvedValueOnce([{ resultId: 'm1', locationId: 'l1', locationKind: 'area' }])
+    const snap = await loadBrowse(null)
+    expect(withLocationKinds).toHaveBeenCalledWith(expect.anything(), mixed)
+    expect(snap.map).toEqual([{ resultId: 'm1', locationId: 'l1', locationKind: 'area' }])
   })
 })

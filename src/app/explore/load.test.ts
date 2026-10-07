@@ -288,3 +288,4 @@ describe('a picked neighbourhood', () => {
     expect(snap.area).toBeNull()
   })
 })
+
