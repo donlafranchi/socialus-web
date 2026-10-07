@@ -45,6 +45,7 @@ import type { ActionContext } from '../_lib/context'
 
 const GROUP_ID = '11111111-1111-1111-1111-111111111111'
 const REPORTER_ID = '22222222-2222-2222-2222-222222222222'
+const FOUNDER_ID = '44444444-4444-4444-4444-444444444444'
 const REPORT_ID = '33333333-3333-3333-3333-333333333333'
 const PHOTO = 'https://cdn.example.test/pages/oak-park.jpg'
 const NOW = new Date('2026-09-14T12:00:00Z')
@@ -77,6 +78,7 @@ function installQueryRouter(
     priorReportsBySameMember?: number
     openReportsByReporter?: number
     builderOnReal?: boolean
+    hideBar?: number
   } = {},
 ) {
   const {
@@ -87,6 +89,7 @@ function installQueryRouter(
     priorReportsBySameMember = 0,
     openReportsByReporter = 0,
     builderOnReal = false,
+    hideBar = 0,
   } = opts
 
   query.mockReset()
@@ -101,6 +104,9 @@ function installQueryRouter(
                 photo_hidden_at: photoHiddenAt,
                 photo_hide_locked_url: photoHideLockedUrl,
                 builder_on_real: builderOnReal,
+                founder_member_id: FOUNDER_ID,
+                name: 'Oak Park Bakery',
+                hide_bar: hideBar,
               },
             ]
           : [],
@@ -115,6 +121,7 @@ function installQueryRouter(
     if (/insert into public\.reports/i.test(sql)) {
       return { rows: [{ id: REPORT_ID }] }
     }
+    if (/insert into public\.member_notices/i.test(sql)) return { rows: [] }
     if (/update public\.groups/i.test(sql) && /photo_hidden_at/i.test(sql)) {
       return { rows: [{ id: GROUP_ID }] }
     }
@@ -303,7 +310,7 @@ describe('report.create — the three limits', () => {
 })
 
 describe('report.create — no visible state', () => {
-  it('writes nothing but the report row, the hide, and the two events', async () => {
+  it('writes nothing but the report row, the hide, and the poster\'s notice (F078 criterion 3 amends F058 acceptance 2), plus the two events', async () => {
     installQueryRouter()
     await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
 
@@ -311,7 +318,8 @@ describe('report.create — no visible state', () => {
       .map(([sql]) => sql)
       .filter((sql) => /^\s*(insert|update|delete)/i.test(sql))
 
-    expect(writes).toHaveLength(2)
+    expect(writes).toHaveLength(3)
+    expect(writes.some((s) => /insert into public\.member_notices/i.test(s))).toBe(true)
     expect(writes.some((s) => /insert into public\.reports/i.test(s))).toBe(true)
     expect(writes.some((s) => /update public\.groups/i.test(s))).toBe(true)
   })
@@ -467,5 +475,78 @@ describe('F080 — sensitive content hides at any bar and texts Don', () => {
     expect(message).toMatch(/\/admin\/reports/)
     expect(message).not.toContain('secret words')
     expect(message).not.toContain(REPORTER_ID)
+  })
+})
+
+// #220 (ruled 2026-10-07, option A) — the hide bar is per-metro data starting at
+// 0, and the poster is told in-app what was hidden and the reporter's reason.
+// Child-category reports stay operator-only until the NCMEC plan is settled.
+describe('report.create — the metro hide bar (F078 criteria 6–8)', () => {
+  const report = (category: 'other' | 'spam' | 'sensitive_content' | 'threat_of_harm') =>
+    reportCreate(ctx(), { subjectKind: 'group', category, subjectId: GROUP_ID, body: 'Reported.' })
+
+  // [guards F078.7 partial: the starting value; the config column itself is a migration]
+  it('at the starting bar of 0 every report hides, as it always has', async () => {
+    installQueryRouter({ hideBar: 0 })
+    expect((await report('spam')).photoHidden).toBe(true)
+  })
+
+  // [guards F078.6 partial: no classifier yet, so no score reaches the bar]
+  it('above 0 a report with no score is below the bar: stored and queued, nothing hides', async () => {
+    installQueryRouter({ hideBar: 0.5 })
+    const r = await report('spam')
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/insert into public\.reports/i)).toHaveLength(1)
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+
+  // [guards F078.8]
+  it('sensitive content and threat of harm hide whatever the bar is', async () => {
+    installQueryRouter({ hideBar: 0.99 })
+    expect((await report('sensitive_content')).photoHidden).toBe(true)
+    installQueryRouter({ hideBar: 0.99 })
+    expect((await report('threat_of_harm')).photoHidden).toBe(true)
+  })
+})
+
+describe('report.create — the poster is told (F078 criterion 3)', () => {
+  const report = (category: 'other' | 'spam' | 'sensitive_content' | 'threat_of_harm') =>
+    reportCreate(ctx(), { subjectKind: 'group', category, subjectId: GROUP_ID, body: 'Reported.' })
+
+  it('a hide leaves the Page founder a notice with the category and the reporter\'s chosen reason', async () => {
+    installQueryRouter()
+    await report('spam')
+    const [sql, params] = callsMatching(/insert into public\.member_notices/i)[0]!
+    expect(sql).toMatch(/member_id/)
+    expect(params).toEqual(expect.arrayContaining([FOUNDER_ID, REPORT_ID, 'spam']))
+    expect(JSON.stringify(params)).toContain('Spam')
+  })
+
+  it('never carries what the reporter wrote or who they are', async () => {
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'spam', subjectId: GROUP_ID, body: 'secret words from reporter' })
+    const [, params] = callsMatching(/insert into public\.member_notices/i)[0]!
+    expect(JSON.stringify(params)).not.toContain('secret words')
+    expect(params).not.toContain(REPORTER_ID)
+  })
+
+  it('nothing hidden, nothing said: a report that did not hide sends no notice', async () => {
+    installQueryRouter({ photoHiddenAt: NOW })
+    await report('spam')
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+
+  // [guards F102.14 partial: child-category content is never sent back to the poster]
+  it('a sensitive-content report stays operator-only: the poster is not notified', async () => {
+    installQueryRouter()
+    const r = await report('sensitive_content')
+    expect(r.photoHidden).toBe(true)
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+
+  it('a builder\'s report on a real Page hides nothing and tells nobody', async () => {
+    installQueryRouter({ builderOnReal: true })
+    await report('spam')
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
   })
 })

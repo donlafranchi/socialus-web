@@ -25,6 +25,7 @@ import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
 import { textOperator } from '@/lib/notify/operator-sms'
+import { hiddenNoticeMessage } from '@/lib/reports/notices'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -121,12 +122,22 @@ export const reportCreate = defineHandler(
         photo_hide_locked_url: string | null
         builder_on_real: boolean
         reporter_is_builder: boolean
+        founder_member_id: string
+        name: string
+        hide_bar: string | number
       }>(
         // #280 — a builder's report on a real Page is stored and queued, and
         // never hides anything a real member sees.
         `select id, photo_url, photo_hidden_at, photo_hide_locked_url,
                 public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
-                public.is_builder($2) as reporter_is_builder
+                public.is_builder($2) as reporter_is_builder,
+                founder_member_id, name,
+                -- F078 criterion 7: the metro's bar, 0 when the metro cannot be
+                -- resolved. min() so an overlap leans toward hiding.
+                coalesce((select min(mp.hide_bar)
+                            from public.locations l
+                            join public.metro_polygons mp on st_intersects(l.geography, mp.geography)
+                           where l.id = groups.anchor_location_id), 0) as hide_bar
            from public.groups
           where id = $1`,
         [input.subjectId, reporterMemberId],
@@ -215,12 +226,17 @@ export const reportCreate = defineHandler(
       const urgent = URGENT_CATEGORIES.includes(input.category)
       if (urgent && !subject.reporter_is_builder && !subject.builder_on_real) textAfterCommit = true
 
+      // F078 criteria 6–8. No classifier yet, so no report carries a score: above
+      // a bar of 0 a report is below it and only queues. Urgent categories hide
+      // at any bar.
+      const reachesBar = Number(subject.hide_bar) === 0
+
       const shouldHide =
         !subject.builder_on_real &&
         subject.photo_url !== null &&
         subject.photo_hidden_at === null &&
         !isLocked &&
-        (urgent || (priorBySameMember === 0 && openByReporter < MAX_OPEN_REPORTS_PER_REPORTER))
+        (urgent || (reachesBar && priorBySameMember === 0 && openByReporter < MAX_OPEN_REPORTS_PER_REPORTER))
 
       if (!shouldHide) {
         return { reportId, photoHidden: false }
@@ -245,6 +261,26 @@ export const reportCreate = defineHandler(
         event_kind: 'group.photo_hidden',
         payload: { report_id: reportId, reason: 'reported' },
       })
+
+      // F078 criterion 3 — the poster is told, in-app, the reporter's chosen
+      // reason. Sensitive content stays operator-only until the NCMEC plan is
+      // settled (ruled 2026-10-07): a child's picture never goes back to the poster.
+      if (input.category !== 'sensitive_content' && !subject.reporter_is_builder) {
+        await client.query(
+          `insert into public.member_notices
+             (member_id, kind, report_id, subject_kind, subject_id, category, message, created_at)
+           values ($1, 'content_hidden', $2, $3, $4, $5, $6, $7)`,
+          [
+            subject.founder_member_id,
+            reportId,
+            input.subjectKind,
+            input.subjectId,
+            input.category,
+            hiddenNoticeMessage(subject.name, input.category),
+            ctx.now(),
+          ],
+        )
+      }
 
       return { reportId, photoHidden: true }
     })
