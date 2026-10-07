@@ -14,6 +14,6 @@
   - **Say it's a mistake:** Mistaken, Malicious or Misusing reports, plus a note of at most 280 characters. The content stays hidden until a person decides. The operator's row shows what the poster said.
 - **No answer is no work:** an unanswered hide closes itself after 14 days; the notice says so and takes no answer. (Nothing is scheduled: closed is read from the notice's age.)
 - A Page photo has only the mistake answer: a replaced photo does not yet clear its hide (existing behaviour, not changed here).
-- Migration `20261007230000_report_answers.sql`. The AI reading the poster's rebuttal (F100 criterion 1) waits on #495.
+- Migration `20261007260000_report_answers.sql`. The AI reading the poster's rebuttal (F100 criterion 1) waits on #495.
 
 **Criterion 11 (the week in one line):** the Posts page header shows "This week: N answers from posters · N reporters cooling down". It shows every day, not only Friday morning; a Friday-only card is a one-line change if wanted.
