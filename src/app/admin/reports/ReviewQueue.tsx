@@ -321,21 +321,21 @@ function Row({
             <div className="mt-3 flex flex-col gap-2" data-testid="review-confirm">
               <p className="text-body-sm text-[var(--color-fg)]">Approve something reported as the most serious kind?</p>
               <div className="grid grid-cols-2 gap-2">
-                <button type="button" className={`${buttonClass('secondary')} min-h-12`} onClick={onCancelConfirm}>
+                <button type="button" className={`${buttonClass('secondary')} min-h-12!`} onClick={onCancelConfirm}>
                   Not yet
                 </button>
-                <button type="button" className={`${buttonClass('secondary')} min-h-12`} onClick={() => onDecide('restored')}>
+                <button type="button" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onDecide('restored')}>
                   Approve
                 </button>
               </div>
             </div>
           ) : (
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <button type="button" data-testid="review-approve" className={`${buttonClass('secondary')} min-h-12`} onClick={() => onDecide('restored')}>
+              <button type="button" data-testid="review-approve" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onDecide('restored')}>
                 <Check size={16} aria-hidden="true" />
                 Approve
               </button>
-              <button type="button" data-testid="review-remove" className={`${buttonClass('secondary')} min-h-12`} onClick={() => onDecide('removed')}>
+              <button type="button" data-testid="review-remove" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onDecide('removed')}>
                 <X size={16} aria-hidden="true" />
                 Remove
               </button>

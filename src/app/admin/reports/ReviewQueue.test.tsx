@@ -243,3 +243,11 @@ describe('F101 / F078 — Posts as rows, severity from the reason, reasons count
     expect(onDecide).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('F101 — the two buttons are 48px tall', () => {
+  // [guards F101.5 partial: the height; jsdom has no layout, so this is the class that wins over min-h-tap]
+  it('Approve and Remove force min-h-12 over the button\'s own 44px floor', () => {
+    show(groupBySubject([report('r1', 'a')]))
+    for (const id of ['review-approve', 'review-remove']) expect(screen.getByTestId(id).className).toContain('min-h-12!')
+  })
+})

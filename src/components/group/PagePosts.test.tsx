@@ -598,6 +598,24 @@ describe('F078 — reporting a Post', () => {
     await waitFor(() => expect(onReport).toHaveBeenCalledWith(expect.objectContaining({ subjectId: POST.id, category: 'spam', body: 'Looks like an ad.' })))
   })
 
+  // A post card sits in a row that scrolls sideways, which clips anything absolutely placed
+  // inside it: the open menu must escape that row and stay on screen.
+  it('the open menu is fixed to the screen, so the posts row cannot clip it', () => {
+    renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    const menu = screen.getByRole('menu')
+    expect(menu.style.position).toBe('fixed')
+    expect(parseFloat(menu.style.left)).toBeGreaterThanOrEqual(8)
+  })
+
+  it('Escape closes the open menu even while focus is still on the ⋯', () => {
+    renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    const more = screen.getByRole('button', { name: /more options/i })
+    fireEvent.click(more)
+    fireEvent.keyDown(more, { key: 'Escape' })
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+
   it('the people who manage the Page get no report control on their own post', () => {
     renderPosts({ canPost: true, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
     expect(screen.queryByRole('button', { name: /more options/i })).toBeNull()
