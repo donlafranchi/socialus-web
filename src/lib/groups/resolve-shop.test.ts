@@ -151,6 +151,7 @@ describe('resolveShop', () => {
       resolveShop(makeSupabaseStub({ group: { ...ACTIVE_ROW, picture_url: 'https://x/pic.webp', ...over } }), 'oak-park-sourdough')
     expect((await pic({}))?.pictureUrl).toBe('https://x/pic.webp')
     expect((await pic({ picture_hidden_at: '2026-10-02T00:00:00Z' }))?.pictureUrl).toBeNull()
+    expect((await pic({ picture_hidden_at: '2026-10-02T00:00:00Z' }))?.pictureHiddenAt).toBe('2026-10-02T00:00:00Z')
     expect((await pic({ picture_removed_at: '2026-10-02T00:00:00Z' }))?.pictureUrl).toBeNull()
     expect((await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW }), 'oak-park-sourdough'))?.pictureUrl).toBeNull()
   })

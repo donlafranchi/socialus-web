@@ -132,6 +132,8 @@ export function ShopPublicPage({
   // today nothing, and T146's default art once that lands. Neither reveals
   // that a photo exists, or that anyone reported it.
   const showHiddenNotice = viewerOwnsPage && photoUrl === null && shop.photoHiddenAt !== null
+  // F099 — and the Page picture, named as such.
+  const showPictureNotice = viewerOwnsPage && shop.pictureUrl == null && !!shop.pictureHiddenAt
   const showOwnerPanel = viewerOwnsPage && Boolean(pagePath)
   // F093 criterion 8 — signed out is the front door: name, photo, description,
   // the withheld card and Sign up to follow. Listings and links out wait.
@@ -174,6 +176,7 @@ export function ShopPublicPage({
       )}
 
       {showHiddenNotice && <HiddenPhotoNotice />}
+      {showPictureNotice && <HiddenPhotoNotice which="picture" />}
 
       {/* #458 — the header block: photo, name, kind, Share and Follow. */}
       <header data-testid="page-header" className="flex flex-col gap-3">
@@ -369,6 +372,7 @@ export function ShopPublicPage({
           pageName={shop.displayName}
           pictureUrl={shop.pictureUrl ?? null}
           artKind={artKindFor(shop.kind, shop.purpose)}
+          report={{ loggedIn, returnTo: pagePath, onSend: sendReportAction }}
           onPost={postToPageAction}
           onEdit={editPagePostAction}
           onDelete={deletePagePostAction}

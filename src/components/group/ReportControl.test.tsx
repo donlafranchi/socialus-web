@@ -253,3 +253,28 @@ describe('a signed-out member', () => {
     expect(send).not.toHaveBeenCalled()
   })
 })
+
+// F099 criterion 8 — the control reports whichever image it was given.
+describe('which image is reported', () => {
+  const sendIt = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+  }
+
+  // [guards F099.8]
+  it('sends the subject kind it was given', async () => {
+    renderControl({ subjectKind: 'post_photo' })
+    sendIt()
+    await waitFor(() => expect(send).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'post_photo', subjectId: 'grp-1' })))
+  })
+
+  it('sends none for the Page photo, as before', async () => {
+    renderControl()
+    sendIt()
+    await waitFor(() => expect(send).toHaveBeenCalled())
+    expect((send.mock.calls[0] as unknown as [{ subjectKind?: string }])[0].subjectKind).toBeUndefined()
+  })
+})

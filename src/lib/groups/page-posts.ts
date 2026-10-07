@@ -32,6 +32,8 @@ export interface PagePost {
   /** F099 — the post's own photo, only when it is neither hidden nor removed.
    *  Resolved here, on the server, so a hidden URL never reaches a browser. */
   photoUrl?: string | null
+  /** F099 — the photo exists and is hidden pending review (not removed): the poster's notice, nothing else. */
+  photoHidden?: boolean
 }
 
 interface Row {
@@ -77,6 +79,7 @@ export async function resolvePagePosts(
       endsAt: r.ends_at,
       locationLabel: loc?.label ?? null,
       howToFind: maskEmailsOrNull(r.how_to_find ?? null),
+      photoHidden: !!r.photo_url && !!r.photo_hidden_at && !r.photo_removed_at,
       photoUrl: visiblePhotoUrl({
         photo_url: r.photo_url ?? null,
         photo_hidden_at: r.photo_hidden_at ?? null,

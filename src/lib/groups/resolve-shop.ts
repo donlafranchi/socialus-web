@@ -56,6 +56,8 @@ export interface ResolvedShop {
   photoUrl: string | null
   /** F099 — the Page picture, resolved: null when none, hidden or removed. */
   pictureUrl?: string | null
+  /** F099 — non-null means the Page picture is hidden pending review; the owner's notice reads it. */
+  pictureHiddenAt?: string | null
   /** F070 — the Page's links out. Empty object means none. */
   socialLinks: SocialLinks
   /** T160 — non-null means hidden pending operator review (T159). */
@@ -262,6 +264,7 @@ export async function resolveShop(
     category: row.category,
     purpose: row.purpose,
     photoUrl: row.photo_url,
+    pictureHiddenAt: row.picture_hidden_at ?? null,
     pictureUrl: visiblePhotoUrl({
       photo_url: row.picture_url ?? null,
       photo_hidden_at: row.picture_hidden_at ?? null,

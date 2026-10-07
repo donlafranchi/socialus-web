@@ -61,6 +61,11 @@ export interface QueuedReport {
   hiddenAt: Date | null
   /** Non-null means the photo is currently removed. Reversible. */
   removedAt: Date | null
+  /** What was reported: the Page's photo, its Page picture, or one post's photo (F099). */
+  subjectKind: 'group' | 'page_picture' | 'post_photo'
+  /** The id of the thing reported: a Page for 'group' and 'page_picture', a post for 'post_photo'. */
+  subjectId: string
+  /** The Page it belongs to, for the name and owner. */
   groupId: string
   groupName: string
   groupSlug: string | null
@@ -132,26 +137,49 @@ export async function fetchReviewQueue(
   { includeBuilders = false }: { includeBuilders?: boolean } = {},
 ): Promise<QueuedReport[]> {
   const { rows } = await getPool().query(
-    `select r.id              as report_id,
+    `with subjects as (
+       -- One row per report, shaped the same whichever image it is about. Each
+       -- branch is written out in full: the table and columns differ.
+       select r.id as report_id, r.subject_kind, r.subject_id, g.id as group_id,
+              g.photo_url as url, g.photo_hidden_at as hidden_at, g.photo_removed_at as removed_at
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'group'
+       union all
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              g.picture_url, g.picture_hidden_at, g.picture_removed_at
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'page_picture'
+       union all
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              pp.photo_url, pp.photo_hidden_at, pp.photo_removed_at
+         from public.reports r
+         join public.page_posts pp on pp.id = r.subject_id
+         join public.groups g on g.id = pp.group_id
+        where r.subject_kind = 'post_photo'
+     )
+     select r.id              as report_id,
             r.body            as body,
             r.category        as category,
             r.created_at      as reported_at,
-            g.photo_hidden_at as hidden_at,
-            g.photo_removed_at as removed_at,
+            s.hidden_at       as hidden_at,
+            s.removed_at      as removed_at,
+            s.subject_kind    as subject_kind,
+            s.subject_id      as subject_id,
             g.id              as group_id,
             g.name            as group_name,
             g.slug            as group_slug,
-            g.photo_url       as photo_url,
+            s.url             as photo_url,
             m.display_name    as owner_display_name,
             m.handle          as owner_handle
        from public.reports r
-       join public.groups  g on g.id = r.subject_id
+       join subjects s on s.report_id = r.id
+       join public.groups  g on g.id = s.group_id
        left join public.members m on m.id = g.founder_member_id
-      where r.subject_kind = 'group'
+      where true
         -- #280 — builder reports and builder Pages reach only the builder operator.
         and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(g.founder_member_id)))
       order by (r.reviewed_at is not null),          -- undecided first
-               g.photo_hidden_at asc nulls last,
+               s.hidden_at asc nulls last,
                r.created_at asc
       limit $1`,
     [limit, includeBuilders],
@@ -166,6 +194,8 @@ export async function fetchReviewQueue(
     reportedAt: r.reported_at as Date,
     hiddenAt: (r.hidden_at as Date | null) ?? null,
     removedAt: (r.removed_at as Date | null) ?? null,
+    subjectKind: r.subject_kind as QueuedReport['subjectKind'],
+    subjectId: r.subject_id as string,
     groupId: r.group_id as string,
     groupName: r.group_name as string,
     groupSlug: (r.group_slug as string | null) ?? null,

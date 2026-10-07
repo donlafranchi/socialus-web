@@ -55,9 +55,11 @@ const MAX_OPEN_REPORTS_TOTAL = 20
 const MAX_REPORTS_PER_SUBJECT = 2
 
 export const reportCreateInput = z.object({
-  // 'group' is the only value today. Posts join when posts exist; Items never
-  // do (model.md § There are no Items).
-  subjectKind: z.literal('group'),
+  // What is reported: the Page's photo ('group', the original subject), the Page
+  // picture, or one post's photo (F099 criterion 8: each reportable on its own,
+  // and a report hides that one image only). Items never join (model.md § There
+  // are no Items).
+  subjectKind: z.enum(['group', 'page_picture', 'post_photo']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -79,6 +81,82 @@ export interface ReportCreateResult {
    * changes nothing visible to anyone.
    */
   photoHidden: boolean
+}
+
+interface Subject {
+  /** The Page the image belongs to; every event is written against it. */
+  group_id: string
+  photo_url: string | null
+  photo_hidden_at: Date | null
+  photo_hide_locked_url: string | null
+  builder_on_real: boolean
+  reporter_is_builder: boolean
+}
+
+type Queryable = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
+
+/**
+ * The reported image, one query per kind and each written out in full: the
+ * table and the columns differ, and a name built from input is how an injection
+ * gets in. #280 — a builder's report on a real Page is stored and queued, and
+ * never hides anything a real member sees.
+ */
+async function loadSubject(
+  client: Queryable,
+  kind: ReportCreateInput['subjectKind'],
+  id: string,
+  reporter: string,
+): Promise<Subject | undefined> {
+  if (kind === 'post_photo') {
+    const res = await client.query<Subject>(
+      `select g.id as group_id, pp.photo_url, pp.photo_hidden_at, pp.photo_hide_locked_url,
+              public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder
+         from public.page_posts pp
+         join public.groups g on g.id = pp.group_id
+        where pp.id = $1`,
+      [id, reporter],
+    )
+    return res.rows[0]
+  }
+  if (kind === 'page_picture') {
+    const res = await client.query<Subject>(
+      `select id as group_id, picture_url as photo_url, picture_hidden_at as photo_hidden_at,
+              picture_hide_locked_url as photo_hide_locked_url,
+              public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder
+         from public.groups
+        where id = $1`,
+      [id, reporter],
+    )
+    return res.rows[0]
+  }
+  const res = await client.query<Subject & { id: string }>(
+    `select id as group_id, photo_url, photo_hidden_at, photo_hide_locked_url,
+            public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+            public.is_builder($2) as reporter_is_builder
+       from public.groups
+      where id = $1`,
+    [id, reporter],
+  )
+  return res.rows[0]
+}
+
+/** Hide the one image; false when a concurrent report already did. */
+async function hideImage(
+  client: Queryable,
+  kind: ReportCreateInput['subjectKind'],
+  id: string,
+  now: Date,
+): Promise<boolean> {
+  const sql =
+    kind === 'post_photo'
+      ? `update public.page_posts set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`
+      : kind === 'page_picture'
+        ? `update public.groups set picture_hidden_at = $2 where id = $1 and picture_hidden_at is null returning id`
+        : `update public.groups set photo_hidden_at = $2 where id = $1 and photo_hidden_at is null returning id`
+  const res = await client.query<{ id: string }>(sql, [id, now])
+  return res.rows.length > 0
 }
 
 export const reportCreate = defineHandler(
@@ -114,27 +192,13 @@ export const reportCreate = defineHandler(
       // `reports.subject_id` carries no foreign key — it is polymorphic by
       // design, so posts join later without a change of shape. The handler is
       // what keeps it honest.
-      const subjectRes = await client.query<{
-        id: string
-        photo_url: string | null
-        photo_hidden_at: Date | null
-        photo_hide_locked_url: string | null
-        builder_on_real: boolean
-        reporter_is_builder: boolean
-      }>(
-        // #280 — a builder's report on a real Page is stored and queued, and
-        // never hides anything a real member sees.
-        `select id, photo_url, photo_hidden_at, photo_hide_locked_url,
-                public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
-                public.is_builder($2) as reporter_is_builder
-           from public.groups
-          where id = $1`,
-        [input.subjectId, reporterMemberId],
-      )
-      const subject = subjectRes.rows[0]
+      const subject = await loadSubject(client, input.subjectKind, input.subjectId, reporterMemberId)
       if (!subject) {
-        throw new NotFoundError(`report.create: group ${input.subjectId} not found`)
+        throw new NotFoundError(`report.create: ${input.subjectKind} ${input.subjectId} not found`)
       }
+      // The Page every event is written against (a post's photo belongs to a post
+      // of one Page).
+      const groupId = subject.group_id
 
       // The two counts are read BEFORE the insert, so this report never counts
       // itself against its own limits.
@@ -188,7 +252,7 @@ export const reportCreate = defineHandler(
       // the migration that accompanies this ticket keeps that column out of
       // every browser read path.
       await appendEvent(txCtx, 'group_events', {
-        group_id: input.subjectId,
+        group_id: groupId,
         event_kind: 'group.reported',
         payload: { report_id: reportId, subject_kind: input.subjectKind },
       })
@@ -226,24 +290,17 @@ export const reportCreate = defineHandler(
         return { reportId, photoHidden: false }
       }
 
-      // `photo_hidden_at is null` in the WHERE re-asserts the read above, so a
-      // concurrent report cannot produce two hides and two events.
-      const hideRes = await client.query<{ id: string }>(
-        `update public.groups
-            set photo_hidden_at = $2
-          where id = $1
-            and photo_hidden_at is null
-          returning id`,
-        [input.subjectId, ctx.now()],
-      )
-      if (hideRes.rows.length === 0) {
+      // `... is null` in the WHERE re-asserts the read above, so a concurrent
+      // report cannot produce two hides and two events.
+      const hidden = await hideImage(client, input.subjectKind, input.subjectId, ctx.now())
+      if (!hidden) {
         return { reportId, photoHidden: false }
       }
 
       await appendEvent(txCtx, 'group_events', {
-        group_id: input.subjectId,
+        group_id: groupId,
         event_kind: 'group.photo_hidden',
-        payload: { report_id: reportId, reason: 'reported' },
+        payload: { report_id: reportId, reason: 'reported', subject_kind: input.subjectKind },
       })
 
       return { reportId, photoHidden: true }

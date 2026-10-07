@@ -21,10 +21,19 @@ alter table public.groups
   add column picture_hide_locked_url text;
 
 -- groups is granted column by column: a new column is read by nobody until named.
-grant select (picture_url, picture_hidden_at, picture_removed_at) on public.groups to anon, authenticated;
+grant select (picture_url, picture_hidden_at, picture_removed_at, picture_hide_locked_url) on public.groups to anon, authenticated;
 
 comment on column public.groups.picture_url is
   'F099: the Page picture, one for every kind, set by the owner. Separate from photo_url. A post without a photo of its own shows this, else its kind''s placeholder.';
+
+-- 3. Criterion 8: each image is reportable on its own. 'group' stays the Page's
+--    photo; 'page_picture' (subject_id = the Page) and 'post_photo' (subject_id =
+--    the post) join it. subject_id carries no foreign key by design; the handler
+--    keeps it honest.
+alter table public.reports drop constraint reports_subject_kind_check;
+alter table public.reports
+  add constraint reports_subject_kind_check
+  check (subject_kind in ('group', 'page_picture', 'post_photo'));
 
 drop function public.browse_feed(
   uuid, uuid, text[], text[], text, uuid[], text[],

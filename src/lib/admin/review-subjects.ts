@@ -12,7 +12,10 @@ import type { ReasonCode } from './reason-codes'
 export type Severity = 1 | 2 | 3 | 4
 
 export interface ReviewSubject {
+  /** The key: the Page's id for its photo (as before), `kind:id` for any other image. */
   subjectId: string
+  /** F099 — which image it is. */
+  kind: QueuedReport['subjectKind']
   name: string
   slug: string | null
   photoUrl: string | null
@@ -30,8 +33,12 @@ export const isOpen = (r: QueuedReport) => r.history.length === 0
 export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
   const by = new Map<string, ReviewSubject>()
   for (const r of [...queue].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())) {
-    const s = by.get(r.groupId) ?? {
-      subjectId: r.groupId,
+    // The Page's photo is keyed by its Page, as it always was; any other image by
+    // its own kind and id, so one Page's photo, picture and posts never merge.
+    const key = r.subjectKind === 'group' ? r.groupId : `${r.subjectKind}:${r.subjectId}`
+    const s = by.get(key) ?? {
+      subjectId: key,
+      kind: r.subjectKind,
       name: r.groupName,
       slug: r.groupSlug,
       photoUrl: r.photoUrl,
@@ -43,7 +50,7 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
     }
     s.reports.push(r)
     if (isOpen(r)) s.openReportIds.push(r.reportId)
-    by.set(r.groupId, s)
+    by.set(key, s)
   }
   return [...by.values()]
 }

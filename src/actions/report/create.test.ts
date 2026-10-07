@@ -469,3 +469,75 @@ describe('F080 — sensitive content hides at any bar and texts Don', () => {
     expect(message).not.toContain(REPORTER_ID)
   })
 })
+
+// F099 criterion 8 — a Page picture and a post photo are reportable on their own,
+// and a report hides that one image only.
+describe('F099 — report.create on one image', () => {
+  const POST_ID = '44444444-4444-4444-4444-444444444444'
+  const IMG = 'https://cdn.example.test/media/m/a.webp'
+
+  function installImageRouter(opts: { found?: boolean; url?: string | null; hiddenAt?: Date | null } = {}) {
+    const { found = true, url = IMG, hiddenAt = null } = opts
+    query.mockReset()
+    query.mockImplementation(async (sql: string) => {
+      if (/from public\.page_posts/i.test(sql) && /select/i.test(sql)) {
+        return {
+          rows: found
+            ? [{ id: POST_ID, group_id: GROUP_ID, photo_url: url, photo_hidden_at: hiddenAt, photo_hide_locked_url: null, builder_on_real: false, reporter_is_builder: false }]
+            : [],
+        }
+      }
+      if (/picture_url/i.test(sql) && /from public\.groups/i.test(sql) && /select/i.test(sql)) {
+        return {
+          rows: found
+            ? [{ id: GROUP_ID, group_id: GROUP_ID, photo_url: url, photo_hidden_at: hiddenAt, photo_hide_locked_url: null, builder_on_real: false, reporter_is_builder: false }]
+            : [],
+        }
+      }
+      if (/count/i.test(sql) && /reporter_member_id/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: '0' }] }
+      if (/count/i.test(sql) && /reviewed_at is null/i.test(sql)) return { rows: [{ count: '0' }] }
+      if (/insert into public\.reports/i.test(sql)) return { rows: [{ id: REPORT_ID }] }
+      if (/update public\.(page_posts|groups)/i.test(sql)) return { rows: [{ id: POST_ID }] }
+      throw new Error(`unexpected query in test: ${sql}`)
+    })
+  }
+
+  // [guards F099.8]
+  it("a report on a post's photo hides that photo only, and the event names the owning Page", async () => {
+    installImageRouter()
+    const r = await reportCreate(ctx(), { subjectKind: 'post_photo', category: 'other', subjectId: POST_ID, body: 'Not ok.' })
+    expect(r.photoHidden).toBe(true)
+    expect(callsMatching(/insert into public\.reports/i)[0]![1]).toContain('post_photo')
+    const [hide] = callsMatching(/update public\.page_posts/i)
+    expect(hide![0]).toMatch(/photo_hidden_at/)
+    expect(callsMatching(/update public\.groups/i)).toHaveLength(0)
+    const reported = eventsOfKind('group.reported')[0]![2] as EventRow
+    expect(reported.group_id).toBe(GROUP_ID)
+    expect(reported.payload).toMatchObject({ subject_kind: 'post_photo' })
+  })
+
+  // [guards F099.8]
+  it("a report on a Page picture hides the picture only, never the Page's photo", async () => {
+    installImageRouter()
+    const r = await reportCreate(ctx(), { subjectKind: 'page_picture', category: 'other', subjectId: GROUP_ID, body: 'Not ok.' })
+    expect(r.photoHidden).toBe(true)
+    const [hide] = callsMatching(/update public\.groups/i)
+    expect(hide![0]).toMatch(/picture_hidden_at/)
+    expect(hide![0]).not.toMatch(/\bphoto_hidden_at/)
+  })
+
+  it('stores the report and hides nothing when there is no image to hide', async () => {
+    installImageRouter({ url: null })
+    const r = await reportCreate(ctx(), { subjectKind: 'post_photo', category: 'other', subjectId: POST_ID, body: 'Not ok.' })
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/insert into public\.reports/i)).toHaveLength(1)
+    expect(callsMatching(/update public\.page_posts/i)).toHaveLength(0)
+  })
+
+  it('reports a missing post as not found', async () => {
+    installImageRouter({ found: false })
+    await expect(
+      reportCreate(ctx(), { subjectKind: 'post_photo', category: 'other', subjectId: POST_ID, body: 'x' }),
+    ).rejects.toThrow(/not found/)
+  })
+})

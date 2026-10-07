@@ -15,14 +15,23 @@
 // codebase — RESEND_API_KEY sits in .env.local.example and nothing in src/
 // reads it — so a real notification is its own ticket.
 
-export function HiddenPhotoNotice() {
+// F099 criterion 8: the notice names WHICH image — the Page's photo, its Page
+// picture, or the photo on a post. A closed set of three words, so it still
+// carries no way to pass a reporter or a report's text.
+const TITLE = {
+  photo: 'Your photo is hidden for now.',
+  picture: 'Your Page picture is hidden for now.',
+  post: 'The photo on your post is hidden for now.',
+} as const
+
+export function HiddenPhotoNotice({ which = 'photo' }: { which?: keyof typeof TITLE }) {
   return (
     <div
       data-testid="hidden-photo-notice"
       role="status"
       className="rounded-md border border-dashed border-[var(--color-charcoal-100)] bg-neutral-50 p-6 text-sm text-[var(--color-charcoal-900)]"
     >
-      <p className="font-medium">Your photo is hidden for now.</p>
+      <p className="font-medium">{TITLE[which]}</p>
       <p className="mt-1 text-neutral-600">
         Someone let us know about it, and a person is taking a look. If it&rsquo;s
         fine, it comes back. Only you can see this message.

@@ -19,6 +19,8 @@ const report = (id: string, groupId: string, over: Partial<QueuedReport> = {}): 
   reportedAt: day(3),
   hiddenAt: day(3),
   removedAt: null,
+  subjectKind: 'group',
+  subjectId: groupId,
   groupId,
   groupName: `Page ${groupId}`,
   groupSlug: groupId,

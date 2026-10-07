@@ -79,31 +79,41 @@ function requireNote(input: { reasonCode: ReasonCode; reasonNote?: string }, ver
   }
 }
 
+type SubjectKind = 'group' | 'page_picture' | 'post_photo'
+
 /**
- * Apply an outcome to the Page. Both directions are projection changes — the
- * URL and the bytes are never touched, which is what makes this reversible.
+ * Apply an outcome to the image that was reported. Both directions are
+ * projection changes — the URL and the bytes are never touched, which is what
+ * makes this reversible. One query per kind, each written out in full: the table
+ * and columns differ (the Page's photo, the Page picture, one post's photo), and
+ * a name built from input is how an injection gets in.
  */
-async function project(client: Client, groupId: string, outcome: Outcome, now: Date) {
+async function project(client: Client, kind: SubjectKind, subjectId: string, outcome: Outcome, now: Date) {
   if (outcome === 'restored') {
     // The lock is granted against the URL restored, so replacing the photo
     // drops it on its own and cannot outlive what it covers.
-    await client.query(
-      `update public.groups
-          set photo_hidden_at = null,
-              photo_removed_at = null,
-              photo_hide_locked_url = photo_url
-        where id = $1`,
-      [groupId],
-    )
+    const sql =
+      kind === 'post_photo'
+        ? `update public.page_posts
+              set photo_hidden_at = null, photo_removed_at = null, photo_hide_locked_url = photo_url
+            where id = $1`
+        : kind === 'page_picture'
+          ? `update public.groups
+                set picture_hidden_at = null, picture_removed_at = null, picture_hide_locked_url = picture_url
+              where id = $1`
+          : `update public.groups
+                set photo_hidden_at = null, photo_removed_at = null, photo_hide_locked_url = photo_url
+              where id = $1`
+    await client.query(sql, [subjectId])
     return
   }
-  await client.query(
-    `update public.groups
-        set photo_removed_at = $2,
-            photo_hidden_at = null
-      where id = $1`,
-    [groupId, now],
-  )
+  const sql =
+    kind === 'post_photo'
+      ? `update public.page_posts set photo_removed_at = $2, photo_hidden_at = null where id = $1`
+      : kind === 'page_picture'
+        ? `update public.groups set picture_removed_at = $2, picture_hidden_at = null where id = $1`
+        : `update public.groups set photo_removed_at = $2, photo_hidden_at = null where id = $1`
+  await client.query(sql, [subjectId, now])
 }
 
 async function insertDecision(
@@ -164,11 +174,17 @@ export const reportDecide = defineHandler(
     requireNote(input, 'report.decide')
 
     return withTransaction(async (client) => {
-      const res = await client.query<{ group_id: string }>(
-        `select r.subject_id as group_id
+      // The Page every event is written against: the subject itself, or for a
+      // post's photo the Page the post belongs to.
+      const res = await client.query<{ group_id: string; subject_kind: SubjectKind; subject_id: string }>(
+        `select r.subject_kind, r.subject_id,
+                g.id as group_id
            from public.reports r
-           join public.groups g on g.id = r.subject_id
-          where r.id = $1 and r.subject_kind = 'group'
+           left join public.page_posts pp
+             on r.subject_kind = 'post_photo' and pp.id = r.subject_id
+           join public.groups g
+             on g.id = case when r.subject_kind = 'post_photo' then pp.group_id else r.subject_id end
+          where r.id = $1 and r.subject_kind in ('group', 'page_picture', 'post_photo')
           for update of r`,
         [input.reportId],
       )
@@ -184,7 +200,7 @@ export const reportDecide = defineHandler(
         reasonCode: input.reasonCode,
         reasonNote: input.reasonNote,
       })
-      await project(client, row.group_id, input.outcome, now)
+      await project(client, row.subject_kind, row.subject_id, input.outcome, now)
       await projectReportRow(client, input.reportId, input.outcome, operator, now)
 
       await appendEvent({ ...ctx, db: client }, 'group_events', {
@@ -221,12 +237,16 @@ export const reportReverse = defineHandler(
         id: string
         report_id: string
         group_id: string
+        subject_kind: SubjectKind
+        subject_id: string
         outcome: Outcome
         already_reversed: boolean
       }>(
         `select d.id,
                 d.report_id,
-                r.subject_id as group_id,
+                r.subject_kind,
+                r.subject_id,
+                g.id as group_id,
                 d.outcome,
                 exists (
                   select 1 from public.report_decisions x
@@ -234,6 +254,10 @@ export const reportReverse = defineHandler(
                 ) as already_reversed
            from public.report_decisions d
            join public.reports r on r.id = d.report_id
+           left join public.page_posts pp
+             on r.subject_kind = 'post_photo' and pp.id = r.subject_id
+           join public.groups g
+             on g.id = case when r.subject_kind = 'post_photo' then pp.group_id else r.subject_id end
           where d.id = $1
           for update of d`,
         [input.decisionId],
@@ -261,7 +285,7 @@ export const reportReverse = defineHandler(
         reasonNote: input.reasonNote,
         reverses: prior.id,
       })
-      await project(client, prior.group_id, outcome, now)
+      await project(client, prior.subject_kind, prior.subject_id, outcome, now)
       await projectReportRow(client, prior.report_id, outcome, operator, now)
 
       await appendEvent({ ...ctx, db: client }, 'group_events', {

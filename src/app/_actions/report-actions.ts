@@ -26,6 +26,8 @@ async function requireMemberId(): Promise<string> {
 
 export async function sendReportAction(input: {
   subjectId: string
+  /** F099 — the Page's photo when omitted. */
+  subjectKind?: 'group' | 'page_picture' | 'post_photo'
   category: ReportCategory
   body: string
 }): Promise<{ ok: true }> {
@@ -33,7 +35,7 @@ export async function sendReportAction(input: {
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
     await reportCreate(ctx, {
-      subjectKind: 'group',
+      subjectKind: input.subjectKind ?? 'group',
       category: input.category,
       subjectId: input.subjectId,
       body: input.body,
