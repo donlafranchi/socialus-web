@@ -10,24 +10,30 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { CardGrid, TileCard } from '@/components/cards'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { Sheet } from '@/components/ui/Sheet'
 import { getOwnPages, type OwnPage } from '@/lib/member/own-pages'
 import { formatRemovalDate } from '@/lib/groups/page-removal'
-import { restorePageAction, type PageLifecycleResult } from '@/app/_actions/page-lifecycle-actions'
+import { restorePageAction, discardDraftAction, type PageLifecycleResult } from '@/app/_actions/page-lifecycle-actions'
 
 const STATE = 'text-xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]'
 
 export function OwnPages({
   memberId,
   onRestore = restorePageAction,
+  onDiscard = discardDraftAction,
 }: {
   memberId: string
   onRestore?: (i: { groupId: string }) => Promise<PageLifecycleResult>
+  /** #463 — delete an unpublished draft. */
+  onDiscard?: (i: { groupId: string }) => Promise<PageLifecycleResult>
 }) {
   const router = useRouter()
   const [pages, setPages] = useState<OwnPage[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<{ groupId: string; message: string } | null>(null)
+  const [discarding, setDiscarding] = useState<OwnPage | null>(null)
 
   useEffect(() => {
     let live = true
@@ -50,6 +56,21 @@ export function OwnPages({
     }
     setPages(await getOwnPages(createClient(), memberId))
     setBusy(null)
+    router.refresh()
+  }
+
+  // #463 — a draft reached nobody, so Delete is final; the sheet says so.
+  async function discard(p: OwnPage) {
+    setBusy(p.groupId)
+    setError(null)
+    const r = await onDiscard({ groupId: p.groupId })
+    setBusy(null)
+    if (!r.ok) {
+      setDiscarding(null)
+      return setError({ groupId: p.groupId, message: r.message })
+    }
+    setDiscarding(null)
+    setPages(await getOwnPages(createClient(), memberId))
     router.refresh()
   }
 
@@ -101,39 +122,121 @@ export function OwnPages({
     )
   }
 
+  const drafts = pages.filter((p) => p.lifecycleState === 'draft')
+  const rest = pages.filter((p) => p.lifecycleState !== 'draft')
+
   return (
-    <CardGrid data-testid="own-pages">
-      {pages.map((p) => (
-        <TileCard
-          key={p.groupId}
-          title={p.name}
-          tagline={p.description}
-          location={p.location}
-          imageUrl={p.photoUrl}
-          href={p.href}
-          // A draft looks identical to a live Page otherwise, and the
-          // difference is the whole question its author is asking.
-          action={
-            p.lifecycleState === 'archived' || p.lifecycleState === 'dissolved' ? (
-              hiddenState(p)
-            ) : p.lifecycleState === 'draft' ? (
-              <span
-                data-testid="own-page-draft"
-                className="text-xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]"
-              >
-                Draft — not yet public
-              </span>
-            ) : (
-              <span
-                data-testid="own-page-live"
-                className="text-xs uppercase tracking-wide font-semibold text-[var(--color-accent)]"
-              >
-                Live
-              </span>
-            )
-          }
-        />
-      ))}
-    </CardGrid>
+    <>
+      {rest.length > 0 && (
+        <div data-testid="own-pages">
+          <CardGrid>
+            {rest.map((p) => (
+              <TileCard
+                key={p.groupId}
+                title={p.name}
+                tagline={p.description}
+                location={p.location}
+                imageUrl={p.photoUrl}
+                href={p.href}
+                action={
+                  p.lifecycleState === 'archived' || p.lifecycleState === 'dissolved' ? (
+                    hiddenState(p)
+                  ) : (
+                    <span
+                      data-testid="own-page-live"
+                      className="text-xs uppercase tracking-wide font-semibold text-[var(--color-accent)]"
+                    >
+                      Live
+                    </span>
+                  )
+                }
+              />
+            ))}
+          </CardGrid>
+        </div>
+      )}
+
+      {/* #463 — what Create started and never published. Copy is a placeholder ([public-is-draft]). */}
+      {drafts.length > 0 && (
+        <section data-testid="own-drafts" className={rest.length > 0 ? 'mt-8' : undefined}>
+          <h3 className="mb-3 text-title-3 text-[var(--color-fg)]">Unfinished Pages</h3>
+          <CardGrid>
+            {drafts.map((p) => (
+              <TileCard
+                key={p.groupId}
+                title={p.name}
+                tagline={p.description}
+                location={p.location}
+                imageUrl={p.photoUrl}
+                href={p.href}
+                action={
+                  <div className="flex flex-col items-start gap-1">
+                    <span
+                      data-testid="own-page-draft"
+                      className="text-xs uppercase tracking-wide font-semibold text-[var(--color-fg-muted)]"
+                    >
+                      Not yet public
+                    </span>
+                    <div className="flex w-full items-center justify-between gap-2">
+                      {p.href && (
+                        <Link
+                          href={p.href}
+                          aria-label={`Continue ${p.name}`}
+                          className="press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+                        >
+                          Continue
+                        </Link>
+                      )}
+                      <button
+                        type="button"
+                        aria-label={`Delete ${p.name}`}
+                        disabled={busy === p.groupId}
+                        onClick={() => {
+                          setError(null)
+                          setDiscarding(p)
+                        }}
+                        className="press inline-flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    {error?.groupId === p.groupId && (
+                      <p role="alert" className="text-caption text-red-700">
+                        {error.message}
+                      </p>
+                    )}
+                  </div>
+                }
+              />
+            ))}
+          </CardGrid>
+        </section>
+      )}
+
+      <Sheet
+        open={discarding !== null}
+        title="Delete this unfinished Page?"
+        description={discarding ? `“${discarding.name}” was never public. It’s gone for good.` : undefined}
+        onClose={() => setDiscarding(null)}
+        testId="discard-draft-sheet"
+        footer={
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => discarding && discard(discarding)}
+              className="btn-primary"
+            >
+              Delete Page
+            </button>
+            <button type="button" onClick={() => setDiscarding(null)} className="btn-secondary">
+              Keep it
+            </button>
+          </div>
+        }
+      >
+        <></>
+      </Sheet>
+    </>
   )
 }

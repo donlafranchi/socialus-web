@@ -15,7 +15,7 @@ vi.mock('../_lib/db', () => ({
 }))
 vi.mock('../_lib/event-log', () => ({ appendEvent }))
 
-import { groupArchive, groupRestore, groupDelete, DELETE_GRACE_DAYS } from './lifecycle'
+import { groupArchive, groupRestore, groupDelete, groupDiscardDraft, DELETE_GRACE_DAYS } from './lifecycle'
 import { getHandler } from '../index'
 import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
 import type { ActionContext } from '../_lib/context'
@@ -175,3 +175,52 @@ describe('restore', () => {
     }
   })
 })
+
+// #463 — the PM, 2026-10-07: owners must be able to delete unpublished drafts.
+// A draft reached nobody and has nothing to come back to, so it goes at once
+// (no 14-day grace), by the managing role only, and only while it is a draft.
+describe('#463 — discarding an unpublished draft', () => {
+  const deletes = (re: RegExp): QueryCall[] => (query.mock.calls as QueryCall[]).filter(([s]) => re.test(s))
+  const discard = (c: ActionContext = ctx()) => groupDiscardDraft(c, { groupId: GROUP })
+
+  it('is a registered verb', () => {
+    expect(getHandler('group.discard_draft')).toBe(groupDiscardDraft)
+  })
+
+  it('removes the draft and what hangs off it, by id, in that order', async () => {
+    install({ state: 'draft' })
+    const r = await discard()
+    expect(r).toMatchObject({ groupId: GROUP })
+    const sqls = (query.mock.calls as QueryCall[]).map(([s]) => s)
+    const iItems = sqls.findIndex((s) => /delete from public\.items/.test(s))
+    const iGroup = sqls.findIndex((s) => /delete from public\.groups/.test(s))
+    expect(iItems).toBeGreaterThan(-1)
+    expect(iGroup).toBeGreaterThan(iItems)
+    expect(deletes(/delete from public\.groups/)[0]![1]).toEqual([GROUP])
+    expect(deletes(/delete from public\.groups/)[0]![0]).toMatch(/lifecycle_state = 'draft'/)
+  })
+
+  it('refuses someone who does not manage the draft, deleting nothing', async () => {
+    install({ state: 'draft', role: null })
+    await expect(discard(ctx(STRANGER))).rejects.toBeInstanceOf(AuthorizationError)
+    expect(deletes(/delete from/)).toHaveLength(0)
+  })
+
+  it('refuses a signed-out caller', async () => {
+    install({ state: 'draft' })
+    await expect(discard(ctx(null))).rejects.toBeInstanceOf(AuthorizationError)
+    expect(deletes(/delete from/)).toHaveLength(0)
+  })
+
+  it.each(['active', 'archived', 'dissolved'])('refuses a %s Page: a live Page goes through Delete, with its grace', async (state) => {
+    install({ state })
+    await expect(discard()).rejects.toBeInstanceOf(ValidationError)
+    expect(deletes(/delete from/)).toHaveLength(0)
+  })
+
+  it('reports a missing draft as not found', async () => {
+    install({ found: false })
+    await expect(discard()).rejects.toBeInstanceOf(NotFoundError)
+  })
+})
+
