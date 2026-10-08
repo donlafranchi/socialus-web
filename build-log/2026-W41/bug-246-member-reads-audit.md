@@ -1,0 +1,8 @@
+### bug #246 — the audit of what one member can read about another
+
+Method: every public relation and exposed function, read as signed-out and as a signed-in member with no relation to anyone (and as a follower, a Page member, an RSVP party and an owner), counting which other-member ids, handles and display names each column returned. Members, follows, interests, responses, memberships, locations' owner, a Page's founder and its roster are all closed to a stranger by #249/#253/#469, and `resolve_member_page_visibility`, `posted_item_id`, `page_founder_public` and `member_public_pages` answer a stranger "not found"/nothing. Two routes were still open:
+
+1. **A seller's handle** (a name-shaped string) was readable by anyone, signed out included, on every item: `discoverable_items.member_handle`, projected by `venue_hosted_items`, `venue_nearby_items` and `locality_feed_items`. Withheld like `member_id` and `member_display_name` already were. Only an item posted without a Page keeps its handle, through `item_front_door_handle` (its URL, `/m/<handle>/…`, carries it by design); a Page's items are addressed by their Page. `itemHref` returns null (no link) when neither a Page path nor a handle is known, instead of `/m/null/…`.
+2. **The media bucket's file list** was readable by anyone through the Storage API; its top-level folders are every uploader's member id. A public bucket serves a file by URL without a read policy, so `media public read` is dropped; an uploader reads (and so replaces and removes) only their own folder.
+
+Left as is, for Don (PR body): `email_is_registered` tells a signed-out caller whether an email has an account (F030's email-first signup is built on it); a Page photo's URL contains its uploader's member id.

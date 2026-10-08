@@ -64,7 +64,8 @@ function present(value: string | null | undefined): string | null {
 
 export interface ItemHrefArgs {
   kind: string
-  ownerHandle: string
+  /** Null for anything a Page lists: it names no seller (#246) and is addressed by its Page. */
+  ownerHandle: string | null
   title: string
   itemId: string
   /** Filed Group's slug. With groupPlacePath, selects the Group canonical path. */
@@ -73,7 +74,9 @@ export interface ItemHrefArgs {
   groupPlacePath?: string | null
 }
 
-export function itemHref(args: ItemHrefArgs): string {
+export function itemHref(args: ItemHrefArgs & { ownerHandle: string }): string
+export function itemHref(args: ItemHrefArgs): string | null
+export function itemHref(args: ItemHrefArgs): string | null {
   const seg = KIND_SEGMENTS[args.kind] ?? 'p'
   const base = toSlug(args.title) || args.kind
   const slug = `${base}-${args.itemId.slice(0, 8)}`
@@ -88,5 +91,6 @@ export function itemHref(args: ItemHrefArgs): string {
     return `/p/${placePath}/g/${groupSlug}/${seg}/${slug}`
   }
 
-  return `/m/${args.ownerHandle}/${seg}/${slug}`
+  // No handle and no Page path: there is no honest address, so no link.
+  return args.ownerHandle ? `/m/${args.ownerHandle}/${seg}/${slug}` : null
 }

@@ -171,3 +171,15 @@ describe('ItemFeedCard image', () => {
     expect(screen.getByTestId('feed-item-photo').getAttribute('alt')).toBe('Pottery Night, Drake’s')
   })
 })
+
+// #246 — a card whose item names no seller and has no Page path has nowhere honest to link.
+describe('#246 — a card with no address', () => {
+  it('renders, unlinked', () => {
+    render(<ItemFeedCard item={{ ...baseItem, ownerHandle: null } as never} />)
+    const card = screen.getByTestId('feed-item-card')
+    expect(card).toBeTruthy()
+    expect(card.closest('a')).toBeNull()
+    expect(card.getAttribute('href')).toBeNull()
+  })
+})
+

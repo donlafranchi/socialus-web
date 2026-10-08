@@ -46,12 +46,8 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
   const glyph = KIND_GLYPHS[item.kind] ?? FALLBACK_GLYPH
   const Glyph = glyph.icon
 
-  return (
-    <Link
-      href={href}
-      className="card card-hover flex h-full flex-col border border-[var(--color-border)]"
-      data-testid="feed-item-card"
-    >
+  const body = (
+    <>
       <div
         className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-[var(--color-surface)]"
         data-testid="feed-item-media"
@@ -98,6 +94,21 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
           </p>
         )}
       </div>
+    </>
+  )
+
+  return href ? (
+    <Link
+      href={href}
+      className="card card-hover flex h-full flex-col border border-[var(--color-border)]"
+      data-testid="feed-item-card"
+    >
+      {body}
     </Link>
+  ) : (
+    // #246 — no seller and no Page path: nowhere honest to link.
+    <div className="card flex h-full flex-col border border-[var(--color-border)]" data-testid="feed-item-card">
+      {body}
+    </div>
   )
 }
