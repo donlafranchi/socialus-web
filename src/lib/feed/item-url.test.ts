@@ -111,3 +111,20 @@ describe('T119 — browsable kinds', () => {
     expect(isBrowsableKind('cooperative_cohort')).toBe(false)
   })
 })
+
+// #246 — what a Page lists names no seller, so its items carry no handle.
+describe('#246 — itemHref without a handle', () => {
+  // [guards F093.8]
+  it('still resolves a Page item at its Page path, which needs no handle', () => {
+    expect(itemHref({ ...BASE, ownerHandle: null, groupSlug: 'oak-park-sourdough', groupPlacePath: 'ca/sacramento' })).toBe(
+      '/p/ca/sacramento/g/oak-park-sourdough/p/country-sourdough-loaf-a0000001',
+    )
+  })
+
+  // [guards F093.8]
+  it('is null, rather than /m/null/..., when neither a Page path nor a handle is known', () => {
+    expect(itemHref({ ...BASE, ownerHandle: null })).toBeNull()
+    expect(itemHref({ ...BASE, ownerHandle: null, groupSlug: 'oak-park-sourdough', groupPlacePath: null })).toBeNull()
+  })
+})
+

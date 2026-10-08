@@ -41,7 +41,7 @@ export async function resolveOwningGroup(
 
 interface FeedRow {
   item_id: string
-  member_handle: string
+  member_handle: string | null
   member_display_name: string | null
   item_kind: string
   title: string

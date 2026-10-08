@@ -14,7 +14,8 @@ export interface FeedItem {
   category: string | null
   brandLabel: string | null
   groupId: string | null
-  ownerHandle: string
+  /** Only an item posted without a Page names its poster; null for a Page's items (#246). */
+  ownerHandle: string | null
   nearestLocationLabel: string | null
   responseCount: number
   primaryTag: string | null
@@ -46,7 +47,7 @@ export function clampLimit(n: number | null | undefined): number {
 
 interface LocalityFeedRow {
   item_id: string
-  member_handle: string
+  member_handle: string | null
   member_display_name: string | null
   item_kind: string
   title: string
