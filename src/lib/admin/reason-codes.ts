@@ -14,6 +14,8 @@
 //
 // DRAFT COPY. Don has not signed off the wording.
 
+import type { ReportCategory } from '@/lib/reports/categories'
+
 export const REASON_CODES = [
   'nothing_wrong',
   'reported_by_mistake',
@@ -21,6 +23,13 @@ export const REASON_CODES = [
   'someone_elses_photo',
   'not_suitable',
   'person_did_not_agree',
+  // F101 criterion 10 — a remove reason that matches the report's category.
+  'harassment',
+  'threat_of_harm',
+  'violence',
+  'nudity',
+  'sensitive_content',
+  'spam',
   'other',
 ] as const
 
@@ -74,6 +83,12 @@ export const REASONS: readonly ReasonOption[] = [
     memberText: 'We took your photo down — it shows someone who didn’t agree to be in it.',
     appliesTo: 'removed',
   },
+  { code: 'harassment', label: 'Harassment', memberText: 'We took it down — it targeted someone in a way that isn’t okay here.', appliesTo: 'removed' },
+  { code: 'threat_of_harm', label: 'Threat of harm', memberText: 'We took it down — it read as a threat to someone.', appliesTo: 'removed' },
+  { code: 'violence', label: 'Violence', memberText: 'We took it down — it shows or encourages violence.', appliesTo: 'removed' },
+  { code: 'nudity', label: 'Nudity', memberText: 'We took it down — it has nudity, which isn’t for here.', appliesTo: 'removed' },
+  { code: 'sensitive_content', label: 'Sensitive content', memberText: 'We took it down — it has content we can’t host while we’re a small team.', appliesTo: 'removed' },
+  { code: 'spam', label: 'Spam', memberText: 'We took it down — it read as spam.', appliesTo: 'removed' },
   {
     code: 'other',
     label: 'Something else…',
@@ -93,4 +108,18 @@ export function reasonLabel(code: ReasonCode): string {
 /** 'other' is the one code whose whole purpose is the note. Matches the CHECK. */
 export function reasonNeedsNote(code: ReasonCode): boolean {
   return code === 'other'
+}
+
+const CATEGORY_REASON: Partial<Record<ReportCategory, ReasonCode>> = {
+  harassment: 'harassment',
+  threat_of_harm: 'threat_of_harm',
+  violence: 'violence',
+  nudity: 'nudity',
+  sensitive_content: 'sensitive_content',
+  spam: 'spam',
+}
+
+/** F101 criterion 10: the one-tap Remove records the reason that matches the row's top category. */
+export function removeReasonFor(category: ReportCategory | null): ReasonCode {
+  return (category && CATEGORY_REASON[category]) || 'not_suitable'
 }

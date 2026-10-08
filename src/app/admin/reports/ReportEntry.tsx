@@ -20,6 +20,7 @@
 // the worst thing in the queue should not be the first thing their eye meets.
 
 import { categoryLabel } from '@/lib/reports/categories'
+import { COPY } from '@/lib/copy'
 import { useState, useTransition } from 'react'
 import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
 import { reasonsFor, reasonLabel, reasonNeedsNote, type ReasonCode, type Outcome } from '@/lib/admin/reason-codes'
@@ -101,6 +102,11 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
       {report.category && (
         <p data-testid="report-category" className="text-sm font-medium text-[var(--color-fg)]">
           {categoryLabel(report.category)}
+        </p>
+      )}
+      {report.ai && (
+        <p data-testid="report-ai" className="text-xs text-[var(--color-fg-muted)]">
+          {'skipped' in report.ai ? COPY.aiNotRead : `AI suggests ${report.ai.outcome} (${report.ai.confidence.toFixed(2)}): ${report.ai.reason}`}
         </p>
       )}
       {report.reporter && (

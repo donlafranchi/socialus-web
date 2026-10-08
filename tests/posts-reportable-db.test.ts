@@ -3,7 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, groupPostEdit } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
-import { fetchReviewQueue, fetchWeekSummary } from '@/lib/admin/reports-queue'
+import { fetchReviewQueue, fetchWeekSummary, fetchAiMode } from '@/lib/admin/reports-queue'
 import { databaseWriteSafety } from './support/write-safe'
 
 // F078 criterion 1 — a hidden Post is private, so every existing read path
@@ -146,6 +146,17 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       expect(typeof row.reporterAgeDays).toBe('number')
     })
 
+    it('the AI\'s read of the report is on its row, and the mode is shadow until the PM flips it', async () => {
+      await client.query(
+        `insert into public.report_assessments (report_id, model, prompt_version, category, severity, confidence, outcome, reason)
+         values ($1,'claude-haiku-4-5-20251001','v','spam',4,0.92,'remove','Promotion.')`,
+        [reportId],
+      )
+      const row = (await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.reportId === reportId)!
+      expect(row.ai).toEqual({ category: 'spam', severity: 4, confidence: 0.92, outcome: 'remove', reason: 'Promotion.' })
+      expect(await fetchAiMode()).toBe('shadow')
+    })
+
     it('the poster answers once, and the operator\'s row carries the answer', async () => {
       const notice = (await client.query(`select id from public.member_notices where subject_id = $1`, [POST])).rows[0]
       // The first test deleted its notice to keep the table clean; make the hide's notice again.
@@ -187,7 +198,7 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
 
     it('reversing the approval takes it down again, and a removal can be undone', async () => {
       const d = (await client.query(`select id from public.report_decisions where report_id = $1 order by decided_at desc limit 1`, [reportId])).rows[0].id
-      await reportReverse(ctx(OWNER), { decisionId: d, reasonCode: 'not_suitable' })
+      await reportReverse(ctx(OWNER), { decisionId: d, reasonCode: 'spam' })
       const st = await state()
       expect(st.discoverability).toBe('private')
       expect(st.removed_at).not.toBeNull()
