@@ -81,13 +81,13 @@ function OpenSpotCard({ type, emoji }: { type: string; emoji: string }) {
       </div>
       <div className="p-3 flex-1 flex flex-col gap-2">
         <p className="text-xs font-medium text-neutral-500">{type}</p>
-        <p className="text-[11px] text-neutral-400 leading-snug">No one listed yet in Sacramento</p>
+        <p className="text-[11px] text-neutral-400 leading-snug">No Pages yet in Sacramento</p>
         <Link
           href="/join"
           className="mt-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent)]"
         >
           <Plus size={11} />
-          List here
+          Create a Page
         </Link>
       </div>
     </div>
@@ -121,7 +121,7 @@ function FeaturedExampleCard() {
   return (
     <div className="relative bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
       <div className="absolute top-3 right-3 z-10 bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">
-        Example listing
+        Example Page
       </div>
       <div className="md:flex">
         <div className="h-40 md:h-auto md:w-56 bg-gradient-to-br from-[var(--color-accent-tint)] via-amber-50 to-amber-100 flex items-center justify-center text-6xl shrink-0">
@@ -148,9 +148,9 @@ function FeaturedExampleCard() {
               className="inline-flex items-center gap-1 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white text-sm font-semibold rounded-lg px-3 py-2"
             >
               <Plus size={14} />
-              Create your listing
+              Create your Page
             </Link>
-            <span className="text-xs text-neutral-500">Listing costs nothing · about 90 seconds</span>
+            <span className="text-xs text-neutral-500">No charge to create a Page · about 90 seconds</span>
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ export function RecruitmentGrid() {
       <div className="px-3 md:px-6 pt-6">
         <h2 className="text-base font-semibold text-neutral-900">We&apos;re looking for makers in Sacramento</h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Every spot below is open. Listing costs nothing and takes about 90 seconds.
+          Every spot below is open. There is no charge to create a Page, and it takes about 90 seconds.
         </p>
       </div>
 

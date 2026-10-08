@@ -55,7 +55,7 @@ export function AuthGateModal({ open, onClose, headline, subtext, intent }: Prop
         <p className="text-xs text-neutral-500 text-center mt-5 border-t border-neutral-200 pt-3">
           Are you a business owner?{' '}
           <Link href="/join" className="text-[var(--color-accent)] font-medium hover:underline">
-            List your business →
+            Create a Page for your business →
           </Link>
         </p>
       </div>

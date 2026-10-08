@@ -205,7 +205,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
               ))}
             </fieldset>
             <label className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-[var(--color-fg)]">Listed as</span>
+              <span className="text-sm font-medium text-[var(--color-fg)]">Page type</span>
               <select className="input" data-testid="edit-page-type" value={kind} onChange={(e) => setKind(e.target.value as PageKind)}>
                 {PAGE_KINDS.map((k) => (
                   <option key={k} value={k}>

@@ -387,8 +387,8 @@ export function ShopPublicPage({
           {/* F035 beat 3 — visible but empty: the Page is real, and listings will come. */}
           {items.length === 0 ? (
             <div data-testid="shop-items-empty" className="text-body-sm text-[var(--color-fg-muted)]">
-              <p className="font-medium text-[var(--color-fg)]">Nothing listed yet</p>
-              <p className="mt-1">This Page hasn&apos;t listed anything yet. Check back soon.</p>
+              <p className="font-medium text-[var(--color-fg)]">Nothing posted yet</p>
+              <p className="mt-1">This Page hasn&apos;t posted anything yet. Check back soon.</p>
             </div>
           ) : (
             <ul className="flex flex-col gap-2">

@@ -33,7 +33,7 @@ function summary(section: Section, i: EditorInitial): string {
     case 'basics':
       return [i.name.trim() || NOT_SET, firstLine(i.description) || 'No description', i.photoUrl ? 'Photo set' : 'No photo'].join(' · ')
     case 'kind':
-      return `${PURPOSE_LABEL[i.purpose]} · Listed as ${PAGE_KIND_LABEL[i.kind]}`
+      return `${PURPOSE_LABEL[i.purpose]} · Page type: ${PAGE_KIND_LABEL[i.kind]}`
     case 'where':
       return i.addressLabel || NOT_SET
     case 'contact': {

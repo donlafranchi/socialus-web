@@ -17,7 +17,7 @@ function defaultSupabaseFactory(): SupabaseClient {
 type SellerStatus = 'unknown' | 'seller' | 'not-seller'
 
 /**
- * Auth-aware CTAs. Shows "Log in" + "List your business" when signed out;
+ * Auth-aware CTAs. Shows "Log in" + "Create a Page for your business" when signed out;
  * when signed in, shows the CTA only to Members who do not already run a Shop.
  *
  * The Shop check reads active kind='business' Group memberships. It used to
@@ -53,7 +53,7 @@ export function AuthCtaButtons({
         const isSeller = await hasActiveBusinessGroup(client, uid)
         if (!cancelled) setSeller(isSeller ? 'seller' : 'not-seller')
       } catch {
-        // Fail closed. Showing "List your business" to someone who already
+        // Fail closed. Showing "Create a Page for your business" to someone who already
         // runs one is the worse error, and a silent failure here is exactly
         // what shipped the bug.
         if (!cancelled) setSeller('unknown')
@@ -83,7 +83,7 @@ export function AuthCtaButtons({
     if (seller !== 'not-seller') return null
     return (
       <Link href="/join" className="text-sm font-medium text-neutral-700 hover:text-neutral-900">
-        List your business <span aria-hidden>→</span>
+        Create a Page for your business <span aria-hidden>→</span>
       </Link>
     )
   }
@@ -108,7 +108,7 @@ export function AuthCtaButtons({
         href="/join"
         className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
       >
-        List your business <span aria-hidden>→</span>
+        Create a Page for your business <span aria-hidden>→</span>
       </Link>
       <Link
         href="/auth/login"

@@ -124,7 +124,7 @@ below is a proposal — it is the slot and its current occupant.**
 | Onboarding, metro step — under the question | a few sentences | "We are not everywhere yet. Tell us where you are and we will tell you where it stands." |
 | Sign-in form — under the heading | a line | "Enter your email and we'll send you a link. No password — new here or not, this is the way in." |
 | Sell walkthrough — per step | a line each, ×6 | step-specific instructions only; no *why* anywhere |
-| A Page with nothing listed | a line | "[Name] hasn't listed anything yet — check back soon." *(and the spacing bug)* |
+| A Page with nothing listed | a line | "[Name] hasn't posted anything yet — check back soon." *(and the spacing bug)* |
 | A Page a visitor cannot fill — the follow CTA | a line | "Sign up to follow" |
 | Report sheet | a line | **"This goes to a person, not a queue."** |
 | Waitlist popup | a line, constrained | "This metro needs 299 more people before there is enough here to be worth showing you." |
@@ -182,7 +182,7 @@ _28 strings across 7 files._
 | Close | aria-label | `components/AuthGateModal.tsx:36` |
 | Sign in | body/heading/button | `components/AuthGateModal.tsx:49` |
 | We email you a link — no password, takes 30 seconds. | body/heading/button | `components/AuthGateModal.tsx:52` |
-| List your business → | body/heading/button | `components/AuthGateModal.tsx:58` |
+| Create a Page for your business → | body/heading/button | `components/AuthGateModal.tsx:58` |
 
 ### Onboarding
 
@@ -316,7 +316,7 @@ _36 strings across 10 files._
 | Draft — not yet public. | body/heading/button | `components/group/ShopPublicPage.tsx:63` |
 | Resume walkthrough | body/heading/button | `components/group/ShopPublicPage.tsx:65` |
 | Products & services | body/heading/button | `components/group/ShopPublicPage.tsx:181` |
-| Nothing listed yet | body/heading/button | `components/group/ShopPublicPage.tsx:187` |
+| Nothing posted yet | body/heading/button | `components/group/ShopPublicPage.tsx:187` |
 | 0 && n.length | body/heading/button | `lib/groups/tags.ts:32` |
 
 ### An Item in public (product/service/gathering)
@@ -500,7 +500,7 @@ _20 strings across 4 files._
 | Sign in to follow vendors and save your market. We email you a link — no password. | body/heading/button | `app/you/page.tsx:150` |
 | Sign in | body/heading/button | `app/you/page.tsx:152` |
 | Are you a business owner? | body/heading/button | `app/you/page.tsx:155` |
-| List your business → | body/heading/button | `app/you/page.tsx:160` |
+| Create a Page for your business → | body/heading/button | `app/you/page.tsx:160` |
 | Switch to vendor mode → | body/heading/button | `app/you/page.tsx:180` |
 | Your Market | body/heading/button | `app/you/page.tsx:190` |
 | Not set | body/heading/button | `app/you/page.tsx:196` |
@@ -727,11 +727,11 @@ _164 strings across 17 files._
 | I own a franchise location locally | share/meta description | `components/OwnershipSelector.tsx:9` |
 | This business is owned by a corporation or investment firm | share/meta description | `components/OwnershipSelector.tsx:12` |
 | Ownership Type | body/heading/button | `components/OwnershipSelector.tsx:24` |
-| No one listed yet in Sacramento | body/heading/button | `components/RecruitmentGrid.tsx:84` |
-| List here | body/heading/button | `components/RecruitmentGrid.tsx:90` |
+| No Pages yet in Sacramento | body/heading/button | `components/RecruitmentGrid.tsx:84` |
+| Create a Page | body/heading/button | `components/RecruitmentGrid.tsx:90` |
 | Example | body/heading/button | `components/RecruitmentGrid.tsx:101` |
 | Sign up like this | body/heading/button | `components/RecruitmentGrid.tsx:113` |
-| Example listing | body/heading/button | `components/RecruitmentGrid.tsx:124` |
+| Example Page | body/heading/button | `components/RecruitmentGrid.tsx:124` |
 | Featured Maker | body/heading/button | `components/RecruitmentGrid.tsx:133` |
 | Clara's Kitchen | body/heading/button | `components/RecruitmentGrid.tsx:135` |
 | Sourdough loaves, brown-butter cookies, and seasonal jams — baked from a home kitchen in Oak Park. | body/heading/button | `components/RecruitmentGrid.tsx:137` |
@@ -739,10 +739,10 @@ _164 strings across 17 files._
 | Home Baker | body/heading/button | `components/RecruitmentGrid.tsx:141` |
 | Cottage Food Permit | body/heading/button | `components/RecruitmentGrid.tsx:142` |
 | Sacramento, CA | body/heading/button | `components/RecruitmentGrid.tsx:143` |
-| Create your listing | body/heading/button | `components/RecruitmentGrid.tsx:151` |
-| Listing costs nothing · about 90 seconds | body/heading/button | `components/RecruitmentGrid.tsx:153` |
+| Create your Page | body/heading/button | `components/RecruitmentGrid.tsx:151` |
+| No charge to create a Page · about 90 seconds | body/heading/button | `components/RecruitmentGrid.tsx:153` |
 | We're looking for makers in Sacramento | body/heading/button | `components/RecruitmentGrid.tsx:165` |
-| Every spot below is open. Listing costs nothing and takes about 90 seconds. | body/heading/button | `components/RecruitmentGrid.tsx:167` |
+| Every spot below is open. There is no charge to create a Page, and it takes about 90 seconds. | body/heading/button | `components/RecruitmentGrid.tsx:167` |
 | Open spots by category | body/heading/button | `components/RecruitmentGrid.tsx:177` |
 
 ### Join / marketing page
@@ -752,12 +752,12 @@ _15 strings across 1 files._
 | What it says | Kind | Where |
 |---|---|---|
 | For vendors | body/heading/button | `app/join/page.tsx:52` |
-| Sell at a farmers market? Get listed. | body/heading/button | `app/join/page.tsx:54` |
+| Sell at a farmers market? Get a Page. | body/heading/button | `app/join/page.tsx:54` |
 | SocialUs helps the customers you meet at the market find you the other six days of the week. | body/heading/button | `app/join/page.tsx:57` |
-| Listing costs nothing. | body/heading/button | `app/join/page.tsx:58` |
+| There is no charge to create a Page. | body/heading/button | `app/join/page.tsx:58` |
 | Already a member? Log in | body/heading/button | `app/join/page.tsx:73` |
 | Followable between markets | title attr | `app/join/page.tsx:83` |
-| Listing costs nothing | title attr | `app/join/page.tsx:87` |
+| No charge to create a Page | title attr | `app/join/page.tsx:87` |
 | Local-first audience | title attr | `app/join/page.tsx:91` |
 | How it works | body/heading/button | `app/join/page.tsx:99` |
 | Create an account | title attr | `app/join/page.tsx:101` |
@@ -993,7 +993,7 @@ Beyond `role-language.md`:
 
 - **`design-language.md`** — *"Trust microcopy next to a primary CTA states
   what's true right now, in the present tense — never a promise about the
-  future."* ("Listing costs nothing" states a present fact; it does not promise a future price.)
+  future."* ("There is no charge to create a Page" states a present fact; it does not promise a future price.)
 - **`people-first.md`** — no ranking of people; the platform is about people,
   not businesses. Bears directly on "Featured Maker" and on follower counts.
 - **`model.md`** — *"Item is the database word and never reaches the UI."*
