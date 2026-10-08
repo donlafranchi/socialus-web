@@ -90,3 +90,10 @@ describe('#489 — a draft legal page says it is a draft, and never prints the c
     expect(screen.queryByTestId('text-page-draft')).toBeNull()
   })
 })
+
+describe('#443 — Report a problem is one tap away', () => {
+  it('the footer links it, and the not-found and error pages offer it', async () => {
+    render(<SiteFooter />)
+    expect(screen.getByRole('link', { name: 'Report a problem' })).toHaveAttribute('href', '/report')
+  })
+})

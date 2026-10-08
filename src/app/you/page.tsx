@@ -85,6 +85,13 @@ export default async function YouPage() {
           </Row>
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
           <Row
+            label="Help"
+            value="Something not working?"
+            testId="settings-report"
+            wrap
+            action={<Link href="/report?from=%2Fyou" className={LINK}>Report a problem</Link>}
+          />
+          <Row
             label="Password"
             value="Sign in without an email"
             testId="settings-password"

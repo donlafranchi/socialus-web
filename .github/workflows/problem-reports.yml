@@ -1,0 +1,54 @@
+name: Problem reports
+
+# #443 — a member's private "Report a problem" becomes a scrubbed public Issue; with
+# ANTHROPIC_API_KEY set, a cheap model (Haiku 4.5) labels and dedupes it. The
+# Anthropic key must carry a HARD monthly spend cap set in the Anthropic console;
+# the run also caps itself (10 reports, 300 output tokens each). The schedule waits
+# for the repository variable PROBLEM_REPORTS_ENABLED=true, set once the migration is
+# applied; manual runs always work. The heartbeat is its own workflow: a job that is
+# not running cannot report that it is not running.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: problem-reports
+  cancel-in-progress: false
+
+jobs:
+  file:
+    name: File new reports
+    if: github.event_name == 'workflow_dispatch' || vars.PROBLEM_REPORTS_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: File
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npx tsx scripts/problem-reports.ts file | tee -a "$GITHUB_STEP_SUMMARY"

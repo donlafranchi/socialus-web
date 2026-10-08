@@ -1,0 +1,30 @@
+name: Problem reports heartbeat
+
+# #443 — if the filing job has not run well for a day, open one Issue. Only runs
+# once PROBLEM_REPORTS_ENABLED=true.
+
+on:
+  schedule:
+    - cron: '23 14 * * *' # 07:23 Pacific
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+jobs:
+  heartbeat:
+    if: github.event_name == 'workflow_dispatch' || vars.PROBLEM_REPORTS_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx tsx scripts/problem-reports.ts heartbeat
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

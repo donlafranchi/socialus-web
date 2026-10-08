@@ -40,6 +40,7 @@ import {
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { originRecord } from './origin'
+import { problemReport } from './problem'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge } from './report'
 export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
@@ -91,6 +92,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // A decision is an event, not a state overwrite — `report.reverse` undoes any
   // past one by recording a new decision that points at it.
   'report.decide': reportDecide as unknown as NamedActionHandler<unknown, unknown>,
+  'problem.report': problemReport as unknown as NamedActionHandler<unknown, unknown>,
   'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
   // F102 — the poster's one answer to a hide.
   'report.answer': reportAnswer as unknown as NamedActionHandler<unknown, unknown>,
@@ -188,3 +190,4 @@ export {
 } from './_lib/errors'
 export { makeContext, type ActionContext, type ActingMemberId } from './_lib/context'
 export { withTransaction, closePool } from './_lib/db'
+export { problemReport } from './problem'

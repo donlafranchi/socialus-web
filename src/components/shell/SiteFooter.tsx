@@ -12,6 +12,7 @@ const LINKS = [
   { href: '/rules', label: 'Rules' },
   { href: '/terms', label: 'Terms' },
   { href: '/privacy', label: 'Privacy' },
+  { href: '/report', label: 'Report a problem' },
 ]
 
 export function SiteFooter() {
