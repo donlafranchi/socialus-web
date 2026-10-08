@@ -215,7 +215,8 @@ describe('F100 — the AI\'s read on the report', () => {
   })
   it('says when it was not read', () => {
     renderEntry({ ai: { skipped: 'suspected severity 1: not sent to an AI provider (F100 criterion 12)' } })
-    expect(screen.getByTestId('report-ai')).toHaveTextContent(/not sent to an AI provider/)
+    expect(screen.getByTestId('report-ai')).toHaveTextContent('Not read by the AI: a person needs to look.')
+    expect(screen.getByTestId('report-ai')).not.toHaveTextContent(/F100|criterion/)
   })
   it('shows nothing when there is no read', () => {
     renderEntry()

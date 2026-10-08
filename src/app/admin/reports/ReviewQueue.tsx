@@ -20,6 +20,7 @@ import { hiddenFor } from '@/lib/admin/hidden-for'
 import { DEFAULT_REASON, blurred, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
 import type { Outcome, ReasonCode } from '@/lib/admin/reason-codes'
 import { categoryLabel } from '@/lib/reports/categories'
+import { COPY } from '@/lib/copy'
 import { ReportEntry } from './ReportEntry'
 
 type Decide = (input: { reportId: string; outcome: Outcome; reasonCode: ReasonCode; reasonNote?: string }) => Promise<void>
@@ -329,7 +330,7 @@ function Row({
             {s.ai && (
               <p data-testid="review-ai" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {'skipped' in s.ai
-                  ? 'Not read by the AI: a person needs to look.'
+                  ? COPY.aiNotRead
                   : `AI: ${s.ai.outcome} · ${s.ai.confidence.toFixed(2)} · AI severity ${s.ai.severity} — ${s.ai.reason}`}
               </p>
             )}

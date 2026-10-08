@@ -9,6 +9,8 @@ export const COPY = {
   photoConfirm: 'This photo has no children in it.',
   // F102 criterion 10 — shown once "Threat of harm" is picked. Placeholder ([public-is-draft]).
   report911: "If someone is in danger right now, please call 911 first. We'll look at this too.",
+  // F100 — the operator's row and detail, when a report was held back from the AI. Placeholder ([public-is-draft]).
+  aiNotRead: 'Not read by the AI: a person needs to look.',
   // F078 criterion 10 — on the report sheet, before Send. Kind and gracious. Placeholder ([public-is-draft]).
   reportMisuse:
     "Reports help keep everyone safe, so please send one only when something's wrong. Reports that turn out to be a mistake count against you: after three, your reports stop hiding anything while a person looks.",
