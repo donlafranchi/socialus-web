@@ -14,6 +14,7 @@ import { mkdirSync, readFileSync, appendFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { builderEmail, builderPassword } from '../../src/lib/builders/credentials'
 import { judge, type Flag, type TapMeasure } from '../../src/lib/speed/judge'
+import { verdict, medianOf, type Baseline, type Budgets, type Status } from '../../src/lib/speed/verdict'
 import { PROBE } from './probe'
 import { STEPS, type Step, type Who } from './steps'
 
@@ -23,12 +24,12 @@ const BASE = process.env.BUILDERS_BASE_URL ?? 'https://www.socialus.org'
 const NET = { latency: Number(process.env.SPEED_RTT_MS ?? 100), down: 9_000_000 / 8, up: 3_000_000 / 8 }
 const CPU = Number(process.env.SPEED_CPU ?? 4)
 const ONLY = (process.env.SPEED_ONLY ?? '').toLowerCase()
-const BASELINE: Record<string, { readyMs: number }> = existsSync(join(__dirname, 'baseline.json'))
-  ? JSON.parse(readFileSync(join(__dirname, 'baseline.json'), 'utf8'))
-  : {}
+const BASELINE: Baseline = existsSync(join(__dirname, 'baseline.json')) ? JSON.parse(readFileSync(join(__dirname, 'baseline.json'), 'utf8')) : {}
+const REGRESSION_BINDS = (existsSync(join(__dirname, 'baseline-source.json')) ? JSON.parse(readFileSync(join(__dirname, 'baseline-source.json'), 'utf8')).source : 'none') === 'ci'
+const BUDGETS: Budgets = JSON.parse(readFileSync(join(__dirname, 'budgets.json'), 'utf8'))
 
 interface Req { path: string; type: string; start: number; end: number; status: number; cache: string; id: string }
-interface Row extends TapMeasure { mode: 'quick' | 'settled'; longTaskMs: number; requests: number; waterfall: number; slowReqs: string[]; prefetched: boolean | null; finalPath: string; flags: Flag[]; note?: string }
+interface Row extends TapMeasure { mode: 'quick' | 'settled'; longTaskMs: number; requests: number; waterfall: number; slowReqs: string[]; prefetched: boolean | null; finalPath: string; flags: Flag[]; status?: Status; regressed?: boolean; waived?: boolean; note?: string }
 
 test.use({ ...devices['Pixel 7'], baseURL: BASE })
 test.skip(!BASE.startsWith('https://'), 'tap-speed measures production: set BUILDERS_BASE_URL')
@@ -145,16 +146,20 @@ for (const step of STEPS) {
         from = await resolveFrom(p, from)
         await c.close()
       }
-      const row = await measure(browser, step, mode, from)
+      let row = await measure(browser, step, mode, from)
+      let v = verdict({ ...row, mode }, BUDGETS, BASELINE, { regressionBinds: REGRESSION_BINDS })
+      // One bad reading is not a finding: a red one is measured twice more and the middle reading is used.
+      if (v.status === 'red' && !row.note) {
+        const again = [row, await measure(browser, step, mode, from), await measure(browser, step, mode, from)]
+        row = { ...row, ...medianOf(again) }
+        v = verdict({ ...row, mode }, BUDGETS, BASELINE, { regressionBinds: REGRESSION_BINDS })
+      }
+      Object.assign(row, { flags: v.flags, status: v.status, regressed: v.regressed, waived: v.waived })
       mkdirSync(OUT, { recursive: true })
       appendFileSync(join(OUT, 'rows.jsonl'), JSON.stringify({ ...row, tag: `${row.name} [${mode}]` }) + '\n')
-      test.info().annotations.push({ type: 'tap', description: `${row.name} [${mode}] feedback ${row.feedbackMs}ms url ${row.urlMs}ms content ${row.readyMs}ms ${row.flags.join(',')}` })
+      test.info().annotations.push({ type: 'tap', description: `${row.name} [${mode}] feedback ${row.feedbackMs}ms url ${row.urlMs}ms content ${row.readyMs}ms ${v.status} ${v.flags.join(',')}` })
       expect(row.note ?? '', 'the tap could not be timed').toBe('')
-      const hard = row.flags.filter((f) => f === 'stalled' || f === 'never-ready' || f === 'no-feedback')
-      expect(hard, `${row.name} [${mode}]: ${JSON.stringify({ f: row.feedbackMs, u: row.urlMs, r: row.readyMs })}`).toEqual([])
-      const base = BASELINE[`${row.name} [${mode}]`]
-      const over = row.flags.filter((f) => f === 'slow-content' || f === 'slow-feedback')
-      if (over.length && (!base || (row.readyMs ?? 0) > base.readyMs * 1.3)) expect(over, `${row.name} [${mode}] is over budget and past its baseline`).toEqual([])
+      expect(v.status, `${row.name} [${mode}] ${JSON.stringify({ feedback: row.feedbackMs, url: row.urlMs, content: row.readyMs, flags: v.flags, slowerThanBaseline: v.regressed })}`).not.toBe('red')
     })
   }
 }

@@ -1,0 +1,4 @@
+{
+  "source": "laptop",
+  "note": "Where baseline.json was recorded. A slowdown past it only warns until this says ci: after the first nightly run, run `npx tsx evals/speed/rebaseline.ts <that run rows.jsonl>`, which sets it."
+}

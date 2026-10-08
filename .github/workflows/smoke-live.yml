@@ -22,7 +22,7 @@ on:
         default: ''
 
 permissions:
-  contents: read
+  contents: write # only to append the tap-speed history to the perf-history branch (never main)
   issues: write
 
 concurrency:
@@ -99,6 +99,29 @@ jobs:
           npx tsx evals/speed/summarize.ts > /dev/null
           exit "$code"
 
+      # #527 — one small JSON per night on the perf-history branch (not main, so no
+      # deploy): the trend, and the file the dashboard reads (latest.json).
+      - name: Record the tap-speed history
+        if: ${{ !cancelled() && steps.speed.conclusion != 'skipped' }}
+        run: |
+          [ -f speed-out/perf-latest.json ] || { echo "No tap-speed result to record."; exit 0; }
+          day="$(date -u +%F)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin perf-history > /dev/null; then
+            git fetch --depth=1 origin perf-history
+            git worktree add -B perf-history ../ph FETCH_HEAD
+          else
+            git worktree add --orphan -b perf-history ../ph
+          fi
+          mkdir -p ../ph/history
+          cp speed-out/perf-latest.json ../ph/latest.json
+          cp speed-out/perf-latest.json "../ph/history/$day.json"
+          cd ../ph
+          git add -A
+          git commit -m "tap speed $day" || exit 0
+          git push origin perf-history
+
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
@@ -106,6 +129,7 @@ jobs:
           path: |
             speed-out/rows.jsonl
             speed-out/summary.md
+            speed-out/perf-latest.json
             speed.log
           retention-days: 14
           if-no-files-found: ignore

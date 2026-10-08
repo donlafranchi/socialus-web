@@ -22,8 +22,7 @@ export const STALL_MS = 2000
 
 export type Flag = 'no-feedback' | 'slow-feedback' | 'stalled' | 'slow-content' | 'never-ready'
 
-export function judge(m: TapMeasure): Flag[] {
-  const b = BUDGETS[m.kind]
+export function judge(m: TapMeasure, b: { feedbackMs: number; readyMs: number } = BUDGETS[m.kind]): Flag[] {
   const flags: Flag[] = []
   if (m.feedbackMs === null) flags.push('no-feedback')
   else if (m.feedbackMs > b.feedbackMs) flags.push('slow-feedback')
