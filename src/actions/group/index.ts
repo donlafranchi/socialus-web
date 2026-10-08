@@ -60,6 +60,7 @@ export { groupUpdate, groupUpdateInput, type GroupUpdateInput, type GroupUpdateR
 export {
   groupArchive,
   groupDelete,
+  groupDiscardDraft,
   groupRestore,
   groupDeleteInput,
   DELETE_GRACE_DAYS,

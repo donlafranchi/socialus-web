@@ -124,6 +124,33 @@ export const groupDelete = defineHandler(
     }),
 )
 
+/**
+ * #463 — the PM, 2026-10-07: owners must be able to delete unpublished drafts.
+ * Path: well-worn (Google Business Profile and Facebook discard an unfinished
+ * listing or Page outright). A draft reached nobody, so there is nothing to
+ * restore and no grace: it goes at once, with what hangs off it, the way
+ * purge_deleted_pages() removes a Page. Managing role only; and only a draft —
+ * a live Page keeps `group.delete` and its fourteen days.
+ */
+export type GroupDiscardDraftInput = z.infer<typeof groupIdInput>
+
+export const groupDiscardDraft = defineHandler(
+  'group.discard_draft',
+  groupIdInput,
+  async (ctx: ActionContext, input: GroupDiscardDraftInput): Promise<{ groupId: string }> =>
+    withTransaction(async (client) => {
+      const row = await lockOwnPage(client, ctx, 'group.discard_draft', input.groupId)
+      if (row.lifecycle_state !== 'draft') {
+        throw new ValidationError(`group.discard_draft: group ${input.groupId} is ${row.lifecycle_state}, not a draft; a live Page is deleted, not discarded`)
+      }
+      // Items first: items.group_id is on delete set null, which would turn them
+      // into standalone listings. Posts, memberships, tags and events cascade.
+      await client.query(`delete from public.items where group_id = $1`, [input.groupId])
+      await client.query(`delete from public.groups where id = $1 and lifecycle_state = 'draft'`, [input.groupId])
+      return { groupId: input.groupId }
+    }),
+)
+
 export type GroupRestoreInput = z.infer<typeof groupIdInput>
 
 export const groupRestore = defineHandler(

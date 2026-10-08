@@ -33,6 +33,7 @@ import {
   groupPostDelete,
   groupArchive,
   groupDelete,
+  groupDiscardDraft,
   groupRestore,
   groupUnclaimedRemove,
   groupUnclaimedClaim,
@@ -59,6 +60,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // it at once and the purge removes it 14 days on; restore undoes either.
   'group.archive': groupArchive as unknown as NamedActionHandler<unknown, unknown>,
   'group.delete': groupDelete as unknown as NamedActionHandler<unknown, unknown>,
+  'group.discard_draft': groupDiscardDraft as unknown as NamedActionHandler<unknown, unknown>,
   'group.restore': groupRestore as unknown as NamedActionHandler<unknown, unknown>,
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
@@ -139,7 +141,7 @@ export {
   memberSavedSearchRestore,
 } from './member'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
-export { groupArchive, groupDelete, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
+export { groupArchive, groupDelete, groupDiscardDraft, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
   groupPostCreate,
