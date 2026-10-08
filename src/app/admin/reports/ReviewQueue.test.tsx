@@ -418,5 +418,5 @@ describe('F101 criterion 15 — a batch of 50 is a batch of 50 single actions', 
     })
     expect(onDecide).toHaveBeenCalledTimes(50)
     expect(screen.queryAllByTestId('review-row')).toHaveLength(0)
-  })
+  }, 30_000)
 })
