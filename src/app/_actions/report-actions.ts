@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { reportCreate, reportAnswer, ActionError } from '@/actions'
+import { assessAfterReport } from '@/lib/moderation/after-report'
 import type { ReportCategory } from '@/lib/reports/categories'
 
 async function requireMemberId(): Promise<string> {
@@ -56,6 +57,8 @@ export async function sendPostReportAction(input: {
   return sendReportAction({ ...input, subjectKind: 'post' })
 }
 
+const REASON_LABEL = { mistaken: 'Mistaken', malicious: 'Malicious', misusing_reports: 'Misusing reports' } as const
+
 /** F102 — the poster's one answer to a hide: the report was mistaken, malicious or misuse. */
 export async function answerNoticeAction(input: {
   noticeId: string
@@ -64,7 +67,9 @@ export async function answerNoticeAction(input: {
 }): Promise<void> {
   const memberId = await requireMemberId()
   try {
-    await reportAnswer(resolveActionContext({ actingMemberId: memberId }), input)
+    const r = await reportAnswer(resolveActionContext({ actingMemberId: memberId }), input)
+    // F100 criterion 1 — the reply is read too, in shadow.
+    if (r.reportId) assessAfterReport(r.reportId, { rebuttal: `${REASON_LABEL[input.reason]}: ${input.note}` })
   } catch (err) {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err

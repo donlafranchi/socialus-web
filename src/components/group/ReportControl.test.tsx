@@ -292,3 +292,15 @@ describe('F102 — threat of harm', () => {
     expect(screen.queryByTestId('report-911')).toBeNull()
   })
 })
+
+// F078 criterion 10 — before sending, the reporter is told, kindly, what misuse costs.
+describe('F078 — reports have consequences when misused', () => {
+  it('says so on the sheet, before Send', () => {
+    render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/three/i)
+    // the cost lands on the reader: "your reports", not "ours"
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/your reports/i)
+  })
+})
