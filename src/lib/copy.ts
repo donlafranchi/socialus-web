@@ -13,7 +13,7 @@ export const COPY = {
   aiNotRead: 'Not read by the AI: a person needs to look.',
   // F078 criterion 10 — on the report sheet, before Send. Kind and gracious. Placeholder ([public-is-draft]).
   reportMisuse:
-    "Reports help keep everyone safe, so please send one only when something's wrong. Reports that turn out to be a mistake count against you: after three, your reports stop hiding anything while a person looks.",
+    "Reports help keep everyone safe, so please send one only when something's wrong. A report that didn't match a rule is counted. After three, your reports stop hiding anything while a person looks.",
   // The same ask in full, for the rules page (#223). Placeholder, Don's 2026-09-30 line. Not shown yet.
   postingSafetyFull:
     "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
