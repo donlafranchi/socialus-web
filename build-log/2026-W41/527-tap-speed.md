@@ -1,0 +1,7 @@
+### chore #527 — tap speed, measured on a phone on 4G
+
+`evals/speed/` times every tap on production with a mid-range phone (Pixel 7 at 4x CPU, 4G): feedback, URL change, content usable, read-only. Budgets in `src/lib/speed/judge.ts`: consumer 100 ms / 1 s, creator 250 ms / 2.5 s. Runs nightly after the live smoke; fails on a stall, a screen that never shows, or a slowdown past `baseline.json`.
+
+First run (signed out): opening a Page from Explore took 2.2 s with the URL changing only at 2.2 s, so the card moved and nothing else did. Causes: no loading screen on `/g/[handle]`, and the owner's composer pulled the 480 KB map library into every visitor's Page. Fixed here: the map library, and `/` forwarded at the edge instead of a server render (about a second). A Page loading screen was tried and backed out: with one, a draft or missing Page answers 200 instead of 404 (F035 caught it), so it needs the shop lookup resolved before the first byte, with only the heavy read behind the skeleton. The rest is filed in the beta milestone.
+
+Phase 1 of the performance system (method: socialus-ops `process/PERFORMANCE.md`): per-screen budgets (`budgets.json`), a baseline recorded from a laptop run (`baseline.json`, warn-only until re-recorded from the first nightly run), red/amber/green verdicts (`src/lib/speed/verdict.ts`), history on the `perf-history` branch, membership checkpoints. A red reading is re-measured twice. Phase 2, the load simulation, is #535; the dashboard feed is #536.

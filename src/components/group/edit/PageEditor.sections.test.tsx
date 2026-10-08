@@ -73,20 +73,20 @@ afterEach(() => {
 })
 
 describe('Where: the address, which the owner can change', () => {
-  const dropAPin = () => {
+  const dropAPin = async () => {
     fireEvent.click(screen.getByRole('radio', { name: /people come to me/i }))
     fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
-    fireEvent.click(screen.getByTestId('pin-moved'))
+    fireEvent.click((await screen.findByTestId('pin-moved')))
   }
 
-  it('shows where the Page is now', () => {
+  it('shows where the Page is now', async () => {
     open('where')
     expect(screen.getByRole('dialog')).toHaveTextContent('Now: 3117 Broadway, Sacramento, CA')
   })
 
   it('People come to me: saves the pin as the Location, with how to find us', async () => {
     open('where')
-    dropAPin()
+    await dropAPin()
     fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Behind the barn' } })
     save()
     await waitFor(() => expect(createLocationAction).toHaveBeenCalled())
@@ -118,7 +118,7 @@ describe('Where: the address, which the owner can change', () => {
   it('I go to them: anchors on the metro and saves the towns', async () => {
     open('where')
     fireEvent.click(screen.getByRole('radio', { name: /i go to them/i }))
-    fireEvent.click(screen.getByTestId('town-tapped'))
+    fireEvent.click((await screen.findByTestId('town-tapped')))
     save()
     await waitFor(() => expect(createLocationAction).toHaveBeenCalledWith({ label: 'Sacramento', neighborhoodId: 'pl-sac' }))
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ whereMode: 'travel', serviceAreaPlaceIds: ['pl-davis'] })))
@@ -135,7 +135,7 @@ describe('Where: the address, which the owner can change', () => {
   it('does not move the Page when the Location could not be made', async () => {
     createLocationAction.mockResolvedValueOnce({ ok: false, message: 'A Location needs a real address or a neighbourhood.', code: 'location_needs_place' })
     open('where')
-    dropAPin()
+    await dropAPin()
     save()
     expect(await screen.findByRole('alert')).toHaveTextContent(/real address/i)
     expect(onSave).not.toHaveBeenCalled()
@@ -153,7 +153,7 @@ describe('Links: handles, not URLs', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ socialLinks: { instagram: 'https://instagram.com/oakpark' } })))
   })
 
-  it('shows a stored URL back as the handle', () => {
+  it('shows a stored URL back as the handle', async () => {
     open('links', { socialLinks: { instagram: 'https://instagram.com/clara' } })
     expect(screen.getByTestId('social-instagram')).toHaveValue('clara')
   })

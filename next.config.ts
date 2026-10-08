@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
+      // `/` only ever forwarded to Explore (src/app/page.tsx, Home paused 2026-09-17). Answered at the edge it skips a server render, about a second.
+      { source: '/', destination: '/explore', permanent: false },
       // `/following` is the pre-rebuild duplicate of the shipped `/you/following`.
       // The route file is still on disk; this shadows it, so the address answers
       // with the real surface instead of a second, broken copy.
