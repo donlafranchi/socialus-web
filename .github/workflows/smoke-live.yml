@@ -33,7 +33,7 @@ jobs:
   smoke:
     name: Live smoke
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
         with:
@@ -80,6 +80,54 @@ jobs:
           echo "Routes: $SMOKE_ROUTES" >> "$GITHUB_STEP_SUMMARY"
           npx playwright test --project=smoke-live --workers=2 --reporter=line 2>&1 | tee smoke.log
           test "${PIPESTATUS[0]}" -eq 0
+
+      # #527 — tap speed: a mid-range phone on 4G taps through production, read-only.
+      # Feedback, URL change and usable content per tap, against budgets
+      # (src/lib/speed/judge.ts). Fails on a stall, a screen that never shows,
+      # or a slowdown past evals/speed/baseline.json. One worker, so timings
+      # do not compete; the summary lands on the run page.
+      - name: Tap speed on production, read-only
+        id: speed
+        if: ${{ !cancelled() }}
+        env:
+          BUILDERS_BASE_URL: https://www.socialus.org
+          BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
+        run: |
+          rm -rf speed-out
+          npx playwright test --project=tap-speed --reporter=line 2>&1 | tee speed.log
+          code="${PIPESTATUS[0]}"
+          npx tsx evals/speed/summarize.ts > /dev/null
+          exit "$code"
+
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: tap-speed
+          path: |
+            speed-out/rows.jsonl
+            speed-out/summary.md
+            speed.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: File a tap-speed bug
+        if: ${{ failure() && steps.speed.conclusion == 'failure' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.existsSync('speed-out/summary.md') ? fs.readFileSync('speed-out/summary.md', 'utf8') : '';
+            const slow = summary.split('**Slowest 10**')[1] ?? '';
+            const title = 'bug · live: taps are slower than budget';
+            const run = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const body = `**Kind:** bug\n**Scenario:** none\n**Path:** well-worn: a tap that stalls or got slower than its baseline is a regression to fix forward.\n\nThe overnight tap-speed run (mid-range phone, 4G, read-only) failed: ${run}\n\nSlowest ten:${slow}\n\nThe full table is the run's summary and its \`tap-speed\` artifact. Budgets: consumer feedback 100 ms and content 1 s; creator 2.5 s.`;
+            const open = await github.paginate(github.rest.issues.listForRepo, { ...context.repo, state: 'open', labels: 'bug', per_page: 100 });
+            const existing = open.find((i) => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: existing.number, body: `Again: ${run}\n\nSlowest ten:${slow}` });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['bug', 'area:ops'] });
+            }
 
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}

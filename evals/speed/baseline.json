@@ -1,0 +1,35 @@
+{
+  "Explore card → Page [quick]": {
+    "readyMs": 2179
+  },
+  "Explore card → Page [settled]": {
+    "readyMs": 2234
+  },
+  "Page → back to Explore [quick]": {
+    "readyMs": 223
+  },
+  "Page → back to Explore [settled]": {
+    "readyMs": 239
+  },
+  "Explore: filter icon opens sheet [settled]": {
+    "readyMs": 379
+  },
+  "Explore: location pill opens picker [quick]": {
+    "readyMs": 208
+  },
+  "Explore: location pill opens picker [settled]": {
+    "readyMs": 271
+  },
+  "Explore: search opens [settled]": {
+    "readyMs": 181
+  },
+  "Explore: map view [settled]": {
+    "readyMs": 270
+  },
+  "Page: sign in → login screen [settled]": {
+    "readyMs": 875
+  },
+  "Waitlist: open from the area picker [settled]": {
+    "readyMs": 230
+  }
+}

@@ -21,10 +21,13 @@ import { geocode, GeocodingUnavailableError, type GeocodingResult } from '@/lib/
 import { searchPlacesAction } from '@/app/_actions/location-actions'
 import { mergeMatches, type Suggestion } from '@/lib/places/suggestions'
 import { placeKindLabel } from '@/lib/places/search'
-import { PinAdjustMap } from './PinAdjustMap'
 import { DROPPED_PIN } from '@/lib/places/pin-label'
-import { AreaPickMap } from './AreaPickMap'
 import { mapAvailable } from '@/lib/map-config'
+import dynamic from 'next/dynamic'
+
+// #527 — the map library is ~480 KB; a visitor opening a Page never edits a pin.
+const PinAdjustMap = dynamic(() => import('./PinAdjustMap').then((m) => m.PinAdjustMap), { ssr: false })
+const AreaPickMap = dynamic(() => import('./AreaPickMap').then((m) => m.AreaPickMap), { ssr: false })
 
 export type PlaceMode = 'address' | 'neighbourhood'
 

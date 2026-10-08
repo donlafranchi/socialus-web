@@ -10,10 +10,13 @@ import { X } from 'lucide-react'
 import { geocode, type GeocodingResult } from '@/lib/geocoding'
 import { placeForPointAction, searchNeighborhoodsAction, searchPlacesAction } from '@/app/_actions/location-actions'
 import type { NeighborhoodMatch } from '@/lib/places/neighborhood-search'
-import { PinAdjustMap } from './PinAdjustMap'
-import { AreaPickMap } from './AreaPickMap'
 import { Typeahead } from './Typeahead'
 import { mapAvailable } from '@/lib/map-config'
+import dynamic from 'next/dynamic'
+
+// #527 — the map library is ~480 KB; a visitor opening a Page never edits a pin.
+const PinAdjustMap = dynamic(() => import('./PinAdjustMap').then((m) => m.PinAdjustMap), { ssr: false })
+const AreaPickMap = dynamic(() => import('./AreaPickMap').then((m) => m.AreaPickMap), { ssr: false })
 
 export type WhereMode = 'visit' | 'travel' | 'roaming'
 type Place = { id: string; name: string }

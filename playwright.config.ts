@@ -37,7 +37,7 @@ export default defineConfig({
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
-      testIgnore: [/screens\//, /_guard\//, /builders\//, /smoke\//],
+      testIgnore: [/screens\//, /_guard\//, /builders\//, /smoke\//, /speed\//],
       grepInvert: QUARANTINED,
     },
     {
@@ -65,6 +65,15 @@ export default defineConfig({
       retries: 0,
       timeout: 120_000,
       use: { ...devices['Desktop Chrome'], actionTimeout: 15_000, navigationTimeout: 30_000 },
+    },
+    {
+      // #527 — tap speed on production: one worker, so timings do not compete.
+      name: 'tap-speed',
+      testMatch: /speed\/taps\.spec\.ts/,
+      fullyParallel: false,
+      retries: 0,
+      workers: 1,
+      timeout: 180_000,
     },
     { name: 'smoke-guard', testMatch: /smoke\/must-fail\.spec\.ts/, retries: 0 },
     { name: 'guard', testMatch: /_guard\/must-fail\.spec\.ts/, retries: 0 },
