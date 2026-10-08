@@ -8,6 +8,6 @@ Checked #220, #486, #487, #488 against their criteria; this closes the gaps that
 - **F101 criterion 10:** the one-tap Remove records the reason that matches the row's top category (harassment, threat of harm, violence, nudity, sensitive content, spam), a tie going to the more serious. `report_decisions.reason_code` gains those codes.
 - **F101 criterion 15:** a test shows 50 rows clear with one keystroke each. The 375px browser timing is not measured.
 - **F078 criterion 10:** the report sheet tells the reporter, before Send, what misuse costs. Placeholder copy.
-- Migration `20261007300000_ai_mode_and_reasons.sql`.
+- Migration `20261008005836_ai_mode_and_reasons.sql`.
 
 **Still open, on purpose:** F100 criteria 10–12 (the photo test set from licensed stock, the live-mode gate numbers, the known-image hash check for severity 1: none exist yet); F102 criterion 12 (severity-4 auto-restore, which needs the gate to be cleared); F101 criterion 12's full history in the detail shows decisions, the answer and the AI read, but not every earlier AI read.
