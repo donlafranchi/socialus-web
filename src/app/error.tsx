@@ -1,6 +1,7 @@
 'use client'
 
 // #296 — the error state (L26) for anything a route throws.
+import Link from 'next/link'
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
 import { EmptyState } from '@/components/shell/EmptyState'
@@ -18,6 +19,11 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           Try again
         </button>
       </div>
+      <p className="mt-4 text-center text-body-sm">
+        <Link href="/report" className="underline">
+          Report a problem
+        </Link>
+      </p>
     </main>
   )
 }
