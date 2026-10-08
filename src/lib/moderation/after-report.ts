@@ -5,10 +5,10 @@ import { after } from 'next/server'
 import { getPool } from '@/actions/_lib/db'
 import { runAssessment } from './run-assessment'
 
-export function assessAfterReport(reportId: string): void {
+export function assessAfterReport(reportId: string, { rebuttal = null }: { rebuttal?: string | null } = {}): void {
   if (!process.env.ANTHROPIC_API_KEY) return
   const job = () =>
-    runAssessment(reportId, getPool()).catch((err) =>
+    runAssessment(reportId, getPool(), { rebuttal }).catch((err) =>
       console.error('[moderation] assessment failed:', err instanceof Error ? err.message : err),
     )
   try {

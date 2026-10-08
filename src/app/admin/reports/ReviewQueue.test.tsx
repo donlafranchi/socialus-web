@@ -346,3 +346,77 @@ describe('F102 criterion 11 — the week in one line', () => {
     expect(screen.queryByTestId('review-summary')).toBeNull()
   })
 })
+
+describe('F101 criterion 10 — one tap removes with the reason that matches the row', () => {
+  const rep = (id: string, category: QueuedReport['category']) => report(id, 'a', { category })
+
+  it('Remove records the reason for the row\'s top category, not a generic one', async () => {
+    show(groupBySubject([rep('r1', 'harassment'), rep('r2', 'harassment'), rep('r3', 'spam')]))
+    fireEvent.click(screen.getByTestId('review-remove'))
+    await act(async () => {
+      vi.advanceTimersByTime(5000)
+    })
+    expect(onDecide).toHaveBeenCalledWith({ reportId: 'r1', outcome: 'removed', reasonCode: 'harassment' })
+  })
+
+  it('a tie goes to the more serious category', () => {
+    const s = groupBySubject([rep('r1', 'spam'), rep('r2', 'threat_of_harm')])[0]!
+    expect(s.removeReason).toBe('threat_of_harm')
+  })
+
+  it('no reason given falls back to "not suitable"', () => {
+    expect(groupBySubject([report('r1', 'a')])[0]!.removeReason).toBe('not_suitable')
+  })
+})
+
+describe('F100 / F101 — the AI\'s read is on the row', () => {
+  const ai = { category: 'harassment', severity: 2, confidence: 0.91, outcome: 'remove' as const, reason: 'Insults a neighbour.' }
+
+  it('shows the suggestion and confidence, and its own severity beside the reporter\'s in shadow mode', () => {
+    show(groupBySubject([report('r1', 'a', { category: 'spam', ai })]))
+    expect(screen.getByTestId('review-ai')).toHaveTextContent('AI: remove · 0.91')
+    expect(screen.getByTestId('review-ai')).toHaveTextContent('Insults a neighbour.')
+    expect(screen.getByTestId('review-severity')).toHaveTextContent('Severity 4')
+    expect(screen.getByTestId('review-ai')).toHaveTextContent('AI severity 2')
+  })
+
+  // [guards F101.3]
+  it('in shadow mode only the reporter\'s reason sets the tier', () => {
+    expect(groupBySubject([report('r1', 'a', { category: 'spam', ai })])[0]!.severity).toBe(4)
+  })
+
+  it('in live mode the higher of the two sets it', () => {
+    expect(groupBySubject([report('r1', 'a', { category: 'spam', ai })], { live: true })[0]!.severity).toBe(2)
+    expect(groupBySubject([report('r1', 'a', { category: 'harassment', ai: { ...ai, severity: 4 } })], { live: true })[0]!.severity).toBe(2)
+  })
+
+  it('a row the AI has not read says nothing of the kind', () => {
+    show(groupBySubject([report('r1', 'a', { category: 'spam' })]))
+    expect(screen.queryByTestId('review-ai')).toBeNull()
+  })
+
+  it('a row the AI skipped for suspected severity 1 says a person must look', () => {
+    show(groupBySubject([report('r1', 'a', { category: 'sensitive_content', ai: { skipped: 'suspected severity 1: not sent to an AI provider (F100 criterion 12)' } })]))
+    expect(screen.getByTestId('review-ai')).toHaveTextContent(/not read by the AI/i)
+  })
+})
+
+describe('F101 criterion 15 — a batch of 50 is a batch of 50 single actions', () => {
+  // [guards F101.15 partial: the steps, not the minutes; the 375px browser timing is not measured here]
+  it('clears 50 waiting rows with one keystroke each, the next row moving into place every time', async () => {
+    const rows = Array.from({ length: 50 }, (_, i) => report(`r${i}`, `g${i}`, { category: 'spam' }))
+    show(groupBySubject(rows))
+    const list = screen.getByTestId('review-rows')
+    for (let i = 0; i < 50; i++) {
+      expect(screen.getAllByTestId('review-row')).toHaveLength(50 - i)
+      await act(async () => {
+        fireEvent.keyDown(list.querySelector('[data-testid="review-approve"]')!, { key: 'a' })
+      })
+    }
+    await act(async () => {
+      vi.advanceTimersByTime(6000)
+    })
+    expect(onDecide).toHaveBeenCalledTimes(50)
+    expect(screen.queryAllByTestId('review-row')).toHaveLength(0)
+  })
+})

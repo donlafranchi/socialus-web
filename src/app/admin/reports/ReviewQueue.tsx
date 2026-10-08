@@ -69,7 +69,7 @@ export function ReviewQueue({
     async (p: Pending) => {
       try {
         for (const reportId of p.subject.openReportIds) {
-          await onDecide({ reportId, outcome: p.outcome, reasonCode: DEFAULT_REASON[p.outcome] })
+          await onDecide({ reportId, outcome: p.outcome, reasonCode: p.outcome === 'removed' ? p.subject.removeReason : DEFAULT_REASON[p.outcome] })
         }
         router.refresh()
       } catch (err) {
@@ -326,6 +326,13 @@ function Row({
               )}
             </div>
             <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.ai && (
+              <p data-testid="review-ai" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
+                {'skipped' in s.ai
+                  ? 'Not read by the AI: a person needs to look.'
+                  : `AI: ${s.ai.outcome} · ${s.ai.confidence.toFixed(2)} · AI severity ${s.ai.severity} — ${s.ai.reason}`}
+              </p>
+            )}
             {s.answer && (
               <p data-testid="review-answer" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {s.answer.kind === 'fix_and_repost'

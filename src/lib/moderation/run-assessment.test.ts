@@ -30,7 +30,7 @@ beforeEach(() => {
   query.mockReset()
   assess.mockReset()
   fetchImage.mockReset()
-  rows = { category: 'spam', body: 'Reported.', name: 'Oak Bakery', description: 'Bread.', photo_url: 'https://x.test/m/abc/p.webp', reporter_is_builder: false }
+  rows = { category: 'spam', subject_kind: 'group', name: 'Oak Bakery', content_text: 'Bread.', image_url: 'https://x.test/m/abc/p.webp', reporter_is_builder: false }
   query.mockImplementation(async (sql: string) => (/from public\.reports/i.test(sql) ? { rows: [rows] } : { rows: [] }))
   fetchImage.mockResolvedValue({ mediaType: 'image/webp', base64: 'AAAA' })
 })
@@ -94,5 +94,45 @@ describe('F100 — runAssessment', () => {
     await runAssessment(REPORT, { query }, { assess, fetchImage })
     const writes = (query.mock.calls as [string][]).map(([s]) => s).filter((s) => /^\s*(insert|update|delete)/i.test(s))
     expect(writes.every((s) => /report_assessments/i.test(s))).toBe(true)
+  })
+
+  // F100 criterion 1 — Posts, post photos and Page pictures are read too, not only a Page's photo.
+  it('reads a Post by its words, with no image fetched', async () => {
+    rows = { category: 'harassment', subject_kind: 'post', name: 'Oak Bakery', content_text: 'Everyone avoid that woman.', image_url: null, reporter_is_builder: false }
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    await runAssessment(REPORT, { query }, { assess, fetchImage })
+    const arg = (assess.mock.calls[0] as unknown as [{ text: string; image: unknown }])[0]
+    expect(arg.text).toContain('Everyone avoid that woman.')
+    expect(arg.image).toBeNull()
+    expect(fetchImage).not.toHaveBeenCalled()
+  })
+
+  it('reads a post photo with the post\'s words beside it', async () => {
+    rows = { category: 'nudity', subject_kind: 'post_photo', name: 'Oak Bakery', content_text: 'Fresh loaves', image_url: 'https://x.test/m/abc/q.webp', reporter_is_builder: false }
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    await runAssessment(REPORT, { query }, { assess, fetchImage })
+    expect(fetchImage).toHaveBeenCalledWith('https://x.test/m/abc/q.webp')
+    expect((assess.mock.calls[0] as unknown as [{ text: string }])[0].text).toContain('Fresh loaves')
+  })
+
+  it('reads a Page picture', async () => {
+    rows = { category: 'spam', subject_kind: 'page_picture', name: 'Oak Bakery', content_text: null, image_url: 'https://x.test/m/abc/pic.webp', reporter_is_builder: false }
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    await runAssessment(REPORT, { query }, { assess, fetchImage })
+    expect(fetchImage).toHaveBeenCalledWith('https://x.test/m/abc/pic.webp')
+  })
+
+  // [guards F100.1 partial: a poster's rebuttal triggers a read]
+  it('a poster\'s rebuttal goes with the content, as their reply', async () => {
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    await runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Malicious: He reports everything.' })
+    expect((assess.mock.calls[0] as unknown as [{ rebuttal: string }])[0].rebuttal).toBe('Malicious: He reports everything.')
+  })
+
+  it('a deleted subject is skipped quietly', async () => {
+    rows = undefined as never
+    query.mockImplementation(async () => ({ rows: [] }))
+    await runAssessment(REPORT, { query }, { assess, fetchImage })
+    expect(assess).not.toHaveBeenCalled()
   })
 })

@@ -103,6 +103,11 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
           {categoryLabel(report.category)}
         </p>
       )}
+      {report.ai && (
+        <p data-testid="report-ai" className="text-xs text-[var(--color-fg-muted)]">
+          {'skipped' in report.ai ? report.ai.skipped : `AI suggests ${report.ai.outcome} (${report.ai.confidence.toFixed(2)}): ${report.ai.reason}`}
+        </p>
+      )}
       {report.reporter && (
         <p data-testid="reporter-record" className="text-xs text-[var(--color-fg-muted)]">
           {report.reporter.filed} filed · {report.reporter.upheld} upheld · {report.reporter.dismissed} dismissed · {report.reporter.open} open

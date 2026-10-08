@@ -99,6 +99,9 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
           {COPY.report911}
         </p>
       )}
+      <p data-testid="report-misuse" className="mt-4 text-sm text-[var(--color-fg-muted)]">
+        {COPY.reportMisuse}
+      </p>
       <label htmlFor={fieldId} className="mt-4 block text-sm font-medium text-[var(--color-charcoal-900)]">
         What&rsquo;s wrong?
       </label>

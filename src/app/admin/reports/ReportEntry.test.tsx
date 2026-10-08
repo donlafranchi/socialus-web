@@ -208,6 +208,21 @@ describe('F078 — the operator sees the reason the reporter chose', () => {
   })
 })
 
+describe('F100 — the AI\'s read on the report', () => {
+  it('shows the suggestion, confidence and reason', () => {
+    renderEntry({ ai: { category: 'spam', severity: 4, confidence: 0.92, outcome: 'remove', reason: 'Promotion.' } })
+    expect(screen.getByTestId('report-ai')).toHaveTextContent('AI suggests remove (0.92): Promotion.')
+  })
+  it('says when it was not read', () => {
+    renderEntry({ ai: { skipped: 'suspected severity 1: not sent to an AI provider (F100 criterion 12)' } })
+    expect(screen.getByTestId('report-ai')).toHaveTextContent(/not sent to an AI provider/)
+  })
+  it('shows nothing when there is no read', () => {
+    renderEntry()
+    expect(screen.queryByTestId('report-ai')).toBeNull()
+  })
+})
+
 describe('F078 — a reported Post', () => {
   const post = { subjectKind: 'post' as const, postId: 'p1', photoUrl: null, contentText: 'Buy my watches now.' }
 

@@ -57,6 +57,11 @@ export interface QueuedReport {
   contentText?: string | null
   /** The member who posted what was reported (operator-only). */
   posterId?: string
+  /** F100 — the AI's read of this report (the later read when there are two), or why it was not read. Shadow mode: advice only. */
+  ai?:
+    | { category: string; severity: number; confidence: number; outcome: 'approve' | 'remove'; reason: string }
+    | { skipped: string }
+    | null
   /** F102 — the poster's one answer to the hide, if they gave it. */
   answer?: { kind: 'fix_and_repost' | 'wrong'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
   /** F102 — how old the reporter's account was when they reported. */
@@ -195,6 +200,8 @@ export async function fetchReviewQueue(
             m.display_name    as owner_display_name,
             m.handle          as owner_handle,
             pg.founder_member_id as poster_id,
+            (select json_build_object('category', a.category, 'severity', a.severity, 'confidence', a.confidence, 'outcome', a.outcome, 'reason', a.reason, 'skipped', a.skipped_reason)
+               from public.report_assessments a where a.report_id = r.id order by a.created_at desc limit 1) as ai,
             (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note)
                from public.report_answers a
                join public.member_notices n on n.id = a.notice_id
@@ -227,6 +234,7 @@ export async function fetchReviewQueue(
     contentText: (r.content_text as string | null) ?? null,
     posterId: (r.poster_id as string | null) ?? undefined,
     answer: (r.answer as QueuedReport['answer']) ?? null,
+    ai: toAi(r.ai),
     reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
     reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
     reportId: r.report_id as string,
@@ -264,4 +272,18 @@ export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: 
           having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
   )
   return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}
+
+function toAi(raw: unknown): QueuedReport['ai'] {
+  if (!raw) return null
+  const a = raw as { category: string | null; severity: number | null; confidence: string | number | null; outcome: 'approve' | 'remove' | null; reason: string | null; skipped: string | null }
+  if (a.skipped) return { skipped: a.skipped }
+  if (!a.outcome || a.severity === null) return null
+  return { category: a.category ?? '', severity: a.severity, confidence: Number(a.confidence), outcome: a.outcome, reason: a.reason ?? '' }
+}
+
+/** F100 criterion 8: live mode is data the PM flips, not a deploy. Shadow unless the setting says live. */
+export async function fetchAiMode(): Promise<'shadow' | 'live'> {
+  const { rows } = await getPool().query(`select ai_mode from public.moderation_settings limit 1`)
+  return rows[0]?.ai_mode === 'live' ? 'live' : 'shadow'
 }

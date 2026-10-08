@@ -18,6 +18,7 @@ import type { ActionContext } from '../_lib/context'
 const POSTER = '11111111-1111-1111-1111-111111111111'
 const OTHER = '22222222-2222-2222-2222-222222222222'
 const NOTICE = '33333333-3333-3333-3333-333333333333'
+const REPORT = '44444444-4444-4444-4444-444444444444'
 const NOW = new Date('2026-10-10T12:00:00Z')
 const ctx = (id: string = POSTER): ActionContext =>
   ({ actingMemberId: id, viaDelegationId: null, traceId: 't', db: {} as never, now: () => NOW }) as ActionContext
@@ -27,7 +28,7 @@ function install(opts: { found?: boolean; owner?: string; answered?: boolean; cr
   query.mockReset()
   query.mockImplementation(async (sql: string) => {
     if (/from public\.member_notices/i.test(sql)) {
-      return { rows: found ? [{ id: NOTICE, member_id: owner, created_at: createdAt, answered }] : [] }
+      return { rows: found ? [{ id: NOTICE, member_id: owner, report_id: REPORT, created_at: createdAt, answered }] : [] }
     }
     if (/insert into public\.report_answers/i.test(sql)) return { rows: [{ id: 'a1' }] }
     throw new Error('unexpected: ' + sql)
@@ -47,6 +48,11 @@ describe('report.answer — say the report is wrong', () => {
     await reportAnswer(ctx(), input)
     expect(writes()).toHaveLength(1)
     expect(writes()[0]![1]).toEqual(expect.arrayContaining([NOTICE, POSTER, 'mistaken', 'It is my own shop sign.']))
+  })
+
+  it('says which report the answer is to, so the AI can read it with the reply', async () => {
+    install()
+    expect(await reportAnswer(ctx(), input)).toEqual({ answerId: 'a1', reportId: REPORT })
   })
 
   it('changes nothing about what is hidden: the only write is the answer', async () => {
