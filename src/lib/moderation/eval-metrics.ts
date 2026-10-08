@@ -34,6 +34,8 @@ export function summarise(cases: Scored[]) {
     meanLatencyMs: ratio(cases.reduce((a, c) => a + c.latencyMs, 0), cases.length),
     meanCostUsd: ratio(cases.reduce((a, c) => a + c.costUsd, 0), cases.length),
     // Criterion 11 (the two weeks of shadow agreement are a person's read).
-    meetsLiveTargets: recall >= 0.95 && sev1Recall === 1 && falseAlarmRate < 0.1,
+    // Severity-1 content never reaches the model (criterion 12), so a set with no
+    // severity-1 cases meets that target vacuously.
+    meetsLiveTargets: recall >= 0.95 && (sev1.length === 0 || sev1Recall === 1) && falseAlarmRate < 0.1,
   }
 }

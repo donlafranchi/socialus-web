@@ -52,4 +52,12 @@ describe('F100 criterion 9 — the harness summary', () => {
     expect(missedSev1.recall).toBeGreaterThan(0.95)
     expect(missedSev1.meetsLiveTargets).toBe(false)
   })
+
+  it('a set with no severity-1 cases (the model never sees them) meets that target vacuously', () => {
+    const s = summarise([
+      ...Array.from({ length: 20 }, () => c({ outcome: 'remove', severity: 2 }, { outcome: 'remove', severity: 2 })),
+      ...Array.from({ length: 20 }, () => c({ outcome: 'approve', severity: 4 }, { outcome: 'approve', severity: 4 })),
+    ])
+    expect(s.meetsLiveTargets).toBe(true)
+  })
 })

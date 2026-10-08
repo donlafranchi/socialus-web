@@ -40,6 +40,17 @@ describe('Privacy', () => {
     expect(text).toMatch(/zip/i)
     expect(text).toMatch(/display name/i)
   })
+  // #486 — Anthropic is named as the processor that receives reported content (ruled 2026-10-08).
+  it('names Anthropic as a processor for the automated first pass, says what it receives, and that a person decides', () => {
+    expect(text).toMatch(/Anthropic/)
+    expect(text).toMatch(/processor|on our behalf|acts only on our instructions/i)
+    expect(text).toMatch(/reported/i)
+    expect(text).toMatch(/never.*(name|email)/i)
+    expect(text).toMatch(/a person always decides/i)
+  })
+  it('lists the processor agreement for counsel', () => {
+    expect(TEXT_PAGES.privacy.counsel!.join(' ')).toMatch(/Anthropic/)
+  })
   it('carries no line about not selling member information (ruled 2026-09-30)', () => {
     expect(text).not.toMatch(/\bsell\b|\bsold\b|\bselling\b/i)
   })

@@ -300,6 +300,9 @@ describe('F078 — reports have consequences when misused', () => {
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
     fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
     expect(screen.getByTestId('report-misuse')).toHaveTextContent(/three/i)
+    // Ruled 2026-10-08: plain, no blame. Neither "mistake" nor "rejected".
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/didn.t match a rule/i)
+    expect(screen.getByTestId('report-misuse').textContent).not.toMatch(/mistake|reject/i)
     // the cost lands on the reader: "your reports", not "ours"
     expect(screen.getByTestId('report-misuse')).toHaveTextContent(/your reports/i)
   })

@@ -1,0 +1,8 @@
+### Rulings of 2026-10-08, and the harness scaffolding
+
+- **Cool-down:** kept as built. Sensitive content and threat of harm still hide whatever the reporter's record, and still text the operator. The open-question marker in `report.create` is now a ruling note.
+- **Misuse line:** "A report that didn't match a rule is counted. After three, your reports stop hiding anything while a person looks." Neither "mistake" nor "rejected".
+- **Privacy draft:** names Anthropic as the processor that receives the reported post or photo, the reason given and the poster's reply, never names or emails, and says a person always decides; the data-processing agreement is on counsel's list.
+- **Harness (F100 criterion 9–10):** the set can now carry pictures. `evals/moderation/images/` holds six synthetic ones (drawn by `scripts/moderation-make-images.ts` from text and flat shapes: invented names, no people, nothing sexual) with a licence recorded per image in `LICENCES.json`. `validateSet` refuses an image with no licence record, a licence outside open/public-domain/synthetic, or a subject that is a minor or sexual. `npm run moderation:eval -- --check` validates the set with no key and no cost; the full run needs `ANTHROPIC_API_KEY`. A test runs the whole pipeline with a faked model, including the picture going as bytes.
+- A set with no severity-1 cases meets that live target vacuously: severity-1 content never reaches the model.
+- **Still to do for the live gate:** real photos from open sources (so far only synthetic pictures), more cases per category to make recall and false-alarm numbers mean something, and the two weeks of shadow agreement. The PM's to-do: set `ANTHROPIC_API_KEY` in Vercel.

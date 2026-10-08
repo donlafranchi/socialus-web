@@ -1,42 +1,41 @@
 // F100 criterion 9 — runs the current prompt and models against the labelled
 // set in evals/moderation/cases.json and prints recall, false-alarm rate,
-// severity accuracy, latency and cost per case. Needs ANTHROPIC_API_KEY.
-// Run on every prompt change: `npm run moderation:eval`.
-// Cases are text-only for now; photo cases come from licensed stock only, with
-// the licence recorded per photo (criterion 10).
+// severity accuracy, latency and cost per case. Run on every prompt change:
+//   npm run moderation:eval            (needs ANTHROPIC_API_KEY)
+//   npm run moderation:eval -- --check (validates the set only; no key, no cost)
+// Cases carry text, a picture, or both. Pictures are synthetic (drawn by
+// scripts/moderation-make-images.ts) or open-licensed, with the licence recorded
+// per image in evals/moderation/images/LICENCES.json (criterion 10): nothing
+// runs unless every image is licensed and allowed.
 
-import { readFileSync } from 'node:fs'
-import { assessContent, HAIKU } from '../src/lib/moderation/assess'
-import { summarise, type Scored } from '../src/lib/moderation/eval-metrics'
+import { existsSync, readFileSync } from 'node:fs'
+import { validateSet, type EvalCase, type ImageLicence } from '../src/lib/moderation/eval-cases'
+import { runSet } from '../src/lib/moderation/eval-run'
 
-// Estimated list prices, USD per million tokens (input, output). Check before quoting.
-const PRICE: Record<string, [number, number]> = { [HAIKU]: [1, 5], 'claude-sonnet-5-5': [3, 15] }
-
-interface Case {
-  id: string
-  text: string
-  reporterReason: string
-  label: { outcome: 'approve' | 'remove'; severity: number }
-}
+const DIR = 'evals/moderation'
 
 async function main() {
-  const cases: Case[] = JSON.parse(readFileSync('evals/moderation/cases.json', 'utf8'))
-  const scored: Scored[] = []
-  for (const c of cases) {
-    const r = await assessContent({ text: c.text, image: null, reporterReason: c.reporterReason, rebuttal: null })
-    const cost = (r?.reads ?? []).reduce((a, x) => {
-      const [i, o] = PRICE[x.model] ?? [0, 0]
-      return a + (x.inputTokens * i + x.outputTokens * o) / 1e6
-    }, 0)
-    scored.push({
-      label: c.label,
-      got: r ? { outcome: r.shown.outcome, severity: r.shown.severity } : null,
-      latencyMs: (r?.reads ?? []).reduce((a, x) => a + x.latencyMs, 0),
-      costUsd: cost,
-    })
-    console.log(`${c.id}: want ${c.label.outcome}/${c.label.severity}, got ${r ? `${r.shown.outcome}/${r.shown.severity} @${r.shown.confidence}` : 'nothing'}`)
+  const cases: EvalCase[] = JSON.parse(readFileSync(`${DIR}/cases.json`, 'utf8'))
+  const licences: ImageLicence[] = JSON.parse(readFileSync(`${DIR}/images/LICENCES.json`, 'utf8'))
+  const problems = validateSet(cases, licences, (f) => existsSync(`${DIR}/images/${f}`))
+  if (problems.length) {
+    console.error(problems.join('\n'))
+    process.exit(1)
   }
-  console.table(summarise(scored))
+  if (process.argv.includes('--check')) {
+    console.log(`${cases.length} cases, ${cases.filter((c) => c.image).length} with a picture: set is valid.`)
+    return
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('Set ANTHROPIC_API_KEY to run the harness (or pass --check to validate the set only).')
+    process.exit(1)
+  }
+  const { summary, rows } = await runSet(cases, {
+    readImage: (f) => ({ mediaType: 'image/png', base64: readFileSync(`${DIR}/images/${f}`).toString('base64') }),
+  })
+  for (const r of rows) console.log(`${r.id}: want ${r.want}, got ${r.got}`)
+  console.table(summary)
+  console.log(summary.meetsLiveTargets ? 'Meets the live-mode targets (criterion 11, before the two weeks of shadow agreement).' : 'Does not meet the live-mode targets.')
 }
 
 main()

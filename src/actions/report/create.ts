@@ -417,10 +417,9 @@ export const reportCreate = defineHandler(
         subject.hideable &&
         !subject.alreadyHidden &&
         !subject.locked &&
-        // [open-question owner=don raised=2026-10-07] F102 criterion 7 says a cool-down hides
-        // nothing; F078 criterion 8 says sensitive content and threat of harm hide whatever
-        // the bar. Built to the cautious reading: those two still hide from a reporter with
-        // a record (and still text the operator). Which is meant?
+        // Ruled 2026-10-08 (Dispatch, for the PM): a cool-down or three strikes stops a
+        // reporter's ordinary reports hiding, but sensitive content and threat of harm
+        // still hide, whatever the reporter's record (F078 criterion 8), and still text the operator.
         (urgent || (limits.hidesAnything && reachesBar && priorBySameMember === 0 && openByReporter < limits.cap))
 
       if (!shouldHide) {
