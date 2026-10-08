@@ -18,6 +18,7 @@ import { join } from 'node:path'
 import { builderEmail, builderPassword } from '../../src/lib/builders/credentials'
 import type { PersonaKey } from '../personas'
 import { leaks } from './checks'
+import { navigate } from '../../src/lib/smoke/navigate'
 
 const SEED = process.env.BUILDER_SEED ?? ''
 const TEMPLATE = process.env.BUILDER_EMAIL_TEMPLATE || undefined
@@ -67,7 +68,7 @@ for (const who of personas) {
       context = await browser.newContext()
       page = await context.newPage()
       if (who !== 'signedOut') await signIn(page, who)
-      await page.goto('/explore', { waitUntil: 'load' })
+      await navigate(page, '/explore')
       const href = await page.locator('a[href^="/g/"]').first().getAttribute('href').catch(() => null)
       if (href) firstPage = href
     })
@@ -90,9 +91,10 @@ for (const who of personas) {
         })
         for (const width of widths) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
-          const res = await page.goto(target, { waitUntil: 'load' })
-          const status = res?.status() ?? 0
-          if (status >= 400) problems.push(`${width}px: HTTP ${status}`)
+          // #500 — the document, not every external resource; one retry; a repeat timeout is a problem on this route, not a throw.
+          const nav = await navigate(page, target)
+          if (nav.timedOut) problems.push(`${width}px: the page did not open in time (twice)`)
+          else if (nav.status >= 400) problems.push(`${width}px: HTTP ${nav.status}`)
           await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
           const text = await page.locator('body').innerText()
           for (const l of leaks(who, text, own)) problems.push(`${width}px: ${l}`)

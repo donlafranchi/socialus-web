@@ -7,7 +7,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { groupArchive, groupDelete, groupRestore, ActionError } from '@/actions'
+import { groupArchive, groupDelete, groupDiscardDraft, groupRestore, ActionError } from '@/actions'
 
 export type PageLifecycleResult = { ok: true } | { ok: false; message: string }
 
@@ -41,4 +41,9 @@ export async function deletePageAction(input: { groupId: string; pagePath: strin
 
 export async function restorePageAction(input: { groupId: string }): Promise<PageLifecycleResult> {
   return run((id) => groupRestore(resolveActionContext({ actingMemberId: id }), { groupId: input.groupId }), ['/you'])
+}
+
+/** #463 — delete an unpublished draft at once (owners only; a draft reached nobody). */
+export async function discardDraftAction(input: { groupId: string }): Promise<PageLifecycleResult> {
+  return run((id) => groupDiscardDraft(resolveActionContext({ actingMemberId: id }), { groupId: input.groupId }), ['/you'])
 }

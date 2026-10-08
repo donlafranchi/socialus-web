@@ -52,6 +52,8 @@ for who in anon stranger; do
   check "$who" 'locations.member_id'       'select member_id from public.locations'                   denied
   check "$who" 'group_memberships rows'    'select 1 from public.group_memberships'                   0
   check "$who" 'member_public_group_memberships' 'select member_id from public.member_public_group_memberships' denied
+  check "$who" 'discoverable_items.member_handle' 'select member_handle from public.discoverable_items' denied
+  check "$who" 'media bucket file list'         "select 1 from storage.objects where bucket_id = 'media'"   0
   check "$who" 'member_public_discoverability'   'select member_id from public.member_public_discoverability'   denied
   check "$who" 'member_has_standing_presence'    'select member_id from public.member_has_standing_presence'    denied
   check "$who" 'member_public_has_published'     'select member_id from public.member_public_has_published'     denied

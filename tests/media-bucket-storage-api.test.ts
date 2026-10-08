@@ -147,4 +147,37 @@ describe.skipIf(!RUNNABLE)('T120 media bucket — storage API enforcement', () =
       .upload(`${memberAId}/legit.webp`, webpBytes, { contentType: 'image/webp' })
     expect(error).toBeNull()
   })
+
+  // #246 — the bucket's file list names every uploader (the top-level folders are
+  // member ids). A public bucket serves a file by its URL with no read policy, so
+  // listing is closed to everyone but the folder's own uploader.
+  it('lists nothing to a signed-out caller, yet still serves a file by its public URL', async () => {
+    const anon = createClient(SUPABASE_URL!, ANON_KEY!, { auth: { persistSession: false } })
+    const root = await anon.storage.from(BUCKET).list('')
+    expect(root.error).toBeNull()
+    expect(root.data).toEqual([])
+    const inFolder = await anon.storage.from(BUCKET).list(memberAId)
+    expect(inFolder.data ?? []).toEqual([])
+    const { data } = anon.storage.from(BUCKET).getPublicUrl(`${memberAId}/legit.webp`)
+    const res = await fetch(data.publicUrl)
+    expect(res.status).toBe(200)
+  })
+
+  it("lists nothing of another member's folder to a signed-in member", async () => {
+    const root = await clientB.storage.from(BUCKET).list('')
+    expect((root.data ?? []).map((f) => f.name)).not.toContain(memberAId)
+    const theirs = await clientB.storage.from(BUCKET).list(memberAId)
+    expect(theirs.data ?? []).toEqual([])
+  })
+
+  it('still lists, replaces and removes an uploader\'s own files', async () => {
+    const own = await clientA.storage.from(BUCKET).list(memberAId)
+    expect((own.data ?? []).map((f) => f.name)).toContain('legit.webp')
+    const webp = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])
+    const again = await clientA.storage.from(BUCKET).upload(`${memberAId}/legit.webp`, webp, { contentType: 'image/webp', upsert: true })
+    expect(again.error).toBeNull()
+    const gone = await clientA.storage.from(BUCKET).remove([`${memberAId}/legit.webp`])
+    expect(gone.error).toBeNull()
+  })
 })
+

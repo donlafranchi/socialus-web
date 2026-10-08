@@ -77,3 +77,19 @@ describe('sendReportAction', () => {
     )
   })
 })
+
+// F099 criterion 8 — an image is named by what it is.
+describe('sendReportAction — which image', () => {
+  it('defaults to the Page photo, as it always did', async () => {
+    signedIn()
+    await sendReportAction({ subjectId: GROUP, category: 'spam', body: 'x' })
+    expect(create.mock.calls[0]![1]).toMatchObject({ subjectKind: 'group', subjectId: GROUP })
+  })
+
+  // [guards F099.8]
+  it.each(['post_photo', 'page_picture'] as const)('passes %s through', async (subjectKind) => {
+    signedIn()
+    await sendReportAction({ subjectKind, subjectId: GROUP, category: 'spam', body: 'x' })
+    expect(create.mock.calls[0]![1]).toMatchObject({ subjectKind, subjectId: GROUP })
+  })
+})

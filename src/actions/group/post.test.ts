@@ -38,6 +38,8 @@ const GROUP = '11111111-1111-1111-1111-111111111111'
 const OWNER = '22222222-2222-2222-2222-222222222222'
 const OTHER = '33333333-3333-3333-3333-333333333333'
 const POST = '44444444-4444-4444-4444-444444444444'
+const PHOTO = `https://x.supabase.co/storage/v1/object/public/media/${OWNER}/55555555-5555-4555-8555-555555555555.webp`
+const OTHERS_PHOTO = `https://x.supabase.co/storage/v1/object/public/media/${OTHER}/55555555-5555-4555-8555-555555555555.webp`
 const NOW = new Date('2026-09-15T12:00:00Z')
 
 function ctx(actingMemberId: string = OWNER): ActionContext {
@@ -60,6 +62,9 @@ function install(
     postExists?: boolean
     groupExists?: boolean
     discoverability?: string
+    hiddenAt?: Date | null
+    removedAt?: Date | null
+    repostUsed?: boolean
   } = {},
 ) {
   const {
@@ -68,6 +73,9 @@ function install(
     postExists = true,
     groupExists = true,
     discoverability = 'listed',
+    hiddenAt = null,
+    removedAt = null,
+    repostUsed = false,
   } = opts
   query.mockReset()
   query.mockImplementation(async (sql: string, params: unknown[] = []) => {
@@ -78,12 +86,13 @@ function install(
     }
     if (/from public\.page_posts/i.test(sql)) {
       return postExists
-        ? { rows: [{ id: POST, group_id: GROUP }], rowCount: 1 }
+        ? { rows: [{ id: POST, group_id: GROUP, hidden_at: hiddenAt, removed_at: removedAt, repost_used: repostUsed }], rowCount: 1 }
         : { rows: [], rowCount: 0 }
     }
     if (/insert into public\.page_posts/i.test(sql)) {
       return { rows: [{ id: POST, created_at: NOW }], rowCount: 1 }
     }
+    if (/insert into public\.report_answers/i.test(sql)) return { rows: [], rowCount: 1 }
     if (/update public\.page_posts/i.test(sql)) {
       return { rows: [{ id: POST, updated_at: NOW }], rowCount: 1 }
     }
@@ -230,6 +239,7 @@ describe('group.post_edit — in place, by the managing role only', () => {
     install()
     const r = await groupPostEdit(ctx(), { postId: POST, body: 'Sourdough is back Friday.' })
     expect(r.postId).toBe(POST)
+    expect(r.reposted).toBe(false)
     const [sql] = calls(/update public\.page_posts/i)[0]!
     expect(sql).toMatch(/^\s*update public\.page_posts/i)
     expect(sql).not.toMatch(/insert/i)
@@ -414,5 +424,121 @@ describe('#286 — tags on posts', () => {
     install({ roles: {} })
     await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['y'] })).rejects.toThrow()
     expect(calls(/post_tags/)).toHaveLength(0)
+  })
+})
+
+// F102 criteria 1–2 — fix and repost: the poster edits what was hidden and it
+// shows again at once; the reports stay on the row; once per post; never after
+// a person removed it.
+describe('F102 — fix and repost', () => {
+  const HIDDEN = new Date('2026-10-07T12:00:00Z')
+  const reposts = () => (query.mock.calls as [string, unknown[]][]).filter(([q]) => /repost_used = true/i.test(q))
+
+  it('editing a post a report hid puts it back at once, to the audience it had', async () => {
+    install({ hiddenAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    const [q] = reposts()[0]!
+    expect(q).toMatch(/discoverability = coalesce\(hidden_prior_discoverability/)
+    expect(q).toMatch(/hidden_at = null/)
+  })
+
+  it('leaves its reports on the row: nothing about a report is written', async () => {
+    install({ hiddenAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    const all = (query.mock.calls as [string][]).map(([q]) => q).join('\n')
+    expect(all).not.toMatch(/update public\.reports|delete from public\.reports/i)
+  })
+
+  it('records the poster\'s answer as "fix and repost"', async () => {
+    install({ hiddenAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    const [q, params] = (query.mock.calls as [string, unknown[]][]).find(([x]) => /insert into public\.report_answers/i.test(x))!
+    expect(q).toMatch(/fix_and_repost/)
+    expect(params).toContain(OWNER)
+  })
+
+  it('an ordinary edit of a visible post changes nothing about hiding', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'More words.' })
+    expect(reposts()).toHaveLength(0)
+  })
+
+  // [guards F102.2 partial: no second repost]
+  it('a second hide offers no second repost: the post stays down', async () => {
+    install({ hiddenAt: HIDDEN, repostUsed: true })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Again.' })
+    expect(reposts()).toHaveLength(0)
+  })
+
+  it('a post a person removed cannot be reposted by editing it', async () => {
+    install({ hiddenAt: HIDDEN, removedAt: HIDDEN })
+    await groupPostEdit(ctx(), { postId: POST, body: 'Again.' })
+    expect(reposts()).toHaveLength(0)
+  })
+})
+
+// F099 criteria 3, 5, 12 — a post may carry one photo of its own.
+describe('F099 — a post photo', () => {
+  // [guards F099.3]
+  it('stores the photo on the post when one is given, and none when it is not', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Bread class.', photoUrl: PHOTO })
+    expect(calls(/insert into public\.page_posts/i)[0]![1]).toContain(PHOTO)
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'No photo.' })
+    expect(calls(/insert into public\.page_posts/i)[0]![1]).toContain(null)
+  })
+
+  // [guards F099.3]
+  it('refuses a second photo: the field takes one URL, never a list', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: [PHOTO, PHOTO] as never }),
+    ).rejects.toBeInstanceOf(ValidationError)
+  })
+
+  // [guards F099.5]
+  it("refuses a photo that is not in the uploader's own folder", async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: OTHERS_PHOTO }),
+    ).rejects.toBeInstanceOf(ValidationError)
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: 'https://evil.example/a.webp' }),
+    ).rejects.toBeInstanceOf(ValidationError)
+    expect(calls(/insert into public\.page_posts/i)).toHaveLength(0)
+  })
+
+  // [guards F099.4]
+  it('writes nothing to the Page: no photo column of groups is touched', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'x', photoUrl: PHOTO })
+    expect(calls(/update public\.groups/i)).toHaveLength(0)
+  })
+
+  it('an edit that leaves the photo out leaves it alone', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Friday.' })
+    expect(calls(/update public\.page_posts/i)[0]![0]).not.toMatch(/photo_url/)
+  })
+
+  it('an edit can set the photo', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Friday.', photoUrl: PHOTO })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/photo_url = \$/)
+    expect(params).toContain(PHOTO)
+  })
+
+  // [guards F099.12]
+  it('removing the photo clears it, makes a fresh upload start unhidden, and records an event', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Friday.', photoUrl: null })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/photo_url = \$/)
+    expect(params).toContain(null)
+    const [, , row] = appendEvent.mock.calls[0]!
+    expect(row.event_kind).toBe('group.post_edited')
+    expect(row.payload).toMatchObject({ post_id: POST, photo: 'removed' })
   })
 })

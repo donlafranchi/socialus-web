@@ -27,6 +27,8 @@ const REPORT: QueuedReport = {
   reportedAt: new Date('2026-09-15T09:00:00Z'),
   hiddenAt: new Date('2026-09-15T09:00:00Z'),
   removedAt: null,
+  subjectKind: 'group',
+  subjectId: 'g1',
   groupId: 'g1',
   groupName: 'Oak Park Bakery',
   groupSlug: 'oak-park-bakery',
@@ -203,5 +205,63 @@ describe('F078 — the operator sees the reason the reporter chose', () => {
   it('shows nothing for a report filed before reasons existed', () => {
     renderEntry({ category: null })
     expect(screen.queryByTestId('report-category')).toBeNull()
+  })
+})
+
+describe('F100 — the AI\'s read on the report', () => {
+  it('shows the suggestion, confidence and reason', () => {
+    renderEntry({ ai: { category: 'spam', severity: 4, confidence: 0.92, outcome: 'remove', reason: 'Promotion.' } })
+    expect(screen.getByTestId('report-ai')).toHaveTextContent('AI suggests remove (0.92): Promotion.')
+  })
+  it('says when it was not read', () => {
+    renderEntry({ ai: { skipped: 'suspected severity 1: not sent to an AI provider (F100 criterion 12)' } })
+    expect(screen.getByTestId('report-ai')).toHaveTextContent('Not read by the AI: a person needs to look.')
+    expect(screen.getByTestId('report-ai')).not.toHaveTextContent(/F100|criterion/)
+  })
+  it('shows nothing when there is no read', () => {
+    renderEntry()
+    expect(screen.queryByTestId('report-ai')).toBeNull()
+  })
+})
+
+describe('F078 — a reported Post', () => {
+  const post = { subjectKind: 'post' as const, postId: 'p1', photoUrl: null, contentText: 'Buy my watches now.' }
+
+  it('shows the words that were reported, not a photo or a "no photo" line', () => {
+    renderEntry(post)
+    expect(screen.getByTestId('reported-post')).toHaveTextContent('Buy my watches now.')
+    expect(screen.queryByText(/has no photo/i)).toBeNull()
+    expect(screen.queryByTestId('show-photo')).toBeNull()
+  })
+
+  it('says removed, not photo removed', () => {
+    renderEntry({ ...post, removedAt: new Date('2026-09-16T09:00:00Z') })
+    expect(screen.getByText(/^Removed/)).toBeInTheDocument()
+    expect(screen.queryByText(/Photo removed/)).toBeNull()
+  })
+})
+
+// F099 criterion 8 — the reviewer is told which image a report is about.
+describe('F099 — which image', () => {
+  // [guards F099.8]
+  it.each([
+    ['group', 'Photo removed'],
+    ['page_picture', 'Page picture removed'],
+    ['post_photo', 'Post photo removed'],
+  ] as const)('a removed %s reads %s', (subjectKind, text) => {
+    render(<ReportEntry report={{ ...REPORT, subjectKind, removedAt: new Date('2026-09-16T09:00:00Z') }} hiddenFor={null} onDecide={vi.fn()} onReverse={vi.fn()} />)
+    expect(screen.getByText(new RegExp(text))).toBeInTheDocument()
+  })
+})
+
+describe('F102 criterion 5 — the reporter\'s counters, operator only', () => {
+  it('shows filed, upheld, dismissed and open on the report', () => {
+    renderEntry({ reporter: { filed: 4, upheld: 1, dismissed: 2, open: 1 } })
+    expect(screen.getByTestId('reporter-record')).toHaveTextContent('4 filed · 1 upheld · 2 dismissed · 1 open')
+  })
+
+  it('shows nothing when there is no record to show', () => {
+    renderEntry()
+    expect(screen.queryByTestId('reporter-record')).toBeNull()
   })
 })

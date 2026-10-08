@@ -22,14 +22,21 @@ import { signInHref as gatedSignInHref } from '@/lib/auth/requires-account'
 
 interface Props {
   subjectId: string
+  /** F099 — which image: the Page's photo when omitted. */
+  subjectKind?: 'group' | 'page_picture' | 'post_photo'
   subjectLabel: string
   loggedIn: boolean
   /** Path to come back to after signing in. */
   returnTo?: string
-  onSend: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true }>
+  onSend: (input: {
+    subjectId: string
+    subjectKind?: 'group' | 'page_picture' | 'post_photo'
+    category: ReportCategory
+    body: string
+  }) => Promise<{ ok: true }>
 }
 
-export function ReportControl({ subjectId, subjectLabel, loggedIn, returnTo, onSend }: Props) {
+export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   // The sheet is opened from a menu item that unmounts with its menu, so the
@@ -70,7 +77,7 @@ export function ReportControl({ subjectId, subjectLabel, loggedIn, returnTo, onS
         returnFocusTo={triggerRef}
         onClose={() => setSheetOpen(false)}
         onSend={async (category, body) => {
-          await onSend({ subjectId, category, body })
+          await onSend({ subjectId, ...(subjectKind ? { subjectKind } : {}), category, body })
           setSheetOpen(false)
           setConfirmed(true)
         }}

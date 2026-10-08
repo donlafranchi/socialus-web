@@ -8,10 +8,15 @@
 
 import type { QueuedReport } from './reports-queue'
 import type { ReasonCode } from './reason-codes'
+import { SEVERITY_OF_REPORT_CATEGORY, type ReportCategory } from '@/lib/reports/categories'
+import { removeReasonFor } from './reason-codes'
 
 export type Severity = 1 | 2 | 3 | 4
 
 export interface ReviewSubject {
+  /** F099 — which image, or the post body, it is. */
+  subjectKind: QueuedReport['subjectKind']
+  /** The key: the Page's id for its photo, the post's id for a post body, `kind:id` for any other image. */
   subjectId: string
   name: string
   slug: string | null
@@ -21,17 +26,45 @@ export interface ReviewSubject {
   /** Reports with no decision yet. A reversal is itself a decision (the opposite outcome). */
   openReportIds: string[]
   severity: Severity | null
+  /** The reasons the reporters chose, most reported first. */
+  reasons: { category: ReportCategory; count: number }[]
+  /** F100 — the AI's read, from the latest report that has one. */
+  ai: QueuedReport['ai']
+  /** F101 criterion 10 — the reason a one-tap Remove records. */
+  removeReason: ReasonCode
+  /** F102 — what the poster said, from whichever report carries it. */
+  answer: QueuedReport['answer']
+  /** F102 criterion 8 — a flag for the operator, never acted on automatically. */
+  coordinated: boolean
+  /** What was reported, for the excerpt. */
+  contentText: string | null
   hiddenAt: Date | null
   status: 'hidden' | 'restored' | 'removed'
 }
 
 export const isOpen = (r: QueuedReport) => r.history.length === 0
 
-export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
+export function groupBySubject(queue: QueuedReport[], { live = false }: { live?: boolean } = {}): ReviewSubject[] {
   const by = new Map<string, ReviewSubject>()
   for (const r of [...queue].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())) {
-    const s = by.get(r.groupId) ?? {
-      subjectId: r.groupId,
+    // The Page's photo is keyed by its Page and a post body by its post id; any
+    // other image by its own kind and id, so one Page's photo, picture and
+    // posts never merge.
+    const key =
+      r.subjectKind === 'group'
+        ? r.groupId
+        : r.subjectKind === 'post'
+          ? (r.postId ?? r.subjectId)
+          : `${r.subjectKind}:${r.subjectId}`
+    const s = by.get(key) ?? {
+      subjectKind: r.subjectKind,
+      subjectId: key,
+      contentText: r.contentText ?? null,
+      reasons: [],
+      coordinated: false,
+      answer: null,
+      ai: null,
+      removeReason: 'not_suitable' as ReasonCode,
       name: r.groupName,
       slug: r.groupSlug,
       photoUrl: r.photoUrl,
@@ -43,9 +76,60 @@ export function groupBySubject(queue: QueuedReport[]): ReviewSubject[] {
     }
     s.reports.push(r)
     if (isOpen(r)) s.openReportIds.push(r.reportId)
-    by.set(r.groupId, s)
+    by.set(key, s)
+  }
+  const flagged = coordinatedPosters(queue)
+  for (const s of by.values()) {
+    s.answer = s.reports.find((r) => r.answer)?.answer ?? null
+    s.coordinated = s.reports.some((r) => r.posterId && flagged.has(r.posterId))
+    s.ai = [...s.reports].reverse().find((r) => r.ai)?.ai ?? null
+    s.severity = severityOf(s, live)
+    s.reasons = tally(s)
+    s.removeReason = removeReasonFor(topCategory(s))
   }
   return [...by.values()]
+}
+
+const tiers = (s: ReviewSubject) =>
+  s.reports.filter(isOpen).flatMap((r) => (r.category ? [SEVERITY_OF_REPORT_CATEGORY[r.category]] : []))
+
+/** F101 criterion 3 (shadow): the most serious tier among the open reports' reasons. */
+const severityOf = (s: ReviewSubject, live: boolean): Severity | null => {
+  const t = tiers(s)
+  // F101 criterion 3: shadow, the reporter's reason sets it; live, the higher of the two.
+  if (live && s.ai && 'severity' in s.ai) t.push(s.ai.severity as 1 | 2 | 3 | 4)
+  return t.length ? (Math.min(...t) as Severity) : null
+}
+
+/** The most reported category on the open reports; a tie goes to the more serious. */
+function topCategory(s: ReviewSubject): ReportCategory | null {
+  const counts = new Map<ReportCategory, number>()
+  for (const r of s.reports.filter(isOpen)) if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1)
+  const ranked = [...counts].sort((a, b) => b[1] - a[1] || SEVERITY_OF_REPORT_CATEGORY[a[0]] - SEVERITY_OF_REPORT_CATEGORY[b[0]])
+  return ranked[0]?.[0] ?? null
+}
+
+const tally = (s: ReviewSubject) => {
+  const counts = new Map<ReportCategory, number>()
+  for (const r of s.reports) if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1)
+  return [...counts].map(([category, count]) => ({ category, count })).sort((a, b) => b.count - a.count)
+}
+
+const DAY = 86_400_000
+
+/** F102 criterion 8: three or more reports on one poster's content within 24 hours, at least two from accounts under 7 days old. */
+function coordinatedPosters(queue: QueuedReport[]): Set<string> {
+  const byPoster = new Map<string, QueuedReport[]>()
+  for (const r of queue) if (r.posterId) byPoster.set(r.posterId, [...(byPoster.get(r.posterId) ?? []), r])
+  const out = new Set<string>()
+  for (const [poster, rs] of byPoster) {
+    const sorted = [...rs].sort((a, b) => a.reportedAt.getTime() - b.reportedAt.getTime())
+    for (let i = 0; i < sorted.length; i++) {
+      const window = sorted.filter((r) => r.reportedAt.getTime() >= sorted[i]!.reportedAt.getTime() && r.reportedAt.getTime() - sorted[i]!.reportedAt.getTime() <= DAY)
+      if (window.length >= 3 && window.filter((r) => (r.reporterAgeDays ?? Infinity) < 7).length >= 2) out.add(poster)
+    }
+  }
+  return out
 }
 
 export type SortKey = 'severity' | 'age' | 'count'
@@ -61,12 +145,15 @@ export function orderSubjects(subjects: ReviewSubject[], key: SortKey = 'severit
     if (key === 'severity') {
       const sev = (a.severity ?? 5) - (b.severity ?? 5)
       if (sev) return sev
+      // One tier of priority within a severity (F102 criterion 8).
+      const flag = Number(b.coordinated) - Number(a.coordinated)
+      if (flag) return flag
     }
     return t(a.hiddenAt) - t(b.hiddenAt)
   })
 }
 
-/** F101 criterion 10's one-tap reasons. Remove matches the top category once F078 gives one. */
+/** F101 criterion 10's one-tap reasons. Remove uses the row's own `removeReason`; this is the Approve default. */
 export const DEFAULT_REASON: Record<'restored' | 'removed', ReasonCode> = {
   restored: 'nothing_wrong',
   removed: 'not_suitable',

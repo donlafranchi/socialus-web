@@ -253,3 +253,57 @@ describe('a signed-out member', () => {
     expect(send).not.toHaveBeenCalled()
   })
 })
+
+// F099 criterion 8 — the control reports whichever image it was given.
+describe('which image is reported', () => {
+  const sendIt = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+  }
+
+  // [guards F099.8]
+  it('sends the subject kind it was given', async () => {
+    renderControl({ subjectKind: 'post_photo' })
+    sendIt()
+    await waitFor(() => expect(send).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'post_photo', subjectId: 'grp-1' })))
+  })
+
+  it('sends none for the Page photo, as before', async () => {
+    renderControl()
+    sendIt()
+    await waitFor(() => expect(send).toHaveBeenCalled())
+    expect((send.mock.calls[0] as unknown as [{ subjectKind?: string }])[0].subjectKind).toBeUndefined()
+  })
+})
+
+// F102 criterion 10 — kindly, before sending.
+describe('F102 — threat of harm', () => {
+  it('tells the reporter to call 911 if someone is in danger now, once that reason is picked', () => {
+    render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    expect(screen.queryByTestId('report-911')).toBeNull()
+    fireEvent.click(screen.getByLabelText('Threat of harm'))
+    expect(screen.getByTestId('report-911')).toHaveTextContent(/911/)
+    fireEvent.click(screen.getByLabelText('Spam'))
+    expect(screen.queryByTestId('report-911')).toBeNull()
+  })
+})
+
+// F078 criterion 10 — before sending, the reporter is told, kindly, what misuse costs.
+describe('F078 — reports have consequences when misused', () => {
+  it('says so on the sheet, before Send', () => {
+    render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/three/i)
+    // Ruled 2026-10-08: plain, no blame. Neither "mistake" nor "rejected".
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/didn.t match a rule/i)
+    expect(screen.getByTestId('report-misuse').textContent).not.toMatch(/mistake|reject/i)
+    // the cost lands on the reader: "your reports", not "ours"
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/your reports/i)
+  })
+})

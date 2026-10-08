@@ -44,6 +44,9 @@ describe('resolvePagePosts', () => {
         locationLabel: null,
         howToFind: null,
         tags: [],
+        photoUrl: null,
+        photoHidden: false,
+        hiddenAt: null,
       },
     ])
     expect(calls.order).toEqual(['created_at', { ascending: false }])
@@ -165,4 +168,53 @@ describe('resolvePagePosts — contact details', () => {
     expect(p!.body).not.toContain('@example.com')
     expect(p!.howToFind).not.toContain('@example.com')
   })
+
+  it('carries when a post was hidden, for the people who can still see it', async () => {
+    const { supabase } = client({
+      data: [{ id: 'a', body: 'x', created_at: 't', updated_at: 't', starts_at: null, location: null, hidden_at: '2026-10-07T12:00:00Z' }],
+      error: null,
+    })
+    const [p] = await resolvePagePosts(supabase, 'g1')
+    expect(p!.hiddenAt).toBe('2026-10-07T12:00:00Z')
+  })
 })
+
+// F099 criteria 4, 7 — a post's own photo, resolved so a hidden or removed one
+// never leaves the server.
+describe('a post photo', () => {
+  const row = (over: Record<string, unknown>) => ({
+    id: 'a', body: 'Bread class.', created_at: '2026-09-15T10:00:00Z', updated_at: '2026-09-15T10:00:00Z',
+    starts_at: null, ends_at: null, location: null,
+    photo_url: 'https://x/p.webp', photo_hidden_at: null, photo_removed_at: null, ...over,
+  })
+
+  // [guards F099.4]
+  it("projects the post's own photo, and asks for no Page photo", async () => {
+    const { supabase, chain } = client({ data: [row({})], error: null })
+    const [p] = await resolvePagePosts(supabase, 'g1')
+    expect(p!.photoUrl).toBe('https://x/p.webp')
+    const selected = String(chain.select.mock.calls[0]![0])
+    expect(selected).toMatch(/photo_url/)
+    expect(selected).not.toMatch(/groups|group:/)
+  })
+
+  // [guards F099.7]
+  it.each([['photo_hidden_at'], ['photo_removed_at']])('a post photo with %s set is not returned', async (col) => {
+    const { supabase } = client({ data: [row({ [col]: '2026-10-01T00:00:00Z' })], error: null })
+    const [p] = await resolvePagePosts(supabase, 'g1')
+    expect(p!.photoUrl).toBeNull()
+  })
+
+  // [guards F099.8]
+  it('says a post photo is hidden (for its owner’s notice), without returning its URL', async () => {
+    const hidden = client({ data: [row({ photo_hidden_at: '2026-10-01T00:00:00Z' })], error: null })
+    const [h] = await resolvePagePosts(hidden.supabase, 'g1')
+    expect(h!.photoUrl).toBeNull()
+    expect(h!.photoHidden).toBe(true)
+    const removed = client({ data: [row({ photo_removed_at: '2026-10-01T00:00:00Z' })], error: null })
+    expect((await resolvePagePosts(removed.supabase, 'g1'))[0]!.photoHidden).toBe(false)
+    const none = client({ data: [row({ photo_url: null })], error: null })
+    expect((await resolvePagePosts(none.supabase, 'g1'))[0]!.photoHidden).toBe(false)
+  })
+})
+

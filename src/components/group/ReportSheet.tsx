@@ -14,6 +14,7 @@
 import { useEffect, useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import { Button } from '@/components/ui/Button'
+import { COPY } from '@/lib/copy'
 import { REPORT_CATEGORIES, type ReportCategory } from '@/lib/reports/categories'
 
 /** Matches the schema CHECK and report.create's own bound. */
@@ -93,6 +94,14 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
           ))}
         </div>
       </fieldset>
+      {category === 'threat_of_harm' && (
+        <p data-testid="report-911" role="note" className="mt-3 rounded-md bg-[var(--color-surface)] p-3 text-sm text-[var(--color-fg)]">
+          {COPY.report911}
+        </p>
+      )}
+      <p data-testid="report-misuse" className="mt-4 text-sm text-[var(--color-fg-muted)]">
+        {COPY.reportMisuse}
+      </p>
       <label htmlFor={fieldId} className="mt-4 block text-sm font-medium text-[var(--color-charcoal-900)]">
         What&rsquo;s wrong?
       </label>

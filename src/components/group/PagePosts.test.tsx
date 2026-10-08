@@ -6,7 +6,8 @@ import { COPY } from '@/lib/copy'
 
 // F072 — a Page owner announces something, with a time and a place on it.
 
-const { searchPlacesAction } = vi.hoisted(() => ({ searchPlacesAction: vi.fn() }))
+const { searchPlacesAction, uploadImage } = vi.hoisted(() => ({ searchPlacesAction: vi.fn(), uploadImage: vi.fn() }))
+vi.mock('@/lib/media/upload-image', () => ({ uploadImage }))
 vi.mock('@/app/_actions/location-actions', () => ({
   searchPlacesAction,
   placeForPointAction: vi.fn(async () => ({ ok: true, data: { id: 'pl-curtis', name: 'Curtis Park' } })),
@@ -591,5 +592,194 @@ describe('#286 — tags on posts', () => {
     fireEvent.click(screen.getByTestId('announce-edit-tag-remove-jazz'))
     fireEvent.click(screen.getByTestId('page-post-edit-save'))
     await waitFor(() => expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+  })
+})
+
+// F099 — one photo per post; every post card shows exactly one image.
+describe('F099 — a post photo', () => {
+  const PHOTO = 'https://x.supabase.co/storage/v1/object/public/media/m-1/p.webp'
+
+  // [guards F099.6]
+  it('a post with a photo shows it, and only it', () => {
+    renderPosts({ posts: [postFixture({ photoUrl: PHOTO } as never)], pageName: 'Maya’s Bakery' })
+    const post = screen.getByTestId('page-post')
+    expect(post.querySelectorAll('img')).toHaveLength(1)
+    expect(post.querySelector('img')).toHaveAttribute('src', PHOTO)
+    expect(screen.queryByTestId('default-art')).toBeNull()
+  })
+
+  // [guards F099.6]
+  it('a post without one shows its kind’s placeholder, so no card is without an image', () => {
+    renderPosts({ posts: [postFixture()], pageName: 'Maya’s Bakery', artKind: 'shop' })
+    expect(screen.getByTestId('default-art')).toHaveAttribute('data-kind', 'shop')
+    expect(screen.getByRole('img', { name: 'Maya’s Bakery' })).toBeInTheDocument()
+  })
+
+  // [guards F099.6]
+  it('a post without a photo of its own shows the Page picture, named for the Page', () => {
+    renderPosts({ posts: [postFixture()], pageName: 'Maya’s Bakery', pictureUrl: 'https://x/pic.webp', artKind: 'shop' } as never)
+    const post = screen.getByTestId('page-post')
+    expect(post.querySelectorAll('img')).toHaveLength(1)
+    expect(screen.getByRole('img', { name: 'Maya’s Bakery' })).toHaveAttribute('src', 'https://x/pic.webp')
+    expect(screen.queryByTestId('default-art')).toBeNull()
+  })
+
+  // [guards F099.10]
+  it('the photo’s alt is the owner’s words: the first line of the post', () => {
+    renderPosts({ posts: [postFixture({ photoUrl: PHOTO, body: 'Bread class is on.\nBring an apron.' } as never)] })
+    expect(screen.getByRole('img', { name: 'Bread class is on.' })).toHaveAttribute('src', PHOTO)
+  })
+
+  // [guards F099.9]
+  it('asks the sensitive-content question before a photo can be added', () => {
+    renderPosts({ memberId: 'm-1' })
+    expect(screen.getByLabelText(COPY.photoConfirm)).not.toBeChecked()
+    expect(screen.getByTestId('page-photo-input')).toBeDisabled()
+  })
+
+  // [guards F099.3]
+  it('takes one photo: a single file input that does not accept several', () => {
+    renderPosts({ memberId: 'm-1' })
+    expect(screen.getByTestId('page-photo-input')).not.toHaveAttribute('multiple')
+  })
+
+  it('the composer completes without a photo, and sends none', async () => {
+    onPost.mockClear()
+    renderPosts({ memberId: 'm-1' })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'No photo today.' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect((onPost.mock.calls[0]![0] as { photoUrl?: unknown }).photoUrl ?? null).toBeNull()
+  })
+
+  // [guards F099.3]
+  it('sends the photo with the post, and the new post shows it', async () => {
+    onPost.mockClear()
+    uploadImage.mockResolvedValue({ url: PHOTO })
+    renderPosts({ memberId: 'm-1' })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Dough day.' } })
+    fireEvent.click(screen.getByLabelText(COPY.photoConfirm))
+    fireEvent.change(screen.getByTestId('page-photo-input'), {
+      target: { files: [new File(['x'], 'a.png', { type: 'image/png' })] },
+    })
+    await screen.findByTestId('page-photo-preview')
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ photoUrl: PHOTO })))
+    await waitFor(() => expect(screen.getByTestId('page-post').querySelector('img')).toHaveAttribute('src', PHOTO))
+  })
+
+  it('no photo control is offered without a signed-in member to own the upload', () => {
+    renderPosts()
+    expect(screen.queryByTestId('page-photo-input')).toBeNull()
+  })
+
+  // [guards F099.8]
+  describe('reporting one image', () => {
+    const onSend = vi.fn(async (_i: unknown) => ({ ok: true as const }))
+    const report = { loggedIn: true, returnTo: '/g/x', onSend }
+    const send = async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+      fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+      fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
+      fireEvent.click(screen.getByRole('button', { name: /send/i }))
+    }
+
+    it("a visitor reports a post's own photo as that post's photo", async () => {
+      onSend.mockClear()
+      renderPosts({ canPost: false, report, groupId: 'g1', posts: [postFixture({ id: 'pp-9', photoUrl: PHOTO } as never)] } as never)
+      await send()
+      await waitFor(() => expect(onSend).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'post_photo', subjectId: 'pp-9' })))
+    })
+
+    it('a visitor reports the Page picture when that is the image', async () => {
+      onSend.mockClear()
+      renderPosts({ canPost: false, report, groupId: 'g1', pictureUrl: 'https://x/pic.webp', posts: [postFixture()] } as never)
+      await send()
+      await waitFor(() => expect(onSend).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'page_picture', subjectId: 'g1' })))
+    })
+
+    it('offers nothing on a placeholder (no image to report), and nothing to the owner', () => {
+      renderPosts({ canPost: false, report, posts: [postFixture()] } as never)
+      expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+      cleanup()
+      renderPosts({ canPost: true, report, posts: [postFixture({ photoUrl: PHOTO } as never)] } as never)
+      expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+    })
+  })
+
+  // [guards F099.8]
+  it("tells the owner which post's photo is hidden, and no one else", () => {
+    renderPosts({ canPost: true, posts: [postFixture({ photoHidden: true } as never)] })
+    expect(screen.getByTestId('hidden-photo-notice')).toHaveTextContent(/photo on your post is hidden/i)
+    cleanup()
+    renderPosts({ canPost: false, posts: [postFixture({ photoHidden: true } as never)] })
+    expect(screen.queryByTestId('hidden-photo-notice')).toBeNull()
+  })
+})
+
+// F078 criterion 1 — a Post is reportable by a signed-in member; the people who
+// manage the Page see that theirs is hidden instead.
+describe('F078 — reporting a Post', () => {
+  const onReport = vi.fn(async (_i: unknown) => ({ ok: true as const }))
+
+  it('a visitor gets a More options menu on each post, leading to the report sheet', () => {
+    renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    expect(screen.getByText(/why are you reporting this/i)).toBeInTheDocument()
+  })
+
+  it('sends the post\'s id with the reason and words', async () => {
+    renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByLabelText('Spam'))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Looks like an ad.' } })
+    fireEvent.click(screen.getByRole('button', { name: /^send$/i }))
+    await waitFor(() => expect(onReport).toHaveBeenCalledWith(expect.objectContaining({ subjectId: POST.id, category: 'spam', body: 'Looks like an ad.' })))
+  })
+
+  // A post card sits in a row that scrolls sideways, which clips anything absolutely placed
+  // inside it: the open menu must escape that row and stay on screen.
+  it('the open menu is fixed to the screen, so the posts row cannot clip it', () => {
+    renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    fireEvent.click(screen.getByRole('button', { name: /more options/i }))
+    const menu = screen.getByRole('menu')
+    expect(menu.style.position).toBe('fixed')
+    expect(parseFloat(menu.style.left)).toBeGreaterThanOrEqual(8)
+  })
+
+  it('Escape closes the open menu even while focus is still on the ⋯', () => {
+    renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    const more = screen.getByRole('button', { name: /more options/i })
+    fireEvent.click(more)
+    fireEvent.keyDown(more, { key: 'Escape' })
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  it('the people who manage the Page get no report control on their own post', () => {
+    renderPosts({ canPost: true, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
+    expect(screen.queryByRole('button', { name: /more options/i })).toBeNull()
+  })
+
+  it('a hidden post tells its managers it is hidden while someone takes a look', () => {
+    renderPosts({ canPost: true, startComposing: false, posts: [{ ...postFixture(), hiddenAt: '2026-10-07T12:00:00Z' } as never] })
+    expect(screen.getByTestId('page-post-hidden')).toHaveTextContent(/hidden while we take a look/i)
+  })
+
+  it('fix and repost: saving an edit the server reposted drops the hidden line at once', async () => {
+    onEdit.mockResolvedValueOnce({ ok: true as const, data: { postId: 'pp-1', reposted: true } } as never)
+    renderPosts({ canPost: true, startComposing: false, posts: [{ ...postFixture(), hiddenAt: '2026-10-07T12:00:00Z' } as never] })
+    fireEvent.click(screen.getByTestId('page-post-edit'))
+    fireEvent.change(screen.getByTestId('page-post-edit-body'), { target: { value: 'Fixed.' } })
+    fireEvent.click(screen.getByTestId('page-post-edit-save'))
+    await waitFor(() => expect(screen.queryByTestId('page-post-edit-body')).toBeNull())
+    expect(screen.queryByTestId('page-post-hidden')).toBeNull()
+  })
+
+  it('a post nobody has hidden says nothing of the kind', () => {
+    renderPosts({ canPost: true, startComposing: false, posts: [postFixture()] })
+    expect(screen.queryByTestId('page-post-hidden')).toBeNull()
   })
 })

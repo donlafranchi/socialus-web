@@ -14,6 +14,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { uploadImage } from '@/lib/media/upload-image'
 import { COPY } from '@/lib/copy'
+import { recordUploadAction } from '@/app/_actions/origin-actions'
 
 export interface PagePhotoPickerProps {
   memberId: string
@@ -21,9 +22,12 @@ export interface PagePhotoPickerProps {
   value: string | null
   /** A URL when one is chosen; null when the member removes it. */
   onChange: (url: string | null) => void
+  /** F099 — the same control picks a post's photo; the words say whose. */
+  label?: string
+  previewAlt?: string
 }
 
-export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerProps) {
+export function PagePhotoPicker({ memberId, value, onChange, label = 'Photo', previewAlt = 'The photo on your Page' }: PagePhotoPickerProps) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // F080 — the uploader's word, asked for every photo and never remembered.
@@ -39,6 +43,8 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
       setBusy(true)
       try {
         const { url } = await uploadImage(file, memberId)
+        // F102 criterion 13 — where it came from; best-effort, never blocks the photo.
+        void recordUploadAction({ url }).catch(() => undefined)
         onChange(url)
       } catch (err) {
         // Never rethrow. A photo is optional and a failed upload must not trap
@@ -61,7 +67,7 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
 
   return (
     <div className="block">
-      <span className="text-sm font-medium text-[var(--color-fg)]">Photo</span>
+      <span className="text-sm font-medium text-[var(--color-fg)]">{label}</span>
 
       {value ? (
         <div className="mt-2 flex items-start gap-3">
@@ -69,12 +75,12 @@ export function PagePhotoPicker({ memberId, value, onChange }: PagePhotoPickerPr
           <img
             data-testid="page-photo-preview"
             src={value}
-            alt="The photo on your Page"
+            alt={previewAlt}
             className="h-24 w-24 rounded object-cover"
           />
           <button
             type="button"
-            className="text-sm underline text-[var(--color-fg-muted)]"
+            className="inline-flex min-h-tap items-center px-1 text-sm underline text-[var(--color-fg-muted)]"
             onClick={() => onChange(null)}
           >
             Remove

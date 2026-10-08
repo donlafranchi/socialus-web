@@ -26,6 +26,8 @@
 
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
 import { useEffect, useState } from 'react'
+import { ReportControl } from './ReportControl'
+import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
 import { isValidTagLabel } from '@/lib/groups/tags'
@@ -41,6 +43,9 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { Sheet } from '@/components/ui/Sheet'
+import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
+import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
+import { DefaultArt, type ArtKind } from '@/components/cards/DefaultArt'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
@@ -68,6 +73,8 @@ interface PostInput {
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
+  /** F099 — one photo of its own, or none. */
+  photoUrl?: string | null
 }
 
 interface EditInput {
@@ -77,10 +84,16 @@ interface EditInput {
   endsAt?: string | null
   locationId?: string | null
   tags?: string[]
+  /** F099 — absent leaves the photo alone; null removes it. */
+  photoUrl?: string | null
 }
 
 interface Props {
   groupId: string
+  /** F078 — reporting a Post. Offered to everyone who does not manage the Page. */
+  onReport?: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true }>
+  loggedIn?: boolean
+  returnTo?: string
   posts: PagePost[]
   canPost: boolean
   /** How many people get updates from this Page. Owner-only; see
@@ -88,11 +101,29 @@ interface Props {
   followerCount?: number
   /** #337 — a private Page's posts are for its members, so there is no reach to choose. */
   isPrivate?: boolean
+  /** F099 — the signed-in member whose folder a post photo is uploaded to. Without one, no photo control. */
+  memberId?: string | null
+  /** F099 — the Page's name, and its kind's placeholder: what a post without a photo of its own shows. */
+  pageName?: string
+  /** F099 — the Page picture, resolved (null when none, hidden or removed). */
+  pictureUrl?: string | null
+  artKind?: ArtKind | null
+  /** F099 criterion 8 — a visitor may report the image on a post card: its own photo, or the Page picture. */
+  report?: {
+    loggedIn: boolean
+    returnTo?: string
+    onSend: (input: {
+      subjectId: string
+      subjectKind: 'page_picture' | 'post_photo'
+      category: ReportCategory
+      body: string
+    }) => Promise<{ ok: true }>
+  }
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
   onEdit: (input: EditInput) => Promise<
-    { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
+    { ok: true; data: { postId: string; reposted?: boolean } } | { ok: false; message: string; code: string }
   >
   onCreateLocation?: CreateLocation
   /** The form opens from the owner's Announce (#announce); tests start with it open. */
@@ -141,10 +172,18 @@ function metroClock(iso: string): string {
 
 export function PagePosts({
   groupId,
+  onReport,
+  loggedIn = false,
+  returnTo,
   posts,
   canPost,
   followerCount = 0,
   isPrivate = false,
+  memberId = null,
+  pageName = '',
+  pictureUrl = null,
+  artKind = null,
+  report,
   onPost,
   onEdit,
   onCreateLocation = createLocationAction,
@@ -155,6 +194,8 @@ export function PagePosts({
   const [draft, setDraft] = useState('')
   const [when, setWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
   const [audience, setAudience] = useState<Audience>('anyone')
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [editPhoto, setEditPhoto] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -290,6 +331,7 @@ export function PagePosts({
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
       tags: tagSet(tags),
+      ...(photo ? { photoUrl: photo } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -307,9 +349,11 @@ export function PagePosts({
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
         tags: tagSet(tags),
+        photoUrl: photo,
       },
       ...items,
     ])
+    setPhoto(null)
     setDraft('')
     setWhen(emptyWhenWhere)
     setTags({ tags: [], draft: '' })
@@ -337,6 +381,8 @@ export function PagePosts({
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
       tags: tagSet(editTags),
+      // Only a changed photo is sent: absent leaves it, null removes it.
+      ...(editPhoto !== (items.find((p) => p.id === postId)?.photoUrl ?? null) ? { photoUrl: editPhoto } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -354,7 +400,10 @@ export function PagePosts({
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
               tags: tagSet(editTags),
+              // F102: a hidden post the edit reposted shows again at once.
+              ...(r.data.reposted ? { hiddenAt: null } : {}),
               ...(editWhen.addingPlace ? { locationLabel: resolved.locationLabel } : {}),
+              photoUrl: editPhoto,
             }
           : p,
       ),
@@ -394,6 +443,15 @@ export function PagePosts({
                     placeLabel={post.locationLabel}
                   />
                   <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
+                  {memberId && (
+                    <PagePhotoPicker
+                      memberId={memberId}
+                      value={editPhoto}
+                      onChange={setEditPhoto}
+                      label="Photo (optional)"
+                      previewAlt="The photo on this post"
+                    />
+                  )}
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -416,6 +474,46 @@ export function PagePosts({
                 </div>
               ) : (
                 <>
+                  {/* F099 criterion 6 — exactly one image on every post card:
+                      its own photo, else the Page picture,
+                      else the kind's placeholder. Alt: the owner's words (the
+                      post's first line); the placeholder's is the Page's name. */}
+                  <div className="relative mb-2 h-32 w-full overflow-hidden rounded-md">
+                    {post.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={post.photoUrl}
+                        alt={post.body.split('\n')[0].slice(0, 120)}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : pictureUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pictureUrl} alt={pageName || 'Page'} className="h-full w-full object-cover" />
+                    ) : (
+                      <div role="img" aria-label={pageName || 'Page'} className="h-full w-full">
+                        <DefaultArt kind={artKind} />
+                      </div>
+                    )}
+                    {/* F099 criterion 8 — each image is reportable on its own. A
+                        placeholder is no one's picture, so there is nothing to report. */}
+                    {report && !canPost && (post.photoUrl || pictureUrl) && (
+                      <div className="absolute right-1 top-1 rounded-full bg-white/90">
+                        <ReportControl
+                          subjectId={post.photoUrl ? post.id : groupId}
+                          subjectKind={post.photoUrl ? 'post_photo' : 'page_picture'}
+                          subjectLabel={post.photoUrl ? 'this photo' : 'this picture'}
+                          loggedIn={report.loggedIn}
+                          returnTo={report.returnTo}
+                          onSend={report.onSend as never}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {canPost && post.photoHidden && (
+                    <div className="mb-2">
+                      <HiddenPhotoNotice which="post" />
+                    </div>
+                  )}
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
 
                   {/* When and where it is — the announcement's own, not its
@@ -447,8 +545,17 @@ export function PagePosts({
                     </div>
                   )}
 
+                  {canPost && post.hiddenAt && (
+                    <p className="mt-2 text-sm text-[var(--color-fg-muted)]" data-testid="page-post-hidden">
+                      Hidden while we take a look. Nobody else can see it right now.
+                    </p>
+                  )}
+
                   <div className="mt-2 flex items-center gap-3">
                     <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    {!canPost && onReport && (
+                      <ReportControl subjectId={post.id} subjectLabel="this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
+                    )}
                     {canPost && (
                       <button
                         type="button"
@@ -459,6 +566,7 @@ export function PagePosts({
                           setEditDraft(post.body)
                           setEditWhen(whenWhereFrom(post))
                           setEditTags({ tags: post.tags ?? [], draft: '' })
+                          setEditPhoto(post.photoUrl ?? null)
                           setError(null)
                         }}
                         className="inline-flex min-h-tap items-center px-1 text-xs underline"
@@ -543,6 +651,15 @@ export function PagePosts({
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
 
           <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
+          {memberId && (
+            <PagePhotoPicker
+              memberId={memberId}
+              value={photo}
+              onChange={setPhoto}
+              label="Photo (optional)"
+              previewAlt="The photo on this post"
+            />
+          )}
 
           {!isPrivate && (
             <AudienceSwitch

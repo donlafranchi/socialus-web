@@ -21,9 +21,16 @@ create policy post_tags_select_with_post on public.post_tags for select
   using (exists (select 1 from public.page_posts p where p.id = post_id));
 
 
--- browse_feed as #280 left it, with a post's own tags (or its Page's) and a
+-- browse_feed as the Page-picture migration left it, with a post's own tags (or its Page's) and a
 -- tag lens that matches either. Nothing else changes.
-create or replace function public.browse_feed(
+-- Drop and recreate, as the Page-picture migration did: its return shape
+-- gained the post image, so create-or-replace cannot carry the tag lines.
+drop function public.browse_feed(
+  uuid, uuid, text[], text[], text, uuid[], text[],
+  timestamptz, timestamptz, timestamptz, text, timestamptz, int
+);
+
+create function public.browse_feed(
   -- SCOPE. Exactly one. Explore scopes to a metro (F059 criterion 6);
   -- venue and place reads scope to a Place polygon. Both are ids and never
   -- slugs: two rows in `public.places` currently share the slug 'sacramento'
@@ -81,6 +88,7 @@ returns table (
   photo_url          text,
   photo_hidden_at    timestamptz,
   photo_removed_at   timestamptz,
+  photo_source       text,
   description        text,
   body               text,
   tags               text[],
@@ -153,6 +161,7 @@ as $$
       g.photo_url,
       g.photo_hidden_at,
       g.photo_removed_at,
+      null::text            as photo_source,
       g.description,
       null::text            as body,
       -- F093 criterion 8: signed out, no tags, no location, and no pin.
@@ -227,9 +236,23 @@ as $$
       g.slug,
       g.name,
       public.place_url_path(gl.place_id) as place_path,
-      g.photo_url,
-      g.photo_hidden_at,
-      g.photo_removed_at,
+      -- F099 criterion 6/7: the ONE image a post card shows, resolved here so a
+      -- hidden or removed URL never reaches the browser: the post's own visible
+      -- photo, else the Page's visible Page picture, else null (the kind's
+      -- placeholder is drawn by the card). The Page's own photo is not a post's
+      -- image. hidden/removed are therefore always null on a post row.
+      case
+        when pp.photo_url is not null and pp.photo_hidden_at is null and pp.photo_removed_at is null
+          then pp.photo_url
+        when g.picture_url is not null and g.picture_hidden_at is null and g.picture_removed_at is null
+          then g.picture_url
+      end                   as photo_url,
+      null::timestamptz     as photo_hidden_at,
+      null::timestamptz     as photo_removed_at,
+      case
+        when pp.photo_url is not null and pp.photo_hidden_at is null and pp.photo_removed_at is null then 'post'
+        when g.picture_url is not null and g.picture_hidden_at is null and g.picture_removed_at is null then 'page'
+      end                   as photo_source,
       null::text            as description,
       pp.body,
       -- #286 — a post's own tags, or its Page's when it has none, so a lens
@@ -326,6 +349,7 @@ as $$
     r.photo_url,
     r.photo_hidden_at,
     r.photo_removed_at,
+    r.photo_source,
     r.description,
     r.body,
     r.tags,
@@ -350,3 +374,19 @@ as $$
     r.result_id
   limit greatest(1, least(coalesce(p_limit, 50), 100));
 $$;
+
+comment on function public.browse_feed(
+  uuid, uuid, text[], text[], text, uuid[], text[],
+  timestamptz, timestamptz, timestamptz, text, timestamptz, int
+) is
+  'The browse read source (T156), superseding browse_pages and browse_posts. Returns Pages and posts together, one discriminated row shape, scoped to one metro OR one Place polygon by id. Every axis Browse varies is a parameter: Page kind (NEVER a constant — the two-or-three-kinds question is unruled), result kind, tags, a start-time window, Page creation recency, and the sort. p_tags matches tags.normalized (normalise with normalizeTag() before calling) while the projected tags are the creators'' own labels. The personal half is a predicate: p_audience=''following'' restricts to p_following, so a signed-out reader gets nothing from the database rather than from a client filter (F059 criteria 2b/2c). Withholds drafts, unlisted and dissolved Pages and posts, and drops past-dated posts; undated posts never drop. A post projects its OWN geography (null when it has none) and its own tags (#286), else its owning Page''s. A post with no address of its own is labelled with its Page''s location (#256, F072 criterion 3), and carries posted_at, its created_at, and ends_at, its optional end (#262), and photo_url / photo_source, the ONE image of a post resolved here (F099): its own visible photo, else the Page''s visible Page picture, else null. Signed out it runs with no location, tags or posts (#252). NO cost parameter: free/priced is an open decision and there is no price on a Page or a post. Ordering carries locality and recency, never payment and never what holds attention.';
+
+revoke all on function public.browse_feed(
+  uuid, uuid, text[], text[], text, uuid[], text[],
+  timestamptz, timestamptz, timestamptz, text, timestamptz, int
+) from public;
+
+grant execute on function public.browse_feed(
+  uuid, uuid, text[], text[], text, uuid[], text[],
+  timestamptz, timestamptz, timestamptz, text, timestamptz, int
+) to anon, authenticated;

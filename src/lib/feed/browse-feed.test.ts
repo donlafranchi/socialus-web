@@ -302,3 +302,12 @@ describe('#450 — a card never shows an email address stored in Page text', () 
     expect(post.body).toBe(`RSVP ${EMAIL_MASK}.`)
   })
 })
+
+// F099 — which image the row carries, so the card can word its alt text.
+describe('F099 — photo_source', () => {
+  it('passes the source through, and a null one as null', () => {
+    expect(mapBrowseRow({ ...PAGE_ROW, photo_source: 'post' } as never, 'abc123').photoSource).toBe('post')
+    expect(mapBrowseRow({ ...PAGE_ROW, photo_source: 'page' } as never, 'abc123').photoSource).toBe('page')
+    expect(mapBrowseRow(PAGE_ROW as never, 'abc123').photoSource ?? null).toBeNull()
+  })
+})

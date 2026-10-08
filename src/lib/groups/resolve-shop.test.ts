@@ -145,6 +145,17 @@ describe('resolveShop', () => {
     expect(shop?.photoRemovedAt).toBe('2026-10-02T00:00:00Z')
   })
 
+  // F099 criterion 7 — the Page picture is resolved before it leaves the server.
+  it('projects the Page picture only when it is neither hidden nor removed', async () => {
+    const pic = (over: Record<string, unknown>) =>
+      resolveShop(makeSupabaseStub({ group: { ...ACTIVE_ROW, picture_url: 'https://x/pic.webp', ...over } }), 'oak-park-sourdough')
+    expect((await pic({}))?.pictureUrl).toBe('https://x/pic.webp')
+    expect((await pic({ picture_hidden_at: '2026-10-02T00:00:00Z' }))?.pictureUrl).toBeNull()
+    expect((await pic({ picture_hidden_at: '2026-10-02T00:00:00Z' }))?.pictureHiddenAt).toBe('2026-10-02T00:00:00Z')
+    expect((await pic({ picture_removed_at: '2026-10-02T00:00:00Z' }))?.pictureUrl).toBeNull()
+    expect((await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW }), 'oak-park-sourdough'))?.pictureUrl).toBeNull()
+  })
+
   it('returns null when RLS yields no row (draft-to-non-owner, dissolved, nonexistent)', async () => {
     const shop = await resolveShop(makeSupabaseStub({ group: null }), 'whatever')
     expect(shop).toBeNull()

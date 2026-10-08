@@ -31,6 +31,7 @@ import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
+import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { managingRoleForKind, type GroupKind } from './constants'
 
 /** Matches the column's own CHECK, so a too-long body is refused before the
@@ -45,6 +46,10 @@ const startsAt = z.string().datetime({ offset: true }).nullable().optional()
 const locationId = z.string().uuid().nullable().optional()
 /** #348 — an event's own meet spot, beside its place: one line. */
 const howToFind = z.string().max(140).nullable().optional()
+/** F099 criterion 3 — ONE photo of its own: a single URL, never a list. Null on
+ *  an edit removes it; absent leaves it alone. Whose folder it sits in is
+ *  checked against the acting member in the handler. */
+const photoUrl = z.string().url().max(2000).nullable().optional()
 const note = (v: string | null | undefined) => (v == null || v.trim() === '' ? null : v.trim())
 /** #262 — optional, only beside a start, and after it. The column's check
  *  enforces the same, so an edit that clears the start cannot strand an end. */
@@ -53,6 +58,7 @@ const endsAt = z.string().datetime({ offset: true }).nullable().optional()
 const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) =>
   !v.endsAt || (!!v.startsAt && new Date(v.endsAt) > new Date(v.startsAt))
 const END_MESSAGE = 'An end time needs a start time before it.'
+const PHOTO_MESSAGE = 'That photo didn’t come from your uploads.'
 
 /** #286 — a post's own tags (Don, 2026-10-01). None means it carries its
  *  Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
@@ -102,6 +108,7 @@ export const groupPostCreateInput = z
     locationId,
     howToFind,
     tags,
+    photoUrl,
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -114,6 +121,7 @@ export const groupPostEditInput = z.object({
   locationId,
   howToFind,
   tags,
+  photoUrl,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 
@@ -130,12 +138,14 @@ export interface GroupPostCreateResult {
 export interface GroupPostEditResult {
   postId: string
   groupId: string
+  /** F102: the edit showed a hidden post again (fix and repost). */
+  reposted: boolean
 }
 
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $' | 'how_to_find = $'
+type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
@@ -185,6 +195,7 @@ export const groupPostCreate = defineHandler(
     // #450 — a post is public Page text; see group.update.
     if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_create')
+    if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
 
     return withTransaction(async (client) => {
       const page = await requireManagingRole(client, 'group.post_create', input.groupId, memberId)
@@ -196,8 +207,8 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10)
          returning id, created_at`,
         [
           input.groupId,
@@ -215,6 +226,7 @@ export const groupPostCreate = defineHandler(
           ctx.now(),
           input.endsAt ?? null,
           note(input.howToFind),
+          input.photoUrl ?? null,
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -240,10 +252,17 @@ export const groupPostEdit = defineHandler(
     // #450 — a post is public Page text; see group.update.
     if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_edit')
+    if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
 
     return withTransaction(async (client) => {
-      const found = await client.query<{ id: string; group_id: string }>(
-        `select id, group_id from public.page_posts
+      const found = await client.query<{
+        id: string
+        group_id: string
+        hidden_at: Date | null
+        removed_at: Date | null
+        repost_used: boolean
+      }>(
+        `select id, group_id, hidden_at, removed_at, repost_used from public.page_posts
           where id = $1 and dissolved_at is null`,
         [input.postId],
       )
@@ -276,9 +295,20 @@ export const groupPostEdit = defineHandler(
       if (input.howToFind !== undefined) {
         patch.push({ clause: 'how_to_find = $', value: note(input.howToFind) })
       }
+      if (input.photoUrl !== undefined) {
+        patch.push({ clause: 'photo_url = $', value: input.photoUrl })
+      }
       for (const f of patch) {
         params.push(f.value)
         sets.push(`${f.clause}${params.length}`)
+        // A different photo starts unhidden and unremoved; the same URL keeps
+        // the state a report put it in (the Page photo's rule, scoped to the URL).
+        if (f.clause === 'photo_url = $') {
+          sets.push(
+            `photo_hidden_at = case when $${params.length} is distinct from photo_url then null else photo_hidden_at end`,
+            `photo_removed_at = case when $${params.length} is distinct from photo_url then null else photo_removed_at end`,
+          )
+        }
       }
       // sql-injection-safe: enum-constrained by PostSetClause
       await client.query(
@@ -287,14 +317,45 @@ export const groupPostEdit = defineHandler(
       )
       if (input.tags !== undefined) await writePostTags(client, input.postId, input.tags, memberId)
 
+      // F102 criterion 2 — fix and repost. Editing a post a report hid shows it
+      // again at once, once; its reports stay on the row for review. Never after
+      // a person removed it, and a second hide offers no second repost.
+      const reposted = post.hidden_at !== null && post.removed_at === null && !post.repost_used
+      if (reposted) {
+        await client.query(
+          `update public.page_posts
+              set discoverability = coalesce(hidden_prior_discoverability, discoverability),
+                  hidden_at = null,
+                  hidden_prior_discoverability = null,
+                  repost_used = true
+            where id = $1`,
+          [input.postId],
+        )
+        await client.query(
+          `insert into public.report_answers (notice_id, member_id, kind)
+           select id, $2, 'fix_and_repost'
+             from public.member_notices
+            where subject_kind = 'post' and subject_id = $1 and kind = 'content_hidden'
+            order by created_at desc
+            limit 1
+           on conflict (notice_id) do nothing`,
+          [input.postId, memberId],
+        )
+      }
+
       const txCtx: ActionContext = { ...ctx, db: client }
       await appendEvent(txCtx, 'group_events', {
         group_id: post.group_id,
         event_kind: 'group.post_edited',
-        payload: { post_id: input.postId },
+        // F099 criterion 12 — removing the photo is on the record.
+        payload: {
+          post_id: input.postId,
+          ...(reposted ? { reposted: true } : {}),
+          ...(input.photoUrl === null ? { photo: 'removed' } : {}),
+        },
       })
 
-      return { postId: input.postId, groupId: post.group_id }
+      return { postId: input.postId, groupId: post.group_id, reposted }
     })
   },
 )

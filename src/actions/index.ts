@@ -12,6 +12,7 @@ import {
   memberPlaceInterestAdd,
   memberPlaceInterestRemove,
   memberDefaultMetroSet,
+  memberSignupProfileSet,
   memberInterestsAdd,
   memberFollow,
   memberUnfollow,
@@ -32,14 +33,18 @@ import {
   groupPostDelete,
   groupArchive,
   groupDelete,
+  groupDiscardDraft,
   groupRestore,
   groupUnclaimedRemove,
   groupUnclaimedClaim,
   groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
-import { reportCreate, reportDecide, reportReverse } from './report'
 import { tagReview } from './tag'
+import { originRecord } from './origin'
+import { problemReport } from './problem'
+import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge } from './report'
+export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
 import type { NamedActionHandler } from './_lib/handler'
@@ -56,6 +61,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // it at once and the purge removes it 14 days on; restore undoes either.
   'group.archive': groupArchive as unknown as NamedActionHandler<unknown, unknown>,
   'group.delete': groupDelete as unknown as NamedActionHandler<unknown, unknown>,
+  'group.discard_draft': groupDiscardDraft as unknown as NamedActionHandler<unknown, unknown>,
   'group.restore': groupRestore as unknown as NamedActionHandler<unknown, unknown>,
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
@@ -65,6 +71,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.place_interest.add': memberPlaceInterestAdd as unknown as NamedActionHandler<unknown, unknown>,
   'member.place_interest.remove': memberPlaceInterestRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.default_metro.set': memberDefaultMetroSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member.signup_profile.set': memberSignupProfileSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.interests.add': memberInterestsAdd as unknown as NamedActionHandler<unknown, unknown>,
   'member.follow': memberFollow as unknown as NamedActionHandler<unknown, unknown>,
   'member.unfollow': memberUnfollow as unknown as NamedActionHandler<unknown, unknown>,
@@ -88,9 +95,16 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // A decision is an event, not a state overwrite — `report.reverse` undoes any
   // past one by recording a new decision that points at it.
   'report.decide': reportDecide as unknown as NamedActionHandler<unknown, unknown>,
+  'problem.report': problemReport as unknown as NamedActionHandler<unknown, unknown>,
   'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
   // #287 — the operator marks a tag safe or unsafe after it has appeared.
   'tag.review': tagReview as unknown as NamedActionHandler<unknown, unknown>,
+  // F102 — the poster's one answer to a hide.
+  'report.answer': reportAnswer as unknown as NamedActionHandler<unknown, unknown>,
+  'report.purge_target': reportPurgeTarget as unknown as NamedActionHandler<unknown, unknown>,
+  'report.purge': reportPurge as unknown as NamedActionHandler<unknown, unknown>,
+  // F102 criterion 13 — where a post or upload came from; operator-only, kept a year.
+  'origin.record': originRecord as unknown as NamedActionHandler<unknown, unknown>,
   // T163 — F076: a person outside an open metro joins its waitlist.
   'metro.waitlist_join': metroWaitlistJoin as unknown as NamedActionHandler<unknown, unknown>,
   // T167 — F076 c13-15: the same step for someone with no account. Separate
@@ -119,6 +133,7 @@ export {
   memberCreate,
   memberPlaceInterestAdd,
   memberDefaultMetroSet,
+  memberSignupProfileSet,
   memberInterestsAdd,
   memberFollow,
   memberUnfollow,
@@ -129,7 +144,7 @@ export {
   memberSavedSearchRestore,
 } from './member'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
-export { groupArchive, groupDelete, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
+export { groupArchive, groupDelete, groupDiscardDraft, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
   groupPostCreate,
@@ -147,6 +162,9 @@ export {
   reportCreate,
   reportDecide,
   reportReverse,
+  reportAnswer,
+  reportPurgeTarget,
+  reportPurge,
   reportCreateInput,
   type ReportCreateInput,
   type ReportCreateResult,
@@ -178,3 +196,4 @@ export {
 } from './_lib/errors'
 export { makeContext, type ActionContext, type ActingMemberId } from './_lib/context'
 export { withTransaction, closePool } from './_lib/db'
+export { problemReport } from './problem'

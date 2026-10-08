@@ -51,6 +51,23 @@ export interface PastDecision {
 }
 
 export interface QueuedReport {
+  /** Set for a reported post body ('post'). */
+  postId?: string
+  /** What was reported, in its own words, for the row's excerpt. */
+  contentText?: string | null
+  /** The member who posted what was reported (operator-only). */
+  posterId?: string
+  /** F100 — the AI's read of this report (the later read when there are two), or why it was not read. Shadow mode: advice only. */
+  ai?:
+    | { category: string; severity: number; confidence: number; outcome: 'approve' | 'remove'; reason: string }
+    | { skipped: string }
+    | null
+  /** F102 — the poster's one answer to the hide, if they gave it. */
+  answer?: { kind: 'fix_and_repost' | 'wrong'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
+  /** F102 — how old the reporter's account was when they reported. */
+  reporterAgeDays?: number
+  /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
+  reporter?: { filed: number; upheld: number; dismissed: number; open: number }
   reportId: string
   /** What the reporter wrote, in their own words. */
   body: string
@@ -61,6 +78,11 @@ export interface QueuedReport {
   hiddenAt: Date | null
   /** Non-null means the photo is currently removed. Reversible. */
   removedAt: Date | null
+  /** What was reported: the Page's photo, a post body, the Page picture, or one post's photo. */
+  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo'
+  /** The id of the thing reported: a Page for 'group' and 'page_picture', a post for 'post' and 'post_photo'. */
+  subjectId: string
+  /** The Page it belongs to, for the name and owner. */
   groupId: string
   groupName: string
   groupSlug: string | null
@@ -132,26 +154,74 @@ export async function fetchReviewQueue(
   { includeBuilders = false }: { includeBuilders?: boolean } = {},
 ): Promise<QueuedReport[]> {
   const { rows } = await getPool().query(
-    `select r.id              as report_id,
+    `with subjects as (
+       -- One row per report, shaped the same whichever image it is about. Each
+       -- branch is written out in full: the table and columns differ.
+       select r.id as report_id, r.subject_kind, r.subject_id, g.id as group_id,
+              g.photo_url as url, g.photo_hidden_at as hidden_at, g.photo_removed_at as removed_at,
+              g.description as content_text
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'group'
+       union all
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              g.picture_url, g.picture_hidden_at, g.picture_removed_at, null::text
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'page_picture'
+       union all
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              pp.photo_url, pp.photo_hidden_at, pp.photo_removed_at, null::text
+         from public.reports r
+         join public.page_posts pp on pp.id = r.subject_id
+         join public.groups g on g.id = pp.group_id
+        where r.subject_kind = 'post_photo'
+       union all
+       -- A post body is hidden or removed on its own, and has no image to show.
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              null::text, p.hidden_at, p.removed_at, p.body
+         from public.reports r
+         join public.page_posts p on p.id = r.subject_id
+         join public.groups g on g.id = p.group_id
+        where r.subject_kind = 'post'
+     )
+     select r.id              as report_id,
             r.body            as body,
             r.category        as category,
             r.created_at      as reported_at,
-            g.photo_hidden_at as hidden_at,
-            g.photo_removed_at as removed_at,
-            g.id              as group_id,
-            g.name            as group_name,
-            g.slug            as group_slug,
-            g.photo_url       as photo_url,
+            s.hidden_at       as hidden_at,
+            s.removed_at      as removed_at,
+            s.subject_kind    as subject_kind,
+            s.subject_id      as subject_id,
+            case when s.subject_kind = 'post' then s.subject_id end as post_id,
+            pg.id             as group_id,
+            pg.name           as group_name,
+            pg.slug           as group_slug,
+            s.url             as photo_url,
+            s.content_text    as content_text,
             m.display_name    as owner_display_name,
-            m.handle          as owner_handle
+            m.handle          as owner_handle,
+            pg.founder_member_id as poster_id,
+            (select json_build_object('category', a.category, 'severity', a.severity, 'confidence', a.confidence, 'outcome', a.outcome, 'reason', a.reason, 'skipped', a.skipped_reason)
+               from public.report_assessments a where a.report_id = r.id order by a.created_at desc limit 1) as ai,
+            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note)
+               from public.report_answers a
+               join public.member_notices n on n.id = a.notice_id
+              where n.subject_kind = r.subject_kind and n.subject_id = r.subject_id
+              order by a.created_at desc limit 1) as answer,
+            extract(epoch from (r.created_at - rm.created_at)) / 86400 as reporter_age_days,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id)::int as r_filed,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.reviewed_at is null and x.removed_at is null)::int as r_open,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.outcome = 'removed')::int as r_upheld,
+            (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.outcome = 'restored')::int as r_dismissed
        from public.reports r
-       join public.groups  g on g.id = r.subject_id
-       left join public.members m on m.id = g.founder_member_id
-      where r.subject_kind = 'group'
+       left join public.members rm on rm.id = r.reporter_member_id
+       join subjects s on s.report_id = r.id
+       join public.groups  pg on pg.id = s.group_id
+       left join public.members m on m.id = pg.founder_member_id
+      where true
         -- #280 — builder reports and builder Pages reach only the builder operator.
-        and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(g.founder_member_id)))
+        and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(pg.founder_member_id)))
       order by (r.reviewed_at is not null),          -- undecided first
-               g.photo_hidden_at asc nulls last,
+               s.hidden_at asc nulls last,
                r.created_at asc
       limit $1`,
     [limit, includeBuilders],
@@ -160,12 +230,21 @@ export async function fetchReviewQueue(
   const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))
 
   return rows.map((r: Record<string, unknown>) => ({
+    postId: (r.post_id as string | null) ?? undefined,
+    contentText: (r.content_text as string | null) ?? null,
+    posterId: (r.poster_id as string | null) ?? undefined,
+    answer: (r.answer as QueuedReport['answer']) ?? null,
+    ai: toAi(r.ai),
+    reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
+    reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
     reportId: r.report_id as string,
     body: r.body as string,
     category: (r.category as ReportCategory | null) ?? null,
     reportedAt: r.reported_at as Date,
     hiddenAt: (r.hidden_at as Date | null) ?? null,
     removedAt: (r.removed_at as Date | null) ?? null,
+    subjectKind: r.subject_kind as QueuedReport['subjectKind'],
+    subjectId: r.subject_id as string,
     groupId: r.group_id as string,
     groupName: r.group_name as string,
     groupSlug: (r.group_slug as string | null) ?? null,
@@ -177,3 +256,34 @@ export async function fetchReviewQueue(
 }
 
 export { hiddenFor } from './hidden-for'
+
+/** F102 criterion 11 — answers the posters gave this week, and reporters now in a cool-down (two dismissed in 30 days, the latest under 14 days ago). */
+export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: number }> {
+  const { rows } = await getPool().query(
+    `select
+       (select count(*)::int from public.report_answers where created_at > now() - interval '7 days') as answers,
+       (select count(*)::int from (
+          select r.reporter_member_id
+            from (select distinct on (d.report_id) d.report_id, d.outcome, d.decided_at
+                    from public.report_decisions d order by d.report_id, d.decided_at desc) x
+            join public.reports r on r.id = x.report_id
+           where x.outcome = 'restored' and x.decided_at > now() - interval '30 days'
+           group by r.reporter_member_id
+          having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
+  )
+  return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}
+
+function toAi(raw: unknown): QueuedReport['ai'] {
+  if (!raw) return null
+  const a = raw as { category: string | null; severity: number | null; confidence: string | number | null; outcome: 'approve' | 'remove' | null; reason: string | null; skipped: string | null }
+  if (a.skipped) return { skipped: a.skipped }
+  if (!a.outcome || a.severity === null) return null
+  return { category: a.category ?? '', severity: a.severity, confidence: Number(a.confidence), outcome: a.outcome, reason: a.reason ?? '' }
+}
+
+/** F100 criterion 8: live mode is data the PM flips, not a deploy. Shadow unless the setting says live. */
+export async function fetchAiMode(): Promise<'shadow' | 'live'> {
+  const { rows } = await getPool().query(`select ai_mode from public.moderation_settings limit 1`)
+  return rows[0]?.ai_mode === 'live' ? 'live' : 'shadow'
+}

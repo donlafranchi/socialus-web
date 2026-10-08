@@ -20,6 +20,7 @@
 // the worst thing in the queue should not be the first thing their eye meets.
 
 import { categoryLabel } from '@/lib/reports/categories'
+import { COPY } from '@/lib/copy'
 import { useState, useTransition } from 'react'
 import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
 import { reasonsFor, reasonLabel, reasonNeedsNote, type ReasonCode, type Outcome } from '@/lib/admin/reason-codes'
@@ -39,6 +40,9 @@ interface Props {
     reasonNote?: string
   }) => Promise<void>
 }
+
+/** F099 — which image a report is about. 'Photo' is the Page's own, as it always was. */
+const IMAGE_LABEL = { group: 'Photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo' } as const
 
 export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
   const [shown, setShown] = useState(false)
@@ -100,20 +104,34 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
           {categoryLabel(report.category)}
         </p>
       )}
+      {report.ai && (
+        <p data-testid="report-ai" className="text-xs text-[var(--color-fg-muted)]">
+          {'skipped' in report.ai ? COPY.aiNotRead : `AI suggests ${report.ai.outcome} (${report.ai.confidence.toFixed(2)}): ${report.ai.reason}`}
+        </p>
+      )}
+      {report.reporter && (
+        <p data-testid="reporter-record" className="text-xs text-[var(--color-fg-muted)]">
+          {report.reporter.filed} filed · {report.reporter.upheld} upheld · {report.reporter.dismissed} dismissed · {report.reporter.open} open
+        </p>
+      )}
       <blockquote className="border-l-2 border-[var(--color-border)] pl-3 text-sm text-[var(--color-fg)]">
         {report.body}
       </blockquote>
 
       <p className="text-xs text-[var(--color-fg-muted)]">
         {report.removedAt
-          ? 'Photo removed'
+          ? report.subjectKind === 'post' ? 'Removed' : `${IMAGE_LABEL[report.subjectKind]} removed`
           : hiddenFor
             ? `Hidden ${hiddenFor}`
             : 'Not hidden'}{' '}
         · reported {report.reportedAt.toISOString().slice(0, 10)}
       </p>
 
-      {report.photoUrl ? (
+      {report.subjectKind === 'post' ? (
+        <p data-testid="reported-post" className="whitespace-pre-wrap rounded-md bg-[var(--color-surface)] p-3 text-sm text-[var(--color-fg)]">
+          {report.contentText}
+        </p>
+      ) : report.photoUrl ? (
         <div className="relative overflow-hidden rounded-md bg-[var(--color-surface)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

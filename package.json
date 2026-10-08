@@ -16,11 +16,13 @@
     "check:action-layer": "tsx scripts/check-action-layer-conformance.ts",
     "mutate": "stryker run",
     "db:push": "supabase db push",
+    "moderation:eval": "tsx scripts/moderation-eval.ts",
     "ontology:registry": "tsx scripts/ontology-registry.ts",
     "migrations:manifest": "tsx scripts/generate-migration-manifest.ts"
   },
   "dependencies": {
     "@jsquash/webp": "^1.5.0",
+    "@sentry/nextjs": "^11.5.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
     "lucide-react": "^1.11.0",

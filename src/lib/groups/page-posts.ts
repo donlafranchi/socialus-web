@@ -10,6 +10,7 @@
 // Page, the same convention resolveShopItems() follows.
 
 import { maskEmails, maskEmailsOrNull } from '@/lib/text/contact-info'
+import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface PagePost {
@@ -30,6 +31,13 @@ export interface PagePost {
   howToFind?: string | null
   /** #286 — the post's own tags; empty means it carries its Page's. */
   tags?: string[]
+  /** F099 — the post's own photo, only when it is neither hidden nor removed.
+   *  Resolved here, on the server, so a hidden URL never reaches a browser. */
+  photoUrl?: string | null
+  /** F099 — the photo exists and is hidden pending review (not removed): the poster's notice, nothing else. */
+  photoHidden?: boolean
+  /** F078 — set while a report has it down; only the people who manage the Page can still read it. */
+  hiddenAt?: string | null
 }
 
 interface Row {
@@ -40,6 +48,10 @@ interface Row {
   starts_at: string | null
   ends_at: string | null
   how_to_find?: string | null
+  photo_url?: string | null
+  photo_hidden_at?: string | null
+  photo_removed_at?: string | null
+  hidden_at?: string | null
   location: { label: string | null } | { label: string | null }[] | null
   post_tags?: { tags: { label: string } | { label: string }[] | null }[] | null
 }
@@ -52,7 +64,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, location:locations(label), post_tags(tags(label))')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)
@@ -76,6 +88,13 @@ export async function resolvePagePosts(
         .filter((l): l is string => Boolean(l)),
       locationLabel: loc?.label ?? null,
       howToFind: maskEmailsOrNull(r.how_to_find ?? null),
+      photoHidden: !!r.photo_url && !!r.photo_hidden_at && !r.photo_removed_at,
+      photoUrl: visiblePhotoUrl({
+        photo_url: r.photo_url ?? null,
+        photo_hidden_at: r.photo_hidden_at ?? null,
+        photo_removed_at: r.photo_removed_at ?? null,
+      }),
+      hiddenAt: r.hidden_at ?? null,
     }
   })
 }
