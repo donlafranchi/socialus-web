@@ -300,5 +300,7 @@ describe('F078 — reports have consequences when misused', () => {
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
     fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
     expect(screen.getByTestId('report-misuse')).toHaveTextContent(/three/i)
+    // the cost lands on the reader: "your reports", not "ours"
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/your reports/i)
   })
 })
