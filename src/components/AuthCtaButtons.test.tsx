@@ -33,7 +33,7 @@ function factoryFor(opts: {
   return () => client as unknown as SupabaseClient
 }
 
-const listLink = () => screen.queryByRole('link', { name: /list your business/i })
+const listLink = () => screen.queryByRole('link', { name: /create a page for your business/i })
 
 afterEach(cleanup)
 
