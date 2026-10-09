@@ -1,0 +1,56 @@
+name: Unclaimed Pages load
+
+# #517 — put the researched Sacramento makers on Explore as unclaimed Pages.
+# MANUAL ONLY, and a dry run unless "write" is ticked: nothing writes to
+# socialus-db without a person choosing to. Idempotent: run it twice, it creates
+# nothing the second time, and never brings back a Page someone asked to remove.
+# From a terminal: gh workflow run unclaimed-load.yml -f write=true
+on:
+  workflow_dispatch:
+    inputs:
+      write:
+        description: 'Tick to write to the production database. Unticked, it only prints what it would do.'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unclaimed-load
+  cancel-in-progress: false
+
+jobs:
+  load:
+    name: Load unclaimed Pages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Load
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          WRITE: ${{ inputs.write }}
+        run: |
+          if [ "$WRITE" = "true" ]; then
+            npx tsx scripts/unclaimed/load.ts --apply | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            npx tsx scripts/unclaimed/load.ts | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
