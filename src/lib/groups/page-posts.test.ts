@@ -43,6 +43,7 @@ describe('resolvePagePosts', () => {
         startsAt: null,
         locationLabel: null,
         howToFind: null,
+        tags: [],
         photoUrl: null,
         photoHidden: false,
         hiddenAt: null,

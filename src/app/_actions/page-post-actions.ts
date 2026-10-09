@@ -29,8 +29,10 @@ export async function postToPageAction(input: {
   groupId: string
   body: string
   startsAt?: string | null
+  endsAt?: string | null
   locationId?: string | null
   howToFind?: string | null
+  tags?: string[]
   photoUrl?: string | null
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
   const memberId = await currentMemberId()
@@ -48,6 +50,7 @@ export async function editPagePostAction(input: {
   postId: string
   body: string
   startsAt?: string | null
+  endsAt?: string | null
   locationId?: string | null
   howToFind?: string | null
   photoUrl?: string | null

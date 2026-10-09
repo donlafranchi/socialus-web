@@ -62,7 +62,7 @@ afterEach(() => {
 })
 
 describe('#348 — one question, three answers', () => {
-  it('asks one question with three answers, and nothing else until one is chosen', () => {
+  it('asks one question with three answers, and nothing else until one is chosen', async () => {
     render(<Harness />)
     expect(screen.getByRole('group', { name: /how do people find you/i })).toBeInTheDocument()
     for (const name of [/people come to me/i, /i go to them/i, /it moves, or it.s online/i]) {
@@ -91,7 +91,7 @@ describe('People come to me', () => {
     expect(geocode).toHaveBeenCalledWith('915 I St')
     expect(latest.visit.pin).toEqual([-121.494, 38.5817])
     expect(latest.visit.label).toBe('915 I ST, SACRAMENTO, CA, 95814')
-    expect(screen.getByTestId('pin-moved')).toHaveAttribute('data-center', '-121.494,38.5817')
+    expect((await screen.findByTestId('pin-moved'))).toHaveAttribute('data-center', '-121.494,38.5817')
     expect(screen.queryByRole('listbox')).toBeNull()
   })
 
@@ -147,9 +147,9 @@ describe('People come to me', () => {
     expect(latest.visit.pin).toEqual([-121.49, 38.55])
     expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' })
     expect(latest.visit.label).toBeNull()
-    expect(screen.getByTestId('pin-moved')).toHaveAttribute('data-center', '-121.49,38.55')
+    expect((await screen.findByTestId('pin-moved'))).toHaveAttribute('data-center', '-121.49,38.55')
     expect(screen.getByText('Curtis Park')).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId('pin-moved'))
+    fireEvent.click((await screen.findByTestId('pin-moved')))
     expect(latest.visit.pin).toEqual([-121.5, 38.58])
   })
 
@@ -189,37 +189,37 @@ describe('People come to me', () => {
     expect(screen.getByRole('combobox', { name: /or type a neighbourhood/i })).toHaveValue('')
   })
 
-  it('shows the map for a pin already set', () => {
+  it('shows the map for a pin already set', async () => {
     render(<Harness initial={{ ...emptyWhere, mode: 'visit', visit: { ...emptyWhere.visit, pin: [-121.4, 38.5] } }} />)
-    expect(screen.getByTestId('pin-moved')).toBeInTheDocument()
+    expect((await screen.findByTestId('pin-moved'))).toBeInTheDocument()
   })
 
   // Tidy and contained (the PM, 2026-10-06): once the map is showing, "Drop a pin" has nothing left to do.
-  it('offers "Drop a pin" only until there is a pin', () => {
+  it('offers "Drop a pin" only until there is a pin', async () => {
     render(<Harness initial={{ ...emptyWhere, mode: 'visit', visit: { ...emptyWhere.visit, pin: [-121.4, 38.5] } }} />)
     expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
   })
 
   // #455 — the PM, 2026-10-06: the map opens on the saved pin, not on the default point.
-  it('opens the map on the saved pin, leaving it unchanged until it is moved', () => {
+  it('opens the map on the saved pin, leaving it unchanged until it is moved', async () => {
     render(<Harness savedPin={[-121.47, 38.57]} initial={{ ...emptyWhere, mode: 'visit' }} />)
-    expect(screen.getByTestId('pin-moved')).toHaveAttribute('data-center', '-121.47,38.57')
+    expect((await screen.findByTestId('pin-moved'))).toHaveAttribute('data-center', '-121.47,38.57')
     expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
-    fireEvent.click(screen.getByTestId('pin-moved'))
+    fireEvent.click((await screen.findByTestId('pin-moved')))
     expect(latest.visit.pin).toEqual([-121.5, 38.58])
   })
 
-  it('a Page with no saved pin still starts with "Drop a pin"', () => {
+  it('a Page with no saved pin still starts with "Drop a pin"', async () => {
     render(<Harness savedPin={null} initial={{ ...emptyWhere, mode: 'visit' }} />)
     expect(screen.queryByTestId('pin-moved')).toBeNull()
     expect(screen.getByRole('button', { name: /drop a pin/i })).toBeInTheDocument()
   })
 
-  it('or drops a pin with no address, and moving the map moves it', () => {
+  it('or drops a pin with no address, and moving the map moves it', async () => {
     render(<Harness />)
     choose()
     fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
-    fireEvent.click(screen.getByTestId('pin-moved'))
+    fireEvent.click((await screen.findByTestId('pin-moved')))
     expect(latest.visit.pin).toEqual([-121.5, 38.58])
     expect(latest.visit.label).toBeNull()
   })
@@ -240,7 +240,7 @@ describe('People come to me', () => {
     expect(latest.visit.pin).toEqual([-121.494, 38.5817])
   })
 
-  it('takes an optional one-line "How to find us"', () => {
+  it('takes an optional one-line "How to find us"', async () => {
     render(<Harness />)
     choose()
     fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Trailhead behind the barn' } })
@@ -252,7 +252,7 @@ describe('People come to me', () => {
     render(<Harness />)
     choose()
     fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
-    fireEvent.click(screen.getByTestId('pin-moved'))
+    fireEvent.click((await screen.findByTestId('pin-moved')))
     fireEvent.click(screen.getByRole('switch', { name: /show only my neighbourhood/i }))
     await waitFor(() => expect(screen.getByText(/visitors see curtis park/i)).toBeInTheDocument())
     expect(latest.visit.areaOnly).toBe(true)
@@ -262,25 +262,25 @@ describe('People come to me', () => {
 })
 
 describe('I go to them', () => {
-  it('defaults to the whole metro, and towns tapped on the map are added and removable', () => {
+  it('defaults to the whole metro, and towns tapped on the map are added and removable', async () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('radio', { name: /i go to them/i }))
     expect(screen.getByText(/the whole sacramento area/i)).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId('town-tapped'))
+    fireEvent.click((await screen.findByTestId('town-tapped')))
     expect(latest.travel.towns).toEqual([{ id: 'pl-davis', name: 'Davis' }])
     fireEvent.click(screen.getByRole('button', { name: /remove davis/i }))
     expect(latest.travel.towns).toEqual([])
   })
 
-  it('the map offers towns, not neighbourhoods', () => {
+  it('the map offers towns, not neighbourhoods', async () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('radio', { name: /i go to them/i }))
-    expect(screen.getByTestId('town-tapped')).toHaveAttribute('data-kinds', 'city')
+    expect((await screen.findByTestId('town-tapped'))).toHaveAttribute('data-kinds', 'city')
   })
 })
 
 describe('It moves, or it’s online', () => {
-  it('is the whole metro, with an optional "Usually around"', () => {
+  it('is the whole metro, with an optional "Usually around"', async () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('radio', { name: /it moves/i }))
     fireEvent.change(screen.getByRole('textbox', { name: /usually around/i }), { target: { value: 'Midtown farmers markets' } })

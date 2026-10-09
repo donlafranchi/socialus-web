@@ -29,6 +29,8 @@ import { useEffect, useState } from 'react'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
+import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
+import { isValidTagLabel } from '@/lib/groups/tags'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
@@ -70,6 +72,7 @@ interface PostInput {
   endsAt?: string | null
   locationId?: string | null
   howToFind?: string | null
+  tags?: string[]
   /** F099 — one photo of its own, or none. */
   photoUrl?: string | null
 }
@@ -80,6 +83,7 @@ interface EditInput {
   startsAt?: string | null
   endsAt?: string | null
   locationId?: string | null
+  tags?: string[]
   /** F099 — absent leaves the photo alone; null removes it. */
   photoUrl?: string | null
 }
@@ -198,6 +202,10 @@ export function PagePosts({
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
+  // #286 — a post's own tags; none means it carries its Page's.
+  const [tags, setTags] = useState<TagInputValue>({ tags: [], draft: '' })
+  const [editTags, setEditTags] = useState<TagInputValue>({ tags: [], draft: '' })
+  const tagSet = (v: TagInputValue) => [...v.tags, v.draft].filter(isValidTagLabel)
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
   // with a compose box where you expected it. Shared with the signed-out list
@@ -322,6 +330,7 @@ export function PagePosts({
       endsAt: resolved.endsAt,
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
+      tags: tagSet(tags),
       ...(photo ? { photoUrl: photo } : {}),
     })
     setBusy(false)
@@ -339,6 +348,7 @@ export function PagePosts({
         endsAt: resolved.endsAt,
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
+        tags: tagSet(tags),
         photoUrl: photo,
       },
       ...items,
@@ -346,6 +356,7 @@ export function PagePosts({
     setPhoto(null)
     setDraft('')
     setWhen(emptyWhenWhere)
+    setTags({ tags: [], draft: '' })
   }
 
   const saveEdit = async (postId: string) => {
@@ -369,6 +380,7 @@ export function PagePosts({
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
+      tags: tagSet(editTags),
       // Only a changed photo is sent: absent leaves it, null removes it.
       ...(editPhoto !== (items.find((p) => p.id === postId)?.photoUrl ?? null) ? { photoUrl: editPhoto } : {}),
     })
@@ -387,6 +399,7 @@ export function PagePosts({
               body,
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
+              tags: tagSet(editTags),
               // F102: a hidden post the edit reposted shows again at once.
               ...(r.data.reposted ? { hiddenAt: null } : {}),
               ...(editWhen.addingPlace ? { locationLabel: resolved.locationLabel } : {}),
@@ -429,6 +442,7 @@ export function PagePosts({
                     idPrefix="page-post-edit"
                     placeLabel={post.locationLabel}
                   />
+                  <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
                   {memberId && (
                     <PagePhotoPicker
                       memberId={memberId}
@@ -551,6 +565,7 @@ export function PagePosts({
                           setEditingId(post.id)
                           setEditDraft(post.body)
                           setEditWhen(whenWhereFrom(post))
+                          setEditTags({ tags: post.tags ?? [], draft: '' })
                           setEditPhoto(post.photoUrl ?? null)
                           setError(null)
                         }}
@@ -635,6 +650,7 @@ export function PagePosts({
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
 
+          <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
           {memberId && (
             <PagePhotoPicker
               memberId={memberId}

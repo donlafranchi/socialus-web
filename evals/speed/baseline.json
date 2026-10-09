@@ -1,0 +1,85 @@
+{
+  "Explore card → Page [quick]": {
+    "feedbackMs": 70,
+    "readyMs": 2179,
+    "issue": 529
+  },
+  "Explore card → Page [settled]": {
+    "feedbackMs": 67,
+    "readyMs": 2234,
+    "issue": 529
+  },
+  "Page → back to Explore [quick]": {
+    "feedbackMs": 183,
+    "readyMs": 223,
+    "issue": 532
+  },
+  "Page → back to Explore [settled]": {
+    "feedbackMs": 196,
+    "readyMs": 239,
+    "issue": 532
+  },
+  "Explore: filter icon opens sheet [quick]": {
+    "feedbackMs": 99,
+    "readyMs": 166
+  },
+  "Explore: filter icon opens sheet [settled]": {
+    "feedbackMs": 304,
+    "readyMs": 379,
+    "issue": 530
+  },
+  "Explore: location pill opens picker [quick]": {
+    "feedbackMs": 145,
+    "readyMs": 208,
+    "issue": 530
+  },
+  "Explore: location pill opens picker [settled]": {
+    "feedbackMs": 187,
+    "readyMs": 271,
+    "issue": 530
+  },
+  "Explore: search opens [settled]": {
+    "feedbackMs": 163,
+    "readyMs": 181,
+    "issue": 530
+  },
+  "Explore: map view [settled]": {
+    "feedbackMs": 115,
+    "readyMs": 270,
+    "issue": 530
+  },
+  "Bottom nav → You (signed out) [settled]": {
+    "feedbackMs": 64,
+    "readyMs": 498
+  },
+  "Page: follow asks you to sign in [quick]": {
+    "feedbackMs": 76,
+    "readyMs": 104
+  },
+  "Page: follow asks you to sign in [settled]": {
+    "feedbackMs": 81,
+    "readyMs": 150
+  },
+  "Page: sign in → login screen [settled]": {
+    "feedbackMs": 139,
+    "readyMs": 875,
+    "issue": 531
+  },
+  "Explore: sign in / sign up link [settled]": {
+    "feedbackMs": 99,
+    "readyMs": 465
+  },
+  "Page: share [settled]": {
+    "feedbackMs": 50,
+    "readyMs": 159
+  },
+  "Page: overflow menu → report [settled]": {
+    "feedbackMs": 44,
+    "readyMs": 108
+  },
+  "Waitlist: open from the area picker [settled]": {
+    "feedbackMs": 201,
+    "readyMs": 230,
+    "issue": 530
+  }
+}

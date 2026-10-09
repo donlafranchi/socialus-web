@@ -1,0 +1,132 @@
+{
+  "Explore card → Page": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page → back to Explore": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore: filter icon opens sheet": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore: location pill opens picker": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore: search opens": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore: map view": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Bottom nav → You (signed out)": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page: follow asks you to sign in": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page: sign in → login screen": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore: sign in / sign up link": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page: share": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page: overflow menu → report": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Report: Page menu → report": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Waitlist: open from the area picker": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore post card → Page post": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Explore card → Page (member)": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page: share (member)": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "You → Following tab": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "You → Saved tab": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "You → Settings tab": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Bottom nav → Explore": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Page: overflow menu → report (member)": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
+  "Creator: own Page → edit": {
+    "kind": "creator",
+    "feedbackMs": 250,
+    "readyMs": 2500
+  },
+  "Creator: Page edit screen": {
+    "kind": "creator",
+    "feedbackMs": 250,
+    "readyMs": 2500
+  },
+  "Creator: post composer opens": {
+    "kind": "creator",
+    "feedbackMs": 250,
+    "readyMs": 2500
+  },
+  "Creator: Create (bottom nav)": {
+    "kind": "creator",
+    "feedbackMs": 250,
+    "readyMs": 2500
+  }
+}

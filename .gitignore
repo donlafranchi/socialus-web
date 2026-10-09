@@ -28,3 +28,7 @@ reports/mutation/
 evals/.auth/
 screenshots/
 builder-runs/
+
+# #527 tap-speed output
+speed-out/
+speed.log
