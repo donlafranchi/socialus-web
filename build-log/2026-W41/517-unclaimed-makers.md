@@ -7,3 +7,5 @@ Why Explore had no real local businesses: #353 built the mechanics (label, Claim
 Found on the way: `browse_feed` (Explore) runs as its owner and ignored `unclaimed_hidden_at`, so a Page someone asked us to remove would have kept appearing in Explore. Migration `20261009010000` closes it; the loader test failed on it first.
 
 Not here: photos and phone numbers (they need fetching from each site; the Pages show the default picture until then), the first 26 listings in `listings.json` (also never loaded), the 15%-per-category cap (four categories cannot each be 15%).
+
+**2026-10-09, Don: "Every shop goes in."** The hold-out list, the HOLD rows and the no-own-site skip are gone: all 52 load. The nine HOLD rows were re-checked against their own sites that day; none is shown closed (Smith Gallery's site did not answer; JAYJAY's last exhibitions are 2020). Sacramento Bicycle Kitchen's own site was found in the first 26 listings. The loader now reads every `scripts/unclaimed/makers*.json`, so the next list drops in as a new file.

@@ -53,7 +53,7 @@
   "makes": "Coffee, wholesale",
   "area": "R Street (2019 source)",
   "site": "https://camelliacoffeeroasters.com/",
-  "confidence": "Low-medium (HOLD): no address on own site"
+  "confidence": "Medium; own site 2026-10-09: © 2026, hours 7 AM-4 PM daily, products listed; no address on site"
  },
  {
   "name": "Insomnia Hot & Spicy Goods",
@@ -109,7 +109,7 @@
   "makes": "Fresh pasta, sauces",
   "area": "Carmichael",
   "site": "https://www.thechubbycupboard.com/",
-  "confidence": "Low-medium (HOLD): nothing dated"
+  "confidence": "Medium; own site 2026-10-09: Carmichael home kitchen, current county health permit, shop live; nothing dated"
  },
  {
   "name": "Bike Dog Brewing",
@@ -181,7 +181,7 @@
   "makes": "Chocolates, kettle corn",
   "area": "Old Sacramento",
   "site": "https://www.sacsweets.com",
-  "confidence": "Low-medium (HOLD): footer 2021"
+  "confidence": "Medium; own site 2026-10-09: 1035 Front St, open daily 11-8, no closure notice; footer 2021"
  },
  {
   "name": "Candle Wonders",
@@ -261,7 +261,7 @@
   "makes": "Banners, vinyl, apparel",
   "area": "Sacramento/Fairfield",
   "site": "https://www.2brozcustom.com/",
-  "confidence": "Low-medium (HOLD): on-site printing not confirmed"
+  "confidence": "Medium; own site 2026-10-09: © 2025, same-day pickup, in-house printing, Sacramento and Fairfield"
  },
  {
   "name": "Walker Men's Soap Bar",
@@ -269,7 +269,7 @@
   "makes": "Handmade soap",
   "area": "Sacramento",
   "site": "https://www.walker442.com/about-us",
-  "confidence": "Low-medium (HOLD): no address"
+  "confidence": "Medium; own site 2026-10-09: © 2026, ordering and subscriptions live; no address"
  },
  {
   "name": "Community Bike Shop (SABA)",
@@ -309,15 +309,15 @@
   "makes": "Bike shop, repairs",
   "area": "Land Park",
   "site": "http://www.suttervillebicycle.com",
-  "confidence": "Low-medium (HOLD): own site did not load"
+  "confidence": "Medium; own site 2026-10-09: 2365 Sutterville Bypass, Tue-Sun 12-6, est. 2014; undated"
  },
  {
   "name": "Sacramento Bicycle Kitchen",
   "category": "Repair & trades",
   "makes": "Community bike workshop",
   "area": "Midtown",
-  "site": "none found",
-  "confidence": "Low-medium (HOLD): re-check"
+  "site": "https://www.sacbikekitchen.org/",
+  "confidence": "Medium-high; own site 2026-10-09 per first listings: 2026 Second Saturday schedule, 20th anniversary Jul 2026; nonprofit"
  },
  {
   "name": "North Sacramento Free Tool Library",
@@ -373,7 +373,7 @@
   "makes": "Paintings, prints, framing",
   "area": "Downtown",
   "site": "http://smithgallery.com",
-  "confidence": "Low-medium (HOLD): may be a dealer gallery"
+  "confidence": "Medium; own site did not answer on 2026-10-09 (not shown closed); still unverified"
  },
  {
   "name": "I Street Art Studios",
@@ -413,6 +413,6 @@
   "makes": "Contemporary art gallery",
   "area": "East Sacramento",
   "site": "https://jayjayart.com",
-  "confidence": "Low-medium (HOLD): dealer gallery, site stale"
+  "confidence": "Medium; own site 2026-10-09: appointment-only, 5524 B Elvas Ave; latest exhibitions 2020; not shown closed"
  }
 ]
