@@ -1,0 +1,418 @@
+[
+ {
+  "name": "Temple Coffee Roasters",
+  "category": "Food & drink",
+  "makes": "Coffee roaster, subscriptions",
+  "area": "Midtown/Downtown",
+  "site": "https://templecoffee.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Chocolate Fish Coffee Roasters",
+  "category": "Food & drink",
+  "makes": "Coffee roaster",
+  "area": "East Sacramento",
+  "site": "https://chocolatefishcoffee.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Old Soul Co.",
+  "category": "Food & drink",
+  "makes": "Coffee roaster, cafes",
+  "area": "Midtown",
+  "site": "https://oldsoulco.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Anchor & Tree Coffee Roasting Co",
+  "category": "Food & drink",
+  "makes": "Whole-bean coffee",
+  "area": "Midtown",
+  "site": "https://www.anchorandtreecoffee.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Black Coffee Roastery",
+  "category": "Food & drink",
+  "makes": "Small-batch coffee",
+  "area": "South Sacramento",
+  "site": "https://www.blkcoffeeroastery.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "The Mill (Bouquet Coffee Roasters)",
+  "category": "Food & drink",
+  "makes": "Coffee blends, teas",
+  "area": "Midtown/East Sac",
+  "site": "https://themillsacramento.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Camellia Coffee Roasters",
+  "category": "Food & drink",
+  "makes": "Coffee, wholesale",
+  "area": "R Street (2019 source)",
+  "site": "https://camelliacoffeeroasters.com/",
+  "confidence": "Low-medium (HOLD): no address on own site"
+ },
+ {
+  "name": "Insomnia Hot & Spicy Goods",
+  "category": "Food & drink",
+  "makes": "Hot sauces, rubs",
+  "area": "Tahoe Park",
+  "site": "https://insomniahotsauce.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "One Love Toffee Candy Co",
+  "category": "Food & drink",
+  "makes": "Toffee",
+  "area": "Sacramento 95818",
+  "site": "https://onelovetoffee.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Ginger Elizabeth Chocolates",
+  "category": "Food & drink",
+  "makes": "Chocolates, macarons",
+  "area": "Midtown",
+  "site": "https://gingerelizabeth.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Capital Confections",
+  "category": "Food & drink",
+  "makes": "Truffles, gelato",
+  "area": "Town & Country Village",
+  "site": "https://www.capitalconfections.com",
+  "confidence": "High"
+ },
+ {
+  "name": "Épicée",
+  "category": "Food & drink",
+  "makes": "Hot sauces",
+  "area": "West Sacramento",
+  "site": "https://epicee-yolo.com/",
+  "confidence": "Medium: confirm still operating"
+ },
+ {
+  "name": "Jazz's Saucy Sauce",
+  "category": "Food & drink",
+  "makes": "Tomato sauces",
+  "area": "Sacramento area",
+  "site": "https://jazzssaucysauce.com/",
+  "confidence": "Medium"
+ },
+ {
+  "name": "The Chubby Cupboard",
+  "category": "Food & drink",
+  "makes": "Fresh pasta, sauces",
+  "area": "Carmichael",
+  "site": "https://www.thechubbycupboard.com/",
+  "confidence": "Low-medium (HOLD): nothing dated"
+ },
+ {
+  "name": "Bike Dog Brewing",
+  "category": "Food & drink",
+  "makes": "Craft beer",
+  "area": "East/West Sacramento",
+  "site": "https://www.bikedogbrewing.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Alaro Craft Brewery",
+  "category": "Food & drink",
+  "makes": "Craft beer",
+  "area": "Midtown",
+  "site": "https://alarobrewing.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Two Rivers Cider",
+  "category": "Food & drink",
+  "makes": "Hard cider",
+  "area": "Sacramento 95822",
+  "site": "https://www.tworiverscider.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Silt Wine Company",
+  "category": "Food & drink",
+  "makes": "Wine",
+  "area": "Clarksburg (Yolo Co.)",
+  "site": "https://siltwineco.com/",
+  "confidence": "High; in metro, outside city"
+ },
+ {
+  "name": "Freeport Bakery",
+  "category": "Food & drink",
+  "makes": "Cakes, pastries",
+  "area": "Land Park/Curtis Park",
+  "site": "https://freeportbakery.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Real Pie Company",
+  "category": "Food & drink",
+  "makes": "Savory pies",
+  "area": "Curtis Park",
+  "site": "https://realpiecompany.com",
+  "confidence": "High"
+ },
+ {
+  "name": "Gunther's Ice Cream",
+  "category": "Food & drink",
+  "makes": "Ice cream, cakes",
+  "area": "Land Park",
+  "site": "http://gunthersicecream.com",
+  "confidence": "Medium: footer 2019"
+ },
+ {
+  "name": "Leatherby's Family Creamery",
+  "category": "Food & drink",
+  "makes": "Ice cream",
+  "area": "Arden + 4 shops",
+  "site": "https://leatherbys.net/",
+  "confidence": "Medium-high; small local chain"
+ },
+ {
+  "name": "Sacramento Sweets Co.",
+  "category": "Food & drink",
+  "makes": "Chocolates, kettle corn",
+  "area": "Old Sacramento",
+  "site": "https://www.sacsweets.com",
+  "confidence": "Low-medium (HOLD): footer 2021"
+ },
+ {
+  "name": "Candle Wonders",
+  "category": "Goods & crafts",
+  "makes": "Soy candles, diffusers",
+  "area": "Sacramento",
+  "site": "https://www.candlewonders.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "F&C Candles",
+  "category": "Goods & crafts",
+  "makes": "Refillable soy candles",
+  "area": "Sacramento",
+  "site": "https://fandccandles.com/",
+  "confidence": "High"
+ },
+ {
+  "name": "Crafted By MB",
+  "category": "Goods & crafts",
+  "makes": "Live-edge tables, boards",
+  "area": "Land Park/Oak Park",
+  "site": "https://craftedbymb.com/shopcraftedbymsb",
+  "confidence": "Medium"
+ },
+ {
+  "name": "Old Soul Cabinetry",
+  "category": "Goods & crafts",
+  "makes": "Custom cabinetry, countertops",
+  "area": "Sacramento",
+  "site": "https://www.oldsoulcabinetry.com/",
+  "confidence": "High; more cabinet shop than craft"
+ },
+ {
+  "name": "Little Relics",
+  "category": "Goods & crafts",
+  "makes": "Handcrafted jewelry, repair",
+  "area": "Midtown",
+  "site": "https://littlerelics.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Jake Castro",
+  "category": "Goods & crafts",
+  "makes": "Leather wallets, bags",
+  "area": "Sacramento",
+  "site": "https://jakecastro.co/",
+  "confidence": "Medium"
+ },
+ {
+  "name": "Steve Tiller",
+  "category": "Goods & crafts",
+  "makes": "Custom furniture",
+  "area": "Sacramento",
+  "site": "https://www.stevetiller.com/",
+  "confidence": "Medium"
+ },
+ {
+  "name": "Willow Grove Nursery",
+  "category": "Goods & crafts",
+  "makes": "Locally grown plants",
+  "area": "Granite Bay",
+  "site": "https://willowgrovenursery.com/",
+  "confidence": "Medium-high; by appointment"
+ },
+ {
+  "name": "JG Graphics",
+  "category": "Goods & crafts",
+  "makes": "Screen printing, embroidery",
+  "area": "Folsom",
+  "site": "https://jg.graphics/",
+  "confidence": "Medium"
+ },
+ {
+  "name": "2Broz Custom",
+  "category": "Goods & crafts",
+  "makes": "Banners, vinyl, apparel",
+  "area": "Sacramento/Fairfield",
+  "site": "https://www.2brozcustom.com/",
+  "confidence": "Low-medium (HOLD): on-site printing not confirmed"
+ },
+ {
+  "name": "Walker Men's Soap Bar",
+  "category": "Goods & crafts",
+  "makes": "Handmade soap",
+  "area": "Sacramento",
+  "site": "https://www.walker442.com/about-us",
+  "confidence": "Low-medium (HOLD): no address"
+ },
+ {
+  "name": "Community Bike Shop (SABA)",
+  "category": "Repair & trades",
+  "makes": "Bike repair, used bikes",
+  "area": "Oak Park",
+  "site": "https://sacbike.org/community-bike-shop/",
+  "confidence": "High; nonprofit"
+ },
+ {
+  "name": "Natomas Bike Shop",
+  "category": "Repair & trades",
+  "makes": "Bike repair, parts",
+  "area": "Natomas",
+  "site": "http://www.natomasbikeshop.com",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "The Bicycle Business",
+  "category": "Repair & trades",
+  "makes": "Bike shop, repair",
+  "area": "Land Park",
+  "site": "https://www.thebikebiz.com",
+  "confidence": "Medium: operating status not stated"
+ },
+ {
+  "name": "Kinetic Cycles",
+  "category": "Repair & trades",
+  "makes": "Bike service, custom builds",
+  "area": "Arden",
+  "site": "https://www.kineticcycles.com",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Sutterville Bicycle Company",
+  "category": "Repair & trades",
+  "makes": "Bike shop, repairs",
+  "area": "Land Park",
+  "site": "http://www.suttervillebicycle.com",
+  "confidence": "Low-medium (HOLD): own site did not load"
+ },
+ {
+  "name": "Sacramento Bicycle Kitchen",
+  "category": "Repair & trades",
+  "makes": "Community bike workshop",
+  "area": "Midtown",
+  "site": "none found",
+  "confidence": "Low-medium (HOLD): re-check"
+ },
+ {
+  "name": "North Sacramento Free Tool Library",
+  "category": "Repair & trades",
+  "makes": "Free tool lending",
+  "area": "Del Paso",
+  "site": "https://www.sierraserviceproject.org/",
+  "confidence": "High; nonprofit"
+ },
+ {
+  "name": "MADE Studio / Sac Made",
+  "category": "Repair & trades",
+  "makes": "Makerspace, woodshop, sign shop",
+  "area": "Oak Park",
+  "site": "https://sacmade.com",
+  "confidence": "High; nonprofit"
+ },
+ {
+  "name": "Arden & Howe Shoe & Luggage Repair",
+  "category": "Repair & trades",
+  "makes": "Shoe, bag, leather repair",
+  "area": "Arden-Arcade",
+  "site": "https://sites.google.com/view/ardenhoweshoeluggagerepair/",
+  "confidence": "Medium: call first"
+ },
+ {
+  "name": "Myrtle Press",
+  "category": "Art & print",
+  "makes": "Shared printmaking studio",
+  "area": "Southside Park",
+  "site": "https://myrtlepress.com",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Verge Center for the Arts",
+  "category": "Art & print",
+  "makes": "Studios, gallery, classes",
+  "area": "Southside Park",
+  "site": "https://vergecontemporary.org",
+  "confidence": "High; nonprofit"
+ },
+ {
+  "name": "Axis Gallery",
+  "category": "Art & print",
+  "makes": "Member-artist gallery",
+  "area": "Southside Park",
+  "site": "http://axisgallery.org",
+  "confidence": "High"
+ },
+ {
+  "name": "Smith Gallery",
+  "category": "Art & print",
+  "makes": "Paintings, prints, framing",
+  "area": "Downtown",
+  "site": "http://smithgallery.com",
+  "confidence": "Low-medium (HOLD): may be a dealer gallery"
+ },
+ {
+  "name": "I Street Art Studios",
+  "category": "Art & print",
+  "makes": "19 resident artists",
+  "area": "Midtown",
+  "site": "https://exploremidtown.org/team/i-street-art-studios/",
+  "confidence": "High; no own site (Midtown Association page)"
+ },
+ {
+  "name": "Artists' Collaborative Gallery",
+  "category": "Art & print",
+  "makes": "Artist co-op: art, ceramics, glass",
+  "area": "Old Sacramento",
+  "site": "https://www.artcollab.com/",
+  "confidence": "Medium-high"
+ },
+ {
+  "name": "Art by Fire (Sacramento Potters Group)",
+  "category": "Art & print",
+  "makes": "Potters association, fall sale",
+  "area": "McKinley Park",
+  "site": "https://www.artbyfire.org",
+  "confidence": "Medium; a group, not a shop"
+ },
+ {
+  "name": "Tapigami",
+  "category": "Art & print",
+  "makes": "Tape sculpture, workshops",
+  "area": "Sacramento",
+  "site": "https://www.tapigami.com/",
+  "confidence": "Medium"
+ },
+ {
+  "name": "JAYJAY",
+  "category": "Art & print",
+  "makes": "Contemporary art gallery",
+  "area": "East Sacramento",
+  "site": "https://jayjayart.com",
+  "confidence": "Low-medium (HOLD): dealer gallery, site stale"
+ }
+]
