@@ -21,6 +21,8 @@ export interface AssessInput {
   reporterReason: string
   /** The poster's reply, once F102 collects it. */
   rebuttal: string | null
+  /** F102 criterion 12: Sonnet also reads a confident first read when this says so. Local; never sent. */
+  secondOpinionIf?: (first: Read) => boolean
 }
 
 const verdictSchema = z.object({
@@ -128,7 +130,7 @@ async function readOnce(model: string, input: AssessInput, { fetch: send = fetch
 export async function assessContent(input: AssessInput, deps: Deps = {}): Promise<Assessment | null> {
   const first = await readOnce(HAIKU, input, deps)
   if (!first) return null
-  if (first.confidence >= ESCALATION_THRESHOLD) return { reads: [first], shown: first }
+  if (first.confidence >= ESCALATION_THRESHOLD && !input.secondOpinionIf?.(first)) return { reads: [first], shown: first }
   const second = await readOnce(SONNET, input, deps)
   return second ? { reads: [first, second], shown: second } : { reads: [first], shown: first }
 }

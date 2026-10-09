@@ -173,7 +173,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
               </span>
               <span>{reasonLabel(d.reasonCode as ReasonCode)}</span>
               {d.reasonNote ? <span>· “{d.reasonNote}”</span> : null}
-              <span>· {d.decidedByName ?? 'unknown'}</span>
+              <span>· {d.decidedByAi ? 'AI' : (d.decidedByName ?? 'unknown')}</span>
               <span>· {d.decidedAt.toISOString().slice(0, 10)}</span>
               {d.reversesDecisionId ? <span>· reversal</span> : null}
               {/* Reversing is as easy as deciding — one tap, from here. */}

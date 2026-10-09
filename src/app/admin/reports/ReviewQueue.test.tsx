@@ -39,6 +39,7 @@ const decided: PastDecision = {
   decidedByName: 'Op',
   reversesDecisionId: null,
   alreadyReversed: false,
+  decidedByAi: false,
 }
 
 const onDecide = vi.fn(async () => {})
@@ -49,6 +50,7 @@ const show = (subjects: ReviewSubject[], summary?: { answers: number; coolDowns:
 beforeEach(() => {
   vi.useFakeTimers()
   onDecide.mockClear()
+  onReverse.mockClear()
   refresh.mockClear()
 })
 afterEach(() => {
@@ -419,4 +421,57 @@ describe('F101 criterion 15 — a batch of 50 is a batch of 50 single actions', 
     expect(onDecide).toHaveBeenCalledTimes(50)
     expect(screen.queryAllByTestId('review-row')).toHaveLength(0)
   }, 30_000)
+})
+
+// F102 criterion 12 — a restore the AI made shows as its own state, with a one-tap confirm or undo.
+describe('F102.12 — Restored by AI', () => {
+  const byAi: PastDecision = { ...decided, decisionId: 'ai1', outcome: 'restored', reasonCode: 'nothing_wrong', decidedByName: null, decidedByAi: true }
+  const aiRow = () => groupBySubject([report('r1', 'a', { category: 'spam', history: [byAi] })])
+
+  it('a subject whose latest decision is the AI\'s restore is marked, and one a person decided is not', () => {
+    expect(aiRow()[0]!.aiRestored).toEqual([{ reportId: 'r1', decisionId: 'ai1' }])
+    expect(groupBySubject([report('r1', 'a', { history: [decided] })])[0]!.aiRestored).toEqual([])
+    // A person's later confirm (newest first) clears it; so does an undo.
+    const confirmed: PastDecision = { ...decided, decisionId: 'p1', outcome: 'restored', decidedByAi: false }
+    expect(groupBySubject([report('r1', 'a', { history: [confirmed, byAi] })])[0]!.aiRestored).toEqual([])
+    expect(groupBySubject([report('r1', 'a', { history: [{ ...byAi, alreadyReversed: true }] })])[0]!.aiRestored).toEqual([])
+  })
+
+  it('shows "Restored by AI" in the default list with Confirm and Undo, and no Approve or Remove', () => {
+    show(aiRow())
+    expect(screen.getByTestId('review-ai-restored')).toHaveTextContent('Restored by AI')
+    expect(screen.getByTestId('review-ai-confirm')).toBeInTheDocument()
+    expect(screen.getByTestId('review-ai-undo')).toBeInTheDocument()
+    expect(screen.queryByTestId('review-approve')).toBeNull()
+  })
+
+  it('Confirm records the operator\'s own approval, with no five-second wait', async () => {
+    show(aiRow())
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('review-ai-confirm'))
+    })
+    expect(onDecide).toHaveBeenCalledWith({ reportId: 'r1', outcome: 'restored', reasonCode: 'nothing_wrong' })
+    expect(onReverse).not.toHaveBeenCalled()
+  })
+
+  it('Undo reverses the AI\'s decision, which puts the content back down', async () => {
+    show(aiRow())
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('review-ai-undo'))
+    })
+    expect(onReverse).toHaveBeenCalledWith({ decisionId: 'ai1', reasonCode: 'spam' })
+    expect(onDecide).not.toHaveBeenCalled()
+  })
+
+  it('a row with no AI restore shows neither', () => {
+    show(groupBySubject([report('r1', 'a')]))
+    expect(screen.queryByTestId('review-ai-restored')).toBeNull()
+  })
+
+  it('the history names the AI as the one who decided', () => {
+    show(aiRow())
+    fireEvent.click(screen.getByTestId('review-details'))
+    expect(screen.getByTestId('review-detail')).toHaveTextContent('AI')
+    expect(screen.getByTestId('review-detail')).not.toHaveTextContent('unknown')
+  })
 })

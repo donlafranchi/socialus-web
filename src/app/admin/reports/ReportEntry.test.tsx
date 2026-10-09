@@ -18,6 +18,7 @@ const DECISION: PastDecision = {
   decidedByName: 'Don',
   reversesDecisionId: null,
   alreadyReversed: false,
+  decidedByAi: false,
 }
 
 const REPORT: QueuedReport = {

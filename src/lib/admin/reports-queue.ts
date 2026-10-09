@@ -46,6 +46,8 @@ export interface PastDecision {
   decidedByName: string | null
   /** The decision this one undid, if it was a reversal. */
   reversesDecisionId: string | null
+  /** F102 criterion 12 — the AI made this decision (no member behind it). */
+  decidedByAi: boolean
   /** True once something else has undone THIS one — it cannot be undone twice. */
   alreadyReversed: boolean
 }
@@ -119,6 +121,7 @@ async function fetchHistory(reportIds: string[]): Promise<Map<string, PastDecisi
             d.reason_note,
             d.decided_at,
             d.reverses_decision_id,
+            d.decided_by_ai,
             m.display_name as decided_by_name,
             exists (
               select 1 from public.report_decisions x
@@ -142,6 +145,7 @@ async function fetchHistory(reportIds: string[]): Promise<Map<string, PastDecisi
       decidedAt: r.decided_at as Date,
       decidedByName: (r.decided_by_name as string | null) ?? null,
       reversesDecisionId: (r.reverses_decision_id as string | null) ?? null,
+      decidedByAi: Boolean(r.decided_by_ai),
       alreadyReversed: Boolean(r.already_reversed),
     })
     byReport.set(id, list)

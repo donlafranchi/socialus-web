@@ -62,7 +62,7 @@ export interface ReportDecisionResult {
   reversedDecisionId: string | null
 }
 
-type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo'
+export type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo'
 
 type SubjectRow = { subject_kind: SubjectKind; subject_id: string; group_id: string }
 
@@ -75,7 +75,7 @@ const eventKind = (kind: SubjectKind, outcome: Outcome) =>
       ? 'group.photo_restored'
       : 'group.photo_removed'
 
-type Client = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
+export type Client = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
 function requireOperator(ctx: ActionContext, verb: string): string {
   if (!isOperator(ctx.actingMemberId)) {
@@ -99,7 +99,7 @@ function requireNote(input: { reasonCode: ReasonCode; reasonNote?: string }, ver
  * and columns differ (the Page's photo, the Page picture, one post's photo), and
  * a name built from input is how an injection gets in.
  */
-type Subject = { kind: SubjectKind; id: string; groupId: string }
+export type Subject = { kind: SubjectKind; id: string; groupId: string }
 
 /** F078 criterion 1 — a hidden Post is private (managers only), so the same two
  *  outcomes apply to it: restoring puts back the audience it had and locks that
@@ -129,7 +129,7 @@ async function projectPost(client: Client, postId: string, outcome: Outcome, now
   )
 }
 
-async function project(client: Client, subject: Subject, outcome: Outcome, now: Date) {
+export async function project(client: Client, subject: Subject, outcome: Outcome, now: Date) {
   if (subject.kind === 'post') return projectPost(client, subject.id, outcome, now)
   const kind = subject.kind
   const subjectId = subject.id
@@ -160,11 +160,12 @@ async function project(client: Client, subject: Subject, outcome: Outcome, now: 
   await client.query(sql, [subjectId, now])
 }
 
-async function insertDecision(
+export async function insertDecision(
   client: Client,
   row: {
     reportId: string
-    operator: string
+    /** Null is the AI's own decision (F102 criterion 12): decided_by_ai follows. */
+    operator: string | null
     now: Date
     outcome: Outcome
     reasonCode: string
@@ -175,8 +176,8 @@ async function insertDecision(
   const res = await client.query<{ id: string }>(
     `insert into public.report_decisions
        (report_id, decided_by_member_id, decided_at, outcome,
-        reason_code, reason_note, reverses_decision_id)
-     values ($1, $2, $3, $4, $5, $6, $7)
+        reason_code, reason_note, reverses_decision_id, decided_by_ai)
+     values ($1, $2, $3, $4, $5, $6, $7, $2::uuid is null)
      returning id`,
     [
       row.reportId,
@@ -192,11 +193,11 @@ async function insertDecision(
 }
 
 /** Keep the derived columns on `reports` in step with the latest decision. */
-async function projectReportRow(
+export async function projectReportRow(
   client: Client,
   reportId: string,
   outcome: Outcome,
-  operator: string,
+  operator: string | null,
   now: Date,
 ) {
   await client.query(
