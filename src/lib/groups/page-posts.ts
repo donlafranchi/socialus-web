@@ -29,6 +29,8 @@ export interface PagePost {
   locationLabel: string | null
   /** #348 — an event's own meet spot, beside its place. */
   howToFind?: string | null
+  /** #286 — the post's own tags; empty means it carries its Page's. */
+  tags?: string[]
   /** F099 — the post's own photo, only when it is neither hidden nor removed.
    *  Resolved here, on the server, so a hidden URL never reaches a browser. */
   photoUrl?: string | null
@@ -51,6 +53,7 @@ interface Row {
   photo_removed_at?: string | null
   hidden_at?: string | null
   location: { label: string | null } | { label: string | null }[] | null
+  post_tags?: { tags: { label: string } | { label: string }[] | null }[] | null
 }
 
 /** Ordered by recency, matching browse. A read failure yields no posts rather
@@ -61,7 +64,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, location:locations(label)')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)
@@ -80,6 +83,9 @@ export async function resolvePagePosts(
       updatedAt: r.updated_at,
       startsAt: r.starts_at,
       endsAt: r.ends_at,
+      tags: (r.post_tags ?? [])
+        .map((t) => (Array.isArray(t.tags) ? t.tags[0] : t.tags)?.label)
+        .filter((l): l is string => Boolean(l)),
       locationLabel: loc?.label ?? null,
       howToFind: maskEmailsOrNull(r.how_to_find ?? null),
       photoHidden: !!r.photo_url && !!r.photo_hidden_at && !r.photo_removed_at,

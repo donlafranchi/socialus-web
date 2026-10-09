@@ -40,6 +40,7 @@ import {
   groupUnclaimedRestore,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation } from './item'
+import { tagReview } from './tag'
 import { originRecord } from './origin'
 import { problemReport } from './problem'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge } from './report'
@@ -96,6 +97,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'report.decide': reportDecide as unknown as NamedActionHandler<unknown, unknown>,
   'problem.report': problemReport as unknown as NamedActionHandler<unknown, unknown>,
   'report.reverse': reportReverse as unknown as NamedActionHandler<unknown, unknown>,
+  // #287 — the operator marks a tag safe or unsafe after it has appeared.
+  'tag.review': tagReview as unknown as NamedActionHandler<unknown, unknown>,
   // F102 — the poster's one answer to a hide.
   'report.answer': reportAnswer as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge_target': reportPurgeTarget as unknown as NamedActionHandler<unknown, unknown>,
@@ -166,6 +169,7 @@ export {
   type ReportCreateInput,
   type ReportCreateResult,
 } from './report'
+export { tagReview, tagReviewInput, type TagReviewInput } from './tag'
 export {
   metroWaitlistJoin,
   metroWaitlistJoinInput,

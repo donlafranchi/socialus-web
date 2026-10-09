@@ -237,6 +237,20 @@ export const LINK_TYPES: readonly LinkType[] = [
       'disappearing from display.',
   },
   {
+    name: 'an Announcement carries a Tag',
+    from: 'Announcement',
+    to: 'Tag',
+    via: { table: 'post_tags', column: 'tag_id' },
+    writtenBy: ['group.post_create', 'group.post_edit'],
+    ruled: '2026-10-01',
+    built: true,
+    note:
+      'Tags go on posts as well as Pages, editable any time (2026-10-01). A post with none of its ' +
+      'own carries its Page\'s, so a lens never finds a Page and misses its posts. Signed in only, ' +
+      'like a Page\'s. Post is now the noun and an announcement a kind of post; the object keeps ' +
+      'its nouns.md name until that file changes it.',
+  },
+  {
     name: 'a Location is in a Place',
     from: 'Location',
     to: 'Place',
