@@ -42,6 +42,22 @@ describe('planMakers (#517)', () => {
     expect(a.sources.map((s) => s.field).sort()).toEqual(['address', 'description', 'name', 'website'])
     expect(a.sources.every((s) => s.url === 'https://templecoffee.com/')).toBe(true)
   })
+  it('reads "Town (County)": the town, and the county to fall back on', () => {
+    const a = planMakers([r({ area: 'Placerville (El Dorado)' })]).listed[0]!
+    expect([a.city, a.county]).toEqual(['Placerville', 'El Dorado'])
+    const b = planMakers([r({ area: 'Capay Valley (Yolo)' })]).listed[0]!
+    expect([b.city, b.county]).toEqual(['Capay Valley', 'Yolo'])
+    const c = planMakers([r({ area: 'Woodland/Davis (Yolo)' })]).listed[0]!
+    expect([c.city, c.county]).toEqual(['Woodland', 'Yolo'])
+    const d = planMakers([r({ area: 'Downtown Sacramento' })]).listed[0]!
+    expect([d.city, d.county]).toEqual(['Sacramento', undefined])
+    expect(planMakers([r({ area: 'Sacramento/Arden/Roseville' })]).listed[0]!.city).toBe('Sacramento')
+  })
+  it('a stay, a farm visit or a pumpkin patch is an offer; a farm, ranch or bakery is a shop', () => {
+    expect(planMakers([r({ category: 'Farm stay & agritourism' })]).listed[0]!.purpose).toBe('offer')
+    expect(planMakers([r({ category: 'Farm' })]).listed[0]!.purpose).toBe('sell')
+    expect(planMakers([r({ category: 'Cakes & bakery' })]).listed[0]!.purpose).toBe('sell')
+  })
   it('puts a Page in its own city, defaulting to Sacramento', () => {
     expect(planMakers([r({ area: 'West Sacramento' })]).listed[0]!.city).toBe('West Sacramento')
     expect(planMakers([r({ area: 'Granite Bay' })]).listed[0]!.city).toBe('Granite Bay')

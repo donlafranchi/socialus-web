@@ -1,0 +1,266 @@
+[
+ {
+  "name": "Full Belly Farm",
+  "category": "Farm",
+  "makes": "Organic produce, flowers, wool, CSA, farm dinners and pizza nights",
+  "area": "Guinda (Yolo)",
+  "site": "https://fullbellyfarm.com/",
+  "confidence": "High; own site checked 2026-10-09 (ok): Footer 2026; Hoes Down festival post dated Oct 5, 2026, pizza nights listed."
+ },
+ {
+  "name": "Boa Vista Orchards",
+  "category": "Farm",
+  "makes": "Apples, farm market, bakery, cider, wine",
+  "area": "Placerville (El Dorado)",
+  "site": "https://boavista.com/",
+  "confidence": "High; own site checked 2026-10-09 (ok): Open daily 7:30-6, pumpkin patch Sep 11-Oct 31 promoted."
+ },
+ {
+  "name": "Apple Ridge Farms",
+  "category": "Farm",
+  "makes": "Orchard, BBQ, bakery, zinnia trail, country store",
+  "area": "Camino (El Dorado)",
+  "site": "https://appleridgefarms.com/",
+  "confidence": "High; own site checked 2026-10-09 (ok): Open daily through Nov 29, 2026 season."
+ },
+ {
+  "name": "Little Field Farms",
+  "category": "Farm",
+  "makes": "Pumpkins, corn maze, mandarins; 6th-generation family",
+  "area": "Loomis (Placer)",
+  "site": "https://www.loomislittlefieldfarms.com/",
+  "confidence": "High; own site checked 2026-10-09 (ok): Site says OPEN, pumpkin season starting Sept 19, 2026."
+ },
+ {
+  "name": "Park Winters Flower Farm",
+  "category": "Farm",
+  "makes": "U-pick flower bouquets, inn, workshops",
+  "area": "Winters (Yolo)",
+  "site": "https://www.parkwinters.com",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Live site with event calendar, inn, day visits, shop; no closure notice."
+ },
+ {
+  "name": "Twin Peaks Orchards",
+  "category": "Farm",
+  "makes": "Stone fruit, persimmons, pears; farmstand weekends; family since 1912",
+  "area": "Newcastle (Placer)",
+  "site": "https://www.twinpeaksorchards.net/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Farm stand Thu-Sun 10-4, farmers markets returning mid-late Oct; footer stale (2020)."
+ },
+ {
+  "name": "Winters Fruit Tree",
+  "category": "Farm",
+  "makes": "Nuts, dried fruit, honey; fruit stand since 1969",
+  "area": "Winters (Yolo)",
+  "site": "https://www.wintersfruittree.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Site live with farm stand and markets pages; only the online shop is marked temporarily closed."
+ },
+ {
+  "name": "Impossible Acres",
+  "category": "Farm",
+  "makes": "U-pick berries and fruit, pumpkins; family-run since 1994",
+  "area": "Davis (Yolo)",
+  "site": "https://impossibleacres.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Home page: opening day Sat Oct 3, 2026, pumpkin patch and animal barn Oct 3-31."
+ },
+ {
+  "name": "Daisy Creek Farms",
+  "category": "Farm",
+  "makes": "Organic you-pick, duck and chicken eggs",
+  "area": "Galt (Sacramento)",
+  "site": "https://www.daisycreekfarms.com",
+  "confidence": "Low; own site checked 2026-10-09 (ok): Own site has posts dated July 1, 2026 and says closed for the season but U-pick by appointment."
+ },
+ {
+  "name": "JT Family Farms Natural Beef",
+  "category": "Ranch",
+  "makes": "Grass-fed grain-finished beef, quarter/half/whole",
+  "area": "Elk Grove (Sacramento)",
+  "site": "https://www.jtbeef.com",
+  "confidence": "Medium-high; own site checked 2026-10-09 (ok): Site lists current hours, active quarter/half/whole beef ordering and no closure notice (no footer year)."
+ },
+ {
+  "name": "Misfit Ranch",
+  "category": "Ranch",
+  "makes": "Alpacas and llamas, fiber, farm store, visits by reservation",
+  "area": "Loomis (Placer)",
+  "site": "https://www.misfitranchloomis.com",
+  "confidence": "Medium-high; own site checked 2026-10-09 (unverified): Site returns 403 (bot block) to fetches, so nothing could be judged."
+ },
+ {
+  "name": "Yolo Land & Cattle Co.",
+  "category": "Ranch",
+  "makes": "Grass-fed Angus beef and jerky; visits by appointment",
+  "area": "Capay Valley (Yolo)",
+  "site": "https://www.yololandandcattle.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer 'Copyright 2018 to present', online beef/jerky ordering, active contacts, no closure notice."
+ },
+ {
+  "name": "SunFed Ranch",
+  "category": "Ranch",
+  "makes": "Grass-fed beef from three ranching families",
+  "area": "Woodland/Davis (Yolo)",
+  "site": "https://sunfedranch.com",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Own site footer (c) 2026, cache modified 2026-10-09."
+ },
+ {
+  "name": "Alpacas of El Dorado",
+  "category": "Ranch",
+  "makes": "Alpaca breeding, fiber, yarn; visits by appointment",
+  "area": "Somerset (El Dorado)",
+  "site": "http://www.alpacasofeldorado.com",
+  "confidence": "Low-medium; own site checked 2026-10-09 (ok): Site shows 2025-dated alpaca listings, visits by appointment, no closure notice."
+ },
+ {
+  "name": "Fog Willow Farms",
+  "category": "Farm stay & agritourism",
+  "makes": "Pumpkin farm, petting zoo, hayrides, pig races, field trips",
+  "area": "Wilton (Sacramento)",
+  "site": "http://www.fogwillowfarms.com",
+  "confidence": "High; own site checked 2026-10-09 (ok): Site loads (cert mismatch on www) with 'serving the community for 24 years' and pumpkin farm/petting zoo/pig races copy; site platform build dated 2026-10-07."
+ },
+ {
+  "name": "Keema's Pumpkin Farm",
+  "category": "Farm stay & agritourism",
+  "makes": "Hayrides, pumpkin field, farm animals; family 100+ years",
+  "area": "Elk Grove (Sacramento)",
+  "site": "https://keemaspumpkinfarm.com",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): 2026 season posted Sept 25 - Nov 1 with October hours, cash admission prices."
+ },
+ {
+  "name": "Dave's Pumpkin Patch at Vierra Farms",
+  "category": "Farm stay & agritourism",
+  "makes": "Pumpkin patch, corn maze, pig races, movie nights",
+  "area": "West Sacramento (Yolo)",
+  "site": "https://www.vierrafarms.com",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Lists current hours and Oct 2-3 2026 events (Boots 'n Brews, Family Campout)."
+ },
+ {
+  "name": "Fowler Ranch",
+  "category": "Farm stay & agritourism",
+  "makes": "Pumpkin patch, farm brewery, Sunday farmers market",
+  "area": "Lincoln (Placer)",
+  "site": "https://fowlerranch.com",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer (c)2026; lists farm brewery, farmers' market and pumpkin patch; no closure notice."
+ },
+ {
+  "name": "Hanford Ranch Winery",
+  "category": "Farm stay & agritourism",
+  "makes": "RV stay on a 40-acre hilltop ranch winery",
+  "area": "Galt (Sacramento)",
+  "site": "https://www.hanfordranchwinery.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer Copyright 2026; tasting room Sat & Sun 12-4 listed at 13200 Loll Rd."
+ },
+ {
+  "name": "Flower Farm Inn",
+  "category": "Farm stay & agritourism",
+  "makes": "Inn on a flower farm",
+  "area": "Loomis (Placer)",
+  "site": "https://www.flowerfarminn.com",
+  "confidence": "Low; own site checked 2026-10-09 (ok): Footer 2026; current cafe, gift shop and tasting room hours listed."
+ },
+ {
+  "name": "Let Them Eat Cake",
+  "category": "Cakes & bakery",
+  "makes": "Custom wedding cakes, cupcakes, dessert bars",
+  "area": "Davis (Yolo)",
+  "site": "https://letthemeat-davis.com/",
+  "confidence": "High; own site checked 2026-10-09 (ok): Footer Copyright 2026; working contact form and shop cart, no closure notice."
+ },
+ {
+  "name": "Caked by Mandy",
+  "category": "Cakes & bakery",
+  "makes": "Custom cakes, cookies, cake pops, ice cream",
+  "area": "Placerville (El Dorado)",
+  "site": "https://www.cakedbymandy.com",
+  "confidence": "High; own site checked 2026-10-09 (ok): Hours listed (Tue-Sat 10-7, Sun 11-3), no footer year or closure notice."
+ },
+ {
+  "name": "Midtown Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Small-batch cakes, pies, cookies",
+  "area": "Midtown Sacramento",
+  "site": "https://midtown-bakery.com/",
+  "confidence": "Medium-high; own site checked 2026-10-09 (ok): Hours listed (Fri, Sat-Sun) at 2301 J St, no dated content or closure notice."
+ },
+ {
+  "name": "Sweet Fillings Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Custom cakes and cupcakes",
+  "area": "Rancho Cordova (Sacramento)",
+  "site": "https://www.sweetfillingsbakery.com",
+  "confidence": "Medium-high; own site checked 2026-10-09 (ok): Page shows recent review (about 4 months old) and says it recently moved from Folsom to Rancho Cordova."
+ },
+ {
+  "name": "Ettore's Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Cakes and pastries since 1985",
+  "area": "Sacramento",
+  "site": "https://ettores.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer 2026, current hours and Christmas closure notice posted."
+ },
+ {
+  "name": "Estelle Bakery & Patisserie",
+  "category": "Cakes & bakery",
+  "makes": "Cakes, pastries",
+  "area": "Downtown Sacramento",
+  "site": "http://estellebakery.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer 2025, open daily 7-7 at Arden, Downtown and Davis; Folsom opening soon."
+ },
+ {
+  "name": "Moonbelly Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Cakes and pastries",
+  "area": "Sacramento",
+  "site": "http://www.moonbellybakery.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Lists hours Fri-Sun 8-1:30 at 6511 Folsom Blvd; no closure notice, no dated footer."
+ },
+ {
+  "name": "Cake Castle Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Family bakery, wedding and custom cakes since 1969",
+  "area": "Sacramento",
+  "site": "http://www.cakecastlebakery.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer 2026, custom cakes, phone/address listed, no closure notice."
+ },
+ {
+  "name": "Faria Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Cakes, croissants",
+  "area": "Sacramento",
+  "site": "http://fariabakery.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (unverified): Site fetch returned no content; news/listings show open Oak Park and Folsom locations."
+ },
+ {
+  "name": "Cakes By Jeff The Chef",
+  "category": "Cakes & bakery",
+  "makes": "Cakes with gluten-free options",
+  "area": "Downtown Sacramento",
+  "site": "http://www.cakesbyjeffthechef.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer 2025, address 405 K St, no closure notice."
+ },
+ {
+  "name": "Pushkin's Bakery",
+  "category": "Cakes & bakery",
+  "makes": "Cakes, pastries",
+  "area": "Sacramento/Arden/Roseville",
+  "site": "http://www.pushkinsbakery.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (unverified): Site footer says 2020 and looks stale; search shows no closure."
+ },
+ {
+  "name": "Icing on the Cupcake",
+  "category": "Cakes & bakery",
+  "makes": "Cupcakes and cakes",
+  "area": "Midtown Sacramento",
+  "site": "http://icingonthecupcake.com/",
+  "confidence": "Medium; own site checked 2026-10-09 (ok): Footer 2026, small-batch cupcakes, gift cards, phone listed."
+ },
+ {
+  "name": "Spilled Milk Company",
+  "category": "Cakes & bakery",
+  "makes": "Custom buttercream wedding cakes",
+  "area": "Elk Grove (Sacramento)",
+  "site": "https://spilledmilkcompany.com",
+  "confidence": "Low-medium; own site checked 2026-10-09 (ok): Footer 2026, luxury buttercream wedding cakes, no closure notice."
+ }
+]
