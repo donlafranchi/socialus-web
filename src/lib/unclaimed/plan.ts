@@ -11,7 +11,7 @@ export interface MakerRow {
   confidence: string
 }
 
-export type SkipReason = 'held-out' | 'held' | 'no-own-site' | 'personal-care' | 'no-site'
+export type SkipReason = 'personal-care' | 'no-site'
 
 export interface PlannedPage {
   name: string
@@ -22,12 +22,6 @@ export interface PlannedPage {
   purpose: 'sell' | 'offer'
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
 }
-
-/** Don is visiting these in person (2026-10-09): matched on the start of the name. */
-export const HELD_OUT = [
-  'Real Pie Company', 'Freeport Bakery', "Gunther's Ice Cream", 'MADE Studio', 'Insomnia Hot',
-  'Ginger Elizabeth', 'Alaro', 'Little Relics', 'Chocolate Fish', 'Myrtle Press',
-] as const
 
 export const CLAIM_LINE = 'Claim this Page to tell your own story.'
 
@@ -56,17 +50,8 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
   const skipped: { name: string; reason: SkipReason }[] = []
   const keep: { row: MakerRow; rank: number; nonprofit: boolean }[] = []
   for (const row of rows) {
-    const reason: SkipReason | null = HELD_OUT.some((h) => row.name.toLowerCase().startsWith(h.toLowerCase()))
-      ? 'held-out'
-      : /HOLD|^Low-medium/i.test(row.confidence)
-        ? 'held'
-        : /no own site/i.test(row.confidence)
-          ? 'no-own-site'
-          : PERSONAL_CARE.test(`${row.name} ${row.makes}`)
-            ? 'personal-care'
-            : !/^https?:\/\//i.test(row.site)
-              ? 'no-site'
-              : null
+    // Every shop goes in (Don, 2026-10-09). Only a salon (not a maker) or a row with no site is left out.
+    const reason: SkipReason | null = PERSONAL_CARE.test(`${row.name} ${row.makes}`) ? 'personal-care' : !/^https?:\/\//i.test(row.site) ? 'no-site' : null
     if (reason) skipped.push({ name: row.name, reason })
     else keep.push({ row, rank: RANK(row.confidence), nonprofit: NONPROFIT_OR_GALLERY.test(`${row.name} ${row.makes} ${row.confidence}`) })
   }
