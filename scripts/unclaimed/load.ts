@@ -5,16 +5,18 @@
 //   tsx scripts/unclaimed/load.ts --apply    do it; needs DATABASE_URL
 //
 // Idempotent: a Page that exists (visible, or hidden by a removal request) is
-// skipped. The list is scripts/unclaimed/makers.json; src/lib/unclaimed/plan.ts
-// decides what is held out and in what order.
+// skipped. The lists are every scripts/unclaimed/makers*.json (the same row
+// format; add a file to add businesses); src/lib/unclaimed/plan.ts orders them.
 import { Client } from 'pg'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { planMakers, type MakerRow } from '../../src/lib/unclaimed/plan'
 import { loadUnclaimed } from '../../src/lib/unclaimed/load'
 
 async function main() {
-  const rows = JSON.parse(readFileSync(join(__dirname, 'makers.json'), 'utf8')) as MakerRow[]
+  const files = readdirSync(__dirname).filter((f) => /^makers.*\.json$/.test(f)).sort()
+  const rows = files.flatMap((f) => JSON.parse(readFileSync(join(__dirname, f), 'utf8')) as MakerRow[])
+  console.log(`Read ${rows.length} rows from ${files.join(', ')}`)
   const { listed, skipped } = planMakers(rows)
   console.log(`${listed.length} to list, ${skipped.length} held back`)
   for (const s of skipped) console.log(`  held back: ${s.name} (${s.reason})`)
