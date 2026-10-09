@@ -15,18 +15,17 @@
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
-import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
+import { NotFoundError, ValidationError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
-import { isOperator } from '../_lib/operator'
+import { requirePermission } from '../_lib/staff'
 import { mediaObjectPath } from '@/lib/media/object-path'
 import type { ActionContext } from '../_lib/context'
 
 export const PURGE_REASONS = ['illegal_content', 'person_did_not_agree', 'not_suitable', 'other'] as const
 export type PurgeReason = (typeof PURGE_REASONS)[number]
 
-function requireOperator(ctx: ActionContext, verb: string): string {
-  if (!isOperator(ctx.actingMemberId)) throw new AuthorizationError(`${verb}: not permitted`)
-  return ctx.actingMemberId as string
+function requireOperator(ctx: ActionContext, verb: string): Promise<string> {
+  return requirePermission(ctx, 'reports.review', verb)
 }
 
 interface PhotoRow {
@@ -57,7 +56,7 @@ export const reportPurgeTarget = defineHandler(
   'report.purge_target',
   reportPurgeTargetInput,
   async (ctx: ActionContext, input: z.infer<typeof reportPurgeTargetInput>) => {
-    const operator = requireOperator(ctx, 'report.purge_target')
+    const operator = await requireOperator(ctx, 'report.purge_target')
     return withTransaction(async (client) => {
       const { objectPath } = await removedPhoto(client, 'report.purge_target', input.groupId)
       // The operator is an env var the database has never heard of. The storage
@@ -81,7 +80,7 @@ export const reportPurge = defineHandler(
   'report.purge',
   reportPurgeInput,
   async (ctx: ActionContext, input: z.infer<typeof reportPurgeInput>) => {
-    const operator = requireOperator(ctx, 'report.purge')
+    const operator = await requireOperator(ctx, 'report.purge')
     return withTransaction(async (client) => {
       const { objectPath } = await removedPhoto(client, 'report.purge', input.groupId)
       if (objectPath !== input.objectPath) throw new ValidationError('report.purge: that is not the photo on this Page')

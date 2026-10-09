@@ -2,9 +2,7 @@
 // anyone else gets 404, not 403, like the review queue.
 
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
-import { isOperator } from '@/actions/_lib/operator'
+import { requirePagePermission } from '@/lib/staff/page-guard'
 import { fetchPurgeCandidates } from '@/lib/admin/purge-queue'
 import { PurgeList } from '../PurgeList'
 import { purgePhotoAction } from '../purge-actions'
@@ -12,9 +10,7 @@ import { purgePhotoAction } from '../purge-actions'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPurgePage() {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-  if (!isOperator(data.user?.id ?? null)) notFound()
+  await requirePagePermission('reports.review')
   const candidates = await fetchPurgeCandidates()
   return (
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="admin-purge">

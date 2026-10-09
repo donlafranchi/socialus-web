@@ -10,6 +10,8 @@ const { getUser, notFound, fetchPurgeCandidates } = vi.hoisted(() => ({
   fetchPurgeCandidates: vi.fn(async () => []),
 }))
 vi.mock('next/navigation', () => ({ notFound }))
+// React's request cache would remember the first viewer across these tests.
+vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(f: T) => f }))
 vi.mock('@/lib/supabase-server', () => ({ createClient: async () => ({ auth: { getUser } }) }))
 vi.mock('@/actions/_lib/operator', () => ({ isOperator: (id: string | null) => id === 'op-1' }))
 vi.mock('@/lib/admin/purge-queue', () => ({ fetchPurgeCandidates }))

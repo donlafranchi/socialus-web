@@ -2,18 +2,14 @@
 // log), who asked to claim or remove it, and Restore for a hidden one. A
 // non-operator gets 404, as on /admin/reports.
 
-import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
-import { isOperator } from '@/actions/_lib/operator'
+import { requirePagePermission } from '@/lib/staff/page-guard'
 import { fetchUnclaimedPages } from '@/lib/admin/unclaimed-queue'
 import { restoreUnclaimedAction } from './actions'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminUnclaimedPage() {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-  if (!isOperator(data.user?.id ?? null)) notFound()
+  await requirePagePermission('unclaimed.manage')
 
   const pages = await fetchUnclaimedPages()
 

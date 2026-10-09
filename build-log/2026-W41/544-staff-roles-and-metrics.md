@@ -1,0 +1,5 @@
+### change #544 — staff roles and permissions, and /admin/metrics
+
+`/admin/*` was gated by one env var (`OPERATOR_MEMBER_ID`). Now: `staff_roles`, `staff_permissions`, `staff_role_permissions`, `staff_assignments` (migration `20261009030000`), enforced on the admin layout and pages (404), in server actions, and in the database (`staff_can`, and the metrics function returns nothing without `metrics.view`). The five old operator checks moved onto permissions; the env var stays as the owner's break-glass. `/admin/metrics` shows the four starter numbers for the Sacramento metro, this week beside last week, as plain counts. Don ruled staff see real counts (no under-5 suppression) and that no screen singles out a member. Roles are granted by a manual workflow or script; the `/admin/staff` screen is a later issue. See `docs/STAFF-ROLES.md`.
+
+Found on the way: on this Postgres build a call refused for want of EXECUTE, or a RAISE inside a security-definer function, crashed the local backend (signal 11). The metrics function therefore returns no rows instead of raising, and is executable by anon (it answers nothing without the role).

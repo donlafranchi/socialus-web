@@ -1,0 +1,59 @@
+name: Staff roles
+
+# #544 — grant or revoke a staff role, until the /admin/staff screen exists.
+# MANUAL ONLY. Takes the member's id (a UUID, not an email) and the role.
+# From a terminal: gh workflow run staff-roles.yml -f action=grant -f member=<uuid> -f role=analyst
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'grant, revoke or list'
+        required: true
+        type: choice
+        options: [grant, revoke, list]
+      member:
+        description: 'Member id (UUID). Not needed for list.'
+        required: false
+        type: string
+      role:
+        description: 'owner, moderator, analyst or support. Not needed for list.'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staff-roles
+  cancel-in-progress: false
+
+jobs:
+  roles:
+    name: Staff roles
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Run
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          ACTION: ${{ inputs.action }}
+          MEMBER: ${{ inputs.member }}
+          ROLE: ${{ inputs.role }}
+        run: npx tsx scripts/staff/grant-role.ts "$ACTION" $MEMBER $ROLE | tee -a "$GITHUB_STEP_SUMMARY"

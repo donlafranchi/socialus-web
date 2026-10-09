@@ -14,10 +14,10 @@
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
-import { AuthorizationError, ConflictError, NotFoundError } from '../_lib/errors'
+import { ConflictError, NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
-import { isOperator } from '../_lib/operator'
+import { requirePermission } from '../_lib/staff'
 import type { ActionContext } from '../_lib/context'
 import { SYSTEM_MEMBER_ID } from '@/lib/system-member'
 
@@ -150,7 +150,7 @@ export const groupUnclaimedRestore = defineHandler(
   'group.unclaimed_restore',
   groupUnclaimedRestoreInput,
   async (ctx: ActionContext, input): Promise<{ restored: boolean }> => {
-    if (!isOperator(ctx.actingMemberId)) throw new AuthorizationError('group.unclaimed_restore: not permitted')
+    await requirePermission(ctx, 'unclaimed.manage', 'group.unclaimed_restore')
     return withTransaction(async (client) => {
       const column = input.scope === 'photo' ? 'photo_hidden_at' : 'unclaimed_hidden_at'
       // sql-injection-safe: `column` is one of two literals.

@@ -1,8 +1,6 @@
 // #287 — the operator's tag list: what is waiting for review, oldest first.
 
-import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
-import { isOperator } from '@/actions/_lib/operator'
+import { requirePagePermission } from '@/lib/staff/page-guard'
 import { getPool } from '@/actions/_lib/db'
 import { TagReviewList, type WaitingTag } from './TagReviewList'
 import { reviewTagAction } from './actions'
@@ -10,9 +8,7 @@ import { reviewTagAction } from './actions'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminTagsPage() {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-  if (!isOperator(data.user?.id ?? null)) notFound()
+  await requirePagePermission('tags.review')
 
   const { rows } = await getPool().query<WaitingTag>(
     `select t.id, t.label,
