@@ -5,14 +5,12 @@
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
-import { AuthorizationError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
-import { isOperator } from '../_lib/operator'
+import { requirePermission } from '../_lib/staff'
 import type { ActionContext } from '../_lib/context'
 
-function requireOperator(ctx: ActionContext, verb: string): string {
-  if (!isOperator(ctx.actingMemberId)) throw new AuthorizationError(`${verb}: not permitted`)
-  return ctx.actingMemberId as string
+function requireOperator(ctx: ActionContext, verb: string): Promise<string> {
+  return requirePermission(ctx, 'builders.manage', verb)
 }
 
 export const builderContentSetVisibleInput = z.object({ visible: z.boolean() })
@@ -22,7 +20,7 @@ export const builderContentSetVisible = defineHandler(
   'builder.content_set_visible',
   builderContentSetVisibleInput,
   async (ctx: ActionContext, input): Promise<{ visible: boolean }> => {
-    const operator = requireOperator(ctx, 'builder.content_set_visible')
+    const operator = await requireOperator(ctx, 'builder.content_set_visible')
     return withTransaction(async (client) => {
       await client.query(
         `update public.builder_content set visible = $1, changed_at = $2, changed_by = $3`,
@@ -46,7 +44,7 @@ export const builderContentDeleteAll = defineHandler(
   'builder.content_delete_all',
   builderContentDeleteAllInput,
   async (ctx: ActionContext): Promise<BuilderContentDeleted> => {
-    requireOperator(ctx, 'builder.content_delete_all')
+    await requireOperator(ctx, 'builder.content_delete_all')
     return withTransaction(async (client) => {
       const res = await client.query<{ deleted: BuilderContentDeleted }>(
         `select public.delete_builder_content() as deleted`,

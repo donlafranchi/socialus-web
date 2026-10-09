@@ -5,9 +5,9 @@
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
-import { AuthorizationError, NotFoundError } from '../_lib/errors'
+import { NotFoundError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
-import { isOperator } from '../_lib/operator'
+import { requirePermission } from '../_lib/staff'
 import type { ActionContext } from '../_lib/context'
 
 export const tagReviewInput = z.object({
@@ -20,7 +20,7 @@ export const tagReview = defineHandler(
   'tag.review',
   tagReviewInput,
   async (ctx: ActionContext, input: TagReviewInput): Promise<{ tagId: string }> => {
-    if (!isOperator(ctx.actingMemberId)) throw new AuthorizationError('tag.review: not permitted')
+    await requirePermission(ctx, 'tags.review', 'tag.review')
     return withTransaction(async (client) => {
       const res = await client.query<{ id: string }>(
         `update public.tags

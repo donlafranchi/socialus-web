@@ -16,13 +16,13 @@ const raw = readFileSync(resolve(__dirname, '..', 'src/app/admin/reports/page.ts
 const page = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
 
 describe('the operator surface is gated', () => {
-  it('calls notFound() rather than rendering a 403', () => {
-    expect(page).toContain('notFound()')
+  it('answers 404 rather than rendering a 403 (the guard calls notFound)', () => {
     expect(page).not.toMatch(/\b403\b/)
+    expect(readFileSync(resolve(__dirname, '..', 'src/lib/staff/page-guard.ts'), 'utf8')).toContain('notFound()')
   })
 
-  it('gates on isOperator, not on a UI condition', () => {
-    expect(page).toMatch(/if \(!isOperator\(.*\)\) notFound\(\)/)
+  it('gates on the reports.review permission, not on a UI condition (#544)', () => {
+    expect(page).toMatch(/requirePagePermission\('reports\.review'\)/)
   })
 
   it('is never prerendered — a stale queue means reviewing a decided report', () => {

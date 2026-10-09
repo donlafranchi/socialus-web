@@ -28,10 +28,10 @@
 
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
-import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
+import { NotFoundError, ValidationError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
-import { isOperator } from '../_lib/operator'
+import { requirePermission } from '../_lib/staff'
 import { REASON_CODES, reasonNeedsNote, type ReasonCode } from '@/lib/admin/reason-codes'
 import type { ActionContext } from '../_lib/context'
 
@@ -77,13 +77,8 @@ const eventKind = (kind: SubjectKind, outcome: Outcome) =>
 
 export type Client = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
-function requireOperator(ctx: ActionContext, verb: string): string {
-  if (!isOperator(ctx.actingMemberId)) {
-    // Identical either way. Telling an unauthorised caller whether the report
-    // exists is a read they are not entitled to.
-    throw new AuthorizationError(`${verb}: not permitted`)
-  }
-  return ctx.actingMemberId as string
+function requireOperator(ctx: ActionContext, verb: string): Promise<string> {
+  return requirePermission(ctx, 'reports.review', verb)
 }
 
 function requireNote(input: { reasonCode: ReasonCode; reasonNote?: string }, verb: string): void {
@@ -215,7 +210,7 @@ export const reportDecide = defineHandler(
   'report.decide',
   reportDecideInput,
   async (ctx: ActionContext, input: ReportDecideInput): Promise<ReportDecisionResult> => {
-    const operator = requireOperator(ctx, 'report.decide')
+    const operator = await requireOperator(ctx, 'report.decide')
     requireNote(input, 'report.decide')
 
     return withTransaction(async (client) => {
@@ -271,7 +266,7 @@ export const reportReverse = defineHandler(
   'report.reverse',
   reportReverseInput,
   async (ctx: ActionContext, input: ReportReverseInput): Promise<ReportDecisionResult> => {
-    const operator = requireOperator(ctx, 'report.reverse')
+    const operator = await requireOperator(ctx, 'report.reverse')
     requireNote(input, 'report.reverse')
 
     return withTransaction(async (client) => {
