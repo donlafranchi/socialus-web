@@ -61,7 +61,7 @@ export function ExampleBlock({ placeName }: { placeName: string }) {
           about the idea; "some of what's here" would be a claim about stock. */}
       <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
         These are made up, to show the kind of thing people put on SocialUs. Nothing here is a real
-        listing in {placeName}.
+        Page in {placeName}.
       </p>
 
       <CardGrid density="compact" className="mt-4">

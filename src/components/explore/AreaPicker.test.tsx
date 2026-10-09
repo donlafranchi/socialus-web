@@ -90,7 +90,7 @@ describe('AreaPicker', () => {
     fireEvent.click(await screen.findByTestId('scope-metro-boise-city-id'))
     const block = await screen.findByTestId('example-block')
     expect(block).toHaveTextContent(/made up/i)
-    expect(block).toHaveTextContent(/Nothing here is a real listing in Boise City, ID/i)
+    expect(block).toHaveTextContent(/Nothing here is a real Page in Boise City, ID/i)
   })
 
   it('marks the metro currently being shown', async () => {

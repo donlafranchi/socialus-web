@@ -179,7 +179,7 @@ describe('#412 — each card says what is set now', () => {
 
   it('what the Page is for', () => {
     renderCards()
-    expect(within(card('kind')).getByTestId('edit-summary')).toHaveTextContent('Sell · Listed as Business')
+    expect(within(card('kind')).getByTestId('edit-summary')).toHaveTextContent('Sell · Page type: Business')
   })
 })
 

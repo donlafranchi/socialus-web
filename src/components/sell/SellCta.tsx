@@ -178,7 +178,7 @@ export function SellCta({
           </p>
           <p className="text-sm text-neutral-700">
             {signal?.hasActiveBusinessGroup
-              ? 'List a product or service.'
+              ? 'Post an announcement or message.'
               : signal?.draftGroup
                 ? 'Pick up where you left off.'
                 : 'Open a Page on SocialUs.'}

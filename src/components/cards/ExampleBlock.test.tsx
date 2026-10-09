@@ -73,7 +73,7 @@ describe('the block is bounded and captioned as an idea, not as stock', () => {
     render(<ExampleBlock placeName={PLACE} />)
     const block = screen.getByTestId('example-block')
     expect(block).toHaveTextContent(/made up/i)
-    expect(block).toHaveTextContent(new RegExp(`Nothing here is a real listing in ${PLACE}`, 'i'))
+    expect(block).toHaveTextContent(new RegExp(`Nothing here is a real Page in ${PLACE}`, 'i'))
     // "Some of what's here" would be the claim the caption must not make.
     expect(block).not.toHaveTextContent(/some of what/i)
   })

@@ -47,11 +47,11 @@ export default function JoinPage() {
       <section className="px-6 pt-12 md:pt-20 pb-10 max-w-3xl mx-auto text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] font-semibold">For vendors</p>
         <h1 className="mt-3 text-4xl md:text-5xl font-semibold text-neutral-900 leading-tight">
-          Sell at a farmers market? Get listed.
+          Sell at a farmers market? Get a Page.
         </h1>
         <p className="mt-4 text-lg text-neutral-700 max-w-xl mx-auto">
           SocialUs helps the customers you meet at the market find you the other six days of the week.
-          Listing costs nothing.
+          There is no charge to create a Page.
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -59,7 +59,7 @@ export default function JoinPage() {
             href={primaryHref}
             className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)] shadow-sm"
           >
-            {authed ? 'List my booth →' : 'Sign up as a vendor →'}
+            {authed ? 'Create my Page →' : 'Sign up as a vendor →'}
           </Link>
           {!authed && (
             <Link
@@ -80,8 +80,8 @@ export default function JoinPage() {
             body="Customers who love what you made on Saturday can find you on Wednesday."
           />
           <Benefit
-            title="Listing costs nothing"
-            body="There is no charge to create a listing or keep it up."
+            title="No charge to create a Page"
+            body="There is no charge to create a Page."
           />
           <Benefit
             title="Local-first audience"
@@ -117,7 +117,7 @@ export default function JoinPage() {
             href={primaryHref}
             className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)]"
           >
-            {authed ? 'List my booth →' : 'Start my listing →'}
+            {authed ? 'Create my Page →' : 'Start my Page →'}
           </Link>
         </div>
       </section>
