@@ -52,6 +52,26 @@ describe('F100 — assessContent', () => {
     expect(r.reads).toHaveLength(1)
   })
 
+  // [guards F102.12 partial: Sonnet runs on every restore candidate; the gate is restore-gate]
+  it('Sonnet also reads when the caller asks for a second opinion on a confident first read', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(reply(verdict({ severity: 4, confidence: 0.97, outcome: 'approve' })))
+      .mockResolvedValueOnce(reply(verdict({ severity: 4, confidence: 0.96, outcome: 'approve' })))
+    const secondOpinionIf = vi.fn(() => true)
+    const r = (await assessContent({ ...input, secondOpinionIf }, { fetch, env }))!
+    expect(secondOpinionIf).toHaveBeenCalledWith(expect.objectContaining({ model: HAIKU, confidence: 0.97 }))
+    expect(r.reads.map((x) => x.model)).toEqual([HAIKU, SONNET])
+    // The predicate is a local callback: it never goes to the provider.
+    expect(JSON.stringify(fetch.mock.calls)).not.toContain('secondOpinionIf')
+  })
+
+  it('does not call Sonnet when the predicate says no', async () => {
+    const fetch = vi.fn(async () => reply(verdict({ confidence: 0.97 })))
+    await assessContent({ ...input, secondOpinionIf: () => false }, { fetch, env })
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
   // [guards F100.4]
   it('sends the content, the reporter\'s reason and the rebuttal, versioned rules, and no member identity', async () => {
     const fetch = vi.fn(async () => reply(verdict()))

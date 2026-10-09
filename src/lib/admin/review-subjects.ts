@@ -25,6 +25,8 @@ export interface ReviewSubject {
   reports: QueuedReport[]
   /** Reports with no decision yet. A reversal is itself a decision (the opposite outcome). */
   openReportIds: string[]
+  /** F102 criterion 12 — reports whose latest decision is the AI's restore, awaiting a person's confirm or undo. */
+  aiRestored: { reportId: string; decisionId: string }[]
   severity: Severity | null
   /** The reasons the reporters chose, most reported first. */
   reasons: { category: ReportCategory; count: number }[]
@@ -70,12 +72,16 @@ export function groupBySubject(queue: QueuedReport[], { live = false }: { live?:
       photoUrl: r.photoUrl,
       reports: [],
       openReportIds: [],
+      aiRestored: [],
       severity: null,
       hiddenAt: r.hiddenAt,
       status: r.removedAt ? 'removed' : r.hiddenAt ? 'hidden' : 'restored',
     }
     s.reports.push(r)
     if (isOpen(r)) s.openReportIds.push(r.reportId)
+    // history is newest first: a person's confirm or undo is a later row and clears this.
+    const last = r.history[0]
+    if (last?.decidedByAi && last.outcome === 'restored' && !last.alreadyReversed) s.aiRestored.push({ reportId: r.reportId, decisionId: last.decisionId })
     by.set(key, s)
   }
   const flagged = coordinatedPosters(queue)
@@ -104,7 +110,8 @@ const severityOf = (s: ReviewSubject, live: boolean): Severity | null => {
 /** The most reported category on the open reports; a tie goes to the more serious. */
 function topCategory(s: ReviewSubject): ReportCategory | null {
   const counts = new Map<ReportCategory, number>()
-  for (const r of s.reports.filter(isOpen)) if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1)
+  const pool = s.openReportIds.length || s.aiRestored.length === 0 ? s.reports.filter(isOpen) : s.reports
+  for (const r of pool) if (r.category) counts.set(r.category, (counts.get(r.category) ?? 0) + 1)
   const ranked = [...counts].sort((a, b) => b[1] - a[1] || SEVERITY_OF_REPORT_CATEGORY[a[0]] - SEVERITY_OF_REPORT_CATEGORY[b[0]])
   return ranked[0]?.[0] ?? null
 }
@@ -118,7 +125,7 @@ const tally = (s: ReviewSubject) => {
 const DAY = 86_400_000
 
 /** F102 criterion 8: three or more reports on one poster's content within 24 hours, at least two from accounts under 7 days old. */
-function coordinatedPosters(queue: QueuedReport[]): Set<string> {
+export function coordinatedPosters(queue: QueuedReport[]): Set<string> {
   const byPoster = new Map<string, QueuedReport[]>()
   for (const r of queue) if (r.posterId) byPoster.set(r.posterId, [...(byPoster.get(r.posterId) ?? []), r])
   const out = new Set<string>()

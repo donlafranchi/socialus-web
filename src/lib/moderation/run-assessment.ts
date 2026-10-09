@@ -3,7 +3,9 @@
 // reorders because of it (criterion 6).
 
 import { categoryLabel, type ReportCategory } from '@/lib/reports/categories'
-import { assessContent, type AssessInput, type Assessment } from './assess'
+import { assessContent, type AssessInput, type Assessment, type Read } from './assess'
+import { isRestoreCandidate } from './restore-gate'
+import { SEVERITY_OF_REPORT_CATEGORY } from '@/lib/reports/categories'
 
 interface Db {
   query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }>
@@ -14,7 +16,12 @@ interface Deps {
   fetchImage?: (url: string) => Promise<AssessInput['image']>
   /** F102 — the poster's reply, when this read follows one. */
   rebuttal?: string | null
+  /** F102 criterion 12 — the severity-4 auto-restore, run once a reply has been read. */
+  restore?: (reportId: string, reads: Read[]) => Promise<unknown>
 }
+
+const autoRestore = async (reportId: string, reads: Read[]) =>
+  (await import('@/actions/report/ai-restore')).autoRestoreAfterAssessment(reportId, reads)
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -36,7 +43,7 @@ const insertSkipped = (db: Db, reportId: string, why: string) =>
   db.query(`insert into public.report_assessments (report_id, skipped_reason) values ($1, $2)`, [reportId, why])
 
 export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): Promise<void> {
-  const { assess = (i) => assessContent(i), fetchImage = fetchImageBytes, rebuttal = null } = deps
+  const { assess = (i) => assessContent(i), fetchImage = fetchImageBytes, rebuttal = null, restore = autoRestore } = deps
   // F100 criterion 1: a Page's photo, its picture, a Post's words or a post's
   // photo. Each kind's columns are written out; none is built from input.
   const res = await db.query(
@@ -78,6 +85,9 @@ export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): 
     image,
     reporterReason: row.category ? categoryLabel(row.category) : 'No reason given',
     rebuttal,
+    // Criterion 12: Sonnet reads every restore candidate, not only the unsure ones.
+    secondOpinionIf: (first) =>
+      isRestoreCandidate(first, { rebuttal, reporterSeverity: row.category ? SEVERITY_OF_REPORT_CATEGORY[row.category] : null }),
   })
   if (!result) return void (await insertSkipped(db, reportId, 'no assessment: the call failed or answered badly'))
 
@@ -88,5 +98,14 @@ export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): 
        values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       [reportId, r.model, r.promptVersion, r.category, r.severity, r.confidence, r.outcome, r.reason, r.latencyMs, r.inputTokens, r.outputTokens],
     )
+  }
+
+  // Only a read that followed the poster's reply can restore. It never fails the read.
+  if (rebuttal) {
+    try {
+      await restore(reportId, result.reads)
+    } catch (err) {
+      console.error('[moderation] auto-restore failed:', err instanceof Error ? err.message : err)
+    }
   }
 }

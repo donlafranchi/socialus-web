@@ -125,8 +125,52 @@ describe('F100 — runAssessment', () => {
   // [guards F100.1 partial: a poster's rebuttal triggers a read]
   it('a poster\'s rebuttal goes with the content, as their reply', async () => {
     assess.mockResolvedValue({ reads: [read()], shown: read() })
-    await runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Malicious: He reports everything.' })
+    await runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Malicious: He reports everything.', restore: vi.fn() })
     expect((assess.mock.calls[0] as unknown as [{ rebuttal: string }])[0].rebuttal).toBe('Malicious: He reports everything.')
+  })
+
+  // F102.12 — the restore step: only after a poster's reply, never for severity 1, never allowed to break the read.
+  it('after a reply, hands the stored reads to the restore step', async () => {
+    const reads = [read({ outcome: 'approve', confidence: 0.97 }), read({ model: 'claude-sonnet-5-5', outcome: 'approve', confidence: 0.96 })]
+    assess.mockResolvedValue({ reads, shown: reads[1]! })
+    const restore = vi.fn(async () => 'restored' as const)
+    await runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Mistaken: it is my shop.', restore })
+    expect(restore).toHaveBeenCalledWith(REPORT, reads)
+  })
+
+  it('without a reply there is no restore step', async () => {
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    const restore = vi.fn()
+    await runAssessment(REPORT, { query }, { assess, fetchImage, restore })
+    expect(restore).not.toHaveBeenCalled()
+  })
+
+  it('a severity-1 report is never read and never reaches the restore step', async () => {
+    rows.category = 'sensitive_content'
+    const restore = vi.fn()
+    await runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Mistaken: x', restore })
+    expect(restore).not.toHaveBeenCalled()
+  })
+
+  it('a failed restore step does not undo or hide the stored reads', async () => {
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    const restore = vi.fn(async () => {
+      throw new Error('db down')
+    })
+    await expect(runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Mistaken: x', restore })).resolves.toBeUndefined()
+    expect(inserts()).toHaveLength(1)
+  })
+
+  it('asks for Sonnet on a confident approving severity-4 read once the poster has replied, and not before', async () => {
+    assess.mockResolvedValue({ reads: [read()], shown: read() })
+    const confident = read({ outcome: 'approve', confidence: 0.97 })
+    await runAssessment(REPORT, { query }, { assess, fetchImage, rebuttal: 'Mistaken: x', restore: vi.fn() })
+    const withReply = (assess.mock.calls[0] as unknown as [{ secondOpinionIf: (r: Read) => boolean }])[0].secondOpinionIf
+    expect(withReply(confident)).toBe(true)
+    expect(withReply(read({ outcome: 'remove', confidence: 0.97 }))).toBe(false)
+    await runAssessment(REPORT, { query }, { assess, fetchImage, restore: vi.fn() })
+    const noReply = (assess.mock.calls[1] as unknown as [{ secondOpinionIf: (r: Read) => boolean }])[0].secondOpinionIf
+    expect(noReply(confident)).toBe(false)
   })
 
   it('a deleted subject is skipped quietly', async () => {

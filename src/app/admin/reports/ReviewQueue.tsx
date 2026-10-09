@@ -63,7 +63,9 @@ export function ReviewQueue({
   const [now] = useState(() => new Date())
 
   const waiting = (s: ReviewSubject) => s.openReportIds.length > 0 && !done.has(s.subjectId)
-  const rows = orderSubjects(subjects, sort).filter((s) => showAll || waiting(s))
+  // A restore the AI made stays in the list until a person confirms or undoes it.
+  const awaitingLook = (s: ReviewSubject) => s.aiRestored.length > 0 && !done.has(s.subjectId)
+  const rows = orderSubjects(subjects, sort).filter((s) => showAll || waiting(s) || awaitingLook(s))
   const waitingCount = subjects.filter(waiting).length
 
   const send = useCallback(
@@ -84,6 +86,26 @@ export function ReviewQueue({
     },
     [onDecide, router],
   )
+
+  // Confirm and Undo take effect at once: the AI's restore is already live, and Undo is itself the way back.
+  const settleAi = async (s: ReviewSubject, how: 'confirm' | 'undo') => {
+    setError(null)
+    setDone((d) => new Set(d).add(s.subjectId))
+    try {
+      for (const { reportId, decisionId } of s.aiRestored) {
+        if (how === 'confirm') await onDecide({ reportId, outcome: 'restored', reasonCode: DEFAULT_REASON.restored })
+        else await onReverse({ decisionId, reasonCode: s.removeReason })
+      }
+      router.refresh()
+    } catch (err) {
+      setDone((d) => {
+        const n = new Set(d)
+        n.delete(s.subjectId)
+        return n
+      })
+      setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+    }
+  }
 
   const commit = useCallback(() => {
     const p = pendingRef.current
@@ -197,6 +219,8 @@ export function ReviewQueue({
             focused={i === Math.min(focus, rows.length - 1)}
             onFocusRow={() => setFocus(i)}
             isWaiting={waiting(s)}
+            aiRestored={awaitingLook(s)}
+            onSettleAi={(how) => void settleAi(s, how)}
             confirming={confirming === s.subjectId}
             expanded={open === s.subjectId}
             onToggle={() => setOpen(open === s.subjectId ? null : s.subjectId)}
@@ -230,6 +254,8 @@ function Row({
   focused,
   onFocusRow,
   isWaiting,
+  aiRestored,
+  onSettleAi,
   confirming,
   expanded,
   onToggle,
@@ -242,6 +268,8 @@ function Row({
   focused: boolean
   onFocusRow: () => void
   isWaiting: boolean
+  aiRestored: boolean
+  onSettleAi: (how: 'confirm' | 'undo') => void
   confirming: boolean
   expanded: boolean
   onToggle: () => void
@@ -383,6 +411,22 @@ function Row({
               </button>
             </div>
           ))}
+
+        {aiRestored && (
+          <div className="mt-3 flex flex-col gap-2" data-testid="review-ai-restored">
+            <p className="text-body-sm font-semibold text-[var(--color-fg)]">Restored by AI</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" data-testid="review-ai-confirm" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onSettleAi('confirm')}>
+                <Check size={16} aria-hidden="true" />
+                Confirm
+              </button>
+              <button type="button" data-testid="review-ai-undo" className={`${buttonClass('secondary')} min-h-12!`} onClick={() => onSettleAi('undo')}>
+                <X size={16} aria-hidden="true" />
+                Undo
+              </button>
+            </div>
+          </div>
+        )}
 
         <button
           type="button"
