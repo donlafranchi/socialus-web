@@ -21,25 +21,42 @@ export interface LoadResult {
 export const CAPTURED_ON = '2026-10-08'
 export const CAPTURED_BY = 'agent:517'
 
-/** One area Location per city, shared by every Page in it, owned by the system member. */
-async function cityLocation(db: Db, city: string): Promise<string> {
-  const places = await db.query(
-    `select id, coalesce(centroid, st_centroid(geography::geometry)::geography) as point
-       from public.places where kind = 'city' and display_name = $1 and deleted_at is null`,
-    [city],
+/** The one place of this kind and name, if it sits in the same metro as Sacramento; else why not. */
+async function findPlace(db: Db, name: string, kind: 'city' | 'county') {
+  const found = await db.query(
+    `select p.id, p.display_name, p.kind,
+            exists (
+              select 1 from public.metro_polygons m
+               where st_intersects(m.geography, coalesce(p.centroid, st_centroid(p.geography::geometry)::geography))
+                 and st_intersects(m.geography, (select coalesce(s.centroid, st_centroid(s.geography::geometry)::geography)
+                                                   from public.places s where s.kind = 'city' and s.display_name = 'Sacramento' and s.deleted_at is null limit 1))
+            ) as in_metro
+       from public.places p where p.kind = $2 and p.display_name = $1 and p.deleted_at is null`,
+    [name, kind],
   )
-  if (places.rows.length !== 1) throw new Error(`${places.rows.length} cities named ${city}; expected 1`)
-  const placeId = places.rows[0]!.id
+  const row = found.rows[0] as { id: string; display_name: string; kind: string; in_metro: boolean } | undefined
+  if (found.rows.length !== 1 || !row) return { why: `${found.rows.length} ${kind} places named ${name}` }
+  if (!row.in_metro) return { why: `${name} is outside the Sacramento metro` }
+  return { place: row }
+}
+
+/** One area Location per place, shared by every Page in it, owned by the system member. A town not in `places` falls back to its county. */
+async function placeLocation(db: Db, city: string, county?: string): Promise<string> {
+  const byCity = await findPlace(db, city, 'city')
+  const byCounty = !byCity.place && county ? await findPlace(db, county, 'county') : undefined
+  // Prefer the town; else the county; if the county says "outside the metro" that is the more useful reason.
+  const place = byCity.place ?? byCounty?.place
+  if (!place) throw new Error(`${city}${county ? ` (${county})` : ''}: ${byCounty?.why ?? byCity.why}`)
   const found = await db.query(
     `select id from public.locations where member_id = $1 and kind = 'area' and place_id = $2 and deleted_at is null limit 1`,
-    [SYSTEM_MEMBER_ID, placeId],
+    [SYSTEM_MEMBER_ID, place.id],
   )
   if (found.rows[0]) return found.rows[0].id as string
   const made = await db.query(
     `insert into public.locations (member_id, kind, label, slug, geography, place_id, discoverability)
      values ($1, 'area', $2, $3, (select coalesce(centroid, st_centroid(geography::geometry)::geography) from public.places where id = $4), $4, 'listed')
      returning id`,
-    [SYSTEM_MEMBER_ID, city, `${toSlug(city)}-unclaimed`, placeId],
+    [SYSTEM_MEMBER_ID, place.display_name, `${toSlug(place.display_name)}${place.kind === 'county' ? '-county' : ''}-unclaimed`, place.id],
   )
   return made.rows[0]!.id as string
 }
@@ -55,7 +72,7 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
         result.existing++
         continue
       }
-      const locationId = await cityLocation(db, p.city)
+      const locationId = await placeLocation(db, p.city, p.county)
       const g = await db.query(
         `insert into public.groups (kind, purpose, founder_member_id, name, slug, description, lifecycle_state, discoverability, anchor_location_id, unclaimed_at, public_info_url)
          values ('business', $1, $2, $3, $4, $5, 'active', 'listed', $6, now(), $7) returning id`,

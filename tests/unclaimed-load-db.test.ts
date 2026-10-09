@@ -19,12 +19,13 @@ const RUNNABLE = requireRunnable({
   remedy: `${safety.reason} Recipe in .env.local.example`,
 })
 
-const page = (n: string, city = 'Sacramento'): PlannedPage => ({
+const page = (n: string, city = 'Sacramento', county?: string): PlannedPage => ({
   name: `T517 ${n} Roasters`,
   slug: `t517-${n}-roasters-abc123`,
   description: `T517 ${n} Roasters: coffee roaster, in Midtown. Claim this Page to tell your own story.`,
   publicInfoUrl: `https://test-517-${n}.example/`,
   city,
+  county,
   purpose: 'sell',
   sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url: `https://test-517-${n}.example/` })),
 })
@@ -101,6 +102,23 @@ describe.skipIf(!RUNNABLE)('loadUnclaimed (#517)', () => {
     } finally {
       await client.query('rollback')
     }
+  })
+
+  it('a town that is not in places falls back to its county, and the Page sits there', async () => {
+    const d = page('d', 'Nowhereville', 'Sacramento')
+    expect(await loadUnclaimed(client, [d])).toEqual({ created: 1, existing: 0, failed: [] })
+    const where = (await client.query(
+      `select p.kind, p.display_name from public.groups g join public.locations l on l.id = g.anchor_location_id join public.places p on p.id = l.place_id where g.public_info_url = $1`,
+      [d.publicInfoUrl],
+    )).rows[0]
+    expect(where).toEqual({ kind: 'county', display_name: 'Sacramento' })
+  })
+
+  it('a place outside the Sacramento metro is refused, so a Page nobody can find is not made', async () => {
+    const r = await loadUnclaimed(client, [page('e', 'Yuba City', 'Sutter')])
+    expect(r.created).toBe(0)
+    expect(r.failed[0]!.error).toMatch(/metro/i)
+    expect(await count(`select count(*) n from public.groups where public_info_url = $1`, ['https://test-517-e.example/'])).toBe(0)
   })
 
   it('a city it cannot find fails that Page alone and writes nothing for it', async () => {

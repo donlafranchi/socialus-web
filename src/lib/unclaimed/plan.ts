@@ -19,19 +19,27 @@ export interface PlannedPage {
   description: string
   publicInfoUrl: string
   city: string
+  /** From "Town (County)"; the place to fall back on when the town is not in `places`. */
+  county?: string
   purpose: 'sell' | 'offer'
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
 }
 
 export const CLAIM_LINE = 'Claim this Page to tell your own story.'
 
-const CITIES = ['West Sacramento', 'Granite Bay', 'Clarksburg', 'Elk Grove', 'Folsom', 'Carmichael'] as const
 const PERSONAL_CARE = /\b(salon|barber|nail|spa|hair|beauty|lash|wax)\b/i
 const NONPROFIT_OR_GALLERY = /nonprofit|gallery|center for the arts|tool library|association|co-?op\b|potters group/i
 const RANK = (c: string) => (/^High/i.test(c) ? 0 : /^Medium-high/i.test(c) ? 1 : 2)
 
 const https = (u: string) => u.replace(/^http:\/\//i, 'https://')
-const cityOf = (area: string) => CITIES.find((c) => area.toLowerCase().includes(c.toLowerCase())) ?? 'Sacramento'
+/** "Placerville (El Dorado)" is a town and its county; "Midtown Sacramento", "Sacramento/Arden" are Sacramento. */
+function placeOf(area: string): { city: string; county?: string } {
+  const m = area.trim().match(/^(.+?)\s*\(([^)]+)\)$/)
+  const town = (m ? m[1]! : area).split('/')[0]!.trim()
+  if (m && m[2]!.trim().toLowerCase() !== 'sacramento') return { city: town, county: m[2]!.trim() }
+  if (m) return { city: town.toLowerCase() === 'sacramento' ? 'Sacramento' : town, county: 'Sacramento' }
+  return { city: /\b(west sacramento)\b/i.test(area) ? 'West Sacramento' : /\b(folsom|granite bay|clarksburg|elk grove|carmichael)\b/i.test(area) ? area.match(/folsom|granite bay|clarksburg|elk grove|carmichael/i)![0].replace(/\b\w/g, (c) => c.toUpperCase()) : 'Sacramento' }
+}
 
 /** A short stable tag from the site, so a re-run finds the same Page. */
 function tag(s: string): string {
@@ -63,8 +71,8 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       slug: `${toSlug(row.name)}-${tag(url)}`,
       description: describe(row),
       publicInfoUrl: url,
-      city: cityOf(row.area),
-      purpose: /repair/i.test(row.category) ? 'offer' : 'sell',
+      ...placeOf(row.area),
+      purpose: /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
     }
   })
