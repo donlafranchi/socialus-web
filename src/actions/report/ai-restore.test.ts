@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { execSync } from 'node:child_process'
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+
+function walk(dir: string, acc: string[] = []): string[] {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === 'node_modules' || e.name.startsWith('.')) continue
+    const full = join(dir, e.name)
+    if (e.isDirectory()) walk(full, acc)
+    else if (/\.(tsx?|json|sql|mjs)$/.test(e.name)) acc.push(full)
+  }
+  return acc
+}
 
 // F102 criterion 12 — the orchestration around the gate: what it reads, what it
 // records in every mode, and that only a live, cleared, fully-agreeing run acts.
@@ -111,7 +121,7 @@ describe('F102.12 — autoRestoreAfterAssessment', () => {
   })
 
   it('no code path sets the clearance flag: only an operator or direct data change does', () => {
-    const files = execSync(`grep -rl "severity4_restore_cleared" src scripts || true`, { cwd: process.cwd() }).toString().trim().split('\n').filter(Boolean)
+    const files = [...walk('src'), ...walk('scripts')].filter((f) => readFileSync(f, 'utf8').includes('severity4_restore_cleared'))
     expect(files.length).toBeGreaterThan(0)
     for (const f of files) {
       if (f.endsWith('.test.ts')) continue
