@@ -59,7 +59,7 @@ vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
 const { cookieGet } = vi.hoisted(() => ({ cookieGet: vi.fn() }))
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: cookieGet }) }))
 
-import { loadBrowse } from './load'
+import { loadBrowse, loadMemberMap } from './load'
 
 const MEMBER = '11111111-1111-1111-1111-111111111111'
 const METRO = { id: 'm-1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', isOpen: true }
@@ -289,3 +289,23 @@ describe('a picked neighbourhood', () => {
   })
 })
 
+
+describe('#549 — the map has its own read', () => {
+  it('withMap: false leaves the pins out and makes none of their reads', async () => {
+    signedIn()
+    const withMapCalls = await loadBrowse(null).then(() => getBrowseFeed.mock.calls.length)
+    getBrowseFeed.mockClear()
+    const snap = await loadBrowse(null, null, { withMap: false })
+    expect(snap.map).toEqual([])
+    expect(getBrowseFeed.mock.calls.length).toBeLessThan(withMapCalls)
+  })
+
+  it('loadMemberMap reads the pins for a member and returns none signed out', async () => {
+    signedOut()
+    expect(await loadMemberMap(METRO.id, null)).toEqual([])
+    expect(getBrowseFeed).not.toHaveBeenCalled()
+    signedIn()
+    await loadMemberMap(METRO.id, null)
+    expect(getBrowseFeed).toHaveBeenCalled()
+  })
+})

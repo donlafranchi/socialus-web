@@ -20,10 +20,11 @@ import { memberDefaultMetroSet } from '@/actions'
 import { METRO_COOKIE, METRO_COOKIE_MAX_AGE } from '@/lib/browse/remembered-metro'
 import { withTransaction } from '@/actions/_lib/db'
 import { searchNeighborhoods } from '@/lib/places/neighborhood-search'
-import { loadBrowse, type BrowseSnapshot } from './load'
+import { loadBrowse, loadMemberMap, type BrowseSnapshot } from './load'
+import type { MixedResult } from '@/lib/map/mix'
 
 export async function browseFeedAction(metroSlug: string | null, areaId: string | null = null): Promise<BrowseSnapshot> {
-  const snapshot = await loadBrowse(metroSlug, areaId)
+  const snapshot = await loadBrowse(metroSlug, areaId, { withMap: false })
   if (metroSlug && snapshot.metro?.slug === metroSlug) {
     try {
       ;(await cookies()).set(METRO_COOKIE, metroSlug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
@@ -37,6 +38,11 @@ export async function browseFeedAction(metroSlug: string | null, areaId: string 
     }
   }
   return snapshot
+}
+
+/** #549 — the pins, fetched by the surface once the list is up. */
+export async function browseMapAction(metroId: string, areaId: string | null): Promise<MixedResult[]> {
+  return loadMemberMap(metroId, areaId)
 }
 
 /** The You page's "default metro". Only a metro the platform is running can be the default. */

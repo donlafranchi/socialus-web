@@ -43,7 +43,7 @@ import {
   parseBrowseFilters,
   searchBrowseResults,
 } from '@/lib/browse/filters'
-import { browseFeedAction, searchAreasAction } from '@/app/explore/actions'
+import { browseFeedAction, browseMapAction, searchAreasAction } from '@/app/explore/actions'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
@@ -148,6 +148,27 @@ export function BrowseSurface({
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
   }, [metroSlug, snapshot.area, query, filters, router])
+
+  // #549 — the pins arrive after the list: the server leaves them out of the first
+  // response (a phone opens on the list) and this fetches them once it has painted.
+  const mapMetroId = snapshot.metro?.id ?? null
+  const mapAreaId = snapshot.area?.id ?? null
+  const mapWanted = snapshot.signedIn && snapshot.map.length === 0
+  useEffect(() => {
+    if (!mapWanted || !mapMetroId) return
+    let live = true
+    const load = () =>
+      browseMapAction(mapMetroId, mapAreaId)
+        .then((map) => {
+          if (live) setSnapshot((s) => (s.metro?.id === mapMetroId && (s.area?.id ?? null) === mapAreaId ? { ...s, map } : s))
+        })
+        .catch(() => {})
+    const id = window.setTimeout(load, 0)
+    return () => {
+      live = false
+      window.clearTimeout(id)
+    }
+  }, [mapWanted, mapMetroId, mapAreaId])
 
   const visible = useMemo(
     () => applyBrowseFilters(searchBrowseResults(snapshot.results, query), filters, { now }),
