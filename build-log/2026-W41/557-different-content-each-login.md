@@ -1,0 +1,3 @@
+### change #557 — Explore leads with different businesses each login
+
+The proxy mints a session-only `su_seed` cookie (`<m|a>.<random>`, no personal data), re-minted when signed-in state flips, so every sign-in gets a new seed. `loadBrowse` takes the seed and orders Explore results with `sessionShuffle` (`src/lib/browse/session-shuffle.ts`): recency bands (2 days, 7 days, 30 days, older) kept in order, a hash of seed and row id inside each band. Hash keys keep the order stable across refresh, refetch and pagination. Happening rows and the Following row keep their own ordering. Home (`/`) is paused and redirects to Explore, so Explore is the feed.

@@ -12,7 +12,7 @@
 // rescinded 2026-09-12 — a scope cut for the launch date.
 
 import { Suspense } from 'react'
-import { loadBrowse } from './load'
+import { loadBrowse, readSessionSeed } from './load'
 import { BrowseSurface } from '@/components/browse/BrowseSurface'
 import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
 
@@ -24,7 +24,7 @@ export default async function Page({
   searchParams: Promise<{ metro?: string; area?: string }>
 }) {
   const { metro, area } = await searchParams
-  const snapshot = await loadBrowse(metro ?? null, area ?? null, { withMap: false })
+  const snapshot = await loadBrowse(metro ?? null, area ?? null, { withMap: false, seed: await readSessionSeed() })
 
   return (
     <Suspense fallback={<ExploreSkeleton />}>
