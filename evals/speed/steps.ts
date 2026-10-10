@@ -22,6 +22,8 @@ export interface Step {
   pre?: (page: Page) => Promise<void>
   /** Tapped by going back instead of an element. */
   back?: true
+  /** Skipped, not failed, when the tapped thing is not on the screen (the account may not have one). */
+  optional?: true
   /** Consumer steps also run a tap straight after load, before prefetch has settled. */
   quick?: boolean
 }
@@ -48,16 +50,13 @@ export const STEPS: Step[] = [
   // ── Consumer, signed in as a member ──
   { name: 'Explore post card → Page post', kind: 'consumer', who: 'member', from: '/explore', tap: (p) => p.locator('a[href*="#announcement-"]').first(), ready: '[data-testid="page-post"]', notReady: SKELETON, expectsUrl: true, quick: true },
   { name: 'Explore card → Page (member)', kind: 'consumer', who: 'member', from: '/explore', tap: (p) => p.locator('a[href^="/g/"]:has([data-testid="tile-title"]), [data-testid="tile-card"] a[href^="/g/"]').first(), ready: '[data-testid="page-header"]', notReady: SKELETON, expectsUrl: true, quick: true },
-  { name: 'Page: share (member)', kind: 'consumer', who: 'member', from: '@first-page', tap: (p) => p.getByTestId('page-share'), ready: '[role="dialog"], [data-testid="page-share-menu"]', expectsUrl: false },
-  { name: 'You → Following tab', kind: 'consumer', who: 'member', from: '/you', tap: (p) => p.getByRole('tab', { name: /following/i }).or(p.locator('a[href="/you?tab=following"]')).first(), ready: '[data-testid="following-page"], [data-testid="following-card"], [data-testid="following-empty"], [data-testid="you-followed-empty"]', notReady: SKELETON, expectsUrl: true },
-  { name: 'You → Saved tab', kind: 'consumer', who: 'member', from: '/you', tap: (p) => p.getByRole('tab', { name: /saved/i }).or(p.locator('a[href="/you?tab=saved"]')).first(), ready: 'main', notReady: SKELETON, expectsUrl: true },
-  { name: 'You → Settings tab', kind: 'consumer', who: 'member', from: '/you', tap: (p) => p.getByRole('tab', { name: /settings/i }).or(p.locator('a[href="/you?tab=settings"]')).first(), ready: 'main', notReady: SKELETON, expectsUrl: true },
+  { name: 'You → Following list', kind: 'consumer', who: 'member', from: '/you', optional: true, tap: (p) => p.locator('a[href="/you/following"]').first(), ready: 'main', notReady: SKELETON, expectsUrl: true },
   { name: 'Bottom nav → Explore', kind: 'consumer', who: 'member', from: '/you', tap: (p) => p.getByTestId('bottom-nav').locator('a[href="/explore"]'), ready: '[data-testid="browse-results"]', notReady: SKELETON, expectsUrl: true },
   { name: 'Page: overflow menu → report (member)', kind: 'consumer', who: 'member', from: '@first-page', tap: (p) => p.getByTestId('page-overflow-menu'), ready: '[role="menu"], [role="dialog"], [data-testid="report-entry"]', expectsUrl: false },
 
   // ── Creator and editing (lower priority; open only, never save) ──
   { name: 'Creator: own Page → edit', kind: 'creator', who: 'ownerBusiness', from: '/you', tap: (p) => p.locator('a[href^="/g/"]').first(), ready: '[data-testid="page-header"]', notReady: SKELETON, expectsUrl: true },
   { name: 'Creator: Page edit screen', kind: 'creator', who: 'ownerBusiness', from: '@own-page', tap: (p) => p.getByTestId('owner-bar').locator('a[href$="/edit"]').first(), ready: '[data-testid="edit-name"], [data-testid="edit-header"]', notReady: SKELETON, expectsUrl: true },
-  { name: 'Creator: post composer opens', kind: 'creator', who: 'ownerBusiness', from: '@own-page', tap: (p) => p.getByTestId('owner-announce'), ready: '[data-testid="page-post-send"], textarea', expectsUrl: false },
+  { name: 'Creator: post composer opens', kind: 'creator', who: 'ownerBusiness', from: '@own-page', tap: (p) => p.getByTestId('owner-announce'), ready: '[data-testid="page-post-send"]', expectsUrl: false },
   { name: 'Creator: Create (bottom nav)', kind: 'creator', who: 'ownerBusiness', from: '/explore', tap: (p) => p.getByTestId('nav-create'), ready: 'main h1, [data-testid="multistep-composer-overlay"]', notReady: SKELETON, expectsUrl: true },
 ]

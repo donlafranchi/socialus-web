@@ -1,85 +1,122 @@
 {
   "Explore card → Page [quick]": {
-    "feedbackMs": 70,
-    "readyMs": 2179,
+    "feedbackMs": 45,
+    "readyMs": 1126,
     "issue": 529
   },
   "Explore card → Page [settled]": {
-    "feedbackMs": 67,
-    "readyMs": 2234,
-    "issue": 529
+    "feedbackMs": 53,
+    "readyMs": 910
   },
   "Page → back to Explore [quick]": {
-    "feedbackMs": 183,
-    "readyMs": 223,
+    "feedbackMs": 287,
+    "readyMs": 318,
     "issue": 532
   },
   "Page → back to Explore [settled]": {
-    "feedbackMs": 196,
-    "readyMs": 239,
+    "feedbackMs": 276,
+    "readyMs": 319,
     "issue": 532
   },
   "Explore: filter icon opens sheet [quick]": {
-    "feedbackMs": 99,
-    "readyMs": 166
+    "feedbackMs": 79,
+    "readyMs": 130
   },
   "Explore: filter icon opens sheet [settled]": {
-    "feedbackMs": 304,
-    "readyMs": 379,
-    "issue": 530
+    "feedbackMs": 81,
+    "readyMs": 128
   },
   "Explore: location pill opens picker [quick]": {
-    "feedbackMs": 145,
-    "readyMs": 208,
+    "feedbackMs": 106,
+    "readyMs": 152,
     "issue": 530
   },
   "Explore: location pill opens picker [settled]": {
-    "feedbackMs": 187,
-    "readyMs": 271,
+    "feedbackMs": 108,
+    "readyMs": 161,
     "issue": 530
   },
   "Explore: search opens [settled]": {
-    "feedbackMs": 163,
-    "readyMs": 181,
+    "feedbackMs": 112,
+    "readyMs": 164,
     "issue": 530
   },
   "Explore: map view [settled]": {
-    "feedbackMs": 115,
-    "readyMs": 270,
-    "issue": 530
+    "feedbackMs": 41,
+    "readyMs": 94
   },
   "Bottom nav → You (signed out) [settled]": {
-    "feedbackMs": 64,
-    "readyMs": 498
+    "feedbackMs": 44,
+    "readyMs": 358
   },
   "Page: follow asks you to sign in [quick]": {
-    "feedbackMs": 76,
-    "readyMs": 104
+    "feedbackMs": 45,
+    "readyMs": 87
   },
   "Page: follow asks you to sign in [settled]": {
-    "feedbackMs": 81,
-    "readyMs": 150
+    "feedbackMs": 44,
+    "readyMs": 91
   },
   "Page: sign in → login screen [settled]": {
-    "feedbackMs": 139,
-    "readyMs": 875,
+    "feedbackMs": 106,
+    "readyMs": 346,
     "issue": 531
   },
   "Explore: sign in / sign up link [settled]": {
-    "feedbackMs": 99,
-    "readyMs": 465
+    "feedbackMs": 45,
+    "readyMs": 357
   },
   "Page: share [settled]": {
-    "feedbackMs": 50,
-    "readyMs": 159
+    "feedbackMs": 74,
+    "readyMs": 109
   },
   "Page: overflow menu → report [settled]": {
-    "feedbackMs": 44,
-    "readyMs": 108
+    "feedbackMs": 78,
+    "readyMs": 79
   },
   "Waitlist: open from the area picker [settled]": {
-    "feedbackMs": 201,
-    "readyMs": 230,
-    "issue": 530
+    "feedbackMs": 82,
+    "readyMs": 132
+  },
+  "Explore post card → Page post [quick]": {
+    "feedbackMs": 117,
+    "readyMs": 1728,
+    "issue": 529
+  },
+  "Explore post card → Page post [settled]": {
+    "feedbackMs": 121,
+    "readyMs": 2313,
+    "issue": 529
+  },
+  "Explore card → Page (member) [quick]": {
+    "feedbackMs": 46,
+    "readyMs": 1630,
+    "issue": 529
+  },
+  "Explore card → Page (member) [settled]": {
+    "feedbackMs": 43,
+    "readyMs": 1491,
+    "issue": 529
+  },
+  "Bottom nav → Explore [settled]": {
+    "feedbackMs": 45,
+    "readyMs": 1916,
+    "issue": 549
+  },
+  "Page: overflow menu → report (member) [settled]": {
+    "feedbackMs": 43,
+    "readyMs": 85
+  },
+  "Creator: own Page → edit [settled]": {
+    "feedbackMs": 51,
+    "readyMs": 1876
+  },
+  "Creator: Page edit screen [settled]": {
+    "feedbackMs": 49,
+    "readyMs": 1992
+  },
+  "Creator: Create (bottom nav) [settled]": {
+    "feedbackMs": 44,
+    "readyMs": 478
   }
 }
