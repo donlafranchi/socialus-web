@@ -19,7 +19,9 @@ vi.mock('next/navigation', () => ({
 }))
 
 const browseFeedAction = vi.fn()
+const browseMapAction = vi.fn()
 vi.mock('@/app/explore/actions', () => ({
+  browseMapAction: (...args: unknown[]) => browseMapAction(...args),
   browseFeedAction: (...args: unknown[]) => browseFeedAction(...args),
   searchAreasAction: async () => [{ id: 'p-1', name: 'Midtown' }],
 }))
@@ -347,5 +349,20 @@ describe('#476 — picking a neighbourhood', () => {
     fireEvent.click(screen.getByTestId('explore-location-pill'))
     fireEvent.click(screen.getByTestId('scope-area-clear'))
     await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith('sacramento-roseville-ca', null))
+  })
+})
+
+describe('#549 — the pins come after the list', () => {
+  beforeEach(() => browseMapAction.mockReset().mockResolvedValue([]))
+
+  it('a member with no pins yet asks for them, for the metro on screen', async () => {
+    render(<BrowseSurface initial={snapshot({ signedIn: true, metro: SAC })} />)
+    await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
+  })
+
+  it('a signed-out visitor never asks: there are no pins there', async () => {
+    render(<BrowseSurface initial={snapshot({ signedIn: false, metro: SAC })} />)
+    await new Promise((r) => setTimeout(r, 20))
+    expect(browseMapAction).not.toHaveBeenCalled()
   })
 })

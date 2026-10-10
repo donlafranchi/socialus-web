@@ -61,12 +61,20 @@ type FeedScope = { metroId: string } | { placeId: string }
 /** The corpus a client-side filter is allowed to treat as "everything". */
 export const BROWSE_LIMIT = 100
 
-export async function loadBrowse(requestedSlug: string | null, areaId: string | null = null): Promise<BrowseSnapshot> {
+export async function loadBrowse(
+  requestedSlug: string | null,
+  areaId: string | null = null,
+  // #549 — the page and the refetch leave the map to its own read (`loadMap`): it is a
+  // three-round chain nothing on the list waits for, and a phone does not show it first.
+  { withMap = true }: { withMap?: boolean } = {},
+): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
   // The switcher's options depend on nothing else, so they start first rather
   // than waiting behind three round trips they have no relationship to.
   const metrosPromise = listFeedMetros(supabase).catch(() => [] as FeedMetro[])
+  const waitingPromise = waitingCountByMetro().catch(() => new Map<string, number>())
+  const areaPromise = areaId ? neighborhood(supabase, areaId) : Promise.resolve(null)
 
   const { data: auth } = await supabase.auth.getUser()
   const user = auth.user ?? null
@@ -86,7 +94,7 @@ export async function loadBrowse(requestedSlug: string | null, areaId: string | 
   // point. A failure costs the ordering and the number, never the picker.
   const metros = withWaitingCounts(
     await metrosPromise,
-    await waitingCountByMetro().catch(() => new Map<string, number>()),
+    await waitingPromise,
   )
 
   const base = { metros, signedIn: Boolean(user), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'] }
@@ -96,7 +104,7 @@ export async function loadBrowse(requestedSlug: string | null, areaId: string | 
 
   // #476 — a neighbourhood narrows every read below to that place. An id that
   // is not a neighbourhood is ignored, never an error: the whole metro shows.
-  const area = areaId ? await neighborhood(supabase, areaId) : null
+  const area = await areaPromise
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
 
   // Started before the public read is awaited: it depends on the member and
@@ -126,14 +134,7 @@ export async function loadBrowse(requestedSlug: string | null, areaId: string | 
   // is the whole reason this ruling is not "announcements require an account".
   const signedOut = !user
   // #331 — signed out, no pins (the front door, F093).
-  const mapPromise = user
-    ? loadMapMix(supabase, scope.metro.id, new Date(), area?.id)
-        .then((rows) => withLocationKinds(supabase, rows))
-        .catch((error) => {
-        console.error('[loadBrowse] map mix failed:', (error as Error).message)
-        return [] as MixedResult[]
-      })
-    : Promise.resolve([] as MixedResult[])
+  const mapPromise = user && withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
   let withheldFailed = false
   const withheldPromise = signedOut
     ? getWithheldAnnouncements(supabase, {
@@ -184,6 +185,27 @@ export async function loadBrowse(requestedSlug: string | null, areaId: string | 
       failed: true,
     }
   }
+}
+
+/** The pins for a signed-in member. A failure costs the pins, never the surface. */
+async function loadMap(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  metroId: string,
+  areaId?: string | null,
+): Promise<MixedResult[]> {
+  try {
+    return await withLocationKinds(supabase, await loadMapMix(supabase, metroId, new Date(), areaId))
+  } catch (error) {
+    console.error('[loadBrowse] map mix failed:', (error as Error).message)
+    return []
+  }
+}
+
+/** #549 — the map's own read, after the list has painted. Empty signed out: no pins there (#331). */
+export async function loadMemberMap(metroId: string, areaId: string | null): Promise<MixedResult[]> {
+  const supabase = await createClient()
+  const { data } = await supabase.auth.getUser()
+  return data.user ? loadMap(supabase, metroId, areaId) : []
 }
 
 /**

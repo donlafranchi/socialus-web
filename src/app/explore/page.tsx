@@ -24,7 +24,7 @@ export default async function Page({
   searchParams: Promise<{ metro?: string; area?: string }>
 }) {
   const { metro, area } = await searchParams
-  const snapshot = await loadBrowse(metro ?? null, area ?? null)
+  const snapshot = await loadBrowse(metro ?? null, area ?? null, { withMap: false })
 
   return (
     <Suspense fallback={<ExploreSkeleton />}>
