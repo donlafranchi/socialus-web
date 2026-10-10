@@ -85,7 +85,11 @@ export async function loadPageView(
   ])
 
   const viewerMemberId = auth.user?.id ?? null
-  const [ownerClaim, owns, relationship] = await Promise.all([
+
+  // One round for everything that does not depend on another read (#529: these
+  // were eight rounds in a row, each a trip to the database). Only the owner's
+  // two extras wait for `owns`.
+  const [ownerClaim, owns, relationship, tags, contact, where, withheldPosts, metadata] = await Promise.all([
     resolveOwnerClaim(supabase, {
       groupId: shop.groupId,
       anchorLocationId: shop.anchorLocationId,
@@ -100,45 +104,48 @@ export async function loadPageView(
       kind: shop.kind,
     }),
     viewerRelationship(supabase, { groupId: shop.groupId, viewerMemberId }),
+    auth.user ? resolvePageTags(supabase, shop.groupId) : Promise.resolve([] as string[]),
+    auth.user ? resolvePageContact(supabase, shop.groupId) : Promise.resolve(null),
+    auth.user ? resolvePageWhere(supabase, shop.groupId) : Promise.resolve(null),
+    // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
+    // this the Announcements section would not render at all and an
+    // `#announcement-<id>` link from Explore would scroll to nothing. That is
+    // the dead end #211 fixed, reintroduced at a different door.
+    //
+    // A failure costs the announcements and never the Page, the rule
+    // `resolvePagePosts` already follows.
+    auth.user
+      ? Promise.resolve([] as BrowseResult[])
+      : getWithheldAnnouncements(supabase, {
+          scope: { groupId: shop.groupId },
+          period: metroWeekBounds(),
+        }).catch((error) => {
+          console.error('[loadPageView] withheld announcements failed:', (error as Error).message)
+          return [] as BrowseResult[]
+        }),
+    // One read of metadata: the owner's components, and whether a signed-in
+    // visitor sees Products & services (#363: a component any Page can add).
+    // An owner is always signed in, so signed in is the whole condition.
+    auth.user ? resolvePageMetadata(supabase, shop.groupId) : Promise.resolve(null),
   ])
 
   // Asked for only when there is somewhere to show it. RLS would return zero
   // to a non-owner anyway (followers are excluded from
   // `memberships_select_listed_group` except for whoever runs the Page), but a
   // read nobody renders is a read worth not making.
-  const followerCount = owns ? await countPageFollowers(supabase, shop.groupId) : 0
-  const draftTagCount =
-    owns && shop.lifecycleState === 'draft'
-      ? ((await supabase.from('page_tags').select('tag_id', { count: 'exact', head: true }).eq('group_id', shop.groupId))
-          .count ?? 0)
-      : 0
-  const tags = auth.user ? await resolvePageTags(supabase, shop.groupId) : []
-  const contact = auth.user ? await resolvePageContact(supabase, shop.groupId) : null
-  const where = auth.user ? await resolvePageWhere(supabase, shop.groupId) : null
+  const [followerCount, draftTagCount] = owns
+    ? await Promise.all([
+        countPageFollowers(supabase, shop.groupId),
+        shop.lifecycleState === 'draft'
+          ? supabase
+              .from('page_tags')
+              .select('tag_id', { count: 'exact', head: true })
+              .eq('group_id', shop.groupId)
+              .then((r) => r.count ?? 0)
+          : Promise.resolve(0),
+      ])
+    : [0, 0]
 
-  // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
-  // this the Announcements section would not render at all and an
-  // `#announcement-<id>` link from Explore would scroll to nothing. That is
-  // the dead end #211 fixed, reintroduced at a different door.
-  //
-  // A failure costs the announcements and never the Page, the rule
-  // `resolvePagePosts` already follows.
-  const withheldPosts = auth.user
-    ? []
-    : await getWithheldAnnouncements(supabase, {
-        scope: { groupId: shop.groupId },
-        period: metroWeekBounds(),
-      }).catch((error) => {
-        console.error('[loadPageView] withheld announcements failed:', (error as Error).message)
-        return [] as BrowseResult[]
-      })
-
-  // One read of metadata: the owner's components, and whether a signed-in
-  // visitor sees Products & services (#363: a component any Page can add).
-  const metadata =
-    owns || auth.user
-      ? await resolvePageMetadata(supabase, shop.groupId)
-      : null
   const contactOn = owns ? componentOn(shop.kind, metadata, 'contact') : false
   const productsOn = componentOn(shop.kind, metadata, 'products')
 
