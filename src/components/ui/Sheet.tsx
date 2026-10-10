@@ -50,10 +50,17 @@ export function Sheet({
     const first =
       panel.current?.querySelector<HTMLElement>('[data-autofocus]') ??
       panel.current?.querySelector<HTMLElement>('input:not([disabled]), textarea, select')
-    ;(first ?? panel.current?.querySelector<HTMLElement>(FOCUSABLE))?.focus()
+    // Focus after the first paint, not in it: focusing a field raised the keyboard
+    // and cost 220 ms on a mid-range phone, all of it before the sheet showed (#530).
+    let inner = 0
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => (first ?? panel.current?.querySelector<HTMLElement>(FOCUSABLE))?.focus())
+    })
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
+      cancelAnimationFrame(outer)
+      cancelAnimationFrame(inner)
       document.body.style.overflow = previous
       opener?.focus?.()
     }
