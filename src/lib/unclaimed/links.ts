@@ -11,6 +11,7 @@ export interface LinkVerdict {
 }
 
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 SocialUsLinkCheck/1.0'
+const SLOW = /TIMEOUT|ETIMEDOUT|TimeoutError|AbortError/i
 const BLOCKS_ROBOTS = new Set([401, 403, 405, 406, 429, 451, 999])
 /** Hosts that put a login or bot wall in front of every address, so only their own error pages say anything. */
 const WALLED = /(^|\.)(instagram|facebook|tiktok|x|twitter|unsplash)\.com$/i
@@ -35,8 +36,12 @@ export async function checkLink(url: string, f: Fetch = fetch): Promise<LinkVerd
       if (r.status < 500) break
     } catch (e) {
       const cause = (e as { cause?: { code?: string } }).cause?.code
+      const code = cause ?? (e as { name?: string }).name ?? ''
       last = { url, ok: false, status: null, note: cause ?? (e instanceof Error ? e.message : 'no answer') }
+      // A timeout says the site is slow or turns this network away, not that it is gone: a person may get in. Only a refusal, a bad certificate or a missing name is proof.
+      if (SLOW.test(code)) last = { url, ok: true, status: null, note: `timed out (${code}); not verified from here` }
     }
+    if (last.ok) return last
     await new Promise((res) => setTimeout(res, 1500))
   }
   return last

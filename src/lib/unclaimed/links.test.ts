@@ -15,5 +15,11 @@ describe('checkLink (#556)', () => {
     const v = await checkLink('https://a.example/', down)
     expect(v).toMatchObject({ ok: false, note: 'ERR_TLS_CERT_ALTNAME_INVALID' })
   })
+  it('does not call a slow site broken: a timeout proves nothing', async () => {
+    const slow = async () => {
+      throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'UND_ERR_CONNECT_TIMEOUT' } })
+    }
+    expect(await checkLink('https://a.example/', slow)).toMatchObject({ ok: true, status: null })
+  })
   it('refuses anything that is not http(s)', async () => expect((await checkLink('javascript:alert(1)', reply(200))).ok).toBe(false))
 })
