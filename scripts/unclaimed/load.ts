@@ -18,7 +18,7 @@ import { enrichPage, loadUnclaimed, PHOTOS_PER_PAGE, type Enrichment } from '../
 import { gatherPhotos } from '../../src/lib/unclaimed/photos'
 import { uploadPhotos } from '../../src/lib/unclaimed/upload'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
-import { readPlanned } from './rows'
+import { readLinkAllow, readPlanned } from './rows'
 
 const need = (name: string) => {
   const v = process.env[name]?.trim()
@@ -32,16 +32,19 @@ const summary = (line: string) => {
 }
 
 async function main() {
-  const { listed, skipped, files } = readPlanned()
+  const { listed, removed, skipped, files } = readPlanned()
+  const allow = new Set(readLinkAllow())
   const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[] }
   console.log(`Read ${files.join(', ')}: ${listed.length} to list, ${skipped.length} held back`)
   for (const s of skipped) console.log(`  held back: ${s.name} (${s.reason})`)
 
   // Every website, before anything is written. A broken one is a failure, not a Page to hide.
   const sites = await checkLinks(listed.map((p) => p.publicInfoUrl))
-  const dead = listed.filter((_, i) => !sites[i]!.ok)
-  for (const [i, p] of listed.entries()) if (!sites[i]!.ok) console.log(`  BROKEN website ${p.name}: ${p.publicInfoUrl} (${sites[i]!.note})`)
-  summary(`${listed.length} Pages planned, ${dead.length} with a broken website`)
+  // A hand-checked address that only fails from here at the network level (refused, timed out) is let through; a 404 never is.
+  const excused = (i: number) => allow.has(listed[i]!.publicInfoUrl) && sites[i]!.status === null
+  const dead = listed.filter((_, i) => !sites[i]!.ok && !excused(i))
+  for (const [i, p] of listed.entries()) if (!sites[i]!.ok && !excused(i)) console.log(`  BROKEN website ${p.name}: ${p.publicInfoUrl} (${sites[i]!.note})`)
+  summary(`${listed.length} Pages planned, ${removed.length} removed for a dead address, ${dead.length} with a broken website`)
   if (!process.argv.includes('--apply')) {
     console.log('Dry run: nothing written. Add --apply to write.')
     process.exitCode = dead.length ? 1 : 0
@@ -55,6 +58,20 @@ async function main() {
   const slots = new Map<string, number>()
   const seen: Record<string, number> = {}
   for (const p of listed) slots.set(p.slug, (seen[p.pool] = (seen[p.pool] ?? -1) + 1))
+
+  // A business with no working address is taken off Explore, not left linking nowhere. Only an operator restores it (#353).
+  {
+    const db = new Client({ connectionString: dbUrl })
+    await db.connect()
+    try {
+      for (const p of removed) {
+        const r = await db.query(`update public.groups set unclaimed_hidden_at = now() where unclaimed_at is not null and unclaimed_hidden_at is null and public_info_url = $1`, [p.publicInfoUrl])
+        if (r.rowCount) summary(`Removed ${p.name}: its address does not work (${p.publicInfoUrl})`)
+      }
+    } finally {
+      await db.end()
+    }
+  }
 
   const failed: { name: string; error: string }[] = []
   const tally = { created: 0, existing: 0, enriched: 0, refreshed: 0, complete: 0 }
