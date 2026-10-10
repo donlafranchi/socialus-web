@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { loadUnclaimed } from '@/lib/unclaimed/load'
+import { enrichPage, loadUnclaimed, type Enrichment } from '@/lib/unclaimed/load'
 import type { PlannedPage } from '@/lib/unclaimed/plan'
 import { SYSTEM_MEMBER_ID } from '@/lib/system-member'
 
@@ -27,6 +27,8 @@ const page = (n: string, city = 'Sacramento', county?: string): PlannedPage => (
   city,
   county,
   purpose: 'sell',
+  pool: 'Food & drink',
+  area: 'Midtown',
   sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url: `https://test-517-${n}.example/` })),
 })
 const A = page('a')
@@ -126,5 +128,64 @@ describe.skipIf(!RUNNABLE)('loadUnclaimed (#517)', () => {
     expect(r.created).toBe(0)
     expect(r.failed).toEqual([{ name: 'T517 c Roasters', error: expect.stringContaining('Nowhereville') }])
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, ['https://test-517-c.example/'])).toBe(0)
+  })
+})
+
+
+// #556 — a Page is brought up to a cover photo, pictures behind it, sample posts and a phone, once.
+describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
+  const E = page('e')
+  const photo = (n: number, own = false) => ({ url: `https://media.test-517.example/${n}.webp`, credit: own ? 'T517 e (from their website)' : 'Unsplash (stock photo, not this business)', sourceUrl: `https://test-517-e.example/${n}`, own })
+  const enrichment: Enrichment = { photos: [photo(1, true), photo(2), photo(3), photo(4)], phone: '+19165550142', social: { instagram: 'https://www.instagram.com/t517e' }, siteUrl: E.publicInfoUrl }
+  const now = new Date('2026-10-10T18:00:00Z')
+
+  it('gives the Page a credited cover, a phone, profiles and three labelled sample posts with pictures', async () => {
+    await loadUnclaimed(client, [E])
+    expect(await enrichPage(client, E, async () => enrichment, now)).toBe('enriched')
+    const g = (await client.query(`select photo_url, photo_credit, photo_source_url, contact_phone, social_links from public.groups where public_info_url = $1`, [E.publicInfoUrl])).rows[0]
+    expect(g).toMatchObject({ photo_url: photo(1).url, photo_credit: 'T517 e (from their website)', contact_phone: '+19165550142', social_links: { instagram: 'https://www.instagram.com/t517e' } })
+    const posts = (await client.query(`select p.body, p.photo_url, p.sample_kind, p.starts_at, p.ends_at from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1 order by p.sample_kind`, [E.publicInfoUrl])).rows
+    expect(posts.map((p) => p.sample_kind)).toEqual(['deal', 'event', 'last_minute'])
+    for (const p of posts) {
+      expect(p.body.startsWith('Sample ·')).toBe(true)
+      expect(p.photo_url).toMatch(/^https:\/\/media\.test-517\.example\//)
+      expect(p.ends_at.getTime()).toBeGreaterThan(now.getTime())
+    }
+    expect(new Set(posts.map((p) => p.photo_url)).size).toBe(3)
+  })
+
+  it('a second run adds nothing and does not even go looking for pictures', async () => {
+    let called = 0
+    const r = await enrichPage(client, E, async () => (called++, enrichment), now)
+    expect(r).toBe('complete')
+    expect(called).toBe(0)
+    expect(await count(`select count(*) n from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).toBe(3)
+  })
+
+  it('rolls a stale sample forward to the next day', async () => {
+    const later = new Date('2026-10-30T18:00:00Z')
+    expect(await enrichPage(client, E, async () => enrichment, later)).toBe('refreshed')
+    const row = (await client.query(`select min(ends_at) m from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).rows[0]
+    expect(row.m.getTime()).toBeGreaterThan(later.getTime())
+  })
+
+  it('a Page the loader has not made is reported missing, not invented', async () => {
+    expect(await enrichPage(client, page('nope'), async () => enrichment, now)).toBe('missing')
+  })
+
+  it('too few pictures fails the Page and writes nothing', async () => {
+    const F = page('f')
+    await loadUnclaimed(client, [F])
+    await expect(enrichPage(client, F, async () => ({ ...enrichment, photos: [photo(1)] }), now)).rejects.toThrow(/pictures/)
+    expect(await count(`select count(*) n from public.groups where public_info_url = $1 and photo_url is not null`, [F.publicInfoUrl])).toBe(0)
+  })
+
+  it('moves a Page filed under a dead address to the fixed one', async () => {
+    const G = page('g')
+    await loadUnclaimed(client, [G])
+    const fixed = { ...G, legacyUrl: G.publicInfoUrl, publicInfoUrl: 'https://test-517-g-fixed.example/' }
+    await enrichPage(client, fixed, async () => ({ ...enrichment, siteUrl: fixed.publicInfoUrl }), now)
+    expect(await count(`select count(*) n from public.groups where public_info_url = $1`, [fixed.publicInfoUrl])).toBe(1)
+    expect(await count(`select count(*) n from public.groups where public_info_url = $1`, [G.publicInfoUrl])).toBe(0)
   })
 })
