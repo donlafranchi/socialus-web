@@ -1,0 +1,6 @@
+{
+  "_why": "Answers a person from a normal connection but not from the GitHub runner (checked by hand 2026-10-10). Only a network-level failure is excused; a 404 never is.",
+  "urls": [
+    "https://canudance.com/"
+  ]
+}
