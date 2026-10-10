@@ -90,9 +90,10 @@ export function signInHref(action: GatedAction, currentPath: string): string {
   return `/auth/login?next=${encodeURIComponent(next)}`
 }
 
-/** The same, through sign-up. Sign-up and sign-in are one flow; this names it. */
+/** The same, through sign-up. Sign-up and sign-in are one flow, so this is the sign-in address:
+ *  /auth/signup only forwarded to it, and the forward cost a server round trip (#531). */
 export function signUpHref(action: GatedAction, currentPath: string): string {
-  return signInHref(action, currentPath).replace('/auth/login', '/auth/signup')
+  return signInHref(action, currentPath)
 }
 
 /** The intent carried back from sign-in, if it names a real gated action. */

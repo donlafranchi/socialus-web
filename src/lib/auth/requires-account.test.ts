@@ -76,3 +76,12 @@ describe('what it deliberately is not', () => {
     expect(all).not.toMatch(/\b(verify|verified|verification|real name|legal name|prove who)\b/i)
   })
 })
+
+// #531 — sign-up is sign-in: the link goes straight to the one flow instead of through the /auth/signup forwarder.
+import { signUpHref as _signUpHref, signInHref as _signInHref } from './requires-account'
+describe('signUpHref (#531)', () => {
+  it('is the sign-in address, with no forwarding hop', () => {
+    expect(_signUpHref('follow' as never, '/g/abc123')).toBe(_signInHref('follow' as never, '/g/abc123'))
+    expect(_signUpHref('follow' as never, '/g/abc123')).not.toContain('/auth/signup')
+  })
+})

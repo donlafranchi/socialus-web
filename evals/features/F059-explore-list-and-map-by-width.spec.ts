@@ -33,6 +33,6 @@ test.describe('F059 — list and map by width', () => {
     await expect(page.getByRole('button', { name: 'Hide map' })).toHaveCount(0)
     await page.getByTestId('explore-dock-toggle').click()
     await page.getByTestId('view-pill').click()
-    await expect(page.getByTestId('sign-in-prompt-continue')).toHaveAttribute('href', /\/auth\/signup/)
+    await expect(page.getByTestId('sign-in-prompt-continue')).toHaveAttribute('href', /\/auth\/login/)
   })
 })

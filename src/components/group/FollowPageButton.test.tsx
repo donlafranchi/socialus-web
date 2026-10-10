@@ -113,7 +113,9 @@ describe('signed out', () => {
     expect(screen.getByRole('dialog', { name: /sign up to follow/i })).toBeInTheDocument()
     const cta = screen.getByTestId('sign-in-prompt-continue')
     expect(cta).toHaveTextContent('Sign up')
-    expect(cta).toHaveAttribute('href', expect.stringContaining('/auth/signup'))
+    // #531 — straight to the one flow; /auth/signup only forwards there, and a hop costs a server round trip.
+    expect(cta).toHaveAttribute('href', expect.stringContaining('/auth/login'))
+    expect(cta.getAttribute('href')).not.toContain('/auth/signup')
   })
 
   it('comes back to the Page afterwards', () => {
