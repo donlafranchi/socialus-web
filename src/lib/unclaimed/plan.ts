@@ -13,15 +13,35 @@ export interface MakerRow {
 
 export type SkipReason = 'personal-care' | 'no-site'
 
+/** A row of scripts/unclaimed/listings.json (the first researched listings; one more field set than a maker row). */
+export interface ListingRow {
+  key: string
+  name: string
+  purpose: 'sell' | 'service' | 'creative' | 'gather'
+  town: string
+  neighbourhood?: string | null
+  website: string
+  social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
+  description: string
+  sources?: { field: string; url: string }[]
+}
+
 export interface PlannedPage {
   name: string
   slug: string
   description: string
   publicInfoUrl: string
+  /** Where a link fix moved it from: the address an existing Page was filed under. */
+  legacyUrl?: string
   city: string
   /** From "Town (County)"; the place to fall back on when the town is not in `places`. */
   county?: string
-  purpose: 'sell' | 'offer'
+  purpose: 'sell' | 'offer' | 'create' | 'gather'
+  /** The stock-photo pool and sample-post voice for this kind of business (src/lib/unclaimed/stock.ts). */
+  pool: string
+  /** Shown beside the town in a sample post ("Midtown", "Davis"). */
+  area: string
+  social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
 }
 
@@ -54,6 +74,51 @@ function describe(row: MakerRow): string {
   return `${row.name}: ${lower}, in ${row.area.trim()}. ${CLAIM_LINE}`
 }
 
+const POOL_BY_CATEGORY: [RegExp, string][] = [
+  [/farm stay|agritourism/i, 'Farm stay & agritourism'],
+  [/ranch/i, 'Ranch'],
+  [/^farm/i, 'Farm'],
+  [/cake|bakery/i, 'Cakes & bakery'],
+  [/food|drink/i, 'Food & drink'],
+  [/repair|trade/i, 'Repair & trades'],
+  [/art|print/i, 'Art & print'],
+  [/goods|craft/i, 'Goods & crafts'],
+]
+export const poolFor = (category: string): string => POOL_BY_CATEGORY.find(([re]) => re.test(category))?.[1] ?? 'Local business'
+
+/** Listings carry no category: read the pool from what the business says it is. */
+const POOL_BY_WORDS: [RegExp, string][] = [
+  [/farmers.? market|grocery|co-?op\b|produce|harvest/i, 'Farm'],
+  [/book|shop\b|store\b/i, 'Local business'],
+  [/brew|alehouse|coffee|cafe|café|tea|grocery|food|market|kitchen|restaurant|deli|pizza|taproom|winery|wine/i, 'Food & drink'],
+  [/bake|bread|cake|pastr/i, 'Cakes & bakery'],
+  [/bike|bicycle|repair|sewing|vacuum|tool|hardware|auto|plumb|electric/i, 'Repair & trades'],
+  [/art|gallery|print|studio|theat|music|craft|book|creative/i, 'Art & print'],
+  [/farm|ranch|orchard|nursery|garden/i, 'Farm'],
+]
+const poolForListing = (r: ListingRow) => POOL_BY_WORDS.find(([re]) => re.test(`${r.name} ${r.description}`))?.[1] ?? 'Local business'
+
+const LISTING_PURPOSE: Record<ListingRow['purpose'], PlannedPage['purpose']> = { sell: 'sell', service: 'offer', creative: 'create', gather: 'gather' }
+
+export function planListings(rows: ListingRow[]): PlannedPage[] {
+  return rows.map((row): PlannedPage => {
+    const url = https(row.website.trim())
+    const description = row.description.includes(CLAIM_LINE) ? row.description : `${row.description.trim()} ${CLAIM_LINE}`
+    return {
+      name: row.name,
+      slug: `${toSlug(row.name)}-${tag(url)}`,
+      description,
+      publicInfoUrl: url,
+      city: row.town,
+      purpose: LISTING_PURPOSE[row.purpose],
+      pool: poolForListing(row),
+      area: row.neighbourhood?.trim() || row.town,
+      ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
+      sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
+    }
+  })
+}
+
 export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: { name: string; reason: SkipReason }[] } {
   const skipped: { name: string; reason: SkipReason }[] = []
   const keep: { row: MakerRow; rank: number; nonprofit: boolean }[] = []
@@ -73,6 +138,8 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       publicInfoUrl: url,
       ...placeOf(row.area),
       purpose: /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
+      pool: poolFor(row.category),
+      area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
     }
   })

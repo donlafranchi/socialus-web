@@ -70,3 +70,20 @@ describe('planMakers (#517)', () => {
     expect(p.listed.every((x) => x.publicInfoUrl.startsWith('https://'))).toBe(true)
   })
 })
+
+describe('every planned Page can be given pictures (#556)', () => {
+  it('has a stock pool with enough pictures behind it, so a business whose own site gives none still gets a cover and a gallery', async () => {
+    const { readPlanned } = await import('../../../scripts/unclaimed/rows')
+    const { stockPools } = await import('./photos')
+    const { listed } = readPlanned()
+    expect(listed.length).toBeGreaterThan(100)
+    for (const p of listed) {
+      expect(stockPools[p.pool], `${p.name}: pool ${p.pool}`).toBeDefined()
+      expect(stockPools[p.pool]!.length).toBeGreaterThanOrEqual(8)
+    }
+  })
+  it('files every Page under an https address', async () => {
+    const { readPlanned } = await import('../../../scripts/unclaimed/rows')
+    for (const p of readPlanned().listed) expect(p.publicInfoUrl, p.name).toMatch(/^https:\/\//)
+  })
+})

@@ -1,6 +1,7 @@
 name: Unclaimed Pages load
 
-# #517 — put the researched Sacramento makers on Explore as unclaimed Pages.
+# #517, #556 — put the researched local businesses on Explore as unclaimed Pages, each with
+# a cover photo and gallery pictures, labelled sample posts, and links that work.
 # MANUAL ONLY, and a dry run unless "write" is ticked: nothing writes to
 # socialus-db without a person choosing to. Idempotent: run it twice, it creates
 # nothing the second time, and never brings back a Page someone asked to remove.
@@ -25,7 +26,7 @@ jobs:
   load:
     name: Load unclaimed Pages
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -44,13 +45,36 @@ jobs:
           echo "::add-mask::$url"
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
+      - uses: supabase/setup-cli@v2
+        if: inputs.write
+        with:
+          version: 2.117.0
+
+      # Pictures go through the Storage API, which needs the service role key (same step as Builder content).
+      - name: Fetch the service role key
+        id: keys
+        if: inputs.write
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          key="$(supabase projects api-keys --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          [ -n "$key" ] || { echo "::error::Could not read the service role key."; exit 1; }
+          echo "::add-mask::$key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+
       - name: Load
         env:
           DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.key }}
+          APP_BASE_URL: https://www.socialus.org
           WRITE: ${{ inputs.write }}
+        # The script writes its own summary lines; a failed Page or a broken link fails this step.
         run: |
+          set -o pipefail
           if [ "$WRITE" = "true" ]; then
-            npx tsx scripts/unclaimed/load.ts --apply | tee -a "$GITHUB_STEP_SUMMARY"
+            npx tsx scripts/unclaimed/load.ts --apply | tee load.log
           else
-            npx tsx scripts/unclaimed/load.ts | tee -a "$GITHUB_STEP_SUMMARY"
+            npx tsx scripts/unclaimed/load.ts | tee load.log
           fi
