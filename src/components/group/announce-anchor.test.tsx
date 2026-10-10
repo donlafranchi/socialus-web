@@ -13,7 +13,7 @@
 // both ends wrong in the same way.
 
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { OwnerBar } from './OwnerBar'
 import { PagePosts } from './PagePosts'
@@ -73,5 +73,30 @@ describe('the Announce button', () => {
     expect(target).not.toBeNull()
     expect(target).toContainElement(await screen.findByTestId('page-post-body'))
     window.history.replaceState(null, '', '/')
+  })
+
+  it('opens the composer when tapped on the Page itself, where the fragment change fires no hashchange (#547)', async () => {
+    window.history.replaceState(null, '', '/g/x-abc123')
+    render(<OwnerBar pagePath="/g/x-abc123" />)
+    render(
+      <PagePosts
+        groupId="g1"
+        posts={[]}
+        canPost
+        followerCount={0}
+        onPost={vi.fn(async () => ({ ok: true as const, data: { postId: 'p', createdAt: '' } }))}
+        onEdit={vi.fn(async () => ({ ok: true as const, data: { postId: 'p' } }))}
+        onCreateLocation={vi.fn(async () => ({ ok: true as const, data: { id: 'l', label: 'x' } }))}
+      />,
+    )
+    expect(screen.queryByTestId('page-post-body')).toBeNull()
+    const link = screen.getByTestId('owner-announce')
+    // What next/link does on a same-page fragment: no browser navigation, so no hashchange.
+    link.addEventListener('click', (e) => {
+      e.preventDefault()
+      window.history.pushState(null, '', link.getAttribute('href'))
+    })
+    fireEvent.click(link)
+    expect(await screen.findByTestId('page-post-body')).toBeInTheDocument()
   })
 })

@@ -104,6 +104,7 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     if (step.back) await page.evaluate(() => { (window as unknown as { __tapStart: () => void }).__tapStart(); history.back() })
     else {
       const target = step.tap(page)
+      if (step.optional && (await target.count()) === 0) return { name: step.name, kind: step.kind, expectsUrl: step.expectsUrl, feedbackMs: null, urlMs: null, readyMs: null, mode, longTaskMs: 0, requests: 0, waterfall: 0, slowReqs: [], prefetched: null, finalPath: '', flags: [], note: SKIPPED }
       await target.waitFor({ state: 'visible', timeout: 15_000 })
       await target.tap({ timeout: 10_000 })
     }
@@ -131,6 +132,8 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
   }
 }
 
+const SKIPPED = 'skipped: not on this account'
+
 test.setTimeout(180_000)
 
 for (const step of STEPS) {
@@ -147,6 +150,7 @@ for (const step of STEPS) {
         await c.close()
       }
       let row = await measure(browser, step, mode, from)
+      test.skip(row.note === SKIPPED, SKIPPED)
       let v = verdict({ ...row, mode }, BUDGETS, BASELINE, { regressionBinds: REGRESSION_BINDS })
       // One bad reading is not a finding: a red one is measured twice more and the middle reading is used.
       if (v.status === 'red' && !row.note) {

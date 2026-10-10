@@ -231,8 +231,18 @@ export function PagePosts({
       if (window.location.hash === `#${ANNOUNCE_ANCHOR}`) requestAnimationFrame(() => setComposing(true))
     }
     open()
+    // A tap on the Announce link while already on the Page changes the fragment with
+    // pushState, which fires no hashchange: the tap itself has to open the form (#547).
+    const tapped = (e: MouseEvent) => {
+      const link = (e.target as Element | null)?.closest?.('a')
+      if (link?.getAttribute('href')?.endsWith(`#${ANNOUNCE_ANCHOR}`)) requestAnimationFrame(() => setComposing(true))
+    }
     window.addEventListener('hashchange', open)
-    return () => window.removeEventListener('hashchange', open)
+    document.addEventListener('click', tapped)
+    return () => {
+      window.removeEventListener('hashchange', open)
+      document.removeEventListener('click', tapped)
+    }
   }, [canPost])
 
   // A visitor looking at a Page with nothing on it sees no empty section. The
