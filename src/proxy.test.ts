@@ -25,6 +25,7 @@ function request(path = '/you', method = 'GET'): NextRequest {
   return {
     cookies: {
       getAll: () => [...cookies.values()],
+      get: (name: string) => cookies.get(name),
       set: (name: string, value: string) => cookies.set(name, { name, value }),
     },
     method,
@@ -45,6 +46,26 @@ describe('proxy — a stale session must not 500 the request', () => {
     const res = await proxy(request())
     expect(res).toBeDefined()
     expect(res.status).toBe(200)
+  })
+
+  // #557 — the seed behind Explore's order: a session cookie (no max-age), minted once.
+  it('mints a session-only shuffle seed, and a new one when the visitor signs in', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null })
+    const out = await proxy(request())
+    const anon = out.cookies.get('su_seed')
+    expect(anon?.value).toMatch(/^a\.[0-9a-z]{16}$/)
+    expect(anon?.maxAge).toBeUndefined()
+    expect(anon?.expires).toBeUndefined()
+
+    getUser.mockResolvedValue({ data: { user: { id: 'm1' } }, error: null })
+    const req = request()
+    req.cookies.set('su_seed', anon!.value)
+    const signedIn = await proxy(req)
+    expect(signedIn.cookies.get('su_seed')?.value).toMatch(/^m\./)
+
+    const again = request()
+    again.cookies.set('su_seed', signedIn.cookies.get('su_seed')!.value)
+    expect((await proxy(again)).cookies.get('su_seed')).toBeUndefined()
   })
 
   it('serves the request when getUser returns an auth error rather than throwing', async () => {

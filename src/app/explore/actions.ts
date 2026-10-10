@@ -20,11 +20,11 @@ import { memberDefaultMetroSet } from '@/actions'
 import { METRO_COOKIE, METRO_COOKIE_MAX_AGE } from '@/lib/browse/remembered-metro'
 import { withTransaction } from '@/actions/_lib/db'
 import { searchNeighborhoods } from '@/lib/places/neighborhood-search'
-import { loadBrowse, loadMemberMap, type BrowseSnapshot } from './load'
+import { loadBrowse, loadMemberMap, readSessionSeed, type BrowseSnapshot } from './load'
 import type { MixedResult } from '@/lib/map/mix'
 
 export async function browseFeedAction(metroSlug: string | null, areaId: string | null = null): Promise<BrowseSnapshot> {
-  const snapshot = await loadBrowse(metroSlug, areaId, { withMap: false })
+  const snapshot = await loadBrowse(metroSlug, areaId, { withMap: false, seed: await readSessionSeed() })
   if (metroSlug && snapshot.metro?.slug === metroSlug) {
     try {
       ;(await cookies()).set(METRO_COOKIE, metroSlug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })

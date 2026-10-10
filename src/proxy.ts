@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { needsPhoneVerification } from '@/lib/auth/phone'
+import { resolveSeedCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 
 /** The shapes Supabase uses for "this session cookie is no longer good". */
 function isStaleSession(message: string): boolean {
@@ -85,6 +86,21 @@ export async function proxy(request: NextRequest) {
     const redirect = NextResponse.redirect(new URL('/onboarding', request.url))
     response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
     return redirect
+  }
+
+  // #557 — the session seed behind Explore's order. A session cookie (no max-age):
+  // it dies with the browser session, holds no personal data, and is re-minted when
+  // signed-in state flips, so each sign-in leads with different content.
+  if (request.method === 'GET') {
+    const seed = resolveSeedCookie(request.cookies.get(SEED_COOKIE)?.value, Boolean(user))
+    if (seed.minted) {
+      // Rebuilt from the updated request so this render reads the new seed too.
+      const carried = response.cookies.getAll()
+      request.cookies.set(SEED_COOKIE, seed.value)
+      response = NextResponse.next({ request })
+      carried.forEach((c) => response.cookies.set(c))
+      response.cookies.set(SEED_COOKIE, seed.value, { path: '/', sameSite: 'lax', httpOnly: true })
+    }
   }
 
   return response

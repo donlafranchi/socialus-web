@@ -48,6 +48,7 @@ import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
 import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
+import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { loadMapMix } from '@/lib/map/load-mix'
 import { withLocationKinds } from '@/lib/map/location-kinds'
 import type { MixedResult } from '@/lib/map/mix'
@@ -66,7 +67,8 @@ export async function loadBrowse(
   areaId: string | null = null,
   // #549 — the page and the refetch leave the map to its own read (`loadMap`): it is a
   // three-round chain nothing on the list waits for, and a phone does not show it first.
-  { withMap = true }: { withMap?: boolean } = {},
+  // #557 — the session seed: same seed, same order; a new sign-in brings a new one.
+  { withMap = true, seed = null }: { withMap?: boolean; seed?: string | null } = {},
 ): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
@@ -161,7 +163,11 @@ export async function loadBrowse(
       ...base,
       happening: await happeningPromise,
       map: await mapPromise,
-      results: mergeByRecency(results, withheld),
+      results: sessionShuffle(mergeByRecency(results, withheld), seed, {
+        id: (r) => `${r.resultKind}:${r.resultId}`,
+        at: (r) => r.sortAt,
+        now: new Date(),
+      }),
       following,
       metro: scope.metro,
       area,
@@ -320,6 +326,15 @@ async function memberMetros(
     .maybeSingle()
   const row = data as { home_metro_id: string | null; default_metro_id?: string | null } | null
   return { home: row?.home_metro_id ?? null, default: row?.default_metro_id ?? null }
+}
+
+/** #557 — this session's shuffle seed (set by the proxy), or null when there is none. */
+export async function readSessionSeed(): Promise<string | null> {
+  try {
+    return seedFromCookie((await cookies()).get(SEED_COOKIE)?.value)
+  } catch {
+    return null
+  }
 }
 
 /** Signed-out visitors: the last metro they picked here. A missing cookie store is not an error. */

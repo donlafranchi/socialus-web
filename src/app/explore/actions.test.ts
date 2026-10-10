@@ -15,7 +15,7 @@ const { loadBrowse, getUser, from, cookieSet, update, setDefault } = vi.hoisted(
 const { searchNeighborhoods } = vi.hoisted(() => ({ searchNeighborhoods: vi.fn() }))
 vi.mock('@/lib/places/neighborhood-search', () => ({ searchNeighborhoods }))
 vi.mock('@/actions/_lib/db', () => ({ withTransaction: async (fn: (c: unknown) => unknown) => fn({}) }))
-vi.mock('./load', () => ({ loadBrowse }))
+vi.mock('./load', () => ({ loadBrowse, readSessionSeed: async () => 'seed' }))
 vi.mock('@/actions', () => ({ memberDefaultMetroSet: setDefault }))
 vi.mock('@/lib/action-context', () => ({ resolveActionContext: (o: unknown) => o }))
 vi.mock('next/headers', () => ({ cookies: async () => ({ set: cookieSet }) }))
