@@ -1,6 +1,6 @@
 // #297 — one sheet: a bottom sheet on phone, a centred dialog from 744.
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { Sheet } from './Sheet'
 
@@ -39,24 +39,32 @@ describe('#297 — Sheet', () => {
     expect(panel.className).toMatch(/md:max-w-form/)
   })
 
-  it('moves focus in, and closes on Escape and on the backdrop', () => {
+  it('opens first and moves focus in after the first paint (#530: focusing a field cost 220 ms on a phone before anything showed)', async () => {
+    open()
+    // Not in the same turn as the open: the sheet is on screen before the field takes focus.
+    expect(screen.getByLabelText('first')).not.toHaveFocus()
+    await waitFor(() => expect(screen.getByLabelText('first')).toHaveFocus())
+  })
+
+  it('closes on Escape and on the backdrop', async () => {
     const onClose = vi.fn()
     open({ onClose })
-    expect(screen.getByLabelText('first')).toHaveFocus()
+    await waitFor(() => expect(screen.getByLabelText('first')).toHaveFocus())
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     fireEvent.click(screen.getByTestId('filters-backdrop'))
     expect(onClose).toHaveBeenCalledTimes(2)
   })
 
-  it('keeps Tab inside', () => {
+  it('keeps Tab inside', async () => {
     open()
+    await waitFor(() => expect(screen.getByLabelText('first')).toHaveFocus())
     const close = screen.getByRole('button', { name: 'Close' })
     screen.getByRole('button', { name: 'last' }).focus()
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' })
     expect(close).toHaveFocus()
   })
 
-  it('returns focus to what opened it', () => {
+  it('returns focus to what opened it', async () => {
     const ui = (isOpen: boolean) => (
       <>
         <button type="button">opener</button>
@@ -68,7 +76,7 @@ describe('#297 — Sheet', () => {
     const { rerender } = render(ui(false))
     screen.getByRole('button', { name: 'opener' }).focus()
     rerender(ui(true))
-    expect(screen.getByLabelText('first')).toHaveFocus()
+    await waitFor(() => expect(screen.getByLabelText('first')).toHaveFocus())
     rerender(ui(false))
     expect(screen.getByRole('button', { name: 'opener' })).toHaveFocus()
   })

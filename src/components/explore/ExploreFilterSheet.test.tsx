@@ -8,7 +8,7 @@
 // either would pass a test suite that only checked what remains.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, within, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { ExploreFilterSheet } from './ExploreFilterSheet'
 import { DEFAULT_BROWSE_FILTERS, type BrowseFilters } from '@/lib/browse/filters'
@@ -157,13 +157,14 @@ describe('T115 — the sheet is an accessible dialog', () => {
     expect(sheet()).toHaveAccessibleName('Filters')
   })
 
-  it('moves focus into the sheet on open', () => {
+  it('moves focus into the sheet on open (after the first paint, #530)', async () => {
     renderSheet()
-    expect(sheet().contains(document.activeElement)).toBe(true)
+    await waitFor(() => expect(sheet().contains(document.activeElement)).toBe(true))
   })
 
-  it('traps Tab inside the sheet', () => {
+  it('traps Tab inside the sheet', async () => {
     renderSheet()
+    await waitFor(() => expect(sheet().contains(document.activeElement)).toBe(true))
     const focusables = within(sheet()).getAllByRole('button')
     const last = focusables[focusables.length - 1]
     last.focus()
@@ -180,12 +181,12 @@ describe('T115 — the sheet is an accessible dialog', () => {
     expect(sheet().contains(document.activeElement)).toBe(true)
   })
 
-  it('restores focus to the trigger when it closes', () => {
+  it('restores focus to the trigger when it closes', async () => {
     const trigger = document.createElement('button')
     document.body.appendChild(trigger)
     trigger.focus()
     const { rerender } = renderSheet()
-    expect(document.activeElement).not.toBe(trigger)
+    await waitFor(() => expect(document.activeElement).not.toBe(trigger))
     rerender(<ExploreFilterSheet {...props({ open: false })} />)
     expect(document.activeElement).toBe(trigger)
     trigger.remove()

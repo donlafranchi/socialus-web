@@ -111,10 +111,11 @@ describe('the report sheet', () => {
     })
   })
 
-  it('traps Tab inside the sheet', () => {
+  it('traps Tab inside the sheet', async () => {
     renderControl()
     openSheet()
     const dialog = screen.getByRole('dialog')
+    await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
     const focusable = Array.from(
       dialog.querySelectorAll<HTMLElement>('button, textarea, [href]'),
     )
