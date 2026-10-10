@@ -13,3 +13,5 @@ Tests: site-scrape, photos (synthetic pictures), samples, links, plan (every Pag
 **First live run (2026-10-10), two links failed from the CI runner.** Smith Gallery's own site answers on plain http only (no https, no profile to cite), and `public_info_url` must be https, so its Page is removed (`link-fixes.json` null; the loader hides it, an operator can restore). Encore! Studio's site loads for a person but times out from the runner: `link-allow.json` lets a hand-checked address through on a network-level failure only, never on a 404.
 
 A connect timeout from the CI runner is no longer a broken link (three different sites timed out on three runs, all fine from a normal connection); a refusal, a bad certificate, a missing name or a 404 still is.
+
+A Page whose address was fixed is found under the new address on a later run (Fog Willow Farms failed with a duplicate slug on the third run; the test fails without the fix).

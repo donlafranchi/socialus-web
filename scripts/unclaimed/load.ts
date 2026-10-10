@@ -101,7 +101,7 @@ async function main() {
           const p = listed[next++]!
           try {
             // Creation files a Page under the address it was first listed at; enrichment then moves it to a fixed one.
-            const made = await loadUnclaimed(db, [{ ...p, publicInfoUrl: p.legacyUrl ?? p.publicInfoUrl }])
+            const made = await loadUnclaimed(db, [p])
             if (made.failed.length) throw new Error(made.failed[0]!.error)
             tally.created += made.created
             tally.existing += made.existing
