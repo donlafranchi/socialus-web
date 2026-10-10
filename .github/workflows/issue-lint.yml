@@ -59,7 +59,8 @@ jobs:
               if (!kindMatch) problems.push("missing `Kind:` (scenario|change|bug|chore)");
               if (!scenarioMatch) problems.push("missing `Scenario:` (F### or none)");
               const kind = kindMatch?.[1]?.toLowerCase();
-              if (kind && kind !== "scenario" && /- \[[ x]\]/i.test(body)) {
+              const isUat = (context.payload.issue?.labels || []).some((l) => l.name === "uat"); // a UAT Issue is a checklist by design
+              if (!isUat && kind && kind !== "scenario" && /- \[[ x]\]/i.test(body)) {
                 problems.push("has acceptance checkboxes but is kind `" + kind + "` — that's a scenario");
               }
             } else {
