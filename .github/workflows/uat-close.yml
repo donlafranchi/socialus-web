@@ -1,0 +1,44 @@
+name: uat-close
+# The PM closes a `uat` Issue after looking. Closing is the review: every box ticked marks
+# each #N it names `pm-reviewed` (the dashboard's "PM looked" column reads that label);
+# otherwise the Issue gets `found-by-pm` and a comment, and the record-pm-review skill files the bugs.
+on:
+  issues:
+    types: [closed]
+
+# Issue labels and comments only. Naming any permission drops the rest to none.
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  uat:
+    if: contains(github.event.issue.labels.*.name, 'uat') && github.event.issue.state_reason == 'completed'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: scripts
+      - name: Self-test
+        run: node scripts/uat-close.cjs --self-test
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const { parse } = require(`${process.env.GITHUB_WORKSPACE}/scripts/uat-close.cjs`);
+            const { owner, repo } = context.repo;
+            const num = context.payload.issue.number;
+            const r = parse(context.payload.issue.body, num);
+            if (!r.reviewed) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: ['found-by-pm'] });
+              const why = r.total === 0 ? 'it has no checkboxes' : `${r.unchecked} of ${r.total} boxes are not ticked`;
+              await github.rest.issues.createComment({ owner, repo, issue_number: num, body: `Closed, but ${why}, so nothing was marked reviewed. Run record-pm-review to file the bugs.` });
+              return;
+            }
+            const done = [];
+            for (const n of r.linked) {
+              try {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: n, labels: ['pm-reviewed'] });
+                done.push(`#${n}`);
+              } catch (e) { core.warning(`#${n}: ${e.message}`); }
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number: num, body: `All ${r.total} boxes ticked. Marked pm-reviewed: ${done.join(' ') || 'nothing linked'}.` });
