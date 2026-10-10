@@ -68,7 +68,8 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
   for (const p of pages) {
     await db.query('begin')
     try {
-      const had = await db.query(`select 1 from public.groups where unclaimed_at is not null and public_info_url = $1`, [p.publicInfoUrl])
+      // A Page whose address was fixed is filed under the new one; a first run files it under the old.
+      const had = await db.query(`select 1 from public.groups where unclaimed_at is not null and public_info_url = any($1::text[])`, [[p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])]])
       if (had.rows.length) {
         await db.query('rollback')
         result.existing++
@@ -78,7 +79,7 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
       const g = await db.query(
         `insert into public.groups (kind, purpose, founder_member_id, name, slug, description, lifecycle_state, discoverability, anchor_location_id, unclaimed_at, public_info_url)
          values ('business', $1, $2, $3, $4, $5, 'active', 'listed', $6, now(), $7) returning id`,
-        [p.purpose, SYSTEM_MEMBER_ID, p.name, p.slug, p.description, locationId, p.publicInfoUrl],
+        [p.purpose, SYSTEM_MEMBER_ID, p.name, p.slug, p.description, locationId, p.legacyUrl ?? p.publicInfoUrl],
       )
       const id = g.rows[0]!.id as string
       await db.query(`insert into public.group_businesses (group_id, display_name, public_description) values ($1, $2, $3)`, [id, p.name, p.description])

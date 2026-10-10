@@ -187,5 +187,7 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     await enrichPage(client, fixed, async () => ({ ...enrichment, siteUrl: fixed.publicInfoUrl }), now)
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, [fixed.publicInfoUrl])).toBe(1)
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, [G.publicInfoUrl])).toBe(0)
+    // A later run still finds it under the new address and makes no second one (a duplicate slug used to fail here).
+    expect(await loadUnclaimed(client, [fixed])).toMatchObject({ created: 0, existing: 1, failed: [] })
   })
 })
