@@ -79,26 +79,6 @@
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Page: share (member)": {
-    "kind": "consumer",
-    "feedbackMs": 100,
-    "readyMs": 1000
-  },
-  "You → Following tab": {
-    "kind": "consumer",
-    "feedbackMs": 100,
-    "readyMs": 1000
-  },
-  "You → Saved tab": {
-    "kind": "consumer",
-    "feedbackMs": 100,
-    "readyMs": 1000
-  },
-  "You → Settings tab": {
-    "kind": "consumer",
-    "feedbackMs": 100,
-    "readyMs": 1000
-  },
   "Bottom nav → Explore": {
     "kind": "consumer",
     "feedbackMs": 100,
@@ -128,5 +108,10 @@
     "kind": "creator",
     "feedbackMs": 250,
     "readyMs": 2500
+  },
+  "You → Following list": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
   }
 }
