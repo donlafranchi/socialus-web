@@ -222,7 +222,7 @@ describe('#334 — signed out: list only, Map opens sign-up', () => {
     fireEvent.click(screen.getByTestId('view-pill'))
     const sheet = screen.getByTestId('sign-in-prompt')
     expect(sheet).toBeInTheDocument()
-    expect(screen.getByTestId('sign-in-prompt-continue').getAttribute('href')).toMatch(/^\/auth\/signup\?next=/)
+    expect(screen.getByTestId('sign-in-prompt-continue').getAttribute('href')).toMatch(/^\/auth\/login\?next=/)
     expect(screen.queryByTestId('browse-map')).toBeNull()
   })
 
