@@ -105,7 +105,7 @@ export const groupDelete = defineHandler(
         throw new ValidationError(`group.delete: group ${input.groupId} is ${row.lifecycle_state} and cannot be deleted`)
       }
       if (input.confirmName !== row.name) {
-        throw new ValidationError('group.delete: the name typed does not match the Page name')
+        throw new ValidationError("That doesn't match the Page name. Mind checking it?")
       }
       const now = ctx.now()
       const deleteAfter = removalDateFrom(now)

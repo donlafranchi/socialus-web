@@ -98,7 +98,7 @@ export function SellCta({
           setLocations(
             (data as { id: string; label: string | null }[]).slice(0, 20).map((r) => ({
               id: r.id,
-              label: r.label ?? 'Untitled Location',
+              label: r.label ?? 'Untitled place',
             })),
           )
         }

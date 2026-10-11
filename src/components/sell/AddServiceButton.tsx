@@ -41,7 +41,7 @@ export function AddServiceButton({
   )
 
   const availableLocations: PickupLocationOption[] = anchorLocationId
-    ? [{ id: anchorLocationId, label: anchorLocationLabel ?? `${groupName} (anchor)` }]
+    ? [{ id: anchorLocationId, label: anchorLocationLabel ?? groupName }]
     : []
 
   return (

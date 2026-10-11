@@ -178,7 +178,7 @@ function Visit({
           />
           <Typeahead<NeighborhoodMatch>
             key={`area-${picks.address}`}
-            label="Or type a neighbourhood"
+            label="Or type a neighborhood"
             placeholder="Curtis Park, Midtown…"
             minChars={2}
             search={async (q) => {
@@ -250,12 +250,12 @@ function Visit({
         />
       </label>
       <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
-        <span className="text-sm text-[var(--color-fg)]">Show only my neighbourhood</span>
+        <span className="text-sm text-[var(--color-fg)]">Show only my neighborhood</span>
         <button
           type="button"
           role="switch"
           aria-checked={value.areaOnly}
-          aria-label="Show only my neighbourhood"
+          aria-label="Show only my neighborhood"
           onClick={() => set({ areaOnly: !value.areaOnly })}
           className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
             value.areaOnly ? 'bg-[var(--color-charcoal-700)]' : 'bg-[var(--color-border)]'
@@ -266,7 +266,7 @@ function Visit({
       </label>
       {value.areaOnly && (
         <p className="text-caption text-[var(--color-fg-muted)]">
-          {value.area ? `Visitors see ${value.area.name}, with its pin at the centre, not your address.` : 'Set your pin first, and visitors see only its neighbourhood.'}
+          {value.area ? `Visitors see ${value.area.name}, with its pin at the center, not your address.` : 'Set your pin first, and visitors see only its neighborhood.'}
         </p>
       )}
     </div>

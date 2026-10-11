@@ -106,7 +106,7 @@ export function PageSettings({ groupId, pagePath, name, lifecycleState, onArchiv
         title="Delete this Page?"
         onClose={() => setSheetOpen(false)}
         testId="delete-page-sheet"
-        description={`${name} and its posts disappear for everyone right away. You can restore it from You until ${formatRemovalDate(removalDateFrom(now()))}. After that, it's gone for good.`}
+        description={`${name} and its posts disappear for everyone right away. You can restore it from You until ${formatRemovalDate(removalDateFrom(now()))}. After that, it can't be restored.`}
         footer={
           <Button
             variant="danger"

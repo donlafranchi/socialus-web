@@ -127,12 +127,12 @@ export function LocationPlaceFields({
       if (merged.length === 0) {
         setAddressError(
           addressUnavailable
-            ? 'Address search is unavailable right now. Try a city or a neighbourhood.'
-            : "We couldn't find that. Try a city or a neighbourhood instead.",
+            ? 'Address search is unavailable right now. Try a city or a neighborhood.'
+            : "We couldn't find that. Try a city or a neighborhood instead.",
         )
       } else if (addressUnavailable) {
         // Places still came back, so this is a note rather than a failure.
-        setAddressError('Address search is unavailable right now, so these are cities and neighbourhoods.')
+        setAddressError('Address search is unavailable right now, so these are cities and neighborhoods.')
       }
       setSearching(false)
     }, 300)
@@ -173,7 +173,7 @@ export function LocationPlaceFields({
           </label>
           {/* nouns.md: the field says the address is public before anyone types. */}
           <p id={`${idPrefix}-address-hint`} className="text-caption text-[var(--color-fg-muted)]">
-            Signed-in visitors see this address. Rather not? Give a neighbourhood instead.
+            Signed-in visitors see this address. Rather not? Give a neighborhood instead.
           </p>
           <div className="relative">
             <input
@@ -185,7 +185,7 @@ export function LocationPlaceFields({
               aria-describedby={`${idPrefix}-address-hint${addressError ? ` ${idPrefix}-address-error` : ''}`}
               aria-autocomplete="list"
               className="input mt-1 w-full"
-              placeholder="A street, a city, or a neighbourhood"
+              placeholder="A street, a city, or a neighborhood"
               value={state.addressQuery}
               onChange={(e) => handleAddressQueryChange(e.target.value)}
               autoComplete="off"
@@ -265,7 +265,7 @@ export function LocationPlaceFields({
             className="mt-1 flex min-h-tap items-center text-sm text-[var(--color-accent)] underline"
             onClick={() => setState({ ...state, mode: 'neighbourhood' })}
           >
-            Rather give a neighbourhood?
+            Rather give a neighborhood?
           </button>
         </div>
       ) : (
@@ -320,7 +320,7 @@ function NeighbourhoodPicker({
   return (
     <div className="flex flex-col gap-2">
       <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-[var(--color-fg)]">Neighbourhood or town</span>
+        <span className="text-sm font-medium text-[var(--color-fg)]">Neighborhood or town</span>
         <input
           role="combobox"
           aria-expanded={options.length > 0}
@@ -359,7 +359,7 @@ function NeighbourhoodPicker({
         {state.neighborhoodId ? state.addressQuery : null}
       </p>
       <p className="text-caption text-[var(--color-fg-muted)]">
-        Only the neighbourhood shows to visitors, with its pin at the centre.
+        Only the neighborhood shows to visitors, with its pin at the center.
       </p>
       <button
         type="button"

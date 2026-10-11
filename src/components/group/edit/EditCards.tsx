@@ -116,9 +116,9 @@ export function EditCards({
         <section data-testid="edit-card-values" aria-label="Values & badges" className="card border border-[var(--color-border)] p-4">
           <header className="flex items-center justify-between gap-3">
             <h3 className="text-body-sm font-semibold text-[var(--color-fg)]">Values &amp; badges</h3>
-            <span className="whitespace-nowrap text-caption font-medium text-[var(--color-fg-muted)]">Coming soon</span>
+            <span className="whitespace-nowrap text-caption font-medium text-[var(--color-fg-muted)]">Not here yet.</span>
           </header>
-          <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">Soon you&rsquo;ll be able to show what you&rsquo;re about and what you stand for.</p>
+          <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">A place to show what you&rsquo;re about and what you stand for.</p>
         </section>
 
         <section data-testid="edit-settings" aria-labelledby="edit-settings-title" className="mt-4 flex flex-col gap-3">

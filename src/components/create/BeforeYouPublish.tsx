@@ -60,7 +60,7 @@ export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, 
     try {
       await onPublish(RULES_VERSION)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
       setBusy(false)
     }
   }

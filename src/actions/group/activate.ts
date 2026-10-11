@@ -72,12 +72,10 @@ export const groupActivate = defineHandler(
       )
       const row = groupRes.rows[0]
       if (!row) {
-        throw new NotFoundError(`group.activate: group ${input.groupId} not found`)
+        throw new NotFoundError("That didn't go through. Mind trying again?")
       }
       if (row.lifecycle_state !== 'draft') {
-        throw new ValidationError(
-          `group.activate: group ${input.groupId} is in lifecycle_state '${row.lifecycle_state}', not 'draft'`,
-        )
+        throw new ValidationError("That didn't go through. Mind trying again?")
       }
 
       // Only the founder can activate a draft. Once active, ownership-management
@@ -85,23 +83,17 @@ export const groupActivate = defineHandler(
       // activation is a founder-only act because the draft is the founder's
       // half-built thing.
       if (ctx.actingMemberId === 'self-bootstrap') {
-        throw new AuthorizationError(
-          'group.activate: self-bootstrap acting member is not permitted',
-        )
+        throw new AuthorizationError("That didn't go through. Mind trying again?")
       }
       if (ctx.actingMemberId !== row.founder_member_id) {
-        throw new AuthorizationError(
-          `group.activate: acting member ${ctx.actingMemberId} is not the founder of group ${input.groupId}`,
-        )
+        throw new AuthorizationError("That didn't go through. Mind trying again?")
       }
 
       // F082 — publishing takes the rules agreement, every Page, at the current
       // version (an earlier one is not agreement to these rules). A draft never
       // asks: this handler is the publish, create and update_draft are not.
       if (input.rulesVersion !== RULES_VERSION) {
-        throw new ValidationError(
-          `group.activate: group ${input.groupId} needs the member's agreement to the current rules (version ${RULES_VERSION}) to publish`,
-        )
+        throw new ValidationError('Agree to the rules first, then publish.')
       }
 
       // T159, kept by the 2026-10-01 Create ruling: at least one tag to
@@ -122,7 +114,7 @@ export const groupActivate = defineHandler(
           [input.groupId],
         )
         if ((saved.rows[0]?.n ?? 0) === 0) {
-          throw new ValidationError(`group.activate: group ${input.groupId} requires at least one tag to publish`)
+          throw new ValidationError('Add a tag, then publish.')
         }
       }
 
@@ -130,10 +122,10 @@ export const groupActivate = defineHandler(
       // address or an area: the anchor Location), a description, and the tag
       // above.
       if (!row.anchor_location_id) {
-        throw new ValidationError(`group.activate: draft ${input.groupId} requires where it is (anchor_location_id)`)
+        throw new ValidationError('Add where it is, then publish.')
       }
       if (!row.description || row.description.trim() === '') {
-        throw new ValidationError(`group.activate: draft ${input.groupId} requires a description`)
+        throw new ValidationError('Add a description, then publish.')
       }
 
       // The name, which a business keeps on group_businesses.
@@ -146,21 +138,15 @@ export const groupActivate = defineHandler(
         )
         const biz = bizRes.rows[0]
         if (!biz) {
-          throw new ValidationError(
-            `group.activate: kind='business' draft ${input.groupId} is missing its group_businesses row`,
-          )
+          throw new ValidationError("That didn't go through. Mind trying again?")
         }
         if (!biz.display_name || biz.display_name === DRAFT_NAME_PLACEHOLDER) {
-          throw new ValidationError(
-            `group.activate: kind='business' draft ${input.groupId} requires group_businesses.display_name`,
-          )
+          throw new ValidationError('Add a name, then publish.')
         }
       } else {
         // Community kinds: name must be set (not the placeholder).
         if (!row.name || row.name === DRAFT_NAME_PLACEHOLDER) {
-          throw new ValidationError(
-            `group.activate: draft ${input.groupId} requires name`,
-          )
+          throw new ValidationError('Add a name, then publish.')
         }
       }
 
@@ -175,9 +161,7 @@ export const groupActivate = defineHandler(
         [input.groupId],
       )
       if (promoteRes.rows.length === 0) {
-        throw new ValidationError(
-          `group.activate: group ${input.groupId} was no longer in draft state at promotion time (concurrent activate?)`,
-        )
+        throw new ValidationError("That didn't go through. Mind trying again?")
       }
 
       // F082 criterion 6 — the agreement, with its version and the time (the

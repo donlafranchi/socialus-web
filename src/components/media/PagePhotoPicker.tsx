@@ -51,8 +51,8 @@ export function PagePhotoPicker({ memberId, value, onChange, label = 'Photo', pr
         // anyone in the composer — it says so and leaves the step passable.
         setError(
           err instanceof Error && err.message
-            ? `That photo didn't upload — ${err.message}. You can try again, or carry on without one.`
-            : "That photo didn't upload. You can try again, or carry on without one.",
+            ? `That photo didn't upload. ${err.message} Mind trying again? You can also go on without one.`
+            : "That photo didn't upload. Mind trying again? You can also go on without one.",
         )
       } finally {
         setBusy(false)
