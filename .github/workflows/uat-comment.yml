@@ -1,0 +1,62 @@
+name: uat-comment
+# The PM comments on the phone checklist (a `uat` Issue) with a line like `F081.3 not ok: what I saw`. GitHub task lists cannot
+# carry per-item comments, so the criterion id in the comment is the signal. One bug is filed per criterion id, deduplicated, and
+# the checklist gets a reply with the Issue number. The dashboard reads the same comment as `PM: not OK` (socialus-plan criteria.py).
+# Only the repo owner's comments count. Comments that say a criterion is ok file nothing.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  not-ok:
+    if: ${{ !github.event.issue.pull_request && contains(github.event.issue.labels.*.name, 'uat') && github.event.comment.author_association == 'OWNER' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            scripts
+            build-log/reports
+      - name: Self-test
+        run: node scripts/uat-comment.cjs --self-test
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { parse } = require(`${process.env.GITHUB_WORKSPACE}/scripts/uat-comment.cjs`);
+            const { owner, repo } = context.repo;
+            const hits = parse(context.payload.comment.body).notOk;
+            if (!hits.length) return;
+            const root = path.join(process.env.GITHUB_WORKSPACE, 'build-log', 'reports');
+            const reportFor = (fid) => {
+              for (const area of fs.existsSync(root) ? fs.readdirSync(root) : []) {
+                const dir = path.join(root, area);
+                if (!fs.statSync(dir).isDirectory()) continue;
+                const f = fs.readdirSync(dir).find((n) => n.startsWith(fid + '-'));
+                if (f) return { area, file: path.join(dir, f) };
+              }
+              return null;
+            };
+            const open = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', labels: 'found-by-pm', per_page: 100 });
+            const filed = [];
+            for (const { id, text } of hits) {
+              const fid = id.split('.')[0];
+              const title = `bug · live: ${id} PM: not OK`;
+              const existing = open.find((i) => i.title === title);
+              if (existing) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body: `Again, from ${context.payload.comment.html_url}:\n\n> ${text}` });
+                filed.push(`${id} (added to #${existing.number})`);
+                continue;
+              }
+              const rep = reportFor(fid);
+              const body = `**Kind:** bug\n**Scenario:** ${fid}\n**Path:** well-worn: the PM marked this criterion not OK on the phone checklist; fix forward.\n\nThe PM's words, verbatim (${context.payload.comment.html_url}):\n\n> ${text}\n\nCriterion ${id} of ${fid}. Its criterion report is the source of truth for what it should do${rep ? ` (${path.relative(process.env.GITHUB_WORKSPACE, rep.file)})` : ''}.\n\nThe dashboard shows it as PM: not OK until the box is ticked or a later comment says it is ok.`;
+              const labels = ['bug', 'found-by-pm'].concat(rep ? [`area:${rep.area}`] : []);
+              const created = await github.rest.issues.create({ owner, repo, title, body, labels });
+              filed.push(`${id} (#${created.data.number})`);
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number: context.issue.number, body: `Marked PM: not OK and filed: ${filed.join(', ')}.` });
