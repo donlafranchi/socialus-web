@@ -1,0 +1,28 @@
+name: uat-rerank
+# The PM ticks a journey on the phone checklist (a `uat` Issue edit). The sheet shows the journeys that unlock the most items, so it is
+# re-ranked from the live ticks and open Issues (socialus-plan scripts/uat_journeys.py --edit). The edit is skipped when nothing changes.
+on:
+  issues:
+    types: [edited]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  rerank:
+    if: ${{ contains(github.event.issue.labels.*.name, 'uat') && github.event.sender.type != 'Bot' && github.event.sender.login == github.repository_owner }}
+    runs-on: ubuntu-24.04
+    concurrency: uat-rerank
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-plan
+          sparse-checkout: |
+            scripts
+            planning
+      - name: Re-rank
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: python3 scripts/uat_journeys.py --edit --issue "$ISSUE"
