@@ -48,7 +48,7 @@ const PROMPTS: Record<GatedAction, Prompt> = {
   },
   'get-updates': {
     title: 'Sign in to get updates',
-    why: 'Updates arrive in the app, on your account — never in your inbox.',
+    why: 'Updates show up in the app, not in your inbox.',
   },
   support: {
     title: 'Sign in to support',
@@ -56,7 +56,7 @@ const PROMPTS: Record<GatedAction, Prompt> = {
   },
   report: {
     title: 'Sign in to report this',
-    why: 'An account lets us slow down someone reporting the same business over and over. It is not an identity check.',
+    why: "An account lets us slow down anyone reporting the same business over and over. It's not an identity check.",
   },
   respond: {
     title: 'Sign in to respond',
@@ -65,7 +65,7 @@ const PROMPTS: Record<GatedAction, Prompt> = {
   // #334 (ruling 2026-10-01): signed out, Explore is list only. Copy is a placeholder ([public-is-draft]).
   map: {
     title: 'Sign up to see the map',
-    why: 'The map is for members, so what is on it stays with the people here.',
+    why: "The map is for members, so what's on it stays with the people here.",
     signUp: true,
   },
   message: {

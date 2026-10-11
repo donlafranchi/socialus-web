@@ -81,7 +81,7 @@ export function EmailFirstSignup({
     setError(null)
     const value = email.trim()
     if (!EMAIL_RE.test(value)) {
-      setError('Enter a valid email address.')
+      setError("That doesn't look like an email address.")
       return
     }
     setSubmitting(true)
@@ -89,7 +89,7 @@ export function EmailFirstSignup({
       const registered = await d.checkEmailRegistered(value)
       setPhase(registered ? 'returning' : 'new')
     } catch {
-      setError('Something went wrong. Try again.')
+      setError("That didn't go through. Mind trying again?")
     } finally {
       setSubmitting(false)
     }
@@ -99,7 +99,7 @@ export function EmailFirstSignup({
     e.preventDefault()
     setError(null)
     if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
+      setError('Passwords need at least 8 characters.')
       return
     }
     setSubmitting(true)
@@ -109,7 +109,7 @@ export function EmailFirstSignup({
       // Race: the email was registered between the check and submit.
       if (isAlreadyRegistered(err)) {
         reset('returning')
-        setError('You already have an account — enter your password.')
+        setError('Looks like you already have an account. Enter your password to sign in.')
         return
       }
       setError(err.message)
@@ -172,7 +172,7 @@ export function EmailFirstSignup({
       <div className="w-full text-center" data-testid="magic-sent-message">
         <h1 className="mb-3 text-2xl font-semibold">Check your email</h1>
         <p className="mb-6 text-sm text-neutral-600">
-          We sent a sign-in link to <strong>{email}</strong>. Click it to finish — no password needed.
+          We sent a sign-in link to <strong>{email}</strong>. Tap it to finish. No password needed.
         </p>
         <button type="button" onClick={() => reset('email')} className="text-sm text-[var(--color-accent)] underline">
           Use a different email
@@ -186,7 +186,7 @@ export function EmailFirstSignup({
       <div className="w-full text-center" data-testid="confirm-email-message">
         <h1 className="mb-3 text-2xl font-semibold">Confirm your email</h1>
         <p className="mb-6 text-sm text-neutral-600">
-          We sent a confirmation link to <strong>{email}</strong>. Confirm it, then come back to finish setting up.
+          Open the link we sent to <strong>{email}</strong>, then come back and finish setting up.
         </p>
         <button type="button" onClick={() => reset('email')} className="text-sm text-[var(--color-accent)] underline">
           Use a different email
@@ -249,7 +249,7 @@ export function EmailFirstSignup({
               data-testid="submit-button"
               className="w-full rounded-full bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
-              {submitting ? 'Working…' : 'Continue'}
+              {submitting ? 'One sec…' : 'Continue'}
             </button>
           </form>
         </>
@@ -312,7 +312,7 @@ export function EmailFirstSignup({
               data-testid="submit-button"
               className="w-full rounded-full bg-[var(--color-accent)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
             >
-              {submitting ? 'Working…' : phase === 'new' ? 'Create account' : 'Log in'}
+              {submitting ? 'One sec…' : phase === 'new' ? 'Create account' : 'Log in'}
             </button>
           </form>
 
@@ -324,7 +324,7 @@ export function EmailFirstSignup({
             data-testid="magic-link-secondary"
             className="w-full text-xs text-neutral-500 underline hover:text-neutral-700 disabled:opacity-50"
           >
-            Sign in with a magic link instead
+            Email me a sign-in link instead
           </button>
           <button
             type="button"

@@ -30,7 +30,7 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
   function validEmail(): string | null {
     const value = email.trim()
     if (EMAIL_RE.test(value)) return value
-    setError('Enter a valid email address.')
+    setError("That doesn't look like an email address.")
     return null
   }
 
