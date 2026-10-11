@@ -34,7 +34,7 @@ describe('Terms', () => {
 
 describe('Privacy', () => {
   const text = TEXT_PAGES.privacy.body.join(' ')
-  it('says who sees what: legal name and email only operators, zip never shown, display name public', () => {
+  it('says who sees what: legal name and email only operators, zip not shown, display name public', () => {
     expect(text).toMatch(/legal name/i)
     expect(text).toMatch(/seen only by operators/i)
     expect(text).toMatch(/zip/i)
@@ -45,8 +45,8 @@ describe('Privacy', () => {
     expect(text).toMatch(/Anthropic/)
     expect(text).toMatch(/processor|on our behalf|acts only on our instructions/i)
     expect(text).toMatch(/reported/i)
-    expect(text).toMatch(/never.*(name|email)/i)
-    expect(text).toMatch(/a person always decides/i)
+    expect(text).toMatch(/currently don.t send.*(names|emails)/i)
+    expect(text).toMatch(/a person makes the call/i)
   })
   it('lists the processor agreement for counsel', () => {
     expect(TEXT_PAGES.privacy.counsel!.join(' ')).toMatch(/Anthropic/)
