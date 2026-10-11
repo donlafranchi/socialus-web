@@ -1,5 +1,7 @@
 # Infrastructure
 
+*As of 2026-10-05 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 Every external service SocialUs depends on, when it becomes required, and the
 cheapest adequate provider for each.
 

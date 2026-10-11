@@ -1,5 +1,7 @@
 # Test / Eval Checklist
 
+*As of 2026-09-03 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 Manual and automated checks before shipping. Run through this before any deploy.
 
 ## Automated (must pass)

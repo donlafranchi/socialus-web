@@ -1,5 +1,7 @@
 # SocialUs
 
+*As of 2026-09-15 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 Map-based platform helping consumers find independently owned local businesses and distinguish them from PE-acquired or corporate-owned competitors.
 
 ## Prerequisites
@@ -12,7 +14,6 @@ Map-based platform helping consumers find independently owned local businesses a
 ## Setup
 
 ```bash
-cd web
 npm install
 cp .env.local.example .env.local
 ```

@@ -1,5 +1,7 @@
 # Member bug reports (#443)
 
+*As of 2026-10-07 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 A member's report becomes a fixed bug with the PM seeing only what needs a human. Research and the PM's ruling: socialus-ops `process/research/2026-10-06-bug-triage-and-mutation-testing.md` § 2.
 
 ## Built

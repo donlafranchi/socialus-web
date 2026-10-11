@@ -1,5 +1,7 @@
 # The seeds are privileged, and that has hidden real bugs
 
+*As of 2026-09-22 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 Everything in this directory writes to the database **as `postgres`**, not as a
 member. That is a deliberate choice with a cost, and the cost has already been
 paid twice. Read this before you trust a surface because it looks right on
