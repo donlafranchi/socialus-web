@@ -9,7 +9,7 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 |---|---|---|
 | 5 criteria | 4 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **5** (#579). Spec-conflict: **2 and 5** (the scenario says `/you/create`; the route that shipped is `/create`; 2's answer wording is a self-classification question). Built means code on main [V grep]; reviewed means PR #326 carries `Reviewed by: reviewer agent (first pass)` [V]; shipped means `Deploy health` success on a5eefa3 (#326) [V]. Merge #392 (cd96574) shows `CI` failure and no deploy-health row [V]; PR #58 (f79dd46) has no runs listed [A].
 

@@ -9,7 +9,7 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 |---|---|---|
 | 9 criteria | 7 | 5 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **7 on a phone** (#573). Unknown: **3**. Built means the code is on main [V build log + files]; reviewed means PR #493 carries `Reviewed by: separate reviewer subagent (not the author)` [V]; shipped means deploy-health success on 96b0ea65 [V].
 

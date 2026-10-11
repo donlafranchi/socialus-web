@@ -9,7 +9,7 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell i
 |---|---|---|
 | 4 criteria | 2 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **2 (products and services; the gatherings half is built), 4** (open tickets #22, #24). Both tickets are still open although part of #22 shipped under another number, so closed-ness is no signal here. No PR, build-log line or test marker names F069 [V grep].
 
