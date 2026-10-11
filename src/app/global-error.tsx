@@ -13,8 +13,8 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
     <html lang="en">
       <body style={{ fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
         <main style={{ margin: '0 auto', maxWidth: '24rem' }}>
-          <h1>Something went wrong</h1>
-          <p>It&apos;s on our side. Try again in a moment.</p>
+          <h1>That didn&rsquo;t go through</h1>
+          <p>It&rsquo;s on us. Mind trying again in a minute?</p>
           <button type="button" onClick={reset}>
             Try again
           </button>
