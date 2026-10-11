@@ -52,7 +52,7 @@ export const STEPS: Step[] = [
   { name: 'Explore card → Page (member)', kind: 'consumer', who: 'member', from: '/explore', tap: (p) => p.locator('a[href^="/g/"]:has([data-testid="tile-title"]), [data-testid="tile-card"] a[href^="/g/"]').first(), ready: '[data-testid="page-header"]', notReady: SKELETON, expectsUrl: true, quick: true },
   { name: 'You → Following list', kind: 'consumer', who: 'member', from: '/you', optional: true, tap: (p) => p.locator('a[href="/you/following"]').first(), ready: 'main', notReady: SKELETON, expectsUrl: true },
   { name: 'Bottom nav → Explore', kind: 'consumer', who: 'member', from: '/you', tap: (p) => p.getByTestId('bottom-nav').locator('a[href="/explore"]'), ready: '[data-testid="browse-results"]', notReady: SKELETON, expectsUrl: true },
-  { name: 'Page: overflow menu → report (member)', kind: 'consumer', who: 'member', from: '@first-page', tap: (p) => p.getByTestId('page-overflow-menu'), ready: '[role="menu"], [role="dialog"], [data-testid="report-entry"]', expectsUrl: false },
+  { name: 'Page: overflow menu → report (member)', kind: 'consumer', who: 'member', from: '@first-page', tap: (p) => p.getByTestId('page-overflow-menu').first(), ready: '[role="menu"], [role="dialog"], [data-testid="report-entry"]', expectsUrl: false },
 
   // ── Creator and editing (lower priority; open only, never save) ──
   { name: 'Creator: own Page → edit', kind: 'creator', who: 'ownerBusiness', from: '/you', tap: (p) => p.locator('a[href^="/g/"]').first(), ready: '[data-testid="page-header"]', notReady: SKELETON, expectsUrl: true },
