@@ -158,7 +158,7 @@ export function AreaPicker({
         {shownAreas.length > 0 && onChooseArea ? (
           <>
             <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Neighbourhoods in {currentName}
+              Neighborhoods in {currentName}
             </h3>
             <ul className="mt-1" data-testid="scope-areas">
               {shownAreas.map((a) => (
@@ -206,7 +206,7 @@ export function AreaPicker({
             )}
             {notYet.length > 40 ? (
               <p className="mt-2 text-xs text-[var(--color-fg-muted)]">
-                {notYet.length - 40} more — search to narrow.
+                {notYet.length - 40} more. Search to narrow it down.
               </p>
             ) : null}
         </>

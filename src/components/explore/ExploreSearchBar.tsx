@@ -83,7 +83,7 @@ export function ExploreSearchBar({
           onClick={onOpenScope}
           aria-haspopup="dialog"
           aria-label={
-            label === NO_PLACE_CHOSEN_LABEL ? 'Choose your area' : `Area: ${label} — change it`
+            label === NO_PLACE_CHOSEN_LABEL ? 'Choose your area' : `Area: ${label}, tap to change`
           }
           data-testid="explore-location-pill"
           data-place-chosen={label === NO_PLACE_CHOSEN_LABEL ? 'false' : 'true'}
@@ -112,7 +112,7 @@ export function ExploreSearchBar({
           <button
             type="button"
             onClick={onOpenFilters}
-            aria-label={filtersActive ? 'Open filters — filters applied' : 'Open filters'}
+            aria-label={filtersActive ? 'Open filters, filters on' : 'Open filters'}
             aria-haspopup="dialog"
             data-testid="explore-filter-icon"
             className="press relative inline-flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-charcoal-900)] hover:bg-neutral-100"
@@ -140,7 +140,7 @@ export function ExploreSearchBar({
             <input
               ref={inputRef}
               type="search"
-              aria-label="Search Browse"
+              aria-label="Search Pages and posts"
               placeholder="Search Pages and posts"
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}

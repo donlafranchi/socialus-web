@@ -180,7 +180,7 @@ describe('T156 — filtering preserves server order', () => {
 describe('T156 — the empty and failed states are different things', () => {
   it('empty offers Clear filters, with a wider area beneath it', () => {
     render(<BrowseSurface initial={snapshot({ results: [] })} />)
-    expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing here yet — try another filter')
+    expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing here yet. Maybe try a bit wider.')
     expect(screen.getByRole('button', { name: /clear filters/i })).toBeInTheDocument()
     expect(screen.getByTestId('browse-widen')).toBeInTheDocument()
   })
