@@ -96,7 +96,7 @@ Flag to Don
 
 ## Commits
 
-Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when Don looks: § Who checks what, above. Never rewrite history. Never cross-commit with `socialus-plan` or `ops-pattern`.
+Branch per ticket. **A merge to main deploys to production via Vercel** — so be sure the checks are green before you merge. Who merges, and when Don looks: § Who checks what, above. Never rewrite history. Never cross-commit with `socialus-plan` or `socialus-ops`.
 
 ## Issue hygiene
 

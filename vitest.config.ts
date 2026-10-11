@@ -103,7 +103,7 @@ const VISIBILITY_SUITES = ['tests/visibility.test.ts']
 // both copies — so a stale branch's tests get scored against this branch's
 // code. That produced "new row violates row-level security" failures on
 // 2026-09-12 against a storage suite that passes cleanly on its own.
-// Worktrees now live outside the repo (ops-pattern CLAUDE.md § Sessions), so
+// Worktrees now live outside the repo (socialus-ops CLAUDE.md § Sessions), so
 // this should never fire — it stays because the failure it prevents looks
 // like a real bug in your own code, and costs an hour before you suspect it.
 const EXCLUDE = ['evals/**', 'node_modules/**', '.stryker-tmp/**', 'reports/**', '.claude/**']

@@ -11,7 +11,7 @@ Launch target: **2026-10-30**, one metro.
 
 Each section below carries a **Wire-up** block: enough concrete detail to hand
 straight to an implementing agent without re-deriving it. Classify the ticket by
-`ops-pattern/process/PIPELINE.md` before opening it; the suggested kind is noted per item.
+`socialus-ops/process/PIPELINE.md` before opening it; the suggested kind is noted per item.
 
 ## How to read the table
 
