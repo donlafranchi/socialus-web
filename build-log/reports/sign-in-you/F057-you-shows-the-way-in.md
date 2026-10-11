@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. `area:` 
 
 ## Roll-up
 
-| | built | checked | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 5 criteria | 2 (1, 5) | 0 marked + 1 unmarked (5) | 0 | 2 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 5 criteria | 2 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **2, 3, 4** (open #15 covers them; nothing was built for it, per its own comment). Built means code on main [V grep of `src/app/you/page.tsx`, `next.config.ts`]. The producer state never shipped: You today shows the same "Your Pages" section to everyone, with an empty line "You haven't made a Page yet. Tap Create to start one." [V `OwnPages.tsx`], and no invitation.
 

@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 12 criteria (1, 2, 2b, 2c, 3-10) | 9 | 0 (5 has a partial marker; 7 more have unmarked tests) | 0 | 2 (5, 7) | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 12 criteria | 9 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **4** (curated lenses beyond "what's happening"), **6** (a metro is still picked for a visitor with none). Unknown: **2** (completeness: `BROWSE_LIMIT = 100`, no paging seen). Reviewed means a `Reviewed by:` line on the PR: #496 and #479 are `review-skipped`, #279 and #161 say "Don doesn't need to look", #204 and #174 carry nothing [V]. Shipped means deploy-health success on the merge commit: 0cee585a (#496) and 3c490272 (#479) pass [V]; the other merge commits show lint only or nothing [V]. Smoked: `smoke-live` failed on main in all three most recent runs today and is not tied to a merge commit [V]. No UAT Issue and no `pm-reviewed` label on any F059 Issue [V].
 

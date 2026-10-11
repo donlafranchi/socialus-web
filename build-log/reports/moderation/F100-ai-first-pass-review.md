@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 12 criteria | 8 | 5 (3, 4, 6, 7, 12 partly) | 8 of 8 built (PR #522: review-skipped) | 8 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 12 criteria | 8 | 6 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **9** (runs on every prompt change), **10** (real licensed photos, children and adult cases), **11** (the live gate), **12** (the known-image hash check). Built means code on main [V grep] or a build-log line [V]. Reviewed: PR #513 carries `Reviewed by: separate reviewer agent` and a Visibility review [V]; PR #495 `Reviewed by: the builder` (not separate) [V]; PR #522 is `review-skipped` with `needs-fix` [V]. Shipped: CI success on d84ef6dc, f9c3c7e0 and ce986681 (unit, browser, migrations, database reachable) [V]; no `smoke-live` result seen, so smoked is unknown. Whether `ANTHROPIC_API_KEY` is set in production is unknown: with it unset no read happens (`after-report.ts`), and the build log names it as the PM's to-do [V].
 

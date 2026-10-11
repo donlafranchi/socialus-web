@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 7 criteria | 6 | 0 (6 unmarked) | unknown | unknown | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 7 criteria | 6 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built as written: **7** (visual spec; the bar was later rebuilt to a newer design, see below). Built means the code is on main [V grep + files]. Reviewed: no PR, so no `Reviewed by:` line; the build log cites an M2 code review and M3 accessibility pass [V build log]. Shipped: no check-runs or status on ac179c1 / 63115c2 [V `gh api`]. Smoked: `smoke-live` runs on a schedule and by dispatch, not per commit, and the latest runs failed today [V]; none belongs to an F046 commit.
 

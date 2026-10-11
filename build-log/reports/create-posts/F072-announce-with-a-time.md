@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 6 criteria | 4 | 0 (no `[guards F072.N]` marker exists) | 0 | 3 of 4 feature PRs | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 6 criteria | 4 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **2 (14-day expiry, "Earlier", show-until; #314 open)** and **6 (alt text on the Page photo; #596)**. Spec conflict: **1 (delete)**. Built means code on main [V]; shipped means `Database reachable from the deployment` success on the merge commit for #183, #258, #263 [V], none returned for #115; reviewed means a `Reviewed by:` section, and #115, #183, #258, #263 carry only `human-review` [V].
 

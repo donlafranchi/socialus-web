@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 5 criteria | 3 | 0 (3 unmarked: 1, 3, 4; 1 unmarked and partial: 2) | unknown | unknown | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 5 criteria | 3 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **4 (signed-out withheld card draws a blank tile, #335)**, **5 (removal and deletion are separate acts)**. Built means code seen on main or a build-log line [V]. Reviewed: PR #121 body has no `Reviewed by:` line and its label is `human-review` [V], so unknown. Shipped: no deploy-health run found for 6190275 (#121) or 1d802f8 [V], so unknown. No `[guards F070.n]` marker exists anywhere in `src` or `tests` [V grep].
 

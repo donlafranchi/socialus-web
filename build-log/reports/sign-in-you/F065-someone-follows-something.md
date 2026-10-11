@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 5 criteria | 3 | 0 | 0 | 3 [A] | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 5 criteria | 3 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **3** (a follower of a business is routed as a seller), **5** (three tables, not one). Nothing in the repo carries a `F065` guard marker; the only mentions are two comments in F067 code [V grep]. Built means code on main [V]. Shipped: PR #104 merge 45c43610 has lint, migrations-from-scratch and production-behind-main all success [V]; person and venue follow predate it and are assumed shipped [A].
 

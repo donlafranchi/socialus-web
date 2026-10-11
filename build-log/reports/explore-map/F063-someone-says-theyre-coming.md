@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 4 criteria | 0 | 0 | 0 | 0 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 4 criteria | 0 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a `[guards F###.N]` marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **1, 2, 3, 4**, all under open ticket #34 [V]. No PR cites F063 or T153 [V `gh pr list`]; no build log or test mentions either [V grep]. What exists is groundwork only: the `item_responses` table (with `withdrawn_at`, kind `rsvp`), the event kinds `item.responded` and `item.response_withdrawn`, and RLS for who may read RSVPs [V `015_items.sql`, `20260930180000_member_reads_self_only.sql`]. No app code writes `item_responses` and no UI offers the control [V grep of `src`].
 
