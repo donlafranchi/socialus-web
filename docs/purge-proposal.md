@@ -1,87 +1,28 @@
-# Purge — the irreversible path, specified and not built
+# Purge: deleting a removed photo for good (as built, #491)
 
-*2026-09-17. Written because the gap it closes is a safety gap, not a known limit.*
+*As of 2026-10-11 (rewritten from the 2026-09-17 proposal now that it is built). The filename stays `purge-proposal.md` because an applied migration, a test and code comments cite it.*
 
-## The problem, stated plainly
+Removing a photo is reversible: `photo_removed_at` stops every surface serving it, and the storage object stays. Left alone, a removed photo remained fetchable by anyone holding its direct storage URL. Purge is the second, deliberate act that deletes the bytes.
 
-Reversible removal preserves the bytes. `photo_removed_at` stops every surface
-in the product serving the URL, and `photo_url` and the storage object are left
-alone — that is precisely what makes a removal undoable days later.
+## What it does
 
-**The cost: removed content stays fetchable, permanently, by anyone holding the
-direct storage URL.** That was already true of hidden photos and was recorded in
-`visible-photo-url.ts` as a known limit. It is now also true of removed ones.
+- **Second step only.** An operator can purge a photo that is already removed. Removal first, purge second, so nothing is destroyed in a single tap.
+- **Operator only.** The `reports.review` permission (`docs/STAFF-ROLES.md`).
+- **Confirmed.** `/admin/reports/purge` asks for a reason (illegal content, person did not agree, not suitable, other; a note is required for other) before it deletes. There is no undo, and the screen does not imply one.
+- **Recorded.** `photo_purges` keeps who, what, why and the object path. The row survives the bytes. The Page's `photo_url` is cleared and `photo_purged_at` stamped.
 
-For ordinary bad content this is the right trade: a wrong removal is recoverable
-and nobody is harmed by bytes nobody can find. **For illegal content it is not
-an acceptable end state, and *"we kept it so it could be reversed"* is the wrong
-answer.** A platform carrying member photos will eventually see some.
+## How (two handlers)
 
-## What purge is
+1. `report.purge_target` (`src/actions/report/purge.ts`): checks the photo is removed and not yet purged, and names the storage object.
+2. The operator's own session deletes the object. The media bucket has an operator-delete policy (migration `20261007250000_photo_purge.sql`); no service-role key is used.
+3. `report.purge`: records the purge and clears the URL.
 
-A **second, separate action** — not a mode of removal.
+Deleting the bytes first and recording second means a failure in between leaves a removed photo whose bytes are gone, and the purge can simply be run again. The reverse order could record a deletion that never happened.
 
-- **Irreversible, and honest about it.** It deletes the storage object. There is
-  no undo, and the UI must not imply one.
-- **Deliberate.** It carries a confirmation, unlike decide and reverse. That is
-  not inconsistent with dropping the confirm elsewhere: the argument for
-  dropping it was that reversibility is better protection than a dialog. Where
-  there is no reversibility, the dialog is what is left.
-- **Two steps, never one.** Purge acts on content that is *already removed*. The
-  operator removes first, then purges — so nothing is destroyed in a single tap
-  from the queue, and the common case never touches this path.
-- **Recorded like any other decision**, in `report_decisions` with its own
-  outcome value: who purged what, when, and why. The row survives the bytes.
+## Why the policy route
 
-## What it needs, and why Don has to run it
+A service-role key on the server was the alternative. It is forbidden by the action-layer conformance rules, so the bucket policy was chosen instead (the proposal's option 1).
 
-**A storage policy migration.** The media bucket's delete policy today is
-`"media authenticated delete own folder"` (migration 039): a member may delete
-their own folder and nobody else's. The operator is not the owner of the
-reported member's folder, so **the operator's key cannot delete the object**.
+## Not covered
 
-Two ways to close that, and the choice is Don's:
-
-1. **A policy allowing the operator to delete in `media`.** Narrow, auditable,
-   and it keeps everything inside the existing key. It needs the operator's
-   member id to be knowable in SQL — today it is an env var the database has
-   never heard of, so this implies a small operator table or a settings row,
-   which is the same substrate delegated reviewers will need.
-2. **A service-role key on the server.** Simpler, and **forbidden by the
-   action-layer conformance rules** — `SUPABASE_SERVICE_ROLE_KEY` trips
-   `no-restricted-syntax` today. Taking this route means deliberately amending
-   that rule, which should not happen quietly.
-
-**Option 1 is the recommendation**, because it does not weaken a rule that
-exists for good reasons, and because the operator-identity-in-the-database step
-is needed for delegated reviewers anyway.
-
-## Schema sketch
-
-```sql
--- outcome gains a third value
-check (outcome in ('restored', 'removed', 'purged'))
-
--- and the Page records that the bytes are gone
-alter table public.groups add column photo_purged_at timestamptz;
-```
-
-`photo_url` is nulled by purge — unlike removal — because the object behind it
-no longer exists and a URL pointing at nothing is worse than no URL.
-
-## What stays true after purge
-
-The **report and its decision history survive**. Purge destroys the image, not
-the record of what happened to it. Who purged it, when, and why remain readable,
-which is the whole point of the decisions log being append-only.
-
-## Not in scope here
-
-Automated detection, legal reporting obligations, retention of purged material
-for law enforcement, or anything resembling a strikes or bans system. Each is a
-real question and none is answered by this.
-
-## Status
-
-**Specified, not built.** It needs the storage policy decision above, which is a
-migration Don should run knowingly rather than find in a batch.
+Automated detection, legal reporting duties, retention of purged material for law enforcement, and strikes or bans are separate questions this does not answer. See `socialus-legal` `safety/ncmec-plan.md` for the reporting plan.

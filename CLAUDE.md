@@ -2,7 +2,7 @@
 
 *As of 2026-10-06 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
 
-SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `socialus-plan`, the method in `ops-pattern`, design in `socialus-design`; this repo is code. Which folder holds what: `~/.claude/CLAUDE.md` § The repos.
+SocialUs: local discovery, buy/sell/trade/gather. Beta 2026-11-06 (soft target) to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `socialus-plan`, the method in `socialus-ops`, design in `socialus-design`; this repo is code. Which folder holds what: `~/.claude/CLAUDE.md` § The repos.
 
 ## Naming
 
@@ -13,7 +13,7 @@ SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one me
 
 ## Before opening a ticket
 
-Classify it by `ops-pattern/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
+Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
 
 ## Who checks what
 
@@ -29,7 +29,7 @@ That choice also decides the merge. **"Don doesn't need to look"** means merge i
 
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 
-Full rule, including when he looks: `ops-pattern/process/PIPELINE.md` § Who checks what.
+Full rule, including when he looks: `socialus-ops/process/PIPELINE.md` § Who checks what.
 
 ## The seeds are privileged
 
@@ -110,7 +110,7 @@ it is the only rulings file this repo points at. Never edit it — change the ta
 the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
 **If two rulings seem to conflict, the newer wins and work continues** — never stop
-to ask Don which is true (ops-pattern `[newer-decision-wins]`). Only two live
+to ask Don which is true (socialus-ops `[newer-decision-wins]`). Only two live
 rulings in conflict with neither superseding the other are raised, as an
 open-question marker where it bites. Never split the difference.
 
@@ -137,7 +137,7 @@ whose answer changes behaviour is not a marker; stop and ask for a scenario
 change. Answering one removes the marker in the same commit. socialus-plan's
 `STATUS.md` indexes every marker; `scripts/check-markers.sh` fails CI on
 one missing an owner, a date or a question. Full rule:
-`ops-pattern/process/PIPELINE.md` § Open questions.
+`socialus-ops/process/PIPELINE.md` § Open questions.
 
 ## The ontology
 

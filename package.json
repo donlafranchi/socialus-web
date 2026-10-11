@@ -19,7 +19,8 @@
     "moderation:eval": "tsx scripts/moderation-eval.ts",
     "ontology:registry": "tsx scripts/ontology-registry.ts",
     "migrations:manifest": "tsx scripts/generate-migration-manifest.ts",
-    "docs:inventory": "tsx scripts/doc-inventory.ts"
+    "docs:inventory": "tsx scripts/doc-inventory.ts",
+    "docs:regen": "tsx scripts/regen-docs.ts"
   },
   "dependencies": {
     "@jsquash/webp": "^1.5.0",
