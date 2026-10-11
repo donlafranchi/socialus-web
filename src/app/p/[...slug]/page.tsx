@@ -283,11 +283,7 @@ export default async function PlacePage({ params }: Props) {
       {/* b2 surface — curated place landing (locations / groups / recent items
           in this scope). Placeholder at b1.x per places.md § T2. */}
       <section className="mt-8 rounded border border-dashed border-gray-300 p-6 text-sm text-gray-500">
-        <p>
-          The curated landing for this place ships at b2 (places.md § T2).
-          For now, you&apos;ve confirmed the URL resolves and the place tree
-          is wired.
-        </p>
+        <p>Nothing here yet. Have a look around Explore.</p>
       </section>
     </main>
   )

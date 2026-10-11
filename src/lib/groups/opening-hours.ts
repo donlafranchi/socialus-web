@@ -20,15 +20,15 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
 /** Validated hours, or null for none. Throws on anything malformed. */
 export function parseOpeningHours(value: unknown): OpeningHours | null {
   if (value === null || value === undefined) return null
-  if (typeof value !== 'object' || Array.isArray(value)) throw new Error('Opening hours must be a week of days.')
+  if (typeof value !== 'object' || Array.isArray(value)) throw new Error('Those hours didn\'t look right. Mind checking them?')
   const out: OpeningHours = {}
   for (const [day, ranges] of Object.entries(value as Record<string, unknown>)) {
     if (!(DAYS as readonly string[]).includes(day)) throw new Error(`Unknown day: ${day}`)
-    if (!Array.isArray(ranges)) throw new Error(`${day}: hours must be a list`)
+    if (!Array.isArray(ranges)) throw new Error('Those hours didn\'t look right. Mind checking them?')
     const valid = ranges.map((r) => {
       const { open, close } = (r ?? {}) as Partial<HoursRange>
-      if (!open || !close || !TIME.test(open) || !TIME.test(close)) throw new Error(`${day}: times are HH:MM`)
-      if (close <= open) throw new Error(`${day}: closing comes after opening`)
+      if (!open || !close || !TIME.test(open) || !TIME.test(close)) throw new Error(`${day}: use a time like 9:00.`)
+      if (close <= open) throw new Error(`${day}: closing needs to come after opening.`)
       return { open, close }
     })
     if (valid.length > 0) out[day as Day] = valid
