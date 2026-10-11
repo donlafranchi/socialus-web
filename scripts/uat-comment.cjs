@@ -6,6 +6,14 @@ const ID = /\bF\d{3}\.\d+[a-z]?\b/g
 const NOT_OK = /not\s*ok\b|✗|✘|\bwrong\b|\bbroken\b|\bfails?\b|\bfailed\b|doesn'?t work/i
 const OK = /\b(?:is |looks? |works? |all )?(?:ok|okay|fine|good|works)\b/i
 
+// A reply with no criterion id is the PM's sentence about the walk-throughs on the sheet ("J02 the notice was empty" or just words).
+// It is not ok unless it only says things are fine; agents map it to the criterion, so it files one note bug that quotes it.
+function sentence(body) {
+  const text = (body || '').replace(/^Marked PM: not OK.*$/s, '').trim()
+  if (!text || text.match(ID) || (OK.test(text) && !NOT_OK.test(text) && text.length < 40)) return null
+  return text
+}
+
 // Returns { notOk: [{ id, text }], ok: [id] } for one comment body, line by line.
 function parse(body) {
   const notOk = []
@@ -29,6 +37,10 @@ function selfTest() {
     ['ok line is recorded ok', parse('F081.3 ok, looks good').ok.join(), 'F081.3'],
     ['no id, no bug', parse('this whole sheet is wrong').notOk.length, 0],
     ['quoted line', parse('> F082.7 not ok on a phone').notOk.map((x) => x.text).join(), 'F082.7 not ok on a phone'],
+    ['sentence with no id', sentence('J02 the notice was empty, no reason shown'), 'J02 the notice was empty, no reason shown'],
+    ['short ok is no note', sentence('all good'), null],
+    ['id line is not a note', sentence('F081.3 not ok: zip shown'), null],
+    ['own reply is no note', sentence('Marked PM: not OK and filed: F081.3 (#1).'), null],
     ['mixed comment', parse('F058.1 ok\nF058.3 not ok: no Remove photo').notOk.map((x) => x.id).join(), 'F058.3'],
   ]
   let fail = 0
@@ -38,4 +50,4 @@ function selfTest() {
 }
 
 if (require.main === module && process.argv[2] === '--self-test') selfTest()
-module.exports = { parse }
+module.exports = { parse, sentence }

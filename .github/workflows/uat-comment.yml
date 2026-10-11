@@ -1,4 +1,5 @@
 name: uat-comment
+# A reply with no criterion id (a sentence about a walk-through) files one note bug, which an agent maps to the criterion.
 # The PM comments on the phone checklist (a `uat` Issue) with a line like `F081.3 not ok: what I saw`. GitHub task lists cannot
 # carry per-item comments, so the criterion id in the comment is the signal. One bug is filed per criterion id, deduplicated, and
 # the checklist gets a reply with the Issue number. The dashboard reads the same comment as `PM: not OK` (socialus-plan criteria.py).
@@ -28,10 +29,21 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const { parse } = require(`${process.env.GITHUB_WORKSPACE}/scripts/uat-comment.cjs`);
+            const { parse, sentence } = require(`${process.env.GITHUB_WORKSPACE}/scripts/uat-comment.cjs`);
             const { owner, repo } = context.repo;
             const hits = parse(context.payload.comment.body).notOk;
-            if (!hits.length) return;
+            if (!hits.length) {
+              // A plain sentence about the walk-throughs: one note bug quoting it, for an agent to map to the criterion.
+              const note = sentence(context.payload.comment.body);
+              if (!note) return;
+              const lines = (context.payload.issue.body || '').split('\n');
+              const shown = lines.filter((l) => /^- \[ \] J\d\d/.test(l)).map((l) => l.replace(/ · \[open\].*$/, '').replace(/\*\*/g, ''));
+              const ref = note.match(/\bJ\d\d\b/);
+              const body = `**Kind:** bug\n**Scenario:** none\n**Path:** well-worn: the PM replied on the phone checklist; map the sentence to the exact criterion, then fix forward.\n\nThe PM's words, verbatim (${context.payload.comment.html_url}):\n\n> ${note.replace(/\n/g, '\n> ')}\n\nWalk-throughs on the sheet when this was written${ref ? ` (the reply names ${ref[0]})` : ''}:\n\n${shown.map((l) => '- ' + l).join('\n')}\n\nAgent step: find the criterion in socialus-plan planning/uat-journeys.json (journey -> criteria) and its criterion report, retitle this Issue \`bug · live: F###.n PM: not OK\`, and add the \`area:\` label. Until then no criterion shows PM: not OK.`;
+              const created = await github.rest.issues.create({ owner, repo, title: `bug · live: PM note on the phone checklist (${note.slice(0, 50).replace(/\n/g, ' ')})`, body, labels: ['bug', 'found-by-pm'] });
+              await github.rest.issues.createComment({ owner, repo, issue_number: context.issue.number, body: `Marked PM: not OK and filed: your note (#${created.data.number}). An agent maps it to the exact check.` });
+              return;
+            }
             const root = path.join(process.env.GITHUB_WORKSPACE, 'build-log', 'reports');
             const reportFor = (fid) => {
               for (const area of fs.existsSync(root) ? fs.readdirSync(root) : []) {
