@@ -10,7 +10,7 @@ export const INTEREST_VOCAB: InterestTag[] = [
   { tag: 'farmers-market', label: 'Farmers markets' },
   { tag: 'live-music', label: 'Live music' },
   { tag: 'food-drink', label: 'Food & drink' },
-  { tag: 'crafts', label: 'Crafts & makers' },
+  { tag: 'crafts', label: 'Crafts' },
   { tag: 'gardening', label: 'Gardening' },
   { tag: 'kids-family', label: 'Kids & family' },
   { tag: 'fitness', label: 'Fitness & outdoors' },

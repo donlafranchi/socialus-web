@@ -58,7 +58,7 @@ type Role = 'creator' | 'patron'
 // never appear in front of anyone.
 const ROLE_LABELS: Record<Role, string> = {
   creator: 'I make or sell something here',
-  patron: 'I’m looking for what’s nearby',
+  patron: 'I’m looking for what’s on here',
 }
 
 export function MetroNotCoveredPanel({
@@ -119,7 +119,7 @@ export function MetroNotCoveredPanel({
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'That did not go through. Try again?')
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     } finally {
       setBusy(false)
     }
@@ -173,7 +173,7 @@ export function MetroNotCoveredPanel({
         </h2>
         {/* No date, no queue position, no progress bar — F076 criterion 3. */}
         <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
-          You can’t browse here yet. Telling us you’re here is what decides where it opens next.
+          You can’t browse here yet. Telling us you’re here helps us decide where to open next.
         </p>
       </div>
 
@@ -188,7 +188,7 @@ export function MetroNotCoveredPanel({
 
         {joined ? (
           <p data-testid="waitlist-joined" className="mt-2 text-sm text-[var(--color-fg)]">
-            Done — you’re counted in {metro.name}.
+            Done. You’re counted in {metro.name}.
           </p>
         ) : !signedIn ? (
           <>
@@ -216,8 +216,8 @@ export function MetroNotCoveredPanel({
               data-testid="waitlist-email-purpose"
               className="mt-2 text-xs text-[var(--color-fg-muted)]"
             >
-              One message, if this metro opens. That is the only thing this address is used
-              for — nothing else, ever.
+              We&rsquo;ll send one message if this metro opens. We currently don&rsquo;t use this
+              address for anything else.
             </p>
 
             {submitButton}

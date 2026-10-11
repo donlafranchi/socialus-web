@@ -73,7 +73,7 @@ export const metroWaitlistJoinAnonymousInput = z.object({
     .string()
     .transform((raw) => raw.trim().toLowerCase())
     .refine((email) => EMAIL_SHAPE.test(email), {
-      message: 'That does not look like an email address.',
+      message: "That doesn't look like an email address.",
     }),
   role: z.enum(WAITLIST_ROLES),
 })

@@ -103,7 +103,7 @@ export async function joinMetroWaitlistAction(input: {
     open: false,
     metroName: after.name,
     standing: standing.display,
-    message: standingMessage(standing),
+    message: standingMessage(standing, after.name),
   }
 }
 
@@ -169,6 +169,6 @@ export async function joinMetroWaitlistAnonymousAction(input: {
     open: false,
     metroName: result.metroName,
     standing,
-    message: standing ? standingMessage(standing) : '',
+    message: standing ? standingMessage(standing, result.metroName) : '',
   }
 }

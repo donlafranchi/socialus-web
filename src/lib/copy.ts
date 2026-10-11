@@ -27,7 +27,7 @@ export const COPY = {
     'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
   // F081 — the text-message code at signup (2026-10-01). Placeholders ([public-is-draft]).
   phoneTitle: 'Verify your phone',
-  phoneWhy: "Everyone here is a real person. We'll text you a code to check. Your number is never shown to anyone.",
+  phoneWhy: "Everyone here is a real person. We'll text you a code to check. We currently don't show your number to anyone.",
   phoneInvalid: 'Enter a US phone number, like (916) 555-0134.',
   phoneSendFailed: "We couldn't send a code to that number. Check it and try again.",
   phoneCodeTitle: 'Enter your code',
