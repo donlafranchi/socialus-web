@@ -144,11 +144,12 @@ export function build(today: string, root = '.'): { rows: Row[]; md: string } {
   const rows: Row[] = files.map((p) => {
     const text = readFileSync(join(root, p), 'utf8')
     const cls = classify(p)
+    const self = p === OUT
     const last = dates.get(p) ?? today
-    const brokenLinks = relativeLinks(text).filter((t) => !existsSync(join(root, t.startsWith('/') ? t.slice(1) : normalize(join(dirname(p), t)))))
+    const brokenLinks = self ? [] : relativeLinks(text).filter((t) => !existsSync(join(root, t.startsWith('/') ? t.slice(1) : normalize(join(dirname(p), t)))))
     const history = cls === 'build-log-entry' || cls === 'archive' || cls === 'fixture'
-    const deadPaths = history ? [] : pathRefs(text).filter((t) => !existsSync(join(root, t)))
-    const deadScripts = history ? [] : npmScriptRefs(text).filter((s) => !(s in pkg.scripts) && !['install', 'ci', 'test', 'start'].includes(s))
+    const deadPaths = history || self ? [] : pathRefs(text).filter((t) => !existsSync(join(root, t)))
+    const deadScripts = history || self ? [] : npmScriptRefs(text).filter((s) => !(s in pkg.scripts) && !['install', 'ci', 'test', 'start'].includes(s))
     const j = judgments[p]
     const handWritten = cls === 'doc' || cls === 'readme' || cls === 'template'
     const generated = looksGenerated(text) || cls === 'feature-report'

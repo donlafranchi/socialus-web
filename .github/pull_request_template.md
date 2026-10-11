@@ -21,7 +21,7 @@
   first pass, and Don reviews it live on socialus.org. Migrations still go to
   him first, in order.
 
-  Full rule: ops-pattern/process/PIPELINE.md § Who checks what.
+  Full rule: socialus-ops/process/PIPELINE.md § Who checks what.
 -->
 
 ## Don doesn't need to look.
