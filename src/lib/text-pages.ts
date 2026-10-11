@@ -27,9 +27,12 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
     slug: 'about',
     title: 'About',
     status: 'draft',
-    // F081 criterion 5's line, Don's words (2026-10-01). Placeholder [public-is-draft].
+    // Tagline and purpose line (copy report §1, draft), then F081 criterion 5's
+    // line, Don's words (2026-10-01), then the Don-approved line (2026-10-10).
     body: [
+      'SocialUs is the people’s platform. Created to benefit its members first and foremost.',
       'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
+      'Members first, always.',
     ],
   },
   terms: {

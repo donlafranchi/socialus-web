@@ -43,22 +43,17 @@ const FORBIDDEN = [
 describe('T148 — root metadata', () => {
   const description = metadata.description ?? ''
 
-  it('is the description the PM ratified', () => {
-    expect(description).toBe(
-      "Find and support the people near you. Meet your neighbors, trade what you make, " +
-        "volunteer where it's needed, and share an idea before you build it.",
-    )
+  it('is the description the PM ratified (Don, 2026-10-10; draft until he approves)', () => {
+    expect(description).toBe('SocialUs, a local discovery platform.')
   })
 
   it('renders whole in a search result rather than truncating mid-clause', () => {
     expect(description.length).toBeLessThanOrEqual(155)
   })
 
-  it('describes local discovery, not a marketplace', () => {
-    // Gathering is not an afterthought clause: the positioning the launch plan
-    // exists to correct is the one that led with commerce.
-    expect(description).toMatch(/\bneighbors\b/i)
-    expect(description).toMatch(/\btrade\b/i)
+  it('describes local discovery, not a marketplace, and says nothing is "near you" (one metro)', () => {
+    expect(description).toMatch(/\blocal discovery\b/i)
+    expect(description).not.toMatch(/\bnear you\b|\bnearby\b/i)
     expect(description).not.toMatch(/\bfarmers market\b/i)
     expect(description).not.toMatch(/\bmakers\b/i)
   })
@@ -79,9 +74,9 @@ describe('T148 — root metadata', () => {
     expect(metadata.openGraph).not.toHaveProperty('images')
   })
 
-  it('keeps the site title as the bare product name', () => {
-    // Per-page titles are `{thing} — SocialUs`; the root is the suffix itself.
-    expect(metadata.title).toBe('SocialUs')
+  it('titles the site with the tagline', () => {
+    // Per-page titles are `{thing} | SocialUs`; the root carries the tagline.
+    expect(metadata.title).toBe("SocialUs: the people's platform")
   })
 })
 
@@ -117,11 +112,11 @@ describe('T148 — every metadata export in src/app', () => {
     expect(metadataFiles().length).toBeGreaterThanOrEqual(7)
   })
 
-  it('titles every page `{thing} — SocialUs`, or the bare product name', () => {
+  it('titles every page `{thing} | SocialUs` (no em dash), or the product name', () => {
     const offenders = metadataFiles().flatMap(({ file, source }) =>
       [...source.matchAll(/title: [`'"]([^`'"]*)[`'"]/g)]
         .map((m) => m[1])
-        .filter((title) => title !== 'SocialUs' && !title.endsWith(' — SocialUs'))
+        .filter((title) => title !== 'SocialUs' && title !== "SocialUs: the people's platform" && !title.endsWith(' | SocialUs'))
         .map((title) => `${file}: ${title}`),
     )
     expect(offenders).toEqual([])

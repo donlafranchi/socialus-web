@@ -70,10 +70,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       itemSlug: itemSplit.itemSlug,
     })
     if (!product) {
-      return { title: 'Not found — SocialUs' }
+      return { title: 'Not found | SocialUs' }
     }
     return {
-      title: `${product.title} — SocialUs`,
+      title: `${product.title} | SocialUs`,
       description:
         product.description ||
         `${product.title}${product.brandLabel ? ` from ${product.brandLabel}` : ''}.`,
@@ -90,10 +90,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       itemSlug: serviceSplit.itemSlug,
     })
     if (!service) {
-      return { title: 'Not found — SocialUs' }
+      return { title: 'Not found | SocialUs' }
     }
     return {
-      title: `${service.title} — SocialUs`,
+      title: `${service.title} | SocialUs`,
       description:
         service.description ||
         `${service.title}${service.brandLabel ? ` from ${service.brandLabel}` : ''}.`,
@@ -110,10 +110,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       itemSlug: gatheringSplit.itemSlug,
     })
     if (!gathering) {
-      return { title: 'Not found — SocialUs' }
+      return { title: 'Not found | SocialUs' }
     }
     return {
-      title: `${gathering.title} — SocialUs`,
+      title: `${gathering.title} | SocialUs`,
       description:
         gathering.description ||
         `${gathering.title}${gathering.brandLabel ? ` at ${gathering.brandLabel}` : ''}.`,
@@ -127,10 +127,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (locationSplit) {
     const venue = await resolveVenue(supabase, locationSplit.locationSlug)
     if (!venue) {
-      return { title: 'Not found — SocialUs' }
+      return { title: 'Not found | SocialUs' }
     }
     return {
-      title: `${venue.label} — SocialUs`,
+      title: `${venue.label} | SocialUs`,
       description:
         venue.description || `${venue.label} — a venue on SocialUs.`,
     }
@@ -138,18 +138,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // #411 — /p/[…place]/g/[slug] is no Page address; not forwarded while there
   // are no members to protect.
-  if (splitGroupSlug(slug)) return { title: 'Not found — SocialUs' }
+  if (splitGroupSlug(slug)) return { title: 'Not found | SocialUs' }
 
   const resolved = await resolvePlacePath(supabase, slug)
   if (!resolved) {
-    return { title: 'Place not found — SocialUs' }
+    return { title: 'Place not found | SocialUs' }
   }
   const rootDisplay = resolved.ancestors[0]?.display_name ?? resolved.place.display_name
   return {
     title:
       resolved.ancestors.length === 0
-        ? `${resolved.place.display_name} — SocialUs`
-        : `${resolved.place.display_name} — ${rootDisplay}`,
+        ? `${resolved.place.display_name} | SocialUs`
+        : `${resolved.place.display_name} | ${rootDisplay}`,
     description: `Browse what's happening in ${resolved.place.display_name}.`,
   }
 }

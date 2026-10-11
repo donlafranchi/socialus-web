@@ -22,14 +22,14 @@ export function shareMetadata(page: PageForMetadata): Metadata {
   const title = page.displayName
   const description = page.publicDescription?.trim() || `${title} on SocialUs.`
   if (page.lifecycleState !== 'active') {
-    return { title: `${title} — SocialUs`, description, robots: { index: false, follow: false } }
+    return { title: `${title} | SocialUs`, description, robots: { index: false, follow: false } }
   }
   const origin = siteOrigin()
   const url = `${origin}${canonicalPagePath(page.publicId)}`
   const photo = visiblePhotoUrl({ photo_url: page.photoUrl, photo_hidden_at: page.photoHiddenAt, photo_removed_at: page.photoRemovedAt })
   const image = photo ? { url: photo } : { url: `${origin}/og-default`, width: 1200, height: 630 }
   return {
-    title: `${title} — SocialUs`,
+    title: `${title} | SocialUs`,
     description,
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SocialUs', type: 'website', images: [image] },

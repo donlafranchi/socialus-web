@@ -13,7 +13,7 @@ import { getListedMemberCounts } from '@/lib/follows/get-listed-member-counts'
 import { FollowingManager } from '@/components/follows/FollowingManager'
 
 export const metadata = {
-  title: 'Following — SocialUs',
+  title: 'Following | SocialUs',
 }
 
 export default async function FollowingPage() {

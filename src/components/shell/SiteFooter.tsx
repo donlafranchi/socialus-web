@@ -21,7 +21,7 @@ export function SiteFooter() {
   return (
     <footer className="hidden md:block border-t border-[var(--color-border)]">
       <div className="mx-auto flex w-full max-w-shell items-center gap-6 gutter py-6 text-caption text-[var(--color-fg-muted)]">
-        <span>© SocialUs</span>
+        <span>© SocialUs, the people’s platform</span>
         {LINKS.map((l) => (
           <Link key={l.href} href={l.href} className="hover:text-[var(--color-fg)]">
             {l.label}

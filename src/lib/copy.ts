@@ -22,6 +22,10 @@ export const COPY = {
   withheldCta: "Sign in to see what's happening",
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
+  // Above the signup line (copy report §1, draft): the tagline and purpose.
+  signupTagline: 'SocialUs is the people’s platform, built to serve its members.',
+  // Under it: the Don-approved line (2026-10-10).
+  signupClose: 'Members first, always.',
   // F081 criterion 5 — what the app is for, on the signup screen. Don's words, ruled 2026-10-01.
   signupLine:
     'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
