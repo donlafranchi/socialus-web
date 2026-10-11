@@ -42,6 +42,8 @@ export interface TileCardProps {
   /** #299 — shown when there is no photo, in place of the emoji. */
   art?: ReactNode
   href?: string | null
+  /** #555 — true reads the whole destination ahead of the tap; omit for the router's default. */
+  prefetch?: boolean
   action?: ReactNode
   /** #260 — what the image is, in the card's own words. Empty means decorative. */
   imageAlt?: string
@@ -58,6 +60,7 @@ export function TileCard({
   emoji = '🌱',
   art,
   href,
+  prefetch,
   action,
   imageAlt = '',
   as = 'li',
@@ -123,7 +126,7 @@ export function TileCard({
       className="group/tile flex flex-col [container-type:inline-size]"
     >
       {href ? (
-        <Link href={href} className="block">
+        <Link href={href} prefetch={prefetch} className="block">
           {body}
         </Link>
       ) : (
