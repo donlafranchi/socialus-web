@@ -1,5 +1,7 @@
 # Staff roles and permissions (#544)
 
+*As of 2026-10-09 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 Who on the staff may open or do what. Roles are named sets of permissions; people hold roles.
 
 | Role | Permissions |

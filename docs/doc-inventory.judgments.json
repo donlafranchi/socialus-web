@@ -1,0 +1,143 @@
+{
+ ".github/ISSUE_TEMPLATE/work.md": {
+  "purpose": "Issue form for scenario, change, bug and chore work",
+  "origin": "hand",
+  "stale": "Names the method repo path as ops-pattern/process/PIPELINE.md; the repo is now socialus-ops",
+  "rec": "keep",
+  "note": "update the path once the ops-pattern name is settled",
+  "reviewed": "2026-10-11"
+ },
+ ".github/pull_request_template.md": {
+  "purpose": "PR body template: Don-looks or doesn't-look block, reviewer first pass",
+  "origin": "hand",
+  "stale": "Same ops-pattern path; the PREVIEWS_MODE note expires at the 2026-10-23 freeze",
+  "rec": "keep",
+  "note": "revisit after 2026-10-23",
+  "reviewed": "2026-10-11"
+ },
+ "BUILD-LOG.md": {
+  "purpose": "Index and rule for the one-file-per-ticket build log",
+  "origin": "hand",
+  "stale": "'Current' says target b1 MVP and W38 is this week (it is W41); History stops at W38; points at JOURNAL.md, which does not exist",
+  "duplicate": "CLAUDE.md § Naming states the same one-file-per-ticket rule",
+  "rec": "generate",
+  "note": "history table can be listed from build-log/ directories; keep the rule only in CLAUDE.md",
+  "reviewed": "2026-10-11"
+ },
+ "CLAUDE.md": {
+  "purpose": "Rules for agents working in this repo",
+  "origin": "hand",
+  "stale": "Says 'Launching 2026-10-30'; DECISIONS 2026-10-07 moved the beta to 2026-11-06. Calls the method repo ops-pattern (now socialus-ops)",
+  "duplicate": "DECISION RULE block repeats ~/.claude/CLAUDE.md and socialus-plan/CLAUDE.md",
+  "rec": "refresh",
+  "reviewed": "2026-10-11"
+ },
+ "INFRASTRUCTURE.md": {
+  "purpose": "Runbook: every external service, wire-up steps, env vars, launch checklist",
+  "origin": "hand",
+  "stale": "Item 13 specifies PostHog product analytics, but the app has no analytics package and metrics.md bans engagement tracking; launch target 2026-10-30; checklist still lists the report control as unshipped",
+  "duplicate": "Env var table overlaps .env.local.example",
+  "rec": "refresh",
+  "note": "789 lines; the checklist should be derived from state, not kept by hand",
+  "reviewed": "2026-10-11"
+ },
+ "README.md": {
+  "purpose": "Setup, run, test and stack for a new developer",
+  "origin": "hand",
+  "stale": "Pitch describes a map to tell independent businesses from PE-owned ones; setup says `cd web` but the repo has no web/ folder",
+  "duplicate": "Testing section overlaps TEST-CHECKLIST.md",
+  "rec": "refresh",
+  "reviewed": "2026-10-11"
+ },
+ "TEST-CHECKLIST.md": {
+  "purpose": "Pre-deploy checks and the Playwright eval coverage table",
+  "origin": "hand",
+  "stale": "Eval table stops at F042; evals/features also has F059 and F101. Manual smoke list covers auth only",
+  "duplicate": "README.md § Testing",
+  "rec": "merge",
+  "note": "fold the commands into README; generate the eval table from evals/features",
+  "reviewed": "2026-10-11"
+ },
+ "build-log/2026-W32.md": {
+  "purpose": "Week 32 log: no tickets",
+  "origin": "hand",
+  "stale": "Says '(none yet)'",
+  "rec": "delete",
+  "note": "deleted in this pass",
+  "reviewed": "2026-10-11"
+ },
+ "build-log/2026-W36.md": {
+  "purpose": "Week 36 ticket log (T112 to T138), before one-file-per-ticket",
+  "origin": "hand",
+  "rec": "keep",
+  "note": "history",
+  "reviewed": "2026-10-11"
+ },
+ "build-log/archive-pre-rotation.md": {
+  "purpose": "All build entries through 2026-06-18",
+  "origin": "hand",
+  "stale": "Titled for movers-makers-shakers (retired name); four links to folders that no longer exist",
+  "rec": "delete",
+  "note": "judgment: git holds the history",
+  "reviewed": "2026-10-11"
+ },
+ "docs/STAFF-ROLES.md": {
+  "purpose": "Staff roles, permissions and where each is enforced",
+  "origin": "hand",
+  "rec": "keep",
+  "note": "checked: src/lib/staff and src/actions/_lib/staff.ts match",
+  "reviewed": "2026-10-11"
+ },
+ "docs/copy-inventory.md": {
+  "purpose": "Audit of every user-facing string, 2026-09-15",
+  "origin": "hand",
+  "stale": "Counts 584 strings; a fresh scan finds about 1,500. Its 'retired surfaces' section lists pages since removed",
+  "duplicate": "socialus-plan planning/research/copy-voice-pass-2026-10-10.md covers the same strings with proposals",
+  "rec": "delete",
+  "note": "judgment: or generate it with a script",
+  "reviewed": "2026-10-11"
+ },
+ "docs/error-tracking.md": {
+  "purpose": "How error tracking (Sentry) is set up and turned on",
+  "origin": "hand",
+  "rec": "keep",
+  "note": "checked: src/instrumentation.ts matches",
+  "reviewed": "2026-10-11"
+ },
+ "docs/problem-reports.md": {
+  "purpose": "How a member's bug report becomes a filed, triaged issue",
+  "origin": "hand",
+  "rec": "keep",
+  "note": "checked: workflow, scripts/problem-reports.ts and src/lib/problem-reports exist",
+  "reviewed": "2026-10-11"
+ },
+ "docs/purge-proposal.md": {
+  "purpose": "Spec for permanently deleting removed photos",
+  "origin": "hand",
+  "stale": "Status says 'Specified, not built'; #491 shipped src/actions/report/purge.ts and /admin/reports/purge",
+  "rec": "refresh",
+  "note": "turn into an as-built note, or delete",
+  "reviewed": "2026-10-11"
+ },
+ "evals/screens/README.md": {
+  "purpose": "How to run the screenshot matrix against a local stack",
+  "origin": "hand",
+  "rec": "keep",
+  "note": "checked: scripts/seed-personas.ts exists",
+  "reviewed": "2026-10-11"
+ },
+ "supabase/seeds/README.md": {
+  "purpose": "Why the seeds are privileged and how to verify against real rows",
+  "origin": "hand",
+  "rec": "keep",
+  "note": "checked: the-good-place.sql and personas.sql exist",
+  "reviewed": "2026-10-11"
+ },
+ "docs/DOC-INVENTORY.md": {
+  "purpose": "This inventory: generated by npm run docs:inventory",
+  "origin": "generated",
+  "rec": "keep",
+  "note": "do not edit by hand",
+  "reviewed": "2026-10-11"
+ }
+}

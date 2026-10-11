@@ -1,0 +1,36 @@
+import { describe, expect, it } from 'vitest'
+import { asOfDate, classify, looksGenerated, npmScriptRefs, pathRefs, relativeLinks } from '../scripts/doc-inventory'
+
+describe('doc-inventory', () => {
+  it('classifies docs by where they live', () => {
+    expect(classify('build-log/2026-W40/bug-1-x.md')).toBe('build-log-entry')
+    expect(classify('build-log/reports/moderation/F078.md')).toBe('feature-report')
+    expect(classify('build-log/2026-W36.md')).toBe('archive')
+    expect(classify('scripts/fixtures/a/b.md')).toBe('fixture')
+    expect(classify('.github/pull_request_template.md')).toBe('template')
+    expect(classify('evals/screens/README.md')).toBe('readme')
+    expect(classify('docs/STAFF-ROLES.md')).toBe('doc')
+  })
+
+  it('finds an as-of date near the top and ignores one far down', () => {
+    expect(asOfDate('# T\n\n*As of 2026-10-07, the date of its last change.*')).toBe('2026-10-07')
+    expect(asOfDate('# T\nas-of: 2026-10-10 · x')).toBe('2026-10-10')
+    expect(asOfDate('# T\n' + '\n'.repeat(40) + 'as of 2026-01-01')).toBeNull()
+    expect(asOfDate('# T\nno date here')).toBeNull()
+  })
+
+  it('spots generated docs', () => {
+    expect(looksGenerated('# R\nas-of 2026-10-10 · regenerated whole by the run')).toBe(true)
+    expect(looksGenerated('# R\nwritten by hand')).toBe(false)
+  })
+
+  it('reads relative links, not web links, anchors or fenced code', () => {
+    const t = '[a](docs/a.md) [b](https://x.y) [c](#top) [d](../d.md#sec)\n```\n[e](nope.md)\n```'
+    expect(relativeLinks(t)).toEqual(['docs/a.md', '../d.md'])
+  })
+
+  it('reads backticked repo paths and npm scripts', () => {
+    expect(pathRefs('see `src/lib/a.ts` and `docs/b.md`, not `foo.ts`')).toEqual(['src/lib/a.ts', 'docs/b.md'])
+    expect(npmScriptRefs('run npm run eval:ui then npm run lint')).toEqual(['eval:ui', 'lint'])
+  })
+})

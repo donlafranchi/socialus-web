@@ -1,5 +1,7 @@
 # The screenshot matrix (#269)
 
+*As of 2026-10-05 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 Every routed screen in the 2026-10-01 screen inventory (`routes.ts`), as each
 persona (`../personas.ts`), at 390, 744, 1024, 1280, 1440 and 1920px.
 

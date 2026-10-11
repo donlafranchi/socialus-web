@@ -1,5 +1,7 @@
 # socialus-web — code repo
 
+*As of 2026-10-06 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
+
 SocialUs: local discovery, buy/sell/trade/gather. Launching 2026-10-30 to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `socialus-plan`, the method in `ops-pattern`, design in `socialus-design`; this repo is code. Which folder holds what: `~/.claude/CLAUDE.md` § The repos.
 
 ## Naming
