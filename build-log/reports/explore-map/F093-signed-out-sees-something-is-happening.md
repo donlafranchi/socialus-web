@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 12 criteria | 9 | 5 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 12 criteria | 9 | 5 | 0 | 9 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **4** (the kind's default art; #335 open). Unknown: **12**. Built means code on main plus a build-log line [V]; shipped means Deploy health success on 75c682a8, 19109a1e, a7814ce9 [V]; 73625848 (no pins) shows CI and migrations success but no Deploy health run [V], so it counts as shipped-unknown. No PR of the four carries `Reviewed by:` or `review-skipped` (all predate the 10-05 rule) [V].
 

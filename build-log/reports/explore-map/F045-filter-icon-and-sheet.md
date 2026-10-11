@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 9 criteria | 2 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 9 criteria | 2 | 0 | 0 | 0 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built as written: **1, 4, 5, 6** (built in T114/T115 in 2026-W36, then deleted by T156/PR #174 under the 2026-09-12 ruling "zero filter pills outside the filter view, at every viewport width" [V PR #174 body, `ExploreFilterSheet.tsx` header]), **3** (distance, sort and Recurring are gone; category became tags), **7** (kind, distance, sort are no longer in the URL), **8** (filters restore from the URL; scroll restore is open as #54). **Six criteria collide with the ruling and with F092 criterion 1 (no chips or pills): flagged SPEC-CONFLICT, not filed.** Reviewed: #5 and #6 carry no `Reviewed by:` and no PR; the W36 log notes "Neither F044 nor F045 has a review-F###.md" [V build log line 145]. PR #174 and #143 carry `human-review`, no `Reviewed by:` line [V]. Shipped: unknown for T114/T115 (no PR, no merge commit); the later PR #174 merge shows `lint` failing alongside other checks passing, #143 all green [V check-runs].
 

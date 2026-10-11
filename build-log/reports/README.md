@@ -4,37 +4,37 @@ as-of 2026-10-10 · regenerated whole by the `feature-reports-all-features` run 
 
 ## Features
 
-| Area | Feature | Criteria | Built | Checked |
-|---|---|---|---|---|
-| create-posts | [F060 someone starts something without opening a shop](create-posts/F060-start-without-opening-a-shop.md) | 5 | 4 | 0 |
-| create-posts | [F061 creating a Page asks one question, its kind](create-posts/F061-create-asks-one-question.md) | 3 | 3 | 0 |
-| create-posts | [F064 someone asks for something that isn't built](create-posts/F064-asks-for-what-isnt-built.md) | 5 | 0 | 0 |
-| create-posts | [F072 a Page owner announces something, with a time on it](create-posts/F072-announce-with-a-time.md) | 6 | 4 | 0 |
-| create-posts | [F074 a series repeats](create-posts/F074-a-series-repeats.md) | 8 | 0 | 0 |
-| create-posts | [F082 the rules a member agrees to before publishing a Page](create-posts/F082-rules-before-publish.md) | 9 | 7 | 5 |
-| create-posts | [F099 every post shows a picture, and every Page can have a Page p](create-posts/F099-every-post-shows-a-picture.md) | 13 | 12 | 11 |
-| explore-map | [F044 newcomer switches between list and map with an inline toggle](explore-map/F044-inline-list-map-toggle.md) | 5 | 2 | 0 |
-| explore-map | [F045 a newcomer filters Explore with a filter icon, kind pills an](explore-map/F045-filter-icon-and-sheet.md) | 9 | 2 | 0 |
-| explore-map | [F046 scrolling hides the bottom nav](explore-map/F046-scroll-hides-the-bottom-nav.md) | 7 | 6 | 0 |
-| explore-map | [F059 Browse, where a newcomer finds the neighbourhood](explore-map/F059-browse-finds-the-neighbourhood.md) | 12 | 9 | 0 |
-| explore-map | [F063 someone says they're coming](explore-map/F063-someone-says-theyre-coming.md) | 4 | 0 | 0 |
-| explore-map | [F070 every Page has a face, even without a photo](explore-map/F070-every-page-has-a-face.md) | 5 | 3 | 0 |
-| explore-map | [F076 a person outside an open metro joins its waitlist](explore-map/F076-metro-waitlist.md) | 16 | 12 | 0 |
-| explore-map | [F091 What's happening, today and this week](explore-map/F091-whats-happening-today-and-this-week.md) | 7 | 5 | 3 |
-| explore-map | [F092 narrowing happens in a modal that writes what it did](explore-map/F092-narrowing-in-a-modal.md) | 6 | 1 | 0 |
-| explore-map | [F093 a signed-out visitor sees that something is happening, and i](explore-map/F093-signed-out-sees-something-is-happening.md) | 12 | 9 | 5 |
-| moderation | [F058 a member reports something, and the operator can take a phot](moderation/F058-report-and-remove-a-photo.md) | 6 | 4 | 0 |
-| moderation | [F078 flagged content hides itself, and the poster is told why](moderation/F078-flagged-content-hides-itself.md) | 11 | 8 | 3 |
-| moderation | [F080 no sensitive content in photos; the uploader confirms, a rep](moderation/F080-no-sensitive-photos.md) | 5 | 3 | 1 |
-| moderation | [F100 an AI reads every reported item first, and a person makes th](moderation/F100-ai-first-pass-review.md) | 12 | 8 | 6 |
-| moderation | [F101 one scannable page of flagged and reviewed Posts, decided in](moderation/F101-one-page-of-flagged-posts.md) | 15 | 12 | 2 |
-| moderation | [F102 the poster answers first, report misuse is tracked, and the ](moderation/F102-poster-answers-first.md) | 14 | 9 | 3 |
-| page-editing | [F056 a producer edits a shop that already exists](page-editing/F056-owner-edits-shop.md) | 9 | 5 | 0 |
-| page-editing | [F069 a non-business Page resolves everywhere, and holding several](page-editing/F069-non-business-pages-resolve-everywhere.md) | 4 | 2 | 0 |
-| sign-in-you | [F057 someone who isn't selling yet finds the way in](sign-in-you/F057-you-shows-the-way-in.md) | 5 | 2 | 0 |
-| sign-in-you | [F065 someone follows a person, Page or venue, and nothing else ch](sign-in-you/F065-someone-follows-something.md) | 5 | 3 | 0 |
-| sign-in-you | [F077 members see a display name; the legal name stays with the pl](sign-in-you/F077-display-name-public-legal-name-private.md) | 8 | 1 | 0 |
-| sign-in-you | [F081 everyone signs up the same way, and the zip sets the metro](sign-in-you/F081-one-signup-zip-sets-metro.md) | 9 | 5 | 1 |
+| Area | Feature | Criteria | Built | Checked | Reviewed | Smoked | PM looked |
+|---|---|---|---|---|---|---|---|
+| create-posts | [F060 someone starts something without opening a shop](create-posts/F060-start-without-opening-a-shop.md) | 5 | 4 | 0 | 3 | 0 | 0 |
+| create-posts | [F061 creating a Page asks one question, its kind](create-posts/F061-create-asks-one-question.md) | 3 | 3 | 0 | 0 | 0 | 0 |
+| create-posts | [F064 someone asks for something that isn't built](create-posts/F064-asks-for-what-isnt-built.md) | 5 | 0 | 0 | 0 | 0 | 0 |
+| create-posts | [F072 a Page owner announces something, with a time on it](create-posts/F072-announce-with-a-time.md) | 6 | 4 | 0 | 0 | 4 | 0 |
+| create-posts | [F074 a series repeats](create-posts/F074-a-series-repeats.md) | 8 | 0 | 0 | 0 | 0 | 0 |
+| create-posts | [F082 the rules a member agrees to before publishing a Page](create-posts/F082-rules-before-publish.md) | 9 | 7 | 5 | 0 | 0 | 0 |
+| create-posts | [F099 every post shows a picture, and every Page can have a Page p](create-posts/F099-every-post-shows-a-picture.md) | 13 | 12 | 11 | 0 | 12 | 0 |
+| explore-map | [F044 newcomer switches between list and map with an inline toggle](explore-map/F044-inline-list-map-toggle.md) | 5 | 2 | 0 | 0 | 0 | 0 |
+| explore-map | [F045 a newcomer filters Explore with a filter icon, kind pills an](explore-map/F045-filter-icon-and-sheet.md) | 9 | 2 | 0 | 0 | 0 | 0 |
+| explore-map | [F046 scrolling hides the bottom nav](explore-map/F046-scroll-hides-the-bottom-nav.md) | 7 | 6 | 0 | 0 | 0 | 0 |
+| explore-map | [F059 Browse, where a newcomer finds the neighbourhood](explore-map/F059-browse-finds-the-neighbourhood.md) | 12 | 9 | 0 | 0 | 9 | 0 |
+| explore-map | [F063 someone says they're coming](explore-map/F063-someone-says-theyre-coming.md) | 4 | 0 | 0 | 0 | 0 | 0 |
+| explore-map | [F070 every Page has a face, even without a photo](explore-map/F070-every-page-has-a-face.md) | 5 | 3 | 0 | 0 | 3 | 0 |
+| explore-map | [F076 a person outside an open metro joins its waitlist](explore-map/F076-metro-waitlist.md) | 16 | 12 | 0 | 0 | 12 | 0 |
+| explore-map | [F091 What's happening, today and this week](explore-map/F091-whats-happening-today-and-this-week.md) | 7 | 5 | 3 | 0 | 5 | 0 |
+| explore-map | [F092 narrowing happens in a modal that writes what it did](explore-map/F092-narrowing-in-a-modal.md) | 6 | 1 | 0 | 0 | 0 | 0 |
+| explore-map | [F093 a signed-out visitor sees that something is happening, and i](explore-map/F093-signed-out-sees-something-is-happening.md) | 12 | 9 | 5 | 0 | 9 | 0 |
+| moderation | [F058 a member reports something, and the operator can take a phot](moderation/F058-report-and-remove-a-photo.md) | 6 | 4 | 0 | 0 | 4 | 0 |
+| moderation | [F078 flagged content hides itself, and the poster is told why](moderation/F078-flagged-content-hides-itself.md) | 11 | 8 | 3 | 0 | 8 | 0 |
+| moderation | [F080 no sensitive content in photos; the uploader confirms, a rep](moderation/F080-no-sensitive-photos.md) | 5 | 3 | 1 | 2 | 3 | 0 |
+| moderation | [F100 an AI reads every reported item first, and a person makes th](moderation/F100-ai-first-pass-review.md) | 12 | 8 | 6 | 0 | 8 | 0 |
+| moderation | [F101 one scannable page of flagged and reviewed Posts, decided in](moderation/F101-one-page-of-flagged-posts.md) | 15 | 12 | 2 | 0 | 0 | 0 |
+| moderation | [F102 the poster answers first, report misuse is tracked, and the ](moderation/F102-poster-answers-first.md) | 14 | 9 | 3 | 8 | 0 | 0 |
+| page-editing | [F056 a producer edits a shop that already exists](page-editing/F056-owner-edits-shop.md) | 9 | 5 | 0 | 2 | 0 | 1 |
+| page-editing | [F069 a non-business Page resolves everywhere, and holding several](page-editing/F069-non-business-pages-resolve-everywhere.md) | 4 | 2 | 0 | 1 | 0 | 0 |
+| sign-in-you | [F057 someone who isn't selling yet finds the way in](sign-in-you/F057-you-shows-the-way-in.md) | 5 | 2 | 0 | 0 | 0 | 0 |
+| sign-in-you | [F065 someone follows a person, Page or venue, and nothing else ch](sign-in-you/F065-someone-follows-something.md) | 5 | 3 | 0 | 0 | 3 | 0 |
+| sign-in-you | [F077 members see a display name; the legal name stays with the pl](sign-in-you/F077-display-name-public-legal-name-private.md) | 8 | 1 | 0 | 0 | 1 | 0 |
+| sign-in-you | [F081 everyone signs up the same way, and the zip sets the metro](sign-in-you/F081-one-signup-zip-sets-metro.md) | 9 | 5 | 1 | 0 | 0 | 0 |
 
 27 features reported (2 pre-existing: F081, F082). Not started (draft, deferred or superseded, not reported): drafts F048, F049, F067, F068, F071, F075, F079, F083–F090, F094–F098; deferred F055; superseded F073 (its Issue #173 is still open).
 

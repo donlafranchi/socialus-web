@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 16 criteria | 12 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 16 criteria | 12 | 0 | 0 | 12 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **4** (member and email cross-count, #613), **7** (signed-in popup reads a live count, #614), **8** (same figure everywhere, #615), **15** (the one "metro opened" message and discarding, #616). Built means code seen on main [V]. Checked: **zero `[guards F076.N]` markers exist** [V grep src, tests, scripts], so every test below is `unmarked`. Reviewed: none of PRs #86, #191, #197, #198, #217 carries `Reviewed by:` or `review-skipped` in its body [V]; all predate the 2026-10-05 rule. Shipped: deploy-health success on 8ad3ee56 (#198), lint/types/build/unit success on a3faf37c (#217) [V]. Smoked: smoke-live is failing on recent main commits and is not tied to these merges [V], so 0.
 

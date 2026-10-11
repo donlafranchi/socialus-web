@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 13 criteria | 12 | 11 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 13 criteria | 12 | 11 | 0 | 12 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **11 (second half: Page picture or placeholder on the signed-out withheld card)**, see Routing. Built means code on main [V migration `20261007290000`, `update.ts`, `PagePosts.tsx`, `BrowseResultCard.tsx`]. Reviewed: PR #498 and #502 bodies carry `Reviewed by: separate reviewer subagent` (#502 also a Visibility review) [V]. Shipped: deploy-health checks, incl. "Migrations applied to production", green on 451bfd71 and af769e15 [V]. Smoked: no smoke-live run on either merge commit; the recent runs fail [V], so 0.
 

@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 14 criteria | 9 | 3 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 14 criteria | 9 | 3 | 8 | 0 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **4** (batch rule), **11** (by severity, Friday), **13** (other write paths), **14** (preserve and report to NCMEC). Spec-conflict: **7** (a cool-down hides nothing vs urgent categories still hide; built to the cautious reading, ruling of 2026-10-08 is in a code comment and the #488 comment, not in DECISIONS). Built means code seen on main [V]; reviewed means the merged PR carries `Reviewed by:` (#506 yes; #509 and #540 say review skipped) [V]; shipped means `Deploy health`/check-runs success on 883b92e (#506, `Lint, types, build` failed there), 3a5ce56 (#509), 67f540e (#540) [V]. Criterion 12 is built but dormant: it acts only when `ai_mode` is `live` and `severity4_restore_cleared` is true, and nothing sets that flag [V].
 

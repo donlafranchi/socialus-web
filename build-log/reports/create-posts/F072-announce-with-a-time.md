@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 6 criteria | 4 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 6 criteria | 4 | 0 | 0 | 4 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **2 (14-day expiry, "Earlier", show-until; #314 open)** and **6 (alt text on the Page photo; #596)**. Spec conflict: **1 (delete)**. Built means code on main [V]; shipped means `Database reachable from the deployment` success on the merge commit for #183, #258, #263 [V], none returned for #115; reviewed means a `Reviewed by:` section, and #115, #183, #258, #263 carry only `human-review` [V].
 

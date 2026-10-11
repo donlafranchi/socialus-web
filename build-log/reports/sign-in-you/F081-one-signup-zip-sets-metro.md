@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell i
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 9 criteria | 5 | 1 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 9 criteria | 5 | 1 | 0 | 0 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **4 (second half), 8, 9** (tickets #568, #569, #570). Built means the code exists on main [V build log + grep]; shipped means deploy-health was green for the merge commit.
 

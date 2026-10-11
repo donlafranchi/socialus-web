@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell i
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 8 criteria | 0 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 8 criteria | 0 | 0 | 0 | 0 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **1-8**, all of them. No F074 PR, build-log file or `[guards F074.n]` marker exists [V grep]. Only the substrate is on main: `page_posts.parent_post_id` (nullable, indexed, `20260916003100_page_post_write.sql`) [V], and `src/lib/metro/metro-time.ts` with a DST-safe wall-time helper but a hard-coded zone constant until #173 lands [V]. F072 is shipped (#183, #263), so single dated posts exist.
 
