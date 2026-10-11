@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. `area:` 
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 5 criteria | 2 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 5 criteria | 2 | 0 | 0 | 0 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **2, 3, 4** (open #15 covers them; nothing was built for it, per its own comment). Built means code on main [V grep of `src/app/you/page.tsx`, `next.config.ts`]. The producer state never shipped: You today shows the same "Your Pages" section to everyone, with an empty line "You haven't made a Page yet. Tap Create to start one." [V `OwnPages.tsx`], and no invitation.
 

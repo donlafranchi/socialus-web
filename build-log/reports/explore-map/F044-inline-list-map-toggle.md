@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 5 criteria | 2 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 5 criteria | 2 | 0 | 0 | 0 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built as written: **1, 4, 5** (spec conflict, not a missing build). T116 built the toggle inline in the results [V build log W36]; T187 (#279) then moved it out of the results: under 1024px a fixed floating dock, from 1024px side by side with no toggle, 1024-1439px with the owner panel open a switch docked in the search row [V `BrowseSurface.tsx`, `ExploreDock.tsx`]. F044 "Out of Scope" rejects the floating pill, so the criteria and the shipped surface disagree. Reviewed: T116 landed as a direct commit with no PR; build log says "Neither F044 nor F045 has a review file" [V]. Shipped: no check-runs or workflow runs found for 060ee79 [V], so unknown.
 

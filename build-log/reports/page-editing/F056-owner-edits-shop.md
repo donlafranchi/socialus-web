@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell i
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 9 criteria | 5 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 9 criteria | 5 | 0 | 2 | 0 | 1 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **1 (values line; image, name and about are built), 3, 4** (#16 covers the values line; #584 tagline). Unknown: **5**. Criteria 1 (values part) and 3 collide with the 2026-10-06 ruling that values and badges are cut from beta (DECISIONS, #465: "Values & badges" card "Coming soon", nothing on the public Page): SPEC-CONFLICT. Most of the work shipped under unrelated "change" Issues with `Scenario: none`, so no PR or marker names F056 [V grep: no `guards F056`].
 

@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 11 criteria | 8 | 3 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 11 criteria | 8 | 3 | 0 | 8 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **1** (Page words, listings), **2** (agent score drives hiding), **11** (Don's wording; all strings are placeholders). Spec-conflict: **3** (sensitive-content reports never go to the poster, ruled 2026-10-06). Built means code seen on main [V]; reviewed means the merged PRs carry `Reviewed by:` (#494, #499, #483 also carry `review-skipped`, so the line is the evidence) [V]; shipped means `Deploy health` success on b7c4ebd and f9c3c7e [V]. Merge 883b92e (#506) had `CI` failure on Lint, types, build, deploy health still success [V]. Smoked: `smoke-live` failed on all three latest runs today and is not tied to these commits [V], so unknown.
 

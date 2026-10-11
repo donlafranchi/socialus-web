@@ -5,11 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked |
-|---|---|---|
-| 12 criteria | 9 | 0 |
+| | built | checked | reviewed | smoked | PM looked |
+|---|---|---|---|---|---|
+| 12 criteria | 9 | 0 | 0 | 9 | 0 |
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
 
 Not built: **4** (curated lenses beyond "what's happening"), **6** (a metro is still picked for a visitor with none). Unknown: **2** (completeness: `BROWSE_LIMIT = 100`, no paging seen). Reviewed means a `Reviewed by:` line on the PR: #496 and #479 are `review-skipped`, #279 and #161 say "Don doesn't need to look", #204 and #174 carry nothing [V]. Shipped means deploy-health success on the merge commit: 0cee585a (#496) and 3c490272 (#479) pass [V]; the other merge commits show lint only or nothing [V]. Smoked: `smoke-live` failed on main in all three most recent runs today and is not tied to a merge commit [V]. No UAT Issue and no `pm-reviewed` label on any F059 Issue [V].
 
