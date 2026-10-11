@@ -74,7 +74,7 @@ export function OnboardingFlow({
       }
       setMetroName(res.metro?.name ?? null)
     } catch (err) {
-      setError({ field: 'displayName', message: err instanceof Error ? err.message : 'Something went wrong. Try again.' })
+      setError({ field: 'displayName', message: err instanceof Error ? err.message : "That didn't go through. Mind trying again?" })
     } finally {
       setBusy(false)
     }
@@ -89,7 +89,7 @@ export function OnboardingFlow({
       <AuthCard>
         <div className="space-y-4" data-testid="onboarding-metro">
           <h1 className="text-title-1 text-[var(--color-fg)]">You’re in {metroName}</h1>
-          <p className="text-body-sm text-[var(--color-fg-muted)]">Your zip code decided this. You can change it any time from your account.</p>
+          <p className="text-body-sm text-[var(--color-fg-muted)]">Your zip code picked this. You can change it anytime from your account.</p>
           <button type="button" data-testid="onboarding-metro-continue" onClick={() => navigate('/')} className="btn-primary w-full">
             Continue
           </button>
@@ -105,7 +105,7 @@ export function OnboardingFlow({
           <div className="space-y-1">
             <h1 className="text-title-1 text-[var(--color-fg)]">Where are you, and why?</h1>
             <p className="text-body-sm text-[var(--color-fg-muted)]">
-              We are not everywhere yet. Tell us where you are and we will tell you where it stands.
+              We&rsquo;re not everywhere yet. Tell us where you are and we&rsquo;ll tell you where things stand.
             </p>
           </div>
           <MetroWaitlistStep metros={metros} onJoin={onJoinWaitlist} onDone={() => navigate('/')} />
@@ -172,7 +172,7 @@ export function OnboardingFlow({
               value={zip}
               onChange={(e) => setZip(e.target.value)}
             />
-            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">It decides your metro. It is never shown to anyone.</p>
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">It picks your metro. We currently don&rsquo;t show it to anyone.</p>
           </div>
 
           <label data-testid="onboarding-adult-label" className="flex min-h-11 items-start gap-3 text-body-sm text-[var(--color-fg)]">

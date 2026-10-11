@@ -32,7 +32,7 @@ export function validateSignupProfile(input: SignupProfileInput): SignupProfileR
     return { ok: false, field: 'zip', message: 'Enter a 5-digit zip code.' }
   }
   if (input.adultConfirmed !== true) {
-    return { ok: false, field: 'adultConfirmed', message: 'Please confirm you are 18 or older.' }
+    return { ok: false, field: 'adultConfirmed', message: "Please confirm you're 18 or older." }
   }
   return { ok: true, value: { legalName, displayName, zip, adultConfirmed: true } }
 }

@@ -41,7 +41,7 @@ const METRO: FeedMetro = {
 
 // What `standingMessage` produces for a cached combined of 50 against 300.
 const CONFIRMATION =
-  'This metro needs 250 more people before there is enough here to be worth showing you.'
+  "We need 250 more people in Boise City, ID before it's ready to open. We'll let you know."
 
 function renderPanel() {
   return render(<MetroNotCoveredPanel metro={METRO} onBack={() => {}} />)
@@ -64,7 +64,7 @@ beforeEach(() => {
     open: false,
     metroName: METRO.name,
     standing: { combined: 50, target: 300 },
-    message: 'This metro needs 250 more people before there is enough here to be worth showing you.',
+    message: CONFIRMATION,
   })
 })
 afterEach(cleanup)
@@ -123,7 +123,7 @@ describe('signed out — criterion 13, no account and no second step', () => {
     await screen.findByTestId('waitlist-email')
     const purpose = screen.getByTestId('waitlist-email-purpose')
     expect(purpose.textContent).toMatch(/one message/i)
-    expect(purpose.textContent).toMatch(/nothing else|only thing/i)
+    expect(purpose.textContent).toMatch(/anything else|nothing else|only thing/i)
   })
 })
 
@@ -235,7 +235,7 @@ describe('the confirmation says nothing it must not', () => {
 describe('failure', () => {
   it('reports a refusal without saying whether the address was known', async () => {
     signedOut()
-    joinAnonymous.mockRejectedValue(new Error('That does not look like an email address.'))
+    joinAnonymous.mockRejectedValue(new Error("That doesn't look like an email address."))
     renderPanel()
     fireEvent.change(await screen.findByTestId('waitlist-email'), {
       target: { value: 'nope' },

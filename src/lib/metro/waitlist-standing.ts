@@ -58,16 +58,20 @@ export function metroStanding(counts: MetroCounts): MetroStanding {
  * open at all. It also does not leak the creator/patron split, which is what
  * keeps a popup a popup.
  */
-export function standingMessage(standing: Pick<MetroStanding, 'combined' | 'target'>): string {
+export function standingMessage(
+  standing: Pick<MetroStanding, 'combined' | 'target'>,
+  metroName?: string,
+): string {
   const remaining = Math.max(0, standing.target - standing.combined)
   if (remaining > 0) {
     const people = remaining === 1 ? 'one more person' : `${remaining} more people`
-    return `This metro needs ${people} before there is enough here to be worth showing you.`
+    const where = metroName ? ` in ${metroName}` : ''
+    return `We need ${people}${where} before it's ready to open. We'll let you know.`
   }
   // Thresholds met, or the combined target met while the creator half is not.
   // Either way the honest sentence is the same: enough people are here, and a
   // person decides what happens next. Saying more would be a promise.
-  return 'Enough people are here. A person reviews each metro before it goes live.'
+  return 'There are enough people here. A person from our team looks over each area before it opens.'
 }
 
 /**

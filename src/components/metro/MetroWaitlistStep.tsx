@@ -55,7 +55,7 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
       }
       setStanding(result)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'That did not go through. Try again?')
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     } finally {
       setBusy(false)
     }

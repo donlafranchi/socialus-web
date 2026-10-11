@@ -30,7 +30,7 @@ beforeEach(() => {
     open: false,
     metroName: 'Boise City-Mountain Home-Ontario, ID-OR',
     standing: { combined: 51, target: 300 },
-    message: 'This metro needs 249 more people before there is enough here to be worth showing you.',
+    message: "We need 249 more people in Boise City-Mountain Home-Ontario, ID-OR before it's ready to open. We'll let you know.",
   })
 })
 
@@ -119,7 +119,7 @@ describe('the popup (c7, c8)', () => {
   it('shows the message', async () => {
     renderStep()
     const dialog = await joinBoise()
-    expect(dialog).toHaveTextContent(/needs 249 more people/i)
+    expect(dialog).toHaveTextContent(/need 249 more people/i)
   })
 
   it('never shows the creator/patron split', async () => {
