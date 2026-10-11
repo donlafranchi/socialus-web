@@ -49,12 +49,12 @@ describe('the ⋯ overflow menu', () => {
     )
   })
 
-  it('opens to exactly one item — Report to the operator', () => {
+  it('opens to exactly one item — Report this', () => {
     renderControl()
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     const items = screen.getAllByRole('menuitem')
     expect(items).toHaveLength(1)
-    expect(items[0]).toHaveTextContent('Report to the operator')
+    expect(items[0]).toHaveTextContent('Report this')
   })
 
   it('closes on Escape without opening the sheet', () => {
@@ -70,13 +70,13 @@ describe('the ⋯ overflow menu', () => {
 describe('the report sheet', () => {
   function openSheet() {
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
   }
 
   it('says who is on the other end, in those words', () => {
     renderControl()
     openSheet()
-    expect(screen.getByRole('dialog')).toHaveTextContent('This goes to a person, not a queue')
+    expect(screen.getByRole('dialog')).toHaveTextContent('A person from our team reads this')
   })
 
   it('carries a text area and a Send', () => {
@@ -136,7 +136,7 @@ describe('the report sheet', () => {
 describe('sending', () => {
   function openAndSend(body = 'This photo does not belong here.', reason: RegExp | null = /^spam$/i) {
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     if (reason) fireEvent.click(screen.getByRole('radio', { name: reason }))
     fireEvent.change(screen.getByRole('textbox'), { target: { value: body } })
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -152,7 +152,7 @@ describe('sending', () => {
   it('offers sensitive content as a reason, naming what it covers', () => {
     renderControl()
     openAndSend('x', null)
-    expect(screen.getByRole('radio', { name: /sensitive content.*children.*animals.*fend for themselves/i })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /sensitive content.*children.*animals.*speak up for themselves/i })).toBeInTheDocument()
   })
 
   it('keeps every radio full size beside a wrapped label', () => {
@@ -234,7 +234,7 @@ describe('a signed-out member', () => {
   it('is told why first: a "Sign in to report this" prompt, not the bare sign-in page', () => {
     renderControl({ loggedIn: false })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    const item = screen.getByRole('menuitem', { name: /report to the operator/i })
+    const item = screen.getByRole('menuitem', { name: /report this/i })
     expect(item).not.toHaveAttribute('href')
     fireEvent.click(item)
     expect(screen.getByRole('dialog', { name: 'Sign in to report this' })).toBeInTheDocument()
@@ -244,7 +244,7 @@ describe('a signed-out member', () => {
   it('comes back to the Page it was on after signing in', () => {
     renderControl({ loggedIn: false, returnTo: '/p/ca/sacramento/g/oak-park-sourdough' })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     const href = screen.getByTestId('sign-in-prompt-continue').getAttribute('href')!
     expect(decodeURIComponent(href)).toContain('/p/ca/sacramento/g/oak-park-sourdough')
   })
@@ -252,7 +252,7 @@ describe('a signed-out member', () => {
   it('never reaches the send path', () => {
     renderControl({ loggedIn: false })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     expect(send).not.toHaveBeenCalled()
   })
 })
@@ -261,7 +261,7 @@ describe('a signed-out member', () => {
 describe('which image is reported', () => {
   const sendIt = () => {
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -287,7 +287,7 @@ describe('F102 — threat of harm', () => {
   it('tells the reporter to call 911 if someone is in danger now, once that reason is picked', () => {
     render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     expect(screen.queryByTestId('report-911')).toBeNull()
     fireEvent.click(screen.getByLabelText('Threat of harm'))
     expect(screen.getByTestId('report-911')).toHaveTextContent(/911/)
@@ -301,12 +301,9 @@ describe('F078 — reports have consequences when misused', () => {
   it('says so on the sheet, before Send', () => {
     render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
-    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/three/i)
-    // Ruled 2026-10-08: plain, no blame. Neither "mistake" nor "rejected".
-    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/didn.t match a rule/i)
-    expect(screen.getByTestId('report-misuse').textContent).not.toMatch(/mistake|reject/i)
-    // the cost lands on the reader: "your reports", not "ours"
-    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/your reports/i)
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
+    // Don, 2026-10-10: no numbers or counts, just that misuse has its own consequences.
+    expect(screen.getByTestId('report-misuse')).toHaveTextContent(/misusing reports has its own consequences/i)
+    expect(screen.getByTestId('report-misuse').textContent).not.toMatch(/\d|three|mistake|reject/i)
   })
 })
