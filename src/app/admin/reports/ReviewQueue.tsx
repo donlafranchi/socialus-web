@@ -81,7 +81,7 @@ export function ReviewQueue({
           n.delete(p.subject.subjectId)
           return n
         })
-        setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+        setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
       }
     },
     [onDecide, router],
@@ -103,7 +103,7 @@ export function ReviewQueue({
         n.delete(s.subjectId)
         return n
       })
-      setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     }
   }
 
@@ -359,7 +359,7 @@ function Row({
               <p data-testid="review-ai" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {'skipped' in s.ai
                   ? COPY.aiNotRead
-                  : `AI: ${s.ai.outcome} · ${s.ai.confidence.toFixed(2)} · AI severity ${s.ai.severity} — ${s.ai.reason}`}
+                  : `AI: ${s.ai.outcome} · ${s.ai.confidence.toFixed(2)} · AI severity ${s.ai.severity} ${s.ai.reason}`}
               </p>
             )}
             {s.answer && (
