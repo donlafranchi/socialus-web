@@ -1,0 +1,262 @@
+{
+ "schema": 1,
+ "feature": "F102",
+ "title": "the poster answers first, report misuse is tracked, and the platform holds steady Tuesday to Thursday",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Poster told category and reporter's reason; gets one answer",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "`member_notices` row on hide, fix or say-wrong (#506) [V] Checked: no: `YouNotices.test` exists, unmarked."
+  },
+  {
+   "id": "2",
+   "text": "Fix and repost shows again at once; reports stay; no second repost; not for severity 1",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "`page_posts.repost_used`, reports stay on the row (#506) [V] Checked: no: only \"no second repost\" marked (`post.test`)."
+  },
+  {
+   "id": "3",
+   "text": "Say it's wrong: Mistaken/Malicious/Misusing + 280-char note; one per hide; to AI and row; stays hidden",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "`report_answers` unique per notice; rebuttal passed to `run-assessment` (#506, #513) [V] Checked: no: only \"one answer per hide\" marked."
+  },
+  {
+   "id": "4",
+   "text": "Unanswered hide stays hidden, closes at 14 days; batch shows it only if severity 1",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    645,
+    649
+   ],
+   "note": "Notice closes at 14 days (`ANSWER_WINDOW_DAYS`) [V]. Batch rule missing: no filter in `reports-queue.ts`/`review-subjects.ts` hides lapsed severity 2-4 rows Checked: no: partial markers."
+  },
+  {
+   "id": "5",
+   "text": "Per-reporter counters (filed, upheld, dismissed, open), operator-only, used by nothing else",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    650
+   ],
+   "note": "Counters in `reports-queue.ts`, shown in `ReportEntry.tsx` (#506) [V]; nothing proves \"used by nothing else\""
+  },
+  {
+   "id": "6",
+   "text": "Cap 5, drops to 1 after any dismissal in 30 days",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`CAP_AFTER_A_DISMISSAL = 1` in `create.ts` [V] Checked: yes (`create.test`, `[guards F102.6]`)."
+  },
+  {
+   "id": "7",
+   "text": "Two dismissals in 30 days start a 14-day cool-down; stored and queued, hide nothing; three strikes above",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Cool-down and three strikes built, but urgent categories (sensitive, threat of harm) still hide in a cool-down. Spec says hide nothing: SPEC-CONFLICT Checked: yes (`[guards F102.7]`, tests the built reading). Filed: spec-conflict."
+  },
+  {
+   "id": "8",
+   "text": "3+ reports on a poster in 24h, 2 from accounts under 7 days: flag, +1 tier in severity",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`coordinatedPosters`, sort tier in `review-subjects.ts`; \"Possible coordinated reporting\" in `ReviewQueue.tsx` [V] Checked: yes (`[guards F102.8]`)."
+  },
+  {
+   "id": "9",
+   "text": "Tue-Thu with no person: sev 2-4 wait; sev 1 stays hidden and texts the PM",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "Nothing schedules a person step; urgent hides text the operator in `create.ts` [V]"
+  },
+  {
+   "id": "10",
+   "text": "Threat-of-harm report sheet says call 911 if in danger now",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    627,
+    649
+   ],
+   "note": "Line shown on picking Threat of harm (placeholder copy, #627 covers the strings) [V build log]"
+  },
+  {
+   "id": "11",
+   "text": "One Friday summary: waiting by severity, answers, cool-downs",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    646,
+    649
+   ],
+   "note": "One-line \"This week: answers, cool-downs\" built (`fetchWeekSummary`). Missing: waiting rows by severity; shown daily, not Friday"
+  },
+  {
+   "id": "12",
+   "text": "Severity 4 auto-restore, narrow gate, logged, reversible, \"Restored by AI\"",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`restore-gate.ts`, `ai-restore.ts` (#540); dormant until flag cleared by the PM after the F100 harness [V] Checked: yes (`restore-gate.test`, `ai-restore.test`). Reviewed: no (#540 skipped)."
+  },
+  {
+   "id": "13",
+   "text": "IP and time recorded on every upload and post; operator-only; 1 year then deleted",
+   "kind": [
+    "invariant",
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    647,
+    650
+   ],
+   "note": "Photo upload and post recorded; RLS, no policy; `purge_content_origins()` [V]. Missing: other write paths (#509 \"Not here\"); purge workflow waits on `CONTENT_ORIGINS_PURGE_ENABLED`, not set [V] Checked: no: deletion marked partial; RLS test unmarked. Reviewed: no (#509 skipped)."
+  },
+  {
+   "id": "14",
+   "text": "Child-safety is a legal tier: never restores, never to poster, no AI, preserved and reported to NCMEC",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    648,
+    650
+   ],
+   "note": "No poster notice for sensitive content, severity 1 skipped by the AI, restore gate severity 4 only [V]. Missing: preservation and the NCMEC report; plan step 1 (register) open Checked: no: poster side marked partial only."
+  }
+ ]
+}

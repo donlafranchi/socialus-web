@@ -1,0 +1,166 @@
+{
+ "schema": 1,
+ "feature": "F045",
+ "title": "a newcomer filters Explore with a filter icon, kind pills and a bottom sheet",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": true,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Kind pills (All, Events, ... Asks) fixed above the bottom nav, All default",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built in T114 (`KindFilterPills`, W36 log), deleted in #174; Items and `kind=` are gone [V grep: no pills component in `src/components`]. SPEC-CONFLICT with the 2026-09-12 ruling and F092.1 Filed: none (conflict)."
+  },
+  {
+   "id": "2",
+   "text": "No separate market/category/day buttons; filter icon at the right of the sticky search bar",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    624,
+    652
+   ],
+   "note": "`ExploreSearchBar.tsx` has location pill, search, sliders icon, `sticky top-0` [V]. Invariant half is open guard #624 (F092.1) Checked: unmarked: `ExploreSearchBar.test.tsx`."
+  },
+  {
+   "id": "3",
+   "text": "Tapping the icon opens a sheet: distance 1/5/10/25, schedule any/week/weekend/recurring, category multi-select, sort; Show results; Clear all when set",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built: sheet with schedule (any/this week/this weekend), tags multi-select, Show results, Clear all when filters are set, half-height, focus trap [V `ExploreFilterSheet.tsx`]. Missing: distance, sort (\"no honest point to measure from\"), Recurring (PR #174 deviation 4). SPEC-CONFLICT Checked: unmarked: `ExploreFilterSheet.test.tsx` (asserts the built half and the absence of distance, sort, recurring). Filed: none (conflict)."
+  },
+  {
+   "id": "4",
+   "text": "Tapping the Events pill filters instantly to gatherings; pill selected state",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "No pills, no `item_kind` filter on Browse (results are Pages, not Items). SPEC-CONFLICT Filed: none (conflict)."
+  },
+  {
+   "id": "5",
+   "text": "Active secondary filters show as removable chips below the search bar; no chip for kind",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`ActiveFilterChips` deleted in #174; applying the sheet sets filter state only. SPEC-CONFLICT with F092.1 Filed: none (conflict)."
+  },
+  {
+   "id": "6",
+   "text": "Chip row disappears when no chips remain",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Nothing to disappear: no chip row exists. SPEC-CONFLICT (follows 5) Filed: none (conflict)."
+  },
+  {
+   "id": "7",
+   "text": "URL carries all active filters (kind + secondary); the URL restores them",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    652
+   ],
+   "note": "Built: `browseQueryString` writes `metro`, `area`, `q`, `category` (tags), `schedule`; `BrowseSurface` seeds filters from `useSearchParams` [V]. Missing: kind, distance, sort are not in the URL; `?sort=`, `?distance=` are ignored on purpose. SPEC-CONFLICT for the missing half Checked: unmarked: `query.test.ts` (round trip), `filters.test.ts`; nothing asserts the page loads them."
+  },
+  {
+   "id": "8",
+   "text": "Back from an Item page restores filters and scroll",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    54
+   ],
+   "note": "Filters: URL state is rewritten with `router.replace`, so back should restore them [A; no test]. Scroll: no restoration code in `BrowseSurface`; \"Item page\" is now a Page. Open #54 (F059 T157 \"Browse keeps its URL and scroll\") covers it"
+  },
+  {
+   "id": "9",
+   "text": "A dot on the filter icon when secondary filters are active",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    652
+   ],
+   "note": "`filter-active-dot` driven by `hasBrowseFilters` (schedule or tags) and an \"— filters applied\" aria-label [V]. Distance and sort no longer exist to drive it Checked: unmarked: `ExploreSearchBar.test.tsx`."
+  }
+ ]
+}

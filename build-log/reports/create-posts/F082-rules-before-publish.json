@@ -1,0 +1,159 @@
+{
+ "schema": 1,
+ "feature": "F082",
+ "title": "the rules a member agrees to before publishing a Page",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Becoming a creator = agreeing before each new Page; no role column",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`creator_rules_agreements` records (member, Page, version, time); no role or account-type column found in migrations [V grep] Checked: no marker."
+  },
+  {
+   "id": "2",
+   "text": "Fixed statements, agreeing is the attestation; no upload, ID or check",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Four rules with reasons in `creator-rules.ts` Checked: yes (`BeforeYouPublish.test`)."
+  },
+  {
+   "id": "3",
+   "text": "Nothing attested shows as a badge or label",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Nothing found [A]; nothing asserts it"
+  },
+  {
+   "id": "4",
+   "text": "Gates publishing, not drafting; selling and hosting alike",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`group.activate` refuses without the current version; drafts never ask. The retired sell walkthrough would be refused if revived [V build log]"
+  },
+  {
+   "id": "5",
+   "text": "No \"are you a business\", legal or tax wording",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Rule text read today has none [V]"
+  },
+  {
+   "id": "6",
+   "text": "Versioned; each agreement recorded; only the PM and operators see it",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`RULES_VERSION`, RLS on, no client policy [V build log]"
+  },
+  {
+   "id": "7",
+   "text": "Rules one click away, even if not publishing",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    573
+   ],
+   "note": "`/rules` exists, linked from the Publish card and the desktop footer. On a phone the footer is hidden, so no link outside the Publish card. Ticket #573 Checked: yes (tests the existing links)."
+  },
+  {
+   "id": "8",
+   "text": "Publishing needs name, location, description, agreement, one tag; photo optional",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`group.activate` requires display name, anchor location, description and a tag [V]; photo-optional default image not checked [A] Checked: no marker."
+  },
+  {
+   "id": "9",
+   "text": "One rule is \"no pictures of children\", verbatim",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Rule 4 matches the scenario text [V] Checked: no marker."
+  }
+ ]
+}

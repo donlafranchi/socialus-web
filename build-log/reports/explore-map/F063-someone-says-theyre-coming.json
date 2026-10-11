@@ -1,0 +1,85 @@
+{
+ "schema": 1,
+ "feature": "F063",
+ "title": "someone says they're coming",
+ "area": "explore-map",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Tap writes a response row and its event row in one transaction; count updates",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Table and event kinds exist; no action, RPC or button. Feed `response_count` reads rows with `withdrawn_at is null` (`016_discoverable_items.sql`) but nothing ever inserts. #34"
+  },
+  {
+   "id": "2",
+   "text": "Tap again withdraws, no dialog; double-tap is a no-op enforced by a database constraint",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "`withdrawn_at` column exists; no unique constraint on (item_id, responder_member_id, kind) in any migration [V grep]. #34"
+  },
+  {
+   "id": "3",
+   "text": "A signed-out tap survives sign-in and is recorded on return",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Generic `/auth/login?next=` return exists; nothing carries a pending response through it. #34"
+  },
+  {
+   "id": "4",
+   "text": "Count is distinct people, never rows",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Count is `count(*)` over rows, not distinct responders, and with no unique constraint duplicates are possible (`016_discoverable_items.sql`, `20261007020000_archived_pages_every_path.sql`). Builder responses are excluded in the newer one. #34"
+  }
+ ]
+}

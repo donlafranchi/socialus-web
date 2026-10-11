@@ -1,0 +1,92 @@
+{
+ "schema": 1,
+ "feature": "F080",
+ "title": "no sensitive content in photos; the uploader confirms, a report hides",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Uploader confirms each photo shows no children; nothing pre-screens",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`PagePhotoPicker` waits for the tick, clears it after every upload (#483). Page picture and post photo both use it [V]. The tick is client-side only, as ruled. Unclaimed-Page photos are operator-loaded under the system member (`lib/unclaimed/upload.ts`), not a member upload [V]. Checked: yes (`PagePhotoPicker.test.tsx`, marked `F080.5 partial`, not `F080.1`). Reviewed: yes (#483 reviewer agent)."
+  },
+  {
+   "id": "2",
+   "text": "Text is not in scope; only images are restricted",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "No text or topic rule found in `src` [A, absence]."
+  },
+  {
+   "id": "3",
+   "text": "No toggle, setting, tier, request or workaround allows it",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "No flag, tier or request path found [A, absence]."
+  },
+  {
+   "id": "4",
+   "text": "A reported sensitive photo hides at once at any bar and texts the operator",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "#483: report reason \"sensitive content\" hides Page picture and post photo past the limits and sends the text; migration `20261007180000_report_category.sql` ran in production [V]. Delivery needs `TWILIO_*` / `OPERATOR_PHONE`; whether they are set in production is unknown. Checked: yes (`report/create.test.ts`, `F080.4 partial`: delivery is Twilio's). Reviewed: yes (#483 reviewer agent; the PR also carries `review-skipped`)."
+  },
+  {
+   "id": "5",
+   "text": "The app asks not to post sensitive content wherever a member posts, and why; each photo asks for confirmation",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`COPY.postingSafety` via `PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder, awaiting the PM's tone look. Checked: yes (`posting-safety.test.tsx` `F080.5`, `PagePhotoPicker.test.tsx`). Reviewed: no (#250, #251 have no review section)."
+  }
+ ]
+}

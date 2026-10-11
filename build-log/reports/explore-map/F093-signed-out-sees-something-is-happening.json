@@ -1,0 +1,220 @@
+{
+ "schema": 1,
+ "feature": "F093",
+ "title": "a signed-out visitor sees that something is happening, and is asked in to read it",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Anonymous PostgREST call returns no body",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`page_posts_select_published` is `to authenticated` (#218); `announcements_withheld` return type has no body [V] Checked: yes (`announcements-signed-out-rest.test.ts`, seen failing first per build log; `probe-anon-announcements.sh` observed FAIL locally)."
+  },
+  {
+   "id": "2",
+   "text": "Same for `starts_at`, `location_id` and later columns",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Same policy; exact-key allow-list on the projection [V] Checked: yes (marked `F093.2`; later columns by the F093.3 allow-list)."
+  },
+  {
+   "id": "3",
+   "text": "Withholding is enforced in SQL, a projection not a filter",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Return type is id, name, photo, count, ids [V migration 20261001100000] Checked: yes (allow-list of keys)."
+  },
+  {
+   "id": "4",
+   "text": "Card has exactly five things; no-photo shows the kind's default art",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    335,
+    630
+   ],
+   "note": "Five things built: photo, name, count, details line, CTA; no location line [V]. Missing: the Page kind. `announcements_withheld` does not return it and the mapper sets `groupKind: ''`, so the art is generic. Open #335 Checked: no: only partial markers; card unit test unmarked: `WithheldAnnouncementCard.test.tsx`. #630."
+  },
+  {
+   "id": "5",
+   "text": "One card per Page, count named as a period, no nought",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    630
+   ],
+   "note": "One row per Page (#230); \"N posts this week\"; zero reads \"A new post\" [V] Checked: no: partial markers only; unmarked: `withheld-copy` / card test. #630."
+  },
+  {
+   "id": "6",
+   "text": "A signed-in member sees no change",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Policy `to authenticated` leaves `using` unchanged [V build log]; no before/after comparison found Checked: no: two partial markers (member reads a body; Explore load). PM looked: no. #631."
+  },
+  {
+   "id": "7",
+   "text": "Signed-out Explore still has post-kind rows, withheld",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`getWithheldAnnouncements` merged into Explore (#218) [V] Checked: yes (`load-withheld.test.ts`, `F093.7`)."
+  },
+  {
+   "id": "8",
+   "text": "Signed-out front door: name, default photo, description, card; no location, tags or founder; indexable",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    631
+   ],
+   "note": "`anon` loses `locations`, `anchor_location_id`, `page_tags`, `tags` (#255); no pin (#259); `robots.ts` admits search crawlers [V]. Card ask is placeholder copy [public-is-draft] Checked: no: `front-door-db.test.ts` is marked partial (database half); two unqualified markers on parts only. #631."
+  },
+  {
+   "id": "9",
+   "text": "Any `#announcement-<id>` link lands on the Page's one card, marked, with CTA",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    630
+   ],
+   "note": "`WithheldPagePosts` carries an anchor per id (#230); DB returns all ids [V] Checked: no: DB half marked partial; render half unmarked: `WithheldPagePosts.test.tsx`. #630."
+  },
+  {
+   "id": "10",
+   "text": "No link to a body signed out; the ask comes first",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    630
+   ],
+   "note": "CTA is its own link to `/auth/login?next=<Page>`; the card link goes to the Page only [V] Checked: no: unmarked: `WithheldAnnouncementCard.test.tsx` (\"links to the Page's withheld card\"). #630."
+  },
+  {
+   "id": "11",
+   "text": "Same card for every anonymous reader",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    631
+   ],
+   "note": "No per-viewer input found in the withheld read path [V grep] Checked: no: unit test \"is the same for every anonymous reader\" unmarked. #631."
+  },
+  {
+   "id": "12",
+   "text": "Every criterion has a check seen failing",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Build logs record fail-first for criteria 1, 3, 4, 8 and the probe; none recorded for 5, 6, 9, 10, 11. The probe script is not run by CI [V workflows]"
+  }
+ ]
+}

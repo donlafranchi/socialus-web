@@ -1,0 +1,152 @@
+{
+ "schema": 1,
+ "feature": "F077",
+ "title": "members see a display name; the legal name stays with the platform",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Signup requires a legal name; no account without it",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    610
+   ],
+   "note": "Screen requires 2-120 chars (`signup/profile.ts`, `OnboardingFlow`, handler `signup-profile-set`) [V]. But `members.legal_name` is nullable and `src/proxy.ts` only forces /onboarding when phone verification is on, so a signed-in member may skip it [A] Checked: unmarked: `profile.test.ts`, `onboarding/actions.test.ts:85`, `OnboardingFlow.test.tsx`."
+  },
+  {
+   "id": "2",
+   "text": "Display name shown wherever a peer would see the legal name",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Display name set at signup; peers cannot read member rows at all (`members_select_self`), no surface shows legal name [V grep]. Not checked that every post/Page/response/profile renders display name [A] Filed: none (not a clear gap)."
+  },
+  {
+   "id": "3",
+   "text": "Legal name never on a public/discovery surface or to anonymous",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    611
+   ],
+   "note": "Only `members_select_self` remains on `members` (migration 20260930180000); no src file but signup and comments mentions `legal_name` [V]. No standing guard"
+  },
+  {
+   "id": "4",
+   "text": "Operator report view shows legal name beside display name",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    608
+   ],
+   "note": "Column exists since #497, but `reports-queue.ts` still says \"there is no members.legal_name column\" and `ReportEntry.tsx:95` shows display name and handle only"
+  },
+  {
+   "id": "5",
+   "text": "Seeded/test members backfilled or flagged",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    609
+   ],
+   "note": "Migration adds a nullable column, no backfill, no flag [V]"
+  },
+  {
+   "id": "6",
+   "text": "Counterparties each see the other's legal name, per interaction",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    219
+   ],
+   "note": "Out of scope 2026-09-30; no purchase/RSVP-confirmation record exists to bind to"
+  },
+  {
+   "id": "7",
+   "text": "Name legible 12 months from the interaction, then display name",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Out of scope; depends on 6 Filed: none (out of scope)."
+  },
+  {
+   "id": "8",
+   "text": "Interaction is the only path to a name: no search, lookup, roster, export",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    611
+   ],
+   "note": "Holds trivially today (nothing renders a legal name) [A]; nothing guards it. Out of scope with 6-7"
+  }
+ ]
+}

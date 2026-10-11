@@ -1,51 +1,60 @@
-# F056: a producer edits a shop that already exists
+# F056: A producer edits a shop that already exists
 
-category: page-editing · as-of: 2026-10-10 · scenario approved 2026-09-07, amended 2026-10-01/04/05 (no `gates:`) · tickets: #16 (open, T126, stale: "nothing was built"), filed today #584, #585, #586 · PRs: none cite F056; built under change Issues #293 (PR #305), #285 (#288), #302 (#360), #348 (#351), #413 (#441), #440 (#468), #452 (#472)
-Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell is `yes`, `no` or `unknown`; the note says what exists and what is missing. `area:` is not on #16, so `page-editing` is the closest area.
+As of 2026-10-10. Gates: none (the scenario has no `gates:` line). Area: page-editing (label).
+Tickets: #16 (T126, values, stale), #584, #585, #586. PRs that built it: #158, #288, #305, #350, #351, #441, #468, #472. No PR title cites F056.
 
-## Roll-up
+- **Reviewed:** #351, #468 and #472 carry `Reviewed by:`; #158, #288, #305 and #350 have no such line (merged before the review check, #397).
+- **Shipped:** deploy-health green on every building merge commit (1ebe680, a5ab3a1, 7381f60, 32c0cdc, 3492589, d41939a, 614c920).
+- **Smoked:** smoke-live began 2026-10-07; no run is known to cover these routes, so Smoked is unknown.
+- **PM looked:** no UAT Issue for F056. #412 and #413 (Edit cards, location pin) carry `pm-reviewed`, which does not count.
 
-| | built | checked | reviewed | smoked | PM looked |
-|---|---|---|---|---|---|
-| 9 criteria | 5 | 0 | 2 | 0 | 1 |
+## PM queue
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
-
-Not built: **1 (values line; image, name and about are built), 3, 4** (#16 covers the values line; #584 tagline). Unknown: **5**. Criteria 1 (values part) and 3 collide with the 2026-10-06 ruling that values and badges are cut from beta (DECISIONS, #465: "Values & badges" card "Coming soon", nothing on the public Page): SPEC-CONFLICT. Most of the work shipped under unrelated "change" Issues with `Scenario: none`, so no PR or marker names F056 [V grep: no `guards F056`].
-
-## Per criterion
-
-| # | Kind | In plain words | Built | What exists / what is missing | Checked | Reviewed | Smoked | PM looked |
-|---|---|---|---|---|---|---|---|---|
-| 1 | behavior | Edit image, name, about and a values line from one prefilled page | **no** | Image, name, description edit on Edit Page in section sheets (`PageEditor.tsx`, #302/#452) [V]. **Values line: missing**, no column or field [V grep]. SPEC-CONFLICT with the 2026-10-06 cut. Open #16. | no | no | unknown | no |
-| 2 | invariant | Only an active owner saves; named handler plus event row | yes | `group.update` checks the managing role (owner for a business) and writes `group.updated` [V `update.ts`]. Archived Pages also edit. | unmarked: `update.test.ts` | unknown | unknown | no |
-| 3 | invariant | Values column has no source/provenance field | **no** | The column does not exist, so there is nothing to guard. SPEC-CONFLICT as in 1. Guard to ride on #586 once built. | no | no | unknown | no |
-| 4 | behavior | ≤120-char tagline, on card, profile and link preview | **no** | No `tagline` column or field [V grep]; only gallery fixtures use the word. Filed #584. | no | no | unknown | no |
-| 5 | behavior | Every optional field empty still renders, no nagging | unknown | No test or read of the empty case found. The Edit page carries a "Coming soon" card (#465) [V]. | no | no | unknown | no |
-| 6 | behavior | Address resolves to coordinates with a confirming pin; unresolvable refuses | yes | Mapbox/Census geocode, draggable pin (#348 PR #351, #413 PR #441); empty result shows an alert and no confirmed state [V]. Edit serves drafts too (#301). | unmarked: `LocationPlaceFields.test.tsx` | yes (#351, #441) | unknown | no |
-| 7 | invariant | Neighbourhood option from a seeded MSA 40900 list; no street address anywhere; pin at centre | yes | List and centroid pin built (#347, #351); #440 (PR #468) stopped an address point being saved. **"Anywhere" has no standing guard.** Coverage of 40900 rests on boundary loader [A]. Filed #586. | unmarked: `where-save.test.ts` | yes (#351, #468) | unknown | no |
-| 8 | behavior | Tags in own words, editable any time, at least one to publish, no category | yes | `group.update` replaces tags, refuses empty; `group.activate` requires one (#285 PR #288) [V]. | unmarked: `update.test.ts` | no (#288 no review line) | unknown | no |
-| 9 | invariant | Optional public business phone; signed-in only, not the front door | yes | Phone field in Edit Contact; hours hidden by `SHOW_OPENING_HOURS = false` (PR #305, ruled 2026-10-05) [V]. DB tests run as anon and authenticated. | unmarked: `page-contact-db.test.ts` (marks F093.8) | no (#305 no review line) | unknown | no |
-
-Reviewed: #351, #441, #468 carry `Reviewed by:` [V PR bodies]; #305, #288, #360 have none. Shipped: checks on merge commits 34925899 (#351), d41939a1 (#468), e79a69d2 (#441), 7381f602 (#305) were green [V]; a5ab3a1f (#288) shows "Migrations applied to production" failed, so criterion 8 is not marked shipped [V]. Smoked: `smoke-live` is nightly and not tied to a commit. PM looked: no `uat` Issue for F056 found.
-
-## Routing: what each gap goes to next
-
-| Gap | Criteria | Next skill | Output |
-|---|---|---|---|
-| SPEC-CONFLICT | 1 (values line), 3 | `scope-scenario`; `Path: new territory`, to the PM as A/B/C. Question: the scenario wants a values line on the shop, but the 2026-10-06 ruling cuts values from beta. Build it, defer it, or amend the scenario? Open #16 | ruling |
-| NOT-BUILT | 4 (#584); 1 and 3 wait on the ruling (#16) | `build-ticket` | code + checks |
-| NO-CHECK | 2, 6, 7, 8, 9 (#585) | `build-ticket` (tests only, seen failing against a mutant) | marked tests |
-| INVARIANT-UNPROVEN | 7 (#586); 3 once built | `build-ticket` (guard over the surfaces) | a standing guard |
-| NOT-REVIEWED | 2, 8, 9 | `review-pr-bundle` | a review section |
-| NOT-SMOKED | all | CI: tie smoke to the merge commit | smoke result |
-| NOT-LOOKED | all | `record-pm-review` (UAT Issue) once the above are clear | closed UAT Issue |
-
-Filed today: #584 (criterion 4), #585 (check 2, 6, 7, 8, 9), #586 (guard 7). Gates: none, so no milestone and no `launch-blocking`. Criterion 5 not filed (unknown, not clearly a gap).
+1. Criteria 1 and 3 still name a values line that DECISIONS cut (2026-09-07, 2026-10-06). Newer wins, so this goes to `scope-scenario` to restate the criteria, not to you, unless you want values back.
+2. A neighbourhood-mode Page's own map shows a pin at the centre (criterion 7, 2026-10-04). Explore shows a disc because of the 2026-10-07 ruling ("a pin must never be used for a place that is only an area"). Does that ruling cover the Page map too? A: yes, the Page map uses the disc too (recommended, newer ruling). B: no, the Page keeps its pin.
 
 ## Next, in order
 
-1. Rule on the values line (criteria 1, 3) against the beta cut; close or rewrite stale #16.
-2. Build #584 (tagline), then the guard #586 and the checks #585.
-3. Read or test criterion 5 (an empty shop), then run `review-pr-bundle` on #305 and #288.
-4. Open the UAT Issue once the rows above are clear.
+1. `scope-scenario`: restate criteria 1 and 3 to match the values cut.
+2. `build-ticket` on #584 (tagline, unplanned: no milestone because gates is none).
+3. `build-ticket` on #586 (no-address guard, criterion 7) and #585 (marks the tests for 2, 6, 7, 8, 9), plus a check ticket for criterion 5.
+4. `review-pr-bundle` for criteria 2, 8, 9 (built in PRs with no review).
+5. Smoke coverage of `/g/<id>` and `/g/<id>/edit`; then `record-pm-review`.
+
+<!-- criteria:start · generated by criteria.py from the JSON sidecar; edit the JSON, never this block -->
+
+## Roll-up
+
+| | Built | Checked | Reviewed | Shipped | Smoked | PM looked |
+|---|---|---|---|---|---|---|
+| 9 criteria | 6/9 | 0/9 | 3/9 | 6/9 | 0/9 (6?) | 0/9 |
+
+Not built: 1, 3, 4. Built unknown: none. Spec conflict: 1, 3.
+
+## Per criterion
+
+| # | In plain words | Kind | Status | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Issues | What exists / what is missing |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Owner edits image, name, about and a free-text values line from one prefilled page | behavior | spec-conflict | **no** | **no** | **no** | **no** | **no** | **no** | #16 | [V] image, name, about: Edit page Basics card (EditCards.tsx, #472) through group.update (#158). Values half: a 'Values & badges · Coming soon' card with no field (#465); no values column. Conflict: values cut by DECISIONS 2026-09-07 and 2026-10-06, and the scenario's own approved line says 'values statement cut'; criterion text still names it |
+| 2 | Only an active owner can save; the write goes through a named handler with an event row | behavior | active | yes | **no** | **no** | yes | unknown | **no** | #585 | [V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); deploy-health green on 1ebe680. unmarked: src/actions/group/update.test.ts ('refuses a stranger', 'writes an event naming the fields') |
+| 3 | The values column has no source or provenance field; nothing but the owner's own edit can write it | invariant | spec-conflict | **no** | **no** | **no** | **no** | **no** | **no** | none | [V] no values_statement column in supabase/migrations; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1: the values line is cut, so the column this guards does not exist |
+| 4 | A tagline of at most 120 characters, separate from the description, on card, profile and link preview | behavior | active | **no** | **no** | **no** | **no** | **no** | **no** | #584 | [V] no tagline column, no field in group.update or Edit, nothing in share-metadata. TileCard takes a tagline prop but OwnPages passes the description into it |
+| 5 | A Page with every optional field empty renders correctly, with nothing nagging | behavior | active | yes | **no** | yes | yes | unknown | **no** | none | [V] ShopPublicPage omits an empty description, placement heading and badge; Products shows 'Nothing posted yet' only when that component is on [A: not nagging]. Sections from #472 (Reviewed by), deploy-health green on 614c920. unmarked: ShopPublicPage.test.tsx ('omits it when empty', 'no empty heading, no placeholder') |
+| 6 | On the draft or live Page, an address search resolves to real coordinates with a confirming pin before saving; an unresolvable address refuses loudly | behavior | active | yes | **no** | yes | yes | unknown | **no** | #585 | [V] WhereFields + PinAdjustMap (#351, Reviewed by; deploy-health green on 3492589). 'Drop a pin' (#441) saves the map's coordinates, not a placeholder. With no map key the address is used as found and no map is drawn. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx |
+| 7 | A neighbourhood or town from a seeded list covering MSA 40900; a neighbourhood-mode Page shows no street address anywhere and a pin at the centre | behavior + invariant | active | yes | **no** | yes | yes | unknown | **no** | #586, #585 | [V] seeded boundaries (#350: 88 places, 165 neighbourhoods in Sacramento and West Sacramento), pick in #351 and #468, saves a neighborhoodId and no point (where-save.ts). Page map draws a pin at the area centre (PageMap.tsx); Explore draws a disc per the 2026-10-07 ruling. No standing guard over every surface. unmarked: where-save.test.ts, tests/boundaries-db.test.ts |
+| 8 | Owner picks or creates tags in their own words, editable any time; no category and no 'Something else'; at least one tag to publish | behavior + invariant | active | yes | **no** | **no** | yes | unknown | **no** | #585 | [V] group.update replaces the tag set and refuses none (#288, no Reviewed by; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags. group.update still accepts a category but no Edit or Create component offers one. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('no category chip') |
+| 9 | Optional public business phone, separate from the private phone, shown to signed-in visitors only | behavior + invariant | active | yes | **no** | **no** | yes | unknown | **no** | #585 | [V] groups.contact_phone granted to authenticated only; loadPageView reads contact only when signed in (#305, no Reviewed by; deploy-health green on 7381f60). unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller') |
+
+## Routing
+
+| Gap | Criteria | Next skill |
+|---|---|---|
+| SPEC-CONFLICT | 1, 3 | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
+| NOT-BUILT | 4 | `write-tickets` then `build-ticket` |
+| INVARIANT-UNPROVEN | 7, 8, 9 | `write-tickets` (guard) then `build-ticket` |
+| NO-CHECK | 2, 5, 6 | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NOT-REVIEWED | 2, 8, 9 | `review-pr-bundle` |
+| NOT-SMOKED | 2, 5, 6, 7, 8, 9 | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 2, 5, 6, 7, 8, 9 | `record-pm-review` (UAT Issue), after the rows above |
+
+<!-- criteria:end -->

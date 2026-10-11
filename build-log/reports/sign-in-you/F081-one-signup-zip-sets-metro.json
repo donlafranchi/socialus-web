@@ -1,0 +1,162 @@
+{
+ "schema": 1,
+ "feature": "F081",
+ "title": "everyone signs up the same way, and the zip sets the metro",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Four fields, 18+/Terms box, email verified",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "One screen in #497. Email confirmation is on in production [V code comment]. Checked: no: the only marker (`phone.test.ts`) tests the phone, not this. Reviewed: no (#497 skipped)."
+  },
+  {
+   "id": "2",
+   "text": "Zip never shown to others (invariant: absence of code proves nothing)",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Nothing found that shows it [A]; `LocallyOwnedClaim` shows the owner their own zip's proximity."
+  },
+  {
+   "id": "3",
+   "text": "The zip sets the metro and the screen says which",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Works for Sacramento zips only: \"You're in Sacramento-Roseville, CA\" [V PR body]. Checked: unmarked: `zip-metro.test.ts` exists."
+  },
+  {
+   "id": "4",
+   "text": "Nobody picks a metro; changing the zip on /you moves it",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    568
+   ],
+   "note": "No picker, so the first half is built. Changing the zip on /you: missing. Ticket #568."
+  },
+  {
+   "id": "5",
+   "text": "A \"what this app is for\" line; no \"never sell\" line",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "In #497. Checked: yes (`EmailFirstSignup.test`)."
+  },
+  {
+   "id": "6",
+   "text": "No maker/finder question",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "In #497. Checked: unmarked: `OnboardingFlow.test.tsx:52`."
+  },
+  {
+   "id": "7",
+   "text": "No home place assigned for the person",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "#283 and #497. Checked: yes (`onboarding/actions.test`)."
+  },
+  {
+   "id": "8",
+   "text": "Every US zip resolves; unknown refused",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    569
+   ],
+   "note": "126 Sacramento zips only; an unknown zip is accepted and sent to the waitlist step. Ticket #569."
+  },
+  {
+   "id": "9",
+   "text": "Phone verification refuses VoIP",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    570
+   ],
+   "note": "Phone code exists (#282), off behind `PHONE_VERIFICATION_REQUIRED`; no line-type check found. Ticket #570."
+  }
+ ]
+}

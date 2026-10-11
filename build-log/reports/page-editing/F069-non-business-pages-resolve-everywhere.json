@@ -1,0 +1,87 @@
+{
+ "schema": 1,
+ "feature": "F069",
+ "title": "A non-business Page resolves everywhere, and holding several is ordinary",
+ "area": "page-editing",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404ing",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    591,
+    22
+   ],
+   "note": "[V] /g/<id> uses resolvePageById, which has no kind filter (T156, #174; no Reviewed by; deploy-health green on 9dde664). unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description')"
+  },
+  {
+   "id": "2",
+   "text": "Products, services and gatherings filed under a non-business Page resolve at their public URL",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    22,
+    591
+   ],
+   "note": "[V] gatherings: resolve-gathering.ts has no kind filter. Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under a group Page. [A] reachable since #363 lets any Page turn on Products & services"
+  },
+  {
+   "id": "3",
+   "text": "A member holding several Pages sees every one on any producer surface; none chosen for them",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    591,
+    24
+   ],
+   "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. The old getDraftGroup limit(1) is only used by SellCta, which nothing renders. First built in f19adc6, a direct commit with no PR or deploy-health run. unmarked: src/lib/member/own-pages.test.ts"
+  },
+  {
+   "id": "4",
+   "text": "Draft-resume keeps every in-flight draft, not just the most recent",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    24
+   ],
+   "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several)"
+  }
+ ]
+}
