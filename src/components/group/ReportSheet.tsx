@@ -55,7 +55,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
     } catch (err) {
       // The words stay in the box. Being asked to retype a report of something
       // upsetting is its own small harm.
-      setError(err instanceof Error ? err.message : 'That did not send. Try again?')
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     } finally {
       setSending(false)
     }
@@ -67,7 +67,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
       title={`Report ${subjectLabel}`}
       onClose={onClose}
       testId="report-sheet"
-      description="This goes to a person, not a queue."
+      description="A person from our team reads this. Thanks for helping us all be good to one another."
       returnFocusTo={returnFocusTo}
       footer={
         <Button onClick={submit} disabled={sending || body.trim().length === 0 || !category} className="w-full">
@@ -75,6 +75,9 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
         </Button>
       }
     >
+      <p data-testid="report-tolerance" className="mb-3 text-sm text-[var(--color-fg-muted)]">
+        We don&rsquo;t tolerate abusive or harmful content.
+      </p>
       {/* F078 criterion 9 — no report without a reason the reporter chose. */}
       <fieldset>
         <legend className="text-sm font-medium text-[var(--color-charcoal-900)]">Why are you reporting this?</legend>
@@ -103,7 +106,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
         {COPY.reportMisuse}
       </p>
       <label htmlFor={fieldId} className="mt-4 block text-sm font-medium text-[var(--color-charcoal-900)]">
-        What&rsquo;s wrong?
+        Tell us what happened
       </label>
       <textarea
         id={fieldId}

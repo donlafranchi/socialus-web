@@ -66,8 +66,8 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
         triggerRef={triggerRef}
         items={[
           loggedIn
-            ? { label: 'Report to the operator', onSelect: () => setSheetOpen(true) }
-            : { label: 'Report to the operator', href: signInHref },
+            ? { label: 'Report this', onSelect: () => setSheetOpen(true) }
+            : { label: 'Report this', href: signInHref },
         ]}
       />
 
@@ -95,7 +95,7 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
           className="fixed inset-x-4 bottom-20 z-50 flex items-center gap-3 rounded-lg bg-[var(--color-charcoal-700)] px-4 py-3 text-sm text-white shadow-overlay md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
         >
           <span className="flex-1">
-            Thank you — that went to a person, and they&rsquo;ll take a look.
+            Thanks for looking out for everyone. That went to a person from our team, and they&rsquo;ll take a look.
           </span>
           <button
             type="button"

@@ -25,9 +25,9 @@ export interface Notice {
 export type Answer = { noticeId: string; reason: 'mistaken' | 'malicious' | 'misusing_reports'; note: string }
 
 const REASONS: { value: Answer['reason']; label: string }[] = [
-  { value: 'mistaken', label: 'Mistaken' },
-  { value: 'malicious', label: 'Malicious' },
-  { value: 'misusing_reports', label: 'Misusing reports' },
+  { value: 'mistaken', label: 'It was a mistake' },
+  { value: 'malicious', label: 'It was meant to cause trouble' },
+  { value: 'misusing_reports', label: "Someone's misusing reports" },
 ]
 
 export function YouNotices({ notices, onAnswer }: { notices: Notice[]; onAnswer?: (a: Answer) => Promise<void> }) {
@@ -63,7 +63,7 @@ function NoticeRow({ notice: n, onAnswer }: { notice: Notice; onAnswer?: (a: Ans
       await onAnswer({ noticeId: n.id, reason, note: note.trim() })
       setSent(true)
     } catch {
-      setError("That didn't go through. Please try again.")
+      setError("That didn't go through. Mind trying again?")
     } finally {
       setSending(false)
     }
@@ -80,12 +80,12 @@ function NoticeRow({ notice: n, onAnswer }: { notice: Notice; onAnswer?: (a: Ans
         <p data-testid="notice-answered" className="mt-2 text-body-sm text-[var(--color-fg-muted)]">
           {answer === 'fix_and_repost'
             ? "Thanks for fixing it. It's showing again."
-            : "We've got your answer. It stays hidden until a person has had a look."}
+            : "Thanks, we've got your answer. It stays hidden until a person from our team has had a look."}
         </p>
       )}
       {!answer && n.closed && (
         <p data-testid="notice-closed" className="mt-2 text-body-sm text-[var(--color-fg-muted)]">
-          This one has closed. Nothing more is needed from you.
+          This one&rsquo;s closed. Nothing more needed from you.
         </p>
       )}
 
@@ -97,7 +97,7 @@ function NoticeRow({ notice: n, onAnswer }: { notice: Notice; onAnswer?: (a: Ans
             </Link>
           )}
           <button type="button" className="btn-secondary min-h-tap" onClick={() => setOpen(true)}>
-            Say it&rsquo;s a mistake
+            Tell us it&rsquo;s a mistake
           </button>
         </div>
       )}
@@ -138,7 +138,7 @@ function NoticeRow({ notice: n, onAnswer }: { notice: Notice; onAnswer?: (a: Ans
           )}
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-primary min-h-tap" disabled={!reason || !note.trim() || sending} onClick={send}>
-              {sending ? 'Sending…' : 'Send'}
+              {sending ? 'One sec…' : 'Send'}
             </button>
             <button type="button" className="btn-secondary min-h-tap" onClick={() => setOpen(false)}>
               Cancel

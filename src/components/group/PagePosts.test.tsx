@@ -679,7 +679,7 @@ describe('F099 — a post photo', () => {
     const report = { loggedIn: true, returnTo: '/g/x', onSend }
     const send = async () => {
       fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-      fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+      fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
       fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
       fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
       fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -726,14 +726,14 @@ describe('F078 — reporting a Post', () => {
   it('a visitor gets a More options menu on each post, leading to the report sheet', () => {
     renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     expect(screen.getByText(/why are you reporting this/i)).toBeInTheDocument()
   })
 
   it('sends the post\'s id with the reason and words', async () => {
     renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     fireEvent.click(screen.getByLabelText('Spam'))
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Looks like an ad.' } })
     fireEvent.click(screen.getByRole('button', { name: /^send$/i }))
