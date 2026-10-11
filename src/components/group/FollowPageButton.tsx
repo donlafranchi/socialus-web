@@ -72,7 +72,7 @@ export function FollowPageButton({
       else await onUnfollow({ groupId })
       setIsFollowing(next)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'That did not go through. Mind trying again?')
+      setError(err instanceof Error ? err.message : 'That didn\'t go through. Mind trying again?')
     } finally {
       setBusy(false)
     }

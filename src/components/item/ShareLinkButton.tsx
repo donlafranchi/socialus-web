@@ -40,7 +40,7 @@ export function ShareLinkButton({ url, label = 'Share link' }: { url: string; la
       aria-label={label}
     >
       <Share2 size={16} aria-hidden="true" />
-      {copied ? 'Copied!' : label}
+      {copied ? 'Copied.' : label}
     </button>
   )
 }

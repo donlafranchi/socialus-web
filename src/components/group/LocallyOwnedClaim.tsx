@@ -46,7 +46,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
 
   async function submit() {
     if (!ZIP_RE.test(zip)) {
-      setError('Enter a 5-digit US ZIP code.')
+      setError('That doesn\'t look like a ZIP code. Mind checking it?')
       return
     }
     setError(null)
@@ -56,7 +56,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
       setMode('view')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
+      setError(err instanceof Error ? err.message : 'That didn\'t save. Mind trying again?')
     } finally {
       setPending(false)
     }
@@ -69,7 +69,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
       setMode('view')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not remove your claim.')
+      setError(err instanceof Error ? err.message : 'That didn\'t go through. Mind trying again?')
     } finally {
       setPending(false)
     }
@@ -157,7 +157,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
       ) : claim.zip === null ? (
         <div className="mt-2 flex flex-col gap-2">
           <p className="text-sm text-gray-600">
-            You haven&apos;t claimed Locally Owned yet — add your ZIP to display the badge.
+            You haven&apos;t claimed Locally Owned yet. Add your ZIP to show the badge.
           </p>
           <button
             type="button"
@@ -172,12 +172,12 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
         <div className="mt-2 flex flex-col gap-2">
           {claim.isProximal ? (
             <p className="text-sm text-gray-700">
-              <span className="font-medium">Claimed local owner</span> — ZIP on file: {claim.zip}.
+              <span className="font-medium">Claimed local owner.</span> ZIP on file: {claim.zip}.
             </p>
           ) : (
             <p data-testid="claim-not-proximal" role="status" className="text-sm text-gray-700">
               ZIP on file: {claim.zip}. This ZIP isn&apos;t in proximity to your Shop&apos;s anchor
-              Location — the badge isn&apos;t currently displayed.
+              Location, so the badge isn&apos;t currently displayed.
             </p>
           )}
           <div className="flex gap-2">

@@ -21,7 +21,7 @@ export function OwnerPanel({ pagePath }: { pagePath: string }) {
         {/* #456 — Announce is the owner's one primary. */}
         <Button href={`${pagePath}#${ANNOUNCE_ANCHOR}`}>
           <Megaphone size={16} aria-hidden="true" />
-          Announce
+          New post
         </Button>
       </div>
     </div>

@@ -44,7 +44,7 @@ export function SocialHandleFields({
     <fieldset data-testid="social-handle-fields">
       <legend className="text-sm font-medium text-[var(--color-fg)]">Where else to find you</legend>
       <p className="mt-1 text-xs text-[var(--color-fg-muted)]">
-        Just your username — we&rsquo;ll build the link.
+        Just your username. We&rsquo;ll build the link.
       </p>
 
       <div className="mt-2 space-y-2">
@@ -78,7 +78,7 @@ export function SocialHandleFields({
                   autoCorrect="off"
                   spellCheck={false}
                   data-testid={`social-${platform}`}
-                  aria-label={`${PLATFORM_LABELS[platform]} — ${field.prefix}`}
+                  aria-label={`${PLATFORM_LABELS[platform]}, ${field.prefix}`}
                   aria-invalid={problem ? true : undefined}
                   className="min-w-0 flex-1 bg-white px-2 py-2 text-sm outline-none"
                   placeholder={platform === 'website' ? 'oakparkbakery.com' : 'yourname'}

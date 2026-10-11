@@ -690,7 +690,7 @@ export function PagePosts({
               disabled={busy || draft.trim().length === 0 || audience !== 'anyone'}
               className="btn-primary disabled:opacity-50"
             >
-              {busy ? 'Announcing' : 'Announce'}
+              {busy ? 'Posting…' : 'Post it'}
             </button>
           </div>
         </div>

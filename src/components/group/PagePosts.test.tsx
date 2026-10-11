@@ -79,7 +79,7 @@ async function pickAPlace(prefix = 'announce') {
   fireEvent.click(screen.getByTestId(`${prefix}-place-address-suggestion-0`))
 }
 
-// The noun is Post (ruled 2026-10-05; tone approved 2026-10-06); the verb stays outward, Announce.
+// The noun is Post (ruled 2026-10-05; tone approved 2026-10-06); the button says Post it (copy report §5, draft).
 describe('the word', () => {
   it('heads the section Posts, never Announcements or bulletin', () => {
     const { container } = renderPosts({ posts: [POST] })
@@ -88,9 +88,9 @@ describe('the word', () => {
     expect(container.textContent).not.toMatch(/Announcements/)
   })
 
-  it('names the primary control Announce', () => {
+  it('names the primary control Post it', () => {
     renderPosts()
-    expect(screen.getByTestId('page-post-send')).toHaveTextContent('Announce')
+    expect(screen.getByTestId('page-post-send')).toHaveTextContent('Post it')
   })
 })
 

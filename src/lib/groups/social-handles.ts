@@ -67,7 +67,7 @@ export const PLATFORM_FIELDS: Record<SocialPlatform, PlatformField> = {
   x: simple('x.com'),
   youtube: simple('youtube.com', '@'),
   // Bluesky handles are domains: dots are normal and required.
-  bluesky: simple('bsky.app', 'profile/', ' — a Bluesky handle looks like a domain'),
+  bluesky: simple('bsky.app', 'profile/', ' (a Bluesky handle looks like a domain)'),
   // The one field that is genuinely a URL, because a shop or a newsletter has
   // no handle to type.
   website: {
@@ -148,7 +148,7 @@ export function linksFromHandles(
     if (raw === undefined) continue
     const res = checkHandle(p, raw)
     if (!res.ok) {
-      problems[p] = res.problem ?? 'That does not look right'
+      problems[p] = res.problem ?? 'That doesn\'t look right.'
       continue
     }
     if (res.url !== '') links[p] = res.url

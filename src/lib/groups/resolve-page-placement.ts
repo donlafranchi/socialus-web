@@ -76,7 +76,7 @@ async function resolveAnchorPlacement(
       [loc.lat, loc.lng],
     )
     const placeId = placeRes.rows[0]?.place_id
-    let label = 'a nearby neighbourhood'
+    let label = 'a Sacramento neighborhood'
     if (placeId) {
       const nameRes = await client.query<{ display_name: string }>(
         `select display_name from public.places where id = $1`,
