@@ -1,0 +1,119 @@
+{
+ "schema": 1,
+ "feature": "F072",
+ "title": "a Page owner announces something, with a time on it",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Only the managing role announces or edits; edit in place; deleting refused",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    318
+   ],
+   "note": "Built: yes, except delete. `requireManagingRole` via `managingRoleForKind`; edit keeps the row id [V post.ts]. `group.post_delete` exists (soft delete, #318, Don 2026-10-02), so \"deleting is refused\" is no longer true; the scenario is not amended Checked: unmarked: `post.test.ts`, `PagePosts.test.tsx`."
+  },
+  {
+   "id": "2",
+   "text": "Appears on Page and in browse as the Page's voice (no price, buy, listing chrome); past start drops out; undated leaves after 14 days to \"Earlier\", optional show-until, \"Posted <date>\"",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    314
+   ],
+   "note": "Past-dated drop-out and \"Posted <date>\" on cards built (`browse_feed`, #258) [V]. Missing: 14-day expiry, \"Earlier\" section, show-until (`browse_feed` lets `starts_at is null` through forever [V migration]). Open #314. No-price/no-chrome: nothing asserts it Checked: unmarked: `tests/migrations-browse-feed.test.ts` (drop-out)."
+  },
+  {
+   "id": "3",
+   "text": "Optional date/time and own address; windowed read to the hour; undated never windowed; metro time",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    173
+   ],
+   "note": "`starts_at`, `location_id` written (#183); `metro-time.ts` is the one zone, constant until #173 [V]; card lead in metro time (#258) Checked: unmarked: `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts`."
+  },
+  {
+   "id": "4",
+   "text": "One audience switch, default anyone; words name people; no \"announcement\"/\"bulletin\" in a label; count in words at zero",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`AudienceSwitch.tsx`: \"Anyone\", \"Nobody yet\" at zero [V]; restricted setting visible, not postable (delivery cut) Checked: unmarked: `PagePosts.test.tsx` (label test at :284; one component only)."
+  },
+  {
+   "id": "5",
+   "text": "A failed save leaves nothing behind",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Place made before the post; insert in one transaction [V post.ts, build log] Checked: unmarked: `PagePosts.test.tsx:246`, `tests/page-post-db.test.ts` rollback."
+  },
+  {
+   "id": "6",
+   "text": "Optional end time after start; add-to-calendar; default alt text from title, date, place; label \"Event\"",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    596
+   ],
+   "note": "End time `ends_at` with check constraint (#263), `.ics` with `DTEND`, `AddToCalendarLink` on posts and gatherings, card alt via `cardImageAlt` [V]. Missing: the Page's announcement photo uses the body text as alt (`PagePosts.tsx:496`). Ticket #596. Label \"Event\": not checked [A] Checked: unmarked: `AddToCalendarLink.test.tsx`, `tests/announcement-end-time-db.test.ts`."
+  }
+ ]
+}

@@ -1,0 +1,102 @@
+{
+ "schema": 1,
+ "feature": "F070",
+ "title": "every Page has a face, even without a photo",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "The photo step is optional; composer completes without one",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    598
+   ],
+   "note": "`PagePhotoPicker` rides in the About step of `SellWalkthrough`; `update_draft` takes `photoUrl` (null clears, undefined leaves alone); a failed upload does not trap the member [V build log t145, files]. #598 Checked: unmarked: `PagePhotoPicker.test.tsx` (\"never blocks the step\")."
+  },
+  {
+   "id": "2",
+   "text": "Stored bytes carry no metadata, GPS included, verified against the file",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    598
+   ],
+   "note": "Canvas resize plus WebP re-encode strips it; bucket accepts `image/webp` only (`039_media_bucket.sql`). Missing: a check on an object read back from the bucket. #598 Checked: unmarked: `upload-image.test.ts:112` (real GPS fixture, byte-level, but on pipeline output, not a stored object)."
+  },
+  {
+   "id": "3",
+   "text": "A raw upload that bypasses the client is rejected by the storage API",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    598
+   ],
+   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to own `{member_id}/` prefix [V migration]. #598 Checked: unmarked: `tests/media-bucket-storage-api.test.ts` (JPEG, SVG, over 5MB, other member's prefix); runs only when `requireRunnable` passes, CI run unknown."
+  },
+  {
+   "id": "4",
+   "text": "No photo shows the kind's default art, identical for every viewer; missing Page picture falls back to it",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    335
+   ],
+   "note": "Built half: `DefaultArt` by kind (shop, service, group) on the Page, browse cards and post cards, with the Page-picture fallback in `PagePosts` [V]. Missing: the signed-out withheld card draws a plain tile with no icon, so not identical to every viewer. #335 (open, Beta 11-06) Checked: unmarked: `DefaultArt.test.tsx`."
+  },
+  {
+   "id": "5",
+   "text": "Operator removes a Page's photo in one action; object deleted, event recorded",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    491
+   ],
+   "note": "Built half: report-driven reversible removal (`photo_removed_at`) in the admin queue, then a separate `report.purge_target` plus `report.purge` that deletes the object and writes a `photo_purges` row with who, why and when (#491, migration `20261007250000`) [V]. Missing: one action (removal keeps the bytes; deletion is a second, deliberate act per `docs/purge-proposal.md`), and the record is a `photo_purges` row, not an event [A]."
+  }
+ ]
+}

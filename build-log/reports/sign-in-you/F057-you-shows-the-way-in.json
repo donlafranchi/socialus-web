@@ -1,0 +1,103 @@
+{
+ "schema": 1,
+ "feature": "F057",
+ "title": "someone who isn't selling yet finds the way in",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "`/you` has no \"vendor\", \"market\" or \"business owner\" and queries none of the dead tables",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    582
+   ],
+   "note": "#379 removed the vendor tabs, market picker and vendor toggle. Rendered text and the You component tree read today contain none of the words; it queries only `members`, `member_notices`, `groups` and the follows projection [V grep]. Absence of code, no standing guard Reviewed: no (#379 `review-skipped`)."
+  },
+  {
+   "id": "2",
+   "text": "A Member with no Page sees no shop controls, only their own stuff and one invitation",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    15
+   ],
+   "note": "Your Pages always shows, with a \"Start something\" link; the empty state is one line, not an invitation. #15"
+  },
+  {
+   "id": "3",
+   "text": "The invitation names specific maker categories, with one worked example",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    15
+   ],
+   "note": "Nothing found [V grep \"maker\", \"worked example\"]. The wording is new user-facing copy, so it goes to Don"
+  },
+  {
+   "id": "4",
+   "text": "A Member with Pages sees a row per Page (Edit shop + create controls) and their listings, reusing the existing query",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    15,
+    100
+   ],
+   "note": "Built half: a card per Page with Edit page and \"Start something\" (`OwnPages`, `getOwnPages`) [V]. Missing half: their listings are not on You. \"Edit shop\" is old wording; nouns.md says Page (#100) Reviewed: no (#516 reviewed, covers drafts only)."
+  },
+  {
+   "id": "5",
+   "text": "`/following` redirects to `/you/following`; sign-out and follow list as shipped",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    583
+   ],
+   "note": "Redirect in `next.config.ts` [V]; `/you/following` page and `SignOutButton` on You exist [V]. The old `src/app/following/page.tsx` is still on disk, shadowed (the scenario says no deleting) Checked: unmarked: `tests/retired-routes.test.ts` asserts the redirect; no test found for sign-out or the follow list [A]."
+  }
+ ]
+}

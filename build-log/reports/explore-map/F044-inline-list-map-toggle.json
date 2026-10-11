@@ -1,0 +1,99 @@
+{
+ "schema": 1,
+ "feature": "F044",
+ "title": "newcomer switches between list and map with an inline toggle",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": true,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "No fixed full-width List/Map bar; a compact inline `[List] · [Map]` in the results",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Segmented bar is gone. But the toggle is no longer in the results: `ExploreDock` is `fixed` bottom-right under 1024px [V]; `ListMapToggle` is docked in the sticky filter bar only at 1024-1439px with the owner panel open [V]. SPEC-CONFLICT with F059 criterion 5 Checked: no (`ListMapToggle.test` asserts only the component's own classes)."
+  },
+  {
+   "id": "2",
+   "text": "Tap Map: same result set as pins, toggle shows map active",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    334,
+    644
+   ],
+   "note": "`setView('map')` through the dock pill or docked tab; docked tab carries `aria-selected` [V]. Dock shows the next view's name, not a selected state [V]. Signed out: Map opens sign-up instead (#334 ruling) [V] Checked: unmarked: `BrowseSurface.layout.test.tsx:123,169`, `ListMapToggle.test.tsx`. Filed #644."
+  },
+  {
+   "id": "3",
+   "text": "Tap List: back to the card list, toggle updates",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    644
+   ],
+   "note": "Same path, `setView('list')` [V] Checked: unmarked: same files. Filed #644."
+  },
+  {
+   "id": "4",
+   "text": "Toggle scrolls with content, never fixed or floating, never occludes a card",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "T116 built it in flow (`<li role=\"presentation\">` after four cards) [V build log]. Now the dock is `fixed` over the results under 1024px [V]. SPEC-CONFLICT with F059 criterion 5. The \"not fixed\" test covers `ListMapToggle` only, which no longer sits in the results Checked: no (guards the wrong element)."
+  },
+  {
+   "id": "5",
+   "text": "Toggle sits after the first 3-5 cards, centred, 24px above and below",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built by T116 (after four cards) [V build log]; no longer rendered in the results at any width [V grep: only `viewSwitch` in the filter bar and `ExploreDock`]. SPEC-CONFLICT with F059 criterion 5"
+  }
+ ]
+}

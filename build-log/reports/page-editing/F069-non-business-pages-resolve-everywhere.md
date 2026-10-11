@@ -1,44 +1,52 @@
-# F069: a non-business Page resolves everywhere, and holding several is ordinary
+# F069: A non-business Page resolves everywhere, and holding several is ordinary
 
-category: page-editing · as-of: 2026-10-10 · scenario building (dated 2026-09-10, `depends: F060`, no `gates:`) · tickets: #22 (T134, open), #24 (T136, open), check chore #591 · PRs: #174 (T156, the shared Page resolver fix), none cite F069
-Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell is `yes`, `no` or `unknown`. Area: no Issue carries an `area:` label; `page-editing` is the closest of the list [A].
+As of 2026-10-10. Gates: none (the scenario has no `gates:` line). Area: page-editing (label).
+Tickets: #22 (T134), #24 (T136), #591. PRs that built it: #174, #516; one direct commit, f19adc6 (own Pages on You). No PR title cites F069.
 
-## Roll-up
+- **Reviewed:** #516 carries `Reviewed by:`; #174 does not; f19adc6 had no PR.
+- **Shipped:** deploy-health green on 9dde664 (#174) and 0e3b4bd (#516); no run on f19adc6, so criterion 3 is unknown.
+- **Smoked:** no smoke-live run is known to cover these routes, so Smoked is unknown.
+- **PM looked:** no UAT Issue for F069.
 
-| | built | checked | reviewed | smoked | PM looked |
-|---|---|---|---|---|---|
-| 4 criteria | 2 | 0 | 1 | 0 | 0 |
+## PM queue
 
-*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS). Reviewed = the row says yes. Smoked = a green smoke-live run came after the feature's last merge (pages load; not behaviour). PM looked = a linked Issue or the feature Issue carries pm-reviewed.*
-
-Not built: **2 (products and services; the gatherings half is built), 4** (open tickets #22, #24). Both tickets are still open although part of #22 shipped under another number, so closed-ness is no signal here. No PR, build-log line or test marker names F069 [V grep].
-
-## Per criterion
-
-| # | In plain words | Kind | Built | What exists / what is missing | Checked | Reviewed | Smoked | PM looked |
-|---|---|---|---|---|---|---|---|---|
-| 1 | A non-business Page's URL renders instead of 404ing | behavior | yes | `resolveShop` has no kind filter (comment "CORRECTED 2026-09-19 (T156)"); `kinds` is an opt-in narrowing [V `resolve-shop.ts`]. PR #174. | unmarked: `resolve-shop.test.ts` ("T156 — resolveShop takes the Page kind as a parameter"). Check #591. | yes (#174 body: M2 code-review run) | unknown | no |
-| 2 | Products, services, gatherings under a non-business Page resolve | coverage | **no** | Gatherings: built, `resolve-gathering.ts` has no business filter. **Products and services: missing.** `resolve-product.ts:116` and `resolve-service.ts:98` still `.eq('kind', 'business')` on the owning Group [V]. Venue lookup `resolve-venue-items.ts:32` too. Ticket #22. | no (gathering half unmarked; no non-business case found in `resolve-gathering.test.ts`). Check #591. | no | unknown | no |
-| 3 | A Member with several Pages sees every one on a producer surface | behavior | yes | `OwnPages` on /you lists every Page the member founded, drafts included [V `src/lib/member/own-pages.ts`, `src/app/you/page.tsx:62`]. Producer pages beyond /you were not audited [A]. | unmarked: `own-pages.test.ts`. Check #591. | unknown | unknown | no |
-| 4 | Draft-resume keeps every in-flight draft | behavior | **no** | `getDraftGroup` still takes `.order(created_at desc).limit(1)` and its comment calls multiple drafts "pathological" (`src/lib/sell/getDraftGroup.ts:109-121`) [V]. Ticket #24. | no | no | unknown | no |
-
-Reviewed: #174 has an M2 code-review line; the lane for `OwnPages` is unknown [V PR body]. Shipped: #174 merge commit 9dde664f has a mix of check results (Unit tests and Lint/types/build success; three `lint` entries failed) so shipped is unknown [V]. Smoked: `smoke-live` is scheduled, not per commit, so no run belongs to any F069 commit.
-
-## Routing: what each gap goes to next
-
-| Gap | Criteria | Next skill | Output |
-|---|---|---|---|
-| NOT-BUILT | 2 (products, services, venue lookup), 4 | `build-ticket` on #22, #24 | code + checks |
-| NO-CHECK (built, nothing asserts it) | 1, 3, and 2's gathering half | `write-tickets` then `build-ticket`: #591 | marked tests |
-| INVARIANT-UNPROVEN | none (no invariant criteria) | none | none |
-| NOT-REVIEWED | 2, 4, and 3 unknown | `review-pr-bundle` | a review section |
-| NOT-SMOKED | all | CI: tie smoke to the merge commit | smoke result |
-| NOT-LOOKED | all | `record-pm-review` (UAT Issue) once the above are done | closed UAT Issue |
-
-Filed: #591 (check criteria 1, 2, 3; `chore`, `area:page-editing`; no milestone, scenario has no `gates:`). Criteria 2 and 4 already have open Issues #22 and #24, so nothing new was filed for them.
+None. Every gap here is agent work.
 
 ## Next, in order
 
-1. Build #22 for products, services and the venue lookup (the pattern is `resolve-gathering.ts`), then #24 for every open draft.
-2. #591: mark the existing tests and add the missing gathering case.
-3. Run `review-pr-bundle` on the two builds; fix smoke-vs-commit; then a UAT Issue.
+1. `build-ticket` on #22: drop the `kind = 'business'` filter from the product and service resolvers (criterion 2).
+2. `build-ticket` on #591 (marks the tests for 1 and 3) and a check ticket for criterion 4 (two drafts both listed).
+3. `review-pr-bundle` for criteria 1 and 3.
+4. Smoke coverage of a group Page's `/g/<id>` and `/you`; then `record-pm-review`.
+
+<!-- criteria:start · generated by criteria.py from the JSON sidecar; edit the JSON, never this block -->
+
+## Roll-up
+
+| | Built | Checked | Reviewed | Shipped | Smoked | PM looked |
+|---|---|---|---|---|---|---|
+| 4 criteria | 3/4 | 0/4 | 1/4 | 2/4 (1?) | 0/4 (3?) | 0/4 |
+
+Not built: 2. Built unknown: none. Spec conflict: none.
+
+## Per criterion
+
+| # | In plain words | Kind | Status | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Issues | What exists / what is missing |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404ing | behavior | active | yes | **no** | **no** | yes | unknown | **no** | #591, #22 | [V] /g/<id> uses resolvePageById, which has no kind filter (T156, #174; no Reviewed by; deploy-health green on 9dde664). unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description') |
+| 2 | Products, services and gatherings filed under a non-business Page resolve at their public URL | coverage | active | **no** | **no** | **no** | **no** | **no** | **no** | #22, #591 | [V] gatherings: resolve-gathering.ts has no kind filter. Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under a group Page. [A] reachable since #363 lets any Page turn on Products & services |
+| 3 | A member holding several Pages sees every one on any producer surface; none chosen for them | coverage | active | yes | **no** | **no** | unknown | unknown | **no** | #591, #24 | [V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. The old getDraftGroup limit(1) is only used by SellCta, which nothing renders. First built in f19adc6, a direct commit with no PR or deploy-health run. unmarked: src/lib/member/own-pages.test.ts |
+| 4 | Draft-resume keeps every in-flight draft, not just the most recent | behavior | active | yes | **no** | yes | yes | unknown | **no** | #24 | [V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several) |
+
+## Routing
+
+| Gap | Criteria | Next skill |
+|---|---|---|
+| NOT-BUILT | 2 | `write-tickets` then `build-ticket` |
+| NO-CHECK | 1, 3, 4 | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NOT-REVIEWED | 1, 3 | `review-pr-bundle` |
+| NOT-SHIPPED | 3 | CI: `deploy-health` green on the merge commit |
+| NOT-SMOKED | 1, 3, 4 | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 1, 3, 4 | `record-pm-review` (UAT Issue), after the rows above |
+
+<!-- criteria:end -->

@@ -1,0 +1,278 @@
+{
+ "schema": 1,
+ "feature": "F101",
+ "title": "one scannable page of flagged and reviewed Posts, decided in one tap",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Operator-only Posts page, one row per subject (Post with its photos, Page photo, Page picture); non-operators 404",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`page.tsx` gates on `reports.review`, `groupBySubject` rolls reports per subject incl. `page_picture`, `post_photo` [V] Checked: unmarked: `tests/admin-reports-gate.test.ts`, `ReviewQueue.test.tsx`."
+  },
+  {
+   "id": "2",
+   "text": "Row shows thumbnail, 120-char excerpt, badge, reasons+count, AI read, rebuttal, reporter counters + coordinated flag, status, age",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "All shown except status \"under appeal\": no appeal state exists anywhere in code [V grep]. Appeals are out of scope in the scenario's \"Not this\" Checked: unmarked: `ReviewQueue.test.tsx`. Filed: none (SPEC-CONFLICT)."
+  },
+  {
+   "id": "3",
+   "text": "Severity 1–4, highest open tier; shadow = reporter's, live = higher of the two",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`review-subjects.ts` tier map, `ai_mode` data flag (#513) [V] Checked: yes (`[guards F101.3]`)."
+  },
+  {
+   "id": "4",
+   "text": "Order severity then oldest; sort severity/age/count; filter by status; header counts by severity",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Sort has all three; filter is Waiting/All, not hidden/restored/removed individually [V]; header counts by severity [V] Checked: unmarked: `ReviewQueue.test.tsx`."
+  },
+  {
+   "id": "5",
+   "text": "Approve/Remove full-width, 48 px+, bottom half of row; Approve restores, Remove keeps down",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`min-h-12` buttons in the row footer [V] Checked: unmarked (partial marker covers height only)."
+  },
+  {
+   "id": "6",
+   "text": "Swipe right approves, left removes, colour and word revealed",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`ReviewQueue.tsx` pointer handlers, green/red reveal [V] Checked: unmarked: `ReviewQueue.test.tsx` (right swipe only)."
+  },
+  {
+   "id": "7",
+   "text": "One tap or swipe per decision; severity-1 Approve asks once more",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Severity-1 confirm in row [V] Checked: unmarked: `ReviewQueue.test.tsx`."
+  },
+  {
+   "id": "8",
+   "text": "No confirm dialog; 5-second Undo; undone writes no decision and tells nobody",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Decision held client-side five seconds before the server call [V] Checked: unmarked: `ReviewQueue.test.tsx` (\"Undo ... writes nothing\")."
+  },
+  {
+   "id": "9",
+   "text": "Next waiting row moves into place after each decision",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Row removed from the list on decide [V] Checked: unmarked (50-row keystroke test is partial for 15)."
+  },
+  {
+   "id": "10",
+   "text": "One-tap default reason: Approve \"Nothing wrong with it\"; Remove matches top category; changeable in detail",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`DEFAULT_REASON`, category reason codes (#513, migration `20261008005836`) [V] Checked: unmarked: `ReviewQueue.test.tsx`."
+  },
+  {
+   "id": "11",
+   "text": "A decision writes one `report_decisions` row per open report, attributed, reversible",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`decideReportAction` called per open report id [V] Checked: unmarked: `ReviewQueue.test.tsx` (client call ids, not the database rows)."
+  },
+  {
+   "id": "12",
+   "text": "Tap row: full history, every report, assessment, rebuttal, decision, newest first, Undo on any decision",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    634
+   ],
+   "note": "Reports, decisions with Undo, rebuttal and latest AI read exist. Every earlier AI read is missing (build log 486) Checked: unmarked: `ReportEntry.test.tsx`."
+  },
+  {
+   "id": "13",
+   "text": "Severity 1–3 thumbnails blurred until pressed and held; severity 4 plain",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    635
+   ],
+   "note": "Blur by tier exists; reveal is a tap toggle, not press-and-hold (`onClick` flips `peek`) [V] Checked: unmarked: `ReviewQueue.test.tsx` (tests the tap)."
+  },
+  {
+   "id": "14",
+   "text": "Desktop keys: A approves, R removes, J/K move, U undoes",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: unmarked: `ReviewQueue.test.tsx` (R, U tested; A, J, K not)."
+  },
+  {
+   "id": "15",
+   "text": "50 rows clearable in under 10 minutes on a phone, browser test at 375 px",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`evals/features/F101-report-decisions-at-375.spec.ts`, 50 decisions in 23.7 s [V PR #538] Checked: yes (`[guards F101.15]`)."
+  }
+ ]
+}

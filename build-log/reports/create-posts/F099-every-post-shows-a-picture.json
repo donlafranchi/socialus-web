@@ -1,0 +1,229 @@
+{
+ "schema": 1,
+ "feature": "F099",
+ "title": "every post shows a picture, and every Page can have a Page picture",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Every Page, any kind, may set one optional Page picture; same flow and copy",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`groups.picture_url`; `group.update`/`update_draft` take `pictureUrl`; \"Page picture\" picker in `PageEditor` for all kinds [V] Checked: yes (`update.test`, `update-draft.test`, `PageEditor.test`)."
+  },
+  {
+   "id": "2",
+   "text": "No Page picture shows the kind's placeholder, same for everyone",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    632
+   ],
+   "note": "`DefaultArt` by kind on the Page and the post card [V] Checked: no marker (#632)."
+  },
+  {
+   "id": "3",
+   "text": "A post may carry one photo; a second is refused",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`page_posts.photo_url`, single `photoUrl` (never a list) [V build log + code] Checked: yes (`post.test`, `PagePosts.test`)."
+  },
+  {
+   "id": "4",
+   "text": "A post's photo belongs to that post, never becomes the Page's photo",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "create touches no `groups` row [V] Checked: yes (`post.test`, create path only; edit is not asserted)."
+  },
+  {
+   "id": "5",
+   "text": "Existing upload path: WebP, stripped, own folder, 5 MB, bytes verified",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`isOwnMediaUrl` on picture and post photo; WebP/5 MB/bytes come from the reused `PagePhotoPicker` and F070 path [A, not re-read] Checked: yes (own folder; the rest is F070's)."
+  },
+  {
+   "id": "6",
+   "text": "Every post card shows exactly one image: post photo, else Page picture, else placeholder",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`browse_feed` resolves it in SQL with `photo_source`; Page cards the same; `/` now redirects to Explore, so Home is Explore [V] Checked: yes (`BrowseResultCard.test`, `PagePosts.test`)."
+  },
+  {
+   "id": "7",
+   "text": "Visible = not hidden, not removed, resolved in SQL; URL never reaches the browser",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    633
+   ],
+   "note": "SQL `case` on `photo_hidden_at`/`removed_at` and picture equivalents [V]; nothing asserts it, only a one-time Visibility review Checked: no (#633)."
+  },
+  {
+   "id": "8",
+   "text": "Each image reportable on its own; hides that one image; notice names which",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`subject_kind` widened to `page_picture`, `post_photo`; `report.create/decide/reverse`; `HiddenPhotoNotice which=` [V] Checked: yes (`report/create.test`, `report-actions.test`, `ReportControl.test`, `HiddenPhotoNotice.test`, `ReportEntry.test`, `PagePosts.test`)."
+  },
+  {
+   "id": "9",
+   "text": "Adding either image shows the sensitive-content ask at upload",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    632
+   ],
+   "note": "both pickers are `PagePhotoPicker` (F080 ask) [V] Checked: no (marker covers the post photo only) (#632)."
+  },
+  {
+   "id": "10",
+   "text": "Every image has alt text: Page name, or the owner's words, else default",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Page picture and placeholder: Page name; post photo: first line of the post; Explore card falls back to the title/when/place default [V]. Whether \"owner's words\" means the first line is [A] Checked: yes (`BrowseResultCard.test`, `PagePosts.test`)."
+  },
+  {
+   "id": "11",
+   "text": "Signed out: no post photo in any response; Page picture/placeholder where the name shows",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    335,
+    633
+   ],
+   "note": "Half built: `browse_feed` returns no post rows when `auth.uid()` is null [V]. Missing: the withheld card still draws the Page's `photo_url` (`withheld-announcements.ts`), not the Page picture, and F070's placeholder there is open (#335). The scenario also says that card is \"unchanged\", which conflicts Checked: no (#633 for the post-photo half)."
+  },
+  {
+   "id": "12",
+   "text": "Removing either image records an event; gone on next load",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`group.update` event payload `fields:['picture_url']`; `group.post_edited` with `photo:'removed'` [V] Checked: yes (`update.test`, `post.test`)."
+  },
+  {
+   "id": "13",
+   "text": "Current Page photo stays; Page picture starts empty",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`photo_url` untouched; `picture_url` new column, null by default [V] Checked: yes (`PageEditor.test`)."
+  }
+ ]
+}

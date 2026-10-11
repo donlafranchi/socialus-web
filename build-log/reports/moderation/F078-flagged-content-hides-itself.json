@@ -1,0 +1,211 @@
+{
+ "schema": 1,
+ "feature": "F078",
+ "title": "flagged content hides itself, and the poster is told why",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Everything a member posts is reportable; a report triggers agent classification",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    625
+   ],
+   "note": "Reportable: Page photo, Page picture, announcement, post photo (`reports.subject_kind`, migration 20261007290000). AI reads in shadow mode (#513). Missing: a Page's own words and listings have no report path [V] Checked: unmarked: `PagePosts.test.tsx`, `create.test.ts`."
+  },
+  {
+   "id": "2",
+   "text": "Hides when score is at or above the metro's bar, by the agent",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    626
+   ],
+   "note": "`metro_polygons.hide_bar` exists. No score reaches the bar: `create.ts` \"No classifier yet\"; `ai_mode` defaults `shadow` [V]. No effect at bar 0 Checked: partial (`[guards F078.2 partial]`, posts-reportable-db)."
+  },
+  {
+   "id": "3",
+   "text": "Poster told in-app, never email, with category, reporter's reason and a plain explanation",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628,
+    629
+   ],
+   "note": "`member_notices` row written in the hide transaction; `YouNotices`. Sensitive-content reports skip the notice (DECISIONS 2026-10-06, NCMEC) [V] Checked: partial only."
+  },
+  {
+   "id": "4",
+   "text": "Poster submits one explanation; unanswered takedown stays hidden and closes itself",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628,
+    629
+   ],
+   "note": "`report.answer`, one per hide, 14-day window (F102) [V]. \"Only an answer creates work\" not asserted Checked: partial only (F102.3, F102.4)."
+  },
+  {
+   "id": "5",
+   "text": "Threat of harm / children texts Don at once; rest queues in a mobile review view",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628
+   ],
+   "note": "`operator-sms.ts` via Twilio after commit; review page (#380). Whether `TWILIO_*` / `OPERATOR_PHONE` are set in production: unknown Checked: unmarked: `operator-sms.test.ts`, `ReviewQueue.test.tsx`."
+  },
+  {
+   "id": "6",
+   "text": "Below the bar nothing automatic; lands in the same queue; at launch nothing is below",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628
+   ],
+   "note": "A report is always stored and queued; hide gated on `reachesBar` [V] Checked: partial (`create.test.ts`)."
+  },
+  {
+   "id": "7",
+   "text": "Bar is per-metro data, no migration or deploy; starts at 0; unresolvable metro uses 0",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628
+   ],
+   "note": "`BAR_OF_LOCATION` coalesces to 0, min() on overlap [V] Checked: partial (create.test.ts, member-notices-db)."
+  },
+  {
+   "id": "8",
+   "text": "Children / threat-of-harm hide at any bar",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`URGENT_CATEGORIES` bypass bar, limits and strikes [V] Checked: yes (`create.test.ts` `[guards F078.8]`)."
+  },
+  {
+   "id": "9",
+   "text": "No report without a reporter-chosen reason",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Handler and sheet both refuse [V] Checked: yes (`create.test.ts`, `ReportControl.test.tsx`)."
+  },
+  {
+   "id": "10",
+   "text": "Reporter told before sending: misuse is a strike, three stops hiding",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    488
+   ],
+   "note": "`COPY` line on the sheet; strikes counted at report time (#488 lane) [V] Checked: yes (`create.test.ts` `[guards F078.10]`)."
+  },
+  {
+   "id": "11",
+   "text": "Every string kind and gracious; wording is Don's",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    627
+   ],
+   "note": "All strings are placeholders (`copy.ts`, `notices.ts`, `categories.ts`); not worded by Don [V]"
+  }
+ ]
+}

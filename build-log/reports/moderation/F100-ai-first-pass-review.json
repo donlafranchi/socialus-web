@@ -1,0 +1,215 @@
+{
+ "schema": 1,
+ "feature": "F100",
+ "title": "an AI reads every reported item first, and a person makes the call",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Every report and every poster rebuttal triggers one read, after the report is stored; the report never waits",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`assessAfterReport` via `after()` from `create.ts:466`; rebuttal from `report-actions.ts:72`; Page photo, Page picture, Post words and post photo are read (PRs #495, #513). Builders' reports are skipped by design [V] Checked: unmarked: `create.test.ts:519`, `answer-actions.test.ts` (only partial markers)."
+  },
+  {
+   "id": "2",
+   "text": "Haiku with text and vision, structured: category, severity 1–4, confidence, outcome, reason ≤ 140",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`assess.ts` (Haiku 4.5, forced tool, zod, reason cut to 140; eight categories incl. child and other) [V] Checked: no (partial marker `assess.test.ts:25`)."
+  },
+  {
+   "id": "3",
+   "text": "Under 0.70 Sonnet gives a second opinion; both stored, second shown",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`ESCALATION_THRESHOLD`; `run-assessment.ts` inserts each read [V] Checked: yes (`assess.test.ts:37`)."
+  },
+  {
+   "id": "4",
+   "text": "Send only content, reporter's reason, rebuttal; no name, handle or email; rules versioned",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Payload built in `assess.ts` from `AssessInput`, photo as bytes; `RULES_VERSION` in the system prompt [V] Checked: yes, weak (asserts no \"@\" and one id absent; `assess.test.ts:75`)."
+  },
+  {
+   "id": "5",
+   "text": "Each assessment stores model, prompt version, category, severity, confidence, outcome, reason, latency, time; RLS on, no policies",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`report_assessments` (migration 20261007260000) has every column plus tokens and a skipped reason; RLS on, no policy [V] Checked: unmarked: `tests/report-assessments-db.test.ts`."
+  },
+  {
+   "id": "6",
+   "text": "Shadow mode: an assessment changes nothing (but F102's severity-4 auto-restore)",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Only `report_assessments` written in `runAssessment`; restore step is the ruled exception [V] Checked: yes, one path (`run-assessment.test.ts:91`); queue order and notify not asserted."
+  },
+  {
+   "id": "7",
+   "text": "A person's decision is logged against the AI suggestion",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`report_ai_agreement` view, owner-only [V] Checked: yes (`report-assessments-db.test.ts:97`)."
+  },
+  {
+   "id": "8",
+   "text": "Live mode is a data switch; live raises severity and order; remove, restore, strikes stay a person's",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`moderation_settings.ai_mode`, `fetchAiMode`; higher of the two severities in live (PR #513) [V] Checked: unmarked: `ReviewQueue.test.tsx:390` (marked F101.3); `fetchAiMode` untested."
+  },
+  {
+   "id": "9",
+   "text": "Harness prints recall, false alarms, severity accuracy, latency, cost; runs on every prompt change",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    638
+   ],
+   "note": "`npm run moderation:eval` prints all of them [V]; nothing runs it on a prompt change (no moderation job in `.github`). #638 Checked: unmarked: `eval-metrics.test.ts`, `eval-run.test.ts`."
+  },
+  {
+   "id": "10",
+   "text": "Builder-built labelled set; licensed photos, licence per photo; children and adult cases handled safely",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    639
+   ],
+   "note": "17 cases, 6 synthetic pictures with licence records, `validateSet` refuses unlicensed or minor or sexual images [V]. No real stock photo, no children-rule case, no adult case, 8 violating cases. #639 Checked: yes, for the validator (`eval-cases.test.ts`, 3 markers)."
+  },
+  {
+   "id": "11",
+   "text": "Live needs ≥ 95% recall, 100% severity-1, < 10% false alarms, plus two weeks of shadow the PM read",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    640
+   ],
+   "note": "`meetsLiveTargets` exists; nothing ties the flip to it; set too small; no shadow-read place. Scenario Size puts live after beta. #640 Checked: no (partial marker `eval-metrics.test.ts:44`)."
+  },
+  {
+   "id": "12",
+   "text": "Suspected severity-1 never sent to a provider; images hash-checked; row goes to a person with the result",
+   "kind": [
+    "invariant",
+    "external"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    641,
+    643
+   ],
+   "note": "Skip half built: a `sensitive_content` report gets a skipped row, no call, no image fetch [V]. Hash check (Cloudflare CSAM tool) not built; build log says rows go to a person without a hash result. #641 Checked: yes for the skip half (`run-assessment.test.ts:50`); no standing guard that no other path calls the provider (#643)."
+  }
+ ]
+}

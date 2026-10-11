@@ -1,0 +1,157 @@
+{
+ "schema": 1,
+ "feature": "F074",
+ "title": "a series repeats",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Series made once: weekly, chosen weekdays, optional start and end; no other pattern",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    592
+   ],
+   "note": "No composer field or action. Needs new wording (to Don)"
+  },
+  {
+   "id": "2",
+   "text": "Every occurrence is a real `page_posts` row with `parent_post_id`; never computed at read",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    593
+   ],
+   "note": "Column exists, nothing writes it [V grep]"
+  },
+  {
+   "id": "3",
+   "text": "Occurrences from today to three months ahead, at all times",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    594
+   ],
+   "note": "No maintenance job, no schedule [V grep migrations, workflows]"
+  },
+  {
+   "id": "4",
+   "text": "The window job is idempotent",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    595
+   ],
+   "note": "No job; no uniqueness key on (parent, start)"
+  },
+  {
+   "id": "5",
+   "text": "Start computed in the metro's timezone; keeps local time across daylight saving",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    173,
+    597
+   ],
+   "note": "`metroWallTimeToInstant` is two-pass and DST-aware, but no timezone column exists and no expansion uses it. #173 open. Daylight saving ends 2026-11-01"
+  },
+  {
+   "id": "6",
+   "text": "Windowed read: one row per series, one per non-recurring post",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    600
+   ],
+   "note": "`browse_feed` has no distinct or grouping by parent [V migrations]. #266 says it \"lands with F074\""
+  },
+  {
+   "id": "7",
+   "text": "Editing one occurrence changes only that one",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    602
+   ],
+   "note": "F072 edits a post in place, but no occurrences exist to prove it on"
+  },
+  {
+   "id": "8",
+   "text": "Each occurrence is its own dated post under F072 (address, window match, responses)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    603
+   ],
+   "note": "F072 gives a single post these; occurrence rows do not exist"
+  }
+ ]
+}

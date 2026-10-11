@@ -1,0 +1,102 @@
+{
+ "schema": 1,
+ "feature": "F065",
+ "title": "someone follows a person, Page or venue, and nothing else changes",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Following a person, Page or venue writes one row plus its event row in one transaction",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    606
+   ],
+   "note": "Person: `member_follows` + `member.followed` in `withTransaction` (`actions/member/follow.ts`). Page: `group_memberships` + `group.member_joined` (`actions/group/follow.ts`). Venue: `member_saved_searches` + `member.saved_search.created` (`saved-search-create.ts`) [V] Checked: unmarked: `group/follow.test.ts` (\"writes an event\", mock only); person and venue tests only grep the source text (`actions-t091`, `actions-t109`); none asserts same-transaction."
+  },
+  {
+   "id": "2",
+   "text": "A follow never grants membership, a role or unlisted read access, checked against every authorization/roster path",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    607
+   ],
+   "note": "Follower row is `role='member'`, `source='soft_via_follow'`; manager checks key on role (`post.ts`, `lifecycle.ts`, `update.ts`, `item/create.ts`) [V sampled]. Partial proofs: `group/follow.test.ts` \"grants no role beyond the plain one\", `tests/follower-privacy-db.test.ts`, `tests/page-owner-follow-db.test.ts`. No test walks every roster/authz path; no `F065` marker Checked: no (partial, unmarked)."
+  },
+  {
+   "id": "3",
+   "text": "A Member who follows a business and owns no shop still sees Sell offer to start something",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    604
+   ],
+   "note": "`hasActiveBusinessGroup.ts` and `getDraftGroup.ts` count any `group_memberships` row with `left_at is null` on an active business Group; neither filters `relationship`/`role`, so a business follower is read as a seller and `SellCta` routes to /you/sell instead of the start walkthrough [V]. Neither test file mentions follower"
+  },
+  {
+   "id": "4",
+   "text": "Unfollow then re-follow revives the original row",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    606
+   ],
+   "note": "Person: `on conflict ... unfollowed_at = null`; Page: `on conflict ... left_at = null`; venue: `saved-search-restore` clears `removed_at` [V] Checked: unmarked: `group/follow.test.ts` \"is idempotent\" (mock); person and venue only grep source text."
+  },
+  {
+   "id": "5",
+   "text": "The following list reads from one table, not three",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    605
+   ],
+   "note": "`get-member-follows.ts` unions `member_follows`, `group_memberships` (source explicit) and `member_saved_searches`; its own header calls them \"three substrates\" [V]. Test `get-member-follows.test.ts` asserts the union"
+  }
+ ]
+}

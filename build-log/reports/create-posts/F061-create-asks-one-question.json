@@ -1,0 +1,66 @@
+{
+ "schema": 1,
+ "feature": "F061",
+ "title": "creating a Page asks one question, its kind",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Create asks one question, the kind, each a question with a one-line purpose; the screen says this just starts the process",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "unknown",
+   "issues": [
+    575
+   ],
+   "note": "`WhatAreYouStarting.tsx`: \"What are you starting?\", four answers, each with a line, and \"This just gets things started\" [V]. The fourth, \"Be creative\", is Don's own wording and not a question (#382, ruled 2026-10-05) Checked: unmarked: `WhatAreYouStarting.test.tsx` (questions, lines, nothing public); nothing asserts the \"just gets things started\" sentence. #575."
+  },
+  {
+   "id": "2",
+   "text": "Creation lands the owner on the draft Page; name, address, neighbourhood, tags are set there",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "unknown",
+   "issues": [
+    575
+   ],
+   "note": "`startDraftAction` makes a draft of the kind and redirects to the Page [V]; Before-you-publish checklist and Edit on the draft (#326). Address/tags editing is F056 Checked: unmarked: `create/actions.test.ts` (\"creates a draft ... and lands on it\"); nothing asserts the draft offers name, address, tags. #575."
+  },
+  {
+   "id": "3",
+   "text": "Map/card placement from a single read-time resolver; nothing precomputed or cached",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "unknown",
+   "issues": [
+    576
+   ],
+   "note": "`resolvePagePlacements` in `resolve-page-placement.ts` (T143), used by `resolveShop`; no placement column or cache found in migrations [V grep] Checked: no: `resolve-page-placement.test.ts` tests shape, not absence of stored placement. #576."
+  }
+ ]
+}

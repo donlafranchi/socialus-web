@@ -1,0 +1,174 @@
+{
+ "schema": 1,
+ "feature": "F056",
+ "title": "A producer edits a shop that already exists",
+ "area": "page-editing",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Owner edits image, name, about and a free-text values line from one prefilled page",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    16
+   ],
+   "note": "[V] image, name, about: Edit page Basics card (EditCards.tsx, #472) through group.update (#158). Values half: a 'Values & badges · Coming soon' card with no field (#465); no values column. Conflict: values cut by DECISIONS 2026-09-07 and 2026-10-06, and the scenario's own approved line says 'values statement cut'; criterion text still names it"
+  },
+  {
+   "id": "2",
+   "text": "Only an active owner can save; the write goes through a named handler with an event row",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    585
+   ],
+   "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); deploy-health green on 1ebe680. unmarked: src/actions/group/update.test.ts ('refuses a stranger', 'writes an event naming the fields')"
+  },
+  {
+   "id": "3",
+   "text": "The values column has no source or provenance field; nothing but the owner's own edit can write it",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V] no values_statement column in supabase/migrations; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1: the values line is cut, so the column this guards does not exist"
+  },
+  {
+   "id": "4",
+   "text": "A tagline of at most 120 characters, separate from the description, on card, profile and link preview",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    584
+   ],
+   "note": "[V] no tagline column, no field in group.update or Edit, nothing in share-metadata. TileCard takes a tagline prop but OwnPages passes the description into it"
+  },
+  {
+   "id": "5",
+   "text": "A Page with every optional field empty renders correctly, with nothing nagging",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V] ShopPublicPage omits an empty description, placement heading and badge; Products shows 'Nothing posted yet' only when that component is on [A: not nagging]. Sections from #472 (Reviewed by), deploy-health green on 614c920. unmarked: ShopPublicPage.test.tsx ('omits it when empty', 'no empty heading, no placeholder')"
+  },
+  {
+   "id": "6",
+   "text": "On the draft or live Page, an address search resolves to real coordinates with a confirming pin before saving; an unresolvable address refuses loudly",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    585
+   ],
+   "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by; deploy-health green on 3492589). 'Drop a pin' (#441) saves the map's coordinates, not a placeholder. With no map key the address is used as found and no map is drawn. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx"
+  },
+  {
+   "id": "7",
+   "text": "A neighbourhood or town from a seeded list covering MSA 40900; a neighbourhood-mode Page shows no street address anywhere and a pin at the centre",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    586,
+    585
+   ],
+   "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods in Sacramento and West Sacramento), pick in #351 and #468, saves a neighborhoodId and no point (where-save.ts). Page map draws a pin at the area centre (PageMap.tsx); Explore draws a disc per the 2026-10-07 ruling. No standing guard over every surface. unmarked: where-save.test.ts, tests/boundaries-db.test.ts"
+  },
+  {
+   "id": "8",
+   "text": "Owner picks or creates tags in their own words, editable any time; no category and no 'Something else'; at least one tag to publish",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    585
+   ],
+   "note": "[V] group.update replaces the tag set and refuses none (#288, no Reviewed by; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags. group.update still accepts a category but no Edit or Create component offers one. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('no category chip')"
+  },
+  {
+   "id": "9",
+   "text": "Optional public business phone, separate from the private phone, shown to signed-in visitors only",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    585
+   ],
+   "note": "[V] groups.contact_phone granted to authenticated only; loadPageView reads contact only when signed in (#305, no Reviewed by; deploy-health green on 7381f60). unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller')"
+  }
+ ]
+}

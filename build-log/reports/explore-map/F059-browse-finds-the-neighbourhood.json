@@ -1,0 +1,221 @@
+{
+ "schema": 1,
+ "feature": "F059",
+ "title": "Browse, where a newcomer finds the neighbourhood",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Browse is its own surface at `/explore`, own tab; not merged with Home",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Nav tab Explore, `/` redirects to `/explore` [V `page.tsx`, `BottomNav.tsx`] Checked: unmarked: `BottomNav.test.tsx`."
+  },
+  {
+   "id": "2",
+   "text": "Pages and posts together, complete, nothing withheld that the reader may see",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    589
+   ],
+   "note": "One `browse_feed` call returns both kinds [V]; capped at `BROWSE_LIMIT = 100`, no paging seen, so a metro over 100 rows may hold some back [A]. Check #589 Checked: no (nothing asserts completeness)."
+  },
+  {
+   "id": "2b",
+   "text": "Signed in, also own announcements and things coming up; signed out, absent",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`FollowingRow` plus `HappeningRows`; signed out gets withheld cards only (#204, F091, F093) [V `load.ts`] Checked: unmarked: `load.test.ts`, `FollowingRow.test.tsx`."
+  },
+  {
+   "id": "2c",
+   "text": "Signed-in half withheld server-side, never rendered and hidden",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Second `getBrowseFeed` call only when signed in; SQL predicate on `p_following`; empty follow set still calls [V `load.ts`, build log] Checked: unmarked: `load.test.ts`, `load-withheld.test.ts`."
+  },
+  {
+   "id": "3",
+   "text": "Order is locality and recency; never payment, size, follower count or what keeps you scrolling",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    590
+   ],
+   "note": "`browse_feed` orders by locality and recency; `session-shuffle.ts` shuffles only inside recency bands [V]. Nothing guards the never-part. Guard #590"
+  },
+  {
+   "id": "4",
+   "text": "Curated lenses (today, local food, household, art, free); no kind picker; search separate",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    57,
+    587,
+    590
+   ],
+   "note": "Built half: \"What's happening… today / this week / this weekend\" rows (F091); lens parameters exist in `getBrowseFeed` [V]. Missing: local food / household / art lens, newcomers lens (\"newly opened here\"); free lens blocked on the scenario's open question (no price substrate; recommend tag). #57 proposes chips, which this criterion rules out. Issue #587; guard for \"no kind picker\" in #590"
+  },
+  {
+   "id": "5",
+   "text": "List and map by width; Map pill under 1024; side by side from 1024; owner-panel switch at 1280-1439; signed out is list only",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    278,
+    589,
+    590
+   ],
+   "note": "#279 and #496 (signed-out list only, Map pill opens sign-up) on main [V build logs]. The owner-panel mode sits behind a prop nothing sets (open question #278). \"Nothing inserted between rows\" unguarded, #590 Checked: partial marker only (`BrowseSurface.layout.test.tsx:99`); check #589."
+  },
+  {
+   "id": "6",
+   "text": "Scoped to the active metro; a member outside every seeded metro chooses, none is picked for them",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    588
+   ],
+   "note": "Built half: results scoped to the metro; picker lists every seeded metro; pill says \"Choose your area\" when unchosen [V]. Missing: `resolveFeedMetro` falls back to Sacramento, so a metro is picked for them (its own comment: \"known limitation of a one-metro launch\"). Issue #588 (needs-pm) Checked: no (`scope.test.ts` asserts the fallback)."
+  },
+  {
+   "id": "7",
+   "text": "Metro switcher moves a signed-in member's results too",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Requested slug beats the member's stored metro; the pick saves as their default (#479) [V `scope.ts`, `actions.test.ts`] Checked: unmarked: `actions.test.ts`, `scope.test.ts`."
+  },
+  {
+   "id": "8",
+   "text": "Past-dated posts drop out on their own",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`browse_feed` drops `starts_at < now()`, undated never drop [V migration] Checked: unmarked: `tests/migrations-browse-feed.test.ts:671`."
+  },
+  {
+   "id": "9",
+   "text": "Each result carries the name its people are known by; a concealing brand label fails",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Page's name on both Pages and posts [V `BrowseResultCard.tsx`, `card.ts`]. Concealment is a Page-content question, not checked here [A] Checked: unmarked: `BrowseResultCard.test.tsx`."
+  },
+  {
+   "id": "10",
+   "text": "Shared link reopens same metro and search; back restores scroll",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    54
+   ],
+   "note": "`?metro=`, `?q=`, `?category=` round-trip (`query.ts`); scroll restored once per mount under the literal key `'explore'`, so a metro switch is not re-keyed. Open #54 covers the key and the re-arm Checked: unmarked: `query.test.ts`, `useScrollRestoration.test.ts`."
+  }
+ ]
+}

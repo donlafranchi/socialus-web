@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "feature": "F092",
+ "title": "narrowing happens in a modal that writes what it did",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Only the panel-opening control on the results surface; no chips or pills",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    624
+   ],
+   "note": "`ActiveFilterChips`, `KindFilterPills` deleted in #174; BrowseSurface renders the search row with one filter-open control [V]. No guard asserts it"
+  },
+  {
+   "id": "2",
+   "text": "Apply closes the panel and writes the selection into the box as readable, retypable text",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    619
+   ],
+   "note": "Sheet closes and sets `filters` state (schedule, tags). Nothing writes text to the box"
+  },
+  {
+   "id": "3",
+   "text": "Results match the box text, panel-written or typed",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    620
+   ],
+   "note": "`searchBrowseResults` does free-text substring match only; filters come from separate state. Box text is not the state"
+  },
+  {
+   "id": "4",
+   "text": "Every string the panel can write is understood by the box reader",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    621
+   ],
+   "note": "No grammar or parser exists; needs a round-trip over every panel selection"
+  },
+  {
+   "id": "5",
+   "text": "Text not understood opens the panel; never errors, never silently empties",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    57,
+    622
+   ],
+   "note": "Free text never errors, but unparsed text does not open the panel; empty state reads \"Nothing here yet — try another filter\". Replaces #57's chips fallback"
+  },
+  {
+   "id": "6",
+   "text": "Clearing the box clears the narrowing",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    623
+   ],
+   "note": "Emptying the box clears the query only; sheet filters stay active with nothing visible. `clearAll` exists only behind the sheet's Clear all"
+  }
+ ]
+}

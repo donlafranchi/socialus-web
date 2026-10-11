@@ -1,0 +1,114 @@
+{
+ "schema": 1,
+ "feature": "F058",
+ "title": "a member reports something, and the operator can take a photo down",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A signed-in member sends a free-text report from an item or shop page",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`ReportControl` on `ShopPublicPage` and `PagePosts`; `report.create` (#81, #82); signed-out gets a sign-in link [V] Checked: unmarked: `ReportControl.test.tsx`, `report-actions.test.ts`."
+  },
+  {
+   "id": "2",
+   "text": "A report changes nothing visible to anyone, including the reported party",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    62,
+    220
+   ],
+   "note": "SPEC-CONFLICT. The reporter is never named to the owner (`report-privacy-db.test.ts`, seen failing both ways). But a report now hides the photo at once and the owner sees a notice (T160 #62, F078 #220 \"poster is told why\"); `create.test.ts` says F078 criterion 3 \"amends F058 acceptance 2\". F058 text was never amended [V] Checked: unmarked: `tests/report-privacy-db.test.ts`."
+  },
+  {
+   "id": "3",
+   "text": "Only the operator sees or can invoke Remove; others rejected by the handler",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`report.remove` / `report.reverse` refuse ordinary member, owner, unset operator before touching the DB; `/admin/reports` is 404 to others [V] Checked: unmarked: `review.test.ts`, `ReviewQueue.test.tsx`."
+  },
+  {
+   "id": "4",
+   "text": "Removal stops every surface serving the photo, writes who/when/why, listing survives",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    577
+   ],
+   "note": "`report.remove` sets `photo_removed_at`, keeps URL, writes `report_decisions`; Page, share, Browse honor it. Map does not: `useMapPages.ts` reads only `photo_hidden_at`, and removal clears that column, so pins still show a removed photo [V]. Issue #577 Checked: unmarked: `review.test.ts` (decision row, never nulls URL); nothing on the map."
+  },
+  {
+   "id": "5",
+   "text": "The report reaches a place a person reads",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Always: `/admin/reports` queue, oldest hidden first. Plus SMS to the operator for urgent categories (`operator-sms.ts`, Twilio) [V]. Ordinary reports are queue-only, which meets \"somewhere a person reads\" [A] Checked: unmarked: `create.test.ts`, `operator-sms.test.ts`, `reports-queue-builders.test.ts`."
+  },
+  {
+   "id": "6",
+   "text": "Every decision reversible from the item by a new decision; reviewer sees history",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: unmarked: `review.test.ts` (reversal inserts, never UPDATE/DELETE), `ReportEntry.test.tsx`."
+  }
+ ]
+}

@@ -1,0 +1,130 @@
+{
+ "schema": 1,
+ "feature": "F091",
+ "title": "What's happening, today and this week",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A row returns only posts starting in its window, soonest first",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    612
+   ],
+   "note": "`happeningRows` calls `browse_feed` per row with `startsFrom`, `startsBefore`, `sort: 'soonest'`, posts only (`src/app/explore/load.ts`) [V]. The SQL is in `browse_feed` [V] Checked: no: loader test is `[guards F091.1 partial]`, args only; `tests/migrations-browse-feed.test.ts` covers the SQL but is unmarked."
+  },
+  {
+   "id": "2",
+   "text": "Windows in the metro's timezone, bound to the hour",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    173
+   ],
+   "note": "`happeningWindows`: every row starts now, today ends at metro midnight, week and weekend end Monday 00:00. The zone is the constant `America/Los_Angeles` until #173 (open) gives each metro its own [V] Checked: yes (`happening.test.ts`)."
+  },
+  {
+   "id": "3",
+   "text": "A row with no results is absent",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`HappeningRows` filters empty rows [V] Checked: yes (`HappeningRows.test.tsx`)."
+  },
+  {
+   "id": "4",
+   "text": "The stem is absent when every row is",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`HappeningRows` returns null when no row is present [V] Checked: yes (`HappeningRows.test.tsx`)."
+  },
+  {
+   "id": "5",
+   "text": "The same link reopens the same rows",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "unknown",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Rows come from the route's metro and area and the clock; nothing found that pins them to a link, and nothing asserts it [A]"
+  },
+  {
+   "id": "6",
+   "text": "A series appears at most once in a row",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    602
+   ],
+   "note": "`browse_feed` has no grouping by `parent_post_id` [V migrations]; #266 says it \"lands with F074\". No series exist yet. Ticket #602 (F074 read side, open)"
+  },
+  {
+   "id": "7",
+   "text": "Signed out, the today row is one \"Sign in to see what's happening\" card per Page posting today",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`signedOutToday` reads the withheld path over midnight to midnight \"posted today\", not \"happens today\" (Don's ruling); card copy `withheldCta` reads \"Sign in…\" [V]. The PR body says \"Sign up\", the code says \"Sign in\" [V] Checked: yes (`load-withheld.test.ts`, `[guards F091.7 partial]`: the loader; card has its own tests)."
+  }
+ ]
+}

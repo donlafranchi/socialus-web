@@ -1,0 +1,131 @@
+{
+ "schema": 1,
+ "feature": "F046",
+ "title": "scrolling hides the bottom nav",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": true,
+ "as_of": "2026-10-10",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Scroll down more than 20px: nav slides out, ~200ms ease-out",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out` [V]. Live-verified at 375x812 in build log. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx`."
+  },
+  {
+   "id": "2",
+   "text": "Scroll up more than 20px: nav returns",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Same hook, `travel < -threshold` sets visible [V] Checked: unmarked: `useScrollDirection.test.ts`."
+  },
+  {
+   "id": "3",
+   "text": "At scrollTop <= 0 the nav is visible",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`if (y <= 0) setVisible(true)` [V] Checked: unmarked: `useScrollDirection.test.ts`."
+  },
+  {
+   "id": "4",
+   "text": "Nav visible on first render of any tab",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`useState(true)`, context default `true`, route change resets to visible [V] Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx`."
+  },
+  {
+   "id": "5",
+   "text": "No layout shift or scroll jump when it shows or hides",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Bar is `fixed bottom-0`, out of flow; pages pad with `--nav-height` constant, not by visibility [V]. Build log: no content jump. Checked: unmarked: `BottomNav.test.tsx` \"out of the document flow\"; nothing measures layout shift."
+  },
+  {
+   "id": "6",
+   "text": "Same behavior on Home, Explore, You",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "unknown",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    296,
+    358
+   ],
+   "note": "One global provider in `layout.tsx`, so it applies wherever the nav shows [V]. Home is paused, so the tabs are Explore and You; Create is a link in the same bar [V]. Nav is intentionally absent on auth, onboarding, admin and full-height Edit Page (#296, #358) [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route is under the provider."
+  },
+  {
+   "id": "7",
+   "text": "Visual spec: 44px, 9px/500 labels 3px below icon, 20px/1.5 icons filled when active, charcoal active, #717171 inactive, 1px #EBEBEB border, opaque white",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    3,
+    294,
+    296
+   ],
+   "note": "Met: 20px 1.5-stroke icons, filled when active, charcoal `#3C3C3C` active, `#717171` inactive, `#EBEBEB` top border, opaque white, safe-area padding [V]. Not met as written: bar is 56px (`--nav-bottom-h`, #294/#296 \"the design's 56px\"), labels are the 12px `micro` token, gap is 2px, and a Create action sits between the tabs (T158). Tests now assert the newer values (`BottomNav.test.tsx` \"bar is 56px tall\") [V]. Checked: tests assert the newer design, not this text."
+  }
+ ]
+}
