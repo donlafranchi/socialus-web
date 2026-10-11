@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. A cell i
 
 ## Roll-up
 
-| | built | checked | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 5 criteria | 3 + 2 unknown | 3 | 1 | 3 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 5 criteria | 3 | 1 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: none. Unknown and unguarded: **2, 3** (invariants, no standing guard; filed as #637). Built means the code exists on main [V grep + build log]; shipped means deploy-health was green for the merge commit.
 

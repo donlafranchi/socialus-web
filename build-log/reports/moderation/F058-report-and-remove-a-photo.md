@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 6 criteria | 4 | 0 | 0 | 6 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 6 criteria | 4 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **4** (the map still serves a removed photo, #577). Spec conflict: **2** (later work tells the owner). Built means code on main [V]. Checked: no `guards F058` marker exists on main [V grep]; tests exist unmarked. Reviewed: PRs #65, #81, #82, #151, #152 carry no `Reviewed by:` (they predate the 2026-10-05 rule) and #508 says `review-skipped` [V]. Shipped: deploy checks green on 311a373 (#151) and 1c1b0c9 (#152) [V]; #65 shows failing `lint` runs [V]. Smoked: `smoke-live` is failing on main today and is not tied to a merge commit, so unknown.
 

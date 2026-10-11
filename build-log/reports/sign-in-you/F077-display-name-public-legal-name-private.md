@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 8 criteria (5 in scope) | 2 (1 screen only, 3) | 0 marked (4 unmarked test files for 1) | 0 | 2 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 8 criteria | 1 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **4, 5**; **6, 7, 8** are out of scope until counsel ([V scenario "Out of scope 2026-09-30"]). Unknown: **1 (second half), 2**. Reviewed: the signup PR #497 says `Reviewed by: review-skipped` [V]. Shipped: all `Deploy health` checks success on d5ebc936 [V]. Smoked: `smoke-live` is not tied to commits, so none.
 

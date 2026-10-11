@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 15 criteria | 12 | 2 (3, 15) | 4 (1, 2, 3, 10) | 12 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 15 criteria | 12 | 2 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **2** (the "under appeal" status), **12** (earlier AI reads missing from the history), **13** (reveal is a tap, not press-and-hold). Unchecked-by-marker: 13 built criteria have tests with no `[guards F101.N]` marker. Built means code on main [V grep, build logs]; reviewed means the PR that built it carries `Reviewed by:` (#499, #506, #513; #380 and #538 carry none); shipped means deploy-health success on ab7691dc, a later main commit than all six PRs [V]. Smoked: latest smoke-live runs on main fail and none is tied to this feature, so 0.
 

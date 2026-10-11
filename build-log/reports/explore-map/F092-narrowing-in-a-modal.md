@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 6 criteria | 1 | 0 | 0 | unknown | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 6 criteria | 1 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **2, 3, 4, 5, 6**. The only part of the feature on main is that the chip and pill rows are gone and a filter sheet opens from the search row [V code]. Applying the sheet sets filter state; it never writes text into the box [V `ExploreFilterSheet.tsx`, `BrowseSurface.tsx`]. No PR cites F092. #174 carries `human-review` and no `Reviewed by:` line; its merge commit 9dde664f shows `lint` failure alongside other checks passing [V].
 

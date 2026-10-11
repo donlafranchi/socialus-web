@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked (marked) | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 3 criteria | 3 | 0 (2 unmarked tests) | 2 of 3 (see below) | 3 | 0 | unknown |
+| | built | checked |
+|---|---|---|
+| 3 criteria | 3 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: none. Built means code on main [V grep] and build log `2026-W40/change-301-create.md` [V]; shipped means `Deploy health` and `CI` success on a5eefa3e (#326) [V]. Open #28 still describes the retired six-step composer; the scenario no longer has it, so it is stale, not a gap (left alone).
 

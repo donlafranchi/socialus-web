@@ -5,9 +5,11 @@ Regenerated whole each run. **[V]** read or run today, **[A]** assumed. Kinds: *
 
 ## Roll-up
 
-| | built | checked | reviewed | shipped | smoked | PM looked |
-|---|---|---|---|---|---|---|
-| 5 criteria | 0 | 0 | 0 | 0 | 0 | 0 |
+| | built | checked |
+|---|---|---|
+| 5 criteria | 0 | 0 |
+
+*Roll-up generated from the criterion rows below by `scripts/criteria.py --rewrite-reports`; never typed. Built = the row says yes. Checked = a guards marker covers the whole criterion (`markers.py coverage`, the same count as STATUS).*
 
 Not built: **all five** (covered by open #33). No PR cites F064 [V `gh pr list`]; no build-log line for it [V grep]; no signal table in `supabase/migrations` [V grep]. Not-reviewed, not-shipped and not-smoked are `no` only because nothing exists.
 
