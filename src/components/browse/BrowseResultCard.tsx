@@ -40,8 +40,11 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 export function BrowseResultCard({
   result,
   as = 'li',
+  prefetch,
 }: {
   result: BrowseResult
+  /** #555 — read this card's Page ahead of the tap (the top of the list, where the taps are). */
+  prefetch?: boolean
   /** #270 — 'div' when the caller already provides the list item. */
   as?: 'li' | 'div'
 }) {
@@ -75,6 +78,7 @@ export function BrowseResultCard({
             })
       }
       href={result.href}
+      prefetch={prefetch}
       action={
         isPost || result.tags.length > 0 ? (
           <div className="flex flex-col gap-2">

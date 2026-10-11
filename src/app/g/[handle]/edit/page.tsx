@@ -33,41 +33,41 @@ export const dynamic = 'force-dynamic'
 export default async function EditPage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params
   const supabase = await createClient()
-  const { data: auth } = await supabase.auth.getUser()
+  // #555 — this was six reads in a row, each a trip to the database, before the owner saw anything. The viewer and the Page
+  // are independent; then ownership and everything the cards show are read together. A non-owner still gets a 404 and
+  // nothing renders: the extra reads are row-level-secured and their result is thrown away on that path.
+  const [{ data: auth }, shop] = await Promise.all([supabase.auth.getUser(), resolvePageById(supabase, handle)])
   if (!auth.user) notFound()
-
-  const shop = await resolvePageById(supabase, handle)
   if (!shop) notFound()
 
-  const owns = await viewerOwnsPage(supabase, {
-    groupId: shop.groupId,
-    viewerMemberId: auth.user.id,
-    kind: shop.kind,
-  })
+  const [owns, contactRow, { data: meta }, { data: tagRows }, saved] = await Promise.all([
+    viewerOwnsPage(supabase, {
+      groupId: shop.groupId,
+      viewerMemberId: auth.user.id,
+      kind: shop.kind,
+    }),
+    resolvePageContact(supabase, shop.groupId),
+    supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle(),
+    // #285 — the Page's tags, as the owner reads them. A tag taken down is not offered back; saving leaves it off.
+    supabase.from('page_tags').select('tags(label)').eq('group_id', shop.groupId),
+    // #348 — start the question from what's saved; #455 — the map opens on the saved pin.
+    resolvePageWhere(supabase, shop.groupId),
+  ])
   if (!owns) notFound()
 
   const pagePath = canonicalPagePath(shop.publicId)
   const isDraft = shop.lifecycleState === 'draft'
-  const contact = (await resolvePageContact(supabase, shop.groupId)) ?? { phone: null, hours: null }
+  const contact = contactRow ?? { phone: null, hours: null }
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
   // group until its owner adds them.
-  const { data: meta } = await supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle()
   const metadata = (meta as { metadata?: unknown } | null)?.metadata
   const contactOn = componentOn(shop.kind, metadata, 'contact')
   const productsOn = componentOn(shop.kind, metadata, 'products')
 
-  // #285 — the Page's tags, as the owner reads them. A tag taken down is not
-  // offered back; saving leaves it off.
-  const { data: tagRows } = await supabase
-    .from('page_tags')
-    .select('tags(label)')
-    .eq('group_id', shop.groupId)
   const initialTags = ((tagRows ?? []) as unknown as { tags: { label: string } | null }[])
     .map((r) => r.tags?.label)
     .filter((l): l is string => Boolean(l))
 
-  // #348 — start the question from what's saved; #455 — the map opens on the saved pin.
-  const saved = await resolvePageWhere(supabase, shop.groupId)
   const initialWhere = whereValueFrom(saved, shop.placements[0])
 
   return (

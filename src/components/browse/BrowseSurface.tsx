@@ -53,6 +53,8 @@ const BrowseMap = dynamic(() => import('./BrowseMap').then((m) => m.BrowseMap), 
 const SPLIT_TOP = 'top-[calc(var(--nav-top-h)+var(--search-row-h))]'
 const SPLIT_HEIGHT = 'h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h))]'
 const MAP_PANE_ID = 'browse-map-pane'
+/** #555 — how many cards from the top read their Page ahead of the tap. Each is a server render, so not the whole list. */
+const PREFETCH_TOP = 3
 
 /** Long enough that a five-character search announces once, on settle. */
 const ANNOUNCE_DEBOUNCE_MS = 700
@@ -324,8 +326,9 @@ export function BrowseSurface({
                 </div>
               ) : (
                 <CardGrid>
-                  {visible.map((r) => (
-                    <BrowseResultCard key={`${r.resultKind}:${r.resultId}`} result={r} />
+                  {visible.map((r, i) => (
+                    // #555 — the first three are read ahead of the tap; the rest keep the router's default.
+                    <BrowseResultCard key={`${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
                   ))}
                 </CardGrid>
               )}
