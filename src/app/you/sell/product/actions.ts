@@ -31,7 +31,7 @@ async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) {
-    throw new SellActionError('You must be signed in to list a product.', 'unauthenticated')
+    throw new SellActionError('Sign in first, then try again.', 'unauthenticated')
   }
   return data.user.id
 }
@@ -132,7 +132,7 @@ async function resolveDestinationUrl(args: {
     const handle = memberRes.rows[0]?.handle
     if (!handle) {
       throw new SellActionError(
-        'Your product was published, but we could not resolve its URL. Refresh /you to see it.',
+        "Your product is up, but we couldn't open it just now. You'll find it under You.",
         'item_url_unresolved',
       )
     }

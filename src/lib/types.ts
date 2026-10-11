@@ -232,12 +232,12 @@ export const OWNERSHIP_TIERS: Record<OwnershipTier, { label: string; color: stri
 export const REPORT_PILLARS: Record<ReportPillar, { emoji: string; label: string; description: string }> = {
   customers: {
     emoji: '🤝',
-    label: 'Customers',
+    label: 'People who shop here',
     description: 'Deceptive practices, refusal of service, discrimination',
   },
   employees: {
     emoji: '👷',
-    label: 'Employees',
+    label: 'People who work here',
     description: 'Wage theft, unsafe conditions, exploitation, retaliation',
   },
   community: {

@@ -67,7 +67,7 @@ async function requireMemberId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) {
     throw new SellActionError(
-      'You must be signed in to start selling.',
+      'Sign in first, then try again.',
       'unauthenticated',
     )
   }
@@ -161,7 +161,7 @@ export async function sellActivateAction(input: {
     const group = groupRes.rows[0]
     if (!group?.slug || !group.public_id) {
       throw new SellActionError(
-        'Your Page was created, but we could not resolve its address. Refresh /you to see it.',
+        "Your Page is up, but we couldn't open it just now. You'll find it under You.",
         'shop_url_unresolved',
       )
     }

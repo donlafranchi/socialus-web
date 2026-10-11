@@ -216,7 +216,7 @@ export function OwnPages({
       <Sheet
         open={discarding !== null}
         title="Delete this unfinished Page?"
-        description={discarding ? `“${discarding.name}” was never public. It’s gone for good.` : undefined}
+        description={discarding ? `“${discarding.name}” hasn't been public. Deleting it can't be undone.` : undefined}
         onClose={() => setDiscarding(null)}
         testId="discard-draft-sheet"
         footer={

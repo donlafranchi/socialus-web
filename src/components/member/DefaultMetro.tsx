@@ -45,7 +45,7 @@ export function DefaultMetro({
         ))}
       </select>
       <span role="status" className="shrink-0 text-caption text-[var(--color-fg-muted)]">
-        {status === 'saved' ? 'Saved' : status === 'failed' ? 'Couldn’t save. Try again.' : ''}
+        {status === 'saved' ? 'Saved' : status === 'failed' ? "Couldn't save that. Mind trying again?" : ''}
       </span>
     </span>
   )
