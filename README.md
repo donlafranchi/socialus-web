@@ -1,5 +1,7 @@
 # SocialUs
 
+**As of 2026-10-11** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+
 *As of 2026-09-15 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
 
 Map-based platform helping consumers find independently owned local businesses and distinguish them from PE-acquired or corporate-owned competitors.
