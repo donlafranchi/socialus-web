@@ -1,5 +1,7 @@
 # Error tracking (#490)
 
+**As of 2026-10-11** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+
 *As of 2026-10-07 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
 
 Errors only, scrubbed, off until a DSN is set. Closes the accepted risk "no error tracking in production" (due 2026-10-16).
