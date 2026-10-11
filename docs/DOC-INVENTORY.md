@@ -46,7 +46,7 @@ None.
 
 | Path | Purpose | Origin | Last change | As of | Stale or contradicted (one example) | Duplicated in | Recommendation | Flags |
 |---|---|---|---|---|---|---|---|---|
-| `.github/ISSUE_TEMPLATE/work.md` | Issue form for scenario, change, bug and chore work | hand | 2026-10-11 | none |  |  | keep: update the path once the ops-pattern name is settled |  |
+| `.github/ISSUE_TEMPLATE/work.md` | Issue form for scenario, change, bug and chore work | hand | 2026-10-11 | none |  |  | keep: path points at socialus-ops (renamed 2026-10-11) |  |
 | `.github/pull_request_template.md` | PR body template: Don-looks or doesn't-look block, reviewer first pass | hand | 2026-10-11 | none | The PREVIEWS_MODE note expires at the 2026-10-23 freeze |  | keep: revisit after 2026-10-23 |  |
 | `BUILD-LOG.md` | Generated index of build-log weeks | generated | 2026-10-11 | none |  |  | keep: npm run docs:regen |  |
 | `CLAUDE.md` | Rules for agents working in this repo | hand | 2026-10-11 | 2026-10-06 |  | DECISION RULE block repeats ~/.claude/CLAUDE.md and socialus-plan/CLAUDE.md | keep: beta date and socialus-ops name fixed 2026-10-11 |  |

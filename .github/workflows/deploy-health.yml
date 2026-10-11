@@ -149,7 +149,7 @@ jobs:
           exit 1
 
   # Added 2026-09-17. It rides the daily job that already exists rather than
-  # getting a schedule of its own: ops-pattern's process/LIVING-DOCS.md refuses
+  # getting a schedule of its own: socialus-ops's process/LIVING-DOCS.md refuses
   # scheduled Actions on the grounds that a thing regenerating on a schedule
   # rots between reads, and a second cron would be a second thing to notice
   # firing late. This one only ever speaks when something is wrong.

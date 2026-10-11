@@ -3,7 +3,7 @@
   "purpose": "Issue form for scenario, change, bug and chore work",
   "origin": "hand",
   "rec": "keep",
-  "note": "update the path once the ops-pattern name is settled",
+  "note": "path points at socialus-ops (renamed 2026-10-11)",
   "reviewed": "2026-10-11"
  },
  ".github/pull_request_template.md": {
