@@ -50,6 +50,7 @@ create function public.market_key(p_county text, p_cousub text default null)
 returns text
 language sql
 stable
+set search_path = public
 as $$
   select case when p_county ~ '^[0-9]{5}$' then
     coalesce(
