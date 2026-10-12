@@ -16,7 +16,7 @@ const answer = (outcome: 'approve' | 'remove', severity: number) =>
 describe('runSet', () => {
   it('sends each case, with its picture as bytes, and summarises against the labels', async () => {
     const fetch = vi.fn(async (_u: string, init: { body: string }) => (JSON.parse(init.body).messages[0].content[1]?.text?.includes('Insult') || init.body.includes('Insult') ? answer('remove', 2) : answer('approve', 4)))
-    const out = await runSet(cases, { fetch: fetch as never, env: { ANTHROPIC_API_KEY: 'k' }, readImage: () => ({ mediaType: 'image/png', base64: 'AAAA' }) })
+    const out = await runSet(cases, { fetch: fetch as never, env: { ANTHROPIC_API_KEY_MODERATION: 'k' }, readImage: () => ({ mediaType: 'image/png', base64: 'AAAA' }) })
     expect(out.summary.recall).toBe(1)
     expect(out.summary.falseAlarmRate).toBe(0)
     expect(out.summary.meetsLiveTargets).toBe(true)
@@ -27,14 +27,14 @@ describe('runSet', () => {
 
   it('a model that misses a violating case fails the live gate', async () => {
     const fetch = vi.fn(async () => answer('approve', 4))
-    const out = await runSet(cases, { fetch: fetch as never, env: { ANTHROPIC_API_KEY: 'k' }, readImage: () => null })
+    const out = await runSet(cases, { fetch: fetch as never, env: { ANTHROPIC_API_KEY_MODERATION: 'k' }, readImage: () => null })
     expect(out.summary.recall).toBe(0)
     expect(out.summary.meetsLiveTargets).toBe(false)
   })
 
   it('costs are added up from the tokens each read used', async () => {
     const fetch = vi.fn(async () => answer('approve', 4))
-    const out = await runSet([cases[0]!], { fetch: fetch as never, env: { ANTHROPIC_API_KEY: 'k' }, readImage: () => null })
+    const out = await runSet([cases[0]!], { fetch: fetch as never, env: { ANTHROPIC_API_KEY_MODERATION: 'k' }, readImage: () => null })
     expect(out.summary.meanCostUsd).toBeGreaterThan(0)
   })
 })
