@@ -1,7 +1,7 @@
 // F100 criterion 9 — runs the current prompt and models against the labelled
 // set in evals/moderation/cases.json and prints recall, false-alarm rate,
 // severity accuracy, latency and cost per case. Run on every prompt change:
-//   npm run moderation:eval            (needs ANTHROPIC_API_KEY_MODERATION)
+//   npm run moderation:eval            (needs ANTHROPIC_MODERATION_KEY)
 //   npm run moderation:eval -- --check (validates the set only; no key, no cost)
 //   npm run moderation:eval -- --record (also records the run, for the AI readiness panel; needs DATABASE_URL)
 // Cases carry text, a picture, or both. Pictures are synthetic (drawn by
@@ -28,8 +28,8 @@ async function main() {
     console.log(`${cases.length} cases, ${cases.filter((c) => c.image).length} with a picture: set is valid.`)
     return
   }
-  if (!process.env.ANTHROPIC_API_KEY_MODERATION) {
-    console.error('Set ANTHROPIC_API_KEY_MODERATION to run the harness (or pass --check to validate the set only).')
+  if (!process.env.ANTHROPIC_MODERATION_KEY) {
+    console.error('Set ANTHROPIC_MODERATION_KEY to run the harness (or pass --check to validate the set only).')
     process.exit(1)
   }
   const { summary, rows } = await runSet(cases, {

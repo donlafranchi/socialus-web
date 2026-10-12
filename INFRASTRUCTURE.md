@@ -666,7 +666,7 @@ deployment view: what belongs in Vercel, and which item put it there.
 | `CRON_SECRET` | All | 7 |
 | `AUTH_BEFORE_USER_CREATED_HOOK_SECRET` | All | 8 |
 | `ADMIN_EMAILS` | All | Where an urgent-report alert is emailed until Twilio exists (no authority) |
-| `ANTHROPIC_API_KEY_MODERATION` | Production, server-only | F100: the AI first-pass read of reported content. Unset means no read is made. Named for its purpose; the GitHub Actions secret `ANTHROPIC_API_KEY` for problem-report triage is separate |
+| `ANTHROPIC_MODERATION_KEY` | Production, server-only | F100: the AI first-pass read of reported content. Unset means no read is made. Named for its purpose; the GitHub Actions secret `ANTHROPIC_API_KEY` for problem-report triage is separate |
 | `DATABASE_URL` | **Production and Preview** (and local) | Action-layer pool, item 10 — see the note below |
 | `SIGNUP_BLOCKED_EMAIL_DOMAINS` | Optional | 8 |
 | `SIGNUP_ALLOWED_EMAIL_DOMAINS` | Optional | 8 |

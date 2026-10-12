@@ -6,7 +6,7 @@ import { getPool } from '@/actions/_lib/db'
 import { runAssessment } from './run-assessment'
 
 export function assessAfterReport(reportId: string, { rebuttal = null }: { rebuttal?: string | null } = {}): void {
-  if (!process.env.ANTHROPIC_API_KEY_MODERATION) return
+  if (!process.env.ANTHROPIC_MODERATION_KEY) return
   const job = () =>
     runAssessment(reportId, getPool(), { rebuttal }).catch((err) =>
       console.error('[moderation] assessment failed:', err instanceof Error ? err.message : err),

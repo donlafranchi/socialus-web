@@ -74,7 +74,7 @@ const TOOL = {
 }
 
 async function readOnce(model: string, input: AssessInput, { fetch: send = fetch, env = process.env }: Deps): Promise<Read | null> {
-  const key = env.ANTHROPIC_API_KEY_MODERATION
+  const key = env.ANTHROPIC_MODERATION_KEY
   if (!key) return null
   const content: unknown[] = []
   if (input.image) {
