@@ -33,6 +33,9 @@ import type { ActionContext } from '../_lib/context'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { managingRoleForKind, type GroupKind } from './constants'
+import { seriesSchema, isoWeekdayOf } from '../../lib/posts/series'
+import { metroDate } from '../../lib/metro/metro-week'
+import { METRO_TIME_ZONE } from '../../lib/metro/metro-time'
 
 /** Matches the column's own CHECK, so a too-long body is refused before the
  *  database has to refuse it and the caller gets a message rather than a
@@ -109,6 +112,8 @@ export const groupPostCreateInput = z
     howToFind,
     tags,
     photoUrl,
+    /** F074.1 — weekly on chosen weekdays, optional start and end. This post is the first occurrence. */
+    series: seriesSchema.optional(),
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -128,6 +133,8 @@ export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 export interface GroupPostCreateResult {
   postId: string
   groupId: string
+  /** F074: the series this post begins, if it began one. */
+  seriesId: string | null
   /** The row's own timestamp, so the Page can render the new post without a
    *  round trip and without inventing a time of its own. */
   createdAt: string
@@ -197,8 +204,31 @@ export const groupPostCreate = defineHandler(
     const memberId = requireMember(ctx, 'group.post_create')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
 
+    // F074.1: the series repeats at its first post's time of day, and that post stands on one of the
+    // chosen weekdays, in the metro's zone and inside the start and end dates — so the creator never
+    // enters an individual date.
+    if (input.series) {
+      if (!input.startsAt) throw new ValidationError('A repeating post needs a start time.')
+      const first = metroDate(new Date(input.startsAt), METRO_TIME_ZONE)
+      if (!input.series.weekdays.includes(isoWeekdayOf(first))) throw new ValidationError('The first one has to fall on one of the days you picked.')
+      if ((input.series.startsOn && first < input.series.startsOn) || (input.series.endsOn && first > input.series.endsOn)) {
+        throw new ValidationError('The first one has to fall between the start and the end.')
+      }
+    }
+
     return withTransaction(async (client) => {
       const page = await requireManagingRole(client, 'group.post_create', input.groupId, memberId)
+
+      let seriesId: string | null = null
+      if (input.series) {
+        const made = await client.query<{ id: string }>(
+          `insert into public.post_series (group_id, weekdays, starts_on, ends_on, created_by, created_at)
+           values ($1, $2, $3, $4, $5, $6)
+           returning id`,
+          [input.groupId, input.series.weekdays, input.series.startsOn ?? null, input.series.endsOn ?? null, memberId, ctx.now()],
+        )
+        seriesId = made.rows[0]!.id
+      }
 
       // Live and listed on write. A post has no draft state of its own: the
       // owner decides to say something by saying it, and the Page's own
@@ -207,8 +237,8 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11)
          returning id, created_at`,
         [
           input.groupId,
@@ -227,6 +257,7 @@ export const groupPostCreate = defineHandler(
           input.endsAt ?? null,
           note(input.howToFind),
           input.photoUrl ?? null,
+          seriesId,
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -240,7 +271,7 @@ export const groupPostCreate = defineHandler(
         payload: { post_id: postId },
       })
 
-      return { postId, groupId: input.groupId, createdAt }
+      return { postId, groupId: input.groupId, createdAt, seriesId }
     })
   },
 )
