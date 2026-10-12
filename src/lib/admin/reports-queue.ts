@@ -65,7 +65,7 @@ export interface QueuedReport {
     | { skipped: string }
     | null
   /** F102 — the poster's one answer to the hide, if they gave it. */
-  answer?: { kind: 'fix_and_repost' | 'wrong'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
+  answer?: { kind: 'fix_and_repost' | 'wrong' | 'mistake'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
   /** F102 — how old the reporter's account was when they reported. */
   reporterAgeDays?: number
   /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
@@ -224,6 +224,9 @@ export async function fetchReviewQueue(
       where true
         -- #280 — builder reports and builder Pages reach only the builder operator.
         and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(pg.founder_member_id)))
+        -- #626 — a first report only sent the owner a courtesy notice; it is staff work once the item hides or is decided.
+        and (s.hidden_at is not null or r.reviewed_at is not null
+             or not exists (select 1 from public.member_notices n where n.report_id = r.id and n.kind = 'courtesy'))
       order by (r.reviewed_at is not null),          -- undecided first
                s.hidden_at asc nulls last,
                r.created_at asc

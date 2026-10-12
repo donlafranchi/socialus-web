@@ -15,7 +15,10 @@ import { useEffect, useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import { Button } from '@/components/ui/Button'
 import { COPY } from '@/lib/copy'
-import { REPORT_CATEGORIES, type ReportCategory } from '@/lib/reports/categories'
+import { REPORT_CATEGORIES, URGENT_CATEGORIES, type ReportCategory } from '@/lib/reports/categories'
+
+/** An error whose message is already plain words for a member. */
+export class PlainError extends Error {}
 
 /** Matches the schema CHECK and report.create's own bound. */
 const BODY_MAX_LENGTH = 2000
@@ -55,7 +58,8 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
     } catch (err) {
       // The words stay in the box. Being asked to retype a report of something
       // upsetting is its own small harm.
-      setError(err instanceof Error ? err.message : 'That did not send. Try again?')
+      // Only words the server action chose are shown; any other error is a plain retry.
+      setError(err instanceof PlainError ? err.message : "That didn't go through. Mind trying again?")
     } finally {
       setSending(false)
     }
@@ -67,7 +71,7 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
       title={`Report ${subjectLabel}`}
       onClose={onClose}
       testId="report-sheet"
-      description="This goes to a person, not a queue."
+      description="Thanks for helping us all be good to one another."
       returnFocusTo={returnFocusTo}
       footer={
         <Button onClick={submit} disabled={sending || body.trim().length === 0 || !category} className="w-full">
@@ -75,6 +79,9 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
         </Button>
       }
     >
+      <p data-testid="report-tolerance" className="mb-3 text-sm text-[var(--color-fg-muted)]">
+        {"We won't tolerate abusive or harmful content."}
+      </p>
       {/* F078 criterion 9 — no report without a reason the reporter chose. */}
       <fieldset>
         <legend className="text-sm font-medium text-[var(--color-charcoal-900)]">Why are you reporting this?</legend>
@@ -100,10 +107,10 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
         </p>
       )}
       <p data-testid="report-misuse" className="mt-4 text-sm text-[var(--color-fg-muted)]">
-        {COPY.reportMisuse}
+        {category && URGENT_CATEGORIES.includes(category) ? COPY.reportUrgentSkip : COPY.reportCourtesy}
       </p>
       <label htmlFor={fieldId} className="mt-4 block text-sm font-medium text-[var(--color-charcoal-900)]">
-        What&rsquo;s wrong?
+        Tell us what happened
       </label>
       <textarea
         id={fieldId}

@@ -33,7 +33,7 @@ export function HiddenPhotoNotice({ which = 'photo' }: { which?: keyof typeof TI
     >
       <p className="font-medium">{TITLE[which]}</p>
       <p className="mt-1 text-neutral-600">
-        Someone let us know about it, and a person is taking a look. If it&rsquo;s
+        Someone let us know about it, and a person from our team is taking a look. If it&rsquo;s
         fine, it comes back. Only you can see this message.
       </p>
     </div>

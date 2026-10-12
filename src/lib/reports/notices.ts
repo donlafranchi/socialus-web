@@ -8,5 +8,11 @@ import { categoryLabel, type ReportCategory } from './categories'
 export function hiddenNoticeMessage(pageName: string, category: ReportCategory, kind: 'group' | 'post' | 'page_picture' | 'post_photo' = 'group'): string {
   const what =
     kind === 'post' ? 'a post on' : kind === 'page_picture' ? 'the picture on' : kind === 'post_photo' ? 'a photo on a post on' : 'the photo on'
-  return `Someone reported ${what} ${pageName} as "${categoryLabel(category)}", so we've hidden it while we take a look. Nothing is deleted.`
+  return `Someone reported ${what} ${pageName} as "${categoryLabel(category)}". We've hidden it while a person from our team takes a look. Nothing's been deleted, and you can answer below.`
+}
+
+export function courtesyNoticeMessage(category: ReportCategory, kind: 'group' | 'post' | 'page_picture' | 'post_photo' = 'group'): string {
+  const what =
+    kind === 'post' ? 'your post' : kind === 'page_picture' ? 'your Page picture' : kind === 'post_photo' ? 'a photo on your post' : 'your Page photo'
+  return `Someone reported ${what} as "${categoryLabel(category)}". Does this seem like a mistake? You can edit it and resubmit. If it gets reported again, tap "This is a mistake" and we'll put it at the top of our review list.`
 }

@@ -27,6 +27,7 @@ vi.mock('@/actions', async (importActual) => {
 })
 
 import { sendReportAction } from './report-actions'
+import { REPORT_REFUSED } from '@/actions/report/create'
 
 const MEMBER = '11111111-1111-1111-1111-111111111111'
 const GROUP = '22222222-2222-2222-2222-222222222222'
@@ -69,12 +70,42 @@ describe('sendReportAction', () => {
     expect(JSON.stringify(result)).not.toMatch(/photoHidden|hidden|rep-1/i)
   })
 
-  it('surfaces an ActionError as a plain Error the component can show', async () => {
+  // [guards F078.11 partial: no developer string reaches a member (#703)]
+  it.each([
+    ['report.create: body must not be empty'],
+    ['report.create: you have already reported this one — we have it'],
+    ['report.create: you have a lot of reports open already — we will get to them before taking more'],
+  ])('turns an ActionError into plain words, never "%s"', async (devMessage) => {
     signedIn()
-    create.mockRejectedValue(new ActionError('validation_error', 'body must not be empty'))
-    await expect(sendReportAction({ subjectId: GROUP, category: 'spam', body: '  ' })).rejects.toThrow(
-      /body must not be empty/,
-    )
+    create.mockRejectedValue(new ActionError('validation_error', devMessage))
+    const result = await sendReportAction({ subjectId: GROUP, category: 'spam', body: '  ' })
+    expect(result.ok).toBe(false)
+    const message = (result as { ok: false; message: string }).message
+    expect(message).not.toMatch(/report\.create|[a-z]+\.[a-z]+:/)
+    expect(message.length).toBeGreaterThan(10)
+  })
+
+  it('says the two real refusals in their own plain words', async () => {
+    signedIn()
+    create.mockRejectedValue(new ActionError('validation_error', REPORT_REFUSED.alreadyReported))
+    expect(await sendReportAction({ subjectId: GROUP, category: 'spam', body: 'x' })).toEqual({
+      ok: false,
+      message: "You've already reported this one. We have it.",
+    })
+    create.mockRejectedValue(new ActionError('validation_error', REPORT_REFUSED.tooManyOpen))
+    expect(await sendReportAction({ subjectId: GROUP, category: 'spam', body: 'x' })).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/a lot of reports open/i),
+    })
+  })
+
+  it('an unexpected failure is a plain retry, not the error text', async () => {
+    signedIn()
+    create.mockRejectedValue(new Error('connection terminated: db.internal:5432'))
+    expect(await sendReportAction({ subjectId: GROUP, category: 'spam', body: 'x' })).toEqual({
+      ok: false,
+      message: "That didn't go through. Mind trying again?",
+    })
   })
 })
 

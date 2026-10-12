@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { groupBySubject } from './review-subjects'
+import { groupBySubject, orderSubjects } from './review-subjects'
 import type { QueuedReport } from './reports-queue'
 
 const report = (over: Partial<QueuedReport>): QueuedReport => ({
@@ -25,5 +25,27 @@ describe('groupBySubject', () => {
 
   it('leaves a Page-photo subject keyed by its Page, as before', () => {
     expect(groupBySubject([report({})])[0]!.subjectId).toBe('g1')
+  })
+})
+
+// #626 — a "This is a mistake" claim puts the item at the top of the review list.
+describe('orderSubjects — a mistake claim goes first', () => {
+  const claim = { kind: 'mistake' as const, reason: null, note: null }
+  const row = (id: string, over: Partial<QueuedReport>) =>
+    report({ reportId: id, groupId: id, subjectId: id, hiddenAt: new Date('2026-10-02T00:00:00Z'), ...over })
+
+  it('over a more severe, older hide', () => {
+    const subjects = groupBySubject([
+      row('urgent', { category: 'threat_of_harm', hiddenAt: new Date('2026-10-01T00:00:00Z') }),
+      row('claimed', { category: 'spam', answer: claim }),
+    ])
+    expect(orderSubjects(subjects).map((s) => s.subjectId)).toEqual(['claimed', 'urgent'])
+    expect(orderSubjects(subjects, 'age').map((s) => s.subjectId)).toEqual(['claimed', 'urgent'])
+  })
+
+  it('but never over a decided row', () => {
+    const decided = { outcome: 'restored' as const, reasonCode: 'x', reasonNote: null, decidedAt: new Date(), decidedByName: null, reversesDecisionId: null, decidedByAi: false, alreadyReversed: false, decisionId: 'd' }
+    const subjects = groupBySubject([row('waiting', {}), row('done', { answer: claim, history: [decided] })])
+    expect(orderSubjects(subjects).map((s) => s.subjectId)).toEqual(['waiting', 'done'])
   })
 })
