@@ -118,7 +118,7 @@ describe('the report sheet', () => {
     const dialog = screen.getByRole('dialog')
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
     const focusable = Array.from(
-      dialog.querySelectorAll<HTMLElement>('button, textarea, [href]'),
+      dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input, textarea, [href]'),
     )
     focusable[focusable.length - 1].focus()
     fireEvent.keyDown(dialog, { key: 'Tab' })
