@@ -84,8 +84,9 @@ const query = async <T>(sql: string, params: unknown[] = []): Promise<T[]> => {
 describe.skipIf(!RUNNABLE)('T163 — the metro catalog (c1)', () => {
   it('holds every US metro — 184 CSAs plus the 112 metros in no CSA', async () => {
     const [{ n }] = await query<{ n: string }>(
-      `select count(*)::text as n from public.metro_polygons where slug <> 'f093-metro'`,
+      `select count(*)::text as n from public.metro_polygons where slug <> 'f093-metro' and code_kind <> 'market'`,
     )
+    // Waiting markets (F103) are rows too, made as people wait; the catalog is the CSAs and CBSAs.
     expect(Number(n)).toBe(296)
   })
 

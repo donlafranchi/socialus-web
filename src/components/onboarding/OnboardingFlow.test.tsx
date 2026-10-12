@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 function makeActions(over: Partial<OnboardingActions> = {}): OnboardingActions {
   return {
-    completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: { name: 'Sacramento-Roseville, CA' } })),
+    completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: { name: 'Sacramento' }, waiting: null })),
     ...over,
   }
 }
@@ -109,51 +109,67 @@ describe('F081 — the signup screen', () => {
   })
 })
 
-describe('F081 — the zip decides the metro, and the screen shows it', () => {
-  it('shows which metro, then goes home on Continue', async () => {
+describe('F103 — the zip decides the market, and the screen shows it', () => {
+  const waiting = { metroId: 'm-yuba', name: 'Yuba County, CA' }
+  const waitingActions = () => makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting })) })
+
+  it('shows which market, then goes home on Continue', async () => {
     const onNavigate = vi.fn()
     render(<OnboardingFlow actions={makeActions()} onNavigate={onNavigate} />)
     fill()
     fireEvent.click(continueBtn())
-    expect(await screen.findByTestId('onboarding-metro')).toHaveTextContent('Sacramento-Roseville, CA')
-    expect(screen.queryByRole('combobox')).toBeNull() // nobody picks a metro at signup
+    expect(await screen.findByTestId('onboarding-metro')).toHaveTextContent('Sacramento')
+    expect(screen.queryByRole('combobox')).toBeNull() // nobody picks a market at signup
     expect(onNavigate).not.toHaveBeenCalled()
     fireEvent.click(screen.getByTestId('onboarding-metro-continue'))
     expect(onNavigate).toHaveBeenCalledWith('/')
   })
 
-  it('a zip with no metro goes on to the waitlist question, which names where we are not yet', async () => {
-    const actions = makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null })) })
-    render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} metros={[{ id: 'm1', name: 'Boise City, ID' }]} />)
-    fill({ zip: '83702' })
+  // [guards F103.3 partial: a waiting market is named and nothing is picked — no list, no select]
+  it('a waiting market is named, and there is nothing to pick', async () => {
+    render(<OnboardingFlow actions={waitingActions()} onNavigate={vi.fn()} />)
+    fill({ zip: '95901' })
     fireEvent.click(continueBtn())
-    expect(await screen.findByRole('combobox')).toBeInTheDocument()
+    expect(await screen.findByTestId('waitlist-market')).toHaveTextContent('Yuba County, CA')
+    expect(screen.queryByRole('combobox')).toBeNull()
     expect(screen.queryByTestId('onboarding-metro')).toBeNull()
   })
 
-  it('lands home once the waitlist step is done', async () => {
-    const actions = makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null })) })
+  it('joins the market it named, then lands home', async () => {
     const onNavigate = vi.fn()
     const onJoinWaitlist = vi.fn(async () => ({
       open: false as const,
-      metroName: 'Boise City, ID',
+      metroName: 'Yuba County, CA',
       standing: { combined: 1, target: 300 },
       message: '',
     }))
-    render(
-      <OnboardingFlow
-        actions={actions}
-        onNavigate={onNavigate}
-        metros={[{ id: 'm1', name: 'Boise City, ID' }]}
-        onJoinWaitlist={onJoinWaitlist}
-      />,
-    )
-    fill({ zip: '83702' })
+    render(<OnboardingFlow actions={waitingActions()} onNavigate={onNavigate} onJoinWaitlist={onJoinWaitlist} />)
+    fill({ zip: '95901' })
     fireEvent.click(continueBtn())
-    fireEvent.change(await screen.findByRole('combobox'), { target: { value: 'm1' } })
-    fireEvent.click(screen.getByRole('radio', { name: /find/i }))
+    fireEvent.click(await screen.findByRole('radio', { name: /find/i }))
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
-    await waitFor(() => expect(onJoinWaitlist).toHaveBeenCalled())
+    await waitFor(() => expect(onJoinWaitlist).toHaveBeenCalledWith({ metroId: 'm-yuba', role: 'patron' }))
+  })
+
+  it('an unknown zip stays on the form with the refusal under the zip', async () => {
+    const actions = makeActions({ completeOnboarding: vi.fn(async () => ({ ok: false as const, field: 'zip' as const, message: "We don't recognize that zip, try again." })) })
+    render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
+    fill({ zip: '00000' })
+    fireEvent.click(continueBtn())
+    expect(await screen.findByText("We don't recognize that zip, try again.")).toBeInTheDocument()
+    expect(screen.getByTestId('onboarding-form')).toBeInTheDocument()
+  })
+
+  // [guards F103.4 partial: the signup screens never say MSA, CSA or metro]
+  it.each([
+    ['the form', async () => {}],
+    ['the open screen', async () => { fill(); fireEvent.click(continueBtn()); await screen.findByTestId('onboarding-metro') }],
+    ['the waiting screen', async () => { fill({ zip: '95901' }); fireEvent.click(continueBtn()); await screen.findByTestId('waitlist-market') }],
+  ])('%s says no MSA, CSA or metro', async (name, go) => {
+    const actions = name === 'the waiting screen' ? makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting: { metroId: 'm', name: 'Yuba County, CA' } })) }) : makeActions()
+    const { container } = render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
+    await go()
+    expect(container.textContent).not.toMatch(/\b(MSA|CSA|metros?)\b/i)
   })
 })
 

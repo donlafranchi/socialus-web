@@ -8,19 +8,19 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { getUser, updateUser, signupProfileSet, placeInterestAdd, metroForZip } = vi.hoisted(() => ({
+const { getUser, updateUser, signupProfileSet, placeInterestAdd, marketForZip } = vi.hoisted(() => ({
   getUser: vi.fn(),
   updateUser: vi.fn(),
   signupProfileSet: vi.fn(),
   placeInterestAdd: vi.fn(),
-  metroForZip: vi.fn(),
+  marketForZip: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase-server', () => ({
   createClient: vi.fn(async () => ({ auth: { getUser, updateUser } })),
 }))
 vi.mock('@/lib/action-context', () => ({ resolveActionContext: vi.fn((o: unknown) => o) }))
-vi.mock('@/lib/signup/zip-metro', () => ({ metroForZip }))
+vi.mock('@/lib/signup/zip-market', () => ({ marketForZip }))
 vi.mock('@/actions', () => ({
   memberSignupProfileSet: signupProfileSet,
   memberPlaceInterestAdd: placeInterestAdd,
@@ -33,32 +33,42 @@ import { completeOnboardingAction } from './actions'
 import { NotFoundError } from '@/actions/_lib/errors'
 
 const MEMBER = '11111111-1111-1111-1111-111111111111'
-const SAC = { id: '22222222-2222-2222-2222-222222222222', name: 'Sacramento-Roseville, CA' }
+const SAC = { key: 'sacramento', name: 'Sacramento', open: true, metroId: '22222222-2222-2222-2222-222222222222' }
 const INPUT = { legalName: 'Maya Rivera', displayName: 'Maya', zip: '95819', adultConfirmed: true }
 
 beforeEach(() => {
   vi.clearAllMocks()
   updateUser.mockResolvedValue({ data: {}, error: null })
   getUser.mockResolvedValue({ data: { user: { id: MEMBER } }, error: null })
-  signupProfileSet.mockResolvedValue({ memberId: MEMBER, metroId: SAC.id })
-  metroForZip.mockResolvedValue(SAC)
+  signupProfileSet.mockResolvedValue({ memberId: MEMBER, metroId: SAC.metroId })
+  marketForZip.mockResolvedValue(SAC)
 })
 
 describe('completeOnboardingAction', () => {
-  it('saves the four fields and the metro the zip decided, and says which metro', async () => {
+  it('saves the four fields and the market the zip decided, and says which', async () => {
     const res = await completeOnboardingAction(INPUT)
-    expect(res).toEqual({ ok: true, metro: { name: SAC.name } })
-    expect(metroForZip).toHaveBeenCalledWith(expect.anything(), '95819')
+    expect(res).toEqual({ ok: true, metro: { name: SAC.name }, waiting: null })
+    expect(marketForZip).toHaveBeenCalledWith(expect.anything(), '95819')
     expect(signupProfileSet).toHaveBeenCalledWith(
       { actingMemberId: MEMBER },
-      { legalName: 'Maya Rivera', displayName: 'Maya', zip: '95819', adultConfirmed: true, metroId: SAC.id },
+      { legalName: 'Maya Rivera', displayName: 'Maya', zip: '95819', adultConfirmed: true, metroId: SAC.metroId },
     )
   })
 
-  it('a zip with no metro is saved with none: nothing is guessed', async () => {
-    metroForZip.mockResolvedValue(null)
-    const res = await completeOnboardingAction({ ...INPUT, zip: '10001' })
-    expect(res).toEqual({ ok: true, metro: null })
+  // [guards F103.2 partial: an unknown zip is refused with the exact words and nothing is saved]
+  it('refuses a zip nobody knows, with the exact words, and saves nothing', async () => {
+    marketForZip.mockResolvedValue(null)
+    const res = await completeOnboardingAction({ ...INPUT, zip: '00000' })
+    expect(res).toEqual({ ok: false, field: 'zip', message: "We don't recognize that zip, try again." })
+    expect(signupProfileSet).not.toHaveBeenCalled()
+    expect(updateUser).not.toHaveBeenCalled()
+  })
+
+  // [guards F103.3 partial: a waiting market is named, nothing is picked, and no home is saved]
+  it('a zip in a waiting market names it, hands over the row to wait on, and saves no home', async () => {
+    marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
+    const res = await completeOnboardingAction({ ...INPUT, zip: '95901' })
+    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA' } })
     expect(signupProfileSet.mock.calls[0]![1].metroId).toBeNull()
   })
 
