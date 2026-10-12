@@ -4,12 +4,14 @@
 
 SocialUs: local discovery, buy/sell/trade/gather. Beta 2026-11-06 (soft target) to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `socialus-plan`, the method in `socialus-ops`, design in `socialus-design`; this repo is code. Which folder holds what: `~/.claude/CLAUDE.md` § The repos.
 
+Where each kind of thing goes (one home each, budgets, generated vs maintained): `socialus-ops/process/WHERE-THINGS-GO.md`. Read it before writing any doc.
+
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
 - **Branch:** the Issue number plus a short readable slug, e.g. `361-groups-are-groups` (Don, 2026-10-05): he copies and pastes it, so readability beats brevity. A migration applies with `gh workflow run apply.yml --ref <branch> -f confirm=apply`. Branches opened before then keep their names. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
 - **Provenance is git.** `git log --grep F060` is everything built for that scenario. No registers here.
-- **Build log:** one new file per ticket, `build-log/YYYY-WNN/<ticket>-<slug>.md`. **Never append to a shared weekly file** — appending is what made every merge conflict every other open PR (chore #76; the reasoning is in `BUILD-LOG.md`).
+- **No build-log file:** the PR body is the record (why, what changed, how it was checked). Git and PR bodies are the only history (socialus-plan ruling 2026-10-12).
 
 ## Before opening a ticket
 
