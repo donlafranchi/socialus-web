@@ -58,6 +58,14 @@ describe.skipIf(!RUNNABLE)('#694 — F103.2 the zip resolves to one market', () 
     expect(await zipKey('9574')).toBeNull()
   })
 
+  // [guards F103.2 partial: where a zip spans counties the largest-area county is taken and marked a guess]
+  it('marks a zip that spans counties as a guess, and a one-county zip as not', async () => {
+    expect((await one<{ guess: boolean }>(`select guess from public.zip_county where zip = '00601'`)).guess).toBe(true)
+    expect((await one<{ guess: boolean }>(`select guess from public.zip_county where zip = '95819'`)).guess).toBe(false)
+    const n = (await one<{ n: number }>(`select count(*)::int as n from public.zip_county where guess`)).n
+    expect(n).toBeGreaterThan(1000)
+  })
+
   it('every zip points at a real county, and the table is national', async () => {
     const n = (await one<{ n: number }>(`select count(*)::int as n from public.zip_county`)).n
     expect(n).toBeGreaterThan(33000)

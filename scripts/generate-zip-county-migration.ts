@@ -32,6 +32,17 @@ const col = (h: string[], n: string) => {
   if (i < 0) throw new Error(`missing column ${n}`)
   return i
 }
+function counts(file: string[][], zipCol: string, idCol: string): Map<string, number> {
+  const h = file[0]!
+  const z = col(h, zipCol), g = col(h, idCol)
+  const seen = new Map<string, Set<string>>()
+  for (const r of file.slice(1)) {
+    if (!/^\d{5}$/.test(r[z]!)) continue
+    seen.set(r[z]!, (seen.get(r[z]!) ?? new Set()).add(r[g]!))
+  }
+  return new Map([...seen].map(([k, v]) => [k, v.size]))
+}
+
 function largest(file: string[][], zipCol: string, partCol: string, idCol: string): Map<string, string> {
   const h = file[0]!
   const z = col(h, zipCol), g = col(h, idCol), a = col(h, partCol)
@@ -52,6 +63,7 @@ const zipCounty = rows(await text('tab20_zcta520_county20_natl.txt', `${REL}/tab
 const zipCousub = rows(await text('tab20_zcta520_cousub20_natl.txt', `${REL}/tab20_zcta520_cousub20_natl.txt`))
 
 const county = largest(zipCounty, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUNTY_20')
+  const spans = counts(zipCounty, 'GEOID_ZCTA5_20', 'GEOID_COUNTY_20')
   const cousub = largest(zipCousub, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUSUB_20')
   
   const gaz = rows(await text('2023_Gaz_counties_national.txt', `${GAZ}/2023_Gaz_counties_national.txt`))
@@ -75,7 +87,9 @@ const county = largest(zipCounty, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUN
     `  zip          text primary key check (zip ~ '^[0-9]{5}$'),`,
     `  county_fips  text not null references public.counties(fips),`,
     `  -- Set only inside a county that a market splits.`,
-    `  cousub_geoid text check (cousub_geoid ~ '^[0-9]{10}$')`,
+    `  cousub_geoid text check (cousub_geoid ~ '^[0-9]{10}$'),`,
+  `  -- True where the zip spans more than one county: the largest-area county is a guess (Dispatch, 2026-10-12).`,
+  `  guess        boolean not null default false`,
     `);`,
     `alter table public.counties enable row level security;`,
     `alter table public.zip_county enable row level security;`,
@@ -129,11 +143,11 @@ const county = largest(zipCounty, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUN
     `grant execute on function public.market_metro(text) to anon, authenticated, service_role;`,
   )
   for (let i = 0; i < zips.length; i += 1000) {
-    lines.push(`insert into public.zip_county (zip, county_fips, cousub_geoid) values`)
+    lines.push(`insert into public.zip_county (zip, county_fips, cousub_geoid, guess) values`)
     lines.push(
       zips
         .slice(i, i + 1000)
-        .map(([zip, c]) => `('${zip}','${c}',${SPLIT.has(c) && cousub.get(zip) ? q(cousub.get(zip)!) : 'null'})`)
+        .map(([zip, c]) => `('${zip}','${c}',${SPLIT.has(c) && cousub.get(zip) ? q(cousub.get(zip)!) : 'null'},${(spans.get(zip) ?? 1) > 1})`)
         .join(',\n') + ';',
     )
   }
