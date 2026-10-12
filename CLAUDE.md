@@ -107,7 +107,8 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 ## Rulings that bind this repo
 
 **socialus-plan `constraints/code.md`** — every ratified decision tagged as binding the
-code tier, one line each, generated from `DECISIONS.md`. Read it before building;
+code tier, one line each, generated from the rulings inline in socialus-plan's scenarios and
+product docs. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
 the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
@@ -149,7 +150,7 @@ between nouns, which had no home before and so lived implicitly in foreign keys.
 
 **The rule: a ruling that introduces or changes a link updates that file in the
 same PR.** Not afterwards, not in a follow-up ticket. Each entry carries its
-`ruled:` date, which is the pointer back to the `DECISIONS.md` line.
+`ruled:` date, which is the pointer back to the ruling in the scenario or doc it governs.
 
 It is code, not a document, on purpose — socialus-plan's `CLAUDE.md` § Naming rules
 that a file only a script compares is fine, because nothing believes it, and a
