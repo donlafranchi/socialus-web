@@ -161,14 +161,14 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   })
 })
 
-describe('#316 — a card shows its tags as #hashtags', () => {
-  it('each tag is a chip linking to Explore filtered by it', () => {
-    render(<BrowseResultCard result={post({ tags: ['Sourdough'] })} />)
-    expect(screen.getByRole('link', { name: '#Sourdough' })).toHaveAttribute('href', '/explore?category=sourdough')
-  })
-  it('a card with no tags (every signed-out card) shows none', () => {
-    render(<BrowseResultCard result={post({ tags: [] })} />)
+// Don, 2026-10-12 (matches #619, #621: plain words, no hashtags): the tags stay on the data and on
+// the Page itself; the Explore card does not show them.
+describe('a card shows no hashtags', () => {
+  it('a card whose result has tags shows none, as chips or as text', () => {
+    const { container } = render(<BrowseResultCard result={post({ tags: ['Sourdough', 'Localfood'] })} />)
     expect(screen.queryByTestId('tag-chips')).toBeNull()
+    expect(screen.queryByRole('link', { name: /^#/ })).toBeNull()
+    expect(container.textContent).not.toMatch(/#Sourdough|#Localfood/)
   })
 })
 

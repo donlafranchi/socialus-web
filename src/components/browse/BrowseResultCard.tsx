@@ -11,7 +11,6 @@
 
 import { kindLine } from '@/lib/groups/page-kind'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
-import { TagChips } from '@/components/tags/TagChips'
 import { TileCard } from '@/components/cards'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen, formatPostedDate } from '@/lib/metro/metro-time'
@@ -94,9 +93,6 @@ export function BrowseResultCard({
                   {result.postedAt ? formatPostedDate(result.postedAt) : null}
                 </span>
               ))}
-            {/* #316 — outside the card's link: a chip is its own link. Signed
-                out, tags are never sent (F093), so there are none. */}
-            <TagChips tags={result.tags} />
           </div>
         ) : null
       }
