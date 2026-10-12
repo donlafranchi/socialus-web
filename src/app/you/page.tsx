@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/Button'
 import { YouNotices, type Notice } from '@/components/member/YouNotices'
 import { answerNoticeAction } from '@/app/_actions/report-actions'
 import { DefaultMetro } from '@/components/member/DefaultMetro'
+import { ZipChange } from '@/components/member/ZipChange'
+import { changeZipAction } from '@/app/_actions/zip-actions'
 import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
 import { saveDefaultMetroAction } from '@/app/explore/actions'
 
@@ -40,11 +42,13 @@ export default async function YouPage() {
   }
 
   const [{ data: me }, metros, { data: notices }] = await Promise.all([
-    supabase.from('members').select('display_name, default_metro_id, home_metro_id').eq('id', user.id).maybeSingle(),
+    supabase.from('members').select('display_name, default_metro_id, home_metro_id, zip, home_market_key').eq('id', user.id).maybeSingle(),
     listFeedMetros(supabase).catch(() => []),
     supabase.from('member_notices').select('id, message, created_at, kind, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
   ])
-  const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null } | null
+  const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null; zip: string | null; home_market_key: string | null } | null
+  // #568: the area the zip decided, in plain words; the home town stays in the database.
+  const area = row?.home_market_key ? ((await supabase.rpc('market_name', { p_key: row.home_market_key })).data as string | null) : null
   const name = row?.display_name ?? null
   const openMetros = splitByOpen(metros).open
 
@@ -82,6 +86,9 @@ export default async function YouPage() {
               currentId={row?.default_metro_id ?? row?.home_metro_id ?? null}
               onSave={saveDefaultMetroAction}
             />
+          </Row>
+          <Row label="Zip" testId="settings-zip">
+            <ZipChange zip={row?.zip ?? null} area={area} change={changeZipAction} />
           </Row>
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
           <Row
