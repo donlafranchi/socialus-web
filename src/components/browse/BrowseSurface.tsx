@@ -35,8 +35,8 @@ import { FollowingRow } from './FollowingRow'
 import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
+import { readBox, writeBox } from '@/lib/browse/box-text'
 import {
-  DEFAULT_BROWSE_FILTERS,
   applyBrowseFilters,
   browseTagOptions,
   hasBrowseFilters,
@@ -71,8 +71,10 @@ export function BrowseSurface({
   const params = useSearchParams()
 
   const [snapshot, setSnapshot] = useState(initial)
-  const [query, setQuery] = useState(params.get('q') ?? '')
-  const [filters, setFilters] = useState(() => parseBrowseFilters(params))
+  // F092: the box is the state. The sheet writes plain words into it and the reader below takes the
+  // schedule and tags back out, so there is one text and no second filter state. An old link that
+  // carried ?category= or ?schedule= is written into the box on the way in.
+  const [query, setQuery] = useState(() => writeBox(parseBrowseFilters(params), params.get('q') ?? ''))
   // Ephemeral per F044 — not in the URL, resets to List on the next visit.
   const [view, setView] = useState<ExploreView>('list')
   const [mapCollapsed, setMapCollapsed] = useState(false)
@@ -145,11 +147,9 @@ export function BrowseSurface({
       metro: metroSlug,
       area: snapshot.area?.id ?? null,
       q: query,
-      tags: filters.tags,
-      schedule: filters.schedule,
     })
     router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [metroSlug, snapshot.area, query, filters, router])
+  }, [metroSlug, snapshot.area, query, router])
 
   // #549 — the pins arrive after the list: the server leaves them out of the first
   // response (a phone opens on the list) and this fetches them once it has painted.
@@ -172,19 +172,20 @@ export function BrowseSurface({
     }
   }, [mapWanted, mapMetroId, mapAreaId])
 
+  const tagOptions = useMemo(() => browseTagOptions(snapshot.results), [snapshot.results])
+  const { filters, rest } = useMemo(() => readBox(query, tagOptions), [query, tagOptions])
+
   const visible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(snapshot.results, query), filters, { now }),
-    [snapshot.results, query, filters, now],
+    () => applyBrowseFilters(searchBrowseResults(snapshot.results, rest), filters, { now }),
+    [snapshot.results, rest, filters, now],
   )
 
   // #331 — the map shows the tunable mix; filters and search narrow within it.
   const mapVisible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(snapshot.map, query), filters, { now }),
-    [snapshot.map, query, filters, now],
+    () => applyBrowseFilters(searchBrowseResults(snapshot.map, rest), filters, { now }),
+    [snapshot.map, rest, filters, now],
   )
   const mapNarrowed = snapshot.map.length > 0 && mapVisible.length === 0
-
-  const tagOptions = useMemo(() => browseTagOptions(snapshot.results), [snapshot.results])
 
   useScrollRestoration('explore', visible.length > 0)
 
@@ -204,10 +205,7 @@ export function BrowseSurface({
     return () => clearTimeout(id)
   }, [visible.length, metroName])
 
-  const clearAll = () => {
-    setQuery('')
-    setFilters(DEFAULT_BROWSE_FILTERS)
-  }
+  const clearAll = () => setQuery('')
 
   // Nothing resolvable to browse. The controls are suppressed rather than
   // rendered inert: a scope picker is the one thing that could help, and it is
@@ -420,7 +418,12 @@ export function BrowseSurface({
         value={filters}
         tags={tagOptions}
         onClose={() => setSheetOpen(false)}
-        onApply={setFilters}
+        onApply={(f) => {
+          const text = writeBox(f, rest)
+          setQuery(text)
+          // The box opens on what the sheet wrote, so the person reads it (F092.2).
+          if (text) setSearchRequest((n) => n + 1)
+        }}
       />
     </main>
   )

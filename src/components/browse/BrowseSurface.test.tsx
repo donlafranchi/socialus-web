@@ -366,3 +366,82 @@ describe('#549 — the pins come after the list', () => {
     expect(browseMapAction).not.toHaveBeenCalled()
   })
 })
+
+// #619 / #621 (F092.2, F092.4) — the sheet writes plain words into the box, and the box is the state.
+describe('F092 — the filter sheet writes its selection into the search box', () => {
+  const coffee = result({ resultId: 'c1', name: 'Bean Co', tags: ['coffee'], description: 'Roasters', startsAt: null })
+  const bread = result({ resultId: 'b1', name: 'Rye Co', tags: ['sourdough'], description: 'Bakers' })
+  const openSheet = () => fireEvent.click(screen.getByTestId('explore-filter-icon'))
+  const box = () => screen.getByTestId('search-input') as HTMLInputElement
+  const openBox = () => fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+
+  // [guards F092.2]
+  it('applying dismisses the sheet and writes the selection as plain words, no hashtag', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'coffee' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'This weekend' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('coffee this weekend'))
+    expect(box().value).not.toContain('#')
+    expect(screen.queryByTestId('explore-filter-sheet')).toBeNull()
+  })
+
+  it('keeps what was already typed in front of what the sheet writes', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'roasters' } })
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'coffee' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('roasters coffee'))
+    expect(screen.getByText('Bean Co')).toBeInTheDocument()
+    expect(screen.queryByText('Rye Co')).toBeNull()
+  })
+
+  // [guards F092.4 partial: what the sheet wrote is read as the same selection, so it narrows]
+  it('the words it wrote narrow the results the way the selection did', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'sourdough' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('sourdough'))
+    expect(screen.getByText('Rye Co')).toBeInTheDocument()
+    expect(screen.queryByText('Bean Co')).toBeNull()
+  })
+
+  it('typing the same words by hand does the same, and reopening the sheet shows them checked', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'Coffee' } })
+    expect(screen.getByText('Bean Co')).toBeInTheDocument()
+    expect(screen.queryByText('Rye Co')).toBeNull()
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'coffee' })).toBeChecked()
+  })
+
+  it('clearing the box clears the narrowing', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'coffee' } })
+    expect(screen.queryByText('Rye Co')).toBeNull()
+    fireEvent.change(box(), { target: { value: '' } })
+    expect(screen.getByText('Rye Co')).toBeInTheDocument()
+  })
+
+  it('Clear all in the sheet takes its words out of the box and keeps the free ones', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'roasters coffee this week' } })
+    openSheet()
+    fireEvent.click(screen.getByRole('button', { name: /clear all/i }))
+    await waitFor(() => expect(box().value).toBe('roasters'))
+  })
+
+  it('the URL carries the words, not separate filter parameters', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'coffee this weekend' } })
+    await waitFor(() => expect(replace).toHaveBeenLastCalledWith('/explore?q=coffee+this+weekend', { scroll: false }))
+  })
+})
