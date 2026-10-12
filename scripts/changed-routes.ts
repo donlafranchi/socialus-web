@@ -67,6 +67,11 @@ export function changedRoutes(files: string[]): ChangedRoutes {
   return { routes: list, personas, widths: [390, 1280], ...(unplaced && fallbackUsed ? { fallback: 'smoke' as const } : {}) }
 }
 
+// Two dots: in CI HEAD is the PR's merge commit, so base..HEAD is exactly the PR's changes
+// and needs no merge-base history (the checkout is shallow).
+export const diffFiles = (base: string) =>
+  execFileSync('git', ['diff', '--name-only', base, 'HEAD'], { encoding: 'utf8' }).split('\n').filter(Boolean)
+
 if (require.main === module) {
   const i = process.argv.indexOf('--base')
   const j = process.argv.indexOf('--since')
@@ -76,10 +81,7 @@ if (require.main === module) {
     const log = execFileSync('git', ['log', `--since=${process.argv[j + 1]}`, '--format=%H', 'origin/main'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean)
     base = log.length ? `${log[log.length - 1]}^` : 'origin/main'
   }
-  // Two dots: in CI HEAD is the PR's merge commit, so base..HEAD is exactly the PR's changes
-  // and needs no merge-base history (the checkout is shallow).
-  const out = execFileSync('git', ['diff', '--name-only', base, 'HEAD'], { encoding: 'utf8' })
-  const result = changedRoutes(out.split('\n').filter(Boolean))
+  const result = changedRoutes(diffFiles(base))
   console.log(JSON.stringify(result))
   if (process.argv.includes('--github-output') && process.env.GITHUB_OUTPUT) {
     appendFileSync(
