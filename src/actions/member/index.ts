@@ -86,3 +86,6 @@ export {
   type MemberSignupProfileSetInput,
   type MemberSignupProfileSetResult,
 } from './signup-profile-set'
+
+// #695 / #568 (F081.4, F103.5) — change the zip on You
+export { memberZipSet, memberZipSetInput, UNKNOWN_ZIP, type MemberZipSetInput, type MemberZipSetResult } from './zip-set'
