@@ -36,10 +36,13 @@ import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
+import { metroDate } from '@/lib/metro/metro-week'
+import { firstOccurrenceDate } from '@/lib/posts/series'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
   AnnouncementFields,
   emptyWhenWhere,
+  SERIES_COMPOSER_ON,
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { Sheet } from '@/components/ui/Sheet'
@@ -61,6 +64,8 @@ const TRY_AGAIN = "That didn't go through. Mind trying again?"
 const HALF_A_TIME = 'Add both a date and a time, or leave them both empty.'
 // #262 — placeholders ([public-is-draft]).
 const END_NEEDS_START = 'Add a date and a start time before an end time.'
+const PICK_A_DAY = 'Pick at least one day.'
+const SERIES_ENDED = 'The end comes before the first one.'
 const END_BEFORE_START = 'The end time is before it starts.'
 
 type CreateLocation = typeof createLocationAction
@@ -75,6 +80,8 @@ interface PostInput {
   tags?: string[]
   /** F099 — one photo of its own, or none. */
   photoUrl?: string | null
+  /** F074.1 — weekly on chosen weekdays; this post is the first occurrence. */
+  series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
 }
 
 interface EditInput {
@@ -119,6 +126,8 @@ interface Props {
       body: string
     }) => Promise<{ ok: true } | { ok: false; message: string }>
   }
+  /** F074.1 — offer the weekly repeat in the composer (off until its occurrences exist). */
+  seriesComposer?: boolean
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -189,6 +198,7 @@ export function PagePosts({
   onCreateLocation = createLocationAction,
   onDelete,
   startComposing = false,
+  seriesComposer = SERIES_COMPOSER_ON,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -264,23 +274,30 @@ export function PagePosts({
         endsAt: string | null
         locationId: string | null
         locationLabel: string | null
+        series?: NonNullable<PostInput['series']>
       }
     | { ok: false; message: string }
   > {
-    const hasDate = w.date.trim().length > 0
+    // F074.1 — a series has no date of its own: the first occurrence is the first chosen weekday on or
+    // after today (and the start date), and the creator never types an individual date.
+    const repeating = seriesComposer && w.repeat.open
+    if (repeating && w.repeat.days.length === 0) return { ok: false, message: PICK_A_DAY }
+    const date = repeating ? firstOccurrenceDate(w.repeat.days, w.repeat.startsOn || null, metroDate(new Date(), METRO_TIME_ZONE)) : w.date
+    if (repeating && w.repeat.endsOn && w.repeat.endsOn < date) return { ok: false, message: SERIES_ENDED }
+    const hasDate = date.trim().length > 0
     const hasTime = w.time.trim().length > 0
-    if (hasDate !== hasTime) return { ok: false, message: HALF_A_TIME }
+    if (repeating ? !hasTime : hasDate !== hasTime) return { ok: false, message: HALF_A_TIME }
 
     let startsAt: string | null = null
     if (hasDate && hasTime) {
-      startsAt = metroWallTimeToInstant(w.date, w.time)
+      startsAt = metroWallTimeToInstant(date, w.time)
       if (!startsAt) return { ok: false, message: HALF_A_TIME }
     }
 
     let endsAt: string | null = null
     if (w.endTime.trim()) {
       if (!startsAt) return { ok: false, message: END_NEEDS_START }
-      endsAt = metroWallTimeToInstant(w.date, w.endTime)
+      endsAt = metroWallTimeToInstant(date, w.endTime)
       if (!endsAt || new Date(endsAt) <= new Date(startsAt)) return { ok: false, message: END_BEFORE_START }
     }
 
@@ -310,7 +327,14 @@ export function PagePosts({
       locationLabel = made.data.label
     }
 
-    return { ok: true, startsAt, endsAt, locationId, locationLabel }
+    return {
+      ok: true,
+      startsAt,
+      endsAt,
+      locationId,
+      locationLabel,
+      ...(repeating ? { series: { weekdays: w.repeat.days, startsOn: w.repeat.startsOn || null, endsOn: w.repeat.endsOn || null } } : {}),
+    }
   }
 
   const submit = async () => {
@@ -342,6 +366,7 @@ export function PagePosts({
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
       tags: tagSet(tags),
       ...(photo ? { photoUrl: photo } : {}),
+      ...(resolved.series ? { series: resolved.series } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -658,7 +683,7 @@ export function PagePosts({
             className="w-full rounded border border-[var(--color-control-border)] p-3 text-sm"
           />
 
-          <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
+          <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer} />
 
           <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
           {memberId && (

@@ -29,6 +29,7 @@ import { useState } from 'react'
 import { DateField, TimeField } from '@/components/ui/DateTimeFields'
 import { metroDate } from '@/lib/metro/metro-week'
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
+import { SERIES_WEEKDAYS } from '@/lib/posts/series'
 import {
   LocationPlaceFields,
   initialLocationPlaceFieldsState,
@@ -49,7 +50,11 @@ export interface AnnouncementWhenWhere {
   place: LocationPlaceFieldsState
   /** #348 — a one-line "How to find us" for this event's meet spot. */
   howToFind: string
+  /** #592 (F074.1) — weekly on chosen weekdays, with an optional start and end date (`yyyy-mm-dd`, empty for none). */
+  repeat: { open: boolean; days: number[]; startsOn: string; endsOn: string }
 }
+
+export const emptyRepeat: AnnouncementWhenWhere['repeat'] = { open: false, days: [], startsOn: '', endsOn: '' }
 
 export const emptyWhenWhere: AnnouncementWhenWhere = {
   date: '',
@@ -58,7 +63,11 @@ export const emptyWhenWhere: AnnouncementWhenWhere = {
   addingPlace: false,
   place: initialLocationPlaceFieldsState,
   howToFind: '',
+  repeat: emptyRepeat,
 }
+
+/** The series composer is built ahead of its occurrences (F074.2-.5): off until they land. */
+export const SERIES_COMPOSER_ON = process.env.NEXT_PUBLIC_SERIES_COMPOSER === '1'
 
 export function AnnouncementFields({
   value,
@@ -66,6 +75,7 @@ export function AnnouncementFields({
   idPrefix,
   placeLabel,
   now = new Date(),
+  repeats = false,
 }: {
   value: AnnouncementWhenWhere
   onChange: (next: AnnouncementWhenWhere) => void
@@ -74,7 +84,10 @@ export function AnnouncementFields({
   placeLabel?: string | null
   /** For tests; the defaults are read from the metro's clock. */
   now?: Date
+  /** #592 — offer the weekly repeat. The composer asks for it; an edit of one occurrence never does. */
+  repeats?: boolean
 }) {
+  const repeatOn = repeats && value.repeat.open
   const [endTouched, setEndTouched] = useState(Boolean(value.endTime))
   return (
     <div className="flex flex-col gap-3">
@@ -102,15 +115,18 @@ export function AnnouncementFields({
         ) : (
           <>
             <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <DateField
-                label="Date"
-                testId={`${idPrefix}-date`}
-                min={metroDate(now, METRO_TIME_ZONE)}
-                value={value.date}
-                onChange={(date) => onChange({ ...value, date })}
-              />
+              {/* A series has no single date: the creator never enters individual dates (F074.1). */}
+              {!repeatOn && (
+                <DateField
+                  label="Date"
+                  testId={`${idPrefix}-date`}
+                  min={metroDate(now, METRO_TIME_ZONE)}
+                  value={value.date}
+                  onChange={(date) => onChange({ ...value, date })}
+                />
+              )}
               <TimeField
-                label="Starts"
+                label={repeatOn ? 'Starts at' : 'Starts'}
                 testId={`${idPrefix}-time`}
                 value={value.time}
                 onChange={(time) =>
@@ -118,7 +134,7 @@ export function AnnouncementFields({
                 }
               />
               <TimeField
-                label="Ends"
+                label={repeatOn ? 'Ends at' : 'Ends'}
                 testId={`${idPrefix}-end-time`}
                 value={value.endTime}
                 onChange={(endTime) => {
@@ -127,11 +143,79 @@ export function AnnouncementFields({
                 }}
               />
             </div>
+            {repeats && !repeatOn && (
+              <button
+                type="button"
+                data-testid={`${idPrefix}-repeat`}
+                className="mt-1 flex min-h-tap items-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+                onClick={() => onChange({ ...value, repeat: { ...value.repeat, open: true } })}
+              >
+                Repeat weekly
+              </button>
+            )}
+            {repeatOn && (
+              <fieldset role="group" className="mt-3 border-0 p-0" aria-label="Repeats weekly on">
+                <legend className="text-body-sm font-medium text-[var(--color-fg)]">Repeats weekly on</legend>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {SERIES_WEEKDAYS.map((d) => {
+                    const on = value.repeat.days.includes(d.n)
+                    return (
+                      <label
+                        key={d.n}
+                        className={`inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-medium ${
+                          on
+                            ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
+                            : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
+                        } has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--color-accent)]`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          aria-label={d.long}
+                          checked={on}
+                          onChange={() =>
+                            onChange({
+                              ...value,
+                              repeat: { ...value.repeat, days: on ? value.repeat.days.filter((x) => x !== d.n) : [...value.repeat.days, d.n].sort((a, b) => a - b) },
+                            })
+                          }
+                        />
+                        <span aria-hidden="true">{d.short}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <DateField
+                    label="Starts"
+                    testId={`${idPrefix}-series-starts`}
+                    min={metroDate(now, METRO_TIME_ZONE)}
+                    value={value.repeat.startsOn}
+                    onChange={(startsOn) => onChange({ ...value, repeat: { ...value.repeat, startsOn } })}
+                  />
+                  <DateField
+                    label="Ends (optional)"
+                    testId={`${idPrefix}-series-ends`}
+                    min={value.repeat.startsOn || metroDate(now, METRO_TIME_ZONE)}
+                    value={value.repeat.endsOn}
+                    onChange={(endsOn) => onChange({ ...value, repeat: { ...value.repeat, endsOn } })}
+                  />
+                </div>
+                <button
+                  type="button"
+                  data-testid={`${idPrefix}-no-repeat`}
+                  className="mt-1 flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
+                  onClick={() => onChange({ ...value, repeat: emptyRepeat })}
+                >
+                  Doesn&rsquo;t repeat
+                </button>
+              </fieldset>
+            )}
             <button
               type="button"
               data-testid={`${idPrefix}-clear-when`}
               className="mt-1 flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
-              onClick={() => onChange({ ...value, date: '', time: '', endTime: '' })}
+              onClick={() => onChange({ ...value, date: '', time: '', endTime: '', repeat: emptyRepeat })}
             >
               No particular time
             </button>

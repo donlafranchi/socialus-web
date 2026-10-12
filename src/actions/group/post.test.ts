@@ -38,6 +38,7 @@ const GROUP = '11111111-1111-1111-1111-111111111111'
 const OWNER = '22222222-2222-2222-2222-222222222222'
 const OTHER = '33333333-3333-3333-3333-333333333333'
 const POST = '44444444-4444-4444-4444-444444444444'
+const SERIES = '66666666-6666-6666-6666-666666666666'
 const PHOTO = `https://x.supabase.co/storage/v1/object/public/media/${OWNER}/55555555-5555-4555-8555-555555555555.webp`
 const OTHERS_PHOTO = `https://x.supabase.co/storage/v1/object/public/media/${OTHER}/55555555-5555-4555-8555-555555555555.webp`
 const NOW = new Date('2026-09-15T12:00:00Z')
@@ -89,6 +90,7 @@ function install(
         ? { rows: [{ id: POST, group_id: GROUP, hidden_at: hiddenAt, removed_at: removedAt, repost_used: repostUsed }], rowCount: 1 }
         : { rows: [], rowCount: 0 }
     }
+    if (/insert into public\.post_series/i.test(sql)) return { rows: [{ id: SERIES }], rowCount: 1 }
     if (/insert into public\.page_posts/i.test(sql)) {
       return { rows: [{ id: POST, created_at: NOW }], rowCount: 1 }
     }
@@ -540,5 +542,74 @@ describe('F099 — a post photo', () => {
     const [, , row] = appendEvent.mock.calls[0]!
     expect(row.event_kind).toBe('group.post_edited')
     expect(row.payload).toMatchObject({ post_id: POST, photo: 'removed' })
+  })
+})
+
+// #592 (F074.1) — a series is created once, weekly on chosen weekdays, with an optional start and end.
+describe('group.post_create — a weekly series', () => {
+  // Thursday 2026-10-15, 7pm in Sacramento: Friday 02:00 in UTC, which is why the weekday is read in the metro's zone.
+  const THURSDAY_7PM = '2026-10-16T02:00:00.000Z'
+  const make = (series: unknown, startsAt: string | null = THURSDAY_7PM) =>
+    groupPostCreate(ctx(), { groupId: GROUP, body: 'Run club', startsAt, series } as never)
+
+  // [guards F074.1 partial: created once, with the weekdays and the optional bounds]
+  it('stores the series once and the first post carries it', async () => {
+    install()
+    const r = await make({ weekdays: [4], startsOn: '2026-10-01', endsOn: '2026-12-31' })
+    const [, seriesParams] = calls(/insert into public\.post_series/i)[0]!
+    expect(seriesParams).toEqual(expect.arrayContaining([GROUP, [4], '2026-10-01', '2026-12-31', OWNER]))
+    expect(calls(/insert into public\.post_series/i)).toHaveLength(1)
+    const [postSql, postParams] = calls(/insert into public\.page_posts/i)[0]!
+    expect(postSql).toMatch(/series_id/)
+    expect(postParams).toContain(SERIES)
+    expect(r).toMatchObject({ postId: POST, seriesId: SERIES })
+  })
+
+  it('both bounds are optional', async () => {
+    install()
+    await make({ weekdays: [4] })
+    const [, p] = calls(/insert into public\.post_series/i)[0]!
+    expect(p).toEqual(expect.arrayContaining([[4], null, null]))
+  })
+
+  it('a post without a series stores no series and carries no series id', async () => {
+    install()
+    const r = await groupPostCreate(ctx(), { groupId: GROUP, body: 'One-off', startsAt: THURSDAY_7PM })
+    expect(calls(/insert into public\.post_series/i)).toHaveLength(0)
+    expect(calls(/insert into public\.page_posts/i)[0]![1]).toContain(null)
+    expect(r.seriesId).toBeNull()
+  })
+
+  it('needs a start time, since the series repeats at that time of day', async () => {
+    install()
+    await expect(make({ weekdays: [4] }, null)).rejects.toBeInstanceOf(ValidationError)
+    expect(calls(/insert into public\.post_series/i)).toHaveLength(0)
+  })
+
+  // [guards F074.1 partial: no individual dates — the first post must fall on a chosen weekday, in the metro's zone]
+  it('refuses a first post that is not on a chosen weekday', async () => {
+    install()
+    await expect(make({ weekdays: [5] })).rejects.toBeInstanceOf(ValidationError)
+    await expect(make({ weekdays: [4] }, '2026-10-15T02:00:00.000Z')).rejects.toBeInstanceOf(ValidationError) // Wednesday evening in Sacramento
+    expect(calls(/insert into public\.post_series/i)).toHaveLength(0)
+  })
+
+  it('refuses a first post outside the start and end dates', async () => {
+    install()
+    await expect(make({ weekdays: [4], startsOn: '2026-10-22' })).rejects.toBeInstanceOf(ValidationError)
+    await expect(make({ weekdays: [4], endsOn: '2026-10-08' })).rejects.toBeInstanceOf(ValidationError)
+  })
+
+  // [guards F074.1 partial: no other pattern is accepted]
+  it('refuses any other pattern', async () => {
+    install()
+    await expect(make({ weekdays: [4], every: 2 })).rejects.toThrow()
+    await expect(make({ weekdays: [4], dates: ['2026-10-22'] })).rejects.toThrow()
+  })
+
+  it('is only for the people who manage the Page', async () => {
+    install({ roles: { [OWNER]: 'owner', [OTHER]: 'member' } })
+    await expect(groupPostCreate(ctx(OTHER), { groupId: GROUP, body: 'x', startsAt: THURSDAY_7PM, series: { weekdays: [4] } } as never)).rejects.toBeInstanceOf(AuthorizationError)
+    expect(calls(/insert into public\.post_series/i)).toHaveLength(0)
   })
 })

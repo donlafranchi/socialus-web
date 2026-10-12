@@ -783,3 +783,63 @@ describe('F078 — reporting a Post', () => {
     expect(screen.queryByTestId('page-post-hidden')).toBeNull()
   })
 })
+
+// #592 (F074.1) — the composer creates a weekly series once: chosen weekdays, optional start and end,
+// and never an individual date. The first occurrence is worked out from them.
+describe('a weekly series', () => {
+  afterEach(() => vi.useRealTimers())
+  const start = async (opts: { days: string[]; startsOn?: string; endsOn?: string; time?: string }) => {
+    // Monday 2026-10-12, noon in Sacramento.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts({ seriesComposer: true })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Run club' } })
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: opts.time ?? '19:00' } })
+    fireEvent.click(screen.getByRole('button', { name: /repeat weekly/i }))
+    for (const d of opts.days) fireEvent.click(screen.getByRole('checkbox', { name: d }))
+    if (opts.startsOn) fireEvent.change(screen.getByTestId('announce-series-starts'), { target: { value: opts.startsOn } })
+    if (opts.endsOn) fireEvent.change(screen.getByTestId('announce-series-ends'), { target: { value: opts.endsOn } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+  }
+
+  // [guards F074.1 partial: created once as weekly on the chosen weekdays; the first occurrence is derived, never typed]
+  it('sends the weekdays and the first occurrence at the chosen time in the metro\'s zone', async () => {
+    await start({ days: ['Thursday'] })
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(
+        // Thursday 2026-10-15, 7pm Sacramento.
+        expect.objectContaining({ startsAt: '2026-10-16T02:00:00.000Z', series: { weekdays: [4], startsOn: null, endsOn: null } }),
+      ),
+    )
+  })
+
+  it('starts no earlier than the start date, and keeps the local time after daylight saving ends', async () => {
+    await start({ days: ['Saturday', 'Thursday'], startsOn: '2026-11-02', endsOn: '2027-01-31' })
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(
+        // Thursday 2026-11-05, 7pm PST.
+        expect.objectContaining({ startsAt: '2026-11-06T03:00:00.000Z', series: { weekdays: [4, 6], startsOn: '2026-11-02', endsOn: '2027-01-31' } }),
+      ),
+    )
+  })
+
+  it('refuses a series with no day picked, and sends nothing', async () => {
+    await start({ days: [] })
+    expect(await screen.findByText(/pick at least one day/i)).toBeInTheDocument()
+    expect(onPost).not.toHaveBeenCalled()
+  })
+
+  it('a post that does not repeat sends no series', async () => {
+    renderPosts({ seriesComposer: true })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'One-off' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect((onPost.mock.calls.at(-1) as unknown as [Record<string, unknown>])[0]).not.toHaveProperty('series')
+  })
+
+  it('the control is not there unless the composer is switched on', () => {
+    renderPosts()
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    expect(screen.queryByRole('button', { name: /repeat weekly/i })).toBeNull()
+  })
+})
