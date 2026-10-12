@@ -8,10 +8,11 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { normalizeUsPhone } from '@/lib/auth/phone'
+import { checkPhoneAction } from '@/app/onboarding/phone-actions'
 import { COPY } from '@/lib/copy'
 import { AuthCard } from '@/components/shell/AuthCard'
 
-type Result = { ok: true } | { ok: false; message: string }
+type Result = { ok: true } | { ok: false; message?: string; reason?: 'voip' }
 
 export interface PhoneAuth {
   sendCode: (phone: string) => Promise<Result>
@@ -20,6 +21,9 @@ export interface PhoneAuth {
 
 const supabaseAuth: PhoneAuth = {
   async sendCode(phone) {
+    // F081.9: a VoIP number is refused before any code goes out.
+    const checked = await checkPhoneAction(phone)
+    if (!checked.ok) return checked
     const { error } = await createClient().auth.updateUser({ phone })
     return error ? { ok: false, message: error.message } : { ok: true }
   },
@@ -49,7 +53,7 @@ export function PhoneVerifyStep({ auth = supabaseAuth, onVerified }: { auth?: Ph
     const res = await auth.sendCode(normalized)
     setBusy(false)
     if (!res.ok) {
-      setError(COPY.phoneSendFailed)
+      setError(res.reason === 'voip' ? COPY.phoneVoip : COPY.phoneSendFailed)
       return
     }
     setPhone(normalized)

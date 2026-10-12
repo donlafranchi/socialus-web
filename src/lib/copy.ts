@@ -34,6 +34,8 @@ export const COPY = {
   phoneWhy: "Everyone here is a real person. We'll text you a code to check. Your number is never shown to anyone.",
   phoneInvalid: 'Enter a US phone number, like (916) 555-0134.',
   phoneSendFailed: "We couldn't send a code to that number. Check it and try again.",
+  // F081.9 — a VoIP number is asked for a mobile one. Placeholder ([public-is-draft]).
+  phoneVoip: 'Please use a mobile number. We can’t text a code to an internet phone number.',
   phoneCodeTitle: 'Enter your code',
   phoneCodeSent: 'We texted you a 6-digit code.',
   phoneCodeWrong: "That code didn't match. Check it, or send a new one.",
