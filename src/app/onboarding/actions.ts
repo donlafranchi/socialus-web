@@ -17,7 +17,7 @@ import { resolveActionContext } from '@/lib/action-context'
 import { memberInterestsAdd, memberSignupProfileSet, ActionError } from '@/actions'
 import { NotFoundError } from '@/actions/_lib/errors'
 import { validateSignupProfile, type SignupProfileInput, type SignupProfileField } from '@/lib/signup/profile'
-import { metroForZip } from '@/lib/signup/zip-metro'
+import { marketForZip } from '@/lib/signup/zip-market'
 
 async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
@@ -29,7 +29,13 @@ async function requireMemberId(): Promise<string> {
 export type SaveProfileInput = SignupProfileInput
 
 export type SaveProfileResult =
-  | { ok: true; /** The metro the zip decided, shown to the person; null when the zip has none. */ metro: { name: string } | null }
+  | {
+      ok: true
+      /** The open market the zip decided, shown to the person; null when it is waiting. */
+      metro: { name: string } | null
+      /** The waiting market the zip decided, and the row it waits on; null when it is open. */
+      waiting: { metroId: string; name: string } | null
+    }
   | { ok: false; field: SignupProfileField; message: string }
 
 /**
@@ -48,12 +54,13 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
   const checked = validateSignupProfile(input)
   if (!checked.ok) return checked
 
-  const metro = await metroForZip(supabase, checked.value.zip)
+  const market = await marketForZip(supabase, checked.value.zip)
+  if (!market) return { ok: false, field: 'zip', message: "We don't recognize that zip, try again." }
   try {
     await memberSignupProfileSet(resolveActionContext({ actingMemberId: user.id }), {
       ...checked.value,
       adultConfirmed: true,
-      metroId: metro?.id ?? null,
+      metroId: market.open ? market.metroId : null,
     })
   } catch (err) {
     if (err instanceof NotFoundError) {
@@ -74,7 +81,9 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
   }
 
   await supabase.auth.updateUser({ data: { onboarded: true } })
-  return { ok: true, metro: metro ? { name: metro.name } : null }
+  return market.open
+    ? { ok: true, metro: { name: market.name }, waiting: null }
+    : { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name } }
 }
 
 export async function addInterestsAction(input: {
