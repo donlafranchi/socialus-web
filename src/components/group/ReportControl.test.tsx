@@ -92,12 +92,13 @@ describe('the report sheet', () => {
     expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
   })
 
-  it('moves focus into the sheet on open', async () => {
+  it('moves focus into the sheet on open, but not into the box (it would scroll the intro away)', async () => {
     renderControl()
     openSheet()
     await waitFor(() => {
       expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true)
     })
+    expect(document.activeElement).not.toBe(screen.getByRole('textbox'))
   })
 
   it('closes on Escape and returns focus to the ⋯', async () => {
@@ -117,7 +118,7 @@ describe('the report sheet', () => {
     const dialog = screen.getByRole('dialog')
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
     const focusable = Array.from(
-      dialog.querySelectorAll<HTMLElement>('button, textarea, [href]'),
+      dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input, textarea, [href]'),
     )
     focusable[focusable.length - 1].focus()
     fireEvent.keyDown(dialog, { key: 'Tab' })
@@ -230,20 +231,21 @@ describe('a signed-out member', () => {
     expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
   })
 
-  it('is sent to sign-in rather than to a dead end', () => {
+  it('is told why first: a "Sign in to report this" prompt, not the bare sign-in page', () => {
     renderControl({ loggedIn: false })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     const item = screen.getByRole('menuitem', { name: /report to the operator/i })
-    expect(item).toHaveAttribute('href', expect.stringContaining('/auth/login'))
-    expect(item).not.toBeDisabled()
+    expect(item).not.toHaveAttribute('href')
+    fireEvent.click(item)
+    expect(screen.getByRole('dialog', { name: 'Sign in to report this' })).toBeInTheDocument()
+    expect(screen.getByTestId('sign-in-prompt-continue')).toHaveAttribute('href', expect.stringContaining('/auth/login'))
   })
 
   it('comes back to the Page it was on after signing in', () => {
     renderControl({ loggedIn: false, returnTo: '/p/ca/sacramento/g/oak-park-sourdough' })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    const href = screen
-      .getByRole('menuitem', { name: /report to the operator/i })
-      .getAttribute('href')!
+    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    const href = screen.getByTestId('sign-in-prompt-continue').getAttribute('href')!
     expect(decodeURIComponent(href)).toContain('/p/ca/sacramento/g/oak-park-sourdough')
   })
 

@@ -107,7 +107,6 @@ export function ReportSheet({ open, subjectLabel, onClose, onSend, returnFocusTo
       </label>
       <textarea
         id={fieldId}
-        data-autofocus
         value={body}
         maxLength={BODY_MAX_LENGTH}
         rows={5}
