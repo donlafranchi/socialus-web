@@ -3,6 +3,7 @@
 // severity accuracy, latency and cost per case. Run on every prompt change:
 //   npm run moderation:eval            (needs ANTHROPIC_API_KEY)
 //   npm run moderation:eval -- --check (validates the set only; no key, no cost)
+//   npm run moderation:eval -- --record (also records the run, for the AI readiness panel; needs DATABASE_URL)
 // Cases carry text, a picture, or both. Pictures are synthetic (drawn by
 // scripts/moderation-make-images.ts) or open-licensed, with the licence recorded
 // per image in evals/moderation/images/LICENCES.json (criterion 10): nothing
@@ -11,6 +12,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { validateSet, type EvalCase, type ImageLicence } from '../src/lib/moderation/eval-cases'
 import { runSet } from '../src/lib/moderation/eval-run'
+import { recordEvalRun } from '../src/lib/moderation/eval-record'
 
 const DIR = 'evals/moderation'
 
@@ -35,6 +37,16 @@ async function main() {
   })
   for (const r of rows) console.log(`${r.id}: want ${r.want}, got ${r.got}`)
   console.table(summary)
+  if (process.argv.includes('--record')) {
+    if (!process.env.DATABASE_URL) {
+      console.error('Set DATABASE_URL to record the run.')
+      process.exit(1)
+    }
+    const { getPool } = await import('../src/actions/_lib/db')
+    await recordEvalRun(getPool(), summary)
+    console.log('Recorded for the AI readiness panel.')
+    await getPool().end()
+  }
   console.log(summary.meetsLiveTargets ? 'Meets the live-mode targets (criterion 11, before the two weeks of shadow agreement).' : 'Does not meet the live-mode targets.')
 }
 

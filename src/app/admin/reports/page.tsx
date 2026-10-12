@@ -14,8 +14,10 @@ import Link from 'next/link'
 import { requirePagePermission } from '@/lib/staff/page-guard'
 import { isBuilderOperator } from '@/actions/_lib/operator'
 import { fetchAiMode, fetchReviewQueue, fetchWeekSummary } from '@/lib/admin/reports-queue'
+import { fetchAiReadiness } from '@/lib/admin/ai-readiness'
 import { groupBySubject } from '@/lib/admin/review-subjects'
 import { ReviewQueue } from './ReviewQueue'
+import { AiReadiness } from './AiReadiness'
 import { decideReportAction, reverseDecisionAction } from './actions'
 
 // The queue is a live fact about withheld content. Never prerendered, never
@@ -25,10 +27,12 @@ export const dynamic = 'force-dynamic'
 export default async function AdminReportsPage() {
   const viewer = await requirePagePermission('reports.review')
 
-  const [queue, summary, mode] = await Promise.all([
+  const [queue, summary, mode, readiness] = await Promise.all([
     fetchReviewQueue(200, { includeBuilders: isBuilderOperator(viewer) }),
     fetchWeekSummary(),
     fetchAiMode(),
+    // #640 — the numbers for Don's own go-live checklist; a failed read must not hide the queue.
+    fetchAiReadiness().catch(() => null),
   ])
 
   return (
@@ -40,6 +44,7 @@ export default async function AdminReportsPage() {
           Removed photos
         </Link>
       </p>
+      {readiness && <AiReadiness readiness={readiness} />}
       <ReviewQueue subjects={groupBySubject(queue, { live: mode === 'live' })} summary={summary} onDecide={decideReportAction} onReverse={reverseDecisionAction} />
     </main>
   )
