@@ -91,7 +91,7 @@ interface EditInput {
 interface Props {
   groupId: string
   /** F078 — reporting a Post. Offered to everyone who does not manage the Page. */
-  onReport?: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true }>
+  onReport?: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true } | { ok: false; message: string }>
   loggedIn?: boolean
   returnTo?: string
   posts: PagePost[]
@@ -117,7 +117,7 @@ interface Props {
       subjectKind: 'page_picture' | 'post_photo'
       category: ReportCategory
       body: string
-    }) => Promise<{ ok: true }>
+    }) => Promise<{ ok: true } | { ok: false; message: string }>
   }
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }

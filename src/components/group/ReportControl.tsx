@@ -16,8 +16,10 @@
 
 import { useRef, useState } from 'react'
 import { PageOverflowMenu } from './PageOverflowMenu'
-import { ReportSheet } from './ReportSheet'
+import { ReportSheet, PlainError } from './ReportSheet'
 import type { ReportCategory } from '@/lib/reports/categories'
+import { COPY } from '@/lib/copy'
+import { URGENT_CATEGORIES } from '@/lib/reports/categories'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 
 interface Props {
@@ -33,12 +35,12 @@ interface Props {
     subjectKind?: 'group' | 'page_picture' | 'post_photo'
     category: ReportCategory
     body: string
-  }) => Promise<{ ok: true }>
+  }) => Promise<{ ok: true } | { ok: false; message: string }>
 }
 
 export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
+  const [confirmed, setConfirmed] = useState<'courtesy' | 'person' | null>(null)
   const [promptOpen, setPromptOpen] = useState(false)
   // The sheet is opened from a menu item that unmounts with its menu, so the
   // sheet cannot work out on its own where focus came from. Escape must land
@@ -77,9 +79,11 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
         returnFocusTo={triggerRef}
         onClose={() => setSheetOpen(false)}
         onSend={async (category, body) => {
-          await onSend({ subjectId, ...(subjectKind ? { subjectKind } : {}), category, body })
+          const sent = await onSend({ subjectId, ...(subjectKind ? { subjectKind } : {}), category, body })
+          // The action returns plain words for a refusal; the sheet shows them and keeps the box.
+          if (!sent.ok) throw new PlainError(sent.message)
           setSheetOpen(false)
-          setConfirmed(true)
+          setConfirmed(URGENT_CATEGORIES.includes(category) ? 'person' : 'courtesy')
         }}
       />
 
@@ -95,11 +99,11 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
           className="fixed inset-x-4 bottom-20 z-50 flex items-center gap-3 rounded-lg bg-[var(--color-charcoal-700)] px-4 py-3 text-sm text-white shadow-overlay md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
         >
           <span className="flex-1">
-            Thanks for looking out for everyone. That went to a person from our team, and they&rsquo;ll take a look.
+            {confirmed === 'person' ? COPY.reportSentPerson : COPY.reportSentCourtesy}
           </span>
           <button
             type="button"
-            onClick={() => setConfirmed(false)}
+            onClick={() => setConfirmed(null)}
             className="shrink-0 rounded-full px-2 py-1 text-sm font-medium underline"
           >
             Dismiss

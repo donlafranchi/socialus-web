@@ -73,7 +73,7 @@ export async function autoRestoreAfterAssessment(reportId: string, reads: Read[]
       `select exists (
          select 1 from public.report_answers a
            join public.member_notices n on n.id = a.notice_id
-          where n.subject_kind = $1 and n.subject_id = $2 and a.kind = 'wrong'
+          where n.subject_kind = $1 and n.subject_id = $2 and a.kind in ('wrong', 'mistake')
        ) as answered`,
       [subject.subject_kind, subject.subject_id],
     )).rows[0]?.answered === true

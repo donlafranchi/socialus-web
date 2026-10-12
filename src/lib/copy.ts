@@ -11,9 +11,13 @@ export const COPY = {
   report911: "If someone's in danger right now, please call 911 first. We'll look into this too.",
   // F100 — the operator's row and detail, when a report was held back from the AI. Placeholder ([public-is-draft]).
   aiNotRead: 'Not read by the AI: a person needs to look.',
-  // F078 criterion 10 — on the report sheet, before Send. Kind and gracious. Placeholder ([public-is-draft]).
-  reportMisuse:
-    "Reports help us all be good to one another, so please send one only when something's not right. Misusing reports has its own consequences.",
+  // #627, the PM's calls of 2026-10-11 — the report sheet, before Send, and the line after it.
+  reportCourtesy:
+    "We'll first send the page owner a courtesy notice so they can fix it. We don't share who you are. Please don't misuse reports.",
+  reportUrgentSkip:
+    "For this one we skip the courtesy notice: it's hidden right away and a person from our team takes a look. We don't share who you are. Please don't misuse reports.",
+  reportSentCourtesy: "Thanks for looking out for everyone. The page owner is getting a courtesy notice.",
+  reportSentPerson: "Thanks for looking out for everyone. It's being sent to a person from our team.",
   // The same ask in full, for the rules page (#223). Placeholder, Don's 2026-09-30 line. Not shown yet.
   postingSafetyFull:
     "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",

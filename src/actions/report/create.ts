@@ -26,7 +26,7 @@ import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/erro
 import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
 import { textOperator } from '@/lib/notify/operator-sms'
 import { assessAfterReport } from '@/lib/moderation/after-report'
-import { hiddenNoticeMessage } from '@/lib/reports/notices'
+import { hiddenNoticeMessage, courtesyNoticeMessage } from '@/lib/reports/notices'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -90,6 +90,12 @@ function hideCapFor(dismissed: Date[], now: Date): { cap: number; hidesAnything:
   }
 }
 const MAX_REPORTS_PER_SUBJECT = 2
+
+/** The two refusals a member can hit; the action layer says them in plain words (#703). */
+export const REPORT_REFUSED = {
+  tooManyOpen: 'report.create: you have a lot of reports open already — we will get to them before taking more',
+  alreadyReported: 'report.create: you have already reported this one — we have it',
+} as const
 
 export const reportCreateInput = z.object({
   // What is reported: the Page's photo ('group', the original subject), a Post
@@ -344,6 +350,19 @@ export const reportCreate = defineHandler(
       )
       const priorBySameMember = Number(priorRes.rows[0]?.count ?? '0')
 
+      // #626: a report from someone else already on this item is what makes
+      // this the second report.
+      const othersRes = await client.query<{ count: string }>(
+        `select count(*)::text as count
+           from public.reports
+          where reporter_member_id <> $1
+            and subject_kind = $2
+            and subject_id = $3
+            and removed_at is null`,
+        [reporterMemberId, input.subjectKind, input.subjectId],
+      )
+      const priorByOthers = Number(othersRes.rows[0]?.count ?? '0')
+
       const openRes = await client.query<{ count: string }>(
         `select count(*)::text as count
            from public.reports
@@ -358,14 +377,10 @@ export const reportCreate = defineHandler(
       // Refuse before writing. A stored report that nobody will ever read is
       // still a row in the operator's queue.
       if (openByReporter >= MAX_OPEN_REPORTS_TOTAL) {
-        throw new ValidationError(
-          'report.create: you have a lot of reports open already — we will get to them before taking more',
-        )
+        throw new ValidationError(REPORT_REFUSED.tooManyOpen)
       }
       if (priorBySameMember >= MAX_REPORTS_PER_SUBJECT) {
-        throw new ValidationError(
-          'report.create: you have already reported this one — we have it',
-        )
+        throw new ValidationError(REPORT_REFUSED.alreadyReported)
       }
 
       const insertRes = await client.query<{ id: string }>(
@@ -420,9 +435,38 @@ export const reportCreate = defineHandler(
         // Ruled 2026-10-08 (Dispatch, for the PM): a cool-down or three strikes stops a
         // reporter's ordinary reports hiding, but sensitive content and threat of harm
         // still hide, whatever the reporter's record (F078 criterion 8), and still text the operator.
-        (urgent || (limits.hidesAnything && reachesBar && priorBySameMember === 0 && openByReporter < limits.cap))
+        // #626 (PM, 2026-10-11): the first report is a courtesy notice and the item stays
+        // up; a second report from someone else hides it and queues it for staff.
+        (urgent ||
+          (limits.hidesAnything && reachesBar && priorBySameMember === 0 && priorByOthers > 0 && openByReporter < limits.cap))
 
       if (!shouldHide) {
+        const firstReport = priorBySameMember === 0 && priorByOthers === 0
+        if (
+          firstReport &&
+          !urgent &&
+          !subject.builderOnReal &&
+          !subject.reporterIsBuilder &&
+          subject.hideable &&
+          !subject.alreadyHidden &&
+          !subject.locked
+        ) {
+          await client.query(
+            `insert into public.member_notices
+               (member_id, kind, report_id, subject_kind, subject_id, category, message, created_at, page_id)
+             values ($1, 'courtesy', $2, $3, $4, $5, $6, $7, $8)`,
+            [
+              subject.founderId,
+              reportId,
+              input.subjectKind,
+              input.subjectId,
+              input.category,
+              courtesyNoticeMessage(input.category, input.subjectKind),
+              ctx.now(),
+              subject.groupId,
+            ],
+          )
+        }
         return { reportId, photoHidden: false }
       }
 

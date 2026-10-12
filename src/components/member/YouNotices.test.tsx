@@ -9,6 +9,7 @@ const notice = (over: Partial<Notice> = {}): Notice => ({
   id: 'n1',
   message: 'Someone reported a post on Oak Park Bakery as "Spam", so we\'ve hidden it.',
   createdAt: '2026-10-07T12:00:00Z',
+  kind: 'content_hidden',
   subjectKind: 'post',
   pageHandle: 'qa0b01',
   answer: null,
@@ -33,41 +34,50 @@ describe('F102 criteria 1–4 — the poster answers first', () => {
   it('a hidden post offers "Fix it" (to its Page) and "Tell us it\'s a mistake"', () => {
     render(<YouNotices notices={[notice()]} onAnswer={vi.fn()} />)
     expect(screen.getByRole('link', { name: /fix it/i })).toHaveAttribute('href', '/g/qa0b01')
-    expect(screen.getByRole('button', { name: /tell us it.s a mistake/i })).toBeInTheDocument()
-  })
-
-  it('the form has a way back to the two choices', () => {
-    render(<YouNotices notices={[notice()]} onAnswer={vi.fn()} />)
-    fireEvent.click(screen.getByRole('button', { name: /tell us it.s a mistake/i }))
-    fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(screen.queryByRole('textbox')).toBeNull()
-    expect(screen.getByRole('link', { name: /fix it/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /this is a mistake/i })).toBeInTheDocument()
   })
 
   it('a hidden photo has no repost, only the mistake answer', () => {
     render(<YouNotices notices={[notice({ subjectKind: 'group' })]} onAnswer={vi.fn()} />)
     expect(screen.queryByRole('link', { name: /fix it/i })).toBeNull()
-    expect(screen.getByRole('button', { name: /tell us it.s a mistake/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /this is a mistake/i })).toBeInTheDocument()
   })
 
-  it('offers three reasons and a note of 280 characters, and sends one answer', async () => {
+  // [guards F102.3 partial: one tap, no reasons or note to fill in (#626)]
+  it('is one button: no reasons, no box, one tap sends the claim', async () => {
     const onAnswer = vi.fn(async () => {})
     render(<YouNotices notices={[notice()]} onAnswer={onAnswer} />)
-    fireEvent.click(screen.getByRole('button', { name: /tell us it.s a mistake/i }))
-    expect(screen.getAllByRole('radio').map((r) => (r as HTMLInputElement).value)).toEqual(['mistaken', 'malicious', 'misusing_reports'])
-    expect(screen.getByRole('textbox')).toHaveAttribute('maxlength', '280')
-    const send = screen.getByRole('button', { name: /^send$/i })
-    expect(send).toBeDisabled()
-    fireEvent.click(screen.getByLabelText(/misusing reports/i))
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'It is my own sign.' } })
-    fireEvent.click(send)
-    await waitFor(() => expect(onAnswer).toHaveBeenCalledWith({ noticeId: 'n1', reason: 'misusing_reports', note: 'It is my own sign.' }))
+    expect(screen.queryAllByRole('radio')).toHaveLength(0)
+    expect(screen.queryByRole('textbox')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /^this is a mistake$/i }))
+    await waitFor(() => expect(onAnswer).toHaveBeenCalledWith({ noticeId: 'n1' }))
+    await waitFor(() => expect(screen.getByTestId('notice-answered')).toHaveTextContent(/top of our review list/i))
+    expect(screen.queryByRole('button', { name: /this is a mistake/i })).toBeNull()
+  })
+
+  it('a failed tap says so in plain words and leaves the button', async () => {
+    render(<YouNotices notices={[notice()]} onAnswer={vi.fn(async () => { throw new Error('report.answer: boom') })} />)
+    fireEvent.click(screen.getByRole('button', { name: /this is a mistake/i }))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).not.toMatch(/report\.answer/)
+    expect(screen.getByRole('button', { name: /this is a mistake/i })).toBeInTheDocument()
+  })
+
+  it('a courtesy notice offers the same one button, and "Fix it" on a post', () => {
+    render(<YouNotices notices={[notice({ kind: 'courtesy' })]} onAnswer={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /^this is a mistake$/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /fix it/i })).toBeInTheDocument()
+  })
+
+  it('a claimed courtesy notice says it will go to the top if reported again', () => {
+    render(<YouNotices notices={[notice({ kind: 'courtesy', answer: 'mistake' })]} onAnswer={vi.fn()} />)
+    expect(screen.getByTestId('notice-answered')).toHaveTextContent(/reported again/i)
   })
 
   it('once answered it says so and stays hidden until a person looks; no second answer', () => {
-    render(<YouNotices notices={[notice({ answer: 'wrong' })]} onAnswer={vi.fn()} />)
-    expect(screen.getByTestId('notice-answered')).toHaveTextContent(/got your answer/i)
-    expect(screen.queryByRole('button', { name: /tell us it.s a mistake/i })).toBeNull()
+    render(<YouNotices notices={[notice({ answer: 'mistake' })]} onAnswer={vi.fn()} />)
+    expect(screen.getByTestId('notice-answered')).toHaveTextContent(/top of our review list/i)
+    expect(screen.queryByRole('button', { name: /this is a mistake/i })).toBeNull()
   })
 
   it('after a repost it says it is showing again', () => {
@@ -79,6 +89,6 @@ describe('F102 criteria 1–4 — the poster answers first', () => {
   it('a hide that has closed itself offers nothing', () => {
     render(<YouNotices notices={[notice({ closed: true })]} onAnswer={vi.fn()} />)
     expect(screen.getByTestId('notice-closed')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /tell us it.s a mistake/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /this is a mistake/i })).toBeNull()
   })
 })

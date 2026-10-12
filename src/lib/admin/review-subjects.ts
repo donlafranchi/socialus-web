@@ -148,6 +148,9 @@ export function orderSubjects(subjects: ReviewSubject[], key: SortKey = 'severit
   return [...subjects].sort((a, b) => {
     const wait = Number(b.openReportIds.length > 0) - Number(a.openReportIds.length > 0)
     if (wait) return wait
+    // #626: the owner said it is a mistake; those wait at the top, whatever the sort.
+    const claim = Number(b.answer?.kind === 'mistake') - Number(a.answer?.kind === 'mistake')
+    if (claim) return claim
     if (key === 'count' && b.reports.length !== a.reports.length) return b.reports.length - a.reports.length
     if (key === 'severity') {
       const sev = (a.severity ?? 5) - (b.severity ?? 5)

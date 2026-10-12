@@ -79,6 +79,8 @@ function installQueryRouter(
     photoHiddenAt?: Date | null
     photoHideLockedUrl?: string | null
     priorReportsBySameMember?: number
+    /** Reports on the same item from other members (the "second report" that hides it). */
+    priorReportsByOthers?: number
     openReportsByReporter?: number
     builderOnReal?: boolean
     hideBar?: number
@@ -95,6 +97,7 @@ function installQueryRouter(
     photoHiddenAt = null,
     photoHideLockedUrl = null,
     priorReportsBySameMember = 0,
+    priorReportsByOthers = 0,
     openReportsByReporter = 0,
     builderOnReal = false,
     hideBar = 0,
@@ -123,6 +126,9 @@ function installQueryRouter(
             ]
           : [],
       }
+    }
+    if (/count/i.test(sql) && /reporter_member_id <> \$1/i.test(sql) && /subject_id/i.test(sql)) {
+      return { rows: [{ count: String(priorReportsByOthers) }] }
     }
     if (/count/i.test(sql) && /reporter_member_id/i.test(sql) && /subject_id/i.test(sql)) {
       return { rows: [{ count: String(priorReportsBySameMember) }] }
@@ -170,7 +176,7 @@ beforeEach(() => {
 
 describe('report.create — the happy path', () => {
   it('stores the report, writes group.reported, and hides the photo at once', async () => {
-    installQueryRouter()
+    installQueryRouter({ priorReportsByOthers: 1 })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
       category: 'other',
@@ -283,7 +289,7 @@ describe('report.create — the three limits', () => {
   })
 
   it('limit 2: the lock dies with the photo it was granted for — a replaced photo hides again', async () => {
-    installQueryRouter({ photoHideLockedUrl: 'https://cdn.example.test/pages/OLD.jpg' })
+    installQueryRouter({ priorReportsByOthers: 1, photoHideLockedUrl: 'https://cdn.example.test/pages/OLD.jpg' })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
       category: 'other',
@@ -308,7 +314,7 @@ describe('report.create — the three limits', () => {
   })
 
   it('limit 3: the 5th still hides — the cap bites at 5 open, not 4', async () => {
-    installQueryRouter({ openReportsByReporter: 4 })
+    installQueryRouter({ priorReportsByOthers: 1, openReportsByReporter: 4 })
     const result = await reportCreate(ctx(), {
       subjectKind: 'group',
       category: 'other',
@@ -346,7 +352,7 @@ describe('report.create — the three limits', () => {
 
 describe('report.create — no visible state', () => {
   it('writes nothing but the report row, the hide, and the poster\'s notice (F078 criterion 3 amends F058 acceptance 2), plus the two events', async () => {
-    installQueryRouter()
+    installQueryRouter({ priorReportsByOthers: 1 })
     await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
 
     const writes = (query.mock.calls as QueryCall[])
@@ -370,7 +376,7 @@ describe('report.create — no visible state', () => {
   })
 
   it('the update only ever nulls-in a hide — it never writes photo_url', async () => {
-    installQueryRouter()
+    installQueryRouter({ priorReportsByOthers: 1 })
     await reportCreate(ctx(), { subjectKind: 'group', category: 'other', subjectId: GROUP_ID, body: 'x' })
     const [hide] = callsMatching(/update public\.groups/i)
     // Hiding is a projection concern. The URL and the storage object both
@@ -538,13 +544,13 @@ describe('report.create — the metro hide bar (F078 criteria 6–8)', () => {
 
   // [guards F078.7 partial: the starting value; the config column itself is a migration]
   it('at the starting bar of 0 every report hides, as it always has', async () => {
-    installQueryRouter({ hideBar: 0 })
+    installQueryRouter({ priorReportsByOthers: 1, hideBar: 0 })
     expect((await report('spam')).photoHidden).toBe(true)
   })
 
   // [guards F078.6 partial: no classifier yet, so no score reaches the bar]
   it('above 0 a report with no score is below the bar: stored and queued, nothing hides', async () => {
-    installQueryRouter({ hideBar: 0.5 })
+    installQueryRouter({ priorReportsByOthers: 1, hideBar: 0.5 })
     const r = await report('spam')
     expect(r.photoHidden).toBe(false)
     expect(callsMatching(/insert into public\.reports/i)).toHaveLength(1)
@@ -617,7 +623,7 @@ describe('report.create — a Post', () => {
   const hides = () => callsMatching(/update public\.page_posts/i)
 
   it('stores a post report and hides the post by making it private, remembering what it was', async () => {
-    installQueryRouter()
+    installQueryRouter({ priorReportsByOthers: 1 })
     const r = await report()
     expect(r).toMatchObject({ reportId: REPORT_ID, photoHidden: true })
     expect(callsMatching(/insert into public\.reports/i)[0]![1]).toEqual(expect.arrayContaining(['post', POST_ID]))
@@ -628,7 +634,7 @@ describe('report.create — a Post', () => {
   })
 
   it('writes a group event for the post hide', async () => {
-    installQueryRouter()
+    installQueryRouter({ priorReportsByOthers: 1 })
     await report()
     expect(eventsOfKind('group.post_hidden')).toHaveLength(1)
   })
@@ -700,6 +706,7 @@ describe('F099 — report.create on one image', () => {
         }
       }
       if (/from public\.report_decisions/i.test(sql)) return { rows: [] }
+      if (/count/i.test(sql) && /reporter_member_id <> \$1/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: '1' }] }
       if (/count/i.test(sql) && /reporter_member_id/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: '0' }] }
       if (/count/i.test(sql) && /reviewed_at is null/i.test(sql)) return { rows: [{ count: '0' }] }
       if (/insert into public\.reports/i.test(sql)) return { rows: [{ id: REPORT_ID }] }
@@ -758,14 +765,14 @@ describe('report.create — the reporter\'s record limits only the hide', () => 
 
   // [guards F102.6]
   it('after one dismissed report in 30 days the cap drops from 5 open to 1', async () => {
-    installQueryRouter({ dismissedAt: [ago(10)], openReportsByReporter: 1 })
+    installQueryRouter({ priorReportsByOthers: 1, dismissedAt: [ago(10)], openReportsByReporter: 1 })
     expect((await report()).photoHidden).toBe(false)
-    installQueryRouter({ dismissedAt: [ago(10)], openReportsByReporter: 0 })
+    installQueryRouter({ priorReportsByOthers: 1, dismissedAt: [ago(10)], openReportsByReporter: 0 })
     expect((await report()).photoHidden).toBe(true)
   })
 
   it('a dismissal older than 30 days no longer counts', async () => {
-    installQueryRouter({ dismissedAt: [ago(31)], openReportsByReporter: 4 })
+    installQueryRouter({ priorReportsByOthers: 1, dismissedAt: [ago(31)], openReportsByReporter: 4 })
     expect((await report()).photoHidden).toBe(true)
   })
 
@@ -778,7 +785,7 @@ describe('report.create — the reporter\'s record limits only the hide', () => 
   })
 
   it('the cool-down ends 14 days after the second dismissal', async () => {
-    installQueryRouter({ dismissedAt: [ago(15), ago(20)], openReportsByReporter: 0 })
+    installQueryRouter({ priorReportsByOthers: 1, dismissedAt: [ago(15), ago(20)], openReportsByReporter: 0 })
     expect((await report()).photoHidden).toBe(true)
   })
 
@@ -792,5 +799,82 @@ describe('report.create — the reporter\'s record limits only the hide', () => 
     installQueryRouter({ dismissedAt: [ago(3), ago(20)] })
     expect((await report('sensitive_content')).photoHidden).toBe(true)
     expect(textOperator).toHaveBeenCalled()
+  })
+})
+
+// #626 (PM, 2026-10-11): the first report is a courtesy notice to the owner and the
+// post stays up; a second report from someone else hides it and queues it for staff.
+// Threat of harm and Sensitive content hide at once, and a child's content never goes back.
+describe('report.create — courtesy notice first (#626)', () => {
+  const report = (category: 'other' | 'spam' | 'sensitive_content' | 'threat_of_harm', kind: 'group' | 'post' = 'group') =>
+    reportCreate(ctx(), { subjectKind: kind, category, subjectId: kind === 'post' ? POST_ID : GROUP_ID, body: 'Reported.' })
+
+  // [guards F078.2 partial: the first ordinary report hides nothing; the second hides]
+  it('a first report stores and does not hide', async () => {
+    installQueryRouter()
+    const r = await report('spam')
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/insert into public\.reports/i)).toHaveLength(1)
+    expect(callsMatching(/update public\.groups/i)).toHaveLength(0)
+    expect(eventsOfKind('group.photo_hidden')).toHaveLength(0)
+  })
+
+  it('a first report leaves the owner a courtesy notice with the reason, no hide notice', async () => {
+    installQueryRouter()
+    await report('spam')
+    const [, params] = callsMatching(/insert into public\.member_notices/i)[0]!
+    expect(params).toEqual(expect.arrayContaining([FOUNDER_ID, REPORT_ID, 'spam', GROUP_ID]))
+    expect(callsMatching(/insert into public\.member_notices/i)[0]![0]).toMatch(/'courtesy'/)
+    expect(JSON.stringify(params)).toContain('Spam')
+    expect(JSON.stringify(params)).not.toContain(REPORTER_ID)
+  })
+
+  it('a first report on a post does the same and leaves the post up', async () => {
+    installQueryRouter()
+    const r = await report('spam', 'post')
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/update public\.page_posts/i)).toHaveLength(0)
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(1)
+  })
+
+  it('a second report from someone else hides it and tells the owner it is hidden', async () => {
+    installQueryRouter({ priorReportsByOthers: 1 })
+    const r = await report('spam')
+    expect(r.photoHidden).toBe(true)
+    expect(callsMatching(/insert into public\.member_notices/i)[0]![0]).toMatch(/'content_hidden'/)
+  })
+
+  it('the same member reporting twice is not a second report: still no hide', async () => {
+    installQueryRouter({ priorReportsBySameMember: 1 })
+    const r = await report('spam')
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+
+  it('threat of harm hides at once and sends no courtesy notice', async () => {
+    installQueryRouter()
+    const r = await report('threat_of_harm')
+    expect(r.photoHidden).toBe(true)
+    expect(callsMatching(/insert into public\.member_notices/i)[0]![0]).toMatch(/'content_hidden'/)
+  })
+
+  // [guards F102.14 partial: no courtesy notice about child content either]
+  it('sensitive content hides at once and the poster hears nothing', async () => {
+    installQueryRouter()
+    const r = await report('sensitive_content')
+    expect(r.photoHidden).toBe(true)
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+
+  it('a builder\'s first report on a real Page tells nobody', async () => {
+    installQueryRouter({ builderOnReal: true })
+    await report('spam')
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+
+  it('an item that is already hidden gets no courtesy notice', async () => {
+    installQueryRouter({ photoHiddenAt: NOW })
+    await report('spam')
+    expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
   })
 })

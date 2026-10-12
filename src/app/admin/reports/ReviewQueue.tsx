@@ -366,7 +366,9 @@ function Row({
               <p data-testid="review-answer" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {s.answer.kind === 'fix_and_repost'
                   ? 'Poster fixed it and reposted.'
-                  : `Poster: ${REASON_WORD[s.answer.reason ?? 'mistaken']}${s.answer.note ? ` — ${s.answer.note}` : ''}`}
+                  : s.answer.kind === 'mistake'
+                    ? 'Owner says this is a mistake: top of the list.'
+                    : `Poster: ${REASON_WORD[s.answer.reason ?? 'mistaken']}${s.answer.note ? ` — ${s.answer.note}` : ''}`}
               </p>
             )}
             {s.coordinated && (

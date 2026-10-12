@@ -51,3 +51,19 @@ describe('F099 — the queue holds every kind of reported image', () => {
     expect(r!.groupId).toBe('g1')
   })
 })
+
+// #626 — a first report is a courtesy notice to the owner, not staff work.
+describe('#626 — the queue holds no courtesy-only report', () => {
+  it('leaves out a report that only sent a courtesy notice, until the item is hidden or decided', async () => {
+    await fetchReviewQueue()
+    const [sql] = query.mock.calls[0] as unknown as [string]
+    expect(sql).toMatch(/n\.report_id = r\.id and n\.kind = 'courtesy'/)
+    expect(sql).toMatch(/s\.hidden_at is not null[\s\S]*r\.reviewed_at is not null|r\.reviewed_at is not null[\s\S]*s\.hidden_at is not null/)
+  })
+
+  it('reads a mistake claim from either kind of notice', async () => {
+    await fetchReviewQueue()
+    const [sql] = query.mock.calls[0] as unknown as [string]
+    expect(sql).toMatch(/json_build_object\('kind', a\.kind/)
+  })
+})
