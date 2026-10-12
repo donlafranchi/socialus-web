@@ -3,7 +3,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnnouncementFields, emptyWhenWhere, type AnnouncementWhenWhere } from './AnnouncementFields'
 
 vi.mock('@/components/locations/LocationPlaceFields', () => ({
@@ -14,10 +14,12 @@ vi.mock('@/components/locations/LocationPlaceFields', () => ({
 afterEach(cleanup)
 const NOW = new Date('2026-10-02T21:20:00Z')
 
-let latest: AnnouncementWhenWhere = emptyWhenWhere
+const seen: { value: AnnouncementWhenWhere } = { value: emptyWhenWhere }
 function Harness({ repeats = true }: { repeats?: boolean }) {
   const [v, setV] = useState(emptyWhenWhere)
-  latest = v
+  useEffect(() => {
+    seen.value = v
+  }, [v])
   return <AnnouncementFields value={v} onChange={setV} idPrefix="a" now={NOW} repeats={repeats} />
 }
 const withTime = () => fireEvent.click(screen.getByRole('button', { name: /add a date and time/i }))
@@ -67,19 +69,19 @@ describe('the weekly repeat control', () => {
     openRepeat()
     fireEvent.click(screen.getByRole('checkbox', { name: 'Thursday' }))
     fireEvent.click(screen.getByRole('checkbox', { name: 'Saturday' }))
-    expect(latest.repeat.days).toEqual([4, 6])
+    expect(seen.value.repeat.days).toEqual([4, 6])
     fireEvent.click(screen.getByRole('checkbox', { name: 'Thursday' }))
-    expect(latest.repeat.days).toEqual([6])
+    expect(seen.value.repeat.days).toEqual([6])
   })
 
   it('both dates are optional and are the metro\'s days', () => {
     render(<Harness />)
     openRepeat()
-    expect(latest.repeat.startsOn).toBe('')
-    expect(latest.repeat.endsOn).toBe('')
+    expect(seen.value.repeat.startsOn).toBe('')
+    expect(seen.value.repeat.endsOn).toBe('')
     fireEvent.change(screen.getByLabelText('Starts', { selector: 'input[type="date"]' }), { target: { value: '2026-11-01' } })
     fireEvent.change(screen.getByLabelText('Ends (optional)'), { target: { value: '2026-12-31' } })
-    expect(latest.repeat).toMatchObject({ startsOn: '2026-11-01', endsOn: '2026-12-31' })
+    expect(seen.value.repeat).toMatchObject({ startsOn: '2026-11-01', endsOn: '2026-12-31' })
     expect(screen.getByLabelText('Ends (optional)')).toHaveAttribute('min', '2026-11-01')
   })
 
@@ -95,7 +97,7 @@ describe('the weekly repeat control', () => {
     openRepeat()
     fireEvent.click(screen.getByRole('checkbox', { name: 'Thursday' }))
     fireEvent.click(screen.getByRole('button', { name: /doesn.t repeat/i }))
-    expect(latest.repeat).toEqual({ open: false, days: [], startsOn: '', endsOn: '' })
+    expect(seen.value.repeat).toEqual({ open: false, days: [], startsOn: '', endsOn: '' })
     expect(screen.getByLabelText('Date')).toBeInTheDocument()
   })
 })
