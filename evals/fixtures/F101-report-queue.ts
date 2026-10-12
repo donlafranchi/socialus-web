@@ -15,6 +15,8 @@ export const TAG = 'F101-15'
 const REPORTERS = 10
 const DATABASE_URL = process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 const reporterId = (i: number) => `0a000000-0000-4000-8000-0000000101${String(i).padStart(2, '0')}`
+// An earlier reporter, so each seeded report is the second one on its Post and hides it (#626).
+const WITNESS = reporterId(REPORTERS)
 const ctx = (id: string): ActionContext => ({ actingMemberId: id, viaDelegationId: null, traceId: 't', db: {} as never, now: () => new Date() }) as ActionContext
 
 export async function seedReportQueue(): Promise<void> {
@@ -30,8 +32,8 @@ export async function seedReportQueue(): Promise<void> {
     await pool.query(`delete from public.reports where subject_id in ${old}`)
     await pool.query(`delete from public.member_notices where subject_id in ${old}`)
     await pool.query(`delete from public.page_posts where body like '${TAG} %'`)
-    await pool.query(`delete from public.reports where reporter_member_id = any($1)`, [Array.from({ length: REPORTERS }, (_, i) => reporterId(i))])
-    for (let i = 0; i < REPORTERS; i++) {
+    await pool.query(`delete from public.reports where reporter_member_id = any($1)`, [Array.from({ length: REPORTERS + 1 }, (_, i) => reporterId(i))])
+    for (let i = 0; i <= REPORTERS; i++) {
       const id = reporterId(i)
       await pool.query(
         `insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at)
@@ -42,7 +44,12 @@ export async function seedReportQueue(): Promise<void> {
     }
     for (let n = 0; n < COUNT; n++) {
       const post = await groupPostCreate(ctx(owner), { groupId: group, body: `${TAG} item ${n + 1}: a Post somebody flagged.` })
-      await reportCreate(ctx(reporterId(n % REPORTERS)), { subjectKind: 'post', category: 'spam', subjectId: (post as unknown as { postId: string }).postId, body: `${TAG} report ${n + 1}` })
+      const subjectId = (post as unknown as { postId: string }).postId
+      await pool.query(
+        `insert into public.reports (reporter_member_id, subject_kind, subject_id, body, category) values ($1,'post',$2,$3,'spam')`,
+        [WITNESS, subjectId, `${TAG} earlier ${n + 1}`],
+      )
+      await reportCreate(ctx(reporterId(n % REPORTERS)), { subjectKind: 'post', category: 'spam', subjectId, body: `${TAG} report ${n + 1}` })
     }
   } finally {
     await pool.end()
