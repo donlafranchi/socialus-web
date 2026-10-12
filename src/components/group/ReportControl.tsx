@@ -18,7 +18,7 @@ import { useRef, useState } from 'react'
 import { PageOverflowMenu } from './PageOverflowMenu'
 import { ReportSheet } from './ReportSheet'
 import type { ReportCategory } from '@/lib/reports/categories'
-import { signInHref as gatedSignInHref } from '@/lib/auth/requires-account'
+import { SignInPrompt } from '@/components/auth/SignInPrompt'
 
 interface Props {
   subjectId: string
@@ -39,6 +39,7 @@ interface Props {
 export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
+  const [promptOpen, setPromptOpen] = useState(false)
   // The sheet is opened from a menu item that unmounts with its menu, so the
   // sheet cannot work out on its own where focus came from. Escape must land
   // back on the ⋯, which is the control the member was actually using.
@@ -56,20 +57,19 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
   // revocable; an anonymous reporter is none of those, which is what makes the
   // report-bombing caps in report.create possible at all.
   //
-  // Now routed through the shared helper so the intent survives sign-in and the
-  // report sheet can open on return, rather than the tap being lost.
-  const signInHref = gatedSignInHref('report', returnTo ?? '/')
+  // The shared prompt says why ("Sign in to report this") and carries the
+  // intent through sign-in, so the report sheet can open on return.
 
   return (
     <>
       <PageOverflowMenu
         triggerRef={triggerRef}
         items={[
-          loggedIn
-            ? { label: 'Report to the operator', onSelect: () => setSheetOpen(true) }
-            : { label: 'Report to the operator', href: signInHref },
+          { label: 'Report to the operator', onSelect: () => (loggedIn ? setSheetOpen(true) : setPromptOpen(true)) },
         ]}
       />
+
+      {promptOpen && <SignInPrompt action="report" currentPath={returnTo ?? '/'} onClose={() => setPromptOpen(false)} />}
 
       <ReportSheet
         open={sheetOpen}
