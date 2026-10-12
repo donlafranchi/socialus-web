@@ -18,6 +18,8 @@ export interface ScreenRoute {
   act?: (page: Page) => Promise<void>
   /** The same screen whoever is looking: a redirect, a not-found, a demo, the sign-in pages. */
   same?: true
+  /** Only these personas see this state (a report sheet needs someone else's Page to report). */
+  only?: Persona['key'][]
 }
 
 const PLACE = 'ca/sacramento/oak-park'
@@ -32,6 +34,12 @@ const pageFor = (who: Persona) => PAGES.find((p) => p.key === who.owns) ?? inter
 // Item URL fragments are the first 8 characters of the seeded item ids.
 const GATHERING = (i: number) => `meetup-0d000000`.replace('meetup', `${PAGES[i]!.slug}-meetup`)
 const SOLO = { p: 'jar-of-plum-jam-0d000000', s: 'bike-tune-up-0d000000', e: 'porch-music-night-0d000000' }
+
+async function openReportSheet(page: Page) {
+  await page.getByTestId('page-overflow-menu').first().click()
+  await page.getByRole('menuitem', { name: /report this/i }).click()
+  await page.getByTestId('report-sheet').waitFor()
+}
 
 export const ROUTES: ScreenRoute[] = [
   { name: 'root', inventory: ['S007'], path: () => '/' },
@@ -51,6 +59,39 @@ export const ROUTES: ScreenRoute[] = [
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },
   { name: 'page', inventory: ['S028', 'S029', 'S030', 'S033', 'S034', 'S036'], path: (who) => `/g/${pageHandle(pageFor(who))}` },
+  // #626/#627 — the report sheet and what it sends, as a signed-in member on the business Page.
+  {
+    name: 'report-sheet',
+    inventory: ['S028'],
+    only: ['member'],
+    path: () => `/g/${pageHandle(business)}`,
+    act: async (page) => {
+      await openReportSheet(page)
+    },
+  },
+  {
+    name: 'report-sheet-threat',
+    inventory: ['S028'],
+    only: ['member'],
+    path: () => `/g/${pageHandle(business)}`,
+    act: async (page) => {
+      await openReportSheet(page)
+      await page.getByRole('radio', { name: 'Threat of harm' }).check({ force: true })
+    },
+  },
+  {
+    name: 'report-sent',
+    inventory: ['S028'],
+    only: ['member'],
+    path: () => `/g/${pageHandle(business)}`,
+    act: async (page) => {
+      await openReportSheet(page)
+      await page.getByRole('radio', { name: 'Spam' }).check({ force: true })
+      await page.getByRole('textbox').fill('Looks like an ad.')
+      await page.getByRole('button', { name: /^send$/i }).click()
+      await page.getByTestId('report-sent').waitFor()
+    },
+  },
   { name: 'page-business', inventory: ['S028', 'S029', 'S030'], path: () => `/g/${pageHandle(business)}` },
   { name: 'page-private', inventory: ['S031', 'S037'], path: () => `/g/${pageHandle(family)}` },
   { name: 'page-not-found', inventory: ['S037'], path: () => '/g/no-such-page-zzzzzz', same: true },

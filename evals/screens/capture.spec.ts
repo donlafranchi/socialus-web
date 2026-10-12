@@ -28,7 +28,7 @@ for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
   test.describe(who.key, () => {
     test.use({ storageState: who.email ? `evals/.auth/${who.key}.json` : { cookies: [], origins: [] } })
 
-    for (const route of ROUTES.filter((r) => (!routes || routes.has(r.name)) && !(r.same && who.key !== 'signedOut'))) {
+    for (const route of ROUTES.filter((r) => (!routes || routes.has(r.name)) && !(r.same && who.key !== 'signedOut') && (!r.only || r.only.includes(who.key)))) {
       test(route.name, async ({ page }) => {
         const errors: string[] = []
         page.on('pageerror', (e) => errors.push(e.message))
