@@ -345,6 +345,7 @@
     "member.saved_search.restore",
     "member.signup_profile.set",
     "member.unfollow",
+    "member.zip.set",
     "metro.waitlist_join",
     "metro.waitlist_join_anonymous",
     "origin.record",
