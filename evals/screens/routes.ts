@@ -18,6 +18,8 @@ export interface ScreenRoute {
   act?: (page: Page) => Promise<void>
   /** The same screen whoever is looking: a redirect, a not-found, a demo, the sign-in pages. */
   same?: true
+  /** Only these personas see this state (a report sheet needs someone else's Page to report). */
+  only?: Persona['key'][]
 }
 
 const PLACE = 'ca/sacramento/oak-park'
@@ -61,6 +63,7 @@ export const ROUTES: ScreenRoute[] = [
   {
     name: 'report-sheet',
     inventory: ['S028'],
+    only: ['member'],
     path: () => `/g/${pageHandle(business)}`,
     act: async (page) => {
       await openReportSheet(page)
@@ -69,6 +72,7 @@ export const ROUTES: ScreenRoute[] = [
   {
     name: 'report-sheet-threat',
     inventory: ['S028'],
+    only: ['member'],
     path: () => `/g/${pageHandle(business)}`,
     act: async (page) => {
       await openReportSheet(page)
@@ -78,6 +82,7 @@ export const ROUTES: ScreenRoute[] = [
   {
     name: 'report-sent',
     inventory: ['S028'],
+    only: ['member'],
     path: () => `/g/${pageHandle(business)}`,
     act: async (page) => {
       await openReportSheet(page)
