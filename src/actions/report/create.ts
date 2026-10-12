@@ -24,7 +24,7 @@ import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
-import { textOperator } from '@/lib/notify/operator-sms'
+import { alertOperator } from '@/lib/notify/operator-alert'
 import { assessAfterReport } from '@/lib/moderation/after-report'
 import { hiddenNoticeMessage, courtesyNoticeMessage } from '@/lib/reports/notices'
 import { withTransaction } from '../_lib/db'
@@ -513,7 +513,7 @@ export const reportCreate = defineHandler(
     // Names the reason and where to look; never the reporter or what they wrote.
     if (textAfterCommit) {
       const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.socialus.org'
-      await textOperator(
+      await alertOperator(
         `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? (input.subjectKind === 'post' ? ' and hid a Post' : ' and hid a Page photo') : ''}. Review: ${site}/admin/reports`,
       )
     }

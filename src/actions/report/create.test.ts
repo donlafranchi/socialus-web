@@ -37,7 +37,7 @@ vi.mock('../_lib/db', () => ({
 }))
 vi.mock('../_lib/event-log', () => ({ appendEvent }))
 const { textOperator } = vi.hoisted(() => ({ textOperator: vi.fn(async () => ({ sent: true })) }))
-vi.mock('@/lib/notify/operator-sms', () => ({ textOperator }))
+vi.mock('@/lib/notify/operator-alert', () => ({ alertOperator: textOperator }))
 const { assessAfterReport } = vi.hoisted(() => ({ assessAfterReport: vi.fn() }))
 vi.mock('@/lib/moderation/after-report', () => ({ assessAfterReport }))
 
