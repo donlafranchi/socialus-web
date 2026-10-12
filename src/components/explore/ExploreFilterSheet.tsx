@@ -19,7 +19,7 @@
 // Two groups left. Distance and Sort went with T156: see
 // `@/lib/browse/filters` for why each one could not stay honest.
 
-import { hashtag } from '@/components/tags/TagChips'
+import { isReservedWord } from '@/lib/browse/box-text'
 import { useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import {
@@ -51,7 +51,8 @@ export function ExploreFilterSheet({
   // Options come from the current result set, so a search can drop a tag that
   // is still selected. Union the selection back in, or the sheet would show a
   // filter the member cannot turn off from inside the sheet.
-  const tagOptions = Array.from(new Set([...tags, ...draft.tags])).sort()
+  // A tag with exactly a schedule phrase is the box's own word, so it is not offered (box-text).
+  const tagOptions = Array.from(new Set([...tags, ...draft.tags])).filter((t) => !isReservedWord(t)).sort()
   const groupId = useId()
 
   // Re-seed from the committed value on each open, which is what makes a
@@ -124,9 +125,9 @@ export function ExploreFilterSheet({
                   key={tag}
                   type="checkbox"
                   name={`${groupId}-tag-${tag}`}
-                  /* The tag IS the label. Creators type their own — nothing
-                     seeds a display name to look up (T159, #64). */
-                  label={hashtag(tag)}
+                  /* The tag IS the label, as a plain word — the same word the box
+                     will say (#619, no hashtags). Creators type their own (T159, #64). */
+                  label={tag}
                   checked={draft.tags.includes(tag)}
                   onChange={() => setDraft((d) => toggleTag(d, tag))}
                 />
