@@ -3,6 +3,8 @@
 // shown to him; software refusing the flip is the production step.
 
 import type { Readiness, Reading, Status } from '@/lib/moderation/readiness'
+import { AiKeyCheck } from './AiKeyCheck'
+import { checkAiKeyAction } from './key-check-action'
 
 const WORD: Record<Status, string> = { green: 'Met', amber: 'Close', red: 'Not met' }
 const DOT: Record<Status, string> = { green: 'bg-green-600', amber: 'bg-amber-500', red: 'bg-red-600' }
@@ -57,6 +59,7 @@ export function AiReadiness({ readiness: r }: { readiness: Readiness }) {
           </p>
         </li>
       </ul>
+      <AiKeyCheck check={checkAiKeyAction} />
       <p className="mt-2 text-caption text-[var(--color-fg-muted)]">
         The switch to live is yours to flip. Nothing stops the switch yet; these are the numbers to check first.
       </p>
