@@ -13,6 +13,7 @@ vi.mock('next/link', () => ({
   default: ({ href, prefetch, children, ...rest }: { href: string; prefetch?: boolean; children: React.ReactNode }) => (
     <a href={href} data-prefetch={prefetch === undefined ? 'default' : String(prefetch)} {...rest}>{children}</a>
   ),
+  useLinkStatus: () => ({ pending: false }),
 }))
 
 const SAC = { id: 'm1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', isOpen: true }
