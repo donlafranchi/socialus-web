@@ -74,7 +74,12 @@ function describe(row: MakerRow): string {
   return `${row.name}: ${lower}, in ${row.area.trim()}. ${CLAIM_LINE}`
 }
 
+/** #786 — volunteer groups, nonprofits and clubs: they gather people, they don't sell. Before "food" so a food bank lands here. */
+export const COMMUNITY = 'Community & volunteer'
+const COMMUNITY_CATEGORY = /volunteer|nonprofit|food bank|pantry|mutual aid|meal program|community|club|society|library|league|rescue|shelter|association|collective/i
+
 const POOL_BY_CATEGORY: [RegExp, string][] = [
+  [COMMUNITY_CATEGORY, COMMUNITY],
   [/farm stay|agritourism/i, 'Farm stay & agritourism'],
   [/ranch/i, 'Ranch'],
   [/^farm/i, 'Farm'],
@@ -137,7 +142,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       description: describe(row),
       publicInfoUrl: url,
       ...placeOf(row.area),
-      purpose: /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
+      purpose: poolFor(row.category) === COMMUNITY ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
       pool: poolFor(row.category),
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),

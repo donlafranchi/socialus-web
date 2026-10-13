@@ -58,6 +58,15 @@ describe('planMakers (#517)', () => {
     expect(planMakers([r({ category: 'Farm' })]).listed[0]!.purpose).toBe('sell')
     expect(planMakers([r({ category: 'Cakes & bakery' })]).listed[0]!.purpose).toBe('sell')
   })
+  it('a food bank, volunteer group, club or nonprofit gathers people and gets the community pool, never a shop (#786)', () => {
+    for (const category of ['Food bank (nonprofit)', 'Meal program (nonprofit)', 'Volunteer building and ReStore (nonprofit)', 'Service club', 'Community garden', 'Historical society', 'Animal rescue', 'Friends of the library']) {
+      const [x] = planMakers([r({ category })]).listed
+      expect([x!.pool, x!.purpose], category).toEqual(['Community & volunteer', 'gather'])
+    }
+    for (const category of ['Food & drink', 'Farm', 'Ranch', 'Cakes & bakery', 'Repair & trades', 'Art & print', 'Goods & crafts']) {
+      expect(planMakers([r({ category })]).listed[0]!.pool, category).not.toBe('Community & volunteer')
+    }
+  })
   it('puts a Page in its own city, defaulting to Sacramento', () => {
     expect(planMakers([r({ area: 'West Sacramento' })]).listed[0]!.city).toBe('West Sacramento')
     expect(planMakers([r({ area: 'Granite Bay' })]).listed[0]!.city).toBe('Granite Bay')
