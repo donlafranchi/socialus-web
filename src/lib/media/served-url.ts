@@ -20,3 +20,6 @@ export function isServedViaSite(url: string | null | undefined, storageUrl: stri
     return false
   }
 }
+
+/** The switch, read here so the upload module reads no environment at all (F080 guard). */
+export const mediaViaSite = () => process.env.NEXT_PUBLIC_MEDIA_VIA_SITE === '1'

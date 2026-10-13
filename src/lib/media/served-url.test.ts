@@ -54,6 +54,8 @@ describe('the upload goes through it', () => {
   it('uploadImage hands the stored address to servedMediaUrl, switched by NEXT_PUBLIC_MEDIA_VIA_SITE', () => {
     const src = readFileSync(resolve(__dirname, 'upload-image.ts'), 'utf8')
     expect(src).toMatch(/servedMediaUrl\(data\.publicUrl/)
-    expect(src).toMatch(/NEXT_PUBLIC_MEDIA_VIA_SITE === '1'/)
+    expect(src).toMatch(/enabled: mediaViaSite\(\)/)
+    expect(src).not.toMatch(/process\.env/)
+    expect(readFileSync(resolve(__dirname, 'served-url.ts'), 'utf8')).toMatch(/NEXT_PUBLIC_MEDIA_VIA_SITE === '1'/)
   })
 })
