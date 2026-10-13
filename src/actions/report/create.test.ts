@@ -163,6 +163,7 @@ function installQueryRouter(
     if (/update public\.page_posts/i.test(sql)) return { rows: [{ id: POST_ID }] }
     if (/from public\.report_decisions/i.test(sql)) return { rows: dismissedAt.map((d) => ({ decided_at: d })) }
     if (/insert into public\.member_notices/i.test(sql)) return { rows: [] }
+    if (/insert into public\.legal_holds/i.test(sql)) return { rows: [] }
     if (/update public\.groups/i.test(sql) && /photo_hidden_at/i.test(sql)) {
       return { rows: [{ id: GROUP_ID }] }
     }
@@ -876,5 +877,46 @@ describe('report.create — courtesy notice first (#626)', () => {
     installQueryRouter({ photoHiddenAt: NOW })
     await report('spam')
     expect(callsMatching(/insert into public\.member_notices/i)).toHaveLength(0)
+  })
+})
+
+// #648 / F102 criterion 14 — apparent child-safety content is preserved, not just hidden: the law requires keeping
+// it, in a place with limited access, for a year after it is reported (18 U.S.C. 2258A).
+describe('report.create — child-safety content is preserved (#648)', () => {
+  const holds = () => callsMatching(/insert into public\.legal_holds/i)
+
+  it('a Sensitive content report on a Page photo writes one hold: the photo address, the poster, the Page, and where it came from', async () => {
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'x' })
+    expect(holds()).toHaveLength(1)
+    const [sql, params] = holds()[0]!
+    expect(params).toEqual(expect.arrayContaining(['group', GROUP_ID, FOUNDER_ID, PHOTO]))
+    expect(sql).toMatch(/content_origins/)
+    expect(sql).toMatch(/on conflict/i)
+    expect(sql).toMatch(/interval '1 year'/)
+  })
+
+  it('a reported Post keeps its words as they were', async () => {
+    installQueryRouter()
+    await reportCreate(ctx(), { subjectKind: 'post', category: 'sensitive_content', subjectId: POST_ID, body: 'x' })
+    expect(holds()).toHaveLength(1)
+    expect(holds()[0]![1]).toEqual(expect.arrayContaining(['post', POST_ID, 'A post body.']))
+  })
+
+  it('is written even when the report is the owner-visible kind of second report: it never waits on the limits', async () => {
+    installQueryRouter({ priorReportsBySameMember: 1, openReportsByReporter: 6 })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'x' })
+    expect(holds()).toHaveLength(1)
+  })
+
+  it('no other reason holds anything, and a builder\'s report on a real Page holds nothing', async () => {
+    for (const category of ['spam', 'other', 'threat_of_harm'] as const) {
+      installQueryRouter()
+      await reportCreate(ctx(), { subjectKind: 'group', category, subjectId: GROUP_ID, body: 'x' })
+      expect(holds(), category).toHaveLength(0)
+    }
+    installQueryRouter({ builderOnReal: true })
+    await reportCreate(ctx(), { subjectKind: 'group', category: 'sensitive_content', subjectId: GROUP_ID, body: 'x' })
+    expect(holds()).toHaveLength(0)
   })
 })

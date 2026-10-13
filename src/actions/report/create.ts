@@ -133,6 +133,8 @@ interface Subject {
   hideBar: string | number
   builderOnReal: boolean
   reporterIsBuilder: boolean
+  /** What a legal hold keeps if this turns out to be child-safety content (#648). */
+  preserve: { mediaUrl: string | null; text: string | null }
   /** Something there to hide: a Page with a photo, any Post. */
   hideable: boolean
   alreadyHidden: boolean
@@ -174,6 +176,7 @@ function imageSubject(
     hideBar: r.hide_bar,
     builderOnReal: r.builder_on_real,
     reporterIsBuilder: r.reporter_is_builder,
+    preserve: { mediaUrl: r.photo_url, text: null },
     hideable: r.photo_url !== null,
     alreadyHidden: r.photo_hidden_at !== null,
     // Locked while the hide-locked url = the image's url; replacing the image
@@ -256,6 +259,7 @@ async function loadSubject(
   const res = await client.query<{
     group_id: string
     body: string
+    photo_url: string | null
     hidden_at: Date | null
     hide_locked_body: string | null
     builder_on_real: boolean
@@ -264,7 +268,7 @@ async function loadSubject(
     name: string
     hide_bar: string | number
   }>(
-    `select p.group_id, p.body, p.hidden_at, p.hide_locked_body,
+    `select p.group_id, p.body, p.photo_url, p.hidden_at, p.hide_locked_body,
             public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
             public.is_builder($2) as reporter_is_builder,
             g.founder_member_id, g.name,
@@ -283,6 +287,7 @@ async function loadSubject(
     hideBar: p.hide_bar,
     builderOnReal: p.builder_on_real,
     reporterIsBuilder: p.reporter_is_builder,
+    preserve: { mediaUrl: p.photo_url, text: p.body },
     hideable: true,
     alreadyHidden: p.hidden_at !== null,
     locked: p.hide_locked_body !== null && p.hide_locked_body === p.body,
@@ -403,6 +408,25 @@ export const reportCreate = defineHandler(
         event_kind: 'group.reported',
         payload: { report_id: reportId, subject_kind: input.subjectKind },
       })
+
+      // #648 — apparent child-safety content (Sensitive content) is kept, not only hidden: a snapshot of the
+      // words and the photo address, the poster, and where it came from, for a year. Whatever the limits say,
+      // and not for a builder's test report on a real Page.
+      if (input.category === 'sensitive_content' && !subject.reporterIsBuilder && !subject.builderOnReal) {
+        await client.query(
+          `insert into public.legal_holds
+             (subject_kind, subject_id, group_id, poster_member_id, media_url, body, origin_ip, origin_at, first_report_id, held_at, retain_until)
+           select $1::text, $2::uuid, $3::uuid, $4::uuid, $5::text, $6::text, o.ip, o.created_at, $7::uuid, $8::timestamptz, $8::timestamptz + interval '1 year'
+             from (select 1) one
+             left join lateral (
+               select ip, created_at from public.content_origins
+                where (kind = 'post' and ref = $2::text) or (kind = 'upload' and ref = $5)
+                order by created_at desc limit 1) o on true
+           on conflict (subject_kind, subject_id) do update
+             set retain_until = greatest(public.legal_holds.retain_until, excluded.retain_until)`,
+          [input.subjectKind, input.subjectId, subject.groupId, subject.founderId, subject.preserve.mediaUrl, subject.preserve.text, reportId, ctx.now()],
+        )
+      }
 
       // The limits. Every one of them stores the report and queues it for the
       // operator; what they withhold is only the automatic hide.
