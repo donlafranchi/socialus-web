@@ -34,6 +34,7 @@ function install({ hideBar = 0, othersBefore = 0, openByReporter = 0 }: { hideBa
     if (/from public\.report_decisions/i.test(sql)) return { rows: [] }
     if (/update public\.groups/i.test(sql)) return { rows: [{ id: GROUP }] }
     if (/insert into public\.member_notices/i.test(sql)) return { rows: [] }
+    if (/insert into public\.legal_holds/i.test(sql)) return { rows: [] }
     throw new Error(`unexpected query in test: ${sql}`)
   })
 }

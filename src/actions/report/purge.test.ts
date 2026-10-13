@@ -47,6 +47,15 @@ describe('reportPurgeTarget', () => {
     query.mockResolvedValueOnce({ rows: [], rowCount: 0 })
     await expect(reportPurgeTarget(operator, { groupId: GROUP })).rejects.toBeInstanceOf(NotFoundError)
   })
+
+  // #648 — child-safety content must be kept for a year after it is reported (18 U.S.C. 2258A).
+  it('a photo held as child-safety evidence cannot be deleted until the hold ends, and the operator is not even registered', async () => {
+    query.mockResolvedValueOnce({ rows: [{ ...removed, held: true }], rowCount: 1 })
+    await expect(reportPurgeTarget(operator, { groupId: GROUP })).rejects.toThrow(/held|kept/i)
+    expect(query).toHaveBeenCalledTimes(1)
+    expect(query.mock.calls[0]![0]).toMatch(/legal_holds/)
+    expect(query.mock.calls[0]![0]).toMatch(/retain_until > now\(\)/)
+  })
 })
 
 describe('reportPurge', () => {
@@ -66,6 +75,12 @@ describe('reportPurge', () => {
     expect(query.mock.calls[1]![1]).toEqual([GROUP, 'op-1', 'illegal_content', null, 'm1/a.webp', new Date('2026-10-07T12:00:00Z')])
     expect(query.mock.calls[2]![0]).toMatch(/photo_url = null/)
     expect(query.mock.calls[2]![0]).toMatch(/photo_purged_at/)
+  })
+
+  it('refuses a held photo here too, so nothing is recorded as purged', async () => {
+    query.mockResolvedValueOnce({ rows: [{ ...removed, held: true }], rowCount: 1 })
+    await expect(reportPurge(operator, input)).rejects.toThrow(/held|kept/i)
+    expect(query).toHaveBeenCalledTimes(1)
   })
 
   it('refuses when the object is not the one on the Page', async () => {

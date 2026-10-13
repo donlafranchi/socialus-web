@@ -121,8 +121,9 @@ describe('F102.5 — the reporter counters are the report path\'s alone', () => 
 
 describe('F102.13 — the address and time of every write are the report path\'s alone', () => {
   // [guards F102.13 partial: only the recording handler names the origins table; nothing reads it for a feature]
-  it('content_origins is named by one handler and by no surface or feature', () => {
-    expect(naming(/content_origins/)).toEqual(['src/actions/origin/record.ts'])
+  it('content_origins is named by the recorder and the report handler, and by no surface or feature', () => {
+    // The recorder, and the report handler that keeps the address with a child-safety hold (#648): both are the report path.
+    expect(naming(/content_origins/)).toEqual(['src/actions/origin/record.ts', 'src/actions/report/create.ts'])
     expect(naming(/recordOrigin\(/).filter((p) => p.startsWith('src/components/'))).toEqual([])
   })
 })
