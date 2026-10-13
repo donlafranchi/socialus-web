@@ -485,6 +485,8 @@ describe('#648 — a held row records the NCMEC report number', () => {
     show(groupBySubject([report('n', 'n', { category: 'spam' })]))
     fireEvent.click(screen.getByTestId('review-details'))
     expect(screen.queryByTestId('hold')).toBeNull()
+  })
+})
 
 // #641 — a severity 1 photo says plainly whether Cloudflare's scanning has seen it. Cloudflare gives no per-image
 // result: a photo served from our own address is scanned and a match is blocked and emailed; one still on the storage
