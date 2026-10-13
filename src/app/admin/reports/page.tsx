@@ -18,7 +18,7 @@ import { fetchAiReadiness } from '@/lib/admin/ai-readiness'
 import { groupBySubject } from '@/lib/admin/review-subjects'
 import { ReviewQueue } from './ReviewQueue'
 import { AiReadiness } from './AiReadiness'
-import { decideReportAction, reverseDecisionAction } from './actions'
+import { decideReportAction, recordNcmecAction, reverseDecisionAction } from './actions'
 
 // The queue is a live fact about withheld content. Never prerendered, never
 // cached — a stale queue means reviewing something already decided.
@@ -54,7 +54,7 @@ export default async function AdminReportsPage() {
         </a>
       </p>
       {readiness && <AiReadiness readiness={readiness} />}
-      <ReviewQueue subjects={groupBySubject(queue, { live: mode === 'live' })} summary={summary} onDecide={decideReportAction} onReverse={reverseDecisionAction} />
+      <ReviewQueue subjects={groupBySubject(queue, { live: mode === 'live' })} summary={summary} onDecide={decideReportAction} onReverse={reverseDecisionAction} onRecordNcmec={recordNcmecAction} />
     </main>
   )
 }

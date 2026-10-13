@@ -39,6 +39,8 @@ export interface ReviewSubject {
   answer: QueuedReport['answer']
   /** F102 criterion 8 — a flag for the operator, never acted on automatically. */
   coordinated: boolean
+  /** #648 — kept as evidence, and the NCMEC report number once recorded; the report to record it against. */
+  hold: { retainUntil: Date; ncmecReportNumber: string | null; ncmecReportedAt: Date | null; reportId: string } | null
   /** What was reported, for the excerpt. */
   contentText: string | null
   hiddenAt: Date | null
@@ -65,6 +67,7 @@ export function groupBySubject(queue: QueuedReport[], { live = false }: { live?:
       contentText: r.contentText ?? null,
       reasons: [],
       coordinated: false,
+      hold: null,
       answer: null,
       ai: null,
       removeReason: 'not_suitable' as ReasonCode,
@@ -90,6 +93,8 @@ export function groupBySubject(queue: QueuedReport[], { live = false }: { live?:
     s.answer = s.reports.find((r) => r.answer)?.answer ?? null
     s.coordinated = s.reports.some((r) => r.posterId && flagged.has(r.posterId))
     s.ai = [...s.reports].reverse().find((r) => r.ai)?.ai ?? null
+    const held = s.reports.find((r) => r.hold)
+    s.hold = held?.hold ? { ...held.hold, reportId: held.reportId } : null
     s.severity = severityOf(s, live)
     s.reasons = tally(s)
     s.removeReason = removeReasonFor(topCategory(s))

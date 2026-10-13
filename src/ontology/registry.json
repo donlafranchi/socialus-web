@@ -353,6 +353,7 @@
     "report.answer",
     "report.create",
     "report.decide",
+    "report.ncmec_record",
     "report.purge",
     "report.purge_target",
     "report.reverse",

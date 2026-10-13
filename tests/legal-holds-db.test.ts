@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { reportCreate } from '@/actions'
+import { reportCreate, reportNcmecRecord } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
 
 // #648 / F102 criterion 14 — a Sensitive content report on a Post keeps the words, the poster and where it came
@@ -107,5 +107,22 @@ describe.skipIf(!RUNNABLE)('#648 — child-safety content is preserved', () => {
     await client.query(`select public.purge_content_origins()`)
     const left = await client.query(`select ref from public.content_origins where member_id = $1`, [OWNER])
     expect(left.rows.map((r) => r.ref)).toEqual([POST])
+  })
+
+  it('the operator records the number NCMEC gave, who and when, and the year restarts from that day', async () => {
+    const report = (await client.query(`select id from public.reports where subject_id = $1 limit 1`, [POST])).rows[0].id
+    const before = process.env.OPERATOR_MEMBER_ID
+    process.env.OPERATOR_MEMBER_ID = REPORTER
+    try {
+      await expect(reportNcmecRecord(ctx(OWNER), { reportId: report, reportNumber: '555' })).rejects.toThrow(/not permitted/i)
+      await reportNcmecRecord(ctx(REPORTER), { reportId: report, reportNumber: ' 987654321 ' })
+    } finally {
+      if (before === undefined) delete process.env.OPERATOR_MEMBER_ID
+      else process.env.OPERATOR_MEMBER_ID = before
+    }
+    const { rows } = await client.query(`select * from public.legal_holds where subject_id = $1`, [POST])
+    expect(rows[0]).toMatchObject({ ncmec_report_number: '987654321', ncmec_reported_by: REPORTER })
+    expect(new Date(rows[0].ncmec_reported_at).getTime()).toBeGreaterThan(Date.now() - 60_000)
+    expect((new Date(rows[0].retain_until).getTime() - Date.now()) / 86_400_000).toBeGreaterThan(364)
   })
 })

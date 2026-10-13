@@ -464,3 +464,26 @@ describe('F101 criterion 12 — the detail shows the full history', () => {
     expect(screen.getByTestId('reverse-d1')).toBeInTheDocument()
   })
 })
+
+// #648 part 2 — a held row's detail carries the keep-date and a place to record NCMEC's report number.
+describe('#648 — a held row records the NCMEC report number', () => {
+  const held = (over: Partial<QueuedReport> = {}) =>
+    groupBySubject([report('h', 'h', { category: 'sensitive_content', hold: { retainUntil: new Date('2027-10-13T12:00:00Z'), ncmecReportNumber: null, ncmecReportedAt: null }, ...over })])
+
+  it('opens to the keep-date and the number field, and sends the number against the report', async () => {
+    vi.useRealTimers()
+    const onRecordNcmec = vi.fn(async () => {})
+    render(<ReviewQueue subjects={held()} onDecide={onDecide} onReverse={onReverse} onRecordNcmec={onRecordNcmec} />)
+    fireEvent.click(screen.getByTestId('review-details'))
+    expect(screen.getByTestId('hold-kept')).toHaveTextContent(/Oct 13, 2027/)
+    fireEvent.change(screen.getByLabelText(/NCMEC report number/i), { target: { value: '77' } })
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
+    await vi.waitFor(() => expect(onRecordNcmec).toHaveBeenCalledWith({ reportId: 'h', reportNumber: '77' }))
+  })
+
+  it('a row that is not held shows no such section', () => {
+    show(groupBySubject([report('n', 'n', { category: 'spam' })]))
+    fireEvent.click(screen.getByTestId('review-details'))
+    expect(screen.queryByTestId('hold')).toBeNull()
+  })
+})
