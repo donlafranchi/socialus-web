@@ -67,3 +67,22 @@ describe('#626 — the queue holds no courtesy-only report', () => {
     expect(sql).toMatch(/json_build_object\('kind', a\.kind/)
   })
 })
+
+// F101.12 (#634) — every AI read of a report comes with the queue, newest first, not only the latest.
+describe('F101.12 — every earlier AI read', () => {
+  it('reads all assessments of the reports in the queue and attaches them to each report', async () => {
+    const row = { report_id: 'r1', body: 'x', category: 'spam', reported_at: new Date(), hidden_at: null, removed_at: null, group_id: 'g1', group_name: 'B', group_slug: 'b', photo_url: null, owner_display_name: null, owner_handle: null, subject_kind: 'group', subject_id: 'g1' }
+    const a1 = { report_id: 'r1', created_at: new Date('2026-10-03'), model: 'm2', outcome: 'remove', severity: 2, confidence: '0.9', reason: 'later', skipped_reason: null }
+    const a0 = { report_id: 'r1', created_at: new Date('2026-10-02'), model: 'm1', outcome: 'approve', severity: 4, confidence: '0.6', reason: 'earlier', skipped_reason: null }
+    query.mockImplementation((async (sql: string) => {
+      if (/from public\.report_assessments/i.test(sql) && /any\(\$1/i.test(sql)) return { rows: [a1, a0] }
+      if (/report_decisions/i.test(sql)) return { rows: [] }
+      return { rows: [row] }
+    }) as never)
+    const [r] = await fetchReviewQueue()
+    expect(r!.assessments!.map((a) => a.reason)).toEqual(['later', 'earlier'])
+    expect(r!.assessments![0]).toMatchObject({ model: 'm2', outcome: 'remove', severity: 2, confidence: 0.9 })
+    const sql = (query.mock.calls as unknown as [string][]).map(([q]) => q).find((q) => /from public\.report_assessments/i.test(q) && /any\(\$1/i.test(q))!
+    expect(sql).toMatch(/order by created_at desc/i)
+  })
+})

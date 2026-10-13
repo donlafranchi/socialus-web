@@ -184,7 +184,7 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       await expect(reportAnswer(ctx(OWNER), { noticeId: nid })).rejects.toThrow(/answered already/)
       await expect(reportAnswer(ctx(READER), { noticeId: nid })).rejects.toThrow()
       const row = (await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.reportId === reportId)!
-      expect(row.answer).toEqual({ kind: 'mistake', reason: null, note: null })
+      expect(row.answer).toEqual({ kind: 'mistake', reason: null, note: null, at: expect.anything() })
       const week = await fetchWeekSummary()
       expect(week.answers).toBeGreaterThanOrEqual(1)
       expect(typeof week.coolDowns).toBe('number')
