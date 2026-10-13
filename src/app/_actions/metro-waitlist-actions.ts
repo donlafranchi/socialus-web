@@ -39,14 +39,12 @@ export interface JoinMetroWaitlistResult {
   message: string
 }
 
+// No counters: a read of the live count here is a surface that can disagree
+// with the cached figure (F076 criteria 8 and 14). tests/f076-never-rules.test.ts.
 interface MetroRow {
   id: string
   name: string
   is_open: boolean
-  creator_count: number
-  patron_count: number
-  creator_threshold: number
-  patron_threshold: number
 }
 
 export async function joinMetroWaitlistAction(input: {
@@ -61,7 +59,7 @@ export async function joinMetroWaitlistAction(input: {
     const { data, error } = await supabase
       .from('metro_polygons')
       .select(
-        'id, name, is_open, creator_count, patron_count, creator_threshold, patron_threshold',
+        'id, name, is_open',
       )
       .eq('id', input.metroId)
       .maybeSingle()
