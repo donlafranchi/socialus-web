@@ -80,6 +80,24 @@ afterAll(async () => {
 })
 
 describe.skipIf(!RUNNABLE)('#486 — report assessments', () => {
+  // [guards F100.5]
+  it('stores the model, prompt version, category, severity, confidence, outcome, reason, latency and time, and no client has a policy to read them', async () => {
+    const cols = (await client.query(`select column_name from information_schema.columns where table_schema = 'public' and table_name = 'report_assessments'`)).rows.map((r) => r.column_name as string)
+    for (const c of ['model', 'prompt_version', 'category', 'severity', 'confidence', 'outcome', 'reason', 'latency_ms', 'created_at']) expect(cols, c).toContain(c)
+    // A stored read carries every one of them.
+    const row = (await client.query(
+      `select model, prompt_version, category, severity, confidence, outcome, reason, latency_ms, created_at from public.report_assessments where report_id = $1 and model = 'm2'`,
+      [REPORT_A],
+    )).rows[0]
+    expect(row).toMatchObject({ model: 'm2', prompt_version: 'v', category: 'spam', severity: 4, outcome: 'remove', reason: 'r' })
+    expect(Number(row.confidence)).toBeCloseTo(0.9)
+    expect(row.created_at).toBeInstanceOf(Date)
+    // Row-level security on, and zero policies: only the server connection reads them.
+    const rls = (await client.query(`select relrowsecurity from pg_class where oid = 'public.report_assessments'::regclass`)).rows[0]
+    expect(rls.relrowsecurity).toBe(true)
+    expect((await client.query(`select count(*)::int as n from pg_policies where schemaname = 'public' and tablename = 'report_assessments'`)).rows[0].n).toBe(0)
+  })
+
   it('a signed-in member reads no assessment', async () => {
     expect(await as(MEMBER, `select * from public.report_assessments`)).toHaveLength(0)
   })
