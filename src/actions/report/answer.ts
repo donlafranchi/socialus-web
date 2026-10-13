@@ -9,8 +9,9 @@ import { defineHandler } from '../_lib/handler'
 import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import type { ActionContext } from '../_lib/context'
+import { ANSWER_WINDOW_DAYS, ANSWER_WINDOW_MS } from '../../lib/reports/answer-window'
 
-export const ANSWER_WINDOW_DAYS = 14
+export { ANSWER_WINDOW_DAYS }
 
 export const reportAnswerInput = z.object({
   noticeId: z.string().uuid(),
@@ -39,7 +40,7 @@ export const reportAnswer = defineHandler(
       if (!notice) throw new NotFoundError(`report.answer: notice ${input.noticeId} not found`)
       if (notice.member_id !== memberId) throw new AuthorizationError('report.answer: not yours to answer')
       if (notice.answered) throw new ValidationError('report.answer: this one has been answered already')
-      if (ctx.now().getTime() - new Date(notice.created_at).getTime() > ANSWER_WINDOW_DAYS * 86_400_000) {
+      if (ctx.now().getTime() - new Date(notice.created_at).getTime() > ANSWER_WINDOW_MS) {
         throw new ValidationError('report.answer: this one has closed')
       }
 

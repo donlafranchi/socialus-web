@@ -340,6 +340,77 @@ describe('F102.12 — Restored by AI', () => {
 })
 
 // F101.12 (#634) — the detail lists the subject's whole history, newest first, with Undo on any decision.
+describe('F102 criterion 11 — the Friday summary', () => {
+  // Friday 2026-10-16, 9am in Sacramento; Wednesday 2026-10-14.
+  const FRIDAY = new Date('2026-10-16T16:00:00Z')
+  const WEDNESDAY = new Date('2026-10-14T16:00:00Z')
+  const week = [report('r1', 'a', { category: 'sensitive_content', hiddenAt: new Date('2026-10-15T00:00:00Z') }), report('r2', 'b', { category: 'harassment', hiddenAt: new Date('2026-10-15T00:00:00Z') }), report('r3', 'c', { category: 'spam', hiddenAt: new Date('2026-10-15T00:00:00Z') })]
+
+  // [guards F102.11]
+  it('on Friday morning says what is waiting by severity, how many answers came in, and how many reporters are cooling down', () => {
+    vi.setSystemTime(FRIDAY)
+    show(groupBySubject(week), { answers: 3, coolDowns: 1 })
+    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: 3 waiting (1 severity 1, 1 severity 2, 1 severity 4) · 3 answers from posters · 1 reporter cooling down')
+  })
+
+  it('is plain when there is nothing to say', () => {
+    vi.setSystemTime(FRIDAY)
+    show([], { answers: 0, coolDowns: 0 })
+    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: nothing waiting · no answers from posters · no cool-downs')
+  })
+
+  it('is one summary on Friday and nothing asking for attention on any other weekday', () => {
+    for (const d of ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-17', '2026-10-18']) {
+      vi.setSystemTime(new Date(`${d}T16:00:00Z`))
+      show(groupBySubject(week), { answers: 3, coolDowns: 1 })
+      expect(screen.queryByTestId('review-summary'), d).toBeNull()
+      cleanup()
+    }
+  })
+
+  it('is absent when no summary is given', () => {
+    vi.setSystemTime(FRIDAY)
+    show(groupBySubject(week))
+    expect(screen.queryByTestId('review-summary')).toBeNull()
+  })
+
+  it('midweek the page still shows severity 1 waiting, the one thing that asks for attention', () => {
+    vi.setSystemTime(WEDNESDAY)
+    show(groupBySubject(week), { answers: 3, coolDowns: 1 })
+    expect(screen.getByTestId('review-waiting')).toHaveTextContent('1 severity 1')
+  })
+})
+
+describe('F102 criterion 4 — a lapsed unanswered hide leaves the batch unless it is severity 1', () => {
+  const hidden = (id: string, category: QueuedReport['category'], daysAgo: number, over: Partial<QueuedReport> = {}) =>
+    report(id, id, { category, hiddenAt: new Date(Date.UTC(2026, 9, 20, 16) - daysAgo * 86_400_000), ...over })
+  beforeEach(() => vi.setSystemTime(new Date('2026-10-20T16:00:00Z')))
+
+  // [guards F102.4]
+  it('after 14 days with no answer a severity 2 to 4 row leaves the batch and stays hidden; severity 1, an answered row and a younger one stay', () => {
+    show(
+      groupBySubject([
+        hidden('lapsed-spam', 'spam', 15),
+        hidden('lapsed-harass', 'harassment', 20),
+        hidden('lapsed-child', 'sensitive_content', 30),
+        hidden('answered', 'spam', 20, { answer: { kind: 'mistake', reason: null, note: null } }),
+        hidden('young', 'spam', 13),
+      ]),
+    )
+    expect(screen.getAllByTestId('review-row').map((r) => r.getAttribute('data-subject')).sort()).toEqual(['answered', 'lapsed-child', 'young'])
+    expect(screen.getByTestId('review-waiting')).toHaveTextContent('3 waiting')
+    // It closed itself: nothing was decided, and it is still hidden, one filter away.
+    expect(onDecide).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByTestId('review-filter'), { target: { value: 'all' } })
+    expect(screen.getAllByTestId('review-row')).toHaveLength(5)
+  })
+
+  it('exactly 14 days is the window: a day short stays, the 14th day lapses', () => {
+    show(groupBySubject([hidden('d13', 'spam', 13.9), hidden('d14', 'spam', 14)]))
+    expect(screen.getAllByTestId('review-row').map((r) => r.getAttribute('data-subject'))).toEqual(['d13'])
+  })
+})
+
 describe('F101 criterion 12 — the detail shows the full history', () => {
   const read = (d: number, outcome: 'approve' | 'remove', reason: string) => ({ at: day(d), model: 'claude-haiku-4-5-20251001', outcome, severity: 2, confidence: 0.8, reason, skipped: null })
   const open = (subjects: ReviewSubject[]) => {

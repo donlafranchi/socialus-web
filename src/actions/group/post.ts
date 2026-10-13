@@ -292,8 +292,14 @@ export const groupPostEdit = defineHandler(
         hidden_at: Date | null
         removed_at: Date | null
         repost_used: boolean
+        severity_one: boolean
       }>(
-        `select id, group_id, hidden_at, removed_at, repost_used from public.page_posts
+        // severity_one: a report on this post was filed as Sensitive content (F102.2, F102.14).
+        `select id, group_id, hidden_at, removed_at, repost_used,
+                exists (select 1 from public.reports r
+                         where r.subject_kind in ('post', 'post_photo') and r.subject_id = page_posts.id
+                           and r.category = 'sensitive_content' and r.removed_at is null) as severity_one
+           from public.page_posts
           where id = $1 and dissolved_at is null`,
         [input.postId],
       )
@@ -350,8 +356,9 @@ export const groupPostEdit = defineHandler(
 
       // F102 criterion 2 — fix and repost. Editing a post a report hid shows it
       // again at once, once; its reports stay on the row for review. Never after
-      // a person removed it, and a second hide offers no second repost.
-      const reposted = post.hidden_at !== null && post.removed_at === null && !post.repost_used
+      // a person removed it, never for severity 1, and a second hide offers no second repost.
+      // Never for severity 1: the most serious kind is a person's to decide and never goes back to the poster (criterion 14).
+      const reposted = post.hidden_at !== null && post.removed_at === null && !post.repost_used && !post.severity_one
       if (reposted) {
         await client.query(
           `update public.page_posts
