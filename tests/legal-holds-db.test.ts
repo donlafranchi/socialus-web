@@ -3,6 +3,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { reportCreate, reportNcmecRecord } from '@/actions'
+import { fetchReviewQueue } from '@/lib/admin/reports-queue'
 import type { ActionContext } from '@/actions/_lib/context'
 
 // #648 / F102 criterion 14 — a Sensitive content report on a Post keeps the words, the poster and where it came
@@ -124,5 +125,12 @@ describe.skipIf(!RUNNABLE)('#648 — child-safety content is preserved', () => {
     expect(rows[0]).toMatchObject({ ncmec_report_number: '987654321', ncmec_reported_by: REPORTER })
     expect(new Date(rows[0].ncmec_reported_at).getTime()).toBeGreaterThan(Date.now() - 60_000)
     expect((new Date(rows[0].retain_until).getTime() - Date.now()) / 86_400_000).toBeGreaterThan(364)
+  })
+
+  it('the operator\'s queue carries the hold and the recorded number on the row', async () => {
+    const queue = await fetchReviewQueue(200, { includeBuilders: true })
+    const row = queue.find((r) => r.subjectId === POST)
+    expect(row?.hold).toMatchObject({ ncmecReportNumber: '987654321' })
+    expect(row?.hold?.retainUntil.getTime()).toBeGreaterThan(Date.now() + 364 * 86_400_000)
   })
 })
