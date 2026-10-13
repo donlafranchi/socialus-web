@@ -43,6 +43,8 @@ export interface MapPageRow {
   category: string | null
   photo_url: string | null
   photo_hidden_at: string | null
+  /** Removal clears the hide, so a removed photo is only known by this. */
+  photo_removed_at: string | null
   photo_hide_locked_url: string | null
   anchor: { label: string | null; geography: string | null } | null
 }
@@ -104,6 +106,7 @@ export function rowsToMapPages(rows: MapPageRow[]): MapPage[] {
       photoUrl: visiblePhotoUrl({
         photo_url: r.photo_url,
         photo_hidden_at: r.photo_hidden_at,
+        photo_removed_at: r.photo_removed_at,
       }),
       locationLabel: r.anchor.label,
       longitude: lngLat.longitude,
@@ -118,7 +121,7 @@ export function rowsToMapPages(rows: MapPageRow[]): MapPage[] {
 }
 
 const SELECT =
-  'id, name, slug, public_id, kind, category, photo_url, photo_hidden_at, photo_hide_locked_url,' +
+  'id, name, slug, public_id, kind, category, photo_url, photo_hidden_at, photo_removed_at, photo_hide_locked_url,' +
   ' anchor:locations!groups_anchor_location_id_fkey(label, geography)'
 
 export function useMapPages() {
