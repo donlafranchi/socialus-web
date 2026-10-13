@@ -1,21 +1,11 @@
-'use client'
+// #555 — a Page's shell, drawn at once from what its card already knew: the Page's own name, kind and photo, with the
+// rest in outline, while the server builds the Page (#537 streams the rest in behind it). Shown over the card the
+// moment it is tapped (see HandoffLink); it is never a route's loading boundary, because a Page that does not exist or
+// is a draft must still answer 404, and a boundary would send 200 first.
 
-// #555 — the Page's loading boundary (loading.tsx): on screen the moment a card is tapped, before the server has
-// found the Page. With what the card handed over it shows the Page's own name, kind and photo (an optimistic
-// render); without it, the plain outline. The rest of the Page streams in behind it (#537).
+import type { CardHandoff } from '@/lib/browse/card-handoff'
 
-import { useSyncExternalStore } from 'react'
-import { usePathname } from 'next/navigation'
-import { readCardForPage, type CardHandoff } from '@/lib/browse/card-handoff'
-import { PageSkeleton } from './PageSkeleton'
-
-const nothing = () => () => {}
-
-export function PageLoading() {
-  const path = usePathname()
-  // The server and the first client render agree on "no handoff"; the card's data is read once hydrated.
-  const card = useSyncExternalStore<CardHandoff | null>(nothing, () => readCardForPage(path), () => null)
-  if (!card) return <PageSkeleton />
+export function PageShell({ card }: { card: CardHandoff }) {
   return (
     <main className="pb-nav" aria-busy="true">
       <p role="status" className="sr-only">

@@ -5,13 +5,14 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
 const { stash } = vi.hoisted(() => ({ stash: vi.fn() }))
-const { linkProps } = vi.hoisted(() => ({ linkProps: vi.fn() }))
+const { linkProps, status } = vi.hoisted(() => ({ linkProps: vi.fn(), status: { pending: false } }))
 vi.mock('@/lib/browse/card-handoff', () => ({ stashCardForPage: stash }))
 vi.mock('next/link', () => ({
   default: ({ href, prefetch, children, ...rest }: { href: string; prefetch?: boolean; children: React.ReactNode } & Record<string, unknown>) => {
     linkProps(prefetch)
     return <a href={href} {...(rest as object)}>{children}</a>
   },
+  useLinkStatus: () => status,
 }))
 
 import { HandoffLink } from './HandoffLink'
@@ -74,5 +75,39 @@ describe('HandoffLink — prefetch on intent', () => {
     linkProps.mockClear()
     render(<HandoffLink href="/g/abc123" prefetch>x</HandoffLink>)
     expect(lastPrefetch()).toBe(true)
+  })
+})
+
+// #555 — the Page answers the tap at once: while the navigation is pending, its shell (the card's name, kind and photo)
+// is drawn over the screen, and it goes when the Page arrives. No route boundary: a draft or missing Page keeps its 404.
+describe('HandoffLink — the shell while the Page loads', () => {
+  afterEach(() => {
+    status.pending = false
+  })
+
+  it('draws the Page\'s shell from the card while the navigation is pending', () => {
+    status.pending = true
+    render(<HandoffLink href="/g/abc123" handoff={{ name: 'Bean Co', kindLine: 'Business' }}>x</HandoffLink>)
+    expect(screen.getByRole('heading', { name: 'Bean Co' })).toBeInTheDocument()
+    expect(screen.getByText('Business')).toBeInTheDocument()
+  })
+
+  it('is on the document, not inside the card, so a transformed card cannot clip it', () => {
+    status.pending = true
+    const { container } = render(<HandoffLink href="/g/abc123" handoff={{ name: 'Bean Co' }}>x</HandoffLink>)
+    expect(container.querySelector('h1')).toBeNull()
+    expect(document.body.querySelector('[data-testid="page-shell-overlay"]')).not.toBeNull()
+  })
+
+  it('shows nothing when nothing is pending', () => {
+    render(<HandoffLink href="/g/abc123" handoff={{ name: 'Bean Co' }}>x</HandoffLink>)
+    expect(screen.queryByRole('heading')).toBeNull()
+  })
+
+  it('shows nothing for a link that is not a Page, or has no handoff', () => {
+    status.pending = true
+    render(<HandoffLink href="/m/maya" handoff={{ name: 'Maya' }}>x</HandoffLink>)
+    render(<HandoffLink href="/g/abc123">y</HandoffLink>)
+    expect(screen.queryByRole('heading')).toBeNull()
   })
 })

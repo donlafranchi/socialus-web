@@ -12,7 +12,7 @@ const CARD: CardHandoff = { name: 'Bean Co', kindLine: 'Business', imageUrl: 'ht
 const NOW = 1_000_000
 
 describe('card handoff', () => {
-  // [guards F059 partial: a tap on a card is answered at once, from what the card already carries (#555)]
+  // A tap on a card is answered at once, from what the card already carries (#555).
   it('gives a Page what the card carried, by the Page\'s path', () => {
     const storage = memory()
     stashCardForPage('/g/abc123', CARD, { storage, now: () => NOW })

@@ -1,6 +1,6 @@
-// #555 — the card hands what it already knows to the Page it opens, so the Page's shell shows its name, kind and
-// photo the instant the tap lands (an optimistic render, as Instagram and Airbnb do) while the rest streams in.
-// A few seconds in session storage, keyed by the Page's path; only a Page, only the light payload.
+// #555 — the light payload a card carries (name, kind line, photo address) for the Page it opens. HandoffLink draws the
+// Page's shell from it at once (an optimistic render); this is also kept for seconds in session storage by the Page's
+// path so a Page that renders its own shell on arrival can read it. Only a Page, only the light payload.
 
 export interface CardHandoff {
   name: string

@@ -1,12 +1,9 @@
 # bug #555: opening a Page from a card answers at once (the standard pattern)
 
-Dispatch call (2026-10-12), Path: well-worn. The nightly's slow taps are the Explore card or post card to a Page and the creator edit screen: nothing on screen until the server has resolved the Page (~1.7 to 2.3 s on a cold read).
+Dispatch call (2026-10-12), Path: well-worn. The nightly's slow taps are the Explore card or post card to a Page: nothing on screen until the server has resolved the Page (~1.7 to 2.3 s on a cold read).
 
-- **Loading boundary.** `/g/[handle]/loading.tsx` (and `/edit`) render before the server has found the Page, and with the router's prefetch they are already on the phone when the tap lands. Until now the skeleton only appeared after the Page was resolved.
-- **Optimistic shell from the card.** On the press a card hands its name, kind line and photo address (the light payload it already carries) to the Page through session storage for 30 seconds (`card-handoff`); `PageLoading` shows them at once, with the plain outline when there is none.
-- **Prefetch on view and on intent.** `HandoffLink`: the router prefetches the loading shell as a card scrolls into view (its default, now useful because there is a boundary to fetch); hover, focus and a touch read the whole Page; the top three cards still read it ahead.
-- **The prefetch is kept.** `experimental.staleTimes` dynamic 30 s, static 180 s: by default a dynamic page's prefetch is dropped at once, so none of the above would have survived to the tap.
+- **Optimistic shell from the card.** `HandoffLink` (used by every card): while its navigation is pending, the Page's shell (its name, kind line and photo, taken from what the card already carries, in outline) covers the screen, in a portal so a lifted card cannot clip it. It goes when the Page arrives.
+- **Prefetch on intent.** Hover, focus and a finger resting on a card read the whole Page ahead of the tap (the router caches a full prefetch for 5 minutes by default); the top three cards still read it ahead.
+- **No route loading boundary, deliberately.** A first attempt added `loading.tsx` to `/g/[handle]`; CI showed it breaks F035 beat 6 (a draft Page must answer 404 to non-owners). A boundary streams a 200 before the Page is resolved, which is the status honesty #537 protects. The shell is drawn from the card instead, so a hard load of a draft or missing Page still answers 404. Also dropped: a `staleTimes` change (it only caches visited pages, and F042 beat 7 flaked on stale counts).
 
-The nightly's "content" is the real Page header with no `aria-busy`, so the optimistic shell does not count as content: the budget is met only if the full read is faster. The full prefetch (top three, hover, touch) is what moves that. The server read itself was already one round per stage (#529); not touched. Confirm on the next nightly; if a tap still misses 1 s the remaining lever is caching the signed-out Page read.
-
-Trade-off: a visited or prefetched dynamic page can be up to 30 s old when returned to by navigation; a server action that changes data refreshes the router.
+The nightly's "content" is the real Page header with no `aria-busy`, so the shell is feedback, not content: the 1 s budget is met only if the full read is faster, and the full prefetch (top three, hover, touch) is what moves it. The server read was already one round per stage (#529) and is untouched. Confirm on the next nightly; if a tap still misses 1 s, the remaining lever is caching the signed-out Page read.
