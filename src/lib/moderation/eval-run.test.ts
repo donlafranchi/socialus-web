@@ -6,8 +6,8 @@ import type { EvalCase } from './eval-cases'
 // summary together. The model is faked here; the real run needs a key.
 
 const cases: EvalCase[] = [
-  { id: 'a', text: 'Bread', image: 'a.png', reporterReason: 'Spam', label: { outcome: 'approve', severity: 4 } },
-  { id: 'b', text: 'Insult', reporterReason: 'Harassment', label: { outcome: 'remove', severity: 2 } },
+  { id: 'a', text: 'Bread', image: 'a.png', reporterReason: 'Spam', kind: 'clean', label: { outcome: 'approve', severity: 4, category: 'other' } },
+  { id: 'b', text: 'Insult', reporterReason: 'Harassment', kind: 'violating', label: { outcome: 'remove', severity: 2, category: 'harassment' } },
 ]
 
 const answer = (outcome: 'approve' | 'remove', severity: number) =>
