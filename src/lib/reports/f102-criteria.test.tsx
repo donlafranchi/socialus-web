@@ -127,6 +127,18 @@ describe('F102.13 — the address and time of every write are the report path\'s
   })
 })
 
+describe('F102.13 — every upload and every post records where it came from', () => {
+  // [guards F102.13 partial: the paths that exist today each call the recorder; the stored address and the one-year purge are the handler's and the workflow's]
+  it('every member upload and every member post goes through a call that records its origin', () => {
+    // The only places a member's file reaches storage (the unclaimed import is staff, not a member).
+    expect(naming(/\.upload\(/)).toEqual(['src/lib/media/upload-image.ts', 'src/lib/unclaimed/upload.ts'])
+    for (const f of naming(/from '@\/lib\/media\/upload-image'/)) expect(readFileSync(join(ROOT, f), 'utf8'), f).toMatch(/recordUploadAction\(/)
+    // The only places a member's post is created; the unclaimed import is staff.
+    expect(naming(/insert into public\.page_posts/)).toEqual(['src/actions/group/post.ts', 'src/lib/unclaimed/load.ts'])
+    for (const f of naming(/groupPostCreate\(/).filter((p) => !p.startsWith('src/actions/'))) expect(readFileSync(join(ROOT, f), 'utf8'), f).toMatch(/recordOrigin\(/)
+  })
+})
+
 describe('F102.14 — child-safety content never goes back to the poster, never to an AI, never auto-restores', () => {
   const create = readFileSync(join(ROOT, 'src/actions/report/create.ts'), 'utf8')
   const post = readFileSync(join(ROOT, 'src/actions/group/post.ts'), 'utf8')
