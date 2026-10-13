@@ -22,6 +22,7 @@ import type { Outcome, ReasonCode } from '@/lib/admin/reason-codes'
 import { categoryLabel } from '@/lib/reports/categories'
 import { COPY } from '@/lib/copy'
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
+import { isServedViaSite } from '@/lib/media/served-url'
 import { ReportEntry } from './ReportEntry'
 import { SubjectTimeline } from './SubjectTimeline'
 
@@ -394,6 +395,13 @@ function Row({
               )}
             </div>
             <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.severity === 1 && s.photoUrl && (
+              <p data-testid="review-scan" className="mt-0.5 text-caption text-[var(--color-fg)]">
+                {isServedViaSite(s.photoUrl, process.env.NEXT_PUBLIC_SUPABASE_URL)
+                  ? 'Photo scanned against known lists. A match is blocked and emailed to you.'
+                  : 'Photo not scanned against known lists.'}
+              </p>
+            )}
             {s.ai && (
               <p data-testid="review-ai" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {'skipped' in s.ai

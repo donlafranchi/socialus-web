@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase'
+import { servedMediaUrl } from './served-url'
 
 const BUCKET = 'media'
 const MAX_EDGE = 1600
@@ -116,7 +117,8 @@ export async function uploadImage(file: File, memberId: string): Promise<{ url: 
   }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  return { url: data.publicUrl }
+  // #641 — from our own address once Cloudflare's scanning is on in front of it.
+  return { url: servedMediaUrl(data.publicUrl, { enabled: process.env.NEXT_PUBLIC_MEDIA_VIA_SITE === '1', origin: window.location.origin }) }
 }
 
 // No-op on a URL outside this bucket — callers may hold URLs from other
