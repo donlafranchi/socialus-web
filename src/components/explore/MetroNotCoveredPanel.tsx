@@ -96,8 +96,8 @@ export function MetroNotCoveredPanel({
           setStanding({
             metroName: result.metroName,
             message: result.message,
-            combined: result.standing.combined,
-            target: result.standing.target,
+            combined: result.standing?.combined,
+            target: result.standing?.target,
           })
         }
       } else {
