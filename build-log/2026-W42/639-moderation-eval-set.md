@@ -1,0 +1,9 @@
+# F100.10 · #639: a labelled set of 55 cases, with real open-licence photos
+
+- **55 cases** (was 17): 23 violating across every category the assessment can answer with (harassment, nudity, spam, violence, threat of harm, sensitive other, sensitive child), 20 clean, 12 borderline. Every case now carries `kind` and its `label.category` beside outcome and severity; a violating case's severity must match its category on the F101 scale.
+- **Real photos, licence and author recorded per photo** (`evals/moderation/images/LICENCES.json`, source = the Wikimedia Commons file page): bread at a bakery (CC0), a dog on a leash (CC BY-SA 4.0, author recorded), an empty playground (CC0), and the children-rule case: **children in an ordinary public setting**, a wide shot of a public park playground (CC0, `setting: ordinary-public`).
+- **The children rule** is tested with that one photo, and only that: `validateSet` refuses a photo of children without the public-setting record, from a synthetic source, under any other wording, or used by any case not labelled for the children rule; and refuses the photo if no case uses it.
+- **The adult category** is tested with text (two violating cases, none explicit) and non-explicit borderline cases (a life-drawing class with a clothed model, a masters swim meet). `validateCoverage` refuses explicit wording anywhere in the set.
+- **Coverage** (`validateCoverage`): at least 40 cases, all three kinds, a violating case for every category, the children-rule photo case, the adult text case and its borderline neighbour. `npm run moderation:eval -- --check` (and so the CI workflow, #638) runs both.
+
+Not here: the severity-1 cases still never reach the model in production (F100.12); the harness feeds them to it directly so the children rule can be measured. #640's readiness panel will show a real severity-1 number once a run is recorded with this set.

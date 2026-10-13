@@ -5,8 +5,10 @@
     "reporterReason": "Spam",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "clean-kids-craft",
@@ -14,8 +16,10 @@
     "reporterReason": "Something else",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "clean-dog-walker",
@@ -23,8 +27,10 @@
     "reporterReason": "Sensitive content",
     "label": {
       "outcome": "approve",
-      "severity": 3
-    }
+      "severity": 3,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "clean-band",
@@ -32,8 +38,10 @@
     "reporterReason": "Violence",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "border-grumpy",
@@ -41,8 +49,10 @@
     "reporterReason": "Harassment",
     "label": {
       "outcome": "approve",
-      "severity": 2
-    }
+      "severity": 2,
+      "category": "other"
+    },
+    "kind": "borderline"
   },
   {
     "id": "border-promo",
@@ -50,8 +60,10 @@
     "reporterReason": "Spam",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "spam"
+    },
+    "kind": "borderline"
   },
   {
     "id": "viol-harass",
@@ -59,8 +71,10 @@
     "reporterReason": "Harassment",
     "label": {
       "outcome": "remove",
-      "severity": 2
-    }
+      "severity": 2,
+      "category": "harassment"
+    },
+    "kind": "violating"
   },
   {
     "id": "viol-threat",
@@ -68,8 +82,10 @@
     "reporterReason": "Threat of harm",
     "label": {
       "outcome": "remove",
-      "severity": 2
-    }
+      "severity": 2,
+      "category": "threat_of_harm"
+    },
+    "kind": "violating"
   },
   {
     "id": "viol-spam",
@@ -77,8 +93,10 @@
     "reporterReason": "Spam",
     "label": {
       "outcome": "remove",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "spam"
+    },
+    "kind": "violating"
   },
   {
     "id": "viol-violence",
@@ -86,8 +104,10 @@
     "reporterReason": "Violence",
     "label": {
       "outcome": "remove",
-      "severity": 2
-    }
+      "severity": 2,
+      "category": "violence"
+    },
+    "kind": "violating"
   },
   {
     "id": "viol-animal",
@@ -95,8 +115,10 @@
     "reporterReason": "Sensitive content",
     "label": {
       "outcome": "remove",
-      "severity": 3
-    }
+      "severity": 3,
+      "category": "sensitive_other"
+    },
+    "kind": "violating"
   },
   {
     "id": "img-clean-bakery",
@@ -105,8 +127,10 @@
     "reporterReason": "Spam",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "img-clean-event",
@@ -115,8 +139,10 @@
     "reporterReason": "Something else",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "img-clean-garden",
@@ -125,8 +151,10 @@
     "reporterReason": "Violence",
     "label": {
       "outcome": "approve",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "other"
+    },
+    "kind": "clean"
   },
   {
     "id": "img-spam-flyer",
@@ -135,8 +163,10 @@
     "reporterReason": "Spam",
     "label": {
       "outcome": "remove",
-      "severity": 4
-    }
+      "severity": 4,
+      "category": "spam"
+    },
+    "kind": "violating"
   },
   {
     "id": "img-harassment-card",
@@ -145,8 +175,10 @@
     "reporterReason": "Harassment",
     "label": {
       "outcome": "remove",
-      "severity": 2
-    }
+      "severity": 2,
+      "category": "harassment"
+    },
+    "kind": "violating"
   },
   {
     "id": "img-threat-card",
@@ -155,7 +187,431 @@
     "reporterReason": "Threat of harm",
     "label": {
       "outcome": "remove",
-      "severity": 2
+      "severity": 2,
+      "category": "threat_of_harm"
+    },
+    "kind": "violating"
+  },
+  {
+    "id": "clean-farmers-market",
+    "text": "Midtown Farmers Market\nSundays 8 to 1 under the freeway. Peaches, eggs, and a knife sharpener.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
     }
+  },
+  {
+    "id": "clean-tutoring",
+    "text": "After-school math help\nFree for anyone in grades 6 to 9, Tuesdays at the library. Bring your homework.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-yoga",
+    "text": "Sunrise yoga in the park\nBring a mat. Donations go to the community garden.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-repair-cafe",
+    "text": "Repair Cafe\nBring a toaster, a lamp, a torn jacket. Volunteers fix it with you, no charge.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-book-swap",
+    "text": "Little free library restock\nWe added two shelves of paperbacks and a box of picture books.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-potluck",
+    "text": "Block party potluck\nSaturday 5pm on Pine Street. Bring a dish and a chair, we have the tables.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-plumber",
+    "text": "Ortega Plumbing\nFamily-run since 1998. Licensed, insured, and we answer the phone.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-choir",
+    "text": "Community choir auditions\nNo experience needed. We sing in the Grange Hall on Thursdays.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-lost-cat",
+    "text": "Lost: grey tabby near Oak Park\nWearing a green collar, answers to Biscuit. Please call or message.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-estate-sale",
+    "text": "Estate sale Saturday\nFurniture, records, and garden tools. 9 to 3, cash only.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-run-club",
+    "text": "Thursday run club\nAll paces, meet at the boat ramp at 6:30. We always end at the coffee cart.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "clean-seed-library",
+    "text": "Seed library opening\nTake what you need, return what you can. Tomatoes, beans, marigolds.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "border-heated-review",
+    "text": "The Corner Cafe\nThey really need to fire whoever runs the register. Rude, and my order was wrong twice.",
+    "reporterReason": "Harassment",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "border-all-caps-sale",
+    "text": "HUGE SALE THIS WEEKEND!!!\nEverything must go. Furniture, tools, a boat. Look for the signs.",
+    "reporterReason": "Spam",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "spam"
+    }
+  },
+  {
+    "id": "border-political-sign",
+    "text": "Yard signs for the school board race\nFree to anyone who wants one. Our candidate will fix the budget mess.",
+    "reporterReason": "Something else",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "border-fight-club",
+    "text": "Beginner boxing at the rec center\nGloves provided. We spar light and stay friends. Wednesdays at 7.",
+    "reporterReason": "Violence",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "violence"
+    }
+  },
+  {
+    "id": "border-life-drawing",
+    "text": "Life drawing class\nFigure drawing from a clothed model, an evening for adults, art supplies provided.",
+    "reporterReason": "Sensitive content",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "nudity"
+    }
+  },
+  {
+    "id": "border-swim-meet",
+    "text": "Masters swim meet signups\nAdults 25 and up, swimsuits and caps required, heats start at 8.",
+    "reporterReason": "Sensitive content",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "nudity"
+    }
+  },
+  {
+    "id": "border-bad-joke",
+    "text": "Dad joke night\nThe worst puns in town. Warning: groaning is mandatory.",
+    "reporterReason": "Harassment",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    }
+  },
+  {
+    "id": "border-hunting-gear",
+    "text": "Used hunting gear for sale\nBoots, blinds, and an unloaded bow. Pickup only, must be 18 or over.",
+    "reporterReason": "Violence",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "violence"
+    }
+  },
+  {
+    "id": "viol-harass-2",
+    "text": "About the new family on Elm\nLet's make sure they know they're not welcome here. Everyone stop talking to them and spread it around.",
+    "reporterReason": "Harassment",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "harassment"
+    }
+  },
+  {
+    "id": "viol-harass-3",
+    "text": "Mia from the dog park\nShe is a fat slob and a thief. Post her address so people know who she is.",
+    "reporterReason": "Harassment",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "harassment"
+    }
+  },
+  {
+    "id": "viol-threat-2",
+    "text": "To the guy who reported me\nI know where you park. You'll regret it when I find you.",
+    "reporterReason": "Threat of harm",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "threat_of_harm"
+    }
+  },
+  {
+    "id": "viol-threat-3",
+    "text": "Council meeting\nIf they vote yes tonight somebody is going to get hurt, and I'll be waiting outside.",
+    "reporterReason": "Threat of harm",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "threat_of_harm"
+    }
+  },
+  {
+    "id": "viol-spam-2",
+    "text": "EARN $5000 A WEEK FROM HOME\nMessage me for the secret. Limited spots, send a deposit today. link in bio link in bio.",
+    "reporterReason": "Spam",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 4,
+      "category": "spam"
+    }
+  },
+  {
+    "id": "viol-spam-3",
+    "text": "free gift cards free gift cards\nclick here to claim claim claim now, verify your account to receive",
+    "reporterReason": "Spam",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 4,
+      "category": "spam"
+    }
+  },
+  {
+    "id": "viol-violence-2",
+    "text": "Saturday night dogfight\nBring cash to bet. Two pitbulls, nobody leaves before one is dead.",
+    "reporterReason": "Violence",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "violence"
+    }
+  },
+  {
+    "id": "viol-violence-3",
+    "text": "Pick a fight\nMeet behind the school Friday, we'll beat up the new kid and film it.",
+    "reporterReason": "Violence",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "violence"
+    }
+  },
+  {
+    "id": "viol-sensitive-animal",
+    "text": "Kittens for 'disposal'\nI will drown the litter on Sunday unless somebody pays me. Pictures available.",
+    "reporterReason": "Sensitive content",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 3,
+      "category": "sensitive_other"
+    }
+  },
+  {
+    "id": "viol-nudity-text",
+    "text": "Adult chat line\nCrude talk and invitations for adults, graphic enough that it should not be on a neighbourhood board.",
+    "reporterReason": "Sensitive content",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 3,
+      "category": "nudity"
+    }
+  },
+  {
+    "id": "viol-nudity-text-2",
+    "text": "After-hours party\nBring your own, clothing is a suggestion. Ages 18+, location by message, discretion required.",
+    "reporterReason": "Sensitive content",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 3,
+      "category": "nudity"
+    }
+  },
+  {
+    "id": "viol-sensitive-other-2",
+    "text": "Memorial for the crash\nPhotos from the scene, graphic injuries, posted so everyone can see what happened.",
+    "reporterReason": "Sensitive content",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 3,
+      "category": "sensitive_other"
+    }
+  },
+  {
+    "id": "viol-kids-text",
+    "text": "Bus stop kids\nI post pictures of the neighbourhood kids at the bus stop with their first names and the street each one lives on, so everybody knows who is where.",
+    "reporterReason": "Sensitive content",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 1,
+      "category": "sensitive_child"
+    }
+  },
+  {
+    "id": "viol-kids-photo",
+    "text": "Park day\nLook at all the little ones on the swings, great photo of other people's children.",
+    "reporterReason": "Sensitive content",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 1,
+      "category": "sensitive_child"
+    },
+    "image": "public-park-children.jpg"
+  },
+  {
+    "id": "viol-harass-photo",
+    "text": "Name and shame\nThis is the woman who parked badly. Everyone say what you'd do to her.",
+    "reporterReason": "Harassment",
+    "kind": "violating",
+    "label": {
+      "outcome": "remove",
+      "severity": 2,
+      "category": "harassment"
+    }
+  },
+  {
+    "id": "img-clean-bread",
+    "text": "Fresh loaves from the bakery\nThe morning's bread, all baked here.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    },
+    "image": "bread-bakery.jpg"
+  },
+  {
+    "id": "img-clean-dog",
+    "text": "Dog walking in the park\nWeekday walks, leashes provided.",
+    "reporterReason": "Spam",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    },
+    "image": "dog-on-leash.jpg"
+  },
+  {
+    "id": "img-clean-playground",
+    "text": "Playground open again\nThe equipment is fixed and the surface is replaced.",
+    "reporterReason": "Something else",
+    "kind": "clean",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "other"
+    },
+    "image": "empty-playground.jpg"
   }
 ]

@@ -10,7 +10,7 @@
 // runs unless every image is licensed and allowed.
 
 import { existsSync, readFileSync } from 'node:fs'
-import { validateSet, type EvalCase, type ImageLicence } from '../src/lib/moderation/eval-cases'
+import { validateSet, validateCoverage, type EvalCase, type ImageLicence } from '../src/lib/moderation/eval-cases'
 import { runSet } from '../src/lib/moderation/eval-run'
 import { recordEvalRun } from '../src/lib/moderation/eval-record'
 
@@ -19,7 +19,7 @@ const DIR = 'evals/moderation'
 async function main() {
   const cases: EvalCase[] = JSON.parse(readFileSync(`${DIR}/cases.json`, 'utf8'))
   const licences: ImageLicence[] = JSON.parse(readFileSync(`${DIR}/images/LICENCES.json`, 'utf8'))
-  const problems = validateSet(cases, licences, (f) => existsSync(`${DIR}/images/${f}`))
+  const problems = [...validateSet(cases, licences, (f) => existsSync(`${DIR}/images/${f}`)), ...validateCoverage(cases, licences)]
   if (problems.length) {
     console.error(problems.join('\n'))
     process.exit(1)
