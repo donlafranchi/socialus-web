@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import {
   COMBINED_TARGET,
   metroStanding,
@@ -36,6 +38,22 @@ describe('the combined number (c8)', () => {
 })
 
 describe('eligibility is gated on creators (c10)', () => {
+  // [guards F076.10]
+  it('needs at least 50 creators AND at least 250 patrons, and nothing else makes a metro eligible', () => {
+    const cases: Array<[number, number, boolean]> = [
+      [50, 250, true],
+      [49, 250, false],
+      [50, 249, false],
+      [49, 251, false],
+      [0, 300, false],
+      [300, 0, false],
+      [80, 400, true],
+    ]
+    for (const [creators, patrons, eligible] of cases) {
+      expect(metroStanding(M(creators, patrons)).eligible, `${creators} creators, ${patrons} patrons`).toBe(eligible)
+    }
+  })
+
   it('is false at 299 combined', () => {
     expect(metroStanding(M(49, 250)).eligible).toBe(false)
   })
@@ -63,9 +81,18 @@ describe('eligibility is gated on creators (c10)', () => {
     expect(metroStanding(M(50, 249)).eligible).toBe(false)
   })
 
-  it('honours per-metro thresholds rather than the constants (c11)', () => {
+  // [guards F076.11]
+  it('honours per-metro thresholds rather than the constants (c11), which live as columns, so changing one needs no migration or deploy', () => {
     expect(metroStanding(M(10, 20, 10, 20)).eligible).toBe(true)
     expect(metroStanding(M(10, 20)).eligible).toBe(false)
+    expect(metroStanding(M(60, 20, 70, 20)).eligible).toBe(false)
+    // No threshold is baked into the code that decides eligibility...
+    const src = readFileSync(resolve(__dirname, 'waitlist-standing.ts'), 'utf8').replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '')
+    expect(src).not.toMatch(/\b(50|250)\b/)
+    // ...they are per-row columns with defaults, so the data carries them.
+    const mig = readFileSync(resolve(__dirname, '../../../supabase/migrations/20260914204920_metro_waitlist.sql'), 'utf8')
+    expect(mig).toMatch(/creator_threshold\s+int(eger)?\s+not null\s+default\s+50/i)
+    expect(mig).toMatch(/patron_threshold\s+int(eger)?\s+not null\s+default\s+250/i)
   })
 })
 
@@ -81,6 +108,7 @@ describe('the message (c9) — what is needed, never when', () => {
     expect(standingMessage(metroStanding(M(10, 40)))).toMatch(/need|more|before/i)
   })
 
+  // [guards F076.9]
   it('never states or implies a date or a timeline', () => {
     // A hard constraint, not copy guidance. Scanned across every state the
     // popup can be in, so a message added for one state cannot slip a promise
@@ -94,7 +122,10 @@ describe('the message (c9) — what is needed, never when', () => {
       for (const word of forbidden) {
         expect(m.toLowerCase(), `"${m}" must not contain "${word}"`).not.toContain(word)
       }
+      expect(m.toLowerCase()).not.toMatch(/\bwill open\b|\bwill be\b|\bguarantee\b|\bpromise\b/)
     }
+    // And it states what is still needed while something is.
+    expect(messages[0]).toMatch(/need|more|before/i)
   })
 
   it('never promises that the metro will open', () => {
