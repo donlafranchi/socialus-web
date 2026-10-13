@@ -171,3 +171,26 @@ export const DEFAULT_REASON: Record<'restored' | 'removed', ReasonCode> = {
 
 /** F101 criterion 13: blur unless the row is known to be spam-tier. */
 export const blurred = (s: ReviewSubject) => s.severity !== 4
+
+/** One line of a subject's history (F101.12). */
+export type TimelineItem =
+  | { kind: 'report'; at: Date; report: QueuedReport }
+  | { kind: 'assessment'; at: Date; reportId: string; model: string | null; outcome: 'approve' | 'remove' | null; severity: number | null; confidence: number | null; reason: string | null; skipped: string | null }
+  | { kind: 'rebuttal'; at: Date; answer: NonNullable<QueuedReport['answer']> }
+  | { kind: 'decision'; at: Date; reportId: string; decision: QueuedReport['history'][number] }
+
+// Newest first; at the same instant the later thing in the story comes first.
+const KIND_RANK = { decision: 0, rebuttal: 1, assessment: 2, report: 3 } as const
+
+/** F101.12: every report, AI read, rebuttal and decision on a subject, newest first. */
+export function subjectTimeline(s: ReviewSubject): TimelineItem[] {
+  const items: TimelineItem[] = []
+  for (const r of s.reports) {
+    items.push({ kind: 'report', at: r.reportedAt, report: r })
+    for (const a of r.assessments ?? []) items.push({ kind: 'assessment', at: a.at, reportId: r.reportId, model: a.model, outcome: a.outcome, severity: a.severity, confidence: a.confidence, reason: a.reason, skipped: a.skipped })
+    for (const d of r.history) items.push({ kind: 'decision', at: d.decidedAt, reportId: r.reportId, decision: d })
+    // The poster's answer belongs to the subject, so every report row carries the same one: it is one line.
+    if (r.answer?.at && !items.some((i) => i.kind === 'rebuttal')) items.push({ kind: 'rebuttal', at: r.answer.at, answer: r.answer })
+  }
+  return items.sort((a, b) => b.at.getTime() - a.at.getTime() || KIND_RANK[a.kind] - KIND_RANK[b.kind])
+}

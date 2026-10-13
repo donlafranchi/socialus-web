@@ -52,6 +52,18 @@ export interface PastDecision {
   alreadyReversed: boolean
 }
 
+/** One AI read of a report, as the detail lists it. */
+export interface AssessmentRead {
+  at: Date
+  model: string | null
+  outcome: 'approve' | 'remove' | null
+  severity: number | null
+  confidence: number | null
+  reason: string | null
+  /** Why no read was made, for a skipped row. */
+  skipped: string | null
+}
+
 export interface QueuedReport {
   /** Set for a reported post body ('post'). */
   postId?: string
@@ -64,8 +76,10 @@ export interface QueuedReport {
     | { category: string; severity: number; confidence: number; outcome: 'approve' | 'remove'; reason: string }
     | { skipped: string }
     | null
+  /** F101.12 — every AI read of this report, newest first (a skipped read says why). */
+  assessments?: AssessmentRead[]
   /** F102 — the poster's one answer to the hide, if they gave it. */
-  answer?: { kind: 'fix_and_repost' | 'wrong' | 'mistake'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
+  answer?: { kind: 'fix_and_repost' | 'wrong' | 'mistake'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null; at?: Date | null } | null
   /** F102 — how old the reporter's account was when they reported. */
   reporterAgeDays?: number
   /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
@@ -153,6 +167,34 @@ async function fetchHistory(reportIds: string[]): Promise<Map<string, PastDecisi
   return byReport
 }
 
+/** F101.12 — every AI read for a set of reports, newest first. */
+async function fetchAssessments(reportIds: string[]): Promise<Map<string, AssessmentRead[]>> {
+  const byReport = new Map<string, AssessmentRead[]>()
+  if (reportIds.length === 0) return byReport
+  const { rows } = await getPool().query(
+    `select report_id, created_at, model, outcome, severity, confidence, reason, skipped_reason
+       from public.report_assessments
+      where report_id = any($1::uuid[])
+      order by created_at desc`,
+    [reportIds],
+  )
+  for (const r of (rows ?? []) as Record<string, unknown>[]) {
+    const id = r.report_id as string
+    const list = byReport.get(id) ?? []
+    list.push({
+      at: r.created_at as Date,
+      model: (r.model as string | null) ?? null,
+      outcome: (r.outcome as 'approve' | 'remove' | null) ?? null,
+      severity: r.severity === null || r.severity === undefined ? null : Number(r.severity),
+      confidence: r.confidence === null || r.confidence === undefined ? null : Number(r.confidence),
+      reason: (r.reason as string | null) ?? null,
+      skipped: (r.skipped_reason as string | null) ?? null,
+    })
+    byReport.set(id, list)
+  }
+  return byReport
+}
+
 export async function fetchReviewQueue(
   limit = 50,
   { includeBuilders = false }: { includeBuilders?: boolean } = {},
@@ -206,7 +248,7 @@ export async function fetchReviewQueue(
             pg.founder_member_id as poster_id,
             (select json_build_object('category', a.category, 'severity', a.severity, 'confidence', a.confidence, 'outcome', a.outcome, 'reason', a.reason, 'skipped', a.skipped_reason)
                from public.report_assessments a where a.report_id = r.id order by a.created_at desc limit 1) as ai,
-            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note)
+            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note, 'at', a.created_at)
                from public.report_answers a
                join public.member_notices n on n.id = a.notice_id
               where n.subject_kind = r.subject_kind and n.subject_id = r.subject_id
@@ -234,13 +276,15 @@ export async function fetchReviewQueue(
     [limit, includeBuilders],
   )
 
-  const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))
+  const reportIds = rows.map((r: Record<string, unknown>) => r.report_id as string)
+  const history = await fetchHistory(reportIds)
+  const assessments = await fetchAssessments(reportIds)
 
   return rows.map((r: Record<string, unknown>) => ({
     postId: (r.post_id as string | null) ?? undefined,
     contentText: (r.content_text as string | null) ?? null,
     posterId: (r.poster_id as string | null) ?? undefined,
-    answer: (r.answer as QueuedReport['answer']) ?? null,
+    answer: toAnswer(r.answer),
     ai: toAi(r.ai),
     reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
     reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
@@ -259,6 +303,7 @@ export async function fetchReviewQueue(
     ownerDisplayName: (r.owner_display_name as string | null) ?? null,
     ownerHandle: (r.owner_handle as string | null) ?? null,
     history: history.get(r.report_id as string) ?? [],
+    assessments: assessments.get(r.report_id as string) ?? [],
   }))
 }
 
@@ -279,6 +324,12 @@ export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: 
           having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
   )
   return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}
+
+function toAnswer(raw: unknown): QueuedReport['answer'] {
+  if (!raw) return null
+  const a = raw as { kind: 'fix_and_repost' | 'wrong' | 'mistake'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null; at?: string | Date | null }
+  return { kind: a.kind, reason: a.reason, note: a.note, at: a.at ? new Date(a.at) : null }
 }
 
 function toAi(raw: unknown): QueuedReport['ai'] {
