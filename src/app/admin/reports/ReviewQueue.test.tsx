@@ -485,5 +485,31 @@ describe('#648 — a held row records the NCMEC report number', () => {
     show(groupBySubject([report('n', 'n', { category: 'spam' })]))
     fireEvent.click(screen.getByTestId('review-details'))
     expect(screen.queryByTestId('hold')).toBeNull()
+
+// #641 — a severity 1 photo says plainly whether Cloudflare's scanning has seen it. Cloudflare gives no per-image
+// result: a photo served from our own address is scanned and a match is blocked and emailed; one still on the storage
+// host has not been scanned.
+describe('F100.12 / #641 — severity 1 says whether the photo was scanned', () => {
+  const SITE = 'https://www.socialus.org/storage/v1/object/public/media/m/a.webp'
+  const STORAGE_PHOTO = 'https://proj.supabase.co/storage/v1/object/public/media/m/b.webp'
+  beforeEach(() => vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://proj.supabase.co'))
+  afterEach(() => vi.unstubAllEnvs())
+  const sev1 = (id: string, photoUrl: string | null) => groupBySubject([report(id, id, { category: 'sensitive_content', photoUrl })])
+
+  it('a photo served from the site is scanned: a known match is blocked and emailed', () => {
+    show(sev1('a', SITE))
+    expect(screen.getByTestId('review-scan')).toHaveTextContent(/scanned/i)
+    expect(screen.getByTestId('review-scan')).toHaveTextContent(/emailed/i)
+    expect(screen.getByTestId('review-scan')).not.toHaveTextContent(/not scanned/i)
+  })
+
+  it('a photo still on the storage host was not scanned, and says so', () => {
+    show(sev1('b', STORAGE_PHOTO))
+    expect(screen.getByTestId('review-scan')).toHaveTextContent(/not scanned/i)
+  })
+
+  it('says nothing on a lower severity or a row with no photo', () => {
+    show(groupBySubject([report('c', 'c', { category: 'spam', photoUrl: SITE }), report('d', 'd', { category: 'sensitive_content', photoUrl: null })]))
+    expect(screen.queryByTestId('review-scan')).toBeNull()
   })
 })
