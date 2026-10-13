@@ -123,10 +123,12 @@ export interface GatherOptions {
   slot?: number
   /** The business's own pictures are mostly graphics (posters, promos): lead with a stock photo, keep theirs behind it. */
   stockCover?: boolean
+  /** #786 — the business's own pictures show children (F080): use none of them, stock only. */
+  stockOnly?: boolean
   fetchImpl?: Fetch
 }
 
-export async function gatherPhotos({ name, slug, site, pool, want: wantIn = 4, slot, stockCover = false, fetchImpl = fetch }: GatherOptions): Promise<Gathered> {
+export async function gatherPhotos({ name, slug, site, pool, want: wantIn = 4, slot, stockCover = false, stockOnly = false, fetchImpl = fetch }: GatherOptions): Promise<Gathered> {
   // Some small sites answer on plain http only (their certificate is wrong or missing): read them, never link them.
   let want = wantIn
   const html = (await fetchHtml(site, fetchImpl)) ?? (await fetchHtml(site.replace(/^https:/, 'http:'), fetchImpl))
@@ -134,7 +136,7 @@ export async function gatherPhotos({ name, slug, site, pool, want: wantIn = 4, s
   const photos: Photo[] = []
   const fits = (p: { ahash: string }) => !photos.some((q) => sameImage(q.ahash, p.ahash))
 
-  for (const url of meta.images.slice(0, 14)) {
+  for (const url of stockOnly ? [] : meta.images.slice(0, 14)) {
     if (photos.length >= want) break
     const raw = await download(url, fetchImpl)
     const p = raw && (await toWebp(raw))

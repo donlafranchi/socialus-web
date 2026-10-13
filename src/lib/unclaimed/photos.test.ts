@@ -58,6 +58,11 @@ describe('gatherPhotos (#556)', { timeout: 60_000 }, () => {
     expect(g.photos[0]!.own).toBe(false)
     expect(g.photos.some((p) => p.own)).toBe(true)
   })
+  it('uses none of the business’s own pictures when they show children (#786, F080)', async () => {
+    const g = await gatherPhotos({ name: 'Shop', slug: 'shop-1', site: SITE, pool: 'Community & volunteer', stockOnly: true, fetchImpl: fake() })
+    expect(g.photos).toHaveLength(4)
+    expect(g.photos.every((p) => !p.own)).toBe(true)
+  })
   it('writes WebP, longest edge 1600, with no metadata', async () => {
     const out = await toWebp(await noise(2400, 1600))
     const meta = await sharp(out!.data).metadata()
@@ -75,6 +80,6 @@ describe('pickStock', () => {
     expect(new Set(a).size).toBe(4)
   })
   it('has a pool behind every kind of business', () => {
-    expect(Object.keys(stockPools).sort()).toEqual(['Cakes & bakery', 'Art & print', 'Farm', 'Farm stay & agritourism', 'Food & drink', 'Goods & crafts', 'Local business', 'Ranch', 'Repair & trades'].sort())
+    expect(Object.keys(stockPools).sort()).toEqual(['Cakes & bakery', 'Art & print', 'Community & volunteer', 'Farm', 'Farm stay & agritourism', 'Food & drink', 'Goods & crafts', 'Local business', 'Ranch', 'Repair & trades'].sort())
   })
 })

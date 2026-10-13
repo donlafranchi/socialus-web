@@ -36,4 +36,13 @@ describe('samplePosts (#556)', () => {
     const later = new Date('2026-10-20T18:00:00Z')
     expect(sampleWindow('event', later, subject.slug).startsAt.getTime()).toBeGreaterThan(later.getTime())
   })
+  it('asks a volunteer group for help instead of offering a discount (#786)', () => {
+    for (let i = 0; i < 8; i++) {
+      for (const p of samplePosts({ ...subject, name: 'Yolo Food Bank', slug: `fb-${i}`, pool: 'Community & volunteer' }, now)) {
+        expect(isSampleBody(p.body)).toBe(true)
+        expect(p.body).not.toMatch(/% off|price|deal|buy /i)
+        expect(p.body).toContain('Yolo Food Bank')
+      }
+    }
+  })
 })

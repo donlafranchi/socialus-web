@@ -22,7 +22,7 @@ export interface SampleSubject {
   area: string
 }
 
-type Voice = 'food' | 'makers' | 'trades' | 'farm' | 'stay' | 'local'
+type Voice = 'food' | 'makers' | 'trades' | 'farm' | 'stay' | 'community' | 'local'
 const VOICE: Record<string, Voice> = {
   'Food & drink': 'food',
   'Cakes & bakery': 'food',
@@ -32,6 +32,7 @@ const VOICE: Record<string, Voice> = {
   Farm: 'farm',
   Ranch: 'farm',
   'Farm stay & agritourism': 'stay',
+  'Community & volunteer': 'community',
 }
 
 // Two wordings per kind per voice; the Page's slug picks one, so neighbours do not read the same.
@@ -60,6 +61,11 @@ const COPY: Record<Voice, Record<SampleKind, [string, string]>> = {
     event: ['Open weekend at {name}: tour the property, meet the animals, and see the rooms. Free for neighbours.', 'Harvest dinner at {name} on Saturday: a long table, food from the land, and a few seats for locals.'],
     deal: ['Locals’ night at {name}: 15% off a midweek stay, for people who live within an hour.', 'Weekend deal at {name}: stay two nights, get a farm breakfast on us.'],
     last_minute: ['Last-minute opening at {name} this weekend: a cancellation freed up a room. Book it before it goes.', 'Tonight only at {name}: one night’s stay at a reduced rate. Message us today.'],
+  },
+  community: {
+    event: ['Volunteer morning with {name} on Saturday: a couple of hours, no experience needed, and a chance to meet neighbours who pitch in.', 'Open house at {name}: see what we do, meet the people behind it, and find out where a spare hour helps most.'],
+    deal: ['How to help {name} this week: drop off what is on our list, or bring a friend to a shift. Every bit goes straight to neighbours.', 'This week at {name}: a short list of what we need most, and a few easy ways to lend a hand.'],
+    last_minute: ['A few volunteer spots just opened at {name} for tomorrow. Come as you are; we will show you what to do.', 'Extra hands needed at {name} tomorrow morning. An hour helps, and newcomers are welcome.'],
   },
   local: {
     event: ['Neighbourhood open house at {name} on Saturday: come see what we do, meet the owners, and enjoy something local.', 'Meet your neighbours at {name}: a casual afternoon, light refreshments, and a look at what is new.'],

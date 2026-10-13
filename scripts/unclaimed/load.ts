@@ -34,7 +34,7 @@ const summary = (line: string) => {
 async function main() {
   const { listed, removed, skipped, files } = readPlanned()
   const allow = new Set(readLinkAllow())
-  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[] }
+  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[] }
   console.log(`Read ${files.join(', ')}: ${listed.length} to list, ${skipped.length} held back`)
   for (const s of skipped) console.log(`  held back: ${s.name} (${s.reason})`)
 
@@ -80,7 +80,7 @@ async function main() {
 
   const gatherFor = (p: PlannedPage) => async (): Promise<Enrichment> => {
     const site = p.legacyUrl ?? p.publicInfoUrl
-    const g = await gatherPhotos({ name: p.name, slug: p.slug, site, pool: p.pool, want: PHOTOS_PER_PAGE, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name) })
+    const g = await gatherPhotos({ name: p.name, slug: p.slug, site, pool: p.pool, want: PHOTOS_PER_PAGE, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name), stockOnly: overrides.stockOnly.includes(p.name) })
     const photos = await uploadPhotos(supabase, p.slug, g.photos)
     const social: Record<string, string> = {}
     for (const [k, url] of Object.entries({ ...g.meta.social, ...(p.social ?? {}) })) {
