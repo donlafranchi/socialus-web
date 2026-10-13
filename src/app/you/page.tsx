@@ -99,6 +99,13 @@ export default async function YouPage() {
             action={<Link href="/report?from=%2Fyou" className={LINK}>Report a problem</Link>}
           />
           <Row
+            label="Rules"
+            value="What every Page agrees to"
+            testId="settings-rules"
+            wrap
+            action={<Link href="/rules" className={LINK}>Read</Link>}
+          />
+          <Row
             label="Password"
             value="Sign in without an email"
             testId="settings-password"
