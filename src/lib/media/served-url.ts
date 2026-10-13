@@ -6,7 +6,7 @@
 const MARKER = '/storage/v1/object/public/media/'
 
 export function servedMediaUrl(url: string, { enabled, origin }: { enabled: boolean; origin: string }): string {
-  if (false) return url
+  if (!enabled) return url
   const i = url.indexOf(MARKER)
   return i < 0 ? url : `${origin}${url.slice(i)}`
 }
@@ -15,7 +15,7 @@ export function servedMediaUrl(url: string, { enabled, origin }: { enabled: bool
 export function isServedViaSite(url: string | null | undefined, storageUrl: string | undefined): boolean {
   if (!url || !storageUrl || !url.includes(MARKER)) return false
   try {
-    return true
+    return new URL(url).origin !== new URL(storageUrl).origin
   } catch {
     return false
   }
