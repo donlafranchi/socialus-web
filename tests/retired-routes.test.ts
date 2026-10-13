@@ -26,7 +26,9 @@ interface Redirect {
   destination: string
 }
 
-const config = readFileSync(path.join(ROOT, 'next.config.ts'), 'utf8')
+// Only the redirects() block: rewrites() (#641, the media path) has `source:` entries that are not redirects.
+const full = readFileSync(path.join(ROOT, 'next.config.ts'), 'utf8')
+const config = full.slice(full.indexOf('async redirects()'))
 
 const REDIRECTS: Redirect[] = [
   ...config.matchAll(/source:\s*'([^']+)',\s*destination:\s*'([^']+)'/g),
