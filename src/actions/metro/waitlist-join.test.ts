@@ -43,12 +43,24 @@ function ctx(actingMemberId: string = MEMBER): ActionContext {
 const calls = (re: RegExp): QueryCall[] =>
   (query.mock.calls as QueryCall[]).filter(([sql]) => re.test(sql))
 
+const EMAIL = 'pat@example.org'
+
 function installRouter(
-  opts: { existing?: { metro_id: string; role: string } | null; metroExists?: boolean } = {},
+  opts: {
+    existing?: { metro_id: string; role: string } | null
+    metroExists?: boolean
+    authEmail?: string | null
+    pending?: { id: string; metro_id: string; role: string } | null
+  } = {},
 ) {
-  const { existing = null, metroExists = true } = opts
+  const { existing = null, metroExists = true, authEmail = null, pending = null } = opts
   query.mockReset()
   query.mockImplementation(async (sql: string) => {
+    if (/from auth\.users/i.test(sql)) return { rows: authEmail ? [{ email: authEmail }] : [] }
+    if (/from public\.metro_waitlist/i.test(sql) && /member_id is null/i.test(sql)) {
+      return { rows: pending ? [pending] : [] }
+    }
+    if (/delete from public\.metro_waitlist/i.test(sql)) return { rows: [] }
     if (/from public\.metro_polygons/i.test(sql) && /select/i.test(sql)) {
       return { rows: metroExists ? [{ id: BOISE, is_open: false }] : [] }
     }
@@ -125,6 +137,58 @@ describe('metro.waitlist_join — idempotent by construction (c4)', () => {
     installRouter({ existing: { metro_id: BOISE, role: 'creator' } })
     await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
     expect(calls(/update public\.metro_polygons/i)).toHaveLength(0)
+  })
+})
+
+describe('metro.waitlist_join — one person counts once across the two paths (c4)', () => {
+  // [guards F076.4]
+  it('a signed-up member who had left an email is folded into the member row, not counted twice', async () => {
+    installRouter({ authEmail: EMAIL, pending: { id: 'e1', metro_id: BOISE, role: 'creator' } })
+    const result = await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    expect(calls(/insert into public\.metro_waitlist/i)).toHaveLength(0)
+    const [adopt] = calls(/update public\.metro_waitlist/i)
+    expect(adopt![0]).toMatch(/member_id/i)
+    expect(adopt![0]).toMatch(/email\s*=\s*null/i)
+    expect(adopt![1]).toEqual(expect.arrayContaining(['e1', MEMBER]))
+    expect(calls(/update public\.metro_polygons/i)).toHaveLength(0)
+    expect(result.changed).toBe(false)
+  })
+
+  it('moves the count when the emailed row sat on another metro or role', async () => {
+    installRouter({ authEmail: EMAIL, pending: { id: 'e1', metro_id: RENO, role: 'patron' } })
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    const params = calls(/update public\.metro_polygons/i).flatMap((c) => (c[1] ?? []) as unknown[])
+    expect(params).toContain(RENO)
+    expect(params).toContain(BOISE)
+  })
+
+  // [guards F076.4]
+  it('a member who already has a row and also an emailed one ends with the member row only', async () => {
+    installRouter({
+      existing: { metro_id: BOISE, role: 'creator' },
+      authEmail: EMAIL,
+      pending: { id: 'e1', metro_id: BOISE, role: 'creator' },
+    })
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    const [del] = calls(/delete from public\.metro_waitlist/i)
+    expect(del![1]).toEqual(expect.arrayContaining(['e1']))
+    const bumps = calls(/update public\.metro_polygons/i)
+    expect(bumps).toHaveLength(1)
+    expect(bumps[0]![0]).toMatch(/-\s*1/)
+  })
+
+  it('looks for the address only among rows with no member, and no email lingers after a fold', async () => {
+    installRouter({ authEmail: EMAIL, pending: { id: 'e1', metro_id: BOISE, role: 'creator' } })
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    const [lookup] = calls(/member_id is null/i)
+    expect(lookup![1]).toEqual([EMAIL])
+  })
+
+  it('does nothing extra for a member with no emailed row', async () => {
+    installRouter({ authEmail: EMAIL, pending: null })
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    expect(calls(/delete from public\.metro_waitlist/i)).toHaveLength(0)
+    expect(calls(/insert into public\.metro_waitlist/i)).toHaveLength(1)
   })
 })
 

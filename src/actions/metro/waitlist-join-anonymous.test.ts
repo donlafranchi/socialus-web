@@ -216,6 +216,24 @@ describe('metro.waitlist_join_anonymous — criterion 14, ruled 2026-09-22 (#196
   })
 })
 
+describe('metro.waitlist_join_anonymous — a member who already waits counts once (F076 c4)', () => {
+  // [guards F076.4 partial: the reverse order, signed up first and then left the address; the other order is in waitlist-join.test.ts]
+  it("looks for the address among members' sign-in emails too, so one person is one row", async () => {
+    await metroWaitlistJoinAnonymous(ctx(), { metroId: BOISE, email: 'pat@example.org', role: 'creator' })
+    const [lookup] = calls(/select/i).filter(([sql]) => /from public\.metro_waitlist/i.test(sql))
+    expect(lookup![0]).toMatch(/auth\.users/i)
+  })
+
+  it("moves the member's row, by id, instead of adding an address row beside it", async () => {
+    installRouter({ existing: { id: 'w9', metro_id: RENO, role: 'patron' } })
+    await metroWaitlistJoinAnonymous(ctx(), { metroId: BOISE, email: 'pat@example.org', role: 'patron' })
+    expect(calls(/insert into public\.metro_waitlist/i)).toHaveLength(0)
+    const [move] = calls(/update public\.metro_waitlist/i)
+    expect(move![0]).toMatch(/where id = \$1/i)
+    expect(move![1]).toEqual(expect.arrayContaining(['w9']))
+  })
+})
+
 describe('metro.waitlist_join_anonymous — idempotence and moving', () => {
   it('writes nothing at all when the address is already here in this role', async () => {
     installRouter({ existing: { id: 'w1', metro_id: BOISE, role: 'creator' } })
