@@ -1,76 +1,73 @@
 {
-  "at": "2026-10-13T04:21:58.806Z",
-  "sha": "d7cea3afdad180acda36bdcc03da6a8fdaeaaaad",
-  "red": true,
-  "redCount": 13,
-  "amberCount": 3,
+  "at": "2026-10-13T04:45:52.544Z",
+  "sha": "8aace64833d9a1e371fd60615b362a2409ac3167",
+  "red": false,
+  "redCount": 0,
+  "amberCount": 6,
   "rebenchmarkDue": null,
   "slowest": [
     {
-      "screen": "Explore card → Page (member) [quick]",
+      "screen": "Bottom nav → Explore [settled]",
       "kind": "consumer",
-      "readyMs": 5854,
-      "feedbackMs": 70,
-      "status": "red"
+      "readyMs": 1371,
+      "feedbackMs": 48,
+      "status": "amber"
     },
     {
-      "screen": "Explore post card → Page post [settled]",
+      "screen": "Explore post card → Page post [quick]",
       "kind": "consumer",
-      "readyMs": 5787,
-      "feedbackMs": 68,
-      "status": "red"
+      "readyMs": 974,
+      "feedbackMs": 70,
+      "status": "green"
+    },
+    {
+      "screen": "Explore card → Page (member) [quick]",
+      "kind": "consumer",
+      "readyMs": 967,
+      "feedbackMs": 73,
+      "status": "green"
     },
     {
       "screen": "Explore card → Page (member) [settled]",
       "kind": "consumer",
-      "readyMs": 4810,
-      "feedbackMs": 69,
-      "status": "red"
+      "readyMs": 891,
+      "feedbackMs": 72,
+      "status": "green"
     },
     {
-      "screen": "Creator: own Page → edit [settled]",
-      "kind": "creator",
-      "readyMs": 4776,
-      "feedbackMs": 70,
-      "status": "red"
-    },
-    {
-      "screen": "Explore card → Page [quick]",
+      "screen": "Explore post card → Page post [settled]",
       "kind": "consumer",
-      "readyMs": 3609,
-      "feedbackMs": 55,
-      "status": "red"
+      "readyMs": 858,
+      "feedbackMs": 64,
+      "status": "green"
     }
   ],
   "rows": [
     {
       "screen": "Explore card → Page [quick]",
       "kind": "consumer",
-      "feedbackMs": 55,
-      "urlMs": 2433,
-      "readyMs": 3609,
-      "status": "red",
-      "flags": [
-        "stalled",
-        "slow-content"
-      ]
+      "feedbackMs": 62,
+      "urlMs": 184,
+      "readyMs": 226,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore card → Page [settled]",
       "kind": "consumer",
-      "feedbackMs": 66,
-      "urlMs": 215,
-      "readyMs": 256,
+      "feedbackMs": 61,
+      "urlMs": 515,
+      "readyMs": 825,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page → back to Explore [quick]",
       "kind": "consumer",
-      "feedbackMs": 479,
-      "urlMs": 479,
-      "readyMs": 514,
-      "status": "red",
+      "feedbackMs": 273,
+      "urlMs": 272,
+      "readyMs": 309,
+      "status": "amber",
       "flags": [
         "slow-feedback"
       ]
@@ -78,10 +75,10 @@
     {
       "screen": "Page → back to Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 461,
-      "urlMs": 461,
-      "readyMs": 499,
-      "status": "red",
+      "feedbackMs": 329,
+      "urlMs": 329,
+      "readyMs": 372,
+      "status": "amber",
       "flags": [
         "slow-feedback"
       ]
@@ -89,32 +86,28 @@
     {
       "screen": "Explore: filter icon opens sheet [quick]",
       "kind": "consumer",
-      "feedbackMs": 113,
+      "feedbackMs": 99,
       "urlMs": null,
-      "readyMs": 171,
-      "status": "red",
-      "flags": [
-        "slow-feedback"
-      ]
+      "readyMs": 137,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore: filter icon opens sheet [settled]",
       "kind": "consumer",
-      "feedbackMs": 128,
+      "feedbackMs": 96,
       "urlMs": null,
-      "readyMs": 180,
-      "status": "red",
-      "flags": [
-        "slow-feedback"
-      ]
+      "readyMs": 141,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore: location pill opens picker [quick]",
       "kind": "consumer",
-      "feedbackMs": 137,
+      "feedbackMs": 123,
       "urlMs": null,
-      "readyMs": 213,
-      "status": "red",
+      "readyMs": 160,
+      "status": "amber",
       "flags": [
         "slow-feedback"
       ]
@@ -122,9 +115,9 @@
     {
       "screen": "Explore: location pill opens picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 120,
+      "feedbackMs": 124,
       "urlMs": null,
-      "readyMs": 183,
+      "readyMs": 175,
       "status": "amber",
       "flags": [
         "slow-feedback"
@@ -133,9 +126,9 @@
     {
       "screen": "Explore: search opens [settled]",
       "kind": "consumer",
-      "feedbackMs": 124,
+      "feedbackMs": 116,
       "urlMs": null,
-      "readyMs": 192,
+      "readyMs": 170,
       "status": "amber",
       "flags": [
         "slow-feedback"
@@ -144,9 +137,9 @@
     {
       "screen": "Explore: map view [settled]",
       "kind": "consumer",
-      "feedbackMs": 47,
+      "feedbackMs": 45,
       "urlMs": null,
-      "readyMs": 100,
+      "readyMs": 84,
       "status": "green",
       "flags": []
     },
@@ -154,8 +147,8 @@
       "screen": "Bottom nav → You (signed out) [settled]",
       "kind": "consumer",
       "feedbackMs": 43,
-      "urlMs": 380,
-      "readyMs": 407,
+      "urlMs": 374,
+      "readyMs": 408,
       "status": "green",
       "flags": []
     },
@@ -164,118 +157,116 @@
       "kind": "consumer",
       "feedbackMs": 44,
       "urlMs": null,
-      "readyMs": 103,
+      "readyMs": 73,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: follow asks you to sign in [settled]",
       "kind": "consumer",
-      "feedbackMs": 44,
+      "feedbackMs": 48,
       "urlMs": null,
-      "readyMs": 91,
+      "readyMs": 79,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: sign in → login screen [settled]",
       "kind": "consumer",
-      "feedbackMs": 103,
-      "urlMs": 308,
-      "readyMs": 327,
-      "status": "amber",
-      "flags": [
-        "slow-feedback"
-      ]
+      "feedbackMs": 79,
+      "urlMs": 309,
+      "readyMs": 345,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore: sign in / sign up link [settled]",
       "kind": "consumer",
-      "feedbackMs": 48,
-      "urlMs": 390,
-      "readyMs": 407,
+      "feedbackMs": 43,
+      "urlMs": 352,
+      "readyMs": 374,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: share [settled]",
       "kind": "consumer",
-      "feedbackMs": 70,
+      "feedbackMs": 55,
       "urlMs": null,
-      "readyMs": 73,
+      "readyMs": 94,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: overflow menu → report [settled]",
       "kind": "consumer",
-      "feedbackMs": 75,
+      "feedbackMs": 60,
       "urlMs": null,
-      "readyMs": 76,
+      "readyMs": 61,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Report: Page menu → report [settled]",
       "kind": "consumer",
-      "feedbackMs": 46,
+      "feedbackMs": 67,
       "urlMs": null,
-      "readyMs": 84,
+      "readyMs": 69,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Waitlist: open from the area picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 82,
+      "feedbackMs": 80,
       "urlMs": null,
-      "readyMs": 135,
+      "readyMs": 120,
+      "status": "green",
+      "flags": []
+    },
+    {
+      "screen": "Explore post card → Page post [quick]",
+      "kind": "consumer",
+      "feedbackMs": 70,
+      "urlMs": 609,
+      "readyMs": 974,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore post card → Page post [settled]",
       "kind": "consumer",
-      "feedbackMs": 68,
-      "urlMs": 3210,
-      "readyMs": 5787,
-      "status": "red",
-      "flags": [
-        "stalled",
-        "slow-content"
-      ]
+      "feedbackMs": 64,
+      "urlMs": 528,
+      "readyMs": 858,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore card → Page (member) [quick]",
       "kind": "consumer",
-      "feedbackMs": 70,
-      "urlMs": 2739,
-      "readyMs": 5854,
-      "status": "red",
-      "flags": [
-        "stalled",
-        "slow-content"
-      ]
+      "feedbackMs": 73,
+      "urlMs": 632,
+      "readyMs": 967,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore card → Page (member) [settled]",
       "kind": "consumer",
-      "feedbackMs": 69,
-      "urlMs": 2414,
-      "readyMs": 4810,
-      "status": "red",
-      "flags": [
-        "stalled",
-        "slow-content"
-      ]
+      "feedbackMs": 72,
+      "urlMs": 564,
+      "readyMs": 891,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Bottom nav → Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 46,
-      "urlMs": 124,
-      "readyMs": 3360,
-      "status": "red",
+      "feedbackMs": 48,
+      "urlMs": 116,
+      "readyMs": 1371,
+      "status": "amber",
       "flags": [
         "slow-content"
       ]
@@ -283,51 +274,46 @@
     {
       "screen": "Page: overflow menu → report (member) [settled]",
       "kind": "consumer",
-      "feedbackMs": 43,
+      "feedbackMs": 61,
       "urlMs": null,
-      "readyMs": 82,
+      "readyMs": 62,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
-      "feedbackMs": 70,
-      "urlMs": 1906,
-      "readyMs": 4776,
-      "status": "red",
-      "flags": [
-        "slow-content"
-      ]
+      "feedbackMs": 60,
+      "urlMs": 403,
+      "readyMs": 816,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Creator: Page edit screen [settled]",
       "kind": "creator",
-      "feedbackMs": 48,
-      "urlMs": 2997,
-      "readyMs": 3042,
-      "status": "red",
-      "flags": [
-        "stalled",
-        "slow-content"
-      ]
+      "feedbackMs": 50,
+      "urlMs": 685,
+      "readyMs": 727,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Creator: post composer opens [settled]",
       "kind": "creator",
-      "feedbackMs": 56,
-      "urlMs": 135,
-      "readyMs": 135,
+      "feedbackMs": 53,
+      "urlMs": 114,
+      "readyMs": 114,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Creator: Create (bottom nav) [settled]",
       "kind": "creator",
-      "feedbackMs": 43,
-      "urlMs": 616,
-      "readyMs": 625,
-      "status": "red",
+      "feedbackMs": 41,
+      "urlMs": 473,
+      "readyMs": 477,
+      "status": "green",
       "flags": []
     }
   ]
