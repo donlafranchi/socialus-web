@@ -8,11 +8,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ActionError } from '@/actions/_lib/errors'
 
-const { getUser, join, from } = vi.hoisted(() => ({
+const { getUser, join, from, waitingCountFor } = vi.hoisted(() => ({
   getUser: vi.fn(),
   join: vi.fn(),
   from: vi.fn(),
+  waitingCountFor: vi.fn(),
 }))
+
+// F076 criteria 7 and 8: the signed-in popup shows the CACHED figure, the same
+// one the anonymous popup shows.
+vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountFor }))
 
 vi.mock('@/lib/supabase-server', () => ({
   createClient: vi.fn(async () => ({ auth: { getUser }, from })),
@@ -49,6 +54,8 @@ beforeEach(() => {
   getUser.mockReset()
   join.mockReset()
   from.mockReset()
+  waitingCountFor.mockReset()
+  waitingCountFor.mockResolvedValue(50)
   getUser.mockResolvedValue({ data: { user: { id: MEMBER } }, error: null })
   join.mockResolvedValue({ metroId: METRO, role: 'creator', changed: true })
 })
@@ -76,36 +83,44 @@ describe('joinMetroWaitlistAction', () => {
     metroRow()
     const res = await joinMetroWaitlistAction({ metroId: METRO, role: 'creator' })
     expect(res.standing).toEqual({ combined: 50, target: 300 })
+    expect(res.standing).not.toBeNull()
     // Asserted on the SHAPE, not on digits. "50" and "250" appear in this
     // response for honest reasons — 50 is the combined count and 250 is how
     // many more people are needed — so scanning for them finds the arithmetic,
     // not a leak. The leak would be a per-role field, and an exact key set is
     // what catches one being added later.
     expect(Object.keys(res).sort()).toEqual(['message', 'metroName', 'open', 'standing'])
-    expect(Object.keys(res.standing).sort()).toEqual(['combined', 'target'])
+    expect(Object.keys(res.standing!).sort()).toEqual(['combined', 'target'])
     const json = JSON.stringify(res)
     for (const leak of ['creatorCount', 'patronCount', 'creatorThreshold', 'patronThreshold', 'eligible']) {
       expect(json).not.toContain(leak)
     }
   })
 
-  it('counts the join that just happened', async () => {
-    // The row must be read AFTER the write, so the person sees themselves in
-    // the number. Two different rows on successive reads is what makes this
-    // prove the ordering rather than just the arithmetic: a handler that read
-    // once, before the write, would return 50.
-    const rows = [
-      { id: METRO, name: 'Boise', is_open: false, creator_count: 10, patron_count: 40, creator_threshold: 50, patron_threshold: 250 },
-      { id: METRO, name: 'Boise', is_open: false, creator_count: 11, patron_count: 40, creator_threshold: 50, patron_threshold: 250 },
-    ]
-    let call = 0
-    from.mockReturnValue({
-      select: () => ({
-        eq: () => ({ maybeSingle: async () => ({ data: rows[Math.min(call++, 1)], error: null }) }),
-      }),
-    })
+  // [guards F076.7 partial: the signed-in popup; the anonymous popup is in metro-waitlist-anonymous-actions.test.ts]
+  // [guards F076.8 partial: the signed-in popup shows the cached figure; the picker's ordering is guarded separately]
+  it('shows the cached figure, not a count read after the write', async () => {
+    // The live rows say 51; the cache holds 47. The popup must show the cache,
+    // so it can never differ from what the metro picker orders by.
+    metroRow({ creator_count: 11, patron_count: 40 })
+    waitingCountFor.mockResolvedValue(47)
     const res = await joinMetroWaitlistAction({ metroId: METRO, role: 'creator' })
-    expect(res.standing.combined).toBe(51)
+    expect(waitingCountFor).toHaveBeenCalledWith(METRO)
+    expect(res.standing).toEqual({ combined: 47, target: 300 })
+  })
+
+  it('reads the metro row once, before the write, and never for a count afterwards', async () => {
+    metroRow()
+    await joinMetroWaitlistAction({ metroId: METRO, role: 'creator' })
+    expect(from).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows no number rather than a confident zero when the cache has no entry', async () => {
+    metroRow()
+    waitingCountFor.mockResolvedValue(null)
+    const res = await joinMetroWaitlistAction({ metroId: METRO, role: 'creator' })
+    expect(res.standing).toBeNull()
+    expect(res.message).toBe('')
   })
 
   it('carries the metro name so the popup can name where they are waiting', async () => {

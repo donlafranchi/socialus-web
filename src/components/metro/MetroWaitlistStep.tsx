@@ -153,8 +153,8 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
       {standing && (
         <MetroStandingDialog
           metroName={standing.metroName}
-          combined={standing.standing.combined}
-          target={standing.standing.target}
+          combined={standing.standing?.combined}
+          target={standing.standing?.target}
           message={standing.message}
           onClose={() => {
             setStanding(null)
