@@ -61,7 +61,7 @@ describe('F070 · T145 — PagePhotoPicker', () => {
     expect(recordUploadAction).not.toHaveBeenCalled()
   })
 
-  // [guards F080.5 partial: the ask at posting; this is the per-photo confirmation]
+  // [guards F080.5 partial: the ask at posting; this is the per-photo confirmation] [guards F080.1 partial: the uploader's confirmation, which is how the rule is affirmed; nothing detects a photo]
   it('F080 — choosing a photo waits until the uploader confirms it shows no children', () => {
     render(<PagePhotoPicker memberId="m1" value={null} onChange={vi.fn()} />)
     const choose = screen.getByRole('button', { name: /choose a photo/i })
