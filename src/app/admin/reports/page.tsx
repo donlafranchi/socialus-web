@@ -39,10 +39,19 @@ export default async function AdminReportsPage() {
     // F101 / #304 — phone-first (#12): one column, full-bleed at 375, capped at
     // the read width on a laptop.
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="admin-reports">
-      <p className="mb-3 text-body-sm">
-        <Link href="/admin/reports/purge" className="underline" data-testid="purge-link">
+      <p className="mb-3 flex flex-wrap gap-x-4 text-body-sm">
+        <Link href="/admin/reports/purge" className="inline-flex min-h-11 items-center underline" data-testid="purge-link">
           Removed photos
         </Link>
+        <a
+          href="https://github.com/donlafranchi/socialus-ops/blob/main/runbooks/staff-safety.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-11 items-center underline"
+          data-testid="safety-runbook-link"
+        >
+          Safety runbook
+        </a>
       </p>
       {readiness && <AiReadiness readiness={readiness} />}
       <ReviewQueue subjects={groupBySubject(queue, { live: mode === 'live' })} summary={summary} onDecide={decideReportAction} onReverse={reverseDecisionAction} />
