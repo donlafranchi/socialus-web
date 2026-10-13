@@ -44,7 +44,7 @@ import { itemCreate, itemPublish, itemAttachLocation } from './item'
 import { tagReview } from './tag'
 import { originRecord } from './origin'
 import { problemReport } from './problem'
-import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge } from './report'
+import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge, reportNcmecRecord } from './report'
 export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
@@ -104,6 +104,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // F102 — the poster's one answer to a hide.
   'report.answer': reportAnswer as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge_target': reportPurgeTarget as unknown as NamedActionHandler<unknown, unknown>,
+  'report.ncmec_record': reportNcmecRecord as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge': reportPurge as unknown as NamedActionHandler<unknown, unknown>,
   // F102 criterion 13 — where a post or upload came from; operator-only, kept a year.
   'origin.record': originRecord as unknown as NamedActionHandler<unknown, unknown>,
@@ -168,6 +169,7 @@ export {
   reportAnswer,
   reportPurgeTarget,
   reportPurge,
+  reportNcmecRecord,
   reportCreateInput,
   type ReportCreateInput,
   type ReportCreateResult,

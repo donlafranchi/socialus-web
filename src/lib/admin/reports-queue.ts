@@ -84,6 +84,8 @@ export interface QueuedReport {
   reporterAgeDays?: number
   /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
   reporter?: { filed: number; upheld: number; dismissed: number; open: number }
+  /** #648 — kept as child-safety evidence (operator-only); the NCMEC report number once the operator records it. */
+  hold?: { retainUntil: Date; ncmecReportNumber: string | null; ncmecReportedAt: Date | null } | null
   reportId: string
   /** What the reporter wrote, in their own words. */
   body: string
@@ -253,6 +255,8 @@ export async function fetchReviewQueue(
                join public.member_notices n on n.id = a.notice_id
               where n.subject_kind = r.subject_kind and n.subject_id = r.subject_id
               order by a.created_at desc limit 1) as answer,
+            (select json_build_object('retain_until', h.retain_until, 'ncmec_report_number', h.ncmec_report_number, 'ncmec_reported_at', h.ncmec_reported_at)
+               from public.legal_holds h where h.subject_kind = r.subject_kind and h.subject_id = r.subject_id) as hold,
             extract(epoch from (r.created_at - rm.created_at)) / 86400 as reporter_age_days,
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id)::int as r_filed,
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.reviewed_at is null and x.removed_at is null)::int as r_open,
@@ -286,6 +290,7 @@ export async function fetchReviewQueue(
     posterId: (r.poster_id as string | null) ?? undefined,
     answer: toAnswer(r.answer),
     ai: toAi(r.ai),
+    hold: toHold(r.hold),
     reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
     reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
     reportId: r.report_id as string,
@@ -324,6 +329,12 @@ export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: 
           having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
   )
   return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}
+
+function toHold(raw: unknown): QueuedReport['hold'] {
+  if (!raw) return null
+  const h = raw as { retain_until: string; ncmec_report_number: string | null; ncmec_reported_at: string | null }
+  return { retainUntil: new Date(h.retain_until), ncmecReportNumber: h.ncmec_report_number, ncmecReportedAt: h.ncmec_reported_at ? new Date(h.ncmec_reported_at) : null }
 }
 
 function toAnswer(raw: unknown): QueuedReport['answer'] {

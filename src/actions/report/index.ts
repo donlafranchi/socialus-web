@@ -19,3 +19,6 @@ export { reportAnswer, reportAnswerInput, ANSWER_WINDOW_DAYS, type ReportAnswerI
 
 // #491 — purge
 export { reportPurgeTarget, reportPurge, PURGE_REASONS, type PurgeReason } from './purge'
+
+// #648 — record the NCMEC report number on a legal hold
+export { reportNcmecRecord, reportNcmecRecordInput, type ReportNcmecRecordInput } from './ncmec'

@@ -24,6 +24,7 @@ import { COPY } from '@/lib/copy'
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import { isServedViaSite } from '@/lib/media/served-url'
 import { ReportEntry } from './ReportEntry'
+import { NcmecRecord } from './NcmecRecord'
 import { SubjectTimeline } from './SubjectTimeline'
 
 type Decide = (input: { reportId: string; outcome: Outcome; reasonCode: ReasonCode; reasonNote?: string }) => Promise<void>
@@ -63,11 +64,14 @@ export function ReviewQueue({
   subjects,
   onDecide,
   onReverse,
+  onRecordNcmec,
   summary,
 }: {
   subjects: ReviewSubject[]
   onDecide: Decide
   onReverse: Reverse
+  /** #648 — record the NCMEC report number on a held row. */
+  onRecordNcmec?: (input: { reportId: string; reportNumber: string }) => Promise<void>
   /** F102 criterion 11 — the week in one line. */
   summary?: { answers: number; coolDowns: number }
 }) {
@@ -257,6 +261,7 @@ export function ReviewQueue({
             }}
             onCancelConfirm={() => setConfirming(null)}
             detail={[
+              ...(s.hold && onRecordNcmec ? [<NcmecRecord key="hold" hold={s.hold} onRecord={onRecordNcmec} />] : []),
               <SubjectTimeline key="timeline" subject={s} />,
               ...s.reports.map((r) => (
                 <ReportEntry key={r.reportId} report={r} hiddenFor={hiddenFor(r.hiddenAt, now)} onDecide={onDecide} onReverse={onReverse} />
