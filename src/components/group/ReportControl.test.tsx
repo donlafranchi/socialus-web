@@ -312,6 +312,7 @@ describe('which image is reported', () => {
 
 // F102 criterion 10 — kindly, before sending.
 describe('F102 — threat of harm', () => {
+  // [guards F102.10]
   it('tells the reporter to call 911 if someone is in danger now, once that reason is picked', () => {
     render(<ReportControl subjectId="g1" subjectLabel="Oak Park Bakery" loggedIn onSend={vi.fn(async () => ({ ok: true as const }))} />)
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))

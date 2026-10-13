@@ -66,6 +66,8 @@ function install(
     hiddenAt?: Date | null
     removedAt?: Date | null
     repostUsed?: boolean
+    /** F102.2/.14: a report on this post is severity 1 (the reporter chose Sensitive content). */
+    severityOne?: boolean
   } = {},
 ) {
   const {
@@ -77,6 +79,7 @@ function install(
     hiddenAt = null,
     removedAt = null,
     repostUsed = false,
+    severityOne = false,
   } = opts
   query.mockReset()
   query.mockImplementation(async (sql: string, params: unknown[] = []) => {
@@ -87,7 +90,7 @@ function install(
     }
     if (/from public\.page_posts/i.test(sql)) {
       return postExists
-        ? { rows: [{ id: POST, group_id: GROUP, hidden_at: hiddenAt, removed_at: removedAt, repost_used: repostUsed }], rowCount: 1 }
+        ? { rows: [{ id: POST, group_id: GROUP, hidden_at: hiddenAt, removed_at: removedAt, repost_used: repostUsed, severity_one: severityOne }], rowCount: 1 }
         : { rows: [], rowCount: 0 }
     }
     if (/insert into public\.post_series/i.test(sql)) return { rows: [{ id: SERIES }], rowCount: 1 }
@@ -470,6 +473,15 @@ describe('F102 — fix and repost', () => {
     install({ hiddenAt: HIDDEN, repostUsed: true })
     await groupPostEdit(ctx(), { postId: POST, body: 'Again.' })
     expect(reposts()).toHaveLength(0)
+  })
+
+  // [guards F102.2 partial: fix and repost is not offered for severity 1]
+  it('a post hidden for the most serious kind stays down however it is edited, and the answer is not recorded', async () => {
+    install({ hiddenAt: HIDDEN, severityOne: true })
+    const r = await groupPostEdit(ctx(), { postId: POST, body: 'Fixed words.' })
+    expect(r.reposted).toBe(false)
+    expect(reposts()).toHaveLength(0)
+    expect((query.mock.calls as [string][]).some(([q]) => /insert into public\.report_answers/i.test(q))).toBe(false)
   })
 
   it('a post a person removed cannot be reposted by editing it', async () => {

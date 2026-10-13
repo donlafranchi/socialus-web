@@ -10,6 +10,7 @@ import type { QueuedReport } from './reports-queue'
 import type { ReasonCode } from './reason-codes'
 import { SEVERITY_OF_REPORT_CATEGORY, type ReportCategory } from '@/lib/reports/categories'
 import { removeReasonFor } from './reason-codes'
+import { ANSWER_WINDOW_MS } from '@/lib/reports/answer-window'
 
 export type Severity = 1 | 2 | 3 | 4
 
@@ -193,4 +194,11 @@ export function subjectTimeline(s: ReviewSubject): TimelineItem[] {
     if (r.answer?.at && !items.some((i) => i.kind === 'rebuttal')) items.push({ kind: 'rebuttal', at: r.answer.at, answer: r.answer })
   }
   return items.sort((a, b) => b.at.getTime() - a.at.getTime() || KIND_RANK[a.kind] - KIND_RANK[b.kind])
+
+/**
+ * F102 criterion 4: no answer is no work. A hide the poster has not answered in 14 days closes itself: it stays
+ * hidden and leaves the batch, unless it is severity 1 (the PM always sees that).
+ */
+export function lapsed(s: ReviewSubject, now: Date): boolean {
+  return s.status === 'hidden' && s.hiddenAt !== null && s.answer === null && s.severity !== 1 && now.getTime() - s.hiddenAt.getTime() >= ANSWER_WINDOW_MS
 }

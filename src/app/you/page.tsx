@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { YouNotices, type Notice } from '@/components/member/YouNotices'
 import { answerNoticeAction } from '@/app/_actions/report-actions'
 import { DefaultMetro } from '@/components/member/DefaultMetro'
+import { ANSWER_WINDOW_MS } from '@/lib/reports/answer-window'
 import { ZipChange } from '@/components/member/ZipChange'
 import { changeZipAction } from '@/app/_actions/zip-actions'
 import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
@@ -138,7 +139,6 @@ function Row({ label, value, testId, action, wrap, children }: { label: string; 
   )
 }
 
-const CLOSES_AFTER_MS = 14 * 86_400_000
 
 type NoticeRow = {
   id: string
@@ -161,7 +161,7 @@ function toNotices(rows: unknown): Notice[] {
       subjectKind: n.subject_kind,
       pageHandle: (Array.isArray(n.page) ? n.page[0] : n.page)?.public_id ?? null,
       answer: a?.kind ?? null,
-      closed: Date.now() - new Date(n.created_at).getTime() > CLOSES_AFTER_MS,
+      closed: Date.now() - new Date(n.created_at).getTime() > ANSWER_WINDOW_MS,
     }
   })
 }

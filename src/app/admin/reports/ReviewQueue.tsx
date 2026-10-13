@@ -17,10 +17,11 @@ import { Check, ChevronDown, X } from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import { buttonClass } from '@/components/ui/Button'
 import { hiddenFor } from '@/lib/admin/hidden-for'
-import { DEFAULT_REASON, blurred, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
+import { DEFAULT_REASON, blurred, lapsed, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
 import type { Outcome, ReasonCode } from '@/lib/admin/reason-codes'
 import { categoryLabel } from '@/lib/reports/categories'
 import { COPY } from '@/lib/copy'
+import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import { ReportEntry } from './ReportEntry'
 import { SubjectTimeline } from './SubjectTimeline'
 
@@ -29,6 +30,9 @@ type Reverse = (input: { decisionId: string; reasonCode: ReasonCode; reasonNote?
 
 const UNDO_MS = 5000
 const SWIPE_PX = 96
+
+/** F102.11: the one summary is a Friday thing, in the metro's week. */
+const isFriday = (d: Date) => new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: METRO_TIME_ZONE }).format(d) === 'Fri'
 const REASON_WORD = { mistaken: 'Mistaken', malicious: 'Malicious', misusing_reports: 'Misusing reports' } as const
 const WORD: Record<Outcome, string> = { restored: 'Approve', removed: 'Remove' }
 
@@ -78,7 +82,7 @@ export function ReviewQueue({
   const [error, setError] = useState<string | null>(null)
   const [now] = useState(() => new Date())
 
-  const waiting = (s: ReviewSubject) => s.openReportIds.length > 0 && !done.has(s.subjectId)
+  const waiting = (s: ReviewSubject) => s.openReportIds.length > 0 && !done.has(s.subjectId) && !lapsed(s, now)
   // A restore the AI made stays in the list until a person confirms or undoes it.
   const awaitingLook = (s: ReviewSubject) => s.aiRestored.length > 0 && !done.has(s.subjectId)
   const rows = orderSubjects(subjects, sort).filter((s) => (show === 'waiting' ? waiting(s) || awaitingLook(s) : matches(s, show)))
@@ -216,9 +220,11 @@ export function ReviewQueue({
         </div>
       </header>
 
-      {summary && (
+      {summary && isFriday(now) && (
         <p data-testid="review-summary" className="mt-2 text-caption text-[var(--color-fg-muted)]">
-          This week: {summary.answers === 0 ? 'no answers from posters' : `${summary.answers} answer${summary.answers === 1 ? '' : 's'} from posters`}
+          This week: {waitingCount === 0 ? 'nothing waiting' : `${waitingCount} waiting (${bySeverity.map((n, i) => (n ? `${n} severity ${i + 1}` : '')).filter(Boolean).join(', ')})`}
+          {' · '}
+          {summary.answers === 0 ? 'no answers from posters' : `${summary.answers} answer${summary.answers === 1 ? '' : 's'} from posters`}
           {' · '}
           {summary.coolDowns === 0 ? 'no cool-downs' : `${summary.coolDowns} reporter${summary.coolDowns === 1 ? '' : 's'} cooling down`}
         </p>
@@ -420,7 +426,7 @@ function Row({
               </p>
             )}
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{SUBJECT_LABEL[s.subjectKind]}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : underAppeal(s) ? 'Under appeal' : 'Hidden') : 'Decided'}
+              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{SUBJECT_LABEL[s.subjectKind]}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : underAppeal(s) ? 'Under appeal' : 'Hidden') : lapsed(s, now) ? 'No answer: closed itself' : 'Decided'}
               {age ? ` · hidden ${age}` : ''}
             </p>
           </div>
