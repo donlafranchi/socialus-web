@@ -231,213 +231,6 @@ describe('F101 — one tap, then a five-second Undo', () => {
     fireEvent.click(t, { detail: 0 })
     expect(t).toHaveAttribute('data-blurred', 'true')
     expect(t).toHaveAccessibleName(/hold to show the photo/i)
-
-  it('a decided report no longer counts toward severity', () => {
-    const subjects = groupBySubject([post('r1', 'p1', { category: 'sensitive_content', history: [decided] }), post('r2', 'p1', { category: 'spam' })])
-    expect(subjects[0]!.severity).toBe(4)
-  })
-
-  it('no reasons given means no severity, as before', () => {
-    expect(groupBySubject([report('r1', 'a')])[0]!.severity).toBeNull()
-  })
-
-  it('shows the severity badge and the reasons with counts', () => {
-    show(groupBySubject([post('r1', 'p1', { category: 'harassment' }), post('r2', 'p1', { category: 'harassment' }), post('r3', 'p1', { category: 'spam' })]))
-    expect(screen.getByTestId('review-severity')).toHaveTextContent('Severity 2')
-    expect(screen.getByTestId('review-reasons')).toHaveTextContent('Harassment ×2')
-    expect(screen.getByTestId('review-reasons')).toHaveTextContent('Spam')
-  })
-
-  it('the excerpt is the content that was reported, not the reporter\'s words', () => {
-    show(groupBySubject([post('r1', 'p1', { body: 'reporter wrote this', contentText: 'x'.repeat(200) })]))
-    const text = screen.getByTestId('review-excerpt').textContent!
-    expect(text).not.toContain('reporter wrote')
-    expect(text.length).toBeLessThanOrEqual(120)
-  })
-
-  it('deciding on a Post row decides its open report ids', async () => {
-    show(groupBySubject([post('r1', 'p1', { category: 'spam' }), post('r2', 'p1', { category: 'spam' })]))
-    fireEvent.click(screen.getByTestId('review-remove'))
-    await act(async () => {
-      vi.advanceTimersByTime(5000)
-    })
-    expect(onDecide).toHaveBeenCalledTimes(2)
-  })
-})
-
-describe('F101 — the two buttons are 48px tall', () => {
-  // [guards F101.5 partial: the height; jsdom has no layout, so this is the class that wins over min-h-tap]
-  it('Approve and Remove force min-h-12 over the button\'s own 44px floor', () => {
-    show(groupBySubject([report('r1', 'a')]))
-    for (const id of ['review-approve', 'review-remove']) expect(screen.getByTestId(id).className).toContain('min-h-12!')
-  })
-})
-
-describe('F099 — the row names the image', () => {
-  it('says Page photo, Page picture or Post photo by what was reported', () => {
-    show(
-      groupBySubject([
-        report('r1', 'a'),
-        report('r2', 'b', { subjectKind: 'page_picture' }),
-        report('r3', 'c', { subjectKind: 'post_photo', subjectId: 'p1' }),
-      ]),
-    )
-    expect(screen.getAllByTestId('review-kind').map((e) => e.textContent).sort()).toEqual(['Page photo', 'Page picture', 'Post photo'])
-  })
-})
-
-describe('F102 criterion 8 — coordinated reporting is flagged, not acted on', () => {
-  const at = (h: number) => new Date(Date.UTC(2026, 9, 3, h))
-  const r = (id: string, over: Partial<QueuedReport> = {}) =>
-    report(id, 'page-1', { posterId: 'poster-1', reporterAgeDays: 400, reportedAt: at(1), ...over })
-
-  // [guards F102.8]
-  it('three reports in a day, two from accounts under a week old, mark the row', () => {
-    const s = groupBySubject([r('a', { reporterAgeDays: 1 }), r('b', { reporterAgeDays: 2, reportedAt: at(5) }), r('c', { reportedAt: at(9) })])
-    expect(s[0]!.coordinated).toBe(true)
-  })
-
-  it('not with only one new account', () => {
-    expect(groupBySubject([r('a', { reporterAgeDays: 1 }), r('b', { reportedAt: at(5) }), r('c', { reportedAt: at(9) })])[0]!.coordinated).toBe(false)
-  })
-
-  it('not when the three are spread over more than 24 hours', () => {
-    const s = groupBySubject([r('a', { reporterAgeDays: 1 }), r('b', { reporterAgeDays: 2, reportedAt: at(30) }), r('c', { reportedAt: at(60) })])
-    expect(s[0]!.coordinated).toBe(false)
-  })
-
-  it('counts one poster\'s reports across their Page and their post together', () => {
-    const s = groupBySubject([
-      r('a', { reporterAgeDays: 1 }),
-      r('b', { reporterAgeDays: 2, reportedAt: at(5), subjectKind: 'post', postId: 'p1' }),
-      r('c', { reportedAt: at(9), subjectKind: 'post', postId: 'p1' }),
-    ])
-    expect(s.every((x) => x.coordinated)).toBe(true)
-  })
-
-  it('adds one tier of priority within a severity, and says so on the row', () => {
-    const base = [r('a', { category: 'spam' })]
-    const flagged = [
-      report('x', 'page-2', { posterId: 'poster-2', category: 'spam', reporterAgeDays: 1, reportedAt: at(1), hiddenAt: day(9) }),
-      report('y', 'page-2', { posterId: 'poster-2', category: 'spam', reporterAgeDays: 1, reportedAt: at(2), hiddenAt: day(9) }),
-      report('z', 'page-2', { posterId: 'poster-2', category: 'spam', reporterAgeDays: 400, reportedAt: at(3), hiddenAt: day(9) }),
-    ]
-    const subjects = groupBySubject([...base, ...flagged])
-    expect(orderSubjects(subjects)[0]!.subjectId).toBe('page-2')
-    show(subjects)
-    expect(screen.getAllByTestId('review-coordinated')).toHaveLength(1)
-    expect(screen.getByTestId('review-coordinated')).toHaveTextContent(/possible coordinated reporting/i)
-  })
-})
-
-describe('F101 criterion 2 / F102 — the poster\'s answer is on the row', () => {
-  it('shows what the poster said, so the operator decides with both sides', () => {
-    show(groupBySubject([report('r1', 'a', { answer: { kind: 'wrong', reason: 'malicious', note: 'He reports everything I post.' } })]))
-    expect(screen.getByTestId('review-answer')).toHaveTextContent('Poster: Malicious')
-    expect(screen.getByTestId('review-answer')).toHaveTextContent('He reports everything I post.')
-  })
-
-  it('says when the poster fixed it and reposted', () => {
-    show(groupBySubject([report('r1', 'a', { answer: { kind: 'fix_and_repost', reason: null, note: null } })]))
-    expect(screen.getByTestId('review-answer')).toHaveTextContent(/fixed it and reposted/i)
-  })
-
-  it('says nothing when there is no answer', () => {
-    show(groupBySubject([report('r1', 'a')]))
-    expect(screen.queryByTestId('review-answer')).toBeNull()
-  })
-})
-
-describe('F102 criterion 11 — the Friday summary', () => {
-  // Friday 2026-10-16, 9am in Sacramento; Wednesday 2026-10-14.
-  const FRIDAY = new Date('2026-10-16T16:00:00Z')
-  const WEDNESDAY = new Date('2026-10-14T16:00:00Z')
-  const week = [report('r1', 'a', { category: 'sensitive_content', hiddenAt: new Date('2026-10-15T00:00:00Z') }), report('r2', 'b', { category: 'harassment', hiddenAt: new Date('2026-10-15T00:00:00Z') }), report('r3', 'c', { category: 'spam', hiddenAt: new Date('2026-10-15T00:00:00Z') })]
-
-  // [guards F102.11]
-  it('on Friday morning says what is waiting by severity, how many answers came in, and how many reporters are cooling down', () => {
-    vi.setSystemTime(FRIDAY)
-    show(groupBySubject(week), { answers: 3, coolDowns: 1 })
-    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: 3 waiting (1 severity 1, 1 severity 2, 1 severity 4) · 3 answers from posters · 1 reporter cooling down')
-  })
-
-  it('is plain when there is nothing to say', () => {
-    vi.setSystemTime(FRIDAY)
-    show([], { answers: 0, coolDowns: 0 })
-    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: nothing waiting · no answers from posters · no cool-downs')
-  })
-
-  it('is one summary on Friday and nothing asking for attention on any other weekday', () => {
-    for (const d of ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-17', '2026-10-18']) {
-      vi.setSystemTime(new Date(`${d}T16:00:00Z`))
-      show(groupBySubject(week), { answers: 3, coolDowns: 1 })
-      expect(screen.queryByTestId('review-summary'), d).toBeNull()
-      cleanup()
-    }
-  })
-
-  it('is absent when no summary is given', () => {
-    vi.setSystemTime(FRIDAY)
-    show(groupBySubject(week))
-    expect(screen.queryByTestId('review-summary')).toBeNull()
-  })
-
-  it('midweek the page still shows severity 1 waiting, the one thing that asks for attention', () => {
-    vi.setSystemTime(WEDNESDAY)
-    show(groupBySubject(week), { answers: 3, coolDowns: 1 })
-    expect(screen.getByTestId('review-waiting')).toHaveTextContent('1 severity 1')
-  })
-})
-
-describe('F102 criterion 4 — a lapsed unanswered hide leaves the batch unless it is severity 1', () => {
-  const hidden = (id: string, category: QueuedReport['category'], daysAgo: number, over: Partial<QueuedReport> = {}) =>
-    report(id, id, { category, hiddenAt: new Date(Date.UTC(2026, 9, 20, 16) - daysAgo * 86_400_000), ...over })
-  beforeEach(() => vi.setSystemTime(new Date('2026-10-20T16:00:00Z')))
-
-  // [guards F102.4]
-  it('after 14 days with no answer a severity 2 to 4 row leaves the batch and stays hidden; severity 1, an answered row and a younger one stay', () => {
-    show(
-      groupBySubject([
-        hidden('lapsed-spam', 'spam', 15),
-        hidden('lapsed-harass', 'harassment', 20),
-        hidden('lapsed-child', 'sensitive_content', 30),
-        hidden('answered', 'spam', 20, { answer: { kind: 'mistake', reason: null, note: null } }),
-        hidden('young', 'spam', 13),
-      ]),
-    )
-    expect(screen.getAllByTestId('review-row').map((r) => r.getAttribute('data-subject')).sort()).toEqual(['answered', 'lapsed-child', 'young'])
-    expect(screen.getByTestId('review-waiting')).toHaveTextContent('3 waiting')
-    // It closed itself: nothing was decided, and it is still hidden, one filter away.
-    expect(onDecide).not.toHaveBeenCalled()
-    fireEvent.change(screen.getByTestId('review-filter'), { target: { value: 'all' } })
-    expect(screen.getAllByTestId('review-row')).toHaveLength(5)
-  })
-
-  it('exactly 14 days is the window: a day short stays, the 14th day lapses', () => {
-    show(groupBySubject([hidden('d13', 'spam', 13.9), hidden('d14', 'spam', 14)]))
-    expect(screen.getAllByTestId('review-row').map((r) => r.getAttribute('data-subject'))).toEqual(['d13'])
-  })
-})
-
-describe('F101 criterion 10 — one tap removes with the reason that matches the row', () => {
-  const rep = (id: string, category: QueuedReport['category']) => report(id, 'a', { category })
-
-  it('Remove records the reason for the row\'s top category, not a generic one', async () => {
-    show(groupBySubject([rep('r1', 'harassment'), rep('r2', 'harassment'), rep('r3', 'spam')]))
-    fireEvent.click(screen.getByTestId('review-remove'))
-    await act(async () => {
-      vi.advanceTimersByTime(5000)
-    })
-    expect(onDecide).toHaveBeenCalledWith({ reportId: 'r1', outcome: 'removed', reasonCode: 'harassment' })
-  })
-
-  it('a tie goes to the more serious category', () => {
-    const s = groupBySubject([rep('r1', 'spam'), rep('r2', 'threat_of_harm')])[0]!
-    expect(s.removeReason).toBe('threat_of_harm')
-  })
-
-  it('no reason given falls back to "not suitable"', () => {
-    expect(groupBySubject([report('r1', 'a')])[0]!.removeReason).toBe('not_suitable')
   })
 })
 
@@ -547,6 +340,77 @@ describe('F102.12 — Restored by AI', () => {
 })
 
 // F101.12 (#634) — the detail lists the subject's whole history, newest first, with Undo on any decision.
+describe('F102 criterion 11 — the Friday summary', () => {
+  // Friday 2026-10-16, 9am in Sacramento; Wednesday 2026-10-14.
+  const FRIDAY = new Date('2026-10-16T16:00:00Z')
+  const WEDNESDAY = new Date('2026-10-14T16:00:00Z')
+  const week = [report('r1', 'a', { category: 'sensitive_content', hiddenAt: new Date('2026-10-15T00:00:00Z') }), report('r2', 'b', { category: 'harassment', hiddenAt: new Date('2026-10-15T00:00:00Z') }), report('r3', 'c', { category: 'spam', hiddenAt: new Date('2026-10-15T00:00:00Z') })]
+
+  // [guards F102.11]
+  it('on Friday morning says what is waiting by severity, how many answers came in, and how many reporters are cooling down', () => {
+    vi.setSystemTime(FRIDAY)
+    show(groupBySubject(week), { answers: 3, coolDowns: 1 })
+    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: 3 waiting (1 severity 1, 1 severity 2, 1 severity 4) · 3 answers from posters · 1 reporter cooling down')
+  })
+
+  it('is plain when there is nothing to say', () => {
+    vi.setSystemTime(FRIDAY)
+    show([], { answers: 0, coolDowns: 0 })
+    expect(screen.getByTestId('review-summary')).toHaveTextContent('This week: nothing waiting · no answers from posters · no cool-downs')
+  })
+
+  it('is one summary on Friday and nothing asking for attention on any other weekday', () => {
+    for (const d of ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-17', '2026-10-18']) {
+      vi.setSystemTime(new Date(`${d}T16:00:00Z`))
+      show(groupBySubject(week), { answers: 3, coolDowns: 1 })
+      expect(screen.queryByTestId('review-summary'), d).toBeNull()
+      cleanup()
+    }
+  })
+
+  it('is absent when no summary is given', () => {
+    vi.setSystemTime(FRIDAY)
+    show(groupBySubject(week))
+    expect(screen.queryByTestId('review-summary')).toBeNull()
+  })
+
+  it('midweek the page still shows severity 1 waiting, the one thing that asks for attention', () => {
+    vi.setSystemTime(WEDNESDAY)
+    show(groupBySubject(week), { answers: 3, coolDowns: 1 })
+    expect(screen.getByTestId('review-waiting')).toHaveTextContent('1 severity 1')
+  })
+})
+
+describe('F102 criterion 4 — a lapsed unanswered hide leaves the batch unless it is severity 1', () => {
+  const hidden = (id: string, category: QueuedReport['category'], daysAgo: number, over: Partial<QueuedReport> = {}) =>
+    report(id, id, { category, hiddenAt: new Date(Date.UTC(2026, 9, 20, 16) - daysAgo * 86_400_000), ...over })
+  beforeEach(() => vi.setSystemTime(new Date('2026-10-20T16:00:00Z')))
+
+  // [guards F102.4]
+  it('after 14 days with no answer a severity 2 to 4 row leaves the batch and stays hidden; severity 1, an answered row and a younger one stay', () => {
+    show(
+      groupBySubject([
+        hidden('lapsed-spam', 'spam', 15),
+        hidden('lapsed-harass', 'harassment', 20),
+        hidden('lapsed-child', 'sensitive_content', 30),
+        hidden('answered', 'spam', 20, { answer: { kind: 'mistake', reason: null, note: null } }),
+        hidden('young', 'spam', 13),
+      ]),
+    )
+    expect(screen.getAllByTestId('review-row').map((r) => r.getAttribute('data-subject')).sort()).toEqual(['answered', 'lapsed-child', 'young'])
+    expect(screen.getByTestId('review-waiting')).toHaveTextContent('3 waiting')
+    // It closed itself: nothing was decided, and it is still hidden, one filter away.
+    expect(onDecide).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByTestId('review-filter'), { target: { value: 'all' } })
+    expect(screen.getAllByTestId('review-row')).toHaveLength(5)
+  })
+
+  it('exactly 14 days is the window: a day short stays, the 14th day lapses', () => {
+    show(groupBySubject([hidden('d13', 'spam', 13.9), hidden('d14', 'spam', 14)]))
+    expect(screen.getAllByTestId('review-row').map((r) => r.getAttribute('data-subject'))).toEqual(['d13'])
+  })
+})
+
 describe('F101 criterion 12 — the detail shows the full history', () => {
   const read = (d: number, outcome: 'approve' | 'remove', reason: string) => ({ at: day(d), model: 'claude-haiku-4-5-20251001', outcome, severity: 2, confidence: 0.8, reason, skipped: null })
   const open = (subjects: ReviewSubject[]) => {

@@ -194,6 +194,7 @@ export function subjectTimeline(s: ReviewSubject): TimelineItem[] {
     if (r.answer?.at && !items.some((i) => i.kind === 'rebuttal')) items.push({ kind: 'rebuttal', at: r.answer.at, answer: r.answer })
   }
   return items.sort((a, b) => b.at.getTime() - a.at.getTime() || KIND_RANK[a.kind] - KIND_RANK[b.kind])
+}
 
 /**
  * F102 criterion 4: no answer is no work. A hide the poster has not answered in 14 days closes itself: it stays
