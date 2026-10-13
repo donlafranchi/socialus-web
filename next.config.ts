@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // #555 — keep what a card prefetched (on view, hover or a finger resting) until the tap: by default a dynamic
+    // page's prefetch is dropped at once. A server action that changes data refreshes the router on its own.
+    staleTimes: { dynamic: 30, static: 180 },
+  },
   async redirects() {
     return [
       // `/` only ever forwarded to Explore (src/app/page.tsx, Home paused 2026-09-17). Answered at the edge it skips a server render, about a second.

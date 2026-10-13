@@ -24,7 +24,7 @@
 //      replaced by the lift plus the title shifting to the accent colour —
 //      colour and motion rather than a line.
 
-import Link from 'next/link'
+import { HandoffLink } from './HandoffLink'
 import type { ReactNode } from 'react'
 import { Card } from './Card'
 import { locationLine, type CardLocation } from './location'
@@ -126,9 +126,10 @@ export function TileCard({
       className="group/tile flex flex-col [container-type:inline-size]"
     >
       {href ? (
-        <Link href={href} prefetch={prefetch} className="block">
+        // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
+        <HandoffLink href={href} prefetch={prefetch} className="block" handoff={{ name: title, kindLine, imageUrl }}>
           {body}
-        </Link>
+        </HandoffLink>
       ) : (
         body
       )}
