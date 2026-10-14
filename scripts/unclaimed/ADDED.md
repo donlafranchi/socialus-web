@@ -125,3 +125,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-13 | Placer Food Bank | Food bank (nonprofit) | Roseville | |
 | 2026-10-13 | The Gathering Inn | Shelter and services (nonprofit) | Rocklin | |
 | 2026-10-13 | Good Humus | Farm | Capay | |
+| 2026-10-14 | Goathouse Brewing | Farm stay & agritourism | Lincoln | catch-up (farms) |
+| 2026-10-14 | Millertown Sheep | Ranch | Auburn | catch-up (farms) |
+| 2026-10-14 | Coffee Pot Ranch | Ranch | Sheridan | catch-up (farms) |
+| 2026-10-14 | High Hill Ranch | Farm | Placerville | catch-up (farms) |
+| 2026-10-14 | Harris Family Farm | Farm | Pollock Pines | catch-up (farms) |
+| 2026-10-14 | Larsen Apple Barn | Farm | Camino | catch-up (farms) |
+| 2026-10-14 | Cache Creek Lavender | Farm | Rumsey | catch-up (farms) |
+| 2026-10-14 | Bondolio | Farm | Winters | catch-up (farms) |
+| 2026-10-14 | Earthbound Ceramic | Art & print | Woodland | catch-up (farms) |
+| 2026-10-14 | Salted Earth Ceramics | Goods & crafts | Auburn | catch-up (farms) |
