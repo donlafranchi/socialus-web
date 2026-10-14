@@ -137,7 +137,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       description: describe(row),
       publicInfoUrl: url,
       ...placeOf(row.area),
-      purpose: /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
+      purpose: /nonprofit|volunteer|community|club/i.test(row.category) ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
       pool: poolFor(row.category),
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),

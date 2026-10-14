@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Yolo Food Bank",
+    "category": "Nonprofit & volunteer",
+    "makes": "Food recovery and distribution for Yolo County through 84 partner agencies; volunteer shifts",
+    "area": "Woodland (Yolo)",
+    "site": "https://yolofoodbank.org/",
+    "confidence": "High; own site checked 2026-10-14 (ok): footer 2026, 233 Harter Ave."
+  },
+  {
+    "name": "Food Bank of Nevada County",
+    "category": "Nonprofit & volunteer",
+    "makes": "Donated and surplus food distributed to neighbors in need, plus nutrition education",
+    "area": "Grass Valley (Nevada)",
+    "site": "https://foodbankofnc.org/",
+    "confidence": "Medium-high; own site checked 2026-10-14 (ok): 310 Railroad Ave, no dated footer."
+  },
+  {
+    "name": "Habitat for Humanity Yuba-Sutter",
+    "category": "Nonprofit & volunteer",
+    "makes": "Volunteer-built affordable housing and home repair",
+    "area": "Marysville (Yuba)",
+    "site": "https://yubasutterhabitat.org/",
+    "confidence": "Medium-high; own site checked 2026-10-14 (ok): 202 D Street."
+  },
+  {
+    "name": "Placer SPCA",
+    "category": "Nonprofit & volunteer",
+    "makes": "Animal adoption, foster and volunteer programs for Placer County since 1973",
+    "area": "Roseville (Placer)",
+    "site": "https://placerspca.org/",
+    "confidence": "High; own site checked 2026-10-14 (ok): 2026 content."
+  },
+  {
+    "name": "Sierra Harvest",
+    "category": "Nonprofit & volunteer",
+    "makes": "Farm-to-school food education, farmer support and community programs",
+    "area": "Grass Valley (Nevada)",
+    "site": "https://www.sierraharvest.org/",
+    "confidence": "High; own site checked 2026-10-14 (ok): 113 Presley Way, 2026."
+  },
+  {
+    "name": "Historical Society of Winters",
+    "category": "Nonprofit & volunteer",
+    "makes": "Volunteer-run museum, exhibits and local history events; open Thursday to Sunday afternoons",
+    "area": "Winters (Yolo)",
+    "site": "https://www.wintershistory.org/",
+    "confidence": "Medium-high; own site checked 2026-10-14 (ok): 2026 mentions, volunteer page."
+  },
+  {
+    "name": "Soil Born Farms",
+    "category": "Farm",
+    "makes": "Nonprofit urban farm, American River Ranch, produce marketplace, volunteer days",
+    "area": "Rancho Cordova (Sacramento)",
+    "site": "https://soilborn.org/",
+    "confidence": "High; own site checked 2026-10-14 (ok): 2025-26 content."
+  },
+  {
+    "name": "Bishop's Pumpkin Farm",
+    "category": "Farm",
+    "makes": "Pumpkin patch since 1973, farm food, school field trips and fall events",
+    "area": "Wheatland (Yuba)",
+    "site": "https://www.bishopspumpkinfarm.com/",
+    "confidence": "High; own site checked 2026-10-14 (ok): 54th Harvest, open to 11/15/26, 1415 Pumpkin Lane."
+  },
+  {
+    "name": "Riverdog Farm",
+    "category": "Farm",
+    "makes": "Organic vegetables, pasture-raised meat and CSA boxes",
+    "area": "Guinda (Yolo)",
+    "site": "https://riverdogfarm.com/",
+    "confidence": "High; own site checked 2026-10-14 (ok): 7587 Road 49, 2026."
+  },
+  {
+    "name": "Soul Food Farm",
+    "category": "Farm",
+    "makes": "Pasture-raised eggs, olive oil, lavender and a Thursday to Saturday farm stand",
+    "area": "Vacaville (Solano)",
+    "site": "https://www.soulfoodfarm.com/",
+    "confidence": "Medium-high; own site checked 2026-10-14 (ok): farm stand May-November."
+  }
+]

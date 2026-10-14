@@ -57,6 +57,7 @@ describe('planMakers (#517)', () => {
     expect(planMakers([r({ category: 'Farm stay & agritourism' })]).listed[0]!.purpose).toBe('offer')
     expect(planMakers([r({ category: 'Farm' })]).listed[0]!.purpose).toBe('sell')
     expect(planMakers([r({ category: 'Cakes & bakery' })]).listed[0]!.purpose).toBe('sell')
+    expect(planMakers([r({ category: 'Nonprofit & volunteer' })]).listed[0]!.purpose).toBe('gather')
   })
   it('puts a Page in its own city, defaulting to Sacramento', () => {
     expect(planMakers([r({ area: 'West Sacramento' })]).listed[0]!.city).toBe('West Sacramento')
