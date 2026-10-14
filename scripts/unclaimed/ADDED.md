@@ -117,3 +117,13 @@ The builder reads this before choosing a day's 10, and appends the day's rows af
 | 2026-10-09 | Pushkin's Bakery | Cakes & bakery | Sacramento |
 | 2026-10-09 | Icing on the Cupcake | Cakes & bakery | Sacramento |
 | 2026-10-09 | Spilled Milk Company | Cakes & bakery | Elk Grove |
+| 2026-10-14 | Yolo Food Bank | Food bank | Woodland |
+| 2026-10-14 | Food Bank of Nevada County | Food bank | Grass Valley |
+| 2026-10-14 | Habitat for Humanity Yuba-Sutter | Volunteer housing builder | Marysville |
+| 2026-10-14 | Placer SPCA | Animal rescue | Roseville |
+| 2026-10-14 | Sierra Harvest | Farm-to-school nonprofit | Grass Valley |
+| 2026-10-14 | Historical Society of Winters | Historical society | Winters |
+| 2026-10-14 | Soil Born Farms | Farm | Rancho Cordova |
+| 2026-10-14 | Bishop's Pumpkin Farm | Farm | Wheatland |
+| 2026-10-14 | Riverdog Farm | Farm | Guinda |
+| 2026-10-14 | Soul Food Farm | Farm | Vacaville |
