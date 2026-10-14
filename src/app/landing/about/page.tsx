@@ -4,7 +4,7 @@ import { ABOUT } from '@/lib/landing-copy'
 
 // The preview's own About (2026-10-08). `/about` is untouched.
 export const metadata: Metadata = {
-  title: `${ABOUT.title} — SocialUs`,
+  title: `${ABOUT.title} | SocialUs`,
   robots: { index: false, follow: false },
 }
 

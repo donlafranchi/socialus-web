@@ -19,10 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createClient()
   const gathering = await resolveGathering(supabase, { handle, itemSlug: slug })
   if (!gathering) {
-    return { title: 'Not found — SocialUs' }
+    return { title: 'Not found | SocialUs' }
   }
   return {
-    title: `${gathering.title} — SocialUs`,
+    title: `${gathering.title} | SocialUs`,
     description: gathering.description || gathering.title,
   }
 }

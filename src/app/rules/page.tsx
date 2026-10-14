@@ -4,7 +4,7 @@
 import type { Metadata } from 'next'
 import { CREATOR_RULES } from '@/lib/creator-rules'
 
-export const metadata: Metadata = { title: 'The rules — SocialUs' }
+export const metadata: Metadata = { title: 'The rules | SocialUs' }
 
 export default function RulesPage() {
   return (

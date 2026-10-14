@@ -12,7 +12,7 @@ interface Props {
   params: Promise<{ handle: string }>
 }
 
-export const metadata: Metadata = { title: 'Not found — SocialUs', robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: 'Not found | SocialUs', robots: { index: false, follow: false } }
 
 export default async function MemberPage({ params }: Props) {
   const { handle } = await params

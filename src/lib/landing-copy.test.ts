@@ -30,10 +30,17 @@ describe('landing copy', () => {
     const banned = /\b(free|fees?|dividends?|shares?|payouts?|returns?|Sacramento)\b/i
     for (const s of all) expect(s).not.toMatch(banned)
   })
-  it('says "never" exactly once on the About page, on "never extractive"', () => {
+  it('says "never" on the About page only on "never extractive" and in Don\'s data line (DECISIONS 2026-10-11, verbatim)', () => {
     const nevers = about.flatMap((s) => s.match(/\bnever\b/gi) ?? [])
-    expect(nevers).toHaveLength(1)
+    expect(nevers).toHaveLength(2)
     expect(about.some((s) => /never extractive/.test(s))).toBe(true)
+    expect(about.some((s) => /never to enrich shareholders or investors/.test(s))).toBe(true)
+  })
+  it('says "always" only as "Members first, always."', () => {
+    for (const s of all.filter((x) => /\balways\b/i.test(x))) expect(s).toMatch(/Members first, always\./)
+  })
+  it('says nothing is "near you" while there is one metro', () => {
+    for (const s of all) expect(s).not.toMatch(/\bnear you\b|\bnearby\b/i)
   })
   it('every rotating item completes the sentence', () => {
     for (const item of LANDING.rotating.items) {

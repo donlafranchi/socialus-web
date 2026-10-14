@@ -119,9 +119,11 @@ export function OnboardingFlow({
       <form data-testid="onboarding-form" onSubmit={submit} noValidate className="space-y-4">
         <div className="space-y-1">
           <h1 className="text-title-1 text-[var(--color-fg)]">Tell us who you are</h1>
+          <p className="text-body-sm text-[var(--color-fg-muted)]">{COPY.signupTagline}</p>
           <p data-testid="signup-line" className="text-body-sm text-[var(--color-fg-muted)]">
             {COPY.signupLine}
           </p>
+          <p className="text-body-sm text-[var(--color-fg-muted)]">{COPY.signupClose}</p>
         </div>
 
         <div className="space-y-3">

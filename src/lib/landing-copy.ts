@@ -1,18 +1,18 @@
 // /landing — a preview of the new front door (Don, 2026-10-08). Not linked
 // from anywhere and noindex until he rules on it. Copy follows
-// socialus-plan product/foundation/voice-and-tone.md; the headline and the
-// "near you" verb each need a dated DECISIONS.md line before this goes public
-// (they differ from the locked name line and the 2026-09-30 "near you" ruling).
+// socialus-plan product/foundation/voice-and-tone.md. The headline is the
+// tagline (copy report §1, draft): it needs a dated DECISIONS.md line before
+// this goes public, since it differs from the locked name line.
 
 export const LANDING = {
-  headline: 'A local discovery platform, for the people.',
+  headline: 'SocialUs: the people’s platform.',
   subhead: 'Find the local, the quirky, the one of a kind, and the people behind it.',
   verbs: [
-    'Find what’s good near you, and get found.',
+    'Find what’s good where you live, and get found.',
     'Start something new for people who love what you love.',
-    'Shape your community, and help build what comes next.',
+    'Help build what comes next. It’s built to serve its members.',
   ],
-  ctas: { primary: 'Get on the list', secondary: 'How we’re different' },
+  ctas: { primary: 'Get on the list', secondary: 'About SocialUs' },
   rotating: {
     prefix: 'Find people who love',
     items: [
@@ -47,7 +47,7 @@ export const LANDING = {
     title: 'Want to be found?',
     body: [
       'If you run a shop, make something, lead a group, or put on events, make a Page. Say who you are, what you’re about, and where you’ll be.',
-      'People searching for what you do find you by what you do, not by what you paid. Nobody buys their way to the top here.',
+      'People searching for what you do find you by what you do, not by what you paid. We currently don’t sell placement.',
     ],
   },
   offline: {
@@ -55,8 +55,8 @@ export const LANDING = {
     body: 'The internet is good for one thing here: helping people find each other. Everything after that happens in person. Find your people on the screen, then put it down and go meet them.',
   },
   members: {
-    body: 'Other apps call you users. We call you members. We’re in this together, and this is for us.',
-    link: 'How we’re different',
+    body: 'Other apps call you users. We call you members, because it’s built to serve the people in it. Members first, always.',
+    link: 'About SocialUs',
   },
   waitlist: {
     title: 'Get on the list',
@@ -66,14 +66,14 @@ export const LANDING = {
     help: 'I’d help build this',
     submit: 'Put me on the list',
     busy: 'Just a moment…',
-    note: 'We’re opening one community at a time. You’ll hear from us when yours is ready, and that’s all we use your email for.',
+    note: 'We’re opening one community at a time. We’ll let you know when yours is ready. We currently use your email for that and nothing else.',
     done: {
       waiting: 'You’re on the list. You’ll hear from us when your area opens.',
       open: 'Your area is open. Sign up and have a look.',
       outside: 'We’re not in your area yet. We’re opening one community at a time.',
     },
     errors: {
-      email: 'That does not look like an email address.',
+      email: 'That doesn’t look like an email address.',
       zip: 'Enter a 5-digit zip code.',
       failed: 'That didn’t go through. Mind trying again?',
     },
@@ -82,7 +82,7 @@ export const LANDING = {
 } as const
 
 export const ABOUT = {
-  title: 'How we’re different',
+  title: 'About SocialUs',
   sections: [
     {
       id: 'mission',
@@ -90,7 +90,7 @@ export const ABOUT = {
       body: [
         'SocialUs connects people in real life. That’s the whole job. Find what’s good where you live, find the people behind it, and go meet them.',
         'Small shops, people who make things, and groups that meet on Tuesdays are what hold a place together. On their own, each one is easy to miss. Once they find each other, they add up to something the big outfits can’t match. This is a place for them to find each other.',
-        'SocialUs is never extractive. It doesn’t sell your data. It doesn’t sell placement. It doesn’t keep you scrolling. It makes its money in plain ways, from what happens on it, and keeps what it needs to run.',
+        'SocialUs is never extractive. We currently don’t sell your data or sell placement, and we don’t keep you scrolling. It makes its money in plain ways, from what happens on it, and keeps what it needs to run. It’s created to benefit its members first and foremost. We collect data to benefit our members, never to enrich shareholders or investors, and we make it easy to opt out.',
       ],
     },
     {
@@ -112,22 +112,22 @@ export const ABOUT = {
         'Messaging, once the safeguards are in place.',
         'More areas, opened as the people in them ask.',
       ],
-      outro: 'Each of these lands when it’s ready, not on a date.',
+      outro: 'Each one shows up when it’s ready, not on a date.',
     },
     {
       id: 'company',
-      title: 'How the company grows up',
+      title: 'How the company takes shape',
       body: [
         'Today this is one person and a small company set up to run it. The plan is for the company to change shape as real people and real activity arrive, each step taken when the thing that calls for it exists:',
       ],
       steps: [
         'A small company, so there’s something to build under.',
         'A public benefit corporation, with the mission written into its charter.',
-        'A member body, so people have a real say in what happens where they live.',
-        'A structure that locks the mission in, so this can’t be sold out from under the people on it.',
+        'Built to serve the members: a member body, so people have a real say in what happens where they live.',
+        'A structure that keeps the mission in place, so this can’t be sold out from under the people on it.',
       ],
       after: [
-        'We don’t take money from traditional investors. No venture capital, no private equity. This stays grassroots, and it’s built for the small shop, the one-person operation, and the group with twelve people in it.',
+        'We currently don’t take money from venture capital or private equity. This stays grassroots, and it’s built for the small shop, the one-person operation, and the group with twelve people in it.',
       ],
     },
     {
@@ -136,7 +136,7 @@ export const ABOUT = {
       body: [
         'The people this serves are the people who build it: whoever runs a Page, puts on an event, holds a group together, or shows up. That’s who it answers to.',
         'It’s for people who care about each other and the place they live. Chains and companies owned by a fund have plenty of places to be found already. This isn’t one of them.',
-        'Other apps call you users. A user is someone a product is done to. A member is someone it belongs with. We’re in this together, and this is for us.',
+        'Other apps call you users. A user is someone a product is done to. A member is someone it’s built to serve. We’re in this together.',
       ],
     },
   ],

@@ -27,7 +27,7 @@ const shopFor = cache(async (handle: string) => resolvePageById(await createClie
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
   const shop = await shopFor(handle)
-  if (!shop) return { title: 'Not found — SocialUs' }
+  if (!shop) return { title: 'Not found | SocialUs' }
   return shareMetadata(shop)
 }
 

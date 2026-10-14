@@ -48,7 +48,7 @@ export async function joinLandingWaitlistAction(input: {
   } catch (err) {
     if (err instanceof ActionError) {
       const email = /email/i.test(err.message)
-      return { kind: 'error', field: email ? 'email' : null, message: email ? 'That does not look like an email address.' : err.message }
+      return { kind: 'error', field: email ? 'email' : null, message: email ? 'That doesn’t look like an email address.' : err.message }
     }
     return { kind: 'error', field: null, message: 'That didn’t go through. Mind trying again?' }
   }

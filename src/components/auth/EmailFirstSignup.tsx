@@ -269,9 +269,13 @@ export function EmailFirstSignup({
               <strong>{email}</strong>
             </p>
             {phase === 'new' && (
-              <p data-testid="signup-line" className="mt-3 text-sm text-neutral-600">
-                {COPY.signupLine}
-              </p>
+              <>
+                <p className="mt-3 text-sm text-neutral-600">{COPY.signupTagline}</p>
+                <p data-testid="signup-line" className="mt-2 text-sm text-neutral-600">
+                  {COPY.signupLine}
+                </p>
+                <p className="mt-2 text-sm text-neutral-600">{COPY.signupClose}</p>
+              </>
             )}
           </div>
           <form
