@@ -5,6 +5,7 @@ import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
 import { siteMetadataBase } from "@/lib/site-url"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -61,6 +62,8 @@ export default function RootLayout({
           </div>
           <BottomNav />
         </NavVisibilityProvider>
+        {/* #791 — real members' load and tap timings (Vercel Speed Insights, free tier; no cookies). */}
+        <SpeedInsights />
       </body>
     </html>
   )
