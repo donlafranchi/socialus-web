@@ -73,14 +73,7 @@ export async function loadPageView(
   supabase: SupabaseClient,
   shop: ResolvedShop,
 ): Promise<PageView> {
-  // #791 — who is looking is read from the session's verified claims, with no
-  // round trip, so every read below starts at once: one round to the database
-  // (#529 had it at two, behind a call to the auth server). Only the owner's two
-  // extras wait for `owns`.
-  const viewerMemberId = await viewerId(supabase)
-  const signedIn = viewerMemberId !== null
-
-  const [items, posts, badge, ownerClaim, owns, relationship, tags, contact, where, withheldPosts, metadata] = await Promise.all([
+  const [items, posts, badge, viewerMemberId] = await Promise.all([
     resolveShopItems(supabase, shop.groupId),
     // RLS is the visibility gate here too: the owner's own posts come back for
     // the owner and for nobody else.
@@ -89,6 +82,15 @@ export async function loadPageView(
       groupId: shop.groupId,
       anchorLocationId: shop.anchorLocationId,
     }),
+    // #791 — from the session's verified claims: no round trip to the auth server.
+    viewerId(supabase),
+  ])
+  const signedIn = viewerMemberId !== null
+
+  // One round for everything that does not depend on another read (#529: these
+  // were eight rounds in a row, each a trip to the database). Only the owner's
+  // two extras wait for `owns`.
+  const [ownerClaim, owns, relationship, tags, contact, where, withheldPosts, metadata] = await Promise.all([
     resolveOwnerClaim(supabase, {
       groupId: shop.groupId,
       anchorLocationId: shop.anchorLocationId,
