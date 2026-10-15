@@ -4,7 +4,7 @@
 // (the PM, 2026-10-11: no hashtags), and the box's reader understands every string the sheet can
 // write. It is ONE grammar, read in both directions:
 //
-//     <free words> <tags, as plain words> <this week | this weekend>
+//     <free words> <tags, as plain words> <this week | this weekend> <updates>
 //
 // The reader does not parse prose. It takes the words it knows (the schedule phrases, and the tags
 // present in the results) out of the box and leaves everything else as the free search, so a word it
@@ -19,17 +19,20 @@ const PHRASE: Record<Exclude<ScheduleFilter, 'any'>, string> = {
   weekend: SCHEDULE_OPTIONS.find((o) => o.value === 'weekend')!.label.toLowerCase(),
 }
 
+/** #796 — the Updates filter's word. */
+export const UPDATES_WORD = 'updates'
+
 const words = (s: string) => s.trim().split(/\s+/).filter(Boolean)
 
 /** The box text for a selection: the free words, then the tags, then the schedule, all plain words. */
 export function writeBox(filters: BrowseFilters, rest = ''): string {
-  return [...words(rest), ...filters.tags.map(normalizeTag), ...(filters.schedule === 'any' ? [] : [PHRASE[filters.schedule]])]
+  return [...words(rest), ...filters.tags.map(normalizeTag), ...(filters.schedule === 'any' ? [] : [PHRASE[filters.schedule]]), ...(filters.updates ? [UPDATES_WORD] : [])]
     .join(' ')
     .trim()
 }
 
 /** The schedule phrases are the box's own words: a tag with exactly that text cannot be written as a tag. */
-export const isReservedWord = (tag: string): boolean => Object.values(PHRASE).includes(normalizeTag(tag))
+export const isReservedWord = (tag: string): boolean => [...Object.values(PHRASE), UPDATES_WORD].includes(normalizeTag(tag))
 
 interface Token {
   raw: string
@@ -76,5 +79,8 @@ export function readBox(text: string, knownTags: readonly string[]): { filters: 
     }
   }
 
-  return { filters: { schedule, tags }, rest: tokens.map((t) => t.raw).join(' ') }
+  const updates = take(tokens, UPDATES_WORD)
+  if (updates) tokens = updates.left
+
+  return { filters: { schedule, tags, ...(updates ? { updates: true } : {}) }, rest: tokens.map((t) => t.raw).join(' ') }
 }

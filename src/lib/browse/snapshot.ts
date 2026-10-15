@@ -41,4 +41,8 @@ export interface BrowseSnapshot {
   signedIn: boolean
   /** The read failed. Distinct from "nothing matched", which is `[]`. */
   failed: boolean
+  /** #796 — the first look: what is new since the last visit, or the #557 rotation when nothing is. */
+  lead?: BrowseResult[]
+  /** #796 — true when `lead` is new things; false when it is the rotation standing in. */
+  leadFresh?: boolean
 }

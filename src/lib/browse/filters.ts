@@ -44,6 +44,8 @@ export interface BrowseFilters {
   schedule: ScheduleFilter
   /** Normalised tags. The filter surface's only vocabulary. */
   tags: string[]
+  /** #796 — posts, announcements and updates, newest first. Off, Explore shows Pages and the first look. */
+  updates?: boolean
 }
 
 export const DEFAULT_BROWSE_FILTERS: BrowseFilters = { schedule: 'any', tags: [] }
@@ -67,12 +69,19 @@ export function parseBrowseFilters(params: ParamSource): BrowseFilters {
       .split(',')
       .map(normalizeTag)
       .filter(Boolean),
+    ...(params.get('view') === 'updates' ? { updates: true } : {}),
   }
 }
 
 /** Drives the dot on the filter icon. */
 export function hasBrowseFilters(f: BrowseFilters): boolean {
-  return f.schedule !== 'any' || f.tags.length > 0
+  return f.schedule !== 'any' || f.tags.length > 0 || Boolean(f.updates)
+}
+
+/** #796 — the Updates list: posts only, newest first by when they were posted. */
+export function updatesOnly(results: readonly BrowseResult[]): BrowseResult[] {
+  const at = (r: BrowseResult) => r.postedAt ?? r.sortAt
+  return results.filter((r) => r.resultKind === 'post').sort((a, b) => (at(a) < at(b) ? 1 : at(a) > at(b) ? -1 : 0))
 }
 
 export function toggleTag(f: BrowseFilters, tag: string): BrowseFilters {

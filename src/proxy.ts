@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { needsPhoneVerification } from '@/lib/auth/phone'
 import { resolveSeedCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
+import { nextVisitCookie, VISIT_COOKIE, VISIT_COOKIE_MAX_AGE } from '@/lib/browse/visits'
 
 /** The shapes Supabase uses for "this session cookie is no longer good". */
 function isStaleSession(message: string): boolean {
@@ -96,10 +97,14 @@ export async function proxy(request: NextRequest) {
     if (seed.minted) {
       // Rebuilt from the updated request so this render reads the new seed too.
       const carried = response.cookies.getAll()
+      // #796 — a new seed is a new visit: the one before becomes "last", for Explore's first look.
+      const visit = nextVisitCookie(request.cookies.get(VISIT_COOKIE)?.value, new Date())
       request.cookies.set(SEED_COOKIE, seed.value)
+      request.cookies.set(VISIT_COOKIE, visit)
       response = NextResponse.next({ request })
       carried.forEach((c) => response.cookies.set(c))
       response.cookies.set(SEED_COOKIE, seed.value, { path: '/', sameSite: 'lax', httpOnly: true })
+      response.cookies.set(VISIT_COOKIE, visit, { path: '/', sameSite: 'lax', httpOnly: true, maxAge: VISIT_COOKIE_MAX_AGE })
     }
   }
 

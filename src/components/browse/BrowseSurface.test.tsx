@@ -13,9 +13,11 @@ import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 const replace = vi.fn()
+// #796 — posts and the personal row live behind the Updates filter; tests that need them open it.
+let search = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(search),
 }))
 
 const browseFeedAction = vi.fn()
@@ -78,6 +80,7 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
 }
 
 beforeEach(() => {
+  search = ''
   replace.mockClear()
   browseFeedAction.mockReset()
 })
@@ -93,6 +96,7 @@ describe('T156 — Browse renders Pages, not Items', () => {
   })
 
   it('carries the name the people behind it are known by, on a post as well as a Page', () => {
+    search = 'view=updates'
     const post = result({ resultKind: 'post', resultId: 'p1', body: 'rye is back Thursday' })
     render(<BrowseSurface initial={snapshot({ results: [post] })} />)
     expect(screen.getByText('Sourdough Co')).toBeInTheDocument()
@@ -100,6 +104,7 @@ describe('T156 — Browse renders Pages, not Items', () => {
   })
 
   it('shows an undated post without a date, not as a degraded event', () => {
+    search = 'view=updates'
     const post = result({
       resultKind: 'post',
       resultId: 'p1',
@@ -300,6 +305,7 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
   })
 
   it('renders the row when there is something in it', () => {
+    search = 'view=updates'
     const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
     render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
     expect(screen.getByTestId('browse-following')).toBeInTheDocument()
@@ -314,10 +320,11 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
   })
 
   it('does not let a search over the public half filter the personal row', () => {
+    search = 'view=updates'
     const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
     render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
-    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzzz' } })
+    // The box already holds "updates", so it is open.
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzzz updates' } })
     // The public half is now empty…
     expect(screen.getByTestId('browse-empty')).toBeInTheDocument()
     expect(screen.getByTestId('browse-following')).toBeInTheDocument()
