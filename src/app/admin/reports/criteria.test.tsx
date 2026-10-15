@@ -100,6 +100,8 @@ describe('F101.4 — order, sort, filter and the header', () => {
 
   // [guards F101.4]
   it('opens by severity then oldest hidden, sorts by age and by report count, filters by status, and the header counts the waiting rows by severity', () => {
+    // The fixtures sit on 1–6 October; on a real clock the oldest passed the 14-day answer window on 15 October and closed itself.
+    vi.setSystemTime(day(8))
     show(set())
     expect(ids()).toEqual(['old-harass', 'new-harass', 'old-spam', 'busy-spam'])
     expect(screen.getByTestId('review-waiting')).toHaveTextContent('4 waiting · 2 severity 2, 2 severity 4')
