@@ -39,7 +39,6 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
-import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
 import { getBrowseFeed } from '@/lib/feed/browse-feed'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
@@ -81,17 +80,13 @@ export async function loadBrowse(
   const waitingPromise = waitingCountByMetro().catch(() => new Map<string, number>())
   const areaPromise = areaId ? neighborhood(supabase, areaId) : Promise.resolve(null)
 
-  // #791 — who is looking, from the session's verified claims: no round trip.
-  const userId = await viewerId(supabase)
-  // Their follow set depends on nothing but who they are, so it starts now rather
-  // than behind the metro reads. A failure is the following row's, caught there.
-  const followIdsPromise = userId ? resolveFollowedPageIds(supabase, userId) : null
-  followIdsPromise?.catch(() => {})
+  const { data: auth } = await supabase.auth.getUser()
+  const user = auth.user ?? null
 
   // Sequential because the scope depends on it: precedence is requested slug,
   // then this, then the default.
-  const member = userId ? await memberMetros(supabase, userId) : null
-  const rememberedSlug = userId ? null : await rememberedMetroSlug()
+  const member = user ? await memberMetros(supabase, user.id) : null
+  const rememberedSlug = user ? null : await rememberedMetroSlug()
   const scope = await resolveBrowseScope(supabase, {
     memberMetroId: member?.home ?? null,
     memberDefaultMetroId: member?.default ?? null,
@@ -106,7 +101,7 @@ export async function loadBrowse(
     await waitingPromise,
   )
 
-  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'] }
+  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'] }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
   }
@@ -118,13 +113,13 @@ export async function loadBrowse(
 
   // Started before the public read is awaited: it depends on the member and
   // the scope, neither of which the public read can change.
-  const followingPromise = followIdsPromise
-    ? followedFeed(supabase, followIdsPromise, feedScope)
+  const followingPromise = user
+    ? followedFeed(supabase, user.id, feedScope)
     : Promise.resolve([] as BrowseResult[])
 
   // F091 — signed in, the rows are posts. Signed out, only the today row
   // fills, with the front door's withheld card (Don, 2026-10-01).
-  const happeningPromise = userId
+  const happeningPromise = user
     ? happeningRows(supabase, feedScope)
     : signedOutToday(supabase, feedScope)
 
@@ -141,9 +136,9 @@ export async function loadBrowse(
   // carrying only Pages leaks nothing and is still wrong — it is the
   // difference between a directory and a place that is visibly alive, which
   // is the whole reason this ruling is not "announcements require an account".
-  const signedOut = !userId
+  const signedOut = !user
   // #331 — signed out, no pins (the front door, F093).
-  const mapPromise = userId && withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
+  const mapPromise = user && withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
   let withheldFailed = false
   const withheldPromise = signedOut
     ? getWithheldAnnouncements(supabase, {
@@ -225,7 +220,8 @@ async function loadMap(
 /** #549 — the map's own read, after the list has painted. Empty signed out: no pins there (#331). */
 export async function loadMemberMap(metroId: string, areaId: string | null): Promise<MixedResult[]> {
   const supabase = await createClient()
-  return (await viewerId(supabase)) ? loadMap(supabase, metroId, areaId) : []
+  const { data } = await supabase.auth.getUser()
+  return data.user ? loadMap(supabase, metroId, areaId) : []
 }
 
 /**
@@ -257,11 +253,11 @@ function mergeByRecency(a: BrowseResult[], b: BrowseResult[]): BrowseResult[] {
  */
 async function followedFeed(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  followIds: Promise<string[]>,
+  memberId: string,
   scope: FeedScope,
 ): Promise<BrowseResult[]> {
   try {
-    const following = await followIds
+    const following = await resolveFollowedPageIds(supabase, memberId)
     // Called even when `following` is empty — see the note at the top.
     return await getBrowseFeed(supabase, {
       scope,
