@@ -33,20 +33,8 @@ const {
   resolveBrowseScope: vi.fn(),
 }))
 
-const { authServer } = vi.hoisted(() => ({ authServer: vi.fn() }))
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: vi.fn(async () => ({
-    auth: {
-      // #791 — the session comes from the token's verified claims; `getUser` is the auth server.
-      getUser: authServer,
-      getClaims: async () => {
-        const user = (await getUser())?.data?.user
-        return { data: user ? { claims: { sub: user.id } } : null, error: null }
-      },
-    },
-    from,
-    rpc,
-  })),
+  createClient: vi.fn(async () => ({ auth: { getUser }, from, rpc })),
 }))
 vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
 // #331 — the map's mix has its own tests; these are about the list and the rows.

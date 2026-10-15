@@ -16,7 +16,7 @@
 // Proximity is a render-time derivation; a non-proximal ZIP is accepted, not
 // rejected — the widget reports, it doesn't moralize.
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { OwnerClaim } from '@/lib/groups/resolve-shop'
 
@@ -33,7 +33,6 @@ const ZIP_RE = /^[0-9]{5}$/
 
 export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   const router = useRouter()
-  const [, startTransition] = useTransition()
   const [mode, setMode] = useState<Mode>('view')
   const [zip, setZip] = useState(claim.zip ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -45,16 +44,6 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setMode('editing')
   }
 
-  // #791 — the refreshed Page and the view mode land together, in one transition
-  // (Next's pattern for a client mutation). Outside one, a fast refresh was
-  // sometimes dropped and the widget showed the claim as it was before the save.
-  function showSaved() {
-    startTransition(() => {
-      setMode('view')
-      router.refresh()
-    })
-  }
-
   async function submit() {
     if (!ZIP_RE.test(zip)) {
       setError('Enter a 5-digit US ZIP code.')
@@ -64,7 +53,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setPending(true)
     try {
       await onSet({ groupId, zip })
-      showSaved()
+      setMode('view')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
     } finally {
@@ -76,7 +66,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setPending(true)
     try {
       await onRemove({ groupId })
-      showSaved()
+      setMode('view')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove your claim.')
     } finally {
