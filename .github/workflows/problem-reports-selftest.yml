@@ -1,0 +1,55 @@
+name: Problem reports self-test
+
+# #443 — the bug-report pipeline end to end on production, by hand: at phone size,
+# Report a problem is reachable signed out and signed in; the builder member files ONE
+# report marked TEST through the real form; then the filer turns it into a scrubbed
+# public Issue. Close the TEST Issue afterwards. Never scheduled: it writes.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: problem-reports
+  cancel-in-progress: false
+
+jobs:
+  selftest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --only-shell chromium
+      - name: Reach the control and file a TEST report
+        env:
+          BUILDERS_BASE_URL: https://www.socialus.org
+          BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
+        run: |
+          [ -n "$BUILDER_SEED" ] || { echo "::error::BUILDER_SEED is not set."; exit 1; }
+          npx playwright test --project=problem-report-selftest --reporter=line
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: File it as a public Issue
+        env:
+          SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: npx tsx scripts/problem-reports.ts file | tee -a "$GITHUB_STEP_SUMMARY"

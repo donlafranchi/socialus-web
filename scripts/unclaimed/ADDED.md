@@ -135,3 +135,12 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-14 | Bondolio | Farm | Winters | catch-up (farms) |
 | 2026-10-14 | Earthbound Ceramic | Art & print | Woodland | catch-up (farms) |
 | 2026-10-14 | Salted Earth Ceramics | Goods & crafts | Auburn | catch-up (farms) |
+| 2026-10-15 | Sacramento Fine Arts Center | Art association (nonprofit) | Carmichael | Arts and culture |
+| 2026-10-15 | El Dorado Hills Arts Association | Art association (nonprofit) | El Dorado Hills | Arts and culture |
+| 2026-10-15 | Rocklin Historical Society | Historical society | Rocklin | Arts and culture |
+| 2026-10-15 | Folsom History Museum & The Square | Small museum and makerspace (nonprofit) | Folsom | Arts and culture |
+| 2026-10-15 | Rancho Cordova River City Concert Band | Community band (nonprofit) | Rancho Cordova | Arts and culture |
+| 2026-10-15 | O'Halloran's Apple Trail Ranch | Farm | Camino | Arts and culture (farms) |
+| 2026-10-15 | Otow Orchard | Farm | Granite Bay | Arts and culture (farms) |
+| 2026-10-15 | Pasture 42 | Farm | Guinda | Arts and culture (farms) |
+| 2026-10-15 | Shadow Glen Riding Stables | Ranch | Fair Oaks | Arts and culture (farms) |
