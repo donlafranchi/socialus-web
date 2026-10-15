@@ -5,11 +5,12 @@
 A member's report becomes a fixed bug with the PM seeing only what needs a human. Research and the PM's ruling: socialus-ops `process/research/2026-10-06-bug-triage-and-mutation-testing.md` § 2.
 
 ## Built
-1. **Report a problem** (`/report`): signed-in members; linked from the footer, You → Settings, and the error and not-found pages. One box. A hidden field turns bots away. 5 reports per member per hour and 60 per hour overall.
+1. **Report a problem** (`/report`): signed-in members; linked from the footer (on a phone, its own line at the end of every screen), You → Settings, and the error and not-found pages. One box. A hidden field turns bots away. 5 reports per member per hour and 60 per hour overall.
 2. **Private table** `problem_reports`: the whole report, member id included, readable by no client; written through `problem.report`.
 3. **Scrubbed public Issue** (`src/lib/problem-reports/public-issue.ts`, tested): route without its query string, role (not who), a 7-character build, the browser family, the report id, and a 400-character excerpt with emails, phones and zip-like numbers cut out. Carries the Kind, Scenario and Path lines `issue-lint` needs. Labels `bug`, `member-report`, `needs-triage`. **The excerpt is member free text and a scrub cannot catch a name:** if the PM prefers no text in the public Issue, drop the excerpt in `publicIssue`.
 4. **Filing and triage** (`.github/workflows/problem-reports.yml`, every 30 minutes, `scripts/problem-reports.ts file`): files up to 10 reports a run. With `ANTHROPIC_API_KEY` set, Haiku 4.5 adds `area:*`, the milestone, `launch-blocking` (only for an error screen or another member's data) and a "possible duplicate of #N" comment; it can only choose from a whitelist.
-5. **Heartbeat** (`problem-reports-heartbeat.yml`, daily): opens one `pipeline-stalled`, launch-blocking Issue when the filing job has had no successful run in 26 hours.
+5. **Self-test** (`problem-reports-selftest.yml`, by hand): at phone size the link is reachable signed out and signed in; the builder member files one report marked TEST through the real form; the filer turns it into an Issue. Close that Issue after.
+6. **Heartbeat** (`problem-reports-heartbeat.yml`, daily): opens one `pipeline-stalled`, launch-blocking Issue when the filing job has had no successful run in 26 hours.
 
 ## Turning it on (a person, once)
 1. Apply the migration (done by the lane under Dispatch's standing rule while there are no real members).
