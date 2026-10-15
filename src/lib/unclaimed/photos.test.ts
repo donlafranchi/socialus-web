@@ -79,7 +79,12 @@ describe('pickStock', () => {
     expect(a.filter((id) => b.includes(id)).length).toBeLessThan(3)
     expect(new Set(a).size).toBe(4)
   })
+  it('reaches as many different pictures as asked from every pool, whatever the slot (a pool of 14 with a step of 7 only ever gave 2)', () => {
+    for (const pool of Object.keys(stockPools)) {
+      for (let slot = 0; slot < 8; slot++) expect(new Set(pickStock(pool, 'x', 8, slot).map((s) => s.id)).size, `${pool} slot ${slot}`).toBe(8)
+    }
+  })
   it('has a pool behind every kind of business', () => {
-    expect(Object.keys(stockPools).sort()).toEqual(['Cakes & bakery', 'Art & print', 'Community & volunteer', 'Farm', 'Farm stay & agritourism', 'Food & drink', 'Goods & crafts', 'Local business', 'Ranch', 'Repair & trades'].sort())
+    expect(Object.keys(stockPools).sort()).toEqual(['Cakes & bakery', 'Art & print', 'Arts & culture', 'Community & volunteer', 'Farm', 'Farm stay & agritourism', 'Food & drink', 'Goods & crafts', 'Local business', 'Ranch', 'Repair & trades'].sort())
   })
 })

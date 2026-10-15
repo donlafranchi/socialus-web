@@ -1,0 +1,74 @@
+[
+ {
+  "name": "Sacramento Fine Arts Center",
+  "category": "Art association (nonprofit)",
+  "makes": "Member-run gallery and art center with juried exhibits, classes, figure drawing, open studio and paint-ins; join, enter calls to artists or volunteer",
+  "area": "Carmichael (Sacramento)",
+  "site": "https://www.sacfinearts.org/",
+  "confidence": "High; own site checked 2026-10-15 (ok): 5330B Gibbons Dr, Carmichael 95608; current exhibit Bold Expressions; 2027 show banners up."
+ },
+ {
+  "name": "El Dorado Hills Arts Association",
+  "category": "Art association (nonprofit)",
+  "makes": "Visual artists' group with monthly demo meetings, gallery shows, a spring studio tour and a fine art festival; join or volunteer",
+  "area": "El Dorado Hills (El Dorado)",
+  "site": "https://www.eldoradohillsarts.com/",
+  "confidence": "High; own site checked 2026-10-15 (ok): meets at EDH Library, 7455 Silva Valley Pkwy; next meeting Oct 20, 2026; Atrium show Sep 21-Nov 15; 2026 board listed."
+ },
+ {
+  "name": "Rocklin Historical Society",
+  "category": "Historical society",
+  "makes": "All-volunteer group running the Rocklin History Museum and Old St. Mary's Chapel and the Heritage Street Faire; join or volunteer",
+  "area": "Rocklin (Placer)",
+  "site": "https://rocklinhistorical.org/",
+  "confidence": "High; own site checked 2026-10-15 (ok): museum 3895 Rocklin Rd, Fri-Sun 1-4; May 2026 newsletter and 2026 Heritage Faire posted."
+ },
+ {
+  "name": "Folsom History Museum & The Square",
+  "category": "Small museum and makerspace (nonprofit)",
+  "makes": "History museum plus an outdoor museum and makerspace with a blacksmith forge; adult classes, Moonlit Making nights, membership and volunteering",
+  "area": "Folsom (Sacramento)",
+  "site": "https://www.folsomhistory.org/",
+  "confidence": "High; own site checked 2026-10-15 (ok): Moonlit Making Oct 16, 17, 23, 24, 30; current Ride 'Em Cowboy! exhibit; footer 2025."
+ },
+ {
+  "name": "Rancho Cordova River City Concert Band",
+  "category": "Community band (nonprofit)",
+  "makes": "About 60 adult volunteer musicians giving around 10 free concerts a year; Monday rehearsals, new players welcome",
+  "area": "Rancho Cordova (Sacramento)",
+  "site": "https://www.rcconcertband.org/",
+  "confidence": "High; own site checked 2026-10-15 (ok): concerts Oct 17 (2300 Mine Shaft Ln), Nov 10 (City Hall), Dec 6 and 13, 2026 (Cordova Performing Arts Center); footer 2025."
+ },
+ {
+  "name": "O'Halloran's Apple Trail Ranch",
+  "category": "Farm",
+  "makes": "U-pick apples and pears, pumpkin patch, cider and choose-and-cut Christmas trees; Apple Hill grower since 1968",
+  "area": "Camino (El Dorado)",
+  "site": "https://ohalloranranch.com/",
+  "confidence": "High; own site checked 2026-10-15 (ok): 2261 Cable Rd, Camino; season Aug 30-Dec 14; footer 2026."
+ },
+ {
+  "name": "Otow Orchard",
+  "category": "Farm",
+  "makes": "Family orchard known for hoshigaki (hand-dried persimmons), plus tree-ripened peaches, plums and pears",
+  "area": "Granite Bay (Placer)",
+  "site": "http://www.otoworchard.com/",
+  "confidence": "High; own site checked 2026-10-15 (ok): names Granite Bay; mail-order form dated 2026-10-13 linked from home page; footer 2007."
+ },
+ {
+  "name": "Pasture 42",
+  "category": "Farm",
+  "makes": "Pasture-raised chicken, pork, lamb and beef, eggs, a dairy herdshare, olive oil and dried fruit from a small family farm",
+  "area": "Guinda (Yolo)",
+  "site": "https://pasture42.com/",
+  "confidence": "Medium-high; own site checked 2026-10-15 (ok): 'Located in Guinda, California'; shop live; page modified 2026-09-04."
+ },
+ {
+  "name": "Shadow Glen Riding Stables",
+  "category": "Ranch",
+  "makes": "Horse trail rides along the American River and Folsom Lake, riding lessons and boarding; 45+ years",
+  "area": "Fair Oaks (Sacramento)",
+  "site": "https://www.shadowglenstables.com/",
+  "confidence": "High; own site checked 2026-10-15 (ok): 4854 Main Ave, Fair Oaks 95628; open daily 8-4; online booking live; footer 2025."
+ }
+]
