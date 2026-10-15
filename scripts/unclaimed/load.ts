@@ -34,7 +34,7 @@ const summary = (line: string) => {
 async function main() {
   const { listed, removed, skipped, files } = readPlanned()
   const allow = new Set(readLinkAllow())
-  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[] }
+  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[]; retiredFiles: Record<string, string> }
   console.log(`Read ${files.join(', ')}: ${listed.length} to list, ${skipped.length} held back`)
   for (const s of skipped) console.log(`  held back: ${s.name} (${s.reason})`)
 
@@ -105,7 +105,7 @@ async function main() {
             if (made.failed.length) throw new Error(made.failed[0]!.error)
             tally.created += made.created
             tally.existing += made.existing
-            const r = await enrichPage(db, p, gatherFor(p), now)
+            const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}))
             if (r === 'missing') throw new Error('the Page is not in the database after loading')
             tally[r]++
             console.log(`${p.name}: ${made.created ? 'created, ' : ''}${r}`)

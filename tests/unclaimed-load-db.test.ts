@@ -180,6 +180,22 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.groups where public_info_url = $1 and photo_url is not null`, [F.publicInfoUrl])).toBe(0)
   })
 
+  it('a retired picture comes off the Page: its sample posts are made again from fresh pictures, and a retired cover is replaced (#795)', async () => {
+    const H = page('h')
+    await loadUnclaimed(client, [H])
+    const bad = { url: 'https://media.test-517.example/u/5740ac8e2dc5.webp', credit: 'Unsplash (stock photo, not this business)', sourceUrl: 'https://unsplash.com/photos/e3-9x-Ee238', own: false }
+    await enrichPage(client, H, async () => ({ ...enrichment, photos: [bad, photo(2), photo(3), photo(4)] }), now)
+    const fresh: Enrichment = { ...enrichment, photos: [photo(5, true), photo(6), photo(7), photo(8)] }
+    expect(await enrichPage(client, H, async () => fresh, now, ['5740ac8e2dc5'])).toBe('enriched')
+    const g = (await client.query(`select photo_url, photo_source_url from public.groups where public_info_url = $1`, [H.publicInfoUrl])).rows[0]
+    expect(g.photo_url).toBe(photo(5).url)
+    const urls = (await client.query(`select p.photo_url from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [H.publicInfoUrl])).rows.map((r) => r.photo_url as string)
+    expect(urls).toHaveLength(3)
+    expect(urls.some((u) => u.includes('5740ac8e2dc5'))).toBe(false)
+    // Once it is gone, the next run finds nothing to do.
+    expect(await enrichPage(client, H, async () => fresh, now, ['5740ac8e2dc5'])).toBe('complete')
+  })
+
   it('moves a Page filed under a dead address to the fixed one', async () => {
     const G = page('g')
     await loadUnclaimed(client, [G])

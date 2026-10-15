@@ -119,13 +119,15 @@ const SOCIAL_FIELDS = ['instagram', 'facebook', 'tiktok', 'x', 'youtube']
  * Brings one Page up to what Don asked for (#556): a cover photo with its credit, a few more pictures (on
  * its sample posts), a phone and profiles where its own site gives them, and sample posts that are not
  * stale. Only what is missing is written, so a re-run changes nothing; `gather` is not called for a Page
- * that already has all of it.
+ * that already has all of it. A picture in `retired` (its file name in the media bucket) comes off: the
+ * samples that carried it are made again, and a retired cover is replaced (#795).
  */
 export async function enrichPage(
   db: Db,
   page: PlannedPage,
   gather: () => Promise<Enrichment>,
   now: Date,
+  retired: string[] = [],
 ): Promise<EnrichResult> {
   await db.query('begin')
   try {
@@ -145,6 +147,14 @@ export async function enrichPage(
       await db.query(`update public.groups set public_info_url = $2 where id = $1`, [g.id, page.publicInfoUrl])
       await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'website', $2, $3, $4)`, [g.id, page.publicInfoUrl, CAPTURED_ON, CAPTURED_BY])
       touched = true
+    }
+    if (retired.length) {
+      const files = retired.map((f) => `%/${f}.webp`)
+      await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null and photo_url like any($2::text[])`, [g.id, files])
+      if (g.photo_url && retired.some((f) => g.photo_url!.endsWith(`/${f}.webp`))) {
+        await db.query(`update public.groups set photo_url = null, photo_credit = null, photo_source_url = null where id = $1`, [g.id])
+        g.photo_url = null
+      }
     }
     const samples = await db.query(`select id, sample_kind, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
     const needs = !g.photo_url || samples.rows.length < 3
