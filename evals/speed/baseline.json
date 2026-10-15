@@ -79,24 +79,21 @@
     "readyMs": 132
   },
   "Explore post card → Page post [quick]": {
-    "feedbackMs": 117,
-    "readyMs": 1728,
-    "issue": 529
+    "feedbackMs": 74,
+    "readyMs": 993
   },
   "Explore post card → Page post [settled]": {
-    "feedbackMs": 121,
-    "readyMs": 2313,
+    "feedbackMs": 70,
+    "readyMs": 1515,
     "issue": 529
   },
   "Explore card → Page (member) [quick]": {
-    "feedbackMs": 46,
-    "readyMs": 1630,
-    "issue": 529
+    "feedbackMs": 68,
+    "readyMs": 924
   },
   "Explore card → Page (member) [settled]": {
-    "feedbackMs": 43,
-    "readyMs": 1491,
-    "issue": 529
+    "feedbackMs": 62,
+    "readyMs": 841
   },
   "Bottom nav → Explore [settled]": {
     "feedbackMs": 45,
@@ -108,12 +105,12 @@
     "readyMs": 85
   },
   "Creator: own Page → edit [settled]": {
-    "feedbackMs": 51,
-    "readyMs": 1876
+    "feedbackMs": 56,
+    "readyMs": 1111
   },
   "Creator: Page edit screen [settled]": {
-    "feedbackMs": 49,
-    "readyMs": 1992
+    "feedbackMs": 46,
+    "readyMs": 828
   },
   "Creator: Create (bottom nav) [settled]": {
     "feedbackMs": 44,
