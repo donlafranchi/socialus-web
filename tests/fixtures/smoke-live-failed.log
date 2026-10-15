@@ -1,0 +1,156 @@
+##[endgroup]
+◇ injected env (0) from .env.local // tip: ⌘ override existing { override: true }
+
+Running 1 test using 1 worker
+
+◇ injected env (0) from .env.local // tip: ◈ encrypted .env [www.dotenvx.com]
+  ✘  1 [smoke-guard] › evals/smoke/must-fail.spec.ts:6:5 › a route that does not exist loads (must fail) (2.0s)
+
+
+  1) [smoke-guard] › evals/smoke/must-fail.spec.ts:6:5 › a route that does not exist loads (must fail) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+       6 | test('a route that does not exist loads (must fail)', async ({ page }) => {
+       7 |   const res = await page.goto('/no-such-route-live-smoke-guard')
+    >  8 |   expect(res?.status()).toBe(200)
+         |                         ^
+       9 | })
+      10 |
+        at /home/runner/work/socialus-web/socialus-web/evals/smoke/must-fail.spec.ts:8:25
+
+    Error Context: test-results/smoke-must-fail-a-route-that-does-not-exist-loads-must-fail--smoke-guard/error-context.md
+
+  1 failed
+    [smoke-guard] › evals/smoke/must-fail.spec.ts:6:5 › a route that does not exist loads (must fail) 
+Self-test: the must-fail spec failed, as it must.
+##[group]Run [ -n "$BUILDER_SEED" ] || { echo "::error::BUILDER_SEED is not set."; exit 1; }
+[ -n "$BUILDER_SEED" ] || { echo "::error::BUILDER_SEED is not set."; exit 1; }
+echo "Routes: $SMOKE_ROUTES" >> "$GITHUB_STEP_SUMMARY"
+npx playwright test --project=smoke-live --workers=2 --reporter=line 2>&1 | tee smoke.log
+test "${PIPESTATUS[0]}" -eq 0
+shell: /usr/bin/bash -e {0}
+env:
+  BUILDERS_BASE_URL: https://www.socialus.org
+  BUILDER_SEED: ***
+  SMOKE_ROUTES: page,page-private,explore,you,admin-reports,onboarding,join,you-following,you-following-tab,you-saved-tab,you-settings-tab,explore-map,page-business,page-edit
+  SMOKE_OUT: smoke-out
+##[endgroup]
+◇ injected env (0) from .env.local // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+Running 70 tests using 1 worker
+
+◇ injected env (0) from .env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+
+[1/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › page
+[2/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › page-private
+[3/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › explore
+[4/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › you
+[5/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › admin-reports
+[6/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › onboarding
+[7/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › join
+[8/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › you-following
+[9/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › you-following-tab
+[10/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › you-saved-tab
+[11/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › you-settings-tab
+[12/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › explore-map
+[13/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › page-business
+[14/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › signedOut › page-edit
+[15/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › page
+[16/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › page-private
+[17/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › explore
+[18/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › you
+[19/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › admin-reports
+[20/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › onboarding
+[21/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › join
+[22/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › you-following
+[23/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › you-following-tab
+[24/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › you-saved-tab
+[25/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › you-settings-tab
+[26/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › explore-map
+[27/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › page-business
+[28/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › stranger › page-edit
+[29/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › page
+[30/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › page-private
+[31/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › explore
+[32/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › you
+[33/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › admin-reports
+[34/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › onboarding
+[35/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › join
+[36/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › you-following
+[37/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › you-following-tab
+[38/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › you-saved-tab
+[39/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › you-settings-tab
+[40/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › explore-map
+  1) [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › explore-map ──────────────────────────
+
+    Error: member on explore-map
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 4
+
+    - Array []
+    + Array [
+    +   "console error: Error: Failed to fetch
+    +     at https://www.socialus.org/_next/static/chunks/0c6jnbh6y8uuw.js:1:23439",
+    + ]
+
+      106 |         page.removeAllListeners('pageerror')
+      107 |         page.removeAllListeners('console')
+    > 108 |         expect(problems, `${who} on ${name}`).toEqual([])
+          |                                               ^
+      109 |       })
+      110 |     }
+      111 |   })
+        at /home/runner/work/socialus-web/socialus-web/evals/smoke/live.spec.ts:108:47
+
+    Error Context: test-results/smoke-live-member-explore-map-smoke-live/error-context.md
+
+    Error Context: test-results/smoke-live-member-explore-map-smoke-live/error-context.md
+
+
+◇ injected env (0) from .env.local // tip: ⌘ suppress logs { quiet: true }
+
+[41/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › page-business
+[42/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › page-edit
+[43/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › page
+[44/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › page-private
+[45/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › explore
+[46/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › you
+[47/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › admin-reports
+[48/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › onboarding
+[49/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › join
+[50/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › you-following
+[51/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › you-following-tab
+[52/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › you-saved-tab
+[53/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › you-settings-tab
+[54/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › explore-map
+[55/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › page-business
+[56/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › page-edit
+[57/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › page
+[58/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › page-private
+[59/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › explore
+[60/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › you
+[61/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › admin-reports
+[62/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › onboarding
+[63/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › join
+[64/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › you-following
+[65/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › you-following-tab
+[66/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › you-saved-tab
+[67/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › you-settings-tab
+[68/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › explore-map
+[69/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › page-business
+[70/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › operator › page-edit
+  1 failed
+    [smoke-live] › evals/smoke/live.spec.ts:81:11 › member › explore-map ───────────────────────────
+  24 skipped
+  45 passed (5.4m)
+##[error]Process completed with exit code 1.
+##[group]Run actions/upload-artifact@v6
+with:
+  name: smoke-live

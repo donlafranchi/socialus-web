@@ -102,7 +102,7 @@ jobs:
           script: |
             const fs = require('fs');
             const log = fs.existsSync('smoke.log') ? fs.readFileSync('smoke.log', 'utf8') : '';
-            const failed = [...new Set((log.match(/\[smoke-live\][^\n]+/g) || []).slice(0, 12))].join('\n');
+            const failed = require(`${process.env.GITHUB_WORKSPACE}/scripts/smoke-failures.cjs`).smokeFailures(log) || 'No failure block found in the log; open the run.';
             const title = 'bug · live: the overnight smoke found a problem';
             const run = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
             const body = `**Kind:** bug\n**Scenario:** none\n**Path:** well-worn: a failing read-only smoke of production is a regression to fix forward.\n\nThe overnight live smoke (read-only, builder accounts) failed: ${run}\n\n\`\`\`\n${failed}\n\`\`\`\n\nScreenshots and page text are in the run's \`smoke-live\` artifact. A screen that errors, or an email or other data shown to someone it should not be, is launch-blocking.`;
