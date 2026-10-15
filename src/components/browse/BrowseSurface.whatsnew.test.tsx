@@ -96,6 +96,9 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     expect(screen.queryByText('Followed Post')).toBeNull()
     const list = screen.getByTestId('browse-list-pane')
     expect(within(list).getByText('Old A')).toBeInTheDocument()
+    // One results grid: the lead's is its own, so card-grid still means the results (F059 evals, tap speed).
+    expect(screen.getAllByTestId('card-grid')).toHaveLength(1)
+    expect(within(lead).getByTestId('explore-lead-grid')).toBeInTheDocument()
     // The lead is not shown twice.
     expect(screen.getAllByText('New Bakery')).toHaveLength(1)
     expect(within(list).queryByText('New Bakery')).toBeNull()

@@ -299,7 +299,7 @@ export function BrowseSurface({
             <h2 id="explore-lead-heading" className="mb-3 text-base font-semibold text-[var(--color-charcoal-900)]">
               What&rsquo;s new since you were here
             </h2>
-            <CardGrid>
+            <CardGrid data-testid="explore-lead-grid">
               {lead.map((r, i) => (
                 <BrowseResultCard key={`lead-${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
               ))}

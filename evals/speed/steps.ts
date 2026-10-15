@@ -48,7 +48,7 @@ export const STEPS: Step[] = [
   { name: 'Waitlist: open from the area picker', kind: 'consumer', who: 'signedOut', from: '/explore', pre: async (p) => { await p.getByTestId('explore-location-pill').tap(); await p.getByTestId('scope-sheet').waitFor() }, tap: (p) => p.getByTestId('scope-not-yet-list').locator('button, a').first(), ready: '[data-testid="waitlist-email"], [data-testid="metro-not-covered"]', expectsUrl: false },
 
   // ── Consumer, signed in as a member ──
-  { name: 'Explore post card → Page post', kind: 'consumer', who: 'member', from: '/explore', tap: (p) => p.locator('a[href*="#announcement-"]').first(), ready: '[data-testid="page-post"]', notReady: SKELETON, expectsUrl: true, quick: true },
+  { name: 'Explore post card → Page post', kind: 'consumer', who: 'member', /* #796: posts live behind the Updates filter. */ from: '/explore?view=updates', tap: (p) => p.locator('a[href*="#announcement-"]').first(), ready: '[data-testid="page-post"]', notReady: SKELETON, expectsUrl: true, quick: true },
   { name: 'Explore card → Page (member)', kind: 'consumer', who: 'member', from: '/explore', tap: (p) => p.locator('a[href^="/g/"]:has([data-testid="tile-title"]), [data-testid="tile-card"] a[href^="/g/"]').first(), ready: '[data-testid="page-header"]', notReady: SKELETON, expectsUrl: true, quick: true },
   { name: 'You → Following list', kind: 'consumer', who: 'member', from: '/you', optional: true, tap: (p) => p.locator('a[href="/you/following"]').first(), ready: 'main', notReady: SKELETON, expectsUrl: true },
   { name: 'Bottom nav → Explore', kind: 'consumer', who: 'member', from: '/you', tap: (p) => p.getByTestId('bottom-nav').locator('a[href="/explore"]'), ready: '[data-testid="browse-results"]', notReady: SKELETON, expectsUrl: true },
