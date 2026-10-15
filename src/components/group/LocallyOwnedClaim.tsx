@@ -17,7 +17,6 @@
 // rejected — the widget reports, it doesn't moralize.
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { OwnerClaim } from '@/lib/groups/resolve-shop'
 
 interface Props {
@@ -32,7 +31,6 @@ type Mode = 'view' | 'editing' | 'removing'
 const ZIP_RE = /^[0-9]{5}$/
 
 export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
-  const router = useRouter()
   const [mode, setMode] = useState<Mode>('view')
   const [zip, setZip] = useState(claim.zip ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -53,8 +51,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setPending(true)
     try {
       await onSet({ groupId, zip })
+      // #791 — the save revalidates the Page and brings it back with the response.
       setMode('view')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
     } finally {
@@ -67,7 +65,6 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     try {
       await onRemove({ groupId })
       setMode('view')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove your claim.')
     } finally {
