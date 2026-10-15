@@ -24,6 +24,8 @@ const BASE = process.env.BUILDERS_BASE_URL ?? 'https://www.socialus.org'
 const NET = { latency: Number(process.env.SPEED_RTT_MS ?? 100), down: 9_000_000 / 8, up: 3_000_000 / 8 }
 const CPU = Number(process.env.SPEED_CPU ?? 4)
 const ONLY = (process.env.SPEED_ONLY ?? '').toLowerCase()
+// #791 — a Chrome performance trace per tap (open in DevTools > Performance): where the phone's time went.
+const TRACE = process.env.SPEED_TRACE === '1'
 const BASELINE: Baseline = existsSync(join(__dirname, 'baseline.json')) ? JSON.parse(readFileSync(join(__dirname, 'baseline.json'), 'utf8')) : {}
 const REGRESSION_BINDS = (existsSync(join(__dirname, 'baseline-source.json')) ? JSON.parse(readFileSync(join(__dirname, 'baseline-source.json'), 'utf8')).source : 'none') === 'ci'
 const BUDGETS: Budgets = JSON.parse(readFileSync(join(__dirname, 'budgets.json'), 'utf8'))
@@ -86,6 +88,7 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     reqs.push({ path: u.pathname + (u.search.includes('_rsc') ? ' (rsc)' : ''), type: r.resourceType(), start: born.get(r.url() + r.method()) ?? Date.now(), firstByte: headed.get(r.url() + r.method()) ?? Date.now(), end: Date.now(), status: res?.status() ?? 0, cache: h['x-vercel-cache'] ?? '', id: (h['x-vercel-id'] ?? '').split('::')[0] ?? '' })
   })
   await throttle(page)
+  let tracing = false
   let note: string | undefined
   try {
     if (step.back) {
@@ -101,6 +104,11 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     else await page.waitForTimeout(400)
     if (step.pre) await step.pre(page)
     await page.waitForTimeout(300)
+    if (TRACE) {
+      mkdirSync(OUT, { recursive: true })
+      await browser.startTracing(page, { path: join(OUT, `trace-${step.name.replace(/[^a-z0-9]+/gi, '-')}-${mode}.json`), screenshots: true })
+      tracing = true
+    }
     const spec = { ready: step.ready, notReady: step.notReady ?? [], expectsUrl: step.expectsUrl }
     await page.evaluate((s) => (window as unknown as { __tapArm: (x: unknown) => void }).__tapArm(s), spec)
     const before = Date.now()
@@ -132,6 +140,7 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     const m: TapMeasure = { name: step.name, kind: step.kind, expectsUrl: step.expectsUrl, feedbackMs: null, urlMs: null, readyMs: null }
     return { ...m, mode, longTaskMs: 0, requests: 0, waterfall: 0, slowReqs: [], afterNetworkMs: null, prefetched: null, finalPath: '', flags: [], note: `could not run: ${note}` }
   } finally {
+    if (tracing) await browser.stopTracing().catch(() => {})
     await ctx.close()
   }
 }

@@ -9,6 +9,16 @@ on:
   schedule:
     - cron: '0 11 * * *'
   workflow_dispatch:
+    # #791 — a one-off look at a few taps: only those, with a Chrome performance trace each. Not recorded as history.
+    inputs:
+      only:
+        description: 'Only taps whose name contains this (blank: all)'
+        required: false
+        default: ''
+      trace:
+        description: 'Save a Chrome performance trace per tap'
+        type: boolean
+        default: false
 
 permissions:
   contents: write # only to append the tap-speed history to the perf-history branch (never main)
@@ -45,6 +55,8 @@ jobs:
         env:
           BUILDERS_BASE_URL: https://www.socialus.org
           BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
+          SPEED_ONLY: ${{ inputs.only }}
+          SPEED_TRACE: ${{ inputs.trace && '1' || '' }}
         run: |
           rm -rf speed-out
           npx playwright test --project=tap-speed --reporter=line 2>&1 | tee speed.log
@@ -55,7 +67,7 @@ jobs:
       # #527 — one small JSON per night on the perf-history branch (not main, so no
       # deploy): the trend, and the file the dashboard reads (latest.json).
       - name: Record the tap-speed history
-        if: ${{ !cancelled() && steps.speed.conclusion != 'skipped' }}
+        if: ${{ !cancelled() && steps.speed.conclusion != 'skipped' && !inputs.only }}
         run: |
           [ -f speed-out/perf-latest.json ] || { echo "No tap-speed result to record."; exit 0; }
           day="$(date -u +%F)"
@@ -83,12 +95,13 @@ jobs:
             speed-out/rows.jsonl
             speed-out/summary.md
             speed-out/perf-latest.json
+            speed-out/trace-*.json
             speed.log
           retention-days: 14
           if-no-files-found: ignore
 
       - name: File a tap-speed bug
-        if: ${{ failure() && steps.speed.conclusion == 'failure' }}
+        if: ${{ failure() && steps.speed.conclusion == 'failure' && !inputs.only }}
         uses: actions/github-script@v8
         with:
           script: |
