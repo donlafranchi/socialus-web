@@ -45,4 +45,9 @@ describe('samplePosts (#556)', () => {
       }
     }
   })
+  it('an arts group gets the same invite-to-help posts, never a discount (#786)', () => {
+    for (const p of samplePosts({ ...subject, name: 'Rocklin Historical Society', slug: 'rhs-1', pool: 'Arts & culture' }, now)) {
+      expect(p.body).not.toMatch(/% off|price|deal|buy /i)
+    }
+  })
 })

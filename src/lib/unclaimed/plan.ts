@@ -78,7 +78,12 @@ function describe(row: MakerRow): string {
 export const COMMUNITY = 'Community & volunteer'
 const COMMUNITY_CATEGORY = /volunteer|nonprofit|food bank|pantry|mutual aid|meal program|community|club|society|library|league|rescue|shelter|association|collective/i
 
+/** Arts, music and history groups: they gather people too, with pictures of galleries, stages and museums. */
+export const ARTS = 'Arts & culture'
+const ARTS_CATEGORY = /museum|band|choir|chorale|chorus|orchestra|symphony|theat|histor|gallery|music|dance|makerspace|art (association|collective|center|centre|council|league|society|guild)/i
+
 const POOL_BY_CATEGORY: [RegExp, string][] = [
+  [ARTS_CATEGORY, ARTS],
   [COMMUNITY_CATEGORY, COMMUNITY],
   [/farm stay|agritourism/i, 'Farm stay & agritourism'],
   [/ranch/i, 'Ranch'],
@@ -142,7 +147,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       description: describe(row),
       publicInfoUrl: url,
       ...placeOf(row.area),
-      purpose: poolFor(row.category) === COMMUNITY ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
+      purpose: [COMMUNITY, ARTS].includes(poolFor(row.category)) ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
       pool: poolFor(row.category),
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
