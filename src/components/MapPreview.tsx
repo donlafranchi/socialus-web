@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { stylePin } from '@/lib/map-pins'
 import type { OwnershipTier } from '@/lib/types'
+import { handleMapErrors } from '@/lib/map/errors'
 
 interface MapPreviewProps {
   latitude: number
@@ -28,6 +29,8 @@ export function MapPreview({ latitude, longitude }: MapPreviewProps) {
       zoom: 14,
       interactive: false,
     })
+
+    handleMapErrors(map)
 
     // Every pin is navy (Don, 2026-10-05); ownership no longer colours pins.
     const el = document.createElement('div')

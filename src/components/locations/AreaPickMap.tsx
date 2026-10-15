@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_DEFAULTS, AREA_OUTLINE } from '@/lib/map-config'
+import { handleMapErrors } from '@/lib/map/errors'
 
 export interface AreaPick {
   placeId: string
@@ -40,6 +41,7 @@ export function AreaPickMap({
     if (!token || !el.current) return
     mapboxgl.accessToken = token
     const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center: SACRAMENTO, zoom: 9 })
+    handleMapErrors(map)
     mapRef.current = map
     map.on('load', () => {
       map.addSource('areas', { type: 'geojson', data: '/api/boundaries?msa=40900' })

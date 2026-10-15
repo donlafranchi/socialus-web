@@ -19,6 +19,7 @@ import { styleTeardrop, styleAreaMarker, styleCluster } from '@/lib/map-pins'
 import { spreadCoincident } from '@/lib/browse/spread'
 import { gridCluster } from '@/lib/browse/cluster'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
+import { handleMapErrors } from '@/lib/map/errors'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
@@ -42,6 +43,7 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
       center: metroCenterRef.current,
       zoom: METRO_VIEW.zoom,
     })
+    handleMapErrors(map)
     mapRef.current = map
     return () => {
       map.remove()
