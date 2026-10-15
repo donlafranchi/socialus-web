@@ -5,7 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const h = vi.hoisted(() => ({
   notFound: vi.fn(() => { throw new Error('NEXT_NOT_FOUND') }),
   getUser: vi.fn(),
-  authServer: vi.fn(),
   resolvePageById: vi.fn(),
   viewerOwnsPage: vi.fn(),
   resolvePageContact: vi.fn(),
@@ -14,14 +13,7 @@ const h = vi.hoisted(() => ({
 vi.mock('next/navigation', () => ({ notFound: h.notFound }))
 vi.mock('@/lib/supabase-server', () => ({
   createClient: async () => ({
-    // #791 — the viewer comes from the session's verified claims; `getUser` is the session each test sets.
-    auth: {
-      getUser: h.authServer,
-      getClaims: async () => {
-        const user = (await h.getUser())?.data?.user
-        return { data: user ? { claims: { sub: user.id } } : null, error: null }
-      },
-    },
+    auth: { getUser: h.getUser },
     from: () => ({ select: () => ({ eq: () => Object.assign(Promise.resolve({ data: [] }), { maybeSingle: () => Promise.resolve({ data: { metadata: {} } }) }) }) }),
   }),
 }))
@@ -63,7 +55,6 @@ describe('/g/[handle]/edit (#555)', () => {
   it('an owner renders', async () => {
     const el = await EditPage({ params })
     expect(el).toBeTruthy()
-    expect(h.authServer).not.toHaveBeenCalled()
   })
   it('reads the viewer and the Page together, then ownership and the card data together', async () => {
     // The first read of each round never settles until the other reads in its round have started.
