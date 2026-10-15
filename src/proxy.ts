@@ -58,12 +58,21 @@ export async function proxy(request: NextRequest) {
   //
   // Supabase reports this both ways depending on where it fails: a rejected
   // promise, or a resolved one carrying `error`. Both are handled.
+  //
+  // #791 — the session is read from the token's verified claims (Supabase's
+  // recommended check, against the project's ES256 key): this refreshes the
+  // cookie as getUser() did, without a round trip to the auth server on every
+  // request. Only the phone gate, when on, needs the full user record.
   let user: Parameters<typeof needsPhoneVerification>[0]['user'] = null
   try {
-    const { data, error } = await supabase.auth.getUser()
-    user = data?.user ?? null
+    const { data, error } = await supabase.auth.getClaims()
+    const claims = data?.claims
+    user = claims?.sub ? { app_metadata: claims.app_metadata ?? {} } : null
+    if (user && process.env.PHONE_VERIFICATION_REQUIRED === '1') {
+      user = (await supabase.auth.getUser()).data?.user ?? null
+    }
     if (error && !isStaleSession(error.message)) {
-      console.warn('[proxy] getUser returned an error:', error.message)
+      console.warn('[proxy] getClaims returned an error:', error.message)
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
@@ -71,7 +80,7 @@ export async function proxy(request: NextRequest) {
       // Not a stale cookie. Still not worth a 500 on a page that renders fine
       // signed out — but it is worth saying, because a failure nothing reports
       // is how a four-month outage happens.
-      console.warn('[proxy] getUser failed unexpectedly:', message)
+      console.warn('[proxy] getClaims failed unexpectedly:', message)
     }
   }
 

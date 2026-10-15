@@ -58,8 +58,7 @@ describe('LocallyOwnedClaim — inline validation (edge)', () => {
 })
 
 describe('LocallyOwnedClaim — add (beat 2)', () => {
-  // #791 — the save action revalidates the Page; a second refresh from here raced it.
-  it('submits a valid ZIP to onSet and leaves the refresh to the save', async () => {
+  it('submits a valid ZIP to onSet and refreshes the page', async () => {
     renderWidget({ zip: null, isProximal: false })
     fireEvent.click(screen.getByTestId('claim-add'))
     fireEvent.change(screen.getByTestId('claim-zip-input'), { target: { value: '95817' } })
@@ -67,7 +66,7 @@ describe('LocallyOwnedClaim — add (beat 2)', () => {
     await waitFor(() => {
       expect(onSet).toHaveBeenCalledWith({ groupId: 'grp-1', zip: '95817' })
     })
-    expect(refreshSpy).not.toHaveBeenCalled()
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalled())
   })
 })
 
@@ -106,13 +105,13 @@ describe('LocallyOwnedClaim — claimed + non-proximal (beat 5)', () => {
 })
 
 describe('LocallyOwnedClaim — remove (beat 4)', () => {
-  it('confirms then calls onRemove, and leaves the refresh to the save', async () => {
+  it('confirms then calls onRemove and refreshes', async () => {
     renderWidget({ zip: '95817', isProximal: true })
     fireEvent.click(screen.getByTestId('claim-remove'))
     fireEvent.click(screen.getByTestId('claim-remove-confirm'))
     await waitFor(() => {
       expect(onRemove).toHaveBeenCalledWith({ groupId: 'grp-1' })
     })
-    expect(refreshSpy).not.toHaveBeenCalled()
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalled())
   })
 })

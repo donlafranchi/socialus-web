@@ -15,7 +15,6 @@
 // `.set` folds update into a soft-replace (T075 deviation #4): both the
 // empty-state Add and the Edit path call setJurisdictionAction.
 
-import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import {
@@ -59,9 +58,6 @@ export async function setJurisdictionAction(input: {
   } catch (err) {
     rethrow(err)
   }
-  // #791 — the Page comes back with the save, rather than from the widget's
-  // refresh racing it (on a fast server the refreshed Page was dropped).
-  revalidatePath('/g/[handle]', 'page')
 }
 
 export async function removeJurisdictionAction(input: {
@@ -74,5 +70,4 @@ export async function removeJurisdictionAction(input: {
   } catch (err) {
     rethrow(err)
   }
-  revalidatePath('/g/[handle]', 'page')
 }
