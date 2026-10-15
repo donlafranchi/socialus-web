@@ -42,8 +42,10 @@ import {
   hasBrowseFilters,
   parseBrowseFilters,
   searchBrowseResults,
+  updatesOnly,
 } from '@/lib/browse/filters'
-import { browseFeedAction, browseMapAction, searchAreasAction } from '@/app/explore/actions'
+import { leadKey } from '@/lib/browse/lead'
+import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
@@ -175,10 +177,31 @@ export function BrowseSurface({
   const tagOptions = useMemo(() => browseTagOptions(snapshot.results), [snapshot.results])
   const { filters, rest } = useMemo(() => readBox(query, tagOptions), [query, tagOptions])
 
+  // #796 — Explore leads with what is new; posts live behind the Updates filter, newest first.
+  const updates = Boolean(filters.updates)
+  const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
+  const showLead = !updates && Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !hasBrowseFilters(filters)
+  const corpus = useMemo(() => {
+    if (updates) return updatesOnly(snapshot.results)
+    const leadKeys = new Set(lead.map(leadKey))
+    const pages = snapshot.results.filter((r) => r.resultKind === 'page' && !leadKeys.has(leadKey(r)))
+    // Fresh, the lead sits above the list; the rotation standing in for it leads the list itself.
+    return snapshot.leadFresh ? pages : [...lead.filter((r) => r.resultKind === 'page'), ...pages]
+  }, [updates, snapshot.results, snapshot.leadFresh, lead])
   const visible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(snapshot.results, rest), filters, { now }),
-    [snapshot.results, rest, filters, now],
+    () => applyBrowseFilters(searchBrowseResults(corpus, rest), filters, { now }),
+    [corpus, rest, filters, now],
   )
+
+  // What the first look showed counts as seen from the next visit on. Sent once, after paint.
+  const leadSent = useRef(false)
+  useEffect(() => {
+    if (leadSent.current || !snapshot.leadFresh || lead.length === 0) return
+    leadSent.current = true
+    const keys = lead.map(leadKey)
+    const id = window.setTimeout(() => void markLeadSeenAction(keys).catch(() => {}), 0)
+    return () => window.clearTimeout(id)
+  }, [snapshot.leadFresh, lead])
 
   // #331 — the map shows the tunable mix; filters and search narrow within it.
   const mapVisible = useMemo(
@@ -265,8 +288,25 @@ export function BrowseSurface({
           is every signed-out load and every member who follows nothing. It is
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
-      <FollowingRow results={snapshot.following} />
-      <HappeningRows rows={snapshot.happening} />
+      {updates ? (
+        <>
+          <FollowingRow results={snapshot.following} />
+          <HappeningRows rows={snapshot.happening} />
+        </>
+      ) : (
+        showLead && (
+          <section className="px-3 pt-4 md:px-6" data-testid="explore-lead" aria-labelledby="explore-lead-heading">
+            <h2 id="explore-lead-heading" className="mb-3 text-base font-semibold text-[var(--color-charcoal-900)]">
+              What&rsquo;s new since you were here
+            </h2>
+            <CardGrid>
+              {lead.map((r, i) => (
+                <BrowseResultCard key={`lead-${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
+              ))}
+            </CardGrid>
+          </section>
+        )
+      )}
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}

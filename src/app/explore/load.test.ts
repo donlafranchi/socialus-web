@@ -309,3 +309,32 @@ describe('#549 — the map has its own read', () => {
     expect(getBrowseFeed).toHaveBeenCalled()
   })
 })
+
+// #796 — the first look comes out of rows already read: no extra query, so Explore's tap time does not grow.
+describe('#796 — the first look', () => {
+  const page = (id: string, pageCreatedAt: string) => ({ resultKind: 'page', resultId: id, pageCreatedAt, sortAt: pageCreatedAt, postedAt: null, startsAt: null, withheld: false })
+  const cookies = (jar: Record<string, string>) => cookieGet.mockImplementation((name: string) => (jar[name] ? { value: jar[name] } : undefined))
+  const last = Date.parse('2026-10-10T00:00:00Z').toString(36)
+
+  it('leads with Pages new since the last visit, from the same single read', async () => {
+    signedOut()
+    cookies({ su_visit: `${last}.${Date.now().toString(36)}`, su_seed: 'a.aaaaaaaaaaaaaaaa' })
+    getBrowseFeed.mockResolvedValue([page('old', '2026-09-01T00:00:00Z'), page('new', new Date(Date.now() - 3600_000).toISOString())])
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    expect(snap.leadFresh).toBe(true)
+    expect(snap.lead!.map((r) => r.resultId)).toEqual(['new'])
+    expect(getBrowseFeed).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not lead again with what an earlier visit already showed; the rotation stands in', async () => {
+    signedOut()
+    const { leadKey } = await import('@/lib/browse/lead')
+    const shown = leadKey({ resultKind: 'page', resultId: 'new' })
+    cookies({ su_visit: `${last}.${Date.now().toString(36)}`, su_seen: `bbbbbbbbbbbbbbbb~${shown}~` })
+    getBrowseFeed.mockResolvedValue([page('old', '2026-09-01T00:00:00Z'), page('new', new Date(Date.now() - 3600_000).toISOString())])
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    expect(snap.leadFresh).toBe(false)
+    expect(snap.lead!.length).toBeGreaterThan(0)
+  })
+})
+

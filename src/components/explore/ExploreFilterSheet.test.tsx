@@ -104,6 +104,14 @@ describe('T115 — applying and clearing', () => {
     expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, schedule: 'week' })
   })
 
+  // #796 — posts, announcements and updates sit behind this one choice.
+  it('offers Updates, and applies it', () => {
+    renderSheet()
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Updates' }))
+    fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, updates: true })
+  })
+
   it('dismisses the sheet when the results are applied', () => {
     renderSheet()
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))

@@ -117,6 +117,19 @@ export function ExploreFilterSheet({
           </Options>
         </Group>
 
+        {/* #796 — posts, announcements and updates, newest first, behind one choice (ruled A, 2026-10-14). */}
+        <Group label="Show">
+          <Options>
+            <Choice
+              type="checkbox"
+              name={`${groupId}-updates`}
+              label="Updates"
+              checked={Boolean(draft.updates)}
+              onChange={() => setDraft((d) => ({ ...d, updates: !d.updates || undefined }))}
+            />
+          </Options>
+        </Group>
+
         {tagOptions.length > 0 && (
           <Group label="Tags">
             <Options>

@@ -91,3 +91,14 @@ describe('the round trip', () => {
     expect(read).toEqual({ filters: sel('week', 'coffee', 'live music'), rest: 'near the river' })
   })
 })
+
+describe('#796 — Updates is a word the box knows', () => {
+  it('reads and writes "updates" like the schedule phrases', () => {
+    const { filters, rest } = readBox('bread updates', [])
+    expect(filters.updates).toBe(true)
+    expect(rest).toBe('bread')
+    expect(writeBox({ ...filters }, rest)).toBe('bread updates')
+    expect(readBox('bread', []).filters.updates).toBeFalsy()
+  })
+})
+

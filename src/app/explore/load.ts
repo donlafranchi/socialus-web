@@ -49,6 +49,8 @@ import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/fe
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
+import { pickLead, seenBefore, SEEN_COOKIE } from '@/lib/browse/lead'
+import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
 import { loadMapMix } from '@/lib/map/load-mix'
 import { withLocationKinds } from '@/lib/map/location-kinds'
 import type { MixedResult } from '@/lib/map/mix'
@@ -159,15 +161,23 @@ export async function loadBrowse(
     })
     const following = await followingPromise
     const withheld = await withheldPromise
+    const happening = await happeningPromise
+    const now = new Date()
+    const shuffled = sessionShuffle(mergeByRecency(results, withheld), seed, {
+      id: (r) => `${r.resultKind}:${r.resultId}`,
+      at: (r) => r.sortAt,
+      now,
+    })
+    // #796 — the first look, from rows already in hand: no read of its own.
+    const memory = await exploreMemory(seed)
+    const { lead, fresh } = pickLead([...shuffled, ...happening.today, ...happening.thisWeekend], { now, seed, ...memory })
     return {
       ...base,
-      happening: await happeningPromise,
+      happening,
       map: await mapPromise,
-      results: sessionShuffle(mergeByRecency(results, withheld), seed, {
-        id: (r) => `${r.resultKind}:${r.resultId}`,
-        at: (r) => r.sortAt,
-        now: new Date(),
-      }),
+      results: shuffled,
+      lead,
+      leadFresh: fresh,
       following,
       metro: scope.metro,
       area,
@@ -334,6 +344,16 @@ export async function readSessionSeed(): Promise<string | null> {
     return seedFromCookie((await cookies()).get(SEED_COOKIE)?.value)
   } catch {
     return null
+  }
+}
+
+/** #796 — when this browser last visited, and what an earlier visit's first look already showed. */
+async function exploreMemory(seed: string | null): Promise<{ lastVisit: Date | null; seen: Set<string> }> {
+  try {
+    const jar = await cookies()
+    return { lastVisit: lastVisitFrom(jar.get(VISIT_COOKIE)?.value), seen: seenBefore(jar.get(SEEN_COOKIE)?.value, seed) }
+  } catch {
+    return { lastVisit: null, seen: new Set() }
   }
 }
 

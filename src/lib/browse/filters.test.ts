@@ -7,6 +7,7 @@ import {
   parseBrowseFilters,
   searchBrowseResults,
   toggleTag,
+  updatesOnly,
 } from './filters'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -149,3 +150,19 @@ describe('T156 — browseTagOptions', () => {
     expect(browseTagOptions(rows)).toEqual(['art'])
   })
 })
+
+describe('#796 — the Updates filter', () => {
+  it('comes in from ?view=updates, lights the filter dot, and shows only posts, newest first', () => {
+    const f = parseBrowseFilters(new URLSearchParams('view=updates'))
+    expect(f.updates).toBe(true)
+    expect(hasBrowseFilters(f)).toBe(true)
+    expect(hasBrowseFilters(parseBrowseFilters(new URLSearchParams()))).toBe(false)
+    const rows = [
+      result({ resultId: 'p', resultKind: 'page' }),
+      result({ resultId: 'old', resultKind: 'post', postedAt: '2026-10-01T00:00:00Z' }),
+      result({ resultId: 'new', resultKind: 'post', postedAt: '2026-10-12T00:00:00Z' }),
+    ]
+    expect(updatesOnly(rows).map((r) => r.resultId)).toEqual(['new', 'old'])
+  })
+})
+

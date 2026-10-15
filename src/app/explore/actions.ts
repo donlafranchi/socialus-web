@@ -21,6 +21,7 @@ import { METRO_COOKIE, METRO_COOKIE_MAX_AGE } from '@/lib/browse/remembered-metr
 import { withTransaction } from '@/actions/_lib/db'
 import { searchNeighborhoods } from '@/lib/places/neighborhood-search'
 import { loadBrowse, loadMemberMap, readSessionSeed, type BrowseSnapshot } from './load'
+import { SEEN_COOKIE, SEEN_COOKIE_MAX_AGE, recordSeen } from '@/lib/browse/lead'
 import type { MixedResult } from '@/lib/map/mix'
 
 export async function browseFeedAction(metroSlug: string | null, areaId: string | null = null): Promise<BrowseSnapshot> {
@@ -38,6 +39,15 @@ export async function browseFeedAction(metroSlug: string | null, areaId: string 
     }
   }
   return snapshot
+}
+
+/** #796 — what Explore's first look showed, so it does not lead again on a later visit. */
+export async function markLeadSeenAction(keys: string[]): Promise<void> {
+  const seed = await readSessionSeed()
+  if (!seed || !Array.isArray(keys)) return
+  const store = await cookies()
+  const value = recordSeen(store.get(SEEN_COOKIE)?.value, seed, keys.slice(0, 12).map(String))
+  store.set(SEEN_COOKIE, value, { path: '/', maxAge: SEEN_COOKIE_MAX_AGE, sameSite: 'lax', httpOnly: true })
 }
 
 /** #549 — the pins, fetched by the surface once the list is up. */

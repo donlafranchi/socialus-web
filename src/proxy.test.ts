@@ -68,6 +68,28 @@ describe('proxy — a stale session must not 500 the request', () => {
     expect((await proxy(again)).cookies.get('su_seed')).toBeUndefined()
   })
 
+  // #796 — a new visit rolls the visit cookie, so Explore knows what is new since the last one.
+  it('starts a visit with each new seed, and remembers the one before', async () => {
+    getUser.mockResolvedValue({ data: { user: null }, error: null })
+    const first = await proxy(request())
+    const v1 = first.cookies.get('su_visit')
+    expect(v1?.value).toMatch(/^\.[0-9a-z]+$/)
+    expect(v1?.httpOnly).toBe(true)
+    expect(v1?.maxAge).toBeGreaterThan(60 * 60 * 24 * 300)
+
+    // Same visit: nothing rolls.
+    const same = request()
+    same.cookies.set('su_seed', first.cookies.get('su_seed')!.value)
+    same.cookies.set('su_visit', v1!.value)
+    expect((await proxy(same)).cookies.get('su_visit')).toBeUndefined()
+
+    // A new visit (a new seed): the last visit is the one before.
+    const next = request()
+    next.cookies.set('su_visit', v1!.value)
+    const v2 = (await proxy(next)).cookies.get('su_visit')!.value
+    expect(v2.split('.')[0]).toBe(v1!.value.split('.')[1])
+  })
+
   it('serves the request when getUser returns an auth error rather than throwing', async () => {
     getUser.mockResolvedValue({
       data: { user: null },
