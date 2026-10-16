@@ -41,8 +41,10 @@ export interface AnnouncementWhenWhere {
   date: string
   /** `hh:mm`, as a time input emits it. Empty means undated. */
   time: string
-  /** #262 — `hh:mm` the same day, optional. Empty means no end. */
+  /** #262 — `hh:mm`, optional. Empty means no end (or, with an end date, the end of that day). */
   endTime: string
+  /** #814 — `yyyy-mm-dd` the post ends on, when it isn't the start day: a Sat–Sun special. Empty means the same day. */
+  endDate: string
   /** Whether the creator opened the address control at all. Closed is not the
    *  same as cleared: an announcement that was somewhere and is being edited
    *  keeps its place unless the creator says otherwise. */
@@ -58,6 +60,7 @@ export const emptyRepeat: AnnouncementWhenWhere['repeat'] = { open: false, days:
 
 export const emptyWhenWhere: AnnouncementWhenWhere = {
   date: '',
+  endDate: '',
   time: '',
   endTime: '',
   addingPlace: false,
@@ -114,7 +117,7 @@ export function AnnouncementFields({
           </button>
         ) : (
           <>
-            <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {/* A series has no single date: the creator never enters individual dates (F074.1). */}
               {!repeatOn && (
                 <DateField
@@ -133,6 +136,15 @@ export function AnnouncementFields({
                   onChange({ ...value, time, ...(endTouched || !time ? {} : { endTime: plusOneHour(time) }) })
                 }
               />
+              {!repeatOn && (
+                <DateField
+                  label="End date"
+                  testId={`${idPrefix}-end-date`}
+                  min={value.date || metroDate(now, METRO_TIME_ZONE)}
+                  value={value.endDate || value.date}
+                  onChange={(endDate) => onChange({ ...value, endDate: endDate === value.date ? '' : endDate })}
+                />
+              )}
               <TimeField
                 label={repeatOn ? 'Ends at' : 'Ends'}
                 testId={`${idPrefix}-end-time`}
@@ -215,7 +227,7 @@ export function AnnouncementFields({
               type="button"
               data-testid={`${idPrefix}-clear-when`}
               className="mt-1 flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
-              onClick={() => onChange({ ...value, date: '', time: '', endTime: '', repeat: emptyRepeat })}
+              onClick={() => onChange({ ...value, date: '', time: '', endTime: '', endDate: '', repeat: emptyRepeat })}
             >
               No particular time
             </button>
