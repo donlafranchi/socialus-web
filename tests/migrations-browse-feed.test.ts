@@ -281,7 +281,7 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
     )) as { pt: string }[]
     const [metro] = (await q(
       `select id, st_pointonsurface(geography::geometry)::geography as pt
-         from public.metro_polygons limit 1`,
+         from public.metro_polygons where geography is not null limit 1`,
     )) as { id: string; pt: string }[]
 
     let n = 0
