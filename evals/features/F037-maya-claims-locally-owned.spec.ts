@@ -108,7 +108,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await expect(page.getByTestId("local-owner-badge")).toHaveCount(0);
   });
 
-  test("Beat 5 — non-proximal ZIP is accepted but earns honest feedback, no badge", async ({
+  test("Beat 5 — a ZIP far from the Shop is claimed like any other and earns the badge (#874)", async ({
     page,
   }) => {
     await signIn(page, MAYA.email, MAYA.password);
@@ -118,14 +118,9 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-submit").click();
     await settled(page);
 
-    // The platform does NOT reject the claim — it reports proximity honestly.
-    // Why: per groups.md line 323 the proximity test is a render-time
-    // derivation, not a validation; the widget tells the owner why the badge
-    // isn't surfacing without moralizing about the claim.
-    const warn = page.getByTestId("claim-not-proximal");
-    await expect(warn).toBeVisible();
-    await expect(warn).toContainText(/isn't in proximity/i);
-    await expect(page.getByTestId("local-owner-badge")).toHaveCount(0);
+    // Don, 2026-10-16: local is the owner's claim for now, never distance.
+    await expect(page.getByTestId("claim-not-proximal")).toHaveCount(0);
+    await expect(page.getByTestId("local-owner-badge")).toBeVisible();
   });
 
   test("Beat 6 — a non-owner cannot access the management surface", async ({ page }) => {
