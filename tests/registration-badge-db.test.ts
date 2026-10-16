@@ -21,6 +21,7 @@ const OWNER = 'aaaaaaaa-0000-4000-8000-000000000246'
 const OTHER = 'bbbbbbbb-0000-4000-8000-000000000246'
 const PAGE = 'cccccccc-0000-4000-8000-000000000246'
 const BARE_PAGE = 'dddddddd-0000-4000-8000-000000000246'
+const FAR_PAGE = 'ffffffff-0000-4000-8000-000000000246'
 const LOCATION = 'eeeeeeee-0000-4000-8000-000000000246'
 
 let pool: Pool
@@ -75,7 +76,7 @@ beforeAll(async () => {
      values ($1,$2,'permanent','B246 Shop','b246-shop', ST_GeogFromText('POINT(-121.5 38.6)'), $3)`,
     [LOCATION, OWNER, place_id],
   )
-  for (const [id, slug] of [[PAGE, 'b246-bakery'], [BARE_PAGE, 'b246-bare']]) {
+  for (const [id, slug] of [[PAGE, 'b246-bakery'], [BARE_PAGE, 'b246-bare'], [FAR_PAGE, 'b246-far']]) {
     await client.query(
       `insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id, anchor_location_id)
        values ($1,'business',$2,$2,'active','listed',$3,$4)`,
@@ -88,13 +89,20 @@ beforeAll(async () => {
      values ($1,$2,$3,'CA','B246 Bakery LLC','self_attested')`,
     [OWNER, PAGE, zip],
   )
+  // #874 — a claim from a zip nowhere near the Page's metro.
+  await client.query(
+    `insert into public.member_business_jurisdictions
+       (member_id, group_id, zip, state, legal_entity_name, verification_source)
+     values ($1,$2,'10001','NY','B246 Far LLC','self_attested')`,
+    [OWNER, FAR_PAGE],
+  )
 })
 
 afterAll(async () => {
   if (!RUNNABLE) return
   await client.query(`delete from public.member_business_jurisdictions where member_id = $1`, [OWNER])
-  await client.query(`delete from public.group_events where group_id in ($1,$2)`, [PAGE, BARE_PAGE])
-  await client.query(`delete from public.groups where id in ($1,$2)`, [PAGE, BARE_PAGE])
+  await client.query(`delete from public.group_events where group_id in ($1,$2,$3)`, [PAGE, BARE_PAGE, FAR_PAGE])
+  await client.query(`delete from public.groups where id in ($1,$2,$3)`, [PAGE, BARE_PAGE, FAR_PAGE])
   await client.query(`delete from public.locations where id = $1`, [LOCATION])
   await client.query(`delete from public.boundaries where source_id = 'test-246'`)
   await client.query(`delete from public.member_events where member_id in ($1,$2)`, [OWNER, OTHER])
@@ -125,6 +133,11 @@ describe.skipIf(!RUNNABLE)('#246 — business registration: collected, never dis
     const [off] = await as<{ b: boolean }>('anon', null, `select public.page_local_owner_badge($1) as b`, [BARE_PAGE])
     expect(on.b).toBe(true)
     expect(off.b).toBe(false)
+  })
+
+  it('the badge is the owner\'s claim, not distance: true for a claim from a zip outside the metro (#874)', async () => {
+    const [far] = await as<{ b: boolean }>('anon', null, `select public.page_local_owner_badge($1) as b`, [FAR_PAGE])
+    expect(far.b).toBe(true)
   })
 
   it('the badge can only ever return a boolean', async () => {
