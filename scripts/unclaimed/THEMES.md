@@ -8,7 +8,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 | Rule | Serves | Held by |
 |---|---|---|
-| **Dates:** samples spread over the next 14 days; every Page has one on a Fri, Sat or Sun; a deal runs 2–4 days. | `cap-1` timely announcements, `cap-5` current without following many | `sampleWindow` (`src/lib/unclaimed/samples.ts`) and its tests; the loader re-dates an older event that isn't on a weekend |
+| **Dates** (Don, 2026-10-16): each Page's 3 samples fall on one weekday in weeks 1, 2 and 3 from now; every weekday has Pages, more on Fri–Sun; the kinds and hours vary, and a deal runs 2–3 days. Every Monday they roll forward. | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
 | **Interests:** every Page and its samples carry 1–2 of the 12 interest tags, from what the Page is. | `cap-3` the member's own signals, `cap-4` member control | `interestsFor` (`src/lib/unclaimed/plan.ts`); the loader adds missing tags on every run, so older Pages are backfilled |
 | **Coverage:** each day's batch spans at least 5 towns and at least 4 interest tags; `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
 
@@ -42,7 +42,7 @@ Not a rule yet: posting a business's real dated events from its own site instead
 - **Only when their own site says so:** it states they are Native or names a tribal affiliation. Never infer it from a name, a style or what they make. The Indian Arts and Crafts Act makes a false Native-made claim illegal, and honest origin is `cap-8`.
 - **Describe them in their own words**, from their own site.
 
-**Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within the sample window (see Dates).
+**Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within their weekly dates (see Dates).
 
 **Farms every day (3–4):** farms, orchards, ranches, animal farms, farm stands, u-pick, flower farms, agritourism.
 
