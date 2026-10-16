@@ -130,16 +130,18 @@ export async function enrichPage(
   gather: () => Promise<Enrichment>,
   now: Date,
   retired: string[] = [],
+  /** #809 — the Page is on stock-only (F080): a cover that is not a stock photo comes off, with its samples, and stock goes in. */
+  { stockOnly = false }: { stockOnly?: boolean } = {},
 ): Promise<EnrichResult> {
   await db.query('begin')
   try {
     const found = await db.query(
-      `select id, photo_url, contact_phone, social_links, public_info_url, public_id
+      `select id, photo_url, photo_source_url, contact_phone, social_links, public_info_url, public_id
          from public.groups
         where unclaimed_at is not null and public_info_url = any($1::text[])`,
       [[page.publicInfoUrl, ...(page.legacyUrl ? [page.legacyUrl] : [])]],
     )
-    const g = found.rows[0] as { id: string; photo_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
+    const g = found.rows[0] as { id: string; photo_url: string | null; photo_source_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
     if (!g) {
       await db.query('rollback')
       return 'missing'
@@ -149,6 +151,11 @@ export async function enrichPage(
       await db.query(`update public.groups set public_info_url = $2 where id = $1`, [g.id, page.publicInfoUrl])
       await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'website', $2, $3, $4)`, [g.id, page.publicInfoUrl, CAPTURED_ON, CAPTURED_BY])
       touched = true
+    }
+    if (stockOnly && g.photo_url && !(g.photo_source_url ?? '').startsWith('https://unsplash.com/')) {
+      await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
+      await db.query(`update public.groups set photo_url = null, photo_credit = null, photo_source_url = null where id = $1`, [g.id])
+      g.photo_url = null
     }
     if (retired.length) {
       const files = retired.map((f) => `%/${f}.webp`)

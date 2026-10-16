@@ -235,6 +235,18 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     const [{ starts_at }] = (await client.query(`select starts_at from public.page_posts where group_id = ${id} and sample_kind = 'event'`)).rows
     expect(['Fri', 'Sat', 'Sun']).toContain(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(starts_at))
     expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
+  it('a Page put on stock-only after it loaded gets its own pictures replaced by stock on the next run (#809, F080)', async () => {
+    const J = page('j')
+    await loadUnclaimed(client, [J])
+    await enrichPage(client, J, async () => enrichment, now) // its own cover, from its site
+    const stock: Enrichment = { ...enrichment, photos: [photo(11), photo(12), photo(13), photo(14)].map((p) => ({ ...p, sourceUrl: 'https://unsplash.com/photos/x' })) }
+    expect(await enrichPage(client, J, async () => stock, now, [], { stockOnly: true })).toBe('enriched')
+    const g = (await client.query(`select photo_url, photo_source_url from public.groups where public_info_url = $1`, [J.publicInfoUrl])).rows[0]
+    expect(g).toMatchObject({ photo_url: photo(11).url, photo_source_url: 'https://unsplash.com/photos/x' })
+    const urls = (await client.query(`select p.photo_url from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [J.publicInfoUrl])).rows.map((r) => r.photo_url as string)
+    expect(urls.every((u) => [photo(12).url, photo(13).url, photo(14).url, photo(11).url].includes(u))).toBe(true)
+    // Already stock: nothing more to do.
+    expect(await enrichPage(client, J, async () => stock, now, [], { stockOnly: true })).toBe('complete')
   })
 
   it('moves a Page filed under a dead address to the fixed one', async () => {
