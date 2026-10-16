@@ -57,15 +57,17 @@ The loader reads the `category` field. Use one of: `Farm`, `Ranch`, `Farm stay &
 
 ## Area
 
-**Towns within about a 45–60 minute drive of Sacramento** (OSRM driving time from downtown, no traffic, checked 2026-10-13). A town loads only if it is in `places` (or its county is, with a boundary) and inside the Explore metro.
+**Anchor towns: Elk Grove, Davis, Lincoln, Auburn, El Dorado Hills, Sacramento, Folsom and Roseville** (Don, 2026-10-16, replacing the old Sacramento-only drive and #787). A town is in the area when it is **a 45–60 minute drive from any anchor** (OSRM or a maps check, no traffic; a foothill town that runs slow still counts). It loads when it is in `places`, which the Boundaries workflow fills for the counties below.
 
-| Direction | Can load today | Not yet loadable |
-|---|---|---|
-| North | Rocklin, Lincoln, Sheridan, Loomis, Granite Bay, Citrus Heights, Orangevale, Knights Landing | Yuba City, Live Oak, Sutter, Marysville, Olivehurst, Wheatland, Arbuckle |
-| East | Roseville, Folsom, Auburn, Newcastle, Colfax, El Dorado Hills, Cameron Park, Shingle Springs, Placerville, Diamond Springs, Camino, Pollock Pines, Georgetown, Cool (county), Fair Oaks, Carmichael, Rancho Cordova | Grass Valley, Nevada City; Plymouth, Amador City, Ione, Sutter Creek, Jackson |
-| South | Elk Grove, Wilton, Herald, Galt, Courtland, Walnut Grove, Isleton | Lodi, Acampo, Lockeford, Stockton |
-| West | West Sacramento, Davis, Woodland, Winters, Esparto, Capay (county), Guinda, Clarksburg | Dixon, Vacaville, Fairfield, Suisun City, Rio Vista |
+| Direction | Can load today |
+|---|---|
+| North | Rocklin, Lincoln, Sheridan, Loomis, Granite Bay, Citrus Heights, Orangevale, Knights Landing, Wheatland, Marysville, Olivehurst, Yuba City, Live Oak, Sutter, Arbuckle, Colusa |
+| East | Roseville, Folsom, Auburn, Newcastle, Colfax, El Dorado Hills, Cameron Park, Shingle Springs, Placerville, Diamond Springs, Camino, Pollock Pines, Georgetown, Cool, Fair Oaks, Carmichael, Rancho Cordova, Grass Valley, Nevada City, Truckee, Plymouth, Amador City, Ione, Sutter Creek, Jackson |
+| South | Elk Grove, Wilton, Herald, Galt, Courtland, Walnut Grove, Isleton, Lodi, Acampo, Lockeford, Stockton |
+| West | West Sacramento, Davis, Woodland, Winters, Esparto, Capay, Guinda, Clarksburg, Dixon, Vacaville, Fairfield, Suisun City, Rio Vista, Vallejo, Benicia |
 
-Left out: Napa, Vallejo, Benicia, Antioch (Bay Area markets, 70–80 min), Oroville, Colusa, San Andreas, Penn Valley (over 80 min). Grass Valley, Nevada City and Jackson come in at 73–79 min on OSRM, which runs slow on foothill roads; they count as in the area.
+Counties loaded: El Dorado, Placer, Sacramento, Yolo, Sutter, Yuba, Solano, San Joaquin, Nevada, Amador, Colusa. Still out: Napa, Antioch and the Bay Area proper, Oroville, San Andreas, Penn Valley, Tracy and Manteca. Add a county with a line under `reach` in `scripts/boundaries/metros.ts` and run the Boundaries workflow.
 
-**Why some can't load yet:** their counties (Sutter has no boundary yet; Yuba, Nevada, Solano, San Joaquin, Amador, Colusa aren't in `places`) aren't loaded, and Stockton is also just outside the Explore metro's box. Adding those counties changes which ZIPs count as local to Sacramento, so it waits on a decision (#787). Until then, don't add Pages in those towns.
+**Local badge unchanged.** The new counties carry their own codes (Yuba City 49700, Vallejo 46700, Stockton 44700, Truckee–Grass Valley 45800, Amador 06005, Colusa 06011) and are not in `zip_metro_crosswalk`, so living there does not make a member local to Sacramento. Explore still scopes by the metro box (`metro_polygons`, south edge moved to 37.85 for Stockton); the three rings only drive signup and You so far.
+
+**Spread over a week:** reach every direction, and at least 2 Pages a day from the new towns until each has one.
