@@ -155,3 +155,39 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | Fair Oaks Horticulture Center | Demonstration garden (nonprofit) | Fair Oaks | Gardening, Sustainability | Green and outdoors |
 | 2026-10-16 | Bushnell Gardens Nursery | Nursery | Granite Bay | Gardening, Sustainability | Green and outdoors |
 | 2026-10-16 | Tahoe Dog Co. | Goods & crafts | Tahoma | Crafts & makers, Local business | lead: Don; beyond the drive time, added by name |
+| 2026-10-16 | Bishop's Pumpkin Farm | Farm stay & agritourism | Wheatland | Farmers markets, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | McBurney Tree Farm | Farm | Grass Valley | Farmers markets, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Mountain Bounty Farm | Farm | Nevada City | Farmers markets, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Lazy Dog Chocolateria | Food & drink | Grass Valley | Food & drink, Local business | reach batch; lead: own site |
+| 2026-10-16 | Interfaith Food Ministry of Nevada County | Food bank (nonprofit) | Grass Valley | Volunteering, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Truckee-Donner Historical Society | Historical society | Truckee | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Truckee Roundhouse | Makerspace (nonprofit) | Truckee | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Truckee Donner Land Trust | Land trust (nonprofit) | Truckee | Fitness & outdoors, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Miners Foundry Cultural Center | Art association (nonprofit) | Nevada City | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | North Columbia Schoolhouse Cultural Center | Art association (nonprofit) | Nevada City | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Yuba Sutter Arts & Culture | Art association (nonprofit) | Marysville | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Colfax Area Historical Society | Historical society | Colfax | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Lodi Historical Society | Historical society | Lodi | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Lodi Community Art Center | Art association (nonprofit) | Lodi | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | San Joaquin County Historical Society & Museum | Historical society | Lodi | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Emergency Food Bank Stockton / San Joaquin | Food bank (nonprofit) | Stockton | Volunteering, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Haggin Museum | Art and history museum (nonprofit) | Stockton | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Amador County Historical Society | Historical society | Jackson | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Amador Flower Farm | Farm | Plymouth | Farmers markets, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Crystal Creek Tree Farm | Farm | Camino | Farmers markets, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Madrone Tree Hill | Farm | Camino | Farmers markets, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Silverthorn Meadows | Farm stay & agritourism | Camino | Farmers markets, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Arts and Culture El Dorado | Arts council (nonprofit) | Placerville | Volunteering, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | El Dorado County Historical Society | Historical society | Placerville | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Cool Patch Pumpkins | Farm stay & agritourism | Dixon | Farmers markets, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Morningsun Herb Farm | Farm | Vacaville | Farmers markets, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Araceli Farms | Farm stay & agritourism | Dixon | Farmers markets, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Colusa County Holiday Craft Faire | Holiday market | Colusa | Local business | reach batch; lead: own site |
+| 2026-10-16 | Arts Benicia | Art association (nonprofit) | Benicia | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Museum of History Benicia | Historical society | Benicia | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Western Railway Museum | Museum (nonprofit) | Suisun City | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Solano Land Trust | Land trust (nonprofit) | Vacaville | Fitness & outdoors, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Vallejo Together | Homeless outreach (nonprofit) | Vallejo | Volunteering, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Vallejo Naval and Historical Museum | Historical society | Vallejo | Arts & culture, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Rio Vista Roots | Community garden | Rio Vista | Gardening, Sustainability | reach batch; lead: own site |
+| 2026-10-16 | Rotary Club of Rio Vista | Service club | Rio Vista | Volunteering, Neighborhood life | reach batch; lead: own site |
