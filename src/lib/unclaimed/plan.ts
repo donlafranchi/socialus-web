@@ -9,6 +9,8 @@ export interface MakerRow {
   area: string
   site: string
   confidence: string
+  /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
+  social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
 }
 
 export type SkipReason = 'personal-care' | 'no-site'
@@ -194,6 +196,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       interests: interestsFor(poolFor(row.category), `${row.category} ${row.name}`),
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
+      ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
     }
   })
   return { listed, skipped }

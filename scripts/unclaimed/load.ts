@@ -15,7 +15,8 @@ import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { checkLink, checkLinks } from '../../src/lib/unclaimed/links'
 import { enrichPage, loadUnclaimed, PHOTOS_PER_PAGE, type Enrichment } from '../../src/lib/unclaimed/load'
-import { gatherPhotos } from '../../src/lib/unclaimed/photos'
+import { fetchHtml, gatherPhotos } from '../../src/lib/unclaimed/photos'
+import { extractSiteMeta } from '../../src/lib/unclaimed/site-scrape'
 import { uploadPhotos } from '../../src/lib/unclaimed/upload'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
 import { readLinkAllow, readPlanned } from './rows'
@@ -34,7 +35,7 @@ const summary = (line: string) => {
 async function main() {
   const { listed, removed, skipped, files } = readPlanned()
   const allow = new Set(readLinkAllow())
-  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[]; retiredFiles: Record<string, string> }
+  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[]; ownMatch?: Record<string, string>; retiredFiles: Record<string, string> }
   console.log(`Read ${files.join(', ')}: ${listed.length} to list, ${skipped.length} held back`)
   for (const s of skipped) console.log(`  held back: ${s.name} (${s.reason})`)
 
@@ -80,15 +81,24 @@ async function main() {
 
   const gatherFor = (p: PlannedPage) => async (): Promise<Enrichment> => {
     const site = p.legacyUrl ?? p.publicInfoUrl
-    const g = await gatherPhotos({ name: p.name, slug: p.slug, site, pool: p.pool, want: PHOTOS_PER_PAGE, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name), stockOnly: overrides.stockOnly.includes(p.name) })
+    const g = await gatherPhotos({ name: p.name, slug: p.slug, site, pool: p.pool, want: PHOTOS_PER_PAGE, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name), stockOnly: overrides.stockOnly.includes(p.name), ownMatch: overrides.ownMatch?.[p.name] ? new RegExp(overrides.ownMatch[p.name]!, 'i') : undefined })
     const photos = await uploadPhotos(supabase, p.slug, g.photos)
+    ;(photos[0]?.own ? ownCover : stockCover).push(p.name)
+    return { photos, phone: g.meta.phone, social: await workingSocial(p, g.meta.social), siteUrl: site }
+  }
+  // Links only, from the Page's own site (or its row): never their posts or pictures.
+  const workingSocial = async (p: PlannedPage, found: Record<string, string>) => {
     const social: Record<string, string> = {}
-    for (const [k, url] of Object.entries({ ...g.meta.social, ...(p.social ?? {}) })) {
+    for (const [k, url] of Object.entries({ ...found, ...(p.social ?? {}) })) {
       if ((await checkLink(url)).ok) social[k] = url
       else console.log(`  dropped broken ${k} link for ${p.name}: ${url}`)
     }
-    ;(photos[0]?.own ? ownCover : stockCover).push(p.name)
-    return { photos, phone: g.meta.phone, social, siteUrl: site }
+    return social
+  }
+  const socialsFor = (p: PlannedPage) => async () => {
+    const site = p.legacyUrl ?? p.publicInfoUrl
+    const html = await fetchHtml(site)
+    return { social: await workingSocial(p, html ? (extractSiteMeta(html, site).social as Record<string, string>) : {}), siteUrl: site }
   }
 
   let next = 0
@@ -105,7 +115,7 @@ async function main() {
             if (made.failed.length) throw new Error(made.failed[0]!.error)
             tally.created += made.created
             tally.existing += made.existing
-            const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}), { stockOnly: overrides.stockOnly.includes(p.name) })
+            const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}), { stockOnly: overrides.stockOnly.includes(p.name), socials: socialsFor(p) })
             if (r === 'missing') throw new Error('the Page is not in the database after loading')
             tally[r]++
             console.log(`${p.name}: ${made.created ? 'created, ' : ''}${r}`)

@@ -7,6 +7,8 @@ export interface SiteMeta {
   social: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
 }
 
+// Pictures whose file names say an AI made them (Don, 2026-10-16): a Page shows the business's real photos, or stock.
+const AI_MADE = /chatgpt[_-]?image|dall[·_-]?e|midjourney|stable[_-]?diffusion|firefly|high[_-]resolution[_-][a-z_]*style/i
 const NOT_A_PHOTO = /logo|icon|favicon|sprite|avatar|placeholder|spacer|pixel|badge|button|payment|visa|mastercard|paypal|arrow|star|rating|flag|qr|banner-ad|\.svg|\.gif|\.ico|data:image|gravatar|emoji|loading|blank/i
 
 const attr = (tag: string, name: string): string | null => {
@@ -41,10 +43,11 @@ export function normaliseUsPhone(raw: string | null | undefined): string | null 
   return /^[2-9]\d{9}$/.test(ten) ? `+1${ten}` : null
 }
 
+// TikTok and Instagram first (Don, 2026-10-16): owners use them to share about themselves.
 const SOCIAL: [keyof SiteMeta['social'], RegExp][] = [
-  ['instagram', /^https:\/\/(www\.)?instagram\.com\/(?!p\/|reel|explore|accounts|share)[A-Za-z0-9._]{2,30}\/?$/i],
-  ['facebook', /^https:\/\/(www\.)?facebook\.com\/(?!sharer|share|dialog|tr\b|plugins|login|policies|groups\/|events\/)[A-Za-z0-9._-]{3,80}\/?$/i],
   ['tiktok', /^https:\/\/(www\.)?tiktok\.com\/@[A-Za-z0-9._]{2,30}\/?$/i],
+  ['instagram', /^https:\/\/(www\.)?instagram\.com\/(?!p\/|reel|explore|accounts|share)[A-Za-z0-9._]{2,30}\/?$/i],
+  ['facebook', /^https:\/\/(www\.)?facebook\.com\/(profile\.php\?id=\d{5,20}|(?!sharer|share|dialog|tr\b|plugins|login|policies|groups\/|events\/|profile\.php)[A-Za-z0-9._-]{3,80}\/?)$/i],
   ['youtube', /^https:\/\/(www\.)?youtube\.com\/(@[A-Za-z0-9._-]{2,40}|c\/[A-Za-z0-9._-]+|channel\/[A-Za-z0-9_-]+)\/?$/i],
   ['x', /^https:\/\/(www\.)?(x|twitter)\.com\/(?!intent|share|home)[A-Za-z0-9_]{2,15}\/?$/i],
 ]
@@ -53,7 +56,7 @@ export function extractSiteMeta(html: string, baseUrl: string): SiteMeta {
   const images: string[] = []
   const push = (u: string | null) => {
     const a = absolute(u, baseUrl)
-    if (a && !NOT_A_PHOTO.test(a) && !images.includes(a)) images.push(a)
+    if (a && !NOT_A_PHOTO.test(a) && !AI_MADE.test(a) && !images.includes(a)) images.push(a)
   }
 
   // Declared pictures first: they are the ones the business chose to show the world.
@@ -93,7 +96,9 @@ export function extractSiteMeta(html: string, baseUrl: string): SiteMeta {
 
   const social: SiteMeta['social'] = {}
   for (const m of html.matchAll(/href\s*=\s*["'](https?:\/\/[^"']+)["']/gi)) {
-    const u = decode(m[1]!).replace(/^http:/, 'https:').split(/[?#]/)[0]!
+    const full = decode(m[1]!).replace(/^http:/, 'https:')
+    // A Facebook profile with no vanity name is only its id, so that query stays; every other query and hash goes.
+    const u = /facebook\.com\/profile\.php\?id=\d+/i.test(full) ? full.match(/^[^?#]+\?id=\d+/)![0] : full.split(/[?#]/)[0]!
     for (const [k, re] of SOCIAL) if (!social[k] && re.test(u)) social[k] = u.replace(/\/$/, '')
   }
   return { images, phone, social }
