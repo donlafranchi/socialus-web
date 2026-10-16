@@ -14,7 +14,9 @@ async function main() {
   mkdirSync(out, { recursive: true })
   const { listed } = readPlanned()
   const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[]; ownMatch?: Record<string, string> }
-  const pages = listed.slice(0, limit)
+  // ONLY=makers-2026-10-16-reach.json previews just that batch.
+  const only = process.env.ONLY ? new Set((JSON.parse(readFileSync(join(__dirname, process.env.ONLY), 'utf8')) as { name: string }[]).map((r) => r.name)) : null
+  const pages = listed.filter((p) => !only || only.has(p.name)).slice(0, limit)
   const seen: Record<string, number> = {}
   const slots = new Map(pages.map((p) => [p.slug, (seen[p.pool] = (seen[p.pool] ?? -1) + 1)]))
   const results: { name: string; own: number; total: number; phone: string | null; down: boolean; cells: Buffer[] }[] = []
@@ -23,10 +25,14 @@ async function main() {
     Array.from({ length: 5 }, async () => {
       while (next < pages.length) {
         const p = pages[next++]!
+        try {
         const g = await gatherPhotos({ name: p.name, slug: p.slug, site: p.publicInfoUrl, pool: p.pool, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name), stockOnly: overrides.stockOnly.includes(p.name), ownMatch: overrides.ownMatch?.[p.name] ? new RegExp(overrides.ownMatch[p.name]!, "i") : undefined })
         const cells = await Promise.all(g.photos.map((x, i) => sharp(x.data).resize(i === 0 ? 300 : 150, i === 0 ? 200 : 100, { fit: 'cover' }).jpeg({ quality: 70 }).toBuffer()))
         results.push({ name: p.name, own: g.ownCount, total: g.photos.length, phone: g.meta.phone, down: g.siteDown, cells })
         console.log(`${p.name}: own ${g.ownCount}, total ${g.photos.length}${g.siteDown ? ', SITE DOWN' : ''}${g.meta.phone ? `, ${g.meta.phone}` : ''}`)
+        } catch (e) {
+          console.log(`${p.name}: FAILED ${(e as Error).message}`)
+        }
       }
     }),
   )
