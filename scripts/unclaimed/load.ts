@@ -41,8 +41,8 @@ async function main() {
 
   // Every website, before anything is written. A broken one is a failure, not a Page to hide.
   const sites = await checkLinks(listed.map((p) => p.publicInfoUrl))
-  // A hand-checked address that only fails from here at the network level (refused, timed out) is let through; a 404 never is.
-  const excused = (i: number) => allow.has(listed[i]!.publicInfoUrl) && sites[i]!.status === null
+  // A hand-checked address that only fails from here at the network level (refused, timed out) or with a 5xx from the host's own edge (520, 503 bot walls) is let through; a 404 never is.
+  const excused = (i: number) => allow.has(listed[i]!.publicInfoUrl) && (sites[i]!.status === null || sites[i]!.status! >= 500)
   const dead = listed.filter((_, i) => !sites[i]!.ok && !excused(i))
   for (const [i, p] of listed.entries()) if (!sites[i]!.ok && !excused(i)) console.log(`  BROKEN website ${p.name}: ${p.publicInfoUrl} (${sites[i]!.note})`)
   summary(`${listed.length} Pages planned, ${removed.length} removed for a dead address, ${dead.length} with a broken website`)
