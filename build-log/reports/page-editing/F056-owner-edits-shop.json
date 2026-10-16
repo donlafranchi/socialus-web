@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     16
    ],
-   "note": "[V] image, name, about: Edit page Basics card (EditCards.tsx, #472) through group.update (#158). Values half: a 'Values & badges · Coming soon' card with no field (#465); no values column. Conflict: values cut by DECISIONS 2026-09-07 and 2026-10-06, and the scenario's own approved line says 'values statement cut'; criterion text still names it"
+   "note": "[V] image, name, about: Edit page Basics card (EditCards.tsx, #472) through group.update (#158). Values half: no values field and no column; the 'Values & badges' card is a placeholder. Conflict: values cut by the scenario's own approved line ('values statement cut') and the 2026-09-07 ruling, yet the criterion text still names the values line. Routed to scope-scenario"
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     585
    ],
-   "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); deploy-health green on 1ebe680. unmarked: src/actions/group/update.test.ts ('refuses a stranger', 'writes an event naming the fields')"
+   "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); deploy-health green on 1ebe680. Smoked: unknown, the edit page has no stable live address in smoke-live. unmarked: src/actions/group/update.test.ts ('refuses a stranger', 'writes an event naming the fields that changed')"
   },
   {
    "id": "3",
@@ -58,7 +58,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "[V] no values_statement column in supabase/migrations; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1: the values line is cut, so the column this guards does not exist"
+   "note": "[V] no values_statement column in supabase/migrations or src; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1: the values line is cut, so the column this guards does not exist. Routed to scope-scenario"
   },
   {
    "id": "4",
@@ -76,7 +76,7 @@
    "issues": [
     584
    ],
-   "note": "[V] no tagline column, no field in group.update or Edit, nothing in share-metadata. TileCard takes a tagline prop but OwnPages passes the description into it"
+   "note": "[V] no tagline column in supabase/migrations, no field in group.update or Edit, nothing in share-metadata. TileCard takes a tagline prop but OwnPages passes the description into it. Ticket #584"
   },
   {
    "id": "5",
@@ -91,8 +91,10 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "[V] ShopPublicPage omits an empty description, placement heading and badge; Products shows 'Nothing posted yet' only when that component is on [A: not nagging]. Sections from #472 (Reviewed by), deploy-health green on 614c920. unmarked: ShopPublicPage.test.tsx ('omits it when empty', 'no empty heading, no placeholder')"
+   "issues": [
+    845
+   ],
+   "note": "[V] ShopPublicPage omits an empty description, placement heading and badge (sections built in #472, Reviewed by; deploy-health green on 614c920) [A: not nagging, nothing asserts the whole Page]. Smoked: unknown, smoke-live opens the first Page Explore lists, not one with every field empty. unmarked: ShopPublicPage.test.tsx ('omits it when empty', 'no empty heading, no placeholder'). Check ticket #845"
   },
   {
    "id": "6",
@@ -110,11 +112,11 @@
    "issues": [
     585
    ],
-   "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by; deploy-health green on 3492589). 'Drop a pin' (#441) saves the map's coordinates, not a placeholder. With no map key the address is used as found and no map is drawn. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx"
+   "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by; deploy-health green on 3492589); 'Drop a pin' (#441, Reviewed by) saves the map's coordinates, not a placeholder. With no map key the address is used as found and no map is drawn. Smoked: unknown, page-edit is not in smoke-live's stable addresses. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx, LocationPlaceFields.test.tsx"
   },
   {
    "id": "7",
-   "text": "A neighbourhood or town from a seeded list covering MSA 40900; a neighbourhood-mode Page shows no street address anywhere and a pin at the centre",
+   "text": "A neighbourhood or town from a seeded list covering MSA 40900; a neighbourhood-mode Page shows no street address anywhere and a pin at the area centre",
    "kind": [
     "behavior",
     "invariant"
@@ -122,7 +124,7 @@
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "yes",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
@@ -130,7 +132,7 @@
     586,
     585
    ],
-   "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods in Sacramento and West Sacramento), pick in #351 and #468, saves a neighborhoodId and no point (where-save.ts). Page map draws a pin at the area centre (PageMap.tsx); Explore draws a disc per the 2026-10-07 ruling. No standing guard over every surface. unmarked: where-save.test.ts, tests/boundaries-db.test.ts"
+   "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods; no Reviewed by line), pick in #351 and #468 (Reviewed by), saves a neighborhoodId and no point (where-save.ts). Page map draws a pin at the area centre (PageMap.tsx). Invariant: no standing guard over every surface that reads a Page's location. Smoked: unknown. unmarked: where-save.test.ts, tests/boundaries-db.test.ts"
   },
   {
    "id": "8",
@@ -149,14 +151,13 @@
    "issues": [
     585
    ],
-   "note": "[V] group.update replaces the tag set and refuses none (#288, no Reviewed by; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags. group.update still accepts a category but no Edit or Create component offers one. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('no category chip')"
+   "note": "[V] group.update replaces the tag set (#288, no Reviewed by; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags. group.update still accepts a category but no Edit or Create component offers one. Smoked: unknown. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('shows no category chip')"
   },
   {
    "id": "9",
-   "text": "Optional public business phone, separate from the private phone, shown to signed-in visitors only",
+   "text": "Optional public business phone, separate from the private phone; members only by default, the owner may open it to everyone",
    "kind": [
-    "behavior",
-    "invariant"
+    "behavior"
    ],
    "status": "active",
    "built": "yes",
@@ -166,9 +167,10 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    585
+    585,
+    480
    ],
-   "note": "[V] groups.contact_phone granted to authenticated only; loadPageView reads contact only when signed in (#305, no Reviewed by; deploy-health green on 7381f60). unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller')"
+   "note": "[V] groups.contact_phone granted to authenticated only; loadPageView reads contact only when signed in (#305, no Reviewed by; deploy-health green on 7381f60). Text follows the 2026-10-07 ruling, which replaced 'signed-in visitors only' with a per-field everyone/members setting, phone defaulting to members: the default is built, the per-field switch is not (#480, open). Smoked: unknown. unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller')"
   }
  ]
 }
