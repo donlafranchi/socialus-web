@@ -6,11 +6,11 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
-   "id": "1",
-   "text": "A row returns only posts starting in its window, soonest first",
+   "id": "1a",
+   "text": "A row returns the posts whose start time falls inside its window, soonest first",
    "kind": [
     "behavior"
    ],
@@ -24,11 +24,27 @@
    "issues": [
     612
    ],
-   "note": "`happeningRows` calls `browse_feed` per row with `startsFrom`, `startsBefore`, `sort: 'soonest'`, posts only (`src/app/explore/load.ts`) [V]. The SQL is in `browse_feed` [V] Checked: no: loader test is `[guards F091.1 partial]`, args only; `tests/migrations-browse-feed.test.ts` covers the SQL but is unmarked."
+   "note": "`happeningRows` makes one `browse_feed` call per row with the window and `sort: 'soonest'`, posts only (`load.ts`); rows show under Updates since #800 [V]. Reviewed no: #266 has no `Reviewed by:`, #815 `review-skipped`. Shipped: green on 2a0d7f7c and b7766901. Smoked unknown: last green run is before #815. Checked: loader test is `[guards F091.1 partial]` (arguments only); SQL tests in `tests/migrations-browse-feed.test.ts` unmarked (#612)."
+  },
+  {
+   "id": "1b",
+   "text": "A row returns only posts that start inside its window",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "#815 (change #814, build A of the pitch audit, 2026-10-16, no scenario change) made the window hold a post that is on during it, so a post that started earlier and has not ended appears in 'today' (`coalesce(ends_at, starts_at) >= p_starts_from`; test 'a time window holds a post that is on during it') [V]. That contradicts 'only posts whose start time falls inside'; the scenario has no ruling for it. Routed to `scope-scenario` (amend to 'on during the window'); nothing filed."
   },
   {
    "id": "2",
-   "text": "Windows in the metro's timezone, bound to the hour",
+   "text": "Windows are in the metro's timezone and bound to the hour",
    "kind": [
     "behavior"
    ],
@@ -37,12 +53,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     173
    ],
-   "note": "`happeningWindows`: every row starts now, today ends at metro midnight, week and weekend end Monday 00:00. The zone is the constant `America/Los_Angeles` until #173 (open) gives each metro its own [V] Checked: yes (`happening.test.ts`)."
+   "note": "`happeningWindows`: every row starts now, today ends at metro midnight, week and weekend end Monday 00:00, daylight saving handled [V]. The zone is the constant `America/Los_Angeles` until #173 (open) gives each metro its own. Checked: `[guards F091.2]` in `src/lib/metro/happening.test.ts`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V]."
   },
   {
    "id": "3",
@@ -55,10 +71,10 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`HappeningRows` filters empty rows [V] Checked: yes (`HappeningRows.test.tsx`)."
+   "note": "`HappeningRows` filters empty rows [V]. Checked: `[guards F091.3]` in `HappeningRows.test.tsx`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked unknown: the rows sit behind Updates and show only when a post is on. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V]."
   },
   {
    "id": "4",
@@ -71,10 +87,10 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`HappeningRows` returns null when no row is present [V] Checked: yes (`HappeningRows.test.tsx`)."
+   "note": "`HappeningRows` returns null when no row is present [V]. Checked: `[guards F091.4]` in `HappeningRows.test.tsx`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V]."
   },
   {
    "id": "5",
@@ -83,20 +99,22 @@
     "behavior"
    ],
    "status": "active",
-   "built": "unknown",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Rows come from the route's metro and area and the clock; nothing found that pins them to a link, and nothing asserts it [A]"
+   "issues": [
+    829
+   ],
+   "note": "Rows are a function of the route's metro and area and the clock only; the Updates view is the word `updates` in `?q=`, so it travels in the link (`load.ts`, `box-text.ts`) [V]. Judged from code; no test pins it, and 'same rows' holds only within the hour the windows are bound to [A]. Reviewed no (#266 no line, #800 yes, #815 skipped). Shipped: green. Issue #829. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V]."
   },
   {
    "id": "6",
    "text": "A series appears at most once in a row",
    "kind": [
-    "invariant"
+    "behavior"
    ],
    "status": "active",
    "built": "no",
@@ -106,25 +124,27 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    602
+    600
    ],
-   "note": "`browse_feed` has no grouping by `parent_post_id` [V migrations]; #266 says it \"lands with F074\". No series exist yet. Ticket #602 (F074 read side, open)"
+   "note": "`browse_feed` has no grouping by `parent_post_id` [V migration 20261016150052]; #266 says it lands with F074. The weekly composer (#753, F074 criterion 1) is off until occurrences land, so no series exist yet. The ticket is #600 (F074 criterion 6, one row per series); the 2026-10-10 report cited #602, which is F074 criterion 7."
   },
   {
    "id": "7",
-   "text": "Signed out, the today row is one \"Sign in to see what's happening\" card per Page posting today",
+   "text": "Signed out, the today row is one 'Sign in to see what's happening' card per Page posting today",
    "kind": [
     "behavior"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "yes",
+   "checked": "no",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "`signedOutToday` reads the withheld path over midnight to midnight \"posted today\", not \"happens today\" (Don's ruling); card copy `withheldCta` reads \"Sign in…\" [V]. The PR body says \"Sign up\", the code says \"Sign in\" [V] Checked: yes (`load-withheld.test.ts`, `[guards F091.7 partial]`: the loader; card has its own tests)."
+   "issues": [
+    829
+   ],
+   "note": "`signedOutToday` reads the withheld path over midnight to midnight 'posted today' (Don's ruling); `withheldCta` reads 'Sign in…' [V]. Placement: the row sits behind Updates since #800, though the first look keeps one 'sign in to see' card per Page that posted since the last visit (F093.7) [V]. #815 kept a card while its post is on. Checked: `[guards F091.7 partial]` (the loader only), so no. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c, b7766901. Issue #829."
   }
  ]
 }

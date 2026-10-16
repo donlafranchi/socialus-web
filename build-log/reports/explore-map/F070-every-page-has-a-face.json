@@ -6,25 +6,25 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
    "id": "1",
-   "text": "The photo step is optional; composer completes without one",
+   "text": "The photo step is optional; the composer completes without one",
    "kind": [
     "behavior"
    ],
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "unknown",
+   "reviewed": "no",
    "shipped": "unknown",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     598
    ],
-   "note": "`PagePhotoPicker` rides in the About step of `SellWalkthrough`; `update_draft` takes `photoUrl` (null clears, undefined leaves alone); a failed upload does not trap the member [V build log t145, files]. #598 Checked: unmarked: `PagePhotoPicker.test.tsx` (\"never blocks the step\")."
+   "note": "`PagePhotoPicker` sits in the About step of `SellWalkthrough` (`isOptional`) and in `PageEditor`; `photoUrl: null` clears, a failed upload does not trap the member [V src]. Built by #121: no `Reviewed by:` line, label human-review [V]; no deploy-health run for 61902755 [V]. Checked no: unmarked `PagePhotoPicker.test.tsx` (\"never blocks the step\"), `SellWalkthrough.test.tsx`; zero `[guards F070.n]` markers in src or tests [V grep]. #598."
   },
   {
    "id": "2",
@@ -35,14 +35,14 @@
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "unknown",
+   "reviewed": "no",
    "shipped": "unknown",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     598
    ],
-   "note": "Canvas resize plus WebP re-encode strips it; bucket accepts `image/webp` only (`039_media_bucket.sql`). Missing: a check on an object read back from the bucket. #598 Checked: unmarked: `upload-image.test.ts:112` (real GPS fixture, byte-level, but on pipeline output, not a stored object)."
+   "note": "`upload-image.ts` re-encodes through canvas to WebP; the `media` bucket accepts `image/webp` only (`039_media_bucket.sql`) [V]. Checked no: `upload-image.test.ts:112` reads a GPS fixture byte-level but on pipeline output, not an object read back from the bucket; unmarked [V]. Built by T120 and #121, both before deploy-health ran, and neither carries `Reviewed by:` [V]. #598."
   },
   {
    "id": "3",
@@ -53,18 +53,18 @@
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "unknown",
+   "reviewed": "no",
    "shipped": "unknown",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     598
    ],
-   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to own `{member_id}/` prefix [V migration]. #598 Checked: unmarked: `tests/media-bucket-storage-api.test.ts` (JPEG, SVG, over 5MB, other member's prefix); runs only when `requireRunnable` passes, CI run unknown."
+   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to the member's own folder [V migration 039]. `tests/media-bucket-storage-api.test.ts` rejects JPEG, SVG, over 5MB and another member's prefix against a real stack; CI runs the Vitest suite against local Supabase, so it is not skipped there [V ci.yml]. Checked no only because it carries no `[guards F070.3]` marker. #598."
   },
   {
    "id": "4",
-   "text": "No photo shows the kind's default art, identical for every viewer; missing Page picture falls back to it",
+   "text": "A Page with no photo shows its kind's default image, the same for every viewer; a missing Page picture falls back to it",
    "kind": [
     "behavior"
    ],
@@ -76,27 +76,44 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    335
+    335,
+    598
    ],
-   "note": "Built half: `DefaultArt` by kind (shop, service, group) on the Page, browse cards and post cards, with the Page-picture fallback in `PagePosts` [V]. Missing: the signed-out withheld card draws a plain tile with no icon, so not identical to every viewer. #335 (open, Beta 11-06) Checked: unmarked: `DefaultArt.test.tsx`."
+   "note": "Built half: `DefaultArt` by kind (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Missing: the signed-out withheld card gets no kind, because `announcements_withheld` does not return it and `mapWithheldRow` sets `groupKind: ''`, so `artKindFor` returns null and the tile has no icon; that is not identical for every viewer [V src/lib/feed/withheld-announcements.ts, DefaultArt.tsx]. #335 (open, Beta 11-06). Checked: unmarked `DefaultArt.test.tsx`; #598."
   },
   {
-   "id": "5",
-   "text": "Operator removes a Page's photo in one action; object deleted, event recorded",
+   "id": "5a",
+   "text": "The operator removes a Page's photo in one action",
    "kind": [
     "behavior"
    ],
-   "status": "spec-conflict",
+   "status": "retired",
    "built": "no",
    "checked": "no",
    "reviewed": "no",
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [
-    491
+   "issues": [],
+   "note": "Overtaken by the 2026-09-17 ruling in scenario F058: a moderation decision is a reversible event and removal sets `photo_removed_at` instead of deleting, so one action cannot also delete the bytes. Removal shows in the admin queue as built [V]. Shown, not counted."
+  },
+  {
+   "id": "5b",
+   "text": "The photo's stored object is deleted and an event is recorded",
+   "kind": [
+    "behavior"
    ],
-   "note": "Built half: report-driven reversible removal (`photo_removed_at`) in the admin queue, then a separate `report.purge_target` plus `report.purge` that deletes the object and writes a `photo_purges` row with who, why and when (#491, migration `20261007250000`) [V]. Missing: one action (removal keeps the bytes; deletion is a second, deliberate act per `docs/purge-proposal.md`), and the record is a `photo_purges` row, not an event [A]."
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    842
+   ],
+   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts, docs/purge-proposal.md]. Built by #508 (#491): carries `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. #842."
   }
  ]
 }
