@@ -543,6 +543,38 @@ describe('an end time on it', () => {
     expect(onPost).not.toHaveBeenCalled()
   })
 
+  // #814 — an end can fall on a later day: a Sat–Sun special ends on Sunday.
+  it('sends an end on a later day', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-date'), { target: { value: '2026-09-26' } })
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '15:00' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-26T22:00:00.000Z' })),
+    )
+  })
+
+  it('an end date with no end time runs to the end of that day', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-date'), { target: { value: '2026-09-26' } })
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ endsAt: '2026-09-27T06:59:00.000Z' })))
+  })
+
+  it('shows a multi-day range back, with the end day', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-26T22:00:00.000Z' }] })
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent(/Thursday, September 24 at 7:00pm – Saturday, September 26 at 3:00pm/)
+  })
+
+  it('editing a multi-day post starts from its end day', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-26T22:00:00.000Z' }] })
+    fireEvent.click(screen.getAllByTestId('page-post-edit')[0]!)
+    expect(screen.getAllByTestId(/end-date$/)[0]).toHaveValue('2026-09-26')
+  })
+
   it('shows the range back', () => {
     renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }] })
     expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')

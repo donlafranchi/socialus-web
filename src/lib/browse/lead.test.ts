@@ -33,6 +33,18 @@ describe('#796 — the first look is what is new or happening soon', () => {
     expect(new Set(lead.map(leadKey))).toEqual(new Set([tonight, weekend, lastMinute, newPage].map(leadKey)))
   })
 
+  // #814 — on tonight or this weekend counts, not only starting then: a market that opened this morning and runs to 9pm.
+  it('leads with a post that is already on and runs into tonight or the weekend, but not one that has ended', () => {
+    const onTonight = post({ startsAt: '2026-10-14T17:00:00Z', endsAt: '2026-10-15T04:00:00Z' })
+    const weekendSpecial = post({ startsAt: '2026-10-14T17:00:00Z', endsAt: '2026-10-19T04:00:00Z' })
+    const over = post({ startsAt: '2026-10-14T17:00:00Z', endsAt: '2026-10-14T20:00:00Z' })
+    const { lead } = pickLead([...oldPages(10), onTonight, weekendSpecial, over], opts())
+    const keys = lead.map(leadKey)
+    expect(keys).toContain(leadKey(onTonight))
+    expect(keys).toContain(leadKey(weekendSpecial))
+    expect(keys).not.toContain(leadKey(over))
+  })
+
   it('a post already seen on an earlier visit never leads again', () => {
     const tonight = post({ startsAt: '2026-10-15T03:00:00Z' })
     const { lead } = pickLead([...oldPages(10), tonight], opts({ seen: new Set([leadKey(tonight)]) }))
