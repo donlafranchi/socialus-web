@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { buttonClass } from '@/components/ui/Button'
 import { Megaphone } from 'lucide-react'
 import { announcementAnchor } from './announcement-anchor'
-import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
+import { useAnnouncementAnchor } from './use-announcement-anchor'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import {
@@ -41,7 +41,7 @@ export function WithheldPagePosts({ posts }: { posts: BrowseResult[] }) {
       <div
         data-testid="page-post-withheld"
         data-highlighted={marked ? 'true' : undefined}
-        className={`card mt-4 flex items-start gap-3 p-4${marked ? ANNOUNCEMENT_MARK : ''}`}
+        className="card mt-4 flex items-start gap-3 p-4"
       >
         {ids.map((id) => (
           <span key={id} id={announcementAnchor(id)} aria-hidden className="sr-only scroll-mt-24" />

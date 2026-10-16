@@ -12,6 +12,7 @@
 import { kindLine } from '@/lib/groups/page-kind'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TileCard } from '@/components/cards'
+import { TypeMark, SampleChip, SampleWatermark } from '@/components/cards/CardMarks'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen, formatPostedDate } from '@/lib/metro/metro-time'
 import { cardImageAlt } from '@/lib/calendar/ics'
@@ -78,6 +79,13 @@ export function BrowseResultCard({
       }
       href={result.href}
       prefetch={prefetch}
+      marks={
+        <>
+          <TypeMark type={isPost ? 'post' : 'page'} />
+          {result.sampleKind ? <SampleChip /> : null}
+        </>
+      }
+      watermark={result.sampleKind ? <SampleWatermark /> : undefined}
       action={
         isPost || result.tags.length > 0 ? (
           <div className="flex flex-col gap-2">
