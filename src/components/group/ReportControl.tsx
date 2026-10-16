@@ -27,19 +27,27 @@ interface Props {
   /** F099 — which image: the Page's photo when omitted. */
   subjectKind?: 'group' | 'page_picture' | 'post_photo'
   subjectLabel: string
+  /** #625 — on a Page: its own words (name, description) are a report of their own, beside its photo. */
+  wordsReportable?: boolean
   loggedIn: boolean
   /** Path to come back to after signing in. */
   returnTo?: string
   onSend: (input: {
     subjectId: string
-    subjectKind?: 'group' | 'page_picture' | 'post_photo'
+    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words'
     category: ReportCategory
     body: string
   }) => Promise<{ ok: true } | { ok: false; message: string }>
 }
 
-export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend }: Props) {
+export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | undefined>(subjectKind)
+  const open = (kind: typeof reporting) => {
+    setReporting(kind)
+    if (loggedIn) setSheetOpen(true)
+    else setPromptOpen(true)
+  }
   const [confirmed, setConfirmed] = useState<'courtesy' | 'person' | null>(null)
   const [promptOpen, setPromptOpen] = useState(false)
   // The sheet is opened from a menu item that unmounts with its menu, so the
@@ -66,20 +74,25 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
     <>
       <PageOverflowMenu
         triggerRef={triggerRef}
-        items={[
-          { label: 'Report this', onSelect: () => (loggedIn ? setSheetOpen(true) : setPromptOpen(true)) },
-        ]}
+        items={
+          wordsReportable
+            ? [
+                { label: COPY.reportPageWords, onSelect: () => open('page_words') },
+                { label: COPY.reportPagePhoto, onSelect: () => open(subjectKind) },
+              ]
+            : [{ label: 'Report this', onSelect: () => open(subjectKind) }]
+        }
       />
 
       {promptOpen && <SignInPrompt action="report" currentPath={returnTo ?? '/'} onClose={() => setPromptOpen(false)} />}
 
       <ReportSheet
         open={sheetOpen}
-        subjectLabel={subjectLabel}
+        subjectLabel={reporting === 'page_words' ? `${subjectLabel}: ${COPY.reportPageWordsSubject}` : subjectLabel}
         returnFocusTo={triggerRef}
         onClose={() => setSheetOpen(false)}
         onSend={async (category, body) => {
-          const sent = await onSend({ subjectId, ...(subjectKind ? { subjectKind } : {}), category, body })
+          const sent = await onSend({ subjectId, ...(reporting ? { subjectKind: reporting } : {}), category, body })
           // The action returns plain words for a refusal; the sheet shows them and keeps the box.
           if (!sent.ok) throw new PlainError(sent.message)
           setSheetOpen(false)

@@ -920,3 +920,62 @@ describe('report.create — child-safety content is preserved (#648)', () => {
     expect(holds()).toHaveLength(0)
   })
 })
+
+// #625 (Don, 2026-10-16, option A): a Page's own words — its name and description — are reportable on the
+// courtesy-first flow. A first report sends the owner a notice; a repeat from someone else hides only the words,
+// and the Page stays up; threat of harm and child content hide at once.
+describe('report.create — a Page\'s own words (#625)', () => {
+  function installWordsRouter(opts: { others?: number; hiddenAt?: Date | null; locked?: string | null } = {}) {
+    const { others = 0, hiddenAt = null, locked = null } = opts
+    query.mockReset()
+    query.mockImplementation(async (sql: string) => {
+      if (/words_hidden_at/i.test(sql) && /from public\.groups/i.test(sql) && /select/i.test(sql)) {
+        return {
+          rows: [{ group_id: GROUP_ID, name: 'Oak Park Bakery', description: 'Bread daily.', words_hidden_at: hiddenAt, words_hide_locked_text: locked, builder_on_real: false, reporter_is_builder: false, founder_member_id: FOUNDER_ID, hide_bar: 0 }],
+        }
+      }
+      if (/from public\.report_decisions/i.test(sql)) return { rows: [] }
+      if (/count/i.test(sql) && /reporter_member_id <> \$1/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: String(others) }] }
+      if (/count/i.test(sql) && /reporter_member_id/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: '0' }] }
+      if (/count/i.test(sql) && /reviewed_at is null/i.test(sql)) return { rows: [{ count: '0' }] }
+      if (/insert into public\.reports/i.test(sql)) return { rows: [{ id: REPORT_ID }] }
+      if (/insert into public\.(member_notices|legal_holds)/i.test(sql)) return { rows: [] }
+      if (/update public\.groups/i.test(sql)) return { rows: [{ id: GROUP_ID }] }
+      throw new Error(`unexpected query in test: ${sql}`)
+    })
+  }
+  const words = (category = 'harassment') => reportCreate(ctx(), { subjectKind: 'page_words', category: category as never, subjectId: GROUP_ID, body: 'Rude name.' })
+
+  // [guards F078.1 partial: a Page's own words]
+  it('a first report sends the owner a courtesy notice and hides nothing', async () => {
+    installWordsRouter()
+    const r = await words()
+    expect(r.photoHidden).toBe(false)
+    expect(callsMatching(/update public\.groups/i)).toHaveLength(0)
+    const [notice] = callsMatching(/insert into public\.member_notices/i)
+    expect(notice![0]).toMatch(/'courtesy'/)
+    expect(notice![1]).toContain('page_words')
+  })
+
+  it('a repeat from someone else hides only the words, and the Page stays up', async () => {
+    installWordsRouter({ others: 1 })
+    const r = await words()
+    expect(r.photoHidden).toBe(true)
+    const [hide] = callsMatching(/update public\.groups/i)
+    expect(hide![0]).toMatch(/words_hidden_at/)
+    expect(hide![0]).not.toMatch(/photo_hidden_at|picture_hidden_at|lifecycle_state|discoverability/)
+    expect((eventsOfKind('group.reported')[0]![2] as EventRow).payload).toMatchObject({ subject_kind: 'page_words' })
+    expect(callsMatching(/insert into public\.member_notices/i)[0]![0]).toMatch(/'content_hidden'/)
+  })
+
+  it('threat of harm hides the words at once, on the first report', async () => {
+    installWordsRouter()
+    expect((await words('threat_of_harm')).photoHidden).toBe(true)
+  })
+
+  it('words a person already restored stay up until they change', async () => {
+    installWordsRouter({ others: 1, locked: 'Oak Park Bakery\nBread daily.' })
+    expect((await words()).photoHidden).toBe(false)
+    expect(callsMatching(/update public\.groups/i)).toHaveLength(0)
+  })
+})
