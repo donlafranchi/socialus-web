@@ -59,7 +59,7 @@ describe('planMakers (#517)', () => {
     expect(planMakers([r({ category: 'Cakes & bakery' })]).listed[0]!.purpose).toBe('sell')
   })
   it('a food bank, volunteer group, club or nonprofit gathers people and gets the community pool, never a shop (#786)', () => {
-    for (const category of ['Food bank (nonprofit)', 'Meal program (nonprofit)', 'Volunteer building and ReStore (nonprofit)', 'Service club', 'Community garden', 'Animal rescue', 'Friends of the library']) {
+    for (const category of ['Food bank (nonprofit)', 'Meal program (nonprofit)', 'Volunteer building and ReStore (nonprofit)', 'Service club', 'Animal rescue', 'Friends of the library']) {
       const [x] = planMakers([r({ category })]).listed
       expect([x!.pool, x!.purpose], category).toEqual(['Community & volunteer', 'gather'])
     }
@@ -74,6 +74,13 @@ describe('planMakers (#517)', () => {
     }
     expect(planMakers([r({ category: 'Art & print' })]).listed[0]!.pool).toBe('Art & print')
     expect(planMakers([r({ category: 'Food bank (nonprofit)' })]).listed[0]!.pool).toBe('Community & volunteer')
+  })
+  it('a conservancy, land trust, trail group or garden gathers people and gets outdoor pictures; a nursery is a grower (#786)', () => {
+    for (const category of ['Creek conservancy (nonprofit)', 'Land trust (nonprofit)', 'Nature center (nonprofit)', 'Trail group (nonprofit)', 'Demonstration garden (nonprofit)', 'Community garden']) {
+      const [x] = planMakers([r({ category })]).listed
+      expect([x!.pool, x!.purpose], category).toEqual(['Green & outdoors', 'gather'])
+    }
+    expect(planMakers([r({ category: 'Nursery' })]).listed[0]!.pool).toBe('Farm')
   })
   it('puts a Page in its own city, defaulting to Sacramento', () => {
     expect(planMakers([r({ area: 'West Sacramento' })]).listed[0]!.city).toBe('West Sacramento')

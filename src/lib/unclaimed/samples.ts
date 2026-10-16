@@ -34,6 +34,7 @@ const VOICE: Record<string, Voice> = {
   'Farm stay & agritourism': 'stay',
   'Community & volunteer': 'community',
   'Arts & culture': 'community',
+  'Green & outdoors': 'community',
 }
 
 // Two wordings per kind per voice; the Page's slug picks one, so neighbours do not read the same.

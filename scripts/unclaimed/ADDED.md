@@ -144,3 +144,11 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-15 | Otow Orchard | Farm | Granite Bay | Arts and culture (farms) |
 | 2026-10-15 | Pasture 42 | Farm | Guinda | Arts and culture (farms) |
 | 2026-10-15 | Shadow Glen Riding Stables | Ranch | Fair Oaks | Arts and culture (farms) |
+| 2026-10-16 | Natural Trading Company | Farm | Newcastle | Green and outdoors |
+| 2026-10-16 | Delfino Farms | Farm stay & agritourism | Camino | Green and outdoors |
+| 2026-10-16 | Capay Canyon Ranch | Farm | Esparto | Green and outdoors |
+| 2026-10-16 | Dry Creek Conservancy | Creek conservancy (nonprofit) | Roseville | Green and outdoors |
+| 2026-10-16 | Placer Land Trust | Land trust (nonprofit) | Auburn | Green and outdoors |
+| 2026-10-16 | FATRAC (Folsom Auburn Trail Riders Action Coalition) | Trail group (nonprofit) | Folsom | Green and outdoors |
+| 2026-10-16 | Fair Oaks Horticulture Center | Demonstration garden (nonprofit) | Fair Oaks | Green and outdoors |
+| 2026-10-16 | Bushnell Gardens Nursery | Nursery | Granite Bay | Green and outdoors |
