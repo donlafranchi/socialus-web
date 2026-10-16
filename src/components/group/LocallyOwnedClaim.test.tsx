@@ -96,11 +96,11 @@ describe('LocallyOwnedClaim — claimed + proximal (beat 2/3 result)', () => {
   })
 })
 
-describe('LocallyOwnedClaim — claimed + non-proximal (beat 5)', () => {
-  it('shows the honest "isn\'t in proximity" message + the ZIP, still editable', () => {
-    renderWidget({ zip: '90210', isProximal: false })
-    const warn = screen.getByTestId('claim-not-proximal')
-    expect(warn).toHaveTextContent(/isn't in proximity/i)
+describe('LocallyOwnedClaim — a ZIP far away (beat 5, #874)', () => {
+  it('is claimed like any other: no proximity warning, still editable', () => {
+    renderWidget({ zip: '90210', isProximal: true })
+    expect(screen.queryByTestId('claim-not-proximal')).toBeNull()
+    expect(screen.getByText(/Claimed local owner/i)).toBeInTheDocument()
     expect(screen.getByText(/ZIP on file: 90210/i)).toBeInTheDocument()
     expect(screen.getByTestId('claim-edit')).toBeInTheDocument()
     expect(screen.getByTestId('claim-remove')).toBeInTheDocument()

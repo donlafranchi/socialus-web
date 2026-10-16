@@ -10,11 +10,8 @@
 //
 // States off `claim`:
 //   - empty       (zip === null)          → "Add ZIP"
-//   - proximal    (zip set, isProximal)   → "Claimed local owner — ZIP on file"
-//   - non-proximal(zip set, !isProximal)  → honest "isn't in proximity" message
+//   - claimed     (zip set)               → "Claimed local owner — ZIP on file" (#874: any ZIP; no distance test)
 // Add and Edit both call onSet (the handler soft-replaces — T075 deviation #4).
-// Proximity is a render-time derivation; a non-proximal ZIP is accepted, not
-// rejected — the widget reports, it doesn't moralize.
 
 import { useState } from 'react'
 import { useLocalOwnerClaim, type LocalOwnerClaimState } from './LocalOwnerClaimState'
@@ -170,16 +167,9 @@ export function LocallyOwnedClaim({ groupId, onSet, onRemove }: Props) {
         </div>
       ) : (
         <div className="mt-2 flex flex-col gap-2">
-          {claim.isProximal ? (
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">Claimed local owner</span> — ZIP on file: {claim.zip}.
-            </p>
-          ) : (
-            <p data-testid="claim-not-proximal" role="status" className="text-sm text-gray-700">
-              ZIP on file: {claim.zip}. This ZIP isn&apos;t in proximity to your Shop&apos;s anchor
-              Location — the badge isn&apos;t currently displayed.
-            </p>
-          )}
+          <p className="text-sm text-gray-700">
+            <span className="font-medium">Claimed local owner</span> — ZIP on file: {claim.zip}.
+          </p>
           <div className="flex gap-2">
             <button
               type="button"
