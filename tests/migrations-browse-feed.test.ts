@@ -339,6 +339,7 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
       body: string,
       opts: {
         startsAt?: string | null
+        endsAt?: string | null
         withOwnLocation?: boolean
         state?: string
         disc?: string
@@ -347,8 +348,8 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
       const locId = opts.withOwnLocation ? await mkLoc(`${body}-own`) : null
       await q(
         `insert into public.page_posts
-           (group_id, body, starts_at, location_id, lifecycle_state, discoverability)
-         values ($1, $2, $3, $4, $5, $6)`,
+           (group_id, body, starts_at, location_id, lifecycle_state, discoverability, ends_at)
+         values ($1, $2, $3, $4, $5, $6, $7)`,
         [
           groupId,
           body,
@@ -356,6 +357,7 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
           locId,
           opts.state ?? 'active',
           opts.disc ?? 'listed',
+          opts.endsAt ?? null,
         ],
       )
     }
@@ -687,6 +689,56 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
     expect(found).toContain('next week')
     expect(found).toContain('no date at all')
     expect(found).not.toContain('last week')
+  })
+
+  // #814 — a post lasts until it ENDS (a market 8–2 is still on at 8:01), and an end can be days later.
+  it('keeps a post that has started and not ended, and drops one that has ended', async () => {
+    const found = await inRollback(async (q) => {
+      const { placeId, mkPage, mkPost } = await seed(q)
+      const g = await mkPage('t814-on-now')
+      await mkPost(g, 'market on now', { startsAt: '2026-10-17T15:00:00Z', endsAt: '2026-10-17T21:00:00Z' })
+      await mkPost(g, 'weekend special', { startsAt: '2026-10-17T15:00:00Z', endsAt: '2026-10-19T03:00:00Z' })
+      await mkPost(g, 'breakfast, over', { startsAt: '2026-10-17T14:00:00Z', endsAt: '2026-10-17T16:00:00Z' })
+      await mkPost(g, 'no end, started', { startsAt: '2026-10-17T15:00:00Z' })
+      return bodies(await q(call({ p_place_id: `'${placeId}'::uuid`, p_now: `'2026-10-17T18:00:00Z'::timestamptz` })))
+    })
+    expect(found).toContain('market on now')
+    expect(found).toContain('weekend special')
+    expect(found).not.toContain('breakfast, over')
+    expect(found).not.toContain('no end, started')
+  })
+
+  it('a time window holds a post that is on during it, not only one that starts in it', async () => {
+    const found = await inRollback(async (q) => {
+      const { placeId, mkPage, mkPost } = await seed(q)
+      const g = await mkPage('t814-window')
+      await mkPost(g, 'started friday, ends sunday', { startsAt: '2026-10-16T16:00:00Z', endsAt: '2026-10-19T03:00:00Z' })
+      await mkPost(g, 'ended friday', { startsAt: '2026-10-16T16:00:00Z', endsAt: '2026-10-16T20:00:00Z' })
+      return bodies(
+        await q(
+          call({
+            p_place_id: `'${placeId}'::uuid`,
+            p_now: `'2026-10-16T17:00:00Z'::timestamptz`,
+            p_starts_from: `'2026-10-17T07:00:00Z'::timestamptz`,
+            p_starts_before: `'2026-10-20T07:00:00Z'::timestamptz`,
+          }),
+        ),
+      )
+    })
+    expect(found).toEqual(['started friday, ends sunday'])
+  })
+
+  it('signed out, a Page with a post that is still on keeps its "sign in to see" card; one whose post has ended does not', async () => {
+    const found = await inRollback(async (q) => {
+      const { placeId, mkPage, mkPost } = await seed(q)
+      const on = await mkPage('t814-withheld-on')
+      const over = await mkPage('t814-withheld-over')
+      await mkPost(on, 'on all weekend', { startsAt: '2026-10-17T15:00:00Z', endsAt: '2026-10-19T03:00:00Z' })
+      await mkPost(over, 'over by noon', { startsAt: '2026-10-17T15:00:00Z', endsAt: '2026-10-17T19:00:00Z' })
+      return (await q(`select slug from public.announcements_withheld(p_place_id => $1, p_now => '2026-10-18T18:00:00Z'::timestamptz)`, [placeId])).map((r) => r.slug as string)
+    })
+    expect(found).toContain('t814-withheld-on')
+    expect(found).not.toContain('t814-withheld-over')
   })
 
   it('the soonest sort puts the next occurrence first', async () => {

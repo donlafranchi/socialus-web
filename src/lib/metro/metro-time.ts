@@ -112,6 +112,8 @@ export function formatMetroDateTime(
     const end = longClock(new Date(endIso), tz)
     return `${day} at ${joinRange(clock, end)}`
   }
+  // #814 — an end on a later day reads as the card does: start – end.
+  if (endIso && !Number.isNaN(new Date(endIso).getTime())) return `${day} at ${clock} – ${formatMetroDateTime(endIso, tz, now)}`
   return `${day} at ${clock}`
 }
 
