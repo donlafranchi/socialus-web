@@ -1,0 +1,66 @@
+[
+ {
+  "name": "Natural Trading Company",
+  "category": "Farm",
+  "makes": "Organic vegetables and fruit, greenhouse wheatgrass, pea shoots and sunflower greens; CSA and Auburn community market",
+  "area": "Newcastle (Placer)",
+  "site": "https://naturaltradingco.com/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 40-acre Newcastle farm; June 2026 post; Auburn and Roseville market dates listed for Oct 17-24, 2026."
+ },
+ {
+  "name": "Delfino Farms",
+  "category": "Farm stay & agritourism",
+  "makes": "Apple Hill family farm since the 1960s: Joan's Apple Bakery, Edio Vineyards wine, Henrietta Stich hard cider, Folk on the Farm concerts",
+  "area": "Camino (El Dorado)",
+  "site": "https://delfinofarms.com/",
+  "confidence": "High; own site checked 2026-10-16 (ok): Footer 2026, page modified 2026-08-31, hours Thu-Mon listed at 3205 N. Canyon Rd."
+ },
+ {
+  "name": "Capay Canyon Ranch",
+  "category": "Farm",
+  "makes": "Family almond, walnut and organic Flame grape farm since 1972; almond hulling and shelling",
+  "area": "Esparto (Yolo)",
+  "site": "https://capaycanyonranch.com/",
+  "confidence": "Low-medium; own site checked 2026-10-16 (ok): Site live with farming, handling and farmers market pages; content dated 2015, no closure notice."
+ },
+ {
+  "name": "Dry Creek Conservancy",
+  "category": "Creek conservancy (nonprofit)",
+  "makes": "Monthly creek cleanups, Chinook salmon surveys, eDNA sampling and trail corridors in the Dry Creek watershed",
+  "area": "Roseville (Placer)",
+  "site": "https://www.drycreekconservancy.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): Footer 2026, page modified 2026-09-16, 2026 Salmon Homecoming Nov 8 at Royer Park."
+ },
+ {
+  "name": "Placer Land Trust",
+  "category": "Land trust (nonprofit)",
+  "makes": "Preserves 22,000+ acres in Placer County; docent hikes, bird strolls, volunteer stewardship days",
+  "area": "Auburn (Placer)",
+  "site": "https://placerlandtrust.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): May 2026 news posts, Oct 24-25 and Nov 11, 2026 walks on the calendar; office 922 Lincoln Way, Auburn."
+ },
+ {
+  "name": "FATRAC (Folsom Auburn Trail Riders Action Coalition)",
+  "category": "Trail group (nonprofit)",
+  "makes": "Volunteer mountain bike trail building and maintenance since 1988; Folsom Bike Park",
+  "area": "Folsom (Sacramento)",
+  "site": "https://www.fatrac.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): Footer 2026; volunteer form, events calendar and bike park campaign live."
+ },
+ {
+  "name": "Fair Oaks Horticulture Center",
+  "category": "Demonstration garden (nonprofit)",
+  "makes": "One-acre UCCE Master Gardener demonstration garden: orchard, vineyard, vegetables, herbs, compost; free workshops and open garden days",
+  "area": "Fair Oaks (Sacramento)",
+  "site": "https://ucanr.edu/sites/sacmg/Fair_Oaks_Horticulture_Center",
+  "confidence": "Medium; own site checked 2026-10-16 (ok): UC ANR page live with address 11549 Fair Oaks Blvd and workshop info; no dated content."
+ },
+ {
+  "name": "Bushnell Gardens Nursery",
+  "category": "Nursery",
+  "makes": "Award-winning garden nursery: plants, trees and home decor",
+  "area": "Granite Bay (Placer)",
+  "site": "https://www.bushnellgardens.com/",
+  "confidence": "Medium; own site checked 2026-10-16 (ok): Square Online site responds 200 with current title; body renders by JavaScript so hours not read."
+ }
+]

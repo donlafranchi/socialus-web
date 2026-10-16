@@ -77,6 +77,8 @@ export function LocallyOwnedClaim({ groupId, onSet, onRemove }: Props) {
     <section
       data-testid="claim-widget"
       aria-labelledby="claim-heading"
+      // #806 — busy while a save is in flight; the save itself brings the new claim.
+      aria-busy={pending}
       className="mt-6 rounded border border-gray-200 p-4"
     >
       <h2 id="claim-heading" className="text-sm font-medium text-gray-700">

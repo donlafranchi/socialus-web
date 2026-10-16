@@ -4,6 +4,8 @@
 // whether visible or hidden by a removal request, so a re-run never duplicates
 // one and never brings one back (only an operator restores, #353).
 import { toSlug } from '../slugify'
+import { METRO_TIME_ZONE } from '../metro/metro-time'
+import { metroWeekday } from '../metro/metro-week'
 import { SYSTEM_MEMBER_ID } from '../system-member'
 import type { PlannedPage } from './plan'
 import { SAMPLE_LABEL, sampleWindow, samplePosts, type SampleKind } from './samples'
@@ -128,16 +130,18 @@ export async function enrichPage(
   gather: () => Promise<Enrichment>,
   now: Date,
   retired: string[] = [],
+  /** #809 — the Page is on stock-only (F080): a cover that is not a stock photo comes off, with its samples, and stock goes in. */
+  { stockOnly = false }: { stockOnly?: boolean } = {},
 ): Promise<EnrichResult> {
   await db.query('begin')
   try {
     const found = await db.query(
-      `select id, photo_url, contact_phone, social_links, public_info_url, public_id
+      `select id, photo_url, photo_source_url, contact_phone, social_links, public_info_url, public_id
          from public.groups
         where unclaimed_at is not null and public_info_url = any($1::text[])`,
       [[page.publicInfoUrl, ...(page.legacyUrl ? [page.legacyUrl] : [])]],
     )
-    const g = found.rows[0] as { id: string; photo_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
+    const g = found.rows[0] as { id: string; photo_url: string | null; photo_source_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
     if (!g) {
       await db.query('rollback')
       return 'missing'
@@ -148,6 +152,11 @@ export async function enrichPage(
       await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'website', $2, $3, $4)`, [g.id, page.publicInfoUrl, CAPTURED_ON, CAPTURED_BY])
       touched = true
     }
+    if (stockOnly && g.photo_url && !(g.photo_source_url ?? '').startsWith('https://unsplash.com/')) {
+      await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
+      await db.query(`update public.groups set photo_url = null, photo_credit = null, photo_source_url = null where id = $1`, [g.id])
+      g.photo_url = null
+    }
     if (retired.length) {
       const files = retired.map((f) => `%/${f}.webp`)
       await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null and photo_url like any($2::text[])`, [g.id, files])
@@ -156,7 +165,7 @@ export async function enrichPage(
         g.photo_url = null
       }
     }
-    const samples = await db.query(`select id, sample_kind, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
+    const samples = await db.query(`select id, sample_kind, starts_at, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
     const needs = !g.photo_url || samples.rows.length < 3
     if (needs) {
       const e = await gather()
@@ -190,9 +199,14 @@ export async function enrichPage(
       }
       touched = true
     }
+    // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
+    if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
     // A sample whose day has passed is moved to the next one, so Explore never shows a stale "tomorrow".
-    for (const r of samples.rows as { id: string; sample_kind: SampleKind; ends_at: Date | null }[]) {
-      if (r.ends_at && r.ends_at < now) {
+    // #816 a1 — and an event sample not on a Fri, Sat or Sun (one made before the rule) moves onto one.
+    const offWeekend = (r: { sample_kind: SampleKind; starts_at: Date | null }) =>
+      r.sample_kind === 'event' && r.starts_at !== null && ![0, 5, 6].includes(metroWeekday(new Date(r.starts_at), METRO_TIME_ZONE))
+    for (const r of samples.rows as { id: string; sample_kind: SampleKind; starts_at: Date | null; ends_at: Date | null }[]) {
+      if ((r.ends_at && r.ends_at < now) || offWeekend(r)) {
         const w = sampleWindow(r.sample_kind, now, page.slug)
         await db.query(`update public.page_posts set starts_at = $2, ends_at = $3, updated_at = $4 where id = $1`, [r.id, w.startsAt, w.endsAt, now])
         touched = true
@@ -204,6 +218,25 @@ export async function enrichPage(
     await db.query('rollback').catch(() => {})
     throw e
   }
+}
+
+/** Adds what is missing of the Page's interest tags, on the Page and on each sample post. True when it added any. */
+async function tagInterests(db: Db, groupId: string, labels: string[]): Promise<boolean> {
+  let added = 0
+  for (const label of labels) {
+    const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
+    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    const { rows } = await db.query(`select id from public.tags where normalized = $1`, [normalized])
+    const tagId = (rows[0] as { id: string }).id
+    added += (await db.query(`insert into public.page_tags (group_id, tag_id) values ($1, $2) on conflict do nothing returning 1`, [groupId, tagId])).rows.length
+    added += (await db.query(
+      `insert into public.post_tags (post_id, tag_id)
+       select p.id, $2 from public.page_posts p where p.group_id = $1 and p.sample_kind is not null
+       on conflict do nothing returning 1`,
+      [groupId, tagId],
+    )).rows.length
+  }
+  return added > 0
 }
 
 export { SAMPLE_LABEL }

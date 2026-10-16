@@ -117,4 +117,20 @@ describe('LocallyOwnedClaim — remove (beat 4)', () => {
     })
     expect(refreshSpy).not.toHaveBeenCalled()
   })
+
+  // F037 flake (2026-10-15/16, #806): busy while the save is in flight; the save brings the new claim, no refresh.
+  it('is busy from the save until it returns, and shows what it returned', async () => {
+    let finish!: (s: LocalOwnerClaimState) => void
+    onSet.mockReturnValue(new Promise<LocalOwnerClaimState>((r) => (finish = r)))
+    renderWidget({ zip: null, isProximal: false })
+    fireEvent.click(screen.getByTestId('claim-add'))
+    fireEvent.change(screen.getByTestId('claim-zip-input'), { target: { value: '95817' } })
+    fireEvent.click(screen.getByTestId('claim-submit'))
+    await waitFor(() => expect(screen.getByTestId('claim-widget')).toHaveAttribute('aria-busy', 'true'))
+    finish({ claim: { zip: '95817', isProximal: true }, badge: null })
+    await waitFor(() => expect(screen.getByTestId('claim-widget')).toHaveAttribute('aria-busy', 'false'))
+    expect(screen.getByText(/ZIP on file: 95817/)).toBeInTheDocument()
+    expect(refreshSpy).not.toHaveBeenCalled()
+  })
 })
+

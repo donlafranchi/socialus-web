@@ -50,4 +50,38 @@ describe('samplePosts (#556)', () => {
       expect(p.body).not.toMatch(/% off|price|deal|buy /i)
     }
   })
+
+  // #816 a1 (cap-1, cap-5) — dates spread over the next 14 days, one on a weekend, and a deal that spans days.
+  describe('a1 — when samples fall', () => {
+    const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(d)
+    const slugs = Array.from({ length: 40 }, (_, i) => `page-${i}`)
+    const days = (d: Date, from: Date) => (d.getTime() - from.getTime()) / 86_400_000
+    it('every Page gets one sample on a Fri, Sat or Sun, within 14 days, in the future', () => {
+      for (const now of [new Date('2026-10-16T18:00:00Z'), new Date('2026-10-18T23:00:00Z'), new Date('2026-10-20T15:00:00Z')]) {
+        for (const slug of slugs) {
+          const ev = sampleWindow('event', now, slug)
+          expect(['Fri', 'Sat', 'Sun'], `${slug} ${now.toISOString()}`).toContain(wd(ev.startsAt))
+          expect(ev.startsAt.getTime()).toBeGreaterThan(now.getTime())
+          expect(days(ev.startsAt, now)).toBeLessThanOrEqual(14)
+        }
+      }
+    })
+    it('spreads Pages over the two weeks rather than piling them on one day', () => {
+      const now = new Date('2026-10-16T18:00:00Z')
+      const starts = new Set(slugs.map((s) => sampleWindow('event', now, s).startsAt.toISOString().slice(0, 10)))
+      expect(starts.size).toBeGreaterThanOrEqual(4)
+      const dealStarts = new Set(slugs.map((s) => sampleWindow('deal', now, s).startsAt.toISOString().slice(0, 10)))
+      expect(dealStarts.size).toBeGreaterThanOrEqual(4)
+    })
+    it('a deal spans more than one day and ends within 14 days', () => {
+      const now = new Date('2026-10-16T18:00:00Z')
+      for (const slug of slugs) {
+        const d = sampleWindow('deal', now, slug)
+        expect(days(d.endsAt, d.startsAt)).toBeGreaterThan(1)
+        expect(days(d.endsAt, now)).toBeLessThanOrEqual(14)
+        expect(d.endsAt.getTime()).toBeGreaterThan(now.getTime())
+      }
+    })
+  })
 })
+

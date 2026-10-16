@@ -51,7 +51,8 @@ export function recordSeen(value: string | undefined | null, seed: string, shown
   return `${seed}~${cur.join(',')}~${old.join(',')}`
 }
 
-const within = (iso: string | null, w: Window) => Boolean(iso) && iso! >= w.from && iso! < w.to
+/** #814 — a dated post is on during a window if it starts before the window closes and has not ended before it opens. */
+const onDuring = (r: Pick<BrowseResult, 'startsAt' | 'endsAt'>, w: Window) => Boolean(r.startsAt) && r.startsAt! < w.to && (r.endsAt ?? r.startsAt)! >= w.from
 
 export interface LeadOptions {
   now: Date
@@ -78,7 +79,7 @@ export function pickLead(results: readonly BrowseResult[], o: LeadOptions): { le
       ? r.pageCreatedAt > since
       : r.withheld
         ? r.sortAt > since // signed out: a Page that posted since, as its "sign in to see" card (F093.7)
-        : within(r.startsAt, hw.tonight) || within(r.startsAt, hw.weekend) || (Boolean(r.postedAt) && r.postedAt! >= postedLately && within(r.startsAt, soon))
+        : onDuring(r, hw.tonight) || onDuring(r, hw.weekend) || (Boolean(r.postedAt) && r.postedAt! >= postedLately && onDuring(r, soon))
 
   const order = (rows: BrowseResult[]) => {
     const seed = o.seed ?? ''

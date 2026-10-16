@@ -41,6 +41,8 @@ export interface PlannedPage {
   pool: string
   /** Shown beside the town in a sample post ("Midtown", "Davis"). */
   area: string
+  /** #816 a2 (cap-3, cap-4) — 1–2 of the 12 interest labels (src/lib/onboarding/interest-vocab.ts), on the Page and its samples. */
+  interests: string[]
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
 }
@@ -82,7 +84,13 @@ const COMMUNITY_CATEGORY = /volunteer|nonprofit|food bank|pantry|mutual aid|meal
 export const ARTS = 'Arts & culture'
 const ARTS_CATEGORY = /museum|band|choir|chorale|chorus|orchestra|symphony|theat|histor|gallery|music|dance|makerspace|art (association|collective|center|centre|council|league|society|guild)/i
 
+/** Conservancies, land trusts, trail groups and gardens: they gather people, with pictures of trails, creeks and gardens. */
+export const GREEN = 'Green & outdoors'
+const GREEN_CATEGORY = /conservanc|land trust|nature|trail|garden|creek|river|watershed|native plant|park/i
+
 const POOL_BY_CATEGORY: [RegExp, string][] = [
+  [GREEN_CATEGORY, GREEN],
+  [/nursery/i, 'Farm'],
   [ARTS_CATEGORY, ARTS],
   [COMMUNITY_CATEGORY, COMMUNITY],
   [/farm stay|agritourism/i, 'Farm stay & agritourism'],
@@ -110,6 +118,39 @@ const poolForListing = (r: ListingRow) => POOL_BY_WORDS.find(([re]) => re.test(`
 
 const LISTING_PURPOSE: Record<ListingRow['purpose'], PlannedPage['purpose']> = { sell: 'sell', service: 'offer', creative: 'create', gather: 'gather' }
 
+/** #816 a2 — what kind of Page it is decides its interests: 1 or 2 of the 12 labels, never more. */
+const INTERESTS_BY_POOL: Record<string, string[]> = {
+  Farm: ['Farmers markets', 'Sustainability'],
+  Ranch: ['Farmers markets', 'Food & drink'],
+  'Farm stay & agritourism': ['Farmers markets', 'Neighborhood life'],
+  'Food & drink': ['Food & drink', 'Local business'],
+  'Cakes & bakery': ['Food & drink', 'Local business'],
+  'Goods & crafts': ['Crafts & makers', 'Local business'],
+  'Art & print': ['Arts & culture', 'Crafts & makers'],
+  'Repair & trades': ['Local business', 'Sustainability'],
+  'Community & volunteer': ['Volunteering', 'Neighborhood life'],
+  'Arts & culture': ['Arts & culture', 'Neighborhood life'],
+  'Green & outdoors': ['Fitness & outdoors', 'Sustainability'],
+  'Local business': ['Local business'],
+}
+export function interestsFor(pool: string, what: string): string[] {
+  const base = INTERESTS_BY_POOL[pool] ?? ['Local business']
+  if (/band|music|choir|chorale|chorus|orchestra|symphony/i.test(what)) return ['Live music', 'Arts & culture']
+  if (/garden|nursery|plant/i.test(what)) return ['Gardening', 'Sustainability']
+  if (/farmers.? market/i.test(what)) return ['Farmers markets', 'Food & drink']
+  return base
+}
+
+/** #816 a3 (cap-2) — a day's batch spans at least 5 towns and at least 4 interest tags. */
+export const BATCH_MIN_TOWNS = 5
+export const BATCH_MIN_INTERESTS = 4
+export function batchCoverage(rows: MakerRow[]): { towns: number; interests: number; ok: boolean } {
+  const { listed } = planMakers(rows)
+  const towns = new Set(listed.map((p) => p.city)).size
+  const interests = new Set(listed.flatMap((p) => p.interests)).size
+  return { towns, interests, ok: towns >= BATCH_MIN_TOWNS && interests >= BATCH_MIN_INTERESTS }
+}
+
 export function planListings(rows: ListingRow[]): PlannedPage[] {
   return rows.map((row): PlannedPage => {
     const url = https(row.website.trim())
@@ -122,6 +163,7 @@ export function planListings(rows: ListingRow[]): PlannedPage[] {
       city: row.town,
       purpose: LISTING_PURPOSE[row.purpose],
       pool: poolForListing(row),
+      interests: interestsFor(poolForListing(row), `${row.name} ${row.description}`),
       area: row.neighbourhood?.trim() || row.town,
       ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
@@ -147,8 +189,9 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       description: describe(row),
       publicInfoUrl: url,
       ...placeOf(row.area),
-      purpose: [COMMUNITY, ARTS].includes(poolFor(row.category)) ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
+      purpose: [COMMUNITY, ARTS, GREEN].includes(poolFor(row.category)) ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
       pool: poolFor(row.category),
+      interests: interestsFor(poolFor(row.category), `${row.category} ${row.name}`),
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
     }

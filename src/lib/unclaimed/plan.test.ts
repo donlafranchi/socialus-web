@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { planMakers, CLAIM_LINE, type MakerRow } from './plan'
+import { planMakers, planListings, batchCoverage, CLAIM_LINE, type MakerRow } from './plan'
+import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import rows from '../../../scripts/unclaimed/makers.json'
 
 const r = (o: Partial<MakerRow> = {}): MakerRow => ({ name: 'Temple Coffee Roasters', category: 'Food & drink', makes: 'Coffee roaster, subscriptions', area: 'Midtown/Downtown', site: 'https://templecoffee.com/', confidence: 'Medium-high', ...o })
@@ -59,7 +62,7 @@ describe('planMakers (#517)', () => {
     expect(planMakers([r({ category: 'Cakes & bakery' })]).listed[0]!.purpose).toBe('sell')
   })
   it('a food bank, volunteer group, club or nonprofit gathers people and gets the community pool, never a shop (#786)', () => {
-    for (const category of ['Food bank (nonprofit)', 'Meal program (nonprofit)', 'Volunteer building and ReStore (nonprofit)', 'Service club', 'Community garden', 'Animal rescue', 'Friends of the library']) {
+    for (const category of ['Food bank (nonprofit)', 'Meal program (nonprofit)', 'Volunteer building and ReStore (nonprofit)', 'Service club', 'Animal rescue', 'Friends of the library']) {
       const [x] = planMakers([r({ category })]).listed
       expect([x!.pool, x!.purpose], category).toEqual(['Community & volunteer', 'gather'])
     }
@@ -74,6 +77,13 @@ describe('planMakers (#517)', () => {
     }
     expect(planMakers([r({ category: 'Art & print' })]).listed[0]!.pool).toBe('Art & print')
     expect(planMakers([r({ category: 'Food bank (nonprofit)' })]).listed[0]!.pool).toBe('Community & volunteer')
+  })
+  it('a conservancy, land trust, trail group or garden gathers people and gets outdoor pictures; a nursery is a grower (#786)', () => {
+    for (const category of ['Creek conservancy (nonprofit)', 'Land trust (nonprofit)', 'Nature center (nonprofit)', 'Trail group (nonprofit)', 'Demonstration garden (nonprofit)', 'Community garden']) {
+      const [x] = planMakers([r({ category })]).listed
+      expect([x!.pool, x!.purpose], category).toEqual(['Green & outdoors', 'gather'])
+    }
+    expect(planMakers([r({ category: 'Nursery' })]).listed[0]!.pool).toBe('Farm')
   })
   it('puts a Page in its own city, defaulting to Sacramento', () => {
     expect(planMakers([r({ area: 'West Sacramento' })]).listed[0]!.city).toBe('West Sacramento')
@@ -104,3 +114,48 @@ describe('every planned Page can be given pictures (#556)', () => {
     for (const p of readPlanned().listed) expect(p.publicInfoUrl, p.name).toMatch(/^https:\/\//)
   })
 })
+
+// #816 a2 (cap-3, cap-4) — every unclaimed Page carries 1–2 of the 12 interest tags, by what it is.
+describe('a2 — interest tags', () => {
+  const labels = new Set(INTEREST_VOCAB.map((t) => t.label))
+  it('every planned Page, maker or listing, has 1 or 2 interest tags from the vocabulary', async () => {
+    const { readPlanned } = await import('../../../scripts/unclaimed/rows')
+    const { listed } = readPlanned()
+    for (const p of listed) {
+      expect(p.interests.length, p.name).toBeGreaterThanOrEqual(1)
+      expect(p.interests.length, p.name).toBeLessThanOrEqual(2)
+      for (const t of p.interests) expect(labels.has(t), `${p.name}: ${t}`).toBe(true)
+    }
+  })
+  it('reads them from what the Page is', () => {
+    const one = (category: string) => planMakers([r({ category })]).listed[0]!.interests
+    expect(one('Farm')).toContain('Farmers markets')
+    expect(one('Food bank (nonprofit)')).toContain('Volunteering')
+    expect(one('Community band (nonprofit)')).toContain('Live music')
+    expect(one('Demonstration garden (nonprofit)')).toContain('Gardening')
+    expect(one('Trail group (nonprofit)')).toContain('Fitness & outdoors')
+    expect(one('Goods & crafts')).toContain('Crafts & makers')
+    expect(planListings([{ key: 'k', name: 'Davis Farmers Market', purpose: 'sell', town: 'Davis', website: 'https://davisfarmersmarket.org/', description: 'A market.' }])[0]!.interests).toContain('Farmers markets')
+  })
+})
+
+// #816 a3 (cap-2) — each day's batch covers at least 5 towns and at least 4 interest tags.
+describe('a3 — batch coverage', () => {
+  it('counts towns and interest tags across a batch', () => {
+    const rows = ['Davis (Yolo)', 'Woodland (Yolo)', 'Auburn (Placer)', 'Folsom (Sacramento)', 'Rocklin (Placer)'].map((area, i) =>
+      r({ name: `P${i}`, site: `https://p${i}.example/`, area, category: ['Farm', 'Food bank (nonprofit)', 'Goods & crafts', 'Historical society', 'Trail group (nonprofit)'][i]! }),
+    )
+    const c = batchCoverage(rows)
+    expect(c.towns).toBe(5)
+    expect(c.interests).toBeGreaterThanOrEqual(4)
+    expect(c.ok).toBe(true)
+    expect(batchCoverage(rows.slice(0, 2)).ok).toBe(false)
+  })
+  it('every daily batch from 2026-10-17 on meets it', () => {
+    const dir = join(__dirname, '../../../scripts/unclaimed')
+    for (const f of readdirSync(dir).filter((f) => /^makers-\d{4}-\d{2}-\d{2}\.json$/.test(f) && f.slice(7, 17) >= '2026-10-17')) {
+      expect(batchCoverage(JSON.parse(readFileSync(join(dir, f), 'utf8'))).ok, f).toBe(true)
+    }
+  })
+})
+
