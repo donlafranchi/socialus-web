@@ -4,11 +4,9 @@
 // whether visible or hidden by a removal request, so a re-run never duplicates
 // one and never brings one back (only an operator restores, #353).
 import { toSlug } from '../slugify'
-import { METRO_TIME_ZONE } from '../metro/metro-time'
-import { metroWeekday } from '../metro/metro-week'
 import { SYSTEM_MEMBER_ID } from '../system-member'
 import type { PlannedPage } from './plan'
-import { SAMPLE_LABEL, sampleWindow, samplePosts, type SampleKind } from './samples'
+import { SAMPLE_LABEL, fitsSchedule, rollSample, sampleSchedule, samplePosts, type SampleKind } from './samples'
 import type { Uploaded } from './upload'
 
 interface Db {
@@ -201,23 +199,34 @@ export async function enrichPage(
     }
     // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
     if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
-    // A sample whose day has passed is moved to the next one, so Explore never shows a stale "tomorrow".
-    // #816 a1 — and an event sample not on a Fri, Sat or Sun (one made before the rule) moves onto one.
-    const offWeekend = (r: { sample_kind: SampleKind; starts_at: Date | null }) =>
-      r.sample_kind === 'event' && r.starts_at !== null && ![0, 5, 6].includes(metroWeekday(new Date(r.starts_at), METRO_TIME_ZONE))
-    for (const r of samples.rows as { id: string; sample_kind: SampleKind; starts_at: Date | null; ends_at: Date | null }[]) {
-      if ((r.ends_at && r.ends_at < now) || offWeekend(r)) {
-        const w = sampleWindow(r.sample_kind, now, page.slug)
-        await db.query(`update public.page_posts set starts_at = $2, ends_at = $3, updated_at = $4 where id = $1`, [r.id, w.startsAt, w.endsAt, now])
-        touched = true
-      }
-    }
+    if (await redateSamples(db, samples.rows as SampleRow[], page.slug, page.pool, now)) touched = true
     await db.query('commit')
     return needs ? 'enriched' : touched ? 'refreshed' : 'complete'
   } catch (e) {
     await db.query('rollback').catch(() => {})
     throw e
   }
+}
+
+type SampleRow = { id: string; sample_kind: SampleKind; starts_at: Date | null; ends_at: Date | null }
+
+/**
+ * Don, 2026-10-16 — a finished sample rolls three weeks on; one off the Page's weekly pattern (dated before it, or
+ * without a date) is re-dated to it. Without a slug and pool the pattern is unknown, so it only rolls. Returns how many moved.
+ */
+export async function redateSamples(db: Db, rows: SampleRow[], slug: string | null, pool: string | null, now: Date): Promise<number> {
+  const plan = slug && pool !== null ? sampleSchedule(now, slug, pool) : null
+  let moved = 0
+  for (const r of rows) {
+    const cur = r.starts_at && r.ends_at ? { startsAt: new Date(r.starts_at), endsAt: new Date(r.ends_at) } : null
+    let w = cur && (rollSample(cur, now) ?? cur)
+    if (plan && (!w || !fitsSchedule(r.sample_kind, w, slug!, pool!) || w.startsAt.getTime() > now.getTime() + 22 * 86_400_000)) w = plan[r.sample_kind]
+    if (w && (!cur || w.startsAt.getTime() !== cur.startsAt.getTime() || w.endsAt.getTime() !== cur.endsAt.getTime())) {
+      await db.query(`update public.page_posts set starts_at = $2, ends_at = $3, updated_at = $4 where id = $1 and sample_kind is not null`, [r.id, w.startsAt, w.endsAt, now])
+      moved++
+    }
+  }
+  return moved
 }
 
 /** Adds what is missing of the Page's interest tags, on the Page and on each sample post. True when it added any. */
