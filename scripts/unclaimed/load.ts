@@ -105,7 +105,7 @@ async function main() {
             if (made.failed.length) throw new Error(made.failed[0]!.error)
             tally.created += made.created
             tally.existing += made.existing
-            const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}))
+            const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}), { stockOnly: overrides.stockOnly.includes(p.name) })
             if (r === 'missing') throw new Error('the Page is not in the database after loading')
             tally[r]++
             console.log(`${p.name}: ${made.created ? 'created, ' : ''}${r}`)
