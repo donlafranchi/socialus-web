@@ -6,17 +6,19 @@
 
 | | Criteria | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Launch blockers |
 |---|---|---|---|---|---|---|---|---|
+| builders-seed | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
 | create-posts | 52 | 36/52 | 15/52 | 19/52 | 32/52 (4?) | 6/52 (30?) | 0/52 | 2 |
 | explore-map | 77 | 48/77 | 24/77 | 0/77 | 36/77 (12?) | 24/77 (24?) | 0/77 | 6 |
 | moderation | 64 | 60/64 | 44/64 | 6/64 | 41/64 (19?) | 32/64 (28?) | 0/64 | 6 |
 | page-editing | 18 | 9/18 | 0/18 | 3/18 | 8/18 (1?) | 0/18 (9?) | 0/18 | 0 |
 | sign-in-you | 32 | 21/32 (1?) | 2/32 (1?) | 0/32 (1?) | 17/32 (5?) | 2/32 (20?) | 0/32 | 4 |
-| **All** | 243 | 174/243 (1?) | 85/243 (1?) | 28/243 (1?) | 134/243 (41?) | 64/243 (111?) | 0/243 | 18 |
+| **All** | 249 | 174/249 (1?) | 85/249 (1?) | 28/249 (1?) | 134/249 (41?) | 64/249 (111?) | 0/249 | 18 |
 
 ## By feature
 
 | Area | Feature | Gates | Criteria | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Launch blockers |
 |---|---|---|---|---|---|---|---|---|---|---|
+| builders-seed | [F114 a test member with six weeks of history, for testing freshness and learning](builders-seed/F114-test-member-with-history.md) | none | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
 | create-posts | [F060 someone starts something without opening a shop](create-posts/F060-start-without-opening-a-shop.md) | none | 5 | 4/5 | 0/5 | 0/5 | 3/5 (1?) | 0/5 (4?) | 0/5 | 0 |
 | create-posts | [F061 creating a Page asks one question, its kind](create-posts/F061-create-asks-one-question.md) | none | 3 | 3/3 | 0/3 | 0/3 | 2/3 (1?) | 0/3 (3?) | 0/3 | 0 |
 | create-posts | [F064 someone asks for something that isn't built](create-posts/F064-asks-for-what-isnt-built.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
@@ -57,7 +59,7 @@
 |---|---|---|---|
 | SPEC-CONFLICT | 8 | F072.2b, F099.11b, F059.5a, F091.1b, F102.7, F056.1, F056.3, F065.2b | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
 | UNKNOWN | 1 | F077.2 | `regen-feature-report`: find the evidence |
-| NOT-BUILT | 62 | F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.2c, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F070.4, F076.3, F076.7, F076.8, F076.15, F091.6, F092.5, F093.4, F093.12, F104.1, F104.2, F104.3, F104.4, F104.5, F105.1, F105.2, … (22 more) | `write-tickets` then `build-ticket` |
+| NOT-BUILT | 68 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.2c, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F070.4, F076.3, F076.7, F076.8, F076.15, F091.6, F092.5, F093.4, F093.12, F104.1, … (28 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 25 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F082.1, F082.3, F099.11a, F059.2c, F059.3, F059.4b, F059.5e, F070.2, F092.1, F102.13, F102.14, F056.7, F056.8, F057.1, F065.2a, F077.3, F081.2 | `write-tickets` (guard) then `build-ticket` |
 | NO-CHECK | 62 | F060.4, F061.1, F061.2, F072.3, F074.1, F082.8, F082.9, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.5b, F076.1, F091.1a, F091.5, F091.7, F092.3, F092.6, F093.7, F058.4, F078.2, F078.4a, F078.10, F078.11, F078.12, F080.1, F080.4, F100.9, F100.10, F100.11a, F102.3a, F102.8, F102.12, … (22 more) | `write-tickets` (check) then `build-ticket`, tests seen failing |
 | NOT-REVIEWED | 144 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.7, F099.8, F099.11a, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, F070.5b, F076.1, F076.2, F076.4, F076.5, F076.6, F076.9, F076.10, F076.11, F076.12, … (104 more) | `review-pr-bundle` |
