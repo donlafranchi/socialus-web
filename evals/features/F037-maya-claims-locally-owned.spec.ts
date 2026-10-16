@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { signIn } from "../helpers/auth";
 import {
   seedF037Fixture,
@@ -21,6 +21,10 @@ import {
 // so the suite runs SERIAL with a per-test reset (same pattern as F036).
 
 let SEEDED: SeededF037Fixture;
+
+// A save is a server round trip plus a page refresh; the widget is aria-busy until both land, so wait on that rather
+// than on the 5s default, which a slow CI runner outlasted (flaky 2026-10-15/16).
+const settled = (page: Page) => expect(page.getByTestId("claim-widget")).toHaveAttribute("aria-busy", "false", { timeout: 20_000 });
 
 test.beforeAll(async () => {
   SEEDED = await seedF037Fixture();
@@ -58,6 +62,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
+    await settled(page);
 
     // Widget re-renders to the claimed state…
     await expect(page.getByText(new RegExp(`ZIP on file: ${PROXIMAL_ZIP}`, "i"))).toBeVisible();
@@ -73,12 +78,14 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
+    await settled(page);
     await expect(page.getByTestId("local-owner-badge")).toBeVisible();
 
     // Edit to a second proximal ZIP — badge persists (still MSA 40900).
     await page.getByTestId("claim-edit").click();
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP_2);
     await page.getByTestId("claim-submit").click();
+    await settled(page);
     await expect(page.getByText(new RegExp(`ZIP on file: ${PROXIMAL_ZIP_2}`, "i"))).toBeVisible();
     await expect(page.getByTestId("local-owner-badge")).toHaveText("Claimed local owner");
   });
@@ -89,10 +96,12 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
+    await settled(page);
     await expect(page.getByTestId("local-owner-badge")).toBeVisible();
 
     await page.getByTestId("claim-remove").click();
     await page.getByTestId("claim-remove-confirm").click();
+    await settled(page);
 
     // Back to empty state; public badge gone.
     await expect(page.getByTestId("claim-add")).toBeVisible();
@@ -107,6 +116,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(NON_PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
+    await settled(page);
 
     // The platform does NOT reject the claim — it reports proximity honestly.
     // Why: per groups.md line 323 the proximity test is a render-time
@@ -133,6 +143,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill("999");
     await page.getByTestId("claim-submit").click();
+    await settled(page);
 
     await expect(page.getByTestId("claim-zip-error")).toBeVisible();
     // No claim was persisted — reload shows the empty state, no badge.

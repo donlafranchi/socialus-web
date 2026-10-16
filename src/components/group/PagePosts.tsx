@@ -164,6 +164,7 @@ function whenWhereFrom(post: PagePost): AnnouncementWhenWhere {
     date: `${at('year')}-${at('month')}-${at('day')}`,
     time: `${String(Number(at('hour')) % 24).padStart(2, '0')}:${at('minute')}`,
     endTime: post.endsAt ? metroClock(post.endsAt) : '',
+    endDate: post.endsAt && metroDate(new Date(post.endsAt), METRO_TIME_ZONE) !== `${at('year')}-${at('month')}-${at('day')}` ? metroDate(new Date(post.endsAt), METRO_TIME_ZONE) : '',
   }
 }
 
@@ -295,9 +296,12 @@ export function PagePosts({
     }
 
     let endsAt: string | null = null
-    if (w.endTime.trim()) {
+    // #814 — the end can fall on a later day; an end day with no end time runs to the end of that day.
+    const endDay = !repeating && w.endDate.trim() ? w.endDate : date
+    const endClock = w.endTime.trim() || (endDay !== date ? '23:59' : '')
+    if (endClock) {
       if (!startsAt) return { ok: false, message: END_NEEDS_START }
-      endsAt = metroWallTimeToInstant(date, w.endTime)
+      endsAt = metroWallTimeToInstant(endDay, endClock)
       if (!endsAt || new Date(endsAt) <= new Date(startsAt)) return { ok: false, message: END_BEFORE_START }
     }
 

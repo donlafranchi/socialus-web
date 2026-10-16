@@ -85,6 +85,6 @@ describe('pickStock', () => {
     }
   })
   it('has a pool behind every kind of business', () => {
-    expect(Object.keys(stockPools).sort()).toEqual(['Cakes & bakery', 'Art & print', 'Arts & culture', 'Community & volunteer', 'Farm', 'Farm stay & agritourism', 'Food & drink', 'Goods & crafts', 'Local business', 'Ranch', 'Repair & trades'].sort())
+    expect(Object.keys(stockPools).sort()).toEqual(['Cakes & bakery', 'Art & print', 'Arts & culture', 'Community & volunteer', 'Farm', 'Farm stay & agritourism', 'Food & drink', 'Green & outdoors', 'Goods & crafts', 'Local business', 'Ranch', 'Repair & trades'].sort())
   })
 })

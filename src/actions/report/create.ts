@@ -55,8 +55,8 @@ const MAX_OPEN_REPORTS_PER_REPORTER = 5
 // a threshold in the schema is a migration and a production apply.
 const MAX_OPEN_REPORTS_TOTAL = 20
 
-// F102 criteria 6–7 and F078 criterion 10: counters on the act of reporting,
-// never a score on the person. A report the operator dismissed (approved the
+// F102 criteria 6–7 and F078 criterion 10: counters on the act of reporting.
+// A report the operator dismissed (approved the
 // content it was about) tightens what that reporter's later reports may hide.
 const DAY_MS = 86_400_000
 const CAP_AFTER_A_DISMISSAL = 1
