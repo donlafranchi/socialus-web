@@ -61,6 +61,8 @@ beforeAll(async () => {
   for (const h of hours) {
     await client.query(`insert into public.page_posts (group_id, body, starts_at, lifecycle_state) values ($1,$2,$3,'active')`, [PAGE, `b791 ${h}h`, at(h)])
   }
+  // On now: started two hours ago, ends in three (#814 — a post lasts until it ends).
+  await client.query(`insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state) values ($1,'b791 ongoing',$2,$3,'active')`, [PAGE, at(-2), at(3)])
 })
 
 afterAll(async () => {
