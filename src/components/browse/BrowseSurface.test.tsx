@@ -443,3 +443,26 @@ describe('F092 — the filter sheet writes its selection into the search box', (
     await waitFor(() => expect(replace).toHaveBeenLastCalledWith('/explore?q=food+%26+drink+this+weekend', { scroll: false }))
   })
 })
+
+describe('#791 — the list renders a step at a time', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('draws one step of cards, not all of them, while the count still says how many', async () => {
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+        takeRecords() {
+          return []
+        }
+      },
+    )
+    const many = Array.from({ length: 60 }, (_, i) => result({ resultId: `r${i}`, groupId: `g${i}`, slug: `p${i}`, name: `Page ${i}`, href: `/g/p${i}` }))
+    render(<BrowseSurface initial={snapshot({ results: many })} />)
+    expect(screen.getByTestId('result-count')).toHaveTextContent('60 results')
+    await waitFor(() => expect(within(screen.getByTestId('card-grid')).getAllByRole('link')).toHaveLength(24))
+    expect(screen.getByTestId('browse-more')).toBeInTheDocument()
+  })
+})

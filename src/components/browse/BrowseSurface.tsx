@@ -28,6 +28,7 @@ import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapTog
 import { ExploreDock } from '@/components/explore/ExploreDock'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
@@ -232,7 +233,9 @@ export function BrowseSurface({
   )
   const mapNarrowed = snapshot.map.length > 0 && mapVisible.length === 0
 
-  useScrollRestoration('explore', visible.length > 0)
+  // #791 — the list draws a step at a time; the restore waits for the session's depth.
+  const { shown, settled, sentinel } = useRevealOnScroll('explore', visible.length, `${filterKey ?? ''}|${rest}`)
+  useScrollRestoration('explore', visible.length > 0 && settled)
 
   const metroName = snapshot.metro?.name ?? null
   // #476 — the pill names the neighbourhood when one is picked.
@@ -383,12 +386,13 @@ export function BrowseSurface({
                 </div>
               ) : (
                 <CardGrid>
-                  {visible.map((r, i) => (
+                  {visible.slice(0, shown).map((r, i) => (
                     // #555 — the first three are read ahead of the tap; the rest keep the router's default.
                     <BrowseResultCard key={`${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
                   ))}
                 </CardGrid>
               )}
+              {shown < visible.length && <div ref={sentinel} aria-hidden="true" className="h-px" data-testid="browse-more" />}
             </section>
           </div>
         )}
