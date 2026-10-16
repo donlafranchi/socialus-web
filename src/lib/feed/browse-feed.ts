@@ -136,6 +136,8 @@ export interface BrowseFeedRow {
   posted_at: string | null
   /** #262 — a post's optional end. */
   ends_at?: string | null
+  /** #796 — set only on a seeder sample (#556). */
+  sample_kind?: 'event' | 'deal' | 'last_minute' | null
   sort_at: string
 }
 
@@ -175,6 +177,8 @@ export interface BrowseResult {
   postedAt: string | null
   /** #262 — a post's optional end. */
   endsAt?: string | null
+  /** #796 — a seeder sample (#556): every surface marks it as one. Null on real posts and Pages. */
+  sampleKind?: 'event' | 'deal' | 'last_minute' | null
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
   /**
@@ -276,6 +280,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     updatedAt: r.updated_at,
     postedAt: r.posted_at ?? null,
     endsAt: r.ends_at ?? null,
+    sampleKind: r.sample_kind ?? null,
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,

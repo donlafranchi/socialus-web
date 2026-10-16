@@ -34,7 +34,8 @@ import { isValidTagLabel } from '@/lib/groups/tags'
 import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
-import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
+import { useAnnouncementAnchor } from './use-announcement-anchor'
+import { TypeMark, SampleChip, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
 import { firstOccurrenceDate } from '@/lib/posts/series'
@@ -455,12 +456,11 @@ export function PagePosts({
               key={post.id}
               id={announcementAnchor(post.id)}
               data-testid="page-post"
-              // The mark is a ring rather than a background: it says "this
-              // one" without restyling the announcement into something that
-              // looks like a different kind of thing.
+              // #796 — the tapped post is scrolled into view; no ring (it was clipped to two sides in the strip).
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
+              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${post.sampleKind ? ' relative overflow-hidden' : ''}`}
             >
+              {post.sampleKind && editingId !== post.id ? <SampleWatermark /> : null}
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   <label htmlFor={`edit-${post.id}`} className="sr-only">
@@ -553,7 +553,14 @@ export function PagePosts({
                       <HiddenPhotoNotice which="post" />
                     </div>
                   )}
+                  {post.sampleKind ? (
+                    <p className="mb-1 flex items-center gap-1.5">
+                      <TypeMark type="post" />
+                      <SampleChip />
+                    </p>
+                  ) : null}
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
+                  {post.sampleKind ? <SampleNote /> : null}
 
                   {/* When and where it is — the announcement's own, not its
                       Page's. Shown above the line that says when it was

@@ -47,6 +47,10 @@ export interface TileCardProps {
   action?: ReactNode
   /** #260 — what the image is, in the card's own words. Empty means decorative. */
   imageAlt?: string
+  /** #796 — small marks before the kind line: what the card is, and Sample on a sample. */
+  marks?: ReactNode
+  /** #796 — a decorative overlay across the card (the SAMPLE stamp). */
+  watermark?: ReactNode
   /** #270 — 'div' when the caller already provides the list item. */
   as?: 'li' | 'div'
 }
@@ -64,6 +68,8 @@ export function TileCard({
   action,
   imageAlt = '',
   as = 'li',
+  marks,
+  watermark,
 }: TileCardProps) {
   const body = (
     <>
@@ -94,9 +100,10 @@ export function TileCard({
         >
           {title}
         </p>
-        {kindLine && (
-          <p data-testid="tile-kind" className="text-caption leading-5 text-[var(--color-fg-muted)] line-clamp-1">
-            {kindLine}
+        {(kindLine || marks) && (
+          <p data-testid="tile-kind-row" className="flex items-center gap-1.5 text-caption leading-5 text-[var(--color-fg-muted)]">
+            {marks}
+            {kindLine && <span data-testid="tile-kind" className="line-clamp-1">{kindLine}</span>}
           </p>
         )}
         <p
@@ -123,7 +130,7 @@ export function TileCard({
       data-location-scale={location.scale}
       // `group/tile` so the title can respond to hovering anywhere on the card,
       // not only on the words. container-type sizes the emoji off the CARD.
-      className="group/tile flex flex-col [container-type:inline-size]"
+      className={`group/tile flex flex-col [container-type:inline-size]${watermark ? ' relative overflow-hidden' : ''}`}
     >
       {href ? (
         // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
@@ -134,6 +141,7 @@ export function TileCard({
         body
       )}
       {action ? <div className="px-3 pb-3 pt-2 mt-auto">{action}</div> : null}
+      {watermark}
     </Card>
   )
 }
