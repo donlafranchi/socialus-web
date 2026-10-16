@@ -235,6 +235,8 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     const [{ starts_at }] = (await client.query(`select starts_at from public.page_posts where group_id = ${id} and sample_kind = 'event'`)).rows
     expect(['Fri', 'Sat', 'Sun']).toContain(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(starts_at))
     expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
+  })
+
   it('a Page put on stock-only after it loaded gets its own pictures replaced by stock on the next run (#809, F080)', async () => {
     const J = page('j')
     await loadUnclaimed(client, [J])
