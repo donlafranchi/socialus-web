@@ -102,7 +102,7 @@ export const reportCreateInput = z.object({
   // body ('post'), the Page picture, or one post's photo (F099 criterion 8: each
   // image reportable on its own, and a report hides that one image only). Items
   // never join (model.md § There are no Items).
-  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo']),
+  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo', 'page_words']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -140,10 +140,13 @@ interface Subject {
   alreadyHidden: boolean
   /** A restore is sticky for what was reviewed. */
   locked: boolean
-  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden'
+  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden' | 'group.words_hidden'
   /** False when a concurrent report got there first. */
   hide: (client: Queryable, now: Date) => Promise<boolean>
 }
+
+/** #625 — the words a report on a Page's own words covers, as one string: name, then description. */
+export const pageWordsText = (name: string, description: string | null) => `${name}\n${description ?? ''}`
 
 type Queryable = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
@@ -231,6 +234,54 @@ async function loadSubject(
       )
       return r.rows.length > 0
     })
+  }
+
+  // #625 — a Page's own words: its name and description, hidden together while the Page stays up.
+  if (kind === 'page_words') {
+    const res = await client.query<{
+      group_id: string
+      name: string
+      description: string | null
+      words_hidden_at: Date | null
+      words_hide_locked_text: string | null
+      builder_on_real: boolean
+      reporter_is_builder: boolean
+      founder_member_id: string
+      hide_bar: string | number
+    }>(
+      `select id as group_id, name, description, words_hidden_at, words_hide_locked_text,
+              public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder,
+              founder_member_id,
+              ${BAR_OF_LOCATION.replace('%LOCATION%', 'groups.anchor_location_id')} as hide_bar
+         from public.groups
+        where id = $1`,
+      [id, reporterId],
+    )
+    const g = res.rows[0]
+    if (!g) return null
+    const text = pageWordsText(g.name, g.description)
+    return {
+      groupId: g.group_id,
+      founderId: g.founder_member_id,
+      pageName: g.name,
+      hideBar: g.hide_bar,
+      builderOnReal: g.builder_on_real,
+      reporterIsBuilder: g.reporter_is_builder,
+      preserve: { mediaUrl: null, text },
+      hideable: true,
+      alreadyHidden: g.words_hidden_at !== null,
+      // Locked while the restored words are the words; an edit un-locks it.
+      locked: g.words_hide_locked_text !== null && g.words_hide_locked_text === text,
+      hiddenEventKind: 'group.words_hidden',
+      hide: async (c, now) => {
+        const r = await c.query<{ id: string }>(
+          `update public.groups set words_hidden_at = $2 where id = $1 and words_hidden_at is null returning id`,
+          [id, now],
+        )
+        return r.rows.length > 0
+      },
+    }
   }
 
   if (kind === 'post_photo') {

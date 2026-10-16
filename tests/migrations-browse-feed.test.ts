@@ -741,6 +741,35 @@ describe.skipIf(!WRITABLE)('T156 — browse_feed, against seeded rows', () => {
     expect(found).not.toContain('t814-withheld-over')
   })
 
+  // #625 — a Page whose own words were hidden by a report stays up, with its words masked from the database.
+  it("a Page whose words are hidden stays in Explore, its name read as hidden and its description gone", async () => {
+    const rows = await inRollback(async (q) => {
+      const { placeId, mkPage, mkPost } = await seed(q)
+      const g = await mkPage('t625-words')
+      await mkPost(g, 't625 still on', { startsAt: '2027-01-01T19:00:00Z' })
+      await q(`update public.groups set words_hidden_at = now() where id = $1`, [g])
+      const feed = await q(call({ p_place_id: `'${placeId}'::uuid`, p_now: `'2026-10-16T00:00:00Z'::timestamptz` }))
+      const cards = await q(`select name from public.announcements_withheld(p_place_id => $1, p_now => '2026-10-16T00:00:00Z'::timestamptz)`, [placeId])
+      return { feed: feed.filter((r) => r.group_id === g), cards: cards.map((r) => r.name as string) }
+    })
+    const page = rows.feed.find((r) => r.result_kind === 'page')!
+    expect(page.name).toBe('Hidden while we look')
+    expect(page.description).toBeNull()
+    expect(rows.feed.find((r) => r.result_kind === 'post')!.name).toBe('Hidden while we look')
+    expect(rows.cards).toContain('Hidden while we look')
+    expect(rows.cards).not.toContain('t625-words')
+  })
+
+  it('a report on a Page\'s words is a kind the database takes', async () => {
+    const ok = await inRollback(async (q) => {
+      const { mkPage, memberId } = await seed(q)
+      const g = await mkPage('t625-kind')
+      await q(`insert into public.reports (reporter_member_id, subject_kind, subject_id, body, category) values ($1, 'page_words', $2, 'x', 'other')`, [memberId, g])
+      return true
+    })
+    expect(ok).toBe(true)
+  })
+
   it('the soonest sort puts the next occurrence first', async () => {
     const found = await inRollback(async (q) => {
       const { placeId, mkPage, mkPost } = await seed(q)

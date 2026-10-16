@@ -57,6 +57,19 @@ describe('the ⋯ overflow menu', () => {
     expect(items[0]).toHaveTextContent('Report this')
   })
 
+  // #625 — on a Page, its own words are reportable on their own; the photo keeps its own item.
+  it("on a Page, offers the Page's name or description and its photo as two reports", async () => {
+    renderControl({ wordsReportable: true })
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    const items = screen.getAllByRole('menuitem').map((i) => i.textContent)
+    expect(items).toEqual(['Report the name or description', 'Report the photo'])
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Report the name or description' }))
+    fireEvent.click(await screen.findByRole('radio', { name: 'Harassment' }))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Rude name.' } })
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+    await waitFor(() => expect(send).toHaveBeenCalledWith(expect.objectContaining({ subjectKind: 'page_words', subjectId: 'grp-1' })))
+  })
+
   it('closes on Escape without opening the sheet', () => {
     renderControl()
     const trigger = screen.getByRole('button', { name: 'More options' })

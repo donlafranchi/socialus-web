@@ -29,6 +29,9 @@ export interface ShopFounder {
   hasPublished: boolean
 }
 
+/** #625 — what a Page's name reads as while a report has its words hidden. Placeholder copy ([public-is-draft]). */
+export const WORDS_HIDDEN_NAME = 'Hidden while we look'
+
 export interface ResolvedShop {
   groupId: string
   slug: string
@@ -41,6 +44,8 @@ export interface ResolvedShop {
   kind: string
   displayName: string
   publicDescription: string
+  /** #625 — the name and description above are masked because a report hid them. */
+  wordsHidden: boolean
   lifecycleState: GroupLifecycleState
   anchorLocationId: string | null
   /** T144 — the fixed-vocabulary term, or null (either pre-T144 row,
@@ -147,6 +152,9 @@ interface ShopRow {
   social_links: unknown
   photo_hidden_at: string | null
   photo_removed_at?: string | null
+  /** #625 — set when a report hid the Page's own words, or a person removed them. */
+  words_hidden_at?: string | null
+  words_removed_at?: string | null
   discoverability: string
   unclaimed_at: string | null
   public_info_url: string | null
@@ -203,7 +211,7 @@ export async function resolveShop(
     .select(
       'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, picture_url, picture_hidden_at, picture_removed_at, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
-        'unclaimed_at, public_info_url, photo_credit, photo_source_url, ' +
+        'unclaimed_at, public_info_url, photo_credit, photo_source_url, words_hidden_at, words_removed_at, ' +
         'group_businesses(display_name, public_description)',
     )
     .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
@@ -248,6 +256,7 @@ export async function resolveShop(
     : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)
   const placements = anchorErr ? [] : await resolvePagePlacements(row.id)
 
+  const wordsHidden = Boolean(row.words_hidden_at || row.words_removed_at)
   return {
     groupId: row.id,
     kind: row.kind,
@@ -257,8 +266,10 @@ export async function resolveShop(
     // description; the database keeps a business's group_businesses copy equal
     // to it. Reading the copy first is what left a renamed Page on its old name.
     // #450 — an address stored before the save check is masked, not shown.
-    displayName: maskEmails(row.name || biz?.display_name || ''),
-    publicDescription: maskEmails(row.description || biz?.public_description || ''),
+    // #625 — words a report hid (or a person removed) never leave the server; the Page itself stays up.
+    displayName: wordsHidden ? WORDS_HIDDEN_NAME : maskEmails(row.name || biz?.display_name || ''),
+    publicDescription: wordsHidden ? '' : maskEmails(row.description || biz?.public_description || ''),
+    wordsHidden,
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
