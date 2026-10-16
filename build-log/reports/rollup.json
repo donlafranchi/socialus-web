@@ -8098,7 +8098,7 @@
      "issues": [
       854
      ],
-     "note": "[V] no picker at signup; ZipChange + zip-set re-resolve market and home town (#757 F103/T695, closed #568; review-skipped; deploy-health green on e0f16a9). /you also has a 'Metro' row (DefaultMetro) that sets where the member looks, a different thing from the market the zip decides [A]. Smoked: unknown, /you loads but the change is an action. Both markers are [guards F081.4 partial]; check ticket #854",
+     "note": "[V] no picker at signup; ZipChange + zip-set re-resolve market and home town (#757 F103/T695, closed #568; review-skipped; deploy-health green on e0f16a9). /you also has a 'Metro' row (DefaultMetro) that sets where the member looks, a different thing from the market the zip decides [A]. Smoked: unknown, /you loads but the change is an action. Both markers are `[guards F081.4 partial]`; check ticket #854",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -8227,7 +8227,7 @@
       857,
       707
      ],
-     "note": "[V] line-type.ts + checkPhoneAction + PhoneVerifyStep (#749; review-skipped; deploy-health green on 7f2db1a). A stub until the Twilio keys exist and Lookup is enabled (#707, the PM's): with no credentials it blocks nothing, and the whole phone gate is off behind PHONE_VERIFICATION_REQUIRED (ruling 2026-10-11, option A). Smoked: unknown. Both markers are [guards F081.9 partial]; check ticket #857",
+     "note": "[V] line-type.ts + checkPhoneAction + PhoneVerifyStep (#749; review-skipped; deploy-health green on 7f2db1a). A stub until the Twilio keys exist and Lookup is enabled (#707, the PM's): with no credentials it blocks nothing, and the whole phone gate is off behind PHONE_VERIFICATION_REQUIRED (ruling 2026-10-11, option A). Smoked: unknown. Both markers are `[guards F081.9 partial]`; check ticket #857",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
