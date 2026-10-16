@@ -6,33 +6,84 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
-   "id": "1",
-   "text": "Only the managing role announces or edits; edit in place; deleting refused",
+   "id": "1a",
+   "text": "Only a Page's managing role can announce or edit; anyone else sees no control and a direct write is refused; an edit happens in place and stays the same announcement",
    "kind": [
     "behavior",
     "invariant"
    ],
-   "status": "spec-conflict",
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    599
+   ],
+   "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166); neither body carries `Reviewed by:`; deploy-health green on #183, no run for #115's merge commit (it predates the workflow). Checked: unmarked `post.test.ts`, `PagePosts.test.tsx`; no `[guards F072.n]` marker exists anywhere (#599)."
+  },
+  {
+   "id": "1b",
+   "text": "Deleting is refused",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
    "built": "no",
    "checked": "no",
    "reviewed": "no",
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [
-    318
-   ],
-   "note": "Built: yes, except delete. `requireManagingRole` via `managingRoleForKind`; edit keeps the row id [V post.ts]. `group.post_delete` exists (soft delete, #318, Don 2026-10-02), so \"deleting is refused\" is no longer true; the scenario is not amended Checked: unmarked: `post.test.ts`, `PagePosts.test.tsx`."
+   "issues": [],
+   "note": "Overtaken by Don's ruling of 2026-10-02 on #318 ('There's no way to delete an announcement'): owners soft-delete their own posts with `group.post_delete` (#319) [V post.ts header]. The ruling is on #318, not yet a dated line in the scenario's Rulings, so `sync-roadmap` should amend F072; the newer ruling wins."
   },
   {
-   "id": "2",
-   "text": "Appears on Page and in browse as the Page's voice (no price, buy, listing chrome); past start drops out; undated leaves after 14 days to \"Earlier\", optional show-until, \"Posted <date>\"",
+   "id": "2a",
+   "text": "An announcement appears on its Page and in browse, reading as coming from the Page and not as a listing: no price, no buy control, no listing chrome",
    "kind": [
     "behavior",
     "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    599,
+    601
+   ],
+   "note": "Posts render on the Page (`PagePosts.tsx`) and as post cards in browse (`browse_feed`, `BrowseResultCard.tsx`); no price field or buy control exists on a post [V]. Built by #115 and #258; no `Reviewed by:` on either; deploy-health: no run for #115, green on #258. Smoked: green smoke-live runs after the last merge opened `page` and `explore` (10-14 to 10-16), a load check only. Nothing asserts the absence of listing chrome (#601); unmarked tests (#599)."
+  },
+  {
+   "id": "2b",
+   "text": "One whose start time has passed stops appearing in browse, with no manual cleanup",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Change #814 (#815, merged 10-16) keeps a dated post in `browse_feed` and `announcements_withheld` until `coalesce(ends_at, starts_at)` has passed, so a post with an end time outlasts its start [V migration 20261016150052]. #814 is `Path: well-worn` with no scenario change and no PM ruling, so the scenario's 'start time has passed' and the shipped rule disagree; routed to `scope-scenario`. Built before that by #266/#258 behaviour; #815 is review-skipped."
+  },
+  {
+   "id": "2c",
+   "text": "One with no event date leaves browse after 14 days and moves to an Earlier section on its Page, unless its owner set a show-until date; it shows Posted <date>",
+   "kind": [
+    "behavior"
    ],
    "status": "active",
    "built": "no",
@@ -44,11 +95,11 @@
    "issues": [
     314
    ],
-   "note": "Past-dated drop-out and \"Posted <date>\" on cards built (`browse_feed`, #258) [V]. Missing: 14-day expiry, \"Earlier\" section, show-until (`browse_feed` lets `starts_at is null` through forever [V migration]). Open #314. No-price/no-chrome: nothing asserts it Checked: unmarked: `tests/migrations-browse-feed.test.ts` (drop-out)."
+   "note": "Half built: Explore cards say 'Posted <date>' (`metro-time.ts`, #258). Missing: the 14-day cut (`browse_feed` lets `starts_at is null` through forever), the Earlier section, the show-until field (no `show_until` anywhere in `src` or migrations) and the Posted line on the Page [V grep]. Don's ruling 2026-10-02 (option A); open Issue #314."
   },
   {
    "id": "3",
-   "text": "Optional date/time and own address; windowed read to the hour; undated never windowed; metro time",
+   "text": "The composer takes an optional date and time and an optional address of its own; a start is returned by a time-windowed read to the hour; an undated post is never returned by one; times are the metro's",
    "kind": [
     "behavior"
    ],
@@ -57,16 +108,16 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    173
+    599
    ],
-   "note": "`starts_at`, `location_id` written (#183); `metro-time.ts` is the one zone, constant until #173 [V]; card lead in metro time (#258) Checked: unmarked: `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts`."
+   "note": "`starts_at` and `location_id` are written by `group.post_create` (#183); `browse_feed` compares timestamptz bounds and requires `starts_at is not null` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173; `markets.timezone` now exists but nothing reads it) [V]. Built by #183, #212, #258 (no `Reviewed by:`); deploy-health green on all. Smoked: `explore` green after the last merge, a load check only. Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599)."
   },
   {
    "id": "4",
-   "text": "One audience switch, default anyone; words name people; no \"announcement\"/\"bulletin\" in a label; count in words at zero",
+   "text": "One switch for who it reaches, defaulting to anyone; the words name the people, neither \"announcement\" nor \"bulletin\" is in any label; beside the restricted setting a live count that reads as words at zero",
    "kind": [
     "behavior",
     "invariant"
@@ -78,12 +129,15 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "`AudienceSwitch.tsx`: \"Anyone\", \"Nobody yet\" at zero [V]; restricted setting visible, not postable (delivery cut) Checked: unmarked: `PagePosts.test.tsx` (label test at :284; one component only)."
+   "issues": [
+    599,
+    601
+   ],
+   "note": "`AudienceSwitch.tsx`: 'Anyone' default, restricted setting shown but not postable (delivery is cut), count reads 'Nobody yet' at zero [V]. Built by #183 (no `Reviewed by:`, deploy-health green). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); unmarked (#599)."
   },
   {
    "id": "5",
-   "text": "A failed save leaves nothing behind",
+   "text": "An announcement that fails to save leaves nothing behind: no half-made row on the Page, in browse or in its history",
    "kind": [
     "invariant"
    ],
@@ -94,12 +148,14 @@
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Place made before the post; insert in one transaction [V post.ts, build log] Checked: unmarked: `PagePosts.test.tsx:246`, `tests/page-post-db.test.ts` rollback."
+   "issues": [
+    599
+   ],
+   "note": "Series, place and post inserts, tags and the event run in one `withTransaction` in `group.post_create` [V post.ts]. Built by #183 (no `Reviewed by:`, deploy-health green). Checked: unmarked `PagePosts.test.tsx`, `tests/page-post-db.test.ts` (rollback) (#599)."
   },
   {
    "id": "6",
-   "text": "Optional end time after start; add-to-calendar; default alt text from title, date, place; label \"Event\"",
+   "text": "An announcement or gathering may carry an optional end time; one with a time offers add-to-calendar; its image carries default alt text built from title, date and place; the label stays Event",
    "kind": [
     "behavior"
    ],
@@ -111,9 +167,10 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    596
+    596,
+    599
    ],
-   "note": "End time `ends_at` with check constraint (#263), `.ics` with `DTEND`, `AddToCalendarLink` on posts and gatherings, card alt via `cardImageAlt` [V]. Missing: the Page's announcement photo uses the body text as alt (`PagePosts.tsx:496`). Ticket #596. Label \"Event\": not checked [A] Checked: unmarked: `AddToCalendarLink.test.tsx`, `tests/announcement-end-time-db.test.ts`."
+   "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with `DTEND`, `AddToCalendarLink` on posts and gatherings (#261), and `cardImageAlt` on browse cards [V]. Missing: the photo on the Page's own post takes the first line of the post as alt (`PagePosts.tsx:525`), not title, date and place (#596). The label 'Event' is not asserted [A]. Unmarked tests (#599)."
   }
  ]
 }
