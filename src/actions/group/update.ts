@@ -290,6 +290,14 @@ export const groupUpdate = defineHandler(
             `group.update: group ${input.groupId} was no longer active at write time`,
           )
         }
+        // #625 — fix and it shows again (F102 criterion 2): new words un-hide what a report hid. The reports stay queued.
+        if (patched.includes('name') || patched.includes('description')) {
+          await client.query(
+            `update public.groups set words_hidden_at = null, words_removed_at = null
+              where id = $1 and (words_hidden_at is not null or words_removed_at is not null)`,
+            [input.groupId],
+          )
+        }
 
         // Unlike a draft's per-step saves, an edit to something people can
         // already see belongs in the Page's history.

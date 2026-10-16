@@ -1,0 +1,103 @@
+{
+ "schema": 1,
+ "feature": "F106",
+ "title": "A Page says where its give-back goes, and the local badge is the receipt",
+ "area": "page-editing",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-16",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A Page has a home town: its anchor Location's town, else its owner's home town",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    700
+   ],
+   "note": "Owner home town exists (F103.5) but no Page-level home town [V grep]. Deferred, not beta."
+  },
+  {
+   "id": "2",
+   "text": "An owner declares one give-back town (home town or any town); nothing is declared, and no default written, until they do",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    700
+   ],
+   "note": "No give-back field or setting in the repo [V grep]."
+  },
+  {
+   "id": "3",
+   "text": "The Page is local, and the badge may show, only when the give-back town is the home town; elsewhere no badge and no negative mark",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    701
+   ],
+   "note": "No local-owner badge keyed to a give-back town; badges are cut for beta (2026-10-06). Badge wording is the PM's [V]."
+  },
+  {
+   "id": "4",
+   "text": "The badge reads the same from every vantage",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    701
+   ],
+   "note": "Not built; depends on F105 vantage [V]."
+  },
+  {
+   "id": "5",
+   "text": "The owner can change the declaration any time while no money flows",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    700
+   ],
+   "note": "Not built [V grep]."
+  }
+ ]
+}

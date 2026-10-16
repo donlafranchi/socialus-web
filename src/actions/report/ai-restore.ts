@@ -42,7 +42,7 @@ export async function autoRestoreAfterAssessment(reportId: string, reads: Read[]
     const subjectRes = await client.query<{ subject_kind: SubjectKind; subject_id: string; group_id: string; poster_id: string | null }>(
       `select r.subject_kind, r.subject_id, pg.id as group_id, pg.founder_member_id as poster_id
          from public.reports r
-         left join public.groups g on r.subject_kind in ('group', 'page_picture') and g.id = r.subject_id
+         left join public.groups g on r.subject_kind in ('group', 'page_picture', 'page_words') and g.id = r.subject_id
          left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
          join public.groups pg on pg.id = coalesce(p.group_id, g.id)
         where r.id = $1

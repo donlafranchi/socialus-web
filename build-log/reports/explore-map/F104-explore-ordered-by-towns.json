@@ -1,0 +1,103 @@
+{
+ "schema": 1,
+ "feature": "F104",
+ "title": "Explore shows the whole market, ordered hood, town, market, online, with towns by adjacency",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-16",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Every locality-scoped surface (Explore, Home, search, unclaimed, report queue) shows one market: the vantage's, the member's home by default",
+   "kind": [
+    "behavior",
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    696
+   ],
+   "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`) [V]. No market scope on any surface. Issue #696 is deferred to the fortnight after beta."
+  },
+  {
+   "id": "2",
+   "text": "Inside the market: hood, town, towns by adjacency, rest of the market, online last; county remainder counts as a town; bridge table",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    697
+   ],
+   "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. Order today is recency and community response (F059)."
+  },
+  {
+   "id": "3",
+   "text": "No distance, hop count or \"near you\" shown or filterable anywhere",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    697
+   ],
+   "note": "Distance still shows: `venueDistanceMeters` on `/p/[...slug]`, haversine miles in `MarketSelector.tsx`, \"near you\" in `HomeFeed.tsx` and layout copy [V]. Only guard: no distance filter in `ExploreFilterSheet.test`."
+  },
+  {
+   "id": "4",
+   "text": "A Page's market is its anchor Location's, else its owner's home market; a Page in a waiting market is absent until it opens",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    696
+   ],
+   "note": "No Page-to-market link or waiting-market filter in the repo [V grep]."
+  },
+  {
+   "id": "5",
+   "text": "A member with no neighbourhood starts at the town band; the hood band exists and is empty",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    697
+   ],
+   "note": "No bands exist [V grep]."
+  }
+ ]
+}

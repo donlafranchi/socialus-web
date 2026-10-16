@@ -16,6 +16,7 @@ const SHOP: ResolvedShop = {
   publicDescription:
     'A neighborhood bakery known for sourdough and morning buns, open early on weekdays. Claim this Page to tell your own story.',
   lifecycleState: 'active',
+  wordsHidden: false,
   anchorLocationId: null,
   category: null,
   photoUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200',
