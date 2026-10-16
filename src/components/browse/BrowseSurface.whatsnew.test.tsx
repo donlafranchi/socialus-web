@@ -15,7 +15,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 const browseFeedAction = vi.fn()
-const browseMapAction = vi.fn()
+const browseMapAction = vi.fn(async (..._args: unknown[]) => [])
 const markLeadSeenAction = vi.fn(async (..._args: unknown[]) => {})
 vi.mock('@/app/explore/actions', () => ({
   browseMapAction: (...args: unknown[]) => browseMapAction(...args),
