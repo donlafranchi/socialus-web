@@ -48,7 +48,7 @@ vi.mock('@/lib/supabase-server', () => ({
     rpc,
   })),
 }))
-const { getHappening } = vi.hoisted(() => ({ getHappening: vi.fn(async (..._a: unknown[]) => ({ today: [] as unknown[], thisWeek: [] as unknown[], thisWeekend: [] as unknown[] })) }))
+const { getHappening } = vi.hoisted(() => ({ getHappening: vi.fn<(...a: unknown[]) => Promise<{ today: unknown[]; thisWeek: unknown[]; thisWeekend: unknown[] }>>(async () => ({ today: [] as unknown[], thisWeek: [] as unknown[], thisWeekend: [] as unknown[] })) }))
 vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed, getHappening }))
 // #331 — the map's mix has its own tests; these are about the list and the rows.
 const { loadMapMix } = vi.hoisted(() => ({ loadMapMix: vi.fn(async () => []) }))
