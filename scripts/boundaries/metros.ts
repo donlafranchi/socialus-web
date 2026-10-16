@@ -20,6 +20,12 @@ export interface Metro {
   stateFips: string
   stateSlug: string
   counties: string[]
+  /**
+   * Counties a 45–60 minute drive out from the anchor towns (Don, 2026-10-16, #787): their boundaries and
+   * places load, so unclaimed Pages can sit there, each under its own code and never in the ZIP crosswalk,
+   * so nobody there counts as local to the metro. A county with no CBSA takes its state+county FIPS.
+   */
+  reach?: { msa: string; msaName: string; counties: string[] }[]
   neighbourhoods: NeighbourhoodSource[]
 }
 
@@ -42,6 +48,14 @@ export const METROS: Record<string, Metro> = {
     stateSlug: 'ca',
     // El Dorado, Placer, Sacramento, Yolo.
     counties: ['017', '061', '067', '113'],
+    reach: [
+      { msa: '49700', msaName: 'Yuba City, CA', counties: ['101', '115'] },
+      { msa: '46700', msaName: 'Vallejo, CA', counties: ['095'] },
+      { msa: '44700', msaName: 'Stockton, CA', counties: ['077'] },
+      { msa: '45800', msaName: 'Truckee-Grass Valley, CA', counties: ['057'] },
+      { msa: '06005', msaName: 'Amador County, CA', counties: ['005'] },
+      { msa: '06011', msaName: 'Colusa County, CA', counties: ['011'] },
+    ],
     neighbourhoods: [
       {
         citySlug: 'sacramento',
