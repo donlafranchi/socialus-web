@@ -223,17 +223,22 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await tagsOf()).toHaveLength(2)
   })
 
-  // #816 a1 — a Page loaded before has its event moved onto a weekend, once.
-  it('moves an event sample that is not on a Fri, Sat or Sun onto one', async () => {
+  // Don, 2026-10-16 — a Page loaded before has its samples moved onto its weekly pattern, once; samples only.
+  it('moves samples off the weekly pattern onto one weekday, weeks 1–3, and leaves real posts alone', async () => {
     const M = page('m')
     await loadUnclaimed(client, [M])
     await enrichPage(client, M, async () => enrichment, now)
     const id = `(select id from public.groups where public_info_url = '${M.publicInfoUrl}')`
-    await client.query(`update public.page_posts set starts_at = '2026-10-14T19:00:00Z', ends_at = '2026-10-14T21:00:00Z' where group_id = ${id} and sample_kind = 'event'`) // a Wednesday
+    await client.query(`update public.page_posts set starts_at = '2026-10-14T19:00:00Z', ends_at = '2026-10-14T21:00:00Z' where group_id = ${id}`)
+    await client.query(`insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state, discoverability) values (${id}, 'A real post', '2026-10-14T19:00:00Z', '2026-10-14T21:00:00Z', 'active', 'listed')`)
     const later = new Date('2026-10-12T18:00:00Z')
     expect(await enrichPage(client, M, async () => enrichment, later)).toBe('refreshed')
-    const [{ starts_at }] = (await client.query(`select starts_at from public.page_posts where group_id = ${id} and sample_kind = 'event'`)).rows
-    expect(['Fri', 'Sat', 'Sun']).toContain(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(starts_at))
+    const rows = (await client.query(`select starts_at, sample_kind from public.page_posts where group_id = ${id} order by starts_at`)).rows
+    const samples = rows.filter((r) => r.sample_kind)
+    const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(d)
+    expect(new Set(samples.map((r) => wd(r.starts_at))).size).toBe(1)
+    expect(samples.map((r) => Math.round((r.starts_at.getTime() - samples[0].starts_at.getTime()) / 86_400_000))).toEqual([0, 7, 14])
+    expect(rows.find((r) => !r.sample_kind).starts_at.toISOString()).toBe('2026-10-14T19:00:00.000Z')
     expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
   })
 

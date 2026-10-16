@@ -236,10 +236,17 @@ export function ShopPublicPage({
             {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
             {/* #267 — not on your own Page. A signed-out member is sent to sign-in (T160). */}
             {!viewerOwnsPage && (
-              <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} />
+              <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} wordsReportable={!shop.wordsHidden} />
             )}
           </div>
         </div>
+
+        {/* #625 — owner only: a report hid this Page's name and description from everyone else. */}
+        {shop.wordsHidden && viewerOwnsPage && (
+          <p data-testid="page-words-hidden-note" role="status" className="mt-3 rounded-lg bg-[var(--color-surface-muted,#f1f5f9)] px-3 py-2 text-body-sm text-[var(--color-fg)]">
+            {COPY.pageWordsHiddenNote}
+          </p>
+        )}
 
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved

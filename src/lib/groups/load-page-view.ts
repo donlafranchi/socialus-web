@@ -30,6 +30,8 @@ import { metroWeekBounds } from '@/lib/metro/metro-week'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 export interface PageView {
+  /** #625 — the owner's own name and description while a report hides them from others; null otherwise. */
+  ownWords: { name: string; description: string } | null
   items: ShopItem[]
   posts: PagePost[]
   /**
@@ -148,7 +150,19 @@ export async function loadPageView(
   const contactOn = owns ? componentOn(shop.kind, metadata, 'contact') : false
   const productsOn = componentOn(shop.kind, metadata, 'products')
 
+  // #625 — the owner sees their own words, masked for everyone else, and a note on how to show them again.
+  const ownWords =
+    owns && shop.wordsHidden
+      ? await supabase
+          .from('groups')
+          .select('name, description')
+          .eq('id', shop.groupId)
+          .maybeSingle()
+          .then(({ data }) => (data ? { name: (data as { name: string }).name, description: (data as { description: string | null }).description ?? '' } : null))
+      : null
+
   return {
+    ownWords,
     items,
     posts,
     withheldPosts,

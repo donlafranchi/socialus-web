@@ -18,6 +18,7 @@ const SHOP: ResolvedShop = {
   publicId: '7k3x8m',
   displayName: 'Oak Park Sourdough',
   publicDescription: 'Real bread, baked local.',
+  wordsHidden: false,
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
   purpose: 'sell',
@@ -733,5 +734,17 @@ describe('#472 first pass — nothing loose', () => {
   it('the founder line says what it is', () => {
     renderShop({ loggedIn: true })
     expect(screen.getByTestId('shop-founder')).toHaveTextContent('Started by Maya Rivera')
+  })
+})
+
+// #625 — the owner of a Page whose words a report hid sees a note saying so and how to show them again; nobody else does.
+describe('ShopPublicPage — #625 a Page\'s own words, hidden', () => {
+  it('tells the owner, and only the owner', () => {
+    renderShop({ shop: { ...SHOP, wordsHidden: true }, loggedIn: true, viewerOwnsPage: true })
+    expect(screen.getByTestId('page-words-hidden-note')).toHaveTextContent(/Edit either one to show them again/)
+    cleanup()
+    renderShop({ shop: { ...SHOP, wordsHidden: true, displayName: 'Hidden while we look' }, loggedIn: true, viewerOwnsPage: false })
+    expect(screen.queryByTestId('page-words-hidden-note')).toBeNull()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hidden while we look')
   })
 })

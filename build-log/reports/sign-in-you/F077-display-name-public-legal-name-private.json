@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
    "id": "1",
@@ -15,16 +15,17 @@
     "behavior"
    ],
    "status": "active",
-   "built": "unknown",
+   "built": "no",
    "checked": "no",
-   "reviewed": "unknown",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    610
+    610,
+    847
    ],
-   "note": "Screen requires 2-120 chars (`signup/profile.ts`, `OnboardingFlow`, handler `signup-profile-set`) [V]. But `members.legal_name` is nullable and `src/proxy.ts` only forces /onboarding when phone verification is on, so a signed-in member may skip it [A] Checked: unmarked: `profile.test.ts`, `onboarding/actions.test.ts:85`, `OnboardingFlow.test.tsx`."
+   "note": "[V] built half: the onboarding screen requires 2-120 characters (signup/profile.ts, OnboardingFlow, handler signup-profile-set; #497, review-skipped). Missing half: members.legal_name is nullable, and nothing forces a signed-in member to /onboarding unless the phone gate is on (proxy.ts), so an account can exist without it [V code read]. Ticket #847 (new); check ticket #610. unmarked: profile.test.ts, onboarding/actions.test.ts, OnboardingFlow.test.tsx, signup-profile-set.test.ts"
   },
   {
    "id": "2",
@@ -34,17 +35,17 @@
    ],
    "status": "active",
    "built": "unknown",
-   "checked": "no",
+   "checked": "unknown",
    "reviewed": "unknown",
    "shipped": "unknown",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Display name set at signup; peers cannot read member rows at all (`members_select_self`), no surface shows legal name [V grep]. Not checked that every post/Page/response/profile renders display name [A] Filed: none (not a clear gap)."
+   "note": "[V] display name is collected at signup and legal_name is rendered nowhere (grep). But no surface was found where a peer sees any member's name: no member profile exists (2026-10-01), a Page's front door names no founder or seller (2026-09-30), handles are withheld (#246). Cannot tell which surfaces the criterion means [A]. Needs the scenario's author to name them"
   },
   {
    "id": "3",
-   "text": "Legal name never on a public/discovery surface or to anonymous",
+   "text": "Legal name never on a public or discovery surface or shown to an anonymous visitor",
    "kind": [
     "invariant"
    ],
@@ -52,13 +53,13 @@
    "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     611
    ],
-   "note": "Only `members_select_self` remains on `members` (migration 20260930180000); no src file but signup and comments mentions `legal_name` [V]. No standing guard"
+   "note": "[V] members has only members_select_self (migration 20260930180000, #249, no Reviewed by; deploy-health green on aba449d); the only src files that name legal_name are the signup path and comments (grep 2026-10-16). Behavior holds today; no standing guard, ticket #611"
   },
   {
    "id": "4",
@@ -76,11 +77,11 @@
    "issues": [
     608
    ],
-   "note": "Column exists since #497, but `reports-queue.ts` still says \"there is no members.legal_name column\" and `ReportEntry.tsx:95` shows display name and handle only"
+   "note": "[V] the column exists since #497, but src/lib/admin/reports-queue.ts still says 'there is no members.legal_name column' and ReportEntry.tsx:95 shows display name and handle only. Ticket #608"
   },
   {
    "id": "5",
-   "text": "Seeded/test members backfilled or flagged",
+   "text": "Seeded/test members backfilled with a legal name or flagged",
    "kind": [
     "behavior"
    ],
@@ -94,7 +95,7 @@
    "issues": [
     609
    ],
-   "note": "Migration adds a nullable column, no backfill, no flag [V]"
+   "note": "[V] migration 20261007200000 adds legal_name nullable with no default and no backfill; no flag or marker for members without one. Ticket #609"
   },
   {
    "id": "6",
@@ -102,7 +103,7 @@
    "kind": [
     "behavior"
    ],
-   "status": "spec-conflict",
+   "status": "retired",
    "built": "no",
    "checked": "no",
    "reviewed": "no",
@@ -112,7 +113,7 @@
    "issues": [
     219
    ],
-   "note": "Out of scope 2026-09-30; no purchase/RSVP-confirmation record exists to bind to"
+   "note": "[V] out of scope: 2026-09-30 ruling 'Real names between people who dealt with each other (F077, #219) are out of scope; revisit with legal counsel', and the scenario's out-of-scope line. No purchase or RSVP confirmation record exists to bind a name to"
   },
   {
    "id": "7",
@@ -120,15 +121,17 @@
    "kind": [
     "behavior"
    ],
-   "status": "spec-conflict",
+   "status": "retired",
    "built": "no",
    "checked": "no",
    "reviewed": "no",
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Out of scope; depends on 6 Filed: none (out of scope)."
+   "issues": [
+    219
+   ],
+   "note": "[V] out of scope with 6 by the 2026-09-30 ruling; depends on 6"
   },
   {
    "id": "8",
@@ -136,17 +139,18 @@
    "kind": [
     "invariant"
    ],
-   "status": "spec-conflict",
-   "built": "unknown",
+   "status": "retired",
+   "built": "no",
    "checked": "no",
-   "reviewed": "unknown",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    611
+    611,
+    219
    ],
-   "note": "Holds trivially today (nothing renders a legal name) [A]; nothing guards it. Out of scope with 6-7"
+   "note": "[V] out of scope with 6 and 7 by the 2026-09-30 ruling. Holds only because nothing renders a legal name; the guard in #611 keeps it so meanwhile"
   }
  ]
 }

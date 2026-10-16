@@ -45,9 +45,12 @@ export default async function PageAtCanonicalAddress({ params }: Props) {
   )
 }
 
-async function PageBody({ shop }: { shop: ResolvedShop }) {
+async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
+  let shop = resolved
   const supabase = await createClient()
   const view = await loadPageView(supabase, shop)
+  // #625 — only the owner gets their hidden words back, and only here, after ownership is known.
+  if (view.ownWords) shop = { ...shop, displayName: view.ownWords.name, publicDescription: view.ownWords.description }
 
   return (
     <ShopPublicPage

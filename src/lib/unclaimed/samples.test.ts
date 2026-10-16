@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isSampleBody, samplePosts, sampleWindow } from './samples'
+import { fitsSchedule, isSampleBody, rollSample, samplePosts, sampleSchedule } from './samples'
 
 const subject = { name: 'Temple Coffee Roasters', slug: 'temple-abc123', pool: 'Food & drink', area: 'Midtown' }
 const now = new Date('2026-10-10T18:00:00Z')
@@ -32,10 +32,6 @@ describe('samplePosts (#556)', () => {
     const bodies = new Set(Array.from({ length: 12 }, (_, i) => samplePosts({ ...subject, slug: `s-${i}` }, now)[0]!.body))
     expect(bodies.size).toBeGreaterThan(1)
   })
-  it('rolls forward from a later day', () => {
-    const later = new Date('2026-10-20T18:00:00Z')
-    expect(sampleWindow('event', later, subject.slug).startsAt.getTime()).toBeGreaterThan(later.getTime())
-  })
   it('asks a volunteer group for help instead of offering a discount (#786)', () => {
     for (let i = 0; i < 8; i++) {
       for (const p of samplePosts({ ...subject, name: 'Yolo Food Bank', slug: `fb-${i}`, pool: 'Community & volunteer' }, now)) {
@@ -51,37 +47,68 @@ describe('samplePosts (#556)', () => {
     }
   })
 
-  // #816 a1 (cap-1, cap-5) — dates spread over the next 14 days, one on a weekend, and a deal that spans days.
-  describe('a1 — when samples fall', () => {
-    const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(d)
-    const slugs = Array.from({ length: 40 }, (_, i) => `page-${i}`)
-    const days = (d: Date, from: Date) => (d.getTime() - from.getTime()) / 86_400_000
-    it('every Page gets one sample on a Fri, Sat or Sun, within 14 days, in the future', () => {
-      for (const now of [new Date('2026-10-16T18:00:00Z'), new Date('2026-10-18T23:00:00Z'), new Date('2026-10-20T15:00:00Z')]) {
-        for (const slug of slugs) {
-          const ev = sampleWindow('event', now, slug)
-          expect(['Fri', 'Sat', 'Sun'], `${slug} ${now.toISOString()}`).toContain(wd(ev.startsAt))
-          expect(ev.startsAt.getTime()).toBeGreaterThan(now.getTime())
-          expect(days(ev.startsAt, now)).toBeLessThanOrEqual(14)
+  // Don, 2026-10-16 (cap-1, cap-5): a "regular weekly" look — each Page's three samples on one weekday, weeks 1–3.
+  describe('weekly — when samples fall', () => {
+    const tz = 'America/Los_Angeles'
+    const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(d)
+    const hm = (d: Date) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit' }).format(d)
+    const days = (a: Date, b: Date) => (a.getTime() - b.getTime()) / 86_400_000
+    const pools = ['Farm', 'Food & drink', 'Goods & crafts', 'Repair & trades', 'Community & volunteer', 'Farm stay & agritourism', 'Shop']
+    const pages = Array.from({ length: 70 }, (_, i) => ({ slug: `page-${i}`, pool: pools[i % pools.length]! }))
+    const nows = [new Date('2026-10-16T18:00:00Z'), new Date('2026-10-18T23:00:00Z'), new Date('2026-11-02T15:00:00Z')]
+
+    it('puts a Page\'s three samples on the same weekday in weeks 1, 2 and 3, all ahead', () => {
+      for (const now of nows) {
+        for (const p of pages) {
+          const starts = Object.values(sampleSchedule(now, p.slug, p.pool)).map((w) => w.startsAt).sort((a, b) => a.getTime() - b.getTime())
+          expect(new Set(starts.map(wd)).size, p.slug).toBe(1)
+          expect(starts[0]!.getTime()).toBeGreaterThan(now.getTime())
+          expect(days(starts[0]!, now)).toBeLessThan(8)
+          expect(Math.round(days(starts[1]!, starts[0]!))).toBe(7)
+          expect(Math.round(days(starts[2]!, starts[1]!))).toBe(7)
         }
       }
     })
-    it('spreads Pages over the two weeks rather than piling them on one day', () => {
-      const now = new Date('2026-10-16T18:00:00Z')
-      const starts = new Set(slugs.map((s) => sampleWindow('event', now, s).startsAt.toISOString().slice(0, 10)))
-      expect(starts.size).toBeGreaterThanOrEqual(4)
-      const dealStarts = new Set(slugs.map((s) => sampleWindow('deal', now, s).startsAt.toISOString().slice(0, 10)))
-      expect(dealStarts.size).toBeGreaterThanOrEqual(4)
+    it('covers every day of the week, with more on Fri–Sun', () => {
+      const count: Record<string, number> = {}
+      for (const p of pages) { const d = wd(sampleSchedule(nows[0]!, p.slug, p.pool).event.startsAt); count[d] = (count[d] ?? 0) + 1 }
+      expect(Object.keys(count).sort()).toEqual(['Fri', 'Mon', 'Sat', 'Sun', 'Thu', 'Tue', 'Wed'])
+      const weekend = (count.Fri! + count.Sat! + count.Sun!) / 3
+      const weekday = (count.Mon! + count.Tue! + count.Wed! + count.Thu!) / 4
+      expect(weekend).toBeGreaterThan(weekday)
     })
-    it('a deal spans more than one day and ends within 14 days', () => {
-      const now = new Date('2026-10-16T18:00:00Z')
-      for (const slug of slugs) {
-        const d = sampleWindow('deal', now, slug)
-        expect(days(d.endsAt, d.startsAt)).toBeGreaterThan(1)
-        expect(days(d.endsAt, now)).toBeLessThanOrEqual(14)
-        expect(d.endsAt.getTime()).toBeGreaterThan(now.getTime())
+    it('varies which kind comes first, and the times', () => {
+      const first = new Set(pages.map((p) => { const s = sampleSchedule(nows[0]!, p.slug, p.pool); return (Object.keys(s) as (keyof typeof s)[]).sort((a, b) => s[a].startsAt.getTime() - s[b].startsAt.getTime())[0] }))
+      expect(first.size).toBe(3)
+      expect(new Set(pages.map((p) => hm(sampleSchedule(nows[0]!, p.slug, p.pool).event.startsAt))).size).toBeGreaterThanOrEqual(4)
+      const farm = pages.filter((p) => p.pool === 'Farm').map((p) => hm(sampleSchedule(nows[0]!, p.slug, p.pool).event.startsAt))
+      for (const t of farm) expect(t < '12:00').toBe(true)
+    })
+    it('a deal spans 2–3 days within its week; the others are a few hours', () => {
+      for (const p of pages) {
+        const s = sampleSchedule(nows[0]!, p.slug, p.pool)
+        expect(days(s.deal.endsAt, s.deal.startsAt)).toBeGreaterThan(1)
+        expect(days(s.deal.endsAt, s.deal.startsAt)).toBeLessThan(3)
+        expect(days(s.event.endsAt, s.event.startsAt)).toBeLessThan(1)
+        expect(days(s.last_minute.endsAt, s.last_minute.startsAt)).toBeLessThan(1)
       }
+    })
+    it('rolls a finished sample three weeks on, same weekday and time, and leaves a current one alone', () => {
+      const s = sampleSchedule(nows[0]!, 'page-3', 'Farm')
+      const later = new Date(s.event.endsAt.getTime() + 3600_000)
+      const rolled = rollSample(s.event, later)!
+      expect(Math.round(days(rolled.startsAt, s.event.startsAt))).toBe(21)
+      expect(wd(rolled.startsAt)).toBe(wd(s.event.startsAt))
+      expect(hm(rolled.startsAt)).toBe(hm(s.event.startsAt))
+      expect(rollSample(s.event, nows[0]!)).toBeNull()
+      expect(rollSample(s.event, new Date(later.getTime() + 50 * 86_400_000))!.endsAt.getTime()).toBeGreaterThan(later.getTime() + 50 * 86_400_000)
+      expect(fitsSchedule('event', rolled, 'page-3', 'Farm')).toBe(true)
+    })
+    it('a sample dated by the old 14-day rule does not fit, so the refresh re-dates it', () => {
+      const s = sampleSchedule(nows[0]!, 'page-3', 'Farm')
+      const off = { startsAt: new Date(s.event.startsAt.getTime() + 86_400_000), endsAt: new Date(s.event.endsAt.getTime() + 86_400_000) }
+      expect(fitsSchedule('event', s.event, 'page-3', 'Farm')).toBe(true)
+      expect(fitsSchedule('event', off, 'page-3', 'Farm')).toBe(false)
     })
   })
 })
-

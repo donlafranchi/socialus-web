@@ -1,16 +1,16 @@
 {
  "schema": 1,
  "feature": "F081",
- "title": "everyone signs up the same way, and the zip sets the metro",
+ "title": "everyone signs up the same way, and the zip sets the market",
  "area": "sign-in-you",
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
    "id": "1",
-   "text": "Four fields, 18+/Terms box, email verified",
+   "text": "Signup collects legal name, email, zip and display name, plus an 18+/Terms box, and verifies the email",
    "kind": [
     "behavior"
    ],
@@ -18,31 +18,35 @@
    "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "One screen in #497. Email confirmation is on in production [V code comment]. Checked: no: the only marker (`phone.test.ts`) tests the phone, not this. Reviewed: no (#497 skipped)."
+   "issues": [
+    851
+   ],
+   "note": "[V] one screen (OnboardingFlow.tsx, #497, review-skipped): four fields, the 18+ box with the Terms link to /terms; email confirmation is on (config.toml, EmailFirstSignup 'confirm-email'); deploy-health green on d5ebc93. Smoked: unknown, /onboarding has no stable address in smoke-live. unmarked: OnboardingFlow.test.tsx ('asks for exactly the fields F081 names', 'the 18+ box starts unticked'), profile.test.ts; the only marker (phone.test.ts) is partial and about the phone. Check ticket #851"
   },
   {
    "id": "2",
-   "text": "Zip never shown to others (invariant: absence of code proves nothing)",
+   "text": "The zip is stored and never rendered on any surface another member or visitor can reach",
    "kind": [
     "invariant"
    ],
    "status": "active",
-   "built": "unknown",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Nothing found that shows it [A]; `LocallyOwnedClaim` shows the owner their own zip's proximity."
+   "issues": [
+    852
+   ],
+   "note": "[V] members.zip (migration 20261007200000, #497); members readable only by self (migration 20260930180000); the member's own zip shows only on /you (ZipChange). Nothing found that shows it to anyone else (grep 2026-10-16), but absence of code proves nothing: no standing guard, ticket #852"
   },
   {
    "id": "3",
-   "text": "The zip sets the metro and the screen says which",
+   "text": "The zip decides the market, the screen names it, and nothing else decides it",
    "kind": [
     "behavior"
    ],
@@ -50,49 +54,53 @@
    "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Works for Sacramento zips only: \"You're in Sacramento-Roseville, CA\" [V PR body]. Checked: unmarked: `zip-metro.test.ts` exists."
+   "issues": [
+    853
+   ],
+   "note": "[V] marketForZip → completeOnboardingAction → 'shows which market' (zip-market.ts, #709 F103/T694; review-skipped; deploy-health green on 4f571f5). The 2026-10-11 ruling that a visitor's IP guess is confirmed with 'Is this your area?' (#588, F059.6, open, needs-pm) is not part of signup and not built here [A]. Smoked: unknown. Markers are F103.2/F103.3 partial only; check ticket #853"
   },
   {
    "id": "4",
-   "text": "Nobody picks a metro; changing the zip on /you moves it",
+   "text": "Nobody picks a market at signup; changing the zip on /you moves the market and home town",
    "kind": [
-    "invariant"
+    "behavior"
    ],
    "status": "active",
-   "built": "no",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    568
+    854
    ],
-   "note": "No picker, so the first half is built. Changing the zip on /you: missing. Ticket #568."
+   "note": "[V] no picker at signup; ZipChange + zip-set re-resolve market and home town (#757 F103/T695, closed #568; review-skipped; deploy-health green on e0f16a9). /you also has a 'Metro' row (DefaultMetro) that sets where the member looks, a different thing from the market the zip decides [A]. Smoked: unknown, /you loads but the change is an action. Both markers are `[guards F081.4 partial]`; check ticket #854"
   },
   {
    "id": "5",
-   "text": "A \"what this app is for\" line; no \"never sell\" line",
+   "text": "A line says what the app is for, and no line about not selling member information",
    "kind": [
-    "invariant"
+    "behavior"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "yes",
+   "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "In #497. Checked: yes (`EmailFirstSignup.test`)."
+   "issues": [
+    855
+   ],
+   "note": "[V] COPY.signupLine shown on the signup screens (copy.ts; EmailFirstSignup, OnboardingFlow; #497, review-skipped). No never-sell line on the signup screens (grep 2026-10-16; the landing page has its own wording). Smoked: unknown. EmailFirstSignup.test.tsx is [guards F081.5 partial: presence only]; check ticket #855"
   },
   {
    "id": "6",
-   "text": "No maker/finder question",
+   "text": "No field, control or string in signup asks or records whether the person makes or finds",
    "kind": [
     "behavior"
    ],
@@ -100,15 +108,17 @@
    "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "In #497. Checked: unmarked: `OnboardingFlow.test.tsx:52`."
+   "issues": [
+    856
+   ],
+   "note": "[V] the screen has the four fields and the 18+ box only; no such column on members. unmarked: OnboardingFlow.test.tsx ('never asks whether the person makes or finds', text only). Check ticket #856"
   },
   {
    "id": "7",
-   "text": "No home place assigned for the person",
+   "text": "Onboarding assigns no place the person did not give; home is the market and town the zip decided",
    "kind": [
     "behavior"
    ],
@@ -116,47 +126,49 @@
    "built": "yes",
    "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "#283 and #497. Checked: yes (`onboarding/actions.test`)."
+   "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries [guards F081.7]. Reviewed: no (#283 no Reviewed by, #497 skipped)"
   },
   {
    "id": "8",
-   "text": "Every US zip resolves; unknown refused",
+   "text": "Every US zip resolves to its county and market; an unknown zip is refused with the exact message; a waiting-market zip joins its waitlist",
    "kind": [
     "behavior"
    ],
    "status": "active",
-   "built": "no",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    569
+    853
    ],
-   "note": "126 Sacramento zips only; an unknown zip is accepted and sent to the waitlist step. Ticket #569."
+   "note": "[V] national zip_county table loaded by migration 20261012030000 (applied 2026-10-12; tests/zip-market-db.test.ts 'the table is national'); unknown zip refused with \"We don't recognize that zip, try again.\" (onboarding/actions.ts). Source is Census ZCTA not HUD-USPS, so a PO-box-only zip is unknown here (migration header); that swap is not recorded in the scenario [A]. #709 review-skipped. Smoked: unknown. Markers F103.2/F103.3 partial only; check ticket #853"
   },
   {
    "id": "9",
-   "text": "Phone verification refuses VoIP",
+   "text": "Phone verification refuses a non-fixed VoIP number before any code is sent, with a plain message asking for a mobile number",
    "kind": [
-    "behavior"
+    "behavior",
+    "external"
    ],
    "status": "active",
-   "built": "no",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    570
+    857,
+    707
    ],
-   "note": "Phone code exists (#282), off behind `PHONE_VERIFICATION_REQUIRED`; no line-type check found. Ticket #570."
+   "note": "[V] line-type.ts + checkPhoneAction + PhoneVerifyStep (#749; review-skipped; deploy-health green on 7f2db1a). A stub until the Twilio keys exist and Lookup is enabled (#707, the PM's): with no credentials it blocks nothing, and the whole phone gate is off behind PHONE_VERIFICATION_REQUIRED (ruling 2026-10-11, option A). Smoked: unknown. Both markers are `[guards F081.9 partial]`; check ticket #857"
   }
  ]
 }

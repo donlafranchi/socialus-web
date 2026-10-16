@@ -1,0 +1,139 @@
+{
+ "schema": 1,
+ "feature": "F103",
+ "title": "a market is a set of towns, and the zip decides which one a person is in",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-16",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A market is a row of whole counties and split-county subdivisions; every other county is its own waiting market; moving one is one row; may cross states",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    850
+   ],
+   "note": "`markets`, `market_members`, `market_key()` (#693, PR #708); Sacramento = four counties, Tahoe-basin CCDs carved out as a waiting market; any other county answers `county-<fips>` with no rows [V]. Checked: no: `tests/markets-db.test.ts` is marked partial only; two-state market not tested. Reviewed: no (review-skipped)."
+  },
+  {
+   "id": "2a",
+   "text": "A zip resolves to exactly one market the same way every time (zip to county to market; subdivision inside a split county); unknown zip refused with the exact words",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    850
+   ],
+   "note": "`zip_county` (33,486 zips), `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: no: `zip-market-db.test`, `zip-market.test`, `landing/actions.test`, `onboarding/actions.test` all marked partial. Reviewed: no (review-skipped)."
+  },
+  {
+   "id": "2b",
+   "text": "The zip-to-county source is the HUD-USPS crosswalk, largest residential share wins",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    849
+   ],
+   "note": "Stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment) [V]. HUD token not registered."
+  },
+  {
+   "id": "3",
+   "text": "The zip decides, nobody picks: open market signs in, waiting market joins that waitlist and is named; no IP, GPS, default, shortlist or picker",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    850
+   ],
+   "note": "Sign-up and /landing resolve the market and name it; no list or select (#694) [V `OnboardingFlow.test.tsx`]. Explore still falls back to Sacramento for a visitor (#588, F104/F105 scope, not sign-up). Checked: no: markers are partial; no scan for IP or GPS. Reviewed: no (review-skipped)."
+  },
+  {
+   "id": "4",
+   "text": "Nothing member-facing reads the MSA or CSA; no surface shows MSA, CSA or metro",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    848
+   ],
+   "note": "Sign-up screens are clean (`OnboardingFlow.test.tsx`, partial); `msa_code` is a column on `markets` [V]. Missing: /you \"Default metro\" row, Explore metro switcher, `msa_code` reads in `explore/actions.ts`, `location-actions.ts`, `/api/boundaries` [V]; no standing guard. Needs a PM call (#848)."
+  },
+  {
+   "id": "5a",
+   "text": "A member in an open market has a home town (Place their zip mostly lies in, else county remainder), re-resolved when the zip changes, private",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    850
+   ],
+   "note": "`members.home_town`, `zip_home()`, `member.zip.set`, Zip row on /you (#695, PR #757) [V]. One-tenth land-share threshold is a stand-in for population weighting (PR body). Checked: no: `home-town-db.test`, `home-town-private.test`, `zip-set.test` marked partial. Reviewed: no (review-skipped)."
+  },
+  {
+   "id": "5b",
+   "text": "A member in a waiting market gets a home town the day it opens",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    616
+   ],
+   "note": "`backfill_home_towns(market)` exists and is tested (`home-town-db.test`) [V], but nothing calls it: no code opens a market (#616 comment names the call). Half built, so no."
+  }
+ ]
+}

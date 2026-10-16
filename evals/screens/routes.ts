@@ -37,7 +37,7 @@ const SOLO = { p: 'jar-of-plum-jam-0d000000', s: 'bike-tune-up-0d000000', e: 'po
 
 async function openReportSheet(page: Page) {
   await page.getByTestId('page-overflow-menu').first().click()
-  await page.getByRole('menuitem', { name: /report this/i }).click()
+  await page.getByRole('menuitem', { name: /report the photo/i }).click()
   await page.getByTestId('report-sheet').waitFor()
 }
 

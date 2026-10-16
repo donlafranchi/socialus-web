@@ -1,5 +1,7 @@
 # Unclaimed Pages: who to look for each day
 
+**As of 2026-10-16** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+
 The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
 ## Pitch rules (#816)
@@ -8,7 +10,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 | Rule | Serves | Held by |
 |---|---|---|
-| **Dates:** samples spread over the next 14 days; every Page has one on a Fri, Sat or Sun; a deal runs 2–4 days. | `cap-1` timely announcements, `cap-5` current without following many | `sampleWindow` (`src/lib/unclaimed/samples.ts`) and its tests; the loader re-dates an older event that isn't on a weekend |
+| **Dates** (Don, 2026-10-16): each Page's 3 samples fall on one weekday in weeks 1, 2 and 3 from now; every weekday has Pages, more on Fri–Sun; the kinds and hours vary, and a deal runs 2–3 days. Every Monday they roll forward. | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
 | **Interests:** every Page and its samples carry 1–2 of the 12 interest tags, from what the Page is. | `cap-3` the member's own signals, `cap-4` member control | `interestsFor` (`src/lib/unclaimed/plan.ts`); the loader adds missing tags on every run, so older Pages are backfilled |
 | **Coverage:** each day's batch spans at least 5 towns and at least 4 interest tags; `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
 
@@ -21,7 +23,7 @@ Not a rule yet: posting a business's real dated events from its own site instead
 3. **Read `ADDED.md` first.** Skip any name or site already there. Don't add a kind of organization that is in the last 7 days, unless it's in today's theme. Skip a town that already has 3 or more Pages in the last 7 days.
 4. **Spread the area and the interests:** at least 5 different towns and at least 4 interest tags (Coverage, above), at most 2 Pages in the city of Sacramento, and over a week cover every direction (see Area).
 5. **Coffee shops and roasters: at most 1 a week**, Mondays only, and none if `ADDED.md` has one in the last 7 days.
-6. **Own site only** (#353): never Yelp, Google or another directory. A non-business with only a Facebook page is fine if that page is its own.
+6. **Own site only** (#353): never Yelp, Google or another directory. A non-business with only a Facebook page is fine if that page is its own. **Etsy, Instagram and other marketplaces are for finding makers only** (Don, 2026-10-16): look a maker up there, then build the Page from the maker's own website, or skip them if they have none. Never copy text, photos or listings from the marketplace, and don't scrape it (look-ups by hand only). Credit and photos come from the maker's own site as usual. Note the lead source in `ADDED.md` (`lead: Etsy`).
 7. **Look at every photo before loading** (`preview-photos.ts`). **No children in any photo** (F080). If a site's own photos show children, add the Page to `stockOnly` in `photo-overrides.json`.
 8. **Write the rows** to `makers-YYYY-MM-DD.json`, dry-run the loader, then load (`unclaimed-load.yml`, write ticked). A site that opens by hand but fails from the runner at the network level (reset, refused, timed out) goes in `link-allow.json`; a 404 never does.
 9. **Append the 10 to `ADDED.md`**, each with its interests (the tags the loader gives it; see Category).
@@ -37,6 +39,12 @@ Not a rule yet: posting a business's real dated events from its own site instead
 | Fri | Green and outdoors | community gardens, land trusts, creek and river conservancies, trail groups, native plant societies, nurseries, farmers' markets |
 | Sat | Shops and repair | bike shops, repair and trades, hardware, independent bookstores, record shops, nonprofit thrift stores, makers of goods |
 | Sun | Neighbourhood life | Friends of the Library groups, neighbourhood associations, granges, community and senior centers, animal rescues and shelters, community programs |
+
+**Next run, Sat 2026-10-17: Native creators and producers** (Don, 2026-10-16), in place of Shops and repair; after that, Native creators who meet the rule below join whichever day's theme they fit. Look for Native artists and makers, food producers, Native-led nonprofits, cultural centres and arts groups in the area.
+- **Only when their own site says so:** it states they are Native or names a tribal affiliation. Never infer it from a name, a style or what they make. The Indian Arts and Crafts Act makes a false Native-made claim illegal, and honest origin is `cap-8`.
+- **Describe them in their own words**, from their own site.
+
+**Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within their weekly dates (see Dates).
 
 **Farms every day (3–4):** farms, orchards, ranches, animal farms, farm stands, u-pick, flower farms, agritourism.
 
