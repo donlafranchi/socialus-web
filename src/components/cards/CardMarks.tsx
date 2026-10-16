@@ -16,7 +16,7 @@ export function TypeMark({ type }: { type: 'post' | 'page' }) {
 
 export function SampleChip() {
   return (
-    <span data-testid="sample-chip" className="shrink-0 whitespace-nowrap rounded-full border border-[var(--color-fg-muted)] px-1.5 text-[11px] font-semibold uppercase leading-4 tracking-wide text-[var(--color-fg)]">
+    <span data-testid="sample-chip" className="shrink-0 whitespace-nowrap rounded-full border border-[var(--color-fg-muted)] px-1.5 text-xs font-semibold uppercase leading-4 tracking-wide text-[var(--color-fg)]">
       Sample
     </span>
   )
@@ -29,7 +29,7 @@ export function SampleWatermark() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-x-0 bottom-0 top-1/3 z-10 flex select-none items-center justify-center overflow-hidden"
     >
-      <span className="-rotate-[30deg] whitespace-nowrap text-5xl font-bold tracking-[0.25em] text-[var(--color-fg)] opacity-[0.07]">
+      <span className="-rotate-[30deg] whitespace-nowrap text-5xl font-bold tracking-widest text-[var(--color-fg)] opacity-[0.07]">
         SAMPLE
       </span>
     </span>
