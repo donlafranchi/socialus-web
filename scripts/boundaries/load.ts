@@ -54,12 +54,16 @@ async function arcgisFeatures(url: string): Promise<(Feature & { id?: unknown })
 const intpt = (p: Record<string, unknown>): [number, number] | undefined =>
   p.INTPTLON && p.INTPTLAT ? [Number(p.INTPTLON), Number(p.INTPTLAT)] : undefined
 
+/** The metro's own counties first (they alone feed the ZIP crosswalk), then each reach group under its own code. */
+const areas = (m: Metro) => [{ msa: m.msa, counties: m.counties, crosswalk: true }, ...(m.reach ?? []).map((r) => ({ msa: r.msa, counties: r.counties, crosswalk: false }))]
+const allCounties = (m: Metro) => areas(m).flatMap((a) => a.counties)
+
 async function gather(m: Metro): Promise<Row[]> {
   const rows: Row[] = []
   const tiger = { licence: TIGER.licence, vintage: TIGER.vintage }
   for (const f of await shapefileFeatures(TIGER.counties)) {
     const p = f.properties
-    if (p.STATEFP !== m.stateFips || !m.counties.includes(String(p.COUNTYFP))) continue
+    if (p.STATEFP !== m.stateFips || !allCounties(m).includes(String(p.COUNTYFP))) continue
     rows.push({ layer: 'county', sourceId: String(p.GEOID), name: String(p.NAME), geometry: f.geometry, county: String(p.COUNTYFP), source: 'US Census Bureau, cartographic boundary counties', url: TIGER.counties, ...tiger, metadata: {} })
   }
   for (const f of await shapefileFeatures(TIGER.places(m.stateFips))) {
@@ -113,24 +117,24 @@ async function upsert(db: Client, m: Metro, r: Row) {
   )
 }
 
-async function stamp(db: Client, m: Metro) {
+type Area = ReturnType<typeof areas>[number]
+
+async function stamp(db: Client, m: Metro, a: Area) {
   // Everything inside the metro's counties is in the metro. Places and
   // neighbourhoods take their county from where their pin falls.
-  await db.query(`update public.boundaries set msa_code = $1 where layer in ('county', 'tract') and state_fips = $2 and county_fips = any($3)`, [m.msa, m.stateFips, m.counties])
+  await db.query(`update public.boundaries set msa_code = $1 where layer in ('county', 'tract') and state_fips = $2 and county_fips = any($3)`, [a.msa, m.stateFips, a.counties])
   await db.query(
     `update public.boundaries b set msa_code = $1, county_fips = c.county_fips
        from public.boundaries c
       where b.layer in ('place', 'neighborhood') and c.layer = 'county' and c.msa_code = $1
         and st_covers(c.geography, b.centroid)`,
-    [m.msa],
+    [a.msa],
   )
-  // Places outside the metro were only needed to find the ones inside.
-  await db.query(`delete from public.boundaries where layer = 'place' and msa_code is null and state_fips = $1`, [m.stateFips])
 }
 
 const SLUG = `left(trim(both '-' from regexp_replace(lower(b.name), '[^a-z0-9]+', '-', 'g')), 80)`
 
-async function syncPlaces(db: Client, m: Metro) {
+async function syncPlaces(db: Client, m: Metro, a: Area) {
   // Counties under the state; cities and CDPs under their county;
   // neighbourhoods under their city. An existing row with the same parent and
   // slug is updated in place, so Locations already pointing at it keep working.
@@ -157,18 +161,18 @@ async function syncPlaces(db: Client, m: Metro) {
           and s.boundary_id not in (select boundary_id from upd)
           and not exists (select 1 from public.places p where p.boundary_id = s.boundary_id)
        on conflict do nothing`,
-      parent.includes('$2') ? [m.msa, m.stateSlug] : [m.msa],
+      parent.includes('$2') ? [a.msa, m.stateSlug] : [a.msa],
     )
   }
 }
 
 // Hand-drawn shapes the public data replaced stop being offered. Soft-deleted,
 // not removed: Locations already pointing at them keep their breadcrumb.
-async function retire(db: Client, m: Metro) {
+async function retire(db: Client, a: Area) {
   await db.query(
     `update public.places set deleted_at = now()
       where msa_code = $1 and kind in ('city', 'neighborhood') and boundary_id is null and deleted_at is null`,
-    [m.msa],
+    [a.msa],
   )
 }
 
@@ -209,11 +213,15 @@ async function main() {
     await db.query('begin')
     const { rows: [{ started }] } = await db.query<{ started: Date }>('select now() as started')
     for (const r of rows) await upsert(db, m, r)
-    await stamp(db, m)
+    for (const a of areas(m)) await stamp(db, m, a)
+    // Places outside every area were only needed to find the ones inside.
+    await db.query(`delete from public.boundaries where layer = 'place' and msa_code is null and state_fips = $1`, [m.stateFips])
     // A row this run didn't refresh is gone from its source.
-    await db.query(`delete from public.boundaries where msa_code = $1 and loaded_at < $2`, [m.msa, started])
-    await syncPlaces(db, m)
-    await retire(db, m)
+    await db.query(`delete from public.boundaries where msa_code = any($1) and loaded_at < $2`, [areas(m).map((a) => a.msa), started])
+    for (const a of areas(m)) {
+      await syncPlaces(db, m, a)
+      await retire(db, a)
+    }
     console.log(`zips: ${await zips(db, m)}`)
     await db.query('commit')
   } catch (err) {
@@ -221,12 +229,12 @@ async function main() {
     throw err
   }
   const { rows: counts } = await db.query<{ layer: string; n: number }>(
-    `select layer, count(*)::int as n from public.boundaries where msa_code = $1 group by layer order by layer`,
-    [m.msa],
+    `select layer, count(*)::int as n from public.boundaries where msa_code = any($1) group by layer order by layer`,
+    [areas(m).map((a) => a.msa)],
   )
   const { rows: synced } = await db.query<{ kind: string; n: number }>(
-    `select kind, count(*)::int as n from public.places where msa_code = $1 and boundary_id is not null group by kind order by kind`,
-    [m.msa],
+    `select kind, count(*)::int as n from public.places where msa_code = any($1) and boundary_id is not null group by kind order by kind`,
+    [areas(m).map((a) => a.msa)],
   )
   for (const c of counts) console.log(`boundaries ${c.layer}: ${c.n}`)
   for (const s of synced) console.log(`places ${s.kind}: ${s.n}`)
