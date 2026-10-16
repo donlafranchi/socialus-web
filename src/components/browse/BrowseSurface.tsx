@@ -31,7 +31,6 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
-import { FollowingRow } from './FollowingRow'
 import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
@@ -42,7 +41,7 @@ import {
   hasBrowseFilters,
   parseBrowseFilters,
   searchBrowseResults,
-  updatesOnly,
+  CATEGORY_TAGS,
 } from '@/lib/browse/filters'
 import { leadKey } from '@/lib/browse/lead'
 import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
@@ -174,24 +173,47 @@ export function BrowseSurface({
     }
   }, [mapWanted, mapMetroId, mapAreaId])
 
-  const tagOptions = useMemo(() => browseTagOptions(snapshot.results), [snapshot.results])
+  // #876 — the Category group's 12 interest tags, plus any creator's own tag in what came back.
+  const tagOptions = useMemo(() => [...new Set([...CATEGORY_TAGS, ...browseTagOptions(snapshot.results)])], [snapshot.results])
   const { filters, rest } = useMemo(() => readBox(query, tagOptions), [query, tagOptions])
+  const filtered = hasBrowseFilters(filters)
 
-  // #796 — Explore leads with what is new; posts live behind the Updates filter, newest first.
-  const updates = Boolean(filters.updates)
+  // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
+  // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
   const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
-  const showLead = !updates && Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !hasBrowseFilters(filters)
-  const corpus = useMemo(() => {
-    if (updates) return updatesOnly(snapshot.results)
+  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered
+  const mix = useMemo(() => {
     const leadKeys = new Set(lead.map(leadKey))
-    const pages = snapshot.results.filter((r) => r.resultKind === 'page' && !leadKeys.has(leadKey(r)))
+    const rest = snapshot.results.filter((r) => !leadKeys.has(leadKey(r)))
     // Fresh, the lead sits above the list; the rotation standing in for it leads the list itself.
-    return snapshot.leadFresh ? pages : [...lead.filter((r) => r.resultKind === 'page'), ...pages]
-  }, [updates, snapshot.results, snapshot.leadFresh, lead])
-  const visible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(corpus, rest), filters, { now }),
-    [corpus, rest, filters, now],
+    return snapshot.leadFresh ? rest : [...lead, ...rest]
+  }, [snapshot.results, snapshot.leadFresh, lead])
+
+  // #876 — a filter asks the server for the targeted set (one read); until it lands, the mix is cut here.
+  const filterKey = filtered ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, filters]) : null
+  const [targeted, setTargeted] = useState<{ key: string; results: BrowseSnapshot['results'] } | null>(null)
+  useEffect(() => {
+    if (!filterKey || targeted?.key === filterKey) return
+    let live = true
+    Promise.resolve()
+      .then(() => browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, filters))
+      .then((next) => {
+        if (live && next && !next.failed) setTargeted({ key: filterKey, results: next.results })
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+    // `filters` is captured in `filterKey`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey])
+  const corpus = useMemo(
+    () => (!filtered ? mix : targeted?.key === filterKey ? targeted.results : applyBrowseFilters(mix, filters, { now })),
+    [filtered, mix, targeted, filterKey, filters, now],
   )
+  const visible = useMemo(() => searchBrowseResults(corpus, rest), [corpus, rest])
+  // The old Updates view's top, kept for plain posts-only: what is on today, this week and this weekend.
+  const postsOnlyView = filters.type === 'posts' && filters.postKinds.length === 0 && !filters.following && filters.tags.length === 0 && filters.date === 'any'
 
   // What the first look showed counts as seen from the next visit on. Sent once, after paint.
   const leadSent = useRef(false)
@@ -288,11 +310,8 @@ export function BrowseSurface({
           is every signed-out load and every member who follows nothing. It is
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
-      {updates ? (
-        <>
-          <FollowingRow results={snapshot.following} />
-          <HappeningRows rows={snapshot.happening} />
-        </>
+      {postsOnlyView ? (
+        <HappeningRows rows={snapshot.happening} />
       ) : (
         showLead && (
           <section className="px-3 pt-4 md:px-6" data-testid="explore-lead" aria-labelledby="explore-lead-heading">
@@ -456,7 +475,6 @@ export function BrowseSurface({
       <ExploreFilterSheet
         open={sheetOpen}
         value={filters}
-        tags={tagOptions}
         onClose={() => setSheetOpen(false)}
         onApply={(f) => {
           const text = writeBox(f, rest)

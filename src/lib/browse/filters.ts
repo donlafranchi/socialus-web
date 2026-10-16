@@ -31,109 +31,115 @@
 
 import { normalizeTag } from '@/lib/groups/tags'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
+import { happeningWindows } from '@/lib/metro/happening'
+import { METRO_TIME_ZONE, metroWallTimeToInstant } from '@/lib/metro/metro-time'
+import { shiftDays } from '@/lib/metro/metro-week'
+import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
 
-export const SCHEDULE_OPTIONS = [
+// #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Explore mixes everything by
+// default; three opt-in groups narrow it, combine with each other and with search, and are pushed into
+// the feed read (feedOptsFor). The old Updates view is the posts-only Type.
+export type ResultType = 'all' | 'pages' | 'posts'
+export type PostKind = 'event' | 'deal' | 'last_minute'
+/** 'any' | 'today' | 'weekend' | 'week' | a picked day as YYYY-MM-DD (in the metro). */
+export type DateFilter = 'any' | 'today' | 'weekend' | 'week' | string
+
+export const TYPE_OPTIONS = [
+  { value: 'all', label: 'Everything' },
+  { value: 'pages', label: 'Pages' },
+  { value: 'posts', label: 'Posts' },
+] as const satisfies readonly { value: ResultType; label: string }[]
+
+export const POST_KIND_OPTIONS = [
+  { value: 'event', label: 'Events' },
+  { value: 'deal', label: 'Deals' },
+  { value: 'last_minute', label: 'Last-minute' },
+] as const satisfies readonly { value: PostKind; label: string }[]
+
+export const DATE_OPTIONS = [
   { value: 'any', label: 'Any time' },
-  { value: 'week', label: 'This week' },
+  { value: 'today', label: 'Today' },
   { value: 'weekend', label: 'This weekend' },
+  { value: 'week', label: 'This week' },
 ] as const
 
-export type ScheduleFilter = (typeof SCHEDULE_OPTIONS)[number]['value']
-
 export interface BrowseFilters {
-  schedule: ScheduleFilter
-  /** Normalised tags. The filter surface's only vocabulary. */
+  type: ResultType
+  postKinds: PostKind[]
+  following: boolean
+  /** Normalised category tags: the 12 interest tags (#818), or a creator's own. */
   tags: string[]
-  /** #796 — posts, announcements and updates, newest first. Off, Explore shows Pages and the first look. */
-  updates?: boolean
+  date: DateFilter
 }
 
-export const DEFAULT_BROWSE_FILTERS: BrowseFilters = { schedule: 'any', tags: [] }
+/** #876 — the Category group: the 12 interest tags (#818), normalised as the feed matches them. */
+export const CATEGORY_TAGS: string[] = INTEREST_VOCAB.map((t) => normalizeTag(t.label))
+
+export const DEFAULT_BROWSE_FILTERS: BrowseFilters = { type: 'all', postKinds: [], following: false, tags: [], date: 'any' }
 
 type ParamSource = Pick<URLSearchParams, 'get'>
 
-const SCHEDULES = new Set<string>(SCHEDULE_OPTIONS.map((s) => s.value))
+export const isPickedDay = (d: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(d)
+const DATES = new Set<string>(DATE_OPTIONS.map((d) => d.value))
 
 /**
- * Read the filter state out of the URL.
- *
- * Every value is whitelisted, so a stale link — one carrying `?sort=` or
- * `?distance=` from before those controls were deleted — degrades to the
- * default rather than to an error or an empty surface.
+ * Read the filter state out of an old link. Today the box carries it (?q=); an old link's ?schedule=,
+ * ?category= and ?view=updates (the Updates view, now the posts-only Type) are written into the box on
+ * the way in. Every value is whitelisted, so a stale link degrades to the default, never to an error.
  */
 export function parseBrowseFilters(params: ParamSource): BrowseFilters {
-  const rawSchedule = params.get('schedule') ?? ''
+  const schedule = params.get('schedule') ?? ''
   return {
-    schedule: SCHEDULES.has(rawSchedule) ? (rawSchedule as ScheduleFilter) : 'any',
-    tags: (params.get('category') ?? '')
-      .split(',')
-      .map(normalizeTag)
-      .filter(Boolean),
-    ...(params.get('view') === 'updates' ? { updates: true } : {}),
+    ...DEFAULT_BROWSE_FILTERS,
+    type: params.get('view') === 'updates' ? 'posts' : 'all',
+    tags: (params.get('category') ?? '').split(',').map(normalizeTag).filter(Boolean),
+    date: DATES.has(schedule) ? schedule : 'any',
   }
 }
 
-/** Drives the dot on the filter icon. */
+/** Drives the dot on the filter icon, and whether Explore asks the server for a filtered read. */
 export function hasBrowseFilters(f: BrowseFilters): boolean {
-  return f.schedule !== 'any' || f.tags.length > 0 || Boolean(f.updates)
-}
-
-/** #796 — the Updates list: posts only, newest first by when they were posted. */
-export function updatesOnly(results: readonly BrowseResult[]): BrowseResult[] {
-  const at = (r: BrowseResult) => r.postedAt ?? r.sortAt
-  return results.filter((r) => r.resultKind === 'post').sort((a, b) => (at(a) < at(b) ? 1 : at(a) > at(b) ? -1 : 0))
+  return f.type !== 'all' || f.postKinds.length > 0 || f.following || f.tags.length > 0 || f.date !== 'any'
 }
 
 export function toggleTag(f: BrowseFilters, tag: string): BrowseFilters {
   const t = normalizeTag(tag)
-  return {
-    ...f,
-    tags: f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t],
-  }
+  return { ...f, tags: f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t] }
+}
+
+export function togglePostKind(f: BrowseFilters, k: PostKind): BrowseFilters {
+  return { ...f, postKinds: f.postKinds.includes(k) ? f.postKinds.filter((x) => x !== k) : [...f.postKinds, k] }
+}
+
+/** A sample says its own kind; a real post has no kind field, so a dated one is an event (the feed's rule too). */
+export function postKindOf(r: Pick<BrowseResult, 'resultKind' | 'sampleKind' | 'startsAt'>): PostKind | null {
+  if (r.resultKind !== 'post') return null
+  return r.sampleKind ?? (r.startsAt ? 'event' : null)
 }
 
 export interface DateRange {
-  start: Date
-  end: Date
+  from: string
+  to: string
 }
 
-function endOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
+/** The window a Date choice means, in the metro's time; null for any time. */
+export function dateWindow(date: DateFilter, now: Date): DateRange | null {
+  if (date === 'any') return null
+  const w = happeningWindows(now)
+  if (date === 'today') return w.today
+  if (date === 'weekend') return w.thisWeekend
+  if (date === 'week') return w.thisWeek
+  if (!isPickedDay(date)) return null
+  const midnight = (ymd: string) => new Date(metroWallTimeToInstant(ymd, '00:00', METRO_TIME_ZONE)!).toISOString()
+  return { from: midnight(date), to: midnight(shiftDays(date, 1)) }
 }
 
-function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-}
-
-function addDays(d: Date, n: number): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
-}
-
-/**
- * "This week" — now through the end of Sunday. ISO weeks (Mon–Sun) rather than
- * the US Sun–Sat convention, so the upcoming weekend always falls inside the
- * current week; under Sun–Sat "this weekend" would straddle the boundary and a
- * weekend result could fail the week filter.
- */
-export function weekRange(now: Date): DateRange {
-  const daysToSunday = (7 - now.getDay()) % 7 // getDay: Sunday = 0
-  return { start: now, end: endOfDay(addDays(now, daysToSunday)) }
-}
-
-/** "This weekend" — Saturday and Sunday of the current ISO week, never the past. */
-export function weekendRange(now: Date): DateRange {
-  const day = now.getDay()
-  const daysToSaturday = day === 0 ? 0 : 6 - day
-  const saturday = day === 0 ? startOfDay(now) : startOfDay(addDays(now, daysToSaturday))
-  const start = saturday.getTime() < now.getTime() ? now : saturday
-  const sunday = day === 0 ? startOfDay(now) : addDays(saturday, 1)
-  return { start, end: endOfDay(sunday) }
-}
-
-function inRange(iso: string | null, range: DateRange): boolean {
-  if (!iso) return false
-  const t = new Date(iso).getTime()
-  return t >= range.start.getTime() && t <= range.end.getTime()
+/** #815 — a post is live in a window from its start through its end (no end: the start is the end). */
+function liveIn(r: Pick<BrowseResult, 'startsAt' | 'endsAt'>, w: DateRange): boolean {
+  if (!r.startsAt) return false
+  const start = Date.parse(r.startsAt)
+  const end = Date.parse(r.endsAt ?? r.startsAt)
+  return start < Date.parse(w.to) && end >= Date.parse(w.from)
 }
 
 /** Everything a search looks at: the Page, the post's own words, the tags. */
@@ -152,21 +158,38 @@ export function applyBrowseFilters(
   f: BrowseFilters,
   ctx: { now: Date },
 ): BrowseResult[] {
-  const week = f.schedule === 'week' ? weekRange(ctx.now) : null
-  const weekend = f.schedule === 'weekend' ? weekendRange(ctx.now) : null
-
+  const window = dateWindow(f.date, ctx.now)
   return results.filter((r) => {
+    if (f.type === 'pages' && r.resultKind !== 'page') return false
+    if (f.type === 'posts' && r.resultKind !== 'post') return false
+    if (f.following && !r.followed) return false
+    if (f.postKinds.length > 0) {
+      const k = postKindOf(r)
+      if (!k || !f.postKinds.includes(k)) return false
+    }
     if (f.tags.length > 0) {
       const own = new Set(r.tags.map(normalizeTag))
       if (!f.tags.some((t) => own.has(t))) return false
     }
-    // An undated result has no date to judge, so a time window drops it. That
-    // is the window doing its job, not the undated post being second-class —
-    // with no window set it ranks alongside everything else.
-    if (week && !inRange(r.startsAt, week)) return false
-    if (weekend && !inRange(r.startsAt, weekend)) return false
+    if (window && !liveIn(r, window)) return false
     return true
   })
+}
+
+/** What the filters ask of the feed read, so the server returns the targeted set, not a client cut of 100. */
+export function feedOptsFor(f: BrowseFilters, now: Date) {
+  const narrowsPosts = f.postKinds.length > 0 || f.date !== 'any'
+  const resultKinds: ('page' | 'post')[] | null = f.type === 'pages' ? ['page'] : f.type === 'posts' || narrowsPosts ? ['post'] : null
+  const window = f.type === 'pages' ? null : dateWindow(f.date, now)
+  return {
+    resultKinds,
+    postKinds: f.type === 'pages' || f.postKinds.length === 0 ? null : [...f.postKinds],
+    tags: f.tags.length > 0 ? [...f.tags] : null,
+    startsFrom: window?.from ?? null,
+    startsBefore: window?.to ?? null,
+    sort: window ? ('soonest' as const) : ('recent' as const),
+    following: f.following,
+  }
 }
 
 /** The tags actually present in what came back — the filter surface's options. */

@@ -6,7 +6,7 @@
 // the string, so the common case is a bare `/explore`. The list/map view is
 // deliberately absent — it is ephemeral and resets to List on the next visit.
 
-import type { ScheduleFilter } from './filters'
+import type { DateFilter } from './filters'
 
 export interface BrowseUrlState {
   /** Chosen metro slug. Absent when nobody picked one. */
@@ -15,7 +15,7 @@ export interface BrowseUrlState {
   /** #476 — a neighbourhood's place id, when one is picked. */
   area?: string | null
   tags?: string[]
-  schedule?: ScheduleFilter
+  schedule?: DateFilter
 }
 
 export function browseQueryString(s: BrowseUrlState): string {

@@ -50,7 +50,8 @@ import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/fe
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
-import { pickLead, seenBefore, SEEN_COOKIE } from '@/lib/browse/lead'
+import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
+import { feedOptsFor, hasBrowseFilters, type BrowseFilters } from '@/lib/browse/filters'
 import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
 import { loadMapMix } from '@/lib/map/load-mix'
 import { withLocationKinds } from '@/lib/map/location-kinds'
@@ -71,7 +72,8 @@ export async function loadBrowse(
   // #549 — the page and the refetch leave the map to its own read (`loadMap`): it is a
   // three-round chain nothing on the list waits for, and a phone does not show it first.
   // #557 — the session seed: same seed, same order; a new sign-in brings a new one.
-  { withMap = true, seed = null }: { withMap?: boolean; seed?: string | null } = {},
+  // #876 — the Type / Category / Date filters, pushed into one targeted read.
+  { withMap = true, seed = null, filters = null }: { withMap?: boolean; seed?: string | null; filters?: BrowseFilters | null } = {},
 ): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
@@ -115,6 +117,29 @@ export async function loadBrowse(
   // is not a neighbourhood is ignored, never an error: the whole metro shows.
   const area = await areaPromise
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
+
+  // #876 — a filter is one targeted read: no first look, no rows, no withheld cards.
+  if (filters && hasBrowseFilters(filters)) {
+    const o = feedOptsFor(filters, new Date())
+    try {
+      const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
+      const results = await getBrowseFeed(supabase, {
+        scope: feedScope,
+        resultKinds: o.resultKinds,
+        postKinds: o.postKinds,
+        tags: o.tags,
+        startsFrom: o.startsFrom,
+        startsBefore: o.startsBefore,
+        sort: o.sort,
+        limit: BROWSE_LIMIT,
+        ...(o.following ? { audience: { audience: 'following' as const, following: followIds } } : {}),
+      })
+      return { ...base, results: markFollowed(results, followIds), lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
+    } catch (error) {
+      console.error('[loadBrowse] filtered browse_feed failed:', (error as Error).message)
+      return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
+    }
+  }
 
   // Started before the public read is awaited: it depends on the member and
   // the scope, neither of which the public read can change.
@@ -168,19 +193,25 @@ export async function loadBrowse(
     const withheld = await withheldPromise
     const happening = await happeningPromise
     const now = new Date()
-    const shuffled = sessionShuffle(mergeByRecency(results, withheld), seed, {
+    // #876 (Don, 2026-10-16) — everything mixed: Pages, posts, and the updates of Pages the member
+    // follows, each once, in the session's place-and-time order.
+    const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
+    const mixed = markFollowed(uniqueResults([...results, ...following]), followIds)
+    const shuffled = sessionShuffle(mergeByRecency(mixed, withheld), seed, {
       id: (r) => `${r.resultKind}:${r.resultId}`,
       at: (r) => r.sortAt,
       now,
     })
     // #796 — the first look, from rows already in hand: no read of its own.
     const memory = await exploreMemory(seed)
-    const { lead, fresh } = pickLead([...shuffled, ...happening.today, ...happening.thisWeekend], { now, seed, ...memory })
+    // #796 — a post this browser has already been shown never pins to the top: it waits below the first screen.
+    const ordered = keepSeenPostsBelow(shuffled, memory.seen)
+    const { lead, fresh } = pickLead([...ordered, ...happening.today, ...happening.thisWeekend], { now, seed, ...memory })
     return {
       ...base,
       happening,
       map: await mapPromise,
-      results: shuffled,
+      results: ordered,
       lead,
       leadFresh: fresh,
       following,
@@ -226,6 +257,39 @@ async function loadMap(
 export async function loadMemberMap(metroId: string, areaId: string | null): Promise<MixedResult[]> {
   const supabase = await createClient()
   return (await viewerId(supabase)) ? loadMap(supabase, metroId, areaId) : []
+}
+
+/** The first screen: a seen post is moved below it, everything else keeps its place. */
+const FIRST_SCREEN = LEAD_SIZE
+
+function keepSeenPostsBelow(rows: BrowseResult[], seen: Set<string>): BrowseResult[] {
+  if (seen.size === 0) return rows
+  const top: BrowseResult[] = []
+  const held: BrowseResult[] = []
+  const rest: BrowseResult[] = []
+  for (const r of rows) {
+    if (top.length < FIRST_SCREEN) (r.resultKind === 'post' && seen.has(leadKey(r)) ? held : top).push(r)
+    else rest.push(r)
+  }
+  return [...top, ...held, ...rest]
+}
+
+/** One of each result, first seen wins. */
+function uniqueResults(rows: BrowseResult[]): BrowseResult[] {
+  const seen = new Set<string>()
+  return rows.filter((r) => {
+    const k = `${r.resultKind}:${r.resultId}`
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+}
+
+/** #876 — the Following filter's field, set wherever a Page the member follows shows up. */
+function markFollowed(rows: BrowseResult[], followIds: readonly string[]): BrowseResult[] {
+  if (followIds.length === 0) return rows
+  const ids = new Set(followIds)
+  return rows.map((r) => (ids.has(r.groupId) ? { ...r, followed: true } : r))
 }
 
 /**

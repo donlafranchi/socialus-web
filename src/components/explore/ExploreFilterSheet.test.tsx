@@ -16,13 +16,10 @@ import { DEFAULT_BROWSE_FILTERS, type BrowseFilters } from '@/lib/browse/filters
 const onClose = vi.fn()
 const onApply = vi.fn()
 
-const TAGS = ['local food', 'repair']
-
 function props(over: Partial<React.ComponentProps<typeof ExploreFilterSheet>> = {}) {
   return {
     open: true,
     value: DEFAULT_BROWSE_FILTERS,
-    tags: TAGS,
     onClose,
     onApply,
     ...over,
@@ -47,17 +44,30 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('offers the three schedule options', () => {
+  // #876 (Don, 2026-10-16): "Target by type or category or date."
+  it('holds three groups: Type, Category and Date', () => {
     renderSheet()
-    for (const label of ['Any time', 'This week', 'This weekend']) {
-      expect(within(sheet()).getByRole('radio', { name: label })).toBeInTheDocument()
-    }
+    for (const g of ['Type', 'Category', 'Date']) expect(within(sheet()).getByRole('group', { name: g })).toBeInTheDocument()
   })
 
-  it('offers the tags as a multi-select, labelled as the creator typed them', () => {
+  it('Type: everything, Pages or posts; the post kinds; following only', () => {
     renderSheet()
-    expect(within(sheet()).getByRole('checkbox', { name: 'local food' })).toBeInTheDocument()
-    expect(within(sheet()).getByRole('checkbox', { name: 'repair' })).toBeInTheDocument()
+    const type = within(within(sheet()).getByRole('group', { name: 'Type' }))
+    for (const label of ['Everything', 'Pages', 'Posts']) expect(type.getByRole('radio', { name: label })).toBeInTheDocument()
+    for (const label of ['Events', 'Deals', 'Last-minute', 'Following only']) expect(type.getByRole('checkbox', { name: label })).toBeInTheDocument()
+  })
+
+  it('Category: the 12 interest tags', () => {
+    renderSheet()
+    const boxes = within(within(sheet()).getByRole('group', { name: 'Category' })).getAllByRole('checkbox')
+    expect(boxes).toHaveLength(12)
+    expect(within(sheet()).getByRole('checkbox', { name: 'Farmers markets' })).toBeInTheDocument()
+  })
+
+  it('Date: any time, today, this weekend, this week, or a picked day', () => {
+    renderSheet()
+    for (const label of ['Any time', 'Today', 'This weekend', 'This week']) expect(within(sheet()).getByRole('radio', { name: label })).toBeInTheDocument()
+    expect(within(sheet()).getByLabelText('Pick a date')).toHaveAttribute('type', 'date')
   })
 
   it('offers no distance control — there is no honest point to measure from', () => {
@@ -88,10 +98,12 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
   })
 
   it('reflects the committed filter state when it opens', () => {
-    const value: BrowseFilters = { schedule: 'weekend', tags: ['repair'] }
+    const value: BrowseFilters = { ...DEFAULT_BROWSE_FILTERS, date: 'weekend', tags: ['gardening'], postKinds: ['deal'], following: true }
     renderSheet({ value })
     expect(within(sheet()).getByRole('radio', { name: 'This weekend' })).toBeChecked()
-    expect(within(sheet()).getByRole('checkbox', { name: 'repair' })).toBeChecked()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Gardening' })).toBeChecked()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Deals' })).toBeChecked()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Following only' })).toBeChecked()
   })
 })
 
@@ -101,15 +113,18 @@ describe('T115 — applying and clearing', () => {
     fireEvent.click(within(sheet()).getByRole('radio', { name: 'This week' }))
     expect(onApply).not.toHaveBeenCalled()
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
-    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, schedule: 'week' })
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, date: 'week' })
   })
 
-  // #796 — posts, announcements and updates sit behind this one choice.
-  it('offers Updates, and applies it', () => {
+  // #876 — the old Updates choice is Type: Posts; the groups combine.
+  it('combines the groups and applies them', () => {
     renderSheet()
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Updates' }))
+    fireEvent.click(within(sheet()).getByRole('radio', { name: 'Posts' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Events' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Kids & family' }))
+    fireEvent.change(within(sheet()).getByLabelText('Pick a date'), { target: { value: '2026-10-24' } })
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
-    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, updates: true })
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, type: 'posts', postKinds: ['event'], tags: ['kids & family'], date: '2026-10-24' })
   })
 
   it('dismisses the sheet when the results are applied', () => {
@@ -129,12 +144,12 @@ describe('T115 — applying and clearing', () => {
     expect(within(sheet()).getByRole('radio', { name: 'This week' })).not.toBeChecked()
   })
 
-  it('multi-selects tags', () => {
+  it('multi-selects categories', () => {
     renderSheet()
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'local food' }))
-    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'repair' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Live music' }))
+    fireEvent.click(within(sheet()).getByRole('checkbox', { name: 'Gardening' }))
     fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
-    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, tags: ['local food', 'repair'] })
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, tags: ['live music', 'gardening'] })
   })
 
   it('hides Clear all until something is set', () => {
@@ -145,7 +160,7 @@ describe('T115 — applying and clearing', () => {
   })
 
   it('Clear all resets the draft and applies the empty state', () => {
-    renderSheet({ value: { schedule: 'week', tags: ['local food'] } })
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, date: 'week', tags: ['gardening'] } })
     fireEvent.click(within(sheet()).getByRole('button', { name: /clear all/i }))
     expect(onApply).toHaveBeenCalledWith(DEFAULT_BROWSE_FILTERS)
   })
@@ -210,14 +225,14 @@ describe('T115 — the sheet is an accessible dialog', () => {
 
 describe('T115 — Clear all meets the contrast and target floor', () => {
   it('is charcoal rather than the sub-AA accent token', () => {
-    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, schedule: 'week' } })
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, date: 'week' } })
     const clear = within(sheet()).getByRole('button', { name: /clear all/i })
     expect(clear.className).toContain('text-[var(--color-charcoal-900)]')
     expect(clear.className).not.toContain('text-[var(--color-accent)]')
   })
 
   it('carries a full-height touch target', () => {
-    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, schedule: 'week' } })
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, date: 'week' } })
     expect(within(sheet()).getByRole('button', { name: /clear all/i }).className).toMatch(/min-h-tap/)
   })
 })
@@ -237,10 +252,8 @@ describe('T115 — review fixes', () => {
     expect(screen.getByTestId('filter-sheet-backdrop')).toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('still lists a selected tag the current results no longer contain', () => {
-    // A search can drop a tag from the options while it stays selected; the
-    // sheet must remain able to turn it off.
-    renderSheet({ tags: ['local food'], value: { ...DEFAULT_BROWSE_FILTERS, tags: ['repair'] } })
+  it('still lists a selected tag outside the 12 (an old link), so it can be turned off', () => {
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, tags: ['repair'] } })
     const repair = within(sheet()).getByRole('checkbox', { name: 'repair' })
     expect(repair).toBeChecked()
     fireEvent.click(repair)
@@ -250,14 +263,13 @@ describe('T115 — review fixes', () => {
 })
 
 describe('#619 — plain words in the sheet', () => {
-  it('offers a tag as the plain word, never a hashtag', () => {
-    render(<ExploreFilterSheet open value={DEFAULT_BROWSE_FILTERS} tags={['coffee']} onClose={() => {}} onApply={() => {}} />)
+  it('offers a category as plain words, never a hashtag', () => {
+    render(<ExploreFilterSheet open value={DEFAULT_BROWSE_FILTERS} onClose={() => {}} onApply={() => {}} />)
     expect(screen.queryByRole('checkbox', { name: /^#/ })).toBeNull()
-    expect(screen.getByRole('checkbox', { name: 'coffee' })).toBeInTheDocument()
   })
 
-  it('does not offer a tag that is one of the box\'s own schedule words', () => {
-    render(<ExploreFilterSheet open value={DEFAULT_BROWSE_FILTERS} tags={['coffee', 'this weekend']} onClose={() => {}} onApply={() => {}} />)
+  it('does not offer a selected tag that is one of the box\'s own words', () => {
+    render(<ExploreFilterSheet open value={{ ...DEFAULT_BROWSE_FILTERS, tags: ['this weekend'] }} onClose={() => {}} onApply={() => {}} />)
     expect(screen.queryByRole('checkbox', { name: 'this weekend' })).toBeNull()
   })
 })

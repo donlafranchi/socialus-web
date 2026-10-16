@@ -369,3 +369,53 @@ describe('#796 — the first look', () => {
   })
 })
 
+
+// #876 (Don, 2026-10-16, on #796): "We should mix everything on explore. Even updates from people you follow."
+describe('#876 — the default mixes everything', () => {
+  const row = (kind: 'page' | 'post', id: string, groupId = `g-${id}`, at = '2026-10-15T00:00:00Z') =>
+    ({ resultKind: kind, resultId: id, groupId, sortAt: at, postedAt: at, pageCreatedAt: at, startsAt: null, withheld: false, tags: [] })
+  const cookies = (jar: Record<string, string>) => cookieGet.mockImplementation((name: string) => (jar[name] ? { value: jar[name] } : undefined))
+
+  it('Pages, posts and the followed Pages’ updates in one list, each once, the followed ones flagged', async () => {
+    signedIn()
+    resolveFollowedPageIds.mockResolvedValue(['g-f'])
+    getBrowseFeed.mockImplementation(async (_c: unknown, opts: { audience?: { audience: string } }) =>
+      opts?.audience?.audience === 'following' ? [row('post', 'fp', 'g-f'), row('post', 'both', 'g-f')] : [row('page', 'p1'), row('post', 'both', 'g-f'), row('post', 'p2')],
+    )
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    expect(snap.results.map((r) => r.resultId).sort()).toEqual(['both', 'fp', 'p1', 'p2'])
+    expect(snap.results.filter((r) => r.followed).map((r) => r.resultId).sort()).toEqual(['both', 'fp'])
+  })
+
+  it('an already-seen post never lands in the first screen', async () => {
+    signedIn()
+    const { leadKey } = await import('@/lib/browse/lead')
+    const seenPost = row('post', 'seen')
+    const many = [seenPost, ...Array.from({ length: 10 }, (_, i) => row('page', `p${i}`))]
+    getBrowseFeed.mockImplementation(async (_c: unknown, opts: { audience?: { audience: string } }) => (opts?.audience?.audience === 'following' ? [] : many))
+    // Several sessions, so the shuffle alone cannot pass this.
+    for (const seed of ['aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb', 'cccccccccccccccc', 'dddddddddddddddd', 'eeeeeeeeeeeeeeee', 'ffffffffffffffff']) {
+      cookies({ su_seed: `m.${seed}`, su_seen: `9999999999999999~${leadKey(seenPost as never)}~` }) // shown on an earlier visit
+      const snap = await loadBrowse(null, null, { seed })
+      expect(snap.results.findIndex((r) => r.resultId === 'seen'), seed).toBeGreaterThanOrEqual(6)
+    }
+  })
+})
+
+describe('#876 — a filter is one targeted read', () => {
+  it('asks the feed once with the filters pushed down, and skips the first look and the rows', async () => {
+    signedIn()
+    resolveFollowedPageIds.mockResolvedValue(['g-f'])
+    getBrowseFeed.mockResolvedValue([])
+    const { DEFAULT_BROWSE_FILTERS } = await import('@/lib/browse/filters')
+    const snap = await loadBrowse(null, null, { filters: { ...DEFAULT_BROWSE_FILTERS, postKinds: ['deal'], following: true, tags: ['farmers markets'], date: 'weekend' } })
+    expect(getBrowseFeed).toHaveBeenCalledTimes(1)
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({
+      resultKinds: ['post'], postKinds: ['deal'], tags: ['farmers markets'], sort: 'soonest',
+      audience: { audience: 'following', following: ['g-f'] }, scope: { metroId: METRO.id },
+    })
+    expect(getBrowseFeed.mock.calls[0]![1].startsFrom).toBeTruthy()
+    expect(snap.lead ?? []).toEqual([])
+    expect(getWithheldAnnouncements).not.toHaveBeenCalled()
+  })
+})

@@ -98,6 +98,8 @@ export interface BrowseFeedOpts {
    * tag, and a caller should not have to know that.
    */
   tags?: readonly string[] | null
+  /** #876 — the Type filter's post kinds; a dated real post counts as an event. */
+  postKinds?: readonly ('event' | 'deal' | 'last_minute')[] | null
   /** The time lens window. Both ends optional and independent. */
   startsFrom?: string | null
   startsBefore?: string | null
@@ -179,6 +181,8 @@ export interface BrowseResult {
   endsAt?: string | null
   /** #796 — a seeder sample (#556): every surface marks it as one. Null on real posts and Pages. */
   sampleKind?: 'event' | 'deal' | 'last_minute' | null
+  /** #876 — from a Page the member follows: the Following filter's field. Set by Explore's loader. */
+  followed?: boolean
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
   /**
@@ -315,6 +319,7 @@ export async function getBrowseFeed(
     p_sort: opts.sort ?? 'recent',
     p_now: opts.now ?? null,
     p_limit: clampLimit(opts.limit),
+    ...(opts.postKinds?.length ? { p_post_kinds: [...opts.postKinds] } : {}),
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]

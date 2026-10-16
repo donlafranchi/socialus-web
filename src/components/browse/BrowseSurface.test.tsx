@@ -304,11 +304,12 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
     expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
   })
 
-  it('renders the row when there is something in it', () => {
-    search = 'view=updates'
-    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
-    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
-    expect(screen.getByTestId('browse-following')).toBeInTheDocument()
+  // #876 (Don, 2026-10-16) — no separate row: the loader mixes the followed Pages' updates into the results.
+  it('shows a followed Page’s update in the mixed list, not in a row of its own', () => {
+    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle', followed: true })
+    render(<BrowseSurface initial={snapshot({ signedIn: true, results: [result(), mine], following: [mine] })} />)
+    expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
+    expect(within(screen.getByTestId('browse-list-pane')).getByText('Pond Side Circle')).toBeInTheDocument()
   })
 
   it('keeps the personal half out of the result count', () => {
@@ -319,16 +320,6 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
     expect(screen.getByTestId('result-count').textContent).toMatch(/^1 result/)
   })
 
-  it('does not let a search over the public half filter the personal row', () => {
-    search = 'view=updates'
-    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
-    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
-    // The box already holds "updates", so it is open.
-    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzzz updates' } })
-    // The public half is now empty…
-    expect(screen.getByTestId('browse-empty')).toBeInTheDocument()
-    expect(screen.getByTestId('browse-following')).toBeInTheDocument()
-  })
 })
 
 // #476 — a neighbourhood narrows Explore to that place.
@@ -376,8 +367,8 @@ describe('#549 — the pins come after the list', () => {
 
 // #619 / #621 (F092.2, F092.4) — the sheet writes plain words into the box, and the box is the state.
 describe('F092 — the filter sheet writes its selection into the search box', () => {
-  const coffee = result({ resultId: 'c1', name: 'Bean Co', tags: ['coffee'], description: 'Roasters', startsAt: null })
-  const bread = result({ resultId: 'b1', name: 'Rye Co', tags: ['sourdough'], description: 'Bakers' })
+  const coffee = result({ resultId: 'c1', name: 'Bean Co', tags: ['Food & drink'], description: 'Roasters', startsAt: null })
+  const bread = result({ resultId: 'b1', name: 'Rye Co', tags: ['Live music'], description: 'Bakers' })
   const openSheet = () => fireEvent.click(screen.getByTestId('explore-filter-icon'))
   const box = () => screen.getByTestId('search-input') as HTMLInputElement
   const openBox = () => fireEvent.click(screen.getByRole('button', { name: 'Search' }))
@@ -386,10 +377,10 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   it('applying dismisses the sheet and writes the selection as plain words, no hashtag', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openSheet()
-    fireEvent.click(screen.getByRole('checkbox', { name: 'coffee' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Food & drink' }))
     fireEvent.click(screen.getByRole('radio', { name: 'This weekend' }))
     fireEvent.click(screen.getByRole('button', { name: /show results/i }))
-    await waitFor(() => expect(box().value).toBe('coffee this weekend'))
+    await waitFor(() => expect(box().value).toBe('food & drink this weekend'))
     expect(box().value).not.toContain('#')
     expect(screen.queryByTestId('explore-filter-sheet')).toBeNull()
   })
@@ -399,9 +390,9 @@ describe('F092 — the filter sheet writes its selection into the search box', (
     openBox()
     fireEvent.change(box(), { target: { value: 'roasters' } })
     openSheet()
-    fireEvent.click(screen.getByRole('checkbox', { name: 'coffee' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Food & drink' }))
     fireEvent.click(screen.getByRole('button', { name: /show results/i }))
-    await waitFor(() => expect(box().value).toBe('roasters coffee'))
+    await waitFor(() => expect(box().value).toBe('roasters food & drink'))
     expect(screen.getByText('Bean Co')).toBeInTheDocument()
     expect(screen.queryByText('Rye Co')).toBeNull()
   })
@@ -410,9 +401,9 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   it('the words it wrote narrow the results the way the selection did', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openSheet()
-    fireEvent.click(screen.getByRole('checkbox', { name: 'sourdough' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Live music' }))
     fireEvent.click(screen.getByRole('button', { name: /show results/i }))
-    await waitFor(() => expect(box().value).toBe('sourdough'))
+    await waitFor(() => expect(box().value).toBe('live music'))
     expect(screen.getByText('Rye Co')).toBeInTheDocument()
     expect(screen.queryByText('Bean Co')).toBeNull()
   })
@@ -420,17 +411,17 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   it('typing the same words by hand does the same, and reopening the sheet shows them checked', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openBox()
-    fireEvent.change(box(), { target: { value: 'Coffee' } })
+    fireEvent.change(box(), { target: { value: 'Food & Drink' } })
     expect(screen.getByText('Bean Co')).toBeInTheDocument()
     expect(screen.queryByText('Rye Co')).toBeNull()
     openSheet()
-    expect(screen.getByRole('checkbox', { name: 'coffee' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Food & drink' })).toBeChecked()
   })
 
   it('clearing the box clears the narrowing', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openBox()
-    fireEvent.change(box(), { target: { value: 'coffee' } })
+    fireEvent.change(box(), { target: { value: 'food & drink' } })
     expect(screen.queryByText('Rye Co')).toBeNull()
     fireEvent.change(box(), { target: { value: '' } })
     expect(screen.getByText('Rye Co')).toBeInTheDocument()
@@ -439,7 +430,7 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   it('Clear all in the sheet takes its words out of the box and keeps the free ones', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openBox()
-    fireEvent.change(box(), { target: { value: 'roasters coffee this week' } })
+    fireEvent.change(box(), { target: { value: 'roasters food & drink this week' } })
     openSheet()
     fireEvent.click(screen.getByRole('button', { name: /clear all/i }))
     await waitFor(() => expect(box().value).toBe('roasters'))
@@ -448,7 +439,7 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   it('the URL carries the words, not separate filter parameters', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openBox()
-    fireEvent.change(box(), { target: { value: 'coffee this weekend' } })
-    await waitFor(() => expect(replace).toHaveBeenLastCalledWith('/explore?q=coffee+this+weekend', { scroll: false }))
+    fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
+    await waitFor(() => expect(replace).toHaveBeenLastCalledWith('/explore?q=food+%26+drink+this+weekend', { scroll: false }))
   })
 })
