@@ -369,7 +369,7 @@ describe('resolveOwnerClaim', () => {
     expect(claim).toEqual({ zip: '95817', isProximal: true })
   })
 
-  it('returns the owner ZIP with isProximal=false for a non-proximal claim', async () => {
+  it('a claim from a far ZIP still earns the badge: local is the claim, not distance (#874)', async () => {
     const claim = await resolveOwnerClaim(
       makeJurisdictionStub({
         ownerMembership: { role: 'owner' },
@@ -378,7 +378,7 @@ describe('resolveOwnerClaim', () => {
       }),
       { groupId: 'grp-1', anchorLocationId: 'loc-1', viewerMemberId: 'maya' },
     )
-    expect(claim).toEqual({ zip: '90210', isProximal: false })
+    expect(claim).toEqual({ zip: '90210', isProximal: true })
   })
 })
 
