@@ -4667,42 +4667,42 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "moderation/F058-report-and-remove-a-photo.md",
-   "n": 6,
+   "n": 5,
    "totals": {
     "built": {
-     "yes": 4,
-     "no": 2,
+     "yes": 5,
+     "no": 0,
      "unknown": 0
     },
     "checked": {
-     "yes": 0,
-     "no": 6,
+     "yes": 4,
+     "no": 1,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 6,
+     "no": 5,
      "unknown": 0
     },
     "shipped": {
      "yes": 0,
-     "no": 2,
-     "unknown": 4
+     "no": 0,
+     "unknown": 5
     },
     "smoked": {
-     "yes": 0,
-     "no": 2,
-     "unknown": 4
+     "yes": 5,
+     "no": 0,
+     "unknown": 0
     },
     "pm_looked": {
      "yes": 0,
-     "no": 6,
+     "no": 5,
      "unknown": 0
     }
    },
-   "red": 3,
+   "red": 0,
    "criteria": [
     {
      "id": "1",
@@ -4712,21 +4712,21 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`ReportControl` on `ShopPublicPage` and `PagePosts`; `report.create` (#81, #82); signed-out gets a sign-in link [V] Checked: unmarked: `ReportControl.test.tsx`, `report-actions.test.ts`.",
+     "issues": [
+      578
+     ],
+     "note": "`ReportControl` on the Page and post cards; `sendReportAction` refuses signed-out callers (#81, #82) [V] Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V] Reviewed: #81, #82 carry no `Reviewed by:` [V] Shipped: no deploy-health run on their merge commits (14 Sep) [V] Smoked: `page` and `page-business` opened green 2026-10-16 as member and stranger; the route loads, no report is sent [A]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -4735,7 +4735,7 @@
      "kind": [
       "invariant"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -4746,12 +4746,10 @@
       62,
       220
      ],
-     "note": "SPEC-CONFLICT. The reporter is never named to the owner (`report-privacy-db.test.ts`, seen failing both ways). But a report now hides the photo at once and the owner sees a notice (T160 #62, F078 #220 \"poster is told why\"); `create.test.ts` says F078 criterion 3 \"amends F058 acceptance 2\". F058 text was never amended [V] Checked: unmarked: `tests/report-privacy-db.test.ts`.",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "RETIRED. Overtaken by F078 criteria 2 and 3 and the 2026-10-11 courtesy-notice ruling in F078 `## Rulings`: a second report hides the item and the owner is told why (`create.test.ts`: \"F078 criterion 3 amends F058 acceptance 2\"). What still holds: the reporter is never named to the owner (`tests/report-privacy-db.test.ts`) [V]. `sync-roadmap` amends the scenario.",
+     "gaps": [],
      "score": 0,
-     "red": true
+     "red": false
     },
     {
      "id": "3",
@@ -4761,22 +4759,22 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`report.remove` / `report.reverse` refuse ordinary member, owner, unset operator before touching the DB; `/admin/reports` is 404 to others [V] Checked: unmarked: `review.test.ts`, `ReviewQueue.test.tsx`.",
+     "issues": [
+      578
+     ],
+     "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: #151 has no deploy-health run [V] Smoked: `admin-reports` green as operator 2026-10-14 (no admin change since) [V]",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
-     "red": true
+     "score": 3,
+     "red": false
     },
     {
      "id": "4",
@@ -4785,21 +4783,25 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      577
+      577,
+      833
      ],
-     "note": "`report.remove` sets `photo_removed_at`, keeps URL, writes `report_decisions`; Page, share, Browse honor it. Map does not: `useMapPages.ts` reads only `photo_hidden_at`, and removal clears that column, so pins still show a removed photo [V]. Issue #577 Checked: unmarked: `review.test.ts` (decision row, never nulls URL); nothing on the map.",
+     "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards and Browse read it, and the map now does too (#779, a265d7c) [V] Checked: only a partial marker (`useMapPages.test.ts:82`); `review.test.ts` is unmarked; #833 [V] Reviewed: #151, #152 no `Reviewed by:`; #779 none [V] Shipped: #151, #152 no deploy-health run; #779 green [V] Smoked: `explore` and `page` green 2026-10-16 [A]",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
-     "red": true
+     "score": 2,
+     "red": false
     },
     {
      "id": "5",
@@ -4810,21 +4812,21 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Always: `/admin/reports` queue, oldest hidden first. Plus SMS to the operator for urgent categories (`operator-sms.ts`, Twilio) [V]. Ordinary reports are queue-only, which meets \"somewhere a person reads\" [A] Checked: unmarked: `create.test.ts`, `operator-sms.test.ts`, `reports-queue-builders.test.ts`.",
+     "issues": [
+      578
+     ],
+     "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS once the Twilio values are set [V] Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: #151 no deploy-health run [V] Smoked: `admin-reports` green 2026-10-14 [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -4835,21 +4837,21 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: unmarked: `review.test.ts` (reversal inserts, never UPDATE/DELETE), `ReportEntry.test.tsx`.",
+     "issues": [
+      578
+     ],
+     "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: #152 no deploy-health run [V] Smoked: `admin-reports` green 2026-10-14 [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     }
    ]
@@ -4861,46 +4863,46 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "moderation/F078-flagged-content-hides-itself.md",
-   "n": 11,
+   "n": 12,
    "totals": {
     "built": {
-     "yes": 8,
-     "no": 3,
+     "yes": 11,
+     "no": 1,
      "unknown": 0
     },
     "checked": {
-     "yes": 3,
-     "no": 8,
+     "yes": 6,
+     "no": 6,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 8,
-     "no": 3,
+     "yes": 0,
+     "no": 12,
      "unknown": 0
     },
     "shipped": {
-     "yes": 8,
-     "no": 3,
+     "yes": 11,
+     "no": 1,
      "unknown": 0
     },
     "smoked": {
-     "yes": 0,
-     "no": 3,
+     "yes": 3,
+     "no": 1,
      "unknown": 8
     },
     "pm_looked": {
      "yes": 0,
-     "no": 11,
+     "no": 12,
      "unknown": 0
     }
    },
-   "red": 5,
+   "red": 1,
    "criteria": [
     {
      "id": "1",
-     "text": "Everything a member posts is reportable; a report triggers agent classification",
+     "text": "Anything a member can post is reportable (photos, Pages, announcements, posts); a report triggers agent classification",
      "kind": [
       "behavior"
      ],
@@ -4914,7 +4916,7 @@
      "issues": [
       625
      ],
-     "note": "Reportable: Page photo, Page picture, announcement, post photo (`reports.subject_kind`, migration 20261007290000). AI reads in shadow mode (#513). Missing: a Page's own words and listings have no report path [V] Checked: unmarked: `PagePosts.test.tsx`, `create.test.ts`.",
+     "note": "Reportable today: Page photo, Page picture, announcement, post and post photo (`reports.subject_kind`, migration 20261007290000); the AI reads each in shadow (#513) [V]. Missing: a Page's own words and listings; PR #820 is open, unmerged, `review-skipped` [V]. Checked: no whole-criterion marker.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -4923,11 +4925,91 @@
     },
     {
      "id": "2",
-     "text": "Hides when score is at or above the metro's bar, by the agent",
+     "text": "A first report leaves the post up and sends a courtesy notice; a second report from a different member hides it and sends it to a person",
      "kind": [
       "behavior"
      ],
      "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      834
+     ],
+     "note": "`create.ts`: `shouldHide` needs `priorByOthers > 0`; the first report writes a courtesy notice (#706, b628e62) [V] Checked: only the partial marker `create.test.ts:813`; #834 [V] Reviewed: #706 `review-skipped` [V] Shipped: green on #494, #499, #506, #706 [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Poster told at once, in-app (never email), with the category, the reporter's reason and a plain explanation",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      628,
+      629
+     ],
+     "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts` [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: `you` green 2026-10-16 [A]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4a",
+     "text": "The poster can submit one explanation; an unanswered takedown stays hidden and closes itself",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      628,
+      629,
+      834
+     ],
+     "note": "`report.answer` one per hide, now a single \"This is a mistake\" button (#706); an unanswered hide closes after 14 days (#773) [V] Checked: partial markers only; #834 [V] Reviewed: #706, #773 `review-skipped` [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "4b",
+     "text": "Submitting an explanation is the only thing that creates work for a person",
+     "kind": [
+      "behavior"
+     ],
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -4937,135 +5019,79 @@
      "issues": [
       626
      ],
-     "note": "`metro_polygons.hide_bar` exists. No score reaches the bar: `create.ts` \"No classifier yet\"; `ai_mode` defaults `shadow` [V]. No effect at bar 0 Checked: partial (`[guards F078.2 partial]`, posts-reportable-db).",
-     "gaps": [
-      "NOT-BUILT"
-     ],
+     "note": "RETIRED. Overtaken by the 2026-10-11 courtesy-notice ruling in F078 `## Rulings` (and criterion 6): a second report now sends the item to a person. `f078-criteria.test.ts:165` already says so. `sync-roadmap` amends the scenario.",
+     "gaps": [],
      "score": 0,
-     "red": true
-    },
-    {
-     "id": "3",
-     "text": "Poster told in-app, never email, with category, reporter's reason and a plain explanation",
-     "kind": [
-      "behavior",
-      "invariant"
-     ],
-     "status": "spec-conflict",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      628,
-      629
-     ],
-     "note": "`member_notices` row written in the hide transaction; `YouNotices`. Sensitive-content reports skip the notice (DECISIONS 2026-10-06, NCMEC) [V] Checked: partial only.",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
-     "score": 3,
-     "red": true
-    },
-    {
-     "id": "4",
-     "text": "Poster submits one explanation; unanswered takedown stays hidden and closes itself",
-     "kind": [
-      "behavior",
-      "invariant"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      628,
-      629
-     ],
-     "note": "`report.answer`, one per hide, 14-day window (F102) [V]. \"Only an answer creates work\" not asserted Checked: partial only (F102.3, F102.4).",
-     "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 3,
-     "red": true
+     "red": false
     },
     {
      "id": "5",
-     "text": "Threat of harm / children texts Don at once; rest queues in a mobile review view",
+     "text": "Threat of harm or children texts Don at once; everything else queues in a mobile review view",
      "kind": [
       "behavior",
       "external"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       628
      ],
-     "note": "`operator-sms.ts` via Twilio after commit; review page (#380). Whether `TWILIO_*` / `OPERATOR_PHONE` are set in production: unknown Checked: unmarked: `operator-sms.test.ts`, `ReviewQueue.test.tsx`.",
+     "note": "`alertOperator` after commit: SMS when Twilio values exist, email through Resend today (#751); the mobile queue is `/admin/reports` [V]. Nobody is texted yet: no Twilio number (phone verification parked, #707) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts` [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-14 [V]",
      "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
+      "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
      "id": "6",
-     "text": "Below the bar nothing automatic; lands in the same queue; at launch nothing is below",
+     "text": "Every report lands in the same queue, whether or not it hid anything",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       628
      ],
-     "note": "A report is always stored and queued; hide gated on `reachesBar` [V] Checked: partial (`create.test.ts`).",
+     "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts` [V] Reviewed: #706 `review-skipped` [V] Smoked: `admin-reports` green [V]",
      "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
+      "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
      "id": "7",
-     "text": "Bar is per-metro data, no migration or deploy; starts at 0; unresolvable metro uses 0",
+     "text": "The hide bar stays per-metro data, no migration or deploy; zero at launch; unresolved metro uses zero",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       628
      ],
-     "note": "`BAR_OF_LOCATION` coalesces to 0, min() on overlap [V] Checked: partial (create.test.ts, member-notices-db).",
+     "note": "`metro_polygons.hide_bar` coalesces to 0, min() on overlap; the AI stays in shadow so no score drives hiding, as ruled (#626) [V] Checked: `[guards F078.7]` in `f078-criteria.test.ts` [V] Reviewed: #494 `review-skipped` [V]",
      "gaps": [
-      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
@@ -5074,94 +5100,128 @@
     },
     {
      "id": "8",
-     "text": "Children / threat-of-harm hide at any bar",
+     "text": "A Threat of harm or Sensitive content report hides at once, on the first report, at any bar",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
      "checked": "yes",
-     "reviewed": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`URGENT_CATEGORIES` bypass bar, limits and strikes [V] Checked: yes (`create.test.ts` `[guards F078.8]`).",
+     "note": "`URGENT_CATEGORIES` bypass the bar, the courtesy step and the reporter limits (`create.ts`) [V] Checked: `[guards F078.8]` in `create.test.ts` [V] Reviewed: #483 `review-skipped` [V]",
      "gaps": [
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
      "id": "9",
-     "text": "No report without a reporter-chosen reason",
+     "text": "A report cannot be sent without a reason the reporter chose",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
      "checked": "yes",
-     "reviewed": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Handler and sheet both refuse [V] Checked: yes (`create.test.ts`, `ReportControl.test.tsx`).",
+     "note": "Handler and sheet both refuse [V] Checked: `[guards F078.9]` in `create.test.ts` and `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V]",
      "gaps": [
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
      "id": "10",
-     "text": "Reporter told before sending: misuse is a strike, three stops hiding",
+     "text": "Before sending, the reporter is told misuse has consequences; rejected reports are strikes and after three stop hiding",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "yes",
-     "reviewed": "yes",
+     "checked": "no",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      488
+      834
      ],
-     "note": "`COPY` line on the sheet; strikes counted at report time (#488 lane) [V] Checked: yes (`create.test.ts` `[guards F078.10]`).",
+     "note": "Sheet line \"Please don't misuse reports\" (no numbers, per the 2026-10-11 copy ruling); strikes counted at report time in `create.ts` [V] Checked: `[guards F078.10]` sits on the strikes test only; the pre-send line test is unmarked (`ReportControl.test.tsx:336`); #834 [V] Reviewed: #706 `review-skipped` [V]",
      "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 2,
      "red": false
     },
     {
      "id": "11",
-     "text": "Every string kind and gracious; wording is Don's",
+     "text": "Every string in the report path is kind and gracious; wording is Don's",
      "kind": [
-      "invariant"
+      "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      627
+      627,
+      834
      ],
-     "note": "All strings are placeholders (`copy.ts`, `notices.ts`, `categories.ts`); not worded by Don [V]",
+     "note": "Strings shipped from the PM's recorded copy calls (#706; `copy.ts`, `notices.ts`) [V]. The PM's final approval, after the screenshot storyboard of every report-path screen (socialus-plan #94), is still to come [V #627] Checked: partial markers only; #834 [V] Reviewed: #706 `review-skipped` [V]",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
-     "red": true
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "12",
+     "text": "The second report that hides an item must come from a different member than the first",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      834
+     ],
+     "note": "`create.ts` counts `priorByOthers`; one member filing twice hides nothing (#706, ruled 2026-10-11) [V] Checked: no marker; #834 [V] Reviewed: #706 `review-skipped` [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
     }
    ]
   },
@@ -5172,14 +5232,14 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "moderation/F080-no-sensitive-photos.md",
    "n": 5,
    "totals": {
     "built": {
-     "yes": 3,
+     "yes": 5,
      "no": 0,
-     "unknown": 2
+     "unknown": 0
     },
     "checked": {
      "yes": 3,
@@ -5187,14 +5247,14 @@
      "unknown": 0
     },
     "reviewed": {
-     "yes": 2,
-     "no": 3,
+     "yes": 0,
+     "no": 5,
      "unknown": 0
     },
     "shipped": {
-     "yes": 3,
+     "yes": 4,
      "no": 0,
-     "unknown": 2
+     "unknown": 1
     },
     "smoked": {
      "yes": 0,
@@ -5207,28 +5267,32 @@
      "unknown": 0
     }
    },
-   "red": 2,
+   "red": 0,
    "criteria": [
     {
      "id": "1",
-     "text": "Uploader confirms each photo shows no children; nothing pre-screens",
+     "text": "No image of a child, animal or pet, or anyone who can't fend for themselves; the uploader confirms, nothing is pre-screened",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "yes",
-     "reviewed": "yes",
+     "checked": "no",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`PagePhotoPicker` waits for the tick, clears it after every upload (#483). Page picture and post photo both use it [V]. The tick is client-side only, as ruled. Unclaimed-Page photos are operator-loaded under the system member (`lib/unclaimed/upload.ts`), not a member upload [V]. Checked: yes (`PagePhotoPicker.test.tsx`, marked `F080.5 partial`, not `F080.1`). Reviewed: yes (#483 reviewer agent).",
+     "issues": [
+      835
+     ],
+     "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page picture and post photo both use it; the tick is client-side as ruled (#483) [V]. Unclaimed-Page photos are staff-loaded, not a member upload [V] Checked: partial marker only (`PagePhotoPicker.test.tsx:64`); #835 [V] Reviewed: #483 `review-skipped` [V] Smoked: the editor has no stable live address, so it is skipped [V]",
      "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 2,
      "red": false
     },
     {
@@ -5238,19 +5302,23 @@
       "invariant"
      ],
      "status": "active",
-     "built": "unknown",
-     "checked": "no",
+     "built": "yes",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
+     "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "No text or topic rule found in `src` [A, absence].",
-     "gaps": [
-      "UNKNOWN"
+     "issues": [
+      637
      ],
-     "score": 0,
-     "red": true
+     "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
     },
     {
      "id": "3",
@@ -5259,63 +5327,73 @@
       "invariant"
      ],
      "status": "active",
-     "built": "unknown",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "No flag, tier or request path found [A, absence].",
-     "gaps": [
-      "UNKNOWN"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "4",
-     "text": "A reported sensitive photo hides at once at any bar and texts the operator",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "yes",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "#483: report reason \"sensitive content\" hides Page picture and post photo past the limits and sends the text; migration `20261007180000_report_category.sql` ran in production [V]. Delivery needs `TWILIO_*` / `OPERATOR_PHONE`; whether they are set in production is unknown. Checked: yes (`report/create.test.ts`, `F080.4 partial`: delivery is Twilio's). Reviewed: yes (#483 reviewer agent; the PR also carries `review-skipped`).",
-     "gaps": [
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 4,
-     "red": false
-    },
-    {
-     "id": "5",
-     "text": "The app asks not to post sensitive content wherever a member posts, and why; each photo asks for confirmation",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
      "built": "yes",
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`COPY.postingSafety` via `PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder, awaiting the PM's tone look. Checked: yes (`posting-safety.test.tsx` `F080.5`, `PagePhotoPicker.test.tsx`). Reviewed: no (#250, #251 have no review section).",
+     "issues": [
+      637
+     ],
+     "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
      "score": 3,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "A reported image is caught by F078: a sensitive-content flag hides at any bar and texts the operator",
+     "kind": [
+      "behavior",
+      "external"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      835
+     ],
+     "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751) [V] Checked: partial marker only (`create.test.ts:476`); #835 [V] Reviewed: #483 `review-skipped` [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Wherever a member posts, the app asks not to post sensitive content, and why; each photo upload asks to confirm",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder pending the PM's tone look [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped` [V] Shipped: no deploy-health run on #250, #251 [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
      "red": false
     }
    ]
@@ -5327,60 +5405,62 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "moderation/F100-ai-first-pass-review.md",
-   "n": 12,
+   "n": 13,
    "totals": {
     "built": {
-     "yes": 8,
-     "no": 4,
+     "yes": 11,
+     "no": 2,
      "unknown": 0
     },
     "checked": {
-     "yes": 2,
-     "no": 10,
+     "yes": 8,
+     "no": 5,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 8,
-     "no": 4,
+     "yes": 3,
+     "no": 10,
      "unknown": 0
     },
     "shipped": {
-     "yes": 8,
-     "no": 4,
+     "yes": 11,
+     "no": 2,
      "unknown": 0
     },
     "smoked": {
-     "yes": 0,
-     "no": 4,
-     "unknown": 8
+     "yes": 1,
+     "no": 2,
+     "unknown": 10
     },
     "pm_looked": {
      "yes": 0,
-     "no": 12,
+     "no": 13,
      "unknown": 0
     }
    },
-   "red": 7,
+   "red": 2,
    "criteria": [
     {
      "id": "1",
-     "text": "Every report and every poster rebuttal triggers one read, after the report is stored; the report never waits",
+     "text": "Every report and every poster rebuttal triggers one AI assessment, after the report is stored and hidden",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`assessAfterReport` via `after()` from `create.ts:466`; rebuttal from `report-actions.ts:72`; Page photo, Page picture, Post words and post photo are read (PRs #495, #513). Builders' reports are skipped by design [V] Checked: unmarked: `create.test.ts:519`, `answer-actions.test.ts` (only partial markers).",
+     "issues": [
+      642
+     ],
+     "note": "`assessAfterReport` via `after()` from `create.ts`; the rebuttal triggers a read from `report-actions.ts`; a failed call leaves the report as is (#495, #513) [V] Checked: `[guards F100.1]` in `moderation/criteria.test.ts` [V] Reviewed: #756 `review-skipped` [V]",
      "gaps": [
-      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
@@ -5389,21 +5469,23 @@
     },
     {
      "id": "2",
-     "text": "Haiku with text and vision, structured: category, severity 1–4, confidence, outcome, reason ≤ 140",
+     "text": "First pass is Claude Haiku, text and vision, structured output",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`assess.ts` (Haiku 4.5, forced tool, zod, reason cut to 140; eight categories incl. child and other) [V] Checked: no (partial marker `assess.test.ts:25`).",
+     "issues": [
+      642
+     ],
+     "note": "`assess.ts`: Haiku, forced tool, zod, reason cut to 140; category, severity 1-4, confidence, outcome [V] Checked: `[guards F100.2]` in `moderation/criteria.test.ts` [V] Reviewed: #540, #756 `review-skipped` [V]",
      "gaps": [
-      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
@@ -5412,48 +5494,51 @@
     },
     {
      "id": "3",
-     "text": "Under 0.70 Sonnet gives a second opinion; both stored, second shown",
+     "text": "Below 0.70 confidence Sonnet gives a second opinion; both reads stored, the shown one is the second",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
      "checked": "yes",
-     "reviewed": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`ESCALATION_THRESHOLD`; `run-assessment.ts` inserts each read [V] Checked: yes (`assess.test.ts:37`).",
+     "note": "`ESCALATION_THRESHOLD`; `run-assessment.ts` inserts each read [V] Checked: `[guards F100.3]` in `assess.test.ts` [V] Reviewed: #540 `review-skipped` [V]",
      "gaps": [
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
      "id": "4",
-     "text": "Send only content, reporter's reason, rebuttal; no name, handle or email; rules versioned",
+     "text": "Only the content, the reporter's reason and the rebuttal are sent; no name, handle or email; rules text versioned",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Payload built in `assess.ts` from `AssessInput`, photo as bytes; `RULES_VERSION` in the system prompt [V] Checked: yes, weak (asserts no \"@\" and one id absent; `assess.test.ts:75`).",
+     "issues": [
+      643
+     ],
+     "note": "Payload built in `assess.ts` from `AssessInput`; `RULES_VERSION` in the system prompt [V] Checked: `[guards F100.4]` in `assess.test.ts` and `guards.test.ts` [V] Reviewed: #540, #755, #756 `review-skipped` or no `Reviewed by:` [V]",
      "gaps": [
-      "INVARIANT-UNPROVEN",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
      "score": 3,
-     "red": true
+     "red": false
     },
     {
      "id": "5",
@@ -5464,47 +5549,50 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`report_assessments` (migration 20261007260000) has every column plus tokens and a skipped reason; RLS on, no policy [V] Checked: unmarked: `tests/report-assessments-db.test.ts`.",
+     "issues": [
+      642
+     ],
+     "note": "`report_assessments` (migration 20261007260000) has every column; RLS on, no policy [V] Checked: `[guards F100.5]` in `tests/report-assessments-db.test.ts` [V] Reviewed: #495 says `Reviewed by: the builder` (counted literally) [A]",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
-     "red": true
+     "score": 4,
+     "red": false
     },
     {
      "id": "6",
-     "text": "Shadow mode: an assessment changes nothing (but F102's severity-4 auto-restore)",
+     "text": "Shadow mode: an assessment changes nothing (save F102's severity-4 restore)",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Only `report_assessments` written in `runAssessment`; restore step is the ruled exception [V] Checked: yes, one path (`run-assessment.test.ts:91`); queue order and notify not asserted.",
+     "issues": [
+      643
+     ],
+     "note": "Only `report_assessments` is written in `runAssessment`; the restore step is the ruled exception [V] Checked: `[guards F100.6]` in `run-assessment.test.ts` [V] Reviewed: #540 `review-skipped` [V]",
      "gaps": [
-      "INVARIANT-UNPROVEN",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
      "score": 3,
-     "red": true
+     "red": false
     },
     {
      "id": "7",
-     "text": "A person's decision is logged against the AI suggestion",
+     "text": "When a person decides, agreement is logged",
      "kind": [
       "behavior"
      ],
@@ -5516,7 +5604,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`report_ai_agreement` view, owner-only [V] Checked: yes (`report-assessments-db.test.ts:97`).",
+     "note": "`report_ai_agreement` view, owner-only (#495, #513) [V] Checked: `[guards F100.7]` in `tests/report-assessments-db.test.ts` [V]",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -5526,30 +5614,111 @@
     },
     {
      "id": "8",
-     "text": "Live mode is a data switch; live raises severity and order; remove, restore, strikes stay a person's",
+     "text": "Live mode is a data switch; live raises a row's severity and order; remove, restore, strikes stay a person's tap",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      642
+     ],
+     "note": "`moderation_settings.ai_mode`, `fetchAiMode`; the higher of the two severities in live (#513) [V] Checked: `[guards F100.8]` in `moderation/criteria.test.ts` [V]",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "An evaluation harness prints recall, false alarms, severity accuracy, latency and cost; it runs on every prompt change",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`moderation_settings.ai_mode`, `fetchAiMode`; higher of the two severities in live (PR #513) [V] Checked: unmarked: `ReviewQueue.test.tsx:390` (marked F101.3); `fetchAiMode` untested.",
+     "issues": [
+      638,
+      836
+     ],
+     "note": "`npm run moderation:eval`; `moderation-eval.yml` runs on changes to the prompt, models, metrics and set; the full run needs the repo secret, else it is skipped with a note (last run green 2026-10-13) [V] Checked: partial markers only; #836 [V] Reviewed: #762, #767 no `Reviewed by:`; #522 `review-skipped` [V]",
      "gaps": [
       "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "10",
+     "text": "Builder agents build the labelled set: licensed photos, a children-rule case, an adult case, no minors in sensitive context",
+     "kind": [
+      "coverage"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      639,
+      836
+     ],
+     "note": "`evals/moderation/cases.json`: 55 cases (23 violating, 22 clean, 10 borderline), 10 with open-licence photos, two severity-1 and two child cases; `validateSet` refuses unlicensed, minor or sexual images (#767) [V] Checked: seven partial markers in `eval-cases.test.ts`; #836 [V] Reviewed: #767 no `Reviewed by:`; #522 `review-skipped` [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "11a",
+     "text": "Beta half of 11: the PM sees recall, severity-1 recall, false alarms and shadow days against the targets",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      640,
+      836
+     ],
+     "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, with green/amber/red per number (#754, ruled option C 2026-10-11) [V] Checked: partial markers only (`readiness.test.ts`, `eval-metrics.test.ts`); #836 [V] Reviewed: #754, #756 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-14 [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
      "score": 3,
      "red": false
     },
     {
-     "id": "9",
-     "text": "Harness prints recall, false alarms, severity accuracy, latency, cost; runs on every prompt change",
+     "id": "11b",
+     "text": "Production half of 11: software refuses the live flip until a passing harness run and the shadow read are recorded",
      "kind": [
       "behavior"
      ],
@@ -5561,55 +5730,9 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      638
+      837
      ],
-     "note": "`npm run moderation:eval` prints all of them [V]; nothing runs it on a prompt change (no moderation job in `.github`). #638 Checked: unmarked: `eval-metrics.test.ts`, `eval-run.test.ts`.",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "10",
-     "text": "Builder-built labelled set; licensed photos, licence per photo; children and adult cases handled safely",
-     "kind": [
-      "coverage"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      639
-     ],
-     "note": "17 cases, 6 synthetic pictures with licence records, `validateSet` refuses unlicensed or minor or sexual images [V]. No real stock photo, no children-rule case, no adult case, 8 violating cases. #639 Checked: yes, for the validator (`eval-cases.test.ts`, 3 markers).",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "11",
-     "text": "Live needs ≥ 95% recall, 100% severity-1, < 10% false alarms, plus two weeks of shadow the PM read",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      640
-     ],
-     "note": "`meetsLiveTargets` exists; nothing ties the flip to it; set too small; no shadow-read place. Scenario Size puts live after beta. #640 Checked: no (partial marker `eval-metrics.test.ts:44`).",
+     "note": "Not built, by ruling a production step (F100 `## Rulings` 2026-10-11, option C): `ai_mode` flips with no recorded run and nothing marks the shadow read [V]. Filed #837, not launch-blocking.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5618,7 +5741,7 @@
     },
     {
      "id": "12",
-     "text": "Suspected severity-1 never sent to a provider; images hash-checked; row goes to a person with the result",
+     "text": "Suspected severity-1 content is never sent to an AI provider; images are hash-checked first (Cloudflare) and go to a person with the result",
      "kind": [
       "invariant",
       "external"
@@ -5634,7 +5757,7 @@
       641,
       643
      ],
-     "note": "Skip half built: a `sensitive_content` report gets a skipped row, no call, no image fetch [V]. Hash check (Cloudflare CSAM tool) not built; build log says rows go to a person without a hash result. #641 Checked: yes for the skip half (`run-assessment.test.ts:50`); no standing guard that no other path calls the provider (#643).",
+     "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (#784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641); rows say \"Photo not scanned against known lists\" [V] Checked: `[guards F100.12]` covers the skip half only.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5650,34 +5773,34 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "moderation/F101-one-page-of-flagged-posts.md",
    "n": 15,
    "totals": {
     "built": {
-     "yes": 12,
-     "no": 3,
+     "yes": 15,
+     "no": 0,
      "unknown": 0
     },
     "checked": {
-     "yes": 2,
-     "no": 13,
+     "yes": 15,
+     "no": 0,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 3,
-     "no": 12,
+     "yes": 0,
+     "no": 15,
      "unknown": 0
     },
     "shipped": {
-     "yes": 12,
-     "no": 3,
-     "unknown": 0
+     "yes": 3,
+     "no": 0,
+     "unknown": 12
     },
     "smoked": {
-     "yes": 0,
-     "no": 3,
-     "unknown": 12
+     "yes": 14,
+     "no": 0,
+     "unknown": 1
     },
     "pm_looked": {
      "yes": 0,
@@ -5685,254 +5808,255 @@
      "unknown": 0
     }
    },
-   "red": 5,
+   "red": 0,
    "criteria": [
     {
      "id": "1",
-     "text": "Operator-only Posts page, one row per subject (Post with its photos, Page photo, Page picture); non-operators 404",
+     "text": "Operator-only Posts page, one row per reported subject; non-operators get 404",
      "kind": [
       "behavior",
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "`page.tsx` gates on `reports.review`, `groupBySubject` rolls reports per subject incl. `page_picture`, `post_photo` [V] Checked: unmarked: `tests/admin-reports-gate.test.ts`, `ReviewQueue.test.tsx`.",
+     "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo) [V] Checked: `[guards F101.1]` in `criteria.test.tsx` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 deploy-health was cancelled [V] Smoked: `admin-reports` green as operator 2026-10-14 [V]",
      "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-SMOKED",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
      "score": 3,
-     "red": true
+     "red": false
     },
     {
      "id": "2",
-     "text": "Row shows thumbnail, 120-char excerpt, badge, reasons+count, AI read, rebuttal, reporter counters + coordinated flag, status, age",
-     "kind": [
-      "behavior"
-     ],
-     "status": "spec-conflict",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "All shown except status \"under appeal\": no appeal state exists anywhere in code [V grep]. Appeals are out of scope in the scenario's \"Not this\" Checked: unmarked: `ReviewQueue.test.tsx`. Filed: none (SPEC-CONFLICT).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "3",
-     "text": "Severity 1–4, highest open tier; shadow = reporter's, live = higher of the two",
+     "text": "Each row shows thumbnail, excerpt, severity, reasons, AI read, rebuttal, reporter record, coordinated flag, status and age",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
      "checked": "yes",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`review-subjects.ts` tier map, `ai_mode` data flag (#513) [V] Checked: yes (`[guards F101.3]`).",
+     "issues": [
+      636
+     ],
+     "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V] Checked: `[guards F101.2]` in `criteria.test.tsx` [V] Reviewed: #380 none, #771 `review-skipped` [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NOT-SMOKED",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Severity 1-4, the highest open tier; shadow = reporter's category, live = the higher of the two",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      636
+     ],
+     "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
      "red": false
     },
     {
      "id": "4",
-     "text": "Order severity then oldest; sort severity/age/count; filter by status; header counts by severity",
+     "text": "Order severity then oldest hidden; sort by severity, age, count; filter by status; header counts",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "Sort has all three; filter is Waiting/All, not hidden/restored/removed individually [V]; header counts by severity [V] Checked: unmarked: `ReviewQueue.test.tsx`.",
+     "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "5",
-     "text": "Approve/Remove full-width, 48 px+, bottom half of row; Approve restores, Remove keeps down",
+     "text": "Approve and Remove as full-width buttons, at least 48 px, in the bottom half of every waiting row",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "`min-h-12` buttons in the row footer [V] Checked: unmarked (partial marker covers height only).",
+     "note": "`min-h-12` buttons in the row footer [V] Checked: `[guards F101.5]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "6",
-     "text": "Swipe right approves, left removes, colour and word revealed",
+     "text": "Swipe right approves, swipe left removes, with the action's colour and word revealed",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "`ReviewQueue.tsx` pointer handlers, green/red reveal [V] Checked: unmarked: `ReviewQueue.test.tsx` (right swipe only).",
+     "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "7",
-     "text": "One tap or swipe per decision; severity-1 Approve asks once more",
+     "text": "One decision is one tap or one swipe; severity-1 Approve takes one extra confirm",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "Severity-1 confirm in row [V] Checked: unmarked: `ReviewQueue.test.tsx`.",
+     "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "8",
-     "text": "No confirm dialog; 5-second Undo; undone writes no decision and tells nobody",
+     "text": "No confirm dialog otherwise; five-second Undo; an undone decision writes no row and tells the member nothing",
      "kind": [
       "behavior",
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "Decision held client-side five seconds before the server call [V] Checked: unmarked: `ReviewQueue.test.tsx` (\"Undo ... writes nothing\").",
+     "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
-     "red": true
+     "score": 3,
+     "red": false
     },
     {
      "id": "9",
-     "text": "Next waiting row moves into place after each decision",
+     "text": "The next waiting row moves into place after each decision",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "Row removed from the list on decide [V] Checked: unmarked (50-row keystroke test is partial for 15).",
+     "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "10",
-     "text": "One-tap default reason: Approve \"Nothing wrong with it\"; Remove matches top category; changeable in detail",
+     "text": "A one-tap decision records a default reason, changeable afterwards",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "`DEFAULT_REASON`, category reason codes (#513, migration `20261008005836`) [V] Checked: unmarked: `ReviewQueue.test.tsx`.",
+     "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836) [V] Checked: `[guards F101.10]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
      "score": 3,
@@ -5940,105 +6064,105 @@
     },
     {
      "id": "11",
-     "text": "A decision writes one `report_decisions` row per open report, attributed, reversible",
+     "text": "A decision writes one `report_decisions` row per open report it closes",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "`decideReportAction` called per open report id [V] Checked: unmarked: `ReviewQueue.test.tsx` (client call ids, not the database rows).",
+     "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "12",
-     "text": "Tap row: full history, every report, assessment, rebuttal, decision, newest first, Undo on any decision",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      634
-     ],
-     "note": "Reports, decisions with Undo, rebuttal and latest AI read exist. Every earlier AI read is missing (build log 486) Checked: unmarked: `ReportEntry.test.tsx`.",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "13",
-     "text": "Severity 1–3 thumbnails blurred until pressed and held; severity 4 plain",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      635
-     ],
-     "note": "Blur by tier exists; reveal is a tap toggle, not press-and-hold (`onClick` flips `peek`) [V] Checked: unmarked: `ReviewQueue.test.tsx` (tests the tap).",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "14",
-     "text": "Desktop keys: A approves, R removes, J/K move, U undoes",
+     "text": "Tapping a row opens the subject with its full history, newest first, with Undo on any decision",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      634
+     ],
+     "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Smoked: `admin-reports` green [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "13",
+     "text": "Severity 1-3 thumbnails are blurred until pressed and held; severity 4 shows plain",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      635
+     ],
+     "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "14",
+     "text": "Desktop keys: A approves, R removes, J and K move, U undoes",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       636
      ],
-     "note": "Key handler in `ReviewQueue.tsx` [V] Checked: unmarked: `ReviewQueue.test.tsx` (R, U tested; A, J, K not).",
+     "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
+      "NOT-SHIPPED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "15",
-     "text": "50 rows clearable in under 10 minutes on a phone, browser test at 375 px",
+     "text": "A batch of 50 waiting rows is clearable in under 10 minutes on a phone, measured at 375 px",
      "kind": [
       "coverage"
      ],
@@ -6050,7 +6174,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`evals/features/F101-report-decisions-at-375.spec.ts`, 50 decisions in 23.7 s [V PR #538] Checked: yes (`[guards F101.15]`).",
+     "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec [V] Reviewed: #538 no `Reviewed by:` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -6068,34 +6192,34 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "moderation/F102-poster-answers-first.md",
    "n": 14,
    "totals": {
     "built": {
-     "yes": 9,
-     "no": 5,
+     "yes": 13,
+     "no": 1,
      "unknown": 0
     },
     "checked": {
-     "yes": 4,
-     "no": 10,
+     "yes": 8,
+     "no": 6,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 12,
-     "no": 2,
+     "yes": 3,
+     "no": 11,
      "unknown": 0
     },
     "shipped": {
-     "yes": 9,
-     "no": 5,
-     "unknown": 0
+     "yes": 12,
+     "no": 1,
+     "unknown": 1
     },
     "smoked": {
-     "yes": 0,
-     "no": 5,
-     "unknown": 9
+     "yes": 9,
+     "no": 1,
+     "unknown": 4
     },
     "pm_looked": {
      "yes": 0,
@@ -6103,275 +6227,35 @@
      "unknown": 0
     }
    },
-   "red": 6,
+   "red": 3,
    "criteria": [
     {
      "id": "1",
-     "text": "Poster told category and reporter's reason; gets one answer",
+     "text": "When content hides, the poster is told the category and the reporter's reason and gets one answer",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
+     "checked": "yes",
+     "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       649
      ],
-     "note": "`member_notices` row on hide, fix or say-wrong (#506) [V] Checked: no: `YouNotices.test` exists, unmarked.",
+     "note": "`member_notices` row on the hide; `YouNotices` on `/you` (#506, #706) [V] Checked: `[guards F102.1]` in `f102-criteria.test.tsx` [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-16 [A]",
      "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
+      "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
      "id": "2",
-     "text": "Fix and repost shows again at once; reports stay; no second repost; not for severity 1",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      649
-     ],
-     "note": "`page_posts.repost_used`, reports stay on the row (#506) [V] Checked: no: only \"no second repost\" marked (`post.test`).",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 3,
-     "red": false
-    },
-    {
-     "id": "3",
-     "text": "Say it's wrong: Mistaken/Malicious/Misusing + 280-char note; one per hide; to AI and row; stays hidden",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      649
-     ],
-     "note": "`report_answers` unique per notice; rebuttal passed to `run-assessment` (#506, #513) [V] Checked: no: only \"one answer per hide\" marked.",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 3,
-     "red": false
-    },
-    {
-     "id": "4",
-     "text": "Unanswered hide stays hidden, closes at 14 days; batch shows it only if severity 1",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      645,
-      649
-     ],
-     "note": "Notice closes at 14 days (`ANSWER_WINDOW_DAYS`) [V]. Batch rule missing: no filter in `reports-queue.ts`/`review-subjects.ts` hides lapsed severity 2-4 rows Checked: no: partial markers.",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 1,
-     "red": true
-    },
-    {
-     "id": "5",
-     "text": "Per-reporter counters (filed, upheld, dismissed, open), operator-only, used by nothing else",
-     "kind": [
-      "invariant"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      650
-     ],
-     "note": "Counters in `reports-queue.ts`, shown in `ReportEntry.tsx` (#506) [V]; nothing proves \"used by nothing else\"",
-     "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 3,
-     "red": true
-    },
-    {
-     "id": "6",
-     "text": "Cap 5, drops to 1 after any dismissal in 30 days",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "yes",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "`CAP_AFTER_A_DISMISSAL = 1` in `create.ts` [V] Checked: yes (`create.test`, `[guards F102.6]`).",
-     "gaps": [
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 4,
-     "red": false
-    },
-    {
-     "id": "7",
-     "text": "Two dismissals in 30 days start a 14-day cool-down; stored and queued, hide nothing; three strikes above",
-     "kind": [
-      "behavior"
-     ],
-     "status": "spec-conflict",
-     "built": "no",
-     "checked": "yes",
-     "reviewed": "yes",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "Cool-down and three strikes built, but urgent categories (sensitive, threat of harm) still hide in a cool-down. Spec says hide nothing: SPEC-CONFLICT Checked: yes (`[guards F102.7]`, tests the built reading). Filed: spec-conflict.",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
-     "score": 2,
-     "red": true
-    },
-    {
-     "id": "8",
-     "text": "3+ reports on a poster in 24h, 2 from accounts under 7 days: flag, +1 tier in severity",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "yes",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "`coordinatedPosters`, sort tier in `review-subjects.ts`; \"Possible coordinated reporting\" in `ReviewQueue.tsx` [V] Checked: yes (`[guards F102.8]`).",
-     "gaps": [
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 4,
-     "red": false
-    },
-    {
-     "id": "9",
-     "text": "Tue-Thu with no person: sev 2-4 wait; sev 1 stays hidden and texts the PM",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      649
-     ],
-     "note": "Nothing schedules a person step; urgent hides text the operator in `create.ts` [V]",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 3,
-     "red": false
-    },
-    {
-     "id": "10",
-     "text": "Threat-of-harm report sheet says call 911 if in danger now",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      627,
-      649
-     ],
-     "note": "Line shown on picking Threat of harm (placeholder copy, #627 covers the strings) [V build log]",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 3,
-     "red": false
-    },
-    {
-     "id": "11",
-     "text": "One Friday summary: waiting by severity, answers, cool-downs",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "yes",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      646,
-      649
-     ],
-     "note": "One-line \"This week: answers, cool-downs\" built (`fetchWeekSummary`). Missing: waiting rows by severity; shown daily, not Friday",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 1,
-     "red": true
-    },
-    {
-     "id": "12",
-     "text": "Severity 4 auto-restore, narrow gate, logged, reversible, \"Restored by AI\"",
+     "text": "Fix and repost: the edit shows again at once, reports stay on the row, no second repost, not offered for severity 1",
      "kind": [
       "behavior"
      ],
@@ -6382,8 +6266,10 @@
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`restore-gate.ts`, `ai-restore.ts` (#540); dormant until flag cleared by the PM after the F100 harness [V] Checked: yes (`restore-gate.test`, `ai-restore.test`). Reviewed: no (#540 skipped).",
+     "issues": [
+      649
+     ],
+     "note": "`page_posts.repost_used`; severity 1 never reposts (#506, #773) [V] Checked: `[guards F102.2]` in `tests/f102-fix-and-repost-db.test.ts` [V] Reviewed: #773 `review-skipped` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -6393,13 +6279,38 @@
      "red": false
     },
     {
-     "id": "13",
-     "text": "IP and time recorded on every upload and post; operator-only; 1 year then deleted",
+     "id": "3a",
+     "text": "The poster can say the report is wrong: one answer per hide, it goes to the AI pass and the row, the content stays hidden",
      "kind": [
-      "invariant",
-      "coverage"
+      "behavior"
      ],
      "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      649,
+      838
+     ],
+     "note": "`report_answers` unique per notice; the rebuttal reaches `run-assessment`; one \"This is a mistake\" button (#506, #513, #706) [V] Checked: partial markers only; #838 [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green [A]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "3b",
+     "text": "The answer is one of Mistaken, Malicious or Misusing reports, plus a 280-character note",
+     "kind": [
+      "behavior"
+     ],
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -6407,38 +6318,283 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      647,
+      627
+     ],
+     "note": "RETIRED. Overtaken by the PM's copy call of 2026-10-11 on #627 and #626 (\"one button only; remove the three answer choices\"); no dated line in F102 `## Rulings` yet, so `sync-roadmap` should record it and amend the scenario.",
+     "gaps": [],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "No answer is no work: an unanswered hide stays hidden and closes after 14 days; the batch shows it only if severity 1",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      645,
+      649
+     ],
+     "note": "`ANSWER_WINDOW_DAYS = 14`; a lapsed hide leaves the batch unless severity 1 (#773) [V] Checked: `[guards F102.4]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Per-reporter counters (filed, upheld, dismissed, open); operator-only; used by nothing outside the report path",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
       650
      ],
-     "note": "Photo upload and post recorded; RLS, no policy; `purge_content_origins()` [V]. Missing: other write paths (#509 \"Not here\"); purge workflow waits on `CONTENT_ORIGINS_PURGE_ENABLED`, not set [V] Checked: no: deletion marked partial; RLS test unmarked. Reviewed: no (#509 skipped).",
+     "note": "Counters in `reports-queue.ts`, shown on the row (#506) [V] Checked: `[guards F102.5]` in `f102-criteria.test.tsx` [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green [V]",
      "gaps": [
-      "NOT-BUILT"
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "The cap tightens: 5 hiding reports open at once, 1 after any dismissal in the last 30 days",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`CAP_AFTER_A_DISMISSAL = 1` in `create.ts` (#506) [V] Checked: `[guards F102.6]` in `create.test.ts` [V]",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Cool-down: two dismissals in 30 days start 14 days in which that reporter's reports hide nothing",
+     "kind": [
+      "behavior"
+     ],
+     "status": "spec-conflict",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "SPEC-CONFLICT. Cool-down and three strikes are built, but urgent categories (sensitive content, threat of harm) still hide during one (`create.ts`, \"ruled 2026-10-08, Dispatch\") while the criterion says hide nothing; the ruling is not in the scenario [V]. Test: `[guards F102.7]` asserts the built reading.",
+     "gaps": [
+      "SPEC-CONFLICT"
      ],
      "score": 0,
      "red": true
     },
     {
+     "id": "8",
+     "text": "Three or more reports in 24 hours, two from accounts under 7 days old, flag the row \"Possible coordinated reporting\" and lift it one tier",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      838
+     ],
+     "note": "`coordinatedPosters` and the sort tier in `review-subjects.ts`; the flag in `ReviewQueue.tsx` (#506) [V] Checked: no marker since #771 removed it; the thresholds are untested; #838 [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "Tuesday to Thursday with no person: severities 2-4 stay hidden and wait; severity 1 stays hidden and texts the PM",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      649
+     ],
+     "note": "Nothing schedules a person step; urgent reports alert the operator (`create.ts`) [V] Checked: `[guards F102.9]` in `f102-criteria.test.tsx` [V] Reviewed: #773 `review-skipped` [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "10",
+     "text": "The threat-of-harm report sheet tells the reporter to call 911 if someone is in danger now",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      627,
+      649
+     ],
+     "note": "`COPY.report911` shown in `ReportSheet` before sending (placeholder copy, #627) [V] Checked: `[guards F102.10]` in `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: `page` opens green; the sheet is not opened [A]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "11",
+     "text": "One Friday in-app summary: waiting rows by severity, answers received, cool-downs started",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      646,
+      649
+     ],
+     "note": "`ReviewQueue.tsx` shows the summary on Fridays in the metro time zone (#773) [V] Checked: `[guards F102.11]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green [V]",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "12",
+     "text": "Severity 4 restores itself in beta, narrowly (poster answered, Haiku and Sonnet both approve at 0.95 or higher, no coordinated flag, harness cleared)",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      838
+     ],
+     "note": "`restore-gate.ts`, `ai-restore.ts`, \"Restored by AI\" on the row (#540); dormant until the harness clears the slice [V] Checked: markers partial only; the gate tests are unmarked; #838 [V] Reviewed: #540 `review-skipped` [V] Smoked: `admin-reports` green [V]",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "13",
+     "text": "Every upload and post records its IP and time, operator-only, kept a year then deleted",
+     "kind": [
+      "invariant",
+      "coverage"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      647,
+      650,
+      838
+     ],
+     "note": "Every member upload and post path calls the recorder; RLS on, no policy (#509, #774) [V]. The daily purge is off until the repository variable `CONTENT_ORIGINS_PURGE_ENABLED` is set; every row is under a year old, so nothing is due before October 2027 [V] Checked: partial markers only; #838 [V] Reviewed: #509 `review-skipped`; #774 no `Reviewed by:` [V]",
+     "gaps": [
+      "INVARIANT-UNPROVEN",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": true
+    },
+    {
      "id": "14",
-     "text": "Child-safety is a legal tier: never restores, never to poster, no AI, preserved and reported to NCMEC",
+     "text": "Child-safety content is a legal tier: never restores, never goes to the poster, no AI, preserved and reported to NCMEC",
      "kind": [
       "invariant"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
-     "reviewed": "yes",
-     "shipped": "no",
-     "smoked": "no",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       648,
-      650
+      650,
+      838
      ],
-     "note": "No poster notice for sensitive content, severity 1 skipped by the AI, restore gate severity 4 only [V]. Missing: preservation and the NCMEC report; plan step 1 (register) open Checked: no: poster side marked partial only.",
+     "note": "No poster notice, the AI skips it, the restore gate is severity 4 only; a one-year legal hold (#783) and a field for NCMEC's report number after the manual CyberTipline form (#785), runbook link (#782) [V]. #648 stays open for the PM's member-facing statement and the parked phone check [V] Checked: partial markers only; #838 [V] Reviewed: #785 `review-skipped` [V] Shipped: #783 has no deploy-health run [V] Smoked: `admin-reports` green [V]",
      "gaps": [
-      "NOT-BUILT"
+      "INVARIANT-UNPROVEN",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": true
     }
    ]
@@ -7766,37 +7922,37 @@
   },
   "moderation": {
    "features": 6,
-   "n": 63,
-   "red": 28,
+   "n": 64,
+   "red": 6,
    "totals": {
     "built": {
-     "yes": 44,
-     "no": 17,
-     "unknown": 2
+     "yes": 60,
+     "no": 4,
+     "unknown": 0
     },
     "checked": {
-     "yes": 14,
-     "no": 49,
+     "yes": 44,
+     "no": 20,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 33,
-     "no": 30,
+     "yes": 6,
+     "no": 58,
      "unknown": 0
     },
     "shipped": {
-     "yes": 40,
-     "no": 17,
-     "unknown": 6
+     "yes": 41,
+     "no": 4,
+     "unknown": 19
     },
     "smoked": {
-     "yes": 0,
-     "no": 17,
-     "unknown": 46
+     "yes": 32,
+     "no": 4,
+     "unknown": 28
     },
     "pm_looked": {
      "yes": 0,
-     "no": 63,
+     "no": 64,
      "unknown": 0
     }
    }
@@ -7878,37 +8034,37 @@
  },
  "all": {
   "features": 28,
-  "n": 232,
-  "red": 40,
+  "n": 233,
+  "red": 18,
   "totals": {
    "built": {
-    "yes": 148,
-    "no": 78,
-    "unknown": 6
+    "yes": 164,
+    "no": 65,
+    "unknown": 4
    },
    "checked": {
-    "yes": 55,
-    "no": 177,
+    "yes": 85,
+    "no": 148,
     "unknown": 0
    },
    "reviewed": {
-    "yes": 56,
-    "no": 173,
+    "yes": 29,
+    "no": 201,
     "unknown": 3
    },
    "shipped": {
-    "yes": 121,
-    "no": 78,
-    "unknown": 33
+    "yes": 122,
+    "no": 65,
+    "unknown": 46
    },
    "smoked": {
-    "yes": 30,
-    "no": 78,
-    "unknown": 124
+    "yes": 62,
+    "no": 65,
+    "unknown": 106
    },
    "pm_looked": {
     "yes": 0,
-    "no": 232,
+    "no": 233,
     "unknown": 0
    }
   }
@@ -7919,9 +8075,6 @@
    "F099.11b",
    "F059.5a",
    "F091.1b",
-   "F058.2",
-   "F078.3",
-   "F101.2",
    "F102.7",
    "F056.1",
    "F056.3",
@@ -7930,8 +8083,6 @@
    "F077.8"
   ],
   "UNKNOWN": [
-   "F080.2",
-   "F080.3",
    "F077.1",
    "F077.2",
    "F081.2"
@@ -7980,20 +8131,9 @@
    "F105.3",
    "F105.4",
    "F105.5",
-   "F058.4",
    "F078.1",
-   "F078.2",
-   "F078.11",
-   "F100.9",
-   "F100.10",
-   "F100.11",
+   "F100.11b",
    "F100.12",
-   "F101.12",
-   "F101.13",
-   "F102.4",
-   "F102.11",
-   "F102.13",
-   "F102.14",
    "F056.4",
    "F069.2",
    "F057.2",
@@ -8025,14 +8165,8 @@
    "F059.5e",
    "F070.2",
    "F092.1",
-   "F058.3",
-   "F078.4",
-   "F100.4",
-   "F100.5",
-   "F100.6",
-   "F101.1",
-   "F101.8",
-   "F102.5",
+   "F102.13",
+   "F102.14",
    "F056.7",
    "F056.8",
    "F056.9",
@@ -8067,28 +8201,20 @@
    "F092.3",
    "F092.6",
    "F093.7",
-   "F058.1",
-   "F058.5",
-   "F058.6",
-   "F078.5",
-   "F078.6",
-   "F078.7",
-   "F100.1",
-   "F100.2",
-   "F100.8",
-   "F101.4",
-   "F101.5",
-   "F101.6",
-   "F101.7",
-   "F101.9",
-   "F101.10",
-   "F101.11",
-   "F101.14",
-   "F102.1",
-   "F102.2",
-   "F102.3",
-   "F102.9",
-   "F102.10",
+   "F058.4",
+   "F078.2",
+   "F078.4a",
+   "F078.10",
+   "F078.11",
+   "F078.12",
+   "F080.1",
+   "F080.4",
+   "F100.9",
+   "F100.10",
+   "F100.11a",
+   "F102.3a",
+   "F102.8",
+   "F102.12",
    "F056.2",
    "F056.5",
    "F056.6",
@@ -8168,19 +8294,58 @@
    "F093.11",
    "F058.1",
    "F058.3",
+   "F058.4",
    "F058.5",
    "F058.6",
+   "F078.2",
+   "F078.3",
+   "F078.4a",
+   "F078.5",
+   "F078.6",
+   "F078.7",
+   "F078.8",
+   "F078.9",
+   "F078.10",
+   "F078.11",
+   "F078.12",
+   "F080.1",
+   "F080.2",
+   "F080.3",
+   "F080.4",
    "F080.5",
+   "F100.1",
+   "F100.2",
+   "F100.3",
+   "F100.4",
+   "F100.6",
+   "F100.9",
+   "F100.10",
+   "F100.11a",
+   "F101.1",
+   "F101.2",
+   "F101.3",
    "F101.4",
    "F101.5",
    "F101.6",
    "F101.7",
    "F101.8",
    "F101.9",
+   "F101.10",
    "F101.11",
+   "F101.12",
+   "F101.13",
    "F101.14",
    "F101.15",
+   "F102.1",
+   "F102.2",
+   "F102.3a",
+   "F102.4",
+   "F102.9",
+   "F102.10",
+   "F102.11",
    "F102.12",
+   "F102.13",
+   "F102.14",
    "F056.2",
    "F056.8",
    "F056.9",
@@ -8217,8 +8382,23 @@
    "F093.8",
    "F058.1",
    "F058.3",
+   "F058.4",
    "F058.5",
    "F058.6",
+   "F080.5",
+   "F101.1",
+   "F101.2",
+   "F101.3",
+   "F101.4",
+   "F101.5",
+   "F101.6",
+   "F101.7",
+   "F101.8",
+   "F101.9",
+   "F101.10",
+   "F101.11",
+   "F101.14",
+   "F102.14",
    "F069.3",
    "F077.3",
    "F081.1",
@@ -8280,18 +8460,17 @@
    "F093.3",
    "F093.5",
    "F093.7",
-   "F058.1",
-   "F058.3",
-   "F058.5",
-   "F058.6",
-   "F078.4",
-   "F078.5",
-   "F078.6",
+   "F078.2",
+   "F078.4a",
    "F078.7",
    "F078.8",
    "F078.9",
    "F078.10",
+   "F078.11",
+   "F078.12",
    "F080.1",
+   "F080.2",
+   "F080.3",
    "F080.4",
    "F080.5",
    "F100.1",
@@ -8302,27 +8481,13 @@
    "F100.6",
    "F100.7",
    "F100.8",
-   "F101.1",
-   "F101.3",
-   "F101.4",
-   "F101.5",
-   "F101.6",
-   "F101.7",
-   "F101.8",
-   "F101.9",
-   "F101.10",
-   "F101.11",
-   "F101.14",
+   "F100.9",
+   "F100.10",
    "F101.15",
-   "F102.1",
    "F102.2",
-   "F102.3",
-   "F102.5",
    "F102.6",
-   "F102.8",
    "F102.9",
-   "F102.10",
-   "F102.12",
+   "F102.13",
    "F056.2",
    "F056.5",
    "F056.6",
@@ -8429,16 +8594,23 @@
    "F093.11",
    "F058.1",
    "F058.3",
+   "F058.4",
    "F058.5",
    "F058.6",
-   "F078.4",
+   "F078.2",
+   "F078.3",
+   "F078.4a",
    "F078.5",
    "F078.6",
    "F078.7",
    "F078.8",
    "F078.9",
    "F078.10",
+   "F078.11",
+   "F078.12",
    "F080.1",
+   "F080.2",
+   "F080.3",
    "F080.4",
    "F080.5",
    "F100.1",
@@ -8449,7 +8621,11 @@
    "F100.6",
    "F100.7",
    "F100.8",
+   "F100.9",
+   "F100.10",
+   "F100.11a",
    "F101.1",
+   "F101.2",
    "F101.3",
    "F101.4",
    "F101.5",
@@ -8459,17 +8635,23 @@
    "F101.9",
    "F101.10",
    "F101.11",
+   "F101.12",
+   "F101.13",
    "F101.14",
    "F101.15",
    "F102.1",
    "F102.2",
-   "F102.3",
+   "F102.3a",
+   "F102.4",
    "F102.5",
    "F102.6",
    "F102.8",
    "F102.9",
    "F102.10",
+   "F102.11",
    "F102.12",
+   "F102.13",
+   "F102.14",
    "F056.2",
    "F056.5",
    "F056.6",
@@ -8509,12 +8691,12 @@
   "F076: unknown cells: Shipped 7, Smoked 11",
   "F091: unknown cells: Smoked 3",
   "F093: unknown cells: Shipped 1, Smoked 5",
-  "F058: unknown cells: Shipped 4, Smoked 4",
+  "F058: unknown cells: Shipped 5",
   "F078: unknown cells: Smoked 8",
-  "F080: unknown cells: Built 2, Shipped 2, Smoked 5",
-  "F100: unknown cells: Smoked 8",
-  "F101: unknown cells: Smoked 12",
-  "F102: unknown cells: Smoked 9",
+  "F080: unknown cells: Shipped 1, Smoked 5",
+  "F100: unknown cells: Smoked 10",
+  "F101: unknown cells: Shipped 12, Smoked 1",
+  "F102: unknown cells: Shipped 1, Smoked 4",
   "F056: unknown cells: Smoked 6",
   "F069: unknown cells: Shipped 1, Smoked 3",
   "F057: unknown cells: Smoked 2",
