@@ -1604,51 +1604,76 @@
    "area_source": "label",
    "gates": "none",
    "retired": true,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F044-inline-list-map-toggle.md",
-   "n": 5,
+   "n": 3,
    "totals": {
     "built": {
-     "yes": 2,
-     "no": 3,
+     "yes": 3,
+     "no": 0,
      "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 5,
+     "no": 3,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 5,
+     "no": 3,
      "unknown": 0
     },
     "shipped": {
      "yes": 0,
-     "no": 3,
-     "unknown": 2
+     "no": 0,
+     "unknown": 3
     },
     "smoked": {
-     "yes": 0,
-     "no": 3,
-     "unknown": 2
+     "yes": 3,
+     "no": 0,
+     "unknown": 0
     },
     "pm_looked": {
      "yes": 0,
-     "no": 5,
+     "no": 3,
      "unknown": 0
     }
    },
    "red": 0,
    "criteria": [
     {
-     "id": "1",
-     "text": "No fixed full-width List/Map bar; a compact inline `[List] · [Map]` in the results",
+     "id": "1a",
+     "text": "No fixed full-width List/Map segmented bar",
      "kind": [
-      "behavior",
-      "invariant"
+      "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      824
+     ],
+     "note": "The segmented bar is gone: grep of `src` finds no full-width List/Map bar; the only controls are `ExploreDock` (fixed pill group, under 1024px) and `ListMapToggle` docked in the sticky filter bar at 1024-1439px with the owner panel open [V]. Checked: no test asserts the absence at any width, no marker. Reviewed: the bar left via T116/T156 direct work and #279, #479 (review-skipped) [V]. Shipped: T116 landed as direct commit 060ee79 with no deploy run; #279, #479, #496 are green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Filed #824.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "1b",
+     "text": "A compact `[List] · [Map]` toggle sits in the results",
+     "kind": [
+      "behavior"
+     ],
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1656,10 +1681,8 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Segmented bar is gone. But the toggle is no longer in the results: `ExploreDock` is `fixed` bottom-right under 1024px [V]; `ListMapToggle` is docked in the sticky filter bar only at 1024-1439px with the owner panel open [V]. SPEC-CONFLICT with F059 criterion 5 Checked: no (`ListMapToggle.test` asserts only the component's own classes).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired: the 2026-10-01 ruling on F059 criterion 5 puts list and map by screen width (floating pill under 1024px, side by side from 1024px, a switch docked in the filter bar only with the owner panel open) and states 'Nothing is inserted between rows of results'; the 2026-09-13 ruling had already moved the switch beside search. No toggle renders in the results at any width [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     },
@@ -1674,21 +1697,19 @@
      "checked": "no",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      334,
       644
      ],
-     "note": "`setView('map')` through the dock pill or docked tab; docked tab carries `aria-selected` [V]. Dock shows the next view's name, not a selected state [V]. Signed out: Map opens sign-up instead (#334 ruling) [V] Checked: unmarked: `BrowseSurface.layout.test.tsx:123,169`, `ListMapToggle.test.tsx`. Filed #644.",
+     "note": "`setView('map')` through the dock's view button or the docked tab (`BrowseSurface.tsx`); the docked tab carries `aria-selected` and the dock names the next view rather than a selected state, as the 2026-10-01 ruling's pill does [V]. Signed out, Map opens sign-up instead (#334, PR #496) [V]. Checked: unmarked: `BrowseSurface.layout.test.tsx` (view switch swaps list and map), `ListMapToggle.test.tsx`, `ExploreDock.test.tsx`. Reviewed: #279 has no `Reviewed by:`, #479 and #496 are review-skipped [V]. Shipped: T116 was a direct commit (060ee79, no run), so unknown; #279, #479, #496 green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #644.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     },
     {
@@ -1702,20 +1723,19 @@
      "checked": "no",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       644
      ],
-     "note": "Same path, `setView('list')` [V] Checked: unmarked: same files. Filed #644.",
+     "note": "Same path, `setView('list')` [V]. Checked: unmarked: same files as criterion 2. Reviewed, Shipped, Smoked: as criterion 2. Open #644.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     },
     {
@@ -1725,7 +1745,7 @@
       "behavior",
       "invariant"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1733,10 +1753,8 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "T116 built it in flow (`<li role=\"presentation\">` after four cards) [V build log]. Now the dock is `fixed` over the results under 1024px [V]. SPEC-CONFLICT with F059 criterion 5. The \"not fixed\" test covers `ListMapToggle` only, which no longer sits in the results Checked: no (guards the wrong element).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired: the 2026-10-01 ruling on F059 criterion 5 makes the control a floating pill that 'stays visible while scrolling', the opposite of this criterion (Airbnb precedent); #328 built it as `ExploreDock`, fixed bottom right [V]. The 'not fixed' test in `ListMapToggle.test.tsx` covers the docked tab only.",
+     "gaps": [],
      "score": 0,
      "red": false
     },
@@ -1746,7 +1764,7 @@
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1754,10 +1772,8 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Built by T116 (after four cards) [V build log]; no longer rendered in the results at any width [V grep: only `viewSwitch` in the filter bar and `ExploreDock`]. SPEC-CONFLICT with F059 criterion 5",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired: the 2026-10-01 ruling on F059 criterion 5 ('Nothing is inserted between rows of results'); T116 built it after four cards and #279 removed it [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     }
@@ -1770,38 +1786,38 @@
    "area_source": "label",
    "gates": "none",
    "retired": true,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F045-filter-icon-and-sheet.md",
-   "n": 9,
+   "n": 6,
    "totals": {
     "built": {
-     "yes": 2,
-     "no": 7,
+     "yes": 4,
+     "no": 2,
      "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 9,
+     "no": 6,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 9,
+     "no": 6,
      "unknown": 0
     },
     "shipped": {
-     "yes": 0,
-     "no": 7,
-     "unknown": 2
+     "yes": 1,
+     "no": 2,
+     "unknown": 3
     },
     "smoked": {
-     "yes": 0,
-     "no": 7,
-     "unknown": 2
+     "yes": 4,
+     "no": 2,
+     "unknown": 0
     },
     "pm_looked": {
      "yes": 0,
-     "no": 9,
+     "no": 6,
      "unknown": 0
     }
    },
@@ -1813,7 +1829,7 @@
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1821,10 +1837,8 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Built in T114 (`KindFilterPills`, W36 log), deleted in #174; Items and `kind=` are gone [V grep: no pills component in `src/components`]. SPEC-CONFLICT with the 2026-09-12 ruling and F092.1 Filed: none (conflict).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired: 2026-09-12 'Zero filter pills outside the filter view' (F092 Rulings, design-language principle 10) and 2026-09-17 'the shipped kind pill row does not survive' (F059 Rulings); F092 criterion 1. Built in T114, deleted in PR #174; no pills component in `src` [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     },
@@ -1832,34 +1846,77 @@
      "id": "2",
      "text": "No separate market/category/day buttons; filter icon at the right of the sticky search bar",
      "kind": [
-      "behavior",
-      "invariant"
+      "behavior"
      ],
      "status": "active",
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       624,
       652
      ],
-     "note": "`ExploreSearchBar.tsx` has location pill, search, sliders icon, `sticky top-0` [V]. Invariant half is open guard #624 (F092.1) Checked: unmarked: `ExploreSearchBar.test.tsx`.",
+     "note": "`ExploreSearchBar.tsx` has the area pill, search and a sliders button labelled 'Open filters', in a `sticky top-0` row; under 1024px the same controls are in `ExploreDock` [V]. Checked: unmarked: `ExploreSearchBar.test.tsx` ('shows no separate market, category or day buttons', 'sticks to the top'); the invariant half is open guard #624 (F092.1). Reviewed: T115 direct commit, #174 and #479 carry no `Reviewed by:` or review-skipped [V]. Shipped: T115 had no deploy run, unknown; #174, #479 green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #624, #652.",
      "gaps": [
-      "INVARIANT-UNPROVEN",
+      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     },
     {
-     "id": "3",
-     "text": "Tapping the icon opens a sheet: distance 1/5/10/25, schedule any/week/weekend/recurring, category multi-select, sort; Show results; Clear all when set",
+     "id": "3a",
+     "text": "The filter icon opens a sheet: schedule (any / this week / this weekend), category multi-select, Show results, Clear all when any filter is set",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      825
+     ],
+     "note": "`ExploreFilterSheet.tsx` on the shared `Sheet`: Schedule, Show (Updates, #796), Tags, 'Show results', 'Clear all' only when `hasBrowseFilters`, draft discarded on dismiss, modal with focus trap [V]. Checked: unmarked: `ExploreFilterSheet.test.tsx`. Reviewed: #174, #309 carry no `Reviewed by:`, #750 is review-skipped, #800 has `Reviewed by: Claude (build agent)` [V]. Shipped: first built by T115 direct commit, unknown; #174, #309, #750, #800 green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Filed #825.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "3b",
+     "text": "The sheet offers a distance choice (1 / 5 / 10 / 25 mi)",
+     "kind": [
+      "behavior"
+     ],
+     "status": "retired",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Retired: 2026-09-03 'Distance is out' (`product/ui/surfaces.md`): no radius filter, no mile count, no distance sort. PR #174 deleted it [V].",
+     "gaps": [],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3c",
+     "text": "The sheet offers a sort order",
      "kind": [
       "behavior"
      ],
@@ -1871,9 +1928,32 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Built: sheet with schedule (any/this week/this weekend), tags multi-select, Show results, Clear all when filters are set, half-height, focus trap [V `ExploreFilterSheet.tsx`]. Missing: distance, sort (\"no honest point to measure from\"), Recurring (PR #174 deviation 4). SPEC-CONFLICT Checked: unmarked: `ExploreFilterSheet.test.tsx` (asserts the built half and the absence of distance, sort, recurring). Filed: none (conflict).",
+     "note": "Not built: PR #174 removed Sort ('no honest point to measure from', `lib/browse/filters.ts` header) [V]. No ruling retires a member-chosen sort outright: 2026-09-03 rules out distance sort only, and F059 criterion 3 fixes the order (locality and recency, never payment or scrolling) without saying whether a member may re-sort. Routed to scope-scenario: ruling needed.",
      "gaps": [
       "SPEC-CONFLICT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3d",
+     "text": "The schedule choice includes 'recurring'",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      827
+     ],
+     "note": "Not built: dropped in PR #174 (deviation 4) because nothing carried a recurrence rule; `SCHEDULE_OPTIONS` is any / week / weekend [V]. Series and occurrence rows are ruled in `model.md` § Recurring events and tracked by F074 (#600). Needs the PM: build, drop or wait, and the new word. Filed #827 (needs-pm).",
+     "gaps": [
+      "NOT-BUILT"
      ],
      "score": 0,
      "red": false
@@ -1884,7 +1964,7 @@
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1892,10 +1972,8 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "No pills, no `item_kind` filter on Browse (results are Pages, not Items). SPEC-CONFLICT Filed: none (conflict).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired: 2026-09-12 'Zero filter pills' and 2026-09-17 (F059) 'the shipped pill row does not survive'; F092 criterion 1. Browse results are Pages and posts, with no `item_kind` filter [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     },
@@ -1905,7 +1983,7 @@
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1913,10 +1991,8 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "`ActiveFilterChips` deleted in #174; applying the sheet sets filter state only. SPEC-CONFLICT with F092.1 Filed: none (conflict).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired: 2026-09-12 'no pill row, chip row or control strip alongside results' (F092 Rulings, principle 10); 2026-09-19 narrowing happens in a modal that writes into the search box. F092 says `ActiveFilterChips` goes with the rewrite; deleted in #174 [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     },
@@ -1926,7 +2002,7 @@
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
@@ -1934,56 +2010,71 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Nothing to disappear: no chip row exists. SPEC-CONFLICT (follows 5) Filed: none (conflict).",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "note": "Retired with criterion 5: there is no chip row (2026-09-12 and 2026-09-19 rulings, F092 criterion 1).",
+     "gaps": [],
      "score": 0,
      "red": false
     },
     {
-     "id": "7",
-     "text": "URL carries all active filters (kind + secondary); the URL restores them",
+     "id": "7a",
+     "text": "The URL carries kind, distance and sort filters",
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      652
-     ],
-     "note": "Built: `browseQueryString` writes `metro`, `area`, `q`, `category` (tags), `schedule`; `BrowseSurface` seeds filters from `useSearchParams` [V]. Missing: kind, distance, sort are not in the URL; `?sort=`, `?distance=` are ignored on purpose. SPEC-CONFLICT for the missing half Checked: unmarked: `query.test.ts` (round trip), `filters.test.ts`; nothing asserts the page loads them.",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "issues": [],
+     "note": "Retired: kind pills (2026-09-12, 2026-09-17) and distance and distance sort (2026-09-03) no longer exist, so nothing remains to put in the URL. `?sort=` and `?distance=` degrade to defaults on purpose (`parseBrowseFilters`) [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     },
     {
-     "id": "8",
-     "text": "Back from an Item page restores filters and scroll",
+     "id": "7b",
+     "text": "The URL carries the active schedule and tag filters; opening it restores them",
      "kind": [
       "behavior"
      ],
      "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      652
+     ],
+     "note": "Since #750 (F092/T619) the box text is the state: `browseQueryString` writes `q`, `metro`, `area`; `BrowseSurface` seeds the box from `?q=` and writes old `?category=` and `?schedule=` links into it as words [V]. Checked: unmarked: `lib/browse/query.test.ts` (round trip), `box-text` tests; nothing asserts the page loads `?q=` into results with the same filters. Reviewed: #174 has no `Reviewed by:`, #750 is review-skipped [V]. Shipped: #174, #750 deploy-health green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #652 (its text names the old `?category=`, `?schedule=` params).",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Back from a detail page restores filters and scroll position",
+     "kind": [
+      "behavior"
+     ],
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      54
-     ],
-     "note": "Filters: URL state is rewritten with `router.replace`, so back should restore them [A; no test]. Scroll: no restoration code in `BrowseSurface`; \"Item page\" is now a Page. Open #54 (F059 T157 \"Browse keeps its URL and scroll\") covers it",
-     "gaps": [
-      "NOT-BUILT"
-     ],
+     "issues": [],
+     "note": "Retired: F059 criterion 10 (a shared link reopens the same metro and search; back-navigation restores scroll) is the newer, wider statement of this; the filters now live in `?q=`. Built in part (`useScrollRestoration('explore', ...)` is wired in `BrowseSurface.tsx`); the remaining defects (one literal key, restores once per mount) are open Issue #54 under F059 [V].",
+     "gaps": [],
      "score": 0,
      "red": false
     },
@@ -1998,20 +2089,19 @@
      "checked": "no",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       652
      ],
-     "note": "`filter-active-dot` driven by `hasBrowseFilters` (schedule or tags) and an \"— filters applied\" aria-label [V]. Distance and sort no longer exist to drive it Checked: unmarked: `ExploreSearchBar.test.tsx`.",
+     "note": "`filter-active-dot` and an 'Open filters — filters applied' label driven by `hasBrowseFilters` (schedule, tags, Updates) in `ExploreSearchBar.tsx`; the dock's filter button carries the same dot [V]. Distance and sort no longer exist to drive it. Checked: unmarked: `ExploreSearchBar.test.tsx` ('carries a dot when secondary filters are active'), `ExploreDock.test.tsx`. Reviewed, Shipped: as criterion 2. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #652.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     }
    ]
@@ -2023,38 +2113,38 @@
    "area_source": "label",
    "gates": "none",
    "retired": true,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F046-scroll-hides-the-bottom-nav.md",
-   "n": 7,
+   "n": 8,
    "totals": {
     "built": {
-     "yes": 6,
+     "yes": 7,
      "no": 1,
      "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 1,
-     "unknown": 6
+     "no": 8,
+     "unknown": 0
     },
     "shipped": {
      "yes": 0,
      "no": 1,
-     "unknown": 6
+     "unknown": 7
     },
     "smoked": {
      "yes": 0,
      "no": 1,
-     "unknown": 6
+     "unknown": 7
     },
     "pm_looked": {
      "yes": 0,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     }
    },
@@ -2069,12 +2159,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out` [V]. Live-verified at 375x812 in build log. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx`.",
+     "issues": [
+      651
+     ],
+     "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out`, `motion-reduce:transition-none` [V]. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx`. Reviewed: landed as direct commit ac179c1 (T113), no PR [V]. Shipped: no deploy run for a direct commit [V]. Smoked: no merge commit to anchor to; smoke-live opens routes, it does not scroll [A]. Open #651.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2094,12 +2186,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Same hook, `travel < -threshold` sets visible [V] Checked: unmarked: `useScrollDirection.test.ts`.",
+     "issues": [
+      651
+     ],
+     "note": "Same hook, `travel < -threshold` sets visible [V]. Checked: unmarked: `useScrollDirection.test.ts` ('reappears once upward travel passes the threshold'). Reviewed, Shipped, Smoked: as criterion 1. Open #651.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2119,12 +2213,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`if (y <= 0) setVisible(true)` [V] Checked: unmarked: `useScrollDirection.test.ts`.",
+     "issues": [
+      651
+     ],
+     "note": "`if (y <= 0) { setVisible(true) }` [V]. Checked: unmarked: `useScrollDirection.test.ts` ('is visible again at the top of the page'). Reviewed, Shipped, Smoked: as criterion 1. Open #651.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2144,12 +2240,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`useState(true)`, context default `true`, route change resets to visible [V] Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx`.",
+     "issues": [
+      651
+     ],
+     "note": "`useState(true)`, context default `true`, route change resets to visible [V]. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx` ('is visible by default with no provider'). Reviewed, Shipped, Smoked: as criterion 1. Open #651.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2169,12 +2267,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Bar is `fixed bottom-0`, out of flow; pages pad with `--nav-height` constant, not by visibility [V]. Build log: no content jump. Checked: unmarked: `BottomNav.test.tsx` \"out of the document flow\"; nothing measures layout shift.",
+     "issues": [
+      651
+     ],
+     "note": "The bar is `fixed bottom-0`, out of flow; pages pad with `--nav-clearance`, a constant, not by visibility [V]. Checked: unmarked: `BottomNav.test.tsx` ('stays out of the document flow so content never jumps'); nothing measures layout shift. Reviewed, Shipped, Smoked: as criterion 1. Open #651.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2187,22 +2287,21 @@
     },
     {
      "id": "6",
-     "text": "Same behavior on Home, Explore, You",
+     "text": "Same behavior on every tab (Home, Explore, You)",
      "kind": [
       "coverage"
      ],
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      296,
-      358
+      651
      ],
-     "note": "One global provider in `layout.tsx`, so it applies wherever the nav shows [V]. Home is paused, so the tabs are Explore and You; Create is a link in the same bar [V]. Nav is intentionally absent on auth, onboarding, admin and full-height Edit Page (#296, #358) [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route is under the provider.",
+     "note": "One global provider in `layout.tsx` covers every route that shows the nav [V]. Tabs today are Explore and You with Create between them; Home is paused (#138, PR merged without a deploy run) [V]. The nav is deliberately absent on auth, onboarding, admin and the full-height Edit Page (#296, #358, PR #359), matching the 2026-10-01 'nav is hidden in wizards and full-height sheets' ruling [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route sits under the provider. Reviewed: direct commit; #359 is a bug fix to the nav's absence. Shipped, Smoked: as criterion 1. Open #651.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2214,8 +2313,35 @@
      "red": false
     },
     {
-     "id": "7",
-     "text": "Visual spec: 44px, 9px/500 labels 3px below icon, 20px/1.5 icons filled when active, charcoal active, #717171 inactive, 1px #EBEBEB border, opaque white",
+     "id": "7a",
+     "text": "Nav look: 20px icons at 1.5 stroke, filled when active; charcoal active, #717171 inactive; 1px #EBEBEB top border; opaque white; safe-area padding",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      826
+     ],
+     "note": "`BottomNav.tsx` and `globals.css`: `--color-charcoal` #3c3c3c active, `--color-nav-inactive` #717171, `--color-nav-border` #ebebeb, white background, `env(safe-area-inset-bottom)`, 20px icons at 1.5 stroke, fill when active [V]. Checked: unmarked: `BottomNav.test.tsx` (colours, border, icons, safe area). Reviewed: T112 direct commit 238cef7, no PR [V]. Shipped: no deploy run [V]. Smoked: no merge commit to anchor to [A]. Filed #826.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 1,
+     "red": false
+    },
+    {
+     "id": "7b",
+     "text": "Nav size: 44px high, 9px labels, 3px below the icon",
      "kind": [
       "behavior"
      ],
@@ -2226,12 +2352,8 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      3,
-      294,
-      296
-     ],
-     "note": "Met: 20px 1.5-stroke icons, filled when active, charcoal `#3C3C3C` active, `#717171` inactive, `#EBEBEB` top border, opaque white, safe-area padding [V]. Not met as written: bar is 56px (`--nav-bottom-h`, #294/#296 \"the design's 56px\"), labels are the 12px `micro` token, gap is 2px, and a Create action sits between the tabs (T158). Tests now assert the newer values (`BottomNav.test.tsx` \"bar is 56px tall\") [V]. Checked: tests assert the newer design, not this text.",
+     "issues": [],
+     "note": "Not met as written: the bar is 56px (`--nav-bottom-h`), labels are the 12px `micro` token, the gap is 2px, and Create sits between the tabs (#294, #296 adopted the design-language note of 2026-10-01 over 'today the phone bar is 44px with 9px labels'; PR #58 for Create) [V]. The 2026-10-01 ruling says token values live in app code, but no dated `## Rulings` line states the nav size, so the scenario cannot be shown overtaken: scope-scenario should record 56px or restore 44px. `BottomNav.test.tsx` asserts the 56px values.",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -2247,38 +2369,38 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F059-browse-finds-the-neighbourhood.md",
-   "n": 12,
+   "n": 17,
    "totals": {
     "built": {
-     "yes": 9,
-     "no": 2,
-     "unknown": 1
+     "yes": 11,
+     "no": 6,
+     "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 12,
+     "no": 17,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 11,
-     "unknown": 1
+     "no": 17,
+     "unknown": 0
     },
     "shipped": {
-     "yes": 2,
-     "no": 9,
+     "yes": 10,
+     "no": 6,
      "unknown": 1
     },
     "smoked": {
-     "yes": 0,
-     "no": 2,
-     "unknown": 10
+     "yes": 10,
+     "no": 6,
+     "unknown": 1
     },
     "pm_looked": {
      "yes": 0,
-     "no": 12,
+     "no": 17,
      "unknown": 0
     }
    },
@@ -2294,19 +2416,19 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Nav tab Explore, `/` redirects to `/explore` [V `page.tsx`, `BottomNav.tsx`] Checked: unmarked: `BottomNav.test.tsx`.",
+     "issues": [
+      589
+     ],
+     "note": "Nav tab Explore (`BottomNav.tsx`), `/` redirects to `/explore` (`src/app/page.tsx`, Home paused, #138) [V]. Reviewed no: #138 and #308 carry no `Reviewed by:`. Shipped: deploy-health green on 3d7b5974 and 78cdefbd [V]. Smoked: smoke-live opened /explore on 7f38b45b (2026-10-16, 15 passed) [V]. Checked: unmarked `BottomNav.test.tsx`; nothing asserts Home is not merged in (#589).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -2316,18 +2438,19 @@
       "behavior"
      ],
      "status": "active",
-     "built": "unknown",
+     "built": "no",
      "checked": "no",
-     "reviewed": "unknown",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
      "pm_looked": "no",
      "issues": [
+      828,
       589
      ],
-     "note": "One `browse_feed` call returns both kinds [V]; capped at `BROWSE_LIMIT = 100`, no paging seen, so a metro over 100 rows may hold some back [A]. Check #589 Checked: no (nothing asserts completeness).",
+     "note": "Not built as written [V]. Since #800 the default view keeps Pages only (`corpus` in `BrowseSurface.tsx`); posts sit behind the Updates filter. Don ruled 2026-10-16 on #796 (comments) to mix everything by default, with a megaphone or page icon on each card; not built, no open PR. The read is capped at `BROWSE_LIMIT = 100` with no paging, Pages and posts sharing the slots, and #815 says 420 posts were live on 2026-10-15, so rows are held back. Issue #828; check in #589.",
      "gaps": [
-      "UNKNOWN"
+      "NOT-BUILT"
      ],
      "score": 0,
      "red": false
@@ -2342,19 +2465,20 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`FollowingRow` plus `HappeningRows`; signed out gets withheld cards only (#204, F091, F093) [V `load.ts`] Checked: unmarked: `load.test.ts`, `FollowingRow.test.tsx`.",
+     "issues": [
+      589,
+      828
+     ],
+     "note": "`FollowingRow` plus `HappeningRows` for a member, withheld cards only signed out (`load.ts`, #204, #505) [V]. Since #800 both sit behind the Updates filter, not the default view; Don's 2026-10-16 ruling on #796 puts followed updates in the default mix (#828). Reviewed no: #204 has no `Reviewed by:`, #505 is `review-skipped`. Shipped: deploy-health green on 70190413, 79db7a89, 24891b70. Checked: unmarked `load.test.ts`, `FollowingRow.test.tsx` (#589). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -2367,19 +2491,19 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Second `getBrowseFeed` call only when signed in; SQL predicate on `p_following`; empty follow set still calls [V `load.ts`, build log] Checked: unmarked: `load.test.ts`, `load-withheld.test.ts`.",
+     "issues": [
+      589
+     ],
+     "note": "`followedFeed` runs only when signed in; the SQL predicate on `p_following` withholds; an empty follow set still calls the query; signed out resolves no follow set (`load.ts`) [V]. #800 added no new read. Reviewed no (#204 carries no `Reviewed by:`). Shipped: deploy-health green on 70190413. Checked: unmarked `load.test.ts` ('never asks for it at all', 'still makes the call'), `load-withheld.test.ts`; no standing guard (#589). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -2392,29 +2516,26 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       590
      ],
-     "note": "`browse_feed` orders by locality and recency; `session-shuffle.ts` shuffles only inside recency bands [V]. Nothing guards the never-part. Guard #590",
+     "note": "`browse_feed` orders by recency inside the metro or area; `session-shuffle.ts` shuffles only inside recency bands; the #800 first look picks what is new, reshuffled per visit [V]. Hood, town and adjacency order is F104, not built (#697). No guard scans for payment, size, follower count or engagement columns (#590). Under review (2026-10-12, [for now], Find only): the 'doesn't favour a member because of payment' clause, for paid promotion on Discover. Reviewed no (#161 no line, #558 and #815 `review-skipped`). Shipped: green on 56404a51, f7782d6f, 24891b70, b7766901. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
-     "id": "4",
-     "text": "Curated lenses (today, local food, household, art, free); no kind picker; search separate",
+     "id": "4a",
+     "text": "Curated lenses (today, local food, household, art, free, newly opened Pages), each a way to change what is discoverable",
      "kind": [
-      "behavior",
-      "invariant"
+      "behavior"
      ],
      "status": "active",
      "built": "no",
@@ -2424,11 +2545,10 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      57,
       587,
-      590
+      832
      ],
-     "note": "Built half: \"What's happening… today / this week / this weekend\" rows (F091); lens parameters exist in `getBrowseFeed` [V]. Missing: local food / household / art lens, newcomers lens (\"newly opened here\"); free lens blocked on the scenario's open question (no price substrate; recommend tag). #57 proposes chips, which this criterion rules out. Issue #587; guard for \"no kind picker\" in #590",
+     "note": "Built half [V]: 'What's new since you were here' first look (tonight, this weekend, last-minute openings, Pages new since the last visit, #800 `lead.ts`), the 'What's happening' rows (F091, behind Updates), a tag filter in the sheet. Missing: local food, household and art lenses as shown rows (the 12 interest tags now on unclaimed Pages, #818, are the substrate); the newcomers lens is only a part of the first look and has no thin-row rule; the free lens waits on what makes a thing free (#832, needs-pm). #57 proposes chips, which this criterion rules out. Issue #587.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -2436,36 +2556,33 @@
      "red": false
     },
     {
-     "id": "5",
-     "text": "List and map by width; Map pill under 1024; side by side from 1024; owner-panel switch at 1280-1439; signed out is list only",
+     "id": "4b",
+     "text": "No exhaustive kind picker; typed search stays a separate job",
      "kind": [
-      "behavior"
+      "invariant"
      ],
      "status": "active",
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      278,
-      589,
       590
      ],
-     "note": "#279 and #496 (signed-out list only, Map pill opens sign-up) on main [V build logs]. The owner-panel mode sits behind a prop nothing sets (open question #278). \"Nothing inserted between rows\" unguarded, #590 Checked: partial marker only (`BrowseSurface.layout.test.tsx:99`); check #589.",
+     "note": "The kind pills and chips were deleted in #174; `BrowseSurface.tsx` renders no pill or chip row, search is the box [V]. Nothing stops them coming back (guard in #590). Watch: Don's 2026-10-16 ruling on #796 adds a Type filter (Pages or posts, post kind) in the sheet; not built, and it is not recorded in the scenario's Rulings. Reviewed no (#174 has no `Reviewed by:`). Shipped: green on 9dde664f. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
-      "NO-CHECK",
+      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
-     "id": "6",
-     "text": "Scoped to the active metro; a member outside every seeded metro chooses, none is picked for them",
+     "id": "5a",
+     "text": "Under 1024px a floating Map/List pill at bottom centre, visible while scrolling",
      "kind": [
       "behavior"
      ],
@@ -2476,10 +2593,8 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      588
-     ],
-     "note": "Built half: results scoped to the metro; picker lists every seeded metro; pill says \"Choose your area\" when unchosen [V]. Missing: `resolveFeedMetro` falls back to Sacramento, so a metro is picked for them (its own comment: \"known limitation of a one-metro launch\"). Issue #588 (needs-pm) Checked: no (`scope.test.ts` asserts the fallback).",
+     "issues": [],
+     "note": "As written, not built: #479 (Don's #328) replaced the pill with one expanding control at the bottom right (`ExploreDock.tsx`) that opens to search, filter, metro and List/Map [V]. The scenario's 2026-10-01 ruling says bottom centre; #328's change is newer, but no dated line in the scenario's Rulings records it. Routed to `scope-scenario`; nothing built or filed until it is ruled. The dock is covered by `BrowseSurface.layout.test.tsx` (#328 block, unmarked).",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -2487,8 +2602,8 @@
      "red": false
     },
     {
-     "id": "7",
-     "text": "Metro switcher moves a signed-in member's results too",
+     "id": "5b",
+     "text": "From 1024px list and map side by side, no toggle, with a collapse handle on the divider",
      "kind": [
       "behavior"
      ],
@@ -2497,17 +2612,138 @@
      "checked": "no",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Requested slug beats the member's stored metro; the pick saves as their default (#479) [V `scope.ts`, `actions.test.ts`] Checked: unmarked: `actions.test.ts`, `scope.test.ts`.",
+     "issues": [
+      589
+     ],
+     "note": "`layout === 'split'` from 1024px for a member, with the 'map-collapse-handle' button (#279); pins load after the list (#553) [V]. Reviewed no: #279 carries no `Reviewed by:`, #553 skipped. Shipped: green on 18948ae7, 238a19f5. Checked: partial marker only (`BrowseSurface.layout.test.tsx:99`, `evals/features/F059-explore-list-and-map-by-width.spec.ts:6`) (#589). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "5c",
+     "text": "With the owner panel open at 1280-1439px the map collapses and a List | Map switch docks in the filter bar",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      831
+     ],
+     "note": "Built half [V]: the docked layout exists behind `ownerPanelOpen`, which nothing sets (open question owner=cowork, 2026-10-01), and it tests 1024-1439px, not the ruled 1280-1439px. Missing: an owner panel on Explore. Issue #831 (needs-pm: build the panel or drop the clause).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "5d",
+     "text": "Signed out, Explore is list only; the Map control opens sign-up",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      589
+     ],
+     "note": "`layout` is 'single' signed out at every width; the dock's Map opens `SignInPrompt` (#496, #334); `loadMemberMap` returns no pins signed out [V]. Reviewed no (#496 `review-skipped`). Shipped: green on 0cee585a. Checked: the '#334' describe in `BrowseSurface.layout.test.tsx` and the F059 eval are unmarked or partial (#589). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "5e",
+     "text": "Nothing is inserted between rows of results",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      590
+     ],
+     "note": "`CardGrid` renders only result cards; the toggle left the rows in #279 [V]. `BrowseSurface.layout.test.tsx` ('the card grid holds only cards') sits under a partial marker; no standing guard (#590). Reviewed no (#279 no line). Shipped: green on 18948ae7. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
+     "gaps": [
+      "INVARIANT-UNPROVEN",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Results scope to the vantage's market (home market by default, a typed place for the session); nobody picks a market, none is picked from IP",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      696,
+      698
+     ],
+     "note": "Restated 2026-10-11 (F104, F105); this read 'scoped to the active metro'. Not built [V]: scope is still a metro chosen by `?metro=`, the picker, the device cookie or the member's default setting, with `resolveFeedMetro` falling back to Sacramento (`scope.ts`, `feed-metro.ts`); no market or vantage model, no waiting-market absence. Issues #696 (market scoping) and #698 (place control), both `deferred` to the fortnight after beta. #588 (no-metro visitor) is answered by F105 criterion 5 and is stale.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "The place control moves a signed-in member's results, not only a signed-out visitor's",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      698
+     ],
+     "note": "Restated 2026-10-11 (F105 place control); this read 'the metro switcher moves a signed-in member's results'. Built half [V]: the metro switcher and a neighbourhood search (#479, #476) move a member's results and save the pick as their default. Missing: the place control that takes any typed town, county or market, as session state only; F105 replaces the saved default. Issue #698.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
      "red": false
     },
     {
@@ -2520,19 +2756,20 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
+     "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`browse_feed` drops `starts_at < now()`, undated never drop [V migration] Checked: unmarked: `tests/migrations-browse-feed.test.ts:671`.",
+     "issues": [
+      589
+     ],
+     "note": "Since #815 `browse_feed` keeps a dated post until `coalesce(ends_at, starts_at)` passes; an undated post never drops (migration 20261016150052) [V]. Reviewed no (#161 no line, #815 `review-skipped`). Shipped: green on 56404a51 and b7766901. Smoked unknown: the last smoke-live run (2026-10-16 14:57) is before #815's merge (15:19). Checked: unmarked `tests/migrations-browse-feed.test.ts` ('drops a past-dated post on its own', 'keeps a post that has started and not ended') (#589).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     },
     {
@@ -2545,19 +2782,19 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Page's name on both Pages and posts [V `BrowseResultCard.tsx`, `card.ts`]. Concealment is a Page-content question, not checked here [A] Checked: unmarked: `BrowseResultCard.test.tsx`.",
+     "issues": [
+      589
+     ],
+     "note": "The card title is the Page's name on both Pages and posts (`BrowseResultCard.tsx`, `card.ts`); cards show no seller (#254) and no hashtags (#748) [V]. Whether a label conceals ownership is a Page-content question not checked here [A]. Reviewed no (#174 no line, #748 `review-skipped`). Shipped: green on 9dde664f, 87daab2f, 9437cf9a. Checked: unmarked `BrowseResultCard.test.tsx` (#589). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -2570,21 +2807,21 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "unknown",
+     "shipped": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      54
+      54,
+      589
      ],
-     "note": "`?metro=`, `?q=`, `?category=` round-trip (`query.ts`); scroll restored once per mount under the literal key `'explore'`, so a metro switch is not re-keyed. Open #54 covers the key and the re-arm Checked: unmarked: `query.test.ts`, `useScrollRestoration.test.ts`.",
+     "note": "`?metro=`, `?area=` and `?q=` round-trip (`query.ts`); the filter sheet's words live in the box, so a link carries them (#750); scroll is restored once per mount under the literal key `'explore'`, so a metro switch is not re-keyed (open #54) [V]. Reviewed no. Shipped unknown: the scroll hook landed by direct commit 06bc333 (no PR, no run). Checked: unmarked `query.test.ts`, `useScrollRestoration.test.ts`; nothing asserts metro plus search reopen together (#589). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 2,
      "red": false
     }
    ]
@@ -2735,13 +2972,13 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F070-every-page-has-a-face.md",
    "n": 5,
    "totals": {
     "built": {
-     "yes": 3,
-     "no": 2,
+     "yes": 4,
+     "no": 1,
      "unknown": 0
     },
     "checked": {
@@ -2751,18 +2988,18 @@
     },
     "reviewed": {
      "yes": 0,
-     "no": 2,
-     "unknown": 3
+     "no": 5,
+     "unknown": 0
     },
     "shipped": {
-     "yes": 0,
-     "no": 2,
+     "yes": 1,
+     "no": 1,
      "unknown": 3
     },
     "smoked": {
      "yes": 0,
-     "no": 2,
-     "unknown": 3
+     "no": 1,
+     "unknown": 4
     },
     "pm_looked": {
      "yes": 0,
@@ -2774,21 +3011,21 @@
    "criteria": [
     {
      "id": "1",
-     "text": "The photo step is optional; composer completes without one",
+     "text": "The photo step is optional; the composer completes without one",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       598
      ],
-     "note": "`PagePhotoPicker` rides in the About step of `SellWalkthrough`; `update_draft` takes `photoUrl` (null clears, undefined leaves alone); a failed upload does not trap the member [V build log t145, files]. #598 Checked: unmarked: `PagePhotoPicker.test.tsx` (\"never blocks the step\").",
+     "note": "`PagePhotoPicker` sits in the About step of `SellWalkthrough` (`isOptional`) and in `PageEditor`; `photoUrl: null` clears, a failed upload does not trap the member [V src]. Built by #121: no `Reviewed by:` line, label human-review [V]; no deploy-health run for 61902755 [V]. Checked no: unmarked `PagePhotoPicker.test.tsx` (\"never blocks the step\"), `SellWalkthrough.test.tsx`; zero `[guards F070.n]` markers in src or tests [V grep]. #598.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2808,14 +3045,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       598
      ],
-     "note": "Canvas resize plus WebP re-encode strips it; bucket accepts `image/webp` only (`039_media_bucket.sql`). Missing: a check on an object read back from the bucket. #598 Checked: unmarked: `upload-image.test.ts:112` (real GPS fixture, byte-level, but on pipeline output, not a stored object).",
+     "note": "`upload-image.ts` re-encodes through canvas to WebP; the `media` bucket accepts `image/webp` only (`039_media_bucket.sql`) [V]. Checked no: `upload-image.test.ts:112` reads a GPS fixture byte-level but on pipeline output, not an object read back from the bucket; unmarked [V]. Built by T120 and #121, both before deploy-health ran, and neither carries `Reviewed by:` [V]. #598.",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -2835,14 +3072,14 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "unknown",
+     "reviewed": "no",
      "shipped": "unknown",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       598
      ],
-     "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to own `{member_id}/` prefix [V migration]. #598 Checked: unmarked: `tests/media-bucket-storage-api.test.ts` (JPEG, SVG, over 5MB, other member's prefix); runs only when `requireRunnable` passes, CI run unknown.",
+     "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to the member's own folder [V migration 039]. `tests/media-bucket-storage-api.test.ts` rejects JPEG, SVG, over 5MB and another member's prefix against a real stack; CI runs the Vitest suite against local Supabase, so it is not skipped there [V ci.yml]. Checked no only because it carries no `[guards F070.3]` marker. #598.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2855,7 +3092,7 @@
     },
     {
      "id": "4",
-     "text": "No photo shows the kind's default art, identical for every viewer; missing Page picture falls back to it",
+     "text": "A Page with no photo shows its kind's default image, the same for every viewer; a missing Page picture falls back to it",
      "kind": [
       "behavior"
      ],
@@ -2867,9 +3104,10 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      335
+      335,
+      598
      ],
-     "note": "Built half: `DefaultArt` by kind (shop, service, group) on the Page, browse cards and post cards, with the Page-picture fallback in `PagePosts` [V]. Missing: the signed-out withheld card draws a plain tile with no icon, so not identical to every viewer. #335 (open, Beta 11-06) Checked: unmarked: `DefaultArt.test.tsx`.",
+     "note": "Built half: `DefaultArt` by kind (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Missing: the signed-out withheld card gets no kind, because `announcements_withheld` does not return it and `mapWithheldRow` sets `groupKind: ''`, so `artKindFor` returns null and the tile has no icon; that is not identical for every viewer [V src/lib/feed/withheld-announcements.ts, DefaultArt.tsx]. #335 (open, Beta 11-06). Checked: unmarked `DefaultArt.test.tsx`; #598.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -2877,77 +3115,99 @@
      "red": false
     },
     {
-     "id": "5",
-     "text": "Operator removes a Page's photo in one action; object deleted, event recorded",
+     "id": "5a",
+     "text": "The operator removes a Page's photo in one action",
      "kind": [
       "behavior"
      ],
-     "status": "spec-conflict",
+     "status": "retired",
      "built": "no",
      "checked": "no",
      "reviewed": "no",
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      491
-     ],
-     "note": "Built half: report-driven reversible removal (`photo_removed_at`) in the admin queue, then a separate `report.purge_target` plus `report.purge` that deletes the object and writes a `photo_purges` row with who, why and when (#491, migration `20261007250000`) [V]. Missing: one action (removal keeps the bytes; deletion is a second, deliberate act per `docs/purge-proposal.md`), and the record is a `photo_purges` row, not an event [A].",
-     "gaps": [
-      "SPEC-CONFLICT"
-     ],
+     "issues": [],
+     "note": "Overtaken by the 2026-09-17 ruling in scenario F058: a moderation decision is a reversible event and removal sets `photo_removed_at` instead of deleting, so one action cannot also delete the bytes. Removal shows in the admin queue as built [V]. Shown, not counted.",
+     "gaps": [],
      "score": 0,
+     "red": false
+    },
+    {
+     "id": "5b",
+     "text": "The photo's stored object is deleted and an event is recorded",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      842
+     ],
+     "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts, docs/purge-proposal.md]. Built by #508 (#491): carries `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. #842.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
      "red": false
     }
    ]
   },
   {
    "feature": "F076",
-   "title": "a person outside an open metro joins its waitlist",
+   "title": "a person outside an open market joins its waitlist",
    "area": "explore-map",
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F076-metro-waitlist.md",
-   "n": 16,
+   "n": 15,
    "totals": {
     "built": {
-     "yes": 12,
+     "yes": 11,
      "no": 4,
      "unknown": 0
     },
     "checked": {
-     "yes": 0,
-     "no": 16,
+     "yes": 10,
+     "no": 5,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 16,
+     "no": 15,
      "unknown": 0
     },
     "shipped": {
-     "yes": 12,
+     "yes": 4,
      "no": 4,
-     "unknown": 0
+     "unknown": 7
     },
     "smoked": {
      "yes": 0,
      "no": 4,
-     "unknown": 12
+     "unknown": 11
     },
     "pm_looked": {
      "yes": 0,
-     "no": 16,
+     "no": 15,
      "unknown": 0
     }
    },
-   "red": 9,
+   "red": 4,
    "criteria": [
     {
      "id": "1",
-     "text": "Every US metro is in the list at signup",
+     "text": "Every US zip resolves to a market before launch; nothing is selected from a list",
      "kind": [
       "coverage"
      ],
@@ -2959,9 +3219,9 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      617
+      843
      ],
-     "note": "296 metros seeded as the catalog; the picker offers all [V migration, `MetroWaitlistStep`] Checked: unmarked: `tests/migrations-metro-waitlist.test.ts`, `MetroWaitlistStep.test.tsx`.",
+     "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; a PO-box-only zip with no ZCTA is unknown and refused (Census now, HUD-USPS later, PM 2026-10-12) [V migration 20261012030000]. Built by F103 #709: `review-skipped`; deploy-health success on 4f571f5c [V]. Checked no: only `[guards F103.n partial]` markers and a stale `[guards F076.1 partial]`. #843. Smoked unknown: sign-up is not a smoke route.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -2973,338 +3233,30 @@
     },
     {
      "id": "2",
-     "text": "Zip may suggest a metro; never IP, default or nearest-match selection",
+     "text": "The platform never selects a market for the person: no IP, default, nearest match or shortlist; the zip decides",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [
-      618
-     ],
-     "note": "Picker starts on a non-metro placeholder; F081 zip decides the member's metro. No zip shortlist built (optional: \"may\") [V] Checked: unmarked: `MetroWaitlistStep.test` \"selects no metro for them\"; nothing scans for IP/nearest.",
+     "issues": [],
+     "note": "Restated 2026-10-11. `[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls (and checks it can see them) [V]. No IP guess exists in src: the \"Is this your area?\" flow (F081 ruling 2026-10-11, #588) is unbuilt, and the PM's 2026-10-12 ruling on F105 says nothing is picked for a visitor, so I read them as compatible [V grep, A]. Reviewed no (#709 `review-skipped`); shipped yes (4f571f5c).",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
-     "red": true
+     "score": 3,
+     "red": false
     },
     {
      "id": "3",
-     "text": "Role is on the waitlist entry, none pre-selected, no role on the member",
-     "kind": [
-      "invariant",
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      616,
-      618
-     ],
-     "note": "`metro_waitlist.role` check creator/patron, no default; radios unchecked [V]. Discarding the answer when the metro opens is not built (see 15) Checked: unmarked: `MetroWaitlistStep.test`, `MetroNotCoveredPanel.test` \"pre-selects neither role\"; no guard on `members`.",
-     "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": true
-    },
-    {
-     "id": "4",
-     "text": "One person counts once in one metro, signed up or email only",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      613
-     ],
-     "note": "Each path is idempotent alone (unique member index, unique `lower(email)` index, PR #191/#197). A person who leaves an address and later signs up holds two rows and counts twice; the member handler never reads the auth email [V] Checked: yes for each path alone (`waitlist-join*.test`, migrations tests), unmarked; cross case untested.",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "5",
-     "text": "Changing metro moves the count, no double count or strand",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      617
-     ],
-     "note": "Update plus down/up bump in one transaction, both handlers [V] Checked: unmarked: `waitlist-join.test`, `waitlist-join-anonymous.test`, `migrations-metro-waitlist-anonymous.test`.",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": false
-    },
-    {
-     "id": "6",
-     "text": "Creator and patron counts stored separately, readable apart",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      617
-     ],
-     "note": "`creator_count`, `patron_count` on `metro_polygons` [V] Checked: unmarked: `migrations-metro-waitlist.test` \"counters recompute\".",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": false
-    },
-    {
-     "id": "7",
-     "text": "A popup shows a count for everyone, from the cache",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      614
-     ],
-     "note": "Anonymous path uses the cached figure (`waitlist-counts.ts`, PR #217). Signed-in path writes then reads the live counts and shows them [V `metro-waitlist-actions.ts`]; build log says \"deliberately\", the scenario says everyone Checked: yes for the anonymous path, unmarked: `MetroNotCoveredPanel.test`, `metro-waitlist-anonymous-actions.test`; signed-in asserts the live read.",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "8",
-     "text": "One combined number against 300; same figure as the picker's ordering",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "no",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
-     "pm_looked": "no",
-     "issues": [
-      615
-     ],
-     "note": "Combined-only against 300 [V `metroStanding`]. Signed-in popup shows a different, fresher figure than the picker, up to an hour apart [V] Checked: unmarked: `waitlist-standing.test`, `MetroWaitlistStep.test` (the split is hidden; \"same figure\" untested).",
-     "gaps": [
-      "NOT-BUILT"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "9",
-     "text": "Message says what is needed, never a date or a promise",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      617
-     ],
-     "note": "`standingMessage` (remaining count only) [V] Checked: unmarked: `waitlist-standing.test`, `MetroNotCoveredPanel.test` \"promises no date\".",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": false
-    },
-    {
-     "id": "10",
-     "text": "Eligible only at 50 creators and 250 patrons",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      617
-     ],
-     "note": "`metroStanding.eligible` uses both thresholds [V]; nothing consumes it yet (no operator view) Checked: unmarked: `waitlist-standing.test` (49 creators at 300 is false).",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": false
-    },
-    {
-     "id": "11",
-     "text": "Thresholds per metro, no migration or deploy",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      617
-     ],
-     "note": "Per-metro columns, default 50 / 250, plain UPDATE [V] Checked: unmarked: `migrations-metro-waitlist.test` \"lets a threshold be changed with an UPDATE\".",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": false
-    },
-    {
-     "id": "12",
-     "text": "Opening a metro is deliberate; crossing the threshold never opens it",
-     "kind": [
-      "invariant"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      618
-     ],
-     "note": "No code writes `is_open` except the Sacramento seed [V grep]. The deliberate act is a raw database UPDATE; no operator path exists Checked: unmarked: handler tests assert no `is_open` write, two handlers only.",
-     "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": true
-    },
-    {
-     "id": "13",
-     "text": "Leave an email, no account, no password, no name",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      617
-     ],
-     "note": "`MetroNotCoveredPanel` email form, `metro.waitlist_join_anonymous` (PR #197, #198) [V] Checked: unmarked: `MetroNotCoveredPanel.test`, `waitlist-join-anonymous.test`.",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": false
-    },
-    {
-     "id": "14",
-     "text": "Identical response for a new and a known address, same number",
-     "kind": [
-      "invariant"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      618
-     ],
-     "note": "Result type has no flag or count; number comes from the cache, not the write [V] Checked: unmarked and mock-only: `waitlist-join-anonymous.test`, `metro-waitlist-anonymous-actions.test`. The build log records this exact test passing while false against Postgres; no real-database differencing test.",
-     "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": true
-    },
-    {
-     "id": "15",
-     "text": "An address is used only to say the metro opened, then discarded",
+     "text": "The waitlist entry records make or find, neither pre-selected; no role on the member; the answer is discarded when the market opens",
      "kind": [
       "behavior",
       "invariant"
@@ -3319,7 +3271,292 @@
      "issues": [
       616
      ],
-     "note": "Addresses are stored and the panel states the single use. No send, no discard, no mail provider, no way to open a metro that triggers either [V grep] Checked: no (panel wording only: `MetroNotCoveredPanel.test`).",
+     "note": "Built half: `metro_waitlist.role`, no default, no pre-selected radio, no role column on any member table [V]; `[guards F076.3]` scans migrations for member role columns. Missing: discarding the role when the market opens. Nothing writes `is_open` and nothing deletes waitlist rows; opening is a raw database update [V grep]. #616 lists it as missing item 3. Checked no: the guard does not cover the discard.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": true
+    },
+    {
+     "id": "4",
+     "text": "One person counts once in one market, whether they signed up or only left an email",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Member row unique by `member_id`; address row unique by `lower(email)` across all markets; a member who had left an address is folded into the member row (#763, #613) [V handlers]. `[guards F076.4]` x2 in `waitlist-join.test.ts` (SQL-call level, mocked database) plus a partial for the reverse order [V]. Reviewed no: #86, #191, #197 have no `Reviewed by:` (#763 does). Shipped unknown: no deploy-health run for 640e1fc2 (#86).",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "Changing the market moves the count; neither double-counted nor stranded",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Both handlers update the row and move the counter in one transaction [V]. `[guards F076.5]` in `f076-criteria.test.ts` runs the move through both ways of joining (mocked database; mutants run by hand, #766) [V]. Built by #86, #191, #197: no `Reviewed by:`; deploy-health unknown for #86.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Creator and patron counts are stored separately and readable apart",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`metro_polygons.creator_count` and `patron_count` (and the same on `markets`) [V migrations]. `[guards F076.6]` in `f076-criteria.test.ts` for both paths [V]. Built by #86; reviewed no, shipped unknown.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "After joining, a popup shows a count and a message, for everyone, from the cache",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      686
+     ],
+     "note": "Built half: both actions call `waitingCountFor` (#217, #764) and the panel opens a dialog [V]. Missing: `getMetroWaitingCounts` is an `unstable_cache` whose function calls `createClient()`, which reads `cookies()`; Next refuses that, so the popup action throws after the row is written [V src/lib/metro/waitlist-counts.ts, supabase-server.ts; runtime failure reported on #686, not reproduced today, A]. #764 made the signed-in path call the same function, so it is affected too [A]. Checked no: only partial markers, and the tests mock `waitingCountFor`. #686.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": true
+    },
+    {
+     "id": "8",
+     "text": "One combined number against 300, the same figure everywhere",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      686,
+      699
+     ],
+     "note": "The combined figure and target exist (`standingFromCombined`, 300) [V]. Missing: the one cached read throws (see 7), and `load.ts` swallows it into an empty map. Since 2026-10-11 the only other surface that should show it is a waiting vantage (F105 criterion 4, #699, deferred), unbuilt. Checked no: partial marker. #686, #699.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": true
+    },
+    {
+     "id": "9",
+     "text": "The message says what is still needed and never a date, a timeline or a promise",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`standingMessage` in `waitlist-standing.ts`; `[guards F076.9]` asserts no date or promise wording [V]. New wording sits in draft PR #684 (do not merge) and is Don's to approve. Built by #86; reviewed no, shipped unknown.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "10",
+     "text": "A market is eligible only at 50 creators and 250 patrons; 300 combined with fewer than 50 creators is not enough",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`metroStanding` gates on creators and patrons separately; `[guards F076.10]` as one table [V]. Built by #86; reviewed no, shipped unknown.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "11",
+     "text": "Thresholds are configurable per market without a migration or a deploy",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Threshold columns on `metro_polygons` and `markets`; `[guards F076.11]` scans for hard-coded thresholds and reads the column defaults [V]. Built by #86; reviewed no, shipped unknown.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "12",
+     "text": "Opening a market is deliberate; crossing the threshold never opens it",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "unknown",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "No application code writes `is_open`; `[guards F076.12]` scans src, scripts and every migration except the two seeds [V]. Note: because nothing opens a market, the opening itself is a raw SQL update today (see #616).",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
+     "id": "13",
+     "text": "A person can leave an email to be told when a market opens, with no account",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`metro.waitlist_join_anonymous` and `MetroNotCoveredPanel`: address and role only, no password or name, one tap [V]. `[guards F076.13]` drives the panel and asserts the exact call [V]. The row is written; the confirmation popup then fails (#686). Built by #197, #198: no `Reviewed by:`; deploy-health success on 0ac5c54f and 8ad3ee56. Smoked unknown: the panel is reached only by picking a waiting market, which the smoke does not do.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "14",
+     "text": "The response is identical whether or not the address was already there, the number included",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "The result type has no changed or created flag and no count; the number is the cached figure, not a function of the submission [V]. `[guards F076.14]` runs the handler on a real database for a new, a repeated and another known address and expects byte-identical results, and scans that no other code reads the live counters [V]. While #686 stands the number never appears, so the end-to-end response is untested at the screen [A]. Reviewed no (#197); shipped yes (0ac5c54f, a3faf37c).",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "15",
+     "text": "An address is used only to say the market opened, then discarded",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      616
+     ],
+     "note": "Addresses are stored and the panel states the single use; nothing reads them back, no mail library is in the project, nothing deletes them [V grep]. The PM chose Resend and the wording on #616 (2026-10-11). Missing: the send, the discard, and a deliberate way to open a market that triggers both. #616 (open, Beta 11-06).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3328,30 +3565,23 @@
     },
     {
      "id": "16",
-     "text": "Metros are ordered by the cached waiting count",
+     "text": "Metros are ordered by how many people are waiting",
      "kind": [
       "behavior",
       "invariant"
      ],
-     "status": "active",
-     "built": "yes",
+     "status": "retired",
+     "built": "no",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "yes",
-     "smoked": "unknown",
+     "shipped": "no",
+     "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      618
-     ],
-     "note": "`withWaitingCounts` and `splitByOpen` sort not-yet metros by cached count, alphabetical tiebreak [V `feed-metro.ts`] Checked: unmarked: `feed-metro-sort.test`; no guard that the ordering path never reads live.",
-     "gaps": [
-      "INVARIANT-UNPROVEN",
-      "NOT-REVIEWED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 2,
-     "red": true
+     "issues": [],
+     "note": "Struck 2026-10-11 (F103 ruling, in the scenario): there is no list of markets to order, since the zip decides. The surviving rule, that no surface reads the live counters, is under criteria 8 and 14. Shown, not counted.",
+     "gaps": [],
+     "score": 0,
+     "red": false
     }
    ]
   },
@@ -3362,46 +3592,46 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F091-whats-happening-today-and-this-week.md",
-   "n": 7,
+   "n": 8,
    "totals": {
     "built": {
-     "yes": 5,
+     "yes": 7,
      "no": 1,
-     "unknown": 1
+     "unknown": 0
     },
     "checked": {
-     "yes": 4,
-     "no": 3,
+     "yes": 3,
+     "no": 5,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     },
     "shipped": {
-     "yes": 5,
+     "yes": 7,
      "no": 1,
-     "unknown": 1
+     "unknown": 0
     },
     "smoked": {
-     "yes": 0,
+     "yes": 4,
      "no": 1,
-     "unknown": 6
+     "unknown": 3
     },
     "pm_looked": {
      "yes": 0,
-     "no": 7,
+     "no": 8,
      "unknown": 0
     }
    },
    "red": 0,
    "criteria": [
     {
-     "id": "1",
-     "text": "A row returns only posts starting in its window, soonest first",
+     "id": "1a",
+     "text": "A row returns the posts whose start time falls inside its window, soonest first",
      "kind": [
       "behavior"
      ],
@@ -3415,7 +3645,7 @@
      "issues": [
       612
      ],
-     "note": "`happeningRows` calls `browse_feed` per row with `startsFrom`, `startsBefore`, `sort: 'soonest'`, posts only (`src/app/explore/load.ts`) [V]. The SQL is in `browse_feed` [V] Checked: no: loader test is `[guards F091.1 partial]`, args only; `tests/migrations-browse-feed.test.ts` covers the SQL but is unmarked.",
+     "note": "`happeningRows` makes one `browse_feed` call per row with the window and `sort: 'soonest'`, posts only (`load.ts`); rows show under Updates since #800 [V]. Reviewed no: #266 has no `Reviewed by:`, #815 `review-skipped`. Shipped: green on 2a0d7f7c and b7766901. Smoked unknown: last green run is before #815. Checked: loader test is `[guards F091.1 partial]` (arguments only); SQL tests in `tests/migrations-browse-feed.test.ts` unmarked (#612).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -3426,8 +3656,29 @@
      "red": false
     },
     {
+     "id": "1b",
+     "text": "A row returns only posts that start inside its window",
+     "kind": [
+      "invariant"
+     ],
+     "status": "spec-conflict",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "#815 (change #814, build A of the pitch audit, 2026-10-16, no scenario change) made the window hold a post that is on during it, so a post that started earlier and has not ended appears in 'today' (`coalesce(ends_at, starts_at) >= p_starts_from`; test 'a time window holds a post that is on during it') [V]. That contradicts 'only posts whose start time falls inside'; the scenario has no ruling for it. Routed to `scope-scenario` (amend to 'on during the window'); nothing filed.",
+     "gaps": [
+      "SPEC-CONFLICT"
+     ],
+     "score": 2,
+     "red": false
+    },
+    {
      "id": "2",
-     "text": "Windows in the metro's timezone, bound to the hour",
+     "text": "Windows are in the metro's timezone and bound to the hour",
      "kind": [
       "behavior"
      ],
@@ -3436,18 +3687,17 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       173
      ],
-     "note": "`happeningWindows`: every row starts now, today ends at metro midnight, week and weekend end Monday 00:00. The zone is the constant `America/Los_Angeles` until #173 (open) gives each metro its own [V] Checked: yes (`happening.test.ts`).",
+     "note": "`happeningWindows`: every row starts now, today ends at metro midnight, week and weekend end Monday 00:00, daylight saving handled [V]. The zone is the constant `America/Los_Angeles` until #173 (open) gives each metro its own. Checked: `[guards F091.2]` in `src/lib/metro/happening.test.ts`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
@@ -3461,16 +3711,15 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`HappeningRows` filters empty rows [V] Checked: yes (`HappeningRows.test.tsx`).",
+     "note": "`HappeningRows` filters empty rows [V]. Checked: `[guards F091.3]` in `HappeningRows.test.tsx`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked unknown: the rows sit behind Updates and show only when a post is on. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
@@ -3484,16 +3733,15 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`HappeningRows` returns null when no row is present [V] Checked: yes (`HappeningRows.test.tsx`).",
+     "note": "`HappeningRows` returns null when no row is present [V]. Checked: `[guards F091.4]` in `HappeningRows.test.tsx`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
@@ -3503,25 +3751,29 @@
       "behavior"
      ],
      "status": "active",
-     "built": "unknown",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Rows come from the route's metro and area and the clock; nothing found that pins them to a link, and nothing asserts it [A]",
-     "gaps": [
-      "UNKNOWN"
+     "issues": [
+      829
      ],
-     "score": 0,
+     "note": "Rows are a function of the route's metro and area and the clock only; the Updates view is the word `updates` in `?q=`, so it travels in the link (`load.ts`, `box-text.ts`) [V]. Judged from code; no test pins it, and 'same rows' holds only within the hour the windows are bound to [A]. Reviewed no (#266 no line, #800 yes, #815 skipped). Shipped: green. Issue #829. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
      "red": false
     },
     {
      "id": "6",
      "text": "A series appears at most once in a row",
      "kind": [
-      "invariant"
+      "behavior"
      ],
      "status": "active",
      "built": "no",
@@ -3531,9 +3783,9 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      602
+      600
      ],
-     "note": "`browse_feed` has no grouping by `parent_post_id` [V migrations]; #266 says it \"lands with F074\". No series exist yet. Ticket #602 (F074 read side, open)",
+     "note": "`browse_feed` has no grouping by `parent_post_id` [V migration 20261016150052]; #266 says it lands with F074. The weekly composer (#753, F074 criterion 1) is off until occurrences land, so no series exist yet. The ticket is #600 (F074 criterion 6, one row per series); the 2026-10-10 report cited #602, which is F074 criterion 7.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3542,48 +3794,51 @@
     },
     {
      "id": "7",
-     "text": "Signed out, the today row is one \"Sign in to see what's happening\" card per Page posting today",
+     "text": "Signed out, the today row is one 'Sign in to see what's happening' card per Page posting today",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "yes",
+     "checked": "no",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "`signedOutToday` reads the withheld path over midnight to midnight \"posted today\", not \"happens today\" (Don's ruling); card copy `withheldCta` reads \"Sign in…\" [V]. The PR body says \"Sign up\", the code says \"Sign in\" [V] Checked: yes (`load-withheld.test.ts`, `[guards F091.7 partial]`: the loader; card has its own tests).",
+     "issues": [
+      829
+     ],
+     "note": "`signedOutToday` reads the withheld path over midnight to midnight 'posted today' (Don's ruling); `withheldCta` reads 'Sign in…' [V]. Placement: the row sits behind Updates since #800, though the first look keeps one 'sign in to see' card per Page that posted since the last visit (F093.7) [V]. #815 kept a card while its post is on. Checked: `[guards F091.7 partial]` (the loader only), so no. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c, b7766901. Issue #829.",
      "gaps": [
+      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 2,
      "red": false
     }
    ]
   },
   {
    "feature": "F092",
-   "title": "narrowing happens in a modal that writes what it did",
+   "title": "Narrowing happens in a modal that writes what it did",
    "area": "explore-map",
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F092-narrowing-in-a-modal.md",
    "n": 6,
    "totals": {
     "built": {
-     "yes": 1,
-     "no": 5,
+     "yes": 5,
+     "no": 1,
      "unknown": 0
     },
     "checked": {
-     "yes": 0,
-     "no": 6,
+     "yes": 2,
+     "no": 4,
      "unknown": 0
     },
     "reviewed": {
@@ -3592,14 +3847,14 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 0,
-     "no": 5,
-     "unknown": 1
+     "yes": 5,
+     "no": 1,
+     "unknown": 0
     },
     "smoked": {
-     "yes": 0,
-     "no": 5,
-     "unknown": 1
+     "yes": 5,
+     "no": 1,
+     "unknown": 0
     },
     "pm_looked": {
      "yes": 0,
@@ -3619,21 +3874,19 @@
      "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       624
      ],
-     "note": "`ActiveFilterChips`, `KindFilterPills` deleted in #174; BrowseSurface renders the search row with one filter-open control [V]. No guard asserts it",
+     "note": "`ActiveFilterChips` and `KindFilterPills` were deleted in #174; `BrowseSurface.tsx` renders the search row (one filter-open control, the place pill, the List/Map switch) and the dock; no chip or pill row [V]. No guard asserts it (#624). Reviewed no (#174 no `Reviewed by:`). Shipped: deploy-health green on 9dde664f. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 3,
      "red": false
     },
     {
@@ -3643,20 +3896,19 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
-     "checked": "no",
+     "built": "yes",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [
-      619
-     ],
-     "note": "Sheet closes and sets `filters` state (schedule, tags). Nothing writes text to the box",
+     "issues": [],
+     "note": "#750: the sheet closes and the box reads e.g. 'coffee this weekend', plain lowercase words, no hashtag; typed words are kept in front (PM, 2026-10-11) [V]. Checked: `[guards F092.2]` in `BrowseSurface.test.tsx` plus `box-text.test.ts` (partial); PR says red before green. Reviewed no (#750 `review-skipped`). Shipped: green on c16c86a7. #619 closed by #750. Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
-      "NOT-BUILT"
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
+     "score": 4,
      "red": false
     },
     {
@@ -3666,20 +3918,23 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      620
+      620,
+      830
      ],
-     "note": "`searchBrowseResults` does free-text substring match only; filters come from separate state. Box text is not the state",
+     "note": "#750 delivers it: `readBox` takes the schedule, tags and 'updates' out of the box and the rest is the free search; no second filter state (`BrowseSurface.tsx`) [V]. Checked: tests exist ('typing the same words by hand does the same') but no marker claims F092.3 (#830). Reviewed no (#750 `review-skipped`). Shipped: green on c16c86a7. #620 is stale (built by #750). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
+     "score": 3,
      "red": false
     },
     {
@@ -3689,20 +3944,19 @@
       "coverage"
      ],
      "status": "active",
-     "built": "no",
-     "checked": "no",
+     "built": "yes",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [
-      621
-     ],
-     "note": "No grammar or parser exists; needs a round-trip over every panel selection",
+     "issues": [],
+     "note": "One grammar read both ways in `box-text.ts` (#750) [V]. Checked: `[guards F092.4]` in `box-text.test.ts`, a round trip over every schedule and tag subset (3 x 2^8 selections), seen red first per the PR. Reviewed no (#750 `review-skipped`). Shipped: green on c16c86a7. #621 stays open though #750 built it (the PR's 'Closes #619, #621' closed only #619). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
-      "NOT-BUILT"
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
+     "score": 4,
      "red": false
     },
     {
@@ -3719,10 +3973,9 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      57,
       622
      ],
-     "note": "Free text never errors, but unparsed text does not open the panel; empty state reads \"Nothing here yet — try another filter\". Replaces #57's chips fallback",
+     "note": "Free text never errors: unknown words stay as the free search (`readBox`) [V]. Nothing opens the sheet on text it does not understand; an empty result reads 'Nothing here yet — try another filter' with Clear filters. Replaces #57's chips fallback. Issue #622.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3736,20 +3989,23 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      623
+      623,
+      830
      ],
-     "note": "Emptying the box clears the query only; sheet filters stay active with nothing visible. `clearAll` exists only behind the sheet's Clear all",
+     "note": "The box is the only state, so emptying it clears schedule, tags and updates (`BrowseSurface.tsx`; the search bar's close also clears) [V]. Checked: 'clearing the box clears the narrowing' in `BrowseSurface.test.tsx` is unmarked (#830). Reviewed no (#750 `review-skipped`). Shipped: green on c16c86a7. #623 is stale (built by #750). Smoked: smoke-live 2026-10-15 (24891b7) and 2026-10-16 (7f38b45) were green and opened /explore signed out and as members; it loads the route, it does not tap [V].",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
+     "score": 3,
      "red": false
     }
    ]
@@ -3761,34 +4017,34 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "explore-map/F093-signed-out-sees-something-is-happening.md",
    "n": 12,
    "totals": {
     "built": {
-     "yes": 9,
-     "no": 1,
-     "unknown": 2
+     "yes": 10,
+     "no": 2,
+     "unknown": 0
     },
     "checked": {
-     "yes": 4,
-     "no": 8,
+     "yes": 9,
+     "no": 3,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 10,
-     "unknown": 2
+     "no": 12,
+     "unknown": 0
     },
     "shipped": {
-     "yes": 0,
-     "no": 1,
-     "unknown": 11
+     "yes": 9,
+     "no": 2,
+     "unknown": 1
     },
     "smoked": {
-     "yes": 0,
-     "no": 1,
-     "unknown": 11
+     "yes": 5,
+     "no": 2,
+     "unknown": 5
     },
     "pm_looked": {
      "yes": 0,
@@ -3796,11 +4052,11 @@
      "unknown": 0
     }
    },
-   "red": 6,
+   "red": 2,
    "criteria": [
     {
      "id": "1",
-     "text": "Anonymous PostgREST call returns no body",
+     "text": "An anonymous caller cannot retrieve an announcement body from the database, by any route",
      "kind": [
       "behavior",
       "invariant"
@@ -3809,23 +4065,22 @@
      "built": "yes",
      "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
+     "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`page_posts_select_published` is `to authenticated` (#218); `announcements_withheld` return type has no body [V] Checked: yes (`announcements-signed-out-rest.test.ts`, seen failing first per build log; `probe-anon-announcements.sh` observed FAIL locally).",
+     "note": "`page_posts` has no anonymous read (`to authenticated`); `announcements_withheld` has no body in its return type [V migration 20261016150052, 20260923161500]. Checked: `tests/announcements-signed-out-rest.test.ts` `[guards F093.1]` asks PostgREST with the publishable key; #218 records it failing on the pre-migration database [V PR body]. Reviewed no: #218 carries no `Reviewed by:` line [V]. Shipped: deploy-health success on 75c682a8 [V]. Smoked unknown: the withheld read changed again in #815 (15:19 UTC today), after the last green smoke, and the smoke does not call PostgREST.",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "2",
-     "text": "Same for `starts_at`, `location_id` and later columns",
+     "text": "The same is true of the start time and the place, and of any later column that carries them",
      "kind": [
       "invariant"
      ],
@@ -3833,23 +4088,22 @@
      "built": "yes",
      "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
+     "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Same policy; exact-key allow-list on the projection [V] Checked: yes (marked `F093.2`; later columns by the F093.3 allow-list).",
+     "note": "Same policy; the return type has no `starts_at` or `location_id` [V]. `[guards F093.2]` selects `starts_at, location_id` as anon and expects no rows; the exact-column allow-list under F093.3 covers later columns [V]. Reviewed no (#218 has no `Reviewed by:`); shipped 75c682a8 success. No mutant run is recorded for this one (see #844).",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "3",
-     "text": "Withholding is enforced in SQL, a projection not a filter",
+     "text": "Withholding is enforced in SQL: a projection that never selects the body, not a filter",
      "kind": [
       "invariant"
      ],
@@ -3857,23 +4111,22 @@
      "built": "yes",
      "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
+     "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Return type is id, name, photo, count, ids [V migration 20261001100000] Checked: yes (allow-list of keys).",
+     "note": "`announcements_withheld` returns nine columns: result_id, group_id, slug, name, public_id, photo_url, announcement_count, announcement_ids, updated_at [V migration 20261016150052]. `[guards F093.3]` asserts that exact key set, keys and not nulls; it was watched failing in #230 [V PR body]. Reviewed no (#218, #230 carry no `Reviewed by:`); shipped yes (75c682a8, 19109a1e, b7766901 all deploy-health success).",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
      "id": "4",
-     "text": "Card has exactly five things; no-photo shows the kind's default art",
+     "text": "The signed-out card carries exactly five things; a Page with no or a hidden photo shows its kind's default image",
      "kind": [
       "behavior",
       "invariant"
@@ -3886,10 +4139,9 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      335,
-      630
+      335
      ],
-     "note": "Five things built: photo, name, count, details line, CTA; no location line [V]. Missing: the Page kind. `announcements_withheld` does not return it and the mapper sets `groupKind: ''`, so the art is generic. Open #335 Checked: no: only partial markers; card unit test unmarked: `WithheldAnnouncementCard.test.tsx`. #630.",
+     "note": "Built half: photo, name, count with its period, the details line and the sign-in call, with no body, time, place or Page location [V `WithheldAnnouncementCard.tsx`]. Missing: the kind's default art. The card calls `artKindFor(result.groupKind)` and `mapWithheldRow` sets `groupKind: ''`, so a no-photo or hidden-photo card is a plain tile with no icon [V]. #335 (open, Beta 11-06, not labelled launch-blocking). Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` marks the whole criterion but asserts only that a `default-art` element exists, not its kind, so it passes while the kind is missing.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3898,55 +4150,7 @@
     },
     {
      "id": "5",
-     "text": "One card per Page, count named as a period, no nought",
-     "kind": [
-      "behavior"
-     ],
-     "status": "active",
-     "built": "yes",
-     "checked": "no",
-     "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [
-      630
-     ],
-     "note": "One row per Page (#230); \"N posts this week\"; zero reads \"A new post\" [V] Checked: no: partial markers only; unmarked: `withheld-copy` / card test. #630.",
-     "gaps": [
-      "NO-CHECK",
-      "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
-      "NOT-LOOKED"
-     ],
-     "score": 1,
-     "red": false
-    },
-    {
-     "id": "6",
-     "text": "A signed-in member sees no change",
-     "kind": [
-      "invariant"
-     ],
-     "status": "active",
-     "built": "unknown",
-     "checked": "no",
-     "reviewed": "unknown",
-     "shipped": "unknown",
-     "smoked": "unknown",
-     "pm_looked": "no",
-     "issues": [],
-     "note": "Policy `to authenticated` leaves `using` unchanged [V build log]; no before/after comparison found Checked: no: two partial markers (member reads a body; Explore load). PM looked: no. #631.",
-     "gaps": [
-      "UNKNOWN"
-     ],
-     "score": 0,
-     "red": true
-    },
-    {
-     "id": "7",
-     "text": "Signed-out Explore still has post-kind rows, withheld",
+     "text": "One card per Page, with the count and its period in words; a Page with none this period keeps its card without a nought",
      "kind": [
       "behavior"
      ],
@@ -3954,14 +4158,61 @@
      "built": "yes",
      "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
+     "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`getWithheldAnnouncements` merged into Explore (#218) [V] Checked: yes (`load-withheld.test.ts`, `F093.7`).",
+     "note": "One row per Page (#230); label \"N posts this week\", zero reads \"A new post\" [V withheld-copy.ts]. `[guards F093.5]` (`tests/f093-withheld-card-criteria.test.tsx`) checks both against real rows, seen failing against mutants (#769) [V PR body]. Reviewed no: #218, #230 have no `Reviewed by:`; shipped yes (75c682a8, 19109a1e). Smoked unknown: the withheld read changed in #815 after the last green smoke.",
      "gaps": [
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "A signed-in member sees no change whatsoever",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`[guards F093.6]` in `tests/f093-front-door-guards.test.tsx` reads bodies, times, places, tags and order as a signed-in member through the real Page and Explore loaders and expects no withheld card; seen failing against 8 mutants (#770) [V]. Reviewed no (#218, #255); shipped yes (75c682a8, a7814ce9). Smoked yes: smoke-live run 38920035175 on 7f38b45b (2026-10-16, routes explore, page, you, all personas) was green and is after the last merge that built this [V]. Caveat: Explore for members has since changed on purpose (#800, #815); this scenario's claim is about its own change only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Signed-out Explore still contains post-kind rows, in withheld form",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      844
+     ],
+     "note": "`loadBrowse` merges `getWithheldAnnouncements` into signed-out results (#218) [V load.ts]. Since #800 (Don, 2026-10-14) the default Explore view lists Pages only; a signed-out Page that posted since the last visit leads as its withheld card, and all withheld cards show under the Updates view [V lead.ts, BrowseSurface.tsx]. Don's 2026-10-16 comments on #796 say Explore mixes everything by default again; not built [V]. Checked no: `[guards F093.7]` in `load-withheld.test.ts` asserts the loader snapshot, not the screen, so it stays green while the default view hides the rows. #844. Reviewed no (#218); shipped yes (75c682a8, 24891b70).",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
@@ -3970,133 +4221,442 @@
     },
     {
      "id": "8",
-     "text": "Signed-out front door: name, default photo, description, card; no location, tags or founder; indexable",
+     "text": "Signed-out front door: name, photo, description and the withheld card; no location, tags or founder; no map pins; indexable",
      "kind": [
       "behavior",
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "unknown",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [
-      631
-     ],
-     "note": "`anon` loses `locations`, `anchor_location_id`, `page_tags`, `tags` (#255); no pin (#259); `robots.ts` admits search crawlers [V]. Card ask is placeholder copy [public-is-draft] Checked: no: `front-door-db.test.ts` is marked partial (database half); two unqualified markers on parts only. #631.",
+     "issues": [],
+     "note": "`anon` loses `locations`, `anchor_location_id`, `page_tags`, `tags`; `browse_feed` returns null location, empty tags and no geography signed out; `robots.ts` admits search crawlers (#255, #259) [V]. `[guards F093.8]` in `tests/f093-front-door-guards.test.tsx` renders a signed-out Page and Explore card against real rows, plus `front-door-db.test.ts` and `member-reads-audit-db.test.ts` [V]. Button reads \"Sign in to see what's happening\" per the 2026-10-04 ruling (placeholder copy). Reviewed no (#255, #259 carry no `Reviewed by:`). Shipped unknown: no deploy-health run for 73625848 (#259) [V]. Smoked yes: run 38920035175, signed-out persona, explore and page.",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
-     "red": true
+     "score": 3,
+     "red": false
     },
     {
      "id": "9",
-     "text": "Any `#announcement-<id>` link lands on the Page's one card, marked, with CTA",
+     "text": "An #announcement-<id> link, to any of the Page's announcements, lands on a page that resolves with the one card marked",
      "kind": [
       "behavior"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [
-      630
-     ],
-     "note": "`WithheldPagePosts` carries an anchor per id (#230); DB returns all ids [V] Checked: no: DB half marked partial; render half unmarked: `WithheldPagePosts.test.tsx`. #630.",
+     "issues": [],
+     "note": "`WithheldPagePosts` carries an anchor per announcement id; the database returns all ids for a Page (#230) [V]. `[guards F093.9]` renders the Page for the latest and an older id, expects one marked card with the sign-in call, no 404; seen failing against mutants (#769) [V]. Reviewed no (#230); shipped yes (19109a1e); smoked yes (run 38920035175 opens page signed out; it does not follow an anchor).",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
+     "score": 4,
      "red": false
     },
     {
      "id": "10",
-     "text": "No link to a body signed out; the ask comes first",
+     "text": "Nothing on the signed-out surface is a link to a body; the ask comes first",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [
-      630
-     ],
-     "note": "CTA is its own link to `/auth/login?next=<Page>`; the card link goes to the Page only [V] Checked: no: unmarked: `WithheldAnnouncementCard.test.tsx` (\"links to the Page's withheld card\"). #630.",
+     "issues": [],
+     "note": "The sign-in call is its own link to `/auth/login?next=<Page>`; the card link goes only to the Page [V `WithheldAnnouncementCard.tsx`]. `[guards F093.10]` collects every link on the signed-out Explore card and Page card and matches them against Page or sign-in only; seen failing against mutants (#769) [V]. Reviewed no (#218, #230); shipped yes; smoked yes (as 9).",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
-     "red": true
+     "score": 4,
+     "red": false
     },
     {
      "id": "11",
-     "text": "Same card for every anonymous reader",
+     "text": "The card is the same for every anonymous reader",
      "kind": [
       "invariant"
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
-     "issues": [
-      631
-     ],
-     "note": "No per-viewer input found in the withheld read path [V grep] Checked: no: unit test \"is the same for every anonymous reader\" unmarked. #631.",
+     "issues": [],
+     "note": "Nothing on the withheld path reads a cookie, header, storage, clock or place [V]. `[guards F093.11]` renders for two readers with different headers, timezones and cookies and expects identical output, and scans the four path files for per-reader reads; seen failing against mutants (#770) [V]. Reviewed no (#218, #230); shipped yes; smoked yes.",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
-      "NOT-SHIPPED",
-      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 1,
-     "red": true
+     "score": 4,
+     "red": false
     },
     {
      "id": "12",
-     "text": "Every criterion has a check seen failing",
+     "text": "Every criterion is discharged by a check that has been observed failing",
      "kind": [
       "coverage"
      ],
      "status": "active",
-     "built": "unknown",
+     "built": "no",
      "checked": "no",
-     "reviewed": "unknown",
-     "shipped": "unknown",
-     "smoked": "unknown",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Build logs record fail-first for criteria 1, 3, 4, 8 and the probe; none recorded for 5, 6, 9, 10, 11. The probe script is not run by CI [V workflows]",
+     "issues": [
+      335,
+      844
+     ],
+     "note": "Fail-first is recorded for 1 (#218), 3 (#230), 4, 5, 9, 10 (#769 mutants) and 6, 8, 11 (#770 mutants) [V PR bodies]. None is recorded for 2 or 7, and 4's check cannot fail on the missing kind art. `scripts/probe-anon-announcements.sh` is not run by CI [A]. #844 (7, 12); 4 waits on #335.",
      "gaps": [
-      "UNKNOWN"
+      "NOT-BUILT"
      ],
      "score": 0,
      "red": true
+    }
+   ]
+  },
+  {
+   "feature": "F104",
+   "title": "Explore shows the whole market, ordered hood, town, market, online, with towns by adjacency",
+   "area": "explore-map",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-10-16",
+   "path": "explore-map/F104-explore-ordered-by-towns.md",
+   "n": 5,
+   "totals": {
+    "built": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Every locality-scoped surface (Explore, Home, search, unclaimed, report queue) shows one market: the vantage's, the member's home by default",
+     "kind": [
+      "behavior",
+      "coverage"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      696
+     ],
+     "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`) [V]. No market scope on any surface. Issue #696 is deferred to the fortnight after beta.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Inside the market: hood, town, towns by adjacency, rest of the market, online last; county remainder counts as a town; bridge table",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      697
+     ],
+     "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. Order today is recency and community response (F059).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "No distance, hop count or \"near you\" shown or filterable anywhere",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      697
+     ],
+     "note": "Distance still shows: `venueDistanceMeters` on `/p/[...slug]`, haversine miles in `MarketSelector.tsx`, \"near you\" in `HomeFeed.tsx` and layout copy [V]. Only guard: no distance filter in `ExploreFilterSheet.test`.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "A Page's market is its anchor Location's, else its owner's home market; a Page in a waiting market is absent until it opens",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      696
+     ],
+     "note": "No Page-to-market link or waiting-market filter in the repo [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "A member with no neighbourhood starts at the town band; the hood band exists and is empty",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      697
+     ],
+     "note": "No bands exist [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F105",
+   "title": "A member looks from a typed place, and home stays the default",
+   "area": "explore-map",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-10-16",
+   "path": "explore-map/F105-look-from-a-typed-place.md",
+   "n": 5,
+   "totals": {
+    "built": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "The place control on Explore takes a typed town, county or market with suggestions; shows the home town by default",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      698
+     ],
+     "note": "The area pill is a metro switcher over `listFeedMetros`, no typed place and no suggestions (`MarketSelector.tsx`, `scope.ts`) [V]. F104 comes first.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Choosing a place sets the vantage for the session and is taken as the area type it is; the rings rebuild there",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      698
+     ],
+     "note": "No vantage and no rings in the repo [V grep]; today `?metro=` and a metro cookie (#479).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "The vantage is session-only: never written to the member, never logged, never from IP or GPS; a shared link reopens it",
+     "kind": [
+      "invariant",
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      698
+     ],
+     "note": "Not built; today the metro is a cookie and `default_metro_id` on the member [V]. A guard is in #698's checklist.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "A vantage in a waiting market shows its cached waiting count and the tell-me control, and no Pages; another open market shows in full",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      699
+     ],
+     "note": "The waitlist count and tell-me panel exist for a metro (`MetroNotCoveredPanel`, F076) but no vantage reaches them [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "A visitor with no location is prompted to enter a location or choose a market, with an arrow to the market selector; nothing is picked",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      699,
+      588
+     ],
+     "note": "Not built: `resolveFeedMetro` still picks Sacramento for a visitor [V]. Ruled 2026-10-12 (F105 Rulings). Prompt copy goes to the PM before production; #588 is needs-pm.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
     }
    ]
   },
@@ -7168,38 +7728,38 @@
    }
   },
   "explore-map": {
-   "features": 7,
-   "n": 62,
-   "red": 15,
+   "features": 9,
+   "n": 77,
+   "red": 6,
    "totals": {
     "built": {
-     "yes": 39,
-     "no": 19,
-     "unknown": 4
+     "yes": 48,
+     "no": 29,
+     "unknown": 0
     },
     "checked": {
-     "yes": 8,
-     "no": 54,
+     "yes": 24,
+     "no": 53,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 56,
-     "unknown": 6
+     "no": 77,
+     "unknown": 0
     },
     "shipped": {
-     "yes": 19,
-     "no": 26,
-     "unknown": 17
+     "yes": 36,
+     "no": 29,
+     "unknown": 12
     },
     "smoked": {
-     "yes": 0,
-     "no": 19,
-     "unknown": 43
+     "yes": 24,
+     "no": 29,
+     "unknown": 24
     },
     "pm_looked": {
      "yes": 0,
-     "no": 62,
+     "no": 77,
      "unknown": 0
     }
    }
@@ -7317,38 +7877,38 @@
   }
  },
  "all": {
-  "features": 26,
-  "n": 217,
-  "red": 49,
+  "features": 28,
+  "n": 232,
+  "red": 40,
   "totals": {
    "built": {
-    "yes": 139,
-    "no": 68,
-    "unknown": 10
+    "yes": 148,
+    "no": 78,
+    "unknown": 6
    },
    "checked": {
-    "yes": 39,
-    "no": 178,
+    "yes": 55,
+    "no": 177,
     "unknown": 0
    },
    "reviewed": {
     "yes": 56,
-    "no": 152,
-    "unknown": 9
+    "no": 173,
+    "unknown": 3
    },
    "shipped": {
-    "yes": 104,
-    "no": 75,
-    "unknown": 38
+    "yes": 121,
+    "no": 78,
+    "unknown": 33
    },
    "smoked": {
-    "yes": 6,
-    "no": 68,
-    "unknown": 143
+    "yes": 30,
+    "no": 78,
+    "unknown": 124
    },
    "pm_looked": {
     "yes": 0,
-    "no": 217,
+    "no": 232,
     "unknown": 0
    }
   }
@@ -7357,8 +7917,8 @@
   "SPEC-CONFLICT": [
    "F072.2b",
    "F099.11b",
-   "F059.6",
-   "F070.5",
+   "F059.5a",
+   "F091.1b",
    "F058.2",
    "F078.3",
    "F101.2",
@@ -7370,10 +7930,6 @@
    "F077.8"
   ],
   "UNKNOWN": [
-   "F059.2",
-   "F091.5",
-   "F093.6",
-   "F093.12",
    "F080.2",
    "F080.3",
    "F077.1",
@@ -7396,23 +7952,34 @@
    "F074.6",
    "F074.7",
    "F074.8",
-   "F059.4",
+   "F059.2",
+   "F059.4a",
+   "F059.5c",
+   "F059.6",
+   "F059.7",
    "F063.1",
    "F063.2",
    "F063.3",
    "F063.4",
    "F070.4",
-   "F076.4",
+   "F076.3",
    "F076.7",
    "F076.8",
    "F076.15",
    "F091.6",
-   "F092.2",
-   "F092.3",
-   "F092.4",
    "F092.5",
-   "F092.6",
    "F093.4",
+   "F093.12",
+   "F104.1",
+   "F104.2",
+   "F104.3",
+   "F104.4",
+   "F104.5",
+   "F105.1",
+   "F105.2",
+   "F105.3",
+   "F105.4",
+   "F105.5",
    "F058.4",
    "F078.1",
    "F078.2",
@@ -7454,16 +8021,10 @@
    "F099.11a",
    "F059.2c",
    "F059.3",
+   "F059.4b",
+   "F059.5e",
    "F070.2",
-   "F076.2",
-   "F076.3",
-   "F076.12",
-   "F076.14",
-   "F076.16",
    "F092.1",
-   "F093.8",
-   "F093.10",
-   "F093.11",
    "F058.3",
    "F078.4",
    "F100.4",
@@ -7491,23 +8052,21 @@
    "F099.9",
    "F059.1",
    "F059.2b",
-   "F059.5",
-   "F059.7",
+   "F059.5b",
+   "F059.5d",
    "F059.8",
    "F059.9",
    "F059.10",
    "F070.1",
    "F070.3",
+   "F070.5b",
    "F076.1",
-   "F076.5",
-   "F076.6",
-   "F076.9",
-   "F076.10",
-   "F076.11",
-   "F076.13",
-   "F091.1",
-   "F093.5",
-   "F093.9",
+   "F091.1a",
+   "F091.5",
+   "F091.7",
+   "F092.3",
+   "F092.6",
+   "F093.7",
    "F058.1",
    "F058.5",
    "F058.6",
@@ -7564,17 +8123,20 @@
    "F059.2b",
    "F059.2c",
    "F059.3",
-   "F059.5",
-   "F059.7",
+   "F059.4b",
+   "F059.5b",
+   "F059.5d",
+   "F059.5e",
    "F059.8",
    "F059.9",
    "F059.10",
    "F070.1",
    "F070.2",
    "F070.3",
+   "F070.5b",
    "F076.1",
    "F076.2",
-   "F076.3",
+   "F076.4",
    "F076.5",
    "F076.6",
    "F076.9",
@@ -7583,17 +8145,22 @@
    "F076.12",
    "F076.13",
    "F076.14",
-   "F076.16",
-   "F091.1",
+   "F091.1a",
    "F091.2",
    "F091.3",
    "F091.4",
+   "F091.5",
    "F091.7",
    "F092.1",
+   "F092.2",
+   "F092.3",
+   "F092.4",
+   "F092.6",
    "F093.1",
    "F093.2",
    "F093.3",
    "F093.5",
+   "F093.6",
    "F093.7",
    "F093.8",
    "F093.9",
@@ -7636,26 +8203,18 @@
    "F061.3",
    "F072.1a",
    "F072.2a",
-   "F059.1",
-   "F059.2b",
-   "F059.2c",
-   "F059.3",
-   "F059.8",
-   "F059.9",
    "F059.10",
    "F070.1",
    "F070.2",
    "F070.3",
-   "F092.1",
-   "F093.1",
-   "F093.2",
-   "F093.3",
-   "F093.5",
-   "F093.7",
+   "F076.4",
+   "F076.5",
+   "F076.6",
+   "F076.9",
+   "F076.10",
+   "F076.11",
+   "F076.12",
    "F093.8",
-   "F093.9",
-   "F093.10",
-   "F093.11",
    "F058.1",
    "F058.3",
    "F058.5",
@@ -7698,21 +8257,14 @@
    "F099.11a",
    "F099.12",
    "F099.13",
-   "F059.1",
-   "F059.2b",
-   "F059.2c",
-   "F059.3",
-   "F059.5",
-   "F059.7",
    "F059.8",
-   "F059.9",
-   "F059.10",
    "F070.1",
    "F070.2",
    "F070.3",
+   "F070.5b",
    "F076.1",
    "F076.2",
-   "F076.3",
+   "F076.4",
    "F076.5",
    "F076.6",
    "F076.9",
@@ -7721,22 +8273,13 @@
    "F076.12",
    "F076.13",
    "F076.14",
-   "F076.16",
-   "F091.1",
-   "F091.2",
-   "F091.3",
-   "F091.4",
+   "F091.1a",
    "F091.7",
-   "F092.1",
    "F093.1",
    "F093.2",
    "F093.3",
    "F093.5",
    "F093.7",
-   "F093.8",
-   "F093.9",
-   "F093.10",
-   "F093.11",
    "F058.1",
    "F058.3",
    "F058.5",
@@ -7841,17 +8384,20 @@
    "F059.2b",
    "F059.2c",
    "F059.3",
-   "F059.5",
-   "F059.7",
+   "F059.4b",
+   "F059.5b",
+   "F059.5d",
+   "F059.5e",
    "F059.8",
    "F059.9",
    "F059.10",
    "F070.1",
    "F070.2",
    "F070.3",
+   "F070.5b",
    "F076.1",
    "F076.2",
-   "F076.3",
+   "F076.4",
    "F076.5",
    "F076.6",
    "F076.9",
@@ -7860,17 +8406,22 @@
    "F076.12",
    "F076.13",
    "F076.14",
-   "F076.16",
-   "F091.1",
+   "F091.1a",
    "F091.2",
    "F091.3",
    "F091.4",
+   "F091.5",
    "F091.7",
    "F092.1",
+   "F092.2",
+   "F092.3",
+   "F092.4",
+   "F092.6",
    "F093.1",
    "F093.2",
    "F093.3",
    "F093.5",
+   "F093.6",
    "F093.7",
    "F093.8",
    "F093.9",
@@ -7953,12 +8504,11 @@
   "F074: unknown cells: Smoked 1",
   "F082: unknown cells: Smoked 8",
   "F099: unknown cells: Smoked 10",
-  "F059: unknown cells: Built 1, Reviewed 1, Shipped 1, Smoked 10",
-  "F070: unknown cells: Reviewed 3, Shipped 3, Smoked 3",
-  "F076: unknown cells: Smoked 12",
-  "F091: unknown cells: Built 1, Shipped 1, Smoked 6",
-  "F092: unknown cells: Shipped 1, Smoked 1",
-  "F093: unknown cells: Built 2, Reviewed 2, Shipped 11, Smoked 11",
+  "F059: unknown cells: Shipped 1, Smoked 1",
+  "F070: unknown cells: Shipped 3, Smoked 4",
+  "F076: unknown cells: Shipped 7, Smoked 11",
+  "F091: unknown cells: Smoked 3",
+  "F093: unknown cells: Shipped 1, Smoked 5",
   "F058: unknown cells: Shipped 4, Smoked 4",
   "F078: unknown cells: Smoked 8",
   "F080: unknown cells: Built 2, Shipped 2, Smoked 5",
