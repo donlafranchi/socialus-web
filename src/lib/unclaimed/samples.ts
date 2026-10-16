@@ -3,6 +3,8 @@
 // "Sample" (Don, 2026-10-10) so nobody shows up for a deal that does not exist; the column
 // `page_posts.sample_kind` marks them for the refresh and for removal once a real post exists.
 import { createHash } from 'node:crypto'
+import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
+import { metroDate, metroWeekday, shiftDays } from '../metro/metro-week'
 
 export type SampleKind = 'event' | 'deal' | 'last_minute'
 export const SAMPLE_LABEL = 'Sample'
@@ -86,12 +88,32 @@ const at = (now: Date, days: number, hourUtc: number) => {
   return d
 }
 
-/** When each kind falls, counted from `now`. The refresh reuses it to roll a stale one forward. */
+/**
+ * When each kind falls, counted from `now`; the refresh reuses it to roll a stale one forward. #816 a1 (cap-1, cap-5):
+ * spread over the next 14 days by the Page's slug; the event lands on a Fri, Sat or Sun (this weekend or next), a deal
+ * runs 2–4 days from a start in the next 10, and a last-minute opening is tomorrow. Days are the metro's own.
+ */
 export function sampleWindow(kind: SampleKind, now: Date, slug: string): { startsAt: Date; endsAt: Date } {
-  const shift = parseInt(createHash('sha1').update(slug).digest('hex').slice(0, 2), 16) % 4
-  if (kind === 'event') return { startsAt: at(now, 3 + shift, 20), endsAt: at(now, 3 + shift, 23) }
-  if (kind === 'deal') return { startsAt: at(now, 0, 0), endsAt: at(now, 6 + shift, 6) }
-  return { startsAt: at(now, 1, 17), endsAt: at(now, 1, 21) }
+  const h = parseInt(createHash('sha1').update(slug).digest('hex').slice(0, 8), 16)
+  const today = metroDate(now, METRO_TIME_ZONE)
+  const at = (ymd: string, hhmm: string) => new Date(metroWallTimeToInstant(ymd, hhmm, METRO_TIME_ZONE)!)
+  if (kind === 'event') {
+    const toFriday = (5 - metroWeekday(now, METRO_TIME_ZONE) + 7) % 7
+    // Fri, Sat or Sun of this weekend or next; on Sat or Sun "this weekend" may already be past, so count from the
+    // Friday that is coming and step back into this weekend only when that day is still ahead.
+    const pick = h % 3
+    const weekendFri = shiftDays(today, toFriday - (toFriday > 4 ? 7 : 0))
+    let day = shiftDays(weekendFri, pick + (Math.floor(h / 4) % 2) * 7)
+    const start = ['18:00', '10:00', '11:00'][pick]!
+    if (at(day, start) <= now) day = shiftDays(day, 7)
+    return { startsAt: at(day, start), endsAt: at(day, ['21:00', '13:00', '14:00'][pick]!) }
+  }
+  if (kind === 'deal') {
+    const from = shiftDays(today, Math.floor(h / 16) % 10)
+    return { startsAt: at(from, '09:00'), endsAt: at(shiftDays(from, 2 + (Math.floor(h / 256) % 3)), '21:00') }
+  }
+  const tomorrow = shiftDays(today, 1)
+  return { startsAt: at(tomorrow, '10:00'), endsAt: at(tomorrow, '14:00') }
 }
 
 export const isSampleBody = (body: string) => body.startsWith(`${SAMPLE_LABEL} ·`)

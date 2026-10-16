@@ -28,6 +28,7 @@ const page = (n: string, city = 'Sacramento', county?: string): PlannedPage => (
   county,
   purpose: 'sell',
   pool: 'Food & drink',
+  interests: ['Food & drink', 'Local business'],
   area: 'Midtown',
   sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url: `https://test-517-${n}.example/` })),
 })
@@ -194,6 +195,46 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(urls.some((u) => u.includes('5740ac8e2dc5'))).toBe(false)
     // Once it is gone, the next run finds nothing to do.
     expect(await enrichPage(client, H, async () => fresh, now, ['5740ac8e2dc5'])).toBe('complete')
+  })
+
+  // #816 a2 — the Page and its samples carry its interest tags; a Page loaded before them gets them on the next run.
+  it('tags the Page and every sample with its interests, once, and backfills a Page that has none', async () => {
+    const K = page('k')
+    await loadUnclaimed(client, [K])
+    await enrichPage(client, K, async () => enrichment, now)
+    const tagsOf = async () =>
+      (await client.query(
+        `select t.label from public.page_tags pt join public.tags t on t.id = pt.tag_id join public.groups g on g.id = pt.group_id where g.public_info_url = $1 order by 1`,
+        [K.publicInfoUrl],
+      )).rows.map((r) => r.label as string)
+    const postTagCount = async () =>
+      Number((await client.query(
+        `select count(*) n from public.post_tags x join public.page_posts p on p.id = x.post_id join public.groups g on g.id = p.group_id where g.public_info_url = $1`,
+        [K.publicInfoUrl],
+      )).rows[0].n)
+    expect((await tagsOf()).map((l) => l.toLowerCase())).toEqual(['food & drink', 'local business'])
+    expect(await postTagCount()).toBe(6)
+    // A Page tagged before keeps one row per tag; a run with no tags missing changes nothing.
+    expect(await enrichPage(client, K, async () => enrichment, now)).toBe('complete')
+    expect(await postTagCount()).toBe(6)
+    // Backfill: take the tags off, as on a Page loaded before #816; the next run puts them back.
+    await client.query(`delete from public.page_tags where group_id = (select id from public.groups where public_info_url = $1)`, [K.publicInfoUrl])
+    expect(await enrichPage(client, K, async () => enrichment, now)).toBe('refreshed')
+    expect(await tagsOf()).toHaveLength(2)
+  })
+
+  // #816 a1 — a Page loaded before has its event moved onto a weekend, once.
+  it('moves an event sample that is not on a Fri, Sat or Sun onto one', async () => {
+    const M = page('m')
+    await loadUnclaimed(client, [M])
+    await enrichPage(client, M, async () => enrichment, now)
+    const id = `(select id from public.groups where public_info_url = '${M.publicInfoUrl}')`
+    await client.query(`update public.page_posts set starts_at = '2026-10-14T19:00:00Z', ends_at = '2026-10-14T21:00:00Z' where group_id = ${id} and sample_kind = 'event'`) // a Wednesday
+    const later = new Date('2026-10-12T18:00:00Z')
+    expect(await enrichPage(client, M, async () => enrichment, later)).toBe('refreshed')
+    const [{ starts_at }] = (await client.query(`select starts_at from public.page_posts where group_id = ${id} and sample_kind = 'event'`)).rows
+    expect(['Fri', 'Sat', 'Sun']).toContain(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(starts_at))
+    expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
   })
 
   it('moves a Page filed under a dead address to the fixed one', async () => {
