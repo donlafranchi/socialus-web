@@ -1,0 +1,121 @@
+{
+ "schema": 1,
+ "feature": "F114",
+ "title": "a test member with six weeks of history, for testing freshness and learning",
+ "area": "builders-seed",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-16",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Two builder-flagged test accounts, Settled (history) and Newcomer (none), each with a PM-controlled address in private env",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    778
+   ],
+   "note": "Builder accounts exist (`scripts/builders.ts`, #281) but no Settled or Newcomer persona [V grep]."
+  },
+  {
+   "id": "2",
+   "text": "Settled's home zip is in the Sacramento market, in a home town with unclaimed Pages",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    778
+   ],
+   "note": "Not built; home towns exist since #695 [V]."
+  },
+  {
+   "id": "3",
+   "text": "`scripts/test-profile.ts` (dry run unless --apply, re-runnable) writes 6 interests, 15 follows, 10 RSVPs and 8 saves over 42 days on real Pages",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    778
+   ],
+   "note": "`scripts/test-profile.ts` does not exist [V]."
+  },
+  {
+   "id": "4",
+   "text": "Neither account's activity appears in any staff count, report, F109 report or Page number; a test proves it for every count and log",
+   "kind": [
+    "invariant",
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    778
+   ],
+   "note": "Builder exclusion exists in some places (`reports-queue.ts`, `waitlist-join.ts`, `is_builder()`) [V], but not for these accounts and no test covers every count."
+  },
+  {
+   "id": "5",
+   "text": "`test-profile.ts --wipe` removes both accounts' history and no other account's content, other builders' included",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    778
+   ],
+   "note": "`delete_builder_content()` wipes every builder's content, so a scoped wipe is new [V]."
+  },
+  {
+   "id": "6",
+   "text": "A phone checklist in the Issue says what to try and what to expect",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    778
+   ],
+   "note": "#778 holds a one-line checklist item; the full checklist is written when the script lands [V]."
+  }
+ ]
+}

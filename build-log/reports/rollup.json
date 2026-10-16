@@ -11,6 +11,191 @@
  "as_of": "2026-10-16",
  "features": [
   {
+   "feature": "F114",
+   "title": "a test member with six weeks of history, for testing freshness and learning",
+   "area": "builders-seed",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-10-16",
+   "path": "builders-seed/F114-test-member-with-history.md",
+   "n": 6,
+   "totals": {
+    "built": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "Two builder-flagged test accounts, Settled (history) and Newcomer (none), each with a PM-controlled address in private env",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      778
+     ],
+     "note": "Builder accounts exist (`scripts/builders.ts`, #281) but no Settled or Newcomer persona [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "Settled's home zip is in the Sacramento market, in a home town with unclaimed Pages",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      778
+     ],
+     "note": "Not built; home towns exist since #695 [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "`scripts/test-profile.ts` (dry run unless --apply, re-runnable) writes 6 interests, 15 follows, 10 RSVPs and 8 saves over 42 days on real Pages",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      778
+     ],
+     "note": "`scripts/test-profile.ts` does not exist [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Neither account's activity appears in any staff count, report, F109 report or Page number; a test proves it for every count and log",
+     "kind": [
+      "invariant",
+      "coverage"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      778
+     ],
+     "note": "Builder exclusion exists in some places (`reports-queue.ts`, `waitlist-join.ts`, `is_builder()`) [V], but not for these accounts and no test covers every count.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "`test-profile.ts --wipe` removes both accounts' history and no other account's content, other builders' included",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      778
+     ],
+     "note": "`delete_builder_content()` wipes every builder's content, so a scoped wipe is new [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "A phone checklist in the Issue says what to try and what to expect",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      778
+     ],
+     "note": "#778 holds a one-line checklist item; the full checklist is written when the script lands [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
    "feature": "F060",
    "title": "someone starts something without opening a shop",
    "area": "create-posts",
@@ -7690,6 +7875,43 @@
   }
  ],
  "areas": {
+  "builders-seed": {
+   "features": 1,
+   "n": 6,
+   "red": 0,
+   "totals": {
+    "built": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 6,
+     "unknown": 0
+    }
+   }
+  },
   "create-posts": {
    "features": 7,
    "n": 52,
@@ -7877,38 +8099,38 @@
   }
  },
  "all": {
-  "features": 28,
-  "n": 232,
+  "features": 29,
+  "n": 238,
   "red": 40,
   "totals": {
    "built": {
     "yes": 148,
-    "no": 78,
+    "no": 84,
     "unknown": 6
    },
    "checked": {
     "yes": 55,
-    "no": 177,
+    "no": 183,
     "unknown": 0
    },
    "reviewed": {
     "yes": 56,
-    "no": 173,
+    "no": 179,
     "unknown": 3
    },
    "shipped": {
     "yes": 121,
-    "no": 78,
+    "no": 84,
     "unknown": 33
    },
    "smoked": {
     "yes": 30,
-    "no": 78,
+    "no": 84,
     "unknown": 124
    },
    "pm_looked": {
     "yes": 0,
-    "no": 232,
+    "no": 238,
     "unknown": 0
    }
   }
@@ -7937,6 +8159,12 @@
    "F081.2"
   ],
   "NOT-BUILT": [
+   "F114.1",
+   "F114.2",
+   "F114.3",
+   "F114.4",
+   "F114.5",
+   "F114.6",
    "F060.5",
    "F064.1",
    "F064.2",
