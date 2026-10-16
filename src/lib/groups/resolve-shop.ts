@@ -99,8 +99,8 @@ export interface LocalOwnerBadge {
 }
 
 /** T096 — the acting owner's own claim state, backing the F037 management widget.
- *  `zip` is null when the owner hasn't claimed; `isProximal` reports whether that
- *  ZIP currently earns the public badge (render-time derivation, not validation). */
+ *  `zip` is null when the owner hasn't claimed; `isProximal` is true whenever a claim
+ *  is on file: the claim itself earns the badge (#874), no distance test. */
 export interface OwnerClaim {
   zip: string | null
   isProximal: boolean
@@ -319,29 +319,12 @@ export async function resolveShopItems(
   return (data as ShopItem[]).map((r) => ({ id: r.id, title: r.title, kind: r.kind }))
 }
 
-/** Render-time proximity test (T075's SECURITY DEFINER function, granted to
- *  anon + authenticated). Null-safe: any RPC error or non-true result → false,
- *  so a missing-data join never earns the badge. */
-async function zipIsProximal(
-  supabase: SupabaseClient,
-  zip: string,
-  locationId: string,
-): Promise<boolean> {
-  const { data, error } = await supabase.rpc('zip_is_proximal_to_location', {
-    zip,
-    location_id: locationId,
-  })
-  if (error) return false
-  return data === true
-}
-
 /**
  * Beat 2 — "Claimed local owner" badge (F037 read path over T075's substrate).
  *
  * #246 — a registration is collected and never displayed (Don, 2026-09-29), so
  * this never reads member_business_jurisdictions. page_local_owner_badge()
- * answers true if ANY active registration's ZIP shares the anchor Location's
- * metro, and returns nothing but that boolean. No "not locally owned"
+ * answers true if the Page has any active registration (the owner's claim, #874), and returns nothing but that boolean. No "not locally owned"
  * negative space: false, an error or no anchor all render nothing.
  */
 export async function resolveLocalOwnerBadge(
@@ -459,8 +442,6 @@ export async function resolveOwnerClaim(
   const zip = (row as { zip: string } | null)?.zip ?? null
   if (!zip) return { zip: null, isProximal: false }
 
-  const isProximal = args.anchorLocationId
-    ? await zipIsProximal(supabase, zip, args.anchorLocationId)
-    : false
-  return { zip, isProximal }
+  // #874: a claim earns the badge wherever its ZIP is; local is the owner's claim, not distance.
+  return { zip, isProximal: true }
 }
