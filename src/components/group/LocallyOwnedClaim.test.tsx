@@ -5,6 +5,7 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { LocalOwnerClaimProvider, type LocalOwnerClaimState } from './LocalOwnerClaimState'
 import type { OwnerClaim } from '@/lib/groups/resolve-shop'
 
 const refreshSpy = vi.fn()
@@ -14,18 +15,20 @@ vi.mock('next/navigation', () => ({
 
 afterEach(cleanup)
 
-let onSet: ReturnType<typeof vi.fn<(input: { groupId: string; zip: string }) => Promise<void>>>
-let onRemove: ReturnType<typeof vi.fn<(input: { groupId: string }) => Promise<void>>>
+let onSet: ReturnType<typeof vi.fn<(input: { groupId: string; zip: string }) => Promise<LocalOwnerClaimState>>>
+let onRemove: ReturnType<typeof vi.fn<(input: { groupId: string }) => Promise<LocalOwnerClaimState>>>
 
 beforeEach(() => {
   refreshSpy.mockClear()
-  onSet = vi.fn<(input: { groupId: string; zip: string }) => Promise<void>>().mockResolvedValue(undefined)
-  onRemove = vi.fn<(input: { groupId: string }) => Promise<void>>().mockResolvedValue(undefined)
+  onSet = vi.fn<(input: { groupId: string; zip: string }) => Promise<LocalOwnerClaimState>>().mockResolvedValue({ claim: { zip: '95817', isProximal: true }, badge: null })
+  onRemove = vi.fn<(input: { groupId: string }) => Promise<LocalOwnerClaimState>>().mockResolvedValue({ claim: { zip: null, isProximal: false }, badge: null })
 })
 
 function renderWidget(claim: OwnerClaim) {
   return render(
-    <LocallyOwnedClaim groupId="grp-1" claim={claim} onSet={onSet} onRemove={onRemove} />,
+    <LocalOwnerClaimProvider claim={claim} badge={null}>
+      <LocallyOwnedClaim groupId="grp-1" onSet={onSet} onRemove={onRemove} />
+    </LocalOwnerClaimProvider>,
   )
 }
 
@@ -58,7 +61,7 @@ describe('LocallyOwnedClaim — inline validation (edge)', () => {
 })
 
 describe('LocallyOwnedClaim — add (beat 2)', () => {
-  it('submits a valid ZIP to onSet and refreshes the page', async () => {
+  it('submits a valid ZIP to onSet; the save, not a refresh, updates the card', async () => {
     renderWidget({ zip: null, isProximal: false })
     fireEvent.click(screen.getByTestId('claim-add'))
     fireEvent.change(screen.getByTestId('claim-zip-input'), { target: { value: '95817' } })
@@ -66,7 +69,7 @@ describe('LocallyOwnedClaim — add (beat 2)', () => {
     await waitFor(() => {
       expect(onSet).toHaveBeenCalledWith({ groupId: 'grp-1', zip: '95817' })
     })
-    await waitFor(() => expect(refreshSpy).toHaveBeenCalled())
+    expect(refreshSpy).not.toHaveBeenCalled()
   })
 })
 
@@ -105,28 +108,29 @@ describe('LocallyOwnedClaim — claimed + non-proximal (beat 5)', () => {
 })
 
 describe('LocallyOwnedClaim — remove (beat 4)', () => {
-  it('confirms then calls onRemove and refreshes', async () => {
+  it('confirms then calls onRemove; the save, not a refresh, updates the card', async () => {
     renderWidget({ zip: '95817', isProximal: true })
     fireEvent.click(screen.getByTestId('claim-remove'))
     fireEvent.click(screen.getByTestId('claim-remove-confirm'))
     await waitFor(() => {
       expect(onRemove).toHaveBeenCalledWith({ groupId: 'grp-1' })
     })
-    await waitFor(() => expect(refreshSpy).toHaveBeenCalled())
+    expect(refreshSpy).not.toHaveBeenCalled()
   })
 
-  // F037 flake (2026-10-15/16): the widget showed its old state between the save and the refresh. It is busy until both land.
-  it('is busy from the save until the refresh is under way, and refreshes once', async () => {
-    let finish!: () => void
-    onSet.mockReturnValue(new Promise<void>((r) => (finish = r)))
+  // F037 flake (2026-10-15/16, #806): busy while the save is in flight; the save brings the new claim, no refresh.
+  it('is busy from the save until it returns, and shows what it returned', async () => {
+    let finish!: (s: LocalOwnerClaimState) => void
+    onSet.mockReturnValue(new Promise<LocalOwnerClaimState>((r) => (finish = r)))
     renderWidget({ zip: null, isProximal: false })
     fireEvent.click(screen.getByTestId('claim-add'))
     fireEvent.change(screen.getByTestId('claim-zip-input'), { target: { value: '95817' } })
     fireEvent.click(screen.getByTestId('claim-submit'))
     await waitFor(() => expect(screen.getByTestId('claim-widget')).toHaveAttribute('aria-busy', 'true'))
-    finish()
-    await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1))
+    finish({ claim: { zip: '95817', isProximal: true }, badge: null })
     await waitFor(() => expect(screen.getByTestId('claim-widget')).toHaveAttribute('aria-busy', 'false'))
+    expect(screen.getByText(/ZIP on file: 95817/)).toBeInTheDocument()
+    expect(refreshSpy).not.toHaveBeenCalled()
   })
 })
 

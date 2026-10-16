@@ -16,30 +16,27 @@
 // Proximity is a render-time derivation; a non-proximal ZIP is accepted, not
 // rejected — the widget reports, it doesn't moralize.
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import type { OwnerClaim } from '@/lib/groups/resolve-shop'
+import { useState } from 'react'
+import { useLocalOwnerClaim, type LocalOwnerClaimState } from './LocalOwnerClaimState'
 
 interface Props {
   groupId: string
-  claim: OwnerClaim
-  onSet: (input: { groupId: string; zip: string }) => Promise<void>
-  onRemove: (input: { groupId: string }) => Promise<void>
+  // #806 — each save returns the claim and badge as they now stand.
+  onSet: (input: { groupId: string; zip: string }) => Promise<LocalOwnerClaimState>
+  onRemove: (input: { groupId: string }) => Promise<LocalOwnerClaimState>
 }
 
 type Mode = 'view' | 'editing' | 'removing'
 
 const ZIP_RE = /^[0-9]{5}$/
 
-export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
-  const router = useRouter()
+export function LocallyOwnedClaim({ groupId, onSet, onRemove }: Props) {
+  const { state, set } = useLocalOwnerClaim()
+  const { claim } = state
   const [mode, setMode] = useState<Mode>('view')
   const [zip, setZip] = useState(claim.zip ?? '')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  // F037 flake: the new claim arrives with the refresh. Switching the view inside the same transition keeps the old view
-  // (busy) until the refreshed page lands, so it never shows the state from before the save.
-  const [refreshing, startRefresh] = useTransition()
 
   function startEdit() {
     setZip(claim.zip ?? '')
@@ -55,11 +52,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setError(null)
     setPending(true)
     try {
-      await onSet({ groupId, zip })
-      startRefresh(() => {
-        setMode('view')
-        router.refresh()
-      })
+      set(await onSet({ groupId, zip }))
+      setMode('view')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
     } finally {
@@ -70,11 +64,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   async function confirmRemove() {
     setPending(true)
     try {
-      await onRemove({ groupId })
-      startRefresh(() => {
-        setMode('view')
-        router.refresh()
-      })
+      set(await onRemove({ groupId }))
+      setMode('view')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove your claim.')
     } finally {
@@ -85,8 +76,9 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   return (
     <section
       data-testid="claim-widget"
-      aria-busy={pending || refreshing}
       aria-labelledby="claim-heading"
+      // #806 — busy while a save is in flight; the save itself brings the new claim.
+      aria-busy={pending}
       className="mt-6 rounded border border-gray-200 p-4"
     >
       <h2 id="claim-heading" className="text-sm font-medium text-gray-700">
@@ -119,7 +111,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
               type="button"
               data-testid="claim-submit"
               className="btn-primary"
-              disabled={pending || refreshing}
+              disabled={pending}
               onClick={submit}
             >
               Save
@@ -127,7 +119,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
             <button
               type="button"
               className="btn-secondary"
-              disabled={pending || refreshing}
+              disabled={pending}
               onClick={() => {
                 setError(null)
                 setMode('view')
@@ -147,7 +139,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
               type="button"
               data-testid="claim-remove-confirm"
               className="btn-primary"
-              disabled={pending || refreshing}
+              disabled={pending}
               onClick={confirmRemove}
             >
               Remove claim
@@ -155,7 +147,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
             <button
               type="button"
               className="btn-secondary"
-              disabled={pending || refreshing}
+              disabled={pending}
               onClick={() => setMode('view')}
             >
               Keep it

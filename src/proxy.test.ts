@@ -11,10 +11,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Signed out is a state the app already handles everywhere. Failing to refresh
 // a token means signed out; it does not mean the request is unserviceable.
 
-const { getUser } = vi.hoisted(() => ({ getUser: vi.fn() }))
+// `getUser` holds the session each test sets up. #791 — the proxy reads it from the
+// token's verified claims; `authServer` counts the round trips to the auth server.
+const { getUser, authServer } = vi.hoisted(() => {
+  const getUser = vi.fn()
+  return { getUser, authServer: vi.fn((...a: unknown[]) => getUser(...a)) }
+})
 
 vi.mock('@supabase/ssr', () => ({
-  createServerClient: () => ({ auth: { getUser } }),
+  createServerClient: () => ({
+    auth: {
+      getUser: authServer,
+      getClaims: async () => {
+        const { data, error } = await getUser()
+        const user = data?.user
+        return { data: user ? { claims: { sub: user.id, app_metadata: user.app_metadata ?? {} } } : null, error }
+      },
+    },
+  }),
 }))
 
 import { proxy } from './proxy'
@@ -97,6 +111,13 @@ describe('proxy — a stale session must not 500 the request', () => {
     })
     const res = await proxy(request())
     expect(res.status).toBe(200)
+  })
+
+  it('a signed-in request makes no round trip to the auth server (#791)', async () => {
+    getUser.mockResolvedValue({ data: { user: { id: 'm1' } }, error: null })
+    const res = await proxy(request('/explore'))
+    expect(res.status).toBe(200)
+    expect(authServer).not.toHaveBeenCalled()
   })
 
   it('still serves the request on a healthy session', async () => {

@@ -35,7 +35,25 @@ vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements: 
 
 import { loadPageView } from './load-page-view'
 const SHOP = { groupId: 'g-1', anchorLocationId: null, kind: 'business', lifecycleState: 'active' }
-const asUser = (id: string | null) => ({ auth: { getUser: slow('auth', { data: { user: id ? { id } : null } }) } }) as never
+// #791 — who is looking comes from the session's signed claims, checked locally: no round of its own.
+const asUser = (id: string | null) =>
+  ({
+    auth: {
+      getClaims: async () => ({ data: id ? { claims: { sub: id } } : null, error: null }),
+      getUser: slow('auth', { data: { user: id ? { id } : null } }),
+    },
+  }) as never
+const rounds = () => {
+  let inflight = 0
+  let n = 0
+  for (const e of state.order) {
+    if (e.startsWith('start:')) {
+      if (inflight === 0) n++
+      inflight++
+    } else inflight--
+  }
+  return n
+}
 
 beforeEach(() => {
   state.inflight = 0
@@ -53,18 +71,15 @@ describe('loadPageView starts independent reads together (#529)', () => {
     await loadPageView(asUser(null), SHOP as never)
     expect(state.max).toBeGreaterThanOrEqual(4)
   })
-  it('never more than three rounds for a visitor: nothing waits for a read it does not need', async () => {
+  // #791 — rounds = how many times the number in flight drops to zero.
+  it('one round for a signed-in visitor: no read waits on the auth server or on another read', async () => {
     await loadPageView(asUser('m-1'), SHOP as never)
-    // Rounds = how many times the number in flight drops to zero.
-    let inflight = 0
-    let rounds = 0
-    for (const e of state.order) {
-      if (e.startsWith('start:')) {
-        if (inflight === 0) rounds++
-        inflight++
-      } else inflight--
-    }
-    expect(rounds).toBeLessThanOrEqual(2)
+    expect(state.order).not.toContain('start:auth')
+    expect(rounds()).toBe(1)
+  })
+  it('one round signed out', async () => {
+    await loadPageView(asUser(null), SHOP as never)
+    expect(rounds()).toBe(1)
   })
   it('the owner still gets the follower count and the draft tag count', async () => {
     const view = await loadPageView(asUser('m-1'), SHOP as never)

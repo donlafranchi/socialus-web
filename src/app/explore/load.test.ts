@@ -38,8 +38,20 @@ const {
     resolveBrowseScope: vi.fn(),
   }))
 
+const { authServer } = vi.hoisted(() => ({ authServer: vi.fn() }))
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser }, from, rpc })),
+  createClient: vi.fn(async () => ({
+    auth: {
+      // #791 — the session comes from the token's verified claims; `getUser` is the auth server.
+      getUser: authServer,
+      getClaims: async () => {
+        const user = (await getUser())?.data?.user
+        return { data: user ? { claims: { sub: user.id } } : null, error: null }
+      },
+    },
+    from,
+    rpc,
+  })),
 }))
 vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
@@ -110,6 +122,25 @@ describe('signed out — criterion 2b, the personal half is absent', () => {
     signedOut()
     const snap = await loadBrowse(null)
     expect(snap.results).toEqual([publicRow])
+  })
+})
+
+describe('#791 — signed in, nothing waits on a round trip it does not need', () => {
+  it('never asks the auth server who is looking', async () => {
+    signedIn()
+    await loadBrowse(null)
+    expect(authServer).not.toHaveBeenCalled()
+  })
+
+  it('asks for the follow set without waiting for the metro to resolve', async () => {
+    signedIn()
+    let release!: (v: unknown) => void
+    resolveBrowseScope.mockReturnValue(new Promise((r) => (release = r)))
+    const pending = loadBrowse(null)
+    await new Promise((r) => setTimeout(r, 0))
+    expect(resolveFollowedPageIds).toHaveBeenCalledWith(expect.anything(), MEMBER)
+    release({ metro: METRO, chosen: false })
+    await pending
   })
 })
 
