@@ -16,7 +16,7 @@
 // Proximity is a render-time derivation; a non-proximal ZIP is accepted, not
 // rejected — the widget reports, it doesn't moralize.
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { OwnerClaim } from '@/lib/groups/resolve-shop'
 
@@ -37,6 +37,9 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   const [zip, setZip] = useState(claim.zip ?? '')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  // F037 flake: the new claim arrives with the refresh. Switching the view inside the same transition keeps the old view
+  // (busy) until the refreshed page lands, so it never shows the state from before the save.
+  const [refreshing, startRefresh] = useTransition()
 
   function startEdit() {
     setZip(claim.zip ?? '')
@@ -53,8 +56,10 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setPending(true)
     try {
       await onSet({ groupId, zip })
-      setMode('view')
-      router.refresh()
+      startRefresh(() => {
+        setMode('view')
+        router.refresh()
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
     } finally {
@@ -66,8 +71,10 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setPending(true)
     try {
       await onRemove({ groupId })
-      setMode('view')
-      router.refresh()
+      startRefresh(() => {
+        setMode('view')
+        router.refresh()
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove your claim.')
     } finally {
@@ -78,6 +85,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   return (
     <section
       data-testid="claim-widget"
+      aria-busy={pending || refreshing}
       aria-labelledby="claim-heading"
       className="mt-6 rounded border border-gray-200 p-4"
     >
@@ -111,7 +119,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
               type="button"
               data-testid="claim-submit"
               className="btn-primary"
-              disabled={pending}
+              disabled={pending || refreshing}
               onClick={submit}
             >
               Save
@@ -119,7 +127,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
             <button
               type="button"
               className="btn-secondary"
-              disabled={pending}
+              disabled={pending || refreshing}
               onClick={() => {
                 setError(null)
                 setMode('view')
@@ -139,7 +147,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
               type="button"
               data-testid="claim-remove-confirm"
               className="btn-primary"
-              disabled={pending}
+              disabled={pending || refreshing}
               onClick={confirmRemove}
             >
               Remove claim
@@ -147,7 +155,7 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
             <button
               type="button"
               className="btn-secondary"
-              disabled={pending}
+              disabled={pending || refreshing}
               onClick={() => setMode('view')}
             >
               Keep it

@@ -114,4 +114,19 @@ describe('LocallyOwnedClaim — remove (beat 4)', () => {
     })
     await waitFor(() => expect(refreshSpy).toHaveBeenCalled())
   })
+
+  // F037 flake (2026-10-15/16): the widget showed its old state between the save and the refresh. It is busy until both land.
+  it('is busy from the save until the refresh is under way, and refreshes once', async () => {
+    let finish!: () => void
+    onSet.mockReturnValue(new Promise<void>((r) => (finish = r)))
+    renderWidget({ zip: null, isProximal: false })
+    fireEvent.click(screen.getByTestId('claim-add'))
+    fireEvent.change(screen.getByTestId('claim-zip-input'), { target: { value: '95817' } })
+    fireEvent.click(screen.getByTestId('claim-submit'))
+    await waitFor(() => expect(screen.getByTestId('claim-widget')).toHaveAttribute('aria-busy', 'true'))
+    finish()
+    await waitFor(() => expect(refreshSpy).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(screen.getByTestId('claim-widget')).toHaveAttribute('aria-busy', 'false'))
+  })
 })
+
