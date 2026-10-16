@@ -16,24 +16,23 @@
 // Proximity is a render-time derivation; a non-proximal ZIP is accepted, not
 // rejected — the widget reports, it doesn't moralize.
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import type { OwnerClaim } from '@/lib/groups/resolve-shop'
+import { useState } from 'react'
+import { useLocalOwnerClaim, type LocalOwnerClaimState } from './LocalOwnerClaimState'
 
 interface Props {
   groupId: string
-  claim: OwnerClaim
-  onSet: (input: { groupId: string; zip: string }) => Promise<void>
-  onRemove: (input: { groupId: string }) => Promise<void>
+  // #806 — each save returns the claim and badge as they now stand.
+  onSet: (input: { groupId: string; zip: string }) => Promise<LocalOwnerClaimState>
+  onRemove: (input: { groupId: string }) => Promise<LocalOwnerClaimState>
 }
 
 type Mode = 'view' | 'editing' | 'removing'
 
 const ZIP_RE = /^[0-9]{5}$/
 
-export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
-  const router = useRouter()
-  const [, startTransition] = useTransition()
+export function LocallyOwnedClaim({ groupId, onSet, onRemove }: Props) {
+  const { state, set } = useLocalOwnerClaim()
+  const { claim } = state
   const [mode, setMode] = useState<Mode>('view')
   const [zip, setZip] = useState(claim.zip ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -45,16 +44,6 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setMode('editing')
   }
 
-  // #791 — the refreshed Page and the view mode land together, in one transition
-  // (Next's pattern for a client mutation). Outside one, a fast refresh was
-  // sometimes dropped and the widget showed the claim as it was before the save.
-  function showSaved() {
-    startTransition(() => {
-      setMode('view')
-      router.refresh()
-    })
-  }
-
   async function submit() {
     if (!ZIP_RE.test(zip)) {
       setError('Enter a 5-digit US ZIP code.')
@@ -63,8 +52,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setError(null)
     setPending(true)
     try {
-      await onSet({ groupId, zip })
-      showSaved()
+      set(await onSet({ groupId, zip }))
+      setMode('view')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
     } finally {
@@ -75,8 +64,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   async function confirmRemove() {
     setPending(true)
     try {
-      await onRemove({ groupId })
-      showSaved()
+      set(await onRemove({ groupId }))
+      setMode('view')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove your claim.')
     } finally {

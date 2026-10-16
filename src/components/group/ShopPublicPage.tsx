@@ -41,11 +41,15 @@ import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
 import { COPY } from '@/lib/copy'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { LocalOwnerClaimProvider, LocalOwnerBadgeChip } from './LocalOwnerClaimState'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
 import { AboutText } from './AboutText'
 import { PageMap } from './PageMap'
+
+
+const NO_CLAIM = { zip: null, isProximal: false }
 
 interface Props {
   shop: ResolvedShop
@@ -151,8 +155,10 @@ export function ShopPublicPage({
   const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
 
   const page = (
-    // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
-    // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
+    // #806 — the claim card and the badge share the claim, so a save updates both.
+    <LocalOwnerClaimProvider claim={ownerClaim ?? NO_CLAIM} badge={badge}>
+    {/* #300 — T2 Detail: a centred read-width column; from 1024 the owner's
+        panel sits beside it (720 + 48 + 360 inside the 1128 detail width). */}
     <main
       className={
         showOwnerPanel
@@ -212,11 +218,7 @@ export function ShopPublicPage({
                   ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
                   : shop.displayName}
               </h1>
-              {badge && isBusinessKind(shop.kind) && (
-                <span data-testid="local-owner-badge" className="chip chip-selected whitespace-nowrap text-xs">
-                  {badge.label}
-                </span>
-              )}
+              {isBusinessKind(shop.kind) && <LocalOwnerBadgeChip />}
               {/* #353 — a neutral tag after the name (Yelp's placement). */}
               {shop.unclaimed && (
                 <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
@@ -405,7 +407,7 @@ export function ShopPublicPage({
       {/* F037 — owner-only Locally Owned claim management; non-owners and anon never see it. */}
       {/* [open-question owner=cowork raised=2026-10-06] Badges are cut from beta, Locally owned included (DECISIONS 2026-10-06), but F037's eval still requires this claim card; retire F037 for beta or keep the card? */}
       {ownerClaim && isBusinessKind(shop.kind) && (
-        <LocallyOwnedClaim groupId={shop.groupId} claim={ownerClaim} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
+        <LocallyOwnedClaim groupId={shop.groupId} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
       )}
 
       {shop.unclaimed && (
@@ -426,6 +428,7 @@ export function ShopPublicPage({
         </aside>
       ) : null}
     </main>
+    </LocalOwnerClaimProvider>
   )
   // #412 — the owner edits on the Edit Page; only a draft's checklist opens
   // a section's sheet here, in place.

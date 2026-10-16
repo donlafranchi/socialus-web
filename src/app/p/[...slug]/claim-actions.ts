@@ -16,6 +16,8 @@
 // empty-state Add and the Edit path call setJurisdictionAction.
 
 import { createClient } from '@/lib/supabase-server'
+import { resolveOwnerClaim, resolveLocalOwnerBadge } from '@/lib/groups/resolve-shop'
+import type { LocalOwnerClaimState } from '@/components/group/LocalOwnerClaimState'
 import { resolveActionContext } from '@/lib/action-context'
 import {
   memberBusinessJurisdictionSet,
@@ -50,7 +52,7 @@ function rethrow(err: unknown): never {
 export async function setJurisdictionAction(input: {
   groupId: string
   zip: string
-}): Promise<void> {
+}): Promise<LocalOwnerClaimState> {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
@@ -58,11 +60,12 @@ export async function setJurisdictionAction(input: {
   } catch (err) {
     rethrow(err)
   }
+  return claimState(input.groupId, memberId)
 }
 
 export async function removeJurisdictionAction(input: {
   groupId: string
-}): Promise<void> {
+}): Promise<LocalOwnerClaimState> {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
@@ -70,4 +73,17 @@ export async function removeJurisdictionAction(input: {
   } catch (err) {
     rethrow(err)
   }
+  return claimState(input.groupId, memberId)
+}
+
+/** #806 — the claim and badge as they stand after a save, read as the caller, for the Page to show. */
+async function claimState(groupId: string, memberId: string): Promise<LocalOwnerClaimState> {
+  const supabase = await createClient()
+  const { data } = await supabase.from('groups').select('anchor_location_id').eq('id', groupId).maybeSingle()
+  const anchorLocationId = (data as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null
+  const [claim, badge] = await Promise.all([
+    resolveOwnerClaim(supabase, { groupId, anchorLocationId, viewerMemberId: memberId }),
+    resolveLocalOwnerBadge(supabase, { groupId, anchorLocationId }),
+  ])
+  return { claim: claim ?? { zip: null, isProximal: false }, badge }
 }
