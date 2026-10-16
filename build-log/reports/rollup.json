@@ -6606,7 +6606,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "page-editing/F056-owner-edits-shop.md",
    "n": 9,
    "totals": {
@@ -6621,8 +6621,8 @@
      "unknown": 0
     },
     "reviewed": {
-     "yes": 3,
-     "no": 6,
+     "yes": 2,
+     "no": 7,
      "unknown": 0
     },
     "shipped": {
@@ -6659,7 +6659,7 @@
      "issues": [
       16
      ],
-     "note": "[V] image, name, about: Edit page Basics card (EditCards.tsx, #472) through group.update (#158). Values half: a 'Values & badges · Coming soon' card with no field (#465); no values column. Conflict: values cut by DECISIONS 2026-09-07 and 2026-10-06, and the scenario's own approved line says 'values statement cut'; criterion text still names it",
+     "note": "[V] image, name, about: Edit page Basics card (EditCards.tsx, #472) through group.update (#158). Values half: no values field and no column; the 'Values & badges' card is a placeholder. Conflict: values cut by the scenario's own approved line ('values statement cut') and the 2026-09-07 ruling, yet the criterion text still names the values line. Routed to scope-scenario",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -6682,7 +6682,7 @@
      "issues": [
       585
      ],
-     "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); deploy-health green on 1ebe680. unmarked: src/actions/group/update.test.ts ('refuses a stranger', 'writes an event naming the fields')",
+     "note": "[V] group.update (src/actions/group/update.ts): managing role with left_at null, active/archived only, appends group.updated naming the fields. Built in #158 (no Reviewed by line); deploy-health green on 1ebe680. Smoked: unknown, the edit page has no stable live address in smoke-live. unmarked: src/actions/group/update.test.ts ('refuses a stranger', 'writes an event naming the fields that changed')",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -6706,7 +6706,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] no values_statement column in supabase/migrations; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1: the values line is cut, so the column this guards does not exist",
+     "note": "[V] no values_statement column in supabase/migrations or src; tests/migrations-page-identity.test.ts asserts only that one migration does not add it. Same conflict as 1: the values line is cut, so the column this guards does not exist. Routed to scope-scenario",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -6729,7 +6729,7 @@
      "issues": [
       584
      ],
-     "note": "[V] no tagline column, no field in group.update or Edit, nothing in share-metadata. TileCard takes a tagline prop but OwnPages passes the description into it",
+     "note": "[V] no tagline column in supabase/migrations, no field in group.update or Edit, nothing in share-metadata. TileCard takes a tagline prop but OwnPages passes the description into it. Ticket #584",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -6749,8 +6749,10 @@
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [],
-     "note": "[V] ShopPublicPage omits an empty description, placement heading and badge; Products shows 'Nothing posted yet' only when that component is on [A: not nagging]. Sections from #472 (Reviewed by), deploy-health green on 614c920. unmarked: ShopPublicPage.test.tsx ('omits it when empty', 'no empty heading, no placeholder')",
+     "issues": [
+      845
+     ],
+     "note": "[V] ShopPublicPage omits an empty description, placement heading and badge (sections built in #472, Reviewed by; deploy-health green on 614c920) [A: not nagging, nothing asserts the whole Page]. Smoked: unknown, smoke-live opens the first Page Explore lists, not one with every field empty. unmarked: ShopPublicPage.test.tsx ('omits it when empty', 'no empty heading, no placeholder'). Check ticket #845",
      "gaps": [
       "NO-CHECK",
       "NOT-SMOKED",
@@ -6775,7 +6777,7 @@
      "issues": [
       585
      ],
-     "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by; deploy-health green on 3492589). 'Drop a pin' (#441) saves the map's coordinates, not a placeholder. With no map key the address is used as found and no map is drawn. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx",
+     "note": "[V] WhereFields + PinAdjustMap (#351, Reviewed by; deploy-health green on 3492589); 'Drop a pin' (#441, Reviewed by) saves the map's coordinates, not a placeholder. With no map key the address is used as found and no map is drawn. Smoked: unknown, page-edit is not in smoke-live's stable addresses. unmarked: WhereFields.test.tsx ('says so when nothing matches the address'), PinAdjustMap.test.tsx, LocationPlaceFields.test.tsx",
      "gaps": [
       "NO-CHECK",
       "NOT-SMOKED",
@@ -6786,7 +6788,7 @@
     },
     {
      "id": "7",
-     "text": "A neighbourhood or town from a seeded list covering MSA 40900; a neighbourhood-mode Page shows no street address anywhere and a pin at the centre",
+     "text": "A neighbourhood or town from a seeded list covering MSA 40900; a neighbourhood-mode Page shows no street address anywhere and a pin at the area centre",
      "kind": [
       "behavior",
       "invariant"
@@ -6794,7 +6796,7 @@
      "status": "active",
      "built": "yes",
      "checked": "no",
-     "reviewed": "yes",
+     "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
@@ -6802,13 +6804,14 @@
       586,
       585
      ],
-     "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods in Sacramento and West Sacramento), pick in #351 and #468, saves a neighborhoodId and no point (where-save.ts). Page map draws a pin at the area centre (PageMap.tsx); Explore draws a disc per the 2026-10-07 ruling. No standing guard over every surface. unmarked: where-save.test.ts, tests/boundaries-db.test.ts",
+     "note": "[V] seeded boundaries (#350: 88 places, 165 neighbourhoods; no Reviewed by line), pick in #351 and #468 (Reviewed by), saves a neighborhoodId and no point (where-save.ts). Page map draws a pin at the area centre (PageMap.tsx). Invariant: no standing guard over every surface that reads a Page's location. Smoked: unknown. unmarked: where-save.test.ts, tests/boundaries-db.test.ts",
      "gaps": [
       "INVARIANT-UNPROVEN",
+      "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 2,
      "red": false
     },
     {
@@ -6828,7 +6831,7 @@
      "issues": [
       585
      ],
-     "note": "[V] group.update replaces the tag set and refuses none (#288, no Reviewed by; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags. group.update still accepts a category but no Edit or Create component offers one. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('no category chip')",
+     "note": "[V] group.update replaces the tag set (#288, no Reviewed by; deploy-health green on a5ab3a1); group.activate refuses a Page with no tags. group.update still accepts a category but no Edit or Create component offers one. Smoked: unknown. unmarked: update.test.ts ('refuses to leave a Page with no tags'), activate.test.ts, ShopPublicPage.test.tsx ('shows no category chip')",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -6840,10 +6843,9 @@
     },
     {
      "id": "9",
-     "text": "Optional public business phone, separate from the private phone, shown to signed-in visitors only",
+     "text": "Optional public business phone, separate from the private phone; members only by default, the owner may open it to everyone",
      "kind": [
-      "behavior",
-      "invariant"
+      "behavior"
      ],
      "status": "active",
      "built": "yes",
@@ -6853,11 +6855,12 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      585
+      585,
+      480
      ],
-     "note": "[V] groups.contact_phone granted to authenticated only; loadPageView reads contact only when signed in (#305, no Reviewed by; deploy-health green on 7381f60). unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller')",
+     "note": "[V] groups.contact_phone granted to authenticated only; loadPageView reads contact only when signed in (#305, no Reviewed by; deploy-health green on 7381f60). Text follows the 2026-10-07 ruling, which replaced 'signed-in visitors only' with a per-field everyone/members setting, phone defaulting to members: the default is built, the per-field switch is not (#480, open). Smoked: unknown. unmarked: tests/page-contact-db.test.ts ('never answer a signed-out caller')",
      "gaps": [
-      "INVARIANT-UNPROVEN",
+      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -6874,7 +6877,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-16",
    "path": "page-editing/F069-non-business-pages-resolve-everywhere.md",
    "n": 4,
    "totals": {
@@ -6913,7 +6916,7 @@
    "criteria": [
     {
      "id": "1",
-     "text": "A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404ing",
+     "text": "A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404",
      "kind": [
       "behavior"
      ],
@@ -6928,7 +6931,7 @@
       591,
       22
      ],
-     "note": "[V] /g/<id> uses resolvePageById, which has no kind filter (T156, #174; no Reviewed by; deploy-health green on 9dde664). unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description')",
+     "note": "[V] /g/<id> uses resolvePageById and resolveShop, which take no kind filter (T156, #174; no Reviewed by; deploy-health green on 9dde664). Smoked: unknown, smoke-live opens the first Page Explore lists and does not pick a non-business one. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description')",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -6955,7 +6958,7 @@
       22,
       591
      ],
-     "note": "[V] gatherings: resolve-gathering.ts has no kind filter. Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under a group Page. [A] reachable since #363 lets any Page turn on Products & services",
+     "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under any other Page [A] reachable since #363 lets any Page turn on Products & services. Tickets #22 (T134) and #591 (gathering half only)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -6979,7 +6982,7 @@
       591,
       24
      ],
-     "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. The old getDraftGroup limit(1) is only used by SellCta, which nothing renders. First built in f19adc6, a direct commit with no PR or deploy-health run. unmarked: src/lib/member/own-pages.test.ts",
+     "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (runs start 2026-09-16); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. Smoked: unknown, the smoke accounts do not hold several Pages. unmarked: src/lib/member/own-pages.test.ts",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -7004,15 +7007,178 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      24
+      24,
+      846
      ],
-     "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several)",
+     "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several). Check ticket #846",
      "gaps": [
       "NO-CHECK",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
      "score": 3,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F106",
+   "title": "A Page says where its give-back goes, and the local badge is the receipt",
+   "area": "page-editing",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-10-16",
+   "path": "page-editing/F106-page-says-where-giveback-goes.md",
+   "n": 5,
+   "totals": {
+    "built": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 5,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "A Page has a home town: its anchor Location's town, else its owner's home town",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      700
+     ],
+     "note": "Owner home town exists (F103.5) but no Page-level home town [V grep]. Deferred, not beta.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "An owner declares one give-back town (home town or any town); nothing is declared, and no default written, until they do",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      700
+     ],
+     "note": "No give-back field or setting in the repo [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "The Page is local, and the badge may show, only when the give-back town is the home town; elsewhere no badge and no negative mark",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      701
+     ],
+     "note": "No local-owner badge keyed to a give-back town; badges are cut for beta (2026-10-06). Badge wording is the PM's [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "The badge reads the same from every vantage",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      701
+     ],
+     "note": "Not built; depends on F105 vantage [V].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "The owner can change the declaration any time while no money flows",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      700
+     ],
+     "note": "Not built [V grep].",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
      "red": false
     }
    ]
@@ -7958,38 +8124,38 @@
    }
   },
   "page-editing": {
-   "features": 2,
-   "n": 13,
+   "features": 3,
+   "n": 18,
    "red": 0,
    "totals": {
     "built": {
      "yes": 9,
-     "no": 4,
+     "no": 9,
      "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 13,
+     "no": 18,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 4,
-     "no": 9,
+     "yes": 3,
+     "no": 15,
      "unknown": 0
     },
     "shipped": {
      "yes": 8,
-     "no": 4,
+     "no": 9,
      "unknown": 1
     },
     "smoked": {
      "yes": 0,
-     "no": 4,
+     "no": 9,
      "unknown": 9
     },
     "pm_looked": {
      "yes": 0,
-     "no": 13,
+     "no": 18,
      "unknown": 0
     }
    }
@@ -8033,38 +8199,38 @@
   }
  },
  "all": {
-  "features": 28,
-  "n": 233,
+  "features": 29,
+  "n": 238,
   "red": 18,
   "totals": {
    "built": {
     "yes": 164,
-    "no": 65,
+    "no": 70,
     "unknown": 4
    },
    "checked": {
     "yes": 85,
-    "no": 148,
+    "no": 153,
     "unknown": 0
    },
    "reviewed": {
-    "yes": 29,
-    "no": 201,
+    "yes": 28,
+    "no": 207,
     "unknown": 3
    },
    "shipped": {
     "yes": 122,
-    "no": 65,
+    "no": 70,
     "unknown": 46
    },
    "smoked": {
     "yes": 62,
-    "no": 65,
+    "no": 70,
     "unknown": 106
    },
    "pm_looked": {
     "yes": 0,
-    "no": 233,
+    "no": 238,
     "unknown": 0
    }
   }
@@ -8136,6 +8302,11 @@
    "F100.12",
    "F056.4",
    "F069.2",
+   "F106.1",
+   "F106.2",
+   "F106.3",
+   "F106.4",
+   "F106.5",
    "F057.2",
    "F057.3",
    "F057.4",
@@ -8169,7 +8340,6 @@
    "F102.14",
    "F056.7",
    "F056.8",
-   "F056.9",
    "F057.1",
    "F065.2",
    "F077.3"
@@ -8218,6 +8388,7 @@
    "F056.2",
    "F056.5",
    "F056.6",
+   "F056.9",
    "F069.1",
    "F069.3",
    "F069.4",
@@ -8347,6 +8518,7 @@
    "F102.13",
    "F102.14",
    "F056.2",
+   "F056.7",
    "F056.8",
    "F056.9",
    "F069.1",

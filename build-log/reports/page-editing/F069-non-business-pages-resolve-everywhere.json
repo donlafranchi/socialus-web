@@ -6,11 +6,11 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-16",
  "criteria": [
   {
    "id": "1",
-   "text": "A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404ing",
+   "text": "A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404",
    "kind": [
     "behavior"
    ],
@@ -25,7 +25,7 @@
     591,
     22
    ],
-   "note": "[V] /g/<id> uses resolvePageById, which has no kind filter (T156, #174; no Reviewed by; deploy-health green on 9dde664). unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description')"
+   "note": "[V] /g/<id> uses resolvePageById and resolveShop, which take no kind filter (T156, #174; no Reviewed by; deploy-health green on 9dde664). Smoked: unknown, smoke-live opens the first Page Explore lists and does not pick a non-business one. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description')"
   },
   {
    "id": "2",
@@ -44,7 +44,7 @@
     22,
     591
    ],
-   "note": "[V] gatherings: resolve-gathering.ts has no kind filter. Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under a group Page. [A] reachable since #363 lets any Page turn on Products & services"
+   "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under any other Page [A] reachable since #363 lets any Page turn on Products & services. Tickets #22 (T134) and #591 (gathering half only)"
   },
   {
    "id": "3",
@@ -63,7 +63,7 @@
     591,
     24
    ],
-   "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. The old getDraftGroup limit(1) is only used by SellCta, which nothing renders. First built in f19adc6, a direct commit with no PR or deploy-health run. unmarked: src/lib/member/own-pages.test.ts"
+   "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (runs start 2026-09-16); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. Smoked: unknown, the smoke accounts do not hold several Pages. unmarked: src/lib/member/own-pages.test.ts"
   },
   {
    "id": "4",
@@ -79,9 +79,10 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    24
+    24,
+    846
    ],
-   "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several)"
+   "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several). Check ticket #846"
   }
  ]
 }
