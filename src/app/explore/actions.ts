@@ -23,10 +23,12 @@ import { searchNeighborhoods } from '@/lib/places/neighborhood-search'
 import { loadBrowse, loadMemberMap, readSessionSeed, type BrowseSnapshot } from './load'
 import { SEEN_COOKIE, SEEN_COOKIE_MAX_AGE, recordSeen } from '@/lib/browse/lead'
 import type { MixedResult } from '@/lib/map/mix'
+import type { BrowseFilters } from '@/lib/browse/filters'
 
-export async function browseFeedAction(metroSlug: string | null, areaId: string | null = null): Promise<BrowseSnapshot> {
-  const snapshot = await loadBrowse(metroSlug, areaId, { withMap: false, seed: await readSessionSeed() })
-  if (metroSlug && snapshot.metro?.slug === metroSlug) {
+export async function browseFeedAction(metroSlug: string | null, areaId: string | null = null, filters: BrowseFilters | null = null): Promise<BrowseSnapshot> {
+  // #876 — the filters ride along: a filtered Explore is one targeted read.
+  const snapshot = await loadBrowse(metroSlug, areaId, { withMap: false, seed: await readSessionSeed(), filters })
+  if (!filters && metroSlug && snapshot.metro?.slug === metroSlug) {
     try {
       ;(await cookies()).set(METRO_COOKIE, metroSlug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
       const supabase = await createClient()

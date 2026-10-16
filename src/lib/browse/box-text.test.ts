@@ -5,12 +5,12 @@
 
 import { describe, it, expect } from 'vitest'
 import { writeBox, readBox, isReservedWord } from './box-text'
-import { SCHEDULE_OPTIONS, type BrowseFilters } from './filters'
+import { DATE_OPTIONS, DEFAULT_BROWSE_FILTERS, type BrowseFilters } from './filters'
 
 const KNOWN = ['coffee', 'live music', 'sourdough', 'wood-fired', "farmer's market", 'live']
 // Tags that are awkward to write as words: one inside another, hyphens, apostrophes.
 const AWKWARD = [...KNOWN, 'live music night', 'wood']
-const sel = (schedule: BrowseFilters['schedule'], ...tags: string[]): BrowseFilters => ({ schedule, tags })
+const sel = (date: BrowseFilters['date'], ...tags: string[]): BrowseFilters => ({ ...DEFAULT_BROWSE_FILTERS, date, tags })
 
 describe('writeBox', () => {
   // [guards F092.2 partial: plain lowercase words, tags first, the schedule last, no hashtags]
@@ -31,7 +31,7 @@ describe('writeBox', () => {
   })
 
   it('writes each schedule option in the words of its label', () => {
-    for (const o of SCHEDULE_OPTIONS) if (o.value !== 'any') expect(writeBox(sel(o.value))).toBe(o.label.toLowerCase())
+    for (const o of DATE_OPTIONS) if (o.value !== 'any') expect(writeBox(sel(o.value))).toBe(o.label.toLowerCase())
   })
 })
 
@@ -50,7 +50,7 @@ describe('readBox', () => {
   })
 
   it('matches whole words only: "this weekend" is not "this week" plus "end"', () => {
-    expect(readBox('this weekend', KNOWN).filters.schedule).toBe('weekend')
+    expect(readBox('this weekend', KNOWN).filters.date).toBe('weekend')
     expect(readBox('weekender', KNOWN)).toEqual({ filters: sel('any'), rest: 'weekender' })
     expect(readBox('coffeehouse', KNOWN)).toEqual({ filters: sel('any'), rest: 'coffeehouse' })
   })
@@ -74,12 +74,12 @@ describe('the round trip', () => {
   // [guards F092.4]
   it('every selection the sheet can write is read back as the same selection', () => {
     let n = 0
-    for (const schedule of SCHEDULE_OPTIONS.map((o) => o.value)) {
+    for (const schedule of ['any', 'weekend', 'week'] as const) {
       for (const tags of tagSets(AWKWARD)) {
         const selection = sel(schedule, ...[...tags].sort())
         const read = readBox(writeBox(selection), AWKWARD)
         expect(read.rest, JSON.stringify(selection)).toBe('')
-        expect({ schedule: read.filters.schedule, tags: [...read.filters.tags].sort() }).toEqual({ schedule, tags: [...tags].sort() })
+        expect({ schedule: read.filters.date, tags: [...read.filters.tags].sort() }).toEqual({ schedule, tags: [...tags].sort() })
         n++
       }
     }
@@ -93,12 +93,13 @@ describe('the round trip', () => {
 })
 
 describe('#796 — Updates is a word the box knows', () => {
-  it('reads and writes "updates" like the schedule phrases', () => {
+  it('reads the old "updates" word as posts only', () => {
     const { filters, rest } = readBox('bread updates', [])
-    expect(filters.updates).toBe(true)
+    // #876 — the old word reads as the posts-only Type, and is written as "posts" from then on.
+    expect(filters.type).toBe('posts')
     expect(rest).toBe('bread')
-    expect(writeBox({ ...filters }, rest)).toBe('bread updates')
-    expect(readBox('bread', []).filters.updates).toBeFalsy()
+    expect(writeBox({ ...filters }, rest)).toBe('bread posts')
+    expect(readBox('bread', []).filters.type).toBe('all')
   })
 })
 

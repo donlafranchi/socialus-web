@@ -1,4 +1,4 @@
-// #796 — Explore's first look and the Updates filter (ruled A, Don 2026-10-14).
+// #796 — Explore's first look (ruled A, Don 2026-10-14), and #876 — everything mixed, posts-only as a filter (Don, 2026-10-16).
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
@@ -78,6 +78,7 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
 beforeEach(() => {
   search = ''
   markLeadSeenAction.mockClear()
+  browseFeedAction.mockReset()
 })
 afterEach(cleanup)
 
@@ -86,16 +87,17 @@ const post = (id: string, postedAt: string, name = `Post ${id}`) =>
   result({ resultKind: 'post', resultId: id, groupId: `g-${id}`, name, slug: `g-${id}`, href: `/g/g-${id}#post-${id}`, body: `Body of ${id}`, postedAt, sortAt: postedAt, tags: [] })
 
 describe('#796 — Explore opens on what is new since you were here', () => {
-  it('leads with what is new, then Pages; no announcement sits in the list or above it', () => {
+  it('leads with what is new, then everything mixed: Pages and posts in one list', () => {
     const fresh = page('new', 'New Bakery')
     const results = [page('a', 'Old A'), page('b', 'Old B'), post('p1', '2026-10-14T00:00:00Z', 'Announcement One'), fresh]
     render(<BrowseSurface initial={snapshot({ signedIn: true, results, lead: [fresh], leadFresh: true, following: [post('f1', '2026-10-14T00:00:00Z', 'Followed Post')] })} />)
     const lead = screen.getByTestId('explore-lead')
     expect(within(lead).getByText('New Bakery')).toBeInTheDocument()
-    expect(screen.queryByText('Announcement One')).toBeNull()
-    expect(screen.queryByText('Followed Post')).toBeNull()
     const list = screen.getByTestId('browse-list-pane')
     expect(within(list).getByText('Old A')).toBeInTheDocument()
+    // #876 — posts are in the mix; the loader already merged the followed Pages' updates into results.
+    expect(within(list).getByText('Announcement One')).toBeInTheDocument()
+    expect(screen.queryByTestId('browse-following')).toBeNull()
     // One results grid: the lead's is its own, so card-grid still means the results (F059 evals, tap speed).
     expect(screen.getAllByTestId('card-grid')).toHaveLength(1)
     expect(within(lead).getByTestId('explore-lead-grid')).toBeInTheDocument()
@@ -113,19 +115,27 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     expect(cards.slice(0, 2)).toEqual(['Rotation 5', 'Rotation 2'])
   })
 
-  it('Updates lists posts newest first, searchable, with the rows from followed Pages', () => {
+  it('?view=updates is the posts-only filter: posts only, searchable, and the targeted read is asked for', async () => {
     search = 'view=updates'
+    browseFeedAction.mockReturnValue(new Promise(() => {}))
     const results = [page('a', 'Old A'), post('old', '2026-10-01T00:00:00Z', 'Older News'), post('new', '2026-10-12T00:00:00Z', 'Newer News')]
-    render(<BrowseSurface initial={snapshot({ signedIn: true, results, lead: [], leadFresh: false, following: [post('f1', '2026-10-14T00:00:00Z', 'Followed Post')] })} />)
+    render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false })} />)
     const list = screen.getByTestId('browse-list-pane')
-    const order = within(list).getAllByText(/News$/).map((e) => e.textContent)
-    expect(order).toEqual(['Newer News', 'Older News'])
     expect(within(list).queryByText('Old A')).toBeNull()
-    expect(screen.getByText('Followed Post')).toBeInTheDocument()
+    expect(within(list).getAllByText(/News$/)).toHaveLength(2)
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(SAC.slug, null, expect.objectContaining({ type: 'posts' })))
     const box = screen.getByRole('searchbox') as HTMLInputElement
-    fireEvent.change(box, { target: { value: 'older updates' } })
+    fireEvent.change(box, { target: { value: 'older posts' } })
     expect(within(list).queryByText('Newer News')).toBeNull()
     expect(within(list).getByText('Older News')).toBeInTheDocument()
+  })
+
+  it('shows the targeted read when it comes back', async () => {
+    search = 'q=deals'
+    browseFeedAction.mockResolvedValue(snapshot({ signedIn: true, results: [post('d', '2026-10-15T00:00:00Z', 'Server Deal')] }))
+    render(<BrowseSurface initial={snapshot({ signedIn: true, results: [page('a', 'Old A')], lead: [], leadFresh: false })} />)
+    expect(await screen.findByText('Server Deal')).toBeInTheDocument()
+    expect(browseFeedAction).toHaveBeenCalledWith(null, null, expect.objectContaining({ postKinds: ['deal'] }))
   })
 
   it('tells the server what the first look showed, once, after it is on screen', async () => {

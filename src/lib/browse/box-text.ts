@@ -1,38 +1,36 @@
-// #619 / #621 (F092.2, F092.4) — what the search box says about the filter sheet, and back.
-//
-// The sheet writes its selection into the box as plain lowercase words, the way Google writes one
-// (the PM, 2026-10-11: no hashtags), and the box's reader understands every string the sheet can
-// write. It is ONE grammar, read in both directions:
-//
-//     <free words> <tags, as plain words> <this week | this weekend> <updates>
-//
-// The reader does not parse prose. It takes the words it knows (the schedule phrases, and the tags
-// present in the results) out of the box and leaves everything else as the free search, so a word it
-// does not know is never an error and never empties the box. It is built to grow: natural-language
-// search later adds phrases here, and the free words keep working underneath.
-
+// F092: the box is the state. The filter sheet writes plain words into the search box and readBox takes
+// them back out, so there is one text and no second filter state. #876 (Don, 2026-10-16): the words now
+// cover the three groups: Type (pages / posts, the post kinds, following), Category (tags) and Date.
 import { normalizeTag } from '@/lib/groups/tags'
-import { SCHEDULE_OPTIONS, type BrowseFilters, type ScheduleFilter } from './filters'
+import { DEFAULT_BROWSE_FILTERS, isPickedDay, type BrowseFilters, type DateFilter, type PostKind, type ResultType } from './filters'
 
-const PHRASE: Record<Exclude<ScheduleFilter, 'any'>, string> = {
-  week: SCHEDULE_OPTIONS.find((o) => o.value === 'week')!.label.toLowerCase(),
-  weekend: SCHEDULE_OPTIONS.find((o) => o.value === 'weekend')!.label.toLowerCase(),
-}
-
-/** #796 — the Updates filter's word. */
-export const UPDATES_WORD = 'updates'
+const TYPE_WORD: Record<Exclude<ResultType, 'all'>, string> = { pages: 'pages', posts: 'posts' }
+const KIND_WORD: Record<PostKind, string> = { event: 'events', deal: 'deals', last_minute: 'last-minute' }
+export const FOLLOWING_WORD = 'following'
+const DATE_PHRASE: Record<'today' | 'weekend' | 'week', string> = { today: 'today', weekend: 'this weekend', week: 'this week' }
+/** #796 — the old Updates view's word, read as the posts-only Type and never written again. */
+const LEGACY_UPDATES = 'updates'
 
 const words = (s: string) => s.trim().split(/\s+/).filter(Boolean)
 
-/** The box text for a selection: the free words, then the tags, then the schedule, all plain words. */
-export function writeBox(filters: BrowseFilters, rest = ''): string {
-  return [...words(rest), ...filters.tags.map(normalizeTag), ...(filters.schedule === 'any' ? [] : [PHRASE[filters.schedule]]), ...(filters.updates ? [UPDATES_WORD] : [])]
+/** The box text for a selection: the free words, then the tags, then the groups, all plain words. */
+export function writeBox(f: BrowseFilters, rest = ''): string {
+  return [
+    ...words(rest),
+    ...f.tags.map(normalizeTag),
+    ...(f.type === 'all' ? [] : [TYPE_WORD[f.type]]),
+    ...f.postKinds.map((k) => KIND_WORD[k]),
+    ...(f.following ? [FOLLOWING_WORD] : []),
+    ...(f.date === 'any' ? [] : [isPickedDay(f.date) ? f.date : DATE_PHRASE[f.date as keyof typeof DATE_PHRASE]]),
+  ]
     .join(' ')
     .trim()
 }
 
-/** The schedule phrases are the box's own words: a tag with exactly that text cannot be written as a tag. */
-export const isReservedWord = (tag: string): boolean => [...Object.values(PHRASE), UPDATES_WORD].includes(normalizeTag(tag))
+const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), FOLLOWING_WORD, ...Object.values(DATE_PHRASE), LEGACY_UPDATES]
+
+/** The group words are the box's own: a tag with exactly that text cannot be written as a tag. */
+export const isReservedWord = (tag: string): boolean => RESERVED.includes(normalizeTag(tag))
 
 interface Token {
   raw: string
@@ -57,30 +55,38 @@ function take(tokens: Token[], phrase: string): { left: Token[]; at: number } | 
  */
 export function readBox(text: string, knownTags: readonly string[]): { filters: BrowseFilters; rest: string } {
   let tokens: Token[] = words(text).map((raw, at) => ({ raw, norm: raw.replace(/^#/, '').toLowerCase(), at }))
+  const pull = (phrase: string) => {
+    const hit = take(tokens, phrase)
+    if (hit) tokens = hit.left
+    return hit
+  }
 
-  // Longest tags first, so "live music" is not read as "live" plus a stray word.
   const found: { tag: string; at: number }[] = []
   const byLength = [...new Set(knownTags.map(normalizeTag).filter((t) => t && !isReservedWord(t)))].sort((a, b) => words(b).length - words(a).length || b.length - a.length)
   for (const tag of byLength) {
-    const hit = take(tokens, tag)
-    if (hit) {
-      tokens = hit.left
-      found.push({ tag, at: hit.at })
-    }
-  }
-  const tags = found.sort((a, b) => a.at - b.at).map((f) => f.tag)
-
-  let schedule: ScheduleFilter = 'any'
-  for (const kind of ['weekend', 'week'] as const) {
-    const hit = schedule === 'any' ? take(tokens, PHRASE[kind]) : null
-    if (hit) {
-      tokens = hit.left
-      schedule = kind
-    }
+    const hit = pull(tag)
+    if (hit) found.push({ tag, at: hit.at })
   }
 
-  const updates = take(tokens, UPDATES_WORD)
-  if (updates) tokens = updates.left
+  let type: ResultType = 'all'
+  for (const t of ['pages', 'posts'] as const) if (type === 'all' && pull(TYPE_WORD[t])) type = t
+  if (type === 'all' && pull(LEGACY_UPDATES)) type = 'posts'
+  const postKinds = (Object.keys(KIND_WORD) as PostKind[]).filter((k) => pull(KIND_WORD[k]))
+  const following = Boolean(pull(FOLLOWING_WORD))
 
-  return { filters: { schedule, tags, ...(updates ? { updates: true } : {}) }, rest: tokens.map((t) => t.raw).join(' ') }
+  let date: DateFilter = 'any'
+  // "this weekend" before "this week", so the longer phrase wins.
+  for (const d of ['weekend', 'week', 'today'] as const) if (date === 'any' && pull(DATE_PHRASE[d])) date = d
+  if (date === 'any') {
+    const day = tokens.find((t) => isPickedDay(t.norm))
+    if (day) {
+      date = day.norm
+      tokens = tokens.filter((t) => t !== day)
+    }
+  }
+
+  return {
+    filters: { ...DEFAULT_BROWSE_FILTERS, type, postKinds, following, tags: found.sort((a, b) => a.at - b.at).map((f) => f.tag), date },
+    rest: tokens.map((t) => t.raw).join(' '),
+  }
 }

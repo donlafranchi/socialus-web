@@ -22,28 +22,34 @@
 import { isReservedWord } from '@/lib/browse/box-text'
 import { useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
+import { normalizeTag } from '@/lib/groups/tags'
+import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
 import {
+  DATE_OPTIONS,
   DEFAULT_BROWSE_FILTERS,
-  SCHEDULE_OPTIONS,
+  POST_KIND_OPTIONS,
+  TYPE_OPTIONS,
   hasBrowseFilters,
+  isPickedDay,
+  togglePostKind,
   toggleTag,
   type BrowseFilters,
-  type ScheduleFilter,
 } from '@/lib/browse/filters'
 
 interface ExploreFilterSheetProps {
   open: boolean
   value: BrowseFilters
-  /** Tags present in the current result set — creators make their own. */
-  tags: string[]
   onClose: () => void
   onApply: (filters: BrowseFilters) => void
 }
 
+// #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Three groups, opt-in, that
+// combine with each other and with search; the default is everything mixed.
+const CATEGORIES = INTEREST_VOCAB.map((t) => ({ value: normalizeTag(t.label), label: t.label }))
+
 export function ExploreFilterSheet({
   open,
   value,
-  tags,
   onClose,
   onApply,
 }: ExploreFilterSheetProps) {
@@ -52,7 +58,8 @@ export function ExploreFilterSheet({
   // is still selected. Union the selection back in, or the sheet would show a
   // filter the member cannot turn off from inside the sheet.
   // A tag with exactly a schedule phrase is the box's own word, so it is not offered (box-text).
-  const tagOptions = Array.from(new Set([...tags, ...draft.tags])).filter((t) => !isReservedWord(t)).sort()
+  const known = new Set(CATEGORIES.map((c) => c.value))
+  const extraTags = draft.tags.filter((t) => !known.has(t) && !isReservedWord(t))
   const groupId = useId()
 
   // Re-seed from the committed value on each open, which is what makes a
@@ -103,51 +110,66 @@ export function ExploreFilterSheet({
       }
     >
       <div data-testid="filter-sheet-body">
-        <Group label="Schedule">
+        <Group label="Type">
           <Options>
-            {SCHEDULE_OPTIONS.map((s) => (
+            {TYPE_OPTIONS.map((t) => (
+              <Choice key={t.value} name={`${groupId}-type`} label={t.label} checked={draft.type === t.value} onChange={() => setDraft((d) => ({ ...d, type: t.value }))} />
+            ))}
+          </Options>
+          <Options className="mt-2">
+            {POST_KIND_OPTIONS.map((k) => (
               <Choice
-                key={s.value}
-                name={`${groupId}-schedule`}
-                label={s.label}
-                checked={draft.schedule === s.value}
-                onChange={() => setDraft((d) => ({ ...d, schedule: s.value as ScheduleFilter }))}
+                key={k.value}
+                type="checkbox"
+                name={`${groupId}-kind-${k.value}`}
+                label={k.label}
+                checked={draft.postKinds.includes(k.value)}
+                onChange={() => setDraft((d) => togglePostKind(d, k.value))}
+              />
+            ))}
+            <Choice
+              type="checkbox"
+              name={`${groupId}-following`}
+              label="Following only"
+              checked={draft.following}
+              onChange={() => setDraft((d) => ({ ...d, following: !d.following }))}
+            />
+          </Options>
+        </Group>
+
+        <Group label="Category">
+          <Options>
+            {[...CATEGORIES, ...extraTags.map((t) => ({ value: t, label: t }))].map((c) => (
+              <Choice
+                key={c.value}
+                type="checkbox"
+                name={`${groupId}-tag-${c.value}`}
+                label={c.label}
+                checked={draft.tags.includes(c.value)}
+                onChange={() => setDraft((d) => toggleTag(d, c.value))}
               />
             ))}
           </Options>
         </Group>
 
-        {/* #796 — posts, announcements and updates, newest first, behind one choice (ruled A, 2026-10-14). */}
-        <Group label="Show">
+        <Group label="Date">
           <Options>
-            <Choice
-              type="checkbox"
-              name={`${groupId}-updates`}
-              label="Updates"
-              checked={Boolean(draft.updates)}
-              onChange={() => setDraft((d) => ({ ...d, updates: !d.updates || undefined }))}
-            />
+            {DATE_OPTIONS.map((o) => (
+              <Choice key={o.value} name={`${groupId}-date`} label={o.label} checked={draft.date === o.value} onChange={() => setDraft((d) => ({ ...d, date: o.value }))} />
+            ))}
+            <label className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--color-charcoal-100)] bg-white px-4 text-sm font-medium text-[var(--color-charcoal-900)]">
+              <span>Pick a date</span>
+              <input
+                type="date"
+                data-testid="filter-date-pick"
+                aria-label="Pick a date"
+                value={isPickedDay(draft.date) ? draft.date : ''}
+                onChange={(e) => setDraft((d) => ({ ...d, date: isPickedDay(e.target.value) ? e.target.value : 'any' }))}
+                className="min-w-0 bg-transparent text-sm"
+              />
+            </label>
           </Options>
         </Group>
-
-        {tagOptions.length > 0 && (
-          <Group label="Tags">
-            <Options>
-              {tagOptions.map((tag) => (
-                <Choice
-                  key={tag}
-                  type="checkbox"
-                  name={`${groupId}-tag-${tag}`}
-                  /* The tag IS the label, as a plain word — the same word the box
-                     will say (#619, no hashtags). Creators type their own (T159, #64). */
-                  label={tag}
-                  checked={draft.tags.includes(tag)}
-                  onChange={() => setDraft((d) => toggleTag(d, tag))}
-                />
-              ))}
-            </Options>
-          </Group>
-        )}
       </div>
     </Sheet>
   )
@@ -162,8 +184,8 @@ function Group({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Options({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-wrap gap-2">{children}</div>
+function Options({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`flex flex-wrap gap-2 ${className}`.trim()}>{children}</div>
 }
 
 interface ChoiceProps {
@@ -177,7 +199,7 @@ interface ChoiceProps {
 function Choice({ name, label, checked, onChange, type = 'radio' }: ChoiceProps) {
   return (
     <label
-      className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-medium transition-colors ${
+      className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors ${
         checked
           ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
           : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
