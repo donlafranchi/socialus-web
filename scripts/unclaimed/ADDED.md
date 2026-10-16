@@ -191,3 +191,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | Vallejo Naval and Historical Museum | Historical society | Vallejo | Arts & culture, Neighborhood life | reach batch; lead: own site |
 | 2026-10-16 | Rio Vista Roots | Community garden | Rio Vista | Gardening, Sustainability | reach batch; lead: own site |
 | 2026-10-16 | Rotary Club of Rio Vista | Service club | Rio Vista | Volunteering, Neighborhood life | reach batch; lead: own site |
+| 2026-10-16 | Oak Acre Farms | Farm | Live Oak | Farmers markets, Sustainability | unreached towns batch; holiday (fruit and nuts for gatherings); lead: own site |
+| 2026-10-16 | Peltier Winery & Vineyards | Farm stay & agritourism | Acampo | Farmers markets, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-16 | LangeTwins Family Winery & Vineyards | Farm stay & agritourism | Acampo | Farmers markets, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-16 | The Farmhouse Bakery | Cakes & bakery | Yuba City | Food & drink, Local business | unreached towns batch; holiday (pies); lead: own site |
+| 2026-10-16 | Sutter Buttes Brewing | Food & drink | Yuba City | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-16 | Sutter County Museum | Historical society | Yuba City | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-16 | Preston Castle Foundation | Historical society | Ione | Arts & culture, Neighborhood life | unreached towns batch; holiday (Christmas at the Castle Dec 12); lead: own site |
+| 2026-10-16 | Sacramento Valley Museum | Historical society | Williams | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-16 | Fairfield-Suisun City Visual Arts Association | Art association (nonprofit) | Fairfield | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-16 | Wine Tree Farm | Farm stay & agritourism | Amador City | Farmers markets, Neighborhood life | unreached towns batch; lead: own site |
