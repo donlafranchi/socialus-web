@@ -48,7 +48,8 @@ vi.mock('@/lib/supabase-server', () => ({
     rpc,
   })),
 }))
-vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
+const { getHappening } = vi.hoisted(() => ({ getHappening: vi.fn<(...a: unknown[]) => Promise<{ today: unknown[]; thisWeek: unknown[]; thisWeekend: unknown[] }>>(async () => ({ today: [] as unknown[], thisWeek: [] as unknown[], thisWeekend: [] as unknown[] })) }))
+vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed, getHappening }))
 // #331 — the map's mix has its own tests; these are about the list and the rows.
 const { loadMapMix } = vi.hoisted(() => ({ loadMapMix: vi.fn(async () => []) }))
 vi.mock('@/lib/map/load-mix', () => ({ loadMapMix }))
@@ -193,16 +194,16 @@ describe('signed in — criterion 6, no change whatsoever', () => {
 // there are no rows (the open question on #257).
 describe("what's happening", () => {
   // [guards F091.1 partial: the window and order are browse_feed's, covered in tests/migrations-browse-feed.test.ts; this checks each row asks for them]
-  it('signed in, asks for posts inside each window, soonest first', async () => {
+  // #791 — the three rows are one read (getHappening), not three browse_feed calls.
+  it('signed in, asks once for all three windows, in this metro', async () => {
     signedIn()
     await loadBrowse(null)
-    const rowCalls = getBrowseFeed.mock.calls.filter((c) => (c[1] as { sort?: string }).sort === 'soonest')
-    expect(rowCalls).toHaveLength(3)
-    for (const [, opts] of rowCalls) {
-      expect(opts).toMatchObject({ resultKinds: ['post'], scope: { metroId: METRO.id } })
-      expect((opts as { startsFrom: string }).startsFrom).toBeTruthy()
-      expect((opts as { startsBefore: string }).startsBefore).toBeTruthy()
-    }
+    expect(getBrowseFeed.mock.calls.filter((c) => (c[1] as { sort?: string }).sort === 'soonest')).toHaveLength(0)
+    expect(getHappening).toHaveBeenCalledTimes(1)
+    const [, scope, windows, limit] = getHappening.mock.calls[0]!
+    expect(scope).toEqual({ metroId: METRO.id })
+    expect(windows).toMatchObject({ today: expect.any(Object), thisWeek: expect.any(Object), thisWeekend: expect.any(Object) })
+    expect(limit).toBe(20)
   })
 
   it('signed in, hands the rows to the surface', async () => {
@@ -217,6 +218,7 @@ describe("what's happening", () => {
     expect(snap.happening.thisWeek).toEqual([])
     expect(snap.happening.thisWeekend).toEqual([])
     expect(getBrowseFeed.mock.calls.filter((c) => (c[1] as { sort?: string }).sort === 'soonest')).toHaveLength(0)
+    expect(getHappening).not.toHaveBeenCalled()
   })
 
   // [guards F091.7 partial: the loader; the card itself is WithheldAnnouncementCard's tests]

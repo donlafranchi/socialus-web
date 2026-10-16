@@ -318,6 +318,49 @@ export async function getBrowseFeed(
 }
 
 /**
+ * #791 — Explore's three "happening" rows in one read (`browse_happening`):
+ * this week and this weekend, each browse_feed's posts soonest first. Today and
+ * this week start at the same moment, so today is the front of the week list
+ * cut at tonight, exact for the same limit. Was three reads, each with its own
+ * public-id lookup: six round trips, and the three feeds contending.
+ */
+export async function getHappening(
+  supabase: RpcClient,
+  scope: { metroId: string } | { placeId: string },
+  windows: { today: { to: string }; thisWeek: { from: string; to: string }; thisWeekend: { from: string } },
+  limit: number,
+): Promise<{ today: BrowseResult[]; thisWeek: BrowseResult[]; thisWeekend: BrowseResult[] }> {
+  const { data, error } = await supabase.rpc('browse_happening', {
+    p_metro_id: 'metroId' in scope ? scope.metroId : null,
+    p_place_id: 'placeId' in scope ? scope.placeId : null,
+    p_from: windows.thisWeek.from,
+    p_weekend_from: windows.thisWeekend.from,
+    p_before: windows.thisWeek.to,
+    p_limit: clampLimit(limit),
+  })
+  if (error) throw error
+  const rows = ((data ?? []) as (BrowseFeedRow & { bucket: 'week' | 'weekend' })[]).slice().sort(soonestFirst)
+  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
+  const map = (b: 'week' | 'weekend') => rows.filter((r) => r.bucket === b).map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null))
+  const thisWeek = map('week')
+  const tonight = Date.parse(windows.today.to)
+  return {
+    today: thisWeek.filter((r) => r.startsAt !== null && Date.parse(r.startsAt) < tonight),
+    thisWeek,
+    thisWeekend: map('weekend'),
+  }
+}
+
+/** browse_feed's 'soonest' order, kept across the union the database may not preserve. */
+function soonestFirst(a: BrowseFeedRow, b: BrowseFeedRow): number {
+  const s = Date.parse(a.sort_at) - Date.parse(b.sort_at)
+  if (s) return s
+  const u = Date.parse(b.updated_at) - Date.parse(a.updated_at)
+  if (u) return u
+  return a.result_id < b.result_id ? -1 : a.result_id > b.result_id ? 1 : 0
+}
+
+/**
  * The public ids for a result set's Pages, in one read.
  *
  * A second round trip rather than a column on `browse_feed`, deliberately: the

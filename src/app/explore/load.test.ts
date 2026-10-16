@@ -53,7 +53,7 @@ vi.mock('@/lib/supabase-server', () => ({
     rpc,
   })),
 }))
-vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
+vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed, getHappening: async () => ({ today: [], thisWeek: [], thisWeekend: [] }) }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
 vi.mock('@/lib/feed/feed-metro', async (importActual) => {
   const actual = await importActual<typeof import('@/lib/feed/feed-metro')>()

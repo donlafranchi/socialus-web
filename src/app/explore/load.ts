@@ -41,7 +41,7 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
-import { getBrowseFeed } from '@/lib/feed/browse-feed'
+import { getBrowseFeed, getHappening } from '@/lib/feed/browse-feed'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { happeningWindows } from '@/lib/metro/happening'
@@ -278,27 +278,16 @@ const NO_ROWS: HappeningSnapshot = { today: [], thisWeek: [], thisWeekend: [] }
 const ROW_LIMIT = 20
 
 /**
- * F091 — one time-windowed, soonest-first read per row. Like the following
- * row, a failure costs the rows, never the surface: an absent row and a broken
- * one read the same, and both are logged.
+ * F091 — the three time-windowed, soonest-first rows, in one read (#791). Like
+ * the following row, a failure costs the rows, never the surface: an absent
+ * row and a broken one read the same, and both are logged.
  */
 async function happeningRows(
   supabase: Awaited<ReturnType<typeof createClient>>,
   scope: FeedScope,
 ): Promise<HappeningSnapshot> {
-  const w = happeningWindows()
-  const row = (win: { from: string; to: string }) =>
-    getBrowseFeed(supabase, {
-      scope,
-      resultKinds: ['post'],
-      startsFrom: win.from,
-      startsBefore: win.to,
-      sort: 'soonest',
-      limit: ROW_LIMIT,
-    })
   try {
-    const [today, thisWeek, thisWeekend] = await Promise.all([row(w.today), row(w.thisWeek), row(w.thisWeekend)])
-    return { today, thisWeek, thisWeekend }
+    return await getHappening(supabase, scope, happeningWindows(), ROW_LIMIT)
   } catch (error) {
     console.error('[loadBrowse] happening rows failed:', (error as Error).message)
     return NO_ROWS
