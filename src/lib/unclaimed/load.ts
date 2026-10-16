@@ -113,7 +113,7 @@ export interface Enrichment {
 /** Sample posts want a cover and three more pictures behind it. */
 export const PHOTOS_PER_PAGE = 4
 
-const SOCIAL_FIELDS = ['instagram', 'facebook', 'tiktok', 'x', 'youtube']
+const SOCIAL_FIELDS = ['tiktok', 'instagram', 'facebook', 'x', 'youtube']
 
 /**
  * Brings one Page up to what Don asked for (#556): a cover photo with its credit, a few more pictures (on
@@ -129,7 +129,7 @@ export async function enrichPage(
   now: Date,
   retired: string[] = [],
   /** #809 — the Page is on stock-only (F080): a cover that is not a stock photo comes off, with its samples, and stock goes in. */
-  { stockOnly = false }: { stockOnly?: boolean } = {},
+  { stockOnly = false, socials }: { stockOnly?: boolean; socials?: () => Promise<{ social: Partial<Record<string, string>>; siteUrl: string }> } = {},
 ): Promise<EnrichResult> {
   await db.query('begin')
   try {
@@ -177,12 +177,7 @@ export async function enrichPage(
         await db.query(`update public.groups set contact_phone = $2 where id = $1`, [g.id, e.phone])
         await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'phone', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
       }
-      const merged = { ...(g.social_links ?? {}) }
-      for (const k of SOCIAL_FIELDS) if (e.social[k] && !merged[k]) merged[k] = e.social[k]!
-      if (JSON.stringify(merged) !== JSON.stringify(g.social_links ?? {})) {
-        await db.query(`update public.groups set social_links = $2::jsonb where id = $1`, [g.id, JSON.stringify(merged)])
-        await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'social', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
-      }
+      await mergeSocial(db, g, e)
       if (samples.rows.length < 3) {
         await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
         const posts = samplePosts({ name: page.name, slug: page.slug, pool: page.pool, area: page.area }, now)
@@ -197,6 +192,8 @@ export async function enrichPage(
       }
       touched = true
     }
+    // Don, 2026-10-16 — a Page missing its TikTok or Instagram has its own site read again for them (links only); older Pages backfill.
+    else if (socials && !(g.social_links?.tiktok && g.social_links?.instagram) && (await mergeSocial(db, g, await socials()))) touched = true
     // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
     if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
     if (await redateSamples(db, samples.rows as SampleRow[], page.slug, page.pool, now)) touched = true
@@ -206,6 +203,17 @@ export async function enrichPage(
     await db.query('rollback').catch(() => {})
     throw e
   }
+}
+
+/** Adds the social links the Page lacks, logging where they came from. True when it added any. */
+async function mergeSocial(db: Db, g: { id: string; social_links: Record<string, string> | null }, e: { social: Partial<Record<string, string>>; siteUrl: string }): Promise<boolean> {
+  const merged = { ...(g.social_links ?? {}) }
+  for (const k of SOCIAL_FIELDS) if (e.social[k] && !merged[k]) merged[k] = e.social[k]!
+  if (JSON.stringify(merged) === JSON.stringify(g.social_links ?? {})) return false
+  await db.query(`update public.groups set social_links = $2::jsonb where id = $1`, [g.id, JSON.stringify(merged)])
+  await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'social', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
+  g.social_links = merged
+  return true
 }
 
 type SampleRow = { id: string; sample_kind: SampleKind; starts_at: Date | null; ends_at: Date | null }

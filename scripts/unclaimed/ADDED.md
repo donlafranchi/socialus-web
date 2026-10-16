@@ -154,3 +154,4 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | FATRAC (Folsom Auburn Trail Riders Action Coalition) | Trail group (nonprofit) | Folsom | Fitness & outdoors, Sustainability | Green and outdoors |
 | 2026-10-16 | Fair Oaks Horticulture Center | Demonstration garden (nonprofit) | Fair Oaks | Gardening, Sustainability | Green and outdoors |
 | 2026-10-16 | Bushnell Gardens Nursery | Nursery | Granite Bay | Gardening, Sustainability | Green and outdoors |
+| 2026-10-16 | Tahoe Dog Co. | Goods & crafts | Tahoma | Crafts & makers, Local business | lead: Don; beyond the drive time, added by name |

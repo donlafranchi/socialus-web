@@ -163,6 +163,17 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).toBe(3)
   })
 
+  // Don, 2026-10-16 — TikTok and Instagram first: a complete Page missing either has its own site read for them, links only.
+  it('backfills a missing TikTok from the Page\'s own site, then stops looking once both are there', async () => {
+    let calls = 0
+    const socials = async () => (calls++, { social: { tiktok: 'https://www.tiktok.com/@t517e', instagram: 'https://www.instagram.com/other' }, siteUrl: E.publicInfoUrl })
+    expect(await enrichPage(client, E, async () => enrichment, now, [], { socials })).toBe('refreshed')
+    const g = (await client.query(`select social_links from public.groups where public_info_url = $1`, [E.publicInfoUrl])).rows[0]
+    expect(g.social_links).toEqual({ instagram: 'https://www.instagram.com/t517e', tiktok: 'https://www.tiktok.com/@t517e' })
+    expect(await enrichPage(client, E, async () => enrichment, now, [], { socials })).toBe('complete')
+    expect(calls).toBe(1)
+  })
+
   it('rolls a stale sample forward to the next day', async () => {
     const later = new Date('2026-10-30T18:00:00Z')
     expect(await enrichPage(client, E, async () => enrichment, later)).toBe('refreshed')

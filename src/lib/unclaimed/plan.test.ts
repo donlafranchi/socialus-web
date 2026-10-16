@@ -159,3 +159,10 @@ describe('a3 — batch coverage', () => {
   })
 })
 
+describe('a maker row carries its own social links (Don, 2026-10-16)', () => {
+  it('passes TikTok and Instagram through to the planned Page', () => {
+    const social = { tiktok: 'https://www.tiktok.com/@tahoedogco', instagram: 'https://www.instagram.com/tahoedogco' }
+    const { listed } = planMakers([{ name: 'Tahoe Dog Co.', category: 'Goods & crafts', makes: 'dog gear', area: 'Tahoma (El Dorado)', site: 'https://tahoedogco.com/', confidence: 'High', social }])
+    expect(listed[0]!.social).toEqual(social)
+  })
+})

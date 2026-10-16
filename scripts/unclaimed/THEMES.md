@@ -24,9 +24,10 @@ Not a rule yet: posting a business's real dated events from its own site instead
 4. **Spread the area and the interests:** at least 5 different towns and at least 4 interest tags (Coverage, above), at most 2 Pages in the city of Sacramento, and over a week cover every direction (see Area).
 5. **Coffee shops and roasters: at most 1 a week**, Mondays only, and none if `ADDED.md` has one in the last 7 days.
 6. **Own site only** (#353): never Yelp, Google or another directory. A non-business with only a Facebook page is fine if that page is its own. **Etsy, Instagram and other marketplaces are for finding makers only** (Don, 2026-10-16): look a maker up there, then build the Page from the maker's own website, or skip them if they have none. Never copy text, photos or listings from the marketplace, and don't scrape it (look-ups by hand only). Credit and photos come from the maker's own site as usual. Note the lead source in `ADDED.md` (`lead: Etsy`).
-7. **Look at every photo before loading** (`preview-photos.ts`). **No children in any photo** (F080). If a site's own photos show children, add the Page to `stockOnly` in `photo-overrides.json`.
-8. **Write the rows** to `makers-YYYY-MM-DD.json`, dry-run the loader, then load (`unclaimed-load.yml`, write ticked). A site that opens by hand but fails from the runner at the network level (reset, refused, timed out) goes in `link-allow.json`; a 404 never does.
-9. **Append the 10 to `ADDED.md`**, each with its interests (the tags the loader gives it; see Category).
+7. **Social links, TikTok and Instagram first** (Don, 2026-10-16), then Facebook and the rest: take them from links on the business's own site, or from a search when the profile is clearly the same business. Put them in the row's `social` field; the loader also reads them off the site, and backfills older Pages that lack TikTok or Instagram. Link only: never copy their posts or photos into SocialUs. Owners use these to tell their own story.
+8. **Look at every photo before loading** (`preview-photos.ts`). **No children in any photo** (F080). If a site's own photos show children, add the Page to `stockOnly` in `photo-overrides.json`. Pictures whose file names say an AI made them are skipped; when a site's real photos share a name pattern, `ownMatch` keeps to those.
+9. **Write the rows** to `makers-YYYY-MM-DD.json`, dry-run the loader, then load (`unclaimed-load.yml`, write ticked). A site that opens by hand but fails from the runner at the network level (reset, refused, timed out) goes in `link-allow.json`; a 404 never does.
+10. **Append the 10 to `ADDED.md`**, each with its interests (the tags the loader gives it; see Category).
 
 ## Rotation
 
