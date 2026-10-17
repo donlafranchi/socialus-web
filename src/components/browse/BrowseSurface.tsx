@@ -354,11 +354,11 @@ export function BrowseSurface({
 
               {snapshot.failed ? (
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-error">
-                  <p>We couldn&rsquo;t load {metroName} just now. Try again in a moment.</p>
+                  <p>That didn&rsquo;t go through. Mind trying again in a moment?</p>
                 </div>
               ) : visible.length === 0 ? (
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-empty">
-                  <p>Nothing here yet — try another filter</p>
+                  <p>Nothing here yet. Maybe try a bit wider.</p>
                   {/* Charcoal, not the accent token: `--color-accent` on
                       white is 2.9:1, short of AA for 14px text. The filter
                       sheet's "Clear all" took the same resolution — the

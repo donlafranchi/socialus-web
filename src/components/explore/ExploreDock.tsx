@@ -57,7 +57,7 @@ export function ExploreDock({
           <button
             type="button"
             data-testid="explore-dock-filter"
-            aria-label={filtersActive ? 'Filter — filters applied' : 'Filter'}
+            aria-label={filtersActive ? 'Filter, filters on' : 'Filter'}
             onClick={choose(onFilter)}
             className={ITEM}
           >

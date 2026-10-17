@@ -54,7 +54,7 @@ describe('expanded', () => {
   it('marks active filters', () => {
     renderDock({ filtersActive: true })
     open()
-    expect(screen.getByRole('button', { name: 'Filter — filters applied' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Filter, filters on' })).toBeInTheDocument()
   })
 
   it.each([

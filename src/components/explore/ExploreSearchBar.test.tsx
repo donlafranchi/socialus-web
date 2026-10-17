@@ -61,7 +61,7 @@ describe('T115 — one row, three elements', () => {
     const labels = within(row)
       .getAllByRole('button')
       .map((b) => b.getAttribute('aria-label'))
-    expect(labels).toEqual(['Area: West Sacramento — change it', 'Search', 'Open filters'])
+    expect(labels).toEqual(['Area: West Sacramento, tap to change', 'Search', 'Open filters'])
   })
 
   it('sticks to the top of the viewport', () => {
@@ -100,7 +100,7 @@ describe('T115 — the filter icon', () => {
     renderBar({ filtersActive: true })
     expect(screen.getByTestId('filter-active-dot')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /open filters/i })).toHaveAccessibleName(
-      'Open filters — filters applied',
+      'Open filters, filters on',
     )
   })
 })
