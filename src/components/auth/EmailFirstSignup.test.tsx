@@ -51,7 +51,7 @@ describe('T090 — EmailFirstSignup', () => {
     render(<EmailFirstSignup onAuthenticated={vi.fn()} deps={deps} />)
     fillEmail('a@b')
     clickSubmit()
-    await waitFor(() => expect(screen.getByTestId('auth-error')).toHaveTextContent(/valid email/i))
+    await waitFor(() => expect(screen.getByTestId('auth-error')).toHaveTextContent(/look like an email address/i))
     expect(deps.checkEmailRegistered).not.toHaveBeenCalled()
   })
 

@@ -49,13 +49,13 @@ export function AuthGateModal({ open, onClose, headline, subtext, intent }: Prop
             Sign in
           </Link>
           <p className="text-xs text-neutral-500 text-center">
-            We email you a link — no password, takes 30 seconds.
+            We’ll email you a link. No password, and it only takes a minute.
           </p>
         </div>
         <p className="text-xs text-neutral-500 text-center mt-5 border-t border-neutral-200 pt-3">
-          Are you a business owner?{' '}
+          Run a business?{' '}
           <Link href="/join" className="text-[var(--color-accent)] font-medium hover:underline">
-            Create a Page for your business →
+            Start a Page for it.
           </Link>
         </p>
       </div>
