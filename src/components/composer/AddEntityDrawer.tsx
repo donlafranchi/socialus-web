@@ -124,7 +124,7 @@ export function AddEntityDrawer<S>({
       // Parent is expected to unmount after onSaved. We do not call onCancel
       // here — onCancel is the user-abandon path, not the success path.
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Something went wrong.')
+      setSubmitError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     } finally {
       setSubmitting(false)
     }

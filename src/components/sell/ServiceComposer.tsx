@@ -135,7 +135,7 @@ export function ServiceComposer({
             <input
               data-testid="service-title-input"
               className="input mt-1 w-full"
-              placeholder="Piano lessons — 30 min"
+              placeholder="Piano lessons, 30 min"
               value={state.title}
               onChange={(e) => setState({ ...state, title: e.target.value })}
             />
@@ -159,9 +159,9 @@ export function ServiceComposer({
       ),
       validate: (state) => {
         const errors: Record<string, string> = {}
-        if (state.title.trim().length === 0) errors.title = 'Title is required'
+        if (state.title.trim().length === 0) errors.title = 'Add a title.'
         if (state.description.trim().length === 0)
-          errors.description = 'Description is required'
+          errors.description = 'Add a description.'
         return Object.keys(errors).length === 0
           ? { ok: true }
           : { ok: false, errors }
@@ -179,11 +179,11 @@ export function ServiceComposer({
           <div className="space-y-4">
             <label className="block">
               <span className="text-sm font-medium text-[var(--color-fg)]">
-                Pricing model
+                How you charge
               </span>
               <select
                 data-testid="service-rate-model-select"
-                aria-label="Pricing model"
+                aria-label="How you charge"
                 className="input mt-1 w-full"
                 value={state.rateModel}
                 onChange={(e) =>
@@ -244,7 +244,7 @@ export function ServiceComposer({
     {
       id: 'area',
       title: 'Service area',
-      helper: 'Where do you offer this? Pick a center point and how far you travel.',
+      helper: 'Where do you offer this? Pick a starting place and how far you travel.',
       render: (state, setState) => (
         <CenterLocationStep
           state={state}
@@ -256,9 +256,9 @@ export function ServiceComposer({
       validate: (state) => {
         const errors: Record<string, string> = {}
         if (!state.centerLocationId)
-          errors.center = 'Pick or add a center point'
+          errors.center = 'Pick a place or add one.'
         if (parseRadiusMiles(state.radiusMiles) === null)
-          errors.radius = 'Enter how far you travel (miles)'
+          errors.radius = 'Add how far you travel, in miles.'
         return Object.keys(errors).length === 0
           ? { ok: true }
           : { ok: false, errors }
@@ -286,10 +286,10 @@ export function ServiceComposer({
                 ? 'Free'
                 : state.rateModel === 'quote'
                   ? 'Request a quote'
-                  : `${modelLabel} — ${state.rateDollars || '(set)'}`}
+                  : `${modelLabel}, ${state.rateDollars || '(set)'}`}
             </li>
             <li>
-              <strong>Center:</strong> {state.centerLocationLabel ?? '(set)'}
+              <strong>Starting place:</strong> {state.centerLocationLabel ?? '(set)'}
             </li>
             <li>
               <strong>Travels:</strong>{' '}
@@ -364,7 +364,7 @@ function CenterLocationStep({
     <div className="space-y-5">
       <ul
         role="listbox"
-        aria-label="Center Location options"
+        aria-label="Starting place options"
         data-testid="service-center-options"
         className="space-y-2"
       >
@@ -407,7 +407,7 @@ function CenterLocationStep({
             onClick={() => setDrawerOpen(true)}
             className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[var(--color-accent)] hover:bg-neutral-50"
           >
-            + Add a new Location
+            + Add a new place
           </button>
         </li>
       </ul>
@@ -429,7 +429,7 @@ function CenterLocationStep({
 
       {drawerOpen && (
         <AddEntityDrawer<{ label: string; place: LocationPlaceFieldsState }>
-          title="Add a Location"
+          title="Add a place"
           initialState={{ label: '', place: initialLocationPlaceFieldsState }}
           render={(s, set) => (
             <div className="space-y-3">
@@ -458,7 +458,7 @@ function CenterLocationStep({
             if (s.label.trim().length === 0) errors.label = 'Name is required'
             if (!isLocationPlaceFieldsComplete(s.place)) {
               errors.place =
-                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighbourhood'
+                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighborhood'
             }
             return Object.keys(errors).length === 0 ? { ok: true } : { ok: false, errors }
           }}

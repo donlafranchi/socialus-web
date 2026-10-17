@@ -49,7 +49,7 @@ export type EditPageResult = { ok: true } | { ok: false; message: string }
 export async function editPageAction(input: EditPageInput): Promise<EditPageResult> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) return { ok: false, message: 'You must be signed in.' }
+  if (error || !data.user) return { ok: false, message: 'Sign in and try again.' }
 
   const ctx = resolveActionContext({ actingMemberId: data.user.id })
   // #301 — a draft is finished on its own Page, so Edit serves drafts too;
@@ -93,7 +93,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
     // ours to read in the logs, not theirs.
     if (err instanceof ActionError) return { ok: false, message: err.message }
     console.error('editPageAction failed', err)
-    return { ok: false, message: "That didn't save. Nothing on your Page changed — try again." }
+    return { ok: false, message: "That didn't save. Nothing on your Page changed. Mind trying again?" }
   }
 
   revalidatePath(input.pagePath)

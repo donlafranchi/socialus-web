@@ -150,7 +150,7 @@ describe('SellWalkthrough — the question comes first', () => {
     await clickContinue()
     expect(
       screen.getByTestId('field-error-brand'),
-    ).toHaveTextContent(/required/i)
+    ).toHaveTextContent(/add a name/i)
     expect(createDraft).not.toHaveBeenCalled()
   })
 })
@@ -167,7 +167,7 @@ describe('SellWalkthrough — step 1 fires group.create', () => {
     expect(createDraft).toHaveBeenCalledWith({ brand: 'Oak Park Sourdough' })
   })
 
-  it('advances to step 2 (Anchor Location) after step 1 succeeds', async () => {
+  it('advances to step 2 (Where is it?) after step 1 succeeds', async () => {
     setup()
     await answerPurpose()
     fireEvent.change(screen.getByTestId('sell-brand-input'), {
@@ -175,7 +175,7 @@ describe('SellWalkthrough — step 1 fires group.create', () => {
     })
     await clickContinue()
     expect(
-      screen.getByRole('heading', { name: /Anchor Location/i }),
+      screen.getByRole('heading', { name: /Where is it/i }),
     ).toBeInTheDocument()
   })
 })
@@ -222,13 +222,13 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
     })
   })
 
-  it('opens the AddEntityDrawer when "+ Add a new Location" tapped', async () => {
+  it('opens the AddEntityDrawer when "+ Add a new place" tapped', async () => {
     setup()
     await answerPurpose()
     await advanceToAnchor()
     fireEvent.click(screen.getByTestId('sell-anchor-add-new'))
     expect(screen.getByTestId('add-entity-drawer-overlay')).toBeInTheDocument()
-    expect(screen.getByText(/Add a Location/i)).toBeInTheDocument()
+    expect(screen.getByText(/Add a place/i)).toBeInTheDocument()
   })
 
   it('auto-selects new Location after AddEntityDrawer save and stays paused on anchor step', async () => {
@@ -268,7 +268,7 @@ describe('SellWalkthrough — step 2 anchor Location', () => {
     })
     // Parent composer still on step 2 — does NOT auto-advance.
     expect(
-      screen.getByRole('heading', { name: /Anchor Location/i }),
+      screen.getByRole('heading', { name: /Where is it/i }),
     ).toBeInTheDocument()
     // Picker still mounted, ready for the user to tap Continue.
   })

@@ -119,7 +119,7 @@ const KIND_OPTIONS: { kind: GatheringKind; label: string; sub: string }[] = [
   {
     kind: 'open_meetup',
     label: 'Open meetup',
-    sub: 'Drop in anytime — no fixed schedule.',
+    sub: 'Drop in anytime. No fixed schedule.',
   },
 ]
 
@@ -179,7 +179,7 @@ export function GatheringComposer({
       validate: (state) =>
         state.gatheringKind
           ? { ok: true }
-          : { ok: false, errors: { kind: 'Pick what kind of thing this is' } },
+          : { ok: false, errors: { kind: 'Pick which kind it is.' } },
     },
 
     // 2. Details.
@@ -214,9 +214,9 @@ export function GatheringComposer({
       ),
       validate: (state) => {
         const errors: Record<string, string> = {}
-        if (state.title.trim().length === 0) errors.title = 'Title is required'
+        if (state.title.trim().length === 0) errors.title = 'Add a title.'
         if (state.description.trim().length === 0)
-          errors.description = 'Description is required'
+          errors.description = 'Add a description.'
         return Object.keys(errors).length === 0
           ? { ok: true }
           : { ok: false, errors }
@@ -235,8 +235,8 @@ export function GatheringComposer({
               data-testid="gathering-open-meetup-note"
               className="rounded-lg border border-dashed border-neutral-300 p-4 text-sm text-[var(--color-fg-muted)]"
             >
-              Open meetups have no fixed schedule — people drop in whenever.
-              You can add specific times later from the gathering page.
+              Open meetups have no fixed schedule. People drop in whenever.
+              You can add times later from the gathering page.
             </p>
           ) : (
             <div className="space-y-3">
@@ -308,7 +308,7 @@ export function GatheringComposer({
           </label>
           <label className="block">
             <span className="text-sm font-medium text-[var(--color-fg)]">
-              Cost (optional — leave blank if free)
+              Cost (optional, leave blank if free)
             </span>
             <input
               data-testid="gathering-cost-input"
@@ -338,15 +338,15 @@ export function GatheringComposer({
       validate: (state) => {
         if (state.gatheringKind === 'open_meetup') return { ok: true }
         if (!state.startDate || !state.startTime) {
-          return { ok: false, errors: { schedule: 'Pick a date and time' } }
+          return { ok: false, errors: { schedule: 'Pick a date and time.' } }
         }
         const when = new Date(combineDateTime(state.startDate, state.startTime))
         if (Number.isNaN(when.getTime()) || when.getTime() <= Date.now()) {
-          return { ok: false, errors: { schedule: 'The first occurrence must be in the future' } }
+          return { ok: false, errors: { schedule: "Pick a time that's still ahead." } }
         }
         if (state.endTime && state.endTime <= state.startTime) {
           // #262 — placeholder ([public-is-draft]).
-          return { ok: false, errors: { schedule: 'The end time is before it starts' } }
+          return { ok: false, errors: { schedule: 'The end time needs to come after the start.' } }
         }
         return { ok: true }
       },
@@ -380,7 +380,7 @@ export function GatheringComposer({
             {state.costDollars.trim() ? `$${state.costDollars.trim()}` : 'Free'}
           </li>
           <li>
-            <strong>Where:</strong> {state.locationLabel ?? '(no venue)'}
+            <strong>Where:</strong> {state.locationLabel ?? '(no place yet)'}
           </li>
         </ul>
       ),

@@ -102,7 +102,7 @@ describe('LocationPlaceFields — address mode', () => {
       target: { value: 'not a real place at all' },
     })
     await vi.advanceTimersByTimeAsync(350)
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/city or a neighbourhood/i))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/city or a neighborhood/i))
     expect(screen.queryByTestId('test-address-confirmed')).not.toBeInTheDocument()
   })
 
@@ -149,11 +149,10 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
       data: [{ id: 'c1', name: 'Davis', kind: 'city', parentName: null }],
     })
     geocode.mockResolvedValue([])
-    const { container } = render(<Harness />)
+    render(<Harness />)
     fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: 'davis' } })
     await vi.advanceTimersByTimeAsync(350)
-    await screen.findByTestId('test-address-suggestion-0')
-    expect(container.textContent).not.toContain('neighborhood')
+    expect(await screen.findByTestId('test-address-suggestion-0')).not.toHaveTextContent(/neighborhood/)
   })
 })
 
@@ -219,7 +218,7 @@ describe('#348 — neighbourhood only', () => {
     let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
     render(<Harness onState={(s) => (latest = s)} />)
     toNeighbourhood()
-    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood or town/i }), { target: { value: 'Curt' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /neighborhood or town/i }), { target: { value: 'Curt' } })
     await vi.advanceTimersByTimeAsync(350)
     fireEvent.click(await screen.findByRole('option', { name: /Curtis Park/ }))
     expect(latest.mode).toBe('neighbourhood')
@@ -230,7 +229,7 @@ describe('#348 — neighbourhood only', () => {
   it('says only the neighbourhood will show', () => {
     render(<Harness />)
     toNeighbourhood()
-    expect(screen.getByText(/only the neighbourhood shows/i)).toBeInTheDocument()
+    expect(screen.getByText(/only the neighborhood shows/i)).toBeInTheDocument()
   })
 
   it('a tap on the map picks it too', () => {

@@ -45,13 +45,12 @@ export default function JoinPage() {
     <main className="min-h-screen bg-white pb-32 md:pb-24">
       {/* Hero */}
       <section className="px-6 pt-12 md:pt-20 pb-10 max-w-3xl mx-auto text-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] font-semibold">For vendors</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-accent)] font-semibold">Start a Page</p>
         <h1 className="mt-3 text-4xl md:text-5xl font-semibold text-neutral-900 leading-tight">
-          Sell at a farmers market? Get a Page.
+          Run a shop or a group? Get a Page.
         </h1>
         <p className="mt-4 text-lg text-neutral-700 max-w-xl mx-auto">
-          SocialUs helps the customers you meet at the market find you the other six days of the week.
-          There is no charge to create a Page.
+          SocialUs helps people find you any day of the week.
         </p>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
@@ -59,7 +58,7 @@ export default function JoinPage() {
             href={primaryHref}
             className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)] shadow-sm"
           >
-            {authed ? 'Create my Page →' : 'Sign up as a vendor →'}
+            {authed ? 'Create my Page' : 'Sign up and start a Page'}
           </Link>
           {!authed && (
             <Link
@@ -74,18 +73,14 @@ export default function JoinPage() {
 
       {/* Why */}
       <section className="px-6 py-10 bg-neutral-50">
-        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <Benefit
-            title="Followable between markets"
-            body="Customers who love what you made on Saturday can find you on Wednesday."
+            title="Easy to follow"
+            body="People who liked what you made on Saturday can find you again on Wednesday."
           />
           <Benefit
-            title="No charge to create a Page"
-            body="There is no charge to create a Page."
-          />
-          <Benefit
-            title="Local-first audience"
-            body="People on SocialUs already want to spend locally. You're not marketing to strangers — you're being introduced."
+            title="People who keep it local"
+            body="People here already like keeping it local. You're not pitching strangers. You're getting introduced."
           />
         </div>
       </section>
@@ -94,21 +89,21 @@ export default function JoinPage() {
       <section className="px-6 py-12 max-w-3xl mx-auto">
         <h2 className="text-2xl font-semibold text-neutral-900 text-center">How it works</h2>
         <ol className="mt-6 space-y-5">
-          <Step n={1} title="Create an account" body="Email and password. Takes 10 seconds." />
+          <Step n={1} title="Sign up" body="Use your email. It takes a minute." />
           <Step
             n={2}
-            title="Tell customers who you are"
-            body="Your name, a tagline, what you make, and which markets you attend. About 90 seconds."
+            title="Tell people who you are"
+            body="Your name, a line about what you do, and where to find you."
           />
           <Step
             n={3}
-            title="Your profile goes live"
-            body="You're immediately in the feed, the map, and searchable by product."
+            title="Your Page goes live"
+            body="People can find it on Explore and the map."
           />
           <Step
             n={4}
-            title="Customers follow you"
-            body="They get updates when you'll be at an upcoming market. No more 'I forgot your name.'"
+            title="People follow you"
+            body={'They get your updates in the app. No more "what was that stall called?"'}
           />
         </ol>
 
@@ -117,7 +112,7 @@ export default function JoinPage() {
             href={primaryHref}
             className="inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-white hover:bg-[var(--color-accent-hover)]"
           >
-            {authed ? 'Create my Page →' : 'Start my Page →'}
+            {authed ? 'Create my Page' : 'Start my Page'}
           </Link>
         </div>
       </section>
@@ -125,9 +120,9 @@ export default function JoinPage() {
       {/* Share */}
       <section className="px-6 py-12 bg-neutral-50">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-semibold text-neutral-900">Share with another vendor</h2>
+          <h2 className="text-2xl font-semibold text-neutral-900">Share this page</h2>
           <p className="mt-2 text-neutral-700">
-            Know someone at the market who should be on here? Send them this link.
+            Know someone who should be on here? Send them this link.
           </p>
 
           <div className="mt-6 flex flex-col items-center gap-4">

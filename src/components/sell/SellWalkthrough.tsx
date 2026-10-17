@@ -216,7 +216,7 @@ export function SellWalkthrough({
       validate: (state) =>
         state.purpose
           ? { ok: true }
-          : { ok: false, errors: { purpose: 'Pick one to carry on' } },
+          : { ok: false, errors: { purpose: 'Pick one first.' } },
     },
 
     // 1. Name
@@ -239,13 +239,13 @@ export function SellWalkthrough({
       validate: (state) =>
         state.brand.trim().length > 0
           ? { ok: true }
-          : { ok: false, errors: { brand: 'A name is required' } },
+          : { ok: false, errors: { brand: 'Add a name.' } },
     },
 
     // 2. Anchor Location
     {
       id: 'anchor',
-      title: 'Anchor Location',
+      title: 'Where is it?',
       helper: (state) => `Where is your ${nounFor(state.purpose)} primarily based?`,
       render: (state, setState) => (
         <AnchorLocationStep
@@ -258,7 +258,7 @@ export function SellWalkthrough({
       validate: (state) =>
         state.anchorLocationId
           ? { ok: true }
-          : { ok: false, errors: { anchor: 'Pick or add an anchor Location' } },
+          : { ok: false, errors: { anchor: 'Pick a place or add one' } },
     },
 
     // 3. Tags (T159) — same position the category step held.
@@ -275,7 +275,7 @@ export function SellWalkthrough({
         const usable = [...state.tags, state.tagDraft].filter(isValidTagLabel)
         return usable.length > 0
           ? { ok: true }
-          : { ok: false, errors: { tags: 'Add at least one word that describes what you do' } }
+          : { ok: false, errors: { tags: 'Add at least one word for what you do.' } }
       },
     },
 
@@ -283,7 +283,7 @@ export function SellWalkthrough({
     {
       id: 'about',
       title: 'About',
-      helper: 'A short public description visitors will see (optional).',
+      helper: 'A short description anyone can read (optional).',
       isOptional: true,
       render: (state, setState) => (
         <label className="block">
@@ -329,10 +329,10 @@ export function SellWalkthrough({
       render: (state) => (
         <ul data-testid="sell-review-list" className="text-sm space-y-2">
           <li>
-            <strong>Brand:</strong> {state.brand}
+            <strong>Name:</strong> {state.brand}
           </li>
           <li>
-            <strong>Anchor Location:</strong>{' '}
+            <strong>Place:</strong>{' '}
             {state.anchorLocationLabel ?? '(set)'}
           </li>
           <li>
@@ -602,7 +602,7 @@ function TagStep({
   )
 }
 
-/** Step-2 picker. List of saved Locations + a "+ Add a new Location" row that
+/** Step-2 picker. List of saved Locations + a "+ Add a new place" row that
  *  opens the AddEntityDrawer sub-flow. On Save, the new Location auto-selects
  *  and the user stays paused on the anchor step (per DLS § Add new entity
  *  inside a composer — parent composer does NOT auto-advance). */
@@ -632,7 +632,7 @@ function AnchorLocationStep({
     <div>
       <ul
         role="listbox"
-        aria-label="Anchor Location options"
+        aria-label="Place options"
         data-testid="sell-anchor-options"
         className="space-y-2"
       >
@@ -675,14 +675,14 @@ function AnchorLocationStep({
             onClick={() => setDrawerOpen(true)}
             className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[var(--color-accent)] hover:bg-neutral-50"
           >
-            + Add a new Location
+            + Add a new place
           </button>
         </li>
       </ul>
 
       {drawerOpen && (
         <AddEntityDrawer<{ label: string; place: LocationPlaceFieldsState }>
-          title="Add a Location"
+          title="Add a place"
           initialState={{ label: '', place: initialLocationPlaceFieldsState }}
           render={(s, set) => (
             <div className="space-y-3">
@@ -711,7 +711,7 @@ function AnchorLocationStep({
             if (s.label.trim().length === 0) errors.label = 'Name is required'
             if (!isLocationPlaceFieldsComplete(s.place)) {
               errors.place =
-                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighbourhood'
+                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighborhood'
             }
             return Object.keys(errors).length === 0 ? { ok: true } : { ok: false, errors }
           }}

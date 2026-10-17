@@ -50,7 +50,7 @@ export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => 
     try {
       await onStart(kind)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
       setBusy(false)
     }
   }

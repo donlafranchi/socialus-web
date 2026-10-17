@@ -199,7 +199,7 @@ export const groupUpdateDraft = defineHandler(
       }
       if (input.pictureUrl !== undefined) {
         if (input.pictureUrl !== null && !isOwnMediaUrl(input.pictureUrl, ctx.actingMemberId)) {
-          throw new ValidationError('group.update_draft: that picture didn’t come from your uploads')
+          throw new ValidationError('That picture didn’t come from your uploads.')
         }
         spineFragments.push({ clause: 'picture_url = $', value: input.pictureUrl })
         patched.push('picture_url')
@@ -212,7 +212,7 @@ export const groupUpdateDraft = defineHandler(
         const { links, rejected } = normaliseSocialLinks(input.socialLinks)
         if (rejected.length > 0) {
           throw new ValidationError(
-            `group.update_draft: these links are not https URLs and were refused: ${rejected.join(', ')}`,
+            `These links are not https URLs and were refused: ${rejected.join(', ')}`,
           )
         }
         spineFragments.push({ clause: 'social_links = $', value: JSON.stringify(links) })

@@ -115,11 +115,11 @@ describe('#452 — fewer groups', () => {
 
 // #465 — the PM, 2026-10-06: planned, not built. Owner-only (this page is), nothing to tap.
 describe('#465 — Values & badges, coming soon', () => {
-  it('is a card marked Coming soon with one line and nothing to tap', () => {
+  it('is a card marked Not here yet with one line and nothing to tap', () => {
     renderCards()
     const values = card('values')
     expect(within(values).getByRole('heading')).toHaveTextContent('Values & badges')
-    expect(values).toHaveTextContent('Coming soon')
+    expect(values).toHaveTextContent('Not here yet.')
     expect(within(values).queryAllByRole('button')).toHaveLength(0)
     expect(within(values).queryAllByRole('link')).toHaveLength(0)
   })

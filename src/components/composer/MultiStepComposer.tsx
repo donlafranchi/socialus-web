@@ -80,7 +80,7 @@ export function MultiStepComposer<S>({
   onComplete,
   onAbandon,
   resumeFromStep = 0,
-  dialogLabel = 'Multi-step composer',
+  dialogLabel = 'Create something',
   finalNotice,
 }: MultiStepComposerProps<S>) {
   const [state, setState] = useState<S>(initialState)
@@ -145,7 +145,7 @@ export function MultiStepComposer<S>({
         setStepIdx((i) => Math.min(i + 1, total - 1))
       }
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Something went wrong.')
+      setSubmitError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     } finally {
       setSubmitting(false)
     }

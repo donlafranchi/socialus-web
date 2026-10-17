@@ -175,7 +175,7 @@ export const groupUpdate = defineHandler(
       }
       if (input.pictureUrl !== undefined) {
         if (input.pictureUrl !== null && !isOwnMediaUrl(input.pictureUrl, ctx.actingMemberId)) {
-          throw new ValidationError('group.update: that picture didn’t come from your uploads')
+          throw new ValidationError('That picture didn’t come from your uploads.')
         }
         fragments.push({ clause: 'picture_url = $', value: input.pictureUrl })
         patched.push('picture_url')
@@ -188,7 +188,7 @@ export const groupUpdate = defineHandler(
         const { links, rejected } = normaliseSocialLinks(input.socialLinks)
         if (rejected.length > 0) {
           throw new ValidationError(
-            `group.update: these links could not be read: ${rejected.join(', ')}`,
+            `These links could not be read: ${rejected.join(', ')}`,
           )
         }
         fragments.push({ clause: 'social_links = $', value: JSON.stringify(links) })
@@ -198,7 +198,7 @@ export const groupUpdate = defineHandler(
       if (input.contactPhone !== undefined) {
         const phone = input.contactPhone === null ? null : normalizeUsPhone(input.contactPhone)
         if (input.contactPhone !== null && phone === null) {
-          throw new ValidationError('group.update: enter a US phone number, like (916) 555-0142')
+          throw new ValidationError('Enter a US phone number, like (916) 555-0142.')
         }
         fragments.push({ clause: 'contact_phone = $', value: phone })
         patched.push('contact_phone')
@@ -208,7 +208,7 @@ export const groupUpdate = defineHandler(
         try {
           hours = parseOpeningHours(input.openingHours)
         } catch (err) {
-          throw new ValidationError(`group.update: ${(err as Error).message}`)
+          throw new ValidationError((err as Error).message)
         }
         fragments.push({ clause: 'opening_hours = $', value: hours === null ? null : JSON.stringify(hours) })
         patched.push('opening_hours')
@@ -223,7 +223,7 @@ export const groupUpdate = defineHandler(
           if (!tags.has(n)) tags.set(n, label.trim())
         }
         if (tags.size === 0) {
-          throw new ValidationError('group.update: a Page needs at least one tag')
+          throw new ValidationError('A Page needs at least one tag.')
         }
         patched.push('tags')
       }

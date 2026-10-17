@@ -195,11 +195,11 @@ export function ProductComposer({
       ),
       validate: (state) => {
         const errors: Record<string, string> = {}
-        if (state.title.trim().length === 0) errors.title = 'Title is required'
+        if (state.title.trim().length === 0) errors.title = 'Add a title.'
         if (state.description.trim().length === 0)
-          errors.description = 'Description is required'
+          errors.description = 'Add a description.'
         if (!state.isFree && dollarsToCents(state.priceDollars) === null)
-          errors.price = 'Enter a price, or mark it free'
+          errors.price = 'Add a price, or mark it free.'
         return Object.keys(errors).length === 0
           ? { ok: true }
           : { ok: false, errors }
@@ -222,7 +222,7 @@ export function ProductComposer({
       validate: (state) =>
         state.pickupLocationId
           ? { ok: true }
-          : { ok: false, errors: { pickup: 'Pick or add a pickup point' } },
+          : { ok: false, errors: { pickup: 'Pick a pickup spot or add one.' } },
     },
 
     // 3. Where is this made? — OPTIONAL. F038 tests the SKIP path.
@@ -230,7 +230,7 @@ export function ProductComposer({
       id: 'made',
       title: 'Where is this made?',
       helper:
-        'Claim Locally Made provenance for this product. You can skip this and add it later from the product page.',
+        "Say where it's made if you like. You can skip this and add it later from the product page.",
       isOptional: true,
       render: () => (
         <div
@@ -238,9 +238,7 @@ export function ProductComposer({
           className="rounded-lg border border-dashed border-neutral-300 p-4 text-sm text-[var(--color-fg-muted)]"
         >
           <p>
-            The Locally Made claim (a Place picker for where this product is
-            made) ships with the provenance flow. Skip this step to publish
-            without the badge — you can claim it later.
+            This part isn&rsquo;t ready yet. Skip it for now and you can add it later.
           </p>
         </div>
       ),
@@ -275,7 +273,7 @@ export function ProductComposer({
           <li>
             <strong>Locally Made:</strong>{' '}
             <em className="text-[var(--color-fg-muted)]">
-              {state.madeAtPlaceId ? '(claimed)' : '(skipped)'}
+              {state.madeAtPlaceId ? 'added' : 'not yet'}
             </em>
           </li>
         </ul>
@@ -342,7 +340,7 @@ function PickupLocationStep({
     <div>
       <ul
         role="listbox"
-        aria-label="Pickup Location options"
+        aria-label="Pickup place options"
         data-testid="product-pickup-options"
         className="space-y-2"
       >
@@ -385,14 +383,14 @@ function PickupLocationStep({
             onClick={() => setDrawerOpen(true)}
             className="w-full text-left rounded-lg border border-dashed border-neutral-300 px-4 py-3 text-sm text-[var(--color-accent)] hover:bg-neutral-50"
           >
-            + Add a new Location
+            + Add a new place
           </button>
         </li>
       </ul>
 
       {drawerOpen && (
         <AddEntityDrawer<{ label: string; place: LocationPlaceFieldsState }>
-          title="Add a Location"
+          title="Add a place"
           initialState={{ label: '', place: initialLocationPlaceFieldsState }}
           render={(s, set) => (
             <div className="space-y-3">
@@ -421,7 +419,7 @@ function PickupLocationStep({
             if (s.label.trim().length === 0) errors.label = 'Name is required'
             if (!isLocationPlaceFieldsComplete(s.place)) {
               errors.place =
-                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighbourhood'
+                s.place.mode === 'address' ? 'Choose a suggested address' : 'Choose a neighborhood'
             }
             return Object.keys(errors).length === 0 ? { ok: true } : { ok: false, errors }
           }}
