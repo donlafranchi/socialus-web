@@ -64,7 +64,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
         setReversing(null)
         setNote('')
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'That did not go through.')
+        setError(e instanceof Error ? e.message : "That didn't go through.")
       }
     })
   }
@@ -198,7 +198,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
       {reversing ? (
         <ReasonPicker
           testId="reverse-reasons"
-          title={`Undo the ${reversing.outcome === 'removed' ? 'removal' : 'restore'} — why?`}
+          title={`Undo the ${reversing.outcome === 'removed' ? 'removal' : 'restore'}. Why?`}
           outcome={reversing.outcome === 'removed' ? 'restored' : 'removed'}
           note={note}
           onNote={setNote}
@@ -221,7 +221,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
       ) : picking ? (
         <ReasonPicker
           testId={`reasons-${picking}`}
-          title={picking === 'restored' ? 'Approve — why?' : 'Reject — why?'}
+          title={picking === 'restored' ? 'Approve. Why?' : 'Reject. Why?'}
           outcome={picking}
           note={note}
           onNote={setNote}
