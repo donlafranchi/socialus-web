@@ -248,7 +248,7 @@ describe('a place of its own', () => {
     // the Page, in browse, or in its Page's history.
     onCreateLocation.mockResolvedValueOnce({
       ok: false,
-      message: 'A Location needs a real address or a neighbourhood — we never guess one.',
+      message: 'Add an address or a neighborhood so people can find it.',
       code: 'location_needs_place',
     } as never)
     renderPosts()
@@ -256,7 +256,7 @@ describe('a place of its own', () => {
     await pickAPlace()
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() =>
-      expect(screen.getByTestId('page-post-error')).toHaveTextContent(/never guess one/i),
+      expect(screen.getByTestId('page-post-error')).toHaveTextContent(/add an address or a neighborhood/i),
     )
     expect(onPost).not.toHaveBeenCalled()
     expect(screen.queryByTestId('page-post')).toBeNull()

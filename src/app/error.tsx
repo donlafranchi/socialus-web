@@ -13,7 +13,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
   }, [error])
   return (
     <main className="gutter pb-nav">
-      <EmptyState title="Something went wrong" body="It's on our side. Try again in a moment." />
+      <EmptyState title="That didn't go through" body="It's on us. Mind trying again in a minute?" />
       <div className="flex justify-center">
         <button type="button" onClick={reset} className="btn-secondary">
           Try again

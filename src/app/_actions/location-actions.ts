@@ -43,7 +43,7 @@ async function asResult<T>(fn: () => Promise<T>): Promise<ActionResult<T>> {
     if (err instanceof LocationActionError) return failed(err.message, err.code)
     if (err instanceof ActionError) return failed(err.message, err.code)
     return failed(
-      err instanceof Error ? err.message : 'Something went wrong. Try again.',
+      err instanceof Error ? err.message : "That didn't go through. Mind trying again?",
       'unexpected',
     )
   }
@@ -53,7 +53,7 @@ async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) {
-    throw new LocationActionError('You must be signed in.', 'not_signed_in')
+    throw new LocationActionError('Sign in first.', 'not_signed_in')
   }
   return data.user.id
 }
@@ -93,7 +93,7 @@ export async function createLocationAction(
   // same way the UI does, not fall back to a coordinate nobody chose.
   if (!('address' in input && input.address) && !('neighborhoodId' in input && input.neighborhoodId)) {
     throw new LocationActionError(
-      'A Location needs a real address or a neighbourhood — we never guess one.',
+      'Add an address or a neighborhood so people can find it.',
       'location_needs_place',
     )
   }
@@ -149,7 +149,7 @@ export async function createLocationAction(
         const bbox = bboxRes.rows[0]
         if (!bbox) {
           throw new LocationActionError(
-            'We could not find that place. Try searching for it again.',
+            "We couldn't find that place. Mind searching again?",
             'neighborhood_not_found',
           )
         }
@@ -208,7 +208,7 @@ export async function createLocationAction(
       const row = result.rows[0]
       if (!row) {
         throw new LocationActionError(
-          'Could not save the new Location.',
+          "That didn't go through. Mind trying again?",
           'location_create_failed',
         )
       }
@@ -217,7 +217,7 @@ export async function createLocationAction(
   } catch (err) {
     if (err instanceof LocationActionError) throw err
     throw new LocationActionError(
-      err instanceof Error ? err.message : 'Could not save the new Location.',
+      err instanceof Error ? err.message : "That didn't go through. Mind trying again?",
       'location_create_failed',
     )
   }

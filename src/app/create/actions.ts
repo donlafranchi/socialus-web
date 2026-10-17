@@ -30,7 +30,7 @@ export async function startDraftAction(purpose: Purpose): Promise<void> {
   // The founder reads their own draft (groups_select_active_or_own_draft).
   const { data: row } = await supabase.from('groups').select('slug, public_id').eq('id', groupId).single()
   const r = row as { slug: string; public_id: string } | null
-  if (!r) throw new Error("That didn't go through. Try again?")
+  if (!r) throw new Error("That didn't go through. Mind trying again?")
   redirect(canonicalPagePath(r.public_id))
 }
 
