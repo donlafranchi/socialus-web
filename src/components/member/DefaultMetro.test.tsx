@@ -31,7 +31,7 @@ describe('DefaultMetro', () => {
   it('says when saving failed', async () => {
     render(<DefaultMetro metros={metros} currentId="a" onSave={vi.fn().mockResolvedValue({ ok: false })} />)
     fireEvent.change(screen.getByLabelText('Default metro'), { target: { value: 'pdx' } })
-    expect(await screen.findByText('Couldn’t save. Try again.')).toBeInTheDocument()
+    expect(await screen.findByText("Couldn't save that. Mind trying again?")).toBeInTheDocument()
   })
 
   it('with nothing set, the zip metro shown first is the one in effect', () => {

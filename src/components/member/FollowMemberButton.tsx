@@ -57,7 +57,7 @@ export function FollowMemberButton({
         }
       } catch (err) {
         setFollowing(!next) // revert
-        setError(err instanceof Error ? err.message : 'Something went wrong.')
+        setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
       }
     })
   }

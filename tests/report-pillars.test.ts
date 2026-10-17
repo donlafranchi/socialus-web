@@ -18,8 +18,8 @@ describe('REPORT_PILLARS for ReportForm', () => {
   })
 
   it('pillar labels are human-readable', () => {
-    expect(REPORT_PILLARS.customers.label).toBe('Customers')
-    expect(REPORT_PILLARS.employees.label).toBe('Employees')
+    expect(REPORT_PILLARS.customers.label).toBe('People who shop here')
+    expect(REPORT_PILLARS.employees.label).toBe('People who work here')
     expect(REPORT_PILLARS.community.label).toBe('Community')
     expect(REPORT_PILLARS.planet.label).toBe('Planet')
   })
