@@ -63,6 +63,8 @@ const PREFETCH_TOP = 3
 
 /** Long enough that a five-character search announces once, on settle. */
 const ANNOUNCE_DEBOUNCE_MS = 700
+/** #916 — the server search waits for typing to settle: one read per pause, not one per key. */
+const SEARCH_DEBOUNCE_MS = 250
 
 export function BrowseSurface({
   initial,
@@ -194,13 +196,25 @@ export function BrowseSurface({
   }, [snapshot.results, snapshot.leadFresh, lead])
 
   // #876 — a filter asks the server for the targeted set (one read); until it lands, the mix is cut here.
-  const filterKey = filtered ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, filters]) : null
+  // #916 — so does a search, once typing settles: the server searches the whole market, not these rows.
+  const needle = rest.trim()
+  const [settledNeedle, setSettledNeedle] = useState(needle)
+  useEffect(() => {
+    const id = window.setTimeout(() => setSettledNeedle(needle), SEARCH_DEBOUNCE_MS)
+    return () => window.clearTimeout(id)
+  }, [needle])
+  const filterKey =
+    filtered || settledNeedle
+      ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle])
+      : null
   const [targeted, setTargeted] = useState<{ key: string; results: BrowseSnapshot['results'] } | null>(null)
   useEffect(() => {
     if (!filterKey || targeted?.key === filterKey) return
     let live = true
     Promise.resolve()
-      .then(() => browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, filters))
+      .then(() =>
+        browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle || null),
+      )
       .then((next) => {
         if (live && next && !next.failed) setTargeted({ key: filterKey, results: next.results })
       })
@@ -208,14 +222,16 @@ export function BrowseSurface({
     return () => {
       live = false
     }
-    // `filters` is captured in `filterKey`.
+    // `filters` and the search are captured in `filterKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKey])
-  const corpus = useMemo(
-    () => (!filtered ? mix : targeted?.key === filterKey ? targeted.results : applyBrowseFilters(mix, filters, { now })),
-    [filtered, mix, targeted, filterKey, filters, now],
+  // The server's answer once it is for what the box says now; until then, the rows in hand, cut here.
+  const landed = filterKey !== null && targeted?.key === filterKey && settledNeedle === needle
+  const visible = useMemo(
+    () =>
+      landed ? targeted!.results : searchBrowseResults(!filtered ? mix : applyBrowseFilters(mix, filters, { now }), rest),
+    [landed, targeted, filtered, mix, filters, now, rest],
   )
-  const visible = useMemo(() => searchBrowseResults(corpus, rest), [corpus, rest])
   // #909 — a settled search is counted, with no member id, so locals' searches can help local businesses.
   useSearchDemand({ query: rest, resultCount: visible.length, metroSlug: snapshot.metro?.slug ?? null, areaId: snapshot.area?.id ?? null, failed: snapshot.failed, log: logSearchAction })
   // The old Updates view's top, kept for plain posts-only: what is on today, this week and this weekend.
@@ -363,7 +379,8 @@ export function BrowseSurface({
                 </div>
               ) : visible.length === 0 ? (
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-empty">
-                  <p>Nothing here yet — try another filter</p>
+                  {/* #916 — draft copy (human-review). */}
+                  <p>{needle ? `Nothing matches “${needle}” yet. Try fewer words, or a broader one like “food” or “plants”.` : 'Nothing here yet — try another filter'}</p>
                   {/* Charcoal, not the accent token: `--color-accent` on
                       white is 2.9:1, short of AA for 14px text. The filter
                       sheet's "Clear all" took the same resolution — the

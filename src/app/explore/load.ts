@@ -74,7 +74,8 @@ export async function loadBrowse(
   // three-round chain nothing on the list waits for, and a phone does not show it first.
   // #557 — the session seed: same seed, same order; a new sign-in brings a new one.
   // #876 — the Type / Category / Date filters, pushed into one targeted read.
-  { withMap = true, seed = null, filters = null }: { withMap?: boolean; seed?: string | null; filters?: BrowseFilters | null } = {},
+  // #916 — the search box's words: searched on the server over the whole scope, with the filters.
+  { withMap = true, seed = null, filters = null, search = null }: { withMap?: boolean; seed?: string | null; filters?: BrowseFilters | null; search?: string | null } = {},
 ): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
@@ -120,10 +121,11 @@ export async function loadBrowse(
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
 
   // #876 — a filter is one targeted read: no first look, no rows (signed out, posts only reads the withheld cards).
-  if (filters && hasBrowseFilters(filters)) {
+  const searching = Boolean(search?.trim())
+  if ((filters && hasBrowseFilters(filters)) || searching) {
     // F093 criterion 7 — signed out, posts only is the withheld cards, as on the mix. A narrower
     // filter (kind, date, following) would say what a withheld post is; browse_feed gives anon no posts.
-    if (!userId && isPlainPostsView(filters)) {
+    if (!userId && filters && isPlainPostsView(filters) && !searching) {
       try {
         const results = await getWithheldAnnouncements(supabase, { scope: feedScope, period: metroWeekBounds(), limit: BROWSE_LIMIT })
         return { ...base, results, lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
@@ -132,19 +134,21 @@ export async function loadBrowse(
         return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
       }
     }
-    const o = feedOptsFor(filters, new Date())
+    const o = filters ? feedOptsFor(filters, new Date()) : null
     try {
       const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
       const results = await getBrowseFeed(supabase, {
         scope: feedScope,
-        resultKinds: o.resultKinds,
-        postKinds: o.postKinds,
-        tags: o.tags,
-        startsFrom: o.startsFrom,
-        startsBefore: o.startsBefore,
-        sort: o.sort,
+        // #916 — signed out, a search reads Pages only: a post's words never answer a stranger (F093).
+        resultKinds: userId ? (o?.resultKinds ?? null) : ['page'],
+        ...(searching ? { search } : {}),
+        postKinds: o?.postKinds,
+        tags: o?.tags,
+        startsFrom: o?.startsFrom,
+        startsBefore: o?.startsBefore,
+        sort: o?.sort,
         limit: BROWSE_LIMIT,
-        ...(o.following ? { audience: { audience: 'following' as const, following: followIds } } : {}),
+        ...(o?.following ? { audience: { audience: 'following' as const, following: followIds } } : {}),
       })
       return { ...base, results: markFollowed(results, followIds), lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
     } catch (error) {

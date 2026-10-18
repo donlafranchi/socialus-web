@@ -123,7 +123,7 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     const list = screen.getByTestId('browse-list-pane')
     expect(within(list).queryByText('Old A')).toBeNull()
     expect(within(list).getAllByText(/News$/)).toHaveLength(2)
-    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(SAC.slug, null, expect.objectContaining({ type: 'posts' })))
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(SAC.slug, null, expect.objectContaining({ type: 'posts' }), null))
     const box = screen.getByRole('searchbox') as HTMLInputElement
     fireEvent.change(box, { target: { value: 'older posts' } })
     expect(within(list).queryByText('Newer News')).toBeNull()
@@ -135,7 +135,7 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     browseFeedAction.mockResolvedValue(snapshot({ signedIn: true, results: [post('d', '2026-10-15T00:00:00Z', 'Server Deal')] }))
     render(<BrowseSurface initial={snapshot({ signedIn: true, results: [page('a', 'Old A')], lead: [], leadFresh: false })} />)
     expect(await screen.findByText('Server Deal')).toBeInTheDocument()
-    expect(browseFeedAction).toHaveBeenCalledWith(null, null, expect.objectContaining({ postKinds: ['deal'] }))
+    expect(browseFeedAction).toHaveBeenCalledWith(null, null, expect.objectContaining({ postKinds: ['deal'] }), null)
   })
 
   it('tells the server what the first look showed, once, after it is on screen', async () => {

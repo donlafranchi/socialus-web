@@ -1,0 +1,46 @@
+name: Auth email templates
+
+# #927 — the sign-in, confirmation and password-reset emails live in supabase/templates/ and are
+# pushed to the Supabase project here, so the link carries the token (works in any browser) and the
+# email shows the 6-digit code. MANUAL ONLY. From a terminal: gh workflow run auth-email-templates.yml --ref <branch> -f confirm=apply
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "apply" to write the templates to the live project.'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  templates:
+    name: Push auth email templates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - run: '[ "${{ inputs.confirm }}" = "apply" ] || { echo "::error::Type apply to confirm."; exit 1; }'
+      - uses: actions/checkout@v5
+      - name: Push, then read back what the project now holds
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          api="https://api.supabase.com/v1/projects/$REF/config/auth"
+          body=$(jq -n \
+            --rawfile ml supabase/templates/magic-link.html \
+            --rawfile cf supabase/templates/confirmation.html \
+            --rawfile rc supabase/templates/recovery.html \
+            '{mailer_subjects_magic_link:"Your SocialUs sign-in", mailer_templates_magic_link_content:$ml,
+              mailer_subjects_confirmation:"Welcome to SocialUs", mailer_templates_confirmation_content:$cf,
+              mailer_subjects_recovery:"Choose a new SocialUs password", mailer_templates_recovery_content:$rc}')
+          code=$(curl -s -o /tmp/patch.json -w '%{http_code}' -X PATCH "$api" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" -d "$body")
+          echo "PATCH $code"
+          [ "$code" = 200 ] || { jq -r '.message // .' /tmp/patch.json | head -3; exit 1; }
+          curl -s "$api" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" > /tmp/now.json
+          for k in magic_link confirmation recovery; do
+            jq -e --arg k "mailer_templates_${k}_content" '.[$k] | contains("token_hash") and contains("{{ .Token }}")' /tmp/now.json >/dev/null \
+              && echo "$k: token_hash link and code live" || { echo "::error::$k did not take"; exit 1; }
+          done
