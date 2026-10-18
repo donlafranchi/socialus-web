@@ -20,7 +20,7 @@ import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
 import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditCards } from '@/components/group/edit/EditCards'
-import { resolvePageWhere } from '@/lib/groups/page-where'
+import { fixedPlacement, resolvePageWhere, whereNow } from '@/lib/groups/page-where'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
@@ -71,6 +71,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
     .filter((l): l is string => Boolean(l))
 
   const initialWhere = whereValueFrom(saved, shop.placements[0])
+  const placement = fixedPlacement(saved, shop.placements[0])
 
   return (
     <main className="mx-auto w-full max-w-form gutter py-6 pb-nav">
@@ -98,12 +99,12 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
           contact,
           contactOn,
           // Issue #180 — where the Page is, in the words it was saved with.
-          addressLabel: shop.placements[0]?.label || null,
+          addressLabel: whereNow(saved, shop.placements[0]),
           kind: pageKindOf(shop.kind),
           purpose: purposeOf(shop.kind, shop.purpose),
           productsOn,
           where: initialWhere,
-          savedPin: savedPinFrom(shop.placements[0]),
+          savedPin: savedPinFrom(placement),
         }}
       />
     </main>

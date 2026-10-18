@@ -1,11 +1,23 @@
 // #640 — the "AI readiness" panel: three harness numbers and the shadow days, each green, amber or red
 // (in words as well as colour), and one "ready to go live" light. Staff-only (the page is gated).
 
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest'
 import { render, screen, cleanup, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { AiReadiness } from './AiReadiness'
 import { readiness } from '@/lib/moderation/readiness'
+
+const { query, requirePagePermission, rpc } = vi.hoisted(() => ({ query: vi.fn(), requirePagePermission: vi.fn(), rpc: vi.fn() }))
+vi.mock('@/actions/_lib/db', () => ({ getPool: () => ({ query }) }))
+vi.mock('@/lib/staff/page-guard', () => ({ requirePagePermission }))
+vi.mock('@/lib/supabase-server', () => ({ createClient: async () => ({ rpc }) }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
+vi.mock('@/lib/admin/reports-queue', () => ({
+  fetchReviewQueue: vi.fn(async () => []),
+  fetchWeekSummary: vi.fn(async () => ({ answers: 0, coolDowns: 0 })),
+  fetchAiMode: vi.fn(async () => 'shadow'),
+}))
 
 afterEach(cleanup)
 const NOW = new Date('2026-10-12T12:00:00Z')
@@ -56,5 +68,83 @@ describe('AiReadiness', () => {
   it('says it is for the flip Don does himself, and that the software does not stop it yet', () => {
     render(<AiReadiness readiness={readiness({ run: RUN, shadowDays: 14, now: NOW })} />)
     expect(screen.getByTestId('ai-readiness')).toHaveTextContent(/nothing stops the switch yet/i)
+  })
+})
+
+// The beta half of criterion 11 (11a, the PM's call C on #640): the staff-only "AI readiness" panel on
+// /admin/reports and the same light on the ops page (/admin/metrics), read end to end from the recorded
+// harness run and report_ai_agreement through the real data layer, with only the database faked.
+// [guards F100.11 partial: the production half (11b), software that refuses the live flip, is filed separately]
+describe('F100.11a — the AI readiness panel and the light', () => {
+  const runRow = (over: Record<string, unknown> = {}) => ({ run_at: new Date('2026-10-10T12:00:00Z'), cases: 60, recall: '0.97', sev1_cases: 5, sev1_recall: '1', false_alarm_rate: '0.04', ...over })
+  const db = (run: Record<string, unknown> | null, days: number | null) =>
+    query.mockImplementation(async (sql: string) => (/moderation_eval_runs/i.test(sql) ? { rows: run ? [run] : [] } : /report_ai_agreement/i.test(sql) ? { rows: [{ days }] } : { rows: [] }))
+  const reportsPage = async () => renderToStaticMarkup(await (await import('./page')).default())
+  const metricsPage = async () => renderToStaticMarkup(await (await import('../metrics/page')).default())
+  const panel = (html: string) => {
+    document.body.innerHTML = html
+    return screen.getByTestId('ai-readiness')
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(NOW)
+    query.mockReset()
+    requirePagePermission.mockReset().mockResolvedValue('staff-1')
+    rpc.mockReset().mockResolvedValue({ data: [], error: null })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    document.body.innerHTML = ''
+  })
+
+  it('is staff-only: without the permission both pages 404 and nothing is read', async () => {
+    requirePagePermission.mockRejectedValue(new Error('NEXT_NOT_FOUND'))
+    await expect(reportsPage()).rejects.toThrow('NEXT_NOT_FOUND')
+    await expect(metricsPage()).rejects.toThrow('NEXT_NOT_FOUND')
+    expect(requirePagePermission).toHaveBeenCalledWith('reports.review')
+    expect(requirePagePermission).toHaveBeenCalledWith('metrics.view')
+    expect(query).not.toHaveBeenCalled()
+  })
+
+  it('shows recall, severity-1 recall and false alarms, each with its target, colour word and last run date, the shadow days of 14, and one light', async () => {
+    db(runRow({ recall: '0.92', false_alarm_rate: '0.4' }), 9)
+    const p = within(panel(await reportsPage()))
+    const row = (id: string) => p.getByTestId(`ai-readiness-${id}`)
+    expect(row('recall')).toHaveTextContent('92% · target 95% or more · run Oct 10')
+    expect(within(row('recall')).getByText('Close')).toBeInTheDocument()
+    expect(row('sev1')).toHaveTextContent('100% · target 100% · run Oct 10')
+    expect(within(row('sev1')).getByText('Met')).toBeInTheDocument()
+    expect(row('false-alarms')).toHaveTextContent('40% · target under 10% · run Oct 10')
+    expect(within(row('false-alarms')).getByText('Not met')).toBeInTheDocument()
+    expect(row('shadow')).toHaveTextContent('9 of 14 days')
+    expect(within(row('shadow')).getByText('Close')).toBeInTheDocument()
+    expect(p.getByTestId('ai-readiness-overall')).toHaveTextContent('Not ready to go live yet')
+    const shadowSql = (query.mock.calls as unknown as [string][]).map(([s]) => s).find((s) => !/moderation_eval_runs/i.test(s))!
+    expect(shadowSql).toMatch(/from public\.report_ai_agreement/i)
+  })
+
+  it('the light turns on only when every number is met and there are 14 shadow days, on both pages', async () => {
+    db(runRow(), 15)
+    expect(within(panel(await reportsPage())).getByTestId('ai-readiness-overall')).toHaveTextContent('Ready to go live')
+    document.body.innerHTML = await metricsPage()
+    expect(screen.getByTestId('ai-readiness-light')).toHaveTextContent('AI readiness: Ready to go live')
+    expect(within(screen.getByTestId('ai-readiness-light')).getByRole('link')).toHaveAttribute('href', '/admin/reports')
+
+    db(runRow(), 13)
+    expect(within(panel(await reportsPage())).getByTestId('ai-readiness-overall')).toHaveTextContent('Not ready to go live yet')
+    document.body.innerHTML = await metricsPage()
+    expect(screen.getByTestId('ai-readiness-light')).toHaveTextContent('AI readiness: Not ready to go live yet')
+  })
+
+  it('with no recorded run and no shadow days, every number is red and says so', async () => {
+    db(null, null)
+    const p = within(panel(await reportsPage()))
+    for (const id of ['recall', 'sev1', 'false-alarms']) {
+      expect(p.getByTestId(`ai-readiness-${id}`)).toHaveTextContent('No run yet')
+      expect(within(p.getByTestId(`ai-readiness-${id}`)).getByText('Not met')).toBeInTheDocument()
+    }
+    expect(p.getByTestId('ai-readiness-shadow')).toHaveTextContent('0 of 14 days')
+    expect(p.getByTestId('ai-readiness-overall')).toHaveTextContent('Not ready to go live yet')
   })
 })
