@@ -1,0 +1,46 @@
+{
+ "at": "2026-10-18T16:37:07.628Z",
+ "state": "quiet",
+ "kinds": [
+  {
+   "kind": "follow_posts",
+   "state": "quiet",
+   "why": null,
+   "optInRate": 0,
+   "openRate": null,
+   "weeks": [
+    {
+     "week": "2026-10-12",
+     "kind": "follow_posts",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "opted_in_members": 0,
+     "members": 13
+    }
+   ]
+  },
+  {
+   "kind": "weekend",
+   "state": "quiet",
+   "why": null,
+   "optInRate": 0,
+   "openRate": null,
+   "weeks": [
+    {
+     "week": "2026-10-12",
+     "kind": "weekend",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "opted_in_members": 0,
+     "members": 13
+    }
+   ]
+  }
+ ]
+}
