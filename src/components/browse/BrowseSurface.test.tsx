@@ -476,7 +476,7 @@ describe('#916 — search asks the server', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'flowers' } })
     expect(browseFeedAction).not.toHaveBeenCalled()
-    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(null, null, null, 'flowers'))
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(null, null, null, 'flowers', null))
     expect(await screen.findByText('Zinnia Flower Farm')).toBeInTheDocument()
     expect(browseFeedAction).toHaveBeenCalledTimes(1)
   })
