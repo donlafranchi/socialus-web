@@ -1,5 +1,5 @@
 // #303 — L21 You (Don, 2026-10-01): private, for managing your own things —
-// the Pages you manage, the Pages you follow, your name and metro. Nobody else
+// the Pages you manage, the Pages you follow, your name and area. Nobody else
 // can reach it; there is no public member profile (/m/[handle] is retired).
 // T4 Manage list page: one 720 column of sections, rows with their action on
 // the right; settings as read-only rows until there's a screen to change them.
@@ -14,12 +14,11 @@ import { AuthCard } from '@/components/shell/AuthCard'
 import { Button } from '@/components/ui/Button'
 import { YouNotices, type Notice } from '@/components/member/YouNotices'
 import { answerNoticeAction } from '@/app/_actions/report-actions'
-import { DefaultMetro } from '@/components/member/DefaultMetro'
 import { ANSWER_WINDOW_MS } from '@/lib/reports/answer-window'
 import { ZipChange } from '@/components/member/ZipChange'
 import { changeZipAction } from '@/app/_actions/zip-actions'
-import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
-import { saveDefaultMetroAction } from '@/app/explore/actions'
+import { SearchSharingSwitch } from '@/components/member/SearchSharingSwitch'
+import { setSearchSharingAction } from '@/app/_actions/search-demand-actions'
 import { NOTIFY_COPY } from '@/lib/notify/push/copy'
 
 export const dynamic = 'force-dynamic'
@@ -43,16 +42,14 @@ export default async function YouPage() {
     )
   }
 
-  const [{ data: me }, metros, { data: notices }] = await Promise.all([
-    supabase.from('members').select('display_name, default_metro_id, home_metro_id, zip, home_market_key').eq('id', user.id).maybeSingle(),
-    listFeedMetros(supabase).catch(() => []),
+  const [{ data: me }, { data: notices }] = await Promise.all([
+    supabase.from('members').select('display_name, zip, home_market_key, search_sharing').eq('id', user.id).maybeSingle(),
     supabase.from('member_notices').select('id, message, created_at, kind, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
   ])
-  const row = me as { display_name: string | null; default_metro_id: string | null; home_metro_id: string | null; zip: string | null; home_market_key: string | null } | null
+  const row = me as { display_name: string | null; zip: string | null; home_market_key: string | null; search_sharing?: boolean | null } | null
   // #568: the area the zip decided, in plain words; the home town stays in the database.
   const area = row?.home_market_key ? ((await supabase.rpc('market_name', { p_key: row.home_market_key })).data as string | null) : null
   const name = row?.display_name ?? null
-  const openMetros = splitByOpen(metros).open
 
   return (
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="you-page">
@@ -82,17 +79,14 @@ export default async function YouPage() {
       <Section title="Settings" testId="settings-panel">
         <ul className="divide-y divide-[var(--color-border)] rounded-lg border border-[var(--color-border)]">
           <Row label="Name" value={name ?? 'Not set'} testId="settings-name" />
-          <Row label="Metro" testId="settings-metro">
-            <DefaultMetro
-              metros={openMetros}
-              currentId={row?.default_metro_id ?? row?.home_metro_id ?? null}
-              onSave={saveDefaultMetroAction}
-            />
-          </Row>
           <Row label="Zip" testId="settings-zip">
             <ZipChange zip={row?.zip ?? null} area={area} change={changeZipAction} />
           </Row>
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
+          {/* #909 — F113 option C: on by default, easy to turn off. */}
+          <Row label="Searches" testId="settings-searches">
+            <SearchSharingSwitch on={row?.search_sharing !== false} change={setSearchSharingAction} />
+          </Row>
           <Row
             label={NOTIFY_COPY.rowLabel}
             value={NOTIFY_COPY.rowValue}

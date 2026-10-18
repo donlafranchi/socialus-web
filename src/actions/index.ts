@@ -19,11 +19,13 @@ import {
   memberUnfollow,
   memberSavedSearchRemove,
   memberSavedSearchRestore,
+  memberSearchSharingSet,
   memberNotificationsSet,
   memberPushSubscribe,
   memberPushUnsubscribe,
   memberNotificationsOpened,
 } from './member'
+import { searchDemandLog } from './search'
 import {
   groupCreate,
   groupUpdateDraft,
@@ -89,6 +91,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // T109 — F042 management-page write paths (venue unfollow/restore + group leave/join)
   'member.saved_search.remove': memberSavedSearchRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.saved_search.restore': memberSavedSearchRestore as unknown as NamedActionHandler<unknown, unknown>,
+  // #909 — search demand: the switch on You, and a settled Explore search counted with no member id.
+  'member.search_sharing.set': memberSearchSharingSet as unknown as NamedActionHandler<unknown, unknown>,
+  'search.demand_log': searchDemandLog as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
   // F067 — following a Page. Privacy decides follow vs join.
@@ -155,11 +160,13 @@ export {
   memberSavedSearchCreate,
   memberSavedSearchRemove,
   memberSavedSearchRestore,
+  memberSearchSharingSet,
   memberNotificationsSet,
   memberPushSubscribe,
   memberPushUnsubscribe,
   memberNotificationsOpened,
 } from './member'
+export { searchDemandLog } from './search'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
 export { groupArchive, groupDelete, groupDiscardDraft, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'

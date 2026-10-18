@@ -1,6 +1,6 @@
-# Unclaimed Pages added
+# Unclaimed Pages: who to look for each day
 
-**As of 2026-10-16** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-18** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -201,3 +201,48 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | Sacramento Valley Museum | Historical society | Williams | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
 | 2026-10-16 | Fairfield-Suisun City Visual Arts Association | Art association (nonprofit) | Fairfield | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
 | 2026-10-16 | Wine Tree Farm | Farm stay & agritourism | Amador City | Farmers markets, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Friends of the Folsom Library | Friends of the library | Folsom | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site |
+| 2026-10-18 | Friends of the Davis Public Library | Friends of the library | Davis | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site |
+| 2026-10-18 | Western Yolo Grange #423 | Grange (community hall) | Guinda | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site |
+| 2026-10-18 | Placer SPCA | Animal rescue | Roseville | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site |
+| 2026-10-18 | Sacramento Independent Animal Rescuers | Animal rescue | Lincoln | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site; town from PO box |
+| 2026-10-18 | Friends of the Amador County Library | Friends of the library | Jackson | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site |
+| 2026-10-18 | Amador Senior Center | Senior center (nonprofit) | Jackson | Volunteering, Neighborhood life | Neighbourhood life; interests estimated, loader not run; lead: own site |
+| 2026-10-18 | Newcastle Mandarin Ranch | Farm | Newcastle | Farmers markets, Sustainability | Neighbourhood life (farms); holiday (mandarins, opens Nov); lead: own site |
+| 2026-10-18 | Struble Ranch | Farm | Loomis | Farmers markets, Sustainability | Neighbourhood life (farms); holiday (mandarins, gift boxes); lead: own site |
+| 2026-10-18 | Thomas Ranch Mandarins | Farm | Auburn | Farmers markets, Sustainability | Neighbourhood life (farms); holiday (mandarins, jams); lead: own site |
+| 2026-10-17 | Séka Hills | Farm | Brooks | Farmers markets, Sustainability | Native creators and producers; Native-owned (Yocha Dehe Wintun Nation, stated on own site); lead: own site |
+| 2026-10-17 | Dazzler Farms | Farm stay & agritourism | Woodland | Farmers markets, Neighborhood life | Native creators and producers (farms); holiday (pumpkins, Christmas trees); lead: own site |
+| 2026-10-17 | Capay Hills Orchard | Farm | Esparto | Farmers markets, Sustainability | Native creators and producers (farms); holiday (almond gifts); lead: own site |
+| 2026-10-17 | Pure Honey & Henry's Bullfrog Bees | Farm | Winters | Farmers markets, Sustainability | Native creators and producers (farms); holiday (honey gifts); lead: own site |
+| 2026-10-18 | Knight Foundry | Historical society | Sutter Creek | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Sutter Creek Community Benefit Foundation | Historical society | Sutter Creek | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Vino Tahoe | Food & drink | Sutter Creek | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-18 | Jeremy Wine Co. | Food & drink | Lockeford | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-18 | Volcano Theatre Company | Art association (nonprofit) | Volcano | Arts & culture, Neighborhood life | unreached towns batch; holiday (Christmas comedy Nov 6 to Dec 13); lead: own site |
+| 2026-10-18 | Craft Guild of Nevada County | Art association (nonprofit) | Grass Valley | Arts & culture, Neighborhood life | unreached towns batch; holiday (Winterfaire Oct 24-25); lead: own site |
+| 2026-10-18 | Horton Iris Garden | Farm stay & agritourism | Loomis | Farmers markets, Neighborhood life | unreached towns batch; holiday (pumpkin patch); lead: own site |
+| 2026-10-18 | Foothill Roots Farm | Farm | Meadow Vista | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Serendipity Ranch | Farm | Lincoln | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Granny May's Strawberry Farm | Farm | Granite Bay | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Grow Organic (Peaceful Valley Farm & Garden Supply) | Nursery (natives and seeds) | Grass Valley | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Sacramento Valley Conservancy Native Plant Nursery | Nursery (nonprofit) | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Mother Natives | Nursery (nonprofit) | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Sacramento Valley CNPS Nursery & Gardens | Native plant society (nonprofit) | Rancho Cordova | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | find out farms | Nursery (natives and seeds) | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Miridae Mobile Nursery | Nursery (natives and seeds) | Rancho Cordova | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Sacramento Public Library Seed Library | Garden seed library | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Talini's Nursery & Garden Center | Nursery and plant shop | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | The Plant Foundry Nursery & Store | Nursery and plant shop | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Sperbeck's Nursery & Landscape Center | Nursery and plant shop | Yuba City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | The Secret Garden | Nursery and plant shop | Elk Grove | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Hedgerow Farms | Seed seller | Winters | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Redwood Barn Nursery | Nursery and plant shop | Davis | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Benicia Community Seed Library | Garden seed library | Benicia | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | El Rancho Nursery & Landscape | Nursery and plant shop | Vacaville | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | CNPS El Dorado Chapter | Native plant society (nonprofit) | Placerville | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Double Dogwood Native Nursery | Nursery (natives and seeds) | Nevada City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Fair Oaks Blvd Nursery | Nursery and plant shop | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Bear Yuba Land Trust | Land trust (nonprofit) | Nevada City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Villager Nursery | Nursery (natives and seeds) | Truckee | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Redbud Nursery | Nursery and plant shop | Newcastle | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |

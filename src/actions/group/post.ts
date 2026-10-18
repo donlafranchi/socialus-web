@@ -58,6 +58,11 @@ const note = (v: string | null | undefined) => (v == null || v.trim() === '' ? n
  *  enforces the same, so an edit that clears the start cannot strand an end. */
 const endsAt = z.string().datetime({ offset: true }).nullable().optional()
 
+/** #314 — an undated post shows for 14 days; the owner can pick another day. Only on an undated post (the column's check). */
+const showUntil = z.string().datetime({ offset: true }).nullable().optional()
+const SHOW_UNTIL_DATED = 'A post with a date shows until it ends.'
+const SHOW_UNTIL_PAST = 'Pick a day that hasn’t passed.'
+
 const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) =>
   !v.endsAt || (!!v.startsAt && new Date(v.endsAt) > new Date(v.startsAt))
 const END_MESSAGE = 'An end time needs a start time before it.'
@@ -108,6 +113,7 @@ export const groupPostCreateInput = z
     body,
     startsAt,
     endsAt,
+    showUntil,
     locationId,
     howToFind,
     tags,
@@ -123,6 +129,7 @@ export const groupPostEditInput = z.object({
   body,
   startsAt,
   endsAt,
+  showUntil,
   locationId,
   howToFind,
   tags,
@@ -152,13 +159,19 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
+type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
   ): Promise<{ rows: T[]; rowCount: number }>
+}
+
+function checkShowUntil(input: { startsAt?: string | null; showUntil?: string | null }, now: Date) {
+  if (!input.showUntil) return
+  if (input.startsAt) throw new ValidationError(SHOW_UNTIL_DATED)
+  if (new Date(input.showUntil) <= now) throw new ValidationError(SHOW_UNTIL_PAST)
 }
 
 function requireMember(ctx: ActionContext, verb: string): string {
@@ -203,6 +216,7 @@ export const groupPostCreate = defineHandler(
     if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_create')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
+    checkShowUntil(input, ctx.now())
 
     // F074.1: the series repeats at its first post's time of day, and that post stands on one of the
     // chosen weekdays, in the metro's zone and inside the start and end dates — so the creator never
@@ -237,8 +251,8 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12)
          returning id, created_at`,
         [
           input.groupId,
@@ -258,6 +272,7 @@ export const groupPostCreate = defineHandler(
           note(input.howToFind),
           input.photoUrl ?? null,
           seriesId,
+          input.showUntil ?? null,
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -284,6 +299,7 @@ export const groupPostEdit = defineHandler(
     if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_edit')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
+    checkShowUntil(input, ctx.now())
 
     return withTransaction(async (client) => {
       const found = await client.query<{
@@ -318,6 +334,8 @@ export const groupPostEdit = defineHandler(
       // input — the same rule group.update follows. A field left out is left
       // alone; an explicit null clears it.
       const sets: string[] = ['body = $2', 'updated_at = $3']
+      // #314 — a dated post shows until it ends, so a start clears any show-until date.
+      if (input.startsAt) sets.push('show_until = null')
       const params: unknown[] = [input.postId, input.body, ctx.now()]
       const patch: { clause: PostSetClause; value: unknown }[] = []
       if (input.startsAt !== undefined) {
@@ -325,6 +343,9 @@ export const groupPostEdit = defineHandler(
       }
       if (input.endsAt !== undefined) {
         patch.push({ clause: 'ends_at = $', value: input.endsAt })
+      }
+      if (input.showUntil !== undefined) {
+        patch.push({ clause: 'show_until = $', value: input.showUntil })
       }
       if (input.locationId !== undefined) {
         patch.push({ clause: 'location_id = $', value: input.locationId })

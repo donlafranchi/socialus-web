@@ -12,7 +12,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 |---|---|---|
 | **Dates** (Don, 2026-10-16): each Page's 3 samples fall on one weekday in weeks 1, 2 and 3 from now; every weekday has Pages, more on Fri–Sun; the kinds and hours vary, and a deal runs 2–3 days. Every Monday they roll forward. | `cap-1` timely announcements, `cap-5` current without following many | `sampleSchedule` (`src/lib/unclaimed/samples.ts`) and its tests; `unclaimed-roll.yml` rolls finished samples on and re-dates any off the pattern |
 | **Interests:** every Page and its samples carry 1–2 of the 12 interest tags, from what the Page is. | `cap-3` the member's own signals, `cap-4` member control | `interestsFor` (`src/lib/unclaimed/plan.ts`); the loader adds missing tags on every run, so older Pages are backfilled |
-| **Coverage:** each day's batch spans at least 5 towns and at least 4 interest tags; `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
+| **Coverage:** each batch of 8 or more Pages spans at least 5 towns and at least 4 interest tags (a smaller batch loads what qualifies); `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any such `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
 
 Not a rule yet: posting a business's real dated events from its own site instead of samples (a4). That is Don's call.
 
@@ -21,7 +21,7 @@ Not a rule yet: posting a business's real dated events from its own site instead
 1. **Take today's theme** from the rotation below (by weekday, Pacific time).
 2. **Add 10 Pages:** 3–4 farms, ranches or animal farms, the rest from the day's theme. Use 4 farms only when the theme can't fill 7.
 3. **Read `ADDED.md` first.** Skip any name or site already there. Don't add a kind of organization that is in the last 7 days, unless it's in today's theme. Skip a town that already has 3 or more Pages in the last 7 days.
-4. **Spread the area and the interests:** at least 5 different towns and at least 4 interest tags (Coverage, above), at most 2 Pages in the city of Sacramento, and over a week cover every direction (see Area).
+4. **Spread the area and the interests** (batches of 8 or more): at least 5 different towns and at least 4 interest tags (Coverage, above), at most 2 Pages in the city of Sacramento, and over a week cover every direction (see Area).
 5. **Coffee shops and roasters: at most 1 a week**, Mondays only, and none if `ADDED.md` has one in the last 7 days.
 6. **Own site only** (#353): never Yelp, Google or another directory. A non-business with only a Facebook page is fine if that page is its own. **Etsy, Instagram and other marketplaces are for finding makers only** (Don, 2026-10-16): look a maker up there, then build the Page from the maker's own website, or skip them if they have none. Never copy text, photos or listings from the marketplace, and don't scrape it (look-ups by hand only). Credit and photos come from the maker's own site as usual. Note the lead source in `ADDED.md` (`lead: Etsy`).
 7. **Social links, TikTok and Instagram first** (Don, 2026-10-16), then Facebook and the rest: take them from links on the business's own site, or from a search when the profile is clearly the same business. Put them in the row's `social` field; the loader also reads them off the site, and backfills older Pages that lack TikTok or Instagram. Link only: never copy their posts or photos into SocialUs. Owners use these to tell their own story.
@@ -46,6 +46,8 @@ Not a rule yet: posting a business's real dated events from its own site instead
 - **Describe them in their own words**, from their own site.
 
 **Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within their weekly dates (see Dates).
+
+**Native plants and pollinators, recurring** (Don, 2026-10-18): native plant nurseries, seed sellers and seed libraries, vegetable and herb starts, garden centres, community seed swaps, CNPS and Master Gardener plant sales, arboretum nursery sales. It joins any day's theme; fall is the season (natives that need winter cold are sown now). **Native milkweed first** (narrowleaf *Asclepias fascicularis*, showy *A. speciosa*), as seed or plugs; confirm it from the seller's own site, and say what the site says. **Never promote tropical milkweed** (*A. curassavica*): it harms monarchs in California. A seller that carries it can still load, but no sample post features it. Use a category that doesn't say "garden" or "native plant" (those get the volunteer-style samples): `Nursery (natives and seeds)`, `Seed seller`. Sellers get the Farm pictures and the Farm sample voice, which never names a plant.
 
 **Farms every day (3–4):** farms, orchards, ranches, animal farms, farm stands, u-pick, flower farms, agritourism.
 

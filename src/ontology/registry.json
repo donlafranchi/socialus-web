@@ -347,6 +347,7 @@
     "member.push.unsubscribe",
     "member.saved_search.remove",
     "member.saved_search.restore",
+    "member.search_sharing.set",
     "member.signup_profile.set",
     "member.unfollow",
     "member.zip.set",
@@ -361,6 +362,7 @@
     "report.purge",
     "report.purge_target",
     "report.reverse",
+    "search.demand_log",
     "tag.review"
   ]
 }

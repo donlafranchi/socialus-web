@@ -14,6 +14,7 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(title, {
       body: data.body || '',
       tag: data.tag || data.kind || 'socialus',
+      icon: '/icons/192',
       data: { url: data.url || '/' },
     }),
   )

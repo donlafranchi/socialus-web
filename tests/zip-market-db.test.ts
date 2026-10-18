@@ -29,7 +29,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (!RUNNABLE) return
-  await client.query(`delete from public.metro_polygons where code_kind = 'market' and slug like 'county-%'`)
+  await client.query(`delete from public.metro_polygons where code_kind = 'market' and slug = 'county-06115'`)
   client.release()
   await pool.end()
 })

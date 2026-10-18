@@ -149,7 +149,12 @@ describe('a3 — batch coverage', () => {
     expect(c.towns).toBe(5)
     expect(c.interests).toBeGreaterThanOrEqual(4)
     expect(c.ok).toBe(true)
-    expect(batchCoverage(rows.slice(0, 2)).ok).toBe(false)
+    expect(batchCoverage(rows.slice(0, 2)).ok).toBe(true) // a small batch loads what qualifies (Don)
+  })
+  it('asks for the spread only of a batch of 8 or more Pages', () => {
+    const same = (n: number) => Array.from({ length: n }, (_, i) => r({ name: `P${i}`, site: `https://p${i}.example/`, area: 'Davis (Yolo)', category: 'Farm' }))
+    expect(batchCoverage(same(7)).ok).toBe(true)
+    expect(batchCoverage(same(8)).ok).toBe(false)
   })
   it('every daily batch from 2026-10-17 on meets it', () => {
     const dir = join(__dirname, '../../../scripts/unclaimed')

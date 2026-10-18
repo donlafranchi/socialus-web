@@ -43,9 +43,12 @@ import {
   parseBrowseFilters,
   searchBrowseResults,
   CATEGORY_TAGS,
+  isPlainPostsView,
 } from '@/lib/browse/filters'
 import { leadKey } from '@/lib/browse/lead'
 import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
+import { logSearchAction } from '@/app/_actions/search-demand-actions'
+import { useSearchDemand } from './useSearchDemand'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
@@ -213,8 +216,10 @@ export function BrowseSurface({
     [filtered, mix, targeted, filterKey, filters, now],
   )
   const visible = useMemo(() => searchBrowseResults(corpus, rest), [corpus, rest])
+  // #909 — a settled search is counted, with no member id, so locals' searches can help local businesses.
+  useSearchDemand({ query: rest, resultCount: visible.length, metroSlug: snapshot.metro?.slug ?? null, areaId: snapshot.area?.id ?? null, failed: snapshot.failed, log: logSearchAction })
   // The old Updates view's top, kept for plain posts-only: what is on today, this week and this weekend.
-  const postsOnlyView = filters.type === 'posts' && filters.postKinds.length === 0 && !filters.following && filters.tags.length === 0 && filters.date === 'any'
+  const postsOnlyView = isPlainPostsView(filters)
 
   // What the first look showed counts as seen from the next visit on. Sent once, after paint.
   const leadSent = useRef(false)

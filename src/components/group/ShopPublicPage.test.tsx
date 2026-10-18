@@ -137,6 +137,21 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
     expect(screen.getByTestId('shop-placement')).toHaveTextContent('Midtown')
   })
 
+  // #894 — "It moves" and "I go to them" anchor to the metro, whose centre falls in East Sacramento: no fixed neighbourhood, no map.
+  it.each([
+    ['roaming', 'Around the Sacramento area, usually Midtown markets'],
+    ['travel', 'Comes to you anywhere in the Sacramento area'],
+  ] as const)('a Page that is %s shows only its own line, never the anchor\'s neighbourhood', (mode, line) => {
+    renderShop({
+      shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'area', label: 'East Sacramento', lng: -121.46, lat: 38.56 }] },
+      where: { mode, howToFind: null, usuallyAround: mode === 'roaming' ? 'Midtown markets' : null, towns: [] },
+      loggedIn: true,
+    })
+    expect(screen.queryByTestId('shop-placement')).toBeNull()
+    expect(screen.queryByText('East Sacramento')).toBeNull()
+    expect(screen.getByTestId('shop-where')).toHaveTextContent(line)
+  })
+
   it('renders nothing when there is no placement — no empty heading, no placeholder', () => {
     renderShop({ shop: { ...SHOP, placements: [] } })
     expect(screen.queryByTestId('shop-placement')).not.toBeInTheDocument()
@@ -746,5 +761,22 @@ describe('ShopPublicPage — #625 a Page\'s own words, hidden', () => {
     renderShop({ shop: { ...SHOP, wordsHidden: true, displayName: 'Hidden while we look' }, loggedIn: true, viewerOwnsPage: false })
     expect(screen.queryByTestId('page-words-hidden-note')).toBeNull()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hidden while we look')
+  })
+})
+
+// #909 — the owner's search-demand card: theirs only, and only on a live Page.
+describe('ShopPublicPage — what locals searched (#909)', () => {
+  const demand = { fit: [{ query: 'sourdough', searches: 4 }], zero: [] }
+  it('the owner sees it', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand })
+    expect(screen.getByTestId('search-demand-card')).toBeInTheDocument()
+  })
+  it('a visitor never does, even if a value slipped through', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false, pagePath: '/g/7k3x8m', searchDemand: demand })
+    expect(screen.queryByTestId('search-demand-card')).toBeNull()
+  })
+  it('not on a draft', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand, shop: { ...SHOP, lifecycleState: 'draft' } })
+    expect(screen.queryByTestId('search-demand-card')).toBeNull()
   })
 })

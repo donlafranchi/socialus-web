@@ -16,7 +16,7 @@ import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
-import { whereLine, type PageWhere } from '@/lib/groups/page-where'
+import { fixedPlacement, whereLine, whereNow, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -47,6 +47,8 @@ import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
 import { AboutText } from './AboutText'
 import { PageMap } from './PageMap'
+import { SearchDemandCard } from './SearchDemandCard'
+import type { PageSearchDemand } from '@/lib/search/page-demand'
 
 
 const NO_CLAIM = { zip: null, isProximal: false }
@@ -94,6 +96,8 @@ interface Props {
   contact?: PageContact | null
   /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
   where?: PageWhere | null
+  /** #909 — what locals near the Page searched this month (3+ searches). Owner-only. */
+  searchDemand?: PageSearchDemand | null
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
@@ -120,6 +124,7 @@ export function ShopPublicPage({
   viewerMemberId = null,
   contactOn = false,
   productsOn = componentOn(shop.kind, null, 'products'),
+  searchDemand = null,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
@@ -143,7 +148,7 @@ export function ShopPublicPage({
   // the withheld card and Sign up to follow. Listings and links out wait.
   const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
-  const placement = shop.placements[0]
+  const placement = fixedPlacement(where, shop.placements[0])
   const placeLabel = placement?.label.trim() || null
   const how = loggedIn && where ? whereLine(where) : null
   const hasContact = loggedIn && contact && (contact.phone || (SHOW_OPENING_HOURS && contact.hours))
@@ -417,6 +422,9 @@ export function ShopPublicPage({
         <LocallyOwnedClaim groupId={shop.groupId} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
       )}
 
+      {/* #909 — owner-only: what locals near the Page searched this month. */}
+      {viewerOwnsPage && !isDraftPreview && <SearchDemandCard demand={searchDemand} />}
+
       {shop.unclaimed && (
         <UnclaimedBox
           groupId={shop.groupId}
@@ -454,12 +462,12 @@ export function ShopPublicPage({
         tags,
         contact: contact ?? { phone: null, hours: null },
         contactOn,
-        addressLabel: shop.placements[0]?.label || null,
+        addressLabel: whereNow(where, shop.placements[0]),
         kind: pageKindOf(shop.kind),
         purpose: purposeOf(shop.kind, shop.purpose),
         productsOn,
-        where: whereValueFrom(where ?? null, shop.placements[0]),
-        savedPin: savedPinFrom(shop.placements[0]),
+        where: whereValueFrom(where ?? null, placement),
+        savedPin: savedPinFrom(placement),
       }}
     >
       {page}
