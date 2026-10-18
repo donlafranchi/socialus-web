@@ -1,0 +1,95 @@
+[
+ {
+  "name": "Friends of the Folsom Library",
+  "category": "Friends of the library",
+  "makes": "Volunteer group that runs the Folsom library bookstore and semi-annual book sales to fund library programs; join as a member or volunteer",
+  "area": "Folsom (Sacramento)",
+  "site": "https://foflib.org/",
+  "social": {
+   "facebook": "https://www.facebook.com/profile.php?id=61575308350250"
+  },
+  "confidence": "High; own site checked 2026-10-18 (ok): fall book sale moved to the first weekend of December; join page and volunteer email listed (no footer year)."
+ },
+ {
+  "name": "Friends of the Davis Public Library",
+  "category": "Friends of the library",
+  "makes": "Volunteer nonprofit that funds Davis library programs through monthly book sales, the Logos Book Store and a book-mending group; join or volunteer",
+  "area": "Davis (Yolo)",
+  "site": "https://davislibraryfriends.org/",
+  "confidence": "High; own site checked 2026-10-18 (ok): book sales Nov 6-8 and Dec 4-6, 2026, art sale Oct 24, Book Menders first Tuesday of each month; news dated Oct 12, 2026."
+ },
+ {
+  "name": "Western Yolo Grange #423",
+  "category": "Grange (community hall)",
+  "makes": "Capay Valley grange that hosts the Almond Festival, a farm and garden tour and monthly bottle-and-can drives for scholarships; the hall is the local emergency shelter; join or rent the hall",
+  "area": "Guinda (Yolo)",
+  "site": "https://westernyologrange.org/",
+  "confidence": "Medium-high; own site checked 2026-10-18 (ok): 16787 Forrest Ave; Rustic Ramble 2026 and a Sept 26 pancake breakfast listed; bottle drive first Saturday monthly; no footer year."
+ },
+ {
+  "name": "Placer SPCA",
+  "category": "Animal rescue",
+  "makes": "Animal welfare nonprofit since 1973 with an adoption center, foster program, vet care and a thrift store; adopt, foster, volunteer or join the Wag & Walk",
+  "area": "Roseville (Placer)",
+  "site": "https://www.placerspca.org/",
+  "confidence": "High; own site checked 2026-10-18 (ok): footer 2026; Wag & Walk Oct 10, 2026; adoption events at 200 Tahoe Ave, Roseville. Own homepage shows children: stock only."
+ },
+ {
+  "name": "Sacramento Independent Animal Rescuers",
+  "category": "Animal rescue",
+  "makes": "All-foster rescue group founded in 2004 that has placed 3,000+ dogs and cats; adopt, donate supplies or give",
+  "area": "Lincoln (Placer)",
+  "site": "https://siarescuers.org/",
+  "social": {
+   "facebook": "https://www.facebook.com/SacramentoIndependentAnimalRescuers"
+  },
+  "confidence": "Medium; own site checked 2026-10-18 (ok): footer 2026; mailing address PO Box 1049, Lincoln; no volunteer page or dated events found."
+ },
+ {
+  "name": "Friends of the Amador County Library",
+  "category": "Friends of the library",
+  "makes": "All-volunteer nonprofit that funds the county library's five branches with twice-yearly book sales and the Imagination Library; join or volunteer",
+  "area": "Jackson (Amador)",
+  "site": "https://friendsoftheamadorcountylibrary.org/",
+  "confidence": "High; own site checked 2026-10-18 (ok): footer 2026; Fall 2026 book sale Oct 9-11 posted, membership and Get Involved pages live."
+ },
+ {
+  "name": "Amador Senior Center",
+  "category": "Senior center (nonprofit)",
+  "makes": "Nonprofit senior center with fitness classes, hobby groups, a lunch program, Meals on Wheels and a peer-visitor program; volunteer or donate",
+  "area": "Jackson (Amador)",
+  "site": "http://www.amadorseniorcenter.org/",
+  "confidence": "High; own site checked 2026-10-18 (ok): 229 New York Ranch Rd; footer 2026; 2026 Resource Guide uploaded July 2026."
+ },
+ {
+  "name": "Newcastle Mandarin Ranch",
+  "category": "Farm",
+  "makes": "Family ranch selling tree-ripened satsuma mandarins and mandarin products in person at the ranch; opening November 2026",
+  "area": "Newcastle (Placer)",
+  "site": "https://newcastlemandarinranch.com/",
+  "confidence": "Medium; own site checked 2026-10-18 (ok): 3219 Hector Rd; 'Opening November 2026'; holiday (mandarins for gatherings); no footer year."
+ },
+ {
+  "name": "Struble Ranch",
+  "category": "Farm",
+  "makes": "Loomis mandarin ranch selling bagged mandarins and gift boxes plus Jan's Jams; closed until the November harvest",
+  "area": "Loomis (Placer)",
+  "site": "https://www.strubleranch.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/strubleranch",
+   "facebook": "https://www.facebook.com/Struble-Ranch-436803063061493"
+  },
+  "confidence": "Medium; own site checked 2026-10-18 (ok): 4927 Hansen Rd; 'check back in November for opening date'; holiday (mandarins and gift boxes); no footer year."
+ },
+ {
+  "name": "Thomas Ranch Mandarins",
+  "category": "Farm",
+  "makes": "Auburn mandarin ranch with a ranch store, jams, fresh juice, Meyer lemons and persimmons; harvest begins in early December",
+  "area": "Auburn (Placer)",
+  "site": "https://thomasranchmandarins.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/profile.php?id=61554331733932"
+  },
+  "confidence": "High; own site checked 2026-10-18 (ok): 8265 Mount Vernon Rd; footer 2026; store hours Fri-Mon 10-5 in harvest; holiday (mandarins, jams)."
+ }
+]
