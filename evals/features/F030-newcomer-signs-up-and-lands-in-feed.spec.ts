@@ -87,6 +87,9 @@ test.describe('F030 — A newcomer signs up and lands in the feed', () => {
       // The screen shows which metro the zip decided.
       await expect(page.getByTestId('onboarding-metro')).toContainText('Sacramento')
       await page.getByTestId('onboarding-metro-continue').click()
+      // #892: one optional interests step; skipping it is valid.
+      await expect(page.getByTestId('onboarding-interests')).toBeVisible()
+      await page.getByTestId('onboarding-interests-skip').click()
 
       // Lands on / — the feed renders against the defaulted primary_home.
       await page.waitForURL((url) => url.pathname === '/')

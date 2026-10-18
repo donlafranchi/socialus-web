@@ -341,6 +341,7 @@
     "member.default_metro.set",
     "member.follow",
     "member.interests.add",
+    "member.interests.remove",
     "member.notifications.opened",
     "member.notifications.set",
     "member.place_interest.add",

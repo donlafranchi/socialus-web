@@ -20,6 +20,8 @@ import { changeZipAction } from '@/app/_actions/zip-actions'
 import { SearchSharingSwitch } from '@/components/member/SearchSharingSwitch'
 import { setSearchSharingAction } from '@/app/_actions/search-demand-actions'
 import { NOTIFY_COPY } from '@/lib/notify/push/copy'
+import { YouInterests } from '@/components/member/YouInterests'
+import { setInterestAction } from '@/app/_actions/interest-actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,9 +44,11 @@ export default async function YouPage() {
     )
   }
 
-  const [{ data: me }, { data: notices }] = await Promise.all([
+  const [{ data: me }, { data: notices }, { data: interests }] = await Promise.all([
     supabase.from('members').select('display_name, zip, home_market_key, search_sharing').eq('id', user.id).maybeSingle(),
     supabase.from('member_notices').select('id, message, created_at, kind, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
+    // #892 — owner-only RLS: only ever this member's own.
+    supabase.from('member_interests').select('tag').eq('member_id', user.id),
   ])
   const row = me as { display_name: string | null; zip: string | null; home_market_key: string | null; search_sharing?: boolean | null } | null
   // #568: the area the zip decided, in plain words; the home town stays in the database.
@@ -75,6 +79,14 @@ export default async function YouPage() {
           </Section>
         }
       />
+
+      {/* #892 — draft copy ([public-is-draft]). */}
+      <Section title="Your interests" testId="interests-section" id="interests">
+        <p className="mb-3 text-body-sm text-[var(--color-fg-muted)]">
+          Only you see these. In Explore, choose My interests under Filters to see just these.
+        </p>
+        <YouInterests chosen={((interests ?? []) as { tag: string }[]).map((r) => r.tag)} onSet={setInterestAction} />
+      </Section>
 
       <Section title="Settings" testId="settings-panel">
         <ul className="divide-y divide-[var(--color-border)] rounded-lg border border-[var(--color-border)]">
@@ -126,9 +138,9 @@ export default async function YouPage() {
 
 const LINK = 'press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-accent)]'
 
-function Section({ title, testId, action, children }: { title: string; testId: string; action?: ReactNode; children: ReactNode }) {
+function Section({ title, testId, id, action, children }: { title: string; testId: string; id?: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="mt-8" data-testid={testId}>
+    <section className="mt-8 scroll-mt-20" data-testid={testId} id={id}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-title-3 text-[var(--color-fg)]">{title}</h2>
         {action}

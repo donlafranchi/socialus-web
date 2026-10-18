@@ -15,6 +15,7 @@ import {
   memberSignupProfileSet,
   memberZipSet,
   memberInterestsAdd,
+  memberInterestsRemove,
   memberFollow,
   memberUnfollow,
   memberSavedSearchRemove,
@@ -83,6 +84,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.signup_profile.set': memberSignupProfileSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.zip.set': memberZipSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.interests.add': memberInterestsAdd as unknown as NamedActionHandler<unknown, unknown>,
+  'member.interests.remove': memberInterestsRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.follow': memberFollow as unknown as NamedActionHandler<unknown, unknown>,
   'member.unfollow': memberUnfollow as unknown as NamedActionHandler<unknown, unknown>,
   // #904 — notifications
@@ -155,6 +157,7 @@ export {
   memberSignupProfileSet,
   memberZipSet,
   memberInterestsAdd,
+  memberInterestsRemove,
   memberFollow,
   memberUnfollow,
   memberBusinessJurisdictionSet,
