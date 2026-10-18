@@ -1,6 +1,7 @@
 // #921 — a minimal service worker. It exists so the app installs and a page that cannot load shows
 // a friendly page. It stores static files only: never a page, the feed, /api/, auth or Supabase
 // responses, so nothing about a member or a feed outlives the connection.
+importScripts('/push-sw.js') // #904 — web push: show a notification, open it on tap
 const STATIC = 'socialus-static-v1'
 const OFFLINE = '/offline.html'
 

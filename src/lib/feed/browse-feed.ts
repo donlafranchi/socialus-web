@@ -46,6 +46,7 @@ import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
 import { maskEmails, maskEmailsOrNull } from '../text/contact-info'
+import { isSafeLinkUrl } from '@/lib/groups/social-links'
 
 /** What a row IS. A Page and one of its posts are different results. */
 export type BrowseResultKind = 'page' | 'post'
@@ -207,6 +208,32 @@ export interface BrowseResult {
   announcementCount: number | null
   /** F093 — every announcement id a withheld Page card answers to. */
   announcementIds: string[] | null
+  /**
+   * #922 — a Page card's quick links (signed in only, with the location): its website, Instagram and TikTok
+   * when it has them, and whether it sits at a fixed point Directions can go to.
+   */
+  quickLinks?: QuickLinks | null
+  /** #922 — the Page's own picture, for a post card's avatar. Already through visiblePhotoUrl. */
+  pageAvatarUrl?: string | null
+}
+
+export interface QuickLinks {
+  website?: string
+  instagram?: string
+  tiktok?: string
+  /** False for an area, or a Page that moves or travels: no exact point, so no Directions. */
+  fixedPoint: boolean
+}
+
+/** What a card needs from the Page beyond the feed row, read in the one lookup that finds its public id. */
+interface PageExtras {
+  publicId: string | null
+  socialLinks: Record<string, unknown> | null
+  whereMode: string | null
+  anchorKind: string | null
+  avatarUrl: string | null
+  /** False when the links were not read (signed out, or the read fell back): no quick links then. */
+  linksRead: boolean
 }
 
 type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
@@ -260,7 +287,8 @@ export function resultHref(
   return `${page}#${announcementAnchor(r.result_id)}`
 }
 
-export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseResult {
+export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?: PageExtras): BrowseResult {
+  const point = pointOf(r.location_geography)
   return {
     resultKind: r.result_kind,
     resultId: r.result_id,
@@ -282,7 +310,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     startsAt: r.starts_at ?? null,
     locationId: r.location_id,
     locationLabel: r.location_label,
-    ...pointOf(r.location_geography),
+    ...point,
     pageCreatedAt: r.page_created_at,
     updatedAt: r.updated_at,
     postedAt: r.posted_at ?? null,
@@ -292,6 +320,21 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     withheld: false,
     announcementCount: null,
     announcementIds: null,
+    // Quick links ride with the point: browse_feed withholds it from a signed-out reader (F093 criterion 8).
+    quickLinks: r.result_kind === 'page' && extras?.linksRead && point.latitude !== null ? quickLinksOf(extras) : null,
+    pageAvatarUrl: extras?.avatarUrl ?? null,
+  }
+}
+
+const safeHttps = (v: unknown): string | undefined => (typeof v === 'string' && isSafeLinkUrl(v) ? v.trim() : undefined)
+
+function quickLinksOf(e: PageExtras): QuickLinks {
+  const s = e.socialLinks ?? {}
+  return {
+    ...(safeHttps(s.website) ? { website: safeHttps(s.website) } : {}),
+    ...(safeHttps(s.instagram) ? { instagram: safeHttps(s.instagram) } : {}),
+    ...(safeHttps(s.tiktok) ? { tiktok: safeHttps(s.tiktok) } : {}),
+    fixedPoint: e.anchorKind !== 'area' && e.whereMode !== 'roaming' && e.whereMode !== 'travel',
   }
 }
 
@@ -332,8 +375,8 @@ export async function getBrowseFeed(
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]
-  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
-  return rows.map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null))
+  const pages = await fetchPageExtras(supabase, rows)
+  return rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
 }
 
 /**
@@ -359,8 +402,9 @@ export async function getHappening(
   })
   if (error) throw error
   const rows = ((data ?? []) as (BrowseFeedRow & { bucket: 'week' | 'weekend' })[]).slice().sort(soonestFirst)
-  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
-  const map = (b: 'week' | 'weekend') => rows.filter((r) => r.bucket === b).map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null))
+  const pages = await fetchPageExtras(supabase, rows)
+  const map = (b: 'week' | 'weekend') =>
+    rows.filter((r) => r.bucket === b).map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
   const thisWeek = map('week')
   const tonight = Date.parse(windows.today.to)
   return {
@@ -391,17 +435,42 @@ function soonestFirst(a: BrowseFeedRow, b: BrowseFeedRow): number {
  * `fetchGroupPrefixes` follows, and the same rule that made this bug quiet for
  * so long, so it is worth saying out loud: a missing id is a dead card.
  */
-async function fetchPagePublicIds(
+async function fetchPageExtras(
   supabase: RpcClient,
-  groupIds: readonly string[],
-): Promise<Map<string, string>> {
-  const ids = Array.from(new Set(groupIds.filter(Boolean)))
-  const out = new Map<string, string>()
+  rows: readonly Pick<BrowseFeedRow, 'group_id' | 'result_kind' | 'location_geography'>[],
+): Promise<Map<string, PageExtras>> {
+  const ids = Array.from(new Set(rows.map((r) => r.group_id).filter(Boolean)))
+  const out = new Map<string, PageExtras>()
   if (ids.length === 0) return out
-  const { data, error } = await supabase.from('groups').select('id, public_id').in('id', ids)
+  // #922 — the quick links come in the same read, and only for a reader browse_feed gave a point to: a
+  // signed-out reader has neither the point (F093.8) nor the grant on where_mode or the anchor, and asking
+  // for them would fail the whole lookup and with it every card's link.
+  const withLinks = rows.some((r) => r.result_kind === 'page' && r.location_geography)
+  const base = 'id, public_id, picture_url, picture_hidden_at, picture_removed_at'
+  const read = (cols: string) => supabase.from('groups').select(cols).in('id', ids)
+  let { data, error } = await read(withLinks ? `${base}, social_links, where_mode, anchor:locations!groups_anchor_location_id_fkey(kind)` : base)
+  if (error && withLinks) ({ data, error } = await read(base))
   if (error || !data) return out
-  for (const row of data as { id: string; public_id: string | null }[]) {
-    if (row.public_id) out.set(row.id, row.public_id)
+  type Row = {
+    id: string
+    public_id: string | null
+    social_links: Record<string, unknown> | null
+    where_mode: string | null
+    picture_url: string | null
+    picture_hidden_at: string | null
+    picture_removed_at: string | null
+    anchor: { kind: string } | { kind: string }[] | null
+  }
+  for (const row of data as unknown as Row[]) {
+    const anchor = Array.isArray(row.anchor) ? row.anchor[0] : row.anchor
+    out.set(row.id, {
+      publicId: row.public_id,
+      socialLinks: row.social_links ?? null,
+      whereMode: row.where_mode ?? null,
+      anchorKind: anchor?.kind ?? null,
+      avatarUrl: visiblePhotoUrl({ photo_url: row.picture_url, photo_hidden_at: row.picture_hidden_at, photo_removed_at: row.picture_removed_at }),
+      linksRead: 'where_mode' in row,
+    })
   }
   return out
 }

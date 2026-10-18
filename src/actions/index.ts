@@ -20,6 +20,10 @@ import {
   memberSavedSearchRemove,
   memberSavedSearchRestore,
   memberSearchSharingSet,
+  memberNotificationsSet,
+  memberPushSubscribe,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
 } from './member'
 import { searchDemandLog } from './search'
 import {
@@ -79,6 +83,11 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.interests.add': memberInterestsAdd as unknown as NamedActionHandler<unknown, unknown>,
   'member.follow': memberFollow as unknown as NamedActionHandler<unknown, unknown>,
   'member.unfollow': memberUnfollow as unknown as NamedActionHandler<unknown, unknown>,
+  // #904 — notifications
+  'member.notifications.set': memberNotificationsSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member.push.subscribe': memberPushSubscribe as unknown as NamedActionHandler<unknown, unknown>,
+  'member.push.unsubscribe': memberPushUnsubscribe as unknown as NamedActionHandler<unknown, unknown>,
+  'member.notifications.opened': memberNotificationsOpened as unknown as NamedActionHandler<unknown, unknown>,
   // T109 — F042 management-page write paths (venue unfollow/restore + group leave/join)
   'member.saved_search.remove': memberSavedSearchRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.saved_search.restore': memberSavedSearchRestore as unknown as NamedActionHandler<unknown, unknown>,
@@ -152,6 +161,10 @@ export {
   memberSavedSearchRemove,
   memberSavedSearchRestore,
   memberSearchSharingSet,
+  memberNotificationsSet,
+  memberPushSubscribe,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
 } from './member'
 export { searchDemandLog } from './search'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'

@@ -1,5 +1,5 @@
 // #796 (Don, 2026-10-16) — every card says what it is (a megaphone for a post, a page for a Page), and a
-// seeder sample is marked as one wherever it shows: a "Sample" chip (the accessible label) and a faint
+// seeder sample is marked as one wherever it shows: a "Sample" label (small-caps text, never a chip) and a faint
 // diagonal SAMPLE watermark (decorative). And no partial ring on the post you tapped.
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, waitFor } from '@testing-library/react'
@@ -34,16 +34,16 @@ describe('Explore cards', () => {
     expect(mark).toHaveAttribute('data-type', 'page')
     expect(mark).toHaveTextContent('Page')
   })
-  it('a sample post shows the Sample chip and an aria-hidden, non-interactive watermark', () => {
+  it('a sample post shows the Sample label and an aria-hidden, non-interactive watermark', () => {
     render(<BrowseResultCard result={result({ sampleKind: 'event' })} />)
-    expect(screen.getByTestId('sample-chip')).toHaveTextContent('Sample')
+    expect(screen.getByTestId('sample-label')).toHaveTextContent('Sample')
     const wm = screen.getByTestId('sample-watermark')
     expect(wm).toHaveAttribute('aria-hidden', 'true')
     expect(wm.className).toMatch(/pointer-events-none/)
   })
   it('a real post shows neither', () => {
     render(<BrowseResultCard result={result({ sampleKind: null, body: 'Bread is back.' })} />)
-    expect(screen.queryByTestId('sample-chip')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sample-label')).not.toBeInTheDocument()
     expect(screen.queryByTestId('sample-watermark')).not.toBeInTheDocument()
   })
 })
@@ -51,15 +51,15 @@ describe('Explore cards', () => {
 const POST = { id: 'pp-1', body: 'Sample · Deal this week.', createdAt: '2026-10-16T00:00:00Z', updatedAt: '2026-10-16T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }
 
 describe('the Page’s post card', () => {
-  it('a sample shows the chip, the watermark and the not-a-real-offer line', () => {
+  it('a sample shows the label, the watermark and the not-a-real-offer line', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, sampleKind: 'deal' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)
-    expect(screen.getByTestId('sample-chip')).toBeInTheDocument()
+    expect(screen.getByTestId('sample-label')).toBeInTheDocument()
     expect(screen.getByTestId('sample-watermark')).toHaveAttribute('aria-hidden', 'true')
     expect(screen.getByText(/not a real offer/i)).toBeInTheDocument()
   })
   it('a real post shows none of them', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, body: 'Bread is back.' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)
-    expect(screen.queryByTestId('sample-chip')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sample-label')).not.toBeInTheDocument()
     expect(screen.queryByText(/not a real offer/i)).not.toBeInTheDocument()
   })
   it('the post you tapped is brought into view without a ring', async () => {
