@@ -1,5 +1,6 @@
-// #316 — tags as familiar hashtags: #tag chips that open Explore filtered by
+// #316 — tags as familiar hashtags: #tag links that open Explore filtered by
 // that tag. Shown only where tags are (signed in: the front door has none).
+// #896 — quiet text links, not pills (Don, 2026-10-18: no chips anywhere).
 
 import Link from 'next/link'
 import { normalizeTag } from '@/lib/groups/tags'
@@ -11,17 +12,14 @@ export const hashtag = (label: string) => `#${label.replace(/^#+/, '').replace(/
 export function TagChips({ tags }: { tags: readonly string[] }) {
   if (tags.length === 0) return null
   return (
-    <ul data-testid="tag-chips" className="flex flex-wrap gap-x-2">
+    <ul data-testid="tag-chips" className="flex flex-wrap gap-x-4">
       {tags.map((t) => (
         <li key={t}>
-          {/* The pill reads 32px; the link around it is the 44px tap target. */}
           <Link
             href={`/explore?category=${encodeURIComponent(normalizeTag(t))}`}
-            className="press group inline-flex min-h-11 items-center"
+            className="press inline-flex min-h-11 items-center text-body-sm font-medium text-[var(--color-accent)] hover:underline"
           >
-            <span className="inline-flex min-h-8 items-center rounded-full bg-[var(--color-surface)] px-3 text-caption font-medium text-[var(--color-charcoal-900)] group-hover:bg-[var(--color-charcoal-100)]">
-              {hashtag(t)}
-            </span>
+            {hashtag(t)}
           </Link>
         </li>
       ))}

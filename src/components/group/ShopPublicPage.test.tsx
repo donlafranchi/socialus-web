@@ -896,3 +896,21 @@ describe('#896 — Contact holds website, phone and socials', () => {
     for (const url of Object.values(socialLinks)) expect(container.innerHTML).not.toContain(url)
   })
 })
+
+// Don, 2026-10-18 [always]: no chip or pill UI — typography, spacing and quiet text links.
+describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
+  it('nothing rounded-full or button-styled in those sections', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    renderShop({
+      shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras', website: 'https://claras.example/' }, placements: [{ source: 'anchor', kind: 'point', label: '1 Main St', lng: -121.5, lat: 38.5 }] },
+      loggedIn: true,
+      tags: ['Sourdough'],
+      contact: { phone: '+19165550142', hours: null },
+    })
+    for (const id of ['location', 'contact', 'found']) {
+      const section = screen.getByTestId(`page-section-${id}`)
+      expect(section.querySelector('[class*="rounded-full"], [class*="btn-"]')).toBeNull()
+    }
+    vi.unstubAllEnvs()
+  })
+})

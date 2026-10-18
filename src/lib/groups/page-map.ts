@@ -4,6 +4,7 @@
 
 import type { Placement } from './resolve-page-placement'
 import type { PageWhere } from './page-where'
+import type { MapsTarget } from '@/lib/maps/links'
 
 export interface PageMapView {
   kind: 'point' | 'area'
@@ -56,16 +57,7 @@ export function staticMapUrl(v: PageMapView, token: string): string {
   return `https://api.mapbox.com/styles/v1/${STYLE}/static/${overlay}${at},${v.zoom},0/400x200@2x?access_token=${token}`
 }
 
-export function mapsLinks(v: PageMapView, apple: boolean): { open: string; directions: string | null } {
-  const q = encodeURIComponent(v.text)
-  const ll = `${v.centre[1]},${v.centre[0]}`
-  if (v.kind === 'area') {
-    return {
-      open: apple ? `https://maps.apple.com/?q=${q}&ll=${ll}&z=${v.zoom}` : `https://www.google.com/maps/search/?api=1&query=${ll}`,
-      directions: null,
-    }
-  }
-  return apple
-    ? { open: `https://maps.apple.com/?q=${q}&ll=${ll}`, directions: `https://maps.apple.com/?daddr=${q}` }
-    : { open: `https://www.google.com/maps/search/?api=1&query=${q}`, directions: `https://www.google.com/maps/dir/?api=1&destination=${q}` }
-}
+/** What Open in Maps / Directions point at: an area is never exact. */
+export const mapsTargetOf = (v: PageMapView): MapsTarget => ({
+  label: v.text, lng: v.centre[0], lat: v.centre[1], exact: v.kind === 'point', zoom: v.kind === 'area' ? v.zoom : undefined,
+})

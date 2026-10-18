@@ -116,8 +116,8 @@ const PLATFORM_HOSTS: Record<Exclude<SocialPlatform, 'website'>, RegExp> = {
 
 export interface ContactLinks {
   website: { url: string; text: string } | null
-  /** `name` is what a screen reader says, e.g. "Instagram: @claras". */
-  socials: { platform: SocialPlatform; url: string; name: string }[]
+  /** Read aloud as "Instagram: @claras"; a link with no handle reads its label. */
+  socials: { platform: SocialPlatform; url: string; label: string; handle: string | null }[]
 }
 
 function handleOf(platform: SocialPlatform, url: string): string | null {
@@ -144,8 +144,7 @@ export function contactLinksForDisplay(links: SocialLinks | null | undefined, pu
     socials: CONTACT_ORDER.flatMap((platform) => {
       const url = safe[platform]
       if (!url) return []
-      const handle = handleOf(platform, url)
-      return [{ platform, url, name: handle ? `${PLATFORM_LABELS[platform]}: ${handle}` : PLATFORM_LABELS[platform] }]
+      return [{ platform, url, label: PLATFORM_LABELS[platform], handle: handleOf(platform, url) }]
     }),
   }
 }

@@ -26,11 +26,12 @@ describe('PageMap', () => {
     expect(screen.getByRole('link', { name: 'Open in Maps' }).getAttribute('href')).toMatch(/^https:\/\/www\.google\.com\/maps\/search\//)
   })
 
-  it('buttons are 44px targets that open outside the app', () => {
+  it('quiet text links, 44px tall, that open outside the app', () => {
     render(<PageMap view={view} caption={view.text} />)
     for (const name of ['Open in Maps', 'Directions']) {
       const a = screen.getByRole('link', { name })
-      expect(a.className).toMatch(/btn-secondary/)
+      expect(a.className).toMatch(/min-h-tap/)
+      expect(a.className).not.toMatch(/rounded|btn-/)
       expect(a).toHaveAttribute('target', '_blank')
       expect(a).toHaveAttribute('rel', 'noopener noreferrer')
     }

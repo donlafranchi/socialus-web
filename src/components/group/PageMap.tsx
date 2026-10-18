@@ -6,18 +6,18 @@
 
 import { useSyncExternalStore } from 'react'
 import { MapPin, Navigation } from 'lucide-react'
-import { mapsLinks, staticMapUrl, type PageMapView } from '@/lib/groups/page-map'
+import { mapsTargetOf, staticMapUrl, type PageMapView } from '@/lib/groups/page-map'
+import { isAppleMobile, mapsLinks } from '@/lib/maps/links'
 
-const isAppleMobile = () =>
-  /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-
+// #896 — quiet text links (Don, 2026-10-18: no chips or pills); 44px tall to tap.
+const LINK = 'press inline-flex min-h-tap items-center gap-2 text-body-sm font-medium text-[var(--color-accent)] underline'
 const noSubscribe = () => () => {}
 
 export function PageMap({ view, caption }: { view: PageMapView; caption: string | null }) {
   // false on the server and first paint (Google), then the device's own.
-  const apple = useSyncExternalStore(noSubscribe, isAppleMobile, () => false)
+  const apple = useSyncExternalStore(noSubscribe, () => isAppleMobile(), () => false)
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-  const links = mapsLinks(view, apple)
+  const links = mapsLinks(mapsTargetOf(view), apple)
   const out = { target: '_blank', rel: 'noopener noreferrer' } as const
 
   return (
@@ -40,13 +40,13 @@ export function PageMap({ view, caption }: { view: PageMapView; caption: string 
           {caption}
         </p>
       )}
-      <div className="flex flex-wrap gap-2">
-        <a href={links.open} {...out} data-testid="page-map-open" className="btn-secondary gap-2">
+      <div className="flex flex-wrap gap-x-6">
+        <a href={links.open} {...out} data-testid="page-map-open" className={LINK}>
           <MapPin size={16} aria-hidden="true" />
           Open in Maps
         </a>
         {links.directions && (
-          <a href={links.directions} {...out} data-testid="page-map-directions" className="btn-secondary gap-2">
+          <a href={links.directions} {...out} data-testid="page-map-directions" className={LINK}>
             <Navigation size={16} aria-hidden="true" />
             Directions
           </a>
