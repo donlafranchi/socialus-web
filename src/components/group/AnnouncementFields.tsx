@@ -54,7 +54,13 @@ export interface AnnouncementWhenWhere {
   howToFind: string
   /** #592 (F074.1) — weekly on chosen weekdays, with an optional start and end date (`yyyy-mm-dd`, empty for none). */
   repeat: { open: boolean; days: number[]; startsOn: string; endsOn: string }
+  /** #314 — `yyyy-mm-dd` an undated post shows through. Empty means the default, 14 days after it was posted. */
+  showUntil: string
 }
+
+/** #314 (Don, 2026-10-02) — an undated post shows for this long unless its owner picks another day. */
+export const UNDATED_SHOWS_DAYS = 14
+export const defaultShowUntil = (postedAt: Date) => metroDate(new Date(postedAt.getTime() + UNDATED_SHOWS_DAYS * 86_400_000), METRO_TIME_ZONE)
 
 export const emptyRepeat: AnnouncementWhenWhere['repeat'] = { open: false, days: [], startsOn: '', endsOn: '' }
 
@@ -67,6 +73,7 @@ export const emptyWhenWhere: AnnouncementWhenWhere = {
   place: initialLocationPlaceFieldsState,
   howToFind: '',
   repeat: emptyRepeat,
+  showUntil: '',
 }
 
 /** The series composer is built ahead of its occurrences (F074.2-.5): off until they land. */
@@ -79,6 +86,7 @@ export function AnnouncementFields({
   placeLabel,
   now = new Date(),
   repeats = false,
+  postedAt,
 }: {
   value: AnnouncementWhenWhere
   onChange: (next: AnnouncementWhenWhere) => void
@@ -89,7 +97,10 @@ export function AnnouncementFields({
   now?: Date
   /** #592 — offer the weekly repeat. The composer asks for it; an edit of one occurrence never does. */
   repeats?: boolean
+  /** #314 — when an edited post was posted, so its default show-until day counts from then. */
+  postedAt?: Date
 }) {
+  const showUntilDefault = defaultShowUntil(postedAt ?? now)
   const repeatOn = repeats && value.repeat.open
   const [endTouched, setEndTouched] = useState(Boolean(value.endTime))
   return (
@@ -115,6 +126,18 @@ export function AnnouncementFields({
           >
             Add a date and time
           </button>
+        ) : null}
+        {!(value.date || value.time || value.endTime) ? (
+          <div className="mt-3 sm:max-w-xs">
+            <DateField
+              label="Show until"
+              testId={`${idPrefix}-show-until`}
+              min={metroDate(new Date(now.getTime() + 86_400_000), METRO_TIME_ZONE)}
+              value={value.showUntil || showUntilDefault}
+              onChange={(d) => onChange({ ...value, showUntil: d === showUntilDefault ? '' : d })}
+            />
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Posts without a date show for {UNDATED_SHOWS_DAYS} days unless you pick another day.</p>
+          </div>
         ) : (
           <>
             <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">

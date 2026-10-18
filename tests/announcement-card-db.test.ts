@@ -24,7 +24,8 @@ const ANCHOR = 'd3000000-0000-4000-8000-000000000256'
 const HALL = 'e3000000-0000-4000-8000-000000000256'
 const AT_PAGE = 'f3000000-0000-4000-8000-000000000256'
 const AT_HALL = '13000000-0000-4000-8000-000000000256'
-const POSTED = '2026-09-02T18:00:00.000Z'
+// #314 — an undated post leaves Explore 14 days after it was posted, so this one is recent.
+const POSTED = new Date(Math.floor(Date.now() / 1000) * 1000 - 2 * 86_400_000).toISOString()
 
 let pool: Pool
 let client: PoolClient

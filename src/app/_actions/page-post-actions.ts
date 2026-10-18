@@ -30,6 +30,7 @@ export async function postToPageAction(input: {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
@@ -52,6 +53,7 @@ export async function editPagePostAction(input: {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
   photoUrl?: string | null
