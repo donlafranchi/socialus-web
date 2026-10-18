@@ -113,6 +113,8 @@ export interface BrowseFeedOpts {
   /** The cutoff past-dated posts are judged against. Omitted, the db clock. */
   now?: string | null
   limit?: number | null
+  /** #922 — only rows within this many minutes' drive of the reader's vantage (metro scope only). */
+  reachMinutes?: number | null
 }
 
 /** One row exactly as `browse_feed` returns it. */
@@ -372,6 +374,8 @@ export async function getBrowseFeed(
     p_limit: clampLimit(opts.limit),
     ...(opts.postKinds?.length ? { p_post_kinds: [...opts.postKinds] } : {}),
     ...searchArgs(opts.search),
+    // A drive minute is a straight-line kilometre, as in browse_nearby.
+    ...(opts.reachMinutes ? { p_reach_m: opts.reachMinutes * 1000 } : {}),
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]
@@ -411,6 +415,36 @@ export async function getHappening(
     today: thisWeek.filter((r) => r.startsAt !== null && Date.parse(r.startsAt) < tonight),
     thisWeek,
     thisWeekend: map('weekend'),
+  }
+}
+
+/**
+ * #922 — Explore's default read in one call (`browse_nearby`): the database picks the smallest ring from the
+ * reader's vantage holding a full screen of things on before `weekEnd` (or takes `minutes` when the member set
+ * it), and returns browse_feed's rows within it plus the reach it used. `from` is a town's name, or null for
+ * the member's own town; the vantage itself never leaves the database.
+ */
+export async function getNearbyFeed(
+  supabase: RpcClient,
+  opts: { metroId: string; resultKinds?: readonly BrowseResultKind[] | null; weekEnd: string; minutes?: number | null; target: number; cap: number; limit?: number | null },
+): Promise<{ results: BrowseResult[]; reach: { minutes: number; from: string | null } }> {
+  const { data, error } = await supabase.rpc('browse_nearby', {
+    p_metro_id: opts.metroId,
+    p_result_kinds: opts.resultKinds ? [...opts.resultKinds] : null,
+    p_week_end: opts.weekEnd,
+    p_minutes: opts.minutes ?? null,
+    p_target: opts.target,
+    p_cap_minutes: opts.cap,
+    p_limit: clampLimit(opts.limit),
+  })
+  if (error) throw error
+  const rows = (data ?? []) as (BrowseFeedRow & { reach_minutes: number; reach_from: string | null })[]
+  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
+  const first = rows[0]
+  return {
+    results: rows.map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null)),
+    // Nothing within reach still has a reach: the widest it tried, so "Show more nearby" is there to tap.
+    reach: first ? { minutes: first.reach_minutes, from: first.reach_from } : { minutes: opts.minutes ?? opts.cap, from: null },
   }
 }
 

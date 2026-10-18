@@ -35,12 +35,16 @@ import {
   toggleTag,
   type BrowseFilters,
 } from '@/lib/browse/filters'
+import { REACH_OPTIONS, type Reach } from '@/lib/browse/reach'
 
 interface ExploreFilterSheetProps {
   open: boolean
   value: BrowseFilters
   onClose: () => void
   onApply: (filters: BrowseFilters) => void
+  /** #922 — how far Explore reaches; the sheet sets it exactly. Absent: no "How far" group. */
+  reach?: Reach | null
+  onReachChange?: (reach: Reach) => void
 }
 
 // #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Three groups, opt-in, that
@@ -52,8 +56,11 @@ export function ExploreFilterSheet({
   value,
   onClose,
   onApply,
+  reach = null,
+  onReachChange,
 }: ExploreFilterSheetProps) {
   const [draft, setDraft] = useState(value)
+  const [draftReach, setDraftReach] = useState(reach)
   // Options come from the current result set, so a search can drop a tag that
   // is still selected. Union the selection back in, or the sheet would show a
   // filter the member cannot turn off from inside the sheet.
@@ -68,11 +75,15 @@ export function ExploreFilterSheet({
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) setDraft(value)
+    if (open) {
+      setDraft(value)
+      setDraftReach(reach)
+    }
   }
 
   const commit = (filters: BrowseFilters) => {
     onApply(filters)
+    if (onReachChange && draftReach !== null && draftReach !== reach) onReachChange(draftReach)
     onClose()
   }
 
@@ -151,6 +162,22 @@ export function ExploreFilterSheet({
             ))}
           </Options>
         </Group>
+
+        {onReachChange && (
+          <Group label="How far">
+            <Options>
+              {REACH_OPTIONS.map((o) => (
+                <Choice
+                  key={String(o.value)}
+                  name={`${groupId}-reach`}
+                  label={o.label}
+                  checked={draftReach === o.value}
+                  onChange={() => setDraftReach(o.value)}
+                />
+              ))}
+            </Options>
+          </Group>
+        )}
 
         <Group label="Date">
           <Options>

@@ -15,6 +15,7 @@ import { Suspense } from 'react'
 import { loadBrowse, readSessionSeed } from './load'
 import { readBox, writeBox } from '@/lib/browse/box-text'
 import { parseBrowseFilters, CATEGORY_TAGS } from '@/lib/browse/filters'
+import { parseReach } from '@/lib/browse/reach'
 import { BrowseSurface } from '@/components/browse/BrowseSurface'
 import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
 
@@ -23,13 +24,13 @@ export const dynamic = 'force-dynamic'
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ metro?: string; area?: string; q?: string; view?: string; schedule?: string; category?: string }>
+  searchParams: Promise<{ metro?: string; area?: string; q?: string; view?: string; schedule?: string; category?: string; reach?: string }>
 }) {
   const sp = await searchParams
   // #876 — a link that carries filters opens on the targeted read, not on a client cut of the mix.
   const params = new URLSearchParams(Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === 'string'))
   const { filters } = readBox(writeBox(parseBrowseFilters(params), sp.q ?? ''), CATEGORY_TAGS)
-  const snapshot = await loadBrowse(sp.metro ?? null, sp.area ?? null, { withMap: false, seed: await readSessionSeed(), filters })
+  const snapshot = await loadBrowse(sp.metro ?? null, sp.area ?? null, { withMap: false, seed: await readSessionSeed(), filters, reach: parseReach(sp.reach) })
 
   return (
     <Suspense fallback={<ExploreSkeleton />}>
