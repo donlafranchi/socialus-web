@@ -1,0 +1,232 @@
+[
+ {
+  "name": "Grow Organic (Peaceful Valley Farm & Garden Supply)",
+  "category": "Nursery (natives and seeds)",
+  "makes": "Seeds, plants and growing supplies since 1976; the Grass Valley outdoor nursery specializes in California native and water-wise plants, with showy milkweed (Asclepias speciosa) seed that the site says to sow in late fall for natural cold stratification",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://www.groworganic.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/pvfgs_groworganic/",
+   "facebook": "https://www.facebook.com/GrowOrganic"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): showy milkweed seed page ('Sow in late fall for natural cold stratification'); narrowleaf seed listed, sold out that day; no tropical milkweed; nursery open Mon-Sat 9-5."
+ },
+ {
+  "name": "Sacramento Valley Conservancy Native Plant Nursery",
+  "category": "Nursery (nonprofit)",
+  "makes": "The Lower American River Native Plant Nursery and Demonstration Gardens at Camp Pollock, with sales each spring and fall; its sale list carries narrowleaf milkweed (Asclepias fascicularis) in 3-inch pots",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://sacramentovalleyconservancy.org/nursery/",
+  "social": {
+   "instagram": "https://www.instagram.com/sacramentovalleyconservancy/",
+   "facebook": "https://www.facebook.com/SacramentoValleyConservancy"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): narrowleaf milkweed plants listed, marked out of stock after the Oct 17 sale; no tropical milkweed; sales March-April and October-November."
+ },
+ {
+  "name": "Mother Natives",
+  "category": "Nursery (nonprofit)",
+  "makes": "A nonprofit rooted in community, education and ecological restoration through California native plants, with a retail nursery open Thursday to Sunday 9 to 2 and a free take-and-return community seed library",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://www.mothernatives.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/mother_natives/"
+  },
+  "confidence": "High on the business; own site checked 2026-10-18 (200): 4421 24th St, seed library and Oct-Nov events listed. Milkweed not stated on the site (stock is in an external sheet), so no milkweed claim."
+ },
+ {
+  "name": "Sacramento Valley CNPS Nursery & Gardens",
+  "category": "Native plant society (nonprofit)",
+  "makes": "The Sacramento Valley chapter of the California Native Plant Society, advocating native plants, with a nursery and gardens in Rancho Cordova, plant sales, and a free native seed swap on Saturday October 31, 11 to 2 at the Shepard Garden and Arts Center",
+  "area": "Rancho Cordova (Sacramento)",
+  "site": "https://sacvalleycnps.org/plant-sales/",
+  "confidence": "High; own site checked 2026-10-18 (200): seed swap Oct 31 2026; narrowleaf milkweed plants listed on its shop page, out of stock; no tropical milkweed."
+ },
+ {
+  "name": "find out farms",
+  "category": "Nursery (natives and seeds)",
+  "makes": "A scrappy little project growing food, running community compost and a native plant nursery, with a free seed box of veggie and native plant seeds; nursery open Saturdays 9 to 1 or by appointment",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://www.findoutfarms.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/findoutfarms",
+   "facebook": "https://www.facebook.com/findoutfarms"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): Oak Park; milkweed not stated on the site, so no milkweed claim."
+ },
+ {
+  "name": "Miridae Mobile Nursery",
+  "category": "Nursery (natives and seeds)",
+  "makes": "A box truck turned California native plant pop-up nursery travelling the greater Sacramento region, next at the Rancho Cordova Certified Farmers Market on Saturday October 31, 8 to 12",
+  "area": "Rancho Cordova (Sacramento)",
+  "site": "https://www.miridaemobilenursery.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/miridaemobilenursery/",
+   "facebook": "https://www.facebook.com/MiridaeMobileNursery"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): fall stops listed; milkweed not stated on the site, so no milkweed claim."
+ },
+ {
+  "name": "Sacramento Public Library Seed Library",
+  "category": "Garden seed library",
+  "makes": "A free seed library with no library card needed, offering seeds for herbs, ornamentals and edible plants at branches across Sacramento County",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://www.saclibrary.org/seeds",
+  "social": {
+   "instagram": "https://www.instagram.com/saclib/",
+   "facebook": "https://www.facebook.com/saclibrary"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): public library program; milkweed not stated."
+ },
+ {
+  "name": "Talini's Nursery & Garden Center",
+  "category": "Nursery and plant shop",
+  "makes": "A full-service neighbourhood garden center serving greater Sacramento since 1976, with a seed selection, seasonal starts and organic herbs, open daily 9 to 5:30",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://www.talinisnursery.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/talinisnursery/"
+  },
+  "confidence": "Medium-high; own site checked 2026-10-18 (200): 5601 Folsom Blvd; milkweed not stated."
+ },
+ {
+  "name": "The Plant Foundry Nursery & Store",
+  "category": "Nursery and plant shop",
+  "makes": "A destination nursery for people who love edible and ornamental plants, in Oak Park",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://plantfoundry.com/store/",
+  "social": {
+   "instagram": "https://www.instagram.com/plantfoundry",
+   "facebook": "https://www.facebook.com/plantfoundry"
+  },
+  "confidence": "Medium; own site read 2026-10-18 (page answers 406 to curl, reads in a browser); address may be moving about a block, so no street named; milkweed not stated."
+ },
+ {
+  "name": "Sperbeck's Nursery & Landscape Center",
+  "category": "Nursery and plant shop",
+  "makes": "A fully stocked nursery open to the public with plants, trees, shrubs, seeds and garden supplies",
+  "area": "Yuba City (Sutter)",
+  "site": "https://sperbecksnursery.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/sperbecks_nursery_yc/",
+   "facebook": "https://www.facebook.com/profile.php?id=100075956436237"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): copyright 2026; milkweed not stated."
+ },
+ {
+  "name": "The Secret Garden",
+  "category": "Nursery and plant shop",
+  "makes": "A garden center with a nursery, aquatic plants, bonsai, houseplants, pottery and garden decor on West Stockton Boulevard",
+  "area": "Elk Grove (Sacramento)",
+  "site": "https://www.secretgarden-online.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/secretgarden916/",
+   "facebook": "https://www.facebook.com/SecretGarden916/"
+  },
+  "confidence": "Medium; own site checked 2026-10-18 (200): Small Business Saturday Nov 28; milkweed not stated."
+ },
+ {
+  "name": "Hedgerow Farms",
+  "category": "Seed seller",
+  "makes": "A Winters farm and native seed producer offering premium seed for small projects, custom mixes and wildland collection; its site lists narrowleaf milkweed (Asclepias fascicularis) seed as in stock",
+  "area": "Winters (Yolo)",
+  "site": "https://hedgerowfarms.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/hedgerow_farms/",
+   "facebook": "https://www.facebook.com/people/Hedgerow-Farms/100067832556054/"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200, redirects to nativeseedgroup.com; milkweed product page also 200): narrowleaf milkweed seed listed; no tropical milkweed; no sowing advice on the page."
+ },
+ {
+  "name": "Redwood Barn Nursery",
+  "category": "Nursery and plant shop",
+  "makes": "A Davis nursery on Fifth Street open Monday to Saturday 9 to 5:30 and Sunday 12 to 5, with fall vegetable guides, planting articles and a fall 2026 events calendar",
+  "area": "Davis (Yolo)",
+  "site": "https://redwoodbarn.com/",
+  "confidence": "High that it is real and operating; own site checked 2026-10-18 (200): copyright 2026; milkweed not stated."
+ },
+ {
+  "name": "Benicia Community Seed Library",
+  "category": "Garden seed library",
+  "makes": "A self-service seed sharing library from the Benicia Public Library, with no card needed, in a cabinet near the reference desk",
+  "area": "Benicia (Solano)",
+  "site": "https://benicialibrary.org/collections/seed-sharing-library",
+  "social": {
+   "instagram": "https://www.instagram.com/beniciapubliclibrary/",
+   "facebook": "https://www.facebook.com/BeniciaPublicLibrary/"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): public library program; milkweed not stated."
+ },
+ {
+  "name": "El Rancho Nursery & Landscape",
+  "category": "Nursery and plant shop",
+  "makes": "A Vacaville nursery and landscape yard on Ellsworth Road with fruit trees, citrus, roses, shrubs and drought-tolerant California natives",
+  "area": "Vacaville (Solano)",
+  "site": "https://www.elrancho-nursery.com/",
+  "confidence": "Medium; own site checked 2026-10-18 (200): copyright 2024 so currency is soft; milkweed not stated."
+ },
+ {
+  "name": "CNPS El Dorado Chapter",
+  "category": "Native plant society (nonprofit)",
+  "makes": "The El Dorado chapter of the California Native Plant Society, running an online native plant sale each late March and early April and each late September and early October; its shop lists narrowleaf and showy milkweed (Asclepias fascicularis, A. speciosa) plants in season",
+  "area": "Placerville (El Dorado)",
+  "site": "https://shop.eldoradocnps.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/eldocnps/",
+   "facebook": "https://www.facebook.com/ElDoradoCNPS/"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): milkweed product pages for both natives; 'Our fall 2026 online plant sale has ended'; no tropical milkweed."
+ },
+ {
+  "name": "Double Dogwood Native Nursery",
+  "category": "Nursery (natives and seeds)",
+  "makes": "A Sierra foothills nursery offering native trees, shrubs, perennials and grasses for restoration and home landscapes, with orders by email and pick-up on Thursdays 1:30 to 5; its availability sheet of October 5, 2026 lists narrowleaf and showy milkweed",
+  "area": "Nevada City (Nevada)",
+  "site": "https://www.doubledogwoodnursery.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/double.dogwood.nursery/",
+   "facebook": "https://www.facebook.com/p/Double-Dogwood-Native-Nursery-61561247068190/"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): availability sheet updated 10/5/2026 lists Asclepias fascicularis and A. speciosa (plants); town from Calscape since the site says only 'western slope of the Sierra Nevada'; no tropical milkweed."
+ },
+ {
+  "name": "Fair Oaks Blvd Nursery",
+  "category": "Nursery and plant shop",
+  "makes": "An independent nursery on Fair Oaks Boulevard with lots and lots of California natives, open 8:30 to 4 daily",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://www.fairoaksblvdnursery.com/",
+  "confidence": "Medium; own site checked 2026-10-18 (200): its home page banner says 'MILKWEED!' without naming the species and the site also sells tropicals, so no milkweed claim is made on the Page; to confirm native-only by phone."
+ },
+ {
+  "name": "Bear Yuba Land Trust",
+  "category": "Land trust (nonprofit)",
+  "makes": "A land trust whose Monarch Meadow Project is a community effort to make Nevada County a monarch flyway, donating milkweed seed of all four native Nevada County varieties",
+  "area": "Nevada City (Nevada)",
+  "site": "https://bylt.org/monarch-meadow-project/",
+  "confidence": "Medium; own site checked 2026-10-18 (200): milkweed seed donation stated; page updated Feb 2026; town inferred from the page."
+ },
+ {
+  "name": "Villager Nursery",
+  "category": "Nursery (natives and seeds)",
+  "makes": "A Truckee nursery that collects seeds and cuttings of local High Sierra, Great Basin and Rocky Mountain native plants, with a seed shop on its site",
+  "area": "Truckee (Nevada)",
+  "site": "https://www.villagernursery.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/villagernursery/",
+   "facebook": "https://www.facebook.com/VillagerNursery/"
+  },
+  "confidence": "Medium; own site checked 2026-10-18 (200): milkweed not stated on the site, so no milkweed claim."
+ },
+ {
+  "name": "Redbud Nursery",
+  "category": "Nursery and plant shop",
+  "makes": "A Rattlesnake Road nursery of perennials, grasses, daylilies, shrubs and trees, open Thursday to Saturday 10 to 5 and Sunday 12 to 4, with October offers on plants",
+  "area": "Newcastle (Placer)",
+  "site": "https://www.redbudnursery.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/redbud_nursery",
+   "facebook": "https://www.facebook.com/redbudnursery"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): October 2026 offers live; milkweed and natives not mentioned."
+ }
+]

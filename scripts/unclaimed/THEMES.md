@@ -47,6 +47,8 @@ Not a rule yet: posting a business's real dated events from its own site instead
 
 **Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within their weekly dates (see Dates).
 
+**Native plants and pollinators, recurring** (Don, 2026-10-18): native plant nurseries, seed sellers and seed libraries, vegetable and herb starts, garden centres, community seed swaps, CNPS and Master Gardener plant sales, arboretum nursery sales. It joins any day's theme; fall is the season (natives that need winter cold are sown now). **Native milkweed first** (narrowleaf *Asclepias fascicularis*, showy *A. speciosa*), as seed or plugs; confirm it from the seller's own site, and say what the site says. **Never promote tropical milkweed** (*A. curassavica*): it harms monarchs in California. A seller that carries it can still load, but no sample post features it. Use a category that doesn't say "garden" or "native plant" (those get the volunteer-style samples): `Nursery (natives and seeds)`, `Seed seller`. Sellers get the Farm pictures and the Farm sample voice, which never names a plant.
+
 **Farms every day (3–4):** farms, orchards, ranches, animal farms, farm stands, u-pick, flower farms, agritourism.
 
 **Not for now:** personal-care salons (#517). Organizations whose work centers on children (youth leagues, scouts, schools, PTAs), because their photos would show children (F080).

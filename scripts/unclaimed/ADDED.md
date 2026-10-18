@@ -225,3 +225,24 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-18 | Foothill Roots Farm | Farm | Meadow Vista | Farmers markets, Sustainability | unreached towns batch; lead: own site |
 | 2026-10-18 | Serendipity Ranch | Farm | Lincoln | Farmers markets, Sustainability | unreached towns batch; lead: own site |
 | 2026-10-18 | Granny May's Strawberry Farm | Farm | Granite Bay | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Grow Organic (Peaceful Valley Farm & Garden Supply) | Nursery (natives and seeds) | Grass Valley | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Sacramento Valley Conservancy Native Plant Nursery | Nursery (nonprofit) | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Mother Natives | Nursery (nonprofit) | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Sacramento Valley CNPS Nursery & Gardens | Native plant society (nonprofit) | Rancho Cordova | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | find out farms | Nursery (natives and seeds) | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Miridae Mobile Nursery | Nursery (natives and seeds) | Rancho Cordova | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Sacramento Public Library Seed Library | Garden seed library | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Talini's Nursery & Garden Center | Nursery and plant shop | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | The Plant Foundry Nursery & Store | Nursery and plant shop | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Sperbeck's Nursery & Landscape Center | Nursery and plant shop | Yuba City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | The Secret Garden | Nursery and plant shop | Elk Grove | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Hedgerow Farms | Seed seller | Winters | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Redwood Barn Nursery | Nursery and plant shop | Davis | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Benicia Community Seed Library | Garden seed library | Benicia | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | El Rancho Nursery & Landscape | Nursery and plant shop | Vacaville | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | CNPS El Dorado Chapter | Native plant society (nonprofit) | Placerville | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Double Dogwood Native Nursery | Nursery (natives and seeds) | Nevada City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Fair Oaks Blvd Nursery | Nursery and plant shop | Sacramento | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Bear Yuba Land Trust | Land trust (nonprofit) | Nevada City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
+| 2026-10-18 | Villager Nursery | Nursery (natives and seeds) | Truckee | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-18 | Redbud Nursery | Nursery and plant shop | Newcastle | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
