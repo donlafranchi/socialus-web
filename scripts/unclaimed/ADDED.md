@@ -215,3 +215,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-17 | Dazzler Farms | Farm stay & agritourism | Woodland | Farmers markets, Neighborhood life | Native creators and producers (farms); holiday (pumpkins, Christmas trees); lead: own site |
 | 2026-10-17 | Capay Hills Orchard | Farm | Esparto | Farmers markets, Sustainability | Native creators and producers (farms); holiday (almond gifts); lead: own site |
 | 2026-10-17 | Pure Honey & Henry's Bullfrog Bees | Farm | Winters | Farmers markets, Sustainability | Native creators and producers (farms); holiday (honey gifts); lead: own site |
+| 2026-10-18 | Knight Foundry | Historical society | Sutter Creek | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Sutter Creek Community Benefit Foundation | Historical society | Sutter Creek | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Vino Tahoe | Food & drink | Sutter Creek | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-18 | Jeremy Wine Co. | Food & drink | Lockeford | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-18 | Volcano Theatre Company | Art association (nonprofit) | Volcano | Arts & culture, Neighborhood life | unreached towns batch; holiday (Christmas comedy Nov 6 to Dec 13); lead: own site |
+| 2026-10-18 | Craft Guild of Nevada County | Art association (nonprofit) | Grass Valley | Arts & culture, Neighborhood life | unreached towns batch; holiday (Winterfaire Oct 24-25); lead: own site |
+| 2026-10-18 | Horton Iris Garden | Farm stay & agritourism | Loomis | Farmers markets, Neighborhood life | unreached towns batch; holiday (pumpkin patch); lead: own site |
+| 2026-10-18 | Foothill Roots Farm | Farm | Meadow Vista | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Serendipity Ranch | Farm | Lincoln | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Granny May's Strawberry Farm | Farm | Granite Bay | Farmers markets, Sustainability | unreached towns batch; lead: own site |
