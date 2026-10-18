@@ -43,7 +43,7 @@ describe('the four gestures are actually different', () => {
   })
 
   it('the buttons use press, not lift', () => {
-    for (const cls of ['.btn-primary', '.btn-secondary', '.chip']) {
+    for (const cls of ['.btn-primary', '.btn-secondary']) { // #951: .chip is gone
       const block = css.slice(css.indexOf(`${cls} {`), css.indexOf('}', css.indexOf(`${cls} {`)))
       expect(block, `${cls} should press`).toContain('@apply press')
     }
