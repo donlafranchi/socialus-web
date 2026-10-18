@@ -235,15 +235,15 @@ otp_expiry = 3600
 # sender_name = "Admin"
 
 [auth.email.template.magic_link]
-subject = "Your SocialUs sign-in"
+subject = "Your SocialUs sign-in code"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.email.template.confirmation]
-subject = "Welcome to SocialUs"
+subject = "Your SocialUs sign-in code"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.recovery]
-subject = "Choose a new SocialUs password"
+subject = "Your SocialUs password code"
 content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize email template

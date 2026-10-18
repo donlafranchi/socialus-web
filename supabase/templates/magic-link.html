@@ -1,4 +1,5 @@
-<h2>Your SocialUs sign-in</h2>
-<p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in to SocialUs</a></p>
-<p>Or enter this code on the sign-in screen: <strong style="font-size:1.4em;letter-spacing:.2em">{{ .Token }}</strong></p>
-<p>The link and the code work in any browser or app, and only once. If you didn't ask for this, ignore this email.</p>
+<p style="font-size:1.1em;margin:0 0 4px">Your SocialUs code:</p>
+<p style="font-size:2em;font-weight:bold;letter-spacing:.25em;margin:0 0 16px">{{ .Token }}</p>
+<p>Enter it on the sign-in screen.</p>
+<p>Or <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">tap here to sign in</a>. The code and the link work in any browser or app, and only once.</p>
+<p>If you didn't ask for this, ignore this email.</p>
