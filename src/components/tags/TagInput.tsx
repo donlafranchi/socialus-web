@@ -8,7 +8,7 @@
 // comma or Enter commits the tag.
 
 import { isValidTagLabel, normalizeTag, TAG_MAX_LENGTH } from '@/lib/groups/tags'
-import { hashtag } from './TagChips'
+import { hashtag } from './TagLinks'
 
 /** Examples, not defaults — nothing is prefilled and nothing is submitted. */
 const TAG_PLACEHOLDER = '#sourdough #honey #eggs'
@@ -51,10 +51,10 @@ export function TagInput({
       </label>
 
       {value.tags.length > 0 && (
-        <ul data-testid={`${idPrefix}-list`} className="mt-2 flex flex-wrap gap-2">
+        <ul data-testid={`${idPrefix}-list`} className="mt-2 flex flex-wrap gap-x-4">
           {value.tags.map((tag) => (
             <li key={tag}>
-              <span className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-sm">
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-fg)]">
                 {hashtag(tag)}
                 <button
                   type="button"

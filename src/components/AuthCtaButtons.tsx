@@ -91,7 +91,7 @@ export function AuthCtaButtons({
         <Link
           href="/auth/login"
           data-testid="signup-link"
-          className="inline-flex items-center rounded-full bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex items-center rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
         >
           Sign in
         </Link>

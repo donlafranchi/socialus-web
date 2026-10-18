@@ -120,7 +120,7 @@ export function SearchBar({
       )}
 
       <form onSubmit={handleSubmit} className="relative">
-        <div className="flex items-center bg-white rounded-full shadow-lift border border-[var(--color-border)] px-5 py-3.5">
+        <div className="flex items-center bg-white rounded-lg shadow-lift border border-[var(--color-border)] px-5 py-3.5">
           <svg
             className="w-5 h-5 text-[var(--color-fg-muted)] mr-3 shrink-0"
             fill="none"

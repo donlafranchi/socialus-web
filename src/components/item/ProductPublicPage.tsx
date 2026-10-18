@@ -72,7 +72,7 @@ export function ProductPublicPage({ product, groupHref }: ProductPublicPageProps
         {product.madeAtPlaceId ? (
           <span
             data-testid="product-made-badge"
-            className="ml-2 mt-3 inline-flex items-center rounded-full bg-[var(--color-accent-tint)] px-2 py-0.5 text-xs font-medium text-[var(--color-accent)]"
+            className="ml-2 mt-3 inline-flex items-center text-micro font-semibold uppercase tracking-wider text-[var(--color-accent)]"
           >
             Locally Made
           </span>

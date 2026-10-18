@@ -14,9 +14,9 @@ function supabase() {
   return createClient()
 }
 
-type FilterChip = 'all' | 'markets' | 'specials'
+type FeedFilter = 'all' | 'markets' | 'specials'
 
-const FILTERS: { id: FilterChip; label: string; types: string[] | null }[] = [
+const FILTERS: { id: FeedFilter; label: string; types: string[] | null }[] = [
   { id: 'all', label: 'All', types: null },
   { id: 'markets', label: 'Markets', types: ['market_session'] },
   { id: 'specials', label: 'Vendor Specials', types: ['vendor_special'] },
@@ -29,7 +29,7 @@ export function HomeFeed() {
   const { selectedMarket } = useMarket()
   const [isAuth, setIsAuth] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<FilterChip>('all')
+  const [filter, setFilter] = useState<FeedFilter>('all')
   const [events, setEvents] = useState<PlatformEvent[]>([])
   const [vendorMap, setVendorMap] = useState<ReturnType<typeof buildHostMaps>['vendorMap']>(new Map())
   const [marketMap, setMarketMap] = useState<ReturnType<typeof buildHostMaps>['marketMap']>(new Map())
@@ -117,7 +117,7 @@ export function HomeFeed() {
       >
         <Link
           href="/explore"
-          className="flex items-center gap-2 bg-white shadow-overlay border border-neutral-200 rounded-full px-4 py-3 text-sm text-neutral-500"
+          className="flex items-center gap-2 bg-white shadow-overlay border border-neutral-200 rounded-lg px-4 py-3 text-sm text-neutral-500"
         >
           <Search size={16} />
           <span>Search vendors, products, markets</span>
@@ -133,8 +133,8 @@ export function HomeFeed() {
         </p>
       </section>
 
-      {/* Filter chips */}
-      <nav className="px-3 md:px-6 mt-4 flex gap-2 overflow-x-auto" data-testid="feed-filters">
+      {/* Filters: segmented text, the active one underlined (#951) */}
+      <nav className="px-3 md:px-6 mt-4 flex gap-4 overflow-x-auto" data-testid="feed-filters">
         {FILTERS.map((f) => {
           const active = filter === f.id
           return (
@@ -144,10 +144,10 @@ export function HomeFeed() {
               data-testid="feed-filter-chip"
               data-active={active}
               onClick={() => setFilter(f.id)}
-              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap py-1.5 text-sm transition-colors ${
                 active
-                  ? 'bg-[var(--color-accent)] text-white'
-                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                  ? 'font-semibold text-neutral-900 underline decoration-2 underline-offset-8'
+                  : 'font-medium text-neutral-500 hover:text-neutral-900'
               }`}
             >
               {f.label}

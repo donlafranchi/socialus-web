@@ -27,9 +27,9 @@ export default async function AdminUnclaimedPage() {
                 {p.name}
               </a>
               {p.hiddenAt && (
-                <span className="chip text-xs">Hidden {p.hiddenAt.toISOString().slice(0, 10)}</span>
+                <span className="text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">Hidden {p.hiddenAt.toISOString().slice(0, 10)}</span>
               )}
-              {p.photoHiddenAt && <span className="chip text-xs">Photo hidden</span>}
+              {p.photoHiddenAt && <span className="text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">Photo hidden</span>}
             </div>
             {p.requests.length > 0 && (
               <ul className="flex list-none flex-col gap-1 p-0">

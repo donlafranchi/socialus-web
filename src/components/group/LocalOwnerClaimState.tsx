@@ -32,11 +32,11 @@ export function useLocalOwnerClaim() {
   return v
 }
 
-export function LocalOwnerBadgeChip() {
+export function LocalOwnerBadgeLabel() {
   const { badge } = useLocalOwnerClaim().state
   if (!badge) return null
   return (
-    <span data-testid="local-owner-badge" className="chip chip-selected whitespace-nowrap text-xs">
+    <span data-testid="local-owner-badge" className="whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg)]">
       {badge.label}
     </span>
   )
