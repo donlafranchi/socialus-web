@@ -435,3 +435,23 @@ describe('#876 — a filter is one targeted read', () => {
     expect(getWithheldAnnouncements).not.toHaveBeenCalled()
   })
 })
+
+// #916 — a search is one read of the whole market on the server, not a cut of the 100 rows in hand.
+describe('#916 — a search is one targeted read', () => {
+  it('sends the words with the filters, once, and skips the first look', async () => {
+    signedIn()
+    getBrowseFeed.mockResolvedValue([])
+    const snap = await loadBrowse(null, null, { search: 'flowers' })
+    expect(getBrowseFeed).toHaveBeenCalledTimes(1)
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', scope: { metroId: METRO.id } })
+    expect(snap.lead ?? []).toEqual([])
+  })
+
+  it('signed out, it searches Pages only: post text never answers a stranger', async () => {
+    signedOut()
+    getBrowseFeed.mockResolvedValue([])
+    await loadBrowse(null, null, { search: 'flowers' })
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', resultKinds: ['page'] })
+    expect(getWithheldAnnouncements).not.toHaveBeenCalled()
+  })
+})

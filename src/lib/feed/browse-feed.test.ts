@@ -237,6 +237,16 @@ describe('T156 — the parameters getBrowseFeed sends', () => {
     })
   })
 
+  // #916 — the box's words go to the server, widened by synonyms, so the whole market is searched.
+  it('sends the search as a tsquery and the raw words, and nothing when there is no search', async () => {
+    const c = client()
+    await getBrowseFeed(c as never, { scope: { metroId: 'm1' }, search: 'Flowers' })
+    expect(argsOf(c)).toMatchObject({ p_search: '(flowers | florist | flower)', p_search_raw: 'flowers' })
+    const plain = client()
+    await getBrowseFeed(plain as never, { scope: { metroId: 'm1' } })
+    expect(argsOf(plain)).not.toHaveProperty('p_search')
+  })
+
   it('defaults to the public audience and sends no follow set', async () => {
     const c = client()
     await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })

@@ -466,3 +466,26 @@ describe('#791 — the list renders a step at a time', () => {
     expect(screen.getByTestId('browse-more')).toBeInTheDocument()
   })
 })
+
+// #916 (Don, 2026-10-18: "I did a search for flowers (plural) and it didn't return anything but flower
+// (singular) did.") — the box asks the server, which searches the whole market, not the rows in hand.
+describe('#916 — search asks the server', () => {
+  it('a Page outside the rows in hand comes back from the server, once the typing settles', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ results: [result({ resultId: 'z1', name: 'Zinnia Flower Farm' })] }))
+    render(<BrowseSurface initial={snapshot()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'flowers' } })
+    expect(browseFeedAction).not.toHaveBeenCalled()
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(null, null, null, 'flowers'))
+    expect(await screen.findByText('Zinnia Flower Farm')).toBeInTheDocument()
+    expect(browseFeedAction).toHaveBeenCalledTimes(1)
+  })
+
+  it('nothing found says so, and suggests what to try', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
+    render(<BrowseSurface initial={snapshot()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'qqqzzz' } })
+    await waitFor(() => expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing matches “qqqzzz” yet. Try fewer words, or a broader one like “food” or “plants”.'))
+  })
+})
