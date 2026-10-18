@@ -1,0 +1,48 @@
+name: Unclaimed Pages pinned at their addresses
+
+# #936 — moves each unclaimed Page whose listing names a street address off its town's centre and onto a pin
+# at that address (free US Census geocoder), and reports any that would not geocode. Idempotent.
+# By hand only: gh workflow run unclaimed-pin.yml (dry run unless write is ticked).
+on:
+  workflow_dispatch:
+    inputs:
+      write:
+        description: 'Tick to write to the production database. Unticked, it only looks the addresses up.'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unclaimed-load
+  cancel-in-progress: false
+
+jobs:
+  pin:
+    name: Pin at street addresses
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Pin
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          WRITE: ${{ inputs.write }}
+        run: |
+          if [ "$WRITE" = "true" ]; then npx tsx scripts/unclaimed/pin.ts --apply; else npx tsx scripts/unclaimed/pin.ts; fi

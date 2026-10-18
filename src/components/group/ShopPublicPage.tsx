@@ -52,6 +52,8 @@ import { PageMap } from './PageMap'
 import { SearchDemandCard } from './SearchDemandCard'
 import type { PageSearchDemand } from '@/lib/search/page-demand'
 import { pageMapView } from '@/lib/groups/page-map'
+import { FeaturedItems } from './FeaturedItems'
+import { saveFeaturedItemAction, removeFeaturedItemAction } from '@/app/_actions/featured-item-actions'
 
 
 const NO_CLAIM = { zip: null, isProximal: false }
@@ -154,13 +156,14 @@ export function ShopPublicPage({
   const placement = fixedPlacement(where, shop.placements[0])
   const how = loggedIn && where ? whereLine(where) : null
   // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
-  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null) : null
+  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName) : null
   const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
   const showFound = loggedIn && tags.length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
   // #363 — off for a social group until its owner adds it (bug #341).
-  const showProducts = loggedIn && productsOn
+  // #909 — empty, it is the owner's prompt and nobody else's.
+  const showProducts = loggedIn && productsOn && (items.length > 0 || viewerOwnsPage)
   const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
 
   const page = (
@@ -379,21 +382,15 @@ export function ShopPublicPage({
 
       {showProducts && (
         <PageSection id="products" title="Products & services">
-          {/* F035 beat 3 — visible but empty: the Page is real, and listings will come. */}
-          {items.length === 0 ? (
-            <div data-testid="shop-items-empty" className="text-body-sm text-[var(--color-fg-muted)]">
-              <p className="font-medium text-[var(--color-fg)]">Nothing posted yet</p>
-              <p className="mt-1">This Page hasn&apos;t posted anything yet. Check back soon.</p>
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {items.map((item) => (
-                <li key={item.id} className="card p-3 text-sm">
-                  {item.title}
-                </li>
-              ))}
-            </ul>
-          )}
+          <FeaturedItems
+            groupId={shop.groupId}
+            items={items}
+            canEdit={viewerOwnsPage}
+            memberId={viewerOwnsPage ? viewerMemberId : null}
+            onSave={saveFeaturedItemAction}
+            onRemove={removeFeaturedItemAction}
+            report={viewerOwnsPage ? undefined : { loggedIn, returnTo: pagePath, onSend: sendReportAction }}
+          />
         </PageSection>
       )}
 

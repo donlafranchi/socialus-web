@@ -41,7 +41,8 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
 import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
-import { getBrowseFeed, getHappening } from '@/lib/feed/browse-feed'
+import { getBrowseFeed, getHappening, getNearbyFeed } from '@/lib/feed/browse-feed'
+import { REACH_CAP, REACH_TARGET, type Reach } from '@/lib/browse/reach'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { happeningWindows } from '@/lib/metro/happening'
@@ -75,7 +76,14 @@ export async function loadBrowse(
   // #557 — the session seed: same seed, same order; a new sign-in brings a new one.
   // #876 — the Type / Category / Date filters, pushed into one targeted read.
   // #916 — the search box's words: searched on the server over the whole scope, with the filters.
-  { withMap = true, seed = null, filters = null, search = null }: { withMap?: boolean; seed?: string | null; filters?: BrowseFilters | null; search?: string | null } = {},
+  // #922 — how far the default mix reaches: null lets the database widen to a full screen; a ring or 'all' is the member's.
+  {
+    withMap = true,
+    seed = null,
+    filters = null,
+    search = null,
+    reach = null,
+  }: { withMap?: boolean; seed?: string | null; filters?: BrowseFilters | null; search?: string | null; reach?: Reach | null } = {},
 ): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
@@ -149,6 +157,8 @@ export async function loadBrowse(
         sort: o?.sort,
         limit: BROWSE_LIMIT,
         ...(o?.following ? { audience: { audience: 'following' as const, following: followIds } } : {}),
+        // #922 — a filter or a search covers the whole area unless the member set a reach.
+        ...(typeof reach === 'number' && !area ? { reachMinutes: reach } : {}),
       })
       return { ...base, results: markFollowed(results, followIds), lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
     } catch (error) {
@@ -200,13 +210,26 @@ export async function loadBrowse(
     : Promise.resolve([] as BrowseResult[])
 
   try {
-    const results = await getBrowseFeed(supabase, {
-      scope: feedScope,
-      resultKinds: signedOut ? ['page'] : null,
-      limit: BROWSE_LIMIT,
-    })
+    // #922 — the whole market only when the member asked for it, or picked a neighbourhood; otherwise a full screen nearby.
+    const nearby = !area && reach !== 'all'
+    const read = nearby
+      ? await getNearbyFeed(supabase, {
+          metroId: scope.metro.id,
+          resultKinds: signedOut ? ['page'] : null,
+          // "This week" as the next seven days, so a Sunday still counts the week ahead.
+          weekEnd: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+          minutes: typeof reach === 'number' ? reach : null,
+          target: REACH_TARGET,
+          cap: REACH_CAP,
+          limit: BROWSE_LIMIT,
+        })
+      : { results: await getBrowseFeed(supabase, { scope: feedScope, resultKinds: signedOut ? ['page'] : null, limit: BROWSE_LIMIT }), reach: null }
+    const results = read.results
+    const reachShown: BrowseSnapshot['reach'] = area ? null : read.reach ?? { minutes: 'all', from: null }
     const following = await followingPromise
-    const withheld = await withheldPromise
+    // Signed out, a withheld card stands for a Page in reach, never one the list left out.
+    const inReach = new Set(results.map((r) => r.groupId))
+    const withheld = (await withheldPromise).filter((r) => !nearby || inReach.has(r.groupId))
     const happening = await happeningPromise
     const now = new Date()
     // #876 (Don, 2026-10-16) — everything mixed: Pages, posts, and the updates of Pages the member
@@ -237,6 +260,7 @@ export async function loadBrowse(
       area,
       chosen: scope.chosen,
       failed: withheldFailed,
+      reach: reachShown,
     }
   } catch (error) {
     // Loud, and distinguishable. An empty surface that means "the query is

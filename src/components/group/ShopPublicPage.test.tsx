@@ -11,6 +11,8 @@ import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 
 afterEach(cleanup)
 
+const LOAF = { id: 'i1', kind: 'product' as const, name: 'Country Loaf', details: '', priceCents: null, inStock: true, photoUrl: null, sampleSourceUrl: null, hidden: false }
+
 const SHOP: ResolvedShop = {
   groupId: 'grp-1',
   kind: 'business',
@@ -171,12 +173,16 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
 })
 
 describe('ShopPublicPage — Beat 3 (items)', () => {
-  // F035 beat 3: visible-but-empty says the Page is real and listings will come.
-  it('shows a visible empty state, not a hidden section, when there are no items', () => {
+  // #909 (Don, 2026-10-18) — empty, the section is hidden from visitors and is the owner's prompt.
+  it('hides an empty section from a visitor', () => {
     renderShop({ items: [], loggedIn: true })
-    const empty = screen.getByTestId('shop-items-empty')
-    expect(empty).toHaveTextContent(/check back soon/i)
-    expect(empty.textContent).not.toContain('\u2014')
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+  })
+
+  it("an empty section asks the owner for the first one", () => {
+    renderShop({ items: [], loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x', viewerMemberId: 'm' })
+    expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
+    expect(screen.getByTestId('featured-empty-owner')).toBeInTheDocument()
   })
 
   // bug #341 — a private family Page shows no card until its owner adds one (#363's ruling).
@@ -186,8 +192,7 @@ describe('ShopPublicPage — Beat 3 (items)', () => {
   })
 
   it('lists items when present', () => {
-    renderShop({ items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true })
-    expect(screen.queryByTestId('shop-items-empty')).not.toBeInTheDocument()
+    renderShop({ items: [LOAF], loggedIn: true })
     expect(screen.getByText('Country Loaf')).toBeInTheDocument()
   })
 })
@@ -430,7 +435,7 @@ describe('#301 — the draft Page, in the owner view', () => {
 })
 
 describe('#300 — the front door, signed out (F093 criterion 8)', () => {
-  const items = [{ id: 'i1', title: 'Country Loaf', kind: 'product' as const }]
+  const items = [LOAF]
   const socialLinks = { instagram: 'https://instagram.com/claras' }
 
   it('shows no listings and no links out signed out', () => {
@@ -573,7 +578,7 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
     cleanup()
-    renderShop({ loggedIn: true, shop: GROUP, productsOn: true })
+    renderShop({ loggedIn: true, shop: GROUP, productsOn: true, items: [LOAF] })
     expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
@@ -649,6 +654,7 @@ describe('#458 — a header block, then contained sections', () => {
     tags: ['sourdough'],
     contact: { phone: '+19165550142', hours: null } as never,
     shop: { ...SHOP, placements: [{ source: 'anchor' as const, kind: 'point' as const, label: '3117 Broadway', lng: -121.47, lat: 38.55 }], socialLinks: { instagram: 'https://instagram.com/oakpark' } },
+    items: [LOAF],
     posts: [{ id: 'p1', body: 'Bread', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }],
   }
   const sections = () => [...document.querySelectorAll('main section[data-section]')].map((el) => el.getAttribute('data-section'))
@@ -911,6 +917,31 @@ describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
       const section = screen.getByTestId(`page-section-${id}`)
       expect(section.querySelector('[class*="rounded-full"], [class*="btn-"]')).toBeNull()
     }
+    vi.unstubAllEnvs()
+  })
+})
+
+// #936 — Directions find the business by name at its street address, not its town.
+describe('#936 — Maps finds the business by name and address', () => {
+  it('Directions carry the Page name and its full street address', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const point = { source: 'anchor' as const, kind: 'point' as const, label: '15010 Ridge Road, Sutter Creek, CA', lng: -120.8401, lat: 38.3655 }
+    renderShop({ shop: { ...SHOP, displayName: 'Vino Tahoe', placements: [point] }, loggedIn: true })
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=Vino%20Tahoe%2C%2015010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+    )
+    expect(screen.getByRole('img', { name: 'Map of 15010 Ridge Road, Sutter Creek, CA' }).getAttribute('src')).toContain('pin-l+24405a(-120.8401,38.3655)')
+    vi.unstubAllEnvs()
+  })
+
+  it('an area-only Page never gets a name-and-address search or directions', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const area = { source: 'anchor' as const, kind: 'area' as const, label: 'Sutter Creek', lng: -120.80241, lat: 38.39301 }
+    const { container } = renderShop({ shop: { ...SHOP, displayName: 'Vino Tahoe', placements: [area] }, loggedIn: true })
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    expect(container.innerHTML).not.toContain('Vino%20Tahoe')
+    expect(container.innerHTML).not.toContain('-120.80241')
     vi.unstubAllEnvs()
   })
 })

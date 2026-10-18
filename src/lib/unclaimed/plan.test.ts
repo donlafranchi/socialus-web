@@ -171,3 +171,23 @@ describe('a maker row carries its own social links (Don, 2026-10-16)', () => {
     expect(listed[0]!.social).toEqual(social)
   })
 })
+
+// #936 — a planned Page carries its street address when its row names one.
+describe('#936 — the street address', () => {
+  it('a maker row that names its address in its own words carries it', () => {
+    const { listed } = planMakers([{ name: 'Vino Tahoe', category: 'Food & drink', makes: 'A micro-winery making wines at 15010 Ridge Road', area: 'Sutter Creek (Amador)', site: 'https://www.vinotahoe.com/', confidence: 'High' }])
+    expect(listed[0]!.address).toBe('15010 Ridge Road, Sutter Creek, CA')
+  })
+  it('or the address the researcher noted from its own site', () => {
+    const { listed } = planMakers([{ name: 'Goathouse Brewing', category: 'Food & drink', makes: 'A farm brewery', area: 'Lincoln (Placer)', site: 'https://goathousebrewing.com/', confidence: 'High; own site checked 2026-10-16: address 600 Wise Rd.' }])
+    expect(listed[0]!.address).toBe('600 Wise Rd, Lincoln, CA')
+  })
+  it('a listing carries its listed address', () => {
+    const [p] = planListings([{ key: 'k', name: 'Davis Food Co-op', purpose: 'sell', town: 'Davis', address: '620 G St, Davis, CA 95616', website: 'https://davisfood.coop/', description: 'A grocery.' }])
+    expect(p!.address).toBe('620 G St, Davis, CA 95616')
+  })
+  it('no address named, none carried', () => {
+    const { listed } = planMakers([{ name: 'Moon Bakery', category: 'Food & drink', makes: 'Bread in Midtown', area: 'Midtown Sacramento', site: 'https://moon.example/', confidence: 'High' }])
+    expect(listed[0]!.address).toBeUndefined()
+  })
+})
