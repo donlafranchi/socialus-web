@@ -14,7 +14,7 @@ function run(environment: string, existing: string) {
   writeFileSync(join(dir, 'gh'), `#!/bin/bash\necho "$@" >> ${log}\n[ "$2" = list ] && echo "${existing}"\nexit 0\n`)
   chmodSync(join(dir, 'gh'), 0o755)
   execFileSync('bash', ['-c', script], {
-    env: { PATH: `${dir}:${process.env.PATH}`, REPO: 'o/r', ENVIRONMENT: environment, REF: 'main', SHA: 'afcb9110000', LOG: 'https://vercel.com/x' },
+    env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, REPO: 'o/r', ENVIRONMENT: environment, REF: 'main', SHA: 'afcb9110000', LOG: 'https://vercel.com/x' },
   })
   try { return readFileSync(log, 'utf8') } catch { return '' }
 }
