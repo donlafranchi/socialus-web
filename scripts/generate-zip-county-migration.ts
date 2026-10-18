@@ -2,11 +2,14 @@
 // Writes supabase/migrations/<version>_zip_county.sql from the Census 2020 ZCTA relationship files:
 // zip → county (the county with the largest land share of the zip), and, only inside a county that
 // markets split (market_members rows with a cousub), zip → county subdivision (largest share).
+// Connecticut's zips go to its 2022 planning regions through their county subdivisions (bug #905).
 // Census now, HUD-USPS later (the PM, 2026-10-12, #693): swap the source, keep the tables.
-//   usage: tsx scripts/generate-zip-county-migration.ts <version> [--local <dir>]
+//   usage: tsx scripts/generate-zip-county-migration.ts <version> [--local <dir>] [--connecticut]
+//   --connecticut writes only the Connecticut rows, as <version>_zip_county_connecticut.sql.
 import { writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { rows, counts, largest, connecticutRegions } from './zip-county-lib'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const REL = 'https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520'
@@ -14,62 +17,54 @@ const GAZ = 'https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2023_Gaze
 // Counties that markets split (Placer, El Dorado): only their zips need a subdivision.
 const SPLIT = new Set(['06061', '06017'])
 
-const [version, flag, dir] = process.argv.slice(2)
-if (!version) throw new Error('usage: generate-zip-county-migration.ts <version> [--local <dir>]')
+const args = process.argv.slice(2)
+const version = args[0]
+const dir = args.includes('--local') ? args[args.indexOf('--local') + 1] : undefined
+const ctOnly = args.includes('--connecticut')
+if (!version) throw new Error('usage: generate-zip-county-migration.ts <version> [--local <dir>] [--connecticut]')
 
 async function text(name: string, url: string): Promise<string> {
-  if (flag === '--local' && dir && existsSync(join(dir, name))) return readFileSync(join(dir, name), 'utf8')
+  if (dir && existsSync(join(dir, name))) return readFileSync(join(dir, name), 'utf8')
   const res = await fetch(url)
   if (!res.ok) throw new Error(`${url}: ${res.status}`)
   return res.text()
 }
 
-const rows = (t: string) => t.replace(/^﻿/, '').split(/\r?\n/).filter(Boolean).map((l) => l.split(/[|\t]/))
-
-// Column positions from each header, so a reordered file fails loudly rather than silently.
-const col = (h: string[], n: string) => {
-  const i = h.indexOf(n)
-  if (i < 0) throw new Error(`missing column ${n}`)
-  return i
-}
-function counts(file: string[][], zipCol: string, idCol: string): Map<string, number> {
-  const h = file[0]!
-  const z = col(h, zipCol), g = col(h, idCol)
-  const seen = new Map<string, Set<string>>()
-  for (const r of file.slice(1)) {
-    if (!/^\d{5}$/.test(r[z]!)) continue
-    seen.set(r[z]!, (seen.get(r[z]!) ?? new Set()).add(r[g]!))
-  }
-  return new Map([...seen].map(([k, v]) => [k, v.size]))
-}
-
-function largest(file: string[][], zipCol: string, partCol: string, idCol: string): Map<string, string> {
-  const h = file[0]!
-  const z = col(h, zipCol), g = col(h, idCol), a = col(h, partCol)
-  const best = new Map<string, { id: string; area: number }>()
-  for (const r of file.slice(1)) {
-    const zip = r[z]!
-    if (!/^\d{5}$/.test(zip)) continue // the rows with no ZCTA are land outside every zip
-    const area = Number(r[a])
-    const cur = best.get(zip)
-    // Largest share wins; a tie goes to the lower code so the same zip always gives the same answer.
-    if (!cur || area > cur.area || (area === cur.area && r[g]! < cur.id)) best.set(zip, { id: r[g]!, area })
-  }
-  return new Map([...best].map(([k, v]) => [k, v.id]))
-}
+const q = (s: string) => `'${s.replace(/'/g, "''")}'`
+const values = (zips: [string, string, string | null, boolean][]) =>
+  zips.map(([zip, c, sub, guess]) => `('${zip}','${c}',${sub ? q(sub) : 'null'},${guess})`).join(',\n')
 
 async function main() {
-const zipCounty = rows(await text('tab20_zcta520_county20_natl.txt', `${REL}/tab20_zcta520_county20_natl.txt`))
-const zipCousub = rows(await text('tab20_zcta520_cousub20_natl.txt', `${REL}/tab20_zcta520_cousub20_natl.txt`))
+  const zipCounty = rows(await text('tab20_zcta520_county20_natl.txt', `${REL}/tab20_zcta520_county20_natl.txt`))
+  const zipCousub = rows(await text('tab20_zcta520_cousub20_natl.txt', `${REL}/tab20_zcta520_cousub20_natl.txt`))
+  const gazCt = rows(await text('2023_gaz_cousubs_09.txt', `${GAZ}/2023_gaz_cousubs_09.txt`))
 
-const county = largest(zipCounty, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUNTY_20')
+  const county = largest(zipCounty, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUNTY_20')
   const spans = counts(zipCounty, 'GEOID_ZCTA5_20', 'GEOID_COUNTY_20')
   const cousub = largest(zipCousub, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUSUB_20')
-  
+  // Connecticut's old counties (09001–09015) give way to the planning region of each zip.
+  const ct = connecticutRegions([...county].filter(([, c]) => /^090[01]\d$/.test(c)).map(([z]) => z), zipCousub, gazCt)
+  for (const [zip, r] of ct) county.set(zip, r.fips)
+  const guess = (zip: string) => (ct.get(zip)?.spans ?? spans.get(zip) ?? 1) > 1
+
+  if (ctOnly) {
+    const ctRows = [...ct.keys()].sort().map((zip): [string, string, null, boolean] => [zip, ct.get(zip)!.fips, null, guess(zip)])
+    const out = [
+      `-- bug #905: Connecticut's zips, which 20261012030000_zip_county left out (the 2020 relationship file names CT's old`,
+      `-- counties; public.counties has its 2022 planning regions). Generated by scripts/generate-zip-county-migration.ts`,
+      `-- --connecticut: each zip goes to the planning region whose county subdivisions hold the largest land share of it.`,
+      `insert into public.zip_county (zip, county_fips, cousub_geoid, guess) values`,
+      values(ctRows),
+      `on conflict (zip) do nothing;`,
+    ]
+    writeFileSync(resolve(ROOT, 'supabase', 'migrations', `${version}_zip_county_connecticut.sql`), out.join('\n') + '\n')
+    console.log(`wrote ${ctRows.length} Connecticut zips`)
+    return
+  }
+
   const gaz = rows(await text('2023_Gaz_counties_national.txt', `${GAZ}/2023_Gaz_counties_national.txt`))
-  const names = gaz.slice(1).map((r) => ({ fips: r[1]!.trim(), name: r[3]!.trim(), state: r[0]!.trim() }))
-  
-  const q = (s: string) => `'${s.replace(/'/g, "''")}'`
+  const names = gaz.slice(1).map((r) => ({ fips: r[1]!, name: r[3]!, state: r[0]! }))
+
   // The gazetteer lists the states and DC only: zips in the territories (PR, VI, GU, AS, MP) are left out, so they are unknown.
   const known = new Set(names.map((n) => n.fips))
   const zips = [...county].filter(([, c]) => known.has(c)).sort(([a], [b]) => (a < b ? -1 : 1))
@@ -145,10 +140,7 @@ const county = largest(zipCounty, 'GEOID_ZCTA5_20', 'AREALAND_PART', 'GEOID_COUN
   for (let i = 0; i < zips.length; i += 1000) {
     lines.push(`insert into public.zip_county (zip, county_fips, cousub_geoid, guess) values`)
     lines.push(
-      zips
-        .slice(i, i + 1000)
-        .map(([zip, c]) => `('${zip}','${c}',${SPLIT.has(c) && cousub.get(zip) ? q(cousub.get(zip)!) : 'null'},${(spans.get(zip) ?? 1) > 1})`)
-        .join(',\n') + ';',
+      values(zips.slice(i, i + 1000).map(([zip, c]) => [zip, c, SPLIT.has(c) ? (cousub.get(zip) ?? null) : null, guess(zip)])) + ';',
     )
   }
   writeFileSync(resolve(ROOT, 'supabase', 'migrations', `${version}_zip_county.sql`), lines.join('\n') + '\n')
