@@ -89,3 +89,15 @@ export {
 
 // #695 / #568 (F081.4, F103.5) — change the zip on You
 export { memberZipSet, memberZipSetInput, UNKNOWN_ZIP, type MemberZipSetInput, type MemberZipSetResult } from './zip-set'
+
+// #904 — notification choices and push subscriptions
+export {
+  memberNotificationsSet,
+  memberNotificationsSetInput,
+  memberPushSubscribe,
+  memberPushSubscribeInput,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
+  type MemberNotificationsSetInput,
+  type MemberPushSubscribeInput,
+} from './notifications'

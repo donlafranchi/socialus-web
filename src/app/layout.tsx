@@ -4,6 +4,7 @@ import "./globals.css"
 import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
+import { PushLandingBar } from "@/components/notify/PushLandingBar"
 import { siteMetadataBase } from "@/lib/site-url"
 
 const inter = Inter({
@@ -56,6 +57,7 @@ export default function RootLayout({
           <div className="flex min-h-full flex-col">
             <TopNavDesktop />
             {/* #296 — content stops growing at 1680 and centres above it. */}
+            <PushLandingBar />
             <div className="mx-auto w-full max-w-shell flex-1">{children}</div>
             <SiteFooter />
           </div>

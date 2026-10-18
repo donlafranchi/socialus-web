@@ -20,6 +20,7 @@ import { ZipChange } from '@/components/member/ZipChange'
 import { changeZipAction } from '@/app/_actions/zip-actions'
 import { listFeedMetros, splitByOpen } from '@/lib/feed/feed-metro'
 import { saveDefaultMetroAction } from '@/app/explore/actions'
+import { NOTIFY_COPY } from '@/lib/notify/push/copy'
 
 export const dynamic = 'force-dynamic'
 
@@ -92,6 +93,13 @@ export default async function YouPage() {
             <ZipChange zip={row?.zip ?? null} area={area} change={changeZipAction} />
           </Row>
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
+          <Row
+            label={NOTIFY_COPY.rowLabel}
+            value={NOTIFY_COPY.rowValue}
+            testId="settings-notifications"
+            wrap
+            action={<Link href="/you/notifications" className={LINK}>{NOTIFY_COPY.rowAction}</Link>}
+          />
           <Row
             label="Help"
             value="Something not working?"
