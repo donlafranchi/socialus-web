@@ -489,3 +489,21 @@ describe('#916 — search asks the server', () => {
     await waitFor(() => expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing matches “qqqzzz” yet. Try fewer words, or a broader one like “food” or “plants”.'))
   })
 })
+
+// #896 — opened from a Page's map: Explore opens on the map, with a way back to the Page.
+describe("#896 — Explore's map, opened from a Page", () => {
+  afterEach(() => {
+    search = ''
+  })
+  it('opens on the map with a link back to the Page', () => {
+    search = 'view=map&focus=vino12&at=-120.75284,38.40055'
+    render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    expect(screen.getByTestId('browse-map-pane')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to the page/i })).toHaveAttribute('href', '/g/vino12')
+  })
+  it('an ordinary visit still opens on the list, with no way back to show', () => {
+    render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    expect(screen.queryByTestId('browse-map-pane')).toBeNull()
+    expect(screen.queryByRole('link', { name: /back to the page/i })).toBeNull()
+  })
+})

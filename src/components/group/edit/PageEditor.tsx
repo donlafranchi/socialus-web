@@ -144,7 +144,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
     }
     setBusy(true)
     if (section === 'where') {
-      const w = await wherePatch(where, initial.where.mode, { createLocation: createLocationAction, metroAnchor: metroAnchorPlaceAction })
+      const w = await wherePatch(where, initial.where.mode, { createLocation: createLocationAction, metroAnchor: metroAnchorPlaceAction, savedPin: initial.savedPin ?? null })
       if (!w || !w.ok) {
         setBusy(false)
         return setError(w ? w.message : 'Choose how people find you, then finish that answer.')

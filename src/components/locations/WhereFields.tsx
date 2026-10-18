@@ -1,12 +1,16 @@
 'use client'
 
 // #348 — where a Page is (Don, 2026-10-04, "the most elegant"): one question,
-// three answers. Google Business Profile's two questions folded into one;
-// Airbnb's confirm-the-pin and approximate location; Google Maps' drop a pin;
-// Meetup's "how to find us". Minimal: one choice, then only its own fields.
+// then only the chosen answer's own fields. Google Business Profile's two
+// questions folded into one; Airbnb's confirm-the-pin and approximate location;
+// Google Maps' drop a pin; Meetup's "how to find us".
+// #896 — seven answers (Don, 2026-10-18: "We need more options for when there
+// isn't a street address"): Google's service-area and hide-address, a landmark,
+// more than one location, a market stall's where and when, online. A plain
+// radio list (Don, 2026-10-18: no chips or pills).
 
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { geocode, type GeocodingResult } from '@/lib/geocoding'
 import { placeForPointAction, searchNeighborhoodsAction, searchPlacesAction } from '@/app/_actions/location-actions'
 import type { NeighborhoodMatch } from '@/lib/places/neighborhood-search'
@@ -18,29 +22,24 @@ import dynamic from 'next/dynamic'
 const PinAdjustMap = dynamic(() => import('./PinAdjustMap').then((m) => m.PinAdjustMap), { ssr: false })
 const AreaPickMap = dynamic(() => import('./AreaPickMap').then((m) => m.AreaPickMap), { ssr: false })
 
-export type WhereMode = 'visit' | 'travel' | 'roaming'
-type Place = { id: string; name: string }
+import { emptyWhere, type Place, type ScheduleStop, type WhereMode, type WhereValue } from './where-value'
+export { emptyWhere, type ScheduleStop, type WhereMode, type WhereValue }
 
-export interface WhereValue {
-  mode: WhereMode | null
-  visit: { pin: [number, number] | null; label: string | null; howToFind: string; areaOnly: boolean; area: Place | null }
-  travel: { towns: Place[] }
-  roaming: { usuallyAround: string }
-}
-
-export const emptyWhere: WhereValue = {
-  mode: null,
-  visit: { pin: null, label: null, howToFind: '', areaOnly: false, area: null },
-  travel: { towns: [] },
-  roaming: { usuallyAround: '' },
-}
+/** The answer a radio stands for: a street address and a neighbourhood are both "visit". */
+type Answer = 'address' | 'area' | Exclude<WhereMode, 'visit'>
+const answerOf = (v: WhereValue): Answer | null => (v.mode === 'visit' ? (v.visit.areaOnly ? 'area' : 'address') : v.mode)
+const MAX_STOPS = 20
 
 const SACRAMENTO: [number, number] = [-121.4944, 38.5816]
 
-const ANSWERS: { mode: WhereMode; title: string; body: string }[] = [
-  { mode: 'visit', title: 'People come to me', body: 'A shop, a studio, a trailhead: somewhere people can find you.' },
-  { mode: 'travel', title: 'I go to them', body: 'You work at their place, anywhere in the towns you choose.' },
-  { mode: 'roaming', title: 'It moves, or it’s online', body: 'Markets, pop-ups, a different spot each time, or no spot at all.' },
+const ANSWERS: { answer: Answer; title: string; body: string }[] = [
+  { answer: 'address', title: 'Street address', body: 'A shop, a studio, an office: people come to the door.' },
+  { answer: 'area', title: 'Neighbourhood only', body: 'People come to you, but visitors see only the neighbourhood.' },
+  { answer: 'landmark', title: 'Cross streets or a landmark', body: 'A corner, a trailhead, a spot in the park.' },
+  { answer: 'multi', title: 'More than one location', body: 'Each with its own address.' },
+  { answer: 'roaming', title: 'It moves', body: 'Markets, pop-ups, a truck. Add where and when, if you like.' },
+  { answer: 'travel', title: 'I go to them', body: 'You work at their place, anywhere in the towns you choose.' },
+  { answer: 'online', title: 'Online only, or by appointment', body: 'No place to visit, so no map.' },
 ]
 
 export function WhereFields({
@@ -54,61 +53,158 @@ export function WhereFields({
   savedPin?: [number, number] | null
 }) {
   const set = (patch: Partial<WhereValue>) => onChange({ ...value, ...patch })
+  const chosen = answerOf(value)
+  const choose = (a: Answer) =>
+    a === 'address' || a === 'area' ? set({ mode: 'visit', visit: { ...value.visit, areaOnly: a === 'area' } }) : set({ mode: a })
   return (
     <fieldset className="flex flex-col gap-3" aria-label="How do people find you?">
       <legend className="text-sm font-medium text-[var(--color-fg)]">How do people find you?</legend>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         {ANSWERS.map((a) => (
-          <label
-            key={a.mode}
-            className={`flex cursor-pointer gap-3 rounded-md border p-3 ${
-              value.mode === a.mode ? 'border-[var(--color-charcoal-700)]' : 'border-[var(--color-border)]'
-            }`}
-          >
+          <label key={a.answer} className="flex min-h-tap cursor-pointer gap-3 py-2">
             <input
               type="radio"
               name="where-mode"
-              className="mt-1 h-4 w-4"
-              checked={value.mode === a.mode}
-              onChange={() => set({ mode: a.mode })}
-              aria-labelledby={`where-${a.mode}-title`}
-              aria-describedby={`where-${a.mode}-body`}
+              className="mt-1 h-4 w-4 shrink-0"
+              checked={chosen === a.answer}
+              onChange={() => choose(a.answer)}
+              aria-labelledby={`where-${a.answer}-title`}
+              aria-describedby={`where-${a.answer}-body`}
             />
             <span>
-              <span id={`where-${a.mode}-title`} className="block text-body-sm font-semibold text-[var(--color-fg)]">
+              <span id={`where-${a.answer}-title`} className={`block text-body-sm text-[var(--color-fg)] ${chosen === a.answer ? 'font-semibold' : 'font-medium'}`}>
                 {a.title}
               </span>
-              <span id={`where-${a.mode}-body`} className="block text-caption text-[var(--color-fg-muted)]">
+              <span id={`where-${a.answer}-body`} className="block text-caption text-[var(--color-fg-muted)]">
                 {a.body}
               </span>
             </span>
           </label>
         ))}
       </div>
-      {value.mode === 'visit' && <Visit value={value.visit} savedPin={savedPin} onChange={(visit) => set({ visit })} />}
-      {value.mode === 'travel' && <Travel value={value.travel} onChange={(travel) => set({ travel })} />}
-      {value.mode === 'roaming' && (
+      {(chosen === 'address' || chosen === 'area') && (
+        <Visit variant={chosen} value={value.visit} savedPin={savedPin} onChange={(visit) => set({ visit })} />
+      )}
+      {chosen === 'landmark' && (
+        <>
+          <label className="flex flex-col gap-1">
+            <span className="text-sm text-[var(--color-fg)]">Cross streets or landmark</span>
+            <input
+              className="input"
+              maxLength={120}
+              placeholder="J St & 20th St, by the fountain"
+              value={value.landmark.text}
+              onChange={(e) => set({ landmark: { text: e.target.value } })}
+            />
+          </label>
+          <Visit variant="landmark" value={value.visit} savedPin={savedPin} onChange={(visit) => set({ visit })} />
+        </>
+      )}
+      {chosen === 'multi' && <Multi value={value.multi} onChange={(multi) => set({ multi })} />}
+      {chosen === 'travel' && <Travel value={value.travel} onChange={(travel) => set({ travel })} />}
+      {chosen === 'roaming' && <Roaming value={value.roaming} onChange={(roaming) => set({ roaming })} />}
+      {chosen === 'online' && (
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-[var(--color-fg)]">Usually around <span className="text-[var(--color-fg-muted)]">(optional)</span></span>
+          <span className="text-sm text-[var(--color-fg)]">Anything to add <span className="text-[var(--color-fg-muted)]">(optional)</span></span>
           <input
             className="input"
-            maxLength={80}
-            placeholder="Midtown farmers markets"
-            value={value.roaming.usuallyAround}
-            onChange={(e) => set({ roaming: { usuallyAround: e.target.value } })}
+            maxLength={140}
+            placeholder="By appointment in Midtown"
+            value={value.online.note}
+            onChange={(e) => set({ online: { note: e.target.value } })}
           />
-          <span className="text-caption text-[var(--color-fg-muted)]">You show up anywhere in the Sacramento area.</span>
+          <span className="text-caption text-[var(--color-fg-muted)]">Visitors see this instead of a map.</span>
         </label>
       )}
     </fieldset>
   )
 }
 
+const ROW_BUTTON = 'press inline-flex min-h-tap items-center gap-2 self-start text-sm font-medium text-[var(--color-accent)] underline'
+
+function Multi({ value, onChange }: { value: WhereValue['multi']; onChange: (v: WhereValue['multi']) => void }) {
+  const put = (i: number, text: string) => onChange({ addresses: value.addresses.map((a, j) => (j === i ? text : a)) })
+  return (
+    <div className="flex flex-col gap-2">
+      {value.addresses.map((a, i) => (
+        <div key={i} className="flex items-end gap-1">
+          <label className="flex flex-1 flex-col gap-1">
+            <span className="text-sm text-[var(--color-fg)]">Address {i + 1}</span>
+            <input className="input" maxLength={120} autoComplete="off" placeholder="915 I St, Sacramento" value={a} onChange={(e) => put(i, e.target.value)} />
+          </label>
+          {value.addresses.length > 1 && (
+            <button
+              type="button"
+              aria-label={`Remove address ${i + 1}`}
+              onClick={() => onChange({ addresses: value.addresses.filter((_, j) => j !== i) })}
+              className="inline-flex size-tap shrink-0 items-center justify-center text-[var(--color-fg-muted)]"
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      ))}
+      {value.addresses.length < MAX_STOPS && (
+        <button type="button" onClick={() => onChange({ addresses: [...value.addresses, ''] })} className={ROW_BUTTON}>
+          <Plus size={16} aria-hidden="true" />
+          Add another location
+        </button>
+      )}
+    </div>
+  )
+}
+
+function Roaming({ value, onChange }: { value: WhereValue['roaming']; onChange: (v: WhereValue['roaming']) => void }) {
+  const put = (i: number, patch: Partial<ScheduleStop>) => onChange({ ...value, stops: value.stops.map((s, j) => (j === i ? { ...s, ...patch } : s)) })
+  return (
+    <div className="flex flex-col gap-3">
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-[var(--color-fg)]">Usually around <span className="text-[var(--color-fg-muted)]">(optional)</span></span>
+        <input
+          className="input"
+          maxLength={80}
+          placeholder="Midtown farmers markets"
+          value={value.usuallyAround}
+          onChange={(e) => onChange({ ...value, usuallyAround: e.target.value })}
+        />
+        <span className="text-caption text-[var(--color-fg-muted)]">You show up anywhere in the Sacramento area.</span>
+      </label>
+      <div role="group" aria-labelledby="where-when-title" className="flex flex-col gap-2">
+        <span id="where-when-title" className="text-sm text-[var(--color-fg)]">Where and when <span className="text-[var(--color-fg-muted)]">(optional)</span></span>
+        {value.stops.map((s, i) => (
+          <div key={i} className="flex flex-col gap-1 border-b border-[var(--color-border)] pb-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-caption text-[var(--color-fg-muted)]">Where</span>
+              <input className="input" maxLength={120} placeholder="Midtown Farmers Market" value={s.where} onChange={(e) => put(i, { where: e.target.value })} />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-caption text-[var(--color-fg-muted)]">When</span>
+              <input className="input" maxLength={80} placeholder="Saturdays, 8am–1pm" value={s.when} onChange={(e) => put(i, { when: e.target.value })} />
+            </label>
+            <button type="button" onClick={() => onChange({ ...value, stops: value.stops.filter((_, j) => j !== i) })} className={ROW_BUTTON}>
+              Remove this stop
+            </button>
+          </div>
+        ))}
+        {value.stops.length < MAX_STOPS && (
+          <button type="button" onClick={() => onChange({ ...value, stops: [...value.stops, { where: '', when: '' }] })} className={ROW_BUTTON}>
+            <Plus size={16} aria-hidden="true" />
+            Add a stop
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Visit({
+  variant,
   value,
   savedPin,
   onChange,
 }: {
+  /** #896 — a street address, the neighbourhood only, or the pin under a landmark. */
+  variant: 'address' | 'area' | 'landmark'
   value: WhereValue['visit']
   savedPin: [number, number] | null
   onChange: (v: WhereValue['visit']) => void
@@ -158,12 +254,33 @@ function Visit({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* #413 — with a map, the address suggests as you type and a neighbourhood is a second way in; without one, the lookup runs on request. */}
-      {mapAvailable() ? (
+      {/* #896 — neighbourhood only: picked by name, or worked out from a dropped pin. */}
+      {variant === 'area' && (
+        <Typeahead<NeighborhoodMatch>
+          key={`area-${picks.address}`}
+          label="Neighbourhood"
+          placeholder="Curtis Park, Midtown…"
+          minChars={2}
+          search={async (q) => {
+            const res = await searchNeighborhoodsAction(q)
+            return res.ok ? res.data : []
+          }}
+          optionKey={(n) => n.placeId}
+          optionLabel={(n) => n.name}
+          onPick={(n) => {
+            setPicks((p) => ({ ...p, area: p.area + 1 }))
+            setPickedAt(n.centroid.join(','))
+            // #440 — a neighbourhood picked is a neighbourhood shown, never a street address.
+            set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name }, areaOnly: true })
+          }}
+        />
+      )}
+      {/* #413 — with a map, the address suggests as you type; without one, the lookup runs on request. */}
+      {variant === 'area' ? dropPin : mapAvailable() ? (
         <>
           <Typeahead<GeocodingResult>
             key={`address-${picks.area}`}
-            label="Address"
+            label={variant === 'landmark' ? 'Nearby address (optional)' : 'Address'}
             placeholder="915 I St, Sacramento"
             autoComplete="street-address"
             minChars={3}
@@ -175,24 +292,6 @@ function Visit({
               set({ pin: m.coordinates, label: m.name, area: null })
             }}
             emptyMessage={notFound}
-          />
-          <Typeahead<NeighborhoodMatch>
-            key={`area-${picks.address}`}
-            label="Or type a neighbourhood"
-            placeholder="Curtis Park, Midtown…"
-            minChars={2}
-            search={async (q) => {
-              const res = await searchNeighborhoodsAction(q)
-              return res.ok ? res.data : []
-            }}
-            optionKey={(n) => n.placeId}
-            optionLabel={(n) => n.name}
-            onPick={(n) => {
-              setPicks((p) => ({ ...p, area: p.area + 1 }))
-              setPickedAt(n.centroid.join(','))
-              // #440 — a neighbourhood picked is a neighbourhood shown, never a street address.
-              set({ pin: n.centroid, label: null, area: { id: n.placeId, name: n.name }, areaOnly: true })
-            }}
           />
           {dropPin}
         </>
@@ -249,24 +348,9 @@ function Visit({
           onChange={(e) => set({ howToFind: e.target.value })}
         />
       </label>
-      <label className="flex min-h-tap cursor-pointer items-center justify-between gap-3">
-        <span className="text-sm text-[var(--color-fg)]">Show only my neighbourhood</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={value.areaOnly}
-          aria-label="Show only my neighbourhood"
-          onClick={() => set({ areaOnly: !value.areaOnly })}
-          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-            value.areaOnly ? 'bg-[var(--color-charcoal-700)]' : 'bg-[var(--color-border)]'
-          }`}
-        >
-          <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${value.areaOnly ? 'left-5' : 'left-0.5'}`} />
-        </button>
-      </label>
-      {value.areaOnly && (
+      {variant === 'area' && (
         <p className="text-caption text-[var(--color-fg-muted)]">
-          {value.area ? `Visitors see ${value.area.name}, with its pin at the centre, not your address.` : 'Set your pin first, and visitors see only its neighbourhood.'}
+          {value.area ? `Visitors see ${value.area.name}, with its pin at the centre, not your address.` : 'Pick your neighbourhood, or drop a pin and we’ll work it out.'}
         </p>
       )}
     </div>
@@ -292,9 +376,9 @@ function Travel({ value, onChange }: { value: WhereValue['travel']; onChange: (v
         {value.towns.length === 0 ? 'The whole Sacramento area.' : 'These towns:'}
       </p>
       {value.towns.length > 0 && (
-        <ul className="flex flex-wrap gap-2">
+        <ul className="flex flex-col">
           {value.towns.map((t) => (
-            <li key={t.id} className="flex min-h-tap items-center gap-1 rounded-full border border-[var(--color-border)] pl-3 text-sm">
+            <li key={t.id} className="flex min-h-tap items-center justify-between gap-1 text-sm text-[var(--color-fg)]">
               {t.name}
               <button type="button" aria-label={`Remove ${t.name}`} onClick={() => toggle(t)} className="inline-flex size-tap items-center justify-center">
                 <X size={14} aria-hidden="true" />
