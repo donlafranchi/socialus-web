@@ -37,6 +37,7 @@
 // (F059 criterion 3). Community response may in principle order it and does
 // not today — no Page or post carries a response count.
 
+import { searchRaw, searchTsQuery } from '@/lib/search/query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
@@ -100,6 +101,8 @@ export interface BrowseFeedOpts {
   tags?: readonly string[] | null
   /** #876 — the Type filter's post kinds; a dated real post counts as an event. */
   postKinds?: readonly ('event' | 'deal' | 'last_minute')[] | null
+  /** #916 — the search box's words; searched on the server over every row in scope, widened by synonyms. */
+  search?: string | null
   /** The time lens window. Both ends optional and independent. */
   startsFrom?: string | null
   startsBefore?: string | null
@@ -300,6 +303,11 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
  * tell "nothing matched this lens" from "the query is broken", and the whole
  * point of the hide-an-empty-row rule is that an absent row means the first.
  */
+function searchArgs(text: string | null | undefined) {
+  const raw = text ? searchRaw(text) : null
+  return raw ? { p_search: searchTsQuery(text!), p_search_raw: raw } : {}
+}
+
 export async function getBrowseFeed(
   supabase: RpcClient,
   opts: BrowseFeedOpts,
@@ -320,6 +328,7 @@ export async function getBrowseFeed(
     p_now: opts.now ?? null,
     p_limit: clampLimit(opts.limit),
     ...(opts.postKinds?.length ? { p_post_kinds: [...opts.postKinds] } : {}),
+    ...searchArgs(opts.search),
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]
