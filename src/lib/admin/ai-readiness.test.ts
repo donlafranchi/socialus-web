@@ -23,11 +23,14 @@ describe('fetchAiReadiness', () => {
     expect(r.shadow.days).toBe(14)
   })
 
-  it('counts shadow days from the first read the AI made', async () => {
+  // The ruling (2026-10-11, #640): shadow-agreement days come from report_ai_agreement, a person's decision beside the AI's read.
+  it('counts shadow days from the first decision a person made on a report the AI had read', async () => {
     query.mockResolvedValue({ rows: [] })
     await fetchAiReadiness(NOW)
-    const sql = (query.mock.calls as unknown as [string][]).map(([s]) => s).find((s) => /report_assessments/i.test(s))!
-    expect(sql).toMatch(/min\(created_at\)/i)
+    const sql = (query.mock.calls as unknown as [string][]).map(([s]) => s).find((s) => !/moderation_eval_runs/i.test(s))!
+    expect(sql).toMatch(/from public\.report_ai_agreement/i)
+    expect(sql).toMatch(/min\(d\.decided_at\)/i)
+    expect(sql).toMatch(/not d\.decided_by_ai/i)
   })
 
   it('with nothing recorded and nothing read it is red and not ready', async () => {
