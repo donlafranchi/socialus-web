@@ -15,6 +15,7 @@ import {
   memberSignupProfileSet,
   memberZipSet,
   memberInterestsAdd,
+  memberInterestsRemove,
   memberFollow,
   memberUnfollow,
   memberSavedSearchRemove,
@@ -46,7 +47,7 @@ import {
   groupUnclaimedClaim,
   groupUnclaimedRestore,
 } from './group'
-import { itemCreate, itemPublish, itemAttachLocation } from './item'
+import { itemCreate, itemPublish, itemAttachLocation, featuredItemSave, featuredItemRemove } from './item'
 import { tagReview } from './tag'
 import { originRecord } from './origin'
 import { problemReport } from './problem'
@@ -73,6 +74,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
   'item.attach_location': itemAttachLocation as unknown as NamedActionHandler<unknown, unknown>,
+  'item.featured_save': featuredItemSave as unknown as NamedActionHandler<unknown, unknown>,
+  'item.featured_remove': featuredItemRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.business_jurisdiction.set': memberBusinessJurisdictionSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.business_jurisdiction.remove': memberBusinessJurisdictionRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.place_interest.add': memberPlaceInterestAdd as unknown as NamedActionHandler<unknown, unknown>,
@@ -81,6 +84,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.signup_profile.set': memberSignupProfileSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.zip.set': memberZipSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.interests.add': memberInterestsAdd as unknown as NamedActionHandler<unknown, unknown>,
+  'member.interests.remove': memberInterestsRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.follow': memberFollow as unknown as NamedActionHandler<unknown, unknown>,
   'member.unfollow': memberUnfollow as unknown as NamedActionHandler<unknown, unknown>,
   // #904 — notifications
@@ -153,6 +157,7 @@ export {
   memberSignupProfileSet,
   memberZipSet,
   memberInterestsAdd,
+  memberInterestsRemove,
   memberFollow,
   memberUnfollow,
   memberBusinessJurisdictionSet,
@@ -181,7 +186,7 @@ export {
   type GroupPostCreateResult,
   type GroupPostEditResult,
 } from './group'
-export { itemCreate, itemPublish, itemAttachLocation } from './item'
+export { itemCreate, itemPublish, itemAttachLocation, featuredItemSave, featuredItemRemove } from './item'
 export {
   reportCreate,
   reportDecide,

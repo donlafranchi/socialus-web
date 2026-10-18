@@ -53,7 +53,8 @@ import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { mixRuns } from '@/lib/browse/mix-runs'
 import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
-import { feedOptsFor, hasBrowseFilters, isPlainPostsView, type BrowseFilters } from '@/lib/browse/filters'
+import { feedOptsFor, hasBrowseFilters, isPlainPostsView, serverFilters, type BrowseFilters } from '@/lib/browse/filters'
+import { interestPageTags } from '@/lib/onboarding/interest-vocab'
 import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
 import { loadMapMix } from '@/lib/map/load-mix'
 import { withLocationKinds } from '@/lib/map/location-kinds'
@@ -99,6 +100,8 @@ export async function loadBrowse(
   // than behind the metro reads. A failure is the following row's, caught there.
   const followIdsPromise = userId ? resolveFollowedPageIds(supabase, userId) : null
   followIdsPromise?.catch(() => {})
+  // #892 — their own interests, for the "My interests" filter. Null signed out.
+  const myInterestsPromise = userId ? myInterestTags(supabase, userId) : Promise.resolve(null)
 
   // Sequential because the scope depends on it: precedence is requested slug,
   // then this, then the default.
@@ -118,7 +121,8 @@ export async function loadBrowse(
     await waitingPromise,
   )
 
-  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'] }
+  const myInterests = await myInterestsPromise
+  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
   }
@@ -129,11 +133,13 @@ export async function loadBrowse(
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
 
   // #876 — a filter is one targeted read: no first look, no rows (signed out, posts only reads the withheld cards).
+  // #892 — "My interests" is not part of the read: the client applies it to the list as it stands.
+  const narrowing = filters ? serverFilters(filters) : null
   const searching = Boolean(search?.trim())
-  if ((filters && hasBrowseFilters(filters)) || searching) {
+  if ((narrowing && hasBrowseFilters(narrowing)) || searching) {
     // F093 criterion 7 — signed out, posts only is the withheld cards, as on the mix. A narrower
     // filter (kind, date, following) would say what a withheld post is; browse_feed gives anon no posts.
-    if (!userId && filters && isPlainPostsView(filters) && !searching) {
+    if (!userId && narrowing && isPlainPostsView(narrowing) && !searching) {
       try {
         const results = await getWithheldAnnouncements(supabase, { scope: feedScope, period: metroWeekBounds(), limit: BROWSE_LIMIT })
         return { ...base, results, lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
@@ -142,7 +148,7 @@ export async function loadBrowse(
         return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
       }
     }
-    const o = filters ? feedOptsFor(filters, new Date()) : null
+    const o = narrowing ? feedOptsFor(narrowing, new Date()) : null
     try {
       const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
       const results = await getBrowseFeed(supabase, {
@@ -435,6 +441,20 @@ async function memberMetros(
     .maybeSingle()
   const row = data as { home_metro_id: string | null; default_metro_id?: string | null } | null
   return { home: row?.home_metro_id ?? null, default: row?.default_metro_id ?? null }
+}
+
+/**
+ * #892 — the member's interests as Page tags. Owner-only RLS (2026-09-30: interest tags are not public)
+ * means this can only ever return the reader's own; the member_id is belt and braces. A failure costs the
+ * filter its tags, never the surface.
+ */
+async function myInterestTags(supabase: Awaited<ReturnType<typeof createClient>>, userId: string): Promise<string[]> {
+  const { data, error } = await supabase.from('member_interests').select('tag').eq('member_id', userId)
+  if (error) {
+    console.error('[loadBrowse] member interests failed:', error.message)
+    return []
+  }
+  return interestPageTags(((data ?? []) as { tag: string }[]).map((r) => r.tag))
 }
 
 /** #557 — this session's shuffle seed (set by the proxy), or null when there is none. */

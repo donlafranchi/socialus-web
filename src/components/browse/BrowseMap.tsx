@@ -20,10 +20,15 @@ import { spreadCoincident } from '@/lib/browse/spread'
 import { gridCluster } from '@/lib/browse/cluster'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { handleMapErrors } from '@/lib/map/errors'
+import type { MapFocus } from '@/lib/browse/map-focus'
 
 const TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
-export function BrowseMap({ results, center }: { results: readonly BrowseResult[]; center?: [number, number] }) {
+// #896 — opened from a Page's map: start on that Page, its pin highlighted, what's nearby around it.
+const FOCUS_ZOOM = 15
+
+export function BrowseMap({ results, center, focus }: { results: readonly BrowseResult[]; center?: [number, number]; focus?: MapFocus }) {
+  const focusRef = useRef(focus)
   const metroCenter = center ?? METRO_VIEW.fallbackCenter
   const metroCenterRef = useRef(metroCenter)
   useEffect(() => {
@@ -40,8 +45,8 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: MAP_DEFAULTS.style,
-      center: metroCenterRef.current,
-      zoom: METRO_VIEW.zoom,
+      center: focusRef.current?.at ?? metroCenterRef.current,
+      zoom: focusRef.current ? FOCUS_ZOOM : METRO_VIEW.zoom,
     })
     handleMapErrors(map)
     mapRef.current = map
@@ -109,6 +114,14 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
           .addTo(map),
       )
     }
+    // #896 — the Page we came from, even when it isn't among what's listed.
+    const f = focusRef.current
+    if (f && !all.some((p) => p.results.some((r) => r.href === f.href))) {
+      const el = document.createElement('div')
+      styleTeardrop(el, { selected: true })
+      el.setAttribute('data-testid', 'map-focus')
+      markersRef.current.push(new mapboxgl.Marker(el, { anchor: 'bottom' }).setLngLat(f.at).addTo(map))
+    }
   }, [])
 
   useEffect(() => {
@@ -125,7 +138,11 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
     if (!map) return
     const pins = groupPins(results)
     pinsRef.current = pins
-    if (pins.length > 0) {
+    const f = focusRef.current
+    if (f) {
+      const mine = pins.find((p) => p.results.some((r) => r.href === f.href))
+      if (mine) setSelected((s) => s ?? mine)
+    } else if (pins.length > 0) {
       const bounds = new mapboxgl.LngLatBounds()
       for (const p of pins) bounds.extend([p.longitude, p.latitude])
       map.fitBounds(bounds, { padding: 60, maxZoom: 13, duration: 0 })
@@ -137,7 +154,7 @@ export function BrowseMap({ results, center }: { results: readonly BrowseResult[
   const [lng, lat] = metroCenter
   useEffect(() => {
     const map = mapRef.current
-    if (!map || pinsRef.current.length > 0) return
+    if (!map || pinsRef.current.length > 0 || focusRef.current) return
     map.jumpTo({ center: [lng, lat], zoom: METRO_VIEW.zoom })
   }, [lng, lat])
 

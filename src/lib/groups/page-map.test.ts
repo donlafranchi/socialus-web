@@ -14,14 +14,14 @@ describe('pageMapView', () => {
     })
   })
 
-  it('an area: area zoom, no pin, the area name, a rounded centre, no Directions', () => {
-    expect(pageMapView(area, 'visit')).toEqual({
-      kind: 'area', centre: [-121.48, 38.57], zoom: 13, text: 'Midtown', directions: false,
-    })
+  // Don, 2026-10-18: an area-only Page has no map at all.
+  it('an area: no map, so no point', () => {
+    expect(pageMapView(area, 'visit')).toBeNull()
   })
 
   it('a Page that moves has no fixed place to map (#894), even if its anchor is one', () => {
-    for (const mode of ['roaming', 'travel'] as const) expect(pageMapView(point, mode)).toBeNull()
+    expect(pageMapView(point, 'roaming')).toBeNull()
+    expect(pageMapView(point, 'travel')).toBeNull()
   })
 
   it('nothing to show without a placement or a label', () => {
@@ -38,12 +38,6 @@ describe('staticMapUrl', () => {
     expect(url).toContain('access_token=tok')
   })
 
-  it('an area gets a circle, no pin', () => {
-    const url = staticMapUrl(pageMapView(area, 'visit')!, 'tok')
-    expect(url).not.toContain('pin-')
-    expect(url).toContain('geojson(')
-    expect(url).toContain('/-121.48,38.57,13,0/')
-  })
 })
 
 describe('mapsLinks', () => {
@@ -59,9 +53,29 @@ describe('mapsLinks', () => {
     expect(l.directions).toBe('https://maps.apple.com/?daddr=2700%20K%20St%2C%20Sacramento%2C%20CA%2095816')
   })
 
-  it('an area opens on its rounded centre and offers no directions', () => {
-    const v = pageMapView(area, 'visit')!
-    expect(mapsLinks(mapsTargetOf(v), false)).toEqual({ open: 'https://www.google.com/maps/search/?api=1&query=38.57,-121.48', directions: null })
-    expect(mapsLinks(mapsTargetOf(v), true)).toEqual({ open: 'https://maps.apple.com/?q=Midtown&ll=38.57,-121.48&z=13', directions: null })
+})
+
+// #896 — the map for each answer.
+describe('pageMapView — every answer', () => {
+  const metroAnchor: Placement = { source: 'anchor', kind: 'area', label: 'East Sacramento', lng: -121.46123, lat: 38.56456 }
+  it('cross streets or a landmark: a pin at street zoom, its own words, Maps by the pin', () => {
+    const landmark: Placement = { ...point, label: 'J St & 20th St, by the fountain' }
+    expect(pageMapView(landmark, 'landmark')).toEqual({
+      kind: 'point', centre: [point.lng, point.lat], zoom: 16, text: 'J St & 20th St, by the fountain', directions: true, byCoords: true,
+    })
+  })
+  it('I go to them, more than one location, it moves, or online: no map', () => {
+    for (const mode of ['travel', 'multi', 'roaming', 'online'] as const) expect(pageMapView(metroAnchor, mode)).toBeNull()
+  })
+  it('Maps by the pin for a landmark: its words would not find it', () => {
+    const v = pageMapView({ ...point, label: 'by the fountain' }, 'landmark')!
+    expect(mapsLinks(mapsTargetOf(v), false)).toEqual({
+      open: 'https://www.google.com/maps/search/?api=1&query=38.57271,-121.47103',
+      directions: 'https://www.google.com/maps/dir/?api=1&destination=38.57271,-121.47103',
+    })
+    expect(mapsLinks(mapsTargetOf(v), true)).toEqual({
+      open: 'https://maps.apple.com/?q=by%20the%20fountain&ll=38.57271,-121.47103',
+      directions: 'https://maps.apple.com/?daddr=38.57271,-121.47103',
+    })
   })
 })

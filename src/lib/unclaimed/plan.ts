@@ -1,6 +1,7 @@
 // #517 — which of the researched Sacramento makers become unclaimed Pages, in
 // what order, and what each one says. Pure: scripts/unclaimed/load.ts writes it.
 import { toSlug } from '../slugify'
+import { streetAddressOf } from './address'
 
 export interface MakerRow {
   name: string
@@ -9,6 +10,8 @@ export interface MakerRow {
   area: string
   site: string
   confidence: string
+  /** #936 — its street address, when the row gives one outright. */
+  address?: string | null
   /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
 }
@@ -22,6 +25,7 @@ export interface ListingRow {
   purpose: 'sell' | 'service' | 'creative' | 'gather'
   town: string
   neighbourhood?: string | null
+  address?: string | null
   website: string
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   description: string
@@ -47,6 +51,8 @@ export interface PlannedPage {
   interests: string[]
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
+  /** #936 — its street address, where its row names one: the Page is pinned there, not at its town. */
+  address?: string
 }
 
 export const CLAIM_LINE = 'Claim this Page to tell your own story.'
@@ -168,6 +174,7 @@ export function planListings(rows: ListingRow[]): PlannedPage[] {
       pool: poolForListing(row),
       interests: interestsFor(poolForListing(row), `${row.name} ${row.description}`),
       area: row.neighbourhood?.trim() || row.town,
+      ...(row.address?.trim() ? { address: row.address.trim() } : {}),
       ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
     }
@@ -186,6 +193,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
   keep.sort((a, b) => Number(a.nonprofit) - Number(b.nonprofit) || a.rank - b.rank)
   const listed = keep.map(({ row }): PlannedPage => {
     const url = https(row.site.trim())
+    const address = streetAddressOf({ city: placeOf(row.area).city, text: `${row.makes} ${row.confidence}`, address: row.address })
     return {
       name: row.name,
       slug: `${toSlug(row.name)}-${tag(url)}`,
@@ -198,6 +206,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
       ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
+      ...(address ? { address } : {}),
     }
   })
   return { listed, skipped }

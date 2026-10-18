@@ -97,7 +97,7 @@ export interface QueuedReport {
   /** Non-null means the photo is currently removed. Reversible. */
   removedAt: Date | null
   /** What was reported: the Page's photo, a post body, the Page picture, or one post's photo. */
-  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words'
+  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
   /** The id of the thing reported: a Page for 'group' and 'page_picture', a post for 'post' and 'post_photo'. */
   subjectId: string
   /** The Page it belongs to, for the name and owner. */
@@ -228,6 +228,14 @@ export async function fetchReviewQueue(
               null::text, g.words_hidden_at, g.words_removed_at, g.name || E'\n' || coalesce(g.description, '')
          from public.reports r join public.groups g on g.id = r.subject_id
         where r.subject_kind = 'page_words'
+       union all
+       -- #909 — one featured product or service: its photo, and its name and details.
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              it.photo_url, it.hidden_at, it.removed_at, it.title || E'\\n' || coalesce(it.description, '')
+         from public.reports r
+         join public.items it on it.id = r.subject_id
+         join public.groups g on g.id = it.group_id
+        where r.subject_kind = 'page_item'
        union all
        -- A post body is hidden or removed on its own, and has no image to show.
        select r.id, r.subject_kind, r.subject_id, g.id,
