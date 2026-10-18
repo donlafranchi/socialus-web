@@ -348,6 +348,47 @@ describe('group.post — an end time', () => {
   })
 })
 
+// #314 (Don, 2026-10-02) — an undated post shows for 14 days unless its owner sets a "show until" date.
+describe('group.post — show until', () => {
+  const LATER = '2026-10-15T06:59:00.000Z'
+  it('writes one on an undated post', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Plants on the porch.', showUntil: LATER })
+    const [sql, params] = calls(/insert into public\.page_posts/i)[0]!
+    expect(sql).toMatch(/show_until/i)
+    expect(params).toContain(LATER)
+  })
+
+  it('refuses one beside a start time', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'Class.', startsAt: '2026-09-25T02:00:00.000Z', showUntil: LATER }),
+    ).rejects.toThrow(ValidationError)
+  })
+
+  it('refuses one that has already passed', async () => {
+    install()
+    await expect(
+      groupPostCreate(ctx(), { groupId: GROUP, body: 'Old.', showUntil: '2026-09-14T12:00:00.000Z' }),
+    ).rejects.toThrow(ValidationError)
+  })
+
+  it('an edit can set or clear it', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Still here.', showUntil: LATER })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/show_until = \$/)
+    expect(params).toContain(LATER)
+  })
+
+  it('an edit that gives the post a start clears it', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Now dated.', startsAt: '2026-09-25T02:00:00.000Z' })
+    const [sql] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/show_until = null/)
+  })
+})
+
 // #348 — an event's own meet spot: its place plus a one-line "how to find us".
 describe('group.post — how to find us', () => {
   it('writes the note with the post', async () => {

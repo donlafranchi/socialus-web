@@ -41,6 +41,7 @@ describe('resolvePagePosts', () => {
         createdAt: '2026-09-15T10:00:00Z',
         updatedAt: '2026-09-15T10:00:00Z',
         startsAt: null,
+        showUntil: null,
         locationLabel: null,
         howToFind: null,
         tags: [],
