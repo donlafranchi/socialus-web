@@ -3,7 +3,20 @@
 // its accessible label; the diagonal watermark (like a DRAFT stamp) is decoration, hidden from assistive tech.
 // #922 (Don, 2026-10-18) — no chip or pill UI anywhere [always]: the label is small-caps text, not a pill.
 
+import type { ReactNode } from 'react'
 import { FileText, Megaphone } from 'lucide-react'
+
+/** #951 — a label on a photo: white small-caps text on a dark top scrim, never a pill (Airbnb/Instagram photo captions). */
+export function PhotoLabel({ children, testId }: { children: ReactNode; testId?: string }) {
+  return (
+    <span
+      data-testid={testId}
+      className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center gap-1.5 bg-gradient-to-b from-black/60 to-transparent px-3 pb-6 pt-2 text-xs font-semibold uppercase tracking-wide text-white [text-shadow:0_1px_2px_rgb(0_0_0/0.5)]"
+    >
+      {children}
+    </span>
+  )
+}
 
 export function TypeMark({ type }: { type: 'post' | 'page' }) {
   const Icon = type === 'post' ? Megaphone : FileText

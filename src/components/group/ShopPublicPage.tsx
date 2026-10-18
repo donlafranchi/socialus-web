@@ -14,7 +14,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
-import { TagChips } from '@/components/tags/TagChips'
+import { TagLinks } from '@/components/tags/TagLinks'
 import { PageContactBlock } from './PageContactBlock'
 import { fixedPlacement, whereLine, whereNow, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
@@ -46,7 +46,7 @@ import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
 import { COPY } from '@/lib/copy'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
-import { LocalOwnerClaimProvider, LocalOwnerBadgeChip } from './LocalOwnerClaimState'
+import { LocalOwnerClaimProvider, LocalOwnerBadgeLabel } from './LocalOwnerClaimState'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
@@ -243,10 +243,10 @@ export function ShopPublicPage({
                   ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
                   : shop.displayName}
               </h1>
-              {isBusinessKind(shop.kind) && <LocalOwnerBadgeChip />}
-              {/* #353 — a neutral tag after the name (Yelp's placement). */}
+              {isBusinessKind(shop.kind) && <LocalOwnerBadgeLabel />}
+              {/* #353 — a neutral label after the name (Yelp's placement); #951 — small-caps text, not a pill. */}
               {shop.unclaimed && (
-                <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+                <span data-testid="unclaimed-label" className="whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
                   {COPY.unclaimedLabel}
                 </span>
               )}
@@ -297,7 +297,7 @@ export function ShopPublicPage({
         {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
         {!viewerOwnsPage &&
           (memberOfOpenPage ? (
-            <span data-testid="viewer-member" className="chip self-start whitespace-nowrap text-xs">
+            <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
               Member
             </span>
           ) : (
@@ -383,7 +383,7 @@ export function ShopPublicPage({
       {showFound && (
         <PageSection id="found" title="Tags">
           {/* #316 — the Page's tags as #hashtags, signed in only (F093); moderated after they appear (#287). */}
-          {tags.length > 0 && <TagChips tags={tags} />}
+          {tags.length > 0 && <TagLinks tags={tags} />}
         </PageSection>
       )}
 
