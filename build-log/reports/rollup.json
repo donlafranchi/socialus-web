@@ -8046,7 +8046,7 @@
      "issues": [
       852
      ],
-     "note": "[V] members.zip readable by its owner only. Checked: yes, `tests/member-zip-private-db.test.ts` [guards F081.2] (#852): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it.",
+     "note": "[V] members.zip readable by its owner only. Checked: yes, `tests/member-zip-private-db.test.ts` marked F081.2 (#852): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8071,7 +8071,7 @@
      "issues": [
       853
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` [guards F081.3] (#853): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read.",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.3 (#853): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8096,7 +8096,7 @@
      "issues": [
       854
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` [guards F081.4] (#854): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's separate 'Metro' row is #848's.",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.4 (#854): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's separate 'Metro' row is #848's.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8121,7 +8121,7 @@
      "issues": [
       855
      ],
-     "note": "[V] Checked: yes, `signup-screens.test.tsx` [guards F081.5] (#855): the line word for word on the account and profile screens, no never-sell line on any signup screen; seen failing against an added never-sell line.",
+     "note": "[V] Checked: yes, `signup-screens.test.tsx` marked F081.5 (#855): the line word for word on the account and profile screens, no never-sell line on any signup screen; seen failing against an added never-sell line.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8146,7 +8146,7 @@
      "issues": [
       856
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` [guards F081.6] (#856): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. The make-or-find question after signup belongs to F076's waitlist entry.",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.6 (#856): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. The make-or-find question after signup belongs to F076's waitlist entry.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8169,7 +8169,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries [guards F081.7]. Reviewed: no (#283 no Reviewed by, #497 skipped)",
+     "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries marked F081.7. Reviewed: no (#283 no Reviewed by, #497 skipped)",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8194,7 +8194,7 @@
      "issues": [
       853
      ],
-     "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` [guards F081.8 partial] (#853): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS (#849).",
+     "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` marked F081.8 partial (#853): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS (#849).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -8222,7 +8222,7 @@
       857,
       707
      ],
-     "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` [guards F081.9] (#857): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist.",
+     "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` marked F081.9 (#857): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8293,7 +8293,7 @@
      "issues": [
       850
      ],
-     "note": "`markets`, `market_members`, `market_key()` (#693, PR #708) [V]. Checked: yes, `tests/f103-markets-db.test.ts` [guards F103.1] (#850): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members.",
+     "note": "`markets`, `market_members`, `market_key()` (#693, PR #708) [V]. Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8318,7 +8318,7 @@
      "issues": [
       850
      ],
-     "note": "`zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` [guards F103.2 partial] (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849).",
+     "note": "`zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849).",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8367,7 +8367,7 @@
      "issues": [
       850
      ],
-     "note": "Checked: yes, `tests/signup-zip-market-db.test.tsx` [guards F103.3] (#850): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. Explore's visitor fallback is F104/F105 (#588), not sign-up.",
+     "note": "Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. Explore's visitor fallback is F104/F105 (#588), not sign-up.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8415,7 +8415,7 @@
      "issues": [
       850
      ],
-     "note": "`members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` [guards F103.5 partial] (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616).",
+     "note": "`members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616).",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
