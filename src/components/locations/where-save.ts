@@ -5,7 +5,7 @@
 import { pinLabel } from '@/lib/places/pin-label'
 import type { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import type { EditPageInput } from '@/app/g/[handle]/edit/actions'
-import type { PageWhere } from '@/lib/groups/page-where'
+import { fixedPlacement, type PageWhere } from '@/lib/groups/page-where'
 import type { Placement } from '@/lib/groups/resolve-page-placement'
 import { emptyWhere, type WhereValue } from './WhereFields'
 
@@ -18,6 +18,7 @@ export interface WhereDeps {
 /** Start the question from what's saved. The pin isn't in the value (the map opens on it, #455); an unmoved pin saves only the note. */
 export function whereValueFrom(saved: PageWhere | null, placement?: Pick<Placement, 'kind' | 'label' | 'lng' | 'lat'> | null): WhereValue {
   if (!saved) return emptyWhere
+  placement = fixedPlacement(saved, placement ?? undefined)
   const area = placement?.kind === 'area'
   return {
     ...emptyWhere,
