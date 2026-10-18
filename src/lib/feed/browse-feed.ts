@@ -439,10 +439,10 @@ export async function getNearbyFeed(
   })
   if (error) throw error
   const rows = (data ?? []) as (BrowseFeedRow & { reach_minutes: number; reach_from: string | null })[]
-  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
+  const pages = await fetchPageExtras(supabase, rows)
   const first = rows[0]
   return {
-    results: rows.map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null)),
+    results: rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id))),
     // Nothing within reach still has a reach: the widest it tried, so "Show more nearby" is there to tap.
     reach: first ? { minutes: first.reach_minutes, from: first.reach_from } : { minutes: opts.minutes ?? opts.cap, from: null },
   }
