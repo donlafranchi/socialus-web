@@ -14,6 +14,8 @@ export interface MakerRow {
   address?: string | null
   /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
+  /** #909 — 3–6 things it sells or offers, each from a page on its own site. Price in dollars, optional. */
+  products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
 }
 
 export type SkipReason = 'personal-care' | 'no-site'
@@ -53,6 +55,44 @@ export interface PlannedPage {
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
   /** #936 — its street address, where its row names one: the Page is pinned there, not at its town. */
   address?: string
+  /** #909 — sample products and services from its own site; the Page shows them labelled Sample, credited. */
+  products?: SampleProduct[]
+}
+
+export interface SampleProduct {
+  name: string
+  url: string
+  priceCents: number | null
+  kind: 'product' | 'service'
+}
+
+export const SAMPLE_PRODUCTS_MIN = 3
+export const SAMPLE_PRODUCTS_MAX = 6
+/** Marketplaces and directories: a lead source at most, never what a sample is copied from (#353, Don 2026-10-16). */
+const MARKETPLACE = /(^|\.)(etsy|amazon|ebay|facebook|instagram|tiktok|yelp|google|nextdoor|craigslist|faire|walmart|target|shopify)\.com$/i
+
+const hostOf = (u: string): string | null => {
+  try {
+    return new URL(u).hostname.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return null
+  }
+}
+
+/** #909 — the row's products that come from its own site, 3 to 6 of them, or none. */
+export function sampleProductsFor(site: string, products: MakerRow['products'] = []): SampleProduct[] {
+  const own = hostOf(site)
+  if (!own || MARKETPLACE.test(own)) return []
+  const kept = products
+    .filter((p) => p.name?.trim() && (hostOf(p.url) === own || hostOf(p.url)?.endsWith(`.${own}`)) && /^https:\/\//i.test(p.url))
+    .slice(0, SAMPLE_PRODUCTS_MAX)
+    .map((p) => ({
+      name: p.name.trim().slice(0, 80),
+      url: p.url,
+      priceCents: typeof p.price === 'number' && p.price >= 0 ? Math.round(p.price * 100) : null,
+      kind: p.kind ?? 'product',
+    }))
+  return kept.length >= SAMPLE_PRODUCTS_MIN ? kept : []
 }
 
 export const CLAIM_LINE = 'Claim this Page to tell your own story.'
@@ -207,6 +247,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
       ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
       ...(address ? { address } : {}),
+      ...(sampleProductsFor(url, row.products).length ? { products: sampleProductsFor(url, row.products) } : {}),
     }
   })
   return { listed, skipped }

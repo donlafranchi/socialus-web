@@ -120,6 +120,28 @@ describe('item.featured_save — adding', () => {
   })
 })
 
+describe('item.featured_save — samples on an unclaimed Page (#909)', () => {
+  it("the owner's first real one takes the samples off", async () => {
+    install()
+    await featuredItemSave(ctx(), add)
+    const [sql] = calls(/update public\.items set deleted_at/i)[0]!
+    expect(sql).toMatch(/sample_source_url is not null/)
+  })
+
+  it('samples do not count against the limit once a real one replaces them', async () => {
+    install()
+    await featuredItemSave(ctx(), add)
+    const order = (query.mock.calls as QueryCall[]).map(([sql]) => sql)
+    expect(order.findIndex((q) => /sample_source_url is not null/.test(q))).toBeLessThan(order.findIndex((q) => /count\(\*\)/i.test(q)))
+  })
+
+  it('editing a sample makes it theirs: the Sample label and credit come off', async () => {
+    install()
+    await featuredItemSave(ctx(), { ...add, itemId: ITEM })
+    expect(calls(/update public\.items/i)[0]![0]).toMatch(/sample_source_url = null/)
+  })
+})
+
 describe('item.featured_save — editing', () => {
   it('updates the row in place and only on this Page', async () => {
     install()

@@ -41,6 +41,7 @@ const count = async (sql: string, p: unknown[] = []) => Number((await client.que
 const groupsLike = () => count(`select count(*) n from public.groups where public_info_url like 'https://test-517-%'`)
 
 async function cleanup() {
+  await client.query(`delete from public.items where group_id in (select id from public.groups where public_info_url like 'https://test-517-%')`)
   await client.query(`delete from public.groups where public_info_url like 'https://test-517-%'`)
 }
 
@@ -276,5 +277,46 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, [G.publicInfoUrl])).toBe(0)
     // A later run still finds it under the new address and makes no second one (a duplicate slug used to fail here).
     expect(await loadUnclaimed(client, [fixed])).toMatchObject({ created: 0, existing: 1, failed: [] })
+  })
+})
+
+// #909 — an unclaimed Page's sample products and services, from its own site: labelled by their source, replaced
+// when the list changes, and never touched once the Page has a real one.
+describe.skipIf(!RUNNABLE)('sample products (#909)', () => {
+  const S = page('s')
+  const products = [1, 2, 3].map((n) => ({ name: `T909 seed ${n}`, url: `https://test-517-s.example/shop/${n}`, priceCents: n * 100, kind: 'product' as const }))
+  const now = new Date('2026-10-18T18:00:00Z')
+  const enrichment: Enrichment = { photos: [1, 2, 3, 4].map((n) => ({ url: `https://media.test-517.example/s${n}.webp`, credit: 'c', sourceUrl: `https://test-517-s.example/${n}`, own: true })), phone: null, social: {}, siteUrl: S.publicInfoUrl }
+  const items = async () =>
+    (await client.query(
+      `select i.title, i.sample_source_url, i.state, i.position, i.member_id, p.price_cents
+         from public.items i join public.groups g on g.id = i.group_id left join public.item_products p on p.item_id = i.id
+        where g.public_info_url = $1 and i.deleted_at is null order by i.position`,
+      [S.publicInfoUrl],
+    )).rows
+
+  it('puts the samples on the Page, published, in order, credited to their own pages, under the system member', async () => {
+    await loadUnclaimed(client, [S])
+    await enrichPage(client, { ...S, products }, async () => enrichment, now)
+    expect(await items()).toEqual(products.map((p, i) => ({ title: p.name, sample_source_url: p.url, state: 'published', position: i, member_id: SYSTEM_MEMBER_ID, price_cents: p.priceCents })))
+  })
+
+  it('a second run with the same list changes nothing', async () => {
+    const before = (await client.query(`select i.id from public.items i join public.groups g on g.id = i.group_id where g.public_info_url = $1 order by i.position`, [S.publicInfoUrl])).rows
+    expect(await enrichPage(client, { ...S, products }, async () => enrichment, now)).toBe('complete')
+    const after = (await client.query(`select i.id from public.items i join public.groups g on g.id = i.group_id where g.public_info_url = $1 order by i.position`, [S.publicInfoUrl])).rows
+    expect(after).toEqual(before)
+  })
+
+  it('a changed list replaces the samples', async () => {
+    const next = [...products.slice(1), { name: 'T909 tour', url: 'https://test-517-s.example/tour', priceCents: null, kind: 'service' as const }]
+    expect(await enrichPage(client, { ...S, products: next }, async () => enrichment, now)).toBe('refreshed')
+    expect((await items()).map((r) => r.title)).toEqual(['T909 seed 2', 'T909 seed 3', 'T909 tour'])
+  })
+
+  it('a Page with a real one of its own is left alone', async () => {
+    await client.query(`update public.items set sample_source_url = null where title = 'T909 seed 2'`)
+    expect(await enrichPage(client, { ...S, products }, async () => enrichment, now)).toBe('complete')
+    expect((await items()).map((r) => r.title)).toEqual(['T909 seed 2', 'T909 seed 3', 'T909 tour'])
   })
 })
