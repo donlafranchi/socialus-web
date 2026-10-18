@@ -53,7 +53,15 @@ vi.mock('@/lib/supabase-server', () => ({
     rpc,
   })),
 }))
-vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed, getHappening: async () => ({ today: [], thisWeek: [], thisWeekend: [] }) }))
+vi.mock('@/lib/feed/browse-feed', () => ({
+  getBrowseFeed,
+  getHappening: async () => ({ today: [], thisWeek: [], thisWeekend: [] }),
+  getNearbyFeed: async (sb: unknown, o: { metroId: string; resultKinds?: unknown; limit?: number }) => ({
+    // #922 — the default mix reads through browse_nearby; these tests are about what it asks for and gets.
+    results: await getBrowseFeed(sb, { scope: { metroId: o.metroId }, resultKinds: o.resultKinds ?? null, limit: o.limit }),
+    reach: { minutes: 15, from: null },
+  }),
+}))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
 vi.mock('@/lib/feed/feed-metro', async (importActual) => {
   const actual = await importActual<typeof import('@/lib/feed/feed-metro')>()

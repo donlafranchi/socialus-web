@@ -16,6 +16,8 @@ export interface BrowseUrlState {
   area?: string | null
   tags?: string[]
   schedule?: DateFilter
+  /** #922 — the member's reach: a ring in minutes, or 'all'. Absent when the database picks. */
+  reach?: number | 'all' | null
 }
 
 export function browseQueryString(s: BrowseUrlState): string {
@@ -25,5 +27,6 @@ export function browseQueryString(s: BrowseUrlState): string {
   if (s.q) sp.set('q', s.q)
   if (s.tags?.length) sp.set('category', s.tags.join(','))
   if (s.schedule && s.schedule !== 'any') sp.set('schedule', s.schedule)
+  if (s.reach) sp.set('reach', String(s.reach))
   return sp.toString()
 }
