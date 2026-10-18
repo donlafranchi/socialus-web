@@ -94,7 +94,7 @@ export function NotificationSettings({ initial, save, subscribe }: { initial: Pr
         </Item>
         <Toggle id="notify-pause" label={C.pause} hint={C.pauseHint} on={prefs.paused} disabled={busy} onChange={(on) => apply({ paused: on })} />
       </ul>
-      <p className="mt-3 min-h-[1.5rem] text-body-sm text-[var(--color-fg-muted)]" role="status" data-testid="notify-status">
+      <p className="mt-3 min-h-6 text-body-sm text-[var(--color-fg-muted)]" role="status" data-testid="notify-status">
         {status}
       </p>
     </div>
