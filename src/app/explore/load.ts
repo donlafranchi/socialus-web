@@ -51,7 +51,7 @@ import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
-import { feedOptsFor, hasBrowseFilters, type BrowseFilters } from '@/lib/browse/filters'
+import { feedOptsFor, hasBrowseFilters, isPlainPostsView, type BrowseFilters } from '@/lib/browse/filters'
 import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
 import { loadMapMix } from '@/lib/map/load-mix'
 import { withLocationKinds } from '@/lib/map/location-kinds'
@@ -118,8 +118,19 @@ export async function loadBrowse(
   const area = await areaPromise
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
 
-  // #876 — a filter is one targeted read: no first look, no rows, no withheld cards.
+  // #876 — a filter is one targeted read: no first look, no rows (signed out, posts only reads the withheld cards).
   if (filters && hasBrowseFilters(filters)) {
+    // F093 criterion 7 — signed out, posts only is the withheld cards, as on the mix. A narrower
+    // filter (kind, date, following) would say what a withheld post is; browse_feed gives anon no posts.
+    if (!userId && isPlainPostsView(filters)) {
+      try {
+        const results = await getWithheldAnnouncements(supabase, { scope: feedScope, period: metroWeekBounds(), limit: BROWSE_LIMIT })
+        return { ...base, results, lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
+      } catch (error) {
+        console.error('[loadBrowse] signed-out posts view failed:', (error as Error).message)
+        return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
+      }
+    }
     const o = feedOptsFor(filters, new Date())
     try {
       const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
