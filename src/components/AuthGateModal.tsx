@@ -49,7 +49,7 @@ export function AuthGateModal({ open, onClose, headline, subtext, intent }: Prop
             Sign in
           </Link>
           <p className="text-xs text-neutral-500 text-center">
-            We email you a link — no password, takes 30 seconds.
+            We email you a 6-digit code. No password, takes 30 seconds.
           </p>
         </div>
         <p className="text-xs text-neutral-500 text-center mt-5 border-t border-neutral-200 pt-3">
