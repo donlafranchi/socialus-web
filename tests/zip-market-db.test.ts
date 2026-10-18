@@ -47,6 +47,13 @@ describe.skipIf(!RUNNABLE)('#694 — F103.2 the zip resolves to one market', () 
     expect(await zipKey('10001')).toBe('county-36061') // New York County
   })
 
+  // bug #905: Connecticut's zips resolve to its planning regions (the counties the 2023 gazetteer names).
+  it('resolves Connecticut zips to their planning region', async () => {
+    expect(await zipKey('06103')).toBe('county-09110') // Hartford, Capitol
+    expect(await zipKey('06510')).toBe('county-09170') // New Haven, South Central
+    expect(await zipKey('06901')).toBe('county-09190') // Stamford, Western
+  })
+
   // [guards F103.2 partial: the same zip always gives the same market]
   it('is deterministic', async () => {
     for (const zip of ['95746', '96150', '95901', '77001']) expect(await zipKey(zip)).toBe(await zipKey(zip))
