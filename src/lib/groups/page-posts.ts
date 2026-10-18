@@ -23,6 +23,8 @@ export interface PagePost {
   startsAt: string | null
   /** #262 — optional, after the start. */
   endsAt?: string | null
+  /** #314 — the day an undated post shows through, when its owner picked one; null is 14 days after posting. */
+  showUntil?: string | null
   /** F072 — where it is, in its own words. Null means at its Page's address;
    *  an announcement never borrows its Page's pin, but it does inherit its
    *  Page's whereabouts when it says nothing. */
@@ -49,6 +51,7 @@ interface Row {
   updated_at: string
   starts_at: string | null
   ends_at: string | null
+  show_until?: string | null
   how_to_find?: string | null
   photo_url?: string | null
   photo_hidden_at?: string | null
@@ -67,7 +70,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, location:locations(label), post_tags(tags(label))')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)
@@ -86,6 +89,7 @@ export async function resolvePagePosts(
       updatedAt: r.updated_at,
       startsAt: r.starts_at,
       endsAt: r.ends_at,
+      showUntil: r.show_until ?? null,
       tags: (r.post_tags ?? [])
         .map((t) => (Array.isArray(t.tags) ? t.tags[0] : t.tags)?.label)
         .filter((l): l is string => Boolean(l)),
