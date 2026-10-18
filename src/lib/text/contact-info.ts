@@ -27,3 +27,11 @@ export function maskEmailsOrNull<T extends string | null | undefined>(text: T): 
 export function anyContainsEmail(...texts: Array<string | null | undefined>): boolean {
   return texts.some((t) => typeof t === 'string' && containsEmail(t))
 }
+
+// #909 — a US-style phone number: optional +1, then 3-3-4 digits with optional separators.
+const PHONE = /(?:\+?1[\s.-]?)?(?:\(\d{3}\)|\b\d{3})[\s.-]?\d{3}[\s.-]?\d{4}\b/g
+
+/** Removes email addresses and phone numbers, leaving the rest of the text. */
+export function stripContactInfo(text: string): string {
+  return text.replace(EMAIL, ' ').replace(PHONE, ' ')
+}

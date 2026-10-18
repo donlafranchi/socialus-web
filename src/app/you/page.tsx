@@ -17,6 +17,8 @@ import { answerNoticeAction } from '@/app/_actions/report-actions'
 import { ANSWER_WINDOW_MS } from '@/lib/reports/answer-window'
 import { ZipChange } from '@/components/member/ZipChange'
 import { changeZipAction } from '@/app/_actions/zip-actions'
+import { SearchSharingSwitch } from '@/components/member/SearchSharingSwitch'
+import { setSearchSharingAction } from '@/app/_actions/search-demand-actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,10 +42,10 @@ export default async function YouPage() {
   }
 
   const [{ data: me }, { data: notices }] = await Promise.all([
-    supabase.from('members').select('display_name, zip, home_market_key').eq('id', user.id).maybeSingle(),
+    supabase.from('members').select('display_name, zip, home_market_key, search_sharing').eq('id', user.id).maybeSingle(),
     supabase.from('member_notices').select('id, message, created_at, kind, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
   ])
-  const row = me as { display_name: string | null; zip: string | null; home_market_key: string | null } | null
+  const row = me as { display_name: string | null; zip: string | null; home_market_key: string | null; search_sharing?: boolean | null } | null
   // #568: the area the zip decided, in plain words; the home town stays in the database.
   const area = row?.home_market_key ? ((await supabase.rpc('market_name', { p_key: row.home_market_key })).data as string | null) : null
   const name = row?.display_name ?? null
@@ -80,6 +82,10 @@ export default async function YouPage() {
             <ZipChange zip={row?.zip ?? null} area={area} change={changeZipAction} />
           </Row>
           <Row label="Email" value={user.email ?? ''} testId="settings-email" />
+          {/* #909 — F113 option C: on by default, easy to turn off. */}
+          <Row label="Searches" testId="settings-searches">
+            <SearchSharingSwitch on={row?.search_sharing !== false} change={setSearchSharingAction} />
+          </Row>
           <Row
             label="Help"
             value="Something not working?"
