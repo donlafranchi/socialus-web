@@ -83,25 +83,17 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
     });
   });
 
-  test.describe("Beat 3 — Items section renders empty-state", () => {
-    test("Given no published items exist for this Shop | When the page renders | Then a visible empty-state shows instead of a hidden section", async ({
+  test.describe("Beat 3 — an empty Products & services section is the owner's, not a visitor's", () => {
+    test("Given no featured items exist for this Shop | When a visitor views the page | Then the section is hidden", async ({
       page,
     }) => {
-      // F093 criterion 8 (2026-09-30) — signed out is the front door only, so
-      // the listings show to a signed-in visitor.
+      // #909 (Don, 2026-10-18) replaces beat 3's visible empty state: an empty section shows only to the
+      // Page's owner, as an "add your first" prompt. F093 criterion 8: signed out never sees listings, so
+      // the visitor here is signed in.
       await signIn(page, ROSA.email, ROSA.password);
       await page.goto(SHOP.url);
-
-      // Then — visible-but-empty Items section
-      // Why: scenario beat 3 Why — "visible-but-empty signals 'Shop is real,
-      // products will come' — hidden signals 'this is a half-built page.'" The
-      // empty-state element must be present (not omitted) until F038/F040 light
-      // up real Items.
-      const empty = page.getByTestId("shop-items-empty");
-      await expect(empty).toBeVisible();
-      await expect(empty).toContainText(
-        /hasn['’]t posted anything yet\. check back soon/i,
-      );
+      await expect(page.getByRole("heading", { name: "About" })).toBeVisible();
+      await expect(page.getByTestId("page-section-products")).toHaveCount(0);
     });
   });
 
