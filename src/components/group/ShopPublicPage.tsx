@@ -24,7 +24,9 @@ import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
 import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
-import { socialLinksForDisplay } from '@/lib/groups/social-links'
+import { contactLinksForDisplay, isSafeLinkUrl, type ContactLinks } from '@/lib/groups/social-links'
+
+const NO_LINKS: ContactLinks = { website: null, socials: [] }
 import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
@@ -49,6 +51,7 @@ import { AboutText } from './AboutText'
 import { PageMap } from './PageMap'
 import { SearchDemandCard } from './SearchDemandCard'
 import type { PageSearchDemand } from '@/lib/search/page-demand'
+import { pageMapView } from '@/lib/groups/page-map'
 
 
 const NO_CLAIM = { zip: null, isProximal: false }
@@ -146,13 +149,14 @@ export function ShopPublicPage({
   const showOwnerPanel = viewerOwnsPage && Boolean(pagePath)
   // F093 criterion 8 — signed out is the front door: name, photo, description,
   // the withheld card and Sign up to follow. Listings and links out wait.
-  const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
+  const contactLinks = loggedIn ? contactLinksForDisplay(shop.socialLinks, shop.unclaimed?.publicInfoUrl) : NO_LINKS
 
   const placement = fixedPlacement(where, shop.placements[0])
-  const placeLabel = placement?.label.trim() || null
   const how = loggedIn && where ? whereLine(where) : null
-  const hasContact = loggedIn && contact && (contact.phone || (SHOW_OPENING_HOURS && contact.hours))
-  const showFound = loggedIn && (tags.length > 0 || socialLinks.length > 0)
+  // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
+  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null) : null
+  const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
+  const showFound = loggedIn && tags.length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
   // #363 — off for a social group until its owner adds it (bug #341).
@@ -302,8 +306,8 @@ export function ShopPublicPage({
       {(shop.publicDescription || shop.unclaimed?.publicInfoUrl || shop.founder) && (
         <PageSection id="about" title="About">
           {shop.publicDescription && <AboutText text={shop.publicDescription} />}
-          {shop.unclaimed?.publicInfoUrl && (
-            <a data-testid="description-credit" href={shop.unclaimed.publicInfoUrl} rel="noopener nofollow" target="_blank" className="self-start text-caption text-[var(--color-fg-muted)] underline">
+          {shop.unclaimed?.publicInfoUrl && isSafeLinkUrl(shop.unclaimed.publicInfoUrl) && (
+            <a data-testid="description-credit" href={shop.unclaimed.publicInfoUrl.trim()} rel="noopener noreferrer nofollow" target="_blank" className="self-start text-caption text-[var(--color-fg-muted)] underline">
               {COPY.unclaimedDescriptionCredit}
             </a>
           )}
@@ -323,51 +327,28 @@ export function ShopPublicPage({
       )}
 
       {/* F093 criterion 8 — signed out sees no location and no map pin. */}
-      {loggedIn && (placeLabel || how) && (
+      {loggedIn && (mapView || how) && (
         <PageSection id="location" title="Location">
-          {/* T143 — where this Page resolves to, at read time. */}
-          {placeLabel && (
-            <p data-testid="shop-placement" className="text-body-sm text-[var(--color-fg)]">
-              {placeLabel}
-            </p>
-          )}
+          {/* T143 — where this Page resolves to, at read time; #896 — the address under the map. */}
+          {mapView && <PageMap view={mapView} caption={mapView.text} />}
           {how && (
             <p data-testid="shop-where" className="text-body-sm text-[var(--color-fg-muted)]">
               {how}
             </p>
           )}
-          {placement && placeLabel && <PageMap lng={placement.lng} lat={placement.lat} label={placeLabel} area={placement.kind === 'area'} />}
         </PageSection>
       )}
 
-      {hasContact && contact && (
+      {hasContact && (
         <PageSection id="contact" title="Contact">
-          <PageContactBlock contact={contact} />
+          <PageContactBlock contact={contact ?? null} links={contactLinks} />
         </PageSection>
       )}
 
       {showFound && (
-        <PageSection id="found" title="Tags & links">
+        <PageSection id="found" title="Tags">
           {/* #316 — the Page's tags as #hashtags, signed in only (F093); moderated after they appear (#287). */}
           {tags.length > 0 && <TagChips tags={tags} />}
-          {/* F070 — `socialLinksForDisplay` re-checks every URL on read; off-platform, in a new tab. */}
-          {socialLinks.length > 0 && (
-            <ul className="flex flex-wrap gap-3" data-testid="shop-social-links">
-              {socialLinks.map((link) => (
-                <li key={link.platform}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-testid={`shop-social-${link.platform}`}
-                    className="press inline-flex min-h-tap items-center text-body-sm text-[var(--color-accent)] underline"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
         </PageSection>
       )}
 
