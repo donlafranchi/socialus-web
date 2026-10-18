@@ -979,3 +979,55 @@ describe('report.create — a Page\'s own words (#625)', () => {
     expect(callsMatching(/update public\.groups/i)).toHaveLength(0)
   })
 })
+
+// #909 (Don, 2026-10-18) — a Page's featured product or service is reportable on the same courtesy-first flow.
+describe('report.create — a featured product or service', () => {
+  const ITEM_ID = '66666666-6666-6666-6666-666666666666'
+  function installItemRouter(opts: { others?: number; locked?: string | null; exists?: boolean } = {}) {
+    const { others = 0, locked = null, exists = true } = opts
+    query.mockReset()
+    query.mockImplementation(async (sql: string) => {
+      if (/from public\.items/i.test(sql) && /select/i.test(sql)) {
+        return {
+          rows: exists
+            ? [{ item_id: ITEM_ID, group_id: GROUP_ID, title: 'Milkweed seed', description: 'Local.', photo_url: null, hidden_at: null, hide_locked_text: locked, builder_on_real: false, reporter_is_builder: false, founder_member_id: FOUNDER_ID, name: 'Oak Park Bakery', hide_bar: 0 }]
+            : [],
+        }
+      }
+      if (/from public\.report_decisions/i.test(sql)) return { rows: [] }
+      if (/count/i.test(sql) && /reporter_member_id <> \$1/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: String(others) }] }
+      if (/count/i.test(sql) && /reporter_member_id/i.test(sql) && /subject_id/i.test(sql)) return { rows: [{ count: '0' }] }
+      if (/count/i.test(sql) && /reviewed_at is null/i.test(sql)) return { rows: [{ count: '0' }] }
+      if (/insert into public\.reports/i.test(sql)) return { rows: [{ id: REPORT_ID }] }
+      if (/insert into public\.(member_notices|legal_holds)/i.test(sql)) return { rows: [] }
+      if (/update public\.items/i.test(sql)) return { rows: [{ id: ITEM_ID }] }
+      throw new Error(`unexpected query in test: ${sql}`)
+    })
+  }
+  const item = (category = 'harassment') => reportCreate(ctx(), { subjectKind: 'page_item', category: category as never, subjectId: ITEM_ID, body: 'Not real.' })
+
+  it('a first report sends the owner a courtesy notice and hides nothing', async () => {
+    installItemRouter()
+    expect((await item()).photoHidden).toBe(false)
+    expect(callsMatching(/update public\.items/i)).toHaveLength(0)
+    expect(callsMatching(/insert into public\.member_notices/i)[0]![1]).toContain('page_item')
+  })
+
+  it('a repeat from someone else hides just that item', async () => {
+    installItemRouter({ others: 1 })
+    expect((await item()).photoHidden).toBe(true)
+    const [hide] = callsMatching(/update public\.items/i)
+    expect(hide![0]).toMatch(/set hidden_at = \$2/)
+    expect(eventsOfKind('group.item_hidden')).toHaveLength(1)
+  })
+
+  it('an item a person already restored stays up until it changes', async () => {
+    installItemRouter({ others: 1, locked: 'Milkweed seed\nLocal.' })
+    expect((await item()).photoHidden).toBe(false)
+  })
+
+  it('an item that is gone is not found', async () => {
+    installItemRouter({ exists: false })
+    await expect(item()).rejects.toThrow(/not found/)
+  })
+})
