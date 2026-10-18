@@ -17,7 +17,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { unwrap } from '@/lib/sell/unwrap'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import {
   getDraftGroup,
   type SellRoutingSignal,
@@ -40,7 +40,7 @@ interface SellCtaProps {
   /** Caller passes a stable supabase browser-client factory so the test seam
    *  can inject a stub. In production, leave undefined and the default factory
    *  reads from NEXT_PUBLIC_SUPABASE_*. */
-  supabaseFactory?: () => ReturnType<typeof createBrowserClient>
+  supabaseFactory?: () => ReturnType<typeof createClient>
   /** Caller may inject available Locations (otherwise fetched on mount). */
   initialLocations?: AnchorLocationOption[]
   /** #274 — arrived from Create: do what tapping the button would, at once. */
@@ -48,10 +48,7 @@ interface SellCtaProps {
 }
 
 function defaultSupabaseFactory() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-  )
+  return createClient()
 }
 
 export function SellCta({

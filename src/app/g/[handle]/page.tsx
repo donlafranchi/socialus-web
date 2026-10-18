@@ -12,6 +12,7 @@ import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { loadPageView } from '@/lib/groups/load-page-view'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
+import { loadViewerReminders, NO_REMINDERS } from '@/lib/reminders/viewer-reminders'
 import { PageSkeleton } from '@/components/group/PageSkeleton'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { shareMetadata } from '@/lib/groups/share-metadata'
@@ -52,6 +53,8 @@ async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
   const view = await loadPageView(supabase, shop)
   // #909 — the owner's card; the database answers only a manager of this Page.
   const searchDemand = view.viewerOwnsPage ? await loadPageSearchDemand(supabase, shop.groupId) : null
+  // #945 — the viewer's own reminders, read under their session (nobody else's are readable).
+  const reminders = view.viewerOwnsPage ? NO_REMINDERS : await loadViewerReminders(supabase, view.loggedIn)
   // #625 — only the owner gets their hidden words back, and only here, after ownership is known.
   if (view.ownWords) shop = { ...shop, displayName: view.ownWords.name, publicDescription: view.ownWords.description }
 
@@ -76,6 +79,7 @@ async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
       contact={view.contact}
       where={view.where}
       searchDemand={searchDemand}
+      reminders={reminders}
       pagePath={canonicalPagePath(shop.publicId)}
     />
   )

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { User, Search } from 'lucide-react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { PlatformEvent, Vendor, Market } from '@/lib/types'
 import { useMarket } from './MarketContext'
 import { AuthCtaButtons } from './AuthCtaButtons'
@@ -11,10 +11,7 @@ import { RecruitmentGrid } from './RecruitmentGrid'
 import { EventCard, buildHostMaps } from './EventCard'
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 type FilterChip = 'all' | 'markets' | 'specials'

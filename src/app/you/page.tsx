@@ -120,13 +120,6 @@ export default async function YouPage() {
             wrap
             action={<Link href="/rules" className={LINK}>Read</Link>}
           />
-          <Row
-            label="Password"
-            value="Sign in without an email"
-            testId="settings-password"
-            wrap
-            action={<Link href="/you/password" className={LINK}>Set or change</Link>}
-          />
         </ul>
         <div className="mt-4">
           <SignOutButton />

@@ -8,7 +8,9 @@ import { runFollow, runWeekend, stats } from '../../src/lib/notify/push/sender'
 import { summarize } from '../../src/lib/notify/push/review'
 import { reviewMarkdown } from '../../src/lib/notify/push/review-report'
 import { vapidReady } from '../../src/lib/notify/push/send'
-import { NOTIFY_KINDS } from '../../src/lib/notify/push/rules'
+import { runReminders } from '../../src/lib/notify/push/reminder-sender'
+import { emailReady } from '../../src/lib/notify/email'
+import { COUNT_KINDS } from '../../src/lib/notify/push/rules'
 
 const summary = (line: string) => {
   console.log(line)
@@ -19,7 +21,7 @@ async function main() {
   const [cmd, out] = process.argv.slice(2)
   const url = process.env.DATABASE_URL?.trim()
   if (!url) throw new Error('DATABASE_URL is not set')
-  if ((cmd === 'follow' || cmd === 'weekend') && !vapidReady()) {
+  if (cmd === 'weekend' && !vapidReady()) {
     summary('VAPID keys are not set: nothing sent.')
     return
   }
@@ -30,15 +32,20 @@ async function main() {
     if (cmd === 'follow') {
       await db.query('begin')
       await db.query(`select 1 from public.notification_cursor where id = 1 for update nowait`)
-      const r = await runFollow(db, now)
+      if (vapidReady()) {
+        const r = await runFollow(db, now)
+        summary(`Follow posts: ${r.queued} queued, ${r.sent} members sent, ${r.held} held, ${r.dropped} dropped.`)
+      } else summary('VAPID keys are not set: no push.')
+      // #945 — reminders ride the same run: push where a member has a device, else email.
+      const rm = await runReminders(db, now, vapidReady() ? {} : { push: async () => 'error' })
       await db.query('commit')
-      summary(`Follow posts: ${r.queued} queued, ${r.sent} members sent, ${r.held} held, ${r.dropped} dropped.`)
+      summary(`Reminders: ${rm.due} due, ${rm.pushed} by push, ${rm.emailed} by email, ${rm.undelivered} not delivered${emailReady() ? '' : ' (email is not set up)'}.`)
     } else if (cmd === 'weekend') {
       const r = await runWeekend(db, now)
       summary(`This weekend: ${r.members} opted in and due, ${r.sent} sent, ${r.nothingOn} with nothing on, ${r.later} in quiet hours (next run).`)
     } else if (cmd === 'stats' || cmd === 'review') {
       const rows = await stats(db)
-      const kinds = NOTIFY_KINDS.map((k) => summarize(rows, k))
+      const kinds = COUNT_KINDS.map((k) => summarize(rows, k))
       const state = kinds.some((k) => k.state === 'red') ? 'red' : kinds.every((k) => k.state === 'quiet') ? 'quiet' : 'green'
       const json = { at: now.toISOString(), state, kinds }
       if (cmd === 'stats') {

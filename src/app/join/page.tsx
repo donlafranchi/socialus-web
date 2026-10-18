@@ -2,13 +2,10 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 // #336 — starting a Page is Create (one question, #301); /you/sell and its
@@ -94,7 +91,7 @@ export default function JoinPage() {
       <section className="px-6 py-12 max-w-3xl mx-auto">
         <h2 className="text-2xl font-semibold text-neutral-900 text-center">How it works</h2>
         <ol className="mt-6 space-y-5">
-          <Step n={1} title="Create an account" body="Email and password. Takes 10 seconds." />
+          <Step n={1} title="Create an account" body="Your email, then the 6-digit code we send you. No password." />
           <Step
             n={2}
             title="Tell customers who you are"

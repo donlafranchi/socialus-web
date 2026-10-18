@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { MagicLinkForm } from './MagicLinkForm'
+import { SignInForm } from './SignInForm'
 import { EmailFirstSignup, type EmailFirstDeps } from './EmailFirstSignup'
 import { LAST_EMAIL_KEY } from '@/lib/auth/remembered-email'
 
@@ -58,8 +58,8 @@ afterEach(() => {
 })
 
 describe('#332 — the email field', () => {
-  it('on the email-link sign-in, is a real email field in a form', () => {
-    render(<MagicLinkForm />)
+  it('on the code sign-in, is a real email field in a form', () => {
+    render(<SignInForm />)
     expectEmailField(email(), 'email')
   })
 
@@ -117,9 +117,9 @@ describe('#332 — the password step', () => {
 })
 
 describe('#332 — the last-used email, remembered on this device', () => {
-  it('is pre-filled on the email-link sign-in, and stays editable', () => {
+  it('is pre-filled on the code sign-in, and stays editable', () => {
     localStorage.setItem(LAST_EMAIL_KEY, 'maya@example.test')
-    render(<MagicLinkForm />)
+    render(<SignInForm />)
     expect(email()).toHaveValue('maya@example.test')
     fireEvent.change(email(), { target: { value: 'other@example.test' } })
     expect(email()).toHaveValue('other@example.test')
@@ -131,11 +131,11 @@ describe('#332 — the last-used email, remembered on this device', () => {
     expect(email()).toHaveValue('maya@example.test')
   })
 
-  it('is saved once a sign-in link is sent', async () => {
-    render(<MagicLinkForm />)
+  it('is saved once a code is sent', async () => {
+    render(<SignInForm />)
     fireEvent.change(email(), { target: { value: ' maya@example.test ' } })
     submit()
-    await screen.findByTestId('magic-sent-message')
+    await screen.findByTestId('code-sent')
     expect(localStorage.getItem(LAST_EMAIL_KEY)).toBe('maya@example.test')
   })
 
@@ -151,7 +151,7 @@ describe('#332 — the last-used email, remembered on this device', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked')
     })
-    render(<MagicLinkForm />)
+    render(<SignInForm />)
     expect(email()).toHaveValue('')
     vi.restoreAllMocks()
   })
