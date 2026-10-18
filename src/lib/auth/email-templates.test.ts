@@ -11,8 +11,9 @@ describe.each([['magic-link.html', 'email'], ['confirmation.html', 'email'], ['r
     expect(html).toContain(`{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=${type}`)
     expect(html).not.toContain('ConfirmationURL')
   })
-  it('shows the six-digit code', () => {
-    expect(html).toContain('{{ .Token }}')
+  it('shows the six-digit code first, the link second', () => {
+    expect(html.indexOf('{{ .Token }}')).toBeGreaterThan(-1)
+    expect(html.indexOf('{{ .Token }}')).toBeLessThan(html.indexOf('token_hash'))
   })
 })
 

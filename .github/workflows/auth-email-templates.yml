@@ -33,9 +33,9 @@ jobs:
             --rawfile ml supabase/templates/magic-link.html \
             --rawfile cf supabase/templates/confirmation.html \
             --rawfile rc supabase/templates/recovery.html \
-            '{mailer_subjects_magic_link:"Your SocialUs sign-in", mailer_templates_magic_link_content:$ml,
-              mailer_subjects_confirmation:"Welcome to SocialUs", mailer_templates_confirmation_content:$cf,
-              mailer_subjects_recovery:"Choose a new SocialUs password", mailer_templates_recovery_content:$rc}')
+            '{mailer_subjects_magic_link:"Your SocialUs sign-in code", mailer_templates_magic_link_content:$ml,
+              mailer_subjects_confirmation:"Your SocialUs sign-in code", mailer_templates_confirmation_content:$cf,
+              mailer_subjects_recovery:"Your SocialUs password code", mailer_templates_recovery_content:$rc}')
           code=$(curl -s -o /tmp/patch.json -w '%{http_code}' -X PATCH "$api" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" -d "$body")
           echo "PATCH $code"
           [ "$code" = 200 ] || { jq -r '.message // .' /tmp/patch.json | head -3; exit 1; }
