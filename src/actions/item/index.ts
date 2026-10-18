@@ -17,3 +17,11 @@ export {
   type ItemAttachLocationInput,
   type ItemAttachLocationResult,
 } from './attach-location'
+export {
+  featuredItemSave,
+  featuredItemSaveInput,
+  featuredItemRemove,
+  featuredItemRemoveInput,
+  type FeaturedItemSaveInput,
+  type FeaturedItemRemoveInput,
+} from './featured'

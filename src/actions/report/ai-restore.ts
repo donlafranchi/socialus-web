@@ -44,7 +44,8 @@ export async function autoRestoreAfterAssessment(reportId: string, reads: Read[]
          from public.reports r
          left join public.groups g on r.subject_kind in ('group', 'page_picture', 'page_words') and g.id = r.subject_id
          left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
-         join public.groups pg on pg.id = coalesce(p.group_id, g.id)
+         left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
+         join public.groups pg on pg.id = coalesce(p.group_id, it.group_id, g.id)
         where r.id = $1
           for update of r`,
       [reportId],

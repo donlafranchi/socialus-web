@@ -100,9 +100,9 @@ export const REPORT_REFUSED = {
 export const reportCreateInput = z.object({
   // What is reported: the Page's photo ('group', the original subject), a Post
   // body ('post'), the Page picture, or one post's photo (F099 criterion 8: each
-  // image reportable on its own, and a report hides that one image only). Items
-  // never join (model.md § There are no Items).
-  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo', 'page_words']),
+  // image reportable on its own, and a report hides that one image only), and
+  // one of a Page's featured products or services ('page_item', #909).
+  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo', 'page_words', 'page_item']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -140,13 +140,16 @@ interface Subject {
   alreadyHidden: boolean
   /** A restore is sticky for what was reviewed. */
   locked: boolean
-  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden' | 'group.words_hidden'
+  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden' | 'group.words_hidden' | 'group.item_hidden'
   /** False when a concurrent report got there first. */
   hide: (client: Queryable, now: Date) => Promise<boolean>
 }
 
 /** #625 — the words a report on a Page's own words covers, as one string: name, then description. */
 export const pageWordsText = (name: string, description: string | null) => `${name}\n${description ?? ''}`
+
+/** #909 — what a report on a featured item covers: its name, then its details. */
+export const pageItemText = (title: string, description: string | null) => `${title}\n${description ?? ''}`
 
 type Queryable = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
@@ -277,6 +280,56 @@ async function loadSubject(
       hide: async (c, now) => {
         const r = await c.query<{ id: string }>(
           `update public.groups set words_hidden_at = $2 where id = $1 and words_hidden_at is null returning id`,
+          [id, now],
+        )
+        return r.rows.length > 0
+      },
+    }
+  }
+
+  // #909 — one featured product or service: its name, details and photo, hidden together; the Page stays up.
+  if (kind === 'page_item') {
+    const res = await client.query<{
+      group_id: string
+      title: string
+      description: string
+      photo_url: string | null
+      hidden_at: Date | null
+      hide_locked_text: string | null
+      builder_on_real: boolean
+      reporter_is_builder: boolean
+      founder_member_id: string
+      name: string
+      hide_bar: string | number
+    }>(
+      `select g.id as group_id, i.title, i.description, i.photo_url, i.hidden_at, i.hide_locked_text,
+              public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder,
+              g.founder_member_id, g.name,
+              ${BAR_OF_LOCATION.replace('%LOCATION%', 'g.anchor_location_id')} as hide_bar
+         from public.items i
+         join public.groups g on g.id = i.group_id
+        where i.id = $1 and i.deleted_at is null and i.kind in ('product', 'service')`,
+      [id, reporterId],
+    )
+    const it = res.rows[0]
+    if (!it) return null
+    const text = pageItemText(it.title, it.description)
+    return {
+      groupId: it.group_id,
+      founderId: it.founder_member_id,
+      pageName: it.name,
+      hideBar: it.hide_bar,
+      builderOnReal: it.builder_on_real,
+      reporterIsBuilder: it.reporter_is_builder,
+      preserve: { mediaUrl: it.photo_url, text },
+      hideable: true,
+      alreadyHidden: it.hidden_at !== null,
+      locked: it.hide_locked_text !== null && it.hide_locked_text === text,
+      hiddenEventKind: 'group.item_hidden',
+      hide: async (c, now) => {
+        const r = await c.query<{ id: string }>(
+          `update public.items set hidden_at = $2 where id = $1 and hidden_at is null returning id`,
           [id, now],
         )
         return r.rows.length > 0
