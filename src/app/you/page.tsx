@@ -19,6 +19,7 @@ import { ZipChange } from '@/components/member/ZipChange'
 import { changeZipAction } from '@/app/_actions/zip-actions'
 import { SearchSharingSwitch } from '@/components/member/SearchSharingSwitch'
 import { setSearchSharingAction } from '@/app/_actions/search-demand-actions'
+import { NOTIFY_COPY } from '@/lib/notify/push/copy'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,6 +87,13 @@ export default async function YouPage() {
           <Row label="Searches" testId="settings-searches">
             <SearchSharingSwitch on={row?.search_sharing !== false} change={setSearchSharingAction} />
           </Row>
+          <Row
+            label={NOTIFY_COPY.rowLabel}
+            value={NOTIFY_COPY.rowValue}
+            testId="settings-notifications"
+            wrap
+            action={<Link href="/you/notifications" className={LINK}>{NOTIFY_COPY.rowAction}</Link>}
+          />
           <Row
             label="Help"
             value="Something not working?"

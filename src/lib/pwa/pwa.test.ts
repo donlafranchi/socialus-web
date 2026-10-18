@@ -32,11 +32,16 @@ describe('the service worker', () => {
     expect(sw).not.toMatch(/cache\.put\(request/) // a navigation or data response is never stored
     expect(sw).toMatch(/\/api\/|supabase/) // named as excluded
   })
+  // #904 — web push handlers live in their own file, loaded first.
+  it('loads the push handlers', () => {
+    expect(sw).toMatch(/^importScripts\('\/push-sw\.js'\)/m)
+    expect(read('public/push-sw.js')).toMatch(/addEventListener\('push'[\s\S]*addEventListener\('notificationclick'/)
+  })
 })
 
 describe('the proxy leaves the install files alone', () => {
   const skipped = (path: string) => !new RegExp(`^${config.matcher[0]}$`).test(path)
-  it.each(['/manifest.webmanifest', '/sw.js', '/offline.html', '/icons/192'])('%s', (p) => {
+  it.each(['/manifest.webmanifest', '/sw.js', '/push-sw.js', '/offline.html', '/icons/192'])('%s', (p) => {
     expect(skipped(p)).toBe(true)
   })
   it('still guards /explore', () => expect(skipped('/explore')).toBe(false))

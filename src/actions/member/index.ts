@@ -92,3 +92,14 @@ export { memberZipSet, memberZipSetInput, UNKNOWN_ZIP, type MemberZipSetInput, t
 
 // #909 — search sharing, the switch on You
 export { memberSearchSharingSet, memberSearchSharingSetInput, type MemberSearchSharingSetInput } from './search-sharing-set'
+// #904 — notification choices and push subscriptions
+export {
+  memberNotificationsSet,
+  memberNotificationsSetInput,
+  memberPushSubscribe,
+  memberPushSubscribeInput,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
+  type MemberNotificationsSetInput,
+  type MemberPushSubscribeInput,
+} from './notifications'
