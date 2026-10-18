@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { Megaphone } from 'lucide-react'
 import { Card } from '@/components/cards'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
+import { PhotoLabel } from '@/components/cards/CardMarks'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import {
   WITHHELD_CTA,
@@ -43,13 +44,10 @@ export function WithheldAnnouncementCard({
         ) : (
           <DefaultArt kind={artKindFor(result.groupKind)} />
         )}
-        <span
-          data-testid="withheld-count"
-          className="absolute left-2 top-2 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-[var(--color-fg)] shadow-sm"
-        >
-          <Megaphone aria-hidden className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+        <PhotoLabel testId="withheld-count">
+          <Megaphone aria-hidden className="h-3.5 w-3.5" />
           {withheldCountLabel(result.announcementCount ?? 0)}
-        </span>
+        </PhotoLabel>
       </div>
       <div className="px-3 pt-3 pb-1">
         <p

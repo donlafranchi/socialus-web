@@ -191,16 +191,16 @@ export function AnnouncementFields({
             {repeatOn && (
               <fieldset role="group" className="mt-3 border-0 p-0" aria-label="Repeats weekly on">
                 <legend className="text-body-sm font-medium text-[var(--color-fg)]">Repeats weekly on</legend>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap gap-1">
                   {SERIES_WEEKDAYS.map((d) => {
                     const on = value.repeat.days.includes(d.n)
                     return (
                       <label
                         key={d.n}
-                        className={`inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-medium ${
+                        className={`inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center px-1 text-sm ${
                           on
-                            ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
-                            : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
+                            ? 'font-semibold text-[var(--color-charcoal-900)] underline decoration-2 underline-offset-8'
+                            : 'font-medium text-[var(--color-fg-muted)]'
                         } has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--color-accent)]`}
                       >
                         <input

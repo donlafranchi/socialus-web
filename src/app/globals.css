@@ -328,7 +328,7 @@ a:hover {
 }
 
 /* Declared with @utility, not as plain classes: Tailwind v4 can only `@apply`
- * something it knows as a utility, and `.btn-primary` / `.chip` apply these.
+ * something it knows as a utility, and `.btn-primary` and `.card-hover` apply these.
  * A plain `.lift {}` compiles but fails at `@apply lift` with "unknown utility
  * class" — which is exactly what happened on the first attempt. */
 
@@ -455,25 +455,6 @@ a:hover {
 /* Kept as the card's name for the same behaviour. */
 .card-hover {
   @apply lift;
-}
-
-.chip {
-  @apply press inline-flex items-center rounded-full border px-3.5 py-2 text-sm;
-  border-color: var(--color-border);
-  background-color: #fff;
-  color: var(--color-fg);
-}
-.chip:hover {
-  background-color: var(--color-surface);
-}
-
-.chip-selected {
-  border-color: transparent;
-  background-color: var(--color-fg);
-  color: #fff;
-}
-.chip-selected:hover {
-  background-color: var(--color-fg);
 }
 
 /* Extractive listings render visually muted — Wall Street fades into the background */

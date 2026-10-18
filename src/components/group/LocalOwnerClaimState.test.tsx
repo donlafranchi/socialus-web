@@ -5,7 +5,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
-import { LocalOwnerClaimProvider, LocalOwnerBadgeChip } from './LocalOwnerClaimState'
+import { LocalOwnerClaimProvider, LocalOwnerBadgeLabel } from './LocalOwnerClaimState'
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh, push: vi.fn(), replace: vi.fn() }) }))
@@ -14,7 +14,7 @@ afterEach(cleanup)
 function page(onSet = vi.fn(), onRemove = vi.fn(), claim = { zip: null as string | null, isProximal: false }, badge: { label: string } | null = null) {
   return render(
     <LocalOwnerClaimProvider claim={claim} badge={badge}>
-      <LocalOwnerBadgeChip />
+      <LocalOwnerBadgeLabel />
       <LocallyOwnedClaim groupId="g-1" onSet={onSet} onRemove={onRemove} />
     </LocalOwnerClaimProvider>,
   )
@@ -45,7 +45,7 @@ describe('the claim card and badge follow the save', () => {
     const { rerender } = page()
     rerender(
       <LocalOwnerClaimProvider claim={{ zip: '95819', isProximal: true }} badge={{ label: 'Claimed local owner' }}>
-        <LocalOwnerBadgeChip />
+        <LocalOwnerBadgeLabel />
         <LocallyOwnedClaim groupId="g-1" onSet={vi.fn()} onRemove={vi.fn()} />
       </LocalOwnerClaimProvider>,
     )

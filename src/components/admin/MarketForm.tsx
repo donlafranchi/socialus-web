@@ -113,7 +113,7 @@ export function MarketForm({ market }: Props) {
         <label className="text-xs font-medium text-neutral-600">Schedule days</label>
         <div className="mt-1 flex flex-wrap gap-2">
           {DAYS.map((d) => (
-            <button key={d.slug} type="button" onClick={() => toggleDay(d.slug)} className={days.includes(d.slug) ? 'chip-selected' : 'chip'}>
+            <button key={d.slug} type="button" onClick={() => toggleDay(d.slug)} className={`min-h-11 px-1 text-sm ${days.includes(d.slug) ? 'font-semibold underline decoration-2 underline-offset-8' : 'font-medium text-neutral-500'}`}>
               {d.label}
             </button>
           ))}

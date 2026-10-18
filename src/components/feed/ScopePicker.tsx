@@ -21,7 +21,7 @@ export function ScopePicker({
     <label className="flex items-center gap-2 text-xs text-neutral-600" data-testid="scope-picker">
       <span>Showing</span>
       <select
-        className="chip"
+        className="min-h-11 border-0 bg-transparent text-xs font-medium text-neutral-900 underline underline-offset-4"
         value={current}
         aria-label="Choose a locality"
         onChange={(e) => router.push(`/?place=${e.target.value}`)}

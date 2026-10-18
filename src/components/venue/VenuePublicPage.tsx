@@ -140,7 +140,7 @@ export function VenuePublicPage({
 
       <section data-testid="venue-about" className="mt-8">
         <h2 className="text-lg font-medium">About</h2>
-        <span data-testid="venue-kind-tag" className="chip mt-2 inline-block text-xs">
+        <span data-testid="venue-kind-tag" className="mt-2 inline-block text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
           {KIND_LABELS[venue.kind]}
         </span>
         {venue.description && (

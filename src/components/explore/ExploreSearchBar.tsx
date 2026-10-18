@@ -87,10 +87,11 @@ export function ExploreSearchBar({
           }
           data-testid="explore-location-pill"
           data-place-chosen={label === NO_PLACE_CHOSEN_LABEL ? 'false' : 'true'}
-          className={`press inline-flex min-w-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium ${
+          // #951 — plain text with a pin, never a pill (Don, 2026-10-18 [always]).
+          className={`press inline-flex min-h-11 min-w-0 items-center gap-1.5 text-sm font-medium ${
             label === NO_PLACE_CHOSEN_LABEL
-              ? 'bg-white text-[var(--color-fg-muted)] ring-1 ring-[var(--color-border)]'
-              : 'bg-neutral-100 text-[var(--color-charcoal-900)]'
+              ? 'text-[var(--color-fg-muted)] underline underline-offset-4'
+              : 'text-[var(--color-charcoal-900)]'
           }`}
         >
           <MapPin size={14} className="reacts shrink-0 text-[var(--color-accent)]" aria-hidden="true" />
@@ -148,7 +149,7 @@ export function ExploreSearchBar({
                 if (e.key === 'Escape') collapse()
               }}
               data-testid="search-input"
-              className="w-full rounded-full border border-neutral-300 py-2.5 pl-9 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+              className="w-full rounded-lg border border-neutral-300 py-2.5 pl-9 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
             <button
               type="button"
