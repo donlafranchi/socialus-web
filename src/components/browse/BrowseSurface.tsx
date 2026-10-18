@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { MakeThisYoursBanner } from '@/components/feed/MakeThisYoursBanner'
 import { CardGrid } from '@/components/cards'
@@ -74,7 +74,6 @@ export function BrowseSurface({
   initial: BrowseSnapshot
   ownerPanelOpen?: boolean
 }) {
-  const router = useRouter()
   const params = useSearchParams()
 
   const [snapshot, setSnapshot] = useState(initial)
@@ -155,8 +154,12 @@ export function BrowseSurface({
       area: snapshot.area?.id ?? null,
       q: query,
     })
-    router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [metroSlug, snapshot.area, query, router])
+    // #935 — the address bar only. router.replace re-rendered Explore on the server once per keystroke, several
+    // feed reads each, and signed in that flood held a tapped result and the Page it opened. Next.js keeps
+    // useSearchParams in step with the native History API, so the link still reopens the same search.
+    const url = `/explore${qs ? `?${qs}` : ''}`
+    if (window.location.pathname + window.location.search !== url) window.history.replaceState(window.history.state, '', url)
+  }, [metroSlug, snapshot.area, query])
 
   // #549 — the pins arrive after the list: the server leaves them out of the first
   // response (a phone opens on the list) and this fetches them once it has painted.
