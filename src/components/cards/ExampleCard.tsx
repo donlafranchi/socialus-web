@@ -24,7 +24,6 @@
 
 import { Card } from './Card'
 import { locationLine, type CardLocation } from './location'
-import { PhotoLabel } from './CardMarks'
 
 export interface ExampleCardProps {
   title: string
@@ -53,7 +52,10 @@ export function ExampleCard({ title, tagline, location, emoji }: ExampleCardProp
       {/* Persistent. Not a hover reveal, not a corner sticker that scrolls out
           of the image — it sits on the image block, which is the first thing
           the eye lands on. */}
-      <PhotoLabel testId="example-mark">Example</PhotoLabel>
+      {/* #951 — small-caps text, not a pill: no photo here, so no scrim. */}
+      <span data-testid="example-mark" className="absolute left-3 top-2 z-10 text-micro font-semibold uppercase tracking-wider text-[var(--color-fg)]">
+        Example
+      </span>
 
       <div
         data-testid="example-image"
