@@ -107,7 +107,8 @@ export const featuredItemSave = defineHandler(
           `update public.items
               set hidden_at = case when title is distinct from $4 or description is distinct from $5 then null else hidden_at end,
                   removed_at = case when title is distinct from $4 or description is distinct from $5 then null else removed_at end,
-                  kind = $3, title = $4, description = $5, in_stock = $6, photo_url = $7, updated_at = $8
+                  kind = $3, title = $4, description = $5, in_stock = $6, photo_url = $7, updated_at = $8,
+                  sample_source_url = null
             where id = $1 and group_id = $2`,
           [input.itemId, input.groupId, input.kind, input.name, input.details ?? '', input.inStock, input.photoUrl ?? null, ctx.now()],
         )
@@ -124,6 +125,12 @@ export const featuredItemSave = defineHandler(
         return { itemId: input.itemId }
       }
 
+      // An unclaimed Page's samples (#909) give way to the owner's first real one, as sample posts do (#556).
+      await client.query(
+        `update public.items set deleted_at = $2
+          where group_id = $1 and sample_source_url is not null and deleted_at is null`,
+        [input.groupId, ctx.now()],
+      )
       const counted = await client.query<{ n: number; next: number }>(
         `select count(*)::int as n, coalesce(max(position) + 1, 0)::int as next
            from public.items
