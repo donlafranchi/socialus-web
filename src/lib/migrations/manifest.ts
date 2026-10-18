@@ -138,4 +138,5 @@ export const MIGRATION_VERSIONS: readonly string[] = [
   '20261019040909',
   '20261019060000',
   '20261019070000',
+  '20261019090500',
 ]
