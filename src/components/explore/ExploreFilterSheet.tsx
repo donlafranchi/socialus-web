@@ -173,7 +173,7 @@ export function ExploreFilterSheet({
               <Link
                 href={pickInterestsHref(signedIn)}
                 data-testid="filter-pick-interests"
-                className="inline-flex min-h-11 items-center rounded-full border border-dashed border-[var(--color-charcoal-700)] bg-white px-3 text-sm font-medium text-[var(--color-charcoal-900)] underline"
+                className="inline-flex min-h-11 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline"
               >
                 Pick your interests
               </Link>

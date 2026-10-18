@@ -1,5 +1,5 @@
-// #892 — the 12 interests as tappable pills, shared by You and the step after sign-up. Native checkboxes
-// behind sr-only, so checked state and keyboard come from the platform (same pattern as the filter sheet).
+// #892 — the 12 interests as a plain checklist (Don, 2026-10-18 [always]: no chip or pill UI), shared by You
+// and the step after sign-up. Native checkboxes, one 44px row each.
 
 import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
 
@@ -7,22 +7,16 @@ export function InterestChoices({ selected, onToggle, label }: { selected: reado
   return (
     <fieldset>
       <legend className="sr-only">{label}</legend>
-      <div className="flex flex-wrap gap-2">
-        {INTEREST_VOCAB.map((t) => {
-          const on = selected.includes(t.tag)
-          return (
-            <label
-              key={t.tag}
-              className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors ${
-                on ? 'border-transparent bg-[var(--color-charcoal-700)] text-white' : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
-              } has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--color-accent)]`}
-            >
-              <input type="checkbox" className="sr-only" checked={on} onChange={() => onToggle(t.tag)} />
+      <ul className="grid gap-x-6 sm:grid-cols-2">
+        {INTEREST_VOCAB.map((t) => (
+          <li key={t.tag}>
+            <label className="flex min-h-tap cursor-pointer items-center gap-3 text-body-sm text-[var(--color-fg)]">
+              <input type="checkbox" className="h-5 w-5 shrink-0 accent-[var(--color-charcoal-700)]" checked={selected.includes(t.tag)} onChange={() => onToggle(t.tag)} />
               {t.label}
             </label>
-          )
-        })}
-      </div>
+          </li>
+        ))}
+      </ul>
     </fieldset>
   )
 }
