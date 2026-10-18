@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { MagicLinkForm } from '@/components/auth/MagicLinkForm'
+import { SignInForm } from '@/components/auth/SignInForm'
 import { AuthCard } from '@/components/shell/AuthCard'
 
 function LoginInner() {
@@ -17,7 +17,7 @@ function LoginInner() {
           {initialError}
         </p>
       )}
-      <MagicLinkForm next={next} />
+      <SignInForm next={next} />
     </AuthCard>
   )
 }
