@@ -49,6 +49,7 @@ const show = (subjects: ReviewSubject[], summary?: { answers: number; coolDowns:
 
 beforeEach(() => {
   vi.useFakeTimers()
+  vi.setSystemTime(day(16)) // fixtures sit on 1–6 October; on a real clock they pass the 14-day answer window and close themselves (#799, again 17 Oct)
   onDecide.mockClear()
   onReverse.mockClear()
   refresh.mockClear()

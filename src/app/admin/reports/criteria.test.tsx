@@ -38,6 +38,7 @@ const ids = () => screen.getAllByTestId('review-row').map((r) => r.getAttribute(
 
 beforeEach(() => {
   vi.useFakeTimers()
+  vi.setSystemTime(day(16)) // fixtures sit on 1–6 October; on a real clock they pass the 14-day answer window and close themselves (#799, again 17 Oct)
   onDecide.mockClear()
   onReverse.mockClear()
 })
@@ -291,12 +292,12 @@ describe('F101.14 — on desktop: A approves, R removes, J/K move, U undoes', ()
     buttons()[0]!.focus()
     fireEvent.keyDown(buttons()[0]!, { key: 'j' })
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(20)
+      await vi.advanceTimersByTimeAsync(100)
     })
     expect(document.activeElement).toBe(buttons()[1])
     fireEvent.keyDown(buttons()[1]!, { key: 'k' })
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(20)
+      await vi.advanceTimersByTimeAsync(100)
     })
     expect(document.activeElement).toBe(buttons()[0])
     // Outside the list, a stray key decides nothing; with a modifier, nothing either.
