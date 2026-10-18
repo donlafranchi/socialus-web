@@ -118,3 +118,12 @@ describe('bug #69 — auth callback', () => {
     expect(url.href).not.toContain('evil.example')
   })
 })
+
+describe('#927 — the emailed link as the template builds it (RedirectTo + token_hash), opened in any browser', () => {
+  it('verifies the hash on the server with no code verifier and lands on next', async () => {
+    const res = await call('?next=%2Fyou&token_hash=abc&type=email')
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: 'abc', type: 'email' })
+    expect(exchangeCodeForSession).not.toHaveBeenCalled()
+    expect(locationOf(res).pathname).toBe('/you')
+  })
+})

@@ -10,6 +10,7 @@ import { safeNext } from '@/lib/safe-next'
 import { rememberedEmail, rememberEmail } from '@/lib/auth/remembered-email'
 import { offerToSaveLogin } from '@/lib/auth/save-login'
 import { Button } from '@/components/ui/Button'
+import { CodeEntry } from './CodeEntry'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const TEXT_LINK = 'press min-h-tap text-body-sm font-medium text-[var(--color-accent)] underline'
@@ -87,11 +88,12 @@ export function MagicLinkForm({ next }: { next?: string | null }) {
         <h1 className="mb-3 text-title-1 text-[var(--color-fg)]">Check your email</h1>
         <p className="mb-6 text-body-sm text-[var(--color-fg-muted)]">
           {sent.kind === 'link' ? (
-            <>We sent a sign-in link to <strong>{sent.to}</strong>. Open it on this device to finish.</>
+            <>We sent a sign-in link to <strong>{sent.to}</strong>. Open it in any browser or app to finish.</>
           ) : (
             <>We sent a link to <strong>{sent.to}</strong>. Open it on this device to choose a new password.</>
           )}
         </p>
+        {sent.kind === 'link' && <CodeEntry email={sent.to} next={nextSafe} onDone={(to) => window.location.assign(to)} />}
         <button
           type="button"
           onClick={() => {

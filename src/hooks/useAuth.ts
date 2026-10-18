@@ -30,7 +30,7 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: authRedirectUrl(next) },
+      options: { emailRedirectTo: authRedirectUrl(next ?? '/') },
     })
     return { data, error }
   }, [])
@@ -46,13 +46,19 @@ export function useAuth() {
   }, [])
 
   const signInWithOtp = useCallback(async (email: string, next?: string) => {
-    const redirectTo = authRedirectUrl(next)
+    const redirectTo = authRedirectUrl(next ?? '/')
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       // shouldCreateUser (default true) is what makes one link serve both
       // sign-up and sign-in — an unknown email gets an account.
       options: { emailRedirectTo: redirectTo, shouldCreateUser: true },
     })
+    return { data, error }
+  }, [])
+
+  // #927 — the emailed code, checked with the address: signs in in any browser.
+  const verifyEmailCode = useCallback(async (email: string, token: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
     return { data, error }
   }, [])
 
@@ -92,6 +98,7 @@ export function useAuth() {
     signIn,
     signOut,
     signInWithOtp,
+    verifyEmailCode,
     resetPassword,
     updatePassword,
     signInWithGoogle,
