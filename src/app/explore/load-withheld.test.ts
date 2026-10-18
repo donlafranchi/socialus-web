@@ -49,7 +49,15 @@ vi.mock('@/lib/supabase-server', () => ({
   })),
 }))
 const { getHappening } = vi.hoisted(() => ({ getHappening: vi.fn<(...a: unknown[]) => Promise<{ today: unknown[]; thisWeek: unknown[]; thisWeekend: unknown[] }>>(async () => ({ today: [] as unknown[], thisWeek: [] as unknown[], thisWeekend: [] as unknown[] })) }))
-vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed, getHappening }))
+vi.mock('@/lib/feed/browse-feed', () => ({
+  getBrowseFeed,
+  getHappening,
+  getNearbyFeed: async (sb: unknown, o: { metroId: string; resultKinds?: unknown; limit?: number }) => ({
+    // #922 — the default mix reads through browse_nearby; these tests are about what it asks for and gets.
+    results: await getBrowseFeed(sb, { scope: { metroId: o.metroId }, resultKinds: o.resultKinds ?? null, limit: o.limit }),
+    reach: { minutes: 15, from: null },
+  }),
+}))
 // #331 — the map's mix has its own tests; these are about the list and the rows.
 const { loadMapMix } = vi.hoisted(() => ({ loadMapMix: vi.fn(async () => []) }))
 vi.mock('@/lib/map/load-mix', () => ({ loadMapMix }))

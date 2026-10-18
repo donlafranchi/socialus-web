@@ -45,4 +45,9 @@ export interface BrowseSnapshot {
   lead?: BrowseResult[]
   /** #796 — true when `lead` is new things; false when it is the rotation standing in. */
   leadFresh?: boolean
+  /**
+   * #922 — how far the default mix reaches: minutes' drive from `from` (a town, or null for the member's own),
+   * or 'all' for the whole area. Absent on a filtered read and when a neighbourhood is picked.
+   */
+  reach?: { minutes: number | 'all'; from: string | null } | null
 }

@@ -46,6 +46,7 @@ import {
   isPlainPostsView,
 } from '@/lib/browse/filters'
 import { leadKey } from '@/lib/browse/lead'
+import { parseReach, reachLine, widerReach, type Reach } from '@/lib/browse/reach'
 import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
 import { logSearchAction } from '@/app/_actions/search-demand-actions'
 import { useSearchDemand } from './useSearchDemand'
@@ -81,6 +82,8 @@ export function BrowseSurface({
   // schedule and tags back out, so there is one text and no second filter state. An old link that
   // carried ?category= or ?schedule= is written into the box on the way in.
   const [query, setQuery] = useState(() => writeBox(parseBrowseFilters(params), params.get('q') ?? ''))
+  // #922 — the member's reach (a ring, or the whole area); null while the database picks a full screen nearby.
+  const [reach, setReach] = useState<Reach | null>(() => parseReach(params.get('reach')))
   // Ephemeral per F044 — not in the URL, resets to List on the next visit.
   const [view, setView] = useState<ExploreView>('list')
   const [mapCollapsed, setMapCollapsed] = useState(false)
@@ -148,18 +151,35 @@ export function BrowseSurface({
 
   const metroSlug = snapshot.chosen ? (snapshot.metro?.slug ?? null) : null
 
+  const changeReach = useCallback(
+    (next: Reach) => {
+      setReach(next)
+      const request = ++requestRef.current
+      startTransition(async () => {
+        try {
+          const fresh = await browseFeedAction(metroSlug, snapshot.area?.id ?? null, null, null, next)
+          if (requestRef.current === request) setSnapshot(fresh)
+        } catch {
+          if (requestRef.current === request) setSnapshot((s) => ({ ...s, results: [], failed: true }))
+        }
+      })
+    },
+    [metroSlug, snapshot.area],
+  )
+
   useEffect(() => {
     const qs = browseQueryString({
       metro: metroSlug,
       area: snapshot.area?.id ?? null,
       q: query,
+      reach,
     })
     // #935 — the address bar only. router.replace re-rendered Explore on the server once per keystroke, several
     // feed reads each, and signed in that flood held a tapped result and the Page it opened. Next.js keeps
     // useSearchParams in step with the native History API, so the link still reopens the same search.
     const url = `/explore${qs ? `?${qs}` : ''}`
     if (window.location.pathname + window.location.search !== url) window.history.replaceState(window.history.state, '', url)
-  }, [metroSlug, snapshot.area, query])
+  }, [metroSlug, snapshot.area, query, reach])
 
   // #549 — the pins arrive after the list: the server leaves them out of the first
   // response (a phone opens on the list) and this fetches them once it has painted.
@@ -208,7 +228,7 @@ export function BrowseSurface({
   }, [needle])
   const filterKey =
     filtered || settledNeedle
-      ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle])
+      ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle, reach])
       : null
   const [targeted, setTargeted] = useState<{ key: string; results: BrowseSnapshot['results'] } | null>(null)
   useEffect(() => {
@@ -216,7 +236,7 @@ export function BrowseSurface({
     let live = true
     Promise.resolve()
       .then(() =>
-        browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle || null),
+        browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle || null, reach),
       )
       .then((next) => {
         if (live && next && !next.failed) setTargeted({ key: filterKey, results: next.results })
@@ -329,6 +349,15 @@ export function BrowseSurface({
 
       {/* Above the results, and absent for a signed-in Member. */}
       {!snapshot.signedIn && <MakeThisYoursBanner isAuthenticated={false} />}
+
+      {/* #922 — how far Explore reaches, as a quiet line: never a chip (Don, 2026-10-18). Gone while a filter or search narrows. */}
+      {snapshot.reach && !filtered && !rest.trim() && (
+        <ReachLine
+          line={reachLine(snapshot.reach.minutes, snapshot.reach.from, snapshot.signedIn)}
+          wider={widerReach(snapshot.reach.minutes)}
+          onWiden={changeReach}
+        />
+      )}
 
       {/* F059 criterion 2b. Above the public results because it is what this
           person came back for, and NOT tucked into the member's own area —
@@ -504,6 +533,8 @@ export function BrowseSurface({
       <ExploreFilterSheet
         open={sheetOpen}
         value={filters}
+        reach={reach ?? snapshot.reach?.minutes ?? null}
+        onReachChange={changeReach}
         onClose={() => setSheetOpen(false)}
         onApply={(f) => {
           const text = writeBox(f, rest)
@@ -513,5 +544,26 @@ export function BrowseSurface({
         }}
       />
     </main>
+  )
+}
+
+function ReachLine({ line, wider, onWiden }: { line: string; wider: Reach | null; onWiden: (r: Reach) => void }) {
+  return (
+    <p className="px-3 pt-3 text-body-sm text-[var(--color-fg-muted)] md:px-6" data-testid="explore-reach">
+      {line}
+      {wider !== null && (
+        <>
+          <span aria-hidden="true"> · </span>
+          <button
+            type="button"
+            onClick={() => onWiden(wider)}
+            data-testid="explore-reach-more"
+            className="press inline-flex min-h-tap items-center text-[var(--color-charcoal-900)] underline underline-offset-2"
+          >
+            Show more nearby
+          </button>
+        </>
+      )}
+    </p>
   )
 }

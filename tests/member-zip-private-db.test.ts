@@ -32,6 +32,9 @@ const ZIP_READERS = new Set([
 // Functions whose body touches members and a zip, and why each hands no zip to a caller.
 const ZIP_FUNCTIONS: Record<string, string> = {
   backfill_home_towns: 'returns a count of rows updated, never a zip',
+  // #922 — the caller's own zip only (auth.uid()), turned into their town's centroid; returns a point and a
+  // town name, null for the caller's own town, never a zip and never another member's.
+  explore_vantage: "reads only the caller's own zip and returns no zip",
 }
 
 let pool: Pool

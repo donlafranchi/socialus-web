@@ -24,15 +24,23 @@ import { loadBrowse, loadMemberMap, readSessionSeed, type BrowseSnapshot } from 
 import { SEEN_COOKIE, SEEN_COOKIE_MAX_AGE, recordSeen } from '@/lib/browse/lead'
 import type { MixedResult } from '@/lib/map/mix'
 import type { BrowseFilters } from '@/lib/browse/filters'
+import { parseReach, type Reach } from '@/lib/browse/reach'
 
 export async function browseFeedAction(
   metroSlug: string | null,
   areaId: string | null = null,
   filters: BrowseFilters | null = null,
   search: string | null = null,
+  reach: Reach | null = null,
 ): Promise<BrowseSnapshot> {
-  // #876 — the filters ride along: a filtered Explore is one targeted read. #916 — and so does a search.
-  const snapshot = await loadBrowse(metroSlug, areaId, { withMap: false, seed: await readSessionSeed(), filters, search })
+  // #876 — the filters ride along: a filtered Explore is one targeted read. #916 — and so does a search. #922 — and the member's reach.
+  const snapshot = await loadBrowse(metroSlug, areaId, {
+    withMap: false,
+    seed: await readSessionSeed(),
+    filters,
+    search,
+    reach: parseReach(reach === null ? null : String(reach)),
+  })
   if (!filters && !search && metroSlug && snapshot.metro?.slug === metroSlug) {
     try {
       ;(await cookies()).set(METRO_COOKIE, metroSlug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
