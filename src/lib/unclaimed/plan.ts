@@ -143,14 +143,15 @@ export function interestsFor(pool: string, what: string): string[] {
   return base
 }
 
-/** #816 a3 (cap-2) — a day's batch spans at least 5 towns and at least 4 interest tags. */
+/** #816 a3 (cap-2) — a batch of 8 or more Pages spans at least 5 towns and 4 interest tags; a smaller one loads what qualifies (Don, 2026-10-18). */
+export const BATCH_SPREAD_FROM = 8
 export const BATCH_MIN_TOWNS = 5
 export const BATCH_MIN_INTERESTS = 4
 export function batchCoverage(rows: MakerRow[]): { towns: number; interests: number; ok: boolean } {
   const { listed } = planMakers(rows)
   const towns = new Set(listed.map((p) => p.city)).size
   const interests = new Set(listed.flatMap((p) => p.interests)).size
-  return { towns, interests, ok: towns >= BATCH_MIN_TOWNS && interests >= BATCH_MIN_INTERESTS }
+  return { towns, interests, ok: listed.length < BATCH_SPREAD_FROM || (towns >= BATCH_MIN_TOWNS && interests >= BATCH_MIN_INTERESTS) }
 }
 
 export function planListings(rows: ListingRow[]): PlannedPage[] {
