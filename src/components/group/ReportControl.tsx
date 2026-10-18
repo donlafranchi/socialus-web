@@ -25,7 +25,7 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 interface Props {
   subjectId: string
   /** F099 — which image: the Page's photo when omitted. */
-  subjectKind?: 'group' | 'page_picture' | 'post_photo'
+  subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_item'
   subjectLabel: string
   /** #625 — on a Page: its own words (name, description) are a report of their own, beside its photo. */
   wordsReportable?: boolean
@@ -36,7 +36,7 @@ interface Props {
   returnTo?: string
   onSend: (input: {
     subjectId: string
-    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words'
+    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
     category: ReportCategory
     body: string
   }) => Promise<{ ok: true } | { ok: false; message: string }>
@@ -44,7 +44,7 @@ interface Props {
 
 export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | undefined>(subjectKind)
+  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | undefined>(subjectKind)
   const open = (kind: typeof reporting) => {
     setReporting(kind)
     if (loggedIn) setSheetOpen(true)

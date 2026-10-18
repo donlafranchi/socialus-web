@@ -9,6 +9,8 @@
 // only what it lacks is added. The lists are scripts/unclaimed/makers*.json and listings.json (see
 // rows.ts). A broken website, or a Page that ends up without its pictures or that does not open,
 // fails the run.
+import { pinUnclaimed } from '../../src/lib/unclaimed/address'
+import { censusGeocode } from '../../src/lib/geocoding/census'
 import { createClient } from '@supabase/supabase-js'
 import { Client } from 'pg'
 import { appendFileSync, readFileSync } from 'node:fs'
@@ -118,6 +120,9 @@ async function main() {
             const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}), { stockOnly: overrides.stockOnly.includes(p.name), socials: socialsFor(p) })
             if (r === 'missing') throw new Error('the Page is not in the database after loading')
             tally[r]++
+            // #936 — a Page with a street address sits there, not at its town's centre.
+            const pin = await pinUnclaimed(db, p, (q) => censusGeocode(q))
+            if (pin.status === 'not-found') console.log(`  ${p.name}: its address would not geocode (${p.address}); left at its town`)
             console.log(`${p.name}: ${made.created ? 'created, ' : ''}${r}`)
           } catch (e) {
             failed.push({ name: p.name, error: e instanceof Error ? e.message : String(e) })

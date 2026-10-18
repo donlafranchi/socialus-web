@@ -26,7 +26,9 @@ import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
 import { ExploreDock } from '@/components/explore/ExploreDock'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { mapFocusFrom } from '@/lib/browse/map-focus'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
@@ -85,8 +87,10 @@ export function BrowseSurface({
   const [query, setQuery] = useState(() => writeBox(parseBrowseFilters(params), params.get('q') ?? ''))
   // #922 — the member's reach (a ring, or the whole area); null while the database picks a full screen nearby.
   const [reach, setReach] = useState<Reach | null>(() => parseReach(params.get('reach')))
-  // Ephemeral per F044 — not in the URL, resets to List on the next visit.
-  const [view, setView] = useState<ExploreView>('list')
+  // #896 — a Page's map opens here, on that Page (?view=map&focus=…&at=…).
+  const [focus] = useState(() => (params.get('view') === 'map' ? mapFocusFrom(params) : null))
+  // Ephemeral per F044 — not in the URL, resets to List on the next visit (unless a Page sent us to the map).
+  const [view, setView] = useState<ExploreView>(focus && initial.signedIn ? 'map' : 'list')
   const [mapCollapsed, setMapCollapsed] = useState(false)
   // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
   // pill; from 1024px list and map side by side; at 1024–1439px with the owner
@@ -207,7 +211,8 @@ export function BrowseSurface({
   // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
   // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
   const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
-  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered
+  // #896 — sent here from a Page's map: straight to the map, nothing above it.
+  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered && !focus
   const mix = useMemo(() => {
     const leadKeys = new Set(lead.map(leadKey))
     const rest = snapshot.results.filter((r) => !leadKeys.has(leadKey(r)))
@@ -484,7 +489,16 @@ export function BrowseSurface({
               }
             >
               <div className="relative h-full">
-                <BrowseMap results={mapVisible} center={snapshot.metro?.center} />
+                <BrowseMap results={mapVisible} center={snapshot.metro?.center} focus={focus ?? undefined} />
+                {focus && (
+                  <Link
+                    href={focus.href}
+                    className="press absolute left-3 top-3 inline-flex min-h-tap items-center gap-1 rounded-md bg-[var(--color-bg)] px-3 text-body-sm font-medium text-[var(--color-accent)] shadow-lift"
+                  >
+                    <ArrowLeft size={16} aria-hidden="true" />
+                    Back to the Page
+                  </Link>
+                )}
                 {mapNarrowed && (
                   <div
                     data-testid="map-empty"

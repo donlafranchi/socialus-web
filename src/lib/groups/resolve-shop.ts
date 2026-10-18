@@ -12,6 +12,7 @@
 // Supabase-client-shaped (not pg-shaped) so it runs from a server component
 // with the session-bound client. Same convention as src/lib/sell/getDraftGroup.ts.
 
+import { FEATURED_ITEMS_MAX, type FeaturedItem } from '@/lib/items/featured'
 import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { visiblePhotoUrl } from './visible-photo-url'
@@ -88,11 +89,8 @@ export interface ShopUnclaimed {
   photoSourceUrl: string | null
 }
 
-export interface ShopItem {
-  id: string
-  title: string
-  kind: string
-}
+/** #909 — a Page's featured products and services. */
+export type ShopItem = FeaturedItem
 
 export interface LocalOwnerBadge {
   label: string
@@ -310,13 +308,47 @@ export async function resolveShopItems(
 ): Promise<ShopItem[]> {
   const { data, error } = await supabase
     .from('items')
-    .select('id, title, kind')
+    .select('id, kind, title, description, in_stock, photo_url, sample_source_url, hidden_at, removed_at, item_products(price_cents), item_services(rate_cents)')
     .eq('group_id', groupId)
     .in('kind', ['product', 'service'])
     .eq('state', 'published')
     .is('deleted_at', null)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(FEATURED_ITEMS_MAX)
   if (error || !data) return []
-  return (data as ShopItem[]).map((r) => ({ id: r.id, title: r.title, kind: r.kind }))
+  return (data as unknown as ItemRow[]).map(featuredFromRow)
+}
+
+type One<T> = T | T[] | null
+type ItemRow = {
+  id: string
+  kind: 'product' | 'service'
+  title: string
+  description: string | null
+  in_stock: boolean
+  photo_url: string | null
+  sample_source_url: string | null
+  hidden_at: string | null
+  removed_at: string | null
+  item_products: One<{ price_cents: number | null }>
+  item_services: One<{ rate_cents: number | null }>
+}
+const first = <T,>(v: One<T>): T | null => (Array.isArray(v) ? v[0] ?? null : v)
+
+export function featuredFromRow(r: ItemRow): ShopItem {
+  const price = r.kind === 'product' ? first(r.item_products)?.price_cents : first(r.item_services)?.rate_cents
+  return {
+    id: r.id,
+    kind: r.kind,
+    name: r.title,
+    details: r.description ?? '',
+    priceCents: price ?? null,
+    inStock: r.in_stock,
+    photoUrl: r.photo_url,
+    sampleSourceUrl: r.sample_source_url,
+    hidden: r.hidden_at != null || r.removed_at != null,
+  }
 }
 
 /**

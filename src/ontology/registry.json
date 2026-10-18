@@ -332,6 +332,8 @@
     "group.update_draft",
     "item.attach_location",
     "item.create",
+    "item.featured_remove",
+    "item.featured_save",
     "item.publish",
     "member.business_jurisdiction.remove",
     "member.business_jurisdiction.set",
