@@ -102,3 +102,50 @@ export function socialLinksForDisplay(
     return [{ platform, label: PLATFORM_LABELS[platform], url }]
   })
 }
+
+// #896 — Contact's order (Yelp and Google Business Profile lead with the big three).
+const CONTACT_ORDER: Exclude<SocialPlatform, 'website'>[] = ['tiktok', 'instagram', 'facebook', 'x', 'youtube', 'bluesky']
+const PLATFORM_HOSTS: Record<Exclude<SocialPlatform, 'website'>, RegExp> = {
+  tiktok: /(^|\.)tiktok\.com$/,
+  instagram: /(^|\.)instagram\.com$/,
+  facebook: /(^|\.)(facebook|fb)\.com$/,
+  x: /(^|\.)(x|twitter)\.com$/,
+  youtube: /(^|\.)(youtube\.com|youtu\.be)$/,
+  bluesky: /(^|\.)bsky\.app$/,
+}
+
+export interface ContactLinks {
+  website: { url: string; text: string } | null
+  /** `name` is what a screen reader says, e.g. "Instagram: @claras". */
+  socials: { platform: SocialPlatform; url: string; name: string }[]
+}
+
+function handleOf(platform: SocialPlatform, url: string): string | null {
+  const seg = new URL(url).pathname.split('/').filter(Boolean).pop()
+  if (!seg) return null
+  const bare = decodeURIComponent(seg).replace(/^@/, '')
+  return platform === 'facebook' ? bare : `@${bare}`
+}
+
+/** Website plus socials, each re-checked; an unclaimed Page's source site fills a gap. */
+export function contactLinksForDisplay(links: SocialLinks | null | undefined, publicInfoUrl?: string | null): ContactLinks {
+  const safe: SocialLinks = {}
+  for (const l of socialLinksForDisplay(links)) safe[l.platform] = l.url
+  if (publicInfoUrl && isSafeLinkUrl(publicInfoUrl)) {
+    const url = publicInfoUrl.trim()
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    const platform = CONTACT_ORDER.find((p) => PLATFORM_HOSTS[p].test(host))
+    if (platform) safe[platform] ??= url
+    else safe.website ??= url
+  }
+  const site = safe.website
+  return {
+    website: site ? { url: site, text: new URL(site).hostname.replace(/^www\./, '') } : null,
+    socials: CONTACT_ORDER.flatMap((platform) => {
+      const url = safe[platform]
+      if (!url) return []
+      const handle = handleOf(platform, url)
+      return [{ platform, url, name: handle ? `${PLATFORM_LABELS[platform]}: ${handle}` : PLATFORM_LABELS[platform] }]
+    }),
+  }
+}

@@ -661,7 +661,7 @@ describe('#458 — a header block, then contained sections', () => {
     expect(header).toContainElement(screen.getByRole('button', { name: /follow/i }))
   })
 
-  it('then About, Location, Contact, Tags & links and Posts, each titled and contained', () => {
+  it('then About, Location, Contact, Tags and Posts, each titled and contained', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
     renderShop(full)
     expect(sections()).toEqual(['about', 'location', 'contact', 'found', 'posts', 'products'])
@@ -669,7 +669,7 @@ describe('#458 — a header block, then contained sections', () => {
       expect(el.querySelector('h2')).not.toBeNull()
       expect(el.className).toMatch(/\bcard\b/)
     }
-    expect(screen.getByRole('heading', { level: 2, name: 'Tags & links' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Tags' })).toBeInTheDocument()
     vi.unstubAllEnvs()
   })
 
@@ -778,5 +778,121 @@ describe('ShopPublicPage — what locals searched (#909)', () => {
   it('not on a draft', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand, shop: { ...SHOP, lifecycleState: 'draft' } })
     expect(screen.queryByTestId('search-demand-card')).toBeNull()
+  })
+})
+
+// #896 — the map shows where the Page is, and opens in Maps.
+describe('#896 — the Location map', () => {
+  const point = { source: 'anchor' as const, kind: 'point' as const, label: '2700 K St, Sacramento, CA 95816', lng: -121.47103, lat: 38.57271 }
+  const area = { source: 'anchor' as const, kind: 'area' as const, label: 'Midtown', lng: -121.48456, lat: 38.57123 }
+  const visit = { mode: 'visit' as const, howToFind: null, usuallyAround: null, towns: [] }
+  const roaming = { mode: 'roaming' as const, howToFind: null, usuallyAround: 'farmers markets', towns: [] }
+
+  it('the address sits under the map, and the map and Open in Maps both open it', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: true, where: visit })
+    const map = screen.getByRole('img', { name: `Map of ${point.label}` })
+    const address = screen.getByTestId('shop-placement')
+    expect(address).toHaveTextContent(point.label)
+    expect(map.compareDocumentPosition(address) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const open = screen.getByRole('link', { name: 'Open in Maps' })
+    expect(open).toHaveAttribute('href', expect.stringContaining('google.com/maps/search/'))
+    expect(open).toHaveAttribute('target', '_blank')
+    expect(screen.getByRole('link', { name: `Open ${point.label} in Maps` })).toHaveAttribute('href', open.getAttribute('href'))
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute('href', expect.stringContaining('google.com/maps/dir/'))
+    vi.unstubAllEnvs()
+  })
+
+  // Privacy: a Page that shares only an area, or that moves, never puts its
+  // exact point or address anywhere in what the visitor's browser receives.
+  it('an area-only Page never sends its exact point', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [area] }, loggedIn: true, where: visit })
+    expect(screen.getByRole('img', { name: 'Map of Midtown' })).toBeInTheDocument()
+    expect(container.innerHTML).not.toContain('-121.48456')
+    expect(container.innerHTML).not.toContain('38.57123')
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    vi.unstubAllEnvs()
+  })
+
+  it('a Page that moves never sends its address or point, even with a fixed anchor', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: true, where: roaming })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Around the Sacramento area, usually farmers markets')
+    expect(screen.queryByRole('link', { name: 'Open in Maps' })).toBeNull()
+    expect(container.innerHTML).not.toContain('2700 K St')
+    expect(container.innerHTML).not.toContain('-121.47103')
+    expect(container.innerHTML).not.toContain('38.57271')
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    vi.unstubAllEnvs()
+  })
+
+  it('signed out, no map and no Maps links', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: false, where: visit })
+    expect(screen.queryByRole('link', { name: 'Open in Maps' })).toBeNull()
+    expect(container.innerHTML).not.toContain('38.57271')
+    vi.unstubAllEnvs()
+  })
+})
+
+// #896 — Contact holds the website and the social links (Yelp, Google Business Profile).
+describe('#896 — Contact holds website, phone and socials', () => {
+  const socialLinks = {
+    instagram: 'https://instagram.com/claras',
+    facebook: 'https://facebook.com/clarasbakery',
+    tiktok: 'https://www.tiktok.com/@claras',
+    youtube: 'https://youtube.com/@claras',
+    website: 'https://clarasbakery.com/',
+  }
+
+  it('every link out sits in Contact, TikTok, Instagram, Facebook first, each href as stored', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: true, contact: { phone: '+19165550142', hours: null } })
+    const contact = screen.getByTestId('page-section-contact')
+    expect(within(contact).getByTestId('page-phone')).toHaveAttribute('href', 'tel:+19165550142')
+    const site = within(contact).getByTestId('shop-social-website')
+    expect(site).toHaveAttribute('href', 'https://clarasbakery.com/')
+    expect(site).toHaveTextContent('clarasbakery.com')
+    const socials = within(contact).getAllByTestId(/^shop-social-(?!website|links)/)
+    expect(socials.map((a) => a.getAttribute('data-testid'))).toEqual([
+      'shop-social-tiktok', 'shop-social-instagram', 'shop-social-facebook', 'shop-social-youtube',
+    ])
+    for (const a of [site, ...socials]) {
+      const href = a.getAttribute('href')!
+      expect(Object.values(socialLinks)).toContain(href)
+      expect(new URL(href).protocol).toBe('https:')
+      expect(a).toHaveAttribute('target', '_blank')
+      expect(a).toHaveAttribute('rel', 'noopener noreferrer')
+    }
+    expect(within(contact).getByRole('link', { name: 'Instagram: @claras' })).toBeInTheDocument()
+    expect(within(contact).getByRole('link', { name: 'TikTok: @claras' })).toBeInTheDocument()
+  })
+
+  it('tags stay for interests only: no links out beside them', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: true, tags: ['Sourdough'] })
+    const tags = screen.getByTestId('page-section-found')
+    expect(within(tags).queryAllByRole('link').map((a) => a.getAttribute('href'))).not.toContain(socialLinks.instagram)
+    expect(within(tags).getByRole('heading')).toHaveTextContent('Tags')
+  })
+
+  it("an unclaimed Page's source site is credited in About and listed in Contact", () => {
+    const unclaimed = { publicInfoUrl: 'https://cornerbakery.example/', photoCredit: null, photoSourceUrl: null }
+    renderShop({ shop: { ...SHOP, unclaimed } as never, loggedIn: true })
+    expect(screen.getByTestId('description-credit')).toHaveAttribute('href', 'https://cornerbakery.example/')
+    const site = within(screen.getByTestId('page-section-contact')).getByTestId('shop-social-website')
+    expect(site).toHaveAttribute('href', 'https://cornerbakery.example/')
+  })
+
+  it('withholds a website that is not https', () => {
+    const unclaimed = { publicInfoUrl: 'javascript:alert(1)', photoCredit: null, photoSourceUrl: null }
+    renderShop({ shop: { ...SHOP, unclaimed } as never, loggedIn: true })
+    expect(screen.queryByTestId('shop-social-website')).toBeNull()
+  })
+
+  it('signed out, no Contact at all, even if handed every field', () => {
+    const { container } = renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: false, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.queryByTestId('page-section-contact')).toBeNull()
+    expect(container.innerHTML).not.toContain('5550142')
+    for (const url of Object.values(socialLinks)) expect(container.innerHTML).not.toContain(url)
   })
 })
