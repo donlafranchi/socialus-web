@@ -1,7 +1,7 @@
-// Password auth — intentionally unlinked. The public flow is magic-link only
-// (/auth/login); this route exists so the Playwright evals can establish a
-// session without reading an inbox. Remove once evals authenticate
-// programmatically.
+// Password auth for automated checks only: unlinked, and no member has a password to use here.
+// Members have one way in, the emailed code at /auth/login (the PM, 2026-10-18). This stays
+// because the Playwright evals and the live smoke test sign in builder accounts without an
+// inbox. Remove once they establish sessions programmatically.
 'use client'
 
 import { Suspense } from 'react'

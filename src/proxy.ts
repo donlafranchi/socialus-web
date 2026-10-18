@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { NextResponse, type NextRequest } from 'next/server'
 import { needsPhoneVerification } from '@/lib/auth/phone'
 import { resolveSeedCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
@@ -31,6 +32,7 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: authCookieOptions(request.nextUrl.protocol === 'https:' || process.env.VERCEL === '1'),
       cookies: {
         getAll() {
           return request.cookies.getAll()

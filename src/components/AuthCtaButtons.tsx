@@ -2,15 +2,12 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { hasActiveBusinessGroup } from '@/lib/member/hasActiveBusinessGroup'
 
 function defaultSupabaseFactory(): SupabaseClient {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 /** unknown = not yet resolved, or the lookup failed. Both suppress the CTA. */

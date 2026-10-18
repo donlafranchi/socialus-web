@@ -3,7 +3,7 @@ import { Page } from '@playwright/test'
 /**
  * Eval sign-in.
  *
- * The public flow is magic-link only (/auth/login) and evals can't read an
+ * The public flow is the emailed code (/auth/login) and evals can't read an
  * inbox, so these helpers drive /auth/password — the unlinked password route
  * kept for exactly this purpose. Delete it (and rewrite these) once evals
  * establish sessions programmatically.

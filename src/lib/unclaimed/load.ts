@@ -5,7 +5,7 @@
 // one and never brings one back (only an operator restores, #353).
 import { toSlug } from '../slugify'
 import { SYSTEM_MEMBER_ID } from '../system-member'
-import type { PlannedPage } from './plan'
+import type { PlannedPage, SampleProduct } from './plan'
 import { SAMPLE_LABEL, fitsSchedule, rollSample, sampleSchedule, samplePosts, type SampleKind } from './samples'
 import type { Uploaded } from './upload'
 
@@ -197,6 +197,7 @@ export async function enrichPage(
     // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
     if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
     if (await redateSamples(db, samples.rows as SampleRow[], page.slug, page.pool, now)) touched = true
+    if (page.products?.length && (await syncSampleProducts(db, g.id, page.products, now))) touched = true
     await db.query('commit')
     return needs ? 'enriched' : touched ? 'refreshed' : 'complete'
   } catch (e) {
@@ -257,3 +258,32 @@ async function tagInterests(db: Db, groupId: string, labels: string[]): Promise<
 }
 
 export { SAMPLE_LABEL }
+
+/**
+ * #909 — the Page's sample products and services, from its own site: published under the system member,
+ * credited by `sample_source_url`, in the row's order. Replaced when the list changes; a Page with a real one
+ * (an owner's, or a sample its owner made theirs) is never touched. True when it wrote anything.
+ */
+export async function syncSampleProducts(db: Db, groupId: string, products: SampleProduct[], now: Date): Promise<boolean> {
+  const have = await db.query(
+    `select title, sample_source_url from public.items
+      where group_id = $1 and deleted_at is null and kind in ('product', 'service') order by position, created_at`,
+    [groupId],
+  )
+  const rows = have.rows as { title: string; sample_source_url: string | null }[]
+  if (rows.some((r) => r.sample_source_url === null)) return false
+  const same = rows.length === products.length && rows.every((r, i) => r.title === products[i]!.name && r.sample_source_url === products[i]!.url)
+  if (same) return false
+  await db.query(`update public.items set deleted_at = $2 where group_id = $1 and sample_source_url is not null and deleted_at is null`, [groupId, now])
+  for (const [i, p] of products.entries()) {
+    const made = await db.query(
+      `insert into public.items (member_id, kind, group_id, title, description, state, in_stock, position, sample_source_url, created_at, updated_at)
+       values ($1, $2, $3, $4, '', 'published', true, $5, $6, $7, $7) returning id`,
+      [SYSTEM_MEMBER_ID, p.kind, groupId, p.name, i, p.url, now],
+    )
+    const id = made.rows[0]!.id as string
+    if (p.kind === 'product') await db.query(`insert into public.item_products (item_id, price_cents) values ($1, $2)`, [id, p.priceCents])
+    else await db.query(`insert into public.item_services (item_id, rate_model, rate_cents) values ($1, $2, $3)`, [id, p.priceCents == null ? 'quote' : 'flat', p.priceCents])
+  }
+  return true
+}

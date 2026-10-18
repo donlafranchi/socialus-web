@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-16** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-18** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
@@ -14,6 +14,8 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 | **Interests:** every Page and its samples carry 1–2 of the 12 interest tags, from what the Page is. | `cap-3` the member's own signals, `cap-4` member control | `interestsFor` (`src/lib/unclaimed/plan.ts`); the loader adds missing tags on every run, so older Pages are backfilled |
 | **Coverage:** each batch of 8 or more Pages spans at least 5 towns and at least 4 interest tags (a smaller batch loads what qualifies); `ADDED.md` logs each row's interests. | `cap-2` discovery without searching | `batchCoverage`; a test fails any such `makers-YYYY-MM-DD.json` from 2026-10-17 that misses it |
 
+| **Sample products** (Don, 2026-10-18, #909): each Page gets 3–6 things it sells or offers in its row's `products` (`name`, `url`, optional `price` in dollars, `kind` `service` when it is one), each from a page on the business's **own site**. The Page shows them labelled Sample, crediting that site; an owner's first real one takes them off. | Search finds the Page that carries what locals look for; the Page shows what a claimed one looks like | `sampleProductsFor` (`src/lib/unclaimed/plan.ts`) keeps own-site links only, drops marketplaces, keeps 6 at most and gives none under 3; `syncSampleProducts` (`load.ts`) writes them once, replaces them when the list changes, and never touches a Page with a real one |
+
 Not a rule yet: posting a business's real dated events from its own site instead of samples (a4). That is Don's call.
 
 ## Each run
@@ -26,8 +28,9 @@ Not a rule yet: posting a business's real dated events from its own site instead
 6. **Own site only** (#353): never Yelp, Google or another directory. A non-business with only a Facebook page is fine if that page is its own. **Etsy, Instagram and other marketplaces are for finding makers only** (Don, 2026-10-16): look a maker up there, then build the Page from the maker's own website, or skip them if they have none. Never copy text, photos or listings from the marketplace, and don't scrape it (look-ups by hand only). Credit and photos come from the maker's own site as usual. Note the lead source in `ADDED.md` (`lead: Etsy`).
 7. **Social links, TikTok and Instagram first** (Don, 2026-10-16), then Facebook and the rest: take them from links on the business's own site, or from a search when the profile is clearly the same business. Put them in the row's `social` field; the loader also reads them off the site, and backfills older Pages that lack TikTok or Instagram. Link only: never copy their posts or photos into SocialUs. Owners use these to tell their own story.
 8. **Look at every photo before loading** (`preview-photos.ts`). **No children in any photo** (F080). If a site's own photos show children, add the Page to `stockOnly` in `photo-overrides.json`. Pictures whose file names say an AI made them are skipped; when a site's real photos share a name pattern, `ownMatch` keeps to those.
-9. **Write the rows** to `makers-YYYY-MM-DD.json`, dry-run the loader, then load (`unclaimed-load.yml`, write ticked). A site that opens by hand but fails from the runner at the network level (reset, refused, timed out) goes in `link-allow.json`; a 404 never does.
-10. **Append the 10 to `ADDED.md`**, each with its interests (the tags the loader gives it; see Category).
+9. **Products (#909):** from the business's own site, pick 3–6 of its products or services: its shop or menu pages, the names as it writes them, the price when it shows one. Never from Etsy, Amazon, Instagram, Facebook or another marketplace or directory, even when the maker sells there; a site with fewer than 3 gets none. Put them in the row's `products`.
+10. **Write the rows** to `makers-YYYY-MM-DD.json`, dry-run the loader, then load (`unclaimed-load.yml`, write ticked). A site that opens by hand but fails from the runner at the network level (reset, refused, timed out) goes in `link-allow.json`; a 404 never does.
+11. **Append the 10 to `ADDED.md`**, each with its interests (the tags the loader gives it; see Category).
 
 ## Rotation
 
