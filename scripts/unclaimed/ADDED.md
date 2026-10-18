@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-16** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-17** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -201,3 +201,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | Sacramento Valley Museum | Historical society | Williams | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
 | 2026-10-16 | Fairfield-Suisun City Visual Arts Association | Art association (nonprofit) | Fairfield | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
 | 2026-10-16 | Wine Tree Farm | Farm stay & agritourism | Amador City | Farmers markets, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-17 | Séka Hills | Farm | Brooks | Farmers markets, Sustainability | Native creators and producers; Native-owned (Yocha Dehe Wintun Nation, stated on own site); lead: own site |
+| 2026-10-17 | Dazzler Farms | Farm stay & agritourism | Woodland | Farmers markets, Neighborhood life | Native creators and producers (farms); holiday (pumpkins, Christmas trees); lead: own site |
+| 2026-10-17 | Capay Hills Orchard | Farm | Esparto | Farmers markets, Sustainability | Native creators and producers (farms); holiday (almond gifts); lead: own site |
+| 2026-10-17 | Pure Honey & Henry's Bullfrog Bees | Farm | Winters | Farmers markets, Sustainability | Native creators and producers (farms); holiday (honey gifts); lead: own site |
