@@ -50,6 +50,7 @@ import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/fe
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
+import { mixRuns } from '@/lib/browse/mix-runs'
 import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
 import { feedOptsFor, hasBrowseFilters, type BrowseFilters } from '@/lib/browse/filters'
 import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
@@ -202,10 +203,12 @@ export async function loadBrowse(
       at: (r) => r.sortAt,
       now,
     })
+    // #897 — no more than 2 in a row of one category; only undated rows move, dated posts keep their slots.
+    const mixedRuns = mixRuns(shuffled, { tags: (r) => r.tags ?? [], movable: (r) => !r.startsAt })
     // #796 — the first look, from rows already in hand: no read of its own.
     const memory = await exploreMemory(seed)
     // #796 — a post this browser has already been shown never pins to the top: it waits below the first screen.
-    const ordered = keepSeenPostsBelow(shuffled, memory.seen)
+    const ordered = keepSeenPostsBelow(mixedRuns, memory.seen)
     const { lead, fresh } = pickLead([...ordered, ...happening.today, ...happening.thisWeekend], { now, seed, ...memory })
     return {
       ...base,

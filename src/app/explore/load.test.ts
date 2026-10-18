@@ -400,6 +400,22 @@ describe('#876 — the default mixes everything', () => {
       expect(snap.results.findIndex((r) => r.resultId === 'seen'), seed).toBeGreaterThanOrEqual(6)
     }
   })
+
+  it('#897 — a theme batch loaded in one moment never shows 3 in a row of one category', async () => {
+    signedIn()
+    const at = '2026-10-15T17:19:00Z'
+    const tagged = (id: string, tag: string) => ({ ...row('page', id, `g-${id}`, at), tags: [tag] })
+    const batch = [
+      ...['museum', 'historical-society', 'gallery', 'theatre', 'choir', 'pottery'].map((id) => tagged(id, 'Arts & culture')),
+      ...['farm-a', 'farm-b', 'ranch', 'orchard', 'food-bank', 'repair-cafe'].map((id) => tagged(id, id.startsWith('f') || id === 'ranch' || id === 'orchard' ? 'Local food' : 'Volunteering')),
+    ]
+    getBrowseFeed.mockImplementation(async (_c: unknown, opts: { audience?: { audience: string } }) => (opts?.audience?.audience === 'following' ? [] : batch))
+    for (const seed of [null, 'aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb', 'cccccccccccccccc']) {
+      const tags = (await loadBrowse(null, null, { seed })).results.map((r) => r.tags[0])
+      const run = tags.some((t, i) => i >= 2 && t === tags[i - 1] && t === tags[i - 2])
+      expect(run, `${seed}: ${tags.join(' | ')}`).toBe(false)
+    }
+  })
 })
 
 describe('#876 — a filter is one targeted read', () => {
