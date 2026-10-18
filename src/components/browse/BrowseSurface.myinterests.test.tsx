@@ -106,4 +106,14 @@ describe('#892 — My interests on Explore', () => {
     render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results: [tagged('a', ['coffee'])], lead: [], leadFresh: false, myInterests: [] })} />)
     expect(within(screen.getByTestId('browse-pick-interests')).getByRole('link', { name: /pick your interests/i })).toHaveAttribute('href', '/you#interests')
   })
+  it('composes with a chosen reach: filters the list as returned, asks for no wider read', async () => {
+    search = 'q=my+interests&reach=15'
+    const results = [tagged('d', ['gardening']), tagged('b', ['coffee'])]
+    render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false, myInterests: ['gardening'], reach: { minutes: 15, from: null } })} />)
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0))
+    })
+    expect(within(screen.getByTestId('browse-list-pane')).getAllByText(/^Page \w$/).map((e) => e.textContent)).toEqual(['Page d'])
+    expect(browseFeedAction).not.toHaveBeenCalled()
+  })
 })
