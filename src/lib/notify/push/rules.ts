@@ -4,8 +4,12 @@ import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { NOTIFY_COPY } from './copy'
 
+/** The kinds a member turns on or off. Reminders are asked for one post at a time (#945). */
 export type NotifyKind = 'follow_posts' | 'weekend'
 export const NOTIFY_KINDS: readonly NotifyKind[] = ['follow_posts', 'weekend']
+/** Every kind the counts and the review cover. */
+export type CountKind = NotifyKind | 'reminder'
+export const COUNT_KINDS: readonly CountKind[] = ['follow_posts', 'weekend', 'reminder']
 
 /** At most this many follow-post notifications per member per local day, and this long between them. */
 export const DAILY_CAP = 3
@@ -19,9 +23,12 @@ export interface Prefs {
   paused: boolean
   quietStart: number
   quietEnd: number
+  /** #945 — when a reminder comes; both on, and only used once a member asks for a reminder. */
+  remindEvening: boolean
+  remindHour: boolean
 }
 
-export const DEFAULT_PREFS: Prefs = { followPosts: false, weekend: false, paused: false, quietStart: 21, quietEnd: 8 }
+export const DEFAULT_PREFS: Prefs = { followPosts: false, weekend: false, paused: false, quietStart: 21, quietEnd: 8, remindEvening: true, remindHour: true }
 
 export function localHour(now: Date, tz = METRO_TIME_ZONE): number {
   return Number(new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hourCycle: 'h23' }).format(now))
@@ -53,7 +60,7 @@ export interface QueuedPost {
 }
 
 export interface PushMessage {
-  kind: NotifyKind
+  kind: CountKind
   title: string
   body: string
   url: string
@@ -128,9 +135,13 @@ export function weekendWindow(now: Date, tz = METRO_TIME_ZONE): { from: Date; to
   return { from: zonedMidnight(y, m, d + toFriday, tz), to: zonedMidnight(y, m, d + toFriday + 3, tz) }
 }
 
-/** The instant of local midnight on that calendar day in `tz`. */
 function zonedMidnight(y: number, m: number, d: number, tz: string): Date {
-  const guess = new Date(Date.UTC(y, m - 1, d))
+  return zonedTime(y, m, d, 0, 0, tz)
+}
+
+/** The instant of that wall-clock time on that calendar day in `tz` (days past the month's end roll over). */
+export function zonedTime(y: number, m: number, d: number, h: number, min: number, tz = METRO_TIME_ZONE): Date {
+  const guess = new Date(Date.UTC(y, m - 1, d, h, min))
   const offset = tzOffsetMs(guess, tz)
   const first = new Date(guess.getTime() - offset)
   return new Date(guess.getTime() - tzOffsetMs(first, tz))

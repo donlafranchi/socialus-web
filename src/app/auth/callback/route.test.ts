@@ -3,7 +3,7 @@
 // This is where a magic link lands and where the PKCE code verifier is
 // consumed. Don hit "PKCE code verifier not found in storage" here, and the
 // suite was green: nothing covered this file, nothing covered `useAuth`,
-// `MagicLinkForm`, `lib/supabase.ts` or `proxy.ts`.
+// `SignInForm`, `lib/supabase.ts` or `proxy.ts`.
 //
 // Two things are asserted that are easy to break and expensive to notice:
 //
@@ -32,6 +32,7 @@ const createClient = vi.fn(async () => ({
 vi.mock('@/lib/supabase-server', () => ({ createClient }))
 
 const { GET } = await import('./route')
+const { LINK_FAILED } = await import('@/lib/auth/link-failed')
 
 const call = (qs: string) =>
   GET(new Request(`https://preview.example.app/auth/callback${qs}`))
@@ -71,7 +72,7 @@ describe('bug #69 — auth callback', () => {
     const res = await call('?code=abc123')
     const url = locationOf(res)
     expect(url.pathname).toBe('/auth/login')
-    expect(url.searchParams.get('error')).toContain('code verifier')
+    expect(url.searchParams.get('error')).toBe(LINK_FAILED)
   })
 
   it('verifies a token_hash link — the only cross-browser path', async () => {
@@ -97,7 +98,7 @@ describe('bug #69 — auth callback', () => {
     const res = await call('')
     const url = locationOf(res)
     expect(url.pathname).toBe('/auth/login')
-    expect(url.searchParams.get('error')).toMatch(/missing its token/i)
+    expect(url.searchParams.get('error')).toBe(LINK_FAILED)
     expect(exchangeCodeForSession).not.toHaveBeenCalled()
     expect(verifyOtp).not.toHaveBeenCalled()
   })
@@ -106,7 +107,7 @@ describe('bug #69 — auth callback', () => {
     const res = await call('?error_description=Email+link+is+invalid+or+has+expired')
     const url = locationOf(res)
     expect(url.pathname).toBe('/auth/login')
-    expect(url.searchParams.get('error')).toMatch(/expired/i)
+    expect(url.searchParams.get('error')).toBe(LINK_FAILED)
     expect(exchangeCodeForSession).not.toHaveBeenCalled()
   })
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { planMakers, planListings, batchCoverage, CLAIM_LINE, type MakerRow } from './plan'
+import { planMakers, planListings, batchCoverage, CLAIM_LINE, type MakerRow, sampleProductsFor } from './plan'
 import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -189,5 +189,43 @@ describe('#936 — the street address', () => {
   it('no address named, none carried', () => {
     const { listed } = planMakers([{ name: 'Moon Bakery', category: 'Food & drink', makes: 'Bread in Midtown', area: 'Midtown Sacramento', site: 'https://moon.example/', confidence: 'High' }])
     expect(listed[0]!.address).toBeUndefined()
+  })
+})
+
+// #909 (Don, 2026-10-18) — an unclaimed Page shows 3–6 sample products and services, taken from the business's
+// own website, labelled Sample and credited. Never from a marketplace.
+describe('sample products from the business’s own site (#909)', () => {
+  const site = 'https://www.fieldandfarm.com/'
+  const row = (products: unknown[]) => ({ name: 'Field and Farm', category: 'Farm', makes: 'native seed', area: 'Davis (Yolo)', site, confidence: 'High', products } as never)
+  const own = (n: number) => ({ name: `Seed ${n}`, url: `https://fieldandfarm.com/shop/seed-${n}`, price: 4.5 })
+
+  it('passes 3 to 6 own-site products through, in order, priced in cents', () => {
+    const { listed } = planMakers([row([own(1), own(2), own(3)])])
+    expect(listed[0]!.products).toEqual([
+      { name: 'Seed 1', url: 'https://fieldandfarm.com/shop/seed-1', priceCents: 450, kind: 'product' },
+      { name: 'Seed 2', url: 'https://fieldandfarm.com/shop/seed-2', priceCents: 450, kind: 'product' },
+      { name: 'Seed 3', url: 'https://fieldandfarm.com/shop/seed-3', priceCents: 450, kind: 'product' },
+    ])
+  })
+
+  it('keeps at most 6', () => {
+    const { listed } = planMakers([row([1, 2, 3, 4, 5, 6, 7, 8].map(own))])
+    expect(listed[0]!.products).toHaveLength(6)
+  })
+
+  it('drops a product from a marketplace or another site', () => {
+    expect(sampleProductsFor(site, [own(1), own(2), own(3), { name: 'Etsy one', url: 'https://www.etsy.com/listing/1' }, { name: 'Other', url: 'https://other.com/x' }])).toHaveLength(3)
+    expect(sampleProductsFor('https://shop.etsy.com/', [1, 2, 3].map((n) => ({ name: `E${n}`, url: `https://shop.etsy.com/${n}` })))).toEqual([])
+  })
+
+  it('fewer than 3 usable gives none, rather than a thin shelf', () => {
+    expect(sampleProductsFor(site, [own(1), own(2)])).toEqual([])
+    const { listed } = planMakers([row([own(1)])])
+    expect(listed[0]!.products).toBeUndefined()
+  })
+
+  it('a service keeps its kind; no price is no price', () => {
+    const out = sampleProductsFor(site, [own(1), own(2), { name: 'Farm tour', url: 'https://fieldandfarm.com/tours', kind: 'service' }])
+    expect(out[2]).toEqual({ name: 'Farm tour', url: 'https://fieldandfarm.com/tours', priceCents: null, kind: 'service' })
   })
 })

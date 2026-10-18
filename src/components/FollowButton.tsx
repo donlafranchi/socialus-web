@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { Heart } from 'lucide-react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import { Toast } from './Toast'
 import { AuthGateModal } from './AuthGateModal'
 
@@ -13,10 +13,7 @@ interface Props {
 }
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 export function FollowButton({ vendorId, vendorName, size = 'md' }: Props) {
