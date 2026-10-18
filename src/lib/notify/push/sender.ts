@@ -16,7 +16,7 @@ type Db = Pick<Client | PoolClient, 'query'>
 type Push = (sub: Subscription, m: PushMessage) => Promise<SendResult>
 
 type PrefRow = { follow_posts: boolean; weekend: boolean; paused: boolean; quiet_start: number; quiet_end: number }
-const prefsOf = (r: PrefRow): Prefs => ({ followPosts: r.follow_posts, weekend: r.weekend, paused: r.paused, quietStart: r.quiet_start, quietEnd: r.quiet_end })
+const prefsOf = (r: PrefRow): Prefs => ({ followPosts: r.follow_posts, weekend: r.weekend, paused: r.paused, quietStart: r.quiet_start, quietEnd: r.quiet_end, remindEvening: true, remindHour: true })
 
 
 // A real, visible post on a live Page (samples never notify anyone) is spelled out in each query below,
@@ -214,14 +214,19 @@ export async function stats(db: Db, weeks = 12): Promise<WeekRow[]> {
                          where not pr.paused and exists (select 1 from public.push_subscriptions s where s.member_id = pr.member_id))
      insert into public.notification_weekly (week_start, kind, opted_in_members, members)
      select wk.w, k.kind,
-            (select count(*) from reachable r where case k.kind when 'follow_posts' then r.follow_posts else r.weekend end),
+            case k.kind
+              when 'follow_posts' then (select count(*) from reachable r where r.follow_posts)
+              when 'weekend' then (select count(*) from reachable r where r.weekend)
+              -- #945: members with at least one reminder.
+              else (select count(distinct pr.member_id) from public.post_reminders pr join real_members rm on rm.id = pr.member_id)
+            end,
             (select count(*) from real_members)
-       from wk cross join (values ('follow_posts'), ('weekend')) as k(kind)
+       from wk cross join (values ('follow_posts'), ('weekend'), ('reminder')) as k(kind)
      on conflict (week_start, kind) do update set opted_in_members = excluded.opted_in_members, members = excluded.members`,
   )
   return (
     await db.query<WeekRow>(
-      `select to_char(week_start, 'YYYY-MM-DD') as week, kind, sends, opens, opt_ins, unsubscribes, mutes, opted_in_members, members
+      `select to_char(week_start, 'YYYY-MM-DD') as week, kind, sends, opens, opt_ins, unsubscribes, mutes, emails, opted_in_members, members
          from public.notification_weekly
         where week_start > (now() at time zone 'America/Los_Angeles')::date - ($1::int * 7)
         order by week_start, kind`,
