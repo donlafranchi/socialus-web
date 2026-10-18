@@ -232,6 +232,8 @@ interface PageExtras {
   whereMode: string | null
   anchorKind: string | null
   avatarUrl: string | null
+  /** False when the links were not read (signed out, or the read fell back): no quick links then. */
+  linksRead: boolean
 }
 
 type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
@@ -319,7 +321,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?:
     announcementCount: null,
     announcementIds: null,
     // Quick links ride with the point: browse_feed withholds it from a signed-out reader (F093 criterion 8).
-    quickLinks: r.result_kind === 'page' && extras && point.latitude !== null ? quickLinksOf(extras) : null,
+    quickLinks: r.result_kind === 'page' && extras?.linksRead && point.latitude !== null ? quickLinksOf(extras) : null,
     pageAvatarUrl: extras?.avatarUrl ?? null,
   }
 }
@@ -373,7 +375,7 @@ export async function getBrowseFeed(
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]
-  const pages = await fetchPageExtras(supabase, rows.map((r) => r.group_id))
+  const pages = await fetchPageExtras(supabase, rows)
   return rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
 }
 
@@ -400,7 +402,7 @@ export async function getHappening(
   })
   if (error) throw error
   const rows = ((data ?? []) as (BrowseFeedRow & { bucket: 'week' | 'weekend' })[]).slice().sort(soonestFirst)
-  const pages = await fetchPageExtras(supabase, rows.map((r) => r.group_id))
+  const pages = await fetchPageExtras(supabase, rows)
   const map = (b: 'week' | 'weekend') =>
     rows.filter((r) => r.bucket === b).map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
   const thisWeek = map('week')
@@ -435,16 +437,19 @@ function soonestFirst(a: BrowseFeedRow, b: BrowseFeedRow): number {
  */
 async function fetchPageExtras(
   supabase: RpcClient,
-  groupIds: readonly string[],
+  rows: readonly Pick<BrowseFeedRow, 'group_id' | 'result_kind' | 'location_geography'>[],
 ): Promise<Map<string, PageExtras>> {
-  const ids = Array.from(new Set(groupIds.filter(Boolean)))
+  const ids = Array.from(new Set(rows.map((r) => r.group_id).filter(Boolean)))
   const out = new Map<string, PageExtras>()
   if (ids.length === 0) return out
-  // #922 — the quick links and the avatar come in the same read: no second round trip.
-  const { data, error } = await supabase
-    .from('groups')
-    .select('id, public_id, social_links, where_mode, picture_url, picture_hidden_at, picture_removed_at, anchor:locations!groups_anchor_location_id_fkey(kind)')
-    .in('id', ids)
+  // #922 — the quick links come in the same read, and only for a reader browse_feed gave a point to: a
+  // signed-out reader has neither the point (F093.8) nor the grant on where_mode or the anchor, and asking
+  // for them would fail the whole lookup and with it every card's link.
+  const withLinks = rows.some((r) => r.result_kind === 'page' && r.location_geography)
+  const base = 'id, public_id, picture_url, picture_hidden_at, picture_removed_at'
+  const read = (cols: string) => supabase.from('groups').select(cols).in('id', ids)
+  let { data, error } = await read(withLinks ? `${base}, social_links, where_mode, anchor:locations!groups_anchor_location_id_fkey(kind)` : base)
+  if (error && withLinks) ({ data, error } = await read(base))
   if (error || !data) return out
   type Row = {
     id: string
@@ -460,10 +465,11 @@ async function fetchPageExtras(
     const anchor = Array.isArray(row.anchor) ? row.anchor[0] : row.anchor
     out.set(row.id, {
       publicId: row.public_id,
-      socialLinks: row.social_links,
-      whereMode: row.where_mode,
+      socialLinks: row.social_links ?? null,
+      whereMode: row.where_mode ?? null,
       anchorKind: anchor?.kind ?? null,
       avatarUrl: visiblePhotoUrl({ photo_url: row.picture_url, photo_hidden_at: row.picture_hidden_at, photo_removed_at: row.picture_removed_at }),
+      linksRead: 'where_mode' in row,
     })
   }
   return out

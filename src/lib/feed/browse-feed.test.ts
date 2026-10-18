@@ -350,4 +350,21 @@ describe('#922 — a Page card’s quick links come in the same read as its publ
     const [post] = await getBrowseFeed(client([POST_ROW], null, links) as never, { scope: { metroId: 'm1' } })
     expect(post!.quickLinks).toBeNull()
   })
+
+  it('signed out it never asks for what anon has no grant on, so the lookup (and every card link) survives', async () => {
+    const select = vi.fn((_cols: string) => ({ in: () => Promise.resolve({ data: [{ id: 'g1', public_id: '7k3x8m' }], error: null }) }))
+    const c = { rpc: vi.fn(() => Promise.resolve({ data: [{ ...PAGE_ROW, location_geography: null }], error: null })), from: vi.fn(() => ({ select })) }
+    const [r] = await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(select.mock.calls[0]![0]).not.toMatch(/where_mode|social_links|anchor/)
+    expect(r!.href).toBe('/g/7k3x8m')
+  })
+
+  it('a failed links read falls back to the plain lookup: cards keep their links, and lose only the quick links', async () => {
+    let n = 0
+    const select = vi.fn(() => ({ in: () => Promise.resolve(n++ === 0 ? { data: null, error: { message: 'denied' } } : { data: [{ id: 'g1', public_id: '7k3x8m' }], error: null }) }))
+    const c = { rpc: vi.fn(() => Promise.resolve({ data: [PAGE_ROW], error: null })), from: vi.fn(() => ({ select })) }
+    const [r] = await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(r!.href).toBe('/g/7k3x8m')
+    expect(r!.quickLinks).toBeNull()
+  })
 })
