@@ -18,6 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { MakeThisYoursBanner } from '@/components/feed/MakeThisYoursBanner'
@@ -26,7 +27,9 @@ import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
 import { ExploreDock } from '@/components/explore/ExploreDock'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import Link from 'next/link'
+import { mapFocusFrom } from '@/lib/browse/map-focus'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
@@ -38,9 +41,11 @@ import { browseQueryString } from '@/lib/browse/query'
 import { readBox, writeBox } from '@/lib/browse/box-text'
 import {
   applyBrowseFilters,
+  DEFAULT_BROWSE_FILTERS,
   browseTagOptions,
   hasBrowseFilters,
   parseBrowseFilters,
+  serverFilters,
   searchBrowseResults,
   CATEGORY_TAGS,
   isPlainPostsView,
@@ -85,8 +90,10 @@ export function BrowseSurface({
   const [query, setQuery] = useState(() => writeBox(parseBrowseFilters(params), params.get('q') ?? ''))
   // #922 — the member's reach (a ring, or the whole area); null while the database picks a full screen nearby.
   const [reach, setReach] = useState<Reach | null>(() => parseReach(params.get('reach')))
-  // Ephemeral per F044 — not in the URL, resets to List on the next visit.
-  const [view, setView] = useState<ExploreView>('list')
+  // #896 — a Page's map opens here, on that Page (?view=map&focus=…&at=…).
+  const [focus] = useState(() => (params.get('view') === 'map' ? mapFocusFrom(params) : null))
+  // Ephemeral per F044 — not in the URL, resets to List on the next visit (unless a Page sent us to the map).
+  const [view, setView] = useState<ExploreView>(focus && initial.signedIn ? 'map' : 'list')
   const [mapCollapsed, setMapCollapsed] = useState(false)
   // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
   // pill; from 1024px list and map side by side; at 1024–1439px with the owner
@@ -203,11 +210,14 @@ export function BrowseSurface({
   const tagOptions = useMemo(() => [...new Set([...CATEGORY_TAGS, ...browseTagOptions(snapshot.results)])], [snapshot.results])
   const { filters, rest } = useMemo(() => readBox(query, tagOptions), [query, tagOptions])
   const filtered = hasBrowseFilters(filters)
+  // #892 — the reader's own interests, for "My interests". Only ever the person looking (owner-only read).
+  const myTags = useMemo(() => snapshot.myInterests ?? [], [snapshot.myInterests])
 
   // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
   // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
   const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
-  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered
+  // #896 — sent here from a Page's map: straight to the map, nothing above it.
+  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered && !focus
   const mix = useMemo(() => {
     const leadKeys = new Set(lead.map(leadKey))
     const rest = snapshot.results.filter((r) => !leadKeys.has(leadKey(r)))
@@ -223,9 +233,12 @@ export function BrowseSurface({
     const id = window.setTimeout(() => setSettledNeedle(needle), SEARCH_DEBOUNCE_MS)
     return () => window.clearTimeout(id)
   }, [needle])
+  // #892 — "My interests" is never part of that read: it only drops rows from the list as it stands.
+  const narrowing = serverFilters(filters)
+  const narrowed = hasBrowseFilters(narrowing)
   const filterKey =
-    filtered || settledNeedle
-      ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle, reach])
+    narrowed || settledNeedle
+      ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, narrowed ? narrowing : null, settledNeedle, reach])
       : null
   const [targeted, setTargeted] = useState<{ key: string; results: BrowseSnapshot['results'] } | null>(null)
   useEffect(() => {
@@ -233,7 +246,7 @@ export function BrowseSurface({
     let live = true
     Promise.resolve()
       .then(() =>
-        browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, filtered ? filters : null, settledNeedle || null, reach),
+        browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, narrowed ? narrowing : null, settledNeedle || null, reach),
       )
       .then((next) => {
         if (live && next && !next.failed) setTargeted({ key: filterKey, results: next.results })
@@ -242,16 +255,18 @@ export function BrowseSurface({
     return () => {
       live = false
     }
-    // `filters` and the search are captured in `filterKey`.
+    // `narrowing` and the search are captured in `filterKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKey])
   // The server's answer once it is for what the box says now; until then, the rows in hand, cut here.
   const landed = filterKey !== null && targeted?.key === filterKey && settledNeedle === needle
-  const visible = useMemo(
-    () =>
-      landed ? targeted!.results : searchBrowseResults(!filtered ? mix : applyBrowseFilters(mix, filters, { now }), rest),
-    [landed, targeted, filtered, mix, filters, now, rest],
-  )
+  const visible = useMemo(() => {
+    const found = landed ? targeted!.results : searchBrowseResults(!narrowed ? mix : applyBrowseFilters(mix, narrowing, { now }), rest)
+    // #892 — My interests drops rows from the list as returned: no read, no reorder, no widening.
+    return filters.mine ? applyBrowseFilters(found, { ...DEFAULT_BROWSE_FILTERS, mine: true, tags: filters.tags }, { now, myTags }) : found
+    // `narrowing` is derived from `filters`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [landed, targeted, narrowed, mix, filters, now, rest, myTags])
   // #909 — a settled search is counted, with no member id, so locals' searches can help local businesses.
   useSearchDemand({ query: rest, resultCount: visible.length, metroSlug: snapshot.metro?.slug ?? null, areaId: snapshot.area?.id ?? null, failed: snapshot.failed, log: logSearchAction })
   // The old Updates view's top, kept for plain posts-only: what is on today, this week and this weekend.
@@ -269,8 +284,8 @@ export function BrowseSurface({
 
   // #331 — the map shows the tunable mix; filters and search narrow within it.
   const mapVisible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(snapshot.map, rest), filters, { now }),
-    [snapshot.map, rest, filters, now],
+    () => applyBrowseFilters(searchBrowseResults(snapshot.map, rest), filters, { now, myTags }),
+    [snapshot.map, rest, filters, now, myTags],
   )
   const mapNarrowed = snapshot.map.length > 0 && mapVisible.length === 0
 
@@ -410,6 +425,17 @@ export function BrowseSurface({
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-empty">
                   {/* #916 — draft copy (human-review). */}
                   <p>{needle ? `Nothing matches “${needle}” yet. Try fewer words, or a broader one like “food” or “plants”.` : 'Nothing here yet — try another filter'}</p>
+                  {/* #892 — "My interests" with none chosen: lead them to pick some. Draft copy. */}
+                  {filters.mine && myTags.length === 0 && (
+                    <p className="mt-2" data-testid="browse-pick-interests">
+                      <Link
+                        href={snapshot.signedIn ? '/you#interests' : `/auth/login?next=${encodeURIComponent('/you#interests')}`}
+                        className="press inline-flex min-h-11 items-center font-medium text-[var(--color-charcoal-900)] underline"
+                      >
+                        Pick your interests
+                      </Link>
+                    </p>
+                  )}
                   {/* Charcoal, not the accent token: `--color-accent` on
                       white is 2.9:1, short of AA for 14px text. The filter
                       sheet's "Clear all" took the same resolution — the
@@ -484,7 +510,16 @@ export function BrowseSurface({
               }
             >
               <div className="relative h-full">
-                <BrowseMap results={mapVisible} center={snapshot.metro?.center} />
+                <BrowseMap results={mapVisible} center={snapshot.metro?.center} focus={focus ?? undefined} />
+                {focus && (
+                  <Link
+                    href={focus.href}
+                    className="press absolute left-3 top-3 inline-flex min-h-tap items-center gap-1 rounded-md bg-[var(--color-bg)] px-3 text-body-sm font-medium text-[var(--color-accent)] shadow-lift"
+                  >
+                    <ArrowLeft size={16} aria-hidden="true" />
+                    Back to the Page
+                  </Link>
+                )}
                 {mapNarrowed && (
                   <div
                     data-testid="map-empty"
@@ -532,6 +567,8 @@ export function BrowseSurface({
         value={filters}
         reach={reach ?? snapshot.reach?.minutes ?? null}
         onReachChange={changeReach}
+        myInterests={snapshot.myInterests ?? null}
+        signedIn={snapshot.signedIn}
         onClose={() => setSheetOpen(false)}
         onApply={(f) => {
           const text = writeBox(f, rest)

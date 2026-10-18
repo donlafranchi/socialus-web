@@ -20,6 +20,7 @@
 // `@/lib/browse/filters` for why each one could not stay honest.
 
 import { isReservedWord } from '@/lib/browse/box-text'
+import Link from 'next/link'
 import { useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
 import { normalizeTag } from '@/lib/groups/tags'
@@ -45,7 +46,14 @@ interface ExploreFilterSheetProps {
   /** #922 — how far Explore reaches; the sheet sets it exactly. Absent: no "How far" group. */
   reach?: Reach | null
   onReachChange?: (reach: Reach) => void
+  /** #892 — the reader's own interests as Page tags; null signed out. Only decides what the choice offers. */
+  myInterests?: string[] | null
+  signedIn?: boolean
 }
+
+/** #892 — where "My interests" leads someone who has none yet: You, through sign-in when signed out. */
+const PICK_INTERESTS = '/you#interests'
+const pickInterestsHref = (signedIn: boolean) => (signedIn ? PICK_INTERESTS : `/auth/login?next=${encodeURIComponent(PICK_INTERESTS)}`)
 
 // #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Three groups, opt-in, that
 // combine with each other and with search; the default is everything mixed.
@@ -58,6 +66,8 @@ export function ExploreFilterSheet({
   onApply,
   reach = null,
   onReachChange,
+  myInterests = null,
+  signedIn = false,
 }: ExploreFilterSheetProps) {
   const [draft, setDraft] = useState(value)
   const [draftReach, setDraftReach] = useState(reach)
@@ -150,6 +160,24 @@ export function ExploreFilterSheet({
 
         <Group label="Category">
           <Options>
+            {/* #892 — a filter over the member's own interests, never a ranking. Draft copy ([public-is-draft]). */}
+            {(myInterests?.length ?? 0) > 0 || draft.mine ? (
+              <Choice
+                type="checkbox"
+                name={`${groupId}-mine`}
+                label="My interests"
+                checked={draft.mine}
+                onChange={() => setDraft((d) => ({ ...d, mine: !d.mine }))}
+              />
+            ) : (
+              <Link
+                href={pickInterestsHref(signedIn)}
+                data-testid="filter-pick-interests"
+                className="inline-flex min-h-11 items-center text-sm text-[var(--color-fg-muted)] underline underline-offset-4 hover:text-[var(--color-charcoal-900)]"
+              >
+                Pick your interests
+              </Link>
+            )}
             {[...CATEGORIES, ...extraTags.map((t) => ({ value: t, label: t }))].map((c) => (
               <Choice
                 key={c.value}

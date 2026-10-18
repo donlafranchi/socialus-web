@@ -794,27 +794,28 @@ describe('#896 — the Location map', () => {
   const visit = { mode: 'visit' as const, howToFind: null, usuallyAround: null, towns: [] }
   const roaming = { mode: 'roaming' as const, howToFind: null, usuallyAround: 'farmers markets', towns: [] }
 
-  it('the address sits under the map, and the map and Open in Maps both open it', () => {
+  it('the address sits under the map; the map opens our own map on this Page; Directions leave the app', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
     renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: true, where: visit })
     const map = screen.getByRole('img', { name: `Map of ${point.label}` })
     const address = screen.getByTestId('shop-placement')
     expect(address).toHaveTextContent(point.label)
     expect(map.compareDocumentPosition(address) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    const open = screen.getByRole('link', { name: 'Open in Maps' })
-    expect(open).toHaveAttribute('href', expect.stringContaining('google.com/maps/search/'))
-    expect(open).toHaveAttribute('target', '_blank')
-    expect(screen.getByRole('link', { name: `Open ${point.label} in Maps` })).toHaveAttribute('href', open.getAttribute('href'))
+    expect(screen.getByRole('link', { name: `Show ${point.label} on the map` })).toHaveAttribute('href', `/explore?view=map&focus=${SHOP.publicId}&at=-121.47103%2C38.57271`)
+    expect(screen.queryByText(/open in maps/i)).toBeNull()
     expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute('href', expect.stringContaining('google.com/maps/dir/'))
     vi.unstubAllEnvs()
   })
 
   // Privacy: a Page that shares only an area, or that moves, never puts its
   // exact point or address anywhere in what the visitor's browser receives.
-  it('an area-only Page never sends its exact point', () => {
+  // Don, 2026-10-18: "area only doesn't need a map to open but does need some kind of indicator about where it's at".
+  it('an area-only Page: no map, a plain line saying where, never its point', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
     const { container } = renderShop({ shop: { ...SHOP, placements: [area] }, loggedIn: true, where: visit })
-    expect(screen.getByRole('img', { name: 'Map of Midtown' })).toBeInTheDocument()
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('In Midtown')
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(screen.queryByRole('link', { name: /on the map/ })).toBeNull()
     expect(container.innerHTML).not.toContain('-121.48456')
     expect(container.innerHTML).not.toContain('38.57123')
     expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
@@ -825,7 +826,7 @@ describe('#896 — the Location map', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
     const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: true, where: roaming })
     expect(screen.getByTestId('shop-where')).toHaveTextContent('Around the Sacramento area, usually farmers markets')
-    expect(screen.queryByRole('link', { name: 'Open in Maps' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /on the map/ })).toBeNull()
     expect(container.innerHTML).not.toContain('2700 K St')
     expect(container.innerHTML).not.toContain('-121.47103')
     expect(container.innerHTML).not.toContain('38.57271')
@@ -836,7 +837,7 @@ describe('#896 — the Location map', () => {
   it('signed out, no map and no Maps links', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
     const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: false, where: visit })
-    expect(screen.queryByRole('link', { name: 'Open in Maps' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /on the map|Directions/ })).toBeNull()
     expect(container.innerHTML).not.toContain('38.57271')
     vi.unstubAllEnvs()
   })
@@ -918,6 +919,77 @@ describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
       expect(section.querySelector('[class*="rounded-full"], [class*="btn-"]')).toBeNull()
     }
     vi.unstubAllEnvs()
+  })
+})
+
+// #896 — every answer to "where is it?" on the Page.
+describe('#896 — the Location card for each answer', () => {
+  const anchor = { source: 'anchor' as const, kind: 'area' as const, label: 'East Sacramento', lng: -121.46123, lat: 38.56456 }
+  const base = { howToFind: null, usuallyAround: null, towns: [] }
+  const html = (c: HTMLElement) => c.innerHTML
+
+  it('cross streets or a landmark: a pin, the words under it, Directions by the pin', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const landmark = { source: 'anchor' as const, kind: 'point' as const, label: 'J St & 20th St, by the fountain', lng: -121.47103, lat: 38.57271 }
+    renderShop({ shop: { ...SHOP, placements: [landmark] }, loggedIn: true, where: { ...base, mode: 'landmark' } })
+    expect(screen.getByRole('img', { name: 'Map of J St & 20th St, by the fountain' })).toBeInTheDocument()
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('J St & 20th St, by the fountain')
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=38.57271,-121.47103')
+    vi.unstubAllEnvs()
+  })
+
+  it('more than one location: each listed with its own Directions, by name and address, no single map', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const stops = [{ label: '2700 K St, Sacramento', whenText: null }, { label: '915 I St, Sacramento', whenText: null }]
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'multi', stops } })
+    const items = within(screen.getByTestId('page-stops')).getAllByRole('listitem')
+    expect(items).toHaveLength(2)
+    expect(items[0]).toHaveTextContent('2700 K St, Sacramento')
+    expect(within(items[0]!).getByRole('link', { name: 'Directions to 2700 K St, Sacramento' })).toHaveAttribute('href', expect.stringContaining('destination=Oak%20Park%20Sourdough%2C%202700%20K%20St%2C%20Sacramento'))
+    expect(within(items[1]!).getByRole('link', { name: 'Directions to 915 I St, Sacramento' })).toHaveAttribute('href', expect.stringContaining('destination=Oak%20Park%20Sourdough%2C%20915%20I%20St'))
+    expect(screen.queryByText(/open in maps/i)).toBeNull()
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(html(container)).not.toContain('East Sacramento')
+    vi.unstubAllEnvs()
+  })
+
+  it('it moves: where it usually is, then where and when, each with Directions', () => {
+    const stops = [{ label: 'Midtown Farmers Market', whenText: 'Saturdays, 8am–1pm' }]
+    renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'roaming', usuallyAround: 'Midtown', stops } })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Around the Sacramento area, usually Midtown')
+    const [item] = within(screen.getByTestId('page-stops')).getAllByRole('listitem')
+    expect(item).toHaveTextContent('Saturdays, 8am–1pm')
+    expect(item).toHaveTextContent('Midtown Farmers Market')
+    expect(within(item!).getByRole('link', { name: 'Directions to Midtown Farmers Market' })).toHaveAttribute('href', expect.stringContaining('destination=Midtown%20Farmers%20Market'))
+  })
+
+  // Visibility: (a) I go to them, (b) neighbourhood only and (f) online never send an exact point.
+  it('online: its line, no map, no Maps link, no point', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'online' } })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Online, or by appointment')
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(screen.queryByRole('link', { name: /on the map|Directions/ })).toBeNull()
+    expect(html(container)).not.toContain('-121.46123')
+    expect(html(container)).not.toContain('38.56456')
+    vi.unstubAllEnvs()
+  })
+
+  it('I go to them: a line naming where it serves, no map, never its anchor point', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'travel', towns: [{ id: 't1', name: 'Midtown' }, { id: 't2', name: 'East Sacramento' }].slice(0, 1) } })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Comes to you in Midtown')
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    expect(html(container)).not.toContain('-121.46123')
+    expect(html(container)).not.toContain('East Sacramento')
+    vi.unstubAllEnvs()
+  })
+
+  it('signed out, none of it — not the stops either', () => {
+    const stops = [{ label: 'Midtown Farmers Market', whenText: 'Saturdays' }]
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: false, where: { ...base, mode: 'roaming', stops } })
+    expect(html(container)).not.toContain('Midtown Farmers Market')
   })
 })
 

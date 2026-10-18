@@ -7,6 +7,8 @@ import { DEFAULT_BROWSE_FILTERS, isPickedDay, type BrowseFilters, type DateFilte
 const TYPE_WORD: Record<Exclude<ResultType, 'all'>, string> = { pages: 'pages', posts: 'posts' }
 const KIND_WORD: Record<PostKind, string> = { event: 'events', deal: 'deals', last_minute: 'last-minute' }
 export const FOLLOWING_WORD = 'following'
+/** #892 — the words, not the tags: a shared link carries no one's interests, and each reader's own apply. */
+export const MY_INTERESTS_WORDS = 'my interests'
 const DATE_PHRASE: Record<'today' | 'weekend' | 'week', string> = { today: 'today', weekend: 'this weekend', week: 'this week' }
 /** #796 — the old Updates view's word, read as the posts-only Type and never written again. */
 const LEGACY_UPDATES = 'updates'
@@ -18,6 +20,7 @@ export function writeBox(f: BrowseFilters, rest = ''): string {
   return [
     ...words(rest),
     ...f.tags.map(normalizeTag),
+    ...(f.mine ? [MY_INTERESTS_WORDS] : []),
     ...(f.type === 'all' ? [] : [TYPE_WORD[f.type]]),
     ...f.postKinds.map((k) => KIND_WORD[k]),
     ...(f.following ? [FOLLOWING_WORD] : []),
@@ -27,7 +30,7 @@ export function writeBox(f: BrowseFilters, rest = ''): string {
     .trim()
 }
 
-const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), FOLLOWING_WORD, ...Object.values(DATE_PHRASE), LEGACY_UPDATES]
+const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), FOLLOWING_WORD, MY_INTERESTS_WORDS, ...Object.values(DATE_PHRASE), LEGACY_UPDATES]
 
 /** The group words are the box's own: a tag with exactly that text cannot be written as a tag. */
 export const isReservedWord = (tag: string): boolean => RESERVED.includes(normalizeTag(tag))
@@ -61,6 +64,7 @@ export function readBox(text: string, knownTags: readonly string[]): { filters: 
     return hit
   }
 
+  const mine = Boolean(pull(MY_INTERESTS_WORDS))
   const found: { tag: string; at: number }[] = []
   const byLength = [...new Set(knownTags.map(normalizeTag).filter((t) => t && !isReservedWord(t)))].sort((a, b) => words(b).length - words(a).length || b.length - a.length)
   for (const tag of byLength) {
@@ -86,7 +90,7 @@ export function readBox(text: string, knownTags: readonly string[]): { filters: 
   }
 
   return {
-    filters: { ...DEFAULT_BROWSE_FILTERS, type, postKinds, following, tags: found.sort((a, b) => a.at - b.at).map((f) => f.tag), date },
+    filters: { ...DEFAULT_BROWSE_FILTERS, type, postKinds, following, mine, tags: found.sort((a, b) => a.at - b.at).map((f) => f.tag), date },
     rest: tokens.map((t) => t.raw).join(' '),
   }
 }

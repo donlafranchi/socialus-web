@@ -23,6 +23,13 @@ export {
   type MemberInterestsAddInput,
   type MemberInterestsAddResult,
 } from './interests-add'
+// #892 — its pair
+export {
+  memberInterestsRemove,
+  memberInterestsRemoveInput,
+  type MemberInterestsRemoveInput,
+  type MemberInterestsRemoveResult,
+} from './interests-remove'
 
 // T091 — Follow / unfollow handlers (F032)
 export {

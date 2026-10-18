@@ -16,6 +16,8 @@ import { defineHandler } from '../_lib/handler'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
+import { ValidationError } from '../_lib/errors'
+import { isVocabTag } from '@/lib/onboarding/interest-vocab'
 
 const tag = z
   .string()
@@ -50,6 +52,8 @@ export const memberInterestsAdd = defineHandler(
 
     // De-dupe within the request so a repeated tag can't double-emit.
     const tags = Array.from(new Set(input.tags))
+    const unknown = tags.filter((t) => !isVocabTag(t))
+    if (unknown.length > 0) throw new ValidationError(`member.interests.add: not an interest: ${unknown.join(', ')}`)
 
     return withTransaction(async (client) => {
       const txCtx: ActionContext = { ...ctx, db: client }

@@ -50,4 +50,9 @@ export interface BrowseSnapshot {
    * or 'all' for the whole area. Absent on a filtered read and when a neighbourhood is picked.
    */
   reach?: { minutes: number | 'all'; from: string | null } | null
+  /**
+   * #892 — the reader's own interests, as the Category tags Pages carry: what "My interests" filters to.
+   * Null signed out. Read under owner-only RLS, so it is only ever the person looking.
+   */
+  myInterests?: string[] | null
 }
