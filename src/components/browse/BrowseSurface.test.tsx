@@ -488,7 +488,6 @@ describe('#916 — search asks the server', () => {
   })
 })
 
-<<<<<<< HEAD
 // #935 — typing a search re-rendered the whole Explore page on the server once per keystroke (router.replace),
 // each render several feed reads; signed in, that flood held a tapped result and the Page it opened.
 describe('#935 — a search keeps the link in the address bar without asking the server for the page', () => {
@@ -516,7 +515,9 @@ describe('#935 — a search keeps the link in the address bar without asking the
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sacriver' } })
     const links = await screen.findAllByRole('link', { name: /SacRiver Floaters/ })
     expect(links.map((a) => a.getAttribute('href'))).toEqual(['/g/3k8x0p', '/g/3k8x0p#announcement-p-1'])
-=======
+  })
+})
+
 // #896 — opened from a Page's map: Explore opens on the map, with a way back to the Page.
 describe("#896 — Explore's map, opened from a Page", () => {
   afterEach(() => {
@@ -532,6 +533,5 @@ describe("#896 — Explore's map, opened from a Page", () => {
     render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
     expect(screen.queryByTestId('browse-map-pane')).toBeNull()
     expect(screen.queryByRole('link', { name: /back to the page/i })).toBeNull()
->>>>>>> origin/main
   })
 })
