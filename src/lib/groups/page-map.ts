@@ -12,6 +12,8 @@ export interface PageMapView {
   zoom: number
   text: string
   directions: boolean
+  /** #936 — a street address's business name: Maps finds it by name at the address. */
+  name?: string
 }
 
 const STYLE = 'mapbox/streets-v12'
@@ -19,7 +21,7 @@ const PIN = '24405a'
 const AREA_RADIUS_M = 700
 const round2 = (n: number) => Math.round(n * 100) / 100
 
-export function pageMapView(placement: Placement | undefined, mode: PageWhere['mode'] | null): PageMapView | null {
+export function pageMapView(placement: Placement | undefined, mode: PageWhere['mode'] | null, name?: string): PageMapView | null {
   if (mode === 'roaming' || mode === 'travel') {
     // #894 — its anchor is only the metro: no fixed place, so no map.
     return null
@@ -29,7 +31,7 @@ export function pageMapView(placement: Placement | undefined, mode: PageWhere['m
   if (placement.kind === 'area') {
     return { kind: 'area', centre: [round2(placement.lng), round2(placement.lat)], zoom: 13, text: label, directions: false }
   }
-  return { kind: 'point', centre: [placement.lng, placement.lat], zoom: 16, text: label, directions: true }
+  return { kind: 'point', centre: [placement.lng, placement.lat], zoom: 16, text: label, directions: true, ...(name?.trim() ? { name: name.trim() } : {}) }
 }
 
 function circle([lng, lat]: [number, number], metres: number, steps = 32): [number, number][] {
@@ -59,5 +61,5 @@ export function staticMapUrl(v: PageMapView, token: string): string {
 
 /** What Open in Maps / Directions point at: an area is never exact. */
 export const mapsTargetOf = (v: PageMapView): MapsTarget => ({
-  label: v.text, lng: v.centre[0], lat: v.centre[1], exact: v.kind === 'point', zoom: v.kind === 'area' ? v.zoom : undefined,
+  label: v.text, lng: v.centre[0], lat: v.centre[1], exact: v.kind === 'point', zoom: v.kind === 'area' ? v.zoom : undefined, name: v.name,
 })

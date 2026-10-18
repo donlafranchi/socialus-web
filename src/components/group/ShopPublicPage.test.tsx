@@ -914,3 +914,28 @@ describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
     vi.unstubAllEnvs()
   })
 })
+
+// #936 — Directions find the business by name at its street address, not its town.
+describe('#936 — Maps finds the business by name and address', () => {
+  it('Directions carry the Page name and its full street address', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const point = { source: 'anchor' as const, kind: 'point' as const, label: '15010 Ridge Road, Sutter Creek, CA', lng: -120.8401, lat: 38.3655 }
+    renderShop({ shop: { ...SHOP, displayName: 'Vino Tahoe', placements: [point] }, loggedIn: true })
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=Vino%20Tahoe%2C%2015010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+    )
+    expect(screen.getByRole('img', { name: 'Map of 15010 Ridge Road, Sutter Creek, CA' }).getAttribute('src')).toContain('pin-l+24405a(-120.8401,38.3655)')
+    vi.unstubAllEnvs()
+  })
+
+  it('an area-only Page never gets a name-and-address search or directions', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const area = { source: 'anchor' as const, kind: 'area' as const, label: 'Sutter Creek', lng: -120.80241, lat: 38.39301 }
+    const { container } = renderShop({ shop: { ...SHOP, displayName: 'Vino Tahoe', placements: [area] }, loggedIn: true })
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    expect(container.innerHTML).not.toContain('Vino%20Tahoe')
+    expect(container.innerHTML).not.toContain('-120.80241')
+    vi.unstubAllEnvs()
+  })
+})

@@ -9,6 +9,8 @@ export interface MapsTarget {
   /** false for an area: open on its centre, no directions. */
   exact: boolean
   zoom?: number
+  /** #936 — the business's name: Maps finds it by name at its address, not just the address. */
+  name?: string
 }
 
 export function mapsLinks(t: MapsTarget, apple: boolean): { open: string; directions: string | null } {
@@ -19,6 +21,12 @@ export function mapsLinks(t: MapsTarget, apple: boolean): { open: string; direct
       open: apple ? `https://maps.apple.com/?q=${q}&ll=${ll}${t.zoom ? `&z=${t.zoom}` : ''}` : `https://www.google.com/maps/search/?api=1&query=${ll}`,
       directions: null,
     }
+  }
+  if (t.name?.trim()) {
+    const both = encodeURIComponent(`${t.name.trim()}, ${t.label}`)
+    return apple
+      ? { open: `https://maps.apple.com/?q=${encodeURIComponent(t.name.trim())}&address=${q}`, directions: `https://maps.apple.com/?daddr=${q}` }
+      : { open: `https://www.google.com/maps/search/?api=1&query=${both}`, directions: `https://www.google.com/maps/dir/?api=1&destination=${both}` }
   }
   return apple
     ? { open: `https://maps.apple.com/?q=${q}&ll=${ll}`, directions: `https://maps.apple.com/?daddr=${q}` }

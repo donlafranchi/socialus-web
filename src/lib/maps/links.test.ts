@@ -23,3 +23,23 @@ describe('isAppleMobile', () => {
     expect(isAppleMobile({ userAgent, platform, maxTouchPoints })).toBe(want)
   })
 })
+
+// #936 — Don, 2026-10-18: Open in Maps went to the town, not the business. Name plus full street address.
+describe('mapsLinks — a business by name and street address', () => {
+  const vino = { name: 'Vino Tahoe', label: '15010 Ridge Road, Sutter Creek, CA', lng: -120.8401, lat: 38.3655, exact: true }
+  it('Apple Maps: the name, at its address; directions to the address', () => {
+    expect(mapsLinks(vino, true)).toEqual({
+      open: 'https://maps.apple.com/?q=Vino%20Tahoe&address=15010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+      directions: 'https://maps.apple.com/?daddr=15010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+    })
+  })
+  it('Google Maps: the name and address together, both ways', () => {
+    expect(mapsLinks(vino, false)).toEqual({
+      open: 'https://www.google.com/maps/search/?api=1&query=Vino%20Tahoe%2C%2015010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+      directions: 'https://www.google.com/maps/dir/?api=1&destination=Vino%20Tahoe%2C%2015010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+    })
+  })
+  it('an area never gets the name-and-address treatment or directions', () => {
+    expect(mapsLinks({ ...vino, exact: false, zoom: 13 }, false).directions).toBeNull()
+  })
+})
