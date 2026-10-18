@@ -211,3 +211,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-18 | Newcastle Mandarin Ranch | Farm | Newcastle | Farmers markets, Sustainability | Neighbourhood life (farms); holiday (mandarins, opens Nov); lead: own site |
 | 2026-10-18 | Struble Ranch | Farm | Loomis | Farmers markets, Sustainability | Neighbourhood life (farms); holiday (mandarins, gift boxes); lead: own site |
 | 2026-10-18 | Thomas Ranch Mandarins | Farm | Auburn | Farmers markets, Sustainability | Neighbourhood life (farms); holiday (mandarins, jams); lead: own site |
+| 2026-10-17 | Séka Hills | Farm | Brooks | Farmers markets, Sustainability | Native creators and producers; Native-owned (Yocha Dehe Wintun Nation, stated on own site); lead: own site |
+| 2026-10-17 | Dazzler Farms | Farm stay & agritourism | Woodland | Farmers markets, Neighborhood life | Native creators and producers (farms); holiday (pumpkins, Christmas trees); lead: own site |
+| 2026-10-17 | Capay Hills Orchard | Farm | Esparto | Farmers markets, Sustainability | Native creators and producers (farms); holiday (almond gifts); lead: own site |
+| 2026-10-17 | Pure Honey & Henry's Bullfrog Bees | Farm | Winters | Farmers markets, Sustainability | Native creators and producers (farms); holiday (honey gifts); lead: own site |

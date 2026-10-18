@@ -37,4 +37,9 @@ describe('whereValueFrom', () => {
     const v = whereValueFrom(saved, { kind: 'point', label: '1 Example St', lng: -121.49, lat: 38.55 })
     expect(v.visit).toMatchObject({ pin: null, areaOnly: false, area: null })
   })
+  // #894 — a Page that moves is anchored to the metro; its centre's neighbourhood is not the Page's.
+  it('a Page that moves carries no neighbourhood into "People come to me"', () => {
+    const v = whereValueFrom({ ...saved, mode: 'roaming' }, { kind: 'area', label: 'East Sacramento', lng: -121.46, lat: 38.56 })
+    expect(v.visit).toMatchObject({ areaOnly: false, area: null })
+  })
 })

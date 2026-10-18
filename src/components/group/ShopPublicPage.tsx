@@ -16,7 +16,7 @@ import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagChips } from '@/components/tags/TagChips'
 import { PageContactBlock } from './PageContactBlock'
-import { whereLine, type PageWhere } from '@/lib/groups/page-where'
+import { fixedPlacement, whereLine, whereNow, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -143,7 +143,7 @@ export function ShopPublicPage({
   // the withheld card and Sign up to follow. Listings and links out wait.
   const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
 
-  const placement = shop.placements[0]
+  const placement = fixedPlacement(where, shop.placements[0])
   const placeLabel = placement?.label.trim() || null
   const how = loggedIn && where ? whereLine(where) : null
   const hasContact = loggedIn && contact && (contact.phone || (SHOW_OPENING_HOURS && contact.hours))
@@ -454,12 +454,12 @@ export function ShopPublicPage({
         tags,
         contact: contact ?? { phone: null, hours: null },
         contactOn,
-        addressLabel: shop.placements[0]?.label || null,
+        addressLabel: whereNow(where, shop.placements[0]),
         kind: pageKindOf(shop.kind),
         purpose: purposeOf(shop.kind, shop.purpose),
         productsOn,
-        where: whereValueFrom(where ?? null, shop.placements[0]),
-        savedPin: savedPinFrom(shop.placements[0]),
+        where: whereValueFrom(where ?? null, placement),
+        savedPin: savedPinFrom(placement),
       }}
     >
       {page}
