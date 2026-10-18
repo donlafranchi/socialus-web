@@ -1,6 +1,7 @@
 // #796 (Don, 2026-10-16) — what a card is, at a glance: a megaphone for a post, a page for a Page, with the
-// word for a screen reader. A seeder sample (#556) is marked as one wherever it shows: the "Sample" chip is
+// word for a screen reader. A seeder sample (#556) is marked as one wherever it shows: the "Sample" label is
 // its accessible label; the diagonal watermark (like a DRAFT stamp) is decoration, hidden from assistive tech.
+// #922 (Don, 2026-10-18) — no chip or pill UI anywhere [always]: the label is small-caps text, not a pill.
 
 import { FileText, Megaphone } from 'lucide-react'
 
@@ -14,9 +15,9 @@ export function TypeMark({ type }: { type: 'post' | 'page' }) {
   )
 }
 
-export function SampleChip() {
+export function SampleLabel() {
   return (
-    <span data-testid="sample-chip" className="shrink-0 whitespace-nowrap rounded-full border border-[var(--color-fg-muted)] px-1.5 text-xs font-semibold uppercase leading-4 tracking-wide text-[var(--color-fg)]">
+    <span data-testid="sample-label" className="shrink-0 whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg)]">
       Sample
     </span>
   )

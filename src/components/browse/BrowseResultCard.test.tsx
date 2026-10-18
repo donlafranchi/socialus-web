@@ -55,12 +55,13 @@ describe('the card renders metro time, the same as the Page', () => {
     expect(screen.queryByText(/Sep 24|September 24/i)).not.toBeInTheDocument()
   })
 
-  // #256: the start leads the card, large, in the metro's words.
-  it('leads with when it happens, in large type', () => {
+  // #256: the start leads the card, in the metro's words. #922: a strong small-caps date line above the title.
+  it('leads with when it happens, as a strong small-caps date line', () => {
     render(<BrowseResultCard result={post()} />)
     const when = screen.getByTestId('browse-post-when')
     expect(when).toHaveTextContent(formatCardWhen(INSTANT))
-    expect(when.className).toMatch(/text-(lg|xl|2xl)/)
+    expect(when.className).toMatch(/uppercase/)
+    expect(when.className).toMatch(/font-bold/)
   })
 
   // #256 (Don, 2026-09-30): an announcement with no time keeps its posted date.

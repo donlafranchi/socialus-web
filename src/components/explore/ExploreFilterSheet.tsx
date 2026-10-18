@@ -93,7 +93,7 @@ export function ExploreFilterSheet({
               setDraft(DEFAULT_BROWSE_FILTERS)
               commit(DEFAULT_BROWSE_FILTERS)
             }}
-            className="inline-flex min-h-tap items-center rounded-full px-2 text-body-sm font-medium text-[var(--color-charcoal-900)] underline hover:bg-neutral-100"
+            className="inline-flex min-h-tap items-center px-2 text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
           >
             Clear all
           </button>
@@ -103,7 +103,7 @@ export function ExploreFilterSheet({
         <button
           type="button"
           onClick={() => commit(draft)}
-          className="w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-body-sm font-semibold text-white"
+          className="w-full rounded-md bg-[var(--color-charcoal-700)] py-3 text-body-sm font-semibold text-white"
         >
           Show results
         </button>
@@ -157,7 +157,7 @@ export function ExploreFilterSheet({
             {DATE_OPTIONS.map((o) => (
               <Choice key={o.value} name={`${groupId}-date`} label={o.label} checked={draft.date === o.value} onChange={() => setDraft((d) => ({ ...d, date: o.value }))} />
             ))}
-            <label className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--color-charcoal-100)] bg-white px-4 text-sm font-medium text-[var(--color-charcoal-900)]">
+            <label className="inline-flex min-h-11 items-center gap-2 text-sm text-[var(--color-fg-muted)]">
               <span>Pick a date</span>
               <input
                 type="date"
@@ -185,7 +185,7 @@ function Group({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function Options({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`flex flex-wrap gap-2 ${className}`.trim()}>{children}</div>
+  return <div className={`flex flex-wrap gap-x-5 ${className}`.trim()}>{children}</div>
 }
 
 interface ChoiceProps {
@@ -198,11 +198,13 @@ interface ChoiceProps {
 
 function Choice({ name, label, checked, onChange, type = 'radio' }: ChoiceProps) {
   return (
+    // #922 (Don, 2026-10-18) — no chips or pills [always]: a choice is a quiet word; chosen, it is bold and underlined.
     <label
-      className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-3 text-sm font-medium transition-colors ${
+      data-checked={checked || undefined}
+      className={`inline-flex min-h-11 cursor-pointer items-center text-sm underline-offset-[6px] transition-colors ${
         checked
-          ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
-          : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
+          ? 'font-semibold text-[var(--color-charcoal-900)] underline decoration-2'
+          : 'text-[var(--color-fg-muted)] hover:text-[var(--color-charcoal-900)]'
       } has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--color-accent)]`}
     >
       <input type={type} name={name} className="sr-only" checked={checked} onChange={onChange} />

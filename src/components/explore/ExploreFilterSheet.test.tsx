@@ -273,3 +273,15 @@ describe('#619 — plain words in the sheet', () => {
     expect(screen.queryByRole('checkbox', { name: 'this weekend' })).toBeNull()
   })
 })
+
+describe('#922 — no chips or pills in the filter sheet', () => {
+  it('every choice is a quiet word: no rounded-full, no border; chosen is bold and underlined', () => {
+    render(<ExploreFilterSheet open value={DEFAULT_BROWSE_FILTERS} onClose={() => {}} onApply={() => {}} />)
+    const sheet = screen.getByTestId('explore-filter-sheet')
+    expect(sheet.querySelectorAll('label.rounded-full, label.border')).toHaveLength(0)
+    expect(screen.getByRole('button', { name: 'Show results' }).className).not.toMatch(/rounded-full/)
+    const everything = screen.getByLabelText('Everything').closest('label')!
+    expect(everything.className).toMatch(/font-semibold/)
+    expect(everything.className).toMatch(/underline/)
+  })
+})
