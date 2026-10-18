@@ -27,7 +27,7 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { ReactNode } from 'react'
 
 /** Small caps for labels and the date line: typography, never a pill. */
-const SMALL_CAPS = 'text-[11px] font-semibold uppercase leading-4 tracking-wider'
+const SMALL_CAPS = 'text-micro font-semibold uppercase tracking-wider'
 
 export function BrowseResultCard({
   result,
@@ -105,7 +105,7 @@ function PageCard(props: CardProps) {
         )}
       </div>
       <div data-testid="tile-text" className="px-3 pb-2 pt-2.5">
-        <p data-testid="tile-title" className="line-clamp-1 text-[15px] font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
+        <p data-testid="tile-title" className="line-clamp-1 text-body font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
           {result.name}
         </p>
         <p data-testid="tile-tagline" className="mt-0.5 line-clamp-1 text-sm leading-5 text-[var(--color-fg-muted)]">
@@ -155,7 +155,7 @@ function PostCard(props: CardProps) {
         <div data-testid="tile-text" className="min-w-0 flex-1">
           {/* #256 (F072 criterion 3): when it happens leads; an undated post says when it was posted, quietly. */}
           {result.startsAt ? (
-            <p data-testid="browse-post-when" className={`${SMALL_CAPS} text-[12px] font-bold text-[var(--color-fg)]`}>
+            <p data-testid="browse-post-when" className={`${SMALL_CAPS} font-bold text-[var(--color-fg)]`}>
               {formatCardWhen(result.startsAt, undefined, undefined, result.endsAt)}
             </p>
           ) : (
@@ -164,7 +164,7 @@ function PostCard(props: CardProps) {
             </p>
           )}
           {title && (
-            <p data-testid="tile-title" className="mt-1 line-clamp-2 text-[15px] font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
+            <p data-testid="tile-title" className="mt-1 line-clamp-2 text-body font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
               {title}
             </p>
           )}
@@ -184,7 +184,7 @@ function PostCard(props: CardProps) {
         </div>
       </div>
       <p data-testid="tile-kind-row" className="flex items-center gap-2 px-3 pb-3 pt-2.5 text-caption text-[var(--color-fg-muted)]">
-        <span aria-hidden className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-[11px] font-semibold text-[var(--color-fg)]">
+        <span aria-hidden className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-micro font-semibold text-[var(--color-fg)]">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatar} alt="" className="h-full w-full object-cover" />

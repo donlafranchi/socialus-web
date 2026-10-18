@@ -17,7 +17,7 @@ export function TypeMark({ type }: { type: 'post' | 'page' }) {
 
 export function SampleLabel() {
   return (
-    <span data-testid="sample-label" className="shrink-0 whitespace-nowrap text-[11px] font-semibold uppercase leading-4 tracking-wider text-[var(--color-fg)]">
+    <span data-testid="sample-label" className="shrink-0 whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg)]">
       Sample
     </span>
   )
