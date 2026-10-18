@@ -1,9 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { reportCreate, reportNcmecRecord } from '@/actions'
+import { reportCreate, reportNcmecRecord, groupPostEdit } from '@/actions'
 import { fetchReviewQueue } from '@/lib/admin/reports-queue'
+import { runAssessment } from '@/lib/moderation/run-assessment'
+import { autoRestoreAfterAssessment } from '@/actions/report/ai-restore'
+import { HAIKU, SONNET, type Read } from '@/lib/moderation/assess'
 import type { ActionContext } from '@/actions/_lib/context'
 
 // #648 / F102 criterion 14 — a Sensitive content report on a Post keeps the words, the poster and where it came
@@ -23,6 +26,7 @@ const OWNER = 'a8100000-0000-4000-8000-000000000648'
 const REPORTER = 'b8100000-0000-4000-8000-000000000648'
 const PAGE = 'c8100000-0000-4000-8000-000000000648'
 const POST = 'd8100000-0000-4000-8000-000000000648'
+const POST_14 = 'd8100000-0000-4000-8000-000000000838'
 const NOW = new Date()
 const ctx = (id: string): ActionContext => ({ actingMemberId: id, viaDelegationId: null, traceId: 't', db: {} as never, now: () => NOW }) as ActionContext
 
@@ -59,6 +63,7 @@ beforeAll(async () => {
   )
   await client.query(`insert into public.group_memberships (group_id, member_id, role) values ($1,$2,'steward')`, [PAGE, OWNER])
   await client.query(`insert into public.page_posts (id, group_id, body, lifecycle_state, discoverability) values ($1,$2,'A post that was reported','active','listed')`, [POST, PAGE])
+  await client.query(`insert into public.page_posts (id, group_id, body, lifecycle_state, discoverability) values ($1,$2,'B838 child-safety case','active','listed')`, [POST_14, PAGE])
   await client.query(
     `insert into public.content_origins (member_id, kind, ref, ip, created_at) values
        ($1,'post',$2,'203.0.113.7', now() - interval '13 months'),
@@ -70,8 +75,8 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!RUNNABLE) return
   await client.query(`delete from public.legal_holds where group_id = $1`, [PAGE])
-  await client.query(`delete from public.reports where subject_id = $1`, [POST])
-  await client.query(`delete from public.member_notices where subject_id = $1`, [POST])
+  await client.query(`delete from public.reports where subject_id = any($1)`, [[POST, POST_14]])
+  await client.query(`delete from public.member_notices where subject_id = any($1)`, [[POST, POST_14]])
   await client.query(`delete from public.content_origins where member_id = $1`, [OWNER])
   await client.query(`delete from public.page_posts where group_id = $1`, [PAGE])
   await client.query(`delete from public.group_events where group_id = $1`, [PAGE])
@@ -105,9 +110,15 @@ describe.skipIf(!RUNNABLE)('#648 — child-safety content is preserved', () => {
   })
 
   it('the daily purge of old origins leaves a held item\'s alone and still clears the rest', async () => {
-    await client.query(`select public.purge_content_origins()`)
-    const left = await client.query(`select ref from public.content_origins where member_id = $1`, [OWNER])
-    expect(left.rows.map((r) => r.ref)).toEqual([POST])
+    // Table-wide, so in a transaction that rolls back: it never deletes another suite's rows mid-run.
+    await client.query('begin')
+    try {
+      await client.query(`select public.purge_content_origins()`)
+      const left = await client.query(`select ref from public.content_origins where member_id = $1`, [OWNER])
+      expect(left.rows.map((r) => r.ref)).toEqual([POST])
+    } finally {
+      await client.query('rollback')
+    }
   })
 
   it('the operator records the number NCMEC gave, who and when, and the year restarts from that day', async () => {
@@ -131,6 +142,57 @@ describe.skipIf(!RUNNABLE)('#648 — child-safety content is preserved', () => {
     const queue = await fetchReviewQueue(200, { includeBuilders: true })
     const row = queue.find((r) => r.subjectId === POST)
     expect(row?.hold).toMatchObject({ ncmecReportNumber: '987654321' })
+    expect(row?.hold?.retainUntil.getTime()).toBeGreaterThan(Date.now() + 364 * 86_400_000)
+  })
+})
+
+// #838 — the whole of F102 criterion 14 in one standing guard: apparent CSAM never auto-restores, never goes back to
+// the poster, gets no AI processing, and is kept a year and reported to NCMEC with the number recorded.
+// [guards F102.14]
+describe.skipIf(!RUNNABLE)('F102.14 — child-safety content is a legal tier, not a moderation judgement', () => {
+  it('hidden at once with no word to the poster, no AI read, no restore by the AI or by an edit, kept a year, and the NCMEC number recorded on it', async () => {
+    const { reportId } = await reportCreate(ctx(REPORTER), { subjectKind: 'post', category: 'sensitive_content', subjectId: POST_14, body: 'x' })
+    const post = async () => (await client.query(`select discoverability, hidden_at from public.page_posts where id = $1`, [POST_14])).rows[0]
+    expect((await post()).discoverability).toBe('private')
+
+    // Never back to the poster: no notice of any kind, so nothing to answer; and editing it reposts nothing.
+    expect((await client.query(`select kind from public.member_notices where subject_id = $1`, [POST_14])).rows).toEqual([])
+    expect((await groupPostEdit(ctx(OWNER), { postId: POST_14, body: 'Changed words.' })).reposted).toBe(false)
+    expect((await post()).discoverability).toBe('private')
+
+    // No AI processing: even with a poster's reply in hand, nothing is sent and the skip says why.
+    const assess = vi.fn()
+    const fetchImage = vi.fn()
+    await runAssessment(reportId, pool, { assess, fetchImage, rebuttal: 'It is fine.' })
+    expect(assess).not.toHaveBeenCalled()
+    expect(fetchImage).not.toHaveBeenCalled()
+    expect((await client.query(`select model, skipped_reason from public.report_assessments where report_id = $1`, [reportId])).rows).toEqual([
+      { model: null, skipped_reason: expect.stringMatching(/suspected severity 1/) },
+    ])
+
+    // Never auto-restores: two confident approvals of severity 4 are still blocked, and nothing changes.
+    const read = (model: string): Read => ({ model, promptVersion: 'v', category: 'spam', severity: 4, confidence: 0.99, outcome: 'approve', reason: 'Fine.', latencyMs: 1, inputTokens: 1, outputTokens: 1 })
+    expect(await autoRestoreAfterAssessment(reportId, [read(HAIKU), read(SONNET)], { isCoordinated: async () => false })).toBe('blocked')
+    expect((await client.query(`select blocked_by from public.report_ai_restore_checks where report_id = $1`, [reportId])).rows[0].blocked_by).toContain('not_severity_4')
+    expect((await client.query(`select 1 from public.report_decisions where report_id = $1`, [reportId])).rowCount).toBe(0)
+    expect((await post()).hidden_at).not.toBeNull()
+
+    // Preserved: the words and the poster, held a year.
+    const hold = (await client.query(`select * from public.legal_holds where subject_id = $1`, [POST_14])).rows[0]
+    expect(hold).toMatchObject({ subject_kind: 'post', poster_member_id: OWNER, body: 'B838 child-safety case' })
+    expect((new Date(hold.retain_until).getTime() - new Date(hold.held_at).getTime()) / 86_400_000).toBeGreaterThan(364)
+
+    // Reported to NCMEC per the plan: the operator records the number, and the row carries it.
+    const before = process.env.OPERATOR_MEMBER_ID
+    process.env.OPERATOR_MEMBER_ID = REPORTER
+    try {
+      await reportNcmecRecord(ctx(REPORTER), { reportId, reportNumber: '838838' })
+    } finally {
+      if (before === undefined) delete process.env.OPERATOR_MEMBER_ID
+      else process.env.OPERATOR_MEMBER_ID = before
+    }
+    const row = (await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.subjectId === POST_14)
+    expect(row?.hold).toMatchObject({ ncmecReportNumber: '838838' })
     expect(row?.hold?.retainUntil.getTime()).toBeGreaterThan(Date.now() + 364 * 86_400_000)
   })
 })

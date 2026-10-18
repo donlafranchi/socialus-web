@@ -16,4 +16,14 @@ describe('the live smoke files only what failed (#790)', () => {
   it('ignores the must-fail self-test', () => {
     expect(smokeFailures(log)).not.toContain('must-fail')
   })
+  it('reads a failure block that Playwright prints on a progress line (#888)', () => {
+    const esc = '\x1b[1A\x1b[2K'
+    const l = [
+      `${esc}[43/70] [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › page`,
+      `${esc}  1) [smoke-live] › evals/smoke/live.spec.ts:81:11 › ownerBusiness › page ──────`,
+      '',
+      '    \x1b[31m+   "uncaught error: Lock broken by another request with the \'steal\' option.",\x1b[39m',
+    ].join('\n')
+    expect(smokeFailures(l)).toBe("ownerBusiness › page: uncaught error: Lock broken by another request with the 'steal' option.\",")
+  })
 })

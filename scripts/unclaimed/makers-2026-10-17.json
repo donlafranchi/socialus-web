@@ -1,0 +1,34 @@
+[
+ {
+  "name": "Séka Hills",
+  "category": "Farm",
+  "makes": "Specialty foods from the Yocha Dehe Wintun Nation's farming operation in the Capay Valley: olive oil, wine, balsamic, wildflower honey, nuts and beef; olive mill and tasting room in Brooks",
+  "area": "Brooks (Yolo)",
+  "site": "https://www.sekahills.com/",
+  "confidence": "High; own site checked 2026-10-17 (ok): describes itself as 'a sustainable farming operation run by the Yocha Dehe Wintun Nation'; footer 2026; Instagram, Facebook and TikTok linked. Native affiliation is stated by the site itself."
+ },
+ {
+  "name": "Dazzler Farms",
+  "category": "Farm stay & agritourism",
+  "makes": "Family-run farm since 1982: pumpkin patch Sep 26 to Oct 31, milo maze, Christmas tree lot Nov 23 to Dec 9, event and group bookings",
+  "area": "Woodland (Yolo)",
+  "site": "https://www.dazzlerfarms.com/",
+  "confidence": "High; own site checked 2026-10-17 (ok): 2026 season dates and hours listed at 23300 County Road 99D; holiday (Christmas trees)."
+ },
+ {
+  "name": "Capay Hills Orchard",
+  "category": "Farm",
+  "makes": "Small family organic almond orchard: raw almonds, almond butter and smoked almonds, free farm tours with tastings",
+  "area": "Esparto (Yolo)",
+  "site": "http://www.chorganicalmonds.com/",
+  "confidence": "High; own site checked 2026-10-17 (ok): 2026 harvest-year products, footer 2026, 24155 County Road 22; holiday (almond gifts for gatherings). Own photos show children: stock only."
+ },
+ {
+  "name": "Pure Honey & Henry's Bullfrog Bees",
+  "category": "Farm",
+  "makes": "Family beekeepers in Winters: wildflower, orange blossom, lavender-infused honey and caramel sauce; wedding favors and gifts; apiary visits by appointment",
+  "area": "Winters (Yolo)",
+  "site": "https://purehoneyca.com/",
+  "confidence": "Medium; own site checked 2026-10-17 (ok): Shopify storefront with current products and retail stockists; no storefront at the apiary; holiday (honey gifts)."
+ }
+]

@@ -82,7 +82,11 @@ for (const who of personas) {
         test.skip(!path, `${name} has no stable address on production for ${who}: not smoked`)
         const target = path === 'first-page' ? firstPage : path!
         const problems: string[] = []
-        page.on('pageerror', (e) => problems.push(`uncaught error: ${e.message.slice(0, 160)}`))
+        page.on('pageerror', (e) => {
+          // #888 — supabase-js's tab lock stolen when a navigation interrupts a token refresh; nothing a member sees.
+          if (/Lock .*(stole|steal)/i.test(e.message)) return
+          problems.push(`uncaught error: ${e.message.slice(0, 160)}`)
+        })
         page.on('console', (m) => {
           if (m.type() !== 'error') return
           const t = m.text()
