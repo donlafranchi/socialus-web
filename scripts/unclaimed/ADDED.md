@@ -201,3 +201,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-16 | Sacramento Valley Museum | Historical society | Williams | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
 | 2026-10-16 | Fairfield-Suisun City Visual Arts Association | Art association (nonprofit) | Fairfield | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
 | 2026-10-16 | Wine Tree Farm | Farm stay & agritourism | Amador City | Farmers markets, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Knight Foundry | Historical society | Sutter Creek | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Sutter Creek Community Benefit Foundation | Historical society | Sutter Creek | Arts & culture, Neighborhood life | unreached towns batch; lead: own site |
+| 2026-10-18 | Vino Tahoe | Food & drink | Sutter Creek | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-18 | Jeremy Wine Co. | Food & drink | Lockeford | Food & drink, Local business | unreached towns batch; lead: own site |
+| 2026-10-18 | Volcano Theatre Company | Art association (nonprofit) | Volcano | Arts & culture, Neighborhood life | unreached towns batch; holiday (Christmas comedy Nov 6 to Dec 13); lead: own site |
+| 2026-10-18 | Craft Guild of Nevada County | Art association (nonprofit) | Grass Valley | Arts & culture, Neighborhood life | unreached towns batch; holiday (Winterfaire Oct 24-25); lead: own site |
+| 2026-10-18 | Horton Iris Garden | Farm stay & agritourism | Loomis | Farmers markets, Neighborhood life | unreached towns batch; holiday (pumpkin patch); lead: own site |
+| 2026-10-18 | Foothill Roots Farm | Farm | Meadow Vista | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Serendipity Ranch | Farm | Lincoln | Farmers markets, Sustainability | unreached towns batch; lead: own site |
+| 2026-10-18 | Granny May's Strawberry Farm | Farm | Granite Bay | Farmers markets, Sustainability | unreached towns batch; lead: own site |
