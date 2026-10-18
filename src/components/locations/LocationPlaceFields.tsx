@@ -219,7 +219,7 @@ export function LocationPlaceFields({
                         )}
                       </span>
                       {/* What kind of place this is, in words. Never the column value. */}
-                      <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs">
+                      <span className="shrink-0 text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
                         {s.source === 'address' ? 'Address' : placeKindLabel(s.kind)}
                       </span>
                     </button>

@@ -9,7 +9,7 @@ import { normalizeTag } from '@/lib/groups/tags'
  *  search goes by the tag's normalized form. */
 export const hashtag = (label: string) => `#${label.replace(/^#+/, '').replace(/\s+/g, '')}`
 
-export function TagChips({ tags }: { tags: readonly string[] }) {
+export function TagLinks({ tags }: { tags: readonly string[] }) {
   if (tags.length === 0) return null
   return (
     <ul data-testid="tag-chips" className="flex flex-wrap gap-x-4">

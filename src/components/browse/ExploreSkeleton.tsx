@@ -8,7 +8,9 @@ export function ExploreSkeleton() {
         Loading Explore
       </p>
       <div className="border-b border-[var(--color-charcoal-100)] gutter py-2">
-        <div className="h-tap w-48 rounded-full bg-[var(--color-surface)]" />
+        <div className="flex h-tap items-center">
+          <div className="h-4 w-48 rounded-sm bg-[var(--color-surface)]" />
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-4 gutter py-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (

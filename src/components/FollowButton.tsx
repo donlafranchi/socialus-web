@@ -76,12 +76,16 @@ export function FollowButton({ vendorId, vendorName, size = 'md' }: Props) {
 
   const base =
     size === 'sm'
-      ? 'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium border transition-colors'
+      ? 'inline-flex min-h-11 items-center gap-1 text-xs font-medium underline-offset-4 hover:underline transition-colors'
       : 'inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium border transition-colors'
 
-  const classes = following
-    ? `${base} bg-[var(--color-accent)] text-white border-[var(--color-accent)]`
-    : `${base} bg-white text-neutral-900 border-neutral-300 hover:border-neutral-400`
+  // #951 — the small one is a quiet text link, not a chip (Don, 2026-10-18 [always]).
+  const classes =
+    size === 'sm'
+      ? `${base} ${following ? 'text-[var(--color-accent)]' : 'text-neutral-900'}`
+      : following
+        ? `${base} bg-[var(--color-accent)] text-white border-[var(--color-accent)]`
+        : `${base} bg-white text-neutral-900 border-neutral-300 hover:border-neutral-400`
 
   return (
     <>
