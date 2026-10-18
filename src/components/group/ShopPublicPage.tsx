@@ -47,6 +47,8 @@ import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
 import { AboutText } from './AboutText'
 import { PageMap } from './PageMap'
+import { SearchDemandCard } from './SearchDemandCard'
+import type { PageSearchDemand } from '@/lib/search/page-demand'
 
 
 const NO_CLAIM = { zip: null, isProximal: false }
@@ -94,6 +96,8 @@ interface Props {
   contact?: PageContact | null
   /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
   where?: PageWhere | null
+  /** #909 — what locals near the Page searched this month (3+ searches). Owner-only. */
+  searchDemand?: PageSearchDemand | null
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
@@ -120,6 +124,7 @@ export function ShopPublicPage({
   viewerMemberId = null,
   contactOn = false,
   productsOn = componentOn(shop.kind, null, 'products'),
+  searchDemand = null,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
@@ -416,6 +421,9 @@ export function ShopPublicPage({
       {ownerClaim && isBusinessKind(shop.kind) && (
         <LocallyOwnedClaim groupId={shop.groupId} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
       )}
+
+      {/* #909 — owner-only: what locals near the Page searched this month. */}
+      {viewerOwnsPage && !isDraftPreview && <SearchDemandCard demand={searchDemand} />}
 
       {shop.unclaimed && (
         <UnclaimedBox

@@ -15,6 +15,7 @@ import { ShopPublicPage } from '@/components/group/ShopPublicPage'
 import { PageSkeleton } from '@/components/group/PageSkeleton'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { shareMetadata } from '@/lib/groups/share-metadata'
+import { loadPageSearchDemand } from '@/lib/search/page-demand'
 
 interface Props {
   params: Promise<{ handle: string }>
@@ -49,6 +50,8 @@ async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
   let shop = resolved
   const supabase = await createClient()
   const view = await loadPageView(supabase, shop)
+  // #909 — the owner's card; the database answers only a manager of this Page.
+  const searchDemand = view.viewerOwnsPage ? await loadPageSearchDemand(supabase, shop.groupId) : null
   // #625 — only the owner gets their hidden words back, and only here, after ownership is known.
   if (view.ownWords) shop = { ...shop, displayName: view.ownWords.name, publicDescription: view.ownWords.description }
 
@@ -72,6 +75,7 @@ async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
       tags={view.tags}
       contact={view.contact}
       where={view.where}
+      searchDemand={searchDemand}
       pagePath={canonicalPagePath(shop.publicId)}
     />
   )

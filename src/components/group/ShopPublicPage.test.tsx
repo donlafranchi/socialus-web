@@ -763,3 +763,20 @@ describe('ShopPublicPage — #625 a Page\'s own words, hidden', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hidden while we look')
   })
 })
+
+// #909 — the owner's search-demand card: theirs only, and only on a live Page.
+describe('ShopPublicPage — what locals searched (#909)', () => {
+  const demand = { fit: [{ query: 'sourdough', searches: 4 }], zero: [] }
+  it('the owner sees it', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand })
+    expect(screen.getByTestId('search-demand-card')).toBeInTheDocument()
+  })
+  it('a visitor never does, even if a value slipped through', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false, pagePath: '/g/7k3x8m', searchDemand: demand })
+    expect(screen.queryByTestId('search-demand-card')).toBeNull()
+  })
+  it('not on a draft', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand, shop: { ...SHOP, lifecycleState: 'draft' } })
+    expect(screen.queryByTestId('search-demand-card')).toBeNull()
+  })
+})

@@ -33,6 +33,15 @@ describe('/admin/metrics', () => {
     expect(rpc).toHaveBeenCalledWith('admin_metrics_weekly', { p_weeks: 2 })
   })
 
+  // #909 — what locals searched: read through the same session, so the database checks metrics.view too.
+  it('reads the search demand for the last four weeks, and the page still loads when it fails', async () => {
+    requirePagePermission.mockResolvedValue('staff-1')
+    rpc.mockImplementation(async (name: string) => (name === 'admin_search_demand' ? { data: null, error: { message: 'x' } } : { data: [], error: null }))
+    const html = renderToStaticMarkup(await AdminMetricsPage())
+    expect(rpc).toHaveBeenCalledWith('admin_search_demand', { p_weeks: 4, p_limit: 10 })
+    expect(html).toContain('search-demand')
+  })
+
   // #640 — the same ready-to-go-live light, on the staff dashboard (the numbers are on /admin/reports).
   it('shows the AI readiness light, and the page still loads when it cannot be read', async () => {
     requirePagePermission.mockResolvedValue('staff-1')
