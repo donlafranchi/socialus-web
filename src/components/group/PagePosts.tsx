@@ -558,6 +558,7 @@ export function PagePosts({
                           subjectId={post.photoUrl ? post.id : groupId}
                           subjectKind={post.photoUrl ? 'post_photo' : 'page_picture'}
                           subjectLabel={post.photoUrl ? 'this photo' : 'this picture'}
+                          itemLabel="Report this photo"
                           loggedIn={report.loggedIn}
                           returnTo={report.returnTo}
                           onSend={report.onSend as never}
@@ -617,7 +618,7 @@ export function PagePosts({
                   <div className="mt-2 flex items-center gap-3">
                     <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
                     {!canPost && onReport && (
-                      <ReportControl subjectId={post.id} subjectLabel="this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
+                      <ReportControl subjectId={post.id} subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
                     )}
                     {canPost && (
                       <button

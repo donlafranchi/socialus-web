@@ -14,7 +14,7 @@ const LINKS = [
   { href: '/rules', label: 'Rules' },
   { href: '/terms', label: 'Terms' },
   { href: '/privacy', label: 'Privacy' },
-  { href: '/report', label: 'Report a problem' },
+  { href: '/report', label: 'Report a problem with the app' },
 ]
 
 export function SiteFooter() {
@@ -24,7 +24,7 @@ export function SiteFooter() {
     <footer className="border-t border-[var(--color-border)] pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))] md:pb-0">
       <div data-testid="site-footer-phone" className="flex justify-center py-2 md:hidden">
         <Link href="/report" className="inline-flex min-h-11 items-center px-3 text-caption text-[var(--color-fg-muted)] underline">
-          Report a problem
+          Report a problem with the app
         </Link>
       </div>
       <div data-testid="site-footer-full" className="mx-auto hidden w-full max-w-shell items-center gap-6 gutter py-6 text-caption text-[var(--color-fg-muted)] md:flex">

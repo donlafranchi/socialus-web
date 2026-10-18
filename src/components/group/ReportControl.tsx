@@ -29,6 +29,8 @@ interface Props {
   subjectLabel: string
   /** #625 — on a Page: its own words (name, description) are a report of their own, beside its photo. */
   wordsReportable?: boolean
+  /** The single menu entry when the control reports one thing (a post, a photo). */
+  itemLabel?: string
   loggedIn: boolean
   /** Path to come back to after signing in. */
   returnTo?: string
@@ -40,7 +42,7 @@ interface Props {
   }) => Promise<{ ok: true } | { ok: false; message: string }>
 }
 
-export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false }: Props) {
+export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | undefined>(subjectKind)
   const open = (kind: typeof reporting) => {
@@ -80,7 +82,7 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
                 { label: COPY.reportPageWords, onSelect: () => open('page_words') },
                 { label: COPY.reportPagePhoto, onSelect: () => open(subjectKind) },
               ]
-            : [{ label: 'Report this', onSelect: () => open(subjectKind) }]
+            : [{ label: itemLabel ?? COPY.reportPageWords, onSelect: () => open(subjectKind) }]
         }
       />
 

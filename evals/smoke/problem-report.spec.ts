@@ -16,7 +16,7 @@ test.describe.configure({ mode: 'serial' })
 /** On a phone the link sits at the end of the screen, above the bottom nav. */
 async function reachable(page: Page, path: string) {
   await page.goto(path, { waitUntil: 'domcontentloaded' })
-  const link = page.getByTestId('site-footer-phone').getByRole('link', { name: 'Report a problem' })
+  const link = page.getByTestId('site-footer-phone').getByRole('link', { name: 'Report a problem with the app' })
   await link.scrollIntoViewIfNeeded()
   await expect(link, `${path}: Report a problem on a phone`).toBeVisible()
 }

@@ -29,12 +29,12 @@ describe('#296 — the footer', () => {
 
   // #443 — "reachable from every screen": on a phone the full footer is hidden, so Report a problem
   // gets its own line at the end of the screen, clear of the bottom nav, tap-sized.
-  it('keeps Report a problem reachable on a phone', () => {
+  it('keeps Report a problem with the app reachable on a phone', () => {
     render(<SiteFooter />)
     const phone = screen.getByTestId('site-footer-phone')
     expect(phone.className).toMatch(/\bmd:hidden\b/)
     expect(phone.className).not.toMatch(/(^|\s)hidden\b/)
-    const link = within(phone).getByRole('link', { name: 'Report a problem' })
+    const link = within(phone).getByRole('link', { name: 'Report a problem with the app' })
     expect(link).toHaveAttribute('href', '/report')
     expect(link.className).toMatch(/min-h-11/)
     expect(screen.getByRole('contentinfo').className).toMatch(/nav-height/)
@@ -108,6 +108,6 @@ describe('#443 — Report a problem is one tap away', () => {
   it('the footer links it, and the not-found and error pages offer it', async () => {
     render(<SiteFooter />)
     // One for a phone, one in the full footer from 744 up; each shows at its own width.
-    for (const link of screen.getAllByRole('link', { name: 'Report a problem' })) expect(link).toHaveAttribute('href', '/report')
+    for (const link of screen.getAllByRole('link', { name: 'Report a problem with the app' })) expect(link).toHaveAttribute('href', '/report')
   })
 })
