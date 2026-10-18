@@ -321,3 +321,33 @@ describe('F099 — photo_source', () => {
     expect(mapBrowseRow(PAGE_ROW as never, 'abc123').photoSource ?? null).toBeNull()
   })
 })
+
+describe('#922 — a Page card’s quick links come in the same read as its public id', () => {
+  const page = (extra: Record<string, unknown>) => [{ id: 'g1', public_id: '7k3x8m', social_links: null, where_mode: null, anchor: { kind: 'permanent' }, ...extra }]
+
+  it('carries the website, Instagram and TikTok, and a fixed point Directions can go to', async () => {
+    const c = client([PAGE_ROW], null, page({ social_links: { website: 'https://folsom.coffee', instagram: 'https://instagram.com/fc', tiktok: 'https://tiktok.com/@fc', facebook: 'https://facebook.com/fc' } }))
+    const [r] = await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(r!.quickLinks).toEqual({ website: 'https://folsom.coffee', instagram: 'https://instagram.com/fc', tiktok: 'https://tiktok.com/@fc', fixedPoint: true })
+  })
+
+  it('an area, or a Page that moves or travels, has no fixed point', async () => {
+    for (const extra of [{ anchor: { kind: 'area' } }, { where_mode: 'roaming' }, { where_mode: 'travel' }]) {
+      const [r] = await getBrowseFeed(client([PAGE_ROW], null, page(extra)) as never, { scope: { metroId: 'm1' } })
+      expect(r!.quickLinks?.fixedPoint).toBe(false)
+    }
+  })
+
+  it('never a link that is not https', async () => {
+    const [r] = await getBrowseFeed(client([PAGE_ROW], null, page({ social_links: { website: 'javascript:alert(1)', instagram: 'http://instagram.com/x' } })) as never, { scope: { metroId: 'm1' } })
+    expect(r!.quickLinks).toEqual({ fixedPoint: true })
+  })
+
+  it('signed out (no point from browse_feed, F093.8) there are none, and a post never has them', async () => {
+    const links = page({ social_links: { website: 'https://folsom.coffee' } })
+    const [anon] = await getBrowseFeed(client([{ ...PAGE_ROW, location_geography: null }], null, links) as never, { scope: { metroId: 'm1' } })
+    expect(anon!.quickLinks).toBeNull()
+    const [post] = await getBrowseFeed(client([POST_ROW], null, links) as never, { scope: { metroId: 'm1' } })
+    expect(post!.quickLinks).toBeNull()
+  })
+})
