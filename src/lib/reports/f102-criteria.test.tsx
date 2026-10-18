@@ -144,7 +144,7 @@ describe('F102.14 — child-safety content never goes back to the poster, never 
   const create = readFileSync(join(ROOT, 'src/actions/report/create.ts'), 'utf8')
   const post = readFileSync(join(ROOT, 'src/actions/group/post.ts'), 'utf8')
 
-  // [guards F102.14 partial: severity 1 sends no notice and no courtesy notice, is skipped by the AI, never a restore candidate, and an edit never reposts it; the NCMEC preservation and report are not built (#648)]
+  // [guards F102.14 partial: severity 1 sends no notice and no courtesy notice, is skipped by the AI, never a restore candidate, and an edit never reposts it; the preservation and the NCMEC number are in the whole guard in tests/legal-holds-db.test.ts]
   it('the most serious kind: no word to the poster, no AI read, no auto-restore, no repost by editing', async () => {
     // Never back to the poster: the sensitive-content branch writes no notice.
     expect(create).toMatch(/input\.category !== 'sensitive_content' && !subject\.reporterIsBuilder/)
