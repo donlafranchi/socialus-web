@@ -790,7 +790,7 @@ describe('report.create — the reporter\'s record limits only the hide', () => 
     expect((await report()).photoHidden).toBe(true)
   })
 
-  // [guards F078.10]
+  // [guards F078.10 partial: the strikes; the line before Send is in f078-criteria.test.ts, which claims the whole]
   it('three strikes: after three dismissed reports, ever, nothing the reporter files hides', async () => {
     installQueryRouter({ dismissedAt: [ago(200), ago(150), ago(100)], openReportsByReporter: 0 })
     expect((await report()).photoHidden).toBe(false)
