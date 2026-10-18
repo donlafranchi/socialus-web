@@ -49,6 +49,10 @@ describe('CodeEntry', () => {
     type('000000')
     expect(await screen.findByTestId('code-error')).toHaveTextContent('wrong or has expired')
     expect(onDone).not.toHaveBeenCalled()
+    expect(screen.getByTestId('code-input')).toHaveValue('')
+    verifyEmailCode.mockResolvedValue({ error: null })
+    type('482913')
+    await waitFor(() => expect(onDone).toHaveBeenCalled())
   })
   it('does not call out for fewer than six digits', () => {
     render(<CodeEntry email="a@b.co" next="/" onDone={vi.fn()} />)

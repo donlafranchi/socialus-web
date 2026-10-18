@@ -12,19 +12,18 @@ import { CodeEntry, CODE_LENGTH } from './CodeEntry'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-function sendError(message: string): string {
-  if (/rate|too many|security purposes|seconds/i.test(message)) return 'Too many tries. Wait a minute, then try again.'
-  return 'We couldn’t send the code. Check the email address and try again.'
-}
+// Supabase allows one email a minute per address: a second tap means a code is already on its way.
+const isRateLimit = (message: string) => /rate|too many|security purposes|seconds/i.test(message)
 
-export function SignInForm({ next }: { next?: string | null }) {
+export function SignInForm({ next, initialError = null }: { next?: string | null; initialError?: string | null }) {
   const { signInWithOtp } = useAuth()
   const nextSafe = safeNext(next)
 
   const [email, setEmail] = useState(rememberedEmail)
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError)
+  const [notice, setNotice] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,8 +33,9 @@ export function SignInForm({ next }: { next?: string | null }) {
     setSubmitting(true)
     const { error: err } = await signInWithOtp(value, nextSafe)
     setSubmitting(false)
-    if (err) return setError(sendError(err.message))
+    if (err && !isRateLimit(err.message)) return setError('We couldn’t send the code. Check the email address and try again.')
     rememberEmail(value)
+    setNotice(err ? 'We just sent a code to this address. Use the one in your inbox.' : null)
     setSentTo(value)
   }
 
@@ -51,6 +51,7 @@ export function SignInForm({ next }: { next?: string | null }) {
           next={nextSafe}
           // A full load, so the server renders with the new session cookie.
           onDone={(to) => window.location.assign(to)}
+          initialNotice={notice}
           onResend={() => signInWithOtp(sentTo, nextSafe)}
           onChangeEmail={() => {
             setSentTo(null)
@@ -70,7 +71,11 @@ export function SignInForm({ next }: { next?: string | null }) {
         Enter your email and we’ll send you a {CODE_LENGTH}-digit code. New here or not, this is the way in.
       </p>
       <form onSubmit={handleSubmit} className="w-full space-y-3" data-testid="sign-in-form">
+        <label htmlFor="sign-in-email" className="block text-body-sm font-medium text-[var(--color-fg)]">
+          Email
+        </label>
         <input
+          id="sign-in-email"
           type="email"
           name="email"
           required
@@ -83,8 +88,7 @@ export function SignInForm({ next }: { next?: string | null }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          aria-label="Email address"
-          className="input"
+          className="input min-h-tap"
           data-testid="email-input"
         />
         {error && (

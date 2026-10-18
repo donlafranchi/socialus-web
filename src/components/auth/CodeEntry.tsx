@@ -17,14 +17,15 @@ type Props = {
   onDone: (next: string) => void
   onResend?: () => Promise<{ error: { message: string } | null }>
   onChangeEmail?: () => void
+  initialNotice?: string | null
 }
 
-export function CodeEntry({ email, next, onDone, onResend, onChangeEmail }: Props) {
+export function CodeEntry({ email, next, onDone, onResend, onChangeEmail, initialNotice = null }: Props) {
   const { verifyEmailCode } = useAuth()
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(initialNotice)
   const [wait, setWait] = useState(RESEND_SECONDS)
   const tried = useRef<string | null>(null)
 
@@ -43,7 +44,12 @@ export function CodeEntry({ email, next, onDone, onResend, onChangeEmail }: Prop
     setBusy(true)
     const { error: err } = await verifyEmailCode(email, digits)
     setBusy(false)
-    if (err) return setError('That code is wrong or has expired. Check the email, or send a new code.')
+    if (err) {
+      // Cleared, so the next six digits submit on their own.
+      tried.current = null
+      setCode('')
+      return setError('That code is wrong or has expired. Check the email, or send a new code.')
+    }
     onDone(next)
   }
 
@@ -83,7 +89,7 @@ export function CodeEntry({ email, next, onDone, onResend, onChangeEmail }: Prop
           pattern="[0-9]*"
           autoFocus
           aria-invalid={error ? true : undefined}
-          className="input w-full text-center text-title-2 tracking-widest"
+          className="input min-h-tap w-full text-center text-title-2 tracking-widest"
         />
         {error && <p role="alert" data-testid="code-error" className="text-body-sm text-[var(--color-danger,#b00)]">{error}</p>}
         {notice && <p role="status" data-testid="code-notice" className="text-body-sm text-[var(--color-fg-muted)]">{notice}</p>}
@@ -93,7 +99,7 @@ export function CodeEntry({ email, next, onDone, onResend, onChangeEmail }: Prop
       </form>
       <div className="mt-3 flex flex-wrap items-center gap-x-4">
         {onResend && (
-          <button type="button" onClick={resend} disabled={wait > 0} className={TEXT_LINK} data-testid="resend-code">
+          <button type="button" onClick={resend} disabled={wait > 0} className={`${TEXT_LINK} tabular-nums`} data-testid="resend-code">
             {wait > 0 ? `Resend code in ${wait}s` : 'Resend code'}
           </button>
         )}

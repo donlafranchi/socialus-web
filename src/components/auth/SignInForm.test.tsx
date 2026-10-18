@@ -19,6 +19,7 @@ describe('SignInForm', () => {
   it('has one email field and one button, and no password anywhere', () => {
     render(<SignInForm />)
     expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getByLabelText('Email')).toBe(screen.getByTestId('email-input'))
     expect(screen.getAllByRole('button')).toHaveLength(1)
     expect(screen.getByTestId('submit-button')).toHaveTextContent('Email me a code')
     expect(document.querySelector('input[type="password"]')).toBeNull()
@@ -32,11 +33,22 @@ describe('SignInForm', () => {
     expect(screen.getByTestId('code-input')).toBeInTheDocument()
     expect(screen.getByTestId('resend-code')).toBeInTheDocument()
   })
-  it('says a rate limit in plain words', async () => {
+  it('a second request inside a minute still reaches the code screen, saying a code is on its way', async () => {
     auth.signInWithOtp.mockResolvedValue({ error: { message: 'For security purposes, you can only request this after 42 seconds.' } })
     render(<SignInForm />)
     send('maya@example.test')
-    expect(await screen.findByTestId('auth-error')).toHaveTextContent('Too many tries. Wait a minute, then try again.')
+    expect(await screen.findByTestId('code-sent')).toBeInTheDocument()
+    expect(screen.getByTestId('code-notice')).toHaveTextContent('We just sent a code to this address')
+  })
+  it('any other send failure stays on the email screen in plain words', async () => {
+    auth.signInWithOtp.mockResolvedValue({ error: { message: 'Error sending magic link email' } })
+    render(<SignInForm />)
+    send('maya@example.test')
+    expect(await screen.findByTestId('auth-error')).toHaveTextContent('We couldn’t send the code.')
+  })
+  it('shows a failed link in the error slot, under the field', () => {
+    render(<SignInForm initialError="That sign-in link has expired or was already used." />)
+    expect(screen.getByTestId('auth-error')).toHaveTextContent('expired or was already used')
   })
   it('"Use a different email" goes back with the email kept to edit', async () => {
     render(<SignInForm />)
