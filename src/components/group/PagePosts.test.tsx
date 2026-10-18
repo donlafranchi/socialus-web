@@ -875,3 +875,38 @@ describe('a weekly series', () => {
     expect(screen.queryByRole('button', { name: /repeat weekly/i })).toBeNull()
   })
 })
+
+// #314 (Don, 2026-10-02) — an undated post shows for 14 days; the owner can pick another day.
+describe('#314 — show until, on an undated post', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('the composer offers 14 days from today, and sends no date when it is left alone', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts()
+    expect(screen.getByTestId('announce-show-until')).toHaveValue('2026-10-26')
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Plants on the porch.' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ showUntil: null })))
+  })
+
+  it('a day the owner picks shows through the end of that day', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Plants on the porch.' } })
+    fireEvent.change(screen.getByTestId('announce-show-until'), { target: { value: '2026-11-01' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ showUntil: '2026-11-02T07:59:00.000Z' })))
+  })
+
+  it('an edit starts from 14 days after it was posted, or the day the owner set', () => {
+    renderPosts({ posts: [POST, postFixture({ id: 'pp-2', showUntil: '2026-10-11T06:59:00.000Z' } as never)] })
+    fireEvent.click(screen.getAllByTestId('page-post-edit')[0]!)
+    expect(screen.getByTestId('page-post-edit-show-until')).toHaveValue('2026-10-04')
+  })
+
+  it('a dated post has no show-until day: it shows until it ends', () => {
+    renderPosts()
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    expect(screen.queryByTestId('announce-show-until')).toBeNull()
+  })
+})
