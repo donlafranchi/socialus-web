@@ -1,9 +1,10 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
+import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
 import { siteMetadataBase } from "@/lib/site-url"
 
 const inter = Inter({
@@ -39,7 +40,12 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     type: "website",
   },
+  // #921 — installed from the iOS share sheet it opens full screen under its own name.
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "black-translucent" },
+  other: { "apple-mobile-web-app-capable": "yes" },
 }
+
+export const viewport: Viewport = { themeColor: "#12233a" }
 
 export default function RootLayout({
   children,
@@ -52,6 +58,7 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="h-full font-sans">
+        <ServiceWorkerRegister />
         <NavVisibilityProvider>
           <div className="flex min-h-full flex-col">
             <TopNavDesktop />
