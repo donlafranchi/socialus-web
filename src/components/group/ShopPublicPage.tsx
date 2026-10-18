@@ -30,6 +30,9 @@ const NO_LINKS: ContactLinks = { website: null, socials: [] }
 import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
+import { NO_REMINDERS, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
+import { RemindEveryTimeButton } from '@/components/reminders/RemindMe'
+import { setReminderAction, removeReminderAction, remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
 import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
@@ -86,6 +89,8 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
+  reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
   draftTagCount?: number
   /** #302 — the owner's in-place editor (Don, 2026-10-04). */
@@ -122,6 +127,7 @@ export function ShopPublicPage({
   where = null,
   withheldPosts = [],
   followerCount = 0,
+  reminders = NO_REMINDERS,
   draftTagCount = 0,
   unclaimedActions,
   viewerMemberId = null,
@@ -131,6 +137,8 @@ export function ShopPublicPage({
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
+  // #945 — the weekly series this Page's real, dated posts belong to: following it offers Remind me every time.
+  const repeatingSeries = [...new Set(posts.filter((p) => p.seriesId && p.startsAt && !p.sampleKind && !p.hiddenAt).map((p) => p.seriesId!))]
 
   // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
   // single place `photo_hidden_at` is consulted; nothing here reads
@@ -295,6 +303,15 @@ export function ShopPublicPage({
                 returnTo={pagePath}
                 onFollow={followPageAction}
                 onUnfollow={unfollowPageAction}
+                whenFollowing={
+                  repeatingSeries.length > 0 ? (
+                    <RemindEveryTimeButton
+                      groupId={shop.groupId}
+                      on={repeatingSeries.every((id) => reminders.bySeries[id])}
+                      everyForPage={remindEveryTimeForPageAction}
+                    />
+                  ) : null
+                }
               />
             </div>
           ))}
@@ -374,6 +391,7 @@ export function ShopPublicPage({
           onReport={sendPostReportAction}
           loggedIn={loggedIn}
           returnTo={pagePath}
+          reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
         />
       )}
 

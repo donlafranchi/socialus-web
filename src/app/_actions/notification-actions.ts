@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { memberNotificationsSet, memberPushSubscribe, memberPushUnsubscribe, memberNotificationsOpened } from '@/actions'
 import type { MemberNotificationsSetInput } from '@/actions/member/notifications'
-import { platformOf, type NotifyKind, type Prefs } from '@/lib/notify/push/rules'
+import { platformOf, type CountKind, type NotifyKind, type Prefs } from '@/lib/notify/push/rules'
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false }
 
@@ -41,7 +41,7 @@ export async function removePushSubscriptionAction(endpoint: string): Promise<Re
   return run(async (id) => memberPushUnsubscribe(resolveActionContext({ actingMemberId: id }), { endpoint }))
 }
 
-export async function countNotificationOpenAction(kind: NotifyKind): Promise<Result> {
+export async function countNotificationOpenAction(kind: CountKind): Promise<Result> {
   return run(async (id) => memberNotificationsOpened(resolveActionContext({ actingMemberId: id }), { kind }))
 }
 

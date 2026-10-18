@@ -9,7 +9,7 @@
 // Replaces FollowShopButton, which rendered "Follow {name}" and then said
 // following was coming soon. It is not coming soon any more.
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Check } from 'lucide-react'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { buttonClass } from '@/components/ui/Button'
@@ -24,6 +24,8 @@ interface Props {
   returnTo?: string
   onFollow: (input: { groupId: string }) => Promise<{ ok: true; relationship: 'member' | 'follower' }>
   onUnfollow: (input: { groupId: string }) => Promise<{ ok: true }>
+  /** #945 — offered once the viewer follows, e.g. Remind me every time on a Page that repeats. */
+  whenFollowing?: ReactNode
 }
 
 export function FollowPageButton({
@@ -35,6 +37,7 @@ export function FollowPageButton({
   returnTo,
   onFollow,
   onUnfollow,
+  whenFollowing,
 }: Props) {
   const [isFollowing, setIsFollowing] = useState(following)
   const [busy, setBusy] = useState(false)
@@ -90,6 +93,7 @@ export function FollowPageButton({
         {isFollowing && <Check size={16} aria-hidden="true" />}
         {isFollowing ? done : idle}
       </button>
+      {isFollowing && whenFollowing}
       {error && (
         <p role="alert" className="text-sm text-[var(--color-charcoal-900)]">
           {error}

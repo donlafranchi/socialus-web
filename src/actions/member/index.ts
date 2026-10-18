@@ -103,3 +103,11 @@ export {
   type MemberNotificationsSetInput,
   type MemberPushSubscribeInput,
 } from './notifications'
+
+// #945 — Remind me
+export {
+  memberReminderSet,
+  memberReminderSetInput,
+  memberReminderRemove,
+  memberReminderEveryForPage,
+} from './reminders'

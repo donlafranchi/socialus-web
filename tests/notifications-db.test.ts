@@ -226,6 +226,6 @@ describe.skipIf(!RUNNABLE)('#904 — counts only', () => {
     const sends = (rows: { kind: string; sends: number }[]) => rows.find((r) => r.kind === 'follow_posts')?.sends ?? 0
     expect(sends(after) - sends(before)).toBe(1)
     const rows = await stats(client)
-    expect(Object.keys(rows[0]!).sort()).toEqual(['kind', 'members', 'mutes', 'opens', 'opt_ins', 'opted_in_members', 'sends', 'unsubscribes', 'week'])
+    expect(Object.keys(rows[0]!).sort()).toEqual(['emails', 'kind', 'members', 'mutes', 'opens', 'opt_ins', 'opted_in_members', 'sends', 'unsubscribes', 'week'])
   })
 })
