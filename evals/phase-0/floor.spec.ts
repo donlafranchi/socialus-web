@@ -93,7 +93,6 @@ test.describe("Phase 0 — AI-native floor", () => {
           "home_location_id",
           "primary_group_id",
           "stakeholder_visibility",
-          "maker_mode_enabled",
           "embedding_id",
           "login_disabled",
           "deleted_at",
