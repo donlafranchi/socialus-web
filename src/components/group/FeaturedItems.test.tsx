@@ -54,7 +54,7 @@ describe('FeaturedItems — what a visitor sees', () => {
 
   it('labels a sample and credits the site it came from', () => {
     renderIt({ items: [item({ sampleSourceUrl: 'https://www.fieldandfarm.com/shop/seed' })] })
-    expect(screen.getByTestId('sample-chip')).toBeInTheDocument()
+    expect(screen.getByText('Sample')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /fieldandfarm\.com/ })).toHaveAttribute('href', 'https://www.fieldandfarm.com/shop/seed')
   })
 

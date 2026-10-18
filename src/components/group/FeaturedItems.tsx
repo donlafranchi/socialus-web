@@ -8,7 +8,7 @@ import { Plus } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
 import { Field } from '@/components/ui/Field'
 import { Button } from '@/components/ui/Button'
-import { SampleChip } from '@/components/cards/CardMarks'
+import { SampleLabel } from '@/components/cards/CardMarks'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
@@ -314,7 +314,7 @@ function ItemCard({ item, editing = false }: { item: FeaturedItem; editing?: boo
       </div>
       <div className="flex items-start gap-1">
         <span className="min-w-0 flex-1 text-body-sm font-medium text-[var(--color-fg)] [overflow-wrap:anywhere]">{item.name}</span>
-        {item.sampleSourceUrl && <SampleChip />}
+        {item.sampleSourceUrl && <SampleLabel />}
       </div>
       {price && <span className="text-body-sm text-[var(--color-fg)]">{price}</span>}
       {editing && item.hidden && (
