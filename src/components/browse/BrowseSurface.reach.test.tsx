@@ -44,6 +44,7 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
 
 beforeEach(() => {
   search = ''
+  window.history.replaceState(null, '', '/')
   replace.mockClear()
   browseFeedAction.mockReset()
 })
@@ -63,7 +64,7 @@ describe('#922 — the reach line', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show more nearby' }))
     await waitFor(() => expect(screen.getByTestId('explore-reach')).toHaveTextContent('Within 30 minutes of you'))
     expect(browseFeedAction).toHaveBeenCalledWith(null, null, null, null, 30)
-    expect(replace).toHaveBeenLastCalledWith('/explore?reach=30', { scroll: false })
+    expect(window.location.pathname + window.location.search).toBe('/explore?reach=30')
   })
 
   it('past the hour it offers the whole area, and there it stops offering', () => {
