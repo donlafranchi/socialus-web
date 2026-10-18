@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-18",
  "criteria": [
   {
    "id": "1",
@@ -16,7 +16,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -24,7 +24,7 @@
    "issues": [
     850
    ],
-   "note": "`markets`, `market_members`, `market_key()` (#693, PR #708); Sacramento = four counties, Tahoe-basin CCDs carved out as a waiting market; any other county answers `county-<fips>` with no rows [V]. Checked: no: `tests/markets-db.test.ts` is marked partial only; two-state market not tested. Reviewed: no (review-skipped)."
+   "note": "`markets`, `market_members`, `market_key()` (#693, PR #708) [V]. Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members."
   },
   {
    "id": "2a",
@@ -34,7 +34,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -42,7 +42,7 @@
    "issues": [
     850
    ],
-   "note": "`zip_county` (33,486 zips), `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: no: `zip-market-db.test`, `zip-market.test`, `landing/actions.test`, `onboarding/actions.test` all marked partial. Reviewed: no (review-skipped)."
+   "note": "`zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849)."
   },
   {
    "id": "2b",
@@ -71,7 +71,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -79,7 +79,7 @@
    "issues": [
     850
    ],
-   "note": "Sign-up and /landing resolve the market and name it; no list or select (#694) [V `OnboardingFlow.test.tsx`]. Explore still falls back to Sacramento for a visitor (#588, F104/F105 scope, not sign-up). Checked: no: markers are partial; no scan for IP or GPS. Reviewed: no (review-skipped)."
+   "note": "Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. Explore's visitor fallback is F104/F105 (#588), not sign-up."
   },
   {
    "id": "4",
@@ -107,7 +107,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -115,7 +115,7 @@
    "issues": [
     850
    ],
-   "note": "`members.home_town`, `zip_home()`, `member.zip.set`, Zip row on /you (#695, PR #757) [V]. One-tenth land-share threshold is a stand-in for population weighting (PR body). Checked: no: `home-town-db.test`, `home-town-private.test`, `zip-set.test` marked partial. Reviewed: no (review-skipped)."
+   "note": "`members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616)."
   },
   {
    "id": "5b",

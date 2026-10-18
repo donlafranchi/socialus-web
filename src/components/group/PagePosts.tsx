@@ -42,6 +42,7 @@ import { firstOccurrenceDate } from '@/lib/posts/series'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
   AnnouncementFields,
+  defaultShowUntil,
   emptyWhenWhere,
   SERIES_COMPOSER_ON,
   type AnnouncementWhenWhere,
@@ -76,6 +77,7 @@ interface PostInput {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
@@ -90,6 +92,7 @@ interface EditInput {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   tags?: string[]
   /** F099 — absent leaves the photo alone; null removes it. */
@@ -147,7 +150,10 @@ interface Props {
 /** `yyyy-mm-dd` and `hh:mm` back out of an instant, for an edit form that has
  *  to start from what is already there. */
 function whenWhereFrom(post: PagePost): AnnouncementWhenWhere {
-  if (!post.startsAt) return emptyWhenWhere
+  if (!post.startsAt) {
+    const own = post.showUntil ? metroDate(new Date(post.showUntil), METRO_TIME_ZONE) : ''
+    return { ...emptyWhenWhere, showUntil: own === defaultShowUntil(new Date(post.createdAt)) ? '' : own }
+  }
   const d = new Date(post.startsAt)
   if (Number.isNaN(d.getTime())) return emptyWhenWhere
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -274,6 +280,7 @@ export function PagePosts({
         ok: true
         startsAt: string | null
         endsAt: string | null
+        showUntil: string | null
         locationId: string | null
         locationLabel: string | null
         series?: NonNullable<PostInput['series']>
@@ -306,6 +313,9 @@ export function PagePosts({
       if (!endsAt || new Date(endsAt) <= new Date(startsAt)) return { ok: false, message: END_BEFORE_START }
     }
 
+    // #314 — an undated post shows through the end of the day its owner picked; none is the 14-day default.
+    const showUntil = !startsAt && w.showUntil ? metroWallTimeToInstant(w.showUntil, '23:59') : null
+
     let locationId: string | null = null
     let locationLabel: string | null = null
     if (w.addingPlace && isLocationPlaceFieldsComplete(w.place)) {
@@ -336,6 +346,7 @@ export function PagePosts({
       ok: true,
       startsAt,
       endsAt,
+      showUntil,
       locationId,
       locationLabel,
       ...(repeating ? { series: { weekdays: w.repeat.days, startsOn: w.repeat.startsOn || null, endsOn: w.repeat.endsOn || null } } : {}),
@@ -367,6 +378,7 @@ export function PagePosts({
       body,
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
+      showUntil: resolved.showUntil,
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
       tags: tagSet(tags),
@@ -386,6 +398,7 @@ export function PagePosts({
         updatedAt: r.data.createdAt,
         startsAt: resolved.startsAt,
         endsAt: resolved.endsAt,
+        showUntil: resolved.showUntil,
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
         tags: tagSet(tags),
@@ -417,6 +430,8 @@ export function PagePosts({
       body,
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
+      // #314 — a dated post clears it in the handler; an undated one sends its day, or null for the default.
+      ...(resolved.startsAt ? {} : { showUntil: resolved.showUntil }),
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
@@ -439,6 +454,7 @@ export function PagePosts({
               body,
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
+              showUntil: resolved.startsAt ? null : resolved.showUntil,
               tags: tagSet(editTags),
               // F102: a hidden post the edit reposted shows again at once.
               ...(r.data.reposted ? { hiddenAt: null } : {}),
@@ -480,6 +496,7 @@ export function PagePosts({
                     onChange={setEditWhen}
                     idPrefix="page-post-edit"
                     placeLabel={post.locationLabel}
+                    postedAt={new Date(post.createdAt)}
                   />
                   <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
                   {memberId && (
