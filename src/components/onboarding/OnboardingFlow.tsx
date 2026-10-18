@@ -8,7 +8,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { completeOnboardingAction, type SaveProfileInput, type SaveProfileResult } from '@/app/onboarding/actions'
+import { addInterestsAction, completeOnboardingAction, type SaveProfileInput, type SaveProfileResult } from '@/app/onboarding/actions'
+import { InterestChoices } from '@/components/member/InterestChoices'
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
 import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
@@ -18,9 +19,11 @@ import { validateSignupProfile, type SignupProfileField } from '@/lib/signup/pro
 
 export interface OnboardingActions {
   completeOnboarding: (input: SaveProfileInput) => Promise<SaveProfileResult>
+  /** #892 — the optional interests step after sign-up. */
+  saveInterests?: (input: { tags: string[] }) => Promise<{ ok: true; addedTags: string[] }>
 }
 
-const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction }
+const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction, saveInterests: addInterestsAction }
 
 export function OnboardingFlow({
   initialDisplayName = '',
@@ -52,6 +55,8 @@ export function OnboardingFlow({
   const [metroName, setMetroName] = useState<string | null | undefined>(undefined)
   const [waiting, setWaiting] = useState<MetroOption | null>(null)
   const [phoneDone, setPhoneDone] = useState(phoneVerified)
+  const [askInterests, setAskInterests] = useState(false)
+  const [interests, setInterests] = useState<string[]>([])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -83,13 +88,57 @@ export function OnboardingFlow({
     return <PhoneVerifyStep auth={phoneAuth} onVerified={() => setPhoneDone(true)} />
   }
 
+  // #892 — one optional, skippable step: interests, for Explore's "My interests" filter. Draft copy.
+  if (askInterests) {
+    const saveInterests = async () => {
+      if (busy) return
+      setBusy(true)
+      try {
+        if (interests.length > 0) await (actions.saveInterests ?? addInterestsAction)({ tags: interests })
+      } catch {
+        // Skippable step: a failed save never blocks the way in; they can pick again on You.
+      } finally {
+        setBusy(false)
+        navigate('/')
+      }
+    }
+    return (
+      <AuthCard>
+        <div className="space-y-4" data-testid="onboarding-interests">
+          <div className="space-y-1">
+            <h1 className="text-title-1 text-[var(--color-fg)]">What are you into?</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">
+              Pick a few and Explore can show just these. Only you see them, and you can change them on You.
+            </p>
+          </div>
+          <InterestChoices
+            selected={interests}
+            onToggle={(tag) => setInterests((s) => (s.includes(tag) ? s.filter((t) => t !== tag) : [...s, tag]))}
+            label="Your interests"
+          />
+          <button type="button" data-testid="onboarding-interests-save" disabled={busy || interests.length === 0} onClick={saveInterests} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-75">
+            Save
+          </button>
+          <button
+            type="button"
+            data-testid="onboarding-interests-skip"
+            onClick={() => navigate('/')}
+            className="press inline-flex min-h-11 w-full items-center justify-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+          >
+            Skip for now
+          </button>
+        </div>
+      </AuthCard>
+    )
+  }
+
   if (typeof metroName === 'string') {
     return (
       <AuthCard>
         <div className="space-y-4" data-testid="onboarding-metro">
           <h1 className="text-title-1 text-[var(--color-fg)]">You’re in {metroName}</h1>
           <p className="text-body-sm text-[var(--color-fg-muted)]">Your zip code decided this. You can change it any time from your account.</p>
-          <button type="button" data-testid="onboarding-metro-continue" onClick={() => navigate('/')} className="btn-primary w-full">
+          <button type="button" data-testid="onboarding-metro-continue" onClick={() => setAskInterests(true)} className="btn-primary w-full">
             Continue
           </button>
         </div>

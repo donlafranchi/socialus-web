@@ -24,10 +24,12 @@ export interface EditPageInput {
    *  nothing but the form was missing. */
   anchorLocationId?: string
   /** #348 — where it is. */
-  whereMode?: 'visit' | 'travel' | 'roaming'
+  whereMode?: 'visit' | 'landmark' | 'multi' | 'roaming' | 'travel' | 'online'
   howToFind?: string | null
   usuallyAround?: string | null
   serviceAreaPlaceIds?: string[]
+  /** #896 — more than one location, or where and when it moves. */
+  stops?: { label: string; whenText: string | null }[]
   /** #293 — null clears either. */
   contactPhone?: string | null
   openingHours?: unknown
@@ -83,6 +85,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.howToFind !== undefined ? { howToFind: input.howToFind } : {}),
       ...(input.usuallyAround !== undefined ? { usuallyAround: input.usuallyAround } : {}),
       ...(input.serviceAreaPlaceIds !== undefined ? { serviceAreaPlaceIds: input.serviceAreaPlaceIds } : {}),
+      ...(input.stops !== undefined ? { stops: input.stops } : {}),
       ...(input.anchorLocationId !== undefined
         ? { anchorLocationId: input.anchorLocationId }
         : {}),

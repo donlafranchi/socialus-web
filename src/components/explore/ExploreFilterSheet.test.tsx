@@ -285,3 +285,34 @@ describe('#922 — no chips or pills in the filter sheet', () => {
     expect(everything.className).toMatch(/underline/)
   })
 })
+
+describe('#892 — My interests in Category', () => {
+  it('with interests chosen, is a choice of its own that turns the filter on, leaving the tags alone', () => {
+    renderSheet({ myInterests: ['gardening', 'live music'] })
+    const category = within(within(sheet()).getByRole('group', { name: 'Category' }))
+    expect(category.getAllByRole('checkbox')).toHaveLength(13)
+    fireEvent.click(category.getByRole('checkbox', { name: 'My interests' }))
+    fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
+    expect(onApply).toHaveBeenCalledWith({ ...DEFAULT_BROWSE_FILTERS, mine: true })
+  })
+
+  it('shows as on when the filter is on, and turns off', () => {
+    renderSheet({ myInterests: ['gardening'], value: { ...DEFAULT_BROWSE_FILTERS, mine: true } })
+    const mine = within(sheet()).getByRole('checkbox', { name: 'My interests' })
+    expect(mine).toBeChecked()
+    fireEvent.click(mine)
+    fireEvent.click(within(sheet()).getByRole('button', { name: /show results/i }))
+    expect(onApply).toHaveBeenCalledWith(DEFAULT_BROWSE_FILTERS)
+  })
+
+  it('with none chosen, leads the member to pick some on You', () => {
+    renderSheet({ myInterests: [], signedIn: true })
+    expect(within(sheet()).queryByRole('checkbox', { name: 'My interests' })).toBeNull()
+    expect(within(sheet()).getByRole('link', { name: /pick your interests/i })).toHaveAttribute('href', '/you#interests')
+  })
+
+  it('signed out, leads to sign in first, then You', () => {
+    renderSheet({ myInterests: null, signedIn: false })
+    expect(within(sheet()).getByRole('link', { name: /pick your interests/i })).toHaveAttribute('href', '/auth/login?next=%2Fyou%23interests')
+  })
+})

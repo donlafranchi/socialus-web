@@ -69,13 +69,15 @@ export interface BrowseFilters {
   following: boolean
   /** Normalised category tags: the 12 interest tags (#818), or a creator's own. */
   tags: string[]
+  /** #892 — "My interests": the reader's own interest tags, resolved where the reader is known, never written out. */
+  mine: boolean
   date: DateFilter
 }
 
 /** #876 — the Category group: the 12 interest tags (#818), normalised as the feed matches them. */
 export const CATEGORY_TAGS: string[] = INTEREST_VOCAB.map((t) => normalizeTag(t.label))
 
-export const DEFAULT_BROWSE_FILTERS: BrowseFilters = { type: 'all', postKinds: [], following: false, tags: [], date: 'any' }
+export const DEFAULT_BROWSE_FILTERS: BrowseFilters = { type: 'all', postKinds: [], following: false, tags: [], mine: false, date: 'any' }
 
 type ParamSource = Pick<URLSearchParams, 'get'>
 
@@ -99,12 +101,31 @@ export function parseBrowseFilters(params: ParamSource): BrowseFilters {
 
 /** Drives the dot on the filter icon, and whether Explore asks the server for a filtered read. */
 export function hasBrowseFilters(f: BrowseFilters): boolean {
-  return f.type !== 'all' || f.postKinds.length > 0 || f.following || f.tags.length > 0 || f.date !== 'any'
+  return f.type !== 'all' || f.postKinds.length > 0 || f.following || f.tags.length > 0 || f.mine || f.date !== 'any'
+}
+
+/**
+ * #892 — the Category tags a selection matches: the picked ones, plus the reader's own interests when
+ * "My interests" is on. Null means no Category narrowing; an empty list means "match nothing" (My interests
+ * with none chosen). A filter, never a ranking: it only says which rows stay.
+ */
+export function categoryTags(f: BrowseFilters, myTags: readonly string[] = []): string[] | null {
+  if (!f.mine) return f.tags.length > 0 ? [...f.tags] : null
+  return [...new Set([...f.tags, ...myTags.map(normalizeTag)])]
+}
+
+/**
+ * #892 — the part of a selection the server read may narrow by. "My interests" is never sent: it is applied
+ * where the list already is (applyBrowseFilters), so it keeps whatever order the list has and only drops rows.
+ * With it on, the picked Category tags go with it (they are one any-of set), so they stay client-side too.
+ */
+export function serverFilters(f: BrowseFilters): BrowseFilters {
+  return f.mine ? { ...f, mine: false, tags: [] } : f
 }
 
 /** Posts, and nothing narrower: the old Updates view. */
 export function isPlainPostsView(f: BrowseFilters): boolean {
-  return f.type === 'posts' && f.postKinds.length === 0 && !f.following && f.tags.length === 0 && f.date === 'any'
+  return f.type === 'posts' && f.postKinds.length === 0 && !f.following && f.tags.length === 0 && !f.mine && f.date === 'any'
 }
 
 export function toggleTag(f: BrowseFilters, tag: string): BrowseFilters {
@@ -161,9 +182,10 @@ export function searchBrowseResults(results: readonly BrowseResult[], q: string)
 export function applyBrowseFilters(
   results: readonly BrowseResult[],
   f: BrowseFilters,
-  ctx: { now: Date },
+  ctx: { now: Date; myTags?: readonly string[] },
 ): BrowseResult[] {
   const window = dateWindow(f.date, ctx.now)
+  const tags = categoryTags(f, ctx.myTags)
   return results.filter((r) => {
     if (f.type === 'pages' && r.resultKind !== 'page') return false
     if (f.type === 'posts' && r.resultKind !== 'post') return false
@@ -172,9 +194,9 @@ export function applyBrowseFilters(
       const k = postKindOf(r)
       if (!k || !f.postKinds.includes(k)) return false
     }
-    if (f.tags.length > 0) {
+    if (tags) {
       const own = new Set(r.tags.map(normalizeTag))
-      if (!f.tags.some((t) => own.has(t))) return false
+      if (!tags.some((t) => own.has(t))) return false
     }
     if (window && !liveIn(r, window)) return false
     return true

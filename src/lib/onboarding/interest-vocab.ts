@@ -1,3 +1,5 @@
+import { normalizeTag } from '@/lib/groups/tags'
+
 // T089 — Interest-tag controlled vocabulary (F030). Initial b1 set.
 // Tags match the member_interests CHECK (^[a-z0-9-]+$). Source: b1-themes.md.
 
@@ -30,3 +32,12 @@ export function isVocabTag(tag: string): boolean {
 /** Onboarding asks for 2–6 tags; the step is skippable (0 is valid). */
 export const INTEREST_MIN = 2
 export const INTEREST_MAX = 6
+
+/**
+ * #892 — a member's interests as the Category tags Pages carry (#818: the label, normalised as the feed
+ * matches it). Vocabulary order; a tag outside the 12 maps to nothing.
+ */
+export function interestPageTags(tags: readonly string[]): string[] {
+  const own = new Set(tags)
+  return INTEREST_VOCAB.filter((t) => own.has(t.tag)).map((t) => normalizeTag(t.label))
+}

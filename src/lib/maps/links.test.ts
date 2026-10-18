@@ -24,6 +24,16 @@ describe('isAppleMobile', () => {
   })
 })
 
+describe('mapsLinks — a place found by words only', () => {
+  it('a stop with no pin opens a search for its words, with directions to them', () => {
+    expect(mapsLinks({ label: 'Midtown Farmers Market' }, false)).toEqual({
+      open: 'https://www.google.com/maps/search/?api=1&query=Midtown%20Farmers%20Market',
+      directions: 'https://www.google.com/maps/dir/?api=1&destination=Midtown%20Farmers%20Market',
+    })
+    expect(mapsLinks({ label: 'Midtown Farmers Market' }, true).open).toBe('https://maps.apple.com/?q=Midtown%20Farmers%20Market')
+  })
+})
+
 // #936 — Don, 2026-10-18: Open in Maps went to the town, not the business. Name plus full street address.
 describe('mapsLinks — a business by name and street address', () => {
   const vino = { name: 'Vino Tahoe', label: '15010 Ridge Road, Sutter Creek, CA', lng: -120.8401, lat: 38.3655, exact: true }

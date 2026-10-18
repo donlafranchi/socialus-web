@@ -35,7 +35,7 @@ const PLAIN: Record<string, string> = {
 
 export async function sendReportAction(input: {
   /** The Page's photo when omitted; F099 — or one of the other images. */
-  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words'
+  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
   subjectId: string
   category: ReportCategory
   body: string
