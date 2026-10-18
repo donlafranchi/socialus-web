@@ -82,7 +82,6 @@ const query = async <T>(sql: string, params: unknown[] = []): Promise<T[]> => {
 // tests/announcements-signed-out-rest.test.ts seeds a throwaway 'f093-metro' polygon while this
 // file counts; the catalog counts leave it out so the two can share a database.
 describe.skipIf(!RUNNABLE)('T163 — the metro catalog (c1)', () => {
-  // [guards F076.1 partial: the catalog of metros is present; "every zip resolves to a market" is F103's]
   it('holds every US metro — 184 CSAs plus the 112 metros in no CSA', async () => {
     const [{ n }] = await query<{ n: string }>(
       `select count(*)::text as n from public.metro_polygons where slug <> 'f093-metro' and code_kind <> 'market'`,
