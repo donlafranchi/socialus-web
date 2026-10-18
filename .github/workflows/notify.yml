@@ -1,7 +1,7 @@
 name: Notifications
 
 # #904 (Don, 2026-10-18, option A) — opt-in web push. Every 15 minutes: followed Pages' new posts, batched and
-# capped. Thursday evening: this weekend near you (hourly 5–9 pm Pacific, so quiet hours can end; once a week each).
+# capped, and #945 reminders (push, else email). Thursday evening: this weekend near you (hourly 5–9 pm Pacific, so quiet hours can end; once a week each).
 # Monday: the counts to the notify-history branch, for the dashboard. The 1st of the month: the review Issue.
 # By hand: gh workflow run notify.yml -f job=follow|weekend|stats|review
 
@@ -54,6 +54,10 @@ jobs:
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          # #945 — reminders by email for members with no device turned on. Unset: email waits, push still goes.
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FOLLOW_EMAIL_FROM: ${{ secrets.FOLLOW_EMAIL_FROM }}
+          NEXT_PUBLIC_SITE_URL: https://socialus.org
         run: |
           mkdir -p notify-out
           case "$JOB" in

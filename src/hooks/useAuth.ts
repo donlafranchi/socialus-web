@@ -62,17 +62,6 @@ export function useAuth() {
     return { data, error }
   }, [])
 
-  // #407 — a password is set or reset from You; the reset link signs you in there.
-  const resetPassword = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl('/you/password') })
-    return { error }
-  }, [])
-
-  const updatePassword = useCallback(async (password: string) => {
-    const { error } = await supabase.auth.updateUser({ password })
-    return { error }
-  }, [])
-
   const signInWithGoogle = useCallback(async (next?: string) => {
     const redirectTo = authRedirectUrl(next)
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -99,8 +88,6 @@ export function useAuth() {
     signOut,
     signInWithOtp,
     verifyEmailCode,
-    resetPassword,
-    updatePassword,
     signInWithGoogle,
     checkEmailRegistered,
   }

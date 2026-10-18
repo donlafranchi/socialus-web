@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Calendar, Sparkles, Store } from 'lucide-react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { PlatformEvent, Vendor, Market } from '@/lib/types'
 
 interface Props {
@@ -28,10 +28,7 @@ const EVENT_ICON: Record<string, React.ComponentType<{ size?: number; className?
 }
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 function formatStartsAt(iso: string): string {
