@@ -1,6 +1,7 @@
 // #790 — what the live smoke's bug report lists: each failed test and the first line of its
 // reason, read from Playwright's numbered failure blocks. Never the [n/m] progress lines.
-function smokeFailures(log, max = 12) {
+function smokeFailures(raw, max = 12) {
+  const log = raw.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '') // Playwright's progress-redraw codes hide the block start (#888)
   const out = []
   const blocks = log.split(/\n(?=\s+\d+\) \[)/)
   for (const b of blocks) {
