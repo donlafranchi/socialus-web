@@ -154,7 +154,7 @@ export function ShopPublicPage({
   const placement = fixedPlacement(where, shop.placements[0])
   const how = loggedIn && where ? whereLine(where) : null
   // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
-  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null) : null
+  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName) : null
   const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
   const showFound = loggedIn && tags.length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
