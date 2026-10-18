@@ -35,7 +35,7 @@ import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { useAnnouncementAnchor } from './use-announcement-anchor'
-import { TypeMark, SampleChip, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
+import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
 import { firstOccurrenceDate } from '@/lib/posts/series'
@@ -573,7 +573,7 @@ export function PagePosts({
                   {post.sampleKind ? (
                     <p className="mb-1 flex items-center gap-1.5">
                       <TypeMark type="post" />
-                      <SampleChip />
+                      <SampleLabel />
                     </p>
                   ) : null}
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
