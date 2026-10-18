@@ -49,6 +49,7 @@ describe('resolvePagePosts', () => {
         photoHidden: false,
         hiddenAt: null,
         sampleKind: null,
+        seriesId: null,
       },
     ])
     expect(calls.order).toEqual(['created_at', { ascending: false }])
