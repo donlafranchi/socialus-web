@@ -6,7 +6,7 @@ import { DAILY_CAP, DEFAULT_PREFS, MIN_GAP_MS, STALE_MS } from './rules'
 import type { KindSummary } from './review'
 
 const pct = (x: number | null) => (x == null ? '—' : `${Math.round(x * 100)}%`)
-const NAME: Record<string, string> = { follow_posts: 'New posts from Pages I follow', weekend: 'This weekend near me' }
+const NAME: Record<string, string> = { follow_posts: 'New posts from Pages I follow', weekend: 'This weekend near me', reminder: 'Reminders (Remind me)' }
 
 export function reviewMarkdown(r: { at: string; state: string; kinds: KindSummary[] }): string {
   const lines = [
@@ -29,6 +29,7 @@ export function reviewMarkdown(r: { at: string; state: string; kinds: KindSummar
     `- Follow posts: at most ${DAILY_CAP} a day, ${MIN_GAP_MS / 60000} minutes apart, batched; a post waiting more than ${STALE_MS / 3600000} hours is dropped.`,
     `- Quiet hours default ${DEFAULT_PREFS.quietStart}:00 to ${DEFAULT_PREFS.quietEnd}:00 Pacific.`,
     '- This weekend: Thursday from 5 pm Pacific, hourly to 9 pm for members in quiet hours; nothing is sent when nothing is on.',
+    '- Reminders: the evening before at 6 pm and 1 hour before (each a member choice); push where the member has a device, else email; quiet hours and Pause all hold them.',
     '',
     '### Every string',
     '',

@@ -101,16 +101,20 @@ export function NotificationSettings({ initial, save, subscribe }: { initial: Pr
   )
 }
 
-function Item({ id, label, hint, children, action }: { id: string; label: string; hint: string; children?: ReactNode; action?: ReactNode }) {
+export function Item({ id, label, hint, children, action }: { id: string; label?: string; hint?: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <li className="flex min-h-tap items-start gap-3 px-4 py-3" data-testid={id}>
       <div className="min-w-0 flex-1">
-        <span id={`${id}-label`} className="block text-body-sm font-medium text-[var(--color-fg)]">
-          {label}
-        </span>
-        <span id={`${id}-hint`} className="mt-0.5 block text-caption text-[var(--color-fg-muted)]">
-          {hint}
-        </span>
+        {label && (
+          <span id={`${id}-label`} className="block text-body-sm font-medium text-[var(--color-fg)]">
+            {label}
+          </span>
+        )}
+        {hint && (
+          <span id={`${id}-hint`} className="mt-0.5 block text-caption text-[var(--color-fg-muted)]">
+            {hint}
+          </span>
+        )}
         {children}
       </div>
       {action}
@@ -118,7 +122,7 @@ function Item({ id, label, hint, children, action }: { id: string; label: string
   )
 }
 
-function Toggle({ id, label, hint, on, disabled, onChange }: { id: string; label: string; hint: string; on: boolean; disabled: boolean; onChange: (on: boolean) => void }) {
+export function Toggle({ id, label, hint, on, disabled, onChange }: { id: string; label: string; hint: string; on: boolean; disabled: boolean; onChange: (on: boolean) => void }) {
   return (
     <Item
       id={id}

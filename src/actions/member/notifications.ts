@@ -10,13 +10,13 @@ import { defineHandler } from '../_lib/handler'
 import { AuthorizationError } from '../_lib/errors'
 import { withTransaction } from '../_lib/db'
 import type { ActionContext } from '../_lib/context'
-import { DEFAULT_PREFS, NOTIFY_KINDS, type NotifyKind, type Prefs } from '../../lib/notify/push/rules'
+import { DEFAULT_PREFS, NOTIFY_KINDS, type CountKind, type NotifyKind, type Prefs } from '../../lib/notify/push/rules'
 
 const hour = z.number().int().min(0).max(23)
 const kind = z.enum(['follow_posts', 'weekend'])
 
 export const memberNotificationsSetInput = z
-  .object({ followPosts: z.boolean(), weekend: z.boolean(), paused: z.boolean(), quietStart: hour, quietEnd: hour })
+  .object({ followPosts: z.boolean(), weekend: z.boolean(), paused: z.boolean(), quietStart: hour, quietEnd: hour, remindEvening: z.boolean(), remindHour: z.boolean() })
   .partial()
 export type MemberNotificationsSetInput = z.infer<typeof memberNotificationsSetInput>
 
@@ -29,16 +29,18 @@ export const memberPushSubscribeInput = z.object({
 export type MemberPushSubscribeInput = z.infer<typeof memberPushSubscribeInput>
 
 export const memberPushUnsubscribeInput = z.object({ endpoint: z.string().max(2000) })
-export const memberNotificationsOpenedInput = z.object({ kind })
+export const memberNotificationsOpenedInput = z.object({ kind: z.enum(['follow_posts', 'weekend', 'reminder']) })
 
 function requireMember(ctx: ActionContext, verb: string): string {
   if (!ctx.actingMemberId || ctx.actingMemberId === 'self-bootstrap') throw new AuthorizationError(`${verb}: a signed-in member is required`)
   return ctx.actingMemberId
 }
 
-type Row = { follow_posts: boolean; weekend: boolean; paused: boolean; quiet_start: number; quiet_end: number }
+type Row = { follow_posts: boolean; weekend: boolean; paused: boolean; quiet_start: number; quiet_end: number; remind_evening: boolean; remind_hour: boolean }
 const toPrefs = (r: Row | undefined): Prefs =>
-  r ? { followPosts: r.follow_posts, weekend: r.weekend, paused: r.paused, quietStart: r.quiet_start, quietEnd: r.quiet_end } : { ...DEFAULT_PREFS }
+  r
+    ? { followPosts: r.follow_posts, weekend: r.weekend, paused: r.paused, quietStart: r.quiet_start, quietEnd: r.quiet_end, remindEvening: r.remind_evening, remindHour: r.remind_hour }
+    : { ...DEFAULT_PREFS }
 
 const isOn = (p: Prefs, k: NotifyKind) => (k === 'follow_posts' ? p.followPosts : p.weekend)
 
@@ -60,18 +62,19 @@ export const memberNotificationsSet = defineHandler(
     const memberId = requireMember(ctx, 'member.notifications.set')
     return withTransaction(async (client) => {
       const found = await client.query<Row>(
-        `select follow_posts, weekend, paused, quiet_start, quiet_end from public.notification_prefs where member_id = $1 for update`,
+        `select follow_posts, weekend, paused, quiet_start, quiet_end, remind_evening, remind_hour from public.notification_prefs where member_id = $1 for update`,
         [memberId],
       )
       const before = toPrefs(found.rows[0])
       const after: Prefs = { ...before, ...input }
       await client.query(
-        `insert into public.notification_prefs (member_id, follow_posts, weekend, paused, quiet_start, quiet_end, updated_at)
-         values ($1, $2, $3, $4, $5, $6, $7)
+        `insert into public.notification_prefs (member_id, follow_posts, weekend, paused, quiet_start, quiet_end, remind_evening, remind_hour, updated_at)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          on conflict (member_id) do update
            set follow_posts = excluded.follow_posts, weekend = excluded.weekend, paused = excluded.paused,
-               quiet_start = excluded.quiet_start, quiet_end = excluded.quiet_end, updated_at = excluded.updated_at`,
-        [memberId, after.followPosts, after.weekend, after.paused, after.quietStart, after.quietEnd, ctx.now()],
+               quiet_start = excluded.quiet_start, quiet_end = excluded.quiet_end,
+               remind_evening = excluded.remind_evening, remind_hour = excluded.remind_hour, updated_at = excluded.updated_at`,
+        [memberId, after.followPosts, after.weekend, after.paused, after.quietStart, after.quietEnd, after.remindEvening, after.remindHour, ctx.now()],
       )
       for (const c of countsFor(before, after)) await client.query(`select public.notification_count($1, $2, 1)`, [c.kind, c.field])
       return after
@@ -113,7 +116,7 @@ export const memberPushUnsubscribe = defineHandler(
 export const memberNotificationsOpened = defineHandler(
   'member.notifications.opened',
   memberNotificationsOpenedInput,
-  async (ctx: ActionContext, input: { kind: NotifyKind }): Promise<{ counted: true }> => {
+  async (ctx: ActionContext, input: { kind: CountKind }): Promise<{ counted: true }> => {
     requireMember(ctx, 'member.notifications.opened')
     return withTransaction(async (client) => {
       await client.query(`select public.notification_count($1, 'opens', 1)`, [input.kind])
