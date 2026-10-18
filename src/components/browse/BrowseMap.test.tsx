@@ -70,7 +70,7 @@ describe('#475 — BrowseMap draws pins and area discs', () => {
       locationLabel: 'Midtown', longitude: -121.5, latitude: 38.5, tags: [], body: null, description: null, ...over,
     }) as never
 
-  async function draw(results: never[]) {
+  async function draw(results: never[], focus?: { href: string; at: [number, number] }) {
     vi.resetModules()
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
     // Only what is still on the map: every redraw removes the last one's markers.
@@ -96,8 +96,8 @@ describe('#475 — BrowseMap draws pins and area discs', () => {
       },
     }))
     const { BrowseMap } = await import('./BrowseMap')
-    render(<BrowseMap results={results} />)
-    return { els: [...live.keys()], markers: [...live.values()] }
+    render(<BrowseMap results={results} focus={focus} />)
+    return { els: [...live.keys()], markers: [...live.values()], map, Ctor: (await import('mapbox-gl')).default.Map }
   }
 
   it('an exact address is a teardrop anchored at its tip; an area is a disc with a count', async () => {
@@ -132,5 +132,56 @@ describe('#475 — BrowseMap draws pins and area discs', () => {
     expect(popup).toHaveTextContent('2 here')
     expect(within(popup).getByRole('link', { name: 'Run Club' })).toHaveAttribute('href', '/g/run')
     expect(within(popup).getByRole('link', { name: 'Chess Night' })).toHaveAttribute('href', '/g/chess')
+  })
+})
+
+// #896 — Don, 2026-10-18: a Page's map opens our own map, on that Page, with what's nearby around it.
+describe('#896 — BrowseMap opens on one Page', () => {
+  const row = (over: Record<string, unknown>) =>
+    ({
+      resultKind: 'page', resultId: 'r', groupId: 'g', name: 'Name', href: '/g/x', locationId: 'l', locationKind: 'permanent',
+      locationLabel: 'Midtown', longitude: -121.5, latitude: 38.5, tags: [], body: null, description: null, ...over,
+    }) as never
+
+  async function mount(results: never[], focus: { href: string; at: [number, number] }) {
+    vi.resetModules()
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
+    const els: HTMLElement[] = []
+    const map = { on: vi.fn(), off: vi.fn(), remove: vi.fn(), jumpTo: vi.fn(), fitBounds: vi.fn(), getZoom: () => 15, project: ([x, y]: number[]) => ({ x: x * 1000, y: y * 1000 }), unproject: ([x, y]: number[]) => ({ lng: x! / 1000, lat: y! / 1000 }) }
+    const Ctor = vi.fn(function () { return map })
+    vi.doMock('mapbox-gl', () => ({
+      default: {
+        Map: Ctor,
+        Marker: vi.fn(function (el: HTMLElement) {
+          els.push(el)
+          const m = { setLngLat: () => m, addTo: () => m, remove: () => void els.splice(els.indexOf(el), 1) }
+          return m
+        }),
+        LngLatBounds: vi.fn(function () { return { extend: vi.fn(), getCenter: () => ({ lng: 0, lat: 0 }) } }),
+      },
+    }))
+    const { BrowseMap } = await import('./BrowseMap')
+    render(<BrowseMap results={results} focus={focus} />)
+    return { els, map, Ctor }
+  }
+
+  it('starts on the Page at street level, not fitted to everything', async () => {
+    const { map, Ctor } = await mount([row({ href: '/g/vino', groupId: 'gv', longitude: -120.75, latitude: 38.4 }), row({ resultId: 'o', groupId: 'go', href: '/g/other', locationId: 'l2' })], { href: '/g/vino', at: [-120.75, 38.4] })
+    expect(Ctor).toHaveBeenCalledWith(expect.objectContaining({ center: [-120.75, 38.4], zoom: 15 }))
+    expect(map.fitBounds).not.toHaveBeenCalled()
+  })
+
+  it("the Page's own pin is the highlighted one, with its name showing", async () => {
+    const { els } = await mount([row({ href: '/g/vino', groupId: 'gv', name: 'Vino Tahoe', longitude: -120.75, latitude: 38.4 }), row({ resultId: 'o', groupId: 'go', href: '/g/other', locationId: 'l2' })], { href: '/g/vino', at: [-120.75, 38.4] })
+    const pins = els.filter((e) => e.dataset.testid === 'map-pin')
+    expect(pins.find((e) => e.dataset.groupId === 'gv')!.dataset.selected).toBe('true')
+    expect(pins.find((e) => e.dataset.groupId === 'go')!.dataset.selected).toBe('false')
+    expect(screen.getByTestId('browse-map-popup')).toHaveTextContent('Vino Tahoe')
+  })
+
+  it("a Page outside what's listed still gets its highlighted pin", async () => {
+    const { els } = await mount([row({ resultId: 'o', groupId: 'go', href: '/g/other' })], { href: '/g/vino', at: [-120.75, 38.4] })
+    const focus = els.find((e) => e.dataset.testid === 'map-focus')!
+    expect(focus.dataset.selected).toBe('true')
   })
 })

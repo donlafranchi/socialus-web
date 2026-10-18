@@ -36,7 +36,7 @@ import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
-import { Store, Users } from 'lucide-react'
+import { MapPin, Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { UnclaimedBox } from './UnclaimedBox'
@@ -49,6 +49,7 @@ import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
 import { AboutText } from './AboutText'
 import { PageMap } from './PageMap'
+import { PageStops } from './PageStops'
 import { SearchDemandCard } from './SearchDemandCard'
 import type { PageSearchDemand } from '@/lib/search/page-demand'
 import { pageMapView } from '@/lib/groups/page-map'
@@ -157,6 +158,10 @@ export function ShopPublicPage({
   const how = loggedIn && where ? whereLine(where) : null
   // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
   const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName) : null
+  const stops = loggedIn && (where?.mode === 'multi' || where?.mode === 'roaming') ? (where.stops ?? []) : []
+  // #896 — Don, 2026-10-18: an area-only Page has no map, but a line says where it is.
+  const area = shop.placements[0]
+  const areaLine = loggedIn && !mapView && area?.kind === 'area' && (!where?.mode || where.mode === 'visit') && area.label.trim() ? `In ${area.label.trim()}` : null
   const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
   const showFound = loggedIn && tags.length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
@@ -330,15 +335,25 @@ export function ShopPublicPage({
       )}
 
       {/* F093 criterion 8 — signed out sees no location and no map pin. */}
-      {loggedIn && (mapView || how) && (
+      {loggedIn && (mapView || areaLine || how || stops.length > 0) && (
         <PageSection id="location" title="Location">
           {/* T143 — where this Page resolves to, at read time; #896 — the address under the map. */}
-          {mapView && <PageMap view={mapView} caption={mapView.text} />}
+          {mapView && <PageMap view={mapView} caption={mapView.text} publicId={shop.publicId} />}
+          {/* #896 — no map: a plain line with a small location icon says where (no chips). */}
+          {areaLine && (
+            <p data-testid="shop-placement" className="flex items-start gap-2 text-body-sm text-[var(--color-fg)]">
+              <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+              {areaLine}
+            </p>
+          )}
           {how && (
-            <p data-testid="shop-where" className="text-body-sm text-[var(--color-fg-muted)]">
+            <p data-testid="shop-where" className={mapView || areaLine ? 'text-body-sm text-[var(--color-fg-muted)]' : 'flex items-start gap-2 text-body-sm text-[var(--color-fg)]'}>
+              {!mapView && !areaLine && <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0" />}
               {how}
             </p>
           )}
+          {/* #896 — more than one location, or where and when it moves. */}
+          {stops.length > 0 && <PageStops stops={stops} schedule={where?.mode === 'roaming'} name={shop.displayName} />}
         </PageSection>
       )}
 
