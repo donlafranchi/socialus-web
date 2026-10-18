@@ -137,6 +137,21 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
     expect(screen.getByTestId('shop-placement')).toHaveTextContent('Midtown')
   })
 
+  // #894 — "It moves" and "I go to them" anchor to the metro, whose centre falls in East Sacramento: no fixed neighbourhood, no map.
+  it.each([
+    ['roaming', 'Around the Sacramento area, usually Midtown markets'],
+    ['travel', 'Comes to you anywhere in the Sacramento area'],
+  ] as const)('a Page that is %s shows only its own line, never the anchor\'s neighbourhood', (mode, line) => {
+    renderShop({
+      shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'area', label: 'East Sacramento', lng: -121.46, lat: 38.56 }] },
+      where: { mode, howToFind: null, usuallyAround: mode === 'roaming' ? 'Midtown markets' : null, towns: [] },
+      loggedIn: true,
+    })
+    expect(screen.queryByTestId('shop-placement')).toBeNull()
+    expect(screen.queryByText('East Sacramento')).toBeNull()
+    expect(screen.getByTestId('shop-where')).toHaveTextContent(line)
+  })
+
   it('renders nothing when there is no placement — no empty heading, no placeholder', () => {
     renderShop({ shop: { ...SHOP, placements: [] } })
     expect(screen.queryByTestId('shop-placement')).not.toBeInTheDocument()

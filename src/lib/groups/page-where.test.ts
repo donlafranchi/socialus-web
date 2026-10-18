@@ -1,7 +1,7 @@
 // #348 — where a Page is, read for signed-in visitors (the front door shows none of it).
 
 import { describe, it, expect, vi } from 'vitest'
-import { resolvePageWhere, whereLine } from './page-where'
+import { resolvePageWhere, whereLine, whereNow } from './page-where'
 
 function supabaseWith(group: unknown, towns: unknown[] = []) {
   return {
@@ -56,5 +56,16 @@ d450('whereLine — contact details', () => {
   i450('hides an email address in how to find us and usually around', () => {
     e450(wl450({ mode: 'visit', howToFind: 'ask a@example.com', usuallyAround: null, towns: [] })).not.toContain('@example.com')
     e450(wl450({ mode: 'roaming', howToFind: null, usuallyAround: 'b@example.com', towns: [] })).not.toContain('@example.com')
+  })
+})
+
+// #894 — the Location card's "Now:" line for a Page that moves is its own line, not the metro anchor's neighbourhood.
+describe('whereNow', () => {
+  const area = { kind: 'area' as const, label: 'East Sacramento' }
+  it('a Page that moves reads as moving', () => {
+    expect(whereNow({ mode: 'roaming', howToFind: null, usuallyAround: null, towns: [] }, area)).toBe('Around the Sacramento area')
+  })
+  it('a Page people come to reads as its place', () => {
+    expect(whereNow({ mode: 'visit', howToFind: null, usuallyAround: null, towns: [] }, area)).toBe('East Sacramento')
   })
 })

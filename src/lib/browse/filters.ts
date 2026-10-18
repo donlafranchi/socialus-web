@@ -102,6 +102,11 @@ export function hasBrowseFilters(f: BrowseFilters): boolean {
   return f.type !== 'all' || f.postKinds.length > 0 || f.following || f.tags.length > 0 || f.date !== 'any'
 }
 
+/** Posts, and nothing narrower: the old Updates view. */
+export function isPlainPostsView(f: BrowseFilters): boolean {
+  return f.type === 'posts' && f.postKinds.length === 0 && !f.following && f.tags.length === 0 && f.date === 'any'
+}
+
 export function toggleTag(f: BrowseFilters, tag: string): BrowseFilters {
   const t = normalizeTag(tag)
   return { ...f, tags: f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t] }

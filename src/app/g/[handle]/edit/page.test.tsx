@@ -28,7 +28,7 @@ vi.mock('@/lib/supabase-server', () => ({
 vi.mock('@/lib/groups/resolve-page-address', () => ({ resolvePageById: h.resolvePageById }))
 vi.mock('@/lib/groups/resolve-shop', () => ({ viewerOwnsPage: h.viewerOwnsPage }))
 vi.mock('@/lib/groups/page-contact', () => ({ resolvePageContact: h.resolvePageContact }))
-vi.mock('@/lib/groups/page-where', () => ({ resolvePageWhere: h.resolvePageWhere }))
+vi.mock('@/lib/groups/page-where', async (orig) => ({ ...(await orig<object>()), resolvePageWhere: h.resolvePageWhere }))
 vi.mock('@/components/group/edit/EditCards', () => ({ EditCards: () => null }))
 vi.mock('./actions', () => ({ editPageAction: vi.fn() }))
 vi.mock('@/app/_actions/page-lifecycle-actions', () => ({ archivePageAction: vi.fn(), deletePageAction: vi.fn(), restorePageAction: vi.fn() }))

@@ -8,7 +8,7 @@
   "smoked",
   "pm_looked"
  ],
- "as_of": "2026-10-16",
+ "as_of": "2026-10-18",
  "features": [
   {
    "feature": "F114",
@@ -7967,7 +7967,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-18",
    "path": "sign-in-you/F081-one-signup-zip-sets-metro.md",
    "n": 9,
    "totals": {
@@ -7977,8 +7977,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 1,
-     "no": 8,
+     "yes": 7,
+     "no": 2,
      "unknown": 0
     },
     "reviewed": {
@@ -8002,7 +8002,7 @@
      "unknown": 0
     }
    },
-   "red": 1,
+   "red": 0,
    "criteria": [
     {
      "id": "1",
@@ -8020,7 +8020,7 @@
      "issues": [
       851
      ],
-     "note": "[V] one screen (OnboardingFlow.tsx, #497, review-skipped): four fields, the 18+ box with the Terms link to /terms; email confirmation is on (config.toml, EmailFirstSignup 'confirm-email'); deploy-health green on d5ebc93. Smoked: unknown, /onboarding has no stable address in smoke-live. unmarked: OnboardingFlow.test.tsx ('asks for exactly the fields F081 names', 'the 18+ box starts unticked'), profile.test.ts; the only marker (phone.test.ts) is partial and about the phone. Check ticket #851",
+     "note": "[V] four fields and the 18+/Terms box on one screen (#497); production requires email confirmation (Supabase auth settings read 2026-10-18: mailer_autoconfirm false). Checked: partial: `signup-screens.test.tsx` walks every signup screen (#851) and is seen failing against an added field, a dropped box and a skipped confirmation; it leaves out \"every member is verified as a person\", because the phone step is switched off by PHONE_VERIFICATION_REQUIRED until the keys in #707.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -8038,7 +8038,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8046,15 +8046,14 @@
      "issues": [
       852
      ],
-     "note": "[V] members.zip (migration 20261007200000, #497); members readable only by self (migration 20260930180000); the member's own zip shows only on /you (ZipChange). Nothing found that shows it to anyone else (grep 2026-10-16), but absence of code proves nothing: no standing guard, ticket #852",
+     "note": "[V] members.zip readable by its owner only. Checked: yes, `tests/member-zip-private-db.test.ts` marked F081.2 (#852): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it.",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
-     "red": true
+     "score": 3,
+     "red": false
     },
     {
      "id": "3",
@@ -8064,7 +8063,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8072,14 +8071,13 @@
      "issues": [
       853
      ],
-     "note": "[V] marketForZip → completeOnboardingAction → 'shows which market' (zip-market.ts, #709 F103/T694; review-skipped; deploy-health green on 4f571f5). The 2026-10-11 ruling that a visitor's IP guess is confirmed with 'Is this your area?' (#588, F059.6, open, needs-pm) is not part of signup and not built here [A]. Smoked: unknown. Markers are F103.2/F103.3 partial only; check ticket #853",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.3 (#853): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8090,7 +8088,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8098,14 +8096,13 @@
      "issues": [
       854
      ],
-     "note": "[V] no picker at signup; ZipChange + zip-set re-resolve market and home town (#757 F103/T695, closed #568; review-skipped; deploy-health green on e0f16a9). /you also has a 'Metro' row (DefaultMetro) that sets where the member looks, a different thing from the market the zip decides [A]. Smoked: unknown, /you loads but the change is an action. Both markers are `[guards F081.4 partial]`; check ticket #854",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.4 (#854): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's separate 'Metro' row is #848's.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8116,7 +8113,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8124,14 +8121,13 @@
      "issues": [
       855
      ],
-     "note": "[V] COPY.signupLine shown on the signup screens (copy.ts; EmailFirstSignup, OnboardingFlow; #497, review-skipped). No never-sell line on the signup screens (grep 2026-10-16; the landing page has its own wording). Smoked: unknown. EmailFirstSignup.test.tsx is [guards F081.5 partial: presence only]; check ticket #855",
+     "note": "[V] Checked: yes, `signup-screens.test.tsx` marked F081.5 (#855): the line word for word on the account and profile screens, no never-sell line on any signup screen; seen failing against an added never-sell line.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8142,7 +8138,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8150,14 +8146,13 @@
      "issues": [
       856
      ],
-     "note": "[V] the screen has the four fields and the 18+ box only; no such column on members. unmarked: OnboardingFlow.test.tsx ('never asks whether the person makes or finds', text only). Check ticket #856",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.6 (#856): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. The make-or-find question after signup belongs to F076's waitlist entry.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8174,7 +8169,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries [guards F081.7]. Reviewed: no (#283 no Reviewed by, #497 skipped)",
+     "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries marked F081.7. Reviewed: no (#283 no Reviewed by, #497 skipped)",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8199,7 +8194,7 @@
      "issues": [
       853
      ],
-     "note": "[V] national zip_county table loaded by migration 20261012030000 (applied 2026-10-12; tests/zip-market-db.test.ts 'the table is national'); unknown zip refused with \"We don't recognize that zip, try again.\" (onboarding/actions.ts). Source is Census ZCTA not HUD-USPS, so a PO-box-only zip is unknown here (migration header); that swap is not recorded in the scenario [A]. #709 review-skipped. Smoked: unknown. Markers F103.2/F103.3 partial only; check ticket #853",
+     "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` marked F081.8 partial (#853): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS (#849).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -8218,7 +8213,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8227,14 +8222,13 @@
       857,
       707
      ],
-     "note": "[V] line-type.ts + checkPhoneAction + PhoneVerifyStep (#749; review-skipped; deploy-health green on 7f2db1a). A stub until the Twilio keys exist and Lookup is enabled (#707, the PM's): with no credentials it blocks nothing, and the whole phone gate is off behind PHONE_VERIFICATION_REQUIRED (ruling 2026-10-11, option A). Smoked: unknown. Both markers are `[guards F081.9 partial]`; check ticket #857",
+     "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` marked F081.9 (#857): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     }
    ]
@@ -8246,7 +8240,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-18",
    "path": "sign-in-you/F103-the-zip-decides-the-market.md",
    "n": 7,
    "totals": {
@@ -8256,8 +8250,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 0,
-     "no": 7,
+     "yes": 4,
+     "no": 3,
      "unknown": 0
     },
     "reviewed": {
@@ -8291,7 +8285,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8299,14 +8293,13 @@
      "issues": [
       850
      ],
-     "note": "`markets`, `market_members`, `market_key()` (#693, PR #708); Sacramento = four counties, Tahoe-basin CCDs carved out as a waiting market; any other county answers `county-<fips>` with no rows [V]. Checked: no: `tests/markets-db.test.ts` is marked partial only; two-state market not tested. Reviewed: no (review-skipped).",
+     "note": "`markets`, `market_members`, `market_key()` (#693, PR #708) [V]. Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8317,7 +8310,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8325,14 +8318,13 @@
      "issues": [
       850
      ],
-     "note": "`zip_county` (33,486 zips), `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: no: `zip-market-db.test`, `zip-market.test`, `landing/actions.test`, `onboarding/actions.test` all marked partial. Reviewed: no (review-skipped).",
+     "note": "`zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849).",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8367,7 +8359,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8375,14 +8367,13 @@
      "issues": [
       850
      ],
-     "note": "Sign-up and /landing resolve the market and name it; no list or select (#694) [V `OnboardingFlow.test.tsx`]. Explore still falls back to Sacramento for a visitor (#588, F104/F105 scope, not sign-up). Checked: no: markers are partial; no scan for IP or GPS. Reviewed: no (review-skipped).",
+     "note": "Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. Explore's visitor fallback is F104/F105 (#588), not sign-up.",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8416,7 +8407,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8424,14 +8415,13 @@
      "issues": [
       850
      ],
-     "note": "`members.home_town`, `zip_home()`, `member.zip.set`, Zip row on /you (#695, PR #757) [V]. One-tenth land-share threshold is a stand-in for population weighting (PR body). Checked: no: `home-town-db.test`, `home-town-private.test`, `zip-set.test` marked partial. Reviewed: no (review-skipped).",
+     "note": "`members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616).",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8649,7 +8639,7 @@
   "sign-in-you": {
    "features": 5,
    "n": 32,
-   "red": 4,
+   "red": 3,
    "totals": {
     "built": {
      "yes": 21,
@@ -8657,8 +8647,8 @@
      "unknown": 1
     },
     "checked": {
-     "yes": 2,
-     "no": 29,
+     "yes": 12,
+     "no": 19,
      "unknown": 1
     },
     "reviewed": {
@@ -8687,7 +8677,7 @@
  "all": {
   "features": 31,
   "n": 249,
-  "red": 18,
+  "red": 17,
   "totals": {
    "built": {
     "yes": 174,
@@ -8695,8 +8685,8 @@
     "unknown": 1
    },
    "checked": {
-    "yes": 85,
-    "no": 163,
+    "yes": 95,
+    "no": 153,
     "unknown": 1
    },
    "reviewed": {
@@ -8829,8 +8819,7 @@
    "F056.8",
    "F057.1",
    "F065.2a",
-   "F077.3",
-   "F081.2"
+   "F077.3"
   ],
   "NO-CHECK": [
    "F060.4",
@@ -8885,16 +8874,7 @@
    "F065.3",
    "F065.4",
    "F081.1",
-   "F081.3",
-   "F081.4",
-   "F081.5",
-   "F081.6",
-   "F081.8",
-   "F081.9",
-   "F103.1",
-   "F103.2a",
-   "F103.3",
-   "F103.5a"
+   "F081.8"
   ],
   "NOT-REVIEWED": [
    "F060.1",

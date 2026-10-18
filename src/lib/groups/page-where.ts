@@ -26,6 +26,10 @@ export async function resolvePageWhere(supabase: SupabaseClient, groupId: string
   }
 }
 
+/** #894 — "It moves" and "I go to them" anchor to the metro only so the Page scopes to its market; that anchor is no fixed place. */
+export const fixedPlacement = <P>(w: Pick<PageWhere, 'mode'> | null | undefined, placement: P | undefined): P | undefined =>
+  w?.mode === 'roaming' || w?.mode === 'travel' ? undefined : placement
+
 const list = (names: string[]) => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`)
 
 /** The one line a visitor reads, or null when there's nothing to add. */
@@ -39,3 +43,7 @@ export function whereLine(w: PageWhere): string | null {
   }
   return null
 }
+
+/** #894 — what the Location card says it is now: the fixed place, else the Page's own line. */
+export const whereNow = (w: PageWhere | null | undefined, placement: { label: string } | undefined): string | null =>
+  fixedPlacement(w, placement)?.label || (w ? whereLine(w) : null)
