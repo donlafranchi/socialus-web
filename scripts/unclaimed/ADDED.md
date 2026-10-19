@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-18** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-19** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -246,3 +246,4 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-18 | Bear Yuba Land Trust | Land trust (nonprofit) | Nevada City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
 | 2026-10-18 | Villager Nursery | Nursery (natives and seeds) | Truckee | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
 | 2026-10-18 | Redbud Nursery | Nursery and plant shop | Newcastle | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-19 | Maidu Park Farmers Market | Farmers market | Roseville | Farmers markets, Food & drink | real weekly Market day posts (Sundays 9–1) from the operator's own site, not Samples; stock photos only; lead: Don |
