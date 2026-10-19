@@ -66,9 +66,6 @@
   "src/components/sell/ServiceComposer.tsx": [
     "min-h-[5rem]"
   ],
-  "src/components/shell/NewVersionNotice.tsx": [
-    "pt-[max(0.25rem,env(safe-area-inset-top))]"
-  ],
   "src/components/venue/VenuePublicPage.tsx": [
     "text-[22px]",
     "text-[22px]",
