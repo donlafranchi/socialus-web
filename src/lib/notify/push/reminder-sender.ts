@@ -7,6 +7,9 @@ import { dueSlot, reminderEmail, reminderMessage, reminderUrl, seriesOccurrences
 import { sendPush, type SendResult, type Subscription } from './send'
 import { sendMemberEmail } from '../email'
 import type { PushMessage } from './rules'
+import { METRO_TIME_ZONE } from '../../metro/metro-time'
+import { metroDate } from '../../metro/metro-week'
+import { attends, stallReminderBody, vendorsLine } from '../../markets/stalls'
 
 type Db = Pick<Client | PoolClient, 'query'>
 export interface Channels {
@@ -29,6 +32,7 @@ type Row = {
   weekdays: number[] | null
   starts_on: string | null
   ends_on: string | null
+  group_id: string
   name: string
   public_id: string
   remind_evening: boolean | null
@@ -48,7 +52,7 @@ export async function runReminders(db: Db, now: Date, ch: Channels = {}): Promis
     await db.query<Row>(
       `select r.id as reminder_id, r.member_id, u.email, r.post_id, r.series_id,
               p.body, p.starts_at, p.ends_at, s.weekdays, to_char(s.starts_on, 'YYYY-MM-DD') as starts_on, to_char(s.ends_on, 'YYYY-MM-DD') as ends_on,
-              g.name, g.public_id, pr.remind_evening, pr.remind_hour, pr.paused, pr.quiet_start, pr.quiet_end
+              g.id as group_id, g.name, g.public_id, pr.remind_evening, pr.remind_hour, pr.paused, pr.quiet_start, pr.quiet_end
          from public.post_reminders r
          join public.members m on m.id = r.member_id and m.deleted_at is null
          left join auth.users u on u.id = r.member_id
@@ -79,15 +83,82 @@ export async function runReminders(db: Db, now: Date, ch: Channels = {}): Promis
     const occurrences = r.series_id
       ? seriesOccurrences({ weekdays: r.weekdays ?? [], startsOn: r.starts_on, endsOn: r.ends_on }, { startsAt: new Date(r.starts_at), endsAt: r.ends_at ? new Date(r.ends_at) : null }, now, until)
       : [{ startsAt: new Date(r.starts_at), endsAt: r.ends_at }]
+    const stalls = r.series_id ? await stallsAt(db, r.group_id) : []
     for (const o of occurrences) {
+      const coming = vendorsLine(stalls.filter((x) => attends(x, metroDate(o.startsAt, METRO_TIME_ZONE))).map((x) => x.name))
       const sent = new Set(
         (await db.query<{ slot: Slot }>(`select slot from public.reminder_sends where reminder_id = $1 and occurs_at = $2`, [r.reminder_id, o.startsAt])).rows.map((x) => x.slot),
       )
       const slot = dueSlot(o.startsAt, now, prefs, sent)
       if (!slot) continue
       due++
-      const facts: ReminderFacts = { reminderId: r.reminder_id, pageName: r.name, pagePublicId: r.public_id, body: r.body, occursAt: o.startsAt }
+      const facts: ReminderFacts = { reminderId: r.reminder_id, pageName: r.name, pagePublicId: r.public_id, body: coming ? `${coming} ${r.body}` : r.body, occursAt: o.startsAt }
       const how = await deliver(db, r, slot, facts, push, email, site)
+      if (how === 'none') {
+        undelivered++
+        continue
+      }
+      if (how === 'push') pushed++
+      else emailed++
+      await db.query(`insert into public.reminder_sends (reminder_id, occurs_at, slot) values ($1, $2, $3) on conflict do nothing`, [r.reminder_id, o.startsAt, slot])
+      await db.query(`select public.notification_count('reminder', 'sends', 1)`)
+      if (how === 'email') await db.query(`select public.notification_count('reminder', 'emails', 1)`)
+    }
+  }
+  const st = await runStallReminders(db, now, until, push, email, site)
+  return { due: due + st.due, pushed: pushed + st.pushed, emailed: emailed + st.emailed, undelivered: undelivered + st.undelivered }
+}
+
+/** #955 — the vendors coming to a market, with when each comes. */
+const stallsAt = async (db: Db, marketId: string) =>
+  (
+    await db.query<{ name: string; every_week: boolean; dates: string[]; skip_dates: string[] }>(
+      `select v.name, s.every_week, s.dates::text[] as dates, s.skip_dates::text[] as skip_dates
+         from public.market_stalls s join public.groups v on v.id = s.vendor_group_id
+        where s.market_group_id = $1 and v.lifecycle_state = 'active' and v.dissolved_at is null and v.unclaimed_hidden_at is null
+        order by s.confirmed_at is null, v.name`,
+      [marketId],
+    )
+  ).rows
+
+type StallRow = Omit<Row, 'post_id' | 'series_id' | 'body' | 'starts_on' | 'ends_on' | 'group_id'> & { every_week: boolean; dates: string[]; skip_dates: string[]; market_name: string }
+
+/** #955 — "Remind me" on a vendor: the evening before each market day it is at, never on one it is skipping. */
+async function runStallReminders(db: Db, now: Date, until: Date, push: NonNullable<Channels['push']>, email: NonNullable<Channels['email']>, site: string) {
+  const rows = (
+    await db.query<StallRow>(
+      `select r.id as reminder_id, r.member_id, u.email, st.every_week, st.dates::text[] as dates, st.skip_dates::text[] as skip_dates,
+              v.name, v.public_id, mk.name as market_name, ser.weekdays, p.starts_at, p.ends_at,
+              pr.remind_evening, false as remind_hour, pr.paused, pr.quiet_start, pr.quiet_end
+         from public.post_reminders r
+         join public.members m on m.id = r.member_id and m.deleted_at is null
+         left join auth.users u on u.id = r.member_id
+         join public.market_stalls st on st.id = r.stall_id
+         join public.groups v on v.id = st.vendor_group_id and v.lifecycle_state = 'active' and v.dissolved_at is null and v.unclaimed_hidden_at is null
+         join public.groups mk on mk.id = st.market_group_id and mk.lifecycle_state = 'active' and mk.dissolved_at is null and mk.unclaimed_hidden_at is null
+         join lateral (
+           select pp.starts_at, pp.ends_at, pp.series_id from public.page_posts pp
+            where pp.group_id = mk.id and pp.series_id is not null and pp.sample_kind is null and pp.lifecycle_state = 'active'
+              and pp.dissolved_at is null and pp.hidden_at is null and pp.removed_at is null and pp.starts_at is not null
+            order by pp.starts_at limit 1
+         ) p on true
+         join public.post_series ser on ser.id = p.series_id
+         left join public.notification_prefs pr on pr.member_id = r.member_id
+        where r.stall_id is not null`,
+    )
+  ).rows
+  let due = 0, pushed = 0, emailed = 0, undelivered = 0
+  for (const r of rows) {
+    const prefs: ReminderPrefs = { remindEvening: r.remind_evening ?? true, remindHour: false, paused: r.paused ?? false, quietStart: r.quiet_start ?? 21, quietEnd: r.quiet_end ?? 8 }
+    const first = { startsAt: new Date(r.starts_at), endsAt: r.ends_at ? new Date(r.ends_at) : null }
+    for (const o of seriesOccurrences({ weekdays: r.weekdays ?? [], startsOn: null, endsOn: null }, first, now, until)) {
+      if (!attends(r, metroDate(o.startsAt, METRO_TIME_ZONE))) continue
+      const sent = new Set((await db.query<{ slot: Slot }>(`select slot from public.reminder_sends where reminder_id = $1 and occurs_at = $2`, [r.reminder_id, o.startsAt])).rows.map((x) => x.slot))
+      const slot = dueSlot(o.startsAt, now, prefs, sent)
+      if (!slot) continue
+      due++
+      const facts: ReminderFacts = { reminderId: r.reminder_id, pageName: r.name, pagePublicId: r.public_id, body: stallReminderBody(r.market_name, o.startsAt, o.endsAt), occursAt: o.startsAt, plain: true }
+      const how = await deliver(db, r as unknown as Row, slot, facts, push, email, site)
       if (how === 'none') {
         undelivered++
         continue

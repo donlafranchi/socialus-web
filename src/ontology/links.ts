@@ -284,6 +284,20 @@ export const LINK_TYPES: readonly LinkType[] = [
       'and appears under neither of the others. Declared because leaving it implicit is how a ' +
       'relation becomes an identity — the role is on the link, never on the person.',
   },
+  {
+    name: 'a Page sells at a market Page',
+    from: 'Page',
+    to: 'Page',
+    via: { table: 'market_stalls', column: 'market_group_id' },
+    writtenBy: ['group.market_stall.set'],
+    ruled: '2026-10-18',
+    built: true,
+    note:
+      'A vendor with no place of its own is found where it sells: on the market\'s days, every week or on ' +
+      'listed dates, minus the ones it skips. The vendor\'s managers make and change the link; a market ' +
+      'Page\'s organiser, once claimed, confirms or removes it. A Page to a Page, so neither becomes a ' +
+      'kind of Page: being a market is having market days, being a vendor is this link (#955, Don: "Go").',
+  },
 ] as const
 
 /** Declared links whose backing is real today. */
