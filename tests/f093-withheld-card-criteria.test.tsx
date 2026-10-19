@@ -139,7 +139,8 @@ describe.skipIf(!RUNNABLE)('F093 criteria 4, 5, 9, 10 — from the database to t
     // No photo, and a photo a moderator hid, both show the kind's default art.
     cleanup()
     const [quilters] = (await explore()).filter((r) => r.name === 'F094 Quilters')
-    expect(cardOf(quilters!).querySelector('[data-testid="default-art"]')).not.toBeNull()
+    // #335 — the Page kind's art, not a plain tile: the withheld read now carries the kind.
+    expect(cardOf(quilters!).querySelector('[data-testid="default-art"]')?.getAttribute('data-kind')).toBe('group')
     cleanup()
     await client.query(`update public.groups set photo_hidden_at = now() where id = $1`, [WITH_PHOTO])
     try {
