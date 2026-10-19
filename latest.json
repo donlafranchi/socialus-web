@@ -1,5 +1,5 @@
 {
- "at": "2026-10-18T16:37:07.628Z",
+ "at": "2026-10-19T20:38:45.590Z",
  "state": "quiet",
  "kinds": [
   {
@@ -17,8 +17,21 @@
      "opt_ins": 0,
      "unsubscribes": 0,
      "mutes": 0,
+     "emails": 0,
      "opted_in_members": 0,
      "members": 13
+    },
+    {
+     "week": "2026-10-19",
+     "kind": "follow_posts",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 0,
+     "members": 14
     }
    ]
   },
@@ -37,8 +50,42 @@
      "opt_ins": 0,
      "unsubscribes": 0,
      "mutes": 0,
+     "emails": 0,
      "opted_in_members": 0,
      "members": 13
+    },
+    {
+     "week": "2026-10-19",
+     "kind": "weekend",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 0,
+     "members": 14
+    }
+   ]
+  },
+  {
+   "kind": "reminder",
+   "state": "quiet",
+   "why": null,
+   "optInRate": 0,
+   "openRate": null,
+   "weeks": [
+    {
+     "week": "2026-10-19",
+     "kind": "reminder",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 0,
+     "members": 14
     }
    ]
   }
