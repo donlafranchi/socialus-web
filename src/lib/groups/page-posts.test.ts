@@ -50,6 +50,7 @@ describe('resolvePagePosts', () => {
         hiddenAt: null,
         sampleKind: null,
         seriesId: null,
+        current: true,
       },
     ])
     expect(calls.order).toEqual(['created_at', { ascending: false }])
@@ -221,3 +222,25 @@ describe('a post photo', () => {
   })
 })
 
+
+// #913 — the Page splits on the database's one rule (post_current_until, read as current_until), never its own.
+describe('current or earlier', () => {
+  const now = new Date('2026-10-19T12:00:00Z')
+  const row = (current_until: string | null) => ({
+    id: 'a', body: 'x', created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', starts_at: null, location: null, current_until,
+  })
+
+  it('asks the database until when each post is current', async () => {
+    const { supabase, chain } = client({ data: [], error: null })
+    await resolvePagePosts(supabase, 'g1', now)
+    expect(String(chain.select.mock.calls[0]![0])).toMatch(/\bcurrent_until\b/)
+  })
+
+  it('is current until that moment, and earlier after it', async () => {
+    for (const [until, current] of [['2026-10-20T00:00:00Z', true], ['2026-10-19T12:00:00Z', true], ['2026-10-18T00:00:00Z', false]] as const) {
+      const { supabase } = client({ data: [row(until)], error: null })
+      const [p] = await resolvePagePosts(supabase, 'g1', now)
+      expect(p!.current).toBe(current)
+    }
+  })
+})
