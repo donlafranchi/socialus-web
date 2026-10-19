@@ -1,3 +1,4 @@
+import type { MarketSchedule } from './market-days'
 // #517 — which of the researched Sacramento makers become unclaimed Pages, in
 // what order, and what each one says. Pure: scripts/unclaimed/load.ts writes it.
 import { toSlug } from '../slugify'
@@ -16,6 +17,8 @@ export interface MakerRow {
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   /** #909 — 3–6 things it sells or offers, each from a page on its own site. Price in dollars, optional. */
   products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
+  /** A market whose own site states its day and hours: real Market day posts instead of Samples (Don, 2026-10-19). */
+  schedule?: MarketSchedule
 }
 
 export type SkipReason = 'personal-care' | 'no-site'
@@ -57,6 +60,7 @@ export interface PlannedPage {
   address?: string
   /** #909 — sample products and services from its own site; the Page shows them labelled Sample, credited. */
   products?: SampleProduct[]
+  schedule?: MarketSchedule
 }
 
 export interface SampleProduct {
@@ -248,6 +252,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
       ...(address ? { address } : {}),
       ...(sampleProductsFor(url, row.products).length ? { products: sampleProductsFor(url, row.products) } : {}),
+      ...(row.schedule ? { schedule: row.schedule } : {}),
     }
   })
   return { listed, skipped }

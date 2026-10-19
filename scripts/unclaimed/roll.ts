@@ -9,6 +9,7 @@
 import { appendFileSync } from 'node:fs'
 import { Client } from 'pg'
 import { redateSamples } from '../../src/lib/unclaimed/load'
+import { syncMarketDays } from '../../src/lib/unclaimed/market-days'
 import type { SampleKind } from '../../src/lib/unclaimed/samples'
 import { readPlanned } from './rows'
 
@@ -47,7 +48,14 @@ async function main() {
       moved += n
       if (n) touchedPages++
     }
+    // Don, 2026-10-19 — a market's real Market day posts keep its next three dates.
+    let marketDays = 0
+    for (const p of readPlanned().listed.filter((x) => x.schedule)) {
+      const { rows: [g] } = await db.query(`select id, photo_url from public.groups where unclaimed_at is not null and unclaimed_hidden_at is null and public_info_url = $1`, [p.publicInfoUrl])
+      if (g) marketDays += await syncMarketDays(db, g.id, p.name, p.schedule!, g.photo_url, now)
+    }
     await db.query(apply ? 'commit' : 'rollback')
+    summary(`${apply ? 'Moved' : 'Would move'} ${marketDays} Market day posts.`)
     summary(`${apply ? 'Moved' : 'Would move'} ${moved} of ${rows.length} sample posts on ${touchedPages} of ${pages.size} unclaimed Pages${unknown ? ` (${unknown} not in the lists: rolled only)` : ''}.`)
   } finally {
     await db.end()

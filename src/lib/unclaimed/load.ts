@@ -8,6 +8,7 @@ import { SYSTEM_MEMBER_ID } from '../system-member'
 import type { PlannedPage, SampleProduct } from './plan'
 import { SAMPLE_LABEL, fitsSchedule, rollSample, sampleSchedule, samplePosts, type SampleKind } from './samples'
 import type { Uploaded } from './upload'
+import { syncMarketDays } from './market-days'
 
 interface Db {
   query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }>
@@ -164,7 +165,7 @@ export async function enrichPage(
       }
     }
     const samples = await db.query(`select id, sample_kind, starts_at, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
-    const needs = !g.photo_url || samples.rows.length < 3
+    const needs = !g.photo_url || (!page.schedule && samples.rows.length < 3)
     if (needs) {
       const e = await gather()
       if (e.photos.length < PHOTOS_PER_PAGE) throw new Error(`only ${e.photos.length} pictures found, ${PHOTOS_PER_PAGE} wanted`)
@@ -178,7 +179,7 @@ export async function enrichPage(
         await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'phone', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
       }
       await mergeSocial(db, g, e)
-      if (samples.rows.length < 3) {
+      if (!page.schedule && samples.rows.length < 3) {
         await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
         const posts = samplePosts({ name: page.name, slug: page.slug, pool: page.pool, area: page.area }, now)
         for (const [i, post] of posts.entries()) {
@@ -197,6 +198,10 @@ export async function enrichPage(
     // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
     if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
     if (await redateSamples(db, samples.rows as SampleRow[], page.slug, page.pool, now)) touched = true
+    if (page.schedule) {
+      const { rows: [c] } = await db.query(`select photo_url from public.groups where id = $1`, [g.id])
+      if (await syncMarketDays(db, g.id, page.name, page.schedule, (c?.photo_url as string | null) ?? null, now)) touched = true
+    }
     if (page.products?.length && (await syncSampleProducts(db, g.id, page.products, now))) touched = true
     await db.query('commit')
     return needs ? 'enriched' : touched ? 'refreshed' : 'complete'

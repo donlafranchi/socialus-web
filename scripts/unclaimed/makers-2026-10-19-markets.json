@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Maidu Park Farmers Market",
+    "category": "Farmers market",
+    "makes": "A year-round Sunday farmers market in Maidu Park, rain or shine: 60+ farmers and vendors, food stands and trucks, live music and free parking",
+    "area": "Roseville (Placer)",
+    "address": "1550 Maidu Drive, Roseville, CA 95661",
+    "site": "https://www.bemoneysmartusa.org/copy-of-mahany-park-roseville",
+    "social": {
+      "instagram": "https://www.instagram.com/livingsmartfarmersmarkets/",
+      "facebook": "https://www.facebook.com/livingsmartfarmersmarket/"
+    },
+    "schedule": {
+      "weekday": 7,
+      "start": "09:00",
+      "end": "13:00",
+      "hours": "Sundays 9 AM–1 PM, year-round, rain or shine",
+      "source": "https://www.bemoneysmartusa.org/copy-of-mahany-park-roseville"
+    },
+    "confidence": "High; operator's own site (I Love My Farmers Market) checked 2026-10-19: every Sunday 9 AM–1 PM, year round, rain or shine, 1550 Maidu Drive. Lead: Don. No TikTok found; Instagram and Facebook from the operator's home page. Stock photos only: the site's one photo is a crowd scene that may show children."
+  }
+]
