@@ -36,6 +36,8 @@ export interface WithheldAnnouncementRow {
   announcement_count: number
   announcement_ids: string[]
   updated_at: string
+  /** #335 — the Page's kind, for its default art when it has no photo. Already public on the front door. */
+  kind?: string | null
 }
 
 /** Metro or place for Explore; one group so an announcement anchor resolves. */
@@ -72,9 +74,8 @@ export function mapWithheldRow(r: WithheldAnnouncementRow): BrowseResult {
     resultKind: 'post',
     resultId: r.result_id,
     groupId: r.group_id,
-    // Not projected: a Page's kind is public, but the card carries exactly
-    // four things and this is not one of them.
-    groupKind: '',
+    // #335 — only for the default art when there's no photo; the card shows no kind words.
+    groupKind: r.kind ?? '',
     slug: r.slug,
     name: maskEmails(r.name), // #450
     // Criterion 9 — lands on the Page's withheld card, marked, via the latest

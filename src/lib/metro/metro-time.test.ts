@@ -146,3 +146,32 @@ describe('a range', () => {
     )
   })
 })
+
+// Tap-speed: Explore formats a date on up to a hundred cards; building a formatter per call
+// cost ~250ms of a phone's first paint. The formatters are built once and reused.
+describe('formatter reuse', () => {
+  it('builds no new formatter per card', async () => {
+    const { vi } = await import('vitest')
+    formatCardWhen('2026-09-24T02:00:00Z', METRO_TIME_ZONE, new Date('2026-09-20T00:00:00Z'), '2026-09-24T04:00:00Z')
+    formatMetroDateTime('2026-09-24T02:00:00Z', METRO_TIME_ZONE, new Date('2026-09-20T00:00:00Z'), '2026-09-24T04:00:00Z')
+    formatPostedDate('2025-09-24T02:00:00Z', METRO_TIME_ZONE, new Date('2026-09-20T00:00:00Z'))
+    const Original = Intl.DateTimeFormat
+    let built = 0
+    Intl.DateTimeFormat = new Proxy(Original, { construct: (t, a) => (built++, Reflect.construct(t, a)) })
+    const dateStr = vi.spyOn(Date.prototype, 'toLocaleDateString')
+    const timeStr = vi.spyOn(Date.prototype, 'toLocaleTimeString')
+    try {
+      for (let i = 0; i < 50; i++) {
+        formatCardWhen('2026-09-24T02:00:00Z', METRO_TIME_ZONE, new Date('2026-09-20T00:00:00Z'), '2026-09-24T04:00:00Z')
+        formatMetroDateTime('2026-09-24T02:00:00Z', METRO_TIME_ZONE, new Date('2026-09-20T00:00:00Z'), '2026-09-24T04:00:00Z')
+        formatPostedDate('2025-09-24T02:00:00Z', METRO_TIME_ZONE, new Date('2026-09-20T00:00:00Z'))
+      }
+      expect(built).toBe(0)
+      expect(dateStr).not.toHaveBeenCalled()
+      expect(timeStr).not.toHaveBeenCalled()
+    } finally {
+      Intl.DateTimeFormat = Original
+      vi.restoreAllMocks()
+    }
+  })
+})

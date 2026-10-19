@@ -119,4 +119,16 @@ describe.skipIf(!RUNNABLE)('#314 — undated posts expire after 14 days', () => 
       await client.query('rollback')
     }
   })
+
+  // #913 — the Page reads the same rule, as a computed field on the row, to put an expired undated post under Earlier.
+  it('the Page reads each post’s current_until from the same rule, signed in', async () => {
+    await asVisitor(async () => {
+      const { rows } = await client.query<{ id: string; current: boolean }>(
+        `select pp.id, public.current_until(pp) >= now() as current from public.page_posts pp where pp.group_id = $1`,
+        [PAGE],
+      )
+      const current = Object.keys(ids).filter((k) => rows.find((r) => r.id === ids[k])?.current).sort()
+      expect(current).toEqual(['extended', 'fresh'])
+    })
+  })
 })

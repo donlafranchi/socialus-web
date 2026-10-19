@@ -44,6 +44,8 @@ export interface PagePost {
   sampleKind?: 'event' | 'deal' | 'last_minute' | null
   /** F074 / #945 — the weekly series this post is an occurrence of, if any. */
   seriesId?: string | null
+  /** #913 — false once the database's post_current_until has passed; an undated one then sits under Earlier. */
+  current?: boolean
 }
 
 interface Row {
@@ -61,6 +63,7 @@ interface Row {
   hidden_at?: string | null
   sample_kind?: 'event' | 'deal' | 'last_minute' | null
   series_id?: string | null
+  current_until?: string | null
   location: { label: string | null } | { label: string | null }[] | null
   post_tags?: { tags: { label: string } | { label: string }[] | null }[] | null
 }
@@ -70,10 +73,11 @@ interface Row {
 export async function resolvePagePosts(
   supabase: SupabaseClient,
   groupId: string,
+  now: Date = new Date(),
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, location:locations(label), post_tags(tags(label))')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, current_until, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)
@@ -107,6 +111,7 @@ export async function resolvePagePosts(
       hiddenAt: r.hidden_at ?? null,
       sampleKind: r.sample_kind ?? null,
       seriesId: r.series_id ?? null,
+      current: !r.current_until || new Date(r.current_until).getTime() >= now.getTime(),
     }
   })
 }
