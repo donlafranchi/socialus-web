@@ -16,6 +16,15 @@
 /** Sacramento. Replaced by the metro's own column when #173 lands. */
 export const METRO_TIME_ZONE = 'America/Los_Angeles'
 
+// Building an Intl.DateTimeFormat is slow (Explore formats a hundred cards per paint), so each is built once.
+const formatters = new Map<string, Intl.DateTimeFormat>()
+function fmt(locale: string, opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${locale}|${JSON.stringify(opts)}`
+  let f = formatters.get(key)
+  if (!f) formatters.set(key, (f = new Intl.DateTimeFormat(locale, opts)))
+  return f
+}
+
 /**
  * The offset, in milliseconds, of `tz` from UTC at a given instant.
  *
@@ -23,7 +32,7 @@ export const METRO_TIME_ZONE = 'America/Los_Angeles'
  * the offset. There is no API that gives this directly.
  */
 function offsetAt(utcMs: number, tz: string): number {
-  const parts = new Intl.DateTimeFormat('en-US', {
+  const parts = fmt('en-US', {
     timeZone: tz,
     hour12: false,
     year: 'numeric',
@@ -92,18 +101,16 @@ export function formatMetroDateTime(
 ): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const sameYear =
-    new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric' }).format(d) ===
-    new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric' }).format(now)
-  const day = d.toLocaleDateString('en-US', {
+  const sameYear = isThisYear(d, tz, now)
+  const day = fmt('en-US', {
     timeZone: tz,
     weekday: 'long',
     month: 'long',
     day: 'numeric',
     ...(sameYear ? {} : { year: 'numeric' }),
-  })
-  const clock = d
-    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+  }).format(d)
+  const clock = fmt('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+    .format(d)
     // "7:00 PM" reads better as "7:00pm" beside a date, and the voice guide
     // has no place for shouting.
     .replace(' AM', 'am')
@@ -118,14 +125,14 @@ export function formatMetroDateTime(
 }
 
 function longClock(d: Date, tz: string): string {
-  return d
-    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+  return fmt('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+    .format(d)
     .replace(' AM', 'am')
     .replace(' PM', 'pm')
 }
 
 function sameMetroDay(a: string, b: string, tz: string): boolean {
-  const day = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
+  const day = fmt('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
   return day.format(new Date(a)) === day.format(new Date(b))
 }
 
@@ -136,7 +143,7 @@ function joinRange(start: string, end: string): string {
 }
 
 function isThisYear(d: Date, tz: string, now: Date): boolean {
-  const year = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric' })
+  const year = fmt('en-US', { timeZone: tz, year: 'numeric' })
   return year.format(d) === year.format(now)
 }
 
@@ -150,13 +157,13 @@ export function formatCardWhen(
 ): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const day = d.toLocaleDateString('en-US', {
+  const day = fmt('en-US', {
     timeZone: tz,
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     ...(isThisYear(d, tz, now) ? {} : { year: 'numeric' }),
-  })
+  }).format(d)
   const clock = shortClock(d, tz)
   // "Thu, Sep 10" → "Thu Sep 10"; a year keeps its own comma.
   const start = `${day.replace(',', '')} · ${clock}`
@@ -169,18 +176,18 @@ export function formatCardWhen(
 export function formatPostedDate(iso: string, tz: string = METRO_TIME_ZONE, now: Date = new Date()): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const day = d.toLocaleDateString('en-US', {
+  const day = fmt('en-US', {
     timeZone: tz,
     month: 'short',
     day: 'numeric',
     ...(isThisYear(d, tz, now) ? {} : { year: 'numeric' }),
-  })
+  }).format(d)
   return `Posted ${day}`
 }
 
 function shortClock(d: Date, tz: string): string {
-  return d
-    .toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+  return fmt('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+    .format(d)
     .replace(':00', '')
     .replace(' AM', 'am')
     .replace(' PM', 'pm')
