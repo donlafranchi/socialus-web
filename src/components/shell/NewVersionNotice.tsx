@@ -40,7 +40,7 @@ export function NewVersionNotice({ buildId }: { buildId: string }) {
   return (
     <p
       role="status"
-      className="fixed inset-x-0 top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)] px-4 pb-1 pt-[max(0.25rem,env(safe-area-inset-top))] text-center text-body-sm text-[var(--color-fg)]"
+      className="fixed inset-x-0 top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)] px-4 pb-1 pt-[max(var(--spacing),env(safe-area-inset-top))] text-center text-body-sm text-[var(--color-fg)]"
     >
       A new version is ready ·{' '}
       <button

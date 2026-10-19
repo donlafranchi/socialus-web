@@ -307,6 +307,21 @@
       "ruled": "2026-09-19",
       "built": true,
       "note": "AUTHORITY, not attachment — the only relation that implies being able to change a Page, and the one every managing check actually reads (requireManagingRole, role in owner or steward, branching by Page kind). DISTINCT FROM \"a Member owns a Page\", which points at groups.founder_member_id: that column records who STARTED the Page and is not what any permission consults. Today they coincide because group.create writes both; nothing makes them stay that way, and a steward who did not found a Page has authority under this link and appears under neither of the others. Declared because leaving it implicit is how a relation becomes an identity — the role is on the link, never on the person."
+    },
+    {
+      "name": "a Page sells at a market Page",
+      "from": "Page",
+      "to": "Page",
+      "via": {
+        "table": "market_stalls",
+        "column": "market_group_id"
+      },
+      "writtenBy": [
+        "group.market_stall.set"
+      ],
+      "ruled": "2026-10-18",
+      "built": true,
+      "note": "A vendor with no place of its own is found where it sells: on the market's days, every week or on listed dates, minus the ones it skips. The vendor's managers make and change the link; a market Page's organiser, once claimed, confirms or removes it. A Page to a Page, so neither becomes a kind of Page: being a market is having market days, being a vendor is this link (#955, Don: \"Go\")."
     }
   ],
   "handlers": [
@@ -318,6 +333,10 @@
     "group.delete",
     "group.discard_draft",
     "group.follow",
+    "group.market_stall.confirm",
+    "group.market_stall.remove",
+    "group.market_stall.set",
+    "group.market_stall.skip",
     "group.member_join",
     "group.member_leave",
     "group.post_create",

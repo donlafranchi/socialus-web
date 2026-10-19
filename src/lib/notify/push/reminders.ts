@@ -72,6 +72,8 @@ export interface ReminderFacts {
   pagePublicId: string
   body: string
   occursAt: Date
+  /** #955 — the body already says when (a vendor at a market). */
+  plain?: boolean
 }
 
 export const timeOf = (at: Date, tz = METRO_TIME_ZONE) =>
@@ -80,13 +82,13 @@ const whenLine = (slot: Slot, at: Date) => (slot === 'evening' ? C.reminderTomor
 export const reminderUrl = (f: ReminderFacts) => `${canonicalPagePath(f.pagePublicId)}?via=reminder&r=${f.reminderId}`
 
 export function reminderMessage(slot: Slot, f: ReminderFacts): PushMessage {
-  return { kind: 'reminder', title: f.pageName, body: `${whenLine(slot, f.occursAt)} · ${snippet(f.body, 100)}`, url: reminderUrl(f), tag: `reminder-${f.reminderId}` }
+  return { kind: 'reminder', title: f.pageName, body: f.plain ? snippet(f.body, 140) : `${whenLine(slot, f.occursAt)} · ${snippet(f.body, 100)}`, url: reminderUrl(f), tag: `reminder-${f.reminderId}` }
 }
 
 export function reminderEmail(slot: Slot, f: ReminderFacts, site: string): { subject: string; text: string } {
   const link = `${site.replace(/\/$/, '')}${reminderUrl(f)}`
   return {
-    subject: `${whenLine(slot, f.occursAt)}: ${f.pageName}`,
+    subject: f.plain ? `${f.pageName}: ${snippet(f.body, 100)}` : `${whenLine(slot, f.occursAt)}: ${f.pageName}`,
     text: `${f.pageName}\n${whenLine(slot, f.occursAt)}\n\n${snippet(f.body, 400)}\n\n${link}\n\n${C.reminderEmailStop}`,
   }
 }
