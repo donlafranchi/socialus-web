@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
-// #407 — the Password row's line is a sentence, not a value: at 390 it was cut to "Sign in without a…".
+// One way in (the PM, 2026-10-18): the emailed code. You has no Password row any more.
 
 const query = { select: () => query, eq: () => query, order: () => query, limit: async () => ({ data: [] }), maybeSingle: async () => ({ data: null }) }
 vi.mock('@/lib/supabase-server', () => ({
@@ -19,11 +19,11 @@ import YouPage from './page'
 
 afterEach(cleanup)
 
-describe('#407 — You → Settings → Password', () => {
-  it('shows its whole line instead of truncating it', async () => {
+describe('You → Settings', () => {
+  it('offers no password to set', async () => {
     render(await YouPage())
-    const line = screen.getByText('Sign in without an email')
-    expect(line).not.toHaveClass('truncate')
+    expect(screen.queryByTestId('settings-password')).toBeNull()
+    expect(screen.queryByText(/password/i)).toBeNull()
   })
 
   it('still truncates a long email', async () => {

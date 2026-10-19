@@ -39,6 +39,8 @@ import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components
 import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
 import { firstOccurrenceDate } from '@/lib/posts/series'
+import { RemindMeButton, type RemindActions } from '@/components/reminders/RemindMe'
+import { reminderFor, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
   AnnouncementFields,
@@ -132,6 +134,8 @@ interface Props {
   }
   /** F074.1 — offer the weekly repeat in the composer (off until its occurrences exist). */
   seriesComposer?: boolean
+  /** #945 — Remind me on a real dated post, for a visitor who does not manage the Page. */
+  reminders?: { viewer: ViewerReminders } & RemindActions
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -207,6 +211,7 @@ export function PagePosts({
   onDelete,
   startComposing = false,
   seriesComposer = SERIES_COMPOSER_ON,
+  reminders,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -598,7 +603,17 @@ export function PagePosts({
                   )}
 
                   {post.startsAt && (
-                    <div className="mt-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                      {reminders && !canPost && !post.sampleKind && !post.hiddenAt && (
+                        <RemindMeButton
+                          postId={post.id}
+                          repeats={!!post.seriesId}
+                          reminderId={reminderFor(reminders.viewer, post)}
+                          loggedIn={loggedIn}
+                          returnTo={returnTo ?? '/'}
+                          actions={reminders}
+                        />
+                      )}
                       <AddToCalendarLink
                         uid={`${post.id}@socialus.org`}
                         title={post.body.split('\n')[0].slice(0, 120)}

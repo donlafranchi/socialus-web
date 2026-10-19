@@ -2,15 +2,12 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { hasActiveBusinessGroup } from '@/lib/member/hasActiveBusinessGroup'
 
 function defaultSupabaseFactory(): SupabaseClient {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 /** unknown = not yet resolved, or the lookup failed. Both suppress the CTA. */
@@ -94,7 +91,7 @@ export function AuthCtaButtons({
         <Link
           href="/auth/login"
           data-testid="signup-link"
-          className="inline-flex items-center rounded-full bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex items-center rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
         >
           Sign in
         </Link>

@@ -97,7 +97,7 @@ function OpenSpotCard({ type, emoji }: { type: string; emoji: string }) {
 function ExampleCard({ name, tagline, emoji }: { name: string; tagline: string; emoji: string }) {
   return (
     <div className="h-full flex-shrink-0 w-44 bg-white border border-neutral-200 rounded-md overflow-hidden relative flex flex-col">
-      <div className="absolute top-2 right-2 z-10 bg-amber-100 text-amber-700 text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+      <div className="absolute top-2 right-2 z-10 text-micro font-semibold uppercase tracking-wider text-amber-800">
         Example
       </div>
       <div className="h-28 bg-gradient-to-br from-[var(--color-accent-tint)] to-amber-100 flex items-center justify-center text-3xl">
@@ -120,7 +120,7 @@ function ExampleCard({ name, tagline, emoji }: { name: string; tagline: string; 
 function FeaturedExampleCard() {
   return (
     <div className="relative bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
-      <div className="absolute top-3 right-3 z-10 bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wide">
+      <div className="absolute top-3 right-3 z-10 text-micro font-semibold uppercase tracking-wider text-amber-800">
         Example Page
       </div>
       <div className="md:flex">
@@ -137,10 +137,10 @@ function FeaturedExampleCard() {
             Sourdough loaves, brown-butter cookies, and seasonal jams — baked from a home kitchen in Oak Park.
             Pickup Saturdays at the Midtown Farmers Market.
           </p>
-          <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-neutral-600">
-            <span className="bg-neutral-100 rounded-full px-2 py-0.5">Home Baker</span>
-            <span className="bg-neutral-100 rounded-full px-2 py-0.5">Cottage Food Permit</span>
-            <span className="bg-neutral-100 rounded-full px-2 py-0.5">Sacramento, CA</span>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-neutral-600">
+            <span>Home Baker</span>
+            <span>Cottage Food Permit</span>
+            <span>Sacramento, CA</span>
           </div>
           <div className="mt-3 flex items-center gap-2">
             <Link

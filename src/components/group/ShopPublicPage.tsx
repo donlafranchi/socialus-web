@@ -14,7 +14,7 @@ import { PageEditorProvider } from './edit/PageEditor'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
-import { TagChips } from '@/components/tags/TagChips'
+import { TagLinks } from '@/components/tags/TagLinks'
 import { PageContactBlock } from './PageContactBlock'
 import { fixedPlacement, whereLine, whereNow, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
@@ -30,6 +30,9 @@ const NO_LINKS: ContactLinks = { website: null, socials: [] }
 import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
+import { NO_REMINDERS, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
+import { RemindEveryTimeButton } from '@/components/reminders/RemindMe'
+import { setReminderAction, removeReminderAction, remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
 import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
@@ -43,7 +46,7 @@ import { UnclaimedBox } from './UnclaimedBox'
 import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
 import { COPY } from '@/lib/copy'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
-import { LocalOwnerClaimProvider, LocalOwnerBadgeChip } from './LocalOwnerClaimState'
+import { LocalOwnerClaimProvider, LocalOwnerBadgeLabel } from './LocalOwnerClaimState'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
@@ -89,6 +92,8 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
+  reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
   draftTagCount?: number
   /** #302 — the owner's in-place editor (Don, 2026-10-04). */
@@ -125,6 +130,7 @@ export function ShopPublicPage({
   where = null,
   withheldPosts = [],
   followerCount = 0,
+  reminders = NO_REMINDERS,
   draftTagCount = 0,
   unclaimedActions,
   viewerMemberId = null,
@@ -134,6 +140,8 @@ export function ShopPublicPage({
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
+  // #945 — the weekly series this Page's real, dated posts belong to: following it offers Remind me every time.
+  const repeatingSeries = [...new Set(posts.filter((p) => p.seriesId && p.startsAt && !p.sampleKind && !p.hiddenAt).map((p) => p.seriesId!))]
 
   // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
   // single place `photo_hidden_at` is consulted; nothing here reads
@@ -235,10 +243,10 @@ export function ShopPublicPage({
                   ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
                   : shop.displayName}
               </h1>
-              {isBusinessKind(shop.kind) && <LocalOwnerBadgeChip />}
-              {/* #353 — a neutral tag after the name (Yelp's placement). */}
+              {isBusinessKind(shop.kind) && <LocalOwnerBadgeLabel />}
+              {/* #353 — a neutral label after the name (Yelp's placement); #951 — small-caps text, not a pill. */}
               {shop.unclaimed && (
-                <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+                <span data-testid="unclaimed-label" className="whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
                   {COPY.unclaimedLabel}
                 </span>
               )}
@@ -289,7 +297,7 @@ export function ShopPublicPage({
         {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
         {!viewerOwnsPage &&
           (memberOfOpenPage ? (
-            <span data-testid="viewer-member" className="chip self-start whitespace-nowrap text-xs">
+            <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
               Member
             </span>
           ) : (
@@ -303,6 +311,15 @@ export function ShopPublicPage({
                 returnTo={pagePath}
                 onFollow={followPageAction}
                 onUnfollow={unfollowPageAction}
+                whenFollowing={
+                  repeatingSeries.length > 0 ? (
+                    <RemindEveryTimeButton
+                      groupId={shop.groupId}
+                      on={repeatingSeries.every((id) => reminders.bySeries[id])}
+                      everyForPage={remindEveryTimeForPageAction}
+                    />
+                  ) : null
+                }
               />
             </div>
           ))}
@@ -366,7 +383,7 @@ export function ShopPublicPage({
       {showFound && (
         <PageSection id="found" title="Tags">
           {/* #316 — the Page's tags as #hashtags, signed in only (F093); moderated after they appear (#287). */}
-          {tags.length > 0 && <TagChips tags={tags} />}
+          {tags.length > 0 && <TagLinks tags={tags} />}
         </PageSection>
       )}
 
@@ -392,6 +409,7 @@ export function ShopPublicPage({
           onReport={sendPostReportAction}
           loggedIn={loggedIn}
           returnTo={pagePath}
+          reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
         />
       )}
 

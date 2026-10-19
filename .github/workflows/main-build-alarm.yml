@@ -1,0 +1,47 @@
+name: Main build alarm
+
+# A production deploy of main that fails to build opens (or updates) one Issue and pings Don.
+# Two PRs green on their own can break main together (#911 + #944, 2026-10-18: a duplicate import);
+# requiring up-to-date branches (#426) is on hold for Actions minutes, so catch it within minutes instead.
+# Reads Vercel's deployment status: no build runs here.
+
+on:
+  deployment_status:
+
+permissions:
+  issues: write
+
+jobs:
+  alarm:
+    if: >-
+      github.event.deployment_status.state == 'failure' || github.event.deployment_status.state == 'error'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Open or update the Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ENVIRONMENT: ${{ github.event.deployment.environment }}
+          REF: ${{ github.event.deployment.ref }}
+          SHA: ${{ github.event.deployment.sha }}
+          LOG: ${{ github.event.deployment_status.target_url }}
+        run: |
+          set -euo pipefail
+          case "$ENVIRONMENT" in Production*|production*) ;; *) echo "Not production ($ENVIRONMENT)"; exit 0;; esac
+          title="bug · main fails to build on Vercel"
+          body="Production deploy of \`${SHA:0:7}\` (${REF}) failed. Build log: ${LOG}
+
+          Production keeps serving the last good deploy until main builds again. Fix forward on main.
+
+          Kind: bug
+          Scenario: none
+          Path: well-worn. Precedent: post-merge build alarms (GitHub deployment_status, Vercel deploy notifications).
+
+          @donlafranchi"
+          existing="$(gh issue list -R "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" -R "$REPO" --body "Still failing: \`${SHA:0:7}\` — ${LOG}"
+          else
+            gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label launch-blocking
+          fi

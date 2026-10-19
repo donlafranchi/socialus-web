@@ -1,22 +1,24 @@
 // #904 — the review loop's numbers: per kind per week, counts only. One implementation of "red", read by the
 // dashboard (latest.json on the notify-history branch) and the monthly review.
 
-import type { NotifyKind } from './rules'
+import type { CountKind } from './rules'
 
 export interface WeekRow {
   week: string
-  kind: NotifyKind
+  kind: CountKind
   sends: number
   opens: number
   opt_ins: number
   unsubscribes: number
   mutes: number
+  /** #945 — reminders that went by email (the rest by push). */
+  emails?: number
   opted_in_members: number | null
   members: number | null
 }
 
 export interface KindSummary {
-  kind: NotifyKind
+  kind: CountKind
   state: 'green' | 'red' | 'quiet'
   why: string | null
   optInRate: number | null
@@ -26,7 +28,7 @@ export interface KindSummary {
 
 /** Red when this week's unsubscribes plus mutes are at least 3 and either twice the trailing 4-week average or
  *  over 10% of the members opted in. Quiet when nothing went out and nobody opted in. */
-export function summarize(rows: readonly WeekRow[], kind: NotifyKind): KindSummary {
+export function summarize(rows: readonly WeekRow[], kind: CountKind): KindSummary {
   const weeks = rows.filter((r) => r.kind === kind).sort((a, b) => a.week.localeCompare(b.week))
   const last = weeks.at(-1)
   if (!last || (last.sends === 0 && last.opt_ins === 0 && !last.opted_in_members)) {

@@ -79,8 +79,11 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
   }
 }
 
+const here = () => window.location.pathname + window.location.search
+
 beforeEach(() => {
   search = ''
+  window.history.replaceState(null, '', '/')
   replace.mockClear()
   browseFeedAction.mockReset()
 })
@@ -253,17 +256,12 @@ describe('T156 — a shared link reopens the same metro and search', () => {
     render(<BrowseSurface initial={snapshot({ chosen: true })} />)
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sourdough' } })
-    await waitFor(() =>
-      expect(replace).toHaveBeenCalledWith(
-        '/explore?metro=sacramento-roseville-ca&q=sourdough',
-        { scroll: false },
-      ),
-    )
+    await waitFor(() => expect(here()).toBe('/explore?metro=sacramento-roseville-ca&q=sourdough'))
   })
 
   it('leaves an unchosen metro out of the URL — nobody picked it', async () => {
     render(<BrowseSurface initial={snapshot({ chosen: false })} />)
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/explore', { scroll: false }))
+    await waitFor(() => expect(here()).toBe('/explore'))
   })
 })
 
@@ -338,7 +336,7 @@ describe('#476 — picking a neighbourhood', () => {
   it('names the neighbourhood on the pill and keeps it in the link', async () => {
     render(<BrowseSurface initial={snapshot({ area: MIDTOWN })} />)
     expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Midtown')
-    await waitFor(() => expect(replace).toHaveBeenCalledWith(expect.stringContaining('area=p-1'), { scroll: false }))
+    await waitFor(() => expect(here()).toContain('area=p-1'))
   })
 
   it('"All of" the metro clears it', async () => {
@@ -440,7 +438,7 @@ describe('F092 — the filter sheet writes its selection into the search box', (
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openBox()
     fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
-    await waitFor(() => expect(replace).toHaveBeenLastCalledWith('/explore?q=food+%26+drink+this+weekend', { scroll: false }))
+    await waitFor(() => expect(here()).toBe('/explore?q=food+%26+drink+this+weekend'))
   })
 })
 
@@ -487,6 +485,36 @@ describe('#916 — search asks the server', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'qqqzzz' } })
     await waitFor(() => expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing matches “qqqzzz” yet. Try fewer words, or a broader one like “food” or “plants”.'))
+  })
+})
+
+// #935 — typing a search re-rendered the whole Explore page on the server once per keystroke (router.replace),
+// each render several feed reads; signed in, that flood held a tapped result and the Page it opened.
+describe('#935 — a search keeps the link in the address bar without asking the server for the page', () => {
+  it('typing writes the words into the URL in place, and never re-renders Explore on the server', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
+    render(<BrowseSurface initial={snapshot({ chosen: true })} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    for (const value of ['s', 'sa', 'sac', 'sacr']) fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
+    await waitFor(() => expect(here()).toBe('/explore?metro=sacramento-roseville-ca&q=sacr'))
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('a Page or post found by search is a link to an address the Page route resolves', async () => {
+    browseMapAction.mockResolvedValue([])
+    browseFeedAction.mockResolvedValue(
+      snapshot({
+        results: [
+          result({ resultId: 'g-own', groupId: 'g-own', name: 'SacRiver Floaters', href: '/g/3k8x0p' }),
+          result({ resultKind: 'post', resultId: 'p-1', groupId: 'g-own', name: 'SacRiver Floaters', body: 'Float Saturday', href: '/g/3k8x0p#announcement-p-1' }),
+        ],
+      }),
+    )
+    render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sacriver' } })
+    const links = await screen.findAllByRole('link', { name: /SacRiver Floaters/ })
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/g/3k8x0p', '/g/3k8x0p#announcement-p-1'])
   })
 })
 

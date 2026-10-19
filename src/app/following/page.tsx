@@ -2,17 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { Vendor, Market } from '@/lib/types'
 import { CATEGORIES } from '@/lib/categories'
 import { formatNextMarketDate, nextMarketDate } from '@/lib/market-dates'
 import { FollowButton } from '@/components/FollowButton'
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 interface Row {

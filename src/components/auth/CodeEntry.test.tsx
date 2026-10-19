@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { CodeEntry } from './CodeEntry'
+import { CodeEntry, RESEND_SECONDS } from './CodeEntry'
 
-// #927 — the emailed 6-digit code: the fallback when a link is opened in another browser.
+// The emailed 6-digit code, the one way in (the PM, 2026-10-18).
 const verifyEmailCode = vi.fn()
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ verifyEmailCode }) }))
 
-afterEach(() => { cleanup(); vi.clearAllMocks() })
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.useRealTimers() })
 
 const type = (v: string) => fireEvent.change(screen.getByTestId('code-input'), { target: { value: v } })
 const go = () => fireEvent.click(screen.getByTestId('code-submit'))
@@ -18,30 +18,67 @@ describe('CodeEntry', () => {
     const input = screen.getByTestId('code-input')
     expect(input).toHaveAttribute('autocomplete', 'one-time-code')
     expect(input).toHaveAttribute('inputmode', 'numeric')
+    expect(input).not.toHaveAttribute('maxlength')
   })
-  it('verifies the code for that email and continues to next', async () => {
+  it('signs in on the sixth digit without a tap', async () => {
     verifyEmailCode.mockResolvedValue({ error: null })
     const onDone = vi.fn()
     render(<CodeEntry email="a@b.co" next="/you" onDone={onDone} />)
-    type('123 456')
-    go()
+    type('12345')
+    expect(verifyEmailCode).not.toHaveBeenCalled()
+    type('123456')
     await waitFor(() => expect(onDone).toHaveBeenCalledWith('/you'))
     expect(verifyEmailCode).toHaveBeenCalledWith('a@b.co', '123456')
   })
-  it('says so when the code is wrong or expired, and does not continue', async () => {
+  it('takes a pasted line from the email down to its six digits', async () => {
+    verifyEmailCode.mockResolvedValue({ error: null })
+    render(<CodeEntry email="a@b.co" next="/" onDone={vi.fn()} />)
+    type('Your SocialUs code: 482 913')
+    await waitFor(() => expect(verifyEmailCode).toHaveBeenCalledWith('a@b.co', '482913'))
+    expect(screen.getByTestId('code-input')).toHaveValue('482913')
+  })
+  it('never sends more than six digits (an 8-digit code is cut to 6)', () => {
+    render(<CodeEntry email="a@b.co" next="/" onDone={vi.fn()} />)
+    type('12345678')
+    expect(screen.getByTestId('code-input')).toHaveValue('123456')
+  })
+  it('says so in plain words when the code is wrong or expired, and does not continue', async () => {
     verifyEmailCode.mockResolvedValue({ error: { message: 'Token has expired or is invalid' } })
     const onDone = vi.fn()
     render(<CodeEntry email="a@b.co" next="/" onDone={onDone} />)
     type('000000')
-    go()
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+    expect(await screen.findByTestId('code-error')).toHaveTextContent('wrong or has expired')
     expect(onDone).not.toHaveBeenCalled()
+    expect(screen.getByTestId('code-input')).toHaveValue('')
+    verifyEmailCode.mockResolvedValue({ error: null })
+    type('482913')
+    await waitFor(() => expect(onDone).toHaveBeenCalled())
   })
-  it('does not call out for anything but six digits', () => {
+  it('does not call out for fewer than six digits', () => {
     render(<CodeEntry email="a@b.co" next="/" onDone={vi.fn()} />)
     type('12345')
     go()
     expect(verifyEmailCode).not.toHaveBeenCalled()
     expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+  it('lets you resend only after a minute, then confirms the new code', async () => {
+    vi.useFakeTimers()
+    const onResend = vi.fn(async () => ({ error: null }))
+    render(<CodeEntry email="a@b.co" next="/" onDone={vi.fn()} onResend={onResend} />)
+    const resend = screen.getByTestId('resend-code')
+    expect(resend).toBeDisabled()
+    expect(resend).toHaveTextContent(`Resend code in ${RESEND_SECONDS}s`)
+    for (let i = 0; i < RESEND_SECONDS; i++) await act(async () => { vi.advanceTimersByTime(1000) })
+    expect(resend).toBeEnabled()
+    await act(async () => { fireEvent.click(resend) })
+    expect(onResend).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('code-notice')).toHaveTextContent('We sent a new code')
+    expect(resend).toBeDisabled()
+  })
+  it('offers a way back to change the email', () => {
+    const onChangeEmail = vi.fn()
+    render(<CodeEntry email="a@b.co" next="/" onDone={vi.fn()} onChangeEmail={onChangeEmail} />)
+    fireEvent.click(screen.getByTestId('change-email'))
+    expect(onChangeEmail).toHaveBeenCalled()
   })
 })

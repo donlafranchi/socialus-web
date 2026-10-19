@@ -96,10 +96,10 @@ export function MemberPublicPage({ member, loggedIn }: Props) {
       {member.groups.length > 0 && (
         <section className="mt-8">
           <h2 className="text-lg font-medium">Groups</h2>
-          <ul className="mt-3 flex flex-wrap gap-2">
+          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
             {member.groups.map((g) => (
               <li key={g.slug} data-testid="member-group">
-                <span className="chip text-sm">{g.name}</span>
+                <span className="text-sm">{g.name}</span>
               </li>
             ))}
           </ul>

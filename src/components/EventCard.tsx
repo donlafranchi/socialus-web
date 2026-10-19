@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation'
 import { Calendar, Sparkles, Store } from 'lucide-react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { PlatformEvent, Vendor, Market } from '@/lib/types'
+import { PhotoLabel } from './cards/CardMarks'
 
 interface Props {
   event: PlatformEvent
@@ -28,10 +29,7 @@ const EVENT_ICON: Record<string, React.ComponentType<{ size?: number; className?
 }
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 function formatStartsAt(iso: string): string {
@@ -80,9 +78,9 @@ export function EventCard({ event, hostName, hostSlug, hostType, hostCoverPhotoU
     >
       <div className="h-32 bg-gradient-to-br from-[var(--color-accent-tint)] to-amber-100 relative">
         {cover && <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-medium text-neutral-800">
-          <Icon size={12} className="text-[var(--color-accent)]" /> {EVENT_LABEL[event.event_type] ?? event.event_type}
-        </span>
+        <PhotoLabel>
+          <Icon size={12} /> {EVENT_LABEL[event.event_type] ?? event.event_type}
+        </PhotoLabel>
       </div>
       <div className="p-3">
         <p className="text-xs text-[var(--color-accent)] font-semibold">{formatStartsAt(event.starts_at)}</p>

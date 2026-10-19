@@ -113,7 +113,7 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
   const waiting = { metroId: 'm-yuba', name: 'Yuba County, CA' }
   const waitingActions = () => makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting })) })
 
-  it('shows which market, then goes home on Continue', async () => {
+  it('shows which market, then the optional interests step on Continue', async () => {
     const onNavigate = vi.fn()
     render(<OnboardingFlow actions={makeActions()} onNavigate={onNavigate} />)
     fill()
@@ -122,7 +122,37 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
     expect(screen.queryByRole('combobox')).toBeNull() // nobody picks a market at signup
     expect(onNavigate).not.toHaveBeenCalled()
     fireEvent.click(screen.getByTestId('onboarding-metro-continue'))
+    expect(screen.getByTestId('onboarding-interests')).toBeInTheDocument()
+    expect(onNavigate).not.toHaveBeenCalled()
+  })
+
+  // #892 — one optional, skippable step after sign-up.
+  it('the interests step can be skipped: nothing saved, straight home', async () => {
+    const onNavigate = vi.fn()
+    const saveInterests = vi.fn(async () => ({ ok: true as const, addedTags: [] }))
+    render(<OnboardingFlow actions={makeActions({ saveInterests })} onNavigate={onNavigate} />)
+    fill()
+    fireEvent.click(continueBtn())
+    fireEvent.click(await screen.findByTestId('onboarding-metro-continue'))
+    fireEvent.click(screen.getByRole('button', { name: /skip/i }))
+    expect(saveInterests).not.toHaveBeenCalled()
     expect(onNavigate).toHaveBeenCalledWith('/')
+  })
+
+  it('the interests step saves what was picked, then goes home', async () => {
+    const onNavigate = vi.fn()
+    const saveInterests = vi.fn(async () => ({ ok: true as const, addedTags: ['live-music', 'gardening'] }))
+    render(<OnboardingFlow actions={makeActions({ saveInterests })} onNavigate={onNavigate} />)
+    fill()
+    fireEvent.click(continueBtn())
+    fireEvent.click(await screen.findByTestId('onboarding-metro-continue'))
+    const step = within(screen.getByTestId('onboarding-interests'))
+    expect(step.getAllByRole('checkbox')).toHaveLength(12)
+    fireEvent.click(step.getByRole('checkbox', { name: 'Live music' }))
+    fireEvent.click(step.getByRole('checkbox', { name: 'Gardening' }))
+    fireEvent.click(step.getByRole('button', { name: /save/i }))
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/'))
+    expect(saveInterests).toHaveBeenCalledWith({ tags: ['live-music', 'gardening'] })
   })
 
   // [guards F103.3 partial: a waiting market is named and nothing is picked — no list, no select]
