@@ -49,6 +49,10 @@ import {
   groupUnclaimedRemove,
   groupUnclaimedClaim,
   groupUnclaimedRestore,
+  groupMarketStallSet,
+  groupMarketStallSkip,
+  groupMarketStallRemove,
+  groupMarketStallConfirm,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation, featuredItemSave, featuredItemRemove } from './item'
 import { tagReview } from './tag'
@@ -99,6 +103,10 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.reminder.set': memberReminderSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.reminder.remove': memberReminderRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.reminder.every_for_page': memberReminderEveryForPage as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.set': groupMarketStallSet as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.skip': groupMarketStallSkip as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.remove': groupMarketStallRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.confirm': groupMarketStallConfirm as unknown as NamedActionHandler<unknown, unknown>,
   // T109 — F042 management-page write paths (venue unfollow/restore + group leave/join)
   'member.saved_search.remove': memberSavedSearchRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.saved_search.restore': memberSavedSearchRestore as unknown as NamedActionHandler<unknown, unknown>,
@@ -183,6 +191,7 @@ export {
 } from './member'
 export { searchDemandLog } from './search'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
+export { groupMarketStallSet, groupMarketStallSkip, groupMarketStallRemove, groupMarketStallConfirm } from './group'
 export { groupArchive, groupDelete, groupDiscardDraft, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
