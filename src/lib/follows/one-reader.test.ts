@@ -16,7 +16,7 @@ export function readerProblems(source: string): string[] {
   return problems
 }
 
-const SURFACES = ['src/app/you/following/page.tsx', 'src/components/follows/FollowingSummary.tsx']
+const SURFACES = ['src/app/you/following/page.tsx', 'src/app/you/page.tsx', 'src/lib/follows/followed-pages.ts']
 
 describe('F065.5 — the following list has one reader', () => {
   it('the guard sees a surface that skips the reader or reads a table itself', () => {
