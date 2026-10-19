@@ -6,18 +6,21 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export interface ViewerReminders {
   byPost: Record<string, string>
   bySeries: Record<string, string>
+  /** #955 — market stalls reminded (a vendor's market days). */
+  byStall: Record<string, string>
 }
 
-export const NO_REMINDERS: ViewerReminders = { byPost: {}, bySeries: {} }
+export const NO_REMINDERS: ViewerReminders = { byPost: {}, bySeries: {}, byStall: {} }
 
 export async function loadViewerReminders(supabase: SupabaseClient, loggedIn: boolean): Promise<ViewerReminders> {
   if (!loggedIn) return NO_REMINDERS
-  const { data, error } = await supabase.from('post_reminders').select('id, post_id, series_id')
+  const { data, error } = await supabase.from('post_reminders').select('id, post_id, series_id, stall_id')
   if (error || !data) return NO_REMINDERS
-  const out: ViewerReminders = { byPost: {}, bySeries: {} }
-  for (const r of data as { id: string; post_id: string | null; series_id: string | null }[]) {
+  const out: ViewerReminders = { byPost: {}, bySeries: {}, byStall: {} }
+  for (const r of data as { id: string; post_id: string | null; series_id: string | null; stall_id?: string | null }[]) {
     if (r.post_id) out.byPost[r.post_id] = r.id
     if (r.series_id) out.bySeries[r.series_id] = r.id
+    if (r.stall_id) out.byStall[r.stall_id] = r.id
   }
   return out
 }
