@@ -5,10 +5,11 @@
 // the right; settings as read-only rows until there's a screen to change them.
 
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase-server'
 import { OwnPages } from '@/components/member/OwnPages'
-import { FollowingSummary } from '@/components/follows/FollowingSummary'
+import { getMemberFollows } from '@/lib/follows/get-member-follows'
 import { SignOutButton } from '@/components/auth/SignOutButton'
 import { AuthCard } from '@/components/shell/AuthCard'
 import { Button } from '@/components/ui/Button'
@@ -44,11 +45,13 @@ export default async function YouPage() {
     )
   }
 
-  const [{ data: me }, { data: notices }, { data: interests }] = await Promise.all([
+  const [{ data: me }, { data: notices }, { data: interests }, following] = await Promise.all([
     supabase.from('members').select('display_name, zip, home_market_key, search_sharing').eq('id', user.id).maybeSingle(),
     supabase.from('member_notices').select('id, message, created_at, kind, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
     // #892 — owner-only RLS: only ever this member's own.
     supabase.from('member_interests').select('tag').eq('member_id', user.id),
+    // F065.5 — the one reader; null when it can't be read.
+    getMemberFollows(supabase, user.id).then((all) => all.filter((e) => e.kind === 'group').length, () => null),
   ])
   const row = me as { display_name: string | null; zip: string | null; home_market_key: string | null; search_sharing?: boolean | null } | null
   // #568: the area the zip decided, in plain words; the home town stays in the database.
@@ -63,22 +66,22 @@ export default async function YouPage() {
         <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Only you see this page.</p>
       </header>
 
+      {/* #962 — Don, 2026-10-19: "Shouldn't I be able to see which businesses I follow from within the app?" */}
+      <Link
+        href="/you/following"
+        data-testid="you-following-row"
+        className="press mt-5 flex min-h-tap items-center gap-3 rounded-lg border border-[var(--color-border)] px-4 py-3"
+      >
+        <span className="flex-1 text-body font-semibold text-[var(--color-fg)]">Following</span>
+        <span className="text-body-sm text-[var(--color-fg-muted)]">{followingCount(following)}</span>
+        <ChevronRight size={18} aria-hidden="true" className="text-[var(--color-fg-muted)]" />
+      </Link>
+
       <YouNotices notices={toNotices(notices)} onAnswer={answerNoticeAction} />
 
       <Section title="Your Pages" testId="your-pages-section" action={<Link href="/create" className={LINK}>Start something</Link>}>
         <OwnPages memberId={user.id} />
       </Section>
-
-      <FollowingSummary
-        memberId={user.id}
-        empty={
-          <Section title="Following" testId="following-empty-section" action={<Link href="/explore" className={LINK}>Explore</Link>}>
-            <p className="text-body-sm text-[var(--color-fg-muted)]" data-testid="you-followed-empty">
-              Nothing followed yet.
-            </p>
-          </Section>
-        }
-      />
 
       {/* #892 — draft copy ([public-is-draft]). */}
       <Section title="Your interests" testId="interests-section" id="interests">
@@ -128,6 +131,8 @@ export default async function YouPage() {
     </main>
   )
 }
+
+const followingCount = (n: number | null) => (n === null ? 'Pages you follow' : n === 0 ? 'None yet' : n === 1 ? '1 Page' : `${n} Pages`)
 
 const LINK = 'press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-accent)]'
 

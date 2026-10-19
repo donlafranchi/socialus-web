@@ -1,7 +1,8 @@
 // #945 (Don, 2026-10-18) — Remind me on a dated post.
 //   member.reminder.set              this one, or every time for a post that repeats. Idempotent.
 //   member.reminder.remove           only by its member.
-//   member.reminder.every_for_page   following a Page that repeats: every time, for each of its series, in one tap.
+//   member.reminder.every_for_page   following a Page that repeats: every time, for each of its series, in one tap;
+//                                    for a vendor at markets (#955), each market it sells at.
 // Reminders are private (post_reminders: a member reads their own). Each set or removal adds to the week's counts.
 
 import { z } from 'zod'
@@ -99,7 +100,14 @@ export const memberReminderEveryForPage = defineHandler(
          on conflict do nothing`,
         [input.groupId, memberId, ctx.now()],
       )
-      const added = res.rowCount ?? 0
+      // #955 — a vendor Page: the evening before each market day it is at.
+      const stalls = await client.query(
+        `insert into public.post_reminders (member_id, stall_id, created_at)
+         select $2::uuid, s.id, $3::timestamptz from public.market_stalls s where s.vendor_group_id = $1
+         on conflict do nothing`,
+        [input.groupId, memberId, ctx.now()],
+      )
+      const added = (res.rowCount ?? 0) + (stalls.rowCount ?? 0)
       if (added) await client.query(`select public.notification_count('reminder', 'opt_ins', $1)`, [added])
       return { added }
     })

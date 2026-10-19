@@ -7,8 +7,9 @@
 //
 // Sources (all owner-readable — no SECURITY DEFINER / RPC needed):
 //   - People  → member_follows (public-read; member.md:279)
-//   - Groups  → group_memberships, source='explicit' only (groups.md:393,
-//               Ratified 2026-05-31 — soft-suggested memberships are not follows)
+//   - Groups  → group_memberships by relationship (follower or member), not by
+//               source: following an open Page writes source 'soft_via_follow' (#962).
+//               A Page the member runs (owner, steward) is under Your Pages instead.
 //   - Venues  → member_saved_searches with location_id set (owner-only RLS;
 //               member.md:368, Ratified 2026-05-23)
 //
@@ -18,6 +19,7 @@
 // only People resolve a thumbnail; Groups/Venues fall back to a placeholder.
 
 import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { SUBSCRIBED_RELATIONSHIPS } from '@/lib/feed/followed-pages'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type FollowKind = 'person' | 'group' | 'venue'
@@ -53,7 +55,10 @@ interface DiscRow {
 interface MembershipRow {
   group_id: string
   joined_at: string
+  role?: string
 }
+
+const RUNS_IT = new Set(['owner', 'steward'])
 interface GroupRow {
   id: string
   public_id: string
@@ -115,11 +120,11 @@ async function readGroups(
 ): Promise<FollowEntry[]> {
   const { data: gmData } = await supabase
     .from('group_memberships')
-    .select('group_id, joined_at')
+    .select('group_id, joined_at, role')
     .eq('member_id', memberId)
     .is('left_at', null)
-    .eq('source', 'explicit')
-  const memberships = (gmData as MembershipRow[] | null) ?? []
+    .in('relationship', [...SUBSCRIBED_RELATIONSHIPS])
+  const memberships = ((gmData as MembershipRow[] | null) ?? []).filter((m) => !RUNS_IT.has(m.role ?? ''))
   if (memberships.length === 0) return []
 
   const ids = memberships.map((g) => g.group_id)

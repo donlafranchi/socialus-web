@@ -129,7 +129,7 @@ describe.skipIf(!RUNNABLE)('F102.13 — every upload and post records its addres
   })
 
   it('every member post and every member upload goes through the recorder', () => {
-    expect(naming(/insert into public\.page_posts/)).toEqual(['src/actions/group/post.ts', 'src/lib/unclaimed/load.ts'])
+    expect(naming(/insert into public\.page_posts/)).toEqual(['src/actions/group/post.ts', 'src/lib/unclaimed/load.ts', 'src/lib/unclaimed/market-days.ts'])
     for (const f of naming(/groupPostCreate\(/).filter((p) => !p.startsWith('src/actions/'))) expect(readFileSync(join(ROOT, f), 'utf8'), f).toMatch(/recordOrigin\(memberId, 'post', r\.postId\)/)
     expect(naming(/\.upload\(/)).toEqual(['src/lib/media/upload-image.ts', 'src/lib/unclaimed/upload.ts'])
     for (const f of naming(/from '@\/lib\/media\/upload-image'/)) expect(readFileSync(join(ROOT, f), 'utf8'), f).toMatch(/recordUploadAction\(/)

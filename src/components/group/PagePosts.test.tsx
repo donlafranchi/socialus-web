@@ -910,3 +910,60 @@ describe('#314 — show until, on an undated post', () => {
     expect(screen.queryByTestId('announce-show-until')).toBeNull()
   })
 })
+
+// #913 (Don 2026-10-02 on #314, option A) — current posts first, then Earlier for undated posts past their window;
+// "Posted <date>" on each, in the metro's clock (Craigslist, Facebook Marketplace, Nextdoor).
+describe('#913 — Earlier, and Posted <date>', () => {
+  const current = postFixture({ id: 'now', body: 'Fresh loaves', createdAt: '2026-10-15T12:00:00.000Z' })
+  const stale = { ...postFixture({ id: 'old', body: 'Summer jam', createdAt: '2026-09-01T12:00:00.000Z' }), current: false }
+  const pastEvent = {
+    ...postFixture({ id: 'evt', body: 'Bread class', createdAt: '2026-09-02T12:00:00.000Z', startsAt: '2026-09-10T02:00:00.000Z' }),
+    current: false,
+  }
+
+  it('shows current posts first, then undated ones past their window under Earlier', () => {
+    renderPosts({ canPost: false, posts: [stale, current] })
+    const earlier = screen.getByTestId('page-posts-earlier')
+    expect(earlier).toHaveTextContent(/^Earlier/)
+    expect(earlier).toHaveTextContent('Summer jam')
+    expect(earlier).not.toHaveTextContent('Fresh loaves')
+    expect(screen.getByTestId('page-posts-latest')).toHaveTextContent('Fresh loaves')
+    expect(screen.getByTestId('page-posts-latest')).not.toHaveTextContent('Summer jam')
+    const order = [...document.querySelectorAll('[data-testid="page-posts-latest"], [data-testid="page-posts-earlier"]')]
+    expect(order.map((e) => e.getAttribute('data-testid'))).toEqual(['page-posts-latest', 'page-posts-earlier'])
+  })
+
+  it('a dated post is never under Earlier', () => {
+    renderPosts({ canPost: false, posts: [pastEvent, current] })
+    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
+  })
+
+  it('no Earlier heading when nothing has passed', () => {
+    renderPosts({ canPost: false, posts: [current] })
+    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
+  })
+
+  it('only earlier posts: Earlier, and no empty note', () => {
+    renderPosts({ canPost: true, posts: [stale] })
+    expect(screen.getByTestId('page-posts-earlier')).toHaveTextContent('Summer jam')
+    expect(screen.queryByTestId('page-posts-empty')).toBeNull()
+    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
+  })
+
+  it('See all posts counts current posts only', () => {
+    const olds = [1, 2, 3, 4].map((d) => ({ ...postFixture({ id: `o${d}`, createdAt: `2026-09-0${d}T12:00:00.000Z` }), current: false }))
+    renderPosts({ canPost: false, posts: [current, ...olds] })
+    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
+  })
+
+  it('says Posted <date> in the metro’s clock, not UTC', () => {
+    // 8pm Sep 20 in Sacramento is Sep 21 in UTC.
+    renderPosts({ canPost: false, posts: [postFixture({ createdAt: '2026-09-21T03:00:00.000Z' })] })
+    expect(screen.getByTestId('page-post-posted')).toHaveTextContent(/^Posted Sep 20$/)
+  })
+
+  it('every undated post carries it, under Earlier too', () => {
+    renderPosts({ canPost: false, posts: [stale, current] })
+    expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Oct 15', 'Posted Sep 1'])
+  })
+})

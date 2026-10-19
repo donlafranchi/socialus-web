@@ -141,8 +141,8 @@ async function main() {
   try {
     const { rows } = await db.query(
       `select g.name, g.public_id, g.photo_url, g.public_info_url,
-              coalesce(array_agg(p.photo_url) filter (where p.sample_kind is not null), '{}') as post_photos,
-              count(p.id) filter (where p.sample_kind is not null)::int as samples
+              coalesce(array_agg(p.photo_url) filter (where p.sample_kind is not null or p.series_id is not null), '{}') as post_photos,
+              count(p.id) filter (where p.sample_kind is not null or p.series_id is not null)::int as samples
          from public.groups g left join public.page_posts p on p.group_id = g.id
         where g.unclaimed_at is not null and g.unclaimed_hidden_at is null and g.public_info_url = any($1::text[])
         group by g.id`,

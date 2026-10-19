@@ -31,12 +31,11 @@ import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
 import { isValidTagLabel } from '@/lib/groups/tags'
-import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { useAnnouncementAnchor } from './use-announcement-anchor'
 import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
-import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
+import { METRO_TIME_ZONE, formatMetroDateTime, formatPostedDate, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
 import { firstOccurrenceDate } from '@/lib/posts/series'
 import { RemindMeButton, type RemindActions } from '@/components/reminders/RemindMe'
@@ -60,8 +59,10 @@ import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPl
 
 const BODY_LIMIT = 5000
 const LATEST = 3
+/** #913 — an undated post past its window (the database's post_current_until) sits under Earlier. */
+const isEarlier = (p: PagePost) => !p.startsAt && p.current === false
 const latestIds = (posts: PagePost[]) =>
-  [...posts].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
+  [...posts].filter((p) => !isEarlier(p)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
 const TRY_AGAIN = "That didn't go through. Mind trying again?"
 /** F072 § Not this rules out all-day announcements, so a date with no time has
  *  nothing to become. Said as a sentence rather than refused silently. */
@@ -235,7 +236,9 @@ export function PagePosts({
   // (F093), because an `#announcement-<id>` link has to land the same way on
   // both and two copies of the effect is how they stop doing that.
   // #462 — newest first; the latest three in a row, the rest a tap away.
-  const sorted = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const newest = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const sorted = newest.filter((p) => !isEarlier(p))
+  const earlier = newest.filter(isEarlier)
   const [showAll, setShowAll] = useState(false)
   // A link to an older post opens the list, so the post it names is there to land on.
   useEffect(() => {
@@ -631,7 +634,7 @@ export function PagePosts({
                   )}
 
                   <div className="mt-2 flex items-center gap-3">
-                    <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
                     {!canPost && onReport && (
                       <ReportControl subjectId={post.id} subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
                     )}
@@ -778,7 +781,7 @@ export function PagePosts({
         >
           <p>Nothing here yet. Tell people what&apos;s going on.</p>
         </div>
-      ) : showAll ? (
+      ) : sorted.length === 0 ? null : showAll ? (
         <ul data-testid="page-posts-all" className="mt-4 flex flex-col gap-3">
           {sorted.map((post) => renderPost(post, false))}
         </ul>
@@ -798,6 +801,12 @@ export function PagePosts({
         >
           {showAll ? 'Show the latest' : 'See all posts'}
         </button>
+      )}
+      {earlier.length > 0 && (
+        <section data-testid="page-posts-earlier" aria-labelledby="page-posts-earlier-title" className="mt-6">
+          <h3 id="page-posts-earlier-title" className="text-body-sm font-semibold text-[var(--color-fg-muted)]">Earlier</h3>
+          <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
+        </section>
       )}
     </section>
   )
