@@ -5,6 +5,7 @@ import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
+import { NewVersionNotice } from "@/components/shell/NewVersionNotice"
 import { PushLandingBar } from "@/components/notify/PushLandingBar"
 import { siteMetadataBase } from "@/lib/site-url"
 
@@ -60,6 +61,8 @@ export default function RootLayout({
     >
       <body className="h-full font-sans">
         <ServiceWorkerRegister />
+        {/* #958 — the build this page came from; empty on a dev server, which never checks. */}
+        <NewVersionNotice buildId={process.env.VERCEL_GIT_COMMIT_SHA ?? ""} />
         <NavVisibilityProvider>
           <div className="flex min-h-full flex-col">
             <TopNavDesktop />
