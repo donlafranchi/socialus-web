@@ -218,6 +218,8 @@ describe.skipIf(!RUNNABLE)('F093 — signed out, over PostgREST, with the bundle
         'announcement_count',
         'announcement_ids',
         'group_id',
+        // #335 — the Page's kind, only for its default art; already public on the front door.
+        'kind',
         'name',
         'photo_url',
         'public_id',
