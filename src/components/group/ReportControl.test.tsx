@@ -49,12 +49,12 @@ describe('the ⋯ overflow menu', () => {
     )
   })
 
-  it('opens to exactly one item — Report this', () => {
+  it('opens to exactly one item — Report this Page', () => {
     renderControl()
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     const items = screen.getAllByRole('menuitem')
     expect(items).toHaveLength(1)
-    expect(items[0]).toHaveTextContent('Report this')
+    expect(items[0]).toHaveTextContent('Report this Page')
   })
 
   // #625 — on a Page, its own words are reportable on their own; the photo keeps its own item.
@@ -62,8 +62,8 @@ describe('the ⋯ overflow menu', () => {
     renderControl({ wordsReportable: true })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     const items = screen.getAllByRole('menuitem').map((i) => i.textContent)
-    expect(items).toEqual(['Report the name or description', 'Report the photo'])
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Report the name or description' }))
+    expect(items).toEqual(['Report this Page', "Report this Page's photo"])
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Report this Page' }))
     fireEvent.click(await screen.findByRole('radio', { name: 'Harassment' }))
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Rude name.' } })
     fireEvent.click(screen.getByRole('button', { name: /send/i }))

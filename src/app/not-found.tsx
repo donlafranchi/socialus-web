@@ -12,7 +12,7 @@ export default function NotFound() {
       />
       <p className="mt-4 text-center text-body-sm">
         <Link href="/report" className="underline">
-          Report a problem
+          Report a problem with the app
         </Link>
       </p>
     </main>

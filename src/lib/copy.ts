@@ -17,8 +17,8 @@ export const COPY = {
   reportUrgentSkip:
     "For this one we skip the courtesy notice: it's hidden right away and a person from our team takes a look. We don't share who you are. Please don't misuse reports.",
   // #625 — a Page's own words are reportable on their own (placeholder copy, [public-is-draft]).
-  reportPageWords: 'Report the name or description',
-  reportPagePhoto: 'Report the photo',
+  reportPageWords: 'Report this Page',
+  reportPagePhoto: "Report this Page's photo",
   reportPageWordsSubject: 'its name or description',
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
   reportSentCourtesy: "Thanks for looking out for everyone. The page owner is getting a courtesy notice.",

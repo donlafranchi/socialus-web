@@ -16,7 +16,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
   const { data } = await supabase.auth.getUser()
   return (
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="report-page">
-      <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Report a problem</h1>
+      <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Report a problem with the app</h1>
       {data.user ? (
         <div className="mt-4">
           <ReportProblemForm route={route} onSubmit={reportProblemAction} />

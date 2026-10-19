@@ -111,7 +111,7 @@ export default async function YouPage() {
             value="Something not working?"
             testId="settings-report"
             wrap
-            action={<Link href="/report?from=%2Fyou" className={LINK}>Report a problem</Link>}
+            action={<Link href="/report?from=%2Fyou" className={LINK}>Report a problem with the app</Link>}
           />
           <Row
             label="Rules"

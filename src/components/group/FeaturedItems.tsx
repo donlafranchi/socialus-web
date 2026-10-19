@@ -166,6 +166,7 @@ export function FeaturedItems({ groupId, items: initial, canEdit, memberId, onSa
                         subjectId={i.id}
                         subjectKind="page_item"
                         subjectLabel={i.name}
+                        itemLabel="Report this item"
                         loggedIn={report.loggedIn}
                         returnTo={report.returnTo}
                         onSend={(input) => report.onSend({ ...input, subjectKind: 'page_item' })}

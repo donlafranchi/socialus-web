@@ -922,6 +922,40 @@ describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
   })
 })
 
+describe('#830 — Report is a ⋯ menu entry on the Page and on each post, for non-owners only', () => {
+  const POSTS = [
+    { id: 'p1', body: 'Bread', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null },
+    { id: 'p2', body: 'Rolls', createdAt: '2026-10-02T00:00:00Z', updatedAt: '2026-10-02T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null },
+  ]
+  const labels = () => screen.queryAllByRole('menuitem').map((i) => i.textContent)
+
+  it('a signed-in non-owner finds "Report this Page" in the Page header menu and "Report this post" on each post', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false, posts: POSTS })
+    const menus = screen.getAllByRole('button', { name: 'More options' })
+    expect(menus).toHaveLength(1 + POSTS.length)
+    fireEvent.click(menus[0])
+    expect(labels()).toContain('Report this Page')
+    fireEvent.click(menus[0])
+    for (const m of menus.slice(1)) {
+      fireEvent.click(m)
+      expect(labels()).toEqual(['Report this post'])
+      fireEvent.click(m)
+    }
+  })
+
+  it('an owner sees no Report anywhere on their own Page', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, posts: POSTS })
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+    expect(screen.queryByText(/^Report this/)).toBeNull()
+  })
+
+  it('the Page menu names the photo as its own item', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false })
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    expect(labels()).toEqual(['Report this Page', "Report this Page's photo"])
+  })
+})
+
 // #896 — every answer to "where is it?" on the Page.
 describe('#896 — the Location card for each answer', () => {
   const anchor = { source: 'anchor' as const, kind: 'area' as const, label: 'East Sacramento', lng: -121.46123, lat: 38.56456 }
