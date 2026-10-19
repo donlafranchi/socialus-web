@@ -1,20 +1,21 @@
-// T109 — /you/following management page (F042, Loop 8).
-//
-// Authed surface: anon → sign-in with a return URL. Reads the unified follows
-// union (T108 getMemberFollows) as the signed-in Member (RLS owner-scoped),
-// resolves listed-member counts for the followed Groups from the privacy-
-// preserving projection (T095), and hands both to the client manager, which
-// renders the People / Groups / Venues sections + Unfollow/Leave/Undo.
+// T109 / #962 — the Following page. Pages first (Don, 2026-10-19: "Shouldn't I be able to see which businesses I
+// follow from within the app?"): every Page the member follows, soonest upcoming post first. People and places
+// they follow follow below, from the unified reader (T108); its Groups are the Pages above, so they're left out.
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { getMemberFollows } from '@/lib/follows/get-member-follows'
-import { getListedMemberCounts } from '@/lib/follows/get-listed-member-counts'
+import { loadFollowedPages } from '@/lib/follows/followed-pages'
 import { FollowingManager } from '@/components/follows/FollowingManager'
+import { FollowedPagesList } from '@/components/follows/FollowedPagesList'
+import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
+import { remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
 
 export const metadata = {
   title: 'Following — SocialUs',
 }
+
+export const dynamic = 'force-dynamic'
 
 export default async function FollowingPage() {
   const supabase = await createClient()
@@ -24,16 +25,24 @@ export default async function FollowingPage() {
   if (!user) redirect('/auth/login?next=/you/following')
 
   const entries = await getMemberFollows(supabase, user.id)
-  const groupIds = entries.filter((e) => e.kind === 'group').map((e) => e.entityId)
-  const groupCounts = await getListedMemberCounts(supabase, groupIds)
+  const pages = await loadFollowedPages(supabase, entries.filter((e) => e.kind === 'group').map((e) => e.entityId))
+  const others = entries.filter((e) => e.kind !== 'group')
 
   return (
-    <main className="mx-auto max-w-2xl p-4 pb-24" data-testid="following-page">
-      <h1 className="text-2xl font-semibold">Following</h1>
-      <p className="mt-0.5 text-sm text-neutral-600">Everything you follow, in one place.</p>
-      <div className="mt-6">
-        <FollowingManager entries={entries} groupCounts={groupCounts} />
-      </div>
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="following-page">
+      <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Following</h1>
+      <section className="mt-4" data-testid="section-pages">
+        <h2 className="sr-only">Pages</h2>
+        <FollowedPagesList
+          pages={pages}
+          actions={{ follow: followPageAction, unfollow: unfollowPageAction, everyForPage: remindEveryTimeForPageAction }}
+        />
+      </section>
+      {others.length > 0 && (
+        <div className="mt-8">
+          <FollowingManager entries={others} groupCounts={{}} />
+        </div>
+      )}
     </main>
   )
 }
