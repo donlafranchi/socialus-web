@@ -246,3 +246,9 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-18 | Bear Yuba Land Trust | Land trust (nonprofit) | Nevada City | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: yes; lead: own site |
 | 2026-10-18 | Villager Nursery | Nursery (natives and seeds) | Truckee | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
 | 2026-10-18 | Redbud Nursery | Nursery and plant shop | Newcastle | Gardening, Sustainability | native plants and pollinators special batch; native milkweed: not stated; lead: own site |
+| 2026-10-19 | Menagerie Hill Ranch | Farm | Vacaville | Farmers markets, Sustainability | Food makers (farms); holiday (alpaca fiber gifts); stock photos only; lead: own site |
+| 2026-10-19 | Il Fiorello Olive Oil Company | Food & drink | Fairfield | Food & drink, Local business | Food makers; holiday (gifting); lead: own site |
+| 2026-10-19 | Cal Yee Farm | Food & drink | Fairfield | Food & drink, Local business | Food makers; holiday (gift baskets); lead: Visit Fairfield, then own site |
+| 2026-10-19 | Michael David Winery | Food & drink | Lodi | Food & drink, Local business | Food makers; lead: own site |
+| 2026-10-19 | Sudwerk Brewing Co. | Food & drink | Davis | Food & drink, Local business | Food makers; lead: own site |
+| 2026-10-19 | Ticket Chocolate | Food & drink | Loomis | Food & drink, Local business | Food makers; holiday (hot chocolate, s'mores kits); lead: Visit Placer, then own site |
