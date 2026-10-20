@@ -106,3 +106,6 @@ export function validateCoverage(cases: EvalCase[], licences: ImageLicence[]): s
   for (const c of cases) if (EXPLICIT_WORDS.test(c.text)) problems.push(`${c.id}: explicit wording is not allowed in the set`)
   return problems
 }
+
+/** The media type the harness sends for a picture: the file's own, since the set mixes generated PNGs and stock JPEGs. */
+export const imageMediaType = (file: string): 'image/png' | 'image/jpeg' => (/\.jpe?g$/i.test(file) ? 'image/jpeg' : 'image/png')

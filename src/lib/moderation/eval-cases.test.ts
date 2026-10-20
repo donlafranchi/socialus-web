@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
-import { validateSet, validateCoverage, MIN_CASES, CHILDREN_RULE_SUBJECT, type EvalCase, type ImageLicence } from './eval-cases'
+import { validateSet, validateCoverage, imageMediaType, MIN_CASES, CHILDREN_RULE_SUBJECT, type EvalCase, type ImageLicence } from './eval-cases'
 import { ASSESS_CATEGORIES, SEVERITY_BY_CATEGORY } from './rules'
 
 // F100 criterion 10 — the labelled set the harness runs. Photos only from
@@ -157,6 +157,14 @@ describe('F100 criterion 10 — the set covers clean, borderline and violating, 
   })
 })
 
+describe('imageMediaType', () => {
+  it('sends a JPEG as a JPEG and a generated PNG as a PNG', () => {
+    expect(imageMediaType('swimwear-public-pool.jpg')).toBe('image/jpeg')
+    expect(imageMediaType('a.JPEG')).toBe('image/jpeg')
+    expect(imageMediaType('spam-flyer.png')).toBe('image/png')
+  })
+})
+
 describe('the committed set', () => {
   const cases: EvalCase[] = JSON.parse(readFileSync('evals/moderation/cases.json', 'utf8'))
   const licences: ImageLicence[] = JSON.parse(readFileSync('evals/moderation/images/LICENCES.json', 'utf8'))
@@ -167,7 +175,7 @@ describe('the committed set', () => {
   })
 
   // Criterion 10 read against the committed set as a whole, rather than the validator's rules one by one.
-  // [guards F100.10 partial: a non-explicit borderline stock photo for the adult category; the set tests that category with text only]
+  // [guards F100.10]
   it('is built as criterion 10 says: kinds, labels, licensed photos, the children rule and the adult category', () => {
     const exists = (f: string) => existsSync(`evals/moderation/images/${f}`)
     expect([...validateSet(cases, licences, exists), ...validateCoverage(cases, licences)]).toEqual([])
@@ -212,6 +220,7 @@ describe('the committed set', () => {
       expect(c.kind, c.id).toBe('borderline')
       expect(byFile.get(c.image!)!.licence, c.id).not.toBe('synthetic')
     }
+    expect(adult.filter((c) => c.kind === 'borderline' && c.image && byFile.get(c.image)!.licence !== 'synthetic').length, 'a non-explicit borderline stock photo').toBeGreaterThan(0)
   })
 
   // [guards F100.10 partial: real stock photos, licence and author recorded per photo]
