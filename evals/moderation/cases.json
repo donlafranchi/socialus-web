@@ -613,5 +613,17 @@
       "category": "other"
     },
     "image": "empty-playground.jpg"
+  },
+  {
+    "id": "img-border-pool-swimwear",
+    "text": "Pool day\nSummer swim at the club pool.",
+    "image": "swimwear-public-pool.jpg",
+    "reporterReason": "Sensitive content",
+    "kind": "borderline",
+    "label": {
+      "outcome": "approve",
+      "severity": 4,
+      "category": "nudity"
+    }
   }
 ]

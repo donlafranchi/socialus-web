@@ -10,7 +10,7 @@
 // runs unless every image is licensed and allowed.
 
 import { existsSync, readFileSync } from 'node:fs'
-import { validateSet, validateCoverage, type EvalCase, type ImageLicence } from '../src/lib/moderation/eval-cases'
+import { validateSet, validateCoverage, imageMediaType, type EvalCase, type ImageLicence } from '../src/lib/moderation/eval-cases'
 import { runSet } from '../src/lib/moderation/eval-run'
 import { recordEvalRun } from '../src/lib/moderation/eval-record'
 
@@ -33,7 +33,7 @@ async function main() {
     process.exit(1)
   }
   const { summary, rows } = await runSet(cases, {
-    readImage: (f) => ({ mediaType: 'image/png', base64: readFileSync(`${DIR}/images/${f}`).toString('base64') }),
+    readImage: (f) => ({ mediaType: imageMediaType(f), base64: readFileSync(`${DIR}/images/${f}`).toString('base64') }),
   })
   for (const r of rows) console.log(`${r.id}: want ${r.want}, got ${r.got}`)
   console.table(summary)
