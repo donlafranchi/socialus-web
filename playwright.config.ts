@@ -83,6 +83,14 @@ export default defineConfig({
       timeout: 120_000,
       use: { ...devices['Pixel 5'], actionTimeout: 15_000, navigationTimeout: 30_000 },
     },
+    {
+      // #486 — files one TEST report on a builder Page on production, as the builder member, at phone size. By hand only.
+      name: 'report-selftest',
+      testMatch: /smoke\/report-selftest\.spec\.ts/,
+      retries: 0,
+      timeout: 120_000,
+      use: { ...devices['Pixel 5'], actionTimeout: 15_000, navigationTimeout: 30_000 },
+    },
     { name: 'smoke-guard', testMatch: /smoke\/must-fail\.spec\.ts/, retries: 0 },
     { name: 'guard', testMatch: /_guard\/must-fail\.spec\.ts/, retries: 0 },
     {
