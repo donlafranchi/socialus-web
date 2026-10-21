@@ -12,6 +12,7 @@
 // name and avatar). No chips or pills [always]. An undated post is a
 // first-class post: it says when it was posted instead of a date line.
 
+import { sizedMediaUrl } from '@/lib/media/served-url'
 import { kindLine } from '@/lib/groups/page-kind'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { Card } from '@/components/cards/Card'
@@ -99,7 +100,7 @@ function PageCard(props: CardProps) {
       <div data-testid="tile-image" className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
         {result.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={result.photoUrl} alt={result.name} className="h-full w-full object-cover" />
+          <img src={sizedMediaUrl(result.photoUrl, 800)} alt={result.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <DefaultArt kind={artKindFor(result.groupKind)} />
         )}
@@ -177,7 +178,7 @@ function PostCard(props: CardProps) {
         <div data-testid="tile-image" className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={photo} alt={alt} className="h-full w-full object-cover" />
+            <img src={sizedMediaUrl(photo, 320)} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
           ) : (
             <DefaultArt kind={artKindFor(result.groupKind)} />
           )}
@@ -187,7 +188,7 @@ function PostCard(props: CardProps) {
         <span aria-hidden className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-micro font-semibold text-[var(--color-fg)]">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatar} alt="" className="h-full w-full object-cover" />
+            <img src={sizedMediaUrl(avatar, 96)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
           ) : (
             result.name.trim().charAt(0).toUpperCase()
           )}

@@ -16,6 +16,7 @@
 // It takes a photoUrl it can already render, so the day an upload path exists
 // nothing here changes.
 
+import { sizedMediaUrl } from '@/lib/media/served-url'
 /** A small, fixed set. Not a ramp, and not per-kind. */
 const TONES = ['a', 'b', 'c', 'd'] as const
 
@@ -54,7 +55,9 @@ export function PersonMark({ name, photoUrl, className = 'h-8 w-8' }: Props) {
       // eslint-disable-next-line @next/next/no-img-element
       <img
         data-testid="person-mark-photo"
-        src={photoUrl}
+        src={sizedMediaUrl(photoUrl, 128)}
+        loading="lazy"
+        decoding="async"
         alt=""
         className={`${className} shrink-0 rounded-full object-cover`}
       />

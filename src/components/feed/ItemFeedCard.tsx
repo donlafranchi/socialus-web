@@ -3,6 +3,7 @@
 // field when not (Decision A, 2026-09-04). See design-language.md § Card
 // media block. The card declares no width — three grids render it at three
 // different column counts, and the merged Home surface may use a fourth.
+import { sizedMediaUrl } from '@/lib/media/served-url'
 import Link from 'next/link'
 import {
   CalendarDays,
@@ -55,7 +56,7 @@ export function ItemFeedCard({ item }: { item: FeedItem }) {
         {photo ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={photo}
+            src={sizedMediaUrl(photo, 800)}
             alt={cardImageAlt({ title: item.title, place: item.nearestLocationLabel })}
             loading="lazy"
             decoding="async"

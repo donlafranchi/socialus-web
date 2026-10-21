@@ -108,6 +108,7 @@ export async function uploadImage(file: File, memberId: string): Promise<{ url: 
   const supabase = createClient()
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: 'image/webp',
+    cacheControl: '31536000', // the path is a fresh uuid; the object never changes
   })
   if (error) {
     // The storage server's own words ("mime type image/png is not supported")

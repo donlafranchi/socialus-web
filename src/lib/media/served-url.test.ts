@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { servedMediaUrl, isServedViaSite } from './served-url'
+import { servedMediaUrl, isServedViaSite, sizedMediaUrl } from './served-url'
 import { isOwnMediaUrl } from './own-media-url'
 import { mediaObjectPath } from './object-path'
 
@@ -57,5 +57,18 @@ describe('the upload goes through it', () => {
     expect(src).toMatch(/enabled: mediaViaSite\(\)/)
     expect(src).not.toMatch(/process\.env/)
     expect(readFileSync(resolve(__dirname, 'served-url.ts'), 'utf8')).toMatch(/NEXT_PUBLIC_MEDIA_VIA_SITE === '1'/)
+  })
+})
+
+describe('sizedMediaUrl', () => {
+  const stored = 'https://abc.supabase.co/storage/v1/object/public/media/m/1.webp'
+  it('asks hosted storage for a card-sized WebP', () => {
+    expect(sizedMediaUrl(stored, 320)).toBe('https://abc.supabase.co/storage/v1/render/image/public/media/m/1.webp?width=320&quality=70')
+  })
+  it('leaves local storage, the site address, foreign hosts and empty values alone', () => {
+    for (const u of ['http://127.0.0.1:54321/storage/v1/object/public/media/m/1.webp', 'https://socialus.org/storage/v1/object/public/media/m/1.webp', 'https://images.example.com/a.jpg', `${stored}?x=1`]) {
+      expect(sizedMediaUrl(u, 320)).toBe(u)
+    }
+    expect(sizedMediaUrl(null, 320)).toBeUndefined()
   })
 })

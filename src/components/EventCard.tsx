@@ -1,5 +1,6 @@
 'use client'
 
+import { sizedMediaUrl } from '@/lib/media/served-url'
 import { useRouter } from 'next/navigation'
 import { Calendar, Sparkles, Store } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
@@ -77,7 +78,7 @@ export function EventCard({ event, hostName, hostSlug, hostType, hostCoverPhotoU
       className="cursor-pointer card card-hover overflow-hidden"
     >
       <div className="h-32 bg-gradient-to-br from-[var(--color-accent-tint)] to-amber-100 relative">
-        {cover && <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+        {cover && <img src={sizedMediaUrl(cover, 800)} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />}
         <PhotoLabel>
           <Icon size={12} /> {EVENT_LABEL[event.event_type] ?? event.event_type}
         </PhotoLabel>
