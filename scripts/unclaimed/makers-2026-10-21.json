@@ -1,0 +1,75 @@
+[
+ {
+  "name": "Sacramento Food Bank & Family Services",
+  "category": "Food bank (nonprofit)",
+  "makes": "Sacramento nonprofit that inspects, sorts, repacks and distributes food from its Bell Avenue distribution center; individuals sign up for volunteer shifts and groups of five or more can book together",
+  "area": "Sacramento (Sacramento)",
+  "site": "https://sacramentofoodbank.org/",
+  "confidence": "Medium; own site checked 2026-10-21 (ok): 1951 Bell Avenue; volunteer shifts via site calendars; no footer year and no dated events. Photos not viewed: stock only."
+ },
+ {
+  "name": "Woodland Food Closet",
+  "category": "Food bank (nonprofit)",
+  "makes": "Woodland food closet giving families a three-day supply of groceries from 420 Grand Ave, with volunteers packing groceries and sorting donated food",
+  "area": "Woodland (Yolo)",
+  "site": "https://www.woodlandfoodcloset.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/woodlandfoodcloset/",
+   "facebook": "https://www.facebook.com/woodlandfoodcloset"
+  },
+  "confidence": "Medium; own site checked 2026-10-21 (ok): grocery distribution Mon-Fri 3-4 pm; Season of Caring campaign listed Nov 24 to Dec 13 (site's weekday/date pairing is inconsistent, confirm before posting dates); footer 2015-2022 but a policy file was uploaded 2026-08. Photos not viewed: stock only."
+ },
+ {
+  "name": "Eatwell Farm",
+  "category": "Farm",
+  "makes": "Dixon organic farm delivering weekly CSA farm boxes to Dixon, Davis, Sacramento and Bay Area towns, with a Care Share program and wholesale; the farm is not open to the public",
+  "area": "Dixon (Yolo)",
+  "site": "https://www.eatwell.com/",
+  "products": [
+   {
+    "name": "CSA Farm Box",
+    "url": "https://www.eatwell.com/whats-a-csa"
+   },
+   {
+    "name": "Care Share Program",
+    "url": "https://www.eatwell.com/care-share-program",
+    "kind": "service"
+   },
+   {
+    "name": "Wholesale",
+    "url": "https://www.eatwell.com/wholesale",
+    "kind": "service"
+   }
+  ],
+  "confidence": "Medium; own site checked 2026-10-21 (ok): 5835 Sievers Road; weekly box newsletter dated Oct 19, 2026; no footer year; not open to visitors. Photos not viewed: stock only."
+ },
+ {
+  "name": "Heringer Estates Family Vineyards & Winery",
+  "category": "Farm stay & agritourism",
+  "makes": "Clarksburg family vineyard and winery with tastings at its Heritage Barn, a wine club, private events and farmers market appearances",
+  "area": "Clarksburg (Yolo)",
+  "site": "https://heringerestates.com/",
+  "products": [
+   {
+    "name": "Tasting Reservations",
+    "url": "https://heringerestates.com/tasting-reservations",
+    "kind": "service"
+   },
+   {
+    "name": "Wine Club",
+    "url": "https://heringerestates.com/wine-club",
+    "kind": "service"
+   },
+   {
+    "name": "Wine Shop",
+    "url": "https://heringerestates.com/shop-landing"
+   },
+   {
+    "name": "Private Events",
+    "url": "https://heringerestates.com/private-events",
+    "kind": "service"
+   }
+  ],
+  "confidence": "Medium; own site checked 2026-10-21 (ok): 37375 Netherlands Rd; open daily 10/11-5; events Oct 23, Nov 6, Nov 8 listed without a year; footer 2024. Photos not viewed: stock only."
+ }
+]

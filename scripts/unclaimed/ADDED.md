@@ -256,3 +256,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-20 | Elk Grove Food Bank Services | Food bank (nonprofit) | Elk Grove | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
 | 2026-10-20 | Oasis City Center | Food bank (nonprofit) | Stockton | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
 | 2026-10-20 | St. Mary's Dining Room | Meal program (nonprofit) | Stockton | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
+| 2026-10-21 | Sacramento Food Bank & Family Services | Food bank (nonprofit) | Sacramento | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
+| 2026-10-21 | Woodland Food Closet | Food bank (nonprofit) | Woodland | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
+| 2026-10-21 | Eatwell Farm | Farm | Dixon | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: Visit CA Delta, then own site |
+| 2026-10-21 | Heringer Estates Family Vineyards & Winery | Farm stay & agritourism | Clarksburg | Farmers markets, Neighborhood life | Volunteer and mutual aid (farms); stock photos only; lead: Visit CA Delta, then own site |
