@@ -135,7 +135,7 @@ export function TileCard({
     >
       {href ? (
         // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
-        <HandoffLink href={href} prefetch={prefetch} className="block" handoff={{ name: title, kindLine, imageUrl }}>
+        <HandoffLink href={href} prefetch={prefetch} className="block" handoff={{ name: title, kindLine, imageUrl: sizedMediaUrl(imageUrl, 800) }}>
           {body}
         </HandoffLink>
       ) : (
