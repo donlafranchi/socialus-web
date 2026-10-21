@@ -27,6 +27,7 @@ import { HiddenPhotoNotice } from './HiddenPhotoNotice'
 import { contactLinksForDisplay, isSafeLinkUrl, type ContactLinks } from '@/lib/groups/social-links'
 
 const NO_LINKS: ContactLinks = { website: null, socials: [] }
+const CLAIM_HANDLERS: ClaimHandlers = { choices: claimChoicesAction, start: startClaimAction, verify: verifyClaimAction, proof: proofClaimAction }
 import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
@@ -43,7 +44,9 @@ import { MapPin, Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { UnclaimedBox } from './UnclaimedBox'
-import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { claimChoicesAction, proofClaimAction, startClaimAction, verifyClaimAction } from '@/app/_actions/claim-actions'
+import type { ClaimHandlers } from './ClaimForm'
 import { COPY } from '@/lib/copy'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
 import { LocalOwnerClaimProvider, LocalOwnerBadgeLabel } from './LocalOwnerClaimState'
@@ -66,7 +69,7 @@ interface Props {
   shop: ResolvedShop
   /** #353 — the unclaimed box's writes; the demo page passes stand-ins. */
   unclaimedActions?: {
-    claim: typeof requestUnclaimedClaimAction
+    claim: ClaimHandlers
     remove: typeof requestUnclaimedRemovalAction
   }
   badge: LocalOwnerBadge | null
@@ -441,7 +444,8 @@ export function ShopPublicPage({
           groupId={shop.groupId}
           pagePath={pagePath ?? `/g/${shop.publicId}`}
           hasPhoto={Boolean(photoUrl)}
-          onClaim={unclaimedActions?.claim ?? requestUnclaimedClaimAction}
+          loggedIn={loggedIn}
+          claim={unclaimedActions?.claim ?? CLAIM_HANDLERS}
           onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
         />
       )}

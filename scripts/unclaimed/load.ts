@@ -22,6 +22,7 @@ import { extractSiteMeta } from '../../src/lib/unclaimed/site-scrape'
 import { uploadPhotos } from '../../src/lib/unclaimed/upload'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
 import { readLinkAllow, readPlanned } from './rows'
+import { holdSaturated, saturatedTowns, TOWN_SATURATION } from '../../src/lib/unclaimed/saturation'
 
 const need = (name: string) => {
   const v = process.env[name]?.trim()
@@ -35,7 +36,8 @@ const summary = (line: string) => {
 }
 
 async function main() {
-  const { listed, removed, skipped, files } = readPlanned()
+  const { listed: planned, removed, skipped, files } = readPlanned()
+  let listed = planned
   const allow = new Set(readLinkAllow())
   const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[]; ownMatch?: Record<string, string>; retiredFiles: Record<string, string> }
   console.log(`Read ${files.join(', ')}: ${listed.length} to list, ${skipped.length} held back`)
@@ -76,8 +78,24 @@ async function main() {
     }
   }
 
+  // #987 — a town where enough claimed Pages post their own news gets no new seeded Page.
+  {
+    const db = new Client({ connectionString: dbUrl })
+    await db.connect()
+    try {
+      const full = await saturatedTowns(db, now)
+      const { rows } = await db.query(`select public_info_url from public.groups where public_info_url = any($1::text[])`, [listed.flatMap((p) => [p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])])])
+      const split = holdSaturated(listed, full, new Set(rows.map((r) => r.public_info_url as string)))
+      listed = split.load
+      if (full.size) summary(`Towns that run themselves (${TOWN_SATURATION.claimedPages}+ claimed Pages posting in ${TOWN_SATURATION.withinDays} days): ${[...full].join(', ')}`)
+      for (const p of split.held) summary(`Held back ${p.name}: ${p.city} runs itself`)
+    } finally {
+      await db.end()
+    }
+  }
+
   const failed: { name: string; error: string }[] = []
-  const tally = { created: 0, existing: 0, enriched: 0, refreshed: 0, complete: 0 }
+  const tally = { created: 0, existing: 0, enriched: 0, refreshed: 0, complete: 0, claimed: 0 }
   const ownCover: string[] = []
   const stockCover: string[] = []
 
@@ -120,6 +138,10 @@ async function main() {
             const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}), { stockOnly: overrides.stockOnly.includes(p.name), socials: socialsFor(p) })
             if (r === 'missing') throw new Error('the Page is not in the database after loading')
             tally[r]++
+            if (r === 'claimed') {
+              console.log(`${p.name}: claimed by its owner, left alone`)
+              continue
+            }
             // #936 — a Page with a street address sits there, not at its town's centre.
             const pin = await pinUnclaimed(db, p, (q) => censusGeocode(q))
             if (pin.status === 'not-found') console.log(`  ${p.name}: its address would not geocode (${p.address}); left at its town`)
@@ -161,7 +183,7 @@ async function main() {
     await db.end()
   }
 
-  summary(`Created ${tally.created}, already there ${tally.existing}; enriched ${tally.enriched}, refreshed ${tally.refreshed}, complete ${tally.complete}`)
+  summary(`Created ${tally.created}, already there ${tally.existing}; enriched ${tally.enriched}, refreshed ${tally.refreshed}, complete ${tally.complete}, claimed by their owner ${tally.claimed}`)
   summary(`Covers: ${ownCover.length} the business's own photo, ${stockCover.length} stock`)
   for (const f of failed) summary(`FAILED ${f.name}: ${f.error}`)
   if (failed.length) process.exitCode = 1
