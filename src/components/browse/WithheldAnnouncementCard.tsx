@@ -23,6 +23,7 @@ import {
   withheldCountLabel,
   withheldJoinHref,
 } from './withheld-copy'
+import { sizedMediaUrl } from '@/lib/media/served-url'
 
 export function WithheldAnnouncementCard({
   result,
@@ -40,7 +41,7 @@ export function WithheldAnnouncementCard({
       >
         {result.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={result.photoUrl} alt="" className="h-full w-full object-cover" />
+          <img src={sizedMediaUrl(result.photoUrl, 800)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <DefaultArt kind={artKindFor(result.groupKind)} />
         )}

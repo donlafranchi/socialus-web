@@ -63,7 +63,7 @@ function Shell({ result, as, prefetch, kind, imageUrl, children, after }: CardPr
     >
       {result.href ? (
         // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
-        <HandoffLink href={result.href} prefetch={prefetch} className="block" handoff={{ name: result.name, kindLine: kl, imageUrl }}>
+        <HandoffLink href={result.href} prefetch={prefetch} className="block" handoff={{ name: result.name, kindLine: kl, imageUrl: sizedMediaUrl(imageUrl, 800) ?? null }}>
           {children}
         </HandoffLink>
       ) : (
