@@ -47,12 +47,15 @@ import {
   groupDiscardDraft,
   groupRestore,
   groupUnclaimedRemove,
-  groupUnclaimedClaim,
   groupUnclaimedRestore,
   groupMarketStallSet,
   groupMarketStallSkip,
   groupMarketStallRemove,
   groupMarketStallConfirm,
+  groupClaimStart,
+  groupClaimVerify,
+  groupClaimProof,
+  groupClaimDecide,
 } from './group'
 import { itemCreate, itemPublish, itemAttachLocation, featuredItemSave, featuredItemRemove } from './item'
 import { tagReview } from './tag'
@@ -149,11 +152,15 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // #388 — builder content, all at once. Operator-only, checked in the handlers.
   'builder.content_set_visible': builderContentSetVisible as unknown as NamedActionHandler<unknown, unknown>,
   'builder.content_delete_all': builderContentDeleteAll as unknown as NamedActionHandler<unknown, unknown>,
-  // #353 — an unclaimed Page. Remove and claim take no account; a removal hides
+  // #353 — an unclaimed Page. Remove takes no account; a removal hides
   // the Page at once. Restore is operator-only, checked in the handler.
   'group.unclaimed_remove': groupUnclaimedRemove as unknown as NamedActionHandler<unknown, unknown>,
-  'group.unclaimed_claim': groupUnclaimedClaim as unknown as NamedActionHandler<unknown, unknown>,
   'group.unclaimed_restore': groupUnclaimedRestore as unknown as NamedActionHandler<unknown, unknown>,
+  // #987 — a signed-in claimant proves the business by a code; proof goes to an operator (decide is operator-only).
+  'group.claim_start': groupClaimStart as unknown as NamedActionHandler<unknown, unknown>,
+  'group.claim_verify': groupClaimVerify as unknown as NamedActionHandler<unknown, unknown>,
+  'group.claim_proof': groupClaimProof as unknown as NamedActionHandler<unknown, unknown>,
+  'group.claim_decide': groupClaimDecide as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {

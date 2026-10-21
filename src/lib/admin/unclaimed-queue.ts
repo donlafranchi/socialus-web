@@ -27,6 +27,16 @@ export interface UnclaimedPageRow {
   photoHiddenAt: Date | null
   sources: UnclaimedSource[]
   requests: UnclaimedRequest[]
+  /** #987 — claims with proof waiting for a decision: the one case a person decides. */
+  proofClaims: ProofClaim[]
+}
+
+export interface ProofClaim {
+  id: string
+  handle: string
+  proofUrl: string
+  note: string | null
+  createdAt: Date
 }
 
 export async function fetchUnclaimedPages(): Promise<UnclaimedPageRow[]> {
@@ -38,6 +48,7 @@ export async function fetchUnclaimedPages(): Promise<UnclaimedPageRow[]> {
     photo_hidden_at: Date | null
     sources: UnclaimedSource[] | null
     requests: (Omit<UnclaimedRequest, 'createdAt'> & { createdAt: string })[] | null
+    proof_claims: (Omit<ProofClaim, 'createdAt'> & { createdAt: string })[] | null
   }>(
     `select g.id, g.public_id, coalesce(b.display_name, g.name, g.slug) as name, g.unclaimed_hidden_at, g.photo_hidden_at,
             (select json_agg(json_build_object('field', s.field, 'url', s.url, 'capturedOn', s.captured_on,
@@ -48,7 +59,11 @@ export async function fetchUnclaimedPages(): Promise<UnclaimedPageRow[]> {
                  from public.page_removal_requests where group_id = g.id
                union all
                select 'claim', name, contact, message, created_at
-                 from public.page_claim_requests where group_id = g.id) r) as requests
+                 from public.page_claim_requests where group_id = g.id) r) as requests,
+            (select json_agg(json_build_object('id', c.id, 'handle', m.handle, 'proofUrl', c.proof_url, 'note', c.proof_note,
+                                               'createdAt', c.created_at) order by c.created_at)
+               from public.page_claims c join public.members m on m.id = c.claimant_member_id
+              where c.group_id = g.id and c.status = 'review') as proof_claims
        from public.groups g
        left join public.group_businesses b on b.group_id = g.id
       where g.unclaimed_at is not null
@@ -62,5 +77,6 @@ export async function fetchUnclaimedPages(): Promise<UnclaimedPageRow[]> {
     photoHiddenAt: r.photo_hidden_at,
     sources: r.sources ?? [],
     requests: (r.requests ?? []).map((q) => ({ ...q, createdAt: new Date(q.createdAt) })),
+    proofClaims: (r.proof_claims ?? []).map((c) => ({ ...c, createdAt: new Date(c.createdAt) })),
   }))
 }

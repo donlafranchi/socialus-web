@@ -1,6 +1,6 @@
 'use server'
 
-// #353 — Claim and Remove on an unclaimed Page, signed in or out. The device
+// #353 — Remove on an unclaimed Page, signed in or out (claiming is claim-actions.ts, #987). The device
 // is a random id in a cookie, hashed before it leaves this file; it only counts
 // requests per day (DAILY_LIMIT_PER_DEVICE). No address is stored.
 
@@ -8,7 +8,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { resolveAnonymousActionContext } from '@/lib/action-context'
-import { groupUnclaimedClaim, groupUnclaimedRemove, type UnclaimedRemovalScope } from '@/actions/group'
+import { groupUnclaimedRemove, type UnclaimedRemovalScope } from '@/actions/group'
 import { ActionError, ConflictError } from '@/actions/_lib/errors'
 
 const DEVICE_COOKIE = 'su_device'
@@ -34,16 +34,6 @@ async function run(fn: () => Promise<unknown>): Promise<UnclaimedResult> {
     if (err instanceof ActionError) return { ok: false, reason: 'failed' }
     throw err
   }
-}
-
-export async function requestUnclaimedClaimAction(input: {
-  groupId: string
-  name: string
-  contact: string
-  message?: string
-}): Promise<UnclaimedResult> {
-  const device = await deviceHash()
-  return run(() => groupUnclaimedClaim(resolveAnonymousActionContext(), { ...input, deviceHash: device }))
 }
 
 export async function requestUnclaimedRemovalAction(input: {

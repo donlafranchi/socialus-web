@@ -83,10 +83,10 @@ export const LINK_TYPES: readonly LinkType[] = [
     from: 'Member',
     to: 'Page',
     via: { table: 'groups', column: 'founder_member_id' },
-    writtenBy: ['group.create'],
+    writtenBy: ['group.create', 'group.claim_verify', 'group.claim_decide'],
     ruled: null,
     built: true,
-    note: 'Ownership, not membership. The founder column is also what a member\'s own-Pages list reads. An unclaimed Page (#353, a real business added from public info) is founded by the system member and has no owner until claimed.',
+    note: 'Ownership, not membership. The founder column is also what a member\'s own-Pages list reads. An unclaimed Page (#353, a real business added from public info) is founded by the system member until claimed; a claim (#987) makes the claimant its founder and owner.',
   },
   {
     name: 'a Member authored an Item',
@@ -271,7 +271,7 @@ export const LINK_TYPES: readonly LinkType[] = [
     from: 'Member',
     to: 'Page',
     via: { table: 'group_memberships', column: 'role' },
-    writtenBy: ['group.create'],
+    writtenBy: ['group.create', 'group.claim_verify', 'group.claim_decide'],
     ruled: '2026-09-19',
     built: true,
     note:

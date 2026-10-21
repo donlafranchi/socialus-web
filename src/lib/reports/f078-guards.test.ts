@@ -21,9 +21,9 @@ describe('F078.3 — the poster is told in-app, never by email', () => {
   // [guards F078.3 partial: nothing in the code can email a member; that the notice is written in-app is the handler's check]
   it('the only code that sends email is the operator alert, and it writes only to the operator\'s own list', () => {
     // #945 — a reminder the member asked for may go by email (src/lib/notify/email.ts); only the reminder sender uses it,
-    // so no notice about a report ever can.
+    // and #987's claim code, sent to the address the claimant typed; so no notice about a report ever can.
     expect(naming(/api\.resend\.com|resend\.com\/emails|nodemailer|sendgrid|sendMail|postmark/i)).toEqual(['src/lib/notify/email.ts', 'src/lib/notify/operator-alert.ts'])
-    expect(naming(/notify\/email'|from '\.\.\/email'|sendMemberEmail/).filter((p) => !p.endsWith('email.ts'))).toEqual(['src/lib/notify/push/reminder-sender.ts'])
+    expect(naming(/notify\/email'|from '\.\.\/email'|sendMemberEmail/).filter((p) => !p.endsWith('email.ts'))).toEqual(['src/lib/claims/deliver.ts', 'src/lib/notify/push/reminder-sender.ts'])
     const alert = readFileSync(join(ROOT, 'src/lib/notify/operator-alert.ts'), 'utf8')
     expect(alert).toMatch(/const to = \(env\.ADMIN_EMAILS \?\? ''\)/)
     // Nothing that reads a member's address is anywhere near it.

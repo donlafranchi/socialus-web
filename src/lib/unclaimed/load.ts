@@ -70,7 +70,8 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
     await db.query('begin')
     try {
       // A Page whose address was fixed is filed under the new one; a first run files it under the old.
-      const had = await db.query(`select 1 from public.groups where unclaimed_at is not null and public_info_url = any($1::text[])`, [[p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])]])
+      // #987 — a claimed Page counts as there: the seeder never makes it again.
+      const had = await db.query(`select 1 from public.groups where (unclaimed_at is not null or claimed_at is not null) and public_info_url = any($1::text[])`, [[p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])]])
       if (had.rows.length) {
         await db.query('rollback')
         result.existing++
@@ -100,7 +101,7 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
   return result
 }
 
-export type EnrichResult = 'missing' | 'complete' | 'enriched' | 'refreshed'
+export type EnrichResult = 'missing' | 'claimed' | 'complete' | 'enriched' | 'refreshed'
 
 export interface Enrichment {
   /** Photos in order: the cover first, then the ones the sample posts carry. */
@@ -143,6 +144,9 @@ export async function enrichPage(
     const g = found.rows[0] as { id: string; photo_url: string | null; photo_source_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
     if (!g) {
       await db.query('rollback')
+      // #987 — its owner runs it now: no samples, pictures or links from the seeder.
+      const claimed = await db.query(`select 1 from public.groups where claimed_at is not null and public_info_url = any($1::text[])`, [[page.publicInfoUrl, ...(page.legacyUrl ? [page.legacyUrl] : [])]])
+      if (claimed.rows.length) return 'claimed'
       return 'missing'
     }
     let touched = false
