@@ -12,7 +12,7 @@
 // name and avatar). No chips or pills [always]. An undated post is a
 // first-class post: it says when it was posted instead of a date line.
 
-import { sizedMediaUrl } from '@/lib/media/served-url'
+import { sizedMediaUrl, sizedMediaSrcSet } from '@/lib/media/served-url'
 import { kindLine } from '@/lib/groups/page-kind'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { Card } from '@/components/cards/Card'
@@ -100,7 +100,7 @@ function PageCard(props: CardProps) {
       <div data-testid="tile-image" className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
         {result.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={sizedMediaUrl(result.photoUrl, 800)} alt={result.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+          <img src={sizedMediaUrl(result.photoUrl, 400)} srcSet={sizedMediaSrcSet(result.photoUrl, 400)} alt={result.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <DefaultArt kind={artKindFor(result.groupKind)} />
         )}

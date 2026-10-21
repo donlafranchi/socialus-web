@@ -24,7 +24,7 @@
 //      replaced by the lift plus the title shifting to the accent colour —
 //      colour and motion rather than a line.
 
-import { sizedMediaUrl } from '@/lib/media/served-url'
+import { sizedMediaUrl, sizedMediaSrcSet } from '@/lib/media/served-url'
 import { HandoffLink } from './HandoffLink'
 import type { ReactNode } from 'react'
 import { Card } from './Card'
@@ -81,7 +81,7 @@ export function TileCard({
       >
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={sizedMediaUrl(imageUrl, 800)} alt={imageAlt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+          <img src={sizedMediaUrl(imageUrl, 400)} srcSet={sizedMediaSrcSet(imageUrl, 400)} alt={imageAlt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : art ? (
           art
         ) : (

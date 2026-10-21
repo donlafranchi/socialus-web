@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { servedMediaUrl, isServedViaSite, sizedMediaUrl } from './served-url'
+import { servedMediaUrl, isServedViaSite, sizedMediaUrl, sizedMediaSrcSet } from './served-url'
 import { isOwnMediaUrl } from './own-media-url'
 import { mediaObjectPath } from './object-path'
 
@@ -70,5 +70,15 @@ describe('sizedMediaUrl', () => {
       expect(sizedMediaUrl(u, 320)).toBe(u)
     }
     expect(sizedMediaUrl(null, 320)).toBeUndefined()
+  })
+})
+
+describe('sizedMediaSrcSet', () => {
+  it('gives 1x and 2x widths for hosted storage and nothing otherwise', () => {
+    expect(sizedMediaSrcSet('https://abc.supabase.co/storage/v1/object/public/media/m/1.webp', 400)).toBe(
+      'https://abc.supabase.co/storage/v1/render/image/public/media/m/1.webp?width=400&quality=70 1x, https://abc.supabase.co/storage/v1/render/image/public/media/m/1.webp?width=800&quality=70 2x',
+    )
+    expect(sizedMediaSrcSet('http://127.0.0.1:54321/storage/v1/object/public/media/m/1.webp', 400)).toBeUndefined()
+    expect(sizedMediaSrcSet(null, 400)).toBeUndefined()
   })
 })
