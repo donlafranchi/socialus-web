@@ -38,3 +38,10 @@ export function sizedMediaUrl(url: string | null | undefined, width: number): st
     return url
   }
 }
+
+/** `srcSet` for a card: this width for 1x screens (desktop, bots), double for 2x (phones). */
+export function sizedMediaSrcSet(url: string | null | undefined, width: number): string | undefined {
+  const one = sizedMediaUrl(url, width)
+  const two = sizedMediaUrl(url, width * 2)
+  return one && two && one !== url ? `${one} 1x, ${two} 2x` : undefined
+}
