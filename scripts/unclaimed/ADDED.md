@@ -253,3 +253,6 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-19 | Sudwerk Brewing Co. | Food & drink | Davis | Food & drink, Local business | Food makers; lead: own site |
 | 2026-10-19 | Ticket Chocolate | Food & drink | Loomis | Food & drink, Local business | Food makers; holiday (hot chocolate, s'mores kits); lead: Visit Placer, then own site |
 | 2026-10-19 | Maidu Park Farmers Market | Farmers market | Roseville | Farmers markets, Food & drink | real weekly Market day posts (Sundays 9–1) from the operator's own site, not Samples; stock photos only; lead: Don |
+| 2026-10-20 | Elk Grove Food Bank Services | Food bank (nonprofit) | Elk Grove | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
+| 2026-10-20 | Oasis City Center | Food bank (nonprofit) | Stockton | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
+| 2026-10-20 | St. Mary's Dining Room | Meal program (nonprofit) | Stockton | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |

@@ -1,0 +1,44 @@
+[
+ {
+  "name": "Elk Grove Food Bank Services",
+  "category": "Food bank (nonprofit)",
+  "makes": "Elk Grove food bank, a 501(c)(3) since 2004 and serving neighbors since 1974: free groceries, senior services, a clothes closet, a pet food pantry, utility assistance and wellness bags, with volunteer shifts and food drives",
+  "area": "Elk Grove (Sacramento)",
+  "address": "9888 Kent Street, Elk Grove, CA 95624",
+  "site": "https://elkgrovefoodbank.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/elkgrovefoodbank/",
+   "facebook": "https://www.facebook.com/elkgrovefoodbank"
+  },
+  "products": [
+   { "name": "Senior Services", "url": "https://elkgrovefoodbank.org/services/#Seniors", "kind": "service" },
+   { "name": "Cathy's Clothes Closet", "url": "https://elkgrovefoodbank.org/services/#Closet", "kind": "service" },
+   { "name": "Pantry 4 Pets", "url": "https://elkgrovefoodbank.org/services/#Pets", "kind": "service" },
+   { "name": "Utility Assistance", "url": "https://elkgrovefoodbank.org/services/#Utility", "kind": "service" },
+   { "name": "Wellness Bag Program", "url": "https://elkgrovefoodbank.org/find-food/#WBP", "kind": "service" }
+  ],
+  "confidence": "Medium-high; own site checked 2026-10-20 (ok): 9888 Kent Street, open Mon-Fri 9-2, volunteer shifts and food-drive pages live; footer 2025; no dated events listed (Harvest of Hope has no date). Photos not viewed: stock only. Lead: own site."
+ },
+ {
+  "name": "Oasis City Center",
+  "category": "Food bank (nonprofit)",
+  "makes": "Stockton community nonprofit whose Oasis Cares program runs weekly community food distributions and Bless The Block neighborhood outreaches, alongside faith, health and family support services in San Joaquin County",
+  "area": "Stockton (San Joaquin)",
+  "address": "848 East Hammer Lane, Stockton, CA 95210",
+  "site": "https://oasiscitycenter.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/oasis.citycenter",
+   "facebook": "https://www.facebook.com/oasiscitycenter"
+  },
+  "confidence": "Medium; own site checked 2026-10-20 (ok): Oasis Cares page says weekly distributions and neighborhood outreaches, no days or dates listed (call 209-478-5496); volunteer page live; no footer year. Photos not viewed: stock only. Fewer than 3 own-site products, so none. Lead: own site."
+ },
+ {
+  "name": "St. Mary's Dining Room",
+  "category": "Meal program (nonprofit)",
+  "makes": "Stockton dining room serving people facing poverty and homelessness in San Joaquin County, with meals, health help and dignity services; individuals and groups can give their time",
+  "area": "Stockton (San Joaquin)",
+  "address": "545 W. Sonora Street, Stockton, CA 95203",
+  "site": "https://www.stmarysdiningroom.org/",
+  "confidence": "Low-medium; own site checked 2026-10-20 (ok): address, phone and 'Give Your Time' section live; no footer year and no dated events (newest story 2016). Photos not viewed: stock only. No social links found. Fewer than 3 own-site products, so none. Lead: own site."
+ }
+]
