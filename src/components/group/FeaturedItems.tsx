@@ -21,6 +21,7 @@ import {
   type FeaturedItem,
   type FeaturedKind,
 } from '@/lib/items/featured'
+import { sizedMediaUrl } from '@/lib/media/served-url'
 
 export interface FeaturedSaveInput {
   groupId: string
@@ -306,7 +307,7 @@ function ItemCard({ item, editing = false }: { item: FeaturedItem; editing?: boo
       <div className="aspect-square w-full overflow-hidden rounded-md bg-[var(--color-surface)]">
         {item.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.photoUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <img src={sizedMediaUrl(item.photoUrl, 640)} alt="" className="h-full w-full object-cover" loading="lazy" />
         ) : (
           <div aria-hidden="true" className="flex h-full w-full items-center justify-center text-title-2 text-[var(--color-fg-muted)]">
             {item.name.slice(0, 1).toUpperCase()}

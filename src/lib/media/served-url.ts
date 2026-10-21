@@ -23,3 +23,18 @@ export function isServedViaSite(url: string | null | undefined, storageUrl: stri
 
 /** The switch, read here so the upload module reads no environment at all (F080 guard). */
 export const mediaViaSite = () => process.env.NEXT_PUBLIC_MEDIA_VIA_SITE === '1'
+
+const OBJECT = '/storage/v1/object/public/media/'
+const RENDER = '/storage/v1/render/image/public/media/'
+
+/** A card shows a photo at a fraction of its stored 1600px; the storage host resizes it (WebP, cached) so the card downloads the fraction. Only hosted storage URLs change: local storage, the site's own address and foreign hosts pass through. */
+export function sizedMediaUrl(url: string | null | undefined, width: number): string | undefined {
+  if (!url) return undefined
+  try {
+    const u = new URL(url)
+    if (u.protocol !== 'https:' || !u.hostname.endsWith('.supabase.co') || !u.pathname.startsWith(OBJECT) || u.search) return url
+    return `${u.origin}${RENDER}${u.pathname.slice(OBJECT.length)}?width=${width}&quality=70`
+  } catch {
+    return url
+  }
+}
