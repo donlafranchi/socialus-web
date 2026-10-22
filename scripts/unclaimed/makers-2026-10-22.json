@@ -1,0 +1,85 @@
+[
+ {
+  "name": "Placer Community Theater",
+  "category": "Art association (nonprofit)",
+  "makes": "Volunteer-run Auburn theatre nonprofit, 20+ years, staging comedies, dramas, staged readings, storytelling and poetry events at the General Gomez Art Center; volunteer, buy tickets or donate",
+  "area": "Auburn (Placer)",
+  "site": "https://www.placercommunitytheater.org",
+  "social": {
+   "instagram": "https://www.instagram.com/placercommunitytheater/",
+   "facebook": "https://www.facebook.com/PlacerCommunityTheater/"
+  },
+  "confidence": "High; own site checked 2026-10-22 (ok): footer 2026; holiday show Dec 4-20, 2026 at 808 Lincoln Way, Auburn; volunteer and ticket pages live. Photos not viewed: stock only (family show)."
+ },
+ {
+  "name": "Lincoln Theatre Company",
+  "category": "Art association (nonprofit)",
+  "makes": "Lincoln 501(c)(3) performing arts company with productions at the Lincoln Civic Auditorium, auditions, a volunteer Curtain Call Guild and gift certificates",
+  "area": "Lincoln (Placer)",
+  "site": "https://www.lincolntheatrecompany.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/LincolnTheatrCo",
+   "facebook": "https://www.facebook.com/lincolntheatrecompany"
+  },
+  "confidence": "Medium; own site checked 2026-10-22 (ok): 511 Fifth Street; auditions, guild and ticket pages live; no show titles or dates and no footer year on the homepage. Photos not viewed: stock only (youth performers)."
+ },
+ {
+  "name": "PlacerArts (Arts Council of Placer County)",
+  "category": "Art association (nonprofit)",
+  "makes": "Arts council serving Placer County since 1983 with an artist directory, calls to artists, community arts grants and an arts and culture magazine; join the directory, volunteer or donate",
+  "area": "Rocklin (Placer)",
+  "site": "https://placerarts.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/theacpc/",
+   "facebook": "https://www.facebook.com/theACPC/"
+  },
+  "confidence": "High; own site checked 2026-10-22 (ok): footer 2026; Fall/Winter '26 magazine and Overlook Park mural call posted; mailing address PO Box 1267, Rocklin. Photos not viewed: stock only."
+ },
+ {
+  "name": "YoloArts",
+  "category": "Art association (nonprofit)",
+  "makes": "Yolo County's nonprofit arts council since 1981, running Gallery 625 in Woodland, artist membership, arts education and Art Farm; volunteer, join or give",
+  "area": "Woodland (Yolo)",
+  "site": "https://yoloarts.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/yoloartsca/",
+   "facebook": "https://www.facebook.com/yoloartsCA/"
+  },
+  "confidence": "High; own site checked 2026-10-22 (ok): 'Inside the Artist's Studio' at Gallery 625, 625 Court St, through Oct 30 (post dated 2026-09-23); no footer year. Photos not viewed: stock only."
+ },
+ {
+  "name": "The Winters Museum (Historical Society of Winters)",
+  "category": "Historical society",
+  "makes": "Free downtown Winters history museum run by the Historical Society of Winters at 13 Russell Street, open Thursday to Sunday 1 to 5; volunteer as a docent, donate or sign up for the newsletter",
+  "area": "Winters (Yolo)",
+  "site": "https://www.wintersmuseum.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/wintersmuseum/",
+   "facebook": "https://www.facebook.com/HistoricalSocietyofWinters/"
+  },
+  "confidence": "Medium-high; own site checked 2026-10-22 (ok): Summer 2026 newsletter, docent signup and volunteer pages live; no footer year. Photos not viewed: stock only."
+ },
+ {
+  "name": "Winters Theatre Company",
+  "category": "Art association (nonprofit)",
+  "makes": "Nonprofit community theatre at the Winters Opera House, 13 Main Street, with a 2026-27 season of plays, Winters Live! tribute shows and LitFest; audition, volunteer or donate",
+  "area": "Winters (Yolo)",
+  "site": "https://www.winterstheatre.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/winterstheatrecompany/",
+   "facebook": "https://www.facebook.com/winterstheatre"
+  },
+  "confidence": "High; own site checked 2026-10-22 (ok): Best Christmas Pageant Ever Nov 20-29 and Dec 6, LitFest Dec 13, 2026, Jug Band Dec 19; audition, volunteer and donate pages live; no footer year. Photos not viewed: stock only (pageant has children)."
+ },
+ {
+  "name": "Snowy Peaks Tree Farm",
+  "category": "Farm",
+  "makes": "Foresthill choose-and-cut Christmas tree farm at 30100 Foresthill Road with pre-cut firs, wreaths and garland, hot chocolate and a bonfire; opens the day after Thanksgiving, Friday to Monday",
+  "area": "Foresthill (Placer)",
+  "site": "https://snowypeaksfarm.net/",
+  "social": {
+   "facebook": "https://www.facebook.com/profile.php?id=100063849000766"
+  },
+  "confidence": "Medium; own site checked 2026-10-22 (ok): $13 per foot choose-and-cut; season stated as day after Thanksgiving with no year, footer 2024. Holiday (Christmas trees). Photos not viewed: stock only."
+ }
+]
