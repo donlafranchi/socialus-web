@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-19** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-22** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -260,3 +260,10 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-21 | Woodland Food Closet | Food bank (nonprofit) | Woodland | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: own site |
 | 2026-10-21 | Eatwell Farm | Farm | Dixon | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: Visit CA Delta, then own site |
 | 2026-10-21 | Heringer Estates Family Vineyards & Winery | Farm stay & agritourism | Clarksburg | Farmers markets, Neighborhood life | Volunteer and mutual aid (farms); stock photos only; lead: Visit CA Delta, then own site |
+| 2026-10-22 | Placer Community Theater | Art association (nonprofit) | Auburn | Arts & culture, Neighborhood life | Arts and culture; holiday (show Dec 4-20); stock photos only; lead: Visit Placer, then own site |
+| 2026-10-22 | Lincoln Theatre Company | Art association (nonprofit) | Lincoln | Arts & culture, Neighborhood life | Arts and culture; stock photos only (youth performers); lead: Visit Placer, then own site |
+| 2026-10-22 | PlacerArts (Arts Council of Placer County) | Art association (nonprofit) | Rocklin | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: own site |
+| 2026-10-22 | YoloArts | Art association (nonprofit) | Woodland | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: Yolo County site, then own site |
+| 2026-10-22 | The Winters Museum (Historical Society of Winters) | Historical society | Winters | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: Discover Winters, then own site |
+| 2026-10-22 | Winters Theatre Company | Art association (nonprofit) | Winters | Arts & culture, Neighborhood life | Arts and culture; holiday (Christmas Pageant Nov 20-Dec 6); stock photos only; lead: Discover Winters, then own site |
+| 2026-10-22 | Snowy Peaks Tree Farm | Farm | Foresthill | Farmers markets, Sustainability | Arts and culture (farms); holiday (Christmas trees); stock photos only; lead: Visit Placer, then own site |
