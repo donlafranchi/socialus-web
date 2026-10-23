@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -16,15 +16,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     835
    ],
-   "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page picture and post photo both use it; the tick is client-side as ruled (#483) [V]. Unclaimed-Page photos are staff-loaded, not a member upload [V] Checked: partial marker only (`PagePhotoPicker.test.tsx:64`); #835 [V] Reviewed: #483 `review-skipped` [V] Smoked: the editor has no stable live address, so it is skipped [V]"
+   "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483) [V]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload (#810, #811, #887, #890, #976, #980) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Smoked: `page-edit` green 2026-10-23 (cb892a7); the editor loads, no upload is made [A]"
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     637
    ],
-   "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V]"
+   "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V]"
   },
   {
    "id": "3",
@@ -71,7 +71,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -79,7 +79,7 @@
    "issues": [
     835
    ],
-   "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751) [V] Checked: partial marker only (`create.test.ts:476`); #835 [V] Reviewed: #483 `review-skipped` [V]"
+   "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751, #707 open) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V]"
   },
   {
    "id": "5",
@@ -91,11 +91,11 @@
    "built": "yes",
    "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder pending the PM's tone look [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped` [V] Shipped: no deploy-health run on #250, #251 [V]"
+   "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder pending the PM's tone look [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped` [V] Shipped: deploy-health green on #250 (e737db1) and #251 (399f8fe), both 2026-09-30, and #483 [V] Smoked: `page-edit` green 2026-10-23; the note renders on the editor [A]"
   }
  ]
 }
