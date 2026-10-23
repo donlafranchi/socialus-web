@@ -5,6 +5,7 @@
 //                                    for a vendor at markets (#955), each market it sells at.
 // Reminders are private (post_reminders: a member reads their own). Each set or removal adds to the week's counts.
 
+import { remindVenueFollowers } from '@/lib/unclaimed/venue-events'
 import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
 import { AuthorizationError, NotFoundError, ValidationError } from '../_lib/errors'
@@ -107,9 +108,20 @@ export const memberReminderEveryForPage = defineHandler(
          on conflict do nothing`,
         [input.groupId, memberId, ctx.now()],
       )
-      const added = (res.rowCount ?? 0) + (stalls.rowCount ?? 0)
+      // #997 — a venue: every show it lists, those posted now and each one imported later (remindVenueFollowers).
+      const shows = await client.query(
+        `insert into public.post_reminders (member_id, shows_group_id, created_at)
+         select $2::uuid, g.id, $3::timestamptz from public.groups g
+          where g.id = $1 and g.lifecycle_state = 'active' and g.dissolved_at is null and g.unclaimed_hidden_at is null
+            and exists (select 1 from public.page_posts p where p.group_id = g.id and p.event_key is not null and p.dissolved_at is null)
+         on conflict do nothing`,
+        [input.groupId, memberId, ctx.now()],
+      )
+      if (shows.rowCount) await remindVenueFollowers(client, input.groupId, ctx.now())
+      const added = (res.rowCount ?? 0) + (stalls.rowCount ?? 0) + (shows.rowCount ?? 0)
       if (added) await client.query(`select public.notification_count('reminder', 'opt_ins', $1)`, [added])
       return { added }
     })
   },
 )
+

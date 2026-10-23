@@ -624,6 +624,11 @@ export function PagePosts({
                         end={post.endsAt}
                         location={post.locationLabel ?? null}
                       />
+                      {post.ticketUrl && (
+                        <a href={post.ticketUrl} target="_blank" rel="noopener noreferrer" data-testid="page-post-tickets" className="text-sm text-[var(--color-accent)] hover:underline">
+                          Tickets
+                        </a>
+                      )}
                     </div>
                   )}
 

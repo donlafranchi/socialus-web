@@ -170,12 +170,15 @@ async function main() {
         group by g.id`,
       [listed.map((p) => p.publicInfoUrl)],
     )
+    const venues = new Set(listed.filter((p) => p.events).map((p) => p.publicInfoUrl))
     const checks = await checkLinks(rows.flatMap((r) => [`${BASE}/g/${r.public_id}`, r.photo_url as string, ...(r.post_photos as string[])].filter(Boolean)), fetch, 8)
     const bad = new Map(checks.filter((c) => !c.ok).map((c) => [c.url, c]))
     for (const r of rows) {
       const urls = [`${BASE}/g/${r.public_id}`, r.photo_url as string | null, ...(r.post_photos as string[])]
       for (const u of urls) if (u && bad.has(u)) failed.push({ name: r.name, error: `broken link ${u} (${bad.get(u)!.note})` })
       if (!r.photo_url) failed.push({ name: r.name, error: 'no cover photo' })
+      // #997 — a venue's posts are its real shows, imported daily by events.ts; it has no samples.
+      if (venues.has(r.public_info_url as string)) continue
       if (r.samples < 3 || (r.post_photos as string[]).filter(Boolean).length < 3) failed.push({ name: r.name, error: `only ${r.samples} sample posts with pictures` })
     }
     summary(`${rows.length} live Pages checked`)
