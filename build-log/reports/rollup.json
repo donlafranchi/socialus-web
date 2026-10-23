@@ -202,7 +202,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "create-posts/F060-start-without-opening-a-shop.md",
    "n": 5,
    "totals": {
@@ -257,7 +257,7 @@
       580,
       581
      ],
-     "note": "Create's 'Do you manage a group or meetup…?' (gather) calls `startDraftAction` → `group.create` with kind group, no `group_businesses` row, no ID or ZIP field; `group.activate` needs name, place, description, a tag and the F082 agreement [V src/app/create/actions.ts, actions/group/create.ts, activate.ts]. Built by #326 (Reviewed by) and #364 (review-skipped); deploy-health green on both. Checked: unmarked `src/app/create/actions.test.ts`; nothing guards the absence of a check (#580, #581). Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]",
+     "note": "Create's 'Do you manage a group or meetup…?' (gather) calls `startDraftAction` → `group.create` with kind group, no `group_businesses` row, no ID or ZIP field; `group.activate` needs name, place, description, a tag and the F082 agreement [V src/app/create/actions.ts, actions/group/create.ts, activate.ts]. Built by #326 (Reviewed by) and #364 (review-skipped); deploy-health green on both. No PR since 10-16 touches Create [V gh]. Checked: unmarked `src/app/create/actions.test.ts`; nothing guards the absence of a check in Create (#580, #581); F082.1's new guard (#908) scans `members` and `groups` for role or mode columns, not the Create flow. Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -284,7 +284,7 @@
       580,
       581
      ],
-     "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) [V WhatAreYouStarting.tsx]. The answers are questions about the thing ('Have a business where you sell…?'), worded by Don 2026-10-04 and 2026-10-05, the newer rulings on this surface (F061 Rulings); the criterion's `/you/create` path is stale, the route is `/create` (#301). Built by #326, #364, #382 (the last two review-skipped). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' (#580, #581). Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]",
+     "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) and 'This just gets things started' [V WhatAreYouStarting.tsx]. The answers are questions about the thing, worded by Don 2026-10-04 and 2026-10-05, the newer rulings on this surface (F061 Rulings); the criterion's `/you/create` path is stale, the route is `/create` (#301). Built by #326, #364, #382 (the last two review-skipped). The retired `members.maker_mode_enabled` flag was dropped by #908 (migration 20261018160000). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' in Create's copy (#580, #581). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -379,7 +379,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "create-posts/F061-create-asks-one-question.md",
    "n": 3,
    "totals": {
@@ -432,7 +432,7 @@
      "issues": [
       575
      ],
-     "note": "`WhatAreYouStarting.tsx`: 'What are you starting?', four answers each with a one-line purpose, and 'This just gets things started' [V]. The fourth, 'Be creative', is Don's own wording and the one answer that is not a question (ruled 2026-10-05). Built by #326 (Reviewed by), #364 and #382 (both review-skipped); deploy-health green on all three. Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing asserts the 'just gets things started' sentence (#575). Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]",
+     "note": "`WhatAreYouStarting.tsx`: 'What are you starting?', four answers each with a one-line purpose, and 'This just gets things started' [V]. The fourth, 'Be creative', is Don's own wording and the one answer that is not a question (ruled 2026-10-05). Built by #326 (Reviewed by), #364 and #382 (both review-skipped); deploy-health green on all three; no PR since 10-16 touches it [V gh]. Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing asserts the 'just gets things started' sentence (#575). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -458,7 +458,7 @@
      "issues": [
       575
      ],
-     "note": "`startDraftAction` makes a draft of the chosen purpose and redirects to `canonicalPagePath` [V create/actions.ts]; the draft Page shows 'Before you publish' (name, where, description, tags, photo) and edits in place (#326, #360). Built by #326 (Reviewed by) and #360 (review-skipped). Checked: unmarked `create/actions.test.ts` ('creates a draft … and lands on it'); nothing asserts the draft offers name, address and tags (#575).",
+     "note": "`startDraftAction` makes a draft of the chosen purpose and redirects to `canonicalPagePath` [V create/actions.ts]; the draft Page shows 'Before you publish' (name, where, description, tags, photo) and edits in place (#326, #360). Built by #326 (Reviewed by) and #360 (review-skipped). Checked: unmarked `create/actions.test.ts` ('creates a draft … and lands on it'); nothing asserts the draft offers name, address and tags (#575). Smoked: `page-edit` opens green (10-21 to 10-23) but as a published Page's editor, not a fresh draft.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -504,7 +504,7 @@
    "area_source": "guess",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-10",
+   "as_of": "2026-10-23",
    "path": "create-posts/F064-asks-for-what-isnt-built.md",
    "n": 5,
    "totals": {
@@ -557,7 +557,7 @@
      "issues": [
       33
      ],
-     "note": "No table. `group_category_suggestions` (20260911160535) is the retired free-text table, a different thing, nothing reads it [V]. Both sources sit behind unruled drafts (label layer, F088) per #33",
+     "note": "No table: no migration names a signal, not-built or request table [V grep supabase/migrations, src]. `group_category_suggestions` (20260911160535) is the retired free-text table, a different thing, nothing reads it [V]. Both sources sit behind unruled drafts (label layer, F088) per #33. No PR cites F064 [V gh].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -580,7 +580,7 @@
      "issues": [
       33
      ],
-     "note": "No such option or action. The only \"Coming soon\" in the app is the Values & badges card in the Page editor, nothing to tap, no record (`EditCards.tsx:119`) [V]",
+     "note": "No such option or action. The only 'Coming soon' in the app is the Values & badges card in the Page editor, nothing to tap, no record (`EditCards.tsx`) [V grep]",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -603,7 +603,7 @@
      "issues": [
       33
      ],
-     "note": "No flow, so no copy; absence proves nothing and nothing guards it",
+     "note": "No flow, so no copy; absence proves nothing and nothing guards it [V]",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -626,7 +626,7 @@
      "issues": [
       33
      ],
-     "note": "No flow, no count; nothing guards it",
+     "note": "No flow, no count; nothing guards it [V]",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -665,13 +665,13 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "create-posts/F072-announce-with-a-time.md",
    "n": 8,
    "totals": {
     "built": {
-     "yes": 6,
-     "no": 2,
+     "yes": 7,
+     "no": 1,
      "unknown": 0
     },
     "checked": {
@@ -685,13 +685,13 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 4,
-     "no": 2,
+     "yes": 5,
+     "no": 1,
      "unknown": 2
     },
     "smoked": {
-     "yes": 2,
-     "no": 2,
+     "yes": 3,
+     "no": 1,
      "unknown": 4
     },
     "pm_looked": {
@@ -719,7 +719,7 @@
      "issues": [
       599
      ],
-     "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166); neither body carries `Reviewed by:`; deploy-health green on #183, no run for #115's merge commit (it predates the workflow). Checked: unmarked `post.test.ts`, `PagePosts.test.tsx`; no `[guards F072.n]` marker exists anywhere (#599).",
+     "note": "`requireManagingRole` via `managingRoleForKind` in `group.post_create` and `group.post_edit`; edit is an `update` on the same row id; `page_posts` has no client write policy [V actions/group/post.ts]. Built by #115 (T164) and #183 (T166); neither body carries `Reviewed by:`; deploy-health green on #183, no run for #115's merge commit (it predates the workflow). Checked: unmarked `post.test.ts`, `PagePosts.test.tsx`; no `[guards F072.1a]` marker exists anywhere [V grep] (#599).",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -744,7 +744,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Overtaken by Don's ruling of 2026-10-02 on #318 ('There's no way to delete an announcement'): owners soft-delete their own posts with `group.post_delete` (#319) [V post.ts header]. The ruling is on #318, not yet a dated line in the scenario's Rulings, so `sync-roadmap` should amend F072; the newer ruling wins.",
+     "note": "Overtaken by Don's ruling of 2026-10-02 on #318 ('There's no way to delete an announcement'): owners soft-delete their own posts with `group.post_delete`, which stamps `dissolved_at` (#319) [V post.ts]. The ruling is on #318, still not a dated line in the scenario's Rulings [V scenario-F072.md today], so `sync-roadmap` should amend F072; the newer ruling wins.",
      "gaps": [],
      "score": 0,
      "red": false
@@ -767,7 +767,7 @@
       599,
       601
      ],
-     "note": "Posts render on the Page (`PagePosts.tsx`) and as post cards in browse (`browse_feed`, `BrowseResultCard.tsx`); no price field or buy control exists on a post [V]. Built by #115 and #258; no `Reviewed by:` on either; deploy-health: no run for #115, green on #258. Smoked: green smoke-live runs after the last merge opened `page` and `explore` (10-14 to 10-16), a load check only. Nothing asserts the absence of listing chrome (#601); unmarked tests (#599).",
+     "note": "Posts render on the Page (`PagePosts.tsx`) and as post cards in browse (`browse_feed`, `BrowseResultCard.tsx`); no price field or buy control exists on a post [V]. Since 10-16, #931 (#922 B) made post cards text-led (date line, title, small photo, the Page's name underneath) and #956 removed every chip; both carry `Reviewed by:`. Built first by #115 and #258, neither with `Reviewed by:`, so reviewed stays no; deploy-health: no run for #115, green on #258, 0ebfaa1 and 546f086. Smoked: green smoke-live runs opened `page` and `explore` on 10-21, 10-22 and 10-23, after the last merge, a load check only. Nothing asserts the absence of listing chrome (#601); unmarked tests (#599).",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -791,7 +791,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Change #814 (#815, merged 10-16) keeps a dated post in `browse_feed` and `announcements_withheld` until `coalesce(ends_at, starts_at)` has passed, so a post with an end time outlasts its start [V migration 20261016150052]. #814 is `Path: well-worn` with no scenario change and no PM ruling, so the scenario's 'start time has passed' and the shipped rule disagree; routed to `scope-scenario`. Built before that by #266/#258 behaviour; #815 is review-skipped.",
+     "note": "Change #814 (#815, merged 10-16) keeps a dated post in browse until `coalesce(ends_at, starts_at)` has passed, and #914 restated that rule as `post_current_until` (a dated post until its end, else its start) [V migration 20261018170000]. #814 is `Path: well-worn` with no scenario change and no PM ruling; the scenario still says 'start time has passed' [V scenario-F072.md today], so the two disagree; routed to `scope-scenario`. #815 is review-skipped; #914 carries `Reviewed by:`.",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -805,20 +805,22 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
-      314
+      599
      ],
-     "note": "Half built: Explore cards say 'Posted <date>' (`metro-time.ts`, #258). Missing: the 14-day cut (`browse_feed` lets `starts_at is null` through forever), the Earlier section, the show-until field (no `show_until` anywhere in `src` or migrations) and the Posted line on the Page [V grep]. Don's ruling 2026-10-02 (option A); open Issue #314.",
+     "note": "Now built, all four parts. #914 (change #314, merged 10-18): `page_posts.show_until`, `post_current_until` (an undated post until `show_until`, else `created_at` + 14 days) in `browse_feed` and `announcements_withheld`, a 'Show until' field in the composer and edit [V migration 20261018170000, post.ts, PagePosts.tsx]. #965 (change #913, merged 10-19): an Earlier section on the Page for undated posts past their window, and 'Posted <date>' in the metro's clock on every post [V PagePosts.tsx, migration 20261019160000]. Explore's 'Posted <date>' came earlier from #258. Reviewed: #914 and #965 carry `Reviewed by:`; #258 carries none, so no. Shipped: deploy-health green on 1fc06c8 and 80467dc. Smoked: `page` and `explore` green on 10-21 to 10-23, after 80467dc, a load check only. Checked: `tests/undated-posts-expire-db.test.ts`, the show-until block in `post.test.ts` and the #314 and #913 blocks in `PagePosts.test.tsx` assert it, seen failing per the PR bodies, but none carries a `[guards F072.2c]` marker [V grep] (#599 covers criterion 2). Copy ('Show until', its hint, two errors) is in #914 for the PM.",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
+     "score": 3,
      "red": false
     },
     {
@@ -837,7 +839,7 @@
      "issues": [
       599
      ],
-     "note": "`starts_at` and `location_id` are written by `group.post_create` (#183); `browse_feed` compares timestamptz bounds and requires `starts_at is not null` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173; `markets.timezone` now exists but nothing reads it) [V]. Built by #183, #212, #258 (no `Reviewed by:`); deploy-health green on all. Smoked: `explore` green after the last merge, a load check only. Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599).",
+     "note": "`starts_at` and `location_id` are written by `group.post_create` (#183); `browse_feed` compares timestamptz bounds and requires `starts_at is not null` for a window; `METRO_TIME_ZONE` in `metro-time.ts` is the one zone, a constant until the metro carries its own (#173; `markets.timezone` exists and nothing reads it) [V]. Built by #183, #212, #258 (no `Reviewed by:`); deploy-health green on all. Smoked: `explore` green on 10-23, a load check only. Checked: unmarked `metro-time.test.ts`, `post.test.ts`, `tests/announcement-card-db.test.ts` (#599).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -864,7 +866,7 @@
       599,
       601
      ],
-     "note": "`AudienceSwitch.tsx`: 'Anyone' default, restricted setting shown but not postable (delivery is cut), count reads 'Nobody yet' at zero [V]. Built by #183 (no `Reviewed by:`, deploy-health green). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); unmarked (#599).",
+     "note": "`AudienceSwitch.tsx`: 'Anyone' default, restricted setting shown but not postable (delivery is cut), count reads 'Nobody yet' at zero; the words 'announcement' and 'bulletin' appear only in its code comments [V]. Built by #183 (no `Reviewed by:`, deploy-health green). One test reads one label (`PagePosts.test.tsx`); nothing scans every label and state (#601); unmarked (#599). The composer is not opened by smoke-live.",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -890,7 +892,7 @@
      "issues": [
       599
      ],
-     "note": "Series, place and post inserts, tags and the event run in one `withTransaction` in `group.post_create` [V post.ts]. Built by #183 (no `Reviewed by:`, deploy-health green). Checked: unmarked `PagePosts.test.tsx`, `tests/page-post-db.test.ts` (rollback) (#599).",
+     "note": "Series, place and post inserts (now with `show_until`), tags and the event run in one `withTransaction` in `group.post_create` [V post.ts]. Built by #183 (no `Reviewed by:`, deploy-health green). Checked: unmarked `PagePosts.test.tsx`, `tests/page-post-db.test.ts` (rollback) (#599).",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -917,7 +919,7 @@
       596,
       599
      ],
-     "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with `DTEND`, `AddToCalendarLink` on posts and gatherings (#261), and `cardImageAlt` on browse cards [V]. Missing: the photo on the Page's own post takes the first line of the post as alt (`PagePosts.tsx:525`), not title, date and place (#596). The label 'Event' is not asserted [A]. Unmarked tests (#599).",
+     "note": "Half built: `ends_at` with a check constraint (#263), `.ics` with `DTEND`, `AddToCalendarLink` on posts and gatherings (#261), and `cardImageAlt` on browse cards [V]. Missing: the photo on the Page's own post still takes the first line of the post as alt (`PagePosts.tsx`, `alt={post.body.split('\\n')[0]…}`), not title, date and place (#596) [V]. The label 'Event' is not asserted [A]. Unmarked tests (#599).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -933,7 +935,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "create-posts/F074-a-series-repeats.md",
    "n": 8,
    "totals": {
@@ -986,7 +988,7 @@
      "issues": [
       841
      ],
-     "note": "Built: `post_series` table and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' chips and bounds [V]. It is OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1`, unset per the PR body [A, #753]. #753 is review-skipped; deploy-health green on 685f5d1. Checked: every marker says `partial` (wording, shape, bounds), and partial checks do not add up; no check claims all of it. Issue #592 closed; the check is filed as a new chore.",
+     "note": "Built: `post_series` table and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control and bounds [V post.ts, AnnouncementFields.tsx]. It is OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`), unset per #753 and still 'behind the series switch' per #952 [A]. #956 (10-18) restyled the weekday chips as underlined text. #753 is review-skipped; deploy-health green on 685f5d1 and 546f086. Checked: every marker says `partial` (wording, shape, bounds, first-occurrence rule) [V grep]; no check claims all of it (#841).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -1012,7 +1014,7 @@
      "issues": [
       593
      ],
-     "note": "Nothing writes occurrences: no occurrence rows, no maintenance job, no schedule; `page_posts.series_id` is the only hook and nothing writes a series after the first post [V grep src, scripts, .github, migrations]. Ticket #593.",
+     "note": "Half built, for loader-managed market Pages only: #963 (10-19) `syncMarketDays` writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and #952's reminders compute a series' dates from its weekdays at send time rather than from rows ('future dates aren't stored as rows yet (#593)') [V post.ts, reminder-sender.ts]. Ticket #593.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1035,7 +1037,7 @@
      "issues": [
       594
      ],
-     "note": "No job keeps a window topped up: no occurrence rows, no maintenance job, no schedule; `page_posts.series_id` is the only hook and nothing writes a series after the first post [V grep src, scripts, .github, migrations]. Ticket #594.",
+     "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Ticket #594.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1058,7 +1060,7 @@
      "issues": [
       595
      ],
-     "note": "No job exists, and no uniqueness key on (series, start) [V]. Ticket #595.",
+     "note": "No window job exists for series; `syncMarketDays` is idempotent (`tests/market-days-db.test.ts`) but is the market loader's, not this job, and there is no uniqueness key on (series, start) [V]. Ticket #595.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1082,7 +1084,7 @@
       173,
       597
      ],
-     "note": "`metroWallTimeToInstant` is two-pass and DST-aware, but nothing expands occurrences; the metro carries no zone of its own yet (#173 open; a `markets.timezone` column exists and nothing reads it) [V]. Daylight saving ends 2026-11-01. Ticket #597.",
+     "note": "The arithmetic exists: `metroWallTimeToInstant` is two-pass and DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back (`reminders.test.ts`), and market days are computed in `METRO_TIME_ZONE` (#963) [V]. But nothing expands a member's series into occurrences, and the metro still carries no zone of its own in code (#173 open; `markets.timezone` exists and nothing reads it) [V grep]. Daylight saving ends 2026-11-01. Ticket #597.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1105,7 +1107,7 @@
      "issues": [
       600
      ],
-     "note": "`browse_feed` has no distinct or grouping by series or parent [V migration 20261016150052]. Ticket #600; it must land with the expansion.",
+     "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct or grouping by series or parent [V grep]. Market Pages now have three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1128,7 +1130,7 @@
      "issues": [
       602
      ],
-     "note": "`group.post_edit` updates one row in place, but no occurrence rows exist to prove it on [V]. Ticket #602.",
+     "note": "`group.post_edit` updates one row in place, but no member-made occurrence rows exist to prove it on [V]. Ticket #602.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1151,7 +1153,7 @@
      "issues": [
       603
      ],
-     "note": "F072 gives a single post these; occurrence rows do not exist [V]. Ticket #603.",
+     "note": "F072 gives a single post these; member-made occurrence rows do not exist. Market-day rows (#963) are ordinary dated posts, and #952 lets a member be reminded of 'every time' on a series [V]. Ticket #603.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1167,7 +1169,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "create-posts/F082-rules-before-publish.md",
    "n": 9,
    "totals": {
@@ -1177,8 +1179,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 5,
-     "no": 4,
+     "yes": 9,
+     "no": 0,
      "unknown": 0
     },
     "reviewed": {
@@ -1202,7 +1204,7 @@
      "unknown": 0
     }
    },
-   "red": 2,
+   "red": 0,
    "criteria": [
     {
      "id": "1",
@@ -1213,23 +1215,19 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [
-      839,
-      840
-     ],
-     "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and inserts one `creator_rules_agreements` row per Page; no role, account-type or creator-mode column in any migration or `src` [V grep]. Reviewed: #326 and #493 carry `Reviewed by:`. Checked: tests claim 4 and 6, none claims 1, and nothing guards the absent column. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "issues": [],
+     "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and inserts one `creator_rules_agreements` row per Page; the retired `members.maker_mode_enabled` flag is dropped (migration 20261018160000, #908), so no role, account-type, creator or mode column remains in any migration or `src` [V grep]. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx` (#908, merged 10-18): a second Page is refused without a fresh agreement and records its own; the step starts unticked; `members` and `groups` carry no role, account-type, creator, tier, badge or mode column, a standing scan seen failing against planted columns per the PR body. Reviewed: #326, #493 and #908 carry `Reviewed by:`, none review-skipped. Shipped: deploy-health green on f89b294. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts]. #839 and #840 closed by #908.",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
-     "red": true
+     "score": 4,
+     "red": false
     },
     {
      "id": "2",
@@ -1262,22 +1260,19 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [
-      839
-     ],
-     "note": "`creator_rules_agreements` is referenced only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated, so no read path projects it [V migration 20261007190000, grep src]. Nothing asserts it: no `[guards F082.3]` marker and no scan that no peer-facing surface reads the table.",
+     "issues": [],
+     "note": "`creator_rules_agreements` is referenced only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated, so no read path projects it [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): RLS on, no policy, no grant, both roles refused a select, no view or function reads it, only `group.activate` names it in `src`, and no peer surface reads a rules version or agreement; seen failing against a planted policy and a component that reads the table per the PR body. Reviewed: #326, #493, #908. Shipped: f89b294 green. #839 closed.",
      "gaps": [
-      "INVARIANT-UNPROVEN",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
-     "red": true
+     "score": 4,
+     "red": false
     },
     {
      "id": "4",
@@ -1337,7 +1332,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`RULES_VERSION` is compared on every publish; the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` [guards F082.6] x2 (earlier version refused, row recorded); the 'only operators read it' half is a migration fact, not a test. Reviewed: #493. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "note": "`RULES_VERSION` is compared on every publish; the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` [guards F082.6] x2 (earlier version refused, row recorded); the 'only operators read it' half is now also asserted by F082.3's guard. Reviewed: #493. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1359,7 +1354,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`/rules` is linked from the Publish card, the desktop footer and now a Rules row in You → Settings [V]. Checked: `you-rules-row.test.tsx`, `shell.test.tsx`, `BeforeYouPublish.test.tsx` [guards F082.7]. Reviewed: #772 is `review-skipped` ('Reviewed by: lane B'), so no. Shipped: deploy-health green on edb6bcb. Smoked: smoke-live opened `you` green on 10-14, 10-15 and 10-16, after the merge, a load check only. Issue #573 closed.",
+     "note": "`/rules` is linked from the Publish card, the desktop footer and a Rules row in You → Settings [V]. Checked: `you-rules-row.test.tsx`, `shell.test.tsx`, `BeforeYouPublish.test.tsx` [guards F082.7]. Reviewed: #772 is `review-skipped` ('Reviewed by: lane B'), so no. Shipped: deploy-health green on edb6bcb. Smoked: smoke-live opened `you` green on 10-21, 10-22 and 10-23, a load check only. Issue #573 closed.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -1375,21 +1370,18 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [
-      840
-     ],
-     "note": "`group.activate` requires name (or business display name), anchor location, description and one tag for every kind; the checklist marks the photo optional; `DefaultArt` stands in without one [V]. Checked: `activate.test.ts` has related tests but no `[guards F082.8]` marker. Reviewed: #326 and #493. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "issues": [],
+     "note": "`group.activate` requires name (or business display name), anchor location, description and one tag for every kind; the checklist marks the photo optional; `DefaultArt` stands in without one [V]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): each missing part refused and the draft stays a draft; a photoless draft publishes, reaches Explore and its card shows the kind's default art; seen failing against a publish without a description and a required photo per the PR body. Reviewed: #326, #493, #908. Shipped: f89b294 green. #840 closed. Smoked: no route for the publish card.",
      "gaps": [
-      "NO-CHECK",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
@@ -1400,21 +1392,18 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
      "smoked": "unknown",
      "pm_looked": "no",
-     "issues": [
-      840
-     ],
-     "note": "Rule 4 'No pictures of children.' with the scenario's reason sentence word for word [V creator-rules.ts]. Checked: `BeforeYouPublish.test.tsx` asserts the heading under [guards F082.2]; no marker claims 9. Reviewed: #493. Wording is draft for the PM's copy review ([public-is-draft]). Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "issues": [],
+     "note": "Rule 4 'No pictures of children.' with the scenario's reason sentence word for word [V creator-rules.ts]. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): the rule and its reason match the scenario's wording on the publish step and on /rules, seen failing with the reason dropped per the PR body. Reviewed: #493, #908. Shipped: f89b294 green. Wording is draft for the PM's copy review ([public-is-draft]). #840 closed. Smoked: no route for the publish card.",
      "gaps": [
-      "NO-CHECK",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     }
    ]
@@ -1426,7 +1415,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "create-posts/F099-every-post-shows-a-picture.md",
    "n": 14,
    "totals": {
@@ -1477,7 +1466,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`groups.picture_url`; `group.update` and `update_draft` take `pictureUrl`; a 'Page picture' picker beside Photo in the Page editor for both kinds [V]. Checked: [guards F099.1] in `PageEditor.test.tsx`, `update.test.ts`, `update-draft.test.ts`. Reviewed: #502 `Reviewed by:`. Smoked: the editor picker needs a tap, which the read-only smoke does not do.",
+     "note": "`groups.picture_url`; `group.update` and `update_draft` take `pictureUrl`; a 'Page picture' picker beside Photo in the Page editor for both kinds [V]. Checked: [guards F099.1] in `PageEditor.test.tsx`, `update.test.ts`, `update-draft.test.ts`. Reviewed: #502 `Reviewed by:`. Smoked: `page-edit` opens green (10-21 to 10-23), but the picker needs a tap, which the read-only smoke does not do.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1501,7 +1490,7 @@
      "issues": [
       632
      ],
-     "note": "`DefaultArt` by kind on the Page and the post card [V]. Checked: no `[guards F099.2]` marker (#632). Smoked: `page` and `explore` green on 10-08 and since, after #502, a load check only.",
+     "note": "`DefaultArt` by kind on the Page and the post card; since #969 (10-19) the signed-out withheld card draws it too when the Page has no photo [V]. Checked: no `[guards F099.2]` marker (#632); F082.8's guard (#908) asserts the kind's default art on a photoless Page's Explore card as a side effect. Smoked: `page` and `explore` green on 10-21 to 10-23, after the last merge, a load check only.",
      "gaps": [
       "NO-CHECK",
       "NOT-LOOKED"
@@ -1589,7 +1578,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`browse_feed` resolves `photo_url` and `photo_source` in SQL; Page posts and `BrowseResultCard` fall to `DefaultArt` [V]. Checked: [guards F099.6] in `tests/migrations-browse-feed.test.ts` (three cases), `BrowseResultCard.test.tsx`, `PagePosts.test.tsx`. Smoked: `root`, `explore` and `page` green on 10-08 and since, a load check only.",
+     "note": "`browse_feed` resolves `photo_url` and `photo_source` in SQL; Page posts and `BrowseResultCard` fall to `DefaultArt` [V]. Since 10-16: #931 (#922 B) made the post card text-led with the one image as an 80px thumbnail, `Reviewed by:` and the F099.6 checks still pass; #983, #989 and #992 (review-skipped, image `src` and `loading` attributes only) serve card-sized WebP at 1x and 2x, the same image. Checked: [guards F099.6] in `tests/migrations-browse-feed.test.ts` (three cases), `BrowseResultCard.test.tsx`, `PagePosts.test.tsx`. Shipped: deploy-health green on 0ebfaa1, 4d4417e, 0455ca2, 3753fd2. Smoked: `explore` and `page` green on 10-23 after every merge; `root` (Home) was last opened green on 10-19, before the sizing PRs; a load check only.",
      "gaps": [
       "NOT-LOOKED"
      ],
@@ -1610,7 +1599,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`browse_feed` takes the post photo or Page picture only when its hidden and removed stamps are null; `resolvePagePosts` nulls the URL [V]. Checked now: [guards F099.7] in `tests/migrations-browse-feed.test.ts` (hidden or removed post photo never leaves the database; hidden Page picture and photo leave no URL) and `page-posts.test.ts`. #633's title still names 7, which is now guarded; 11 remains.",
+     "note": "`browse_feed` takes the post photo or Page picture only when its hidden and removed stamps are null; `resolvePagePosts` nulls the URL [V]. Checked: [guards F099.7] in `tests/migrations-browse-feed.test.ts` (hidden or removed post photo never leaves the database; hidden Page picture and photo leave no URL) and `page-posts.test.ts`. #633's title still names 7, which is guarded; 11a remains.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1632,7 +1621,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`reports.subject_kind` widened to `page_picture` and `post_photo`; `report.create`, `decide` and `reverse`; `HiddenPhotoNotice which=` [V]. Checked: [guards F099.8] in `report/create.test.ts`, `review.test.ts`, `report-actions.test.ts`, `ReportControl.test.tsx`, `HiddenPhotoNotice.test.tsx`, `ReportEntry.test.tsx`, `PagePosts.test.tsx`, `page-posts.test.ts`. Reviewed: #502 yes, but #501 (the report-decision fix) is `review-skipped`.",
+     "note": "`reports.subject_kind` widened to `page_picture` and `post_photo`; `report.create`, `decide` and `reverse`; `HiddenPhotoNotice which=` [V]. #938 (10-19, `Reviewed by:`) labelled the entries: 'Report this Page's photo', 'Report this photo'. Checked: [guards F099.8] in `report/create.test.ts`, `review.test.ts`, `report-actions.test.ts`, `ReportControl.test.tsx`, `HiddenPhotoNotice.test.tsx`, `ReportEntry.test.tsx`, `PagePosts.test.tsx`, `page-posts.test.ts`, `review-subjects.test.ts`. Reviewed: #502 and #938 yes, but #501 (the report-decision fix) is `review-skipped`. Shipped: 647eccb green. The report sheet is opened by smoke-live on a business Page (`report-sheet`), last on 10-19, before #938.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -1680,7 +1669,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "Page picture alt is the Page name; a post photo's alt is the first line of the post (read as 'the owner's words' [A]); Explore cards fall back to `cardImageAlt` [V]. Checked: [guards F099.10] in `BrowseResultCard.test.tsx` and `PagePosts.test.tsx`. Smoked: `page` and `explore` green since 10-08, a load check only.",
+     "note": "Page picture alt is the Page name; a post photo's alt on the Page is the first line of the post (read as 'the owner's words' [A]); Explore cards fall back to `cardImageAlt` [V PagePosts.tsx, BrowseResultCard.tsx]. #931 kept the F099.10 checks passing on the restyled card. Checked: [guards F099.10] in `BrowseResultCard.test.tsx` and `PagePosts.test.tsx`. Smoked: `page` and `explore` green on 10-23, a load check only.",
      "gaps": [
       "NOT-LOOKED"
      ],
@@ -1703,7 +1692,7 @@
      "issues": [
       633
      ],
-     "note": "`browse_feed` returns no post rows when `auth.uid()` is null; `announcements_withheld` carries no post column; `page_posts_select_published` refuses anon [V migrations]. Built by F093 #218 (no `Reviewed by:`) and #502. No test asserts it for post photos (#633).",
+     "note": "`browse_feed` returns no post rows when `auth.uid()` is null; `announcements_withheld` carries no post column (its allow-list test gained `kind` in #969, still no post photo); `page_posts_select_published` refuses anon [V migrations 20261019143000]. Built by F093 #218 (no `Reviewed by:`) and #502. No test asserts it for post photos by name (#633).",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -1726,10 +1715,8 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [
-      335
-     ],
-     "note": "The signed-out withheld card draws the Page's old `photo_url` (`withheld-announcements.ts`, SQL), not the Page picture or the kind placeholder [V]. The criterion asks for the picture wherever the name shows and also for that card to stay unchanged (and criterion 13 keeps the Page photo where it shows today); F070's placeholder on that card is open (#335). Routed to `scope-scenario`.",
+     "issues": [],
+     "note": "The signed-out withheld card draws the Page's `photo_url` (the Page photo), and since #969 (change #335, merged 10-19) its kind's default art when there is none; it never draws `picture_url`, the Page picture [V withheld-announcements.ts, migration 20261019143000]. The criterion asks for the Page picture wherever the name shows and also for that card to stay unchanged (criterion 13 keeps the Page photo where it shows today); #335 is closed, and the picture-or-photo question on that card is still unruled. Routed to `scope-scenario`.",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -8556,16 +8543,16 @@
   "create-posts": {
    "features": 7,
    "n": 52,
-   "red": 2,
+   "red": 0,
    "totals": {
     "built": {
-     "yes": 36,
-     "no": 16,
+     "yes": 37,
+     "no": 15,
      "unknown": 0
     },
     "checked": {
-     "yes": 15,
-     "no": 37,
+     "yes": 19,
+     "no": 33,
      "unknown": 0
     },
     "reviewed": {
@@ -8574,13 +8561,13 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 32,
-     "no": 16,
+     "yes": 33,
+     "no": 15,
      "unknown": 4
     },
     "smoked": {
-     "yes": 6,
-     "no": 16,
+     "yes": 7,
+     "no": 15,
      "unknown": 30
     },
     "pm_looked": {
@@ -8742,16 +8729,16 @@
  "all": {
   "features": 31,
   "n": 251,
-  "red": 17,
+  "red": 15,
   "totals": {
    "built": {
-    "yes": 175,
-    "no": 75,
+    "yes": 176,
+    "no": 74,
     "unknown": 1
    },
    "checked": {
-    "yes": 95,
-    "no": 155,
+    "yes": 99,
+    "no": 151,
     "unknown": 1
    },
    "reviewed": {
@@ -8760,13 +8747,13 @@
     "unknown": 1
    },
    "shipped": {
-    "yes": 135,
-    "no": 75,
+    "yes": 136,
+    "no": 74,
     "unknown": 41
    },
    "smoked": {
-    "yes": 64,
-    "no": 75,
+    "yes": 65,
+    "no": 74,
     "unknown": 112
    },
    "pm_looked": {
@@ -8803,7 +8790,6 @@
    "F064.3",
    "F064.4",
    "F064.5",
-   "F072.2c",
    "F072.6",
    "F074.2",
    "F074.3",
@@ -8870,8 +8856,6 @@
    "F072.2a",
    "F072.4",
    "F072.5",
-   "F082.1",
-   "F082.3",
    "F099.11a",
    "F059.2c",
    "F059.3",
@@ -8891,10 +8875,9 @@
    "F060.4",
    "F061.1",
    "F061.2",
+   "F072.2c",
    "F072.3",
    "F074.1",
-   "F082.8",
-   "F082.9",
    "F099.2",
    "F099.9",
    "F059.1",
@@ -8953,6 +8936,7 @@
    "F061.3",
    "F072.1a",
    "F072.2a",
+   "F072.2c",
    "F072.3",
    "F072.4",
    "F072.5",
@@ -9253,6 +9237,7 @@
    "F061.3",
    "F072.1a",
    "F072.2a",
+   "F072.2c",
    "F072.3",
    "F072.4",
    "F072.5",

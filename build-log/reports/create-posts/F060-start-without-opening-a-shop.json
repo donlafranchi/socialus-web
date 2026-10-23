@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -26,7 +26,7 @@
     580,
     581
    ],
-   "note": "Create's 'Do you manage a group or meetup…?' (gather) calls `startDraftAction` → `group.create` with kind group, no `group_businesses` row, no ID or ZIP field; `group.activate` needs name, place, description, a tag and the F082 agreement [V src/app/create/actions.ts, actions/group/create.ts, activate.ts]. Built by #326 (Reviewed by) and #364 (review-skipped); deploy-health green on both. Checked: unmarked `src/app/create/actions.test.ts`; nothing guards the absence of a check (#580, #581). Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]"
+   "note": "Create's 'Do you manage a group or meetup…?' (gather) calls `startDraftAction` → `group.create` with kind group, no `group_businesses` row, no ID or ZIP field; `group.activate` needs name, place, description, a tag and the F082 agreement [V src/app/create/actions.ts, actions/group/create.ts, activate.ts]. Built by #326 (Reviewed by) and #364 (review-skipped); deploy-health green on both. No PR since 10-16 touches Create [V gh]. Checked: unmarked `src/app/create/actions.test.ts`; nothing guards the absence of a check in Create (#580, #581); F082.1's new guard (#908) scans `members` and `groups` for role or mode columns, not the Create flow. Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]"
   },
   {
    "id": "2",
@@ -45,7 +45,7 @@
     580,
     581
    ],
-   "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) [V WhatAreYouStarting.tsx]. The answers are questions about the thing ('Have a business where you sell…?'), worded by Don 2026-10-04 and 2026-10-05, the newer rulings on this surface (F061 Rulings); the criterion's `/you/create` path is stale, the route is `/create` (#301). Built by #326, #364, #382 (the last two review-skipped). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' (#580, #581). Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]"
+   "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) and 'This just gets things started' [V WhatAreYouStarting.tsx]. The answers are questions about the thing, worded by Don 2026-10-04 and 2026-10-05, the newer rulings on this surface (F061 Rulings); the criterion's `/you/create` path is stale, the route is `/create` (#301). Built by #326, #364, #382 (the last two review-skipped). The retired `members.maker_mode_enabled` flag was dropped by #908 (migration 20261018160000). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' in Create's copy (#580, #581). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]"
   },
   {
    "id": "3",
