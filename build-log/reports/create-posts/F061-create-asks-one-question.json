@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     575
    ],
-   "note": "`WhatAreYouStarting.tsx`: 'What are you starting?', four answers each with a one-line purpose, and 'This just gets things started' [V]. The fourth, 'Be creative', is Don's own wording and the one answer that is not a question (ruled 2026-10-05). Built by #326 (Reviewed by), #364 and #382 (both review-skipped); deploy-health green on all three. Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing asserts the 'just gets things started' sentence (#575). Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]"
+   "note": "`WhatAreYouStarting.tsx`: 'What are you starting?', four answers each with a one-line purpose, and 'This just gets things started' [V]. The fourth, 'Be creative', is Don's own wording and the one answer that is not a question (ruled 2026-10-05). Built by #326 (Reviewed by), #364 and #382 (both review-skipped); deploy-health green on all three; no PR since 10-16 touches it [V gh]. Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing asserts the 'just gets things started' sentence (#575). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]"
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     575
    ],
-   "note": "`startDraftAction` makes a draft of the chosen purpose and redirects to `canonicalPagePath` [V create/actions.ts]; the draft Page shows 'Before you publish' (name, where, description, tags, photo) and edits in place (#326, #360). Built by #326 (Reviewed by) and #360 (review-skipped). Checked: unmarked `create/actions.test.ts` ('creates a draft … and lands on it'); nothing asserts the draft offers name, address and tags (#575)."
+   "note": "`startDraftAction` makes a draft of the chosen purpose and redirects to `canonicalPagePath` [V create/actions.ts]; the draft Page shows 'Before you publish' (name, where, description, tags, photo) and edits in place (#326, #360). Built by #326 (Reviewed by) and #360 (review-skipped). Checked: unmarked `create/actions.test.ts` ('creates a draft … and lands on it'); nothing asserts the draft offers name, address and tags (#575). Smoked: `page-edit` opens green (10-21 to 10-23) but as a published Page's editor, not a fresh draft."
   },
   {
    "id": "3",
