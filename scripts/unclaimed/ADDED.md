@@ -1,4 +1,4 @@
-# Unclaimed Pages: who to look for each day
+# Unclaimed Pages added
 
 **As of 2026-10-22** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
