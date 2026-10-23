@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     582
    ],
-   "note": "[V] src/app/you/page.tsx and the components it renders (OwnPages, FollowingSummary, YouNotices, DefaultMetro, ZipChange, SignOutButton) contain none of the three phrases and query only members, member_notices, groups and the follows reader (grep 2026-10-16). Built in #379 (review-skipped); deploy-health green on 9ff415f. Smoked: /you opened green by smoke-live on 2026-10-14, 15 and 16 (after every later /you merge). No standing guard, ticket #582"
+   "note": "[V] src/app/you/page.tsx and what it renders (OwnPages, YouNotices, ZipChange, YouInterests, SearchSharingSwitch, SignOutButton, the Following row) contain none of the three words and query only members, member_notices, member_interests, the market_name function and the follows reader (grep 2026-10-23); #895 removed the Default metro row and #911 and #966 added rows, none bringing a word or a dead table back. Built in #379 (review-skipped); deploy-health green on 9ff415f and on every later /you merge (4b9558a, 43bcf96). Smoked: /you opened green by smoke-live on 2026-10-19, 21, 22 and 23 (cb892a7). No standing guard, ticket #582"
   },
   {
    "id": "2",
@@ -40,9 +40,9 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    15
+    1011
    ],
-   "note": "[V] /you always shows Your Pages with a 'Start something' link; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.', not an invitation (OwnPages.tsx). No shop controls are shown, which is the built half. Ticket #15 (T125, old)"
+   "note": "[V] built half: no shop controls on /you (OwnPages shows a card per Page, the Zip row shows the area, nothing says shop). Missing: the invitation; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.', and 'Start something' is a link in the Your Pages header (OwnPages.tsx, you/page.tsx). #15 (T125) was closed on 2026-10-18 as 'nothing left to build' because the Start something row exists; the invitation it names was never built, so it is refiled. The copy is Don's"
   },
   {
    "id": "3",
@@ -58,13 +58,13 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    15
+    1011
    ],
-   "note": "[V] grep 'maker' and 'worked example' in src/app/you and src/components/member finds nothing. The wording is new user-facing copy, so it goes to Don (PM queue). Ticket #15"
+   "note": "[V] grep 'maker' in src/app/you and src/components/member finds nothing; no worked example anywhere on You. New user-facing copy, so the wording goes to Don (PM queue). Filed with criterion 2; #15 was closed 2026-10-18 without it"
   },
   {
-   "id": "4",
-   "text": "A Member with Pages sees a row per Page (Edit shop + create controls) and their listings, reusing the existing query",
+   "id": "4a",
+   "text": "A Member with Pages sees a row per Page with an Edit control and create controls, reusing the existing query",
    "kind": [
     "behavior"
    ],
@@ -76,9 +76,25 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    15
+    1012
    ],
-   "note": "[V] built half: a card per Page, live or unfinished, with Continue and Delete on drafts, and 'Start something' above (OwnPages, getOwnPages; #424, #516). Missing: an Edit control on the row and the member's listings on You; 'Edit shop' is old wording, nouns.md says Page. Ticket #15"
+   "note": "[V] built half: a card per Page, live or unfinished, with Continue and Delete on drafts and 'Start something' above (OwnPages, getOwnPages; #424, #516). Missing: an Edit control on the row; today the owner opens the Page and edits from there. 'Edit shop' is old wording, nouns.md says Page. #15 was closed 2026-10-18 without it"
+  },
+  {
+   "id": "4b",
+   "text": "A Member with Pages sees their listings on You",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V] 'listings' is the vendor-era Items noun (#177: /you/sell still writes Items); the 2026-10-01 ruling on You (#303: private, for the Pages you manage, the Pages you follow, your name and area) names what You holds and listings are not in it, and a Page's products and services now live on the Page itself (#909, #920). Cannot tell what the criterion asks for on today's model: routed to scope-scenario"
   },
   {
    "id": "5",
@@ -91,12 +107,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     583
    ],
-   "note": "[V] redirect in next.config.ts (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); /you/following (getMemberFollows reader) and SignOutButton on /you exist. The old src/app/following/page.tsx stays on disk, shadowed, as the scenario says. Smoked: unknown, no green run opens /following itself. unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'); no test of sign-out or the follow list"
+   "note": "[V] redirect in next.config.ts (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); the follow list was rebuilt in #966 (2026-10-19, Reviewed by: Claude, deploy-health green on 43bcf96): /you/following lists Pages with Unfollow and Undo, people and venues below, all through getMemberFollows; the old src/app/following page is deleted, so the redirect is the only path. SignOutButton on /you. Smoked: /following, /you and /you/following opened green by smoke-live on 2026-10-19 (cd913c7, after #966). unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'), you-following-row.test.tsx, FollowedPagesList.test.tsx ('unfollows with Undo'); no test of sign-out"
   }
  ]
 }
