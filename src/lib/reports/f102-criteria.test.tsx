@@ -135,7 +135,7 @@ describe('F102.13 — every upload and every post records where it came from', (
     expect(naming(/\.upload\(/)).toEqual(['src/lib/media/upload-image.ts', 'src/lib/unclaimed/upload.ts'])
     for (const f of naming(/from '@\/lib\/media\/upload-image'/)) expect(readFileSync(join(ROOT, f), 'utf8'), f).toMatch(/recordUploadAction\(/)
     // The only places a member's post is created; the unclaimed import is staff.
-    expect(naming(/insert into public\.page_posts/)).toEqual(['src/actions/group/post.ts', 'src/lib/unclaimed/load.ts', 'src/lib/unclaimed/market-days.ts'])
+    expect(naming(/insert into public\.page_posts/)).toEqual(['src/actions/group/post.ts', 'src/lib/unclaimed/load.ts', 'src/lib/unclaimed/market-days.ts', 'src/lib/unclaimed/venue-events.ts'])
     for (const f of naming(/groupPostCreate\(/).filter((p) => !p.startsWith('src/actions/'))) expect(readFileSync(join(ROOT, f), 'utf8'), f).toMatch(/recordOrigin\(/)
   })
 })
