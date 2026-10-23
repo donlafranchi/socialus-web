@@ -12,16 +12,24 @@ const when = (iso: string) =>
   new Intl.DateTimeFormat('en-US', { timeZone: METRO_TIME_ZONE, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(iso)).replace(/\s/g, ' ')
 
 export async function loadReminderList(supabase: SupabaseClient): Promise<{ id: string; label: string; href: string }[]> {
-  const { data: rs } = await supabase.from('post_reminders').select('id, post_id, series_id').order('created_at', { ascending: false })
-  const reminders = (rs ?? []) as { id: string; post_id: string | null; series_id: string | null }[]
+  const { data: rs } = await supabase.from('post_reminders').select('id, post_id, series_id, shows_group_id').order('created_at', { ascending: false })
+  const reminders = (rs ?? []) as { id: string; post_id: string | null; series_id: string | null; shows_group_id?: string | null }[]
   if (reminders.length === 0) return []
   const postIds = reminders.map((r) => r.post_id).filter((x): x is string => !!x)
   const seriesIds = reminders.map((r) => r.series_id).filter((x): x is string => !!x)
   const ors = [postIds.length ? `id.in.(${postIds.join(',')})` : null, seriesIds.length ? `series_id.in.(${seriesIds.join(',')})` : null].filter(Boolean).join(',')
-  const { data: ps } = await supabase.from('page_posts').select('id, series_id, starts_at, group:groups(name, public_id)').or(ors).is('dissolved_at', null)
+  // #997 — a venue's every show reads as "<Page>, every time", like a series.
+  const venueIds = reminders.map((r) => r.shows_group_id).filter((x): x is string => !!x)
+  const { data: vs } = venueIds.length ? await supabase.from('groups').select('id, name, public_id').in('id', venueIds) : { data: [] }
+  const venues = new Map(((vs ?? []) as { id: string; name: string; public_id: string }[]).map((v) => [v.id, v]))
+  const { data: ps } = ors ? await supabase.from('page_posts').select('id, series_id, starts_at, group:groups(name, public_id)').or(ors).is('dissolved_at', null) : { data: [] }
   const posts = (ps ?? []) as PostRow[]
   const page = (p: PostRow) => (Array.isArray(p.group) ? p.group[0] : p.group) ?? null
   return reminders.flatMap((r) => {
+    if (r.shows_group_id) {
+      const v = venues.get(r.shows_group_id)
+      return v ? [{ id: r.id, label: C.remindersEvery(v.name), href: canonicalPagePath(v.public_id) }] : []
+    }
     const p = posts.find((x) => (r.post_id ? x.id === r.post_id : x.series_id === r.series_id))
     const g = p && page(p)
     if (!p || !g) return []

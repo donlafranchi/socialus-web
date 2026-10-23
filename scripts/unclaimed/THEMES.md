@@ -16,7 +16,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 | **Sample products** (Don, 2026-10-18, #909): each Page gets 3–6 things it sells or offers in its row's `products` (`name`, `url`, optional `price` in dollars, `kind` `service` when it is one), each from a page on the business's **own site**. The Page shows them labelled Sample, crediting that site; an owner's first real one takes them off. | Search finds the Page that carries what locals look for; the Page shows what a claimed one looks like | `sampleProductsFor` (`src/lib/unclaimed/plan.ts`) keeps own-site links only, drops marketplaces, keeps 6 at most and gives none under 3; `syncSampleProducts` (`load.ts`) writes them once, replaces them when the list changes, and never touches a Page with a real one |
 
-Not a rule yet: posting a business's real dated events from its own site instead of samples (a4). That is Don's call.
+**Real shows instead of samples** (Don, 2026-10-22, #997, [for now]): a venue row carries `events` (its own events page or feed: `jsonld`, `ical`, `tribe`, or `html` with a `parser`); it gets no samples, and `unclaimed-events.yml` posts its next 60 days of shows every morning (`syncVenueShows`, `src/lib/unclaimed/venue-events.ts`). Never an aggregator as the source; robots.txt obeyed. A market's stated weekly day works the same way through `schedule` (#963).
 
 ## Each run
 
@@ -51,6 +51,8 @@ Not a rule yet: posting a business's real dated events from its own site instead
 **Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within their weekly dates (see Dates).
 
 **Native plants and pollinators, recurring** (Don, 2026-10-18): native plant nurseries, seed sellers and seed libraries, vegetable and herb starts, garden centres, community seed swaps, CNPS and Master Gardener plant sales, arboretum nursery sales. It joins any day's theme; fall is the season (natives that need winter cold are sown now). **Native milkweed first** (narrowleaf *Asclepias fascicularis*, showy *A. speciosa*), as seed or plugs; confirm it from the seller's own site, and say what the site says. **Never promote tropical milkweed** (*A. curassavica*): it harms monarchs in California. A seller that carries it can still load, but no sample post features it. Use a category that doesn't say "garden" or "native plant" (those get the volunteer-style samples): `Nursery (natives and seeds)`, `Seed seller`. Sellers get the Farm pictures and the Farm sample voice, which never names a plant.
+
+**Music and events venues, recurring** (Don, 2026-10-22, #997): music clubs, concert halls, theatres with live shows, arenas, bars and cafés with a real music calendar. It joins any day's theme, at most 2 a day. Load one only when its **own site** lists dated shows; give the row `events` (above) and check it reads with `tsx scripts/unclaimed/events.ts --only <name>` before loading. Category `Music venue` (arts pictures and the music interest). Its photos are its own room or stage; a family-show venue whose photos show children goes on `stockOnly`.
 
 **Farms every day (3–4):** farms, orchards, ranches, animal farms, farm stands, u-pick, flower farms, agritourism.
 

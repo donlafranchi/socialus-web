@@ -1,4 +1,5 @@
 import type { MarketSchedule } from './market-days'
+import { isAggregator, type VenueEvents } from './venue-events'
 // #517 — which of the researched Sacramento makers become unclaimed Pages, in
 // what order, and what each one says. Pure: scripts/unclaimed/load.ts writes it.
 import { toSlug } from '../slugify'
@@ -19,6 +20,8 @@ export interface MakerRow {
   products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
   /** A market whose own site states its day and hours: real Market day posts instead of Samples (Don, 2026-10-19). */
   schedule?: MarketSchedule
+  /** #997 — a venue's own events page or feed: its real shows are posted daily instead of Samples (Don, 2026-10-22). */
+  events?: VenueEvents
 }
 
 export type SkipReason = 'personal-care' | 'no-site'
@@ -61,6 +64,7 @@ export interface PlannedPage {
   /** #909 — sample products and services from its own site; the Page shows them labelled Sample, credited. */
   products?: SampleProduct[]
   schedule?: MarketSchedule
+  events?: VenueEvents
 }
 
 export interface SampleProduct {
@@ -253,6 +257,7 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
       ...(address ? { address } : {}),
       ...(sampleProductsFor(url, row.products).length ? { products: sampleProductsFor(url, row.products) } : {}),
       ...(row.schedule ? { schedule: row.schedule } : {}),
+      ...(row.events && !isAggregator(row.events.url) ? { events: row.events } : {}),
     }
   })
   return { listed, skipped }

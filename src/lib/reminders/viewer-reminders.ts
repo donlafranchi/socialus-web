@@ -8,19 +8,22 @@ export interface ViewerReminders {
   bySeries: Record<string, string>
   /** #955 — market stalls reminded (a vendor's market days). */
   byStall: Record<string, string>
+  /** #997 — venues whose every show is reminded (keyed by Page). */
+  byShows: Record<string, string>
 }
 
-export const NO_REMINDERS: ViewerReminders = { byPost: {}, bySeries: {}, byStall: {} }
+export const NO_REMINDERS: ViewerReminders = { byPost: {}, bySeries: {}, byStall: {}, byShows: {} }
 
 export async function loadViewerReminders(supabase: SupabaseClient, loggedIn: boolean): Promise<ViewerReminders> {
   if (!loggedIn) return NO_REMINDERS
-  const { data, error } = await supabase.from('post_reminders').select('id, post_id, series_id, stall_id')
+  const { data, error } = await supabase.from('post_reminders').select('id, post_id, series_id, stall_id, shows_group_id')
   if (error || !data) return NO_REMINDERS
-  const out: ViewerReminders = { byPost: {}, bySeries: {}, byStall: {} }
-  for (const r of data as { id: string; post_id: string | null; series_id: string | null; stall_id?: string | null }[]) {
+  const out: ViewerReminders = { byPost: {}, bySeries: {}, byStall: {}, byShows: {} }
+  for (const r of data as { id: string; post_id: string | null; series_id: string | null; stall_id?: string | null; shows_group_id?: string | null }[]) {
     if (r.post_id) out.byPost[r.post_id] = r.id
     if (r.series_id) out.bySeries[r.series_id] = r.id
     if (r.stall_id) out.byStall[r.stall_id] = r.id
+    if (r.shows_group_id) out.byShows[r.shows_group_id] = r.id
   }
   return out
 }

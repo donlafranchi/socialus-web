@@ -50,6 +50,8 @@ describe('resolvePagePosts', () => {
         hiddenAt: null,
         sampleKind: null,
         seriesId: null,
+        eventKey: null,
+        ticketUrl: null,
         current: true,
       },
     ])

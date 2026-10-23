@@ -1,0 +1,55 @@
+[
+ {
+  "name": "Channel 24",
+  "category": "Music venue",
+  "makes": "A Sacramento concert venue from Another Planet Entertainment, with touring bands, comedy and drag shows",
+  "area": "Sacramento (Sacramento)",
+  "address": "1800 24th St, Sacramento, CA 95816",
+  "site": "https://channel24sac.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/channel24sac/",
+   "facebook": "https://www.facebook.com/channel24sac/"
+  },
+  "events": {
+   "url": "https://channel24sac.com/calendar/",
+   "format": "html",
+   "parser": "channel24"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in the site footer, Instagram and Facebook from its own links (no TikTok linked). Calendar is server-rendered HTML with schema.org microdata (itemprop startDate content=\"YYYY-MM-DD HH:MM\"), no JSON-LD; 38 shows listed. robots.txt allows /calendar/ (Crawl-delay 10). Modest Mouse listed Fri Oct 23 2026, doors 7 PM, show 8 PM, Sold Out. Photos are band press shots; low child risk."
+ },
+ {
+  "name": "Ace of Spades",
+  "category": "Music venue",
+  "makes": "A downtown Sacramento concert club on R Street with touring rock, metal, punk and hip-hop shows",
+  "area": "Sacramento (Sacramento)",
+  "address": "1417 R St, Sacramento, CA 95811",
+  "site": "https://www.aceofspadessac.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/aceofspadessac/",
+   "facebook": "https://www.facebook.com/AceOfSpadesSac"
+  },
+  "events": {
+   "url": "https://www.aceofspadessac.com/shows",
+   "format": "jsonld"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in its JSON-LD and footer, Instagram and Facebook from its own links (no TikTok linked). /shows carries 36 schema.org MusicEvent blocks with startDate and a Ticketmaster url (offers absent, so the ticket link is the event url). robots.txt allows all. Photos are artist press shots; low child risk."
+ },
+ {
+  "name": "Miners Foundry Cultural Center",
+  "category": "Music venue (nonprofit cultural center)",
+  "makes": "A historic nonprofit venue in Nevada City offering music, events and community gatherings since 1859",
+  "area": "Nevada City (Nevada)",
+  "address": "325 Spring Street, Nevada City, CA 95959",
+  "site": "https://minersfoundry.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/minersfoundry/",
+   "facebook": "https://www.facebook.com/minersfoundry"
+  },
+  "events": {
+   "url": "https://minersfoundry.org/wp-json/tribe/events/v1/events",
+   "format": "tribe",
+   "page": "https://minersfoundry.org/all-events/"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). The Events Calendar REST API on its own domain returns 10 events (e.g. KVMRx X Fest, 2026-10-23 16:00); an iCal feed is also at /events/?ical=1. robots.txt allows all. Unsure on photos: community events and weddings, check in preview."
+ }
+]

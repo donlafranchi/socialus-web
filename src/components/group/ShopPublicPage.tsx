@@ -144,6 +144,8 @@ export function ShopPublicPage({
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
   // #945 — the weekly series this Page's real, dated posts belong to: following it offers Remind me every time.
+  // #997 — a venue's imported shows: Remind me every time covers each one, as it is posted.
+  const hasShows = posts.some((p) => p.eventKey && !p.hiddenAt)
   const repeatingSeries = [...new Set(posts.filter((p) => p.seriesId && p.startsAt && !p.sampleKind && !p.hiddenAt).map((p) => p.seriesId!))]
 
   // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
@@ -315,10 +317,10 @@ export function ShopPublicPage({
                 onFollow={followPageAction}
                 onUnfollow={unfollowPageAction}
                 whenFollowing={
-                  repeatingSeries.length > 0 ? (
+                  repeatingSeries.length > 0 || hasShows ? (
                     <RemindEveryTimeButton
                       groupId={shop.groupId}
-                      on={repeatingSeries.every((id) => reminders.bySeries[id])}
+                      on={repeatingSeries.every((id) => reminders.bySeries[id]) && (!hasShows || !!reminders.byShows?.[shop.groupId])}
                       everyForPage={remindEveryTimeForPageAction}
                     />
                   ) : null

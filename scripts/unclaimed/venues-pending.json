@@ -1,0 +1,217 @@
+[
+ {
+  "name": "Harlow's",
+  "category": "Music venue",
+  "makes": "A midtown Sacramento nightclub and live music venue on J Street for over 30 years, voted one of the city's top venues",
+  "area": "Sacramento (Sacramento)",
+  "address": "2708 J St, Sacramento, CA 95816",
+  "site": "https://www.harlows.com/",
+  "social": {
+   "tiktok": "https://www.tiktok.com/@harlowsnightclub",
+   "instagram": "https://www.instagram.com/harlowsnightclub/",
+   "facebook": "https://www.facebook.com/harlowsnightclub"
+  },
+  "events": {
+   "url": "https://www.harlows.com/events/",
+   "format": "html",
+   "parser": "harlows-rhp"
+  },
+  "confidence": "High; own site checked 2026-10-22: address on its contact page, TikTok, Instagram and Facebook from its own links. /events/ is RockHouse Partners (rhp) HTML listing both rooms (38 Harlow's, 42 Starlet Room); dates have no year, times as 'Doors: 6 pm // Show: 7 pm'; Etix ticket links. Each event's detail page has JSON-LD, the list does not. robots.txt allows /events/. Parser keeps venueLink /venue/harlows/ only."
+ },
+ {
+  "name": "The Starlet Room",
+  "category": "Music venue",
+  "makes": "The intimate upstairs room at Harlow's for smaller touring and local shows",
+  "area": "Sacramento (Sacramento)",
+  "address": "2708 J St, Sacramento, CA 95816",
+  "site": "https://www.harlows.com/venue/the-starlet-room/",
+  "social": {
+   "tiktok": "https://www.tiktok.com/@harlowsnightclub",
+   "instagram": "https://www.instagram.com/harlowsnightclub/",
+   "facebook": "https://www.facebook.com/harlowsnightclub"
+  },
+  "events": {
+   "url": "https://www.harlows.com/events/",
+   "format": "html",
+   "parser": "harlows-rhp-starlet",
+   "page": "https://www.harlows.com/venue/the-starlet-room/"
+  },
+  "confidence": "High; Harlow's own site checked 2026-10-22: its venue page for The Starlet Room gives 2708 J St; socials are Harlow's own. Shows come from the shared Harlow's /events/ list filtered to venueLink /venue/the-starlet-room/ (42 listed). thestarletroom.com is a stale 2020 calendar and is not used. Same pin as Harlow's."
+ },
+ {
+  "name": "Golden 1 Center",
+  "category": "Arena and music venue",
+  "makes": "Downtown Sacramento's arena for world-class music, Kings basketball, sports and entertainment",
+  "area": "Sacramento (Sacramento)",
+  "address": "500 David J Stern Walk, Sacramento, CA 95814",
+  "site": "https://www.golden1center.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/Golden1Center/"
+  },
+  "events": {
+   "url": "https://www.golden1center.com/events/",
+   "format": "html",
+   "parser": "golden1-eventchamp"
+  },
+  "confidence": "High; own site checked 2026-10-22: address from its Box Office page; only Facebook is linked from its own site. /events/ is EventChamp WordPress HTML (full dates and times, tabs All/Kings/Concert/Comedy/Family/Sports/Stockton); no JSON-LD or feed. robots.txt allows (Crawl-delay 10). Stock photos only: family shows (Disney On Ice) and game crowds may show children."
+ },
+ {
+  "name": "Goldfield Trading Post",
+  "category": "Music venue",
+  "makes": "A live music venue and bar in Roseville's downtown entertainment district, with touring bands and tribute nights",
+  "area": "Roseville (Placer)",
+  "address": "238 Vernon St, Roseville, CA 95678",
+  "site": "https://goldfieldtradingpost.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/goldfieldroseville",
+   "facebook": "https://www.facebook.com/goldfieldroseville"
+  },
+  "events": {
+   "url": "https://goldfieldtradingpost.com/",
+   "format": "html",
+   "parser": "goldfield"
+  },
+  "confidence": "High; own site checked 2026-10-22: address on its Venue Info page, Instagram and Facebook from its own links (no TikTok). /events/ redirects to the home page, which lists 20 shows (article.events-list) with month-day (no year), doors time and SeeTickets links. robots.txt allows (Crawl-delay 10). Band photos; low child risk."
+ },
+ {
+  "name": "The Old Ironsides",
+  "category": "Music venue",
+  "makes": "Sacramento's oldest bar and music venue, reopened in 2022, with local and touring bands, emo nights and showcases",
+  "area": "Sacramento (Sacramento)",
+  "address": "1901 10th St, Sacramento, CA 95811",
+  "site": "https://theoldironsides.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/oldironsidesbar/",
+   "facebook": "https://www.facebook.com/oldironsidesbar"
+  },
+  "events": {
+   "url": "https://theoldironsides.com/",
+   "format": "html",
+   "parser": "old-ironsides"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). The home page lists 12 shows (div.event-list-item) with full dates, start time, age, price and SeeTickets links; /events/ is a repeating archive and /calendar redirects home. robots.txt allows (Crawl-delay 10). 21+ bar; low child risk."
+ },
+ {
+  "name": "The Sofia, Home of B Street Theatre",
+  "category": "Theatre and music venue",
+  "makes": "A nonprofit live entertainment venue on Capitol Avenue, home of B Street Theatre, with new plays, family theatre and a music series",
+  "area": "Sacramento (Sacramento)",
+  "address": "2700 Capitol Avenue, Sacramento, CA 95816",
+  "site": "https://bstreettheatre.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/thesofiasac",
+   "facebook": "https://www.facebook.com/thesofiasac"
+  },
+  "events": {
+   "url": "https://bstreettheatre.org/shows/",
+   "format": "html",
+   "parser": "sofia-music"
+  },
+  "confidence": "Medium-high; own site checked 2026-10-22: address on Plan Your Visit, The Sofia's own Instagram and Facebook from its links (B Street's are linked too). /shows/ lists theatre runs as date ranges and the music series as single dates with no time; show time is only on each detail page ('11/13/2026 at 7:00 pm'), so the parser needs one detail fetch per music show. robots.txt allows /shows/. Stock photos only: the Family Series and education pages show children."
+ },
+ {
+  "name": "Fox & Goose Public House",
+  "category": "Pub and music venue",
+  "makes": "An English pub and music venue since 1975, with breakfast, draft beer, open mic, pub quiz and local bands",
+  "area": "Sacramento (Sacramento)",
+  "address": "1001 R St, Sacramento, CA 95811",
+  "site": "https://foxandgoose.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/foxandgoosepub/",
+   "facebook": "https://www.facebook.com/foxandgoosepublichouse/"
+  },
+  "events": {
+   "url": "https://foxandgoose.com/events/",
+   "format": "html",
+   "parser": "foxandgoose-monthly"
+  },
+  "confidence": "Medium; own site checked 2026-10-22: address and socials from its own pages (no TikTok). Shows are lines in a monthly post ('October 23 – Dave Berner at 6:00 PM') at /events/<month>-events/, linked from /events/; parser follows that link. No feed or JSON-LD. robots.txt allows (Crawl-delay 10). Pub photos; unsure on children, check in preview."
+ },
+ {
+  "name": "The Center for the Arts",
+  "category": "Music venue (nonprofit arts center)",
+  "makes": "A Grass Valley nonprofit that presents music, literary, visual and performing arts for the community",
+  "area": "Grass Valley (Nevada)",
+  "address": "314 W Main St, Grass Valley, CA 95945",
+  "site": "https://thecenterforthearts.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/thecenterforthearts/",
+   "facebook": "https://www.facebook.com/thecenterforthearts"
+  },
+  "events": {
+   "url": "https://thecenterforthearts.org/events/",
+   "format": "html",
+   "parser": "centerforthearts-jet"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). /events/ is a JetEngine listing grid (25 items: month, day, 'Thu | 7:00pm', title, GET TIX link to its Salesforce PatronTicket box office); no year in the date. robots.txt allows /events/ (Crawl-delay 10). Unsure on photos: it runs arts education, check in preview."
+ },
+ {
+  "name": "Harris Center for the Arts",
+  "category": "Music venue (performing arts center)",
+  "makes": "The regional performing arts center at Folsom Lake College, with concerts, dance, theatre, film and speakers",
+  "area": "Folsom (Sacramento)",
+  "address": "10 College Parkway, Folsom, CA 95630",
+  "site": "https://www.harriscenter.net/",
+  "social": {
+   "instagram": "https://www.instagram.com/harriscenter/",
+   "facebook": "https://www.facebook.com/HarrisCenter/"
+  },
+  "events": {
+   "url": "https://www.harriscenter.net/events",
+   "format": "html",
+   "parser": "harris-center"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). /events is server-rendered HTML (div.listing-box._event: presenter, h3 title, 'Tue, Oct 27 - 7:30 PM'); first 12 of 58 render, the rest load by 'Show More'. No year in dates. robots.txt allows /events. Stock photos only: family musicals (ELF, The Wiz) and school matinees likely show children."
+ },
+ {
+  "name": "Nevada Theatre",
+  "category": "Theatre and music venue",
+  "makes": "The oldest continuously operated theatre on the West Coast, with live music, plays and film in Nevada City",
+  "area": "Nevada City (Nevada)",
+  "address": "401 Broad St, Nevada City, CA 95959",
+  "site": "https://nevadatheatre.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/nevadatheatre/",
+   "facebook": "https://www.facebook.com/nevadatheatre"
+  },
+  "events": {
+   "url": "https://nevadatheatre.com/events/",
+   "format": "html",
+   "parser": "nevada-theatre-mec"
+  },
+  "confidence": "High; own site checked 2026-10-22: address on its events list and footer, Instagram and Facebook from its own links (no TikTok). /events/ is Modern Events Calendar HTML (article.mec-event-article: title, '22 Oct', 'mec-start-time 7:30 pm', venue name, month dividers 'October 2026'); no working iCal. robots.txt allows. Unsure on photos: community theatre, check in preview."
+ },
+ {
+  "name": "Powerhouse Pub",
+  "category": "Pub and music venue",
+  "makes": "An eclectic maze of bars on Folsom's Sutter Street with live bands, country nights, blues and live band karaoke",
+  "area": "Folsom (Sacramento)",
+  "address": "614 Sutter St #D, Folsom, CA 95630",
+  "site": "https://powerhousepub.com/",
+  "social": {
+   "instagram": "https://instagram.com/powerhousefolsom",
+   "facebook": "https://www.facebook.com/powerhousepubfolsom/"
+  },
+  "events": {
+   "url": "https://powerhousepub.com/events/",
+   "format": "html",
+   "parser": "powerhouse-elementor"
+  },
+  "confidence": "High; own site checked 2026-10-22: address in its footer, Instagram and Facebook from its own links (no TikTok). /events/ is an Elementor loop (40 items: weekday, 'October 24', 'Starts @ 9:00 pm', title, band); no year, no ticket link on the list (a few go to universe.com). robots.txt allows /events/. Bar photos; low child risk, check in preview."
+ },
+ {
+  "name": "Mondavi Center",
+  "category": "Music venue (performing arts center)",
+  "makes": "UC Davis's center for the performing arts, presenting classical, jazz, global roots, dance, theatre and speakers",
+  "area": "Davis (Yolo)",
+  "address": "One Shields Avenue, Davis, CA 95616",
+  "site": "https://www.mondaviarts.org/",
+  "social": {},
+  "events": {
+   "url": "https://www.mondaviarts.org/events-tickets",
+   "format": "html",
+   "parser": "mondavi-cards"
+  },
+  "confidence": "Medium; own site checked 2026-10-22 in a browser: address from its contact page; no social links on its own site. /events-tickets is Drupal HTML (section.mondavi-card: presenter, title, time.datetime 'Fri, Oct 23, 2026' or a range, no show time) paged 1-5; times are not on detail pages either. robots.txt allows it, but Cloudflare answers 403 to curl, so the daily import is likely blocked. Stock photos only: family shows and school matinees."
+ }
+]
