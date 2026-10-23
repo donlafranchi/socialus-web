@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     642
    ],
-   "note": "`assessAfterReport` via `after()` from `create.ts`; the rebuttal triggers a read from `report-actions.ts`; a failed call leaves the report as is (#495, #513) [V] Checked: `[guards F100.1]` in `moderation/criteria.test.ts` [V] Reviewed: #756 `review-skipped` [V]"
+   "note": "`assessAfterReport` via `after()` from `create.ts`; the rebuttal triggers a read from `report-actions.ts`; a failed call leaves the report as is (#495, #513); the words and item kinds are joined in `run-assessment.ts` (#820, #920) [V] Checked: `[guards F100.1]` in `moderation/criteria.test.ts` [V] Reviewed: #756 `review-skipped` [V]. On production `report_assessments` had 0 rows on 2026-10-20: no non-builder report has been filed since shadow opened (#486) [V]"
   },
   {
    "id": "2",
@@ -95,7 +95,7 @@
    "issues": [
     642
    ],
-   "note": "`report_assessments` (migration 20261007260000) has every column; RLS on, no policy [V] Checked: `[guards F100.5]` in `tests/report-assessments-db.test.ts` [V] Reviewed: #495 says `Reviewed by: the builder` (counted literally) [A]"
+   "note": "`report_assessments` (migration 20261007260000) has every column; RLS on, no policy [V] Checked: `[guards F100.5]` in `tests/report-assessments-db.test.ts` [V] Reviewed: #495 says `Reviewed by: the builder` and carries no `review-skipped` label (counted literally) [A]"
   },
   {
    "id": "6",
@@ -113,7 +113,7 @@
    "issues": [
     643
    ],
-   "note": "Only `report_assessments` is written in `runAssessment`; the restore step is the ruled exception [V] Checked: `[guards F100.6]` in `run-assessment.test.ts` [V] Reviewed: #540 `review-skipped` [V]"
+   "note": "Only `report_assessments` is written in `runAssessment`; the restore step is the ruled exception; `ai_mode` reads `shadow` on production (2026-10-20, #486) [V] Checked: `[guards F100.6]` in `run-assessment.test.ts` [V] Reviewed: #540 `review-skipped` [V]"
   },
   {
    "id": "7",
@@ -157,7 +157,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -166,7 +166,7 @@
     638,
     836
    ],
-   "note": "`npm run moderation:eval`; `moderation-eval.yml` runs on changes to the prompt, models, metrics and set; the full run needs the repo secret, else it is skipped with a note (last run green 2026-10-13) [V] Checked: partial markers only; #836 [V] Reviewed: #762, #767 no `Reviewed by:`; #522 `review-skipped` [V]"
+   "note": "`npm run moderation:eval`; `moderation-eval.yml` runs on changes to the prompt, models, metrics and set (last run green 2026-10-20 on 81c7635); the full run needs the repo secret, which is not set, so CI only validates the set (#486, 2026-10-20) [V] Checked: `[guards F100.9]` in `tests/moderation-eval-workflow.test.ts:56`: the triggers and all five printed numbers, seen failing against five mutants (#899) [V] Reviewed: #762, #767 no `Reviewed by:`; #522, #899 `review-skipped` [V]"
   },
   {
    "id": "10",
@@ -176,7 +176,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -185,7 +185,7 @@
     639,
     836
    ],
-   "note": "`evals/moderation/cases.json`: 55 cases (23 violating, 22 clean, 10 borderline), 10 with open-licence photos, two severity-1 and two child cases; `validateSet` refuses unlicensed, minor or sexual images (#767) [V] Checked: seven partial markers in `eval-cases.test.ts`; #836 [V] Reviewed: #767 no `Reviewed by:`; #522 `review-skipped` [V]"
+   "note": "`evals/moderation/cases.json`: 56 cases (23 violating, 22 clean, 11 borderline), open-licence photos with author recorded, one children-rule public-setting photo, a non-explicit borderline swimwear photo for the adult category (#973); `validateSet` refuses unlicensed, minor or sexual images (#767) [V] Checked: `[guards F100.10]` in `eval-cases.test.ts:178` claims the whole set, seen failing before the photo was added (#973, closed #836) [V] Reviewed: #767 no `Reviewed by:`; #522 `review-skipped`; #973 says `Reviewed by: the builder` [V]"
   },
   {
    "id": "11a",
@@ -195,7 +195,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "yes",
@@ -204,7 +204,7 @@
     640,
     836
    ],
-   "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, with green/amber/red per number (#754, ruled option C 2026-10-11) [V] Checked: partial markers only (`readiness.test.ts`, `eval-metrics.test.ts`); #836 [V] Reviewed: #754, #756 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-14 [V]"
+   "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, green/amber/red per number (#754, ruled option C 2026-10-11); shadow days now count from the first person's decision in `report_ai_agreement`, per the ruling (#899 fix) [V] Checked: `AiReadiness.test.tsx:77` renders both pages through the real data layer, seen failing against four mutants (#899); its marker leaves out only 11b, so it claims 11a whole [V] Reviewed: #754, #756, #899 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]"
   },
   {
    "id": "11b",
@@ -222,7 +222,7 @@
    "issues": [
     837
    ],
-   "note": "Not built, by ruling a production step (F100 `## Rulings` 2026-10-11, option C): `ai_mode` flips with no recorded run and nothing marks the shadow read [V]. Filed #837, not launch-blocking."
+   "note": "Not built, by ruling a production step (F100 `## Rulings` 2026-10-11, option C): nothing guards the `ai_mode` flip (`reports-queue.ts`, `ai-restore.ts` only read it) and nothing marks the shadow read [V]. #837 open, not launch-blocking."
   },
   {
    "id": "12",
@@ -242,7 +242,7 @@
     641,
     643
    ],
-   "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (#784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641); rows say \"Photo not scanned against known lists\" [V] Checked: `[guards F100.12]` covers the skip half only."
+   "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (`served-url.ts`, #784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641 open, `needs the PM`) [V] Checked: `[guards F100.12]` in `run-assessment.test.ts:50` covers the skip half only [V]"
   }
  ]
 }
