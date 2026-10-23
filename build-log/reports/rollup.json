@@ -17,7 +17,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-16",
+   "as_of": "2026-10-23",
    "path": "builders-seed/F114-test-member-with-history.md",
    "n": 6,
    "totals": {
@@ -70,7 +70,7 @@
      "issues": [
       778
      ],
-     "note": "Builder accounts exist (`scripts/builders.ts`, #281) but no Settled or Newcomer persona [V grep].",
+     "note": "[V] Builder accounts exist (`scripts/builders.ts`, one per eval persona, #281; unchanged since 2026-10-16) but no Settled or Newcomer persona anywhere in scripts, evals or the builders workflows (grep). No PR cites F114",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -93,7 +93,7 @@
      "issues": [
       778
      ],
-     "note": "Not built; home towns exist since #695 [V].",
+     "note": "[V] Not built; members.home_town exists (F103.5, migration 20261012060000) and the daily unclaimed seeds keep adding Pages per town (#810 to #995), so the inputs are there",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -116,7 +116,7 @@
      "issues": [
       778
      ],
-     "note": "`scripts/test-profile.ts` does not exist [V].",
+     "note": "[V] `scripts/test-profile.ts` does not exist. Interests (#911, My interests) and follows (#966, Following) now exist as member signals to write",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -140,7 +140,7 @@
      "issues": [
       778
      ],
-     "note": "Builder exclusion exists in some places (`reports-queue.ts`, `waitlist-join.ts`, `is_builder()`) [V], but not for these accounts and no test covers every count.",
+     "note": "[V] `is_builder()` exclusion exists in waitlist-join.ts, report/create.ts (reporter_is_builder) and admin reports, but not for these accounts and not in the newest logs: search demand (#923, migration 20261018210000) and push (#930, 20261019004000) name no builder exclusion. No test covers every count",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -163,7 +163,7 @@
      "issues": [
       778
      ],
-     "note": "`delete_builder_content()` wipes every builder's content, so a scoped wipe is new [V].",
+     "note": "[V] `delete_builder_content()` (migration 20261005160000) wipes every builder's content, so a wipe scoped to two accounts is new; #778 asks for an architecture note first",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -186,7 +186,7 @@
      "issues": [
       778
      ],
-     "note": "#778 holds a one-line checklist item; the full checklist is written when the script lands [V].",
+     "note": "[V] #778 holds a one-line checklist item and no comments; the full checklist is written when the script lands",
      "gaps": [
       "NOT-BUILT"
      ],
