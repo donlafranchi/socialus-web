@@ -141,7 +141,23 @@ export function parseTribe(json: unknown, base: string): VenueShow[] {
 }
 
 /** Per-venue readers for an events page with no structured data. Each returns [] when the page has changed shape. */
-export const HTML_PARSERS: Record<string, (html: string, base: string) => VenueShow[]> = {}
+export const HTML_PARSERS: Record<string, (html: string, base: string) => VenueShow[]> = {
+  // Channel 24 (channel24sac.com/calendar/): one <article class="event"> per show, start as microdata "YYYY-MM-DD HH:MM".
+  channel24: (html, base) =>
+    html.split(/<article\b[^>]*class="[^"]*\bevent\b/).slice(1).flatMap((a) => {
+      const title = /class="[^"]*show-title[^"]*"[^>]*>([\s\S]*?)<\/h2>/.exec(a)?.[1]
+      const start = /class="[^"]*event__start-date[^"]*"[^>]*content="([^"]+)"/.exec(a)?.[1]
+      const startsAt = instant(start)
+      if (!title || !startsAt) return []
+      const support = /class="[^"]*bottomline[^"]*"[^>]*>([\s\S]*?)<\/div>/.exec(a)?.[1]
+      const d = /event__doors-open[^>]*>\s*(\d{1,2}):(\d{2})\s*(am|pm)/i.exec(a)
+      const doorsAt = d ? instant(`${metroDate(startsAt, METRO_TIME_ZONE)}T${String((Number(d[1]) % 12) + (/pm/i.test(d[3]!) ? 12 : 0)).padStart(2, '0')}:${d[2]}`) ?? undefined : undefined
+      // The tickets button, or "Sold out" linking the venue's own show page.
+      const ticket = /event-data[\s\S]*?<a\b[^>]*href="([^"]+)"/.exec(a)
+      const name = decode(title) + (support && decode(support) ? ` with ${decode(support)}` : '')
+      return [{ title: name, startsAt, doorsAt: doorsAt && doorsAt <= startsAt ? doorsAt : undefined, ticketUrl: abs(ticket?.[1], base) }]
+    }),
+}
 
 export function parseShows(src: VenueEvents, body: string): VenueShow[] {
   switch (src.format) {

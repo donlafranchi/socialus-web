@@ -267,3 +267,6 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-22 | The Winters Museum (Historical Society of Winters) | Historical society | Winters | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: Discover Winters, then own site |
 | 2026-10-22 | Winters Theatre Company | Art association (nonprofit) | Winters | Arts & culture, Neighborhood life | Arts and culture; holiday (Christmas Pageant Nov 20-Dec 6); stock photos only; lead: Discover Winters, then own site |
 | 2026-10-22 | Snowy Peaks Tree Farm | Farm | Foresthill | Farmers markets, Sustainability | Arts and culture (farms); holiday (Christmas trees); stock photos only; lead: Visit Placer, then own site |
+| 2026-10-22 | Channel 24 | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar, no samples; lead: Don |
+| 2026-10-22 | Ace of Spades | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar (JSON-LD), no samples |
+| 2026-10-22 | Miners Foundry Cultural Center | Music venue | Nevada City | Live music, Arts & culture | Venues (#997); real shows from its own calendar (Events Calendar API); stock photos only |

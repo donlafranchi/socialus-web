@@ -82,3 +82,18 @@ describe('robotsAllows', () => {
     expect(robotsAllows('', '/x')).toBe(true)
   })
 })
+
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { HTML_PARSERS } from './venue-events'
+describe('Channel 24 parser (real page, 2026-10-22)', () => {
+  it('reads every show, Modest Mouse with doors and its own ticket link', () => {
+    const shows = HTML_PARSERS.channel24!(readFileSync(join(__dirname, 'fixtures/channel-24.html'), 'utf8'), 'https://channel24sac.com/calendar/')
+    expect(shows.length).toBeGreaterThan(30)
+    const mm = shows.find((s) => s.title.startsWith('Modest Mouse'))!
+    expect(mm.title).toBe('Modest Mouse with Caroline Rose')
+    expect(mm.startsAt.toISOString()).toBe('2026-10-24T03:00:00.000Z')
+    expect(mm.doorsAt!.toISOString()).toBe('2026-10-24T02:00:00.000Z')
+    expect(mm.ticketUrl).toMatch(/^https:\/\//)
+  })
+})
