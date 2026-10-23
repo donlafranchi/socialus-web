@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-18",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     850
    ],
-   "note": "`markets`, `market_members`, `market_key()` (#693, PR #708) [V]. Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members."
+   "note": "[V] `markets`, `market_members`, `market_key()` (#693, PR #708, review-skipped, deploy-health green on 4431c25). Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850, PR #910, green on 82a9edc): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members. #907 (2026-10-18) adds F076's check that every US zip and county resolves to one market"
   },
   {
    "id": "2a",
@@ -42,7 +42,7 @@
    "issues": [
     850
    ],
-   "note": "`zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849)."
+   "note": "[V] `zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709, review-skipped, green on 4f571f5); Connecticut's planning regions added by #959 (green on 4f691c0). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849)"
   },
   {
    "id": "2b",
@@ -61,7 +61,7 @@
    "issues": [
     849
    ],
-   "note": "Stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment) [V]. HUD token not registered."
+   "note": "[V] stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment; scripts/generate-zip-county-migration.ts). HUD token not registered; #849 open with the PM (needs-pm), no comment since filing"
   },
   {
    "id": "3",
@@ -79,7 +79,7 @@
    "issues": [
     850
    ],
-   "note": "Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. Explore's visitor fallback is F104/F105 (#588), not sign-up."
+   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850, PR #910): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. The zip step is reached only through the profile screen, which the live sign-in skips since #946 (F081.1, #847). Explore's visitor fallback is F104/F105 (#588), not sign-up"
   },
   {
    "id": "4",
@@ -95,9 +95,9 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    848
+    1015
    ],
-   "note": "Sign-up screens are clean (`OnboardingFlow.test.tsx`, partial); `msa_code` is a column on `markets` [V]. Missing: /you \"Default metro\" row, Explore metro switcher, `msa_code` reads in `explore/actions.ts`, `location-actions.ts`, `/api/boundaries` [V]; no standing guard. Needs a PM call (#848)."
+   "note": "[V] built half (#895, review-skipped, deploy-health green on 4b9558a): the Default metro row is gone from /you and src/lib/copy-no-metro-words.test.ts scans member-facing .tsx prose for metro, MSA and CSA. Missing: three routed screens still say metro and are allow-listed in that guard (AreaPicker 'this metro', MetroNotCoveredPanel 'this metro opens', MetroWaitlistStep 'Pick your metro'; RecruitmentGrid's CSA is the farm box), and member-facing reads of the MSA remain: explore/actions.ts reads metro_polygons, location-actions.ts, /api/boundaries and neighborhood-search.ts filter places by msa_code (grep 2026-10-23). #848 was closed on #895 with those named as left open; the strings wait on F105's place control and a word from Don"
   },
   {
    "id": "5a",
@@ -115,7 +115,7 @@
    "issues": [
     850
    ],
-   "note": "`members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757) [V]. Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616)."
+   "note": "[V] `members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757, review-skipped, green on e0f16a9). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616)"
   },
   {
    "id": "5b",
@@ -133,7 +133,7 @@
    "issues": [
     616
    ],
-   "note": "`backfill_home_towns(market)` exists and is tested (`home-town-db.test`) [V], but nothing calls it: no code opens a market (#616 comment names the call). Half built, so no."
+   "note": "[V] `backfill_home_towns(market)` exists and is tested (`home-town-db.test`), and since #919 (2026-10-18) writes only as service_role; nothing calls it: no code opens a market (#616 comment names the call). Half built, so no"
   }
  ]
 }
