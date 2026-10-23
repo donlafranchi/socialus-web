@@ -9,13 +9,13 @@
     "readyMs": 910
   },
   "Page → back to Explore [quick]": {
-    "feedbackMs": 287,
-    "readyMs": 318,
+    "feedbackMs": 147,
+    "readyMs": 186,
     "issue": 532
   },
   "Page → back to Explore [settled]": {
-    "feedbackMs": 276,
-    "readyMs": 319,
+    "feedbackMs": 169,
+    "readyMs": 194,
     "issue": 532
   },
   "Explore: filter icon opens sheet [quick]": {
@@ -83,17 +83,16 @@
     "readyMs": 993
   },
   "Explore post card → Page post [settled]": {
-    "feedbackMs": 70,
-    "readyMs": 1515,
-    "issue": 529
+    "feedbackMs": 61,
+    "readyMs": 325
   },
   "Explore card → Page (member) [quick]": {
     "feedbackMs": 68,
     "readyMs": 924
   },
   "Explore card → Page (member) [settled]": {
-    "feedbackMs": 62,
-    "readyMs": 841
+    "feedbackMs": 58,
+    "readyMs": 293
   },
   "Bottom nav → Explore [settled]": {
     "feedbackMs": 45,
