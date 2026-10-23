@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -16,15 +16,13 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    843
-   ],
-   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; a PO-box-only zip with no ZCTA is unknown and refused (Census now, HUD-USPS later, PM 2026-10-12) [V migration 20261012030000]. Built by F103 #709: `review-skipped`; deploy-health success on 4f571f5c [V]. Checked no: only `[guards F103.n partial]` markers and a stale `[guards F076.1 partial]`. #843. Smoked unknown: sign-up is not a smoke route."
+   "issues": [],
+   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905, planning regions); a PO-box-only zip with no ZCTA is refused [V migrations]. Checked yes: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907): 52 states, DC and PR present, every zip's key names a market, no county in two markets, both ways in call `marketForZip(...zip)` and read no market from input; seen failing on main (CT missing) and against three mutants [V PR body]. Reviewed no: #709 is review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: deploy-health green on 4f571f5c, 4f691c01, 8659ea4a [V]. Smoked: smoke-live run 39291029395 (2026-10-19, main cd913c7d) was green and opened join and onboarding at 390 and 1280; it loads the route, it does not type a zip [V]. #843 closed 2026-10-18."
   },
   {
    "id": "2",
@@ -37,10 +35,10 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "Restated 2026-10-11. `[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls (and checks it can see them) [V]. No IP guess exists in src: the \"Is this your area?\" flow (F081 ruling 2026-10-11, #588) is unbuilt, and the PM's 2026-10-12 ruling on F105 says nothing is picked for a visitor, so I read them as compatible [V grep, A]. Reviewed no (#709 `review-skipped`); shipped yes (4f571f5c)."
+   "note": "Restated 2026-10-11. `[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls (and checks it can see them) [V]. No IP guess exists in src; #932's `explore_vantage` reads the member's own zip inside the database, never IP [V]. Reviewed no (#709 review-skipped); shipped yes (4f571f5c). Smoked: join, onboarding (2026-10-19) and explore (2026-10-23) green [V]."
   },
   {
    "id": "3",
@@ -75,7 +73,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Member row unique by `member_id`; address row unique by `lower(email)` across all markets; a member who had left an address is folded into the member row (#763, #613) [V handlers]. `[guards F076.4]` x2 in `waitlist-join.test.ts` (SQL-call level, mocked database) plus a partial for the reverse order [V]. Reviewed no: #86, #191, #197 have no `Reviewed by:` (#763 does). Shipped unknown: no deploy-health run for 640e1fc2 (#86)."
+   "note": "Member row unique by `member_id`; address row unique by `lower(email)` across all markets; a member who had left an address is folded into the member row (#763, #613) [V handlers]. `[guards F076.4]` x2 in `waitlist-join.test.ts` (SQL-call level, mocked database) plus a partial for the reverse order [V]. Reviewed no: #86, #191, #197 have no `Reviewed by:` (#763 does). Shipped unknown: no deploy-health run for 640e1fc2 (#86). Smoked unknown: the anonymous panel is reached only by picking a waiting market, which the smoke does not do."
   },
   {
    "id": "5",
@@ -91,7 +89,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Both handlers update the row and move the counter in one transaction [V]. `[guards F076.5]` in `f076-criteria.test.ts` runs the move through both ways of joining (mocked database; mutants run by hand, #766) [V]. Built by #86, #191, #197: no `Reviewed by:`; deploy-health unknown for #86."
+   "note": "Both handlers update the row and move the counter in one transaction [V]. `[guards F076.5]` in `f076-criteria.test.ts` runs the move through both ways of joining (mocked database; mutants run by hand, #766) [V]. Built by #86, #191, #197: no `Reviewed by:`; deploy-health unknown for #86. Smoked unknown (as 4)."
   },
   {
    "id": "6",
@@ -107,7 +105,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`metro_polygons.creator_count` and `patron_count` (and the same on `markets`) [V migrations]. `[guards F076.6]` in `f076-criteria.test.ts` for both paths [V]. Built by #86; reviewed no, shipped unknown."
+   "note": "`metro_polygons.creator_count` and `patron_count` (and the same on `markets`) [V migrations]. `[guards F076.6]` in `f076-criteria.test.ts` for both paths [V]. Built by #86; reviewed no, shipped unknown, smoked unknown (as 4)."
   },
   {
    "id": "7",
@@ -125,7 +123,7 @@
    "issues": [
     686
    ],
-   "note": "Built half: both actions call `waitingCountFor` (#217, #764) and the panel opens a dialog [V]. Missing: `getMetroWaitingCounts` is an `unstable_cache` whose function calls `createClient()`, which reads `cookies()`; Next refuses that, so the popup action throws after the row is written [V src/lib/metro/waitlist-counts.ts, supabase-server.ts; runtime failure reported on #686, not reproduced today, A]. #764 made the signed-in path call the same function, so it is affected too [A]. Checked no: only partial markers, and the tests mock `waitingCountFor`. #686."
+   "note": "Built half: both actions call `waitingCountFor` (#217, #764) and the panel opens a dialog [V]. Missing: `getMetroWaitingCounts` is still an `unstable_cache` whose function calls `createServerClient()`, which reads `cookies()`; Next refuses that, so the popup action throws after the row is written [V src/lib/metro/waitlist-counts.ts lines 60-99, unchanged since #686 was filed; not reproduced today, A]. Checked no: only partial markers, and the tests mock `waitingCountFor`. Open #686 (bug, no milestone)."
   },
   {
    "id": "8",
@@ -144,7 +142,7 @@
     686,
     699
    ],
-   "note": "The combined figure and target exist (`standingFromCombined`, 300) [V]. Missing: the one cached read throws (see 7), and `load.ts` swallows it into an empty map. Since 2026-10-11 the only other surface that should show it is a waiting vantage (F105 criterion 4, #699, deferred), unbuilt. Checked no: partial marker. #686, #699."
+   "note": "The combined figure and target exist (`standingFromCombined`, 300) [V]. Missing: the one cached read throws (see 7), and `load.ts` swallows it into an empty map. Since 2026-10-11 the only other surface that should show it is a waiting vantage (F105 criterion 4, #699, deferred), unbuilt. Checked no: partial marker. Open #686, #699."
   },
   {
    "id": "9",
@@ -160,7 +158,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`standingMessage` in `waitlist-standing.ts`; `[guards F076.9]` asserts no date or promise wording [V]. New wording sits in draft PR #684 (do not merge) and is Don's to approve. Built by #86; reviewed no, shipped unknown."
+   "note": "`standingMessage` in `waitlist-standing.ts`; `[guards F076.9]` asserts no date or promise wording [V]. New wording sits in draft PR #684 (do not merge) and is Don's to approve. Built by #86; reviewed no, shipped unknown, smoked unknown (as 4)."
   },
   {
    "id": "10",
@@ -176,7 +174,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`metroStanding` gates on creators and patrons separately; `[guards F076.10]` as one table [V]. Built by #86; reviewed no, shipped unknown."
+   "note": "`metroStanding` gates on creators and patrons separately; `[guards F076.10]` as one table [V]. Built by #86; reviewed no, shipped unknown, smoked unknown."
   },
   {
    "id": "11",
@@ -192,7 +190,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Threshold columns on `metro_polygons` and `markets`; `[guards F076.11]` scans for hard-coded thresholds and reads the column defaults [V]. Built by #86; reviewed no, shipped unknown."
+   "note": "Threshold columns on `metro_polygons` and `markets`; `[guards F076.11]` scans for hard-coded thresholds and reads the column defaults [V]. Built by #86; reviewed no, shipped unknown, smoked unknown."
   },
   {
    "id": "12",
@@ -208,7 +206,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "No application code writes `is_open`; `[guards F076.12]` scans src, scripts and every migration except the two seeds [V]. Note: because nothing opens a market, the opening itself is a raw SQL update today (see #616)."
+   "note": "No application code writes `is_open`; `[guards F076.12]` scans src, scripts and every migration except the two seeds [V]. Because nothing opens a market, the opening itself is a raw SQL update today (see #616). Built by #86; reviewed no, shipped unknown, smoked unknown."
   },
   {
    "id": "13",
@@ -240,7 +238,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "The result type has no changed or created flag and no count; the number is the cached figure, not a function of the submission [V]. `[guards F076.14]` runs the handler on a real database for a new, a repeated and another known address and expects byte-identical results, and scans that no other code reads the live counters [V]. While #686 stands the number never appears, so the end-to-end response is untested at the screen [A]. Reviewed no (#197); shipped yes (0ac5c54f, a3faf37c)."
+   "note": "The result type has no changed or created flag and no count; the number is the cached figure, not a function of the submission [V]. `[guards F076.14]` runs the handler on a real database for a new, a repeated and another known address and expects byte-identical results, and scans that no other code reads the live counters [V]. While #686 stands the number never appears, so the end-to-end response is untested at the screen [A]. Reviewed no (#197); shipped yes (0ac5c54f, a3faf37c); smoked unknown (as 13)."
   },
   {
    "id": "15",
@@ -259,7 +257,7 @@
    "issues": [
     616
    ],
-   "note": "Addresses are stored and the panel states the single use; nothing reads them back, no mail library is in the project, nothing deletes them [V grep]. The PM chose Resend and the wording on #616 (2026-10-11). Missing: the send, the discard, and a deliberate way to open a market that triggers both. #616 (open, Beta 11-06)."
+   "note": "Addresses are stored and the panel states the single use; nothing reads them back; Resend is wired for operator alerts and reminders (`src/lib/notify/email.ts`, a raw fetch to api.resend.com, no package) but nothing sends the market-opened message, nothing deletes the addresses, nothing opens a market [V grep]. The PM chose Resend and the wording on #616 (2026-10-11). Missing: the send, the discard, and a deliberate way to open a market that triggers both. Open #616 (Beta 11-06; carries neither `launch-blocking` nor `needs-pm`)."
   },
   {
    "id": "16",

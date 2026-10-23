@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     598
    ],
-   "note": "`PagePhotoPicker` sits in the About step of `SellWalkthrough` (`isOptional`) and in `PageEditor`; `photoUrl: null` clears, a failed upload does not trap the member [V src]. Built by #121: no `Reviewed by:` line, label human-review [V]; no deploy-health run for 61902755 [V]. Checked no: unmarked `PagePhotoPicker.test.tsx` (\"never blocks the step\"), `SellWalkthrough.test.tsx`; zero `[guards F070.n]` markers in src or tests [V grep]. #598."
+   "note": "`PagePhotoPicker` sits in the About step of `SellWalkthrough` (`isOptional`) and in `PageEditor`; `photoUrl: null` clears, a failed upload does not trap the member [V src]. Built by #121: no `Reviewed by:` line [V]; no deploy-health run for 61902755 [V]. Checked no: unmarked `PagePhotoPicker.test.tsx` ('never blocks the step'), `SellWalkthrough.test.tsx`; zero `[guards F070.n]` markers in src or tests [V grep]. Smoked unknown: the composer is not a smoke route. Open #598."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     598
    ],
-   "note": "`upload-image.ts` re-encodes through canvas to WebP; the `media` bucket accepts `image/webp` only (`039_media_bucket.sql`) [V]. Checked no: `upload-image.test.ts:112` reads a GPS fixture byte-level but on pipeline output, not an object read back from the bucket; unmarked [V]. Built by T120 and #121, both before deploy-health ran, and neither carries `Reviewed by:` [V]. #598."
+   "note": "`upload-image.ts` re-encodes through canvas to WebP; the `media` bucket accepts `image/webp` only (`039_media_bucket.sql`) [V]. Checked no: `upload-image.test.ts:112` reads a GPS fixture byte-level but on pipeline output, not an object read back from the bucket; unmarked [V]. Built by T120 and #121, both before deploy-health ran, and neither carries `Reviewed by:` [V]. Open #598."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     598
    ],
-   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to the member's own folder [V migration 039]. `tests/media-bucket-storage-api.test.ts` rejects JPEG, SVG, over 5MB and another member's prefix against a real stack; CI runs the Vitest suite against local Supabase, so it is not skipped there [V ci.yml]. Checked no only because it carries no `[guards F070.3]` marker. #598."
+   "note": "Bucket `allowed_mime_types` webp, 5MB limit, insert/update/delete scoped to the member's own folder [V migration 039]. `tests/media-bucket-storage-api.test.ts` rejects JPEG, SVG, over 5MB and another member's prefix against a real stack; CI runs the Vitest suite against local Supabase [V ci.yml]. Checked no only because it carries no `[guards F070.3]` marker. Open #598."
   },
   {
    "id": "4",
@@ -69,17 +69,16 @@
     "behavior"
    ],
    "status": "active",
-   "built": "no",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    335,
     598
    ],
-   "note": "Built half: `DefaultArt` by kind (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Missing: the signed-out withheld card gets no kind, because `announcements_withheld` does not return it and `mapWithheldRow` sets `groupKind: ''`, so `artKindFor` returns null and the tile has no icon; that is not identical for every viewer [V src/lib/feed/withheld-announcements.ts, DefaultArt.tsx]. #335 (open, Beta 11-06). Checked: unmarked `DefaultArt.test.tsx`; #598."
+   "note": "`DefaultArt` by kind (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]. #335 closed 2026-10-19."
   },
   {
    "id": "5a",
@@ -108,12 +107,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     842
    ],
-   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts, docs/purge-proposal.md]. Built by #508 (#491): carries `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. #842."
+   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 39805278303 (2026-10-22) opened admin-reports as the operator, green; it loads the queue, it does not purge [V]. Open #842."
   }
  ]
 }

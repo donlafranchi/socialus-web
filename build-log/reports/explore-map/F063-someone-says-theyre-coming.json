@@ -6,7 +6,7 @@
  "area_source": "guess",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     34
    ],
-   "note": "Table and event kinds exist; no action, RPC or button. Feed `response_count` reads rows with `withdrawn_at is null` (`016_discoverable_items.sql`) but nothing ever inserts. #34"
+   "note": "Not built [V]: `item_responses` and `response_count` exist only in `016_discoverable_items.sql` (and a comment in 20261019060000_post_reminders.sql saying reminders are not responses); no action, RPC or button writes a response; `src/actions` has no response handler [V grep]. The smoke's `rsvp` persona is a seeded account, not a feature. Open #34."
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     34
    ],
-   "note": "`withdrawn_at` column exists; no unique constraint on (item_id, responder_member_id, kind) in any migration [V grep]. #34"
+   "note": "Not built [V]: `withdrawn_at` column exists; no unique constraint on (item_id, responder_member_id, kind) in any migration [V grep]. Open #34."
   },
   {
    "id": "3",
@@ -61,7 +61,7 @@
    "issues": [
     34
    ],
-   "note": "Generic `/auth/login?next=` return exists; nothing carries a pending response through it. #34"
+   "note": "Not built [V]: the generic `/auth/login?next=` return exists (and the sign-in flow changed to a 6-digit code, #946); nothing carries a pending response through it. Open #34."
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     34
    ],
-   "note": "Count is `count(*)` over rows, not distinct responders, and with no unique constraint duplicates are possible (`016_discoverable_items.sql`, `20261007020000_archived_pages_every_path.sql`). Builder responses are excluded in the newer one. #34"
+   "note": "Not built [V]: the count is `count(*)` over rows, not distinct responders, and with no unique constraint duplicates are possible (`016_discoverable_items.sql`, `20261007020000_archived_pages_every_path.sql`); builder responses are excluded in the newer one. Open #34."
   }
  ]
 }

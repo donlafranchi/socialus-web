@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
    "issues": [
     696
    ],
-   "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`) [V]. No market scope on any surface. Issue #696 is deferred to the fortnight after beta."
+   "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`); search covers 'the whole market' in #924's words but reads the metro scope [V]. No market scope on any surface. #932's rings start from the member's home town (`explore_vantage`), inside the metro. Open #696, deferred to the fortnight after beta."
   },
   {
    "id": "2",
@@ -43,11 +43,11 @@
    "issues": [
     697
    ],
-   "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. Order today is recency and community response (F059)."
+   "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. What exists instead is #932 (Don, 2026-10-18 [for now, beta]): rings of about 15 minutes' drive as straight-line kilometres from the home town's centroid, widened until a screen is full, capped at an hour; order inside is recency and `mixRuns` (#902). Open #697."
   },
   {
-   "id": "3",
-   "text": "No distance, hop count or \"near you\" shown or filterable anywhere",
+   "id": "3a",
+   "text": "Locality on a card, a Page or any surface but Explore's reach line is a neighbourhood or town name: no miles, minutes, hop count or 'near you'",
    "kind": [
     "invariant"
    ],
@@ -61,7 +61,23 @@
    "issues": [
     697
    ],
-   "note": "Distance still shows: `venueDistanceMeters` on `/p/[...slug]`, haversine miles in `MarketSelector.tsx`, \"near you\" in `HomeFeed.tsx` and layout copy [V]. Only guard: no distance filter in `ExploreFilterSheet.test`."
+   "note": "Explore cards show no distance [V `BrowseResultCard.tsx`], but distance still shows elsewhere: `venueDistanceMeters` on the place pages `/p/[...slug]`, 'No matches near you yet.' in `FeedEmptyState.tsx`, 'near you' in the site description (`layout.tsx`) and landing copy; `MarketSelector.tsx` still prints miles but nothing imports it [V grep]. No guard scans for them (#697's checklist). Open #697."
+  },
+  {
+   "id": "3b",
+   "text": "Explore's reach line and the How far filter say nothing in minutes; no drive-time rings",
+   "kind": [
+    "invariant"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Retired: Don's 2026-10-18 ruling on #796 and #922, built in #932, 'supersedes, for Explore's reach line only, F104 criterion 3 and its Not this line': the top-of-page line may say minutes ('Within 15 minutes of you · Show more nearby') and the filter sheet's How far group sets the ring (15 / 30 / 45 / 60 / Whole area); cards still show no miles or minutes [V #796 comment, #932 body]. The ruling asks socialus-plan to amend F104; `sync-roadmap` does that. Shown, not counted."
   },
   {
    "id": "4",
@@ -79,7 +95,7 @@
    "issues": [
     696
    ],
-   "note": "No Page-to-market link or waiting-market filter in the repo [V grep]."
+   "note": "No Page-to-market link or waiting-market filter in the repo [V grep]; a Page's `where_mode` (#944) and anchor decide its pin, not its market. Open #696."
   },
   {
    "id": "5",
@@ -97,7 +113,7 @@
    "issues": [
     697
    ],
-   "note": "No bands exist [V grep]."
+   "note": "No bands exist [V grep]; #932 starts a member at their home town's ring, which is the nearest thing to the town band and is not it. Open #697."
   }
  ]
 }
