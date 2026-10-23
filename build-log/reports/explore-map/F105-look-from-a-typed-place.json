@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     698
    ],
-   "note": "The area pill is a metro switcher over `listFeedMetros`, no typed place and no suggestions (`MarketSelector.tsx`, `scope.ts`) [V]. F104 comes first."
+   "note": "The place control is `AreaPicker` (a metro list and a neighbourhood search), plain text with a pin since #956; no typed town, county or market, no suggestions over the place tree [V src/components/explore/AreaPicker.tsx]. #932's `explore_vantage` starts the rings from the member's home town but names it only as 'you' and offers no control [V]. Open #698, deferred."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     698
    ],
-   "note": "No vantage and no rings in the repo [V grep]; today `?metro=` and a metro cookie (#479)."
+   "note": "No vantage model in the repo; today `?metro=`, `?area=` and a metro cookie (#479) [V]. #932's rings rebuild only from the home town or the market's principal city, never from a chosen place [V]. Open #698."
   },
   {
    "id": "3",
@@ -61,7 +61,7 @@
    "issues": [
     698
    ],
-   "note": "Not built; today the metro is a cookie and `default_metro_id` on the member [V]. A guard is in #698's checklist."
+   "note": "Not built; today the metro is a cookie and `default_metro_id` on the member, and the area pick is saved as the member's default (#479) [V]. `?reach=` already travels in the link (#932). A guard is in #698's checklist. Open #698."
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     699
    ],
-   "note": "The waitlist count and tell-me panel exist for a metro (`MetroNotCoveredPanel`, F076) but no vantage reaches them [V]."
+   "note": "The waitlist count and tell-me panel exist for a metro (`MetroNotCoveredPanel`, F076) but no vantage reaches them, and the cached count still throws for the signed-out join (#686) [V]. Open #699."
   },
   {
    "id": "5",
@@ -98,7 +98,7 @@
     699,
     588
    ],
-   "note": "Not built: `resolveFeedMetro` still picks Sacramento for a visitor [V]. Ruled 2026-10-12 (F105 Rulings). Prompt copy goes to the PM before production; #588 is needs-pm."
+   "note": "Not built: `resolveFeedMetro` still picks Sacramento for a visitor, and #932 starts a signed-out visitor's rings from the market's principal city [V]. Ruled 2026-10-12 (F105 Rulings). Prompt copy goes to the PM before production; #588 is needs-pm and #699 carries the open question. Open #699, #588."
   }
  ]
 }

@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": true,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -19,12 +19,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     651
    ],
-   "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out`, `motion-reduce:transition-none` [V]. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx`. Reviewed: landed as direct commit ac179c1 (T113), no PR [V]. Shipped: no deploy run for a direct commit [V]. Smoked: no merge commit to anchor to; smoke-live opens routes, it does not scroll [A]. Open #651."
+   "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out`, `motion-reduce:transition-none` [V]. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx` ('slides fully off-screen when the nav is hidden', 'transitions the transform over ~200ms ease-out'). Reviewed: landed as direct commits ac179c1 (T113) and 238cef7 (T112), no PR [V]. Shipped: no deploy-health run for a direct commit [V]; nothing in `BottomNav.tsx`, `useScrollDirection.ts` or `NavVisibilityProvider.tsx` has changed since 2026-10-16 [V git log]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and you at 390, where the bottom nav renders, signed out and as members; it loads the route, it does not scroll [V]. Open #651."
   },
   {
    "id": "2",
@@ -37,7 +37,7 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     651
@@ -55,7 +55,7 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     651
@@ -73,12 +73,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     651
    ],
-   "note": "`useState(true)`, context default `true`, route change resets to visible [V]. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx` ('is visible by default with no provider'). Reviewed, Shipped, Smoked: as criterion 1. Open #651."
+   "note": "`useState(true)`, context default `true`, route change resets to visible [V]. Checked: unmarked: `BottomNav.test.tsx` ('is visible by default with no provider — no flash of hidden nav on load'). Reviewed, Shipped, Smoked: as criterion 1 (the smoke's first paint shows the nav, unasserted). Open #651."
   },
   {
    "id": "5",
@@ -91,7 +91,7 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     651
@@ -109,12 +109,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     651
    ],
-   "note": "One global provider in `layout.tsx` covers every route that shows the nav [V]. Tabs today are Explore and You with Create between them; Home is paused (#138, PR merged without a deploy run) [V]. The nav is deliberately absent on auth, onboarding, admin and the full-height Edit Page (#296, #358, PR #359), matching the 2026-10-01 'nav is hidden in wizards and full-height sheets' ruling [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route sits under the provider. Reviewed: direct commit; #359 is a bug fix to the nav's absence. Shipped, Smoked: as criterion 1. Open #651."
+   "note": "One global provider in `layout.tsx` covers every route that shows the nav [V]. Tabs today are Explore and You with Create between them; Home is paused (#138) [V]. The nav is deliberately absent on auth, onboarding, admin and the full-height Edit Page, matching the 2026-10-01 'nav is hidden in wizards and full-height sheets' ruling [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route sits under the provider. Reviewed, Shipped: as criterion 1. Smoked: explore and you (2026-10-23) [V]. Open #651."
   },
   {
    "id": "7a",
@@ -127,12 +127,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     826
    ],
-   "note": "`BottomNav.tsx` and `globals.css`: `--color-charcoal` #3c3c3c active, `--color-nav-inactive` #717171, `--color-nav-border` #ebebeb, white background, `env(safe-area-inset-bottom)`, 20px icons at 1.5 stroke, fill when active [V]. Checked: unmarked: `BottomNav.test.tsx` (colours, border, icons, safe area). Reviewed: T112 direct commit 238cef7, no PR [V]. Shipped: no deploy run [V]. Smoked: no merge commit to anchor to [A]. Filed #826."
+   "note": "`BottomNav.tsx` and `globals.css`: `--color-charcoal` #3c3c3c active, `--color-nav-inactive` #717171, `--color-nav-border` #ebebeb, white background, `env(safe-area-inset-bottom)`, 20px icons at 1.5 stroke, fill when active [V]. Checked: unmarked: `BottomNav.test.tsx` ('icons are 20px at 1.5 stroke weight on every tab', 'active tab renders in charcoal, never in the brand accent', 'background is opaque white with a hairline top border and no blur', 'applies safe-area bottom padding'). Reviewed: landed as direct commits ac179c1 (T113) and 238cef7 (T112), no PR [V]. Shipped: no deploy-health run for a direct commit [V]; nothing in `BottomNav.tsx`, `useScrollDirection.ts` or `NavVisibilityProvider.tsx` has changed since 2026-10-16 [V git log]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and you at 390, where the bottom nav renders, signed out and as members; it loads the route, it does not scroll [V]. Open #826."
   },
   {
    "id": "7b",
@@ -148,7 +148,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Not met as written: the bar is 56px (`--nav-bottom-h`), labels are the 12px `micro` token, the gap is 2px, and Create sits between the tabs (#294, #296 adopted the design-language note of 2026-10-01 over 'today the phone bar is 44px with 9px labels'; PR #58 for Create) [V]. The 2026-10-01 ruling says token values live in app code, but no dated `## Rulings` line states the nav size, so the scenario cannot be shown overtaken: scope-scenario should record 56px or restore 44px. `BottomNav.test.tsx` asserts the 56px values."
+   "note": "Not met as written: the bar is 56px (`--nav-bottom-h`), labels are the 12px `micro` token, the gap is 2px, and Create sits between the tabs (#294, #296 adopted the design-language note of 2026-10-01 over 'today the phone bar is 44px with 9px labels'; PR #58 for Create) [V]. No dated `## Rulings` line states the nav size, so the scenario cannot be shown overtaken: scope-scenario should record 56px or restore 44px. `BottomNav.test.tsx` asserts the 56px values ('bar is 56px tall', 'labels are micro (12px)')."
   }
  ]
 }
