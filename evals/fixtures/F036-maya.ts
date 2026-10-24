@@ -152,6 +152,7 @@ async function ensureMember(opts: {
       id: opts.authUserId,
       handle: opts.handle,
       display_name: opts.displayName,
+      legal_name: opts.displayName,
     })
     .select('id')
     .single()

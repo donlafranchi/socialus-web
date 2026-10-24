@@ -70,8 +70,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values (${q(p.id!)}, ${q(p.id!)}, ${q(p.id!)}, ${q(JSON.stringify({ sub: p.id, email: p.email, email_verified: true }))},
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values (${q(p.id!)}, ${q(p.handle!)}, ${q(label(p.key))}, 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values (${q(p.id!)}, ${q(p.handle!)}, ${q(label(p.key))}, ${q(label(p.key))}, 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
