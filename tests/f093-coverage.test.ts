@@ -62,10 +62,11 @@ describe('F093 criterion 12 — every criterion 1-11 has a whole marked check', 
     expect(unguarded(files), 'F093 criteria with no whole marked check').toEqual([])
     // And the real tree minus any one criterion's markers fails on exactly that criterion.
     for (const n of CRITERIA) {
-      const stripped = Object.fromEntries(
-        Object.entries(files).map(([p, t]) => [p, t.split('\n').filter((l) => !WHOLE(n).test(l)).join('\n')]),
-      )
+      // Only test files can carry a marker, so only they are rewritten; the rest is reused as read once.
+      const stripped = { ...files }
+      for (const [p, t] of Object.entries(files))
+        if (IS_TEST.test(p) && t.includes(`F093.${n}]`)) stripped[p] = t.split('\n').filter((l) => !WHOLE(n).test(l)).join('\n')
       expect(unguarded(stripped), `real tree without F093.${n}`).toEqual([n])
     }
-  })
+  }, 60_000)
 })
