@@ -41,7 +41,7 @@ const METRO: FeedMetro = {
 
 // What `standingMessage` produces for a cached combined of 50 against 300.
 const CONFIRMATION =
-  'This metro needs 250 more people before there is enough here to be worth showing you.'
+  'This area needs 250 more people before there is enough here to be worth showing you.'
 
 function renderPanel() {
   return render(<MetroNotCoveredPanel metro={METRO} onBack={() => {}} />)
@@ -64,7 +64,7 @@ beforeEach(() => {
     open: false,
     metroName: METRO.name,
     standing: { combined: 50, target: 300 },
-    message: 'This metro needs 250 more people before there is enough here to be worth showing you.',
+    message: 'This area needs 250 more people before there is enough here to be worth showing you.',
   })
 })
 afterEach(cleanup)

@@ -21,7 +21,7 @@ vi.mock('@/lib/action-context', () => ({ resolveActionContext: (o: unknown) => o
 vi.mock('next/headers', () => ({ cookies: async () => ({ set: cookieSet }) }))
 vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser }, from })) }))
 
-import { browseFeedAction, saveDefaultMetroAction, searchAreasAction } from './actions'
+import { browseFeedAction, searchAreasAction } from './actions'
 
 const METRO = { id: 'm-1', slug: 'portland-vancouver-or-wa' }
 
@@ -62,51 +62,21 @@ describe('browseFeedAction remembers the choice', () => {
   })
 })
 
-describe('saveDefaultMetroAction', () => {
-  const open = (found: boolean) =>
-    from.mockImplementation((table: string) =>
-      table === 'metro_polygons'
-        ? { select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: found ? { id: 'm-1', slug: 'pdx' } : null }) }) }) }) }
-        : { update },
-    )
-
-  it('saves an open metro for the member and the device', async () => {
-    getUser.mockResolvedValue({ data: { user: { id: 'me' } } })
-    open(true)
-    await expect(saveDefaultMetroAction('pdx')).resolves.toEqual({ ok: true })
-    expect(setDefault).toHaveBeenCalledWith({ actingMemberId: 'me' }, { metroId: 'm-1' })
-    expect(cookieSet).toHaveBeenCalledWith('su_metro', 'pdx', expect.anything())
-  })
-
-  it('refuses a metro that is not open', async () => {
-    getUser.mockResolvedValue({ data: { user: { id: 'me' } } })
-    open(false)
-    await expect(saveDefaultMetroAction('nope')).resolves.toEqual({ ok: false })
-    expect(setDefault).not.toHaveBeenCalled()
-  })
-
-  it('signed out, nothing to save', async () => {
-    getUser.mockResolvedValue({ data: { user: null } })
-    open(true)
-    await expect(saveDefaultMetroAction('pdx')).resolves.toEqual({ ok: false })
-  })
-})
-
 describe('#476 — searchAreasAction', () => {
-  it("searches the current metro's neighbourhoods", async () => {
+  it('searches the neighbourhoods, reading no MSA', async () => {
     searchNeighborhoods.mockResolvedValue([{ placeId: 'p-1', name: 'Midtown', centroid: [0, 0] }])
-    await expect(searchAreasAction('sacramento-roseville-ca', 'mid')).resolves.toEqual([{ id: 'p-1', name: 'Midtown' }])
-    expect(searchNeighborhoods).toHaveBeenCalledWith(expect.anything(), 'mid', '40900')
+    await expect(searchAreasAction('mid')).resolves.toEqual([{ id: 'p-1', name: 'Midtown' }])
+    expect(searchNeighborhoods).toHaveBeenCalledWith(expect.anything(), 'mid')
   })
 
-  it('has nothing for a metro whose boundaries are not loaded', async () => {
+  it('an empty query searches nothing', async () => {
     searchNeighborhoods.mockClear()
-    await expect(searchAreasAction('portland-vancouver-or-wa', 'mid')).resolves.toEqual([])
+    await expect(searchAreasAction('  ')).resolves.toEqual([])
     expect(searchNeighborhoods).not.toHaveBeenCalled()
   })
 
   it('a failed search is an empty list, never a throw', async () => {
     searchNeighborhoods.mockRejectedValue(new Error('db'))
-    await expect(searchAreasAction('sacramento-roseville-ca', 'mid')).resolves.toEqual([])
+    await expect(searchAreasAction('mid')).resolves.toEqual([])
   })
 })

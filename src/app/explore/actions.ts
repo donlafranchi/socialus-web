@@ -70,39 +70,11 @@ export async function browseMapAction(metroId: string, areaId: string | null): P
   return loadMemberMap(metroId, areaId)
 }
 
-/** The You page's "default metro". Only a metro the platform is running can be the default. */
-export async function saveDefaultMetroAction(slug: string): Promise<{ ok: boolean }> {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-  if (!data.user) return { ok: false }
-  const { data: metro } = await supabase
-    .from('metro_polygons')
-    .select('id, slug')
-    .eq('slug', slug)
-    .eq('is_open', true)
-    .maybeSingle()
-  const row = metro as { id: string; slug: string } | null
-  if (!row) return { ok: false }
+/** Type-to-search neighbourhoods. Empty when there are none to offer. */
+export async function searchAreasAction(query: string): Promise<{ id: string; name: string }[]> {
+  if (!query.trim()) return []
   try {
-    await memberDefaultMetroSet(resolveActionContext({ actingMemberId: data.user.id }), { metroId: row.id })
-  } catch (error) {
-    console.error('[saveDefaultMetroAction] not saved:', (error as Error).message)
-    return { ok: false }
-  }
-  ;(await cookies()).set(METRO_COOKIE, row.slug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
-  return { ok: true }
-}
-
-// #476 — neighbourhood boundaries are loaded per MSA (#347); Sacramento's is the
-// only one loaded, so it is the only metro with a neighbourhood list.
-const METRO_MSA: Record<string, string> = { 'sacramento-roseville-ca': '40900' }
-
-/** Type-to-search neighbourhoods in the current metro. Empty when there are none to offer. */
-export async function searchAreasAction(metroSlug: string, query: string): Promise<{ id: string; name: string }[]> {
-  const msa = METRO_MSA[metroSlug]
-  if (!msa || !query.trim()) return []
-  try {
-    const rows = await withTransaction((client) => searchNeighborhoods(client, query, msa))
+    const rows = await withTransaction((client) => searchNeighborhoods(client, query))
     return rows.map((r) => ({ id: r.placeId, name: r.name }))
   } catch (error) {
     console.error('[searchAreasAction] failed:', (error as Error).message)

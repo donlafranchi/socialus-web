@@ -118,10 +118,10 @@ describe.skipIf(!RUNNABLE)('loadUnclaimed (#517)', () => {
     expect(where).toEqual({ kind: 'county', display_name: 'Sacramento' })
   })
 
-  it('a place outside the Sacramento metro is refused, so a Page nobody can find is not made', async () => {
+  it('a place outside the Sacramento area is refused, so a Page nobody can find is not made', async () => {
     const r = await loadUnclaimed(client, [page('e', 'Yuba City', 'Sutter')])
     expect(r.created).toBe(0)
-    expect(r.failed[0]!.error).toMatch(/metro/i)
+    expect(r.failed[0]!.error).toMatch(/outside the Sacramento area/)
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, ['https://test-517-e.example/'])).toBe(0)
   })
 
