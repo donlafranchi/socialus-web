@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-18** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-24** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
@@ -31,6 +31,12 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 9. **Products (#909):** from the business's own site, pick 3–6 of its products or services: its shop or menu pages, the names as it writes them, the price when it shows one. Never from Etsy, Amazon, Instagram, Facebook or another marketplace or directory, even when the maker sells there; a site with fewer than 3 gets none. Put them in the row's `products`.
 10. **Write the rows** to `makers-YYYY-MM-DD.json`, dry-run the loader, then load (`unclaimed-load.yml`, write ticked). A site that opens by hand but fails from the runner at the network level (reset, refused, timed out) goes in `link-allow.json`; a 404 never does.
 11. **Append the 10 to `ADDED.md`**, each with its interests (the tags the loader gives it; see Category).
+12. **Before opening the PR** (#1027; #1002 and #1022 went red without this), in this order:
+    - Start from current `main` (`git fetch && git merge origin/main`); if the previous seed PR is still open, merge or wait for it first. Both seeds append to `ADDED.md` and `photo-overrides.json`.
+    - Append the rows to the **end** of `ADDED.md` yourself with a bash `>>`, never leave them in the PR body, and set its `As of` line to today. Add every stock-photo Page to `stockOnly` in `photo-overrides.json` (no duplicates).
+    - Write the PR body to a file starting `**Kind:** change`, `**Scenario:** none`, `**Path:** well-worn: <precedent>` and `Closes #<seed Issue>`.
+    - Run `npm run seed:check -- YYYY-MM-DD --body-file <body file>`, then `npx tsx scripts/unclaimed/check-links.ts`, then `npx vitest run src/lib/unclaimed`. Fix every `FIX` line and failure. A link that fails on certificate or address: try the bare name without `www`, or drop the Page.
+    - Open the PR only when all pass. After it merges, run `gh workflow run unclaimed-load.yml -f write=false`, read the result, then `-f write=true`.
 
 ## Rotation
 
