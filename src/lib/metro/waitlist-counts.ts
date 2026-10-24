@@ -58,7 +58,7 @@
 // criteria 7, 8, 14 and 16, and this file.
 
 import { unstable_cache } from 'next/cache'
-import { createClient as createServerClient } from '@/lib/supabase-server'
+import { createAnonClient } from '@/lib/supabase-anon'
 
 /**
  * How stale the number is allowed to be.
@@ -98,7 +98,8 @@ interface Row {
  */
 export const getMetroWaitingCounts = unstable_cache(
   async (): Promise<MetroWaitingCount[]> => {
-    const supabase = await createServerClient()
+    // cookie-free: request cookies cannot be read inside unstable_cache (#686, #1030)
+    const supabase = createAnonClient()
     const { data, error } = await supabase
       .from('metro_polygons')
       .select('id, creator_count, patron_count')
