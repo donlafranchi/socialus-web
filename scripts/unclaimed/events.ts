@@ -10,7 +10,7 @@
 // A venue whose page fails or reads no shows is listed in $BROKEN_FILE so the workflow files an Issue; its posts stay.
 import { appendFileSync, writeFileSync } from 'node:fs'
 import { Client } from 'pg'
-import { IMPORT_UA, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
+import { HTML_FOLLOW, IMPORT_UA, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
 import { readPlanned } from './rows'
 
@@ -21,7 +21,11 @@ const summary = (line: string) => {
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const robotsCache = new Map<string, string>()
 
-async function get(url: string): Promise<string> {
+const pageCache = new Map<string, Promise<string>>()
+/** One request per address per run (Harlow's and the Starlet Room share a list). */
+const get = (url: string) => (pageCache.get(url) ?? pageCache.set(url, fetchPage(url)).get(url)!)
+
+async function fetchPage(url: string): Promise<string> {
   const res = await fetch(url, { headers: { 'user-agent': IMPORT_UA, accept: 'text/html,application/json,text/calendar,*/*' }, redirect: 'follow', signal: AbortSignal.timeout(30_000) })
   if (res.status === 429) throw new Error('rate limited (429)')
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -34,11 +38,28 @@ async function allowed(url: string): Promise<boolean> {
   return robotsAllows(robotsCache.get(u.origin)!, u.pathname + u.search)
 }
 
+/** Seconds the site asks between requests (Crawl-delay), at least 1, at most 15. */
+const crawlDelay = (url: string) => Math.min(15, Math.max(1, Number(/crawl-delay:\s*(\d+)/i.exec(robotsCache.get(new URL(url).origin) ?? '')?.[1] ?? 1))) * 1000
+
 /** Everything the venue lists. The Events Calendar's API pages; the others are one document. */
 async function read(p: PlannedPage, now: Date): Promise<VenueShow[]> {
   const src = p.events!
   if (!(await allowed(src.url))) throw new Error(`robots.txt disallows ${src.url}`)
-  if (src.format !== 'tribe') return parseShows(src, await get(src.url))
+  if (src.format !== 'tribe') {
+    const body = await get(src.url)
+    const follow = (src.format === 'html' && src.parser && HTML_FOLLOW[src.parser]?.(body, src.url, now)) || []
+    const pages: Record<string, string> = {}
+    // A follow page that will not load costs only its own shows; the venue is broken only when nothing reads.
+    for (const url of follow.slice(0, 12)) {
+      await pause(crawlDelay(url))
+      try {
+        if (await allowed(url)) pages[url] = await get(url)
+      } catch {
+        // skipped
+      }
+    }
+    return parseShows(src, body, now, pages)
+  }
   const until = new Date(now.getTime() + SHOWS_AHEAD_DAYS * 86400_000).toISOString().slice(0, 10)
   let next: string | undefined = `${src.url}${src.url.includes('?') ? '&' : '?'}per_page=50&start_date=${now.toISOString().slice(0, 10)}&end_date=${until}`
   const shows: VenueShow[] = []

@@ -286,3 +286,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-24 | Rotary Club of Roseville | Service club | Roseville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
 | 2026-10-24 | Rotary Club of Auburn | Service club | Auburn | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
 | 2026-10-24 | Wednesday Club of Suisun | Service club | Suisun City | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Daily Republic, then own site |
+| 2026-10-24 | Harlow's | Music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | The Starlet Room | Music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | The Old Ironsides | Music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | Goldfield Trading Post | Music venue | Roseville | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
