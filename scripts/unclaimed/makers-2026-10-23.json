@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Rotary Club of Folsom",
+    "category": "Service club",
+    "makes": "Folsom Rotary club #526, serving since 1953: playground builds, teacher grants, public safety awards and trail projects; meets Thursdays 6:30 p.m. at the Rotary Clubhouse in Lew Howard Park; donate to the Folsom Rotary Foundation or ask about joining",
+    "area": "Folsom (Sacramento)",
+    "site": "https://folsomrotary.com/",
+    "social": {
+      "facebook": "https://www.facebook.com/folsom.rotary526"
+    },
+    "confidence": "High; own site checked 2026-10-23 (ok): footer 2002-2026, meeting time and donate button live. Photos not viewed: stock only (youth projects)."
+  },
+  {
+    "name": "Rotary Club of Cameron Park",
+    "category": "Service club",
+    "makes": "Cameron Park Rotary club doing scholarships, park benches, a Little Lending Library, a community observatory and a bike project; meets Thursdays 12:15 p.m. at the Cameron Park Community Services District; new members join by invitation",
+    "area": "Cameron Park (El Dorado)",
+    "site": "https://cameronparkrotary.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/CameronParkRotary"
+    },
+    "confidence": "High; own site checked 2026-10-23 (ok): meeting time and address stated. Photos not viewed: stock only (youth programs)."
+  },
+  {
+    "name": "Rotary Club of El Dorado Hills",
+    "category": "Service club",
+    "makes": "EDH Rotary (District 5180): youth scholarships, a speech contest, support for the Teen Center and Jeff Mitchell Memorial Field, and the yearly Crab & Tri-Tip Feed; meets Wednesdays 7:15 a.m. at the Community Services District Pavilion, in person or online",
+    "area": "El Dorado Hills (El Dorado)",
+    "site": "https://www.edhrotary.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/edh_rotary",
+      "facebook": "https://www.facebook.com/edhrotary"
+    },
+    "confidence": "High; own site checked 2026-10-23 (ok): meeting time and fundraiser stated; footer 2022. Photos not viewed: stock only (youth programs)."
+  },
+  {
+    "name": "Rotary Club of Elk Grove",
+    "category": "Service club",
+    "makes": "Elk Grove Rotary, chartered 1962: food bank support, blood drives, veterans programs, scholarships and the Roy Herburger Community Garden; lunch meetings Wednesdays at noon at The Park at Laguna Springs; donations and community grants open",
+    "area": "Elk Grove (Sacramento)",
+    "site": "https://www.elkgroverotary.org/",
+    "social": {},
+    "confidence": "High; own site checked 2026-10-23 (ok): footer 2002-2026, donations page live. No club social links found. Photos not viewed: stock only (youth programs)."
+  },
+  {
+    "name": "Rotary Club of Fair Oaks",
+    "category": "Service club",
+    "makes": "Fair Oaks Rotary, chartered 1946: monthly food bank service, quarterly Madison Avenue cleanups, a Food Bank Farm greenhouse and school grants; meets Mondays 6 p.m. at the Fair Oaks Community Clubhouse; donate by PayPal or join a service day",
+    "area": "Fair Oaks (Sacramento)",
+    "site": "https://www.rotaryfairoaks.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/fairoaksrotary",
+      "facebook": "https://www.facebook.com/fairoaksrotary"
+    },
+    "confidence": "High; own site checked 2026-10-23 (ok): footer 2002-2026, Rotary Day at the Food Bank Nov 6 and food drive stated. Photos not viewed: stock only (youth events)."
+  },
+  {
+    "name": "Delta Farmers Market",
+    "category": "Farm",
+    "makes": "Isleton farm market on Highway 12 selling produce and local goods, with a kitchen and deli, craft beer and wine tastings and live music on weekends; open seven days a week",
+    "area": "Isleton (Sacramento)",
+    "site": "https://www.dfmbythetower.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/deltatowermarket",
+      "facebook": "https://www.facebook.com/deltafarmsmarket",
+      "tiktok": "https://www.tiktok.com/@deltafarmersmarket"
+    },
+    "confidence": "Medium; own site checked 2026-10-23 (ok): spring/summer hours stated, no copyright year; fall hours not confirmed. Photos not viewed: stock only."
+  },
+  {
+    "name": "Zankofa Farm",
+    "category": "Farm",
+    "makes": "Wilton sustainable farm raising 20+ kinds of poultry plus goats, sheep, pigs and heirloom vegetables, most of it donated to families and schools; hosts seasonal events, workshops and farm tours, and welcomes volunteers and donations",
+    "area": "Wilton (Sacramento)",
+    "site": "https://www.zankofa.farm/",
+    "social": {},
+    "confidence": "Medium; own site checked 2026-10-23 (ok): footer 2026, donate and contact pages live; no dated events listed. Photos not viewed: stock only (youth education focus)."
+  }
+]

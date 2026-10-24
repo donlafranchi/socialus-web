@@ -270,6 +270,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-22 | Channel 24 | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar, no samples; lead: Don |
 | 2026-10-22 | Ace of Spades | Music venue | Sacramento | Live music, Arts & culture | Venues (#997); real shows from its own calendar (JSON-LD), no samples |
 | 2026-10-22 | Miners Foundry Cultural Center | Music venue | Nevada City | Live music, Arts & culture | Venues (#997); real shows from its own calendar (Events Calendar API); stock photos only |
+| 2026-10-23 | Rotary Club of Folsom | Service club | Folsom | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
+| 2026-10-23 | Rotary Club of Cameron Park | Service club | Cameron Park | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
+| 2026-10-23 | Rotary Club of El Dorado Hills | Service club | El Dorado Hills | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
+| 2026-10-23 | Rotary Club of Elk Grove | Service club | Elk Grove | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
+| 2026-10-23 | Rotary Club of Fair Oaks | Service club | Fair Oaks | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
+| 2026-10-23 | Delta Farmers Market | Farm | Isleton | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: own site |
+| 2026-10-23 | Zankofa Farm | Farm | Wilton | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: own site |
 | 2026-10-24 | Carson Ridge Evergreens | Farm | Placerville | Farmers markets, Sustainability | Clubs and service (farms); holiday (Christmas trees); stock photos only; lead: pickyourownchristmastree.org, then own site |
 | 2026-10-24 | McGee Christmas Tree Farm | Farm | Placerville | Farmers markets, Sustainability | Clubs and service (farms); holiday (Christmas trees); stock photos only; lead: pickyourownchristmastree.org, then own site |
 | 2026-10-24 | Lockewood Acres | Farm | Vacaville | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: Cal Ag Tourism Directory, then own site |
