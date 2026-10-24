@@ -1,44 +1,44 @@
 {
-  "at": "2026-10-23T15:41:31.718Z",
-  "sha": "cb892a75cfa1f7c794480200d6276af340999583",
+  "at": "2026-10-24T14:17:28.409Z",
+  "sha": "c88c588fb556cbaabdd17783256e6fdc5388eb16",
   "red": true,
-  "redCount": 8,
-  "amberCount": 3,
+  "redCount": 10,
+  "amberCount": 0,
   "rebenchmarkDue": null,
   "slowest": [
     {
       "screen": "Bottom nav → Explore [settled]",
       "kind": "consumer",
-      "readyMs": 2405,
-      "feedbackMs": 53,
+      "readyMs": 2641,
+      "feedbackMs": 55,
       "status": "red"
     },
     {
       "screen": "Explore card → Page (member) [quick]",
       "kind": "consumer",
-      "readyMs": 1236,
-      "feedbackMs": 90,
+      "readyMs": 1464,
+      "feedbackMs": 89,
       "status": "red"
     },
     {
       "screen": "Explore post card → Page post [quick]",
       "kind": "consumer",
-      "readyMs": 1157,
-      "feedbackMs": 84,
+      "readyMs": 1305,
+      "feedbackMs": 90,
       "status": "red"
-    },
-    {
-      "screen": "Explore card → Page [quick]",
-      "kind": "consumer",
-      "readyMs": 1014,
-      "feedbackMs": 73,
-      "status": "amber"
     },
     {
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
-      "readyMs": 1013,
-      "feedbackMs": 78,
+      "readyMs": 1147,
+      "feedbackMs": 82,
+      "status": "green"
+    },
+    {
+      "screen": "Explore card → Page [quick]",
+      "kind": "consumer",
+      "readyMs": 899,
+      "feedbackMs": 66,
       "status": "green"
     }
   ],
@@ -46,29 +46,27 @@
     {
       "screen": "Explore card → Page [quick]",
       "kind": "consumer",
-      "feedbackMs": 73,
-      "urlMs": 735,
-      "readyMs": 1014,
-      "status": "amber",
-      "flags": [
-        "slow-content"
-      ]
+      "feedbackMs": 66,
+      "urlMs": 615,
+      "readyMs": 899,
+      "status": "green",
+      "flags": []
     },
     {
       "screen": "Explore card → Page [settled]",
       "kind": "consumer",
-      "feedbackMs": 66,
-      "urlMs": 465,
-      "readyMs": 747,
+      "feedbackMs": 68,
+      "urlMs": 523,
+      "readyMs": 805,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page → back to Explore [quick]",
       "kind": "consumer",
-      "feedbackMs": 204,
-      "urlMs": 204,
-      "readyMs": 236,
+      "feedbackMs": 220,
+      "urlMs": 219,
+      "readyMs": 255,
       "status": "red",
       "flags": [
         "slow-feedback"
@@ -77,9 +75,9 @@
     {
       "screen": "Page → back to Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 219,
-      "urlMs": 219,
-      "readyMs": 252,
+      "feedbackMs": 227,
+      "urlMs": 227,
+      "readyMs": 270,
       "status": "red",
       "flags": [
         "slow-feedback"
@@ -88,9 +86,9 @@
     {
       "screen": "Explore: filter icon opens sheet [quick]",
       "kind": "consumer",
-      "feedbackMs": 112,
-      "urlMs": 416,
-      "readyMs": 170,
+      "feedbackMs": 124,
+      "urlMs": null,
+      "readyMs": 159,
       "status": "red",
       "flags": [
         "slow-feedback"
@@ -99,74 +97,74 @@
     {
       "screen": "Explore: filter icon opens sheet [settled]",
       "kind": "consumer",
-      "feedbackMs": 99,
+      "feedbackMs": 112,
       "urlMs": null,
-      "readyMs": 157,
-      "status": "green",
-      "flags": []
-    },
-    {
-      "screen": "Explore: location pill opens picker [quick]",
-      "kind": "consumer",
-      "feedbackMs": 101,
-      "urlMs": null,
-      "readyMs": 172,
-      "status": "amber",
+      "readyMs": 168,
+      "status": "red",
       "flags": [
         "slow-feedback"
       ]
     },
     {
+      "screen": "Explore: location pill opens picker [quick]",
+      "kind": "consumer",
+      "feedbackMs": 93,
+      "urlMs": 488,
+      "readyMs": 139,
+      "status": "green",
+      "flags": []
+    },
+    {
       "screen": "Explore: location pill opens picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 87,
+      "feedbackMs": 89,
       "urlMs": null,
-      "readyMs": 147,
+      "readyMs": 158,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: search opens [settled]",
       "kind": "consumer",
-      "feedbackMs": 89,
+      "feedbackMs": 92,
       "urlMs": null,
-      "readyMs": 150,
+      "readyMs": 159,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: map view [settled]",
       "kind": "consumer",
-      "feedbackMs": 48,
+      "feedbackMs": 53,
       "urlMs": null,
-      "readyMs": 100,
+      "readyMs": 103,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Bottom nav → You (signed out) [settled]",
       "kind": "consumer",
-      "feedbackMs": 51,
-      "urlMs": 398,
-      "readyMs": 424,
+      "feedbackMs": 54,
+      "urlMs": 340,
+      "readyMs": 356,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: follow asks you to sign in [quick]",
       "kind": "consumer",
-      "feedbackMs": 46,
+      "feedbackMs": 50,
       "urlMs": null,
-      "readyMs": 100,
+      "readyMs": 108,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: follow asks you to sign in [settled]",
       "kind": "consumer",
-      "feedbackMs": 46,
+      "feedbackMs": 52,
       "urlMs": null,
-      "readyMs": 98,
+      "readyMs": 109,
       "status": "green",
       "flags": []
     },
@@ -174,9 +172,9 @@
       "screen": "Page: sign in → login screen [settled]",
       "kind": "consumer",
       "feedbackMs": 105,
-      "urlMs": 363,
-      "readyMs": 394,
-      "status": "amber",
+      "urlMs": 396,
+      "readyMs": 427,
+      "status": "red",
       "flags": [
         "slow-feedback"
       ]
@@ -185,35 +183,35 @@
       "screen": "Explore: sign in / sign up link [settled]",
       "kind": "consumer",
       "feedbackMs": 60,
-      "urlMs": 277,
-      "readyMs": 308,
+      "urlMs": 353,
+      "readyMs": 371,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: share [settled]",
       "kind": "consumer",
-      "feedbackMs": 74,
+      "feedbackMs": 40,
       "urlMs": null,
-      "readyMs": 109,
+      "readyMs": 89,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Page: overflow menu → report [settled]",
       "kind": "consumer",
-      "feedbackMs": 41,
+      "feedbackMs": 40,
       "urlMs": null,
-      "readyMs": 81,
+      "readyMs": 88,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Report: Page menu → report [settled]",
       "kind": "consumer",
-      "feedbackMs": 45,
+      "feedbackMs": 46,
       "urlMs": null,
-      "readyMs": 95,
+      "readyMs": 94,
       "status": "green",
       "flags": []
     },
@@ -222,16 +220,16 @@
       "kind": "consumer",
       "feedbackMs": 92,
       "urlMs": null,
-      "readyMs": 111,
+      "readyMs": 149,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore post card → Page post [quick]",
       "kind": "consumer",
-      "feedbackMs": 84,
-      "urlMs": 606,
-      "readyMs": 1157,
+      "feedbackMs": 90,
+      "urlMs": 762,
+      "readyMs": 1305,
       "status": "red",
       "flags": [
         "slow-content"
@@ -240,18 +238,18 @@
     {
       "screen": "Explore post card → Page post [settled]",
       "kind": "consumer",
-      "feedbackMs": 83,
-      "urlMs": 484,
-      "readyMs": 555,
+      "feedbackMs": 81,
+      "urlMs": 465,
+      "readyMs": 484,
       "status": "red",
       "flags": []
     },
     {
       "screen": "Explore card → Page (member) [quick]",
       "kind": "consumer",
-      "feedbackMs": 90,
-      "urlMs": 882,
-      "readyMs": 1236,
+      "feedbackMs": 89,
+      "urlMs": 795,
+      "readyMs": 1464,
       "status": "red",
       "flags": [
         "slow-content"
@@ -260,27 +258,27 @@
     {
       "screen": "Explore card → Page (member) [settled]",
       "kind": "consumer",
-      "feedbackMs": 72,
-      "urlMs": 405,
-      "readyMs": 424,
+      "feedbackMs": 84,
+      "urlMs": 444,
+      "readyMs": 458,
       "status": "red",
       "flags": []
     },
     {
       "screen": "You → Following list [settled]",
       "kind": "consumer",
-      "feedbackMs": 56,
-      "urlMs": 515,
-      "readyMs": 540,
+      "feedbackMs": 65,
+      "urlMs": 468,
+      "readyMs": 491,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Bottom nav → Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 53,
-      "urlMs": 147,
-      "readyMs": 2405,
+      "feedbackMs": 55,
+      "urlMs": 149,
+      "readyMs": 2641,
       "status": "red",
       "flags": [
         "slow-content"
@@ -291,43 +289,43 @@
       "kind": "consumer",
       "feedbackMs": 42,
       "urlMs": null,
-      "readyMs": 88,
+      "readyMs": 92,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Creator: own Page → edit [settled]",
       "kind": "creator",
-      "feedbackMs": 78,
-      "urlMs": 544,
-      "readyMs": 1013,
+      "feedbackMs": 82,
+      "urlMs": 523,
+      "readyMs": 1147,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Creator: Page edit screen [settled]",
       "kind": "creator",
-      "feedbackMs": 57,
-      "urlMs": 846,
-      "readyMs": 873,
+      "feedbackMs": 61,
+      "urlMs": 761,
+      "readyMs": 789,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Creator: post composer opens [settled]",
       "kind": "creator",
-      "feedbackMs": 42,
-      "urlMs": 217,
-      "readyMs": 191,
+      "feedbackMs": 47,
+      "urlMs": 189,
+      "readyMs": 175,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Creator: Create (bottom nav) [settled]",
       "kind": "creator",
-      "feedbackMs": 49,
-      "urlMs": 423,
-      "readyMs": 458,
+      "feedbackMs": 50,
+      "urlMs": 439,
+      "readyMs": 456,
       "status": "green",
       "flags": []
     }
