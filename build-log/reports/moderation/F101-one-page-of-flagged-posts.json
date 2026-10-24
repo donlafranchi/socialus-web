@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
    "issues": [
     636
    ],
-   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo) [V] Checked: `[guards F101.1]` in `criteria.test.tsx` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 deploy-health was cancelled [V] Smoked: `admin-reports` green as operator 2026-10-14 [V]"
+   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled; #820, #920 green [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1), after the last queue change [V]"
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     636
    ],
-   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V] Checked: `[guards F101.2]` in `criteria.test.tsx` [V] Reviewed: #380 none, #771 `review-skipped` [V] Shipped: #380 cancelled [V]"
+   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V] Checked: `[guards F101.2]` in `criteria.test.tsx` [V] Reviewed: #380 none, #771 `review-skipped` [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-22 [V]"
   },
   {
    "id": "3",
@@ -224,7 +224,7 @@
    "issues": [
     634
    ],
-   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Smoked: `admin-reports` green [V]"
+   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-22 [V]"
   },
   {
    "id": "13",
@@ -242,7 +242,7 @@
    "issues": [
     635
    ],
-   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V]"
+   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V]"
   },
   {
    "id": "14",
@@ -260,7 +260,7 @@
    "issues": [
     636
    ],
-   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
   },
   {
    "id": "15",
@@ -276,7 +276,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec [V] Reviewed: #538 no `Reviewed by:` [V]"
+   "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec [V] Reviewed: #538 no `Reviewed by:` [V] Shipped: #538 (ab7691d) green [V]"
   }
  ]
 }

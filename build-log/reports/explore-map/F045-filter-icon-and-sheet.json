@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": true,
- "as_of": "2026-10-16",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -22,7 +22,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: 2026-09-12 'Zero filter pills outside the filter view' (F092 Rulings, design-language principle 10) and 2026-09-17 'the shipped kind pill row does not survive' (F059 Rulings); F092 criterion 1. Built in T114, deleted in PR #174; no pills component in `src` [V]."
+   "note": "Retired: 2026-09-12 'Zero filter pills outside the filter view' (F092 Rulings, design-language principle 10), 2026-09-17 'the shipped kind pill row does not survive' (F059 Rulings) and Don's 2026-10-18 [always] no chip or pill UI anywhere (#951). Built in T114, deleted in #174; `tests/no-chips.test.ts` (#956) now fails CI on any `*Pill` component [V]."
   },
   {
    "id": "2",
@@ -41,7 +41,7 @@
     624,
     652
    ],
-   "note": "`ExploreSearchBar.tsx` has the area pill, search and a sliders button labelled 'Open filters', in a `sticky top-0` row; under 1024px the same controls are in `ExploreDock` [V]. Checked: unmarked: `ExploreSearchBar.test.tsx` ('shows no separate market, category or day buttons', 'sticks to the top'); the invariant half is open guard #624 (F092.1). Reviewed: T115 direct commit, #174 and #479 carry no `Reviewed by:` or review-skipped [V]. Shipped: T115 had no deploy run, unknown; #174, #479 green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #624, #652."
+   "note": "`ExploreSearchBar.tsx` is one `sticky top-0` row: the place (plain text with a pin since #956), search, and a sliders button labelled 'Open filters'; under 1024px the same four actions sit in `ExploreDock` [V]. Checked: unmarked: `ExploreSearchBar.test.tsx` ('shows no separate market, category or day buttons', 'sticks to the top of the viewport', 'offers the area, then search, then filters, in that order'); the invariant half is guard #624 (F092.1a). Reviewed: T115 was a direct commit; #174 and #479 carry no `Reviewed by:` or are review-skipped; #881, #932, #911 and #956 carry `Reviewed by: Claude` [V]. Shipped: T115 had no deploy run (unknown); #174 9dde664f, #479 3c490272, #881 3da54545, #932 f8578fbb, #911 afcb9111, #956 546f0862 green [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]. Open #624, #652."
   },
   {
    "id": "3a",
@@ -59,7 +59,7 @@
    "issues": [
     825
    ],
-   "note": "`ExploreFilterSheet.tsx` on the shared `Sheet`: Schedule, Show (Updates, #796), Tags, 'Show results', 'Clear all' only when `hasBrowseFilters`, draft discarded on dismiss, modal with focus trap [V]. Checked: unmarked: `ExploreFilterSheet.test.tsx`. Reviewed: #174, #309 carry no `Reviewed by:`, #750 is review-skipped, #800 has `Reviewed by: Claude (build agent)` [V]. Shipped: first built by T115 direct commit, unknown; #174, #309, #750, #800 green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Filed #825."
+   "note": "`ExploreFilterSheet.tsx` on the shared `Sheet`: since #881 (Don, 2026-10-16) the groups are Type (Everything / Pages / Posts, the post kinds, Following only), Category (the 12 interest tags, multi-select, plus My interests #911) and Date (Any time / Today / This weekend / This week / a picked day), with How far (#932) between; 'Show results' commits, 'Clear all' shows only when something is set, the draft is discarded on dismiss, modal with focus trap; the choices are plain words, no chips (#931) [V]. The scenario's 'schedule' is the Date group. Checked: unmarked: `ExploreFilterSheet.test.tsx` ('holds three groups: Type, Category and Date', 'Date: any time, today, this weekend, this week, or a picked day', 'multi-selects categories', 'hides Clear all until something is set', 'Clear all resets the draft and applies the empty state'). Reviewed: T115 was a direct commit; #174 and #479 carry no `Reviewed by:` or are review-skipped; #881, #932, #911 and #956 carry `Reviewed by: Claude` [V]. Shipped: T115 had no deploy run (unknown); #174 9dde664f, #479 3c490272, #881 3da54545, #932 f8578fbb, #911 afcb9111, #956 546f0862 green [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]. Open #825."
   },
   {
    "id": "3b",
@@ -75,7 +75,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: 2026-09-03 'Distance is out' (`product/ui/surfaces.md`): no radius filter, no mile count, no distance sort. PR #174 deleted it [V]."
+   "note": "Retired: 2026-09-03 'Distance is out' (`product/ui/surfaces.md`): no radius filter, no mile count, no distance sort; #174 deleted it [V]. Don's 2026-10-18 ruling on #796 (built in #932) adds a 'How far' group in minutes of drive (15 / 30 / 45 / 60 / Whole area), a reach ring, not a mile radius; `ExploreFilterSheet.test.tsx` still asserts 'offers no distance control' [V]."
   },
   {
    "id": "3c",
@@ -91,7 +91,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Not built: PR #174 removed Sort ('no honest point to measure from', `lib/browse/filters.ts` header) [V]. No ruling retires a member-chosen sort outright: 2026-09-03 rules out distance sort only, and F059 criterion 3 fixes the order (locality and recency, never payment or scrolling) without saying whether a member may re-sort. Routed to scope-scenario: ruling needed."
+   "note": "Not built: #174 removed Sort ('ordering is the server's', `lib/browse/filters.ts` header); `ExploreFilterSheet.test.tsx` asserts 'offers no sort control' [V]. No ruling retires a member-chosen sort outright: 2026-09-03 rules out distance sort only, and F059 criterion 3 fixes the order (locality and recency, never payment or scrolling) without saying whether a member may re-sort. Routed to scope-scenario: ruling needed."
   },
   {
    "id": "3d",
@@ -109,7 +109,7 @@
    "issues": [
     827
    ],
-   "note": "Not built: dropped in PR #174 (deviation 4) because nothing carried a recurrence rule; `SCHEDULE_OPTIONS` is any / week / weekend [V]. Series and occurrence rows are ruled in `model.md` § Recurring events and tracked by F074 (#600). Needs the PM: build, drop or wait, and the new word. Filed #827 (needs-pm)."
+   "note": "Not built: dropped in #174 (deviation 4) because nothing carried a recurrence rule; `DATE_OPTIONS` is any / today / weekend / week plus a picked day (#881); `ExploreFilterSheet.test.tsx` asserts 'offers no Recurring schedule' [V]. Series and occurrence rows are ruled in `model.md` § Recurring events and tracked by F074 (#600); repeating series exist for reminders (#952, #966) but no filter reads a series [A]. Needs the PM: build, drop or wait, and the word. Open #827 (needs-pm)."
   },
   {
    "id": "4",
@@ -125,7 +125,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: 2026-09-12 'Zero filter pills' and 2026-09-17 (F059) 'the shipped pill row does not survive'; F092 criterion 1. Browse results are Pages and posts, with no `item_kind` filter [V]."
+   "note": "Retired: 2026-09-12 'Zero filter pills', 2026-09-17 (F059) 'the shipped pill row does not survive', 2026-10-18 no chips anywhere; F092 criterion 1. Events is now a post kind inside the sheet's Type group (#881), committed by Show results [V]."
   },
   {
    "id": "5",
@@ -141,7 +141,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: 2026-09-12 'no pill row, chip row or control strip alongside results' (F092 Rulings, principle 10); 2026-09-19 narrowing happens in a modal that writes into the search box. F092 says `ActiveFilterChips` goes with the rewrite; deleted in #174 [V]."
+   "note": "Retired: 2026-09-12 'no pill row, chip row or control strip alongside results' (F092 Rulings, principle 10); 2026-09-19 narrowing happens in a modal that writes into the search box; 2026-10-18 no chip UI anywhere. `ActiveFilterChips` was deleted in #174 and `tests/no-chips.test.ts` keeps chips out [V]."
   },
   {
    "id": "6",
@@ -157,7 +157,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired with criterion 5: there is no chip row (2026-09-12 and 2026-09-19 rulings, F092 criterion 1)."
+   "note": "Retired with criterion 5: there is no chip row (2026-09-12, 2026-09-19 and 2026-10-18 rulings, F092 criterion 1)."
   },
   {
    "id": "7a",
@@ -173,7 +173,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: kind pills (2026-09-12, 2026-09-17) and distance and distance sort (2026-09-03) no longer exist, so nothing remains to put in the URL. `?sort=` and `?distance=` degrade to defaults on purpose (`parseBrowseFilters`) [V]."
+   "note": "Retired: kind pills (2026-09-12, 2026-09-17) and distance and distance sort (2026-09-03) no longer exist, so nothing remains to put in the URL; `?sort=` and `?distance=` degrade to defaults on purpose (`parseBrowseFilters`) [V]. The Type group's words travel in `?q=` under 7b."
   },
   {
    "id": "7b",
@@ -191,7 +191,7 @@
    "issues": [
     652
    ],
-   "note": "Since #750 (F092/T619) the box text is the state: `browseQueryString` writes `q`, `metro`, `area`; `BrowseSurface` seeds the box from `?q=` and writes old `?category=` and `?schedule=` links into it as words [V]. Checked: unmarked: `lib/browse/query.test.ts` (round trip), `box-text` tests; nothing asserts the page loads `?q=` into results with the same filters. Reviewed: #174 has no `Reviewed by:`, #750 is review-skipped [V]. Shipped: #174, #750 deploy-health green [V]. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #652 (its text names the old `?category=`, `?schedule=` params)."
+   "note": "The box text is the state: `browseQueryString` writes `q` (the Type, Category and Date words, the free search), `metro`, `area` and, since #932, `reach`; `BrowseSurface` seeds the box from `?q=`, writes old `?view=updates` and `?schedule=` links into it as words, and since #942 writes the URL with `history.replaceState` so typing never re-renders the server [V]. Checked: unmarked: `query.test.ts` ('round-trips through parseBrowseFilters'), `BrowseSurface.test.tsx` ('the URL carries the words, not separate filter parameters', '#935 typing writes the words into the URL in place'); nothing asserts a cold `?q=` load lands on the same results. Reviewed: #174 has no `Reviewed by:`, #750 is review-skipped; #881 and #942 carry `Reviewed by: Claude` [V]. Shipped: #174 9dde664f, #750 c16c86a7, #881 3da54545, #942 a6d4682e deploy-health green [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]. Open #652 (its text names the old `?category=`, `?schedule=` params)."
   },
   {
    "id": "8",
@@ -207,7 +207,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: F059 criterion 10 (a shared link reopens the same metro and search; back-navigation restores scroll) is the newer, wider statement of this; the filters now live in `?q=`. Built in part (`useScrollRestoration('explore', ...)` is wired in `BrowseSurface.tsx`); the remaining defects (one literal key, restores once per mount) are open Issue #54 under F059 [V]."
+   "note": "Retired: F059 criterion 10 (a shared link reopens the same metro and search; back-navigation restores scroll) is the newer, wider statement; the filters now live in `?q=`. Built in part (`useScrollRestoration('explore', ...)`; #885 keeps how deep the visitor scrolled so back renders as far); the remaining defects (one literal key, restores once per mount) are open #54 under F059 [V]."
   },
   {
    "id": "9",
@@ -225,7 +225,7 @@
    "issues": [
     652
    ],
-   "note": "`filter-active-dot` and an 'Open filters — filters applied' label driven by `hasBrowseFilters` (schedule, tags, Updates) in `ExploreSearchBar.tsx`; the dock's filter button carries the same dot [V]. Distance and sort no longer exist to drive it. Checked: unmarked: `ExploreSearchBar.test.tsx` ('carries a dot when secondary filters are active'), `ExploreDock.test.tsx`. Reviewed, Shipped: as criterion 2. Smoked: smoke-live 2026-10-15 (run 38758488492, main 24891b7) was green and opened explore and explore-map at 390 and 1280 for signed-out and member personas; it loads the route, it does not tap the control [V]. Open #652."
+   "note": "`filter-active-dot` and an 'Open filters — filters applied' label driven by `filtersActive` in `ExploreSearchBar.tsx`; the dock's filter button carries the same dot and label [V]. Checked: unmarked: `ExploreSearchBar.test.tsx` ('carries a dot when secondary filters are active', 'carries no dot when no secondary filter is set'), `ExploreDock.test.tsx` ('marks active filters'). Reviewed, Shipped: as criterion 2. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]. Open #652."
   }
  ]
 }
