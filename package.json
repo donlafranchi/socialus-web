@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "seed:check": "tsx scripts/unclaimed/check-seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:visibility": "VISIBILITY_MATRIX=1 vitest run --project visibility",
