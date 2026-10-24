@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
@@ -70,6 +70,8 @@ afterAll(async () => {
 
 describe.skipIf(!RUNNABLE)('A venue Page\'s imported shows', () => {
   const now = pt('2026-10-22T09:00:00')
+  // handlers read ctx.now() = real Date; freeze it so the fixed show dates never go stale
+  afterEach(() => vi.useRealTimers())
   it('posts what is ahead as real posts with a ticket link; a second run changes nothing', async () => {
     const shows = [show('Modest Mouse', '2026-10-23T20:00:00'), show('Old Show', '2026-10-21T20:00:00'), show('Too Far', '2027-02-01T20:00:00'), show('Called Off', '2026-10-30T20:00:00', { cancelled: true })]
     expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, null, now)).toEqual({ added: 1, updated: 0, removed: 0, kept: 0 })
@@ -89,6 +91,7 @@ describe.skipIf(!RUNNABLE)('A venue Page\'s imported shows', () => {
   })
 
   it('Remind me every time on the venue covers each show, the ones imported later too, and the evening before it sends', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now })
     await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [show('Modest Mouse', '2026-10-23T20:00:00')], null, now)
     const ctx = resolveActionContext({ actingMemberId: DANA })
     expect((await memberReminderEveryForPage(ctx, { groupId: PAGE })).added).toBe(1)
