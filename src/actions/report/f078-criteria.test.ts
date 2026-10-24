@@ -297,7 +297,7 @@ describe('F078.4a — one explanation; an unanswered takedown stays hidden and c
   const row = (hiddenAt: Date, answer: unknown = null) =>
     groupBySubject([{ reportId: 'r', subjectKind: 'group', subjectId: 's', category: 'spam', status: 'hidden', hiddenAt, answer, history: [], reportedAt: hiddenAt } as never])[0]!
 
-  // [guards F078.4a]
+  // [guards F078.4 partial: the one answer, the nothing-else-written and the 14-day close; "the only thing that creates work" reads differently since #626, because a second report queues for staff]
   it('takes one answer, which un-hides nothing, and refuses a second; for 14 days the takedown waits, then no answer is taken and it closes itself, still hidden; an answered one never closes on its own', async () => {
     installNotice(false, daysAgo(13))
     await reportAnswer(posterCtx, { noticeId: NOTICE })
