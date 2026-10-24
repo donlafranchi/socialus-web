@@ -104,7 +104,7 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
             className="mt-2 w-full rounded-md border border-[var(--color-control-border)] bg-white p-3 text-sm text-[var(--color-charcoal-900)]"
           >
             {/* Not a metro, and not selectable as one. */}
-            <option value="">Pick your metro</option>
+            <option value="">Pick your area</option>
             {metros.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}

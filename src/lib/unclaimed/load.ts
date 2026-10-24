@@ -39,7 +39,7 @@ async function findPlace(db: Db, name: string, kind: 'city' | 'county') {
   )
   const row = found.rows[0] as { id: string; display_name: string; kind: string; in_metro: boolean } | undefined
   if (found.rows.length !== 1 || !row) return { why: `${found.rows.length} ${kind} places named ${name}` }
-  if (!row.in_metro) return { why: `${name} is outside the Sacramento metro` }
+  if (!row.in_metro) return { why: `${name} is outside the Sacramento area` }
   return { place: row }
 }
 

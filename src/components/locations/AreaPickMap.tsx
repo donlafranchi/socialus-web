@@ -44,7 +44,7 @@ export function AreaPickMap({
     handleMapErrors(map)
     mapRef.current = map
     map.on('load', () => {
-      map.addSource('areas', { type: 'geojson', data: '/api/boundaries?msa=40900' })
+      map.addSource('areas', { type: 'geojson', data: '/api/boundaries' })
       for (const kind of ['city', 'neighborhood'] as const) {
         map.addLayer({ id: `${kind}-fill`, type: 'fill', source: 'areas', filter: ['==', ['get', 'kind'], kind], paint: { 'fill-color': AREA_OUTLINE, 'fill-opacity': ['case', ['==', ['get', 'placeId'], selectedPlaceId ?? ''], 0.25, 0.04] } })
         map.addLayer({ id: `${kind}-line`, type: 'line', source: 'areas', filter: ['==', ['get', 'kind'], kind], paint: { 'line-color': AREA_OUTLINE, 'line-width': kind === 'city' ? 1.5 : 0.75, 'line-opacity': 0.5 } })

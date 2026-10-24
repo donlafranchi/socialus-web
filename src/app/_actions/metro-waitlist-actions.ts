@@ -64,7 +64,7 @@ export async function joinMetroWaitlistAction(input: {
       .eq('id', input.metroId)
       .maybeSingle()
     if (error) throw new Error(error.message)
-    if (!data) throw new Error('That metro is not on the list.')
+    if (!data) throw new Error('That area is not on the list.')
     return data as MetroRow
   }
 

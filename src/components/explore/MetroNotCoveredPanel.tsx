@@ -216,7 +216,7 @@ export function MetroNotCoveredPanel({
               data-testid="waitlist-email-purpose"
               className="mt-2 text-xs text-[var(--color-fg-muted)]"
             >
-              One message, if this metro opens. That is the only thing this address is used
+              One message, if this area opens. That is the only thing this address is used
               for — nothing else, ever.
             </p>
 

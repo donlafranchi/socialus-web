@@ -68,7 +68,7 @@ export function AreaPicker({
   const [areas, setAreas] = useState<AreaOption[]>([])
   // Stale answers for a cleared box never show.
   const shownAreas = q.trim() && onSearchAreas ? areas : []
-  const currentName = metros.find((m) => m.slug === currentSlug)?.name ?? 'this metro'
+  const currentName = metros.find((m) => m.slug === currentSlug)?.name ?? 'this area'
 
   // Debounced, and a slow earlier answer never overwrites a newer one.
   useEffect(() => {

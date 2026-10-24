@@ -153,7 +153,7 @@ export function BrowseSurface({
     },
     [metroSlugNow],
   )
-  const searchAreas = useCallback((query: string) => searchAreasAction(metroSlugNow ?? '', query), [metroSlugNow])
+  const searchAreas = useCallback((query: string) => searchAreasAction(query), [])
 
   const metroSlug = snapshot.chosen ? (snapshot.metro?.slug ?? null) : null
 
