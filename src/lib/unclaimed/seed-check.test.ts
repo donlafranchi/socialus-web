@@ -31,9 +31,11 @@ describe('checkSeed (#1027)', () => {
     const dir = join(__dirname, '../../../scripts/unclaimed')
     const led = readFileSync(join(dir, 'ADDED.md'), 'utf8')
     const overrides = JSON.parse(readFileSync(join(dir, 'photo-overrides.json'), 'utf8'))
-    for (const f of readdirSync(dir).filter((f) => /^makers-2026-10-(2[3-9]|3\d).*\.json$/.test(f))) {
-      const date = f.slice(7, 17)
-      expect(checkSeed({ date, rows: JSON.parse(readFileSync(join(dir, f), 'utf8')), ledger: led, overrides }), f).toEqual([])
+    // A day's file and its suffixed siblings (makers-2026-10-24-venues.json) are one seed.
+    const files = readdirSync(dir).filter((f) => /^makers-2026-10-(2[3-9]|3\d).*\.json$/.test(f))
+    for (const date of new Set(files.map((f) => f.slice(7, 17)))) {
+      const rows = files.filter((f) => f.slice(7, 17) === date).flatMap((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')))
+      expect(checkSeed({ date, rows, ledger: led, overrides }), date).toEqual([])
     }
   })
 })
