@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { authCookieOptions } from '@/lib/auth/cookie-options'
 import { NextResponse, type NextRequest } from 'next/server'
 import { needsPhoneVerification } from '@/lib/auth/phone'
+import { NAMED_COOKIE, NAMED_COOKIE_MAX_AGE, needsLegalNameCheck } from '@/lib/auth/legal-name'
 import { resolveSeedCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { nextVisitCookie, VISIT_COOKIE, VISIT_COOKIE_MAX_AGE } from '@/lib/browse/visits'
 
@@ -65,11 +66,11 @@ export async function proxy(request: NextRequest) {
   // recommended check, against the project's ES256 key): this refreshes the
   // cookie as getUser() did, without a round trip to the auth server on every
   // request. Only the phone gate, when on, needs the full user record.
-  let user: Parameters<typeof needsPhoneVerification>[0]['user'] = null
+  let user: (NonNullable<Parameters<typeof needsPhoneVerification>[0]['user']> & { id: string }) | null = null
   try {
     const { data, error } = await supabase.auth.getClaims()
     const claims = data?.claims
-    user = claims?.sub ? { app_metadata: claims.app_metadata ?? {} } : null
+    user = claims?.sub ? { id: claims.sub, app_metadata: claims.app_metadata ?? {} } : null
     if (user && process.env.PHONE_VERIFICATION_REQUIRED === '1') {
       user = (await supabase.auth.getUser()).data?.user ?? null
     }
@@ -98,6 +99,32 @@ export async function proxy(request: NextRequest) {
     const redirect = NextResponse.redirect(new URL('/onboarding', request.url))
     response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
     return redirect
+  }
+
+  // F077.1 — a signed-in member with no legal name is sent to give one, before
+  // any other page, whatever the phone flag says. A failed lookup never locks a
+  // member out.
+  if (
+    needsLegalNameCheck({
+      user,
+      pathname: request.nextUrl.pathname,
+      method: request.method,
+      namedCookie: request.cookies.get(NAMED_COOKIE)?.value,
+    })
+  ) {
+    try {
+      const { data, error } = await supabase.from('members').select('legal_name').eq('id', user!.id).maybeSingle()
+      if (!error && data) {
+        if (!(data as { legal_name: string | null }).legal_name?.trim()) {
+          const redirect = NextResponse.redirect(new URL('/onboarding', request.url))
+          response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+          return redirect
+        }
+        response.cookies.set(NAMED_COOKIE, user!.id, { path: '/', sameSite: 'lax', httpOnly: true, maxAge: NAMED_COOKIE_MAX_AGE })
+      }
+    } catch (err) {
+      console.warn('[proxy] legal-name lookup failed:', err instanceof Error ? err.message : String(err))
+    }
   }
 
   // #557 — the session seed behind Explore's order. A session cookie (no max-age):
