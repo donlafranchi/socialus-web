@@ -225,7 +225,12 @@ export async function resolveShop(
   // read: embedding through it fails the whole query and 404s the Page. The
   // function returns the founder without their id, and T137's "has published"
   // with it, since that too was keyed by the id.
-  const { data: founderData } = await supabase.rpc('page_founder_public', { p_group_id: row.id })
+  // #978 — the founder and the anchor depend only on the row, so they are asked together (the
+  // second used to wait for the first, a round before the Page could start to stream).
+  const [{ data: founderData }, { data: anchorRow, error: anchorErr }] = await Promise.all([
+    supabase.rpc('page_founder_public', { p_group_id: row.id }),
+    supabase.from('groups').select('anchor_location_id').eq('id', row.id).maybeSingle(),
+  ])
   const founderRow = ((founderData as FounderRow[] | null) ?? [])[0] ?? null
 
   // T144 — a Page's own free text when it chose "Something else" instead
@@ -244,11 +249,6 @@ export async function resolveShop(
   // F093 criterion 8 — where a Page is never reaches a signed-out caller. The
   // anchor is asked for as the caller, whom the database refuses signed out,
   // and the address (read through the pool, past RLS) only once it answered.
-  const { data: anchorRow, error: anchorErr } = await supabase
-    .from('groups')
-    .select('anchor_location_id')
-    .eq('id', row.id)
-    .maybeSingle()
   const anchorLocationId = anchorErr
     ? null
     : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)

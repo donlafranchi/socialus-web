@@ -39,6 +39,7 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
+import { cachedMetros } from '@/lib/feed/metro-catalog'
 import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
 import { getBrowseFeed, getHappening, getNearbyFeed } from '@/lib/feed/browse-feed'
@@ -47,7 +48,7 @@ import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { happeningWindows } from '@/lib/metro/happening'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
-import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
+import { withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
@@ -90,7 +91,7 @@ export async function loadBrowse(
 
   // The switcher's options depend on nothing else, so they start first rather
   // than waiting behind three round trips they have no relationship to.
-  const metrosPromise = listFeedMetros(supabase).catch(() => [] as FeedMetro[])
+  const metrosPromise = cachedMetros().catch(() => [] as FeedMetro[])
   const waitingPromise = waitingCountByMetro().catch(() => new Map<string, number>())
   const areaPromise = areaId ? neighborhood(supabase, areaId) : Promise.resolve(null)
 
@@ -107,7 +108,10 @@ export async function loadBrowse(
   // then this, then the default.
   const member = userId ? await memberMetros(supabase, userId) : null
   const rememberedSlug = userId ? null : await rememberedMetroSlug()
+  // #978 — the metros are public and cached; the scope is picked from them, not read again.
+  const catalog = await metrosPromise
   const scope = await resolveBrowseScope(supabase, {
+    catalog,
     memberMetroId: member?.home ?? null,
     memberDefaultMetroId: member?.default ?? null,
     requestedSlug,
@@ -116,10 +120,7 @@ export async function loadBrowse(
   // The CACHED counts, merged here so the picker can order by them and the
   // popup can show one — the same figure in both places, which is the whole
   // point. A failure costs the ordering and the number, never the picker.
-  const metros = withWaitingCounts(
-    await metrosPromise,
-    await waitingPromise,
-  )
+  const metros = withWaitingCounts(catalog, await waitingPromise)
 
   const myInterests = await myInterestsPromise
   const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests }
