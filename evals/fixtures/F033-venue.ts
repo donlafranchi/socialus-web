@@ -202,7 +202,7 @@ async function ensureIdentity(opts: {
     const authId = (data as string | null) ?? id
     const { error: memErr } = await sb
       .from('members')
-      .insert({ id: authId, handle: opts.handle, display_name: opts.displayName })
+      .insert({ id: authId, handle: opts.handle, display_name: opts.displayName, legal_name: opts.displayName })
     if (memErr) {
       if (isUniqueViolation(memErr.message)) {
         await delay(200)
