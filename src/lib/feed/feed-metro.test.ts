@@ -142,3 +142,15 @@ describe('#330 — a metro knows its centre', () => {
     expect(m?.center).toBeUndefined()
   })
 })
+
+describe('#978 pickFeedMetro — the precedence, over a list in hand', () => {
+  const a = { id: 'a', slug: 'sacramento-roseville-ca', name: 'A', isOpen: true }
+  const b = { id: 'b', slug: 'b-ca', name: 'B', isOpen: false }
+  it('requested slug beats the member metro, which beats the default', async () => {
+    const { pickFeedMetro } = await import('./feed-metro')
+    expect(pickFeedMetro([a, b], { requestedSlug: 'b-ca', memberMetroId: 'a' })).toBe(b)
+    expect(pickFeedMetro([a, b], { memberMetroId: 'b' })).toBe(b)
+    expect(pickFeedMetro([a, b], { requestedSlug: 'nope', memberMetroId: 'nope' })).toBe(a)
+    expect(pickFeedMetro([], {})).toBeNull()
+  })
+})

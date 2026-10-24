@@ -63,12 +63,10 @@ vi.mock('@/lib/feed/browse-feed', () => ({
   }),
 }))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
-vi.mock('@/lib/feed/feed-metro', async (importActual) => {
-  const actual = await importActual<typeof import('@/lib/feed/feed-metro')>()
-  // `withWaitingCounts` stays real — it is a pure merge, and stubbing it would
-  // hide the thing worth checking: that the cached counts reach the picker.
-  return { ...actual, listFeedMetros }
-})
+// `withWaitingCounts` stays real — it is a pure merge, and stubbing it would
+// hide the thing worth checking: that the cached counts reach the picker.
+vi.mock('@/lib/feed/metro-catalog', () => ({ cachedMetros: () => listFeedMetros() }))
+
 vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
 // F093's signed-out read. Stubbed here rather than left real because the real
 // one calls `supabase.rpc` on this file's mock client and throws — which
@@ -461,5 +459,13 @@ describe('#916 — a search is one targeted read', () => {
     await loadBrowse(null, null, { search: 'flowers' })
     expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', resultKinds: ['page'] })
     expect(getWithheldAnnouncements).not.toHaveBeenCalled()
+  })
+})
+
+describe('#978 — the metros are the cached list', () => {
+  it('picks the scope from it, not a read of its own', async () => {
+    signedOut()
+    await loadBrowse(null)
+    expect(resolveBrowseScope).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ catalog: [METRO] }))
   })
 })

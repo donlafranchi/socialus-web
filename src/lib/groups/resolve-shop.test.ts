@@ -136,6 +136,26 @@ describe('resolveShop — where the Page is', () => {
   })
 })
 
+describe('#978 — the founder and the anchor are asked together', () => {
+  it('asks for the anchor while the founder is still outstanding', async () => {
+    const base = makeSupabaseStub({ group: ACTIVE_ROW })
+    let release!: (v: unknown) => void
+    let fromCalls = 0
+    const stub = {
+      rpc: () => new Promise((r) => (release = r)),
+      from: (t: string) => {
+        fromCalls++
+        return base.from(t)
+      },
+    }
+    const pending = resolveShop(stub as never, 'oak-park-sourdough')
+    await new Promise((r) => setTimeout(r, 0))
+    expect(fromCalls).toBe(2)
+    release({ data: [], error: null })
+    expect(await pending).not.toBeNull()
+  })
+})
+
 describe('resolveShop', () => {
   it('carries an operator removal, so no surface shows a removed photo', async () => {
     const shop = await resolveShop(
