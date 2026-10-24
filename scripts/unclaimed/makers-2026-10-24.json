@@ -1,0 +1,104 @@
+[
+ {
+  "name": "Carson Ridge Evergreens",
+  "category": "Farm",
+  "makes": "Family-run choose-and-cut Christmas tree farm on 9 acres in Apple Hill, with saws, packaging, twine, greenery and candy canes included; opening weekend Nov 21-22",
+  "area": "Placerville (El Dorado)",
+  "site": "https://carsonridgeevergreens.net",
+  "social": {
+   "facebook": "https://www.facebook.com/people/Carson-Ridge-Evergreens/100063516968873/"
+  },
+  "confidence": "Medium; own site checked 2026-10-24 (ok): 3041 Carson Road; 2026 season dates listed (Nov 21-28, rest to be announced), no footer year. Photos not viewed: stock only."
+ },
+ {
+  "name": "McGee Christmas Tree Farm",
+  "category": "Farm",
+  "makes": "Family-run choose-and-cut Christmas tree farm on 20 acres in Apple Hill: Douglas, White, Noble and Silvertip firs, one price for any size; open Nov 27-29",
+  "area": "Placerville (El Dorado)",
+  "site": "https://mcgeechristmastreefarm.net/",
+  "social": {
+   "facebook": "https://www.facebook.com/pages/Mcgees-Christmas-Tree-Farm/328856880473444"
+  },
+  "confidence": "High; own site checked 2026-10-24 (ok): 3131 Carson Road; footer 2026; Nov 27-29, 2026 hours and prices posted. Photos not viewed: stock only."
+ },
+ {
+  "name": "Lockewood Acres",
+  "category": "Farm",
+  "makes": "10-acre organic farm in Vacaville growing fruits, vegetables, nuts and eggs, raising heritage breeds, with a Farm Club, a market and farm stays; visits by appointment",
+  "area": "Vacaville (Solano)",
+  "site": "http://www.lockewoodacres.com",
+  "social": {
+   "instagram": "https://www.instagram.com/lockewoodacres/",
+   "facebook": "https://www.facebook.com/lockewoodacres/"
+  },
+  "confidence": "Medium; own site checked 2026-10-24 (ok): 7781 Locke Road, phone and market pages live; no footer year or dated events. Photos not viewed: stock only."
+ },
+ {
+  "name": "North Bay Rose Society",
+  "category": "Garden club",
+  "makes": "Vallejo rose club since 1980: monthly Sunday meetings with speakers and raffle, free rose advice, and care of the Grant Mahony Park rose garden; visitors welcome",
+  "area": "Vallejo (Solano)",
+  "site": "https://www.northbayrosesociety.org",
+  "social": {
+   "instagram": "https://www.instagram.com/northbayrosesociety/",
+   "facebook": "https://www.facebook.com/NorthBayRoseSociety/"
+  },
+  "confidence": "High; own site checked 2026-10-24 (ok): footer 2026; meets 2nd Sunday 2-4pm at Florence Douglas Center, 333 Amador St. Photos not viewed: stock only."
+ },
+ {
+  "name": "Genealogy Society of Vallejo-Benicia",
+  "category": "Historical society",
+  "makes": "Family-history society with monthly speaker meetings at the Vallejo Naval and Historical Museum, a library of about 2,000 publications and research help; join online",
+  "area": "Vallejo (Solano)",
+  "site": "https://www.gsvb.org",
+  "confidence": "High; own site checked 2026-10-24 (ok): footer 2026; Nov 5 and Dec 3 meetings and library hours posted. Photos not viewed: stock only."
+ },
+ {
+  "name": "Fairfield Bocce Federation",
+  "category": "Sports club",
+  "makes": "Fairfield bocce league and tournaments for fun, fitness and friendship, with sign-up forms and a learn-to-play guide, at 1200 Harry Price Drive",
+  "area": "Fairfield (Solano)",
+  "site": "http://fairfieldbocce.org",
+  "confidence": "Medium; own site checked 2026-10-24 (ok): membership and team sign-up forms live; no footer year or dated schedule on the homepage. Photos not viewed: stock only."
+ },
+ {
+  "name": "North Wind Quilters Guild",
+  "category": "Craft guild",
+  "makes": "Quilting guild that makes and donates community-service quilts, runs travel, shop hops and scholarships; day group meets in Fairfield, night group in Vacaville",
+  "area": "Fairfield (Solano)",
+  "site": "https://www.northwindquiltersguild.com",
+  "confidence": "Medium; own site checked 2026-10-24 (ok): meets 1st Tuesday 10am at 1200 Civic Center Dr; no footer year or dated events. Photos not viewed: stock only."
+ },
+ {
+  "name": "Rotary Club of Roseville",
+  "category": "Service club",
+  "makes": "Roseville Rotary meeting Thursdays at noon, funding local grants and projects like tree planting and Book Buddies; join or volunteer through the site",
+  "area": "Roseville (Placer)",
+  "site": "https://www.rosevillerotary.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/rosevillerotary",
+   "facebook": "https://www.facebook.com/RosevilleRotary"
+  },
+  "confidence": "High; own site checked 2026-10-24 (ok): footer 2026; Oct 29, 2026 meeting and speaker listed. Photos not viewed: stock only."
+ },
+ {
+  "name": "Rotary Club of Auburn",
+  "category": "Service club",
+  "makes": "Auburn Rotary meeting Tuesdays at noon at the Elks Lodge, 'Service Above Self'; visitors can ask about joining",
+  "area": "Auburn (Placer)",
+  "site": "https://auburncarotary.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/auburncarotary/",
+   "facebook": "https://www.facebook.com/RotaryClubofAuburnCalifornia"
+  },
+  "confidence": "High; own site checked 2026-10-24 (ok): footer 2026; meeting info, membership page live. Photos not viewed: stock only."
+ },
+ {
+  "name": "Wednesday Club of Suisun",
+  "category": "Service club",
+  "makes": "Women's community club founded in 1911 that rents its historic hall, gives yearly scholarships and supports local causes like Meals on Wheels",
+  "area": "Suisun City (Solano)",
+  "site": "https://www.wednesdayclubofsuisun.org",
+  "confidence": "Medium; own site checked 2026-10-24 (ok): 225 Sacramento St; rentals and scholarship pages live; no footer year or dated events. Photos not viewed: stock only."
+ }
+]
