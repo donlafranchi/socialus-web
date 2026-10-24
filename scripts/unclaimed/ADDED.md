@@ -283,7 +283,6 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-24 | North Bay Rose Society | Garden club | Vallejo | Gardening, Sustainability | Clubs and service; stock photos only; lead: Daily Republic, then own site |
 | 2026-10-24 | Genealogy Society of Vallejo-Benicia | Historical society | Vallejo | Arts & culture, Neighborhood life | Clubs and service; stock photos only; lead: Daily Republic, then own site |
 | 2026-10-24 | Fairfield Bocce Federation | Sports club | Fairfield | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: Daily Republic, then own site |
-| 2026-10-24 | North Wind Quilters Guild | Craft guild | Fairfield | Crafts & makers, Arts & culture | Clubs and service; stock photos only; lead: Daily Republic, then own site |
 | 2026-10-24 | Rotary Club of Roseville | Service club | Roseville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
 | 2026-10-24 | Rotary Club of Auburn | Service club | Auburn | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: own site |
 | 2026-10-24 | Wednesday Club of Suisun | Service club | Suisun City | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Daily Republic, then own site |
