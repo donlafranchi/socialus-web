@@ -290,3 +290,11 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-24 | The Starlet Room | Music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
 | 2026-10-24 | The Old Ironsides | Music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
 | 2026-10-24 | Goldfield Trading Post | Music venue | Roseville | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | Golden 1 Center | Arena and music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples; stock photos only |
+| 2026-10-24 | The Sofia, Home of B Street Theatre | Theatre and music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples; stock photos only |
+| 2026-10-24 | Harris Center for the Arts | Music venue (performing arts center) | Folsom | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples; stock photos only |
+| 2026-10-24 | Mondavi Center | Music venue (performing arts center) | Davis | Live music, Arts & culture | Venues (#1000); no shows (its site blocks automated reads); labelled samples; stock photos only |
+| 2026-10-24 | Fox & Goose Public House | Pub and music venue | Sacramento | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | The Center for the Arts | Music venue (nonprofit arts center) | Grass Valley | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | Nevada Theatre | Theatre and music venue | Nevada City | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-24 | Powerhouse Pub | Pub and music venue | Folsom | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
