@@ -30,6 +30,9 @@ export function unguarded(files: Record<string, string>): number[] {
   )
 }
 
+/** Criteria among 1-11 whose ledger entry does not cite a PR (#nnn). */
+export const missingRedRun = (ledger: Record<string, string>): number[] => CRITERIA.filter((n) => !/^#\d+$/.test(ledger[String(n)] ?? ''))
+
 const tree = (): Record<string, string> => {
   const files: Record<string, string> = {}
   for (const dir of ['src', 'tests'])
@@ -41,7 +44,7 @@ const mark = (n: number, partial = '') => `// [${'guards'} F093.${n}${partial}]`
 const full = () => Object.fromEntries(CRITERIA.map((n) => [`tests/c${n}.test.ts`, `${mark(n)}\nit('x', () => {})`]))
 
 describe('F093 criterion 12 — every criterion 1-11 has a whole marked check', () => {
-  // [guards F093.12 partial: that each of 1-11 carries a whole marker in a test file; that each marked check was seen failing is recorded in the PR that added it, which no test can read]
+  // [guards F093.12]
   it('finds a whole marker for each of criteria 1-11 in the tree, and rejects a tree that has lost one', () => {
     // The checker accepts a complete set and names what is missing.
     expect(unguarded(full())).toEqual([])
@@ -69,4 +72,15 @@ describe('F093 criterion 12 — every criterion 1-11 has a whole marked check', 
       expect(unguarded(stripped), `real tree without F093.${n}`).toEqual([n])
     }
   }, 60_000)
+
+  // The "seen failing" half: a test cannot re-run another PR's red run, so each criterion's is recorded in tests/f093-red-runs.json
+  // (the PR whose description holds it) and this fails when a criterion has no entry or the entry names no PR.
+  it('records, for each of criteria 1-11, the PR that holds its seen-failing run', () => {
+    const ledger = JSON.parse(readFileSync(join(ROOT, 'tests/f093-red-runs.json'), 'utf8')) as Record<string, string>
+    expect(missingRedRun(ledger)).toEqual([])
+    expect(missingRedRun({ ...ledger, '4': '' })).toEqual([4])
+    expect(missingRedRun({ ...ledger, '7': 'later' })).toEqual([7])
+    const { '9': _gone, ...rest } = ledger
+    expect(missingRedRun(rest)).toEqual([9])
+  })
 })
