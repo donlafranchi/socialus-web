@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-24** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-25** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -298,3 +298,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-24 | The Center for the Arts | Music venue (nonprofit arts center) | Grass Valley | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
 | 2026-10-24 | Nevada Theatre | Theatre and music venue | Nevada City | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
 | 2026-10-24 | Powerhouse Pub | Pub and music venue | Folsom | Live music, Arts & culture | Venues (#1000); real shows from its own calendar (own events page parser), no samples |
+| 2026-10-25 | Sierra Rose Alpacas | Farm | Grass Valley | Farmers markets, Sustainability | Green and outdoors (farms); stock photos only; lead: Nevada County LocalWiki, then own site |
+| 2026-10-25 | Spenker Family Farm | Farm | Lodi | Farmers markets, Sustainability | Green and outdoors (farms); stock photos only; lead: Visit Lodi, then own site |
+| 2026-10-25 | Silveyville Christmas Tree Farm | Farm | Dixon | Farmers markets, Sustainability | Green and outdoors (farms); holiday (Christmas trees); stock photos only; lead: Davis Wiki, then own site |
+| 2026-10-25 | Putah Creek Council | Creek conservancy (nonprofit) | Winters | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-25 | South Yuba River Citizens League | Creek conservancy (nonprofit) | Nevada City | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-25 | Sutter Buttes Regional Land Trust | Land trust (nonprofit) | Yuba City | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-25 | Yolo Land Trust | Land trust (nonprofit) | Woodland | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-25 | Yolo Basin Foundation | Wetlands conservancy (nonprofit) | Davis | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-25 | Sierra Foothills Audubon Society | Birding club (nonprofit) | Grass Valley | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-25 | San Joaquin Audubon Society | Birding club (nonprofit) | Stockton | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
