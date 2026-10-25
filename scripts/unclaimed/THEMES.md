@@ -18,6 +18,10 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 **Real shows instead of samples** (Don, 2026-10-22, #997, [for now]): a venue row carries `events` (its own events page or feed: `jsonld`, `ical`, `tribe`, or `html` with a `parser`); it gets no samples, and `unclaimed-events.yml` posts its next 60 days of shows every morning (`syncVenueShows`, `src/lib/unclaimed/venue-events.ts`). Never an aggregator as the source; robots.txt obeyed. A market's stated weekly day works the same way through `schedule` (#963).
 
+**Manual venues** (build lane, 2026-10-24, #1043): a venue whose site blocks automated reads (Mondavi Center, mondaviarts.org) has no `events` field: it keeps labelled samples and stock photos, and its shows are added by hand from a person reading the page. Do not work around the block, and do not use an aggregator instead. Re-check its robots.txt and terms when the Issue for it is reopened.
+
+**Pictures on imported shows** (Don, 2026-10-24, #1045): a show gets its own image from the venue's site (JSON-LD `image`, the listing photo) credited to the venue, except a game, whose card is a team logo. Otherwise a stock photo for its kind (`stock-events.json`: sports, concert, comedy, family, theater). Team and league logos never appear; team names stay in text only.
+
 ## Each run
 
 1. **Take today's theme** from the rotation below (by weekday, Pacific time).
