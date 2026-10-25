@@ -81,7 +81,7 @@ export async function toWebp(input: Buffer, { minWidth = MIN_COVER_WIDTH, strict
 
 export const sameImage = (a: string, b: string) => [...a].filter((c, i) => c !== b[i]).length <= 5
 
-async function download(url: string, f: Fetch): Promise<Buffer | null> {
+export async function download(url: string, f: Fetch): Promise<Buffer | null> {
   const r = await get(url, f, 25_000, 'image/avif,image/webp,image/jpeg,image/png,*/*;q=0.5')
   if (!r) return null
   const type = r.headers.get('content-type') ?? ''

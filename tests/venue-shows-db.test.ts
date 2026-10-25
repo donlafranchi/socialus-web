@@ -34,6 +34,7 @@ const upcoming = async () =>
 
 async function cleanup() {
   await q(`delete from public.post_reminders where member_id = $1`, [DANA])
+  await q(`delete from public.post_tags where post_id in (select id from public.page_posts where group_id = $1)`, [PAGE])
   await q(`delete from public.page_posts where group_id = $1`, [PAGE])
   await q(`delete from public.post_series where group_id = $1`, [PAGE])
   await q(`delete from public.groups where id = $1`, [PAGE])
@@ -79,6 +80,30 @@ describe.skipIf(!RUNNABLE)('A venue Page\'s imported shows', () => {
     expect(p).toMatchObject({ event_key: '2026-10-23|modest mouse', sample_kind: null, ticket_url: 'https://venue.test/t/12' })
     expect(p!.body).toBe("Modest Mouse at M997 Venue\n\nShow 8 PM\n\nFrom M997 Venue's own calendar: " + SRC)
     expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, null, now)).toEqual({ added: 0, updated: 0, removed: 0, kept: 1 })
+  })
+
+  it('a game gets arena stock and sports tags, a concert the venue\'s own picture, and a re-run keeps both (#1045)', async () => {
+    const photoFor = async (_s: VenueShow, _k: string, type: string) => (type === 'sports' ? { url: 'https://media.test/arena.webp', credit: 'Unsplash (stock photo, not this business)' } : { url: 'https://media.test/promo.webp', credit: 'M997 Venue (from their website)' })
+    const shows = [show('Grizzlies vs Kings', '2026-10-25T18:00:00'), show('Karan Aujla', '2026-10-26T20:00:00')]
+    await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, 'https://media.test/page-cover.webp', now, { venueInterests: ['Live music'], photoFor })
+    const rows = (await q(`select event_key, photo_url, body from public.page_posts where group_id = $1 order by starts_at`, [PAGE])).rows
+    expect(rows.map((r) => [r.event_key, r.photo_url])).toEqual([['2026-10-25|grizzlies vs kings', 'https://media.test/arena.webp'], ['2026-10-26|karan aujla', 'https://media.test/promo.webp']])
+    expect(rows[0].body).toMatch(/\n\nPhoto: Unsplash \(stock photo, not this business\)$/)
+    const tags = async () => (await q(`select p.event_key, array_agg(t.label order by t.label) labels from public.post_tags pt join public.page_posts p on p.id = pt.post_id join public.tags t on t.id = pt.tag_id where p.group_id = $1 group by 1 order by 1`, [PAGE])).rows
+    expect(await tags()).toEqual([{ event_key: '2026-10-25|grizzlies vs kings', labels: ['Fitness & outdoors', 'Sports'] }, { event_key: '2026-10-26|karan aujla', labels: ['Live music'] }])
+    const again = vi.fn(photoFor)
+    expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, 'https://media.test/page-cover.webp', now, { venueInterests: ['Live music'], photoFor: again })).toEqual({ added: 0, updated: 0, removed: 0, kept: 2 })
+    expect(again).not.toHaveBeenCalled()
+  })
+
+  it('a show already on the Page cover is given a fitting picture on the next run (the Kings backfill)', async () => {
+    const cover = 'https://media.test/page-cover.webp'
+    await q(`delete from public.page_posts where group_id = $1`, [PAGE])
+    await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [show('Grizzlies vs Kings', '2026-10-25T18:00:00')], cover, now)
+    expect((await upcoming()).length).toBe(1)
+    const t = await syncVenueShows(client, PAGE, 'M997 Venue', SRC, [show('Grizzlies vs Kings', '2026-10-25T18:00:00')], cover, now, { photoFor: async () => ({ url: 'https://media.test/arena.webp', credit: 'Unsplash (stock photo, not this business)' }) })
+    expect(t.updated).toBe(1)
+    expect((await q(`select photo_url from public.page_posts where group_id = $1`, [PAGE])).rows[0].photo_url).toBe('https://media.test/arena.webp')
   })
 
   it('a moved show is updated in place; a dropped or cancelled one comes off; a past one comes off', async () => {
