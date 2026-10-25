@@ -2,12 +2,16 @@
 // the next 60 days, one post per venue + date + title, a ticket link and credit to the source. Never an aggregator.
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
 import { metroDate } from '../metro/metro-week'
+import { SYSTEM_MEMBER_ID } from '../system-member'
+import { classifyEvent, EVENT_INTERESTS, type EventType } from './event-type'
 
 export interface VenueShow {
   title: string
   startsAt: Date
   doorsAt?: Date
   ticketUrl?: string
+  /** The venue's own picture for this show (JSON-LD `image`, the listing photo). */
+  imageUrl?: string
   cancelled?: boolean
 }
 
@@ -67,6 +71,15 @@ const abs = (u: unknown, base: string) => {
   }
 }
 
+/** schema.org `image`: a URL, an ImageObject, or a list of either. */
+function imageOf(v: unknown, base: string): string | undefined {
+  for (const i of Array.isArray(v) ? v : [v]) {
+    const u = abs(i && typeof i === 'object' ? (i as { url?: unknown }).url : i, base)
+    if (u) return u
+  }
+  return undefined
+}
+
 function offerUrl(offers: unknown, base: string): string | undefined {
   for (const o of Array.isArray(offers) ? offers : [offers]) if (o && typeof o === 'object' && (o as { url?: unknown }).url) return abs((o as { url: unknown }).url, base)
   return undefined
@@ -88,6 +101,7 @@ export function parseJsonLd(html: string, base: string): VenueShow[] {
           startsAt,
           doorsAt: doors(o.doorTime, startsAt),
           ticketUrl: offerUrl(o.offers, base) ?? abs(o.url, base),
+          imageUrl: imageOf(o.image, base),
           cancelled: /Cancelled|Postponed/i.test(String(o.eventStatus ?? '')),
         })
       return
@@ -136,7 +150,7 @@ export function parseTribe(json: unknown, base: string): VenueShow[] {
   return events.flatMap((e) => {
     const startsAt = instant((e.utc_start_date ? `${e.utc_start_date}Z` : e.start_date) as string)
     if (!startsAt || e.all_day === true || typeof e.title !== 'string') return []
-    return [{ title: decode(e.title), startsAt, ticketUrl: abs(e.website, base) ?? abs(e.url, base), cancelled: /cancel/i.test(String(e.status ?? '')) }]
+    return [{ title: decode(e.title), startsAt, ticketUrl: abs(e.website, base) ?? abs(e.url, base), imageUrl: imageOf((e.image as { url?: unknown } | undefined)?.url ?? e.image, base), cancelled: /cancel/i.test(String(e.status ?? '')) }]
   })
 }
 
@@ -219,10 +233,11 @@ export const HTML_PARSERS: Record<string, HtmlParser> = {
       const a = /gt-title"><a href="([^"]+)">([^<]*)/.exec(b)
       if (!a) return []
       const runs = [...b.matchAll(/<li><strong>([^<]*)<\/strong>\s*\/\s*([^<]*)<\/li>/g)].map((m) => [m[1]!, m[2]!])
+      const imageUrl = abs(/<img\b(?=[^>]*wp-post-image)[^>]*\ssrc="([^"]+)"/.exec(b)?.[1], base)
       const single = [[/gt-start-date"><span>([^<]*)/.exec(b)?.[1] ?? '', /gt-start-time"><span>([^<]*)/.exec(b)?.[1] ?? '']]
       return (runs.length ? runs : single).flatMap(([d, t]) => {
         const startsAt = at(longDate(d!), clock24(t))
-        return startsAt ? [{ title: decode(a[2]!), startsAt, ticketUrl: abs(a[1], base) }] : []
+        return startsAt ? [{ title: decode(a[2]!), startsAt, ticketUrl: abs(a[1], base), imageUrl }] : []
       })
     })
   },
@@ -392,9 +407,9 @@ const clock = (d: Date) =>
   new Intl.DateTimeFormat('en-US', { timeZone: METRO_TIME_ZONE, hour: 'numeric', minute: '2-digit' }).format(d).replace(':00', '')
 
 /** The post's words; its date sits on the post's own when line, and its ticket link on its own Tickets link. */
-export function showBody(venue: string, s: VenueShow, source: string): string {
+export function showBody(venue: string, s: VenueShow, source: string, photoCredit?: string): string {
   const times = [...(s.doorsAt ? [`Doors ${clock(s.doorsAt)}`] : []), `Show ${clock(s.startsAt)}`].join(' · ')
-  return [`${s.title} at ${venue}`, times, `From ${venue}'s own calendar: ${source}`].join('\n\n')
+  return [`${s.title} at ${venue}`, times, `From ${venue}'s own calendar: ${source}`, ...(photoCredit ? [`Photo: ${photoCredit}`] : [])].join('\n\n')
 }
 
 /** The shows to post: ahead of now, within the horizon, not cancelled, one per key, ticket links off aggregators kept (a venue's own pick). */
@@ -408,6 +423,12 @@ export function upcoming(shows: VenueShow[], now: Date, days = SHOWS_AHEAD_DAYS)
 interface Db {
   query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[]; rowCount?: number | null }>
 }
+export interface SyncOptions {
+  /** The venue Page's interest labels: what an act of no known type is taken to be. */
+  venueInterests?: string[]
+  /** A picture for a show, with its credit; null keeps the Page's. Called only for shows with no picture of their own yet. */
+  photoFor?: (show: VenueShow, key: string, type: EventType) => Promise<{ url: string; credit: string } | null>
+}
 export interface SyncTally {
   added: number
   updated: number
@@ -419,29 +440,47 @@ export interface SyncTally {
  * Posts the venue's upcoming shows on its Page and takes off the ones that are over, cancelled, or no longer listed.
  * Real posts (no sample_kind), keyed by event_key so a re-run changes nothing. `shows` is everything the feed listed.
  */
-export async function syncVenueShows(db: Db, groupId: string, venue: string, source: string, shows: VenueShow[], photoUrl: string | null, now: Date): Promise<SyncTally> {
+export async function syncVenueShows(db: Db, groupId: string, venue: string, source: string, shows: VenueShow[], photoUrl: string | null, now: Date, opts: SyncOptions = {}): Promise<SyncTally> {
   const want = upcoming(shows, now)
   const cancelled = new Set(shows.filter((s) => s.cancelled).map(showKey))
-  const have = (await db.query(`select id, event_key, starts_at, body, ticket_url from public.page_posts where group_id = $1 and event_key is not null`, [groupId])).rows as { id: string; event_key: string; starts_at: Date; body: string; ticket_url: string | null }[]
+  const have = (await db.query(`select id, event_key, starts_at, body, ticket_url, photo_url from public.page_posts where group_id = $1 and event_key is not null`, [groupId])).rows as { id: string; event_key: string; starts_at: Date; body: string; ticket_url: string | null; photo_url: string | null }[]
   const byKey = new Map(have.map((h) => [h.event_key, h]))
   const tally: SyncTally = { added: 0, updated: 0, removed: 0, kept: 0 }
+  const tagged = new Map<string, string[]>()
   for (const s of want) {
     const key = showKey(s)
-    const body = showBody(venue, s, source)
+    const type = classifyEvent(s.title, opts.venueInterests ?? [])
+    for (const label of EVENT_INTERESTS[type]) tagged.set(label, [...(tagged.get(label) ?? []), key])
     const old = byKey.get(key)
     byKey.delete(key)
+    // A show still wearing the Page's cover (or none) gets a picture that fits it; one that already has its own keeps it and its credit.
+    const fresh = opts.photoFor && (!old || !old.photo_url || old.photo_url === photoUrl) ? await opts.photoFor(s, key, type) : null
+    const photo = fresh?.url ?? old?.photo_url ?? photoUrl
+    const body = showBody(venue, s, source, fresh?.credit ?? (old && old.photo_url !== photoUrl ? /\n\nPhoto: (.+)$/.exec(old.body)?.[1] : undefined))
     if (!old) {
       await db.query(
         `insert into public.page_posts (group_id, body, starts_at, photo_url, lifecycle_state, discoverability, event_key, ticket_url, created_at, updated_at)
          values ($1, $2, $3, $4, 'active', 'listed', $5, $7, $6, $6)
          on conflict (group_id, event_key) where event_key is not null do nothing`,
-        [groupId, body, s.startsAt, photoUrl, key, now, s.ticketUrl ?? null],
+        [groupId, body, s.startsAt, photo, key, now, s.ticketUrl ?? null],
       )
       tally.added++
-    } else if (new Date(old.starts_at).getTime() !== s.startsAt.getTime() || old.body !== body || old.ticket_url !== (s.ticketUrl ?? null)) {
-      await db.query(`update public.page_posts set starts_at = $2, body = $3, ticket_url = $5, updated_at = $4 where id = $1`, [old.id, s.startsAt, body, now, s.ticketUrl ?? null])
+    } else if (new Date(old.starts_at).getTime() !== s.startsAt.getTime() || old.body !== body || old.ticket_url !== (s.ticketUrl ?? null) || old.photo_url !== photo) {
+      await db.query(`update public.page_posts set starts_at = $2, body = $3, ticket_url = $5, photo_url = $6, updated_at = $4 where id = $1`, [old.id, s.startsAt, body, now, s.ticketUrl ?? null, photo])
       tally.updated++
     } else tally.kept++
+  }
+  // #1045 — each show carries the interests of its kind, so My interests and the Category filter find it (the Page's own tags never say "a game").
+  for (const [label, keys] of tagged) {
+    const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
+    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    await db.query(
+      `insert into public.post_tags (post_id, tag_id)
+       select p.id, t.id from public.page_posts p, public.tags t
+        where p.group_id = $1 and p.event_key = any($2::text[]) and t.normalized = $3
+       on conflict do nothing`,
+      [groupId, keys, normalized],
+    )
   }
   // What is left: over, cancelled, or gone from the venue's calendar. A show still ahead but past the horizon stays.
   const until = now.getTime() + SHOWS_AHEAD_DAYS * 86400_000
@@ -454,6 +493,28 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
 }
 
 export const IMPORT_UA = 'SocialUsBot/1.0 (+https://socialus.org; venue calendars)'
+
+/**
+ * #1044 — a venue page, read politely. A server error or a dead connection (Golden 1 Center: 504 from the runner, 200 from a laptop)
+ * gets three tries, 5 s then 15 s apart; a 4xx or a 429 is the venue's answer and ends it at once.
+ */
+export async function getWithRetries(url: string, f: (url: string, init: RequestInit) => Promise<Response>, sleep: (ms: number) => Promise<unknown>, waits = [5_000, 15_000]): Promise<string> {
+  for (let attempt = 0; ; attempt++) {
+    let failure: Error
+    try {
+      const res = await f(url, { headers: { 'user-agent': IMPORT_UA, accept: 'text/html,application/json,text/calendar,*/*' }, redirect: 'follow', signal: AbortSignal.timeout(30_000) })
+      if (res.status === 429) throw new Error('rate limited (429)')
+      if (res.ok) return await res.text()
+      if (res.status < 500) throw new Error(`HTTP ${res.status}`)
+      failure = new Error(`HTTP ${res.status}`)
+    } catch (e) {
+      if (e instanceof Error && /^(HTTP 4|rate limited)/.test(e.message)) throw e
+      failure = e instanceof Error ? e : new Error(String(e))
+    }
+    if (attempt >= waits.length) throw failure
+    await sleep(waits[attempt]!)
+  }
+}
 
 /** robots.txt: the group for our agent, else `*`; the longest matching Allow/Disallow wins (RFC 9309). */
 export function robotsAllows(robots: string, path: string, ua = 'SocialUsBot'): boolean {

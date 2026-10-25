@@ -48,9 +48,27 @@ jobs:
           url="$(bash scripts/supabase-db-url.sh)"
           echo "::add-mask::$url"
           echo "url=$url" >> "$GITHUB_OUTPUT"
+      # Show pictures go through the Storage API, which needs the service role key (same step as the unclaimed load).
+      - uses: supabase/setup-cli@v2
+        if: github.event_name == 'schedule' || inputs.write
+        with:
+          version: 2.117.0
+      - name: Fetch the service role key
+        id: keys
+        if: github.event_name == 'schedule' || inputs.write
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          key="$(supabase projects api-keys --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          [ -n "$key" ] || { echo "::error::Could not read the service role key."; exit 1; }
+          echo "::add-mask::$key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
       - name: Import
         env:
           DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.key }}
           WRITE: ${{ github.event_name == 'schedule' || inputs.write }}
           ONLY: ${{ inputs.only }}
           BROKEN_FILE: ${{ runner.temp }}/broken.json

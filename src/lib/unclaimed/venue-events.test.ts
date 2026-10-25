@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { instant, isAggregator, parseIcal, parseJsonLd, parseTribe, showBody, showKey, upcoming } from './venue-events'
+import { getWithRetries, instant, isAggregator, parseIcal, parseJsonLd, parseTribe, showBody, showKey, upcoming } from './venue-events'
 
 const now = new Date('2026-10-22T15:00:00Z')
 
@@ -95,5 +95,54 @@ describe('Channel 24 parser (real page, 2026-10-22)', () => {
     expect(mm.startsAt.toISOString()).toBe('2026-10-24T03:00:00.000Z')
     expect(mm.doorsAt!.toISOString()).toBe('2026-10-24T02:00:00.000Z')
     expect(mm.ticketUrl).toMatch(/^https:\/\//)
+  })
+})
+
+describe('getWithRetries (#1044)', () => {
+  const ok = (body = 'page') => new Response(body, { status: 200 })
+  const run = (answers: (Response | Error)[]) => {
+    const waits: number[] = []
+    let n = 0
+    const f = async () => {
+      const a = answers[n++]!
+      if (a instanceof Error) throw a
+      return a
+    }
+    return { waits, tries: () => n, read: () => getWithRetries('https://v.test/', f, async (ms) => void waits.push(ms)) }
+  }
+  it('reads a page that answers 504 twice and then 200', async () => {
+    const r = run([new Response('', { status: 504 }), new Response('', { status: 502 }), ok('shows')])
+    expect(await r.read()).toBe('shows')
+    expect(r.waits).toEqual([5000, 15000])
+  })
+  it('retries a dead connection too, and gives up after three tries with the last error', async () => {
+    const r = run([new Error('fetch failed'), new Response('', { status: 504 }), new Response('', { status: 503 })])
+    await expect(r.read()).rejects.toThrow('HTTP 503')
+    expect(r.tries()).toBe(3)
+  })
+  it('does not retry the venue saying no: 403, 404 or 429', async () => {
+    for (const status of [403, 404, 429]) {
+      const r = run([new Response('', { status })])
+      await expect(r.read()).rejects.toThrow(status === 429 ? 'rate limited' : `HTTP ${status}`)
+      expect(r.tries()).toBe(1)
+    }
+  })
+})
+
+describe('imageUrl', () => {
+  it('reads a JSON-LD image that is a URL, an ImageObject or a list, resolved against the page', () => {
+    const html = (img: string) => `<script type="application/ld+json">{"@type":"Event","name":"A","startDate":"2026-11-01T20:00:00-07:00","image":${img}}</script>`
+    expect(parseJsonLd(html('"/i/a.jpg"'), 'https://v.test/e')[0]!.imageUrl).toBe('https://v.test/i/a.jpg')
+    expect(parseJsonLd(html('{"@type":"ImageObject","url":"https://cdn.test/b.jpg"}'), 'https://v.test/e')[0]!.imageUrl).toBe('https://cdn.test/b.jpg')
+    expect(parseJsonLd(html('["https://cdn.test/c.jpg","https://cdn.test/d.jpg"]'), 'https://v.test/e')[0]!.imageUrl).toBe('https://cdn.test/c.jpg')
+    expect(parseJsonLd(html('null'), 'https://v.test/e')[0]!.imageUrl).toBeUndefined()
+  })
+})
+
+describe('showBody', () => {
+  const s = { title: 'Act', startsAt: new Date('2026-11-01T03:00:00Z') }
+  it('credits the picture when it has one', () => {
+    expect(showBody('Hall', s, 'https://h.test/e', 'Hall (from their website)')).toMatch(/\n\nPhoto: Hall \(from their website\)$/)
+    expect(showBody('Hall', s, 'https://h.test/e')).not.toMatch(/Photo:/)
   })
 })

@@ -1,4 +1,5 @@
 // #1000 — one parser per venue, each tested on that venue's own page as saved on 2026-10-24 (fixtures/, scripts and styles stripped).
+import { classifyEvent } from './event-type'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -55,6 +56,17 @@ describe('Golden 1 Center', () => {
     const disney = shows.filter((s) => s.title === 'Disney On Ice presents Find Your Hero')
     expect(disney).toHaveLength(7)
     expect(disney.map((s) => iso(s.startsAt))).toContain('2026-10-31T17:30:00.000Z')
+  })
+  it("carries the listing's own picture for each show, never the site logo (#1045)", () => {
+    const shows = run('golden1-eventchamp', 'golden1-events', 'https://www.golden1center.com/events/')
+    expect(find(shows, 'Grizzlies vs Kings', '2026-10-26').imageUrl).toMatch(/\/wp-content\/uploads\/2026\/08\/1920x1080_MEM-952x579\.jpg$/)
+    expect(shows.every((s) => s.imageUrl && !/White\.png|G1C/.test(s.imageUrl))).toBe(true)
+  })
+  it('tells a game from a concert and a family show (#1045)', () => {
+    const types = new Map(run('golden1-eventchamp', 'golden1-events', 'https://www.golden1center.com/events/').map((s) => [s.title, classifyEvent(s.title, ['Live music'])]))
+    expect(types.get('Grizzlies vs Kings')).toBe('sports')
+    expect(types.get('Disney On Ice presents Find Your Hero')).toBe('family')
+    expect([...types.values()].filter((t) => t === 'sports').length).toBeGreaterThan(10)
   })
 })
 

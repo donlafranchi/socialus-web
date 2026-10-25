@@ -5,12 +5,16 @@
 //   tsx scripts/unclaimed/events.ts            reads every venue and prints what it found (writes nothing)
 //   tsx scripts/unclaimed/events.ts --apply    posts them; needs DATABASE_URL
 //   --only <name fragment>                     one venue
+// With --apply it also needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY: each show gets its own picture (#1045).
 //
 // Idempotent (one post per venue + night + title). Polite: robots.txt is obeyed, one request at a time, 3 s apart.
 // A venue whose page fails or reads no shows is listed in $BROKEN_FILE so the workflow files an Issue; its posts stay.
 import { appendFileSync, writeFileSync } from 'node:fs'
+import { createClient } from '@supabase/supabase-js'
 import { Client } from 'pg'
-import { HTML_FOLLOW, IMPORT_UA, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
+import { getWithRetries, HTML_FOLLOW, remindVenueFollowers, parseShows, robotsAllows, syncVenueShows, upcoming, SHOWS_AHEAD_DAYS, type VenueShow } from '../../src/lib/unclaimed/venue-events'
+import { eventPhoto } from '../../src/lib/unclaimed/event-photo'
+import { uploadPhotos } from '../../src/lib/unclaimed/upload'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
 import { readPlanned } from './rows'
 
@@ -25,12 +29,7 @@ const pageCache = new Map<string, Promise<string>>()
 /** One request per address per run (Harlow's and the Starlet Room share a list). */
 const get = (url: string) => (pageCache.get(url) ?? pageCache.set(url, fetchPage(url)).get(url)!)
 
-async function fetchPage(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { 'user-agent': IMPORT_UA, accept: 'text/html,application/json,text/calendar,*/*' }, redirect: 'follow', signal: AbortSignal.timeout(30_000) })
-  if (res.status === 429) throw new Error('rate limited (429)')
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.text()
-}
+const fetchPage = (url: string) => getWithRetries(url, fetch, pause)
 
 async function allowed(url: string): Promise<boolean> {
   const u = new URL(url)
@@ -82,6 +81,8 @@ async function main() {
     if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set')
     await db.connect()
   }
+  const need = (k: string) => process.env[k] ?? (() => { throw new Error(`${k} is not set`) })()
+  const storage = db ? createClient(need('SUPABASE_URL'), need('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false, autoRefreshToken: false } }) : null
   const broken: { name: string; url: string; error: string }[] = []
   const total = { venues: 0, listed: 0, added: 0, updated: 0, removed: 0, kept: 0, reminders: 0 }
   try {
@@ -105,18 +106,31 @@ async function main() {
         continue
       }
       const { rows } = await db.query(
-        `select id, photo_url from public.groups where unclaimed_at is not null and claimed_at is null and unclaimed_hidden_at is null
+        `select id, slug, photo_url from public.groups where unclaimed_at is not null and claimed_at is null and unclaimed_hidden_at is null
             and public_info_url = any($1::text[]) limit 1`,
         [[p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])]],
       )
-      const g = rows[0] as { id: string; photo_url: string | null } | undefined
+      const g = rows[0] as { id: string; slug: string; photo_url: string | null } | undefined
       if (!g) {
         summary(`${p.name}: no unclaimed Page (not loaded yet, claimed, or removed); skipped`)
         continue
       }
       await db.query('begin')
       try {
-        const t = await syncVenueShows(db, g.id, p.name, source, shows, g.photo_url, now)
+        const interests = (await db.query(`select t.label from public.page_tags pt join public.tags t on t.id = pt.tag_id where pt.group_id = $1`, [g.id])).rows.map((r) => r.label as string)
+        const photoFor = async (show: VenueShow, key: string, type: Parameters<typeof eventPhoto>[0]['type']) => {
+          // The venue's own image is read politely (robots.txt, the crawl delay); a game's is never read at all.
+          let own = type !== 'sports' ? show.imageUrl : undefined
+          if (own && !(await allowed(own).catch(() => false))) own = undefined
+          if (own) await pause(crawlDelay(own))
+          try {
+            return await eventPhoto({ show: { ...show, imageUrl: own }, type, venue: p.name, key, upload: async (ph) => (await uploadPhotos(storage!, g.slug, [ph]))[0]! })
+          } catch (e) {
+            summary(`${p.name}: no picture for "${show.title}": ${e instanceof Error ? e.message : e}`)
+            return null
+          }
+        }
+        const t = await syncVenueShows(db, g.id, p.name, source, shows, g.photo_url, now, { venueInterests: interests, photoFor })
         const r = await remindVenueFollowers(db, g.id, now)
         await db.query('commit')
         for (const k of ['added', 'updated', 'removed', 'kept'] as const) total[k] += t[k]
