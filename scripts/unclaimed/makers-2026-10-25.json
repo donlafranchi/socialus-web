@@ -1,0 +1,131 @@
+[
+ {
+  "name": "Sierra Rose Alpacas",
+  "category": "Farm",
+  "makes": "Working alpaca ranch near Grass Valley run by Howard and Cynthia Kuhlmann: breeds and sells alpacas, runs a farm store with yarn hand-dyed with plants grown on the ranch, hats, gloves, socks and rugs, and offers farm tours",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://www.sierrarosealpacas.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/sierrarosealpacas/",
+   "facebook": "https://www.facebook.com/SierraRoseAlpacas"
+  },
+  "confidence": "High; own site checked 2026-10-25 (ok): 15895 Greenhorn Road, footer 2026. Photos not viewed: stock only."
+ },
+ {
+  "name": "Spenker Family Farm",
+  "category": "Farm",
+  "makes": "Family farm in Lodi making wine and artisanal goat cheese: tasting and farm store Fri-Mon 12-4, watch the goats, tour the vineyard and creamery, sponsor a goat",
+  "area": "Lodi (San Joaquin)",
+  "site": "https://spenkerfamilyfarm.com",
+  "social": {
+   "instagram": "https://www.instagram.com/spenkerfamilyfarm",
+   "facebook": "https://www.facebook.com/spenkerwinery"
+  },
+  "products": [
+   {"name": "Cheeses", "url": "https://spenkerfamilyfarm.com/cheese"},
+   {"name": "Wines", "url": "https://spenkerfamilyfarm.com/wine"},
+   {"name": "Sponsor a Goat", "url": "https://www.spenkerfamilyfarm.com/sponsor-a-goat", "kind": "service"}
+  ],
+  "confidence": "Medium; own site checked 2026-10-25 (ok): 17291 N DeVries Rd, hours posted; no footer year. Photos not viewed: stock only."
+ },
+ {
+  "name": "Silveyville Christmas Tree Farm",
+  "category": "Farm",
+  "makes": "Seasonal Christmas tree farm in Dixon with holiday activities and a Christmas boutique, plus The Timbers event venue; opening day Nov 21, 2026",
+  "area": "Dixon (Solano)",
+  "site": "https://www.silveyvilletreefarm.com",
+  "social": {
+   "instagram": "https://instagram.com/silveyvilletreefarm",
+   "facebook": "https://www.facebook.com/SilveyvilleTreeFarm"
+  },
+  "products": [
+   {"name": "Perfect Tree", "url": "https://www.silveyvilletreefarm.com/christmas-tree-farm/perfect-tree/"},
+   {"name": "Christmas Boutique", "url": "https://www.silveyvilletreefarm.com/christmas-tree-farm/christmas-boutique/"},
+   {"name": "Christmas Activities", "url": "https://www.silveyvilletreefarm.com/christmas-tree-farm/christmas-activities/", "kind": "service"}
+  ],
+  "confidence": "High; own site checked 2026-10-25 (ok): 6248 Silveyville Rd, footer 2026, Nov 21 opening day posted. Photos not viewed: stock only."
+ },
+ {
+  "name": "Putah Creek Council",
+  "category": "Creek conservancy (nonprofit)",
+  "makes": "Winters nonprofit that builds relationships between Putah Creek and the community to restore and protect its habitat: creek cleanups, stewardship team, Lake Solano Park docents and the Winters Salmon Festival",
+  "area": "Winters (Yolo)",
+  "site": "https://www.putahcreekcouncil.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/putahcreekcouncil/",
+   "facebook": "https://www.facebook.com/PutahCreekCouncil"
+  },
+  "confidence": "Medium; own site checked 2026-10-25 (ok): PO Box 1258, volunteer sign-ups and events pages live; no footer year or dated events on the homepage. Photos not viewed: stock only."
+ },
+ {
+  "name": "South Yuba River Citizens League",
+  "category": "Creek conservancy (nonprofit)",
+  "makes": "Nevada City watershed group that protects and restores the Yuba River through hands-on restoration, education and advocacy: Yuba River Cleanup, volunteer days and the Wild & Scenic Film Festival",
+  "area": "Nevada City (Nevada)",
+  "site": "https://yubariver.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/syrcl/",
+   "facebook": "https://www.facebook.com/syrcl"
+  },
+  "confidence": "High; own site checked 2026-10-25 (ok): 313 Railroad Ave, footer 2026, volunteer page live. Photos not viewed: stock only."
+ },
+ {
+  "name": "Sutter Buttes Regional Land Trust",
+  "category": "Land trust (nonprofit)",
+  "makes": "Yuba City land trust protecting natural and agricultural land around the Sutter Buttes, over 4,700 acres so far, with tours, volunteers and the California Swan Festival",
+  "area": "Yuba City (Sutter)",
+  "site": "https://www.sutterbutteslandtrust.org/",
+  "social": {
+   "facebook": "https://www.facebook.com/SutterButtesLandTrust"
+  },
+  "confidence": "Medium; own site checked 2026-10-25 (ok): volunteers and events pages live, 2026 Swan Festival promoted; footer 2022. Photos not viewed: stock only."
+ },
+ {
+  "name": "Yolo Land Trust",
+  "category": "Land trust (nonprofit)",
+  "makes": "Woodland land trust that conserves farmland in Yolo County, partnering with over 40 family farmers to protect more than 13,000 acres; hosts A Day in the Country",
+  "area": "Woodland (Yolo)",
+  "site": "https://theyololandtrust.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/yololandtrust/",
+   "facebook": "https://www.facebook.com/YoloLandTrust/"
+  },
+  "confidence": "Medium; own site checked 2026-10-25 (ok): 221 W. Court St, Ste 5; no footer year or dated events. Photos not viewed: stock only."
+ },
+ {
+  "name": "Yolo Basin Foundation",
+  "category": "Wetlands conservancy (nonprofit)",
+  "makes": "Davis nonprofit expanding public appreciation and stewardship of wetlands and wildlife in the Yolo Basin through programs like Flyway Nights and California Duck Days",
+  "area": "Davis (Yolo)",
+  "site": "https://yolobasin.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/yolobasinfoundation/",
+   "facebook": "https://www.facebook.com/yolobasinfoundation"
+  },
+  "confidence": "High; own site checked 2026-10-25 (ok): office 45211 County Road 32B, footer 2025. Photos not viewed: stock only."
+ },
+ {
+  "name": "Sierra Foothills Audubon Society",
+  "category": "Birding club (nonprofit)",
+  "makes": "Grass Valley based Audubon chapter that educates, conserves and restores natural ecosystems; free bird walks and talks, including a beginner walk Nov 15 in Grass Valley",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://www.sierrafoothillsaudubon.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/sierra.foothills.audubon",
+   "facebook": "https://www.facebook.com/Sierra-Foothills-Audubon-Society-130839436987998"
+  },
+  "confidence": "Medium; own site checked 2026-10-25 (ok): Nov 10, 11, 15, 18 and 21 outings listed; no footer year. Photos not viewed: stock only."
+ },
+ {
+  "name": "San Joaquin Audubon Society",
+  "category": "Birding club (nonprofit)",
+  "makes": "Stockton Audubon chapter promoting the understanding, conservation and enjoyment of birds; open bird walks including a beginner walk Oct 31, 9-11 am",
+  "area": "Stockton (San Joaquin)",
+  "site": "https://www.sanjoaquinaudubon.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/sanjoaquinaudubon/",
+   "facebook": "https://www.facebook.com/sanjoaquinaudubon"
+  },
+  "confidence": "Medium; own site checked 2026-10-25 (ok): PO Box 7755, October calendar posted; no footer year. Photos not viewed: stock only."
+ }
+]
