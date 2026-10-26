@@ -188,7 +188,7 @@ describe('sending', () => {
     renderControl()
     openAndSend()
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Thank you for being decent to each other.')
+    expect(status).toHaveTextContent('Thanks for being decent.')
     expect(status).toHaveTextContent(/courtesy notice/i)
   })
 

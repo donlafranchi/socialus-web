@@ -30,6 +30,8 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
     // F081 criterion 5's line, Don's words (2026-10-01). Placeholder [public-is-draft].
     body: [
       'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
+      // The dedication, the PM's words (socialus-plan voice-and-tone.md ruling 2026-10-26). No name.
+      'An old friend always used to remind us... Be decent. We like that and designed this app around that idea.',
     ],
   },
   terms: {
@@ -40,7 +42,7 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'SocialUs is a place for good and decent people to find, connect with and support each other. These Terms describe how it works during the beta.',
       'You need to be 18 or older to use SocialUs. By signing up you confirm that you are 18 or older and agree to these Terms.',
       'Use one account, in your own name. Other members see only your display name.',
-      'Be kind and decent. Please don’t post anything sensitive, like content involving children, pets, or anyone who can’t speak up for themselves, and please don’t post pictures with children in them.',
+      'Be decent. No photos of kids, ever. Nothing involving kids, pets or anyone who can’t speak up for themselves.',
       'Anyone can report a post or a photo. A report can hide it at once while a person looks. If something of yours is hidden, we tell you why and you can answer before anything more happens.',
       'You are responsible for what you post, and for the Pages you run. Pages belong to the people who make them.',
       'We can hide or remove content, and close accounts, that break these Terms.',

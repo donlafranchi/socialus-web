@@ -7,6 +7,7 @@ describe('Rules page', () => {
   // Ethos decency line: the rules open by assuming the best and close with the thanks.
   it('opens with the ethos line and closes with the decency thanks', () => {
     const { getByTestId } = render(<RulesPage />)
+    expect(getByTestId('rules-headline').textContent).toBe(COPY.rulesHeadline)
     expect(getByTestId('rules-intro').textContent).toBe(COPY.rulesIntro)
     expect(getByTestId('rules-thanks').textContent).toBe(COPY.decencyThanks)
   })
