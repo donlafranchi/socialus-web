@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Soul Food Farm",
+    "category": "Farm",
+    "makes": "Family-run farm in Pleasants Valley near Vacaville: farm stand open Thursday to Saturday, olive oil, farm fresh eggs, lavender and essential oil, CSA flowers, sheep yarn and farm workshops",
+    "area": "Vacaville (Solano)",
+    "site": "https://www.soulfoodfarm.com/",
+    "social": {
+      "instagram": "http://instagram.com/soulfoodfarm",
+      "facebook": "https://www.facebook.com/SoulFoodFarm/"
+    },
+    "products": [
+      {"name": "Olive Oil", "url": "https://www.soulfoodfarm.com/olive-oil"},
+      {"name": "Farm Fresh Eggs", "url": "https://www.soulfoodfarm.com/farm-fresh-eggs"},
+      {"name": "Lavender & Essential Oil", "url": "https://www.soulfoodfarm.com/lavender-essential-oil"},
+      {"name": "CSA Farm Flowers", "url": "https://www.soulfoodfarm.com/farm-flowers"}
+    ],
+    "confidence": "High; own site checked 2026-10-26 (ok): 6046 Pleasants Valley Road, stand hours posted. Photos not viewed: stock only."
+  },
+  {
+    "name": "Taber Ranch Vineyard & Event Center",
+    "category": "Farm stay & agritourism",
+    "makes": "Capay Valley ranch with a tasting room for wine, local cider and beer with wood-fired pizza, weekend live music, weddings and holiday events, and tours by appointment",
+    "area": "Capay (Yolo)",
+    "site": "https://taberranch.com/home",
+    "social": {
+      "instagram": "https://www.instagram.com/taberranch/",
+      "facebook": "https://www.facebook.com/taberranch"
+    },
+    "confidence": "High; own site checked 2026-10-26 (ok): 16628 County Road 81, tasting room Fri-Sun 11-5. Photos not viewed: stock only."
+  },
+  {
+    "name": "Armadillo Music",
+    "category": "Goods & crafts",
+    "makes": "Davis record and music shop selling vinyl, CDs and merch, with new releases, indie exclusive pressings and preorders",
+    "area": "Davis (Yolo)",
+    "site": "https://armadillomusic.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/armadillomusic",
+      "facebook": "https://www.facebook.com/armadillomusic"
+    },
+    "products": [
+      {"name": "New Releases", "url": "https://armadillomusic.com/NewReleases"},
+      {"name": "Preorders", "url": "https://armadillomusic.com/Genre/694713"},
+      {"name": "Indie Exclusive Releases", "url": "https://armadillomusic.com/Genre/694768"},
+      {"name": "Armadillo Merch", "url": "https://armadillomusic.com/Genre/694845"}
+    ],
+    "confidence": "Medium; own site checked 2026-10-26 (ok): footer 2026, storefront live; the page shows no street address, Davis from its own seller name. Photos not viewed: stock only."
+  },
+  {
+    "name": "Foothill Mercantile",
+    "category": "Goods & crafts",
+    "makes": "Family-owned downtown Grass Valley store, a hardware store from 1976 and now toys, games, puzzles, candy, gifts, housewares and cards, with free gift wrapping",
+    "area": "Grass Valley (Nevada)",
+    "site": "https://foothillmercantile.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/foothill_mercantile/",
+      "facebook": "https://www.facebook.com/Foothill-Mercantile-571268156251007/"
+    },
+    "products": [
+      {"name": "Toys", "url": "https://foothillmercantile.com/pages/toys"},
+      {"name": "Housewares", "url": "https://foothillmercantile.com/pages/housewares"},
+      {"name": "Gifts & Collectables", "url": "https://foothillmercantile.com/pages/gifts-collectables"},
+      {"name": "Puzzles", "url": "https://foothillmercantile.com/collections/puzzles"},
+      {"name": "Games", "url": "https://foothillmercantile.com/collections/games"}
+    ],
+    "confidence": "High; own site checked 2026-10-26 (ok): 121 Mill St, footer 2026. Photos not viewed: stock only (toy store, may show children)."
+  },
+  {
+    "name": "Anderson's Sierra Pipe Co.",
+    "category": "Repair & trades",
+    "makes": "Family-owned Auburn supply house since 1977: plumbing, irrigation, pumps, electrical, fire safety, pellet stoves and water heaters, with repair and installation service",
+    "area": "Auburn (Placer)",
+    "site": "https://www.sierrapipe.com/",
+    "social": {
+      "facebook": "https://www.facebook.com/sierrapipe"
+    },
+    "products": [
+      {"name": "Plumbing", "url": "https://www.sierrapipe.com/plumbing", "kind": "product"},
+      {"name": "Irrigation", "url": "https://www.sierrapipe.com/irrigation"},
+      {"name": "Pumps", "url": "https://www.sierrapipe.com/pumps"},
+      {"name": "Pellets & Stoves", "url": "https://www.sierrapipe.com/pellets-stoves"},
+      {"name": "Water Heater Service", "url": "https://www.sierrapipe.com/services/water-heaters", "kind": "service"}
+    ],
+    "confidence": "High; own site checked 2026-10-26 (ok): 825 Nevada Street, services pages live; no footer year. Photos not viewed: stock only."
+  },
+  {
+    "name": "The Cave",
+    "category": "Goods & crafts",
+    "makes": "Folsom collectibles store (also Roseville, Sacramento and Citrus Heights) buying and selling retro and vintage toys, comics, games, movies, posters, apparel and pop-culture items",
+    "area": "Folsom (Sacramento)",
+    "site": "http://www.thecavestores.com/",
+    "social": {
+      "facebook": "http://www.facebook.com/TheCaveStores"
+    },
+    "confidence": "Medium; own site checked 2026-10-26 (ok): 313 East Bidwell, single-page site, no footer year, no product pages. Photos not viewed: stock only."
+  }
+]
