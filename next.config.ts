@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // #978 — sharp's native image library (17 MB) was packed into 41 of 53 routes because Next's own runtime
+  // names it. Nothing deployed uses it (no next/image; the importer's photo resize runs from scripts/), and the
+  // bigger the function, the longer a cold start.
+  outputFileTracingExcludes: { '*': ['node_modules/@img/**', 'node_modules/sharp/**'] },
   // #641 — member photos are served from our own address so Cloudflare's cache, and its CSAM Scanning Tool, sit in
   // front of them. Same object, same path, so nothing that reads a photo's address changes.
   async rewrites() {

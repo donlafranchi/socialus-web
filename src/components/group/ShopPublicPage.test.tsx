@@ -1051,3 +1051,27 @@ describe('#936 — Maps finds the business by name and address', () => {
     vi.unstubAllEnvs()
   })
 })
+
+describe('F056 criterion 5 — every optional field empty', () => {
+  // [guards F056.5]
+  it('renders the Page with nothing nagging about a missing field, for a visitor, a member and the owner', () => {
+    // A visitor sees no prompt of any kind. The owner's own empty sections (posts, products) carry
+    // their deliberate "add your first" prompts; what must never nag is a missing optional field.
+    const ANY_NAG = /\b(add (your|a|an|some|more)|complete your|finish (setting|your)|set up your|still missing|not yet (added|set)|incomplete|nothing here yet)\b/i
+    const FIELD_NAG = /\b(add|set|upload|write|fill in|missing|no)\b[^.]{0,30}\b(description|about text|photo|picture|logo|tags?|phone|hours|links?|address|location|website)\b/i
+    const bare = { ...SHOP, publicDescription: '', photoUrl: null, socialLinks: {}, placements: [], category: null }
+    const views = [
+      { loggedIn: false, any: true },
+      { loggedIn: true, any: true },
+      { loggedIn: true, viewerOwnsPage: true, any: false },
+    ]
+    for (const { any, ...v } of views) {
+      const { container } = renderShop({ shop: bare, tags: [], contact: null, where: null, ...v })
+      expect(screen.getByTestId('shop-name')).toHaveTextContent('Oak Park Sourdough')
+      const text = container.innerHTML.replace(/<[^>]+>/g, ' ')
+      if (any) expect(text).not.toMatch(ANY_NAG)
+      expect(text).not.toMatch(FIELD_NAG)
+      cleanup()
+    }
+  })
+})

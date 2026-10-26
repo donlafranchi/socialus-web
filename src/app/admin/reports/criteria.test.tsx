@@ -1,5 +1,5 @@
 // #636 (F101) — checks that claim the whole criterion, each seen failing against a mutant
-// (build-log/2026-W42/634-f101-history-and-hold.md lists the mutants). Criteria 3, 12, 13 and 15 are marked elsewhere.
+// (PR #634 lists the mutants). Criteria 3, 12, 13 and 15 are marked elsewhere.
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, act, within } from '@testing-library/react'

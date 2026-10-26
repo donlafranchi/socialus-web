@@ -1,4 +1,4 @@
-// #629 — standing guards for two F078 never-rules, each seen failing against a mutant (build-log/2026-W42/629-f078-guards.md).
+// #629 — standing guards for two F078 never-rules, each seen failing against a mutant (PR #629).
 // Source scans: absence of code proves nothing, so these name every place that could break the rule.
 
 import { describe, it, expect } from 'vitest'

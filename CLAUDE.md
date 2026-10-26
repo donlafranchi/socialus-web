@@ -17,6 +17,10 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
 
+## Decision rights (2026-10-25)
+
+The PM decides only ideas, what is in each version (the MVP of a feature), and words and look-and-feel. Everything else — architecture, schema, flows, thresholds, which precedent to follow — you decide by the soul and defaults (socialus-plan `PRINCIPLES.md` § Soul, § Defaults) and the well-worn path, record it (a dated ruling in socialus-plan, or the Issue), and report what you chose. Only new territory that conflicts with the soul goes to the PM as A/B/C. Detail: socialus-ops `process/PIPELINE.md` § Decision rights.
+
 ## Who checks what
 
 Agents own whether a change is **correct**. Don owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app: **socialus.org itself, after merge, while previews are off** (Don, 2026-10-05: no previews until the 10-23 feature freeze; nobody uses production yet).
@@ -27,7 +31,7 @@ That choice also decides the merge. **"Don doesn't need to look"** means merge i
 
 **A `human-review` PR body opens with `## Review`** (Don, 2026-10-05): "Review on socialus.org after merge" with the page to open, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
 
-**A UI PR (touching `src/app` or `src/components`) carries the reviewer's first pass:** a `Reviewed by:` section with the UX checklist from the PR template (the PM, 2026-10-05). If the pass can't run, label it `review-skipped` and say why in the body. The `review` check fails a UI PR with neither, so an unattended merge can't take it. A PR touching `src/app`, `src/actions` or `supabase/` also needs a `## Visibility review` section (`Reviewed by:`, personas, matrix rows, a `Verdict:` line) or the same label and reason (`socialus-ops` `PIPELINE-build.md` step 10).
+**A UI PR (touching `src/app` or `src/components`), and any PR touching `src/actions` or `supabase/`, is reviewed by a second session that did not write the code,** which posts its findings as a GitHub review by the rules in `REVIEW.md` and is named on the body's `Reviewed by:` line. The body-text `review` check (a `Reviewed by:` section with ticked checklist words, the `## Visibility review` and `## Journey check` sections) was retired on 2026-10-26: it verified that words existed, and PR #990 passed it on 2026-10-21 with the builder as its own reviewer. The journeys and the visibility matrix run as CI jobs; they are the gate, not a section about them. A mechanical check returns when the reviewer has its own GitHub identity (socialus-web #1075).
 
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 

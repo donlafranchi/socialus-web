@@ -1,5 +1,5 @@
 // #642 (F100 criteria 1, 2, 8) — checks that claim the whole criterion, each seen failing against a mutant
-// (build-log/2026-W42/642-f100-guards-and-checks.md lists the mutants).
+// (PR #642 lists the mutants).
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { readFileSync } from 'node:fs'

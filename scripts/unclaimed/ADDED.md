@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-25** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-26** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -308,3 +308,9 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-25 | Yolo Basin Foundation | Wetlands conservancy (nonprofit) | Davis | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-25 | Sierra Foothills Audubon Society | Birding club (nonprofit) | Grass Valley | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-25 | San Joaquin Audubon Society | Birding club (nonprofit) | Stockton | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-26 | Soul Food Farm | Farm | Vacaville | Farmers markets, Sustainability | Shops and repair (farms); stock photos only; lead: own site |
+| 2026-10-26 | Taber Ranch Vineyard & Event Center | Farm stay & agritourism | Capay | Farmers markets, Neighborhood life | Shops and repair (farms); stock photos only; lead: own site |
+| 2026-10-26 | Armadillo Music | Goods & crafts | Davis | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
+| 2026-10-26 | Foothill Mercantile | Goods & crafts | Grass Valley | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
+| 2026-10-26 | Anderson's Sierra Pipe Co. | Repair & trades | Auburn | Local business, Sustainability | Shops and repair; stock photos only; lead: own site |
+| 2026-10-26 | The Cave | Goods & crafts | Folsom | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |

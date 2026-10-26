@@ -1,3 +1,0 @@
-# F076.7 and F076.8 · #614, #615: the signed-in popup shows the cached count
-
-`joinMetroWaitlistAction` read `creator_count` and `patron_count` live from `metro_polygons` after its write and showed that, so the signed-in popup could differ from the metro picker by up to an hour. It now reads `waitingCountFor`, the cached figure the anonymous popup and the picker share, and returns a null standing (no number) when the metro is missing from the snapshot, as the anonymous path does. The two popup call sites tolerate the null. The scenario of 2026-09-23 says everyone sees the cached figure; the earlier "signed-in stays live, deliberately" choice (change-216) is reversed by it. One PR closes both issues, as #615 itself says. No migration.

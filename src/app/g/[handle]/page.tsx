@@ -8,6 +8,7 @@ import { cache, Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase-server'
+import { viewerId } from '@/lib/auth/viewer'
 import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { loadPageView } from '@/lib/groups/load-page-view'
@@ -50,11 +51,13 @@ export default async function PageAtCanonicalAddress({ params }: Props) {
 async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
   let shop = resolved
   const supabase = await createClient()
+  // #978 — the viewer's reminders ride along with the Page's reads instead of waiting behind them; an owner's are dropped.
+  const remindersAsked = (await viewerId(supabase)) ? loadViewerReminders(supabase, true).catch(() => NO_REMINDERS) : null
   const view = await loadPageView(supabase, shop)
   // #909 — the owner's card; the database answers only a manager of this Page.
   const searchDemand = view.viewerOwnsPage ? await loadPageSearchDemand(supabase, shop.groupId) : null
   // #945 — the viewer's own reminders, read under their session (nobody else's are readable).
-  const reminders = view.viewerOwnsPage ? NO_REMINDERS : await loadViewerReminders(supabase, view.loggedIn)
+  const reminders = view.viewerOwnsPage ? NO_REMINDERS : ((await remindersAsked) ?? NO_REMINDERS)
   // #625 — only the owner gets their hidden words back, and only here, after ownership is known.
   if (view.ownWords) shop = { ...shop, displayName: view.ownWords.name, publicDescription: view.ownWords.description }
 
