@@ -318,7 +318,7 @@ describe('#892 — My interests in Category', () => {
 })
 
 describe('F045 criterion 3a — the sheet, claimed whole', () => {
-  // [guards F045.3a]
+  // F045 is retired as a scenario; this keeps the filter sheet pinned (#825)
   it('opens with a Date choice (any, this week, this weekend) and a multi-select Category, Show results last at the bottom, Clear all only once something is set', () => {
     renderSheet()
     const s = within(sheet())
