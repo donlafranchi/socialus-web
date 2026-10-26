@@ -214,6 +214,24 @@ describe("what's happening", () => {
     expect(limit).toBe(20)
   })
 
+  // [guards F091.5]
+  it('the same link reopens the same rows: same scope and clock give the same read whatever the session seed, and the old ?q=updates link still means posts', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-25T12:00:00Z'))
+    try {
+      signedIn()
+      await loadBrowse(null, null, { seed: 'one' })
+      await loadBrowse(null, null, { seed: 'two' })
+      expect(getHappening).toHaveBeenCalledTimes(2)
+      const [a, b] = getHappening.mock.calls
+      expect(JSON.stringify(a!.slice(1))).toBe(JSON.stringify(b!.slice(1)))
+    } finally {
+      vi.useRealTimers()
+    }
+    const { readBox } = await import('@/lib/browse/box-text')
+    expect(readBox('updates', []).filters.type).toBe('posts')
+  })
+
   it('signed in, hands the rows to the surface', async () => {
     signedIn()
     const snap = await loadBrowse(null)
