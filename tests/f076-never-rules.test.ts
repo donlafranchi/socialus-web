@@ -119,10 +119,14 @@ describe('F076 c3 — no role is stored on the member', () => {
     const copied = offenders(['src'], /metro_waitlist/, [
       'src/actions/metro/waitlist-join.ts',
       'src/actions/metro/waitlist-join-anonymous.ts',
+      OPENER,
     ])
     expect({ adds, creates, copied }).toEqual({ adds: [], creates: [], copied: [] })
   })
 })
+
+// The one place a market is opened: a script a person runs by hand (#616). Nothing calls it.
+const OPENER = 'src/lib/market/open-market.ts'
 
 describe('F076 c12 — crossing the threshold never opens a metro', () => {
   // The only migrations that may write `is_open`: the launch metro, and the
@@ -137,7 +141,7 @@ describe('F076 c12 — crossing the threshold never opens a metro', () => {
       .filter((f) => f.endsWith('.sql') && !ALLOWED_MIGRATIONS.includes(f))
       .filter((f) => WRITES_IS_OPEN.test(read(join(MIG, f)).replace(/--.*$/gm, '')))
     expect({
-      src: offenders(['src'], WRITES_IS_OPEN),
+      src: offenders(['src'], WRITES_IS_OPEN, [OPENER]),
       scripts: offenders(['scripts'], WRITES_IS_OPEN),
       migrations,
     }).toEqual({ src: [], scripts: [], migrations: [] })
