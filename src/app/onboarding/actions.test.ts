@@ -76,7 +76,7 @@ describe('completeOnboardingAction', () => {
   it('a zip in a waiting market names it, hands over the row to wait on, and saves no home', async () => {
     marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
     const res = await completeOnboardingAction({ ...INPUT, zip: '95901' })
-    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA', key: 'county-06115' } })
+    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA' } })
     expect(signupProfileSet.mock.calls[0]![1].metroId).toBeNull()
   })
 
@@ -114,7 +114,7 @@ describe('completeOnboardingAction', () => {
 
 describe('#1090 — finishOnboardingAction', () => {
   it('marks the login onboarded, then goes where the flow ends', async () => {
-    await expect(finishOnboardingAction('/open/tahoe')).rejects.toThrow('REDIRECT:/open/tahoe')
+    await expect(finishOnboardingAction('/explore')).rejects.toThrow('REDIRECT:/explore')
     expect(updateUser).toHaveBeenCalledWith({ data: { onboarded: true } })
   })
 

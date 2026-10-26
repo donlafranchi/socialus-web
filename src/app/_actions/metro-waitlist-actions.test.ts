@@ -79,12 +79,6 @@ describe('joinMetroWaitlistAction', () => {
     )
   })
 
-  it('passes a maker’s link through (#1090)', async () => {
-    metroRow()
-    await joinMetroWaitlistAction({ metroId: METRO, role: 'creator', link: 'https://example.com' })
-    expect(join).toHaveBeenCalledWith(expect.anything(), { metroId: METRO, role: 'creator', link: 'https://example.com' })
-  })
-
   it('returns one combined number and a message — never the split', async () => {
     metroRow()
     const res = await joinMetroWaitlistAction({ metroId: METRO, role: 'creator' })

@@ -36,7 +36,7 @@ export type SaveProfileResult =
       /** The open market the zip decided, shown to the person; null when it is waiting. */
       metro: { name: string } | null
       /** The waiting market the zip decided, and the row it waits on; null when it is open. */
-      waiting: { metroId: string; name: string; key: string } | null
+      waiting: { metroId: string; name: string } | null
     }
   | { ok: false; field: SignupProfileField; message: string }
 
@@ -84,7 +84,7 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
 
   return market.open
     ? { ok: true, metro: { name: market.name }, waiting: null }
-    : { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name, key: market.key } }
+    : { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name } }
 }
 
 export async function addInterestsAction(input: {

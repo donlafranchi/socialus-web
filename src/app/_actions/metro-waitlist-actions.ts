@@ -50,7 +50,6 @@ interface MetroRow {
 export async function joinMetroWaitlistAction(input: {
   metroId: string
   role: WaitlistRole
-  link?: string
 }): Promise<JoinMetroWaitlistResult> {
   const supabase = await createClient()
   const { data: auth, error: authError } = await supabase.auth.getUser()
@@ -85,7 +84,7 @@ export async function joinMetroWaitlistAction(input: {
 
   const ctx = resolveActionContext({ actingMemberId: auth.user.id })
   try {
-    await metroWaitlistJoin(ctx, input.link ? { metroId: input.metroId, role: input.role, link: input.link } : { metroId: input.metroId, role: input.role })
+    await metroWaitlistJoin(ctx, { metroId: input.metroId, role: input.role })
   } catch (err) {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err

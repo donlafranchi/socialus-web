@@ -22,7 +22,7 @@ vi.mock('@/lib/supabase-anon', () => ({
   }),
 }))
 
-import { waitingCountByMetro, waitingCountFor, waitingByRoleFor } from './waitlist-counts'
+import { waitingCountByMetro, waitingCountFor } from './waitlist-counts'
 
 describe('waitlist counts read without request cookies', () => {
   it('loads every metro count with a cookie-free client', async () => {
@@ -33,12 +33,5 @@ describe('waitlist counts read without request cookies', () => {
   it('gives one metro its count, null when absent', async () => {
     expect(await waitingCountFor('m1')).toBe(7)
     expect(await waitingCountFor('nope')).toBeNull()
-  })
-})
-
-describe('#1090 — the open-market page reads the same cached figure, split by role', () => {
-  it('gives makers and supporters for one metro, null when absent', async () => {
-    expect(await waitingByRoleFor('m1')).toEqual({ makers: 3, supporters: 4 })
-    expect(await waitingByRoleFor('nope')).toBeNull()
   })
 })

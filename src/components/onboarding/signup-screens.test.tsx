@@ -29,7 +29,7 @@ const actions = (res: Awaited<ReturnType<OnboardingActions['completeOnboarding']
   completeOnboarding: vi.fn(async () => res),
 })
 const OPEN = { ok: true as const, metro: { name: 'Sacramento' }, waiting: null }
-const WAITING = { ok: true as const, metro: null, waiting: { metroId: 'm-yuba', name: 'Yuba County, CA', key: 'county-06115' } }
+const WAITING = { ok: true as const, metro: null, waiting: { metroId: 'm-yuba', name: 'Yuba County, CA' } }
 
 /** The inputs a person can type into or tick, by what they are (a read-only copy kept for password managers is not one). */
 function fields(root: HTMLElement) {

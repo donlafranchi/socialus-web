@@ -11,7 +11,7 @@ import { addInterestsAction, completeOnboardingAction, finishOnboardingAction, t
 import { InterestChoices } from '@/components/member/InterestChoices'
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
-import { OPEN_COPY } from '@/lib/open-market-copy'
+import { WAITING_COPY } from '@/lib/signup/waiting-copy'
 import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
 import { AuthCard } from '@/components/shell/AuthCard'
 import { COPY } from '@/lib/copy'
@@ -76,7 +76,7 @@ export function OnboardingFlow({
         setError({ field: res.field, message: res.message })
         return
       }
-      setWaiting(res.waiting ? { id: res.waiting.metroId, name: res.waiting.name, key: res.waiting.key } : null)
+      setWaiting(res.waiting ? { id: res.waiting.metroId, name: res.waiting.name } : null)
       setMetroName(res.metro?.name ?? null)
     } catch (err) {
       setError({ field: 'displayName', message: err instanceof Error ? err.message : 'Something went wrong. Try again.' })
@@ -152,10 +152,10 @@ export function OnboardingFlow({
       <AuthCard>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-title-1 text-[var(--color-fg)]">{OPEN_COPY.notOpen(waiting.name)}</h1>
-            <p className="text-body-sm text-[var(--color-fg-muted)]">{OPEN_COPY.notOpenBody}</p>
+            <h1 className="text-title-1 text-[var(--color-fg)]">{WAITING_COPY.notOpen(waiting.name)}</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">{WAITING_COPY.notOpenBody}</p>
           </div>
-          <MetroWaitlistStep market={waiting} onJoin={onJoinWaitlist} onDone={() => navigate(waiting.key ? `/open/${waiting.key}` : '/')} />
+          <MetroWaitlistStep market={waiting} onJoin={onJoinWaitlist} onDone={() => navigate('/')} />
         </div>
       </AuthCard>
     )

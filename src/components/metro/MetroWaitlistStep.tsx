@@ -17,13 +17,11 @@
 import { useId, useState } from 'react'
 import type { JoinMetroWaitlistResult } from '@/app/_actions/metro-waitlist-actions'
 import { MetroStandingDialog } from './MetroStandingDialog'
-import { SIGNUP_ROLE_COPY } from '@/lib/open-market-copy'
+import { SIGNUP_ROLE_COPY } from '@/lib/signup/waiting-copy'
 
 export interface MetroOption {
   id: string
   name: string
-  /** #1090 — the market's key, for its /open page. */
-  key?: string
 }
 
 type Role = 'creator' | 'patron'
@@ -33,7 +31,7 @@ interface Props {
   metros?: MetroOption[]
   /** F103.3 — the zip already decided where the person waits: named, not chosen. */
   market?: MetroOption
-  onJoin: (input: { metroId: string; role: Role; link?: string }) => Promise<JoinMetroWaitlistResult>
+  onJoin: (input: { metroId: string; role: Role }) => Promise<JoinMetroWaitlistResult>
   /** Called once the person is finished — dismissed the popup, or had none. */
   onDone: () => void
 }
@@ -41,24 +39,21 @@ interface Props {
 export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props) {
   const [metroId, setMetroId] = useState(market?.id ?? '')
   const [role, setRole] = useState<Role | ''>('')
-  const [link, setLink] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [standing, setStanding] = useState<JoinMetroWaitlistResult | null>(null)
 
   const selectId = useId()
   const roleName = useId()
-  const linkId = useId()
 
   const submit = async () => {
     if (!metroId || !role || busy) return
     setBusy(true)
     setError(null)
     try {
-      const trimmed = role === 'creator' ? link.trim() : ''
-      const result = await onJoin(trimmed ? { metroId, role, link: trimmed } : { metroId, role })
+      const result = await onJoin({ metroId, role })
       // An open metro has nothing to wait for, so there is nothing to show. #1090 — nor does a
-      // named market: the person goes on to its page, which shows where it stands.
+      // named market: the screen above already said it isn't open there yet, with no count.
       if (result.open || market) {
         onDone()
         return
@@ -142,14 +137,6 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
           </div>
         </fieldset>
 
-        {role === 'creator' && (
-          <div>
-            <label htmlFor={linkId} className="block text-sm font-medium text-[var(--color-charcoal-900)]">
-              {SIGNUP_ROLE_COPY.link}
-            </label>
-            <input id={linkId} type="text" inputMode="url" autoComplete="url" maxLength={300} className="input mt-2 w-full" value={link} onChange={(e) => setLink(e.target.value)} />
-          </div>
-        )}
 
         {error && (
           <p role="alert" className="text-sm text-[var(--color-charcoal-900)]">
