@@ -13,13 +13,13 @@ vi.mock('next/link', () => ({
 }))
 
 describe('SiteFooter', () => {
-  // [guards #978]
+  // #978
   it('never prefetches its links: they sit on every page and queue ahead of the tapped card', () => {
     render(<SiteFooter />)
     expect(prefetch).toHaveBeenCalled()
     for (const [, p] of prefetch.mock.calls) expect(p).toBe(false)
   })
-  // [guards ethos-decency] the ethos's thanks sits in the footer at every width.
+  // Ethos decency line: the ethos's thanks sits in the footer at every width.
   it('thanks members for being decent, on the phone row and the full row', () => {
     const { container } = render(<SiteFooter />)
     const getByTestId = (id: string) => container.querySelector(`[data-testid="${id}"]`)!
