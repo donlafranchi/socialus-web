@@ -17,20 +17,22 @@ const LINKS = [
   { href: '/report', label: 'Report a problem with the app' },
 ]
 
+// #978 — footer links are rarely tapped and sit on every page; prefetching them queued five fetches
+// ahead of the card a person actually tapped on a slow phone.
 export function SiteFooter() {
   const pathname = usePathname()
   if (navHidden(pathname)) return null
   return (
     <footer className="border-t border-[var(--color-border)] pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))] md:pb-0">
       <div data-testid="site-footer-phone" className="flex justify-center py-2 md:hidden">
-        <Link href="/report" className="inline-flex min-h-11 items-center px-3 text-caption text-[var(--color-fg-muted)] underline">
+        <Link href="/report" prefetch={false} className="inline-flex min-h-11 items-center px-3 text-caption text-[var(--color-fg-muted)] underline">
           Report a problem with the app
         </Link>
       </div>
       <div data-testid="site-footer-full" className="mx-auto hidden w-full max-w-shell items-center gap-6 gutter py-6 text-caption text-[var(--color-fg-muted)] md:flex">
         <span>© SocialUs</span>
         {LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="hover:text-[var(--color-fg)]">
+          <Link key={l.href} href={l.href} prefetch={false} className="hover:text-[var(--color-fg)]">
             {l.label}
           </Link>
         ))}
