@@ -17,6 +17,10 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
 
+## Decision rights (2026-10-25)
+
+The PM decides only ideas, what is in each version (the MVP of a feature), and words and look-and-feel. Everything else — architecture, schema, flows, thresholds, which precedent to follow — you decide by the soul and defaults (socialus-plan `PRINCIPLES.md` § Soul, § Defaults) and the well-worn path, record it (a dated ruling in socialus-plan, or the Issue), and report what you chose. Only new territory that conflicts with the soul goes to the PM as A/B/C. Detail: socialus-ops `process/PIPELINE.md` § Decision rights.
+
 ## Who checks what
 
 Agents own whether a change is **correct**. Don owns whether it is **right**. He does not read code, and nothing may ask him to — what he looks at is the running app: **socialus.org itself, after merge, while previews are off** (Don, 2026-10-05: no previews until the 10-23 feature freeze; nobody uses production yet).
