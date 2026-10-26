@@ -36,6 +36,7 @@ export async function postToPageAction(input: {
   tags?: string[]
   photoUrl?: string | null
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
+  wonder?: { threshold: number; options?: string[] }
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
