@@ -91,7 +91,6 @@ export const COPY = {
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
   // F117 — new copy, listed in the PR for review ([public-is-draft]).
-  wonderLabel: 'Wonder',
   wonderCount: (n: number, of: number) => `${n.toLocaleString('en-US')} of ${of.toLocaleString('en-US')} in`,
   wonderBarLabel: 'People in so far',
   wonderReached: 'Goal reached. Still counting.',
