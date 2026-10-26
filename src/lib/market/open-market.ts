@@ -61,14 +61,3 @@ export async function openMarket(db: Db, send: Send, key: string): Promise<OpenR
   )
   return { market: key, alreadyOpen, sent, failed, waitingMembers: Number(members.rows[0]?.count ?? 0) }
 }
-
-export function resendSender(apiKey: string, from: string): Send {
-  return async (to, subject, text) => {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to, subject, text }),
-    })
-    if (!res.ok) throw new Error(`send failed: ${res.status}`)
-  }
-}
