@@ -15,6 +15,8 @@ export interface OpenResult {
   sent: number
   failed: number
   waitingMembers: number
+  /** F118 — the town's supporters and makers told it opened (first opening only). */
+  townSent: number
 }
 
 // Words ruled by the PM, 2026-10-11 (socialus-plan F076 § Rulings, 2026-10-25 keeps them for the landing list).
@@ -53,11 +55,33 @@ export async function openMarket(db: Db, send: Send, key: string): Promise<OpenR
     sent++
   }
 
+  // F118 — the town's supporters (their zip is here) and makers (a Page here) hear the same words, once.
+  let townSent = 0
+  if (!alreadyOpen) {
+    const town = await db.query<{ email: string }>(
+      `select distinct u.email from auth.users u join public.members m on m.id = u.id
+        where m.deleted_at is null and u.email is not null
+          and (m.home_market_key = $1
+               or exists (select 1 from public.groups g join public.towns t on t.market_key = $1
+                           where g.founder_member_id = m.id and g.unclaimed_at is null
+                             and public.town_of_place(public.location_place(g.anchor_location_id)) = t.slug))`,
+      [key],
+    )
+    for (const row of town.rows) {
+      try {
+        await send(row.email, openedSubject(market.name), openedText(market.name))
+        townSent++
+      } catch {
+        failed++
+      }
+    }
+  }
+
   // A signed-up member hears in the app; their make-or-find answer is discarded once the market is open (criterion 3).
   const members = await db.query<{ count: string }>(
     `with gone as (delete from public.metro_waitlist where metro_id = $1 and member_id is not null returning 1)
      select count(*)::text as count from gone`,
     [market.metro_id],
   )
-  return { market: key, alreadyOpen, sent, failed, waitingMembers: Number(members.rows[0]?.count ?? 0) }
+  return { market: key, alreadyOpen, sent, failed, waitingMembers: Number(members.rows[0]?.count ?? 0), townSent }
 }

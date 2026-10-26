@@ -80,6 +80,9 @@ export default function LandingPage() {
           <div className="mt-6">
             <LandingWaitlistForm onSubmit={joinLandingWaitlistAction} />
           </div>
+          <Link href="/open" className="mt-4 inline-block text-body-sm text-[var(--color-accent-text)] underline">
+            {LANDING.waitlist.openTown}
+          </Link>
         </div>
       </section>
 

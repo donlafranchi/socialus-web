@@ -8,7 +8,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { getUser, updateUser, signupProfileSet, placeInterestAdd, marketForZip } = vi.hoisted(() => ({
+const { getUser, updateUser, signupProfileSet, placeInterestAdd, marketForZip, townRow } = vi.hoisted(() => ({
+  townRow: vi.fn(async (): Promise<{ data: { slug: string } | null }> => ({ data: null })),
   getUser: vi.fn(),
   updateUser: vi.fn(),
   signupProfileSet: vi.fn(),
@@ -17,7 +18,10 @@ const { getUser, updateUser, signupProfileSet, placeInterestAdd, marketForZip } 
 }))
 
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser, updateUser } })),
+  createClient: vi.fn(async () => ({
+    auth: { getUser, updateUser },
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: townRow }) }) }),
+  })),
 }))
 vi.mock('@/lib/action-context', () => ({ resolveActionContext: vi.fn((o: unknown) => o) }))
 vi.mock('@/lib/signup/zip-market', () => ({ marketForZip }))
@@ -68,8 +72,16 @@ describe('completeOnboardingAction', () => {
   it('a zip in a waiting market names it, hands over the row to wait on, and saves no home', async () => {
     marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
     const res = await completeOnboardingAction({ ...INPUT, zip: '95901' })
-    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA' } })
+    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA', town: null } })
     expect(signupProfileSet.mock.calls[0]![1].metroId).toBeNull()
+  })
+
+  // F118 criterion 3 — a supporter in a town neighbours are opening is sent to that town's page.
+  it('a zip in a town on the Open list hands over the town', async () => {
+    marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
+    townRow.mockResolvedValueOnce({ data: { slug: 'yuba' } })
+    const res = await completeOnboardingAction({ ...INPUT, zip: '95901' })
+    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA', town: 'yuba' } })
   })
 
   // [guards F081.7]
