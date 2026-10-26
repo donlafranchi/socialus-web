@@ -3,6 +3,7 @@
 
 import type { Metadata } from 'next'
 import { CREATOR_RULES } from '@/lib/creator-rules'
+import { COPY } from '@/lib/copy'
 
 export const metadata: Metadata = { title: 'The rules — SocialUs' }
 
@@ -10,9 +11,8 @@ export default function RulesPage() {
   return (
     <main className="mx-auto w-full max-w-read gutter py-8 pb-nav">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">The rules</h1>
-      <p className="mt-4 text-body text-[var(--color-fg-muted)]">
-        What you agree to before you publish a Page, and why each one is here.
-      </p>
+      <p data-testid="rules-headline" className="mt-4 text-title-2 text-[var(--color-fg)]">{COPY.rulesHeadline}</p>
+      <p data-testid="rules-intro" className="mt-2 text-body text-[var(--color-fg)]">{COPY.rulesIntro}</p>
       <ul className="mt-6 flex flex-col gap-5">
         {CREATOR_RULES.map((r) => (
           <li key={r.rule}>
@@ -21,6 +21,7 @@ export default function RulesPage() {
           </li>
         ))}
       </ul>
+      <p data-testid="rules-thanks" className="mt-8 text-body text-[var(--color-fg-muted)]">{COPY.decencyThanks}</p>
     </main>
   )
 }

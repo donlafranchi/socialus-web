@@ -58,7 +58,7 @@ describe('F080 — the safety message where a member posts', () => {
 
   it("is Don's short placeholder at posting, word for word", () => {
     expect(COPY.postingSafety).toBe(
-      "Please don't post anything sensitive, like content involving children, pets, or anyone who can't speak up for themselves. We rely on each other to keep this place kind and decent.",
+      "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves."
     )
   })
 

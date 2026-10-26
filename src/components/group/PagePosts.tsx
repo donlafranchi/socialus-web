@@ -25,7 +25,7 @@
 // behind one.
 
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
@@ -54,12 +54,13 @@ import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { DefaultArt, type ArtKind } from '@/components/cards/DefaultArt'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
+import { Toast } from '@/components/Toast'
+import { COPY } from '@/lib/copy'
 import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
 import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPlaceFields'
 import { WonderPanel, type WonderActions } from '@/components/wonders/WonderPanel'
 import type { WonderView } from '@/lib/wonders/wonder-view'
 import { WONDER_OPTIONS_MAX, WONDER_OPTION_MAX } from '@/lib/wonders/roles'
-import { COPY } from '@/lib/copy'
 
 const BODY_LIMIT = 5000
 const LATEST = 3
@@ -278,6 +279,8 @@ export function PagePosts({
   // #472 first pass — the form is rarely used, so it waits for Announce
   // (Google Business Profile's "Add update" opens on request).
   const [composing, setComposing] = useState(startComposing)
+  const [postedToast, setPostedToast] = useState(false)
+  const hidePostedToast = useCallback(() => setPostedToast(false), [])
   useEffect(() => {
     if (!canPost) return
     const open = () => {
@@ -456,6 +459,7 @@ export function PagePosts({
     setDraft('')
     setWhen(emptyWhenWhere)
     setTags({ tags: [], draft: '' })
+    setPostedToast(true)
   }
 
   const saveEdit = async (postId: string) => {
@@ -895,6 +899,7 @@ export function PagePosts({
           <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
         </section>
       )}
+      <Toast message={COPY.postedThanks} visible={postedToast} onHide={hidePostedToast} />
     </section>
   )
 }
