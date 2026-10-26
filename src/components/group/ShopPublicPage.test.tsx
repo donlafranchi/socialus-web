@@ -1068,7 +1068,7 @@ describe('F056 criterion 5 — every optional field empty', () => {
     for (const { any, ...v } of views) {
       const { container } = renderShop({ shop: bare, tags: [], contact: null, where: null, ...v })
       expect(screen.getByTestId('shop-name')).toHaveTextContent('Oak Park Sourdough')
-      const text = container.textContent ?? ''
+      const text = container.innerHTML.replace(/<[^>]+>/g, ' ')
       if (any) expect(text).not.toMatch(ANY_NAG)
       expect(text).not.toMatch(FIELD_NAG)
       cleanup()
