@@ -36,6 +36,15 @@ import { managingRoleForKind, type GroupKind } from './constants'
 import { seriesSchema, isoWeekdayOf } from '../../lib/posts/series'
 import { metroDate } from '../../lib/metro/metro-week'
 import { METRO_TIME_ZONE } from '../../lib/metro/metro-time'
+import { WONDER_OPTION_MAX, WONDER_OPTIONS_MAX } from '../../lib/wonders/roles'
+
+/** F117 criterion 1 — a Wonder: a whole-number threshold and an optional list of sizes the poster names. */
+const wonder = z
+  .object({
+    threshold: z.number().int().min(1).max(1_000_000),
+    options: z.array(z.string().trim().min(1).max(WONDER_OPTION_MAX)).max(WONDER_OPTIONS_MAX).optional(),
+  })
+  .optional()
 
 /** Matches the column's own CHECK, so a too-long body is refused before the
  *  database has to refuse it and the caller gets a message rather than a
@@ -120,6 +129,7 @@ export const groupPostCreateInput = z
     photoUrl,
     /** F074.1 — weekly on chosen weekdays, optional start and end. This post is the first occurrence. */
     series: seriesSchema.optional(),
+    wonder,
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -166,6 +176,12 @@ interface Queryable {
     sql: string,
     params?: unknown[],
   ): Promise<{ rows: T[]; rowCount: number }>
+}
+
+/** Distinct, in the poster's order; none is null (a Wonder without sizes). */
+function wonderOptions(options: string[] | undefined): string[] | null {
+  const seen = [...new Set((options ?? []).map((o) => o.trim()).filter(Boolean))]
+  return seen.length ? seen : null
 }
 
 function checkShowUntil(input: { startsAt?: string | null; showUntil?: string | null }, now: Date) {
@@ -251,8 +267,9 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until,
+            kind, wonder_threshold, wonder_options)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, $13, $14, $15)
          returning id, created_at`,
         [
           input.groupId,
@@ -273,6 +290,9 @@ export const groupPostCreate = defineHandler(
           input.photoUrl ?? null,
           seriesId,
           input.showUntil ?? null,
+          input.wonder ? 'wonder' : 'announcement',
+          input.wonder?.threshold ?? null,
+          wonderOptions(input.wonder?.options),
         ],
       )
       const postId = inserted.rows[0]!.id

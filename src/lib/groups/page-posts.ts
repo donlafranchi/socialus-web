@@ -47,6 +47,8 @@ export interface PagePost {
   /** #997 — a show imported from a venue's own calendar, and its own ticket link. */
   eventKey?: string | null
   ticketUrl?: string | null
+  /** F117 — a Wonder: who's in toward a threshold, with optional sizes. Absent on an announcement. */
+  wonder?: { threshold: number; options: string[] } | null
   /** #913 — false once the database's post_current_until has passed; an undated one then sits under Earlier. */
   current?: boolean
 }
@@ -69,6 +71,9 @@ interface Row {
   event_key?: string | null
   ticket_url?: string | null
   current_until?: string | null
+  kind?: string | null
+  wonder_threshold?: number | null
+  wonder_options?: string[] | null
   location: { label: string | null } | { label: string | null }[] | null
   post_tags?: { tags: { label: string } | { label: string }[] | null }[] | null
 }
@@ -82,7 +87,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   const { data, error } = await supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, location:locations(label), post_tags(tags(label))')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, kind, wonder_threshold, wonder_options, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)
@@ -118,6 +123,7 @@ export async function resolvePagePosts(
       seriesId: r.series_id ?? null,
       eventKey: r.event_key ?? null,
       ticketUrl: r.ticket_url ?? null,
+      ...(r.kind === 'wonder' && r.wonder_threshold ? { wonder: { threshold: r.wonder_threshold, options: r.wonder_options ?? [] } } : {}),
       current: !r.current_until || new Date(r.current_until).getTime() >= now.getTime(),
     }
   })
