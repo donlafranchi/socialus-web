@@ -4,11 +4,9 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { LandingWaitlistForm } from '@/components/landing/LandingWaitlistForm'
-import { joinLandingWaitlistAction } from '@/app/landing/actions'
-import { HOME, HOME_TODO, PRIMARY_ACTION, primaryHref } from '@/lib/home-landing'
+import { HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
 
-const CTA = { href: primaryHref(PRIMARY_ACTION), label: HOME_TODO.primaryCta }
+const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
 
 export default function HomeLanding() {
   return (
@@ -99,16 +97,10 @@ export default function HomeLanding() {
               </p>
             ))}
             <div className="mt-8">
-              {PRIMARY_ACTION === 'waitlist' ? (
-                <div className="max-w-form rounded-lg border border-[var(--color-border)] bg-white p-6">
-                  <LandingWaitlistForm onSubmit={joinLandingWaitlistAction} />
-                </div>
-              ) : (
-                <Button href={CTA.href}>{CTA.label}</Button>
-              )}
+              <Button href={CTA.href}>{CTA.label}</Button>
             </div>
             <p className="mt-6 text-body-sm text-[var(--color-fg-muted)]">
-              {HOME.launch.outOfMarket.lead} {HOME.launch.outOfMarket.next}
+              {HOME.launch.outOfMarket}
             </p>
           </div>
         </section>

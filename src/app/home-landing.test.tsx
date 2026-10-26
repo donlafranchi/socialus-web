@@ -6,8 +6,6 @@ import HomeLanding from './page'
 import { HOME, HOME_TODO } from '@/lib/home-landing'
 import { navHidden } from '@/components/BottomNav'
 
-vi.mock('@/app/landing/actions', () => ({ joinLandingWaitlistAction: vi.fn() }))
-
 afterEach(cleanup)
 
 describe('the front door', () => {

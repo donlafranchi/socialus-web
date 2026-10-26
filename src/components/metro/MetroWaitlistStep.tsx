@@ -17,10 +17,13 @@
 import { useId, useState } from 'react'
 import type { JoinMetroWaitlistResult } from '@/app/_actions/metro-waitlist-actions'
 import { MetroStandingDialog } from './MetroStandingDialog'
+import { SIGNUP_ROLE_COPY } from '@/lib/open-market-copy'
 
 export interface MetroOption {
   id: string
   name: string
+  /** #1090 — the market's key, for its /open page. */
+  key?: string
 }
 
 type Role = 'creator' | 'patron'
@@ -30,7 +33,7 @@ interface Props {
   metros?: MetroOption[]
   /** F103.3 — the zip already decided where the person waits: named, not chosen. */
   market?: MetroOption
-  onJoin: (input: { metroId: string; role: Role }) => Promise<JoinMetroWaitlistResult>
+  onJoin: (input: { metroId: string; role: Role; link?: string }) => Promise<JoinMetroWaitlistResult>
   /** Called once the person is finished — dismissed the popup, or had none. */
   onDone: () => void
 }
@@ -38,21 +41,25 @@ interface Props {
 export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props) {
   const [metroId, setMetroId] = useState(market?.id ?? '')
   const [role, setRole] = useState<Role | ''>('')
+  const [link, setLink] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [standing, setStanding] = useState<JoinMetroWaitlistResult | null>(null)
 
   const selectId = useId()
   const roleName = useId()
+  const linkId = useId()
 
   const submit = async () => {
     if (!metroId || !role || busy) return
     setBusy(true)
     setError(null)
     try {
-      const result = await onJoin({ metroId, role })
-      // An open metro has nothing to wait for, so there is nothing to show.
-      if (result.open) {
+      const trimmed = role === 'creator' ? link.trim() : ''
+      const result = await onJoin(trimmed ? { metroId, role, link: trimmed } : { metroId, role })
+      // An open metro has nothing to wait for, so there is nothing to show. #1090 — nor does a
+      // named market: the person goes on to its page, which shows where it stands.
+      if (result.open || market) {
         onDone()
         return
       }
@@ -116,23 +123,33 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
 
         <fieldset>
           <legend className="text-sm font-medium text-[var(--color-charcoal-900)]">
-            What brings you here?
+            {SIGNUP_ROLE_COPY.legend}
           </legend>
           <div className="mt-2 flex flex-col gap-2">
             <RoleChoice
               name={roleName}
-              label="I make things"
+              label={SIGNUP_ROLE_COPY.maker}
+              hint={SIGNUP_ROLE_COPY.makerHint}
               checked={role === 'creator'}
               onChange={() => setRole('creator')}
             />
             <RoleChoice
               name={roleName}
-              label="I'm here to find things"
+              label={SIGNUP_ROLE_COPY.supporter}
               checked={role === 'patron'}
               onChange={() => setRole('patron')}
             />
           </div>
         </fieldset>
+
+        {role === 'creator' && (
+          <div>
+            <label htmlFor={linkId} className="block text-sm font-medium text-[var(--color-charcoal-900)]">
+              {SIGNUP_ROLE_COPY.link}
+            </label>
+            <input id={linkId} type="text" inputMode="url" autoComplete="url" maxLength={300} className="input mt-2 w-full" value={link} onChange={(e) => setLink(e.target.value)} />
+          </div>
+        )}
 
         {error && (
           <p role="alert" className="text-sm text-[var(--color-charcoal-900)]">
@@ -169,11 +186,13 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
 function RoleChoice({
   name,
   label,
+  hint,
   checked,
   onChange,
 }: {
   name: string
   label: string
+  hint?: string
   checked: boolean
   onChange: () => void
 }) {
@@ -186,7 +205,10 @@ function RoleChoice({
       }`}
     >
       <input type="radio" name={name} className="sr-only" checked={checked} onChange={onChange} />
-      {label}
+      <span className="py-2">
+        {label}
+        {hint && <span className={`block text-xs ${checked ? 'text-white/80' : 'text-[var(--color-fg-muted)]'}`}>{hint}</span>}
+      </span>
     </label>
   )
 }

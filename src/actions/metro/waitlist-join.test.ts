@@ -243,3 +243,30 @@ describe('#280 — a builder never moves a metro count', () => {
     }
   })
 })
+
+describe('#1090 — a maker can leave a website or socials', () => {
+  const linkOf = () => {
+    const [, params] = (calls(/(insert into|update) public\.metro_waitlist/i).at(-1) ?? ['', []]) as QueryCall
+    return (params ?? []).find((p) => typeof p === 'string' && /example\.com|@maker/.test(p)) ?? null
+  }
+
+  it('stores the link with a maker’s place', async () => {
+    installRouter()
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator', link: 'https://example.com' })
+    expect(linkOf()).toBe('https://example.com')
+  })
+
+  it('keeps no link for a supporter', async () => {
+    installRouter()
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'patron', link: 'https://example.com' })
+    expect(linkOf()).toBeNull()
+  })
+
+  it('updates the link when a maker already waiting adds one', async () => {
+    installRouter({ existing: { metro_id: BOISE, role: 'creator' } })
+    const out = await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator', link: '@maker' })
+    expect(linkOf()).toBe('@maker')
+    expect(out.changed).toBe(false)
+    expect(calls(/update public\.metro_polygons/i)).toEqual([])
+  })
+})

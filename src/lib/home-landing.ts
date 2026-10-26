@@ -1,22 +1,15 @@
 // The signed-out home at `/`. Don's reviewed copy (2026-10-26), word for word.
-// Every `TODO(Don)` value is still his bracket, shown as-is until Dispatch
-// fills it from his answers; nothing else here should change without him.
-
-export type PrimaryAction = 'signup' | 'waitlist'
-
-// TODO(Don): 'signup' sends the primary button to email → 6-digit code;
-// 'waitlist' sends it to the zip waitlist form at the bottom of the page.
-export const PRIMARY_ACTION: PrimaryAction = 'signup'
+// `TODO(Don)` marks a line he hasn't approved yet; nothing else here should
+// change without him.
 
 export const HOME_TODO = {
-  // TODO(Don): the launch market's name.
-  launchMarket: '[launch market]',
-  // TODO(Don): "Join SocialUs" for signup, "Join the waitlist" for waitlist.
-  primaryCta: '[Join SocialUs / Join the waitlist]',
-  // TODO(Don): "create your account" or "join the waitlist".
-  launchAction: '[create your account / join the waitlist]',
-  // TODO(Don): the confirmed next step for someone outside the launch market.
-  outOfMarket: '[Add the confirmed next step for your area.]',
+  // Don, 2026-10-26: Sacramento and the towns around it.
+  launchMarket: 'Sacramento',
+  // Don, 2026-10-26: one sign-up path for everyone; the zip decides what comes after.
+  primaryCta: 'Join SocialUs',
+  launchAction: 'create your account',
+  // TODO(Don): new line (2026-10-26) for people outside Sacramento: one sign-up for everyone.
+  outOfMarket: 'Somewhere else? Join anyway. If enough people near you join, we could open there next.',
 }
 
 const T = HOME_TODO
@@ -79,7 +72,7 @@ export const HOME = {
       'We’re launching in one market first. From there, people who meet our requirements will be able to open SocialUs in new markets.',
       `If you’re in ${T.launchMarket}, ${T.launchAction}.`,
     ],
-    outOfMarket: { lead: 'Not in the launch market?', next: T.outOfMarket },
+    outOfMarket: T.outOfMarket,
   },
   footer: {
     line: 'Designed to get people together in real life.',
@@ -93,4 +86,4 @@ export const HOME = {
   },
 }
 
-export const primaryHref = (action: PrimaryAction) => (action === 'signup' ? '/auth/login' : '#join')
+export const JOIN_HREF = '/auth/login'

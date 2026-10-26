@@ -140,11 +140,11 @@ describe.skipIf(!RUNNABLE)('T163 — the metro catalog (c1)', () => {
     expect(rows[0].id).toBeNull()
   })
 
-  it('carries per-metro thresholds, defaulted to the approved values (c11)', async () => {
+  it('carries per-metro thresholds, defaulted to the approved values (c11; Don 2026-10-26: 100 and 1,000, #1090)', async () => {
     const rows = await query<{ creator_threshold: number; patron_threshold: number }>(
       `select creator_threshold, patron_threshold from public.metro_polygons where slug like 'boise%'`,
     )
-    expect(rows[0]).toMatchObject({ creator_threshold: 50, patron_threshold: 250 })
+    expect(rows[0]).toMatchObject({ creator_threshold: 100, patron_threshold: 1000 })
   })
 
   it('lets a threshold be changed with an UPDATE — no migration, no deploy (c11)', async () => {

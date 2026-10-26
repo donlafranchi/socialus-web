@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
 import { COPY } from '@/lib/copy'
+import { OPEN_COPY, SIGNUP_ROLE_COPY } from '@/lib/open-market-copy'
 import '@testing-library/jest-dom/vitest'
 import { OnboardingFlow, type OnboardingActions } from './OnboardingFlow'
 
@@ -110,7 +111,7 @@ describe('F081 — the signup screen', () => {
 })
 
 describe('F103 — the zip decides the market, and the screen shows it', () => {
-  const waiting = { metroId: 'm-yuba', name: 'Yuba County, CA' }
+  const waiting = { metroId: 'm-yuba', name: 'Yuba County, CA', key: 'county-06115' }
   const waitingActions = () => makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting })) })
 
   it('shows which market, then the optional interests step on Continue', async () => {
@@ -165,20 +166,41 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
     expect(screen.queryByTestId('onboarding-metro')).toBeNull()
   })
 
-  it('joins the market it named, then lands home', async () => {
-    const onNavigate = vi.fn()
-    const onJoinWaitlist = vi.fn(async () => ({
-      open: false as const,
-      metroName: 'Yuba County, CA',
-      standing: { combined: 1, target: 300 },
-      message: '',
-    }))
-    render(<OnboardingFlow actions={waitingActions()} onNavigate={onNavigate} onJoinWaitlist={onJoinWaitlist} />)
+  // #1090 — one sign-up path: outside an open market, the role question, then that market's page.
+  const joined = vi.fn(async () => ({ open: false as const, metroName: 'Yuba County, CA', standing: { combined: 1, target: 300 }, message: '' }))
+
+  it('says it isn’t open there yet, in Don’s words, above the role question', async () => {
+    render(<OnboardingFlow actions={waitingActions()} onNavigate={vi.fn()} onJoinWaitlist={joined} />)
     fill({ zip: '95901' })
     fireEvent.click(continueBtn())
-    fireEvent.click(await screen.findByRole('radio', { name: /find/i }))
+    expect(await screen.findByRole('heading', { level: 1, name: OPEN_COPY.notOpen('Yuba County, CA') })).toBeInTheDocument()
+    expect(screen.getByText(OPEN_COPY.notOpenBody)).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: SIGNUP_ROLE_COPY.legend })).toBeInTheDocument()
+  })
+
+  it('a supporter joins the market it named, then lands on that market’s page', async () => {
+    const onNavigate = vi.fn()
+    render(<OnboardingFlow actions={waitingActions()} onNavigate={onNavigate} onJoinWaitlist={joined} />)
+    fill({ zip: '95901' })
+    fireEvent.click(continueBtn())
+    fireEvent.click(await screen.findByRole('radio', { name: SIGNUP_ROLE_COPY.supporter }))
+    expect(screen.queryByLabelText(SIGNUP_ROLE_COPY.link)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
-    await waitFor(() => expect(onJoinWaitlist).toHaveBeenCalledWith({ metroId: 'm-yuba', role: 'patron' }))
+    await waitFor(() => expect(joined).toHaveBeenCalledWith({ metroId: 'm-yuba', role: 'patron' }))
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/open/county-06115'))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('a maker can leave a website or socials', async () => {
+    const onNavigate = vi.fn()
+    render(<OnboardingFlow actions={waitingActions()} onNavigate={onNavigate} onJoinWaitlist={joined} />)
+    fill({ zip: '95901' })
+    fireEvent.click(continueBtn())
+    fireEvent.click(await screen.findByRole('radio', { name: new RegExp(SIGNUP_ROLE_COPY.maker) }))
+    fireEvent.change(screen.getByLabelText(SIGNUP_ROLE_COPY.link), { target: { value: 'https://example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    await waitFor(() => expect(joined).toHaveBeenCalledWith({ metroId: 'm-yuba', role: 'creator', link: 'https://example.com' }))
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/open/county-06115'))
   })
 
   it('an unknown zip stays on the form with the refusal under the zip', async () => {
@@ -196,7 +218,7 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
     ['the open screen', async () => { fill(); fireEvent.click(continueBtn()); await screen.findByTestId('onboarding-metro') }],
     ['the waiting screen', async () => { fill({ zip: '95901' }); fireEvent.click(continueBtn()); await screen.findByTestId('waitlist-market') }],
   ])('%s says no MSA, CSA or metro', async (name, go) => {
-    const actions = name === 'the waiting screen' ? makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting: { metroId: 'm', name: 'Yuba County, CA' } })) }) : makeActions()
+    const actions = name === 'the waiting screen' ? makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting: { metroId: 'm', name: 'Yuba County, CA', key: 'county-06115' } })) }) : makeActions()
     const { container } = render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
     await go()
     expect(container.textContent).not.toMatch(/\b(MSA|CSA|metros?)\b/i)

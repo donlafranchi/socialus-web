@@ -76,6 +76,9 @@ export interface MetroWaitingCount {
   metroId: string
   /** creators + patrons, as of the last refresh. Never recomputed per request. */
   waiting: number
+  /** #1090 — the same snapshot split by role, for the open-market page (Don, 2026-10-26). */
+  makers: number
+  supporters: number
 }
 
 interface Row {
@@ -107,9 +110,11 @@ export const getMetroWaitingCounts = unstable_cache(
     return ((data ?? []) as Row[]).map((r) => ({
       metroId: r.id,
       waiting: (r.creator_count ?? 0) + (r.patron_count ?? 0),
+      makers: r.creator_count ?? 0,
+      supporters: r.patron_count ?? 0,
     }))
   },
-  ['metro-waitlist-counts-v1'],
+  ['metro-waitlist-counts-v2'],
   { revalidate: WAITLIST_COUNT_TTL_SECONDS, tags: [WAITLIST_COUNT_TAG] },
 )
 
@@ -128,4 +133,10 @@ export async function waitingCountByMetro(): Promise<Map<string, number>> {
  */
 export async function waitingCountFor(metroId: string): Promise<number | null> {
   return (await waitingCountByMetro()).get(metroId) ?? null
+}
+
+/** One metro's cached makers and supporters, or null when it is not in the cached set. */
+export async function waitingByRoleFor(metroId: string): Promise<{ makers: number; supporters: number } | null> {
+  const row = (await getMetroWaitingCounts()).find((r) => r.metroId === metroId)
+  return row ? { makers: row.makers, supporters: row.supporters } : null
 }

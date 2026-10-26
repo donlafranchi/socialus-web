@@ -34,6 +34,8 @@ export type WaitlistRole = (typeof WAITLIST_ROLES)[number]
 export const metroWaitlistJoinInput = z.object({
   metroId: z.string().uuid(),
   role: z.enum(WAITLIST_ROLES),
+  // #1090 — a maker's website or socials, optional. Staff read it; no member does.
+  link: z.string().trim().max(300).optional(),
 })
 
 export type MetroWaitlistJoinInput = z.infer<typeof metroWaitlistJoinInput>
@@ -62,6 +64,7 @@ export const metroWaitlistJoin = defineHandler(
       throw new AuthorizationError('metro.waitlist_join: a signed-in member is required')
     }
     const memberId = ctx.actingMemberId
+    const link = input.role === 'creator' && input.link ? input.link : null
 
     return withTransaction(async (client) => {
       const metroRes = await client.query<{ id: string; is_open: boolean }>(
@@ -133,6 +136,9 @@ export const metroWaitlistJoin = defineHandler(
       // nothing to increment — a re-visit, a re-signup or a second device all
       // land here.
       if (existing && existing.metro_id === input.metroId && existing.role === input.role) {
+        if (link) {
+          await client.query(`update public.metro_waitlist set link = $2, updated_at = $3 where member_id = $1`, [memberId, link, ctx.now()])
+        }
         return { metroId: input.metroId, role: input.role, changed: false }
       }
 
@@ -142,17 +148,17 @@ export const metroWaitlistJoin = defineHandler(
         // stranded on the metro they left.
         await client.query(
           `update public.metro_waitlist
-              set metro_id = $2, role = $3, updated_at = $4
+              set metro_id = $2, role = $3, link = $5, updated_at = $4
             where member_id = $1`,
-          [memberId, input.metroId, input.role, ctx.now()],
+          [memberId, input.metroId, input.role, ctx.now(), link],
         )
         await bump(existing.metro_id, existing.role, -1)
         await bump(input.metroId, input.role, 1)
       } else {
         await client.query(
-          `insert into public.metro_waitlist (member_id, metro_id, role, created_at, updated_at)
-           values ($1, $2, $3, $4, $4)`,
-          [memberId, input.metroId, input.role, ctx.now()],
+          `insert into public.metro_waitlist (member_id, metro_id, role, link, created_at, updated_at)
+           values ($1, $2, $3, $5, $4, $4)`,
+          [memberId, input.metroId, input.role, ctx.now(), link],
         )
         await bump(input.metroId, input.role, 1)
       }

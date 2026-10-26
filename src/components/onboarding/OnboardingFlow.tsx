@@ -6,12 +6,12 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { addInterestsAction, completeOnboardingAction, type SaveProfileInput, type SaveProfileResult } from '@/app/onboarding/actions'
+import { addInterestsAction, completeOnboardingAction, finishOnboardingAction, type SaveProfileInput, type SaveProfileResult } from '@/app/onboarding/actions'
 import { InterestChoices } from '@/components/member/InterestChoices'
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
+import { OPEN_COPY } from '@/lib/open-market-copy'
 import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
 import { AuthCard } from '@/components/shell/AuthCard'
 import { COPY } from '@/lib/copy'
@@ -21,9 +21,10 @@ export interface OnboardingActions {
   completeOnboarding: (input: SaveProfileInput) => Promise<SaveProfileResult>
   /** #892 — the optional interests step after sign-up. */
   saveInterests?: (input: { tags: string[] }) => Promise<{ ok: true; addedTags: string[] }>
+  finish?: (next: string) => Promise<void>
 }
 
-const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction, saveInterests: addInterestsAction }
+const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction, saveInterests: addInterestsAction, finish: finishOnboardingAction }
 
 export function OnboardingFlow({
   initialDisplayName = '',
@@ -41,8 +42,8 @@ export function OnboardingFlow({
   phoneVerified?: boolean
   phoneAuth?: PhoneAuth
 }) {
-  const router = useRouter()
-  const navigate = onNavigate ?? ((url: string) => router.push(url))
+  // #1090 — leaving the flow is what marks the login onboarded (the action redirects).
+  const navigate = onNavigate ?? ((url: string) => void (actions.finish ?? finishOnboardingAction)(url))
 
   const [legalName, setLegalName] = useState('')
   const [displayName, setDisplayName] = useState(initialDisplayName)
@@ -75,7 +76,7 @@ export function OnboardingFlow({
         setError({ field: res.field, message: res.message })
         return
       }
-      setWaiting(res.waiting ? { id: res.waiting.metroId, name: res.waiting.name } : null)
+      setWaiting(res.waiting ? { id: res.waiting.metroId, name: res.waiting.name, key: res.waiting.key } : null)
       setMetroName(res.metro?.name ?? null)
     } catch (err) {
       setError({ field: 'displayName', message: err instanceof Error ? err.message : 'Something went wrong. Try again.' })
@@ -151,12 +152,10 @@ export function OnboardingFlow({
       <AuthCard>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-title-1 text-[var(--color-fg)]">SocialUs isn&rsquo;t in your area yet</h1>
-            <p className="text-body-sm text-[var(--color-fg-muted)]">
-              Tell us why you&rsquo;re here and we&rsquo;ll let you know where it stands.
-            </p>
+            <h1 className="text-title-1 text-[var(--color-fg)]">{OPEN_COPY.notOpen(waiting.name)}</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">{OPEN_COPY.notOpenBody}</p>
           </div>
-          <MetroWaitlistStep market={waiting} onJoin={onJoinWaitlist} onDone={() => navigate('/')} />
+          <MetroWaitlistStep market={waiting} onJoin={onJoinWaitlist} onDone={() => navigate(waiting.key ? `/open/${waiting.key}` : '/')} />
         </div>
       </AuthCard>
     )
