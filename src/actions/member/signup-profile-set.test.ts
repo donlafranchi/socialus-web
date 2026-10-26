@@ -26,6 +26,17 @@ describe('memberSignupProfileSet', () => {
     expect(params).toEqual(['Maya Rivera', 'Maya', '95819', METRO, ME])
   })
 
+  // [guards F103.5 partial: signup in an open market stores the market and the home town the zip decides, in the same write]
+  it('also stores the market and the home town the zip decides, resolved by the database from the zip', async () => {
+    query.mockResolvedValue({ rowCount: 1, rows: [{ id: ME }] })
+    await memberSignupProfileSet(ctx, input)
+    const [sql] = query.mock.calls[0]!
+    expect(sql).toMatch(/home_market_key\s*=/)
+    expect(sql).toMatch(/home_town\s*=/)
+    expect(sql).toMatch(/home_town_geoid\s*=/)
+    expect(sql).toMatch(/public\.zip_home\(\$3\)/)
+  })
+
   it('a zip with no metro leaves home_metro_id empty rather than guessing', async () => {
     query.mockResolvedValue({ rowCount: 1, rows: [{ id: ME }] })
     await expect(memberSignupProfileSet(ctx, { ...input, metroId: null })).resolves.toEqual({ memberId: ME, metroId: null })

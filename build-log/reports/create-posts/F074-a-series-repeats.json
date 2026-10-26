@@ -1,0 +1,157 @@
+{
+ "schema": 1,
+ "feature": "F074",
+ "title": "a series repeats",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A series is created once as weekly on one or more chosen weekdays, with an optional start date and an optional end date; the creator never enters individual dates and no other pattern is offered",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    841
+   ],
+   "note": "Built: `post_series` table and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control and bounds [V post.ts, AnnouncementFields.tsx]. It is OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`), unset per #753 and still 'behind the series switch' per #952 [A]. #956 (10-18) restyled the weekday chips as underlined text. #753 is review-skipped; deploy-health green on 685f5d1 and 546f086. Checked: every marker says `partial` (wording, shape, bounds, first-occurrence rule) [V grep]; no check claims all of it (#841)."
+  },
+  {
+   "id": "2",
+   "text": "Every occurrence is a real page_posts row referencing its parent post, never a date computed at read time",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    593
+   ],
+   "note": "Half built, for loader-managed market Pages only: #963 (10-19) `syncMarketDays` writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and #952's reminders compute a series' dates from its weekdays at send time rather than from rows ('future dates aren't stored as rows yet (#593)') [V post.ts, reminder-sender.ts]. Ticket #593."
+  },
+  {
+   "id": "3",
+   "text": "Occurrences exist from today to three months ahead, at all times",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    594
+   ],
+   "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Ticket #594."
+  },
+  {
+   "id": "4",
+   "text": "The job that maintains that window is idempotent: running it twice creates nothing the first run did not",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    595
+   ],
+   "note": "No window job exists for series; `syncMarketDays` is idempotent (`tests/market-days-db.test.ts`) but is the market loader's, not this job, and there is no uniqueness key on (series, start) [V]. Ticket #595."
+  },
+  {
+   "id": "5",
+   "text": "An occurrence's start is computed in the metro's timezone, not by adding a fixed number of hours; a weekly series keeps its local time across a daylight-saving change",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    173,
+    597
+   ],
+   "note": "The arithmetic exists: `metroWallTimeToInstant` is two-pass and DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back (`reminders.test.ts`), and market days are computed in `METRO_TIME_ZONE` (#963) [V]. But nothing expands a member's series into occurrences, and the metro still carries no zone of its own in code (#173 open; `markets.timezone` exists and nothing reads it) [V grep]. Daylight saving ends 2026-11-01. Ticket #597."
+  },
+  {
+   "id": "6",
+   "text": "A time-windowed read returns one row per series (its soonest occurrence in the window) and one row per non-recurring post",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    600
+   ],
+   "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct or grouping by series or parent [V grep]. Market Pages now have three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion."
+  },
+  {
+   "id": "7",
+   "text": "Editing one occurrence changes that occurrence and no other",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    602
+   ],
+   "note": "`group.post_edit` updates one row in place, but no member-made occurrence rows exist to prove it on [V]. Ticket #602."
+  },
+  {
+   "id": "8",
+   "text": "Each occurrence behaves as its own dated post under F072: its own address, its own time-window match, its own responses",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    603
+   ],
+   "note": "F072 gives a single post these; member-made occurrence rows do not exist. Market-day rows (#963) are ordinary dated posts, and #952 lets a member be reminded of 'every time' on a series [V]. Ticket #603."
+  }
+ ]
+}

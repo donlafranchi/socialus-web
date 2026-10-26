@@ -35,7 +35,7 @@ function install(opts: { found?: boolean; owner?: string; answered?: boolean; cr
   })
 }
 
-const input = { noticeId: NOTICE, reason: 'mistaken' as const, note: 'It is my own shop sign.' }
+const input = { noticeId: NOTICE }
 const writes = () => (query.mock.calls as [string, unknown[]][]).filter(([q]) => /^\s*(insert|update|delete)/i.test(q))
 
 beforeEach(() => {
@@ -43,11 +43,21 @@ beforeEach(() => {
 })
 
 describe('report.answer — say the report is wrong', () => {
-  it('records the poster\'s one answer with the reason and note', async () => {
+  // [guards F102.3 partial: the poster's one answer is a single tap, "This is a mistake" (#626)]
+  it('records the poster\'s one answer as a mistake claim, with no reason or note to fill in', async () => {
     install()
     await reportAnswer(ctx(), input)
     expect(writes()).toHaveLength(1)
-    expect(writes()[0]![1]).toEqual(expect.arrayContaining([NOTICE, POSTER, 'mistaken', 'It is my own shop sign.']))
+    expect(writes()[0]![0]).toMatch(/'mistake'/)
+    expect(writes()[0]![1]).toEqual([NOTICE, POSTER, expect.any(Date)])
+  })
+
+  it('takes a claim on a courtesy notice as well as on a hide', async () => {
+    install()
+    await reportAnswer(ctx(), input)
+    const select = (query.mock.calls as [string][]).find(([q]) => /from public\.member_notices/i.test(q))![0]
+    expect(select).toMatch(/'courtesy'/)
+    expect(select).toMatch(/'content_hidden'/)
   })
 
   it('says which report the answer is to, so the AI can read it with the reply', async () => {
@@ -61,12 +71,9 @@ describe('report.answer — say the report is wrong', () => {
     expect(writes().every(([q]) => /report_answers/i.test(q))).toBe(true)
   })
 
-  it('offers exactly the three reasons, and a note of at most 280 characters', async () => {
+  it('takes nothing but the notice', async () => {
     install()
-    await expect(reportAnswer(ctx(), { ...input, reason: 'because' as never })).rejects.toThrow()
-    await expect(reportAnswer(ctx(), { ...input, note: 'x'.repeat(281) })).rejects.toThrow()
-    await expect(reportAnswer(ctx(), { ...input, reason: 'malicious' })).resolves.toBeDefined()
-    await expect(reportAnswer(ctx(), { ...input, reason: 'misusing_reports' })).resolves.toBeDefined()
+    await expect(reportAnswer(ctx(), {} as never)).rejects.toThrow()
   })
 
   it('only the person the notice went to may answer it', async () => {

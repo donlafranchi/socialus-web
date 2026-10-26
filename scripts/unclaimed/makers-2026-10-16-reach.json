@@ -1,0 +1,387 @@
+[
+ {
+  "name": "Bishop's Pumpkin Farm",
+  "category": "Farm stay & agritourism",
+  "makes": "A family pumpkin farm with a u-pick pumpkin field, corn maze, petting zoo, hay rides, train tour and farm food, open daily through Nov 15",
+  "area": "Wheatland (Yuba)",
+  "site": "https://www.bishopspumpkinfarm.com/",
+  "social": {
+   "tiktok": "https://www.tiktok.com/@bishopspumpkinfarm",
+   "instagram": "https://www.instagram.com/bishopspumpkinfarm1973",
+   "facebook": "https://www.facebook.com/bishopspumpkinfarm/"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): banner 'Open 7 days a week until 11/15/26'; 1415 Pumpkin Lane."
+ },
+ {
+  "name": "McBurney Tree Farm",
+  "category": "Farm",
+  "makes": "A cut-your-own Christmas tree farm where you can reserve a tree in advance and staff will cut it for you",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://www.mcburneytreefarm.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/mcburneytreefarm"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 11197 Cedar Ridge Dr; Oct 2026 calendar, daily from Nov 20."
+ },
+ {
+  "name": "Mountain Bounty Farm",
+  "category": "Farm",
+  "makes": "An 18-acre organic farm on the San Juan Ridge selling weekly vegetable and fruit boxes (CSA) year-round, plus flower, mushroom, coffee and bread shares",
+  "area": "Nevada City (Nevada)",
+  "site": "https://mountainbountyfarm.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/mountainbountyfarm",
+   "facebook": "https://www.facebook.com/MountainBountyFarm"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 14579 Blind Shady Rd; CSA signup live (page undated)."
+ },
+ {
+  "name": "Lazy Dog Chocolateria",
+  "category": "Food & drink",
+  "makes": "Homemade ice cream and gelato, hand-dipped chocolates, toffee, fudge and divinity, with seasonal treats and party favors",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://lazydogchocolateria.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/lazydogchocolatesandsweets",
+   "facebook": "https://www.facebook.com/LazyDogChocolateria"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 111 Mill St; footer 2023-26."
+ },
+ {
+  "name": "Interfaith Food Ministry of Nevada County",
+  "category": "Food bank (nonprofit)",
+  "makes": "A volunteer-run food pantry in Grass Valley; donate money or food, volunteer, or run a food drive",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://www.interfaithfoodministry.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 440 Henderson St; 2026 calendar and June 2026 CalFresh notice."
+ },
+ {
+  "name": "Truckee-Donner Historical Society",
+  "category": "Historical society",
+  "makes": "A volunteer nonprofit that keeps the Joseph Research Library cabin, Old Truckee Jail Museum and local history archive; join, donate or volunteer",
+  "area": "Truckee (Nevada)",
+  "site": "https://www.truckeehistory.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/truckeedonnerhistory"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): Aug 10, 2026 newsletter."
+ },
+ {
+  "name": "Truckee Roundhouse",
+  "category": "Makerspace (nonprofit)",
+  "makes": "A nonprofit makerspace that teaches crafts, skills, technology and arts with tools and classes; join, volunteer, teach or donate",
+  "area": "Truckee (Nevada)",
+  "site": "https://www.truckeeroundhouse.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/truckeeroundhouse",
+   "facebook": "https://www.facebook.com/TruckeeRoundhouse"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): Fixit Clinic dated Oct 19 2026."
+ },
+ {
+  "name": "Truckee Donner Land Trust",
+  "category": "Land trust (nonprofit)",
+  "makes": "A nonprofit that protects open space and trails around Truckee; donate, volunteer or join docent hikes",
+  "area": "Truckee (Nevada)",
+  "site": "https://www.truckeedonnerlandtrust.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/truckeedonnerlandtrust",
+   "facebook": "https://www.facebook.com/truckeedonnerlandtrust"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 11073 Donner Pass Rd; 2026 hikes listed."
+ },
+ {
+  "name": "Miners Foundry Cultural Center",
+  "category": "Art association (nonprofit)",
+  "makes": "A historic 1859 Nevada City venue for concerts, performances and community events; donate or volunteer",
+  "area": "Nevada City (Nevada)",
+  "site": "https://minersfoundry.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/minersfoundry",
+   "facebook": "https://www.facebook.com/minersfoundry"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 325 Spring St; footer 2026."
+ },
+ {
+  "name": "North Columbia Schoolhouse Cultural Center",
+  "category": "Art association (nonprofit)",
+  "makes": "A rural arts center in an 1875 schoolhouse on the San Juan Ridge that hosts films, classes and festivals; join or volunteer",
+  "area": "Nevada City (Nevada)",
+  "site": "https://www.northcolumbiaschoolhouse.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 17894 Tyler Foote Rd; footer 2026."
+ },
+ {
+  "name": "Yuba Sutter Arts & Culture",
+  "category": "Art association (nonprofit)",
+  "makes": "The local arts agency that runs the Sutter Theater and Burrows Center for the Arts with shows, classes and exhibits; join, volunteer or donate",
+  "area": "Marysville (Yuba)",
+  "site": "https://yubasutterarts.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/yubasutterarts530",
+   "facebook": "https://www.facebook.com/yubasutterarts530"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 624 E St; footer 2026."
+ },
+ {
+  "name": "Colfax Area Historical Society",
+  "category": "Historical society",
+  "makes": "A volunteer group running the free Colfax Heritage Museum at 99 Railroad St with a gift shop; join or volunteer",
+  "area": "Colfax (Placer)",
+  "site": "https://colfaxhistory.org/home/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 99 Railroad St; 'Calendar 2026'."
+ },
+ {
+  "name": "Lodi Historical Society",
+  "category": "Historical society",
+  "makes": "A nonprofit restoring Lodi's original City Hall and Firehouse into the Lodi History Museum; join or donate as a Friend of the Museum",
+  "area": "Lodi (San Joaquin)",
+  "site": "https://lodihistoricalsociety.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/lodihistoricalsociety",
+   "facebook": "https://www.facebook.com/profile.php?id=61584420414662"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): posts Aug-Oct 2026; open house Oct 18 at 114 N. Main St."
+ },
+ {
+  "name": "Lodi Community Art Center",
+  "category": "Art association (nonprofit)",
+  "makes": "A downtown Lodi art center with a gallery, classes, monthly featured artists and juried shows; join or donate",
+  "area": "Lodi (San Joaquin)",
+  "site": "https://www.lodiartcenter.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/lodiartcenter",
+   "facebook": "https://www.facebook.com/LodiCommunityArtCenter"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 110 W Pine St; Small Works show 11/6-12/20/26."
+ },
+ {
+  "name": "San Joaquin County Historical Society & Museum",
+  "category": "Historical society",
+  "makes": "A county history museum at Micke Grove Regional Park that runs the Festival of Trees each December; member, donate or support the festival",
+  "area": "Lodi (San Joaquin)",
+  "site": "https://www.sanjoaquinhistory.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/sanjoaquinhistory",
+   "facebook": "https://www.facebook.com/sjchistoricalsocietyandmuseum"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): Festival of Trees Dec 4-6, 2026."
+ },
+ {
+  "name": "Emergency Food Bank Stockton / San Joaquin",
+  "category": "Food bank (nonprofit)",
+  "makes": "A Stockton food pantry since 1968 with a Mobile Farmers Market; donate, volunteer or host a food drive",
+  "area": "Stockton (San Joaquin)",
+  "site": "https://www.stocktonfoodbank.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/emergencyfoodbank",
+   "facebook": "https://www.facebook.com/StocktonEmergencyFoodBank"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 7 W. Scotts Ave; footer 2026; turkey giveaways listed."
+ },
+ {
+  "name": "Haggin Museum",
+  "category": "Art and history museum (nonprofit)",
+  "makes": "Stockton's art and history museum in Victory Park, with a museum store holiday open house; member, donate or docent",
+  "area": "Stockton (San Joaquin)",
+  "site": "https://hagginmuseum.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): Holiday Open House Nov 7, 2026."
+ },
+ {
+  "name": "Amador County Historical Society",
+  "category": "Historical society",
+  "makes": "Runs the Amador County Museum in Jackson and is raising funds for a new Livery Building; member, donate or volunteer",
+  "area": "Jackson (Amador)",
+  "site": "https://amadorcountyhistoricalsociety.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 225 Church St; 2026 Annual Dinner; footer 2026."
+ },
+ {
+  "name": "Amador Flower Farm",
+  "category": "Farm",
+  "makes": "A Plymouth daylily nursery with 4+ acres of demonstration gardens, a gift shop and a pumpkin patch",
+  "area": "Plymouth (Amador)",
+  "site": "https://amadorflowerfarm.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/AmadorFlowerFarm/"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): footer 2026; open daily 9-4 Mar-Nov."
+ },
+ {
+  "name": "Crystal Creek Tree Farm",
+  "category": "Farm",
+  "makes": "A Camino Apple Hill choose-and-cut Christmas tree farm with handmade wreaths and a picnic area",
+  "area": "Camino (El Dorado)",
+  "site": "https://www.caminotrees.com/",
+  "confidence": "High; own site checked 2026-10-16 (ok): opens Sat Nov 21, 2026; 2019 Cable Rd (footer dated 2018)."
+ },
+ {
+  "name": "Madrone Tree Hill",
+  "category": "Farm",
+  "makes": "A 40-acre family Christmas tree farm in Camino where you cut your own unsheared trees, with a hiking trail and picnic area",
+  "area": "Camino (El Dorado)",
+  "site": "https://madronetreehill.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/1818763778347170"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): open weekends from Dec 5; footer 2019-2026."
+ },
+ {
+  "name": "Silverthorn Meadows",
+  "category": "Farm stay & agritourism",
+  "makes": "A Camino forest property with choose-and-cut Christmas trees and free hot cocoa, plus lodging and glamping",
+  "area": "Camino (El Dorado)",
+  "site": "https://silverthornmeadows.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/silverthornmeadows",
+   "facebook": "https://www.facebook.com/silverthornmeadows"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): footer 2026; trees open the day after Thanksgiving."
+ },
+ {
+  "name": "Arts and Culture El Dorado",
+  "category": "Arts council (nonprofit)",
+  "makes": "A countywide arts nonprofit that runs Switchboard Gallery, the Arts Incubator and Poetry Out Loud; donate or volunteer",
+  "area": "Placerville (El Dorado)",
+  "site": "https://artsandcultureeldorado.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/artsandcultureeldorado",
+   "facebook": "https://www.facebook.com/ArtsandCultureElDorado/"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): footer 2026; Sugar Skull Art Walk Oct 12-Nov 8, 2026."
+ },
+ {
+  "name": "El Dorado County Historical Society",
+  "category": "Historical society",
+  "makes": "Runs the Fountain & Tallman Museum on Placerville's Main Street and a calendar of tours and talks; join, donate or volunteer",
+  "area": "Placerville (El Dorado)",
+  "site": "https://edchs.org/",
+  "social": {
+   "facebook": "https://www.facebook.com/eldoradocountyhistoricalsociety/"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 524 Main St; events through Dec 18 holiday luncheon."
+ },
+ {
+  "name": "Cool Patch Pumpkins",
+  "category": "Farm stay & agritourism",
+  "makes": "A you-pick pumpkin patch with a hand-designed corn maze, hay rides, a corn bath and a food stand, open daily in season",
+  "area": "Dixon (Solano)",
+  "site": "https://www.coolpatchpumpkins.com/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 6150 Dixon Ave West; footer 2026."
+ },
+ {
+  "name": "Morningsun Herb Farm",
+  "category": "Farm",
+  "makes": "A nursery and gardens selling perennials, culinary and medicinal herbs and California natives, with a gift shop, workshops and a fall pumpkin patch",
+  "area": "Vacaville (Solano)",
+  "site": "https://www.morningsunherbfarm.com/",
+  "confidence": "High; own site checked 2026-10-16 (ok): 6137 Pleasants Valley Rd; footer 2026; Workshops Fall 2026."
+ },
+ {
+  "name": "Araceli Farms",
+  "category": "Farm stay & agritourism",
+  "makes": "A lavender farm with 7 varieties and California native plants, selling products and gift sets and offering farm visits",
+  "area": "Dixon (Solano)",
+  "site": "https://www.aracelifarms.com/",
+  "social": {
+   "tiktok": "https://www.tiktok.com/@aracelifarms",
+   "instagram": "https://www.instagram.com/aracelifarms",
+   "facebook": "https://www.facebook.com/AraceliFarms/"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): shop, gift sets and farm visit tickets live (no explicit 2026 date)."
+ },
+ {
+  "name": "Colusa County Holiday Craft Faire",
+  "category": "Holiday market",
+  "makes": "A two-day holiday craft fair with 100+ vendors at the Colusa County Fairgrounds, Nov 21-22, 2026",
+  "area": "Colusa (Colusa)",
+  "site": "https://colusafairgrounds.com/holiday-craft-faire/",
+  "social": {
+   "instagram": "https://www.instagram.com/colusacountyfairgrounds",
+   "facebook": "https://www.facebook.com/colusacountyfairgrounds"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): Nov 21-22 2026; 1303 10th St."
+ },
+ {
+  "name": "Arts Benicia",
+  "category": "Art association (nonprofit)",
+  "makes": "A nonprofit visual arts center in the Arsenal with exhibitions, classes, printmaking and residencies; join, donate or docent",
+  "area": "Benicia (Solano)",
+  "site": "https://artsbenicia.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/artsbenicia",
+   "facebook": "https://www.facebook.com/ArtsBenicia"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 1 Commandant's Lane; Art Solano Oct 24-Dec 20, 2026."
+ },
+ {
+  "name": "Museum of History Benicia",
+  "category": "Historical society",
+  "makes": "A free history museum in four 1850s sandstone Arsenal buildings that keeps Benicia's city archives; member, donate or volunteer",
+  "area": "Benicia (Solano)",
+  "site": "https://mohbenicia.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/mohbenicia",
+   "facebook": "https://www.facebook.com/MoHBenicia"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 2024 Camel Rd; 2026 events."
+ },
+ {
+  "name": "Western Railway Museum",
+  "category": "Museum (nonprofit)",
+  "makes": "A heritage electric railway museum with an 11-mile train ride, run by a nonprofit; donate, volunteer or join",
+  "area": "Suisun City (Solano)",
+  "site": "https://www.wrm.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/westernrailwaymuseum",
+   "facebook": "https://www.facebook.com/WesternRailwayMuseum"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 5848 State Hwy 12; 2026 tickets online."
+ },
+ {
+  "name": "Solano Land Trust",
+  "category": "Land trust (nonprofit)",
+  "makes": "A nonprofit that protects open space and farmland and runs hikes and docent walks; donate or volunteer as a docent",
+  "area": "Vacaville (Solano)",
+  "site": "https://solanolandtrust.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/solanolandtrust",
+   "facebook": "https://www.facebook.com/Solano.Land.Trust"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): footer 2026; news dated 2026-10-07."
+ },
+ {
+  "name": "Vallejo Together",
+  "category": "Homeless outreach (nonprofit)",
+  "makes": "A nonprofit supporting people without shelter in Vallejo through a mobile basic-needs program; donate or volunteer",
+  "area": "Vallejo (Solano)",
+  "site": "https://www.vallejotogether.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): footer 2026; donate and volunteer forms."
+ },
+ {
+  "name": "Vallejo Naval and Historical Museum",
+  "category": "Historical society",
+  "makes": "A museum of Vallejo and Mare Island Navy history with five galleries and a speaker series; donate, join or volunteer",
+  "area": "Vallejo (Solano)",
+  "site": "https://vallejomuseum.net/",
+  "social": {
+   "instagram": "https://www.instagram.com/vallejomuseum",
+   "facebook": "https://www.facebook.com/VallejoMuseum"
+  },
+  "confidence": "High; own site checked 2026-10-16 (ok): 734 Marin St; events Oct-Nov 2026."
+ },
+ {
+  "name": "Rio Vista Roots",
+  "category": "Community garden",
+  "makes": "A grassroots nonprofit teaching urban homesteading, with rentable garden beds and classes; donate, rent a bed or request a class",
+  "area": "Rio Vista (Solano)",
+  "site": "https://riovistaroots.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): bed prices and donate page seen (April 2026 images)."
+ },
+ {
+  "name": "Rotary Club of Rio Vista",
+  "category": "Service club",
+  "makes": "A service club that meets Fridays at 6:30am at Raul's Striper Cafe and funds scholarships; visitors can drop in to join",
+  "area": "Rio Vista (Solano)",
+  "site": "https://riovistarotary.org/",
+  "confidence": "High; own site checked 2026-10-16 (ok): lists the 2026/2027 president."
+ }
+]

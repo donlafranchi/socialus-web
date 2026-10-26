@@ -61,3 +61,13 @@ describe('F100 criterion 9 — the harness summary', () => {
     expect(s.meetsLiveTargets).toBe(true)
   })
 })
+
+// #640 — the recorded run says how many severity-1 cases it had, so a vacuous pass can be told from a real one.
+describe('summarise — severity-1 cases', () => {
+  it('counts them', () => {
+    const v = (outcome: 'approve' | 'remove', severity: number) => ({ outcome, severity })
+    const c = (label: ReturnType<typeof v>, got: ReturnType<typeof v>) => ({ label, got, latencyMs: 1, costUsd: 0 })
+    expect(summarise([c(v('remove', 1), v('remove', 1)), c(v('remove', 2), v('remove', 2)), c(v('approve', 4), v('approve', 4))]).sev1Cases).toBe(1)
+    expect(summarise([c(v('remove', 2), v('remove', 2))]).sev1Cases).toBe(0)
+  })
+})

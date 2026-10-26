@@ -1,0 +1,150 @@
+{
+ "schema": 1,
+ "feature": "F091",
+ "title": "What's happening, today and this week",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1a",
+   "text": "A row returns the posts whose start time falls inside its window, soonest first",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    612
+   ],
+   "note": "Since #871 one read, `browse_happening` (migration 20261016170000), returns `browse_feed`'s posts soonest first for the week and the weekend, each with its own limit, and `getHappening` cuts today at tonight; visibility, scope and order are `browse_feed`'s [V]. The rows show at the top of the posts-only Type view (`postsOnlyView` in `BrowseSurface.tsx`, #881) [V]. Reviewed no: #266 has no `Reviewed by:`, #815 and #871 are review-skipped. Shipped: green on 2a0d7f7c, b7766901, 0ace38da [V]. Checked: loader test is `[guards F091.1 partial]` (each row asks for the window); the SQL tests in `tests/migrations-browse-feed.test.ts` and the `browse_happening` DB test (#871) are unmarked (#612). Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+  },
+  {
+   "id": "1b",
+   "text": "A row returns only posts that start inside its window",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "#815 (change #814, 2026-10-16, no scenario change) made the window hold a post that is on during it, so a post that started earlier and has not ended appears in 'today' (`coalesce(ends_at, starts_at) >= p_starts_from`; test 'a time window holds a post that is on during it'); #871's `browse_happening` and #914's `post_current_until` keep that rule [V]. That contradicts 'only posts whose start time falls inside'; the scenario has no ruling for it. Routed to `scope-scenario` (amend to 'on during the window'); nothing filed."
+  },
+  {
+   "id": "2",
+   "text": "Windows are in the metro's timezone and bound to the hour",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    173
+   ],
+   "note": "`happeningWindows`: every row starts now, today ends at metro midnight, week and weekend end Monday 00:00, daylight saving handled [V]. The zone is the constant `America/Los_Angeles` until #173 (open) gives each metro its own. Checked: `[guards F091.2]` in `src/lib/metro/happening.test.ts`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+  },
+  {
+   "id": "3",
+   "text": "A row with no results is absent",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`HappeningRows` filters empty rows [V]. Checked: `[guards F091.3]` in `HappeningRows.test.tsx`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+  },
+  {
+   "id": "4",
+   "text": "The stem is absent when every row is",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`HappeningRows` returns null when no row is present [V]. Checked: `[guards F091.4]` in `HappeningRows.test.tsx`. Reviewed no (#266 no line). Shipped: green on 2a0d7f7c. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+  },
+  {
+   "id": "5",
+   "text": "The same link reopens the same rows",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    829
+   ],
+   "note": "Rows are a function of the route's metro and area and the clock only; the posts-only view is the word `posts` in `?q=` (#881; an old `?view=updates` link still reads as Posts), so it travels in the link, and #942 writes the URL in place [V]. Judged from code; no test pins it, and 'same rows' holds only within the hour the windows are bound to [A]. Reviewed no (#266 no line, #881 and #942 yes). Shipped: green on 2a0d7f7c, 3da54545, a6d4682e. Open #829. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+  },
+  {
+   "id": "6",
+   "text": "A series appears at most once in a row",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    600
+   ],
+   "note": "`browse_feed` and `browse_happening` have no grouping by a series [V migrations 20261016150052, 20261016170000]; #266 says it lands with F074. Repeating posts now exist for reminders ('every time', #952), so a weekly series could flood a week row once occurrences are rows [A]. The ticket is #600 (F074 criterion 6, one row per series)."
+  },
+  {
+   "id": "7",
+   "text": "Signed out, the today row is one 'Sign in to see what's happening' card per Page posting today",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    829
+   ],
+   "note": "`signedOutToday` reads the withheld path over midnight to midnight 'posted today' (Don's ruling); `withheldCta` reads 'Sign in…' [V load.ts]. Since #906 the signed-out posts-only view also lists the withheld cards (F093.7), and #969 gives a no-photo card its kind's art [V]. Checked: `[guards F091.7 partial]` (the loader only) and `[guards F093.7]` (a withheld card in both views, not 'posting today' per Page), so no. Reviewed no (#266 no line, #906 review-skipped). Shipped: green on 2a0d7f7c, b7766901, 7286b487. Open #829. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+  }
+ ]
+}

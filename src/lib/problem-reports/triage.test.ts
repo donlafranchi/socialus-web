@@ -19,7 +19,7 @@ describe('buildTriagePrompt', () => {
   it('asks for JSON only, with the allowed areas and milestones named', () => {
     expect(p).toMatch(/JSON/)
     expect(p).toContain('area:page-editing')
-    expect(p).toContain('Beta 11-06')
+    expect(p).toContain('Beta')
   })
   it('caps what it sends: the open list is trimmed', () => {
     const many = Array.from({ length: 500 }, (_, i) => ({ number: i + 1, title: 'x'.repeat(100) }))
@@ -29,9 +29,9 @@ describe('buildTriagePrompt', () => {
 
 describe('parseTriage', () => {
   it('accepts a clean answer', () => {
-    expect(parseTriage('{"area":"page-editing","milestone":"Beta 11-06","duplicateOf":211,"launchBlocking":false}', [211])).toEqual({
+    expect(parseTriage('{"area":"page-editing","milestone":"Beta","duplicateOf":211,"launchBlocking":false}', [211])).toEqual({
       area: 'area:page-editing',
-      milestone: 'Beta 11-06',
+      milestone: 'Beta',
       duplicateOf: 211,
       launchBlocking: false,
     })

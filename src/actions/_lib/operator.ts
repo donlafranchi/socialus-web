@@ -5,8 +5,8 @@
 // separate change and a scenario amendment — F058 says "the operator", singular
 // and definite, throughout.
 //
-// `ADMIN_EMAILS` sits unread in .env.local.example. It is vendor-era residue,
-// not a precedent, and nothing here reads it.
+// This module does not read `ADMIN_EMAILS`. Authority is OPERATOR_MEMBER_ID only. (ADMIN_EMAILS is
+// read for one thing: where an urgent-report alert is emailed, in `lib/notify/operator-alert`.)
 //
 // UNSET MEANS NOBODY. A missing or blank OPERATOR_MEMBER_ID authorises no one
 // rather than everyone — the failure mode of the alternative is the whole

@@ -23,6 +23,13 @@ export {
   type MemberInterestsAddInput,
   type MemberInterestsAddResult,
 } from './interests-add'
+// #892 — its pair
+export {
+  memberInterestsRemove,
+  memberInterestsRemoveInput,
+  type MemberInterestsRemoveInput,
+  type MemberInterestsRemoveResult,
+} from './interests-remove'
 
 // T091 — Follow / unfollow handlers (F032)
 export {
@@ -86,3 +93,28 @@ export {
   type MemberSignupProfileSetInput,
   type MemberSignupProfileSetResult,
 } from './signup-profile-set'
+
+// #695 / #568 (F081.4, F103.5) — change the zip on You
+export { memberZipSet, memberZipSetInput, UNKNOWN_ZIP, type MemberZipSetInput, type MemberZipSetResult } from './zip-set'
+
+// #909 — search sharing, the switch on You
+export { memberSearchSharingSet, memberSearchSharingSetInput, type MemberSearchSharingSetInput } from './search-sharing-set'
+// #904 — notification choices and push subscriptions
+export {
+  memberNotificationsSet,
+  memberNotificationsSetInput,
+  memberPushSubscribe,
+  memberPushSubscribeInput,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
+  type MemberNotificationsSetInput,
+  type MemberPushSubscribeInput,
+} from './notifications'
+
+// #945 — Remind me
+export {
+  memberReminderSet,
+  memberReminderSetInput,
+  memberReminderRemove,
+  memberReminderEveryForPage,
+} from './reminders'

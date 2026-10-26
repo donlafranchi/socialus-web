@@ -1,0 +1,249 @@
+{
+ "schema": 1,
+ "feature": "F078",
+ "title": "flagged content hides itself, and the poster is told why",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Anything a member can post is reportable (photos, Pages, announcements, posts); a report triggers agent classification",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    625,
+    1005
+   ],
+   "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: two partial markers only (`create.test.ts:949` the words, `tests/featured-items-reportable-db.test.ts:102` the items); no whole-criterion check; filed #1005 [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f) and #920 (0aa3c68) [V] Smoked: `page` and `page-business` green 2026-10-23; the menu entries render, no report is sent [A]"
+  },
+  {
+   "id": "2",
+   "text": "A first report leaves the post up and sends a courtesy notice; a second report from a different member hides it and sends it to a person",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    834
+   ],
+   "note": "`create.ts`: `shouldHide` needs `priorByOthers > 0`; the first report writes a courtesy notice (#706) [V] Checked: `[guards F078.2]` in `f078-criteria.test.ts:241`, seen failing against four mutants (#901, closed #834) [V] Reviewed: #706 `review-skipped` [V] Shipped: green on #494, #499, #506, #706 [V] Smoked: the `report-sent` route exists in `evals/screens/routes.ts` but no run since 2026-10-12 has included it [V]"
+  },
+  {
+   "id": "3",
+   "text": "Poster told at once, in-app (never email), with the category, the reporter's reason and a plain explanation",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    628,
+    629
+   ],
+   "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts` [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: `you` green 2026-10-23 (cb892a7) [A]"
+  },
+  {
+   "id": "4a",
+   "text": "The poster can submit one explanation; an unanswered takedown stays hidden and closes itself",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628,
+    629,
+    834
+   ],
+   "note": "`report.answer` one per hide, a single \"This is a mistake\" button (#706); an unanswered hide closes after 14 days (#773) [V] Checked: `[guards F078.4a]` in `f078-criteria.test.ts:300`, seen failing against three mutants (#901) [V] Reviewed: #706, #773 `review-skipped` [V]"
+  },
+  {
+   "id": "4b",
+   "text": "Submitting an explanation is the only thing that creates work for a person",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    626
+   ],
+   "note": "RETIRED. Overtaken by the 2026-10-11 courtesy-notice ruling in F078 `## Rulings` (and criterion 6): a second report now sends the item to a person. `f078-criteria.test.ts:169` says so. The scenario still carries the old clause in criterion 4; `sync-roadmap` amends it [V]."
+  },
+  {
+   "id": "5",
+   "text": "Threat of harm or children texts Don at once; everything else queues in a mobile review view",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    628
+   ],
+   "note": "`alertOperator` after commit: SMS when Twilio values exist, email through Resend today (#751); the mobile queue is `/admin/reports` [V]. Nobody is texted yet: no Twilio number (#707 open) [V]. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts` [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]"
+  },
+  {
+   "id": "6",
+   "text": "Every report lands in the same queue, whether or not it hid anything",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    628
+   ],
+   "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts` [V] Reviewed: #706 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "7",
+   "text": "The hide bar stays per-metro data, no migration or deploy; zero at launch; unresolved metro uses zero",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    628
+   ],
+   "note": "`metro_polygons.hide_bar` coalesces to 0, min() on overlap; the AI stays in shadow so no score drives hiding, as ruled (#626) [V] Checked: `[guards F078.7]` in `f078-criteria.test.ts` [V] Reviewed: #494 `review-skipped` [V]"
+  },
+  {
+   "id": "8",
+   "text": "A Threat of harm or Sensitive content report hides at once, on the first report, at any bar",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`URGENT_CATEGORIES` bypass the bar, the courtesy step and the reporter limits (`create.ts`) [V] Checked: `[guards F078.8]` in `create.test.ts` [V] Reviewed: #483 `review-skipped` [V]"
+  },
+  {
+   "id": "9",
+   "text": "A report cannot be sent without a reason the reporter chose",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Handler and sheet both refuse [V] Checked: `[guards F078.9]` in `create.test.ts` and `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet` route exists but no run has included it [V]"
+  },
+  {
+   "id": "10",
+   "text": "Before sending, the reporter is told misuse has consequences; rejected reports are strikes and after three stop hiding",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    834
+   ],
+   "note": "Sheet line \"Please don't misuse reports\" (no numbers, per the 2026-10-11 copy ruling); strikes counted at report time in `create.ts` [V] Checked: `[guards F078.10]` in `f078-criteria.test.ts:335` claims the line before Send and the strikes together, seen failing against three mutants (#901); the strikes-only marker in `create.test.ts:793` is now partial [V] Reviewed: #706 `review-skipped` [V]"
+  },
+  {
+   "id": "11",
+   "text": "Every string in the report path is kind and gracious; wording is Don's",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    627,
+    834
+   ],
+   "note": "Strings shipped from the PM's recorded copy calls (#706; `copy.ts`, `notices.ts`); #938 relabelled the menu entries [V] Checked: `report-path-copy.test.tsx:62` asserts every reporter and poster string against the PM's rules (no numbers in the warning, \"a person from our team\", no developer string), seen failing against four mutants (#901); its marker leaves out only the PM's storyboard approval, which is a look, not a test, so it counts here [V] Reviewed: #706 `review-skipped` [V] PM looked: the storyboard (socialus-plan #94, open) is still unapproved [V]"
+  },
+  {
+   "id": "12",
+   "text": "The second report that hides an item must come from a different member than the first",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    834
+   ],
+   "note": "`create.ts` counts `priorByOthers`; one member filing twice hides nothing (#706, ruled 2026-10-11) [V] Checked: `[guards F078.12]` in `f078-criteria.test.ts:271`, seen failing against two mutants (#901) [V] Reviewed: #706 `review-skipped` [V]"
+  }
+ ]
+}

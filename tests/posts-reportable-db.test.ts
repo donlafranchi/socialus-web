@@ -124,8 +124,19 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
       (await client.query(`select discoverability, hidden_at, removed_at, hide_locked_body from public.page_posts where id = $1`, [POST])).rows[0]
     let reportId: string
 
-    it('a report hides the post, tells the founder, and a stranger can no longer read it', async () => {
+    // #626: the first report leaves a courtesy notice and the post stays up.
+    it('a first report leaves the post up, sends the owner a courtesy notice, and stays out of the staff queue', async () => {
       process.env.OPERATOR_MEMBER_ID = OWNER
+      const first = await reportCreate(ctx(OWNER), { subjectKind: 'post', category: 'spam', subjectId: POST, body: 'First.' })
+      expect(first.photoHidden).toBe(false)
+      expect((await state()).discoverability).toBe('listed')
+      const n = await client.query(`select kind from public.member_notices where member_id = $1 and subject_id = $2`, [OWNER, POST])
+      expect(n.rows).toEqual([{ kind: 'courtesy' }])
+      expect((await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.reportId === first.reportId)).toBeUndefined()
+      await client.query(`delete from public.member_notices where subject_id = $1`, [POST])
+    })
+
+    it('a second report from another member hides the post, tells the founder, and a stranger can no longer read it', async () => {
       const r = await reportCreate(ctx(READER), { subjectKind: 'post', category: 'spam', subjectId: POST, body: 'Looks like an ad.' })
       reportId = r.reportId
       expect(r.photoHidden).toBe(true)
@@ -169,11 +180,11 @@ describe.skipIf(!RUNNABLE)('F078 — a reported Post', () => {
             [OWNER, reportId, POST, PAGE],
           )
         ).rows[0].id
-      await reportAnswer(ctx(OWNER), { noticeId: nid, reason: 'malicious', note: 'He reports everything.' })
-      await expect(reportAnswer(ctx(OWNER), { noticeId: nid, reason: 'mistaken', note: 'again' })).rejects.toThrow(/answered already/)
-      await expect(reportAnswer(ctx(READER), { noticeId: nid, reason: 'mistaken', note: 'not mine' })).rejects.toThrow()
+      await reportAnswer(ctx(OWNER), { noticeId: nid })
+      await expect(reportAnswer(ctx(OWNER), { noticeId: nid })).rejects.toThrow(/answered already/)
+      await expect(reportAnswer(ctx(READER), { noticeId: nid })).rejects.toThrow()
       const row = (await fetchReviewQueue(200, { includeBuilders: true })).find((r) => r.reportId === reportId)!
-      expect(row.answer).toEqual({ kind: 'wrong', reason: 'malicious', note: 'He reports everything.' })
+      expect(row.answer).toEqual({ kind: 'mistake', reason: null, note: null, at: expect.anything() })
       const week = await fetchWeekSummary()
       expect(week.answers).toBeGreaterThanOrEqual(1)
       expect(typeof week.coolDowns).toBe('number')

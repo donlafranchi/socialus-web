@@ -19,6 +19,7 @@ import { safeNext } from '@/lib/safe-next'
 import { rememberedEmail, rememberEmail } from '@/lib/auth/remembered-email'
 import Link from 'next/link'
 import { offerToSaveLogin } from '@/lib/auth/save-login'
+import { CodeEntry } from './CodeEntry'
 
 type Phase = 'email' | 'new' | 'returning' | 'magic-sent' | 'confirm-email'
 
@@ -172,8 +173,9 @@ export function EmailFirstSignup({
       <div className="w-full text-center" data-testid="magic-sent-message">
         <h1 className="mb-3 text-2xl font-semibold">Check your email</h1>
         <p className="mb-6 text-sm text-neutral-600">
-          We sent a sign-in link to <strong>{email}</strong>. Click it to finish — no password needed.
+          We sent a sign-in link to <strong>{email}</strong>. Open it in any browser or app to finish — no password needed.
         </p>
+        <CodeEntry email={email.trim()} next={nextSafe} onDone={onAuthenticated} />
         <button type="button" onClick={() => reset('email')} className="text-sm text-[var(--color-accent)] underline">
           Use a different email
         </button>

@@ -1,0 +1,24 @@
+name: Feature reports
+
+# Every report's JSON sidecar must parse, its generated tables must match it, and the
+# committed roll-up must be what criteria.py computes. Nothing to remember to run:
+# a stale or hand-edited table fails here (scripts/criteria.py, vendored from socialus-ops).
+on:
+  pull_request:
+    paths:
+      - 'build-log/reports/**'
+      - 'scripts/criteria.py'
+
+permissions:
+  contents: read
+
+jobs:
+  reports:
+    name: Feature reports
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 scripts/criteria.py rollup build-log/reports
+      - name: The committed roll-up is current
+        run: git diff --exit-code -- build-log/reports/README.md build-log/reports/rollup.json || { echo "::error::run python3 scripts/criteria.py rollup build-log/reports and commit the result"; exit 1; }

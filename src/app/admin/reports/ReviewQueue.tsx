@@ -17,17 +17,24 @@ import { Check, ChevronDown, X } from 'lucide-react'
 import { Toast } from '@/components/Toast'
 import { buttonClass } from '@/components/ui/Button'
 import { hiddenFor } from '@/lib/admin/hidden-for'
-import { DEFAULT_REASON, blurred, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
+import { DEFAULT_REASON, blurred, lapsed, orderSubjects, type ReviewSubject, type SortKey } from '@/lib/admin/review-subjects'
 import type { Outcome, ReasonCode } from '@/lib/admin/reason-codes'
 import { categoryLabel } from '@/lib/reports/categories'
 import { COPY } from '@/lib/copy'
+import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
+import { isServedViaSite } from '@/lib/media/served-url'
 import { ReportEntry } from './ReportEntry'
+import { NcmecRecord } from './NcmecRecord'
+import { SubjectTimeline } from './SubjectTimeline'
 
 type Decide = (input: { reportId: string; outcome: Outcome; reasonCode: ReasonCode; reasonNote?: string }) => Promise<void>
 type Reverse = (input: { decisionId: string; reasonCode: ReasonCode; reasonNote?: string }) => Promise<void>
 
 const UNDO_MS = 5000
 const SWIPE_PX = 96
+
+/** F102.11: the one summary is a Friday thing, in the metro's week. */
+const isFriday = (d: Date) => new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: METRO_TIME_ZONE }).format(d) === 'Fri'
 const REASON_WORD = { mistaken: 'Mistaken', malicious: 'Malicious', misusing_reports: 'Misusing reports' } as const
 const WORD: Record<Outcome, string> = { restored: 'Approve', removed: 'Remove' }
 
@@ -36,23 +43,41 @@ interface Pending {
   outcome: Outcome
 }
 
-const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo' } as const
+/** F101.2: the reporters' record, as the first reporter's counters and how many more there are. */
+function reporterLine(s: ReviewSubject): string | null {
+  const withRecord = s.reports.filter((r) => r.reporter)
+  const first = withRecord[0]?.reporter
+  if (!first) return null
+  const more = withRecord.length - 1
+  return `Reporter: ${first.filed} filed · ${first.upheld} upheld · ${first.dismissed} dismissed${more > 0 ? ` (+${more} more)` : ''}`
+}
+
+/** F101.4: filter by status. 'Under appeal' is a hidden subject whose poster has answered. */
+type Show = 'waiting' | 'all' | 'hidden' | 'appeal' | 'restored' | 'removed'
+const underAppeal = (s: ReviewSubject) => s.status === 'hidden' && s.answer !== null
+const matches = (s: ReviewSubject, show: Show) =>
+  show === 'all' || (show === 'appeal' ? underAppeal(s) : s.status === show)
+
+const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Page name and description', page_item: 'Product or service' } as const
 
 export function ReviewQueue({
   subjects,
   onDecide,
   onReverse,
+  onRecordNcmec,
   summary,
 }: {
   subjects: ReviewSubject[]
   onDecide: Decide
   onReverse: Reverse
+  /** #648 — record the NCMEC report number on a held row. */
+  onRecordNcmec?: (input: { reportId: string; reportNumber: string }) => Promise<void>
   /** F102 criterion 11 — the week in one line. */
   summary?: { answers: number; coolDowns: number }
 }) {
   const router = useRouter()
   const [sort, setSort] = useState<SortKey>('severity')
-  const [showAll, setShowAll] = useState(false)
+  const [show, setShow] = useState<Show>('waiting')
   const [done, setDone] = useState<Set<string>>(() => new Set())
   const [pending, setPending] = useState<Pending | null>(null)
   const pendingRef = useRef<Pending | null>(null)
@@ -62,10 +87,10 @@ export function ReviewQueue({
   const [error, setError] = useState<string | null>(null)
   const [now] = useState(() => new Date())
 
-  const waiting = (s: ReviewSubject) => s.openReportIds.length > 0 && !done.has(s.subjectId)
+  const waiting = (s: ReviewSubject) => s.openReportIds.length > 0 && !done.has(s.subjectId) && !lapsed(s, now)
   // A restore the AI made stays in the list until a person confirms or undoes it.
   const awaitingLook = (s: ReviewSubject) => s.aiRestored.length > 0 && !done.has(s.subjectId)
-  const rows = orderSubjects(subjects, sort).filter((s) => showAll || waiting(s) || awaitingLook(s))
+  const rows = orderSubjects(subjects, sort).filter((s) => (show === 'waiting' ? waiting(s) || awaitingLook(s) : matches(s, show)))
   const waitingCount = subjects.filter(waiting).length
 
   const send = useCallback(
@@ -187,18 +212,24 @@ export function ReviewQueue({
             id="review-filter"
             data-testid="review-filter"
             className="input w-auto py-1.5"
-            value={showAll ? 'all' : 'waiting'}
-            onChange={(e) => setShowAll(e.target.value === 'all')}
+            value={show}
+            onChange={(e) => setShow(e.target.value as Show)}
           >
             <option value="waiting">Waiting</option>
             <option value="all">All</option>
+            <option value="hidden">Hidden</option>
+            <option value="appeal">Under appeal</option>
+            <option value="restored">Restored</option>
+            <option value="removed">Removed</option>
           </select>
         </div>
       </header>
 
-      {summary && (
+      {summary && isFriday(now) && (
         <p data-testid="review-summary" className="mt-2 text-caption text-[var(--color-fg-muted)]">
-          This week: {summary.answers === 0 ? 'no answers from posters' : `${summary.answers} answer${summary.answers === 1 ? '' : 's'} from posters`}
+          This week: {waitingCount === 0 ? 'nothing waiting' : `${waitingCount} waiting (${bySeverity.map((n, i) => (n ? `${n} severity ${i + 1}` : '')).filter(Boolean).join(', ')})`}
+          {' · '}
+          {summary.answers === 0 ? 'no answers from posters' : `${summary.answers} answer${summary.answers === 1 ? '' : 's'} from posters`}
           {' · '}
           {summary.coolDowns === 0 ? 'no cool-downs' : `${summary.coolDowns} reporter${summary.coolDowns === 1 ? '' : 's'} cooling down`}
         </p>
@@ -229,9 +260,13 @@ export function ReviewQueue({
               focusRow(i)
             }}
             onCancelConfirm={() => setConfirming(null)}
-            detail={s.reports.map((r) => (
-              <ReportEntry key={r.reportId} report={r} hiddenFor={hiddenFor(r.hiddenAt, now)} onDecide={onDecide} onReverse={onReverse} />
-            ))}
+            detail={[
+              ...(s.hold && onRecordNcmec ? [<NcmecRecord key="hold" hold={s.hold} onRecord={onRecordNcmec} />] : []),
+              <SubjectTimeline key="timeline" subject={s} />,
+              ...s.reports.map((r) => (
+                <ReportEntry key={r.reportId} report={r} hiddenFor={hiddenFor(r.hiddenAt, now)} onDecide={onDecide} onReverse={onReverse} />
+              )),
+            ]}
           />
         ))}
       </ul>
@@ -330,14 +365,24 @@ function Row({
       >
         <div className="flex gap-3">
           {s.photoUrl ? (
+            // F101.13: pressed and held. Shown only while the finger (or a key) is down; released, left or cancelled, it blurs again.
+            // The tap handlers on the row ignore a button, so a hold never starts the swipe.
             <button
               type="button"
-              aria-label={blurred(s) ? (peek ? 'Hide the photo' : 'Show the photo') : 'Photo'}
-              aria-pressed={blurred(s) ? peek : undefined}
+              aria-label={blurred(s) ? 'Hold to show the photo' : 'Photo'}
               data-testid="review-thumb"
               data-blurred={blurred(s) && !peek ? 'true' : 'false'}
-              onClick={() => blurred(s) && setPeek((p) => !p)}
-              className="size-16 shrink-0 overflow-hidden rounded-md bg-[var(--color-surface)]"
+              onPointerDown={() => blurred(s) && setPeek(true)}
+              onPointerUp={() => setPeek(false)}
+              onPointerLeave={() => setPeek(false)}
+              onPointerCancel={() => setPeek(false)}
+              onKeyDown={(e) => blurred(s) && (e.key === ' ' || e.key === 'Enter') && setPeek(true)}
+              onKeyUp={() => setPeek(false)}
+              onBlur={() => setPeek(false)}
+              // A screen reader's click arrives with no pointer (detail 0): it toggles, so the photo can be shown without holding anything.
+              onClick={(e) => blurred(s) && e.detail === 0 && setPeek((p) => !p)}
+              onContextMenu={(e) => e.preventDefault()}
+              className="size-16 shrink-0 select-none overflow-hidden rounded-md bg-[var(--color-surface)] [-webkit-touch-callout:none]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={s.photoUrl} alt="" className={`size-full object-cover ${blurred(s) && !peek ? 'blur-lg' : ''}`} />
@@ -355,6 +400,13 @@ function Row({
               )}
             </div>
             <p data-testid="review-excerpt" className="mt-0.5 line-clamp-2 text-body-sm text-[var(--color-fg)]">{excerpt}</p>
+            {s.severity === 1 && s.photoUrl && (
+              <p data-testid="review-scan" className="mt-0.5 text-caption text-[var(--color-fg)]">
+                {isServedViaSite(s.photoUrl, process.env.NEXT_PUBLIC_SUPABASE_URL)
+                  ? 'Photo scanned against known lists. A match is blocked and emailed to you.'
+                  : 'Photo not scanned against known lists.'}
+              </p>
+            )}
             {s.ai && (
               <p data-testid="review-ai" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {'skipped' in s.ai
@@ -366,7 +418,9 @@ function Row({
               <p data-testid="review-answer" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {s.answer.kind === 'fix_and_repost'
                   ? 'Poster fixed it and reposted.'
-                  : `Poster: ${REASON_WORD[s.answer.reason ?? 'mistaken']}${s.answer.note ? ` — ${s.answer.note}` : ''}`}
+                  : s.answer.kind === 'mistake'
+                    ? 'Owner says this is a mistake: top of the list.'
+                    : `Poster: ${REASON_WORD[s.answer.reason ?? 'mistaken']}${s.answer.note ? ` — ${s.answer.note}` : ''}`}
               </p>
             )}
             {s.coordinated && (
@@ -379,8 +433,13 @@ function Row({
                 {s.reasons.map((r) => (r.count > 1 ? `${categoryLabel(r.category).split(' — ')[0]} ×${r.count}` : categoryLabel(r.category).split(' — ')[0])).join(' · ')}
               </p>
             )}
+            {reporterLine(s) && (
+              <p data-testid="review-reporter" className="mt-0.5 text-caption text-[var(--color-fg)]">
+                {reporterLine(s)}
+              </p>
+            )}
             <p className="mt-1 text-caption text-[var(--color-fg-muted)]">
-              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{SUBJECT_LABEL[s.subjectKind]}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : 'Hidden') : 'Decided'}
+              {s.reports.length} report{s.reports.length === 1 ? '' : 's'} · <span data-testid="review-kind">{SUBJECT_LABEL[s.subjectKind]}</span> · {isWaiting ? (s.status === 'removed' ? 'Removed' : underAppeal(s) ? 'Under appeal' : 'Hidden') : lapsed(s, now) ? 'No answer: closed itself' : 'Decided'}
               {age ? ` · hidden ${age}` : ''}
             </p>
           </div>

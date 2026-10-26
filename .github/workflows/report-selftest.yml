@@ -1,0 +1,69 @@
+name: Report self-test
+
+# #486 — the report flow and the AI first read, end to end on production, by hand: the
+# builder member files ONE report marked TEST on a builder Page through the real sheet;
+# then the read-only SQL shows the report, the AI row and any notice; then the report is
+# soft-removed (removed_at), never deleted. Never scheduled: it writes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      page_id:
+        description: 'Public ID of a BUILDER-owned Page (the six characters after /g/)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: report-selftest
+  cancel-in-progress: false
+
+jobs:
+  selftest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --only-shell chromium
+      - name: File a TEST report as the builder member
+        env:
+          BUILDERS_BASE_URL: https://www.socialus.org
+          BUILDER_SEED: ${{ secrets.BUILDER_SEED }}
+          REPORT_PAGE_ID: ${{ inputs.page_id }}
+        run: |
+          [ -n "$BUILDER_SEED" ] || { echo "::error::BUILDER_SEED is not set."; exit 1; }
+          npx playwright test --project=report-selftest --reporter=line
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Show the report, the AI row and any notice, then soft-remove the TEST report
+        env:
+          DB: ${{ steps.dburl.outputs.url }}
+        run: |
+          sleep 45
+          Q="from public.reports r where r.body like 'TEST (report self-test, #486)%' and r.removed_at is null"
+          {
+            echo '### The TEST report'
+            psql "$DB" -X -c "select r.id, r.subject_kind, r.category, r.created_at, r.reviewed_at $Q"
+            echo '### The AI read (a builder report is skipped by design)'
+            psql "$DB" -X -c "select a.created_at, a.model, a.skipped_reason, a.outcome from public.report_assessments a join public.reports r on r.id = a.report_id where r.body like 'TEST (report self-test, #486)%'"
+            echo '### Notices for it (none by design: the reporter is a builder)'
+            psql "$DB" -X -c "select n.kind, n.created_at from public.member_notices n join public.reports r on r.id = n.report_id where r.body like 'TEST (report self-test, #486)%'"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          psql "$DB" -X -c "update public.reports r set removed_at = now() where r.body like 'TEST (report self-test, #486)%' and r.removed_at is null" | tee -a "$GITHUB_STEP_SUMMARY"

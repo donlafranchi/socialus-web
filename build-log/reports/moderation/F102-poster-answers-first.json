@@ -1,0 +1,287 @@
+{
+ "schema": 1,
+ "feature": "F102",
+ "title": "the poster answers first, report misuse is tracked, and the platform holds steady Tuesday to Thursday",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "When content hides, the poster is told the category and the reporter's reason and gets one answer",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "`member_notices` row on the hide; `YouNotices` on `/you` (#506, #706); the words and item kinds have their own notice text (#820, #920) [V] Checked: `[guards F102.1]` in `f102-criteria.test.tsx` [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-23 (cb892a7) [A]"
+  },
+  {
+   "id": "2",
+   "text": "Fix and repost: the edit shows again at once, reports stay on the row, no second repost, not offered for severity 1",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "`page_posts.repost_used`; severity 1 never reposts (#506, #773); an owner's edit of hidden Page words or an item clears that hide too (#820, #920) [V] Checked: `[guards F102.2]` in `tests/f102-fix-and-repost-db.test.ts` [V] Reviewed: #773 `review-skipped` [V]"
+  },
+  {
+   "id": "3a",
+   "text": "The poster can say the report is wrong: one answer per hide, it goes to the AI pass and the row, the content stays hidden",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    649,
+    838
+   ],
+   "note": "`report_answers` unique per notice; the rebuttal reaches `run-assessment`; one \"This is a mistake\" button (#506, #513, #706) [V] Checked: `[guards F102.3]` in `tests/f102-answer-db.test.ts:76` through the real action against the local database, seen failing against four mutants (#912, closed #838) [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-23 [A]"
+  },
+  {
+   "id": "3b",
+   "text": "The answer is one of Mistaken, Malicious or Misusing reports, plus a 280-character note",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    627
+   ],
+   "note": "RETIRED. Overtaken by the PM's copy call of 2026-10-11 on #627 and #626 (\"one button only; remove the three answer choices\"); F102 `## Rulings` still has no dated line for it and criterion 3 still lists the three answers, so `sync-roadmap` should record it and amend the scenario [V]."
+  },
+  {
+   "id": "4",
+   "text": "No answer is no work: an unanswered hide stays hidden and closes after 14 days; the batch shows it only if severity 1",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    645,
+    649
+   ],
+   "note": "`ANSWER_WINDOW_DAYS = 14`; a lapsed hide leaves the batch unless severity 1 (#773) [V] Checked: `[guards F102.4]` in `ReviewQueue.test.tsx`; its clock is pinned since #900, after the fixtures crossed the 14-day window on 17 Oct and went red [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]"
+  },
+  {
+   "id": "5",
+   "text": "Per-reporter counters (filed, upheld, dismissed, open); operator-only; used by nothing outside the report path",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    650
+   ],
+   "note": "Counters in `reports-queue.ts`, shown on the row (#506); the \"never a score on a person\" comment was dropped after the 2026-10-16 ruling, the counters unchanged (#819) [V] Checked: `[guards F102.5]` in `f102-criteria.test.tsx` [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "6",
+   "text": "The cap tightens: 5 hiding reports open at once, 1 after any dismissal in the last 30 days",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`CAP_AFTER_A_DISMISSAL = 1` in `create.ts` (#506) [V] Checked: `[guards F102.6]` in `create.test.ts` [V]"
+  },
+  {
+   "id": "7",
+   "text": "Cool-down: two dismissals in 30 days start 14 days in which that reporter's reports hide nothing",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "SPEC-CONFLICT. Cool-down and three strikes are built (`create.ts`: `COOL_DOWN_DAYS = 14`), but urgent categories (sensitive content, threat of harm) still hide during one (\"Ruled 2026-10-08, Dispatch\" in the code) while the criterion says hide nothing; F102 `## Rulings` still carries no such line [V]. Test: `[guards F102.7]` in `create.test.ts:780` asserts the built reading."
+  },
+  {
+   "id": "8",
+   "text": "Three or more reports in 24 hours, two from accounts under 7 days old, flag the row \"Possible coordinated reporting\" and lift it one tier",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    838
+   ],
+   "note": "`coordinatedPosters` and the sort tier in `review-subjects.ts`; the flag in `ReviewQueue.tsx` (#506) [V] Checked: `[guards F102.8]` in `f102-whole-criteria.test.tsx:39`: both thresholds each side, the flag, the one-tier lift, seen failing against three mutants (#912) [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "9",
+   "text": "Tuesday to Thursday with no person: severities 2-4 stay hidden and wait; severity 1 stays hidden and texts the PM",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    649
+   ],
+   "note": "Nothing schedules a person step; urgent reports alert the operator (`create.ts`), by email until Twilio exists (#707) [V] Checked: `[guards F102.9]` in `f102-criteria.test.tsx` [V] Reviewed: #773 `review-skipped` [V]"
+  },
+  {
+   "id": "10",
+   "text": "The threat-of-harm report sheet tells the reporter to call 911 if someone is in danger now",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    627,
+    649
+   ],
+   "note": "`COPY.report911` shown in `ReportSheet` before sending (placeholder copy, #627) [V] Checked: `[guards F102.10]` in `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet-threat` route exists in `evals/screens/routes.ts` but no run has included it; `page` alone does not open the sheet [V]"
+  },
+  {
+   "id": "11",
+   "text": "One Friday in-app summary: waiting rows by severity, answers received, cool-downs started",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    646,
+    649
+   ],
+   "note": "`ReviewQueue.tsx` shows the summary on Fridays in the metro time zone (#773) [V] Checked: `[guards F102.11]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "12",
+   "text": "Severity 4 restores itself in beta, narrowly (poster answered, Haiku and Sonnet both approve at 0.95 or higher, no coordinated flag, harness cleared)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    838
+   ],
+   "note": "`restore-gate.ts`, `ai-restore.ts`, \"Restored by AI\" on the row (#540); dormant until the harness clears the slice and `ai_mode` is live [V] Checked: `[guards F102.12]` in `f102-whole-criteria.test.tsx:96`: every condition, the log, the AI attribution, Confirm and Undo, severities 1-3 never, seen failing against four mutants (#912) [V] Reviewed: #540 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "13",
+   "text": "Every upload and post records its IP and time, operator-only, kept a year then deleted",
+   "kind": [
+    "invariant",
+    "coverage"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    647,
+    650,
+    838
+   ],
+   "note": "Every member upload and post path calls the recorder; RLS on, no policy (#509, #774) [V]. The daily purge workflow still skips itself each day (runs 2026-10-21 to 10-23 `skipped`) until the repository variable `CONTENT_ORIGINS_PURGE_ENABLED` is set; nothing is due before October 2027 [V] Checked: standing guard `[guards F102.13]` in `tests/content-origins-db.test.ts:120`: every path calls the recorder, no member reads the table, only the recorder and the report path name it, seen failing against three mutants (#912) [V] Reviewed: #509 `review-skipped`; #774 no `Reviewed by:` [V]"
+  },
+  {
+   "id": "14",
+   "text": "Child-safety content is a legal tier: never restores, never goes to the poster, no AI, preserved and reported to NCMEC",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    648,
+    650,
+    838
+   ],
+   "note": "No poster notice, the AI skips it, the restore gate is severity 4 only; a one-year legal hold (#783) and a field for NCMEC's report number after the manual CyberTipline form (#785), runbook link (#782); `legal_holds` takes the words and item kinds too (#820, #920) [V]. #648 stays open for the PM's member-facing statement and the parked phone check [V] Checked: standing guard `[guards F102.14]` in `tests/legal-holds-db.test.ts:151`: no notice, no AI, no restore, no repost, the year's hold and the NCMEC number, seen failing against six mutants (#912) [V] Reviewed: #785 `review-skipped`; #783 carries `Reviewed by:` [V] Shipped: #783 (0272c62) has no deploy-health run; #785 green [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  }
+ ]
+}

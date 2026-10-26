@@ -1,0 +1,282 @@
+{
+ "schema": 1,
+ "feature": "F101",
+ "title": "one scannable page of flagged and reviewed Posts, decided in one tap",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Operator-only Posts page, one row per reported subject; non-operators get 404",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled; #820, #920 green [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1), after the last queue change [V]"
+  },
+  {
+   "id": "2",
+   "text": "Each row shows thumbnail, excerpt, severity, reasons, AI read, rebuttal, reporter record, coordinated flag, status and age",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V] Checked: `[guards F101.2]` in `criteria.test.tsx` [V] Reviewed: #380 none, #771 `review-skipped` [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "3",
+   "text": "Severity 1-4, the highest open tier; shadow = reporter's category, live = the higher of the two",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "4",
+   "text": "Order severity then oldest hidden; sort by severity, age, count; filter by status; header counts",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "5",
+   "text": "Approve and Remove as full-width buttons, at least 48 px, in the bottom half of every waiting row",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`min-h-12` buttons in the row footer [V] Checked: `[guards F101.5]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "6",
+   "text": "Swipe right approves, swipe left removes, with the action's colour and word revealed",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "7",
+   "text": "One decision is one tap or one swipe; severity-1 Approve takes one extra confirm",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "8",
+   "text": "No confirm dialog otherwise; five-second Undo; an undone decision writes no row and tells the member nothing",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "9",
+   "text": "The next waiting row moves into place after each decision",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "10",
+   "text": "A one-tap decision records a default reason, changeable afterwards",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836) [V] Checked: `[guards F101.10]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "11",
+   "text": "A decision writes one `report_decisions` row per open report it closes",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "12",
+   "text": "Tapping a row opens the subject with its full history, newest first, with Undo on any decision",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    634
+   ],
+   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "13",
+   "text": "Severity 1-3 thumbnails are blurred until pressed and held; severity 4 shows plain",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    635
+   ],
+   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V]"
+  },
+  {
+   "id": "14",
+   "text": "Desktop keys: A approves, R removes, J and K move, U undoes",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    636
+   ],
+   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+  },
+  {
+   "id": "15",
+   "text": "A batch of 50 waiting rows is clearable in under 10 minutes on a phone, measured at 375 px",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec [V] Reviewed: #538 no `Reviewed by:` [V] Shipped: #538 (ab7691d) green [V]"
+  }
+ ]
+}

@@ -39,16 +39,24 @@
 
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase-server'
+import { cachedMetros } from '@/lib/feed/metro-catalog'
+import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
-import { getBrowseFeed } from '@/lib/feed/browse-feed'
+import { getBrowseFeed, getHappening, getNearbyFeed } from '@/lib/feed/browse-feed'
+import { REACH_CAP, REACH_TARGET, type Reach } from '@/lib/browse/reach'
 import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
 import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { happeningWindows } from '@/lib/metro/happening'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
-import { listFeedMetros, withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
+import { withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
 import { waitingCountByMetro } from '@/lib/metro/waitlist-counts'
 import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
+import { mixRuns } from '@/lib/browse/mix-runs'
+import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
+import { feedOptsFor, hasBrowseFilters, isPlainPostsView, serverFilters, type BrowseFilters } from '@/lib/browse/filters'
+import { interestPageTags } from '@/lib/onboarding/interest-vocab'
+import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
 import { loadMapMix } from '@/lib/map/load-mix'
 import { withLocationKinds } from '@/lib/map/location-kinds'
 import type { MixedResult } from '@/lib/map/mix'
@@ -68,24 +76,42 @@ export async function loadBrowse(
   // #549 — the page and the refetch leave the map to its own read (`loadMap`): it is a
   // three-round chain nothing on the list waits for, and a phone does not show it first.
   // #557 — the session seed: same seed, same order; a new sign-in brings a new one.
-  { withMap = true, seed = null }: { withMap?: boolean; seed?: string | null } = {},
+  // #876 — the Type / Category / Date filters, pushed into one targeted read.
+  // #916 — the search box's words: searched on the server over the whole scope, with the filters.
+  // #922 — how far the default mix reaches: null lets the database widen to a full screen; a ring or 'all' is the member's.
+  {
+    withMap = true,
+    seed = null,
+    filters = null,
+    search = null,
+    reach = null,
+  }: { withMap?: boolean; seed?: string | null; filters?: BrowseFilters | null; search?: string | null; reach?: Reach | null } = {},
 ): Promise<BrowseSnapshot> {
   const supabase = await createClient()
 
   // The switcher's options depend on nothing else, so they start first rather
   // than waiting behind three round trips they have no relationship to.
-  const metrosPromise = listFeedMetros(supabase).catch(() => [] as FeedMetro[])
+  const metrosPromise = cachedMetros().catch(() => [] as FeedMetro[])
   const waitingPromise = waitingCountByMetro().catch(() => new Map<string, number>())
   const areaPromise = areaId ? neighborhood(supabase, areaId) : Promise.resolve(null)
 
-  const { data: auth } = await supabase.auth.getUser()
-  const user = auth.user ?? null
+  // #791 — who is looking, from the session's verified claims: no round trip.
+  const userId = await viewerId(supabase)
+  // Their follow set depends on nothing but who they are, so it starts now rather
+  // than behind the metro reads. A failure is the following row's, caught there.
+  const followIdsPromise = userId ? resolveFollowedPageIds(supabase, userId) : null
+  followIdsPromise?.catch(() => {})
+  // #892 — their own interests, for the "My interests" filter. Null signed out.
+  const myInterestsPromise = userId ? myInterestTags(supabase, userId) : Promise.resolve(null)
 
   // Sequential because the scope depends on it: precedence is requested slug,
   // then this, then the default.
-  const member = user ? await memberMetros(supabase, user.id) : null
-  const rememberedSlug = user ? null : await rememberedMetroSlug()
+  const member = userId ? await memberMetros(supabase, userId) : null
+  const rememberedSlug = userId ? null : await rememberedMetroSlug()
+  // #978 — the metros are public and cached; the scope is picked from them, not read again.
+  const catalog = await metrosPromise
   const scope = await resolveBrowseScope(supabase, {
+    catalog,
     memberMetroId: member?.home ?? null,
     memberDefaultMetroId: member?.default ?? null,
     requestedSlug,
@@ -94,12 +120,10 @@ export async function loadBrowse(
   // The CACHED counts, merged here so the picker can order by them and the
   // popup can show one — the same figure in both places, which is the whole
   // point. A failure costs the ordering and the number, never the picker.
-  const metros = withWaitingCounts(
-    await metrosPromise,
-    await waitingPromise,
-  )
+  const metros = withWaitingCounts(catalog, await waitingPromise)
 
-  const base = { metros, signedIn: Boolean(user), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'] }
+  const myInterests = await myInterestsPromise
+  const base = { metros, signedIn: Boolean(userId), happening: NO_ROWS, map: [] as MixedResult[], area: null as BrowseSnapshot['area'], myInterests }
   if (!scope) {
     return { ...base, results: [], following: [], metro: null, chosen: false, failed: false }
   }
@@ -109,15 +133,56 @@ export async function loadBrowse(
   const area = await areaPromise
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
 
+  // #876 — a filter is one targeted read: no first look, no rows (signed out, posts only reads the withheld cards).
+  // #892 — "My interests" is not part of the read: the client applies it to the list as it stands.
+  const narrowing = filters ? serverFilters(filters) : null
+  const searching = Boolean(search?.trim())
+  if ((narrowing && hasBrowseFilters(narrowing)) || searching) {
+    // F093 criterion 7 — signed out, posts only is the withheld cards, as on the mix. A narrower
+    // filter (kind, date, following) would say what a withheld post is; browse_feed gives anon no posts.
+    if (!userId && narrowing && isPlainPostsView(narrowing) && !searching) {
+      try {
+        const results = await getWithheldAnnouncements(supabase, { scope: feedScope, period: metroWeekBounds(), limit: BROWSE_LIMIT })
+        return { ...base, results, lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
+      } catch (error) {
+        console.error('[loadBrowse] signed-out posts view failed:', (error as Error).message)
+        return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
+      }
+    }
+    const o = narrowing ? feedOptsFor(narrowing, new Date()) : null
+    try {
+      const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
+      const results = await getBrowseFeed(supabase, {
+        scope: feedScope,
+        // #916 — signed out, a search reads Pages only: a post's words never answer a stranger (F093).
+        resultKinds: userId ? (o?.resultKinds ?? null) : ['page'],
+        ...(searching ? { search } : {}),
+        postKinds: o?.postKinds,
+        tags: o?.tags,
+        startsFrom: o?.startsFrom,
+        startsBefore: o?.startsBefore,
+        sort: o?.sort,
+        limit: BROWSE_LIMIT,
+        ...(o?.following ? { audience: { audience: 'following' as const, following: followIds } } : {}),
+        // #922 — a filter or a search covers the whole area unless the member set a reach.
+        ...(typeof reach === 'number' && !area ? { reachMinutes: reach } : {}),
+      })
+      return { ...base, results: markFollowed(results, followIds), lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
+    } catch (error) {
+      console.error('[loadBrowse] filtered browse_feed failed:', (error as Error).message)
+      return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
+    }
+  }
+
   // Started before the public read is awaited: it depends on the member and
   // the scope, neither of which the public read can change.
-  const followingPromise = user
-    ? followedFeed(supabase, user.id, feedScope)
+  const followingPromise = followIdsPromise
+    ? followedFeed(supabase, followIdsPromise, feedScope)
     : Promise.resolve([] as BrowseResult[])
 
   // F091 — signed in, the rows are posts. Signed out, only the today row
   // fills, with the front door's withheld card (Don, 2026-10-01).
-  const happeningPromise = user
+  const happeningPromise = userId
     ? happeningRows(supabase, feedScope)
     : signedOutToday(supabase, feedScope)
 
@@ -134,9 +199,9 @@ export async function loadBrowse(
   // carrying only Pages leaks nothing and is still wrong — it is the
   // difference between a directory and a place that is visibly alive, which
   // is the whole reason this ruling is not "announcements require an account".
-  const signedOut = !user
+  const signedOut = !userId
   // #331 — signed out, no pins (the front door, F093).
-  const mapPromise = user && withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
+  const mapPromise = userId && withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
   let withheldFailed = false
   const withheldPromise = signedOut
     ? getWithheldAnnouncements(supabase, {
@@ -152,27 +217,57 @@ export async function loadBrowse(
     : Promise.resolve([] as BrowseResult[])
 
   try {
-    const results = await getBrowseFeed(supabase, {
-      scope: feedScope,
-      resultKinds: signedOut ? ['page'] : null,
-      limit: BROWSE_LIMIT,
-    })
+    // #922 — the whole market only when the member asked for it, or picked a neighbourhood; otherwise a full screen nearby.
+    const nearby = !area && reach !== 'all'
+    const read = nearby
+      ? await getNearbyFeed(supabase, {
+          metroId: scope.metro.id,
+          resultKinds: signedOut ? ['page'] : null,
+          // "This week" as the next seven days, so a Sunday still counts the week ahead.
+          weekEnd: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+          minutes: typeof reach === 'number' ? reach : null,
+          target: REACH_TARGET,
+          cap: REACH_CAP,
+          limit: BROWSE_LIMIT,
+        })
+      : { results: await getBrowseFeed(supabase, { scope: feedScope, resultKinds: signedOut ? ['page'] : null, limit: BROWSE_LIMIT }), reach: null }
+    const results = read.results
+    const reachShown: BrowseSnapshot['reach'] = area ? null : read.reach ?? { minutes: 'all', from: null }
     const following = await followingPromise
-    const withheld = await withheldPromise
+    // Signed out, a withheld card stands for a Page in reach, never one the list left out.
+    const inReach = new Set(results.map((r) => r.groupId))
+    const withheld = (await withheldPromise).filter((r) => !nearby || inReach.has(r.groupId))
+    const happening = await happeningPromise
+    const now = new Date()
+    // #876 (Don, 2026-10-16) — everything mixed: Pages, posts, and the updates of Pages the member
+    // follows, each once, in the session's place-and-time order.
+    const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
+    const mixed = markFollowed(uniqueResults([...results, ...following]), followIds)
+    const shuffled = sessionShuffle(mergeByRecency(mixed, withheld), seed, {
+      id: (r) => `${r.resultKind}:${r.resultId}`,
+      at: (r) => r.sortAt,
+      now,
+    })
+    // #897 — no more than 2 in a row of one category; only undated rows move, dated posts keep their slots.
+    const mixedRuns = mixRuns(shuffled, { tags: (r) => r.tags ?? [], movable: (r) => !r.startsAt })
+    // #796 — the first look, from rows already in hand: no read of its own.
+    const memory = await exploreMemory(seed)
+    // #796 — a post this browser has already been shown never pins to the top: it waits below the first screen.
+    const ordered = keepSeenPostsBelow(mixedRuns, memory.seen)
+    const { lead, fresh } = pickLead([...ordered, ...happening.today, ...happening.thisWeekend], { now, seed, ...memory })
     return {
       ...base,
-      happening: await happeningPromise,
+      happening,
       map: await mapPromise,
-      results: sessionShuffle(mergeByRecency(results, withheld), seed, {
-        id: (r) => `${r.resultKind}:${r.resultId}`,
-        at: (r) => r.sortAt,
-        now: new Date(),
-      }),
+      results: ordered,
+      lead,
+      leadFresh: fresh,
       following,
       metro: scope.metro,
       area,
       chosen: scope.chosen,
       failed: withheldFailed,
+      reach: reachShown,
     }
   } catch (error) {
     // Loud, and distinguishable. An empty surface that means "the query is
@@ -210,8 +305,40 @@ async function loadMap(
 /** #549 — the map's own read, after the list has painted. Empty signed out: no pins there (#331). */
 export async function loadMemberMap(metroId: string, areaId: string | null): Promise<MixedResult[]> {
   const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-  return data.user ? loadMap(supabase, metroId, areaId) : []
+  return (await viewerId(supabase)) ? loadMap(supabase, metroId, areaId) : []
+}
+
+/** The first screen: a seen post is moved below it, everything else keeps its place. */
+const FIRST_SCREEN = LEAD_SIZE
+
+function keepSeenPostsBelow(rows: BrowseResult[], seen: Set<string>): BrowseResult[] {
+  if (seen.size === 0) return rows
+  const top: BrowseResult[] = []
+  const held: BrowseResult[] = []
+  const rest: BrowseResult[] = []
+  for (const r of rows) {
+    if (top.length < FIRST_SCREEN) (r.resultKind === 'post' && seen.has(leadKey(r)) ? held : top).push(r)
+    else rest.push(r)
+  }
+  return [...top, ...held, ...rest]
+}
+
+/** One of each result, first seen wins. */
+function uniqueResults(rows: BrowseResult[]): BrowseResult[] {
+  const seen = new Set<string>()
+  return rows.filter((r) => {
+    const k = `${r.resultKind}:${r.resultId}`
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+}
+
+/** #876 — the Following filter's field, set wherever a Page the member follows shows up. */
+function markFollowed(rows: BrowseResult[], followIds: readonly string[]): BrowseResult[] {
+  if (followIds.length === 0) return rows
+  const ids = new Set(followIds)
+  return rows.map((r) => (ids.has(r.groupId) ? { ...r, followed: true } : r))
 }
 
 /**
@@ -243,11 +370,11 @@ function mergeByRecency(a: BrowseResult[], b: BrowseResult[]): BrowseResult[] {
  */
 async function followedFeed(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  memberId: string,
+  followIds: Promise<string[]>,
   scope: FeedScope,
 ): Promise<BrowseResult[]> {
   try {
-    const following = await resolveFollowedPageIds(supabase, memberId)
+    const following = await followIds
     // Called even when `following` is empty — see the note at the top.
     return await getBrowseFeed(supabase, {
       scope,
@@ -264,27 +391,16 @@ const NO_ROWS: HappeningSnapshot = { today: [], thisWeek: [], thisWeekend: [] }
 const ROW_LIMIT = 20
 
 /**
- * F091 — one time-windowed, soonest-first read per row. Like the following
- * row, a failure costs the rows, never the surface: an absent row and a broken
- * one read the same, and both are logged.
+ * F091 — the three time-windowed, soonest-first rows, in one read (#791). Like
+ * the following row, a failure costs the rows, never the surface: an absent
+ * row and a broken one read the same, and both are logged.
  */
 async function happeningRows(
   supabase: Awaited<ReturnType<typeof createClient>>,
   scope: FeedScope,
 ): Promise<HappeningSnapshot> {
-  const w = happeningWindows()
-  const row = (win: { from: string; to: string }) =>
-    getBrowseFeed(supabase, {
-      scope,
-      resultKinds: ['post'],
-      startsFrom: win.from,
-      startsBefore: win.to,
-      sort: 'soonest',
-      limit: ROW_LIMIT,
-    })
   try {
-    const [today, thisWeek, thisWeekend] = await Promise.all([row(w.today), row(w.thisWeek), row(w.thisWeekend)])
-    return { today, thisWeek, thisWeekend }
+    return await getHappening(supabase, scope, happeningWindows(), ROW_LIMIT)
   } catch (error) {
     console.error('[loadBrowse] happening rows failed:', (error as Error).message)
     return NO_ROWS
@@ -328,12 +444,36 @@ async function memberMetros(
   return { home: row?.home_metro_id ?? null, default: row?.default_metro_id ?? null }
 }
 
+/**
+ * #892 — the member's interests as Page tags. Owner-only RLS (2026-09-30: interest tags are not public)
+ * means this can only ever return the reader's own; the member_id is belt and braces. A failure costs the
+ * filter its tags, never the surface.
+ */
+async function myInterestTags(supabase: Awaited<ReturnType<typeof createClient>>, userId: string): Promise<string[]> {
+  const { data, error } = await supabase.from('member_interests').select('tag').eq('member_id', userId)
+  if (error) {
+    console.error('[loadBrowse] member interests failed:', error.message)
+    return []
+  }
+  return interestPageTags(((data ?? []) as { tag: string }[]).map((r) => r.tag))
+}
+
 /** #557 — this session's shuffle seed (set by the proxy), or null when there is none. */
 export async function readSessionSeed(): Promise<string | null> {
   try {
     return seedFromCookie((await cookies()).get(SEED_COOKIE)?.value)
   } catch {
     return null
+  }
+}
+
+/** #796 — when this browser last visited, and what an earlier visit's first look already showed. */
+async function exploreMemory(seed: string | null): Promise<{ lastVisit: Date | null; seen: Set<string> }> {
+  try {
+    const jar = await cookies()
+    return { lastVisit: lastVisitFrom(jar.get(VISIT_COOKIE)?.value), seen: seenBefore(jar.get(SEEN_COOKIE)?.value, seed) }
+  } catch {
+    return { lastVisit: null, seen: new Set() }
   }
 }
 

@@ -72,21 +72,6 @@ export const metroWaitlistJoin = defineHandler(
         throw new NotFoundError(`metro.waitlist_join: metro ${input.metroId} not found`)
       }
 
-      // The person's existing choice, if any. Read inside the transaction so a
-      // concurrent join cannot slip between the read and the write.
-      const existingRes = await client.query<{ metro_id: string; role: WaitlistRole }>(
-        `select metro_id, role from public.metro_waitlist where member_id = $1 for update`,
-        [memberId],
-      )
-      const existing = existingRes.rows[0] ?? null
-
-      // Already exactly here, in exactly this role. Nothing to write and
-      // nothing to increment — a re-visit, a re-signup or a second device all
-      // land here.
-      if (existing && existing.metro_id === input.metroId && existing.role === input.role) {
-        return { metroId: input.metroId, role: input.role, changed: false }
-      }
-
       const bump = async (metroId: string, role: WaitlistRole, delta: 1 | -1) => {
         const column = COUNT_COLUMN[role]
         // `greatest(..., 0)` on the way down so a counter can never go
@@ -101,6 +86,54 @@ export const metroWaitlistJoin = defineHandler(
             : `update public.metro_polygons set ${column} = greatest(${column} - 1, 0), updated_at = $2 where id = $1 and not public.is_builder($3)`,
           [metroId, ctx.now(), memberId],
         )
+      }
+
+      // The person's existing choice, if any. Read inside the transaction so a
+      // concurrent join cannot slip between the read and the write.
+      const existingRes = await client.query<{ metro_id: string; role: WaitlistRole }>(
+        `select metro_id, role from public.metro_waitlist where member_id = $1 for update`,
+        [memberId],
+      )
+      let existing = existingRes.rows[0] ?? null
+
+      // Criterion 4 across both paths: a person who first left only an email
+      // holds a row of their own. Fold it into the member, so one person is
+      // one row and no address lingers. Signed-in path only; the anonymous
+      // response (criterion 14) is not touched.
+      const authRes = await client.query<{ email: string | null }>(
+        `select lower(email) as email from auth.users where id = $1`,
+        [memberId],
+      )
+      const authEmail = authRes.rows[0]?.email ?? null
+      if (authEmail) {
+        const pendingRes = await client.query<{ id: string; metro_id: string; role: WaitlistRole }>(
+          `select id, metro_id, role from public.metro_waitlist
+            where lower(email) = $1 and member_id is null for update`,
+          [authEmail],
+        )
+        const pending = pendingRes.rows[0]
+        if (pending) {
+          if (existing) {
+            // Two rows for one person: the emailed one goes, and so does its count.
+            await client.query(`delete from public.metro_waitlist where id = $1`, [pending.id])
+            await bump(pending.metro_id, pending.role, -1)
+          } else {
+            await client.query(
+              `update public.metro_waitlist
+                  set member_id = $2, email = null, updated_at = $3
+                where id = $1`,
+              [pending.id, memberId, ctx.now()],
+            )
+            existing = { metro_id: pending.metro_id, role: pending.role }
+          }
+        }
+      }
+
+      // Already exactly here, in exactly this role. Nothing to write and
+      // nothing to increment — a re-visit, a re-signup or a second device all
+      // land here.
+      if (existing && existing.metro_id === input.metroId && existing.role === input.role) {
+        return { metroId: input.metroId, role: input.role, changed: false }
       }
 
       if (existing) {

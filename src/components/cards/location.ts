@@ -46,7 +46,7 @@ export interface CardLocation {
 const DEFAULT_LABEL: Record<LocationScale, string> = {
   address: 'Address on the Page',
   neighbourhood: 'Nearby',
-  metro: 'Across the metro',
+  metro: 'Across the area',
   wider: 'Further out',
   online: 'Online',
   none: 'No location yet',

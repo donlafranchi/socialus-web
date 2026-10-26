@@ -402,6 +402,13 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+      # #713 — the app storyboard: every 390px screen by area, one strip per
+      # persona, as screenshots/storyboard.html in the same artifact. Only runs
+      # where the matrix took pictures (the full run: Sundays and on demand).
+      - name: App storyboard
+        if: ${{ !cancelled() && hashFiles('screenshots/390/**/*.png') != '' }}
+        run: npm run storyboard:app
+
       - name: Upload screenshots
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v6

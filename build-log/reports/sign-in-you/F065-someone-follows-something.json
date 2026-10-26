@@ -1,0 +1,118 @@
+{
+ "schema": 1,
+ "feature": "F065",
+ "title": "someone follows a person, Page or venue, and nothing else changes",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Following a person, Page or venue writes one row plus its event row in one transaction",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    606
+   ],
+   "note": "[V] person: member_follows + member.followed in withTransaction (actions/member/follow.ts); Page: group_memberships + group.member_joined (actions/group/follow.ts, #104 merged 2026-09-15, no Reviewed by, before deploy-health runs began); venue: member_saved_searches + member.saved_search.created in withTransaction (saved-search-create.ts). #966 changed only the reader, not the writes (reread 2026-10-23). unmarked: group/follow.test.ts ('writes an event', mock only); the person and venue tests only read the source text. Ticket #606"
+  },
+  {
+   "id": "2a",
+   "text": "A follow of a person, venue, or a listed or unlisted Page grants no membership, role or unlisted read, checked against every authorization/roster path",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    607
+   ],
+   "note": "[V] follower rows are role='member', source='soft_via_follow', relationship='follower'; manager checks key on role; owner and steward rows are untouched by follow and unfollow (#268). Partial proofs only: group/follow.test.ts ('grants no role beyond the plain one'), tests/follower-privacy-db.test.ts, tests/page-owner-follow-db.test.ts. No standing guard walks every roster and authorization path, ticket #607"
+  },
+  {
+   "id": "2b",
+   "text": "Following a private Page",
+   "kind": [
+    "invariant"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V] group.follow on a private Page writes relationship='member', source='explicit' at once (follow.ts, reread 2026-10-23): the follower becomes a member and reads the Page. That follows F067 and the 2026-09-15 ruling ('private means membership, not following') and contradicts this criterion's 'never grants membership … or read access to anything unlisted'; the 2026-09-29 ruling adds that the two relationships no longer carry identical rights. No newer ruling in F065 since 2026-10-16. Two live rulings disagree on one surface: routed to scope-scenario"
+  },
+  {
+   "id": "3",
+   "text": "A Member who follows a business and owns no shop still sees the offer to start something",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    604
+   ],
+   "note": "[V] there is no Sell control any more (/you/sell retired to Create, Don 2026-10-05, #336): Create sits in the bottom nav for everyone (BottomNav.tsx, #326) and /you shows 'Start something' in the Your Pages header with no look at follows (#379, review-skipped; deploy-health green on 9ff415f and every later /you merge). SellCta and hasActiveBusinessGroup, which #604 is about, reach no routed surface, so #604 is stale and the criterion text still names the Sell control. Smoked: /you opened green 2026-10-23, but no smoke account is follower-only: unknown. No test with a follower-only member"
+  },
+  {
+   "id": "4",
+   "text": "Unfollow then re-follow revives the original row",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    606
+   ],
+   "note": "[V] person: on conflict unfollowed_at = null; Page: on conflict left_at = null, role kept (follow.ts); venue: saved-search-restore clears removed_at. Page half merged in #104 (no Reviewed by; before deploy-health runs). #966 adds Unfollow with Undo on /you/following, which re-follows through the same handler. unmarked: group/follow.test.ts ('is idempotent', mock), FollowedPagesList.test.tsx ('unfollows with Undo', mock); the person and venue tests only read the source text. Ticket #606"
+  },
+  {
+   "id": "5",
+   "text": "The following list has one reader (the three tables stay; ruled 2026-10-11)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    605
+   ],
+   "note": "[V] src/lib/follows/one-reader.test.ts [guards F065.5] checks that /you, /you/following and the followed-pages loader read through getMemberFollows and query none of the three tables, with a self-test that the guard sees a bad surface (#752, no Reviewed by, deploy-health green on 3308e09; #966 widened it to the new surfaces, Reviewed by: Claude, green on 43bcf96). The reader now takes Pages by relationship, not source, so followed open Pages show (#962). Ticket #605 closed on the PM's option B. Smoked: /you and /you/following opened green by smoke-live on 2026-10-19 (cd913c7, after #966); /you again on 10-21, 22 and 23"
+  }
+ ]
+}

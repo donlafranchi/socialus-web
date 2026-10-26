@@ -26,14 +26,17 @@ export interface MetroOption {
 type Role = 'creator' | 'patron'
 
 interface Props {
-  metros: MetroOption[]
+  /** The places to choose from (the Explore panel). Ignored when `market` is given. */
+  metros?: MetroOption[]
+  /** F103.3 — the zip already decided where the person waits: named, not chosen. */
+  market?: MetroOption
   onJoin: (input: { metroId: string; role: Role }) => Promise<JoinMetroWaitlistResult>
   /** Called once the person is finished — dismissed the popup, or had none. */
   onDone: () => void
 }
 
-export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
-  const [metroId, setMetroId] = useState('')
+export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props) {
+  const [metroId, setMetroId] = useState(market?.id ?? '')
   const [role, setRole] = useState<Role | ''>('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +68,7 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
   // read failed rather than that there are no metros. Said out loud with a way
   // forward, because the alternative — rendering a select containing only the
   // placeholder — is a dead end that looks like the person's fault.
-  if (metros.length === 0) {
+  if (!market && metros.length === 0) {
     return (
       <div className="flex flex-col gap-4">
         <p role="alert" className="text-sm text-[var(--color-charcoal-900)]">
@@ -85,6 +88,11 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
   return (
     <>
       <div className="flex flex-col gap-5">
+        {market ? (
+          <p data-testid="waitlist-market" className="text-sm font-medium text-[var(--color-charcoal-900)]">
+            You&rsquo;re waiting for {market.name}.
+          </p>
+        ) : (
         <div>
           <label htmlFor={selectId} className="block text-sm font-medium text-[var(--color-charcoal-900)]">
             Where are you?
@@ -96,7 +104,7 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
             className="mt-2 w-full rounded-md border border-[var(--color-control-border)] bg-white p-3 text-sm text-[var(--color-charcoal-900)]"
           >
             {/* Not a metro, and not selectable as one. */}
-            <option value="">Pick your metro</option>
+            <option value="">Pick your area</option>
             {metros.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -104,6 +112,7 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
             ))}
           </select>
         </div>
+        )}
 
         <fieldset>
           <legend className="text-sm font-medium text-[var(--color-charcoal-900)]">
@@ -144,8 +153,8 @@ export function MetroWaitlistStep({ metros, onJoin, onDone }: Props) {
       {standing && (
         <MetroStandingDialog
           metroName={standing.metroName}
-          combined={standing.standing.combined}
-          target={standing.standing.target}
+          combined={standing.standing?.combined}
+          target={standing.standing?.target}
           message={standing.message}
           onClose={() => {
             setStanding(null)

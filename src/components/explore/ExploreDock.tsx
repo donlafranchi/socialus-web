@@ -3,8 +3,10 @@
 // #328 — under 1024px, one thumb-reach control at the bottom right. Collapsed
 // it is a single button; tapped it opens into search, filter, metro and
 // list/map, and shrinks back after a choice. The metro name still sits at the
-// top (the search row's pill). Precedents: Material's speed dial, Apple and
-// Google Maps' bottom search bar, iOS Safari's bottom address bar, Airbnb's map pill.
+// top (the search row's place line). Precedents: Material's speed dial, Apple and
+// Google Maps' bottom search bar, iOS Safari's bottom address bar. #951 — a plain
+// rounded-rectangle bar, not a pill: the no-chips ruling (Don, 2026-10-18
+// [always]) is newer than F059's "pill" wording (2026-10-01) and wins.
 
 import { useEffect, useState } from 'react'
 import { Ellipsis, List, MapIcon, MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
@@ -12,7 +14,7 @@ import { BROWSE_RESULTS_ID } from '@/components/browse/results-id'
 import type { ExploreView } from './ListMapToggle'
 
 const ITEM =
-  'press relative inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-medium text-white outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2'
+  'press relative inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-medium text-white outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2'
 
 export function ExploreDock({
   view,
@@ -47,7 +49,7 @@ export function ExploreDock({
   return (
     <div
       data-testid="explore-dock"
-      className="fixed bottom-[var(--float-offset)] right-3 z-30 flex items-center rounded-full bg-[var(--color-charcoal-700)] p-0.5 shadow-overlay md:bottom-[var(--float-offset-top-nav)]"
+      className="fixed bottom-[var(--float-offset)] right-3 z-30 flex items-center rounded-lg bg-[var(--color-charcoal-700)] p-0.5 shadow-overlay md:bottom-[var(--float-offset-top-nav)]"
     >
       {open && (
         <div className="flex items-center">

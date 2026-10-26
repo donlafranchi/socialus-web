@@ -1,6 +1,6 @@
 // T049 sandbox smoke — mirrors web/tests/migrations-t049.test.ts assertions
 // without depending on Vitest (which segfaults under Linux x86_64 in the
-// build sandbox per BUILD-LOG T051 note). Run: `node scripts/t049-sandbox-check.mjs`.
+// build sandbox, found in T051). Run: `node scripts/t049-sandbox-check.mjs`.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'

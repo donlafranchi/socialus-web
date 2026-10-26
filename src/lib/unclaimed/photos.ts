@@ -81,7 +81,7 @@ export async function toWebp(input: Buffer, { minWidth = MIN_COVER_WIDTH, strict
 
 export const sameImage = (a: string, b: string) => [...a].filter((c, i) => c !== b[i]).length <= 5
 
-async function download(url: string, f: Fetch): Promise<Buffer | null> {
+export async function download(url: string, f: Fetch): Promise<Buffer | null> {
   const r = await get(url, f, 25_000, 'image/avif,image/webp,image/jpeg,image/png,*/*;q=0.5')
   if (!r) return null
   const type = r.headers.get('content-type') ?? ''
@@ -123,10 +123,14 @@ export interface GatherOptions {
   slot?: number
   /** The business's own pictures are mostly graphics (posters, promos): lead with a stock photo, keep theirs behind it. */
   stockCover?: boolean
+  /** #786 — the business's own pictures show children (F080): use none of them, stock only. */
+  stockOnly?: boolean
+  /** Only the business's pictures whose address matches (its real photos, when the rest are product renders). */
+  ownMatch?: RegExp
   fetchImpl?: Fetch
 }
 
-export async function gatherPhotos({ name, slug, site, pool, want: wantIn = 4, slot, stockCover = false, fetchImpl = fetch }: GatherOptions): Promise<Gathered> {
+export async function gatherPhotos({ name, slug, site, pool, want: wantIn = 4, slot, stockCover = false, stockOnly = false, ownMatch, fetchImpl = fetch }: GatherOptions): Promise<Gathered> {
   // Some small sites answer on plain http only (their certificate is wrong or missing): read them, never link them.
   let want = wantIn
   const html = (await fetchHtml(site, fetchImpl)) ?? (await fetchHtml(site.replace(/^https:/, 'http:'), fetchImpl))
@@ -134,7 +138,7 @@ export async function gatherPhotos({ name, slug, site, pool, want: wantIn = 4, s
   const photos: Photo[] = []
   const fits = (p: { ahash: string }) => !photos.some((q) => sameImage(q.ahash, p.ahash))
 
-  for (const url of meta.images.slice(0, 14)) {
+  for (const url of stockOnly ? [] : meta.images.filter((u) => !ownMatch || ownMatch.test(u)).slice(0, 14)) {
     if (photos.length >= want) break
     const raw = await download(url, fetchImpl)
     const p = raw && (await toWebp(raw))

@@ -61,19 +61,76 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
-describe('#348 — one question, three answers', () => {
-  it('asks one question with three answers, and nothing else until one is chosen', async () => {
+describe('#896 — one question, seven answers', () => {
+  it('asks one question with seven answers, and nothing else until one is chosen', async () => {
     render(<Harness />)
     expect(screen.getByRole('group', { name: /how do people find you/i })).toBeInTheDocument()
-    for (const name of [/people come to me/i, /i go to them/i, /it moves, or it.s online/i]) {
-      expect(screen.getByRole('radio', { name })).toBeInTheDocument()
-    }
+    const names = [/^street address/i, /^neighbourhood only/i, /^cross streets or a landmark/i, /^more than one location/i, /^it moves/i, /^i go to them/i, /^online only, or by appointment/i]
+    expect(screen.getAllByRole('radio')).toHaveLength(7)
+    for (const name of names) expect(screen.getByRole('radio', { name })).toBeInTheDocument()
     expect(screen.queryByRole('textbox')).toBeNull()
+  })
+
+  // Don, 2026-10-18 [always]: no chip or pill UI — a plain radio list, no switches.
+  it('a plain radio list: no chips, pills or switches', async () => {
+    const { container } = render(<Harness />)
+    for (const name of [/^street address/i, /^neighbourhood only/i, /^i go to them/i]) {
+      fireEvent.click(screen.getByRole('radio', { name }))
+      expect(screen.queryByRole('switch')).toBeNull()
+    }
+    fireEvent.click(await screen.findByTestId('town-tapped'))
+    expect(container.querySelector('[class*="rounded-full"]')).toBeNull()
   })
 })
 
-describe('People come to me', () => {
-  const choose = () => fireEvent.click(screen.getByRole('radio', { name: /people come to me/i }))
+describe('#896 — the answers with no street address', () => {
+  it('cross streets or a landmark: its words, and a pin to put where it is', async () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('radio', { name: /cross streets or a landmark/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: /^cross streets or landmark/i }), { target: { value: 'J St & 20th St' } })
+    expect(latest.mode).toBe('landmark')
+    expect(latest.landmark.text).toBe('J St & 20th St')
+    fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
+    fireEvent.click(await screen.findByTestId('pin-moved'))
+    expect(latest.visit.pin).toEqual([-121.5, 38.58])
+  })
+
+  it('more than one location: an address each, added and removed', async () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('radio', { name: /more than one location/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Address 1' }), { target: { value: '2700 K St' } })
+    fireEvent.click(screen.getByRole('button', { name: /add another location/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Address 3' }), { target: { value: '915 I St' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Remove address 2' }))
+    expect(latest.mode).toBe('multi')
+    expect(latest.multi.addresses).toEqual(['2700 K St', '915 I St'])
+  })
+
+  it('it moves: where and when, a stop at a time', async () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('radio', { name: /^it moves/i }))
+    fireEvent.click(screen.getByRole('button', { name: /add a stop/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Where' }), { target: { value: 'Midtown Farmers Market' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'When' }), { target: { value: 'Saturdays, 8am–1pm' } })
+    expect(latest.roaming.stops).toEqual([{ where: 'Midtown Farmers Market', when: 'Saturdays, 8am–1pm' }])
+    fireEvent.click(screen.getByRole('button', { name: /remove this stop/i }))
+    expect(latest.roaming.stops).toEqual([])
+  })
+
+  it('online only, or by appointment: an optional note, no map', async () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('radio', { name: /online only/i }))
+    fireEvent.change(screen.getByRole('textbox', { name: /anything to add/i }), { target: { value: 'By appointment in Midtown' } })
+    expect(latest.mode).toBe('online')
+    expect(latest.online.note).toBe('By appointment in Midtown')
+    expect(screen.queryByTestId('pin-moved')).toBeNull()
+    expect(screen.queryByRole('button', { name: /drop a pin/i })).toBeNull()
+  })
+})
+
+describe('Street address, or the neighbourhood only', () => {
+  const choose = () => fireEvent.click(screen.getByRole('radio', { name: /^street address/i }))
+  const chooseArea = () => fireEvent.click(screen.getByRole('radio', { name: /^neighbourhood only/i }))
 
   const address = () => screen.getByRole('combobox', { name: /^address/i })
   const FOUND = [
@@ -137,11 +194,11 @@ describe('People come to me', () => {
     expect(await screen.findByText(/couldn.t find that address/i)).toBeInTheDocument()
   })
 
-  it('or types a neighbourhood: the pin starts at its centre, named', async () => {
+  it('neighbourhood only: picked by name, the pin starts at its centre', async () => {
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
     render(<Harness />)
-    choose()
-    fireEvent.change(screen.getByRole('combobox', { name: /or type a neighbourhood/i }), { target: { value: 'Curt' } })
+    chooseArea()
+    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood/i }), { target: { value: 'Curt' } })
     fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
     expect(searchNeighborhoods).toHaveBeenCalledWith('Curt')
     expect(latest.visit.pin).toEqual([-121.49, 38.55])
@@ -158,11 +215,11 @@ describe('People come to me', () => {
     placeForPoint.mockResolvedValue({ ok: true, data: { id: 'pl-other', name: 'Somewhere else' } })
     searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
     render(<Harness />)
-    choose()
-    fireEvent.change(screen.getByRole('combobox', { name: /or type a neighbourhood/i }), { target: { value: 'Curt' } })
+    chooseArea()
+    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood/i }), { target: { value: 'Curt' } })
     fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
     expect(latest.visit.areaOnly).toBe(true)
-    expect(screen.getByRole('switch', { name: /show only my neighbourhood/i })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: /^neighbourhood only/i })).toBeChecked()
     await new Promise((r) => setTimeout(r, 0))
     expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' })
     const createLocation = vi.fn().mockResolvedValue({ ok: true, data: { id: 'loc-1' } })
@@ -173,20 +230,12 @@ describe('People come to me', () => {
     expect(label).not.toHaveBeenCalled()
   })
 
-  it('the two ways in replace each other: choosing one clears the other', async () => {
-    geocode.mockResolvedValue(FOUND)
-    searchNeighborhoods.mockResolvedValue({ ok: true, data: [{ placeId: 'pl-curtis', name: 'Curtis Park', centroid: [-121.49, 38.55] }] })
+  it('a street address offers no neighbourhood, and the neighbourhood no street address', async () => {
     render(<Harness />)
     choose()
-    fireEvent.change(address(), { target: { value: '915 I St' } })
-    fireEvent.click(await screen.findByRole('option', { name: /915 I ST/ }))
-    const area = screen.getByRole('combobox', { name: /or type a neighbourhood/i })
-    fireEvent.change(area, { target: { value: 'Curt' } })
-    fireEvent.click(await screen.findByRole('option', { name: 'Curtis Park' }))
-    expect(address()).toHaveValue('')
-    fireEvent.change(address(), { target: { value: '915 I St' } })
-    fireEvent.click(await screen.findByRole('option', { name: /915 I ST/ }))
-    expect(screen.getByRole('combobox', { name: /or type a neighbourhood/i })).toHaveValue('')
+    expect(screen.queryByRole('combobox', { name: /neighbourhood/i })).toBeNull()
+    chooseArea()
+    expect(screen.queryByRole('combobox', { name: /^address/i })).toBeNull()
   })
 
   it('shows the map for a pin already set', async () => {
@@ -248,12 +297,11 @@ describe('People come to me', () => {
     expect(screen.getByRole('textbox', { name: /how to find us/i })).toHaveAttribute('maxlength', '140')
   })
 
-  it('"Show only my neighbourhood" names the neighbourhood worked out from the pin', async () => {
+  it('neighbourhood only names the neighbourhood worked out from a dropped pin', async () => {
     render(<Harness />)
-    choose()
+    chooseArea()
     fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
     fireEvent.click((await screen.findByTestId('pin-moved')))
-    fireEvent.click(screen.getByRole('switch', { name: /show only my neighbourhood/i }))
     await waitFor(() => expect(screen.getByText(/visitors see curtis park/i)).toBeInTheDocument())
     expect(latest.visit.areaOnly).toBe(true)
     expect(latest.visit.area).toEqual({ id: 'pl-curtis', name: 'Curtis Park' })
@@ -279,7 +327,7 @@ describe('I go to them', () => {
   })
 })
 
-describe('It moves, or it’s online', () => {
+describe('It moves', () => {
   it('is the whole metro, with an optional "Usually around"', async () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('radio', { name: /it moves/i }))

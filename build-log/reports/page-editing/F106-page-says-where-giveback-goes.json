@@ -1,0 +1,82 @@
+{
+ "schema": 1,
+ "feature": "F106",
+ "title": "A Page says where its give-back goes, and the local badge is the receipt",
+ "area": "page-editing",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A Page has a home town: its anchor Location's town, else its owner's home town",
+   "kind": ["behavior"],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [700],
+   "note": "[V] Member home town exists (F103.5, migrations 20261012060000 and 20261018191800) but no Page-level home town in src or supabase/migrations. Deferred, not beta (#700)"
+  },
+  {
+   "id": "2",
+   "text": "An owner declares one give-back town (home town or any town); nothing is declared, and no default written, until they do",
+   "kind": ["behavior", "invariant"],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [700],
+   "note": "[V] No give-back field, column or setting anywhere in src, scripts or supabase/migrations (grep give_back, giveBack, give-back)"
+  },
+  {
+   "id": "3",
+   "text": "The Page is local, and the badge may show, only when the give-back town is the home town; elsewhere no badge and no negative mark",
+   "kind": ["behavior"],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [701],
+   "note": "[V] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)"
+  },
+  {
+   "id": "4",
+   "text": "The badge reads the same from every vantage",
+   "kind": ["behavior"],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [701],
+   "note": "[V] Not built; depends on F105 vantage and on criterion 3 (#701)"
+  },
+  {
+   "id": "5",
+   "text": "The owner can change the declaration any time while no money flows",
+   "kind": ["behavior"],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [700],
+   "note": "[V] Not built; no declaration exists to change (#700)"
+  }
+ ]
+}

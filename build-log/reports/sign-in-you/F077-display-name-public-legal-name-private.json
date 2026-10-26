@@ -1,0 +1,158 @@
+{
+ "schema": 1,
+ "feature": "F077",
+ "title": "members see a display name; the legal name stays with the platform",
+ "area": "sign-in-you",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Signup requires a legal name; no account without it",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    610,
+    847
+   ],
+   "note": "[V] built half: the profile screen requires 2-120 characters (signup/profile.ts, OnboardingFlow, handler signup-profile-set; #497, review-skipped). Missing half: members.legal_name is nullable (migration 20261007200000), nothing forces a signed-in member to /onboarding unless the phone gate is on (proxy.ts, phone.ts), and since #946 (2026-10-18) the live way in is /auth/login, email then code, which lands on `next` (default /) and never on /onboarding, so a new member uses the app with no legal name at all. Ticket #847 is the fix (now F081.1's gap too); check ticket #610. unmarked: profile.test.ts, onboarding/actions.test.ts, OnboardingFlow.test.tsx, signup-profile-set.test.ts"
+  },
+  {
+   "id": "2",
+   "text": "Display name shown wherever a peer would see the legal name",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    1013
+   ],
+   "note": "[V] the display name is collected at signup (OnboardingFlow, #497 review-skipped) and is what every peer-facing surface shows: a Page's 'Started by' line reads page_founder_public, which returns display_name only (migration 20260930180000, #249, no Reviewed by, deploy-health green on aba449d), and the following list shows followed people's display_name (get-member-follows.ts). legal_name is rendered nowhere (grep 2026-10-23: the signup path, the admin queue's comment and tests). Posts are by Pages, responses do not exist and the member profile is retired (/m/[handle] 404s, #303), so these are every surface the criterion names that exists. Smoked: page and /you/following opened green (2026-10-19 cd913c7, 10-23 cb892a7). No test asserts display over legal on any of them"
+  },
+  {
+   "id": "3",
+   "text": "Legal name never on a public or discovery surface or shown to an anonymous visitor",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    611
+   ],
+   "note": "[V] members has only members_select_self (migration 20260930180000, #249, no Reviewed by; deploy-health green on aba449d); the only src files that name legal_name are the signup path, the admin queue's comment and tests (grep 2026-10-23). Behavior holds today; no standing guard, ticket #611. Smoked: explore and page, the public surfaces, opened green 2026-10-23 (cb892a7), though the smoke looks for stray emails, not names"
+  },
+  {
+   "id": "4",
+   "text": "Operator report view shows legal name beside display name",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    608
+   ],
+   "note": "[V] the column exists since #497, but src/lib/admin/reports-queue.ts:30 still says 'there is no members.legal_name column' and ReportEntry.tsx:95 shows display name and handle only (reread 2026-10-23). Ticket #608"
+  },
+  {
+   "id": "5",
+   "text": "Seeded/test members backfilled with a legal name or flagged",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    609
+   ],
+   "note": "[V] migration 20261007200000 adds legal_name nullable with no default and no backfill, and no later migration touches it (grep 2026-10-23); no flag or marker for members without one. Ticket #609"
+  },
+  {
+   "id": "6",
+   "text": "Counterparties each see the other's legal name, per interaction",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    219
+   ],
+   "note": "[V] out of scope: 2026-09-30 ruling 'Real names between people who dealt with each other (F077, #219) are out of scope; revisit with legal counsel', and the scenario's out-of-scope line. No purchase or RSVP confirmation record exists to bind a name to"
+  },
+  {
+   "id": "7",
+   "text": "Name legible 12 months from the interaction, then display name",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    219
+   ],
+   "note": "[V] out of scope with 6 by the 2026-09-30 ruling; depends on 6"
+  },
+  {
+   "id": "8",
+   "text": "Interaction is the only path to a name: no search, lookup, roster, export",
+   "kind": [
+    "invariant"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    611,
+    219
+   ],
+   "note": "[V] out of scope with 6 and 7 by the 2026-09-30 ruling. Holds only because nothing renders a legal name; the guard in #611 keeps it so meanwhile"
+  }
+ ]
+}

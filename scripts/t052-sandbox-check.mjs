@@ -1,6 +1,6 @@
 // T052 sandbox smoke — mirrors web/tests/eval-bootstrap.test.ts assertions
 // without depending on Vitest (which segfaults under Linux x86_64 in the
-// build sandbox per BUILD-LOG T051 note). Run: `node scripts/t052-sandbox-check.mjs`.
+// build sandbox, found in T051). Run: `node scripts/t052-sandbox-check.mjs`.
 //
 // Coverage:
 //   - layout (test-helpers/ + the four .sql files; bootstrap script present)

@@ -1,6 +1,9 @@
+import type { MarketSchedule } from './market-days'
+import { isAggregator, type VenueEvents } from './venue-events'
 // #517 — which of the researched Sacramento makers become unclaimed Pages, in
 // what order, and what each one says. Pure: scripts/unclaimed/load.ts writes it.
 import { toSlug } from '../slugify'
+import { streetAddressOf } from './address'
 
 export interface MakerRow {
   name: string
@@ -9,6 +12,16 @@ export interface MakerRow {
   area: string
   site: string
   confidence: string
+  /** #936 — its street address, when the row gives one outright. */
+  address?: string | null
+  /** TikTok and Instagram first: the profiles its own site links (Don, 2026-10-16). Links only. */
+  social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
+  /** #909 — 3–6 things it sells or offers, each from a page on its own site. Price in dollars, optional. */
+  products?: { name: string; url: string; price?: number; kind?: 'product' | 'service' }[]
+  /** A market whose own site states its day and hours: real Market day posts instead of Samples (Don, 2026-10-19). */
+  schedule?: MarketSchedule
+  /** #997 — a venue's own events page or feed: its real shows are posted daily instead of Samples (Don, 2026-10-22). */
+  events?: VenueEvents
 }
 
 export type SkipReason = 'personal-care' | 'no-site'
@@ -20,6 +33,7 @@ export interface ListingRow {
   purpose: 'sell' | 'service' | 'creative' | 'gather'
   town: string
   neighbourhood?: string | null
+  address?: string | null
   website: string
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   description: string
@@ -41,8 +55,52 @@ export interface PlannedPage {
   pool: string
   /** Shown beside the town in a sample post ("Midtown", "Davis"). */
   area: string
+  /** #816 a2 (cap-3, cap-4) — 1–2 of the 12 interest labels (src/lib/onboarding/interest-vocab.ts), on the Page and its samples. */
+  interests: string[]
   social?: Partial<Record<'instagram' | 'facebook' | 'tiktok' | 'x' | 'youtube', string>>
   sources: { field: 'name' | 'description' | 'website' | 'address'; url: string }[]
+  /** #936 — its street address, where its row names one: the Page is pinned there, not at its town. */
+  address?: string
+  /** #909 — sample products and services from its own site; the Page shows them labelled Sample, credited. */
+  products?: SampleProduct[]
+  schedule?: MarketSchedule
+  events?: VenueEvents
+}
+
+export interface SampleProduct {
+  name: string
+  url: string
+  priceCents: number | null
+  kind: 'product' | 'service'
+}
+
+export const SAMPLE_PRODUCTS_MIN = 3
+export const SAMPLE_PRODUCTS_MAX = 6
+/** Marketplaces and directories: a lead source at most, never what a sample is copied from (#353, Don 2026-10-16). */
+const MARKETPLACE = /(^|\.)(etsy|amazon|ebay|facebook|instagram|tiktok|yelp|google|nextdoor|craigslist|faire|walmart|target|shopify)\.com$/i
+
+const hostOf = (u: string): string | null => {
+  try {
+    return new URL(u).hostname.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return null
+  }
+}
+
+/** #909 — the row's products that come from its own site, 3 to 6 of them, or none. */
+export function sampleProductsFor(site: string, products: MakerRow['products'] = []): SampleProduct[] {
+  const own = hostOf(site)
+  if (!own || MARKETPLACE.test(own)) return []
+  const kept = products
+    .filter((p) => p.name?.trim() && (hostOf(p.url) === own || hostOf(p.url)?.endsWith(`.${own}`)) && /^https:\/\//i.test(p.url))
+    .slice(0, SAMPLE_PRODUCTS_MAX)
+    .map((p) => ({
+      name: p.name.trim().slice(0, 80),
+      url: p.url,
+      priceCents: typeof p.price === 'number' && p.price >= 0 ? Math.round(p.price * 100) : null,
+      kind: p.kind ?? 'product',
+    }))
+  return kept.length >= SAMPLE_PRODUCTS_MIN ? kept : []
 }
 
 export const CLAIM_LINE = 'Claim this Page to tell your own story.'
@@ -74,7 +132,23 @@ function describe(row: MakerRow): string {
   return `${row.name}: ${lower}, in ${row.area.trim()}. ${CLAIM_LINE}`
 }
 
+/** #786 — volunteer groups, nonprofits and clubs: they gather people, they don't sell. Before "food" so a food bank lands here. */
+export const COMMUNITY = 'Community & volunteer'
+const COMMUNITY_CATEGORY = /volunteer|nonprofit|food bank|pantry|mutual aid|meal program|community|club|society|library|league|rescue|shelter|association|collective/i
+
+/** Arts, music and history groups: they gather people too, with pictures of galleries, stages and museums. */
+export const ARTS = 'Arts & culture'
+const ARTS_CATEGORY = /museum|band|choir|chorale|chorus|orchestra|symphony|theat|histor|gallery|music|dance|makerspace|art (association|collective|center|centre|council|league|society|guild)/i
+
+/** Conservancies, land trusts, trail groups and gardens: they gather people, with pictures of trails, creeks and gardens. */
+export const GREEN = 'Green & outdoors'
+const GREEN_CATEGORY = /conservanc|land trust|nature|trail|garden|creek|river|watershed|native plant|park/i
+
 const POOL_BY_CATEGORY: [RegExp, string][] = [
+  [GREEN_CATEGORY, GREEN],
+  [/nursery/i, 'Farm'],
+  [ARTS_CATEGORY, ARTS],
+  [COMMUNITY_CATEGORY, COMMUNITY],
   [/farm stay|agritourism/i, 'Farm stay & agritourism'],
   [/ranch/i, 'Ranch'],
   [/^farm/i, 'Farm'],
@@ -100,6 +174,40 @@ const poolForListing = (r: ListingRow) => POOL_BY_WORDS.find(([re]) => re.test(`
 
 const LISTING_PURPOSE: Record<ListingRow['purpose'], PlannedPage['purpose']> = { sell: 'sell', service: 'offer', creative: 'create', gather: 'gather' }
 
+/** #816 a2 — what kind of Page it is decides its interests: 1 or 2 of the 12 labels, never more. */
+const INTERESTS_BY_POOL: Record<string, string[]> = {
+  Farm: ['Farmers markets', 'Sustainability'],
+  Ranch: ['Farmers markets', 'Food & drink'],
+  'Farm stay & agritourism': ['Farmers markets', 'Neighborhood life'],
+  'Food & drink': ['Food & drink', 'Local business'],
+  'Cakes & bakery': ['Food & drink', 'Local business'],
+  'Goods & crafts': ['Crafts & makers', 'Local business'],
+  'Art & print': ['Arts & culture', 'Crafts & makers'],
+  'Repair & trades': ['Local business', 'Sustainability'],
+  'Community & volunteer': ['Volunteering', 'Neighborhood life'],
+  'Arts & culture': ['Arts & culture', 'Neighborhood life'],
+  'Green & outdoors': ['Fitness & outdoors', 'Sustainability'],
+  'Local business': ['Local business'],
+}
+export function interestsFor(pool: string, what: string): string[] {
+  const base = INTERESTS_BY_POOL[pool] ?? ['Local business']
+  if (/band|music|choir|chorale|chorus|orchestra|symphony/i.test(what)) return ['Live music', 'Arts & culture']
+  if (/garden|nursery|plant/i.test(what)) return ['Gardening', 'Sustainability']
+  if (/farmers.? market/i.test(what)) return ['Farmers markets', 'Food & drink']
+  return base
+}
+
+/** #816 a3 (cap-2) — a batch of 8 or more Pages spans at least 5 towns and 4 interest tags; a smaller one loads what qualifies (Don, 2026-10-18). */
+export const BATCH_SPREAD_FROM = 8
+export const BATCH_MIN_TOWNS = 5
+export const BATCH_MIN_INTERESTS = 4
+export function batchCoverage(rows: MakerRow[]): { towns: number; interests: number; ok: boolean } {
+  const { listed } = planMakers(rows)
+  const towns = new Set(listed.map((p) => p.city)).size
+  const interests = new Set(listed.flatMap((p) => p.interests)).size
+  return { towns, interests, ok: listed.length < BATCH_SPREAD_FROM || (towns >= BATCH_MIN_TOWNS && interests >= BATCH_MIN_INTERESTS) }
+}
+
 export function planListings(rows: ListingRow[]): PlannedPage[] {
   return rows.map((row): PlannedPage => {
     const url = https(row.website.trim())
@@ -112,7 +220,9 @@ export function planListings(rows: ListingRow[]): PlannedPage[] {
       city: row.town,
       purpose: LISTING_PURPOSE[row.purpose],
       pool: poolForListing(row),
+      interests: interestsFor(poolForListing(row), `${row.name} ${row.description}`),
       area: row.neighbourhood?.trim() || row.town,
+      ...(row.address?.trim() ? { address: row.address.trim() } : {}),
       ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
     }
@@ -131,16 +241,23 @@ export function planMakers(rows: MakerRow[]): { listed: PlannedPage[]; skipped: 
   keep.sort((a, b) => Number(a.nonprofit) - Number(b.nonprofit) || a.rank - b.rank)
   const listed = keep.map(({ row }): PlannedPage => {
     const url = https(row.site.trim())
+    const address = streetAddressOf({ city: placeOf(row.area).city, text: `${row.makes} ${row.confidence}`, address: row.address })
     return {
       name: row.name,
       slug: `${toSlug(row.name)}-${tag(url)}`,
       description: describe(row),
       publicInfoUrl: url,
       ...placeOf(row.area),
-      purpose: /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
+      purpose: [COMMUNITY, ARTS, GREEN].includes(poolFor(row.category)) ? 'gather' : /repair|stay|agritourism/i.test(row.category) ? 'offer' : 'sell',
       pool: poolFor(row.category),
+      interests: interestsFor(poolFor(row.category), `${row.category} ${row.name}`),
       area: row.area.trim().split('/')[0]!.replace(/\s*\(.*\)$/, '').trim() || placeOf(row.area).city,
       sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url })),
+      ...(row.social && Object.keys(row.social).length ? { social: row.social } : {}),
+      ...(address ? { address } : {}),
+      ...(sampleProductsFor(url, row.products).length ? { products: sampleProductsFor(url, row.products) } : {}),
+      ...(row.schedule ? { schedule: row.schedule } : {}),
+      ...(row.events && !isAggregator(row.events.url) ? { events: row.events } : {}),
     }
   })
   return { listed, skipped }

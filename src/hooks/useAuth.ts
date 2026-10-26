@@ -30,7 +30,7 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: authRedirectUrl(next) },
+      options: { emailRedirectTo: authRedirectUrl(next ?? '/') },
     })
     return { data, error }
   }, [])
@@ -46,7 +46,7 @@ export function useAuth() {
   }, [])
 
   const signInWithOtp = useCallback(async (email: string, next?: string) => {
-    const redirectTo = authRedirectUrl(next)
+    const redirectTo = authRedirectUrl(next ?? '/')
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       // shouldCreateUser (default true) is what makes one link serve both
@@ -56,15 +56,10 @@ export function useAuth() {
     return { data, error }
   }, [])
 
-  // #407 — a password is set or reset from You; the reset link signs you in there.
-  const resetPassword = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl('/you/password') })
-    return { error }
-  }, [])
-
-  const updatePassword = useCallback(async (password: string) => {
-    const { error } = await supabase.auth.updateUser({ password })
-    return { error }
+  // #927 — the emailed code, checked with the address: signs in in any browser.
+  const verifyEmailCode = useCallback(async (email: string, token: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
+    return { data, error }
   }, [])
 
   const signInWithGoogle = useCallback(async (next?: string) => {
@@ -92,8 +87,7 @@ export function useAuth() {
     signIn,
     signOut,
     signInWithOtp,
-    resetPassword,
-    updatePassword,
+    verifyEmailCode,
     signInWithGoogle,
     checkEmailRegistered,
   }

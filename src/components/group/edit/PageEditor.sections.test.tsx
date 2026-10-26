@@ -74,7 +74,7 @@ afterEach(() => {
 
 describe('Where: the address, which the owner can change', () => {
   const dropAPin = async () => {
-    fireEvent.click(screen.getByRole('radio', { name: /people come to me/i }))
+    fireEvent.click(screen.getByRole('radio', { name: /^street address/i }))
     fireEvent.click(screen.getByRole('button', { name: /drop a pin/i }))
     fireEvent.click((await screen.findByTestId('pin-moved')))
   }
@@ -100,12 +100,7 @@ describe('Where: the address, which the owner can change', () => {
 
   it('People come to me, already saved: a new "How to find us" saves without setting the pin again', async () => {
     open('where', {
-      where: {
-        mode: 'visit',
-        visit: { pin: null, label: null, howToFind: 'Old note', areaOnly: false, area: null },
-        travel: { towns: [] },
-        roaming: { usuallyAround: '' },
-      },
+      where: { ...emptyWhere, mode: 'visit', visit: { ...emptyWhere.visit, howToFind: 'Old note' } },
     })
     fireEvent.change(screen.getByRole('textbox', { name: /how to find us/i }), { target: { value: 'Side door' } })
     save()
@@ -126,7 +121,7 @@ describe('Where: the address, which the owner can change', () => {
 
   it('It moves: saves usually around', async () => {
     open('where')
-    fireEvent.click(screen.getByRole('radio', { name: /it moves/i }))
+    fireEvent.click(screen.getByRole('radio', { name: /^it moves/i }))
     fireEvent.change(screen.getByRole('textbox', { name: /usually around/i }), { target: { value: 'Midtown markets' } })
     save()
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ whereMode: 'roaming', usuallyAround: 'Midtown markets' })))

@@ -1,0 +1,68 @@
+{
+ "schema": 1,
+ "feature": "F069",
+ "title": "A non-business Page resolves everywhere, and holding several is ordinary",
+ "area": "page-editing",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A non-business Page's public URL renders its name, description, image and what is filed under it instead of 404",
+   "kind": ["behavior"],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [591, 22],
+   "note": "[V] /g/<id> uses resolvePageById and resolveShop, which take no kind filter (T156, #174; no Reviewed by line; deploy-health green on 9dde664). #926 and #944 (Reviewed by) reworked the Page's Location and Contact cards for every kind without touching the resolve. Smoked: unknown, smoke-live opens the first Page Explore lists and does not pick a non-business one. unmarked: src/lib/groups/resolve-shop.test.ts ('a non-business Page carries its own name and description')"
+  },
+  {
+   "id": "2",
+   "text": "Products, services and gatherings filed under a non-business Page resolve at their public URL",
+   "kind": ["coverage"],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [22, 591],
+   "note": "[V] gatherings: resolve-gathering.ts has no kind filter (built half). Products and services: resolve-product.ts:116 and resolve-service.ts:98 still filter groups on kind='business', so they 404 under any other Page. #920 (2026-10-18) lets any Page feature up to 12 products and services in a grid on the Page itself, with no link to the item's own URL, so the gap is reachable but not visible from the Page. Tickets #22 (T134) and #591 (gathering half only)"
+  },
+  {
+   "id": "3",
+   "text": "A member holding several Pages sees every one on any producer surface; none chosen for them",
+   "kind": ["coverage"],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [591, 24],
+   "note": "[V] getOwnPages lists every founded or managed Page on /you (limit 50); Create starts a new draft and chooses nothing. First built in f19adc6, a direct commit with no PR and no deploy-health run (none for that sha); later edits #181, #254, #389, #424, #472 carry no Reviewed by except #472. #966's Following row is a finder surface, not a producer one. Smoked: unknown, the smoke accounts hold one Page each. unmarked: src/lib/member/own-pages.test.ts"
+  },
+  {
+   "id": "4",
+   "text": "Draft-resume keeps every in-flight draft, not just the most recent",
+   "kind": ["behavior"],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [24, 846],
+   "note": "[V] 'Unfinished Pages' on You lists every draft with Continue and Delete (#516, Reviewed by; deploy-health green on 0e3b4bd). Smoked: unknown, /you is smoked but the accounts hold no second draft. unmarked: OwnPages.test.tsx '#463 — Unfinished Pages' (one draft in the fixture, not several). Check ticket #846"
+  }
+ ]
+}

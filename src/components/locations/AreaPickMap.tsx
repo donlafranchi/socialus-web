@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_DEFAULTS, AREA_OUTLINE } from '@/lib/map-config'
+import { handleMapErrors } from '@/lib/map/errors'
 
 export interface AreaPick {
   placeId: string
@@ -40,9 +41,10 @@ export function AreaPickMap({
     if (!token || !el.current) return
     mapboxgl.accessToken = token
     const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center: SACRAMENTO, zoom: 9 })
+    handleMapErrors(map)
     mapRef.current = map
     map.on('load', () => {
-      map.addSource('areas', { type: 'geojson', data: '/api/boundaries?msa=40900' })
+      map.addSource('areas', { type: 'geojson', data: '/api/boundaries' })
       for (const kind of ['city', 'neighborhood'] as const) {
         map.addLayer({ id: `${kind}-fill`, type: 'fill', source: 'areas', filter: ['==', ['get', 'kind'], kind], paint: { 'fill-color': AREA_OUTLINE, 'fill-opacity': ['case', ['==', ['get', 'placeId'], selectedPlaceId ?? ''], 0.25, 0.04] } })
         map.addLayer({ id: `${kind}-line`, type: 'line', source: 'areas', filter: ['==', ['get', 'kind'], kind], paint: { 'line-color': AREA_OUTLINE, 'line-width': kind === 'city' ? 1.5 : 0.75, 'line-opacity': 0.5 } })

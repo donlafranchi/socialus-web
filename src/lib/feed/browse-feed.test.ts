@@ -237,6 +237,16 @@ describe('T156 — the parameters getBrowseFeed sends', () => {
     })
   })
 
+  // #916 — the box's words go to the server, widened by synonyms, so the whole market is searched.
+  it('sends the search as a tsquery and the raw words, and nothing when there is no search', async () => {
+    const c = client()
+    await getBrowseFeed(c as never, { scope: { metroId: 'm1' }, search: 'Flowers' })
+    expect(argsOf(c)).toMatchObject({ p_search: '(flowers | florist | flower)', p_search_raw: 'flowers' })
+    const plain = client()
+    await getBrowseFeed(plain as never, { scope: { metroId: 'm1' } })
+    expect(argsOf(plain)).not.toHaveProperty('p_search')
+  })
+
   it('defaults to the public audience and sends no follow set', async () => {
     const c = client()
     await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
@@ -309,5 +319,52 @@ describe('F099 — photo_source', () => {
     expect(mapBrowseRow({ ...PAGE_ROW, photo_source: 'post' } as never, 'abc123').photoSource).toBe('post')
     expect(mapBrowseRow({ ...PAGE_ROW, photo_source: 'page' } as never, 'abc123').photoSource).toBe('page')
     expect(mapBrowseRow(PAGE_ROW as never, 'abc123').photoSource ?? null).toBeNull()
+  })
+})
+
+describe('#922 — a Page card’s quick links come in the same read as its public id', () => {
+  const page = (extra: Record<string, unknown>) => [{ id: 'g1', public_id: '7k3x8m', social_links: null, where_mode: null, anchor: { kind: 'permanent' }, ...extra }]
+
+  it('carries the website, Instagram and TikTok, and a fixed point Directions can go to', async () => {
+    const c = client([PAGE_ROW], null, page({ social_links: { website: 'https://folsom.coffee', instagram: 'https://instagram.com/fc', tiktok: 'https://tiktok.com/@fc', facebook: 'https://facebook.com/fc' } }))
+    const [r] = await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(r!.quickLinks).toEqual({ website: 'https://folsom.coffee', instagram: 'https://instagram.com/fc', tiktok: 'https://tiktok.com/@fc', fixedPoint: true })
+  })
+
+  it('an area, or a Page that moves or travels, has no fixed point', async () => {
+    for (const extra of [{ anchor: { kind: 'area' } }, { where_mode: 'roaming' }, { where_mode: 'travel' }]) {
+      const [r] = await getBrowseFeed(client([PAGE_ROW], null, page(extra)) as never, { scope: { metroId: 'm1' } })
+      expect(r!.quickLinks?.fixedPoint).toBe(false)
+    }
+  })
+
+  it('never a link that is not https', async () => {
+    const [r] = await getBrowseFeed(client([PAGE_ROW], null, page({ social_links: { website: 'javascript:alert(1)', instagram: 'http://instagram.com/x' } })) as never, { scope: { metroId: 'm1' } })
+    expect(r!.quickLinks).toEqual({ fixedPoint: true })
+  })
+
+  it('signed out (no point from browse_feed, F093.8) there are none, and a post never has them', async () => {
+    const links = page({ social_links: { website: 'https://folsom.coffee' } })
+    const [anon] = await getBrowseFeed(client([{ ...PAGE_ROW, location_geography: null }], null, links) as never, { scope: { metroId: 'm1' } })
+    expect(anon!.quickLinks).toBeNull()
+    const [post] = await getBrowseFeed(client([POST_ROW], null, links) as never, { scope: { metroId: 'm1' } })
+    expect(post!.quickLinks).toBeNull()
+  })
+
+  it('signed out it never asks for what anon has no grant on, so the lookup (and every card link) survives', async () => {
+    const select = vi.fn((_cols: string) => ({ in: () => Promise.resolve({ data: [{ id: 'g1', public_id: '7k3x8m' }], error: null }) }))
+    const c = { rpc: vi.fn(() => Promise.resolve({ data: [{ ...PAGE_ROW, location_geography: null }], error: null })), from: vi.fn(() => ({ select })) }
+    const [r] = await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(select.mock.calls[0]![0]).not.toMatch(/where_mode|social_links|anchor/)
+    expect(r!.href).toBe('/g/7k3x8m')
+  })
+
+  it('a failed links read falls back to the plain lookup: cards keep their links, and lose only the quick links', async () => {
+    let n = 0
+    const select = vi.fn(() => ({ in: () => Promise.resolve(n++ === 0 ? { data: null, error: { message: 'denied' } } : { data: [{ id: 'g1', public_id: '7k3x8m' }], error: null }) }))
+    const c = { rpc: vi.fn(() => Promise.resolve({ data: [PAGE_ROW], error: null })), from: vi.fn(() => ({ select })) }
+    const [r] = await getBrowseFeed(c as never, { scope: { metroId: 'm1' } })
+    expect(r!.href).toBe('/g/7k3x8m')
+    expect(r!.quickLinks).toBeNull()
   })
 })

@@ -24,9 +24,9 @@ import { z } from 'zod'
 import { defineHandler } from '../_lib/handler'
 import { ValidationError, AuthorizationError, NotFoundError } from '../_lib/errors'
 import { REPORT_CATEGORY_VALUES, URGENT_CATEGORIES, categoryLabel } from '@/lib/reports/categories'
-import { textOperator } from '@/lib/notify/operator-sms'
+import { alertOperator } from '@/lib/notify/operator-alert'
 import { assessAfterReport } from '@/lib/moderation/after-report'
-import { hiddenNoticeMessage } from '@/lib/reports/notices'
+import { hiddenNoticeMessage, courtesyNoticeMessage } from '@/lib/reports/notices'
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
@@ -55,8 +55,8 @@ const MAX_OPEN_REPORTS_PER_REPORTER = 5
 // a threshold in the schema is a migration and a production apply.
 const MAX_OPEN_REPORTS_TOTAL = 20
 
-// F102 criteria 6–7 and F078 criterion 10: counters on the act of reporting,
-// never a score on the person. A report the operator dismissed (approved the
+// F102 criteria 6–7 and F078 criterion 10: counters on the act of reporting.
+// A report the operator dismissed (approved the
 // content it was about) tightens what that reporter's later reports may hide.
 const DAY_MS = 86_400_000
 const CAP_AFTER_A_DISMISSAL = 1
@@ -91,12 +91,18 @@ function hideCapFor(dismissed: Date[], now: Date): { cap: number; hidesAnything:
 }
 const MAX_REPORTS_PER_SUBJECT = 2
 
+/** The two refusals a member can hit; the action layer says them in plain words (#703). */
+export const REPORT_REFUSED = {
+  tooManyOpen: 'report.create: you have a lot of reports open already — we will get to them before taking more',
+  alreadyReported: 'report.create: you have already reported this one — we have it',
+} as const
+
 export const reportCreateInput = z.object({
   // What is reported: the Page's photo ('group', the original subject), a Post
   // body ('post'), the Page picture, or one post's photo (F099 criterion 8: each
-  // image reportable on its own, and a report hides that one image only). Items
-  // never join (model.md § There are no Items).
-  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo']),
+  // image reportable on its own, and a report hides that one image only), and
+  // one of a Page's featured products or services ('page_item', #909).
+  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo', 'page_words', 'page_item']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -127,15 +133,23 @@ interface Subject {
   hideBar: string | number
   builderOnReal: boolean
   reporterIsBuilder: boolean
+  /** What a legal hold keeps if this turns out to be child-safety content (#648). */
+  preserve: { mediaUrl: string | null; text: string | null }
   /** Something there to hide: a Page with a photo, any Post. */
   hideable: boolean
   alreadyHidden: boolean
   /** A restore is sticky for what was reviewed. */
   locked: boolean
-  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden'
+  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden' | 'group.words_hidden' | 'group.item_hidden'
   /** False when a concurrent report got there first. */
   hide: (client: Queryable, now: Date) => Promise<boolean>
 }
+
+/** #625 — the words a report on a Page's own words covers, as one string: name, then description. */
+export const pageWordsText = (name: string, description: string | null) => `${name}\n${description ?? ''}`
+
+/** #909 — what a report on a featured item covers: its name, then its details. */
+export const pageItemText = (title: string, description: string | null) => `${title}\n${description ?? ''}`
 
 type Queryable = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
@@ -168,6 +182,7 @@ function imageSubject(
     hideBar: r.hide_bar,
     builderOnReal: r.builder_on_real,
     reporterIsBuilder: r.reporter_is_builder,
+    preserve: { mediaUrl: r.photo_url, text: null },
     hideable: r.photo_url !== null,
     alreadyHidden: r.photo_hidden_at !== null,
     // Locked while the hide-locked url = the image's url; replacing the image
@@ -224,6 +239,104 @@ async function loadSubject(
     })
   }
 
+  // #625 — a Page's own words: its name and description, hidden together while the Page stays up.
+  if (kind === 'page_words') {
+    const res = await client.query<{
+      group_id: string
+      name: string
+      description: string | null
+      words_hidden_at: Date | null
+      words_hide_locked_text: string | null
+      builder_on_real: boolean
+      reporter_is_builder: boolean
+      founder_member_id: string
+      hide_bar: string | number
+    }>(
+      `select id as group_id, name, description, words_hidden_at, words_hide_locked_text,
+              public.is_builder($2) and not public.is_builder(founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder,
+              founder_member_id,
+              ${BAR_OF_LOCATION.replace('%LOCATION%', 'groups.anchor_location_id')} as hide_bar
+         from public.groups
+        where id = $1`,
+      [id, reporterId],
+    )
+    const g = res.rows[0]
+    if (!g) return null
+    const text = pageWordsText(g.name, g.description)
+    return {
+      groupId: g.group_id,
+      founderId: g.founder_member_id,
+      pageName: g.name,
+      hideBar: g.hide_bar,
+      builderOnReal: g.builder_on_real,
+      reporterIsBuilder: g.reporter_is_builder,
+      preserve: { mediaUrl: null, text },
+      hideable: true,
+      alreadyHidden: g.words_hidden_at !== null,
+      // Locked while the restored words are the words; an edit un-locks it.
+      locked: g.words_hide_locked_text !== null && g.words_hide_locked_text === text,
+      hiddenEventKind: 'group.words_hidden',
+      hide: async (c, now) => {
+        const r = await c.query<{ id: string }>(
+          `update public.groups set words_hidden_at = $2 where id = $1 and words_hidden_at is null returning id`,
+          [id, now],
+        )
+        return r.rows.length > 0
+      },
+    }
+  }
+
+  // #909 — one featured product or service: its name, details and photo, hidden together; the Page stays up.
+  if (kind === 'page_item') {
+    const res = await client.query<{
+      group_id: string
+      title: string
+      description: string
+      photo_url: string | null
+      hidden_at: Date | null
+      hide_locked_text: string | null
+      builder_on_real: boolean
+      reporter_is_builder: boolean
+      founder_member_id: string
+      name: string
+      hide_bar: string | number
+    }>(
+      `select g.id as group_id, i.title, i.description, i.photo_url, i.hidden_at, i.hide_locked_text,
+              public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder,
+              g.founder_member_id, g.name,
+              ${BAR_OF_LOCATION.replace('%LOCATION%', 'g.anchor_location_id')} as hide_bar
+         from public.items i
+         join public.groups g on g.id = i.group_id
+        where i.id = $1 and i.deleted_at is null and i.kind in ('product', 'service')`,
+      [id, reporterId],
+    )
+    const it = res.rows[0]
+    if (!it) return null
+    const text = pageItemText(it.title, it.description)
+    return {
+      groupId: it.group_id,
+      founderId: it.founder_member_id,
+      pageName: it.name,
+      hideBar: it.hide_bar,
+      builderOnReal: it.builder_on_real,
+      reporterIsBuilder: it.reporter_is_builder,
+      preserve: { mediaUrl: it.photo_url, text },
+      hideable: true,
+      alreadyHidden: it.hidden_at !== null,
+      locked: it.hide_locked_text !== null && it.hide_locked_text === text,
+      hiddenEventKind: 'group.item_hidden',
+      hide: async (c, now) => {
+        const r = await c.query<{ id: string }>(
+          `update public.items set hidden_at = $2 where id = $1 and hidden_at is null returning id`,
+          [id, now],
+        )
+        return r.rows.length > 0
+      },
+    }
+  }
+
   if (kind === 'post_photo') {
     const res = await client.query<ImageRow>(
       `select g.id as group_id, pp.photo_url, pp.photo_hidden_at, pp.photo_hide_locked_url,
@@ -250,6 +363,7 @@ async function loadSubject(
   const res = await client.query<{
     group_id: string
     body: string
+    photo_url: string | null
     hidden_at: Date | null
     hide_locked_body: string | null
     builder_on_real: boolean
@@ -258,7 +372,7 @@ async function loadSubject(
     name: string
     hide_bar: string | number
   }>(
-    `select p.group_id, p.body, p.hidden_at, p.hide_locked_body,
+    `select p.group_id, p.body, p.photo_url, p.hidden_at, p.hide_locked_body,
             public.is_builder($2) and not public.is_builder(g.founder_member_id) as builder_on_real,
             public.is_builder($2) as reporter_is_builder,
             g.founder_member_id, g.name,
@@ -277,6 +391,7 @@ async function loadSubject(
     hideBar: p.hide_bar,
     builderOnReal: p.builder_on_real,
     reporterIsBuilder: p.reporter_is_builder,
+    preserve: { mediaUrl: p.photo_url, text: p.body },
     hideable: true,
     alreadyHidden: p.hidden_at !== null,
     locked: p.hide_locked_body !== null && p.hide_locked_body === p.body,
@@ -344,6 +459,19 @@ export const reportCreate = defineHandler(
       )
       const priorBySameMember = Number(priorRes.rows[0]?.count ?? '0')
 
+      // #626: a report from someone else already on this item is what makes
+      // this the second report.
+      const othersRes = await client.query<{ count: string }>(
+        `select count(*)::text as count
+           from public.reports
+          where reporter_member_id <> $1
+            and subject_kind = $2
+            and subject_id = $3
+            and removed_at is null`,
+        [reporterMemberId, input.subjectKind, input.subjectId],
+      )
+      const priorByOthers = Number(othersRes.rows[0]?.count ?? '0')
+
       const openRes = await client.query<{ count: string }>(
         `select count(*)::text as count
            from public.reports
@@ -358,14 +486,10 @@ export const reportCreate = defineHandler(
       // Refuse before writing. A stored report that nobody will ever read is
       // still a row in the operator's queue.
       if (openByReporter >= MAX_OPEN_REPORTS_TOTAL) {
-        throw new ValidationError(
-          'report.create: you have a lot of reports open already — we will get to them before taking more',
-        )
+        throw new ValidationError(REPORT_REFUSED.tooManyOpen)
       }
       if (priorBySameMember >= MAX_REPORTS_PER_SUBJECT) {
-        throw new ValidationError(
-          'report.create: you have already reported this one — we have it',
-        )
+        throw new ValidationError(REPORT_REFUSED.alreadyReported)
       }
 
       const insertRes = await client.query<{ id: string }>(
@@ -388,6 +512,25 @@ export const reportCreate = defineHandler(
         event_kind: 'group.reported',
         payload: { report_id: reportId, subject_kind: input.subjectKind },
       })
+
+      // #648 — apparent child-safety content (Sensitive content) is kept, not only hidden: a snapshot of the
+      // words and the photo address, the poster, and where it came from, for a year. Whatever the limits say,
+      // and not for a builder's test report on a real Page.
+      if (input.category === 'sensitive_content' && !subject.reporterIsBuilder && !subject.builderOnReal) {
+        await client.query(
+          `insert into public.legal_holds
+             (subject_kind, subject_id, group_id, poster_member_id, media_url, body, origin_ip, origin_at, first_report_id, held_at, retain_until)
+           select $1::text, $2::uuid, $3::uuid, $4::uuid, $5::text, $6::text, o.ip, o.created_at, $7::uuid, $8::timestamptz, $8::timestamptz + interval '1 year'
+             from (select 1) one
+             left join lateral (
+               select ip, created_at from public.content_origins
+                where (kind = 'post' and ref = $2::text) or (kind = 'upload' and ref = $5)
+                order by created_at desc limit 1) o on true
+           on conflict (subject_kind, subject_id) do update
+             set retain_until = greatest(public.legal_holds.retain_until, excluded.retain_until)`,
+          [input.subjectKind, input.subjectId, subject.groupId, subject.founderId, subject.preserve.mediaUrl, subject.preserve.text, reportId, ctx.now()],
+        )
+      }
 
       // The limits. Every one of them stores the report and queues it for the
       // operator; what they withhold is only the automatic hide.
@@ -420,9 +563,38 @@ export const reportCreate = defineHandler(
         // Ruled 2026-10-08 (Dispatch, for the PM): a cool-down or three strikes stops a
         // reporter's ordinary reports hiding, but sensitive content and threat of harm
         // still hide, whatever the reporter's record (F078 criterion 8), and still text the operator.
-        (urgent || (limits.hidesAnything && reachesBar && priorBySameMember === 0 && openByReporter < limits.cap))
+        // #626 (PM, 2026-10-11): the first report is a courtesy notice and the item stays
+        // up; a second report from someone else hides it and queues it for staff.
+        (urgent ||
+          (limits.hidesAnything && reachesBar && priorBySameMember === 0 && priorByOthers > 0 && openByReporter < limits.cap))
 
       if (!shouldHide) {
+        const firstReport = priorBySameMember === 0 && priorByOthers === 0
+        if (
+          firstReport &&
+          !urgent &&
+          !subject.builderOnReal &&
+          !subject.reporterIsBuilder &&
+          subject.hideable &&
+          !subject.alreadyHidden &&
+          !subject.locked
+        ) {
+          await client.query(
+            `insert into public.member_notices
+               (member_id, kind, report_id, subject_kind, subject_id, category, message, created_at, page_id)
+             values ($1, 'courtesy', $2, $3, $4, $5, $6, $7, $8)`,
+            [
+              subject.founderId,
+              reportId,
+              input.subjectKind,
+              input.subjectId,
+              input.category,
+              courtesyNoticeMessage(input.category, input.subjectKind),
+              ctx.now(),
+              subject.groupId,
+            ],
+          )
+        }
         return { reportId, photoHidden: false }
       }
 
@@ -469,7 +641,7 @@ export const reportCreate = defineHandler(
     // Names the reason and where to look; never the reporter or what they wrote.
     if (textAfterCommit) {
       const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.socialus.org'
-      await textOperator(
+      await alertOperator(
         `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? (input.subjectKind === 'post' ? ' and hid a Post' : ' and hid a Page photo') : ''}. Review: ${site}/admin/reports`,
       )
     }

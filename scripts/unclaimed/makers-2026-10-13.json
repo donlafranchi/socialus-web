@@ -1,0 +1,82 @@
+[
+ {
+  "name": "Yolo Food Bank",
+  "category": "Food bank (nonprofit)",
+  "makes": "Food for neighbours across Yolo County through 45+ partner agencies; volunteer shifts sorting and packing",
+  "area": "Woodland (Yolo)",
+  "site": "https://yolofoodbank.org/",
+  "confidence": "High; own site checked 2026-10-13 (ok): news dated Oct 9, 2026; footer 2026."
+ },
+ {
+  "name": "Placer Food Bank",
+  "category": "Food bank (nonprofit)",
+  "makes": "Food distribution across Placer, Nevada and El Dorado counties; volunteer shifts in the warehouse",
+  "area": "Roseville (Placer)",
+  "site": "https://www.placerfoodbank.org/",
+  "confidence": "Medium-high; own site checked 2026-10-13 (ok): live site, Roseville warehouse."
+ },
+ {
+  "name": "Food Bank of El Dorado County",
+  "category": "Food bank (nonprofit)",
+  "makes": "Food for families across El Dorado County, with volunteer packing and distribution days",
+  "area": "Cameron Park (El Dorado)",
+  "site": "https://www.foodbankedc.org/",
+  "confidence": "High; own site checked 2026-10-13 (ok): 4550 Business Drive, Cameron Park; footer 2026."
+ },
+ {
+  "name": "The Gathering Inn",
+  "category": "Shelter and services (nonprofit)",
+  "makes": "Shelter, meals and a path to housing for neighbours in Placer County; volunteers serve meals and help at the center",
+  "area": "Rocklin (Placer)",
+  "site": "https://www.thegatheringinn.com/",
+  "confidence": "High; own site checked 2026-10-13 (ok): Rocklin office address listed; programs and volunteer pages live."
+ },
+ {
+  "name": "Davis Community Meals and Housing",
+  "category": "Meal program and housing (nonprofit)",
+  "makes": "Community meals, a resource center and housing in Davis; volunteers cook and serve",
+  "area": "Davis (Yolo)",
+  "site": "https://daviscommunitymeals.org/",
+  "confidence": "High; own site checked 2026-10-13 (ok): Davis office, phone and programs listed."
+ },
+ {
+  "name": "Loaves & Fishes",
+  "category": "Meal program (nonprofit)",
+  "makes": "Daily meals and services for people experiencing homelessness; volunteers serve and cook",
+  "area": "Sacramento",
+  "site": "https://www.sacloaves.org/",
+  "confidence": "High; own site checked 2026-10-13 (ok): Sacramento 95811 campus."
+ },
+ {
+  "name": "Habitat for Humanity of Greater Sacramento",
+  "category": "Volunteer building and ReStore (nonprofit)",
+  "makes": "Volunteers build and repair homes; ReStore sells donated building goods",
+  "area": "Sacramento",
+  "site": "https://habitatgreatersac.org/",
+  "confidence": "High; own site checked 2026-10-13 (ok): Rock the Block dates Oct 9-10, 2026; footer 2026; ReStore at 819 North 10th Street."
+ },
+ {
+  "name": "Riverdog Farm",
+  "category": "Farm",
+  "makes": "Organic vegetables, fruit, pasture-raised pork and chicken; CSA and farmers markets",
+  "area": "Guinda (Yolo)",
+  "site": "https://riverdogfarm.com/",
+  "confidence": "High; own site checked 2026-10-13 (ok): footer 2026; CSA and markets listed."
+ },
+ {
+  "name": "Good Humus",
+  "category": "Farm",
+  "makes": "Organic fruit, vegetables, flowers and jams; CSA and the Davis Farmers Market",
+  "area": "Capay (Yolo)",
+  "site": "https://www.goodhumus.com/",
+  "confidence": "Medium-high; own site checked 2026-10-13 (ok): County Road 84A, Capay; 2025 market news."
+ },
+ {
+  "name": "Fiddyment Farms",
+  "category": "Farm",
+  "makes": "Pistachios grown in Placer County, roasted and sold from the farm",
+  "area": "Lincoln (Placer)",
+  "site": "https://www.fiddymentfarms.com/",
+  "confidence": "High; own site checked 2026-10-13 (ok): Lincoln address; footer 2026; shop live."
+ }
+]

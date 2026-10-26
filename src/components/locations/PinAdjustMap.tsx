@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_DEFAULTS } from '@/lib/map-config'
+import { handleMapErrors } from '@/lib/map/errors'
 
 type LngLat = [number, number]
 const round = (c: { lng: number; lat: number }): LngLat => [Number(c.lng.toFixed(6)), Number(c.lat.toFixed(6))]
@@ -32,6 +33,7 @@ export function PinAdjustMap({ center, onChange }: { center: LngLat; onChange: (
     if (!token || !el.current) return
     mapboxgl.accessToken = token
     const map = new mapboxgl.Map({ container: el.current, style: MAP_DEFAULTS.style, center: at.current, zoom: 16 })
+    handleMapErrors(map)
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }))
     const pin = document.createElement('div')
     pin.className = 'size-tap flex cursor-grab items-end justify-center text-[var(--color-pin)]'

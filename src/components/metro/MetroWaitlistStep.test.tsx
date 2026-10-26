@@ -30,7 +30,7 @@ beforeEach(() => {
     open: false,
     metroName: 'Boise City-Mountain Home-Ontario, ID-OR',
     standing: { combined: 51, target: 300 },
-    message: 'This metro needs 249 more people before there is enough here to be worth showing you.',
+    message: 'This area needs 249 more people before there is enough here to be worth showing you.',
   })
 })
 

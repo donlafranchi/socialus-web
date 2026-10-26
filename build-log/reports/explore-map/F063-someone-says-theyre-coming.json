@@ -1,0 +1,85 @@
+{
+ "schema": 1,
+ "feature": "F063",
+ "title": "someone says they're coming",
+ "area": "explore-map",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Tap writes a response row and its event row in one transaction; count updates",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Not built [V]: `item_responses` and `response_count` exist only in `016_discoverable_items.sql` (and a comment in 20261019060000_post_reminders.sql saying reminders are not responses); no action, RPC or button writes a response; `src/actions` has no response handler [V grep]. The smoke's `rsvp` persona is a seeded account, not a feature. Open #34."
+  },
+  {
+   "id": "2",
+   "text": "Tap again withdraws, no dialog; double-tap is a no-op enforced by a database constraint",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Not built [V]: `withdrawn_at` column exists; no unique constraint on (item_id, responder_member_id, kind) in any migration [V grep]. Open #34."
+  },
+  {
+   "id": "3",
+   "text": "A signed-out tap survives sign-in and is recorded on return",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Not built [V]: the generic `/auth/login?next=` return exists (and the sign-in flow changed to a 6-digit code, #946); nothing carries a pending response through it. Open #34."
+  },
+  {
+   "id": "4",
+   "text": "Count is distinct people, never rows",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    34
+   ],
+   "note": "Not built [V]: the count is `count(*)` over rows, not distinct responders, and with no unique constraint duplicates are possible (`016_discoverable_items.sql`, `20261007020000_archived_pages_every_path.sql`); builder responses are excluded in the newer one. Open #34."
+  }
+ ]
+}

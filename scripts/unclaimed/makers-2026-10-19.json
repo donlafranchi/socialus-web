@@ -1,0 +1,178 @@
+[
+ {
+  "name": "Menagerie Hill Ranch",
+  "category": "Farm",
+  "makes": "Vacaville alpaca ranch offering ranch tours where you meet and feed the alpacas, an Adopt an Alpaca program, alpaca fiber and roving, and alpacas for sale",
+  "area": "Vacaville (Solano)",
+  "site": "https://menageriehillranch.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/MenagerieHillRanch"
+  },
+  "products": [
+   {
+    "name": "Alpaca Roving - Huacaya",
+    "url": "https://www.menageriehillranch.com/product-13308-alpaca-roving--huacaya",
+    "price": 5
+   },
+   {
+    "name": "Ranch Tours",
+    "url": "https://www.menageriehillranch.com/product-30140-ranch-tours",
+    "kind": "service"
+   },
+   {
+    "name": "Adopt an Alpaca",
+    "url": "https://www.menageriehillranch.com/product-26160-adopt-an-alpaca",
+    "kind": "service"
+   }
+  ],
+  "confidence": "Medium; own site checked 2026-10-19 (ok): 4071 Norman Court; footer 2026; no dated 2026 events and no hours listed (call to book). Photos not viewed: stock only."
+ },
+ {
+  "name": "Il Fiorello Olive Oil Company",
+  "category": "Food & drink",
+  "makes": "Fairfield family olive oil company with organic groves: extra virgin and co-milled flavored oils, balsamic reductions, gifts, tastings, grove tours and custom milling",
+  "area": "Fairfield (Solano)",
+  "site": "https://ilfiorello.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/ilfiorellooliveoil/",
+   "facebook": "https://www.facebook.com/ilfiorellooliveoilco/"
+  },
+  "products": [
+   {
+    "name": "Extra Virgin Olive Oils",
+    "url": "https://ilfiorello.com/purchase/extra-virgin-olive-oil/"
+   },
+   {
+    "name": "Co-Milled Flavored Oils",
+    "url": "https://ilfiorello.com/purchase/co-milled-olive-oils/"
+   },
+   {
+    "name": "Balsamic Vinegar Reductions",
+    "url": "https://ilfiorello.com/purchase/balsamic-vinegar-reductions/"
+   },
+   {
+    "name": "Gifting",
+    "url": "https://ilfiorello.com/purchase/gifting/"
+   }
+  ],
+  "confidence": "High; own site checked 2026-10-19 (ok): 2625 Mankas Corner Rd; shop open daily 11-5; no footer year and no dated events. Photos not viewed: stock only."
+ },
+ {
+  "name": "Cal Yee Farm",
+  "category": "Food & drink",
+  "makes": "Suisun Valley family dried-fruit and nut business: dried and preserved fruit, nuts, seeds, candy, snacks and gift baskets, ordered by phone or online",
+  "area": "Fairfield (Solano)",
+  "site": "https://calyeefarm.com/",
+  "products": [
+   {
+    "name": "Tomato Chips",
+    "url": "https://calyeefarm.com/chips-crackers-and-crunchy-snacks/tomato-chips/tomato-chips/",
+    "price": 7.1
+   },
+   {
+    "name": "Breakfast Mix",
+    "url": "https://calyeefarm.com/mixed-fruits/breakfast-mix/",
+    "price": 6.9
+   },
+   {
+    "name": "Ginger Chunks",
+    "url": "https://calyeefarm.com/ginger/ginger-candy/ginger-chunks/",
+    "price": 6.95
+   },
+   {
+    "name": "California Pistachios",
+    "url": "https://calyeefarm.com/nuts/pistachios-california/",
+    "price": 11.05
+   }
+  ],
+  "confidence": "Medium; own site checked 2026-10-19 (ok): 5158 Clayton Rd; phone orders Mon-Fri 8-5; prices on site; no footer year, no retail hours. Photos not viewed: stock only."
+ },
+ {
+  "name": "Michael David Winery",
+  "category": "Food & drink",
+  "makes": "Lodi winery with a tasting room, wine club, wine shop, and an on-site cafe, bistro and bakery; private events",
+  "area": "Lodi (San Joaquin)",
+  "site": "https://www.michaeldavidwinery.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/michaeldavidwinery",
+   "facebook": "https://www.facebook.com/MichaelDavidWinery"
+  },
+  "products": [
+   {
+    "name": "Freakshow wines",
+    "url": "https://www.michaeldavidwinery.com/collection/freakshow"
+   },
+   {
+    "name": "Misfits & Mavens wines",
+    "url": "https://www.michaeldavidwinery.com/collection/misfits-and-mavens"
+   },
+   {
+    "name": "Michael David wines",
+    "url": "https://www.michaeldavidwinery.com/collection/michael-david"
+   },
+   {
+    "name": "Wine club",
+    "url": "https://www.michaeldavidwinery.com/club/",
+    "kind": "service"
+   }
+  ],
+  "confidence": "High; own site checked 2026-10-19 (ok): 4580 W Highway 12; footer 2026; tasting room 10-5, cafe 8-3, bakery 8-5; no dated events. Photos not viewed: stock only."
+ },
+ {
+  "name": "Sudwerk Brewing Co.",
+  "category": "Food & drink",
+  "makes": "Davis brewery and pub brewing German-style lagers, with a kitchen, a Wednesday pub quiz and an online store",
+  "area": "Davis (Yolo)",
+  "site": "https://www.sudwerkbrew.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/sudwerkbrew",
+   "facebook": "https://www.facebook.com/sudwerkbrew"
+  },
+  "products": [
+   {
+    "name": "Core Beers",
+    "url": "https://www.sudwerkbrew.com/core-beers"
+   },
+   {
+    "name": "Limited Releases",
+    "url": "https://www.sudwerkbrew.com/limited-releases"
+   },
+   {
+    "name": "Menu",
+    "url": "https://www.sudwerkbrew.com/menu",
+    "kind": "service"
+   }
+  ],
+  "confidence": "Medium; own site checked 2026-10-19 (ok, redirects from sudwerk.com): 2001 2nd St; Wed-Fri 4-9, Sat 12-9, Sun 11-5, closed Mon-Tue; footer 2024; no dated 2026 events. Photos not viewed: stock only."
+ },
+ {
+  "name": "Ticket Chocolate",
+  "category": "Food & drink",
+  "makes": "Handmade small-batch chocolate from Northern California kitchens: hot chocolate sticks and bombs, s'mores kits, marshmallows, brittle, bark and gift boxes",
+  "area": "Loomis (Placer)",
+  "site": "https://www.ticketchocolate.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/ticketchocolate/",
+   "facebook": "https://www.facebook.com/TicketChocolate/"
+  },
+  "products": [
+   {
+    "name": "Hot Chocolate",
+    "url": "https://shop.ticketchocolate.com/collections/hot-chocolate"
+   },
+   {
+    "name": "Artisan S'mores Kits",
+    "url": "https://shop.ticketchocolate.com/collections/artisan-smores-kits"
+   },
+   {
+    "name": "Gourmet Marshmallows",
+    "url": "https://shop.ticketchocolate.com/collections/all-marshmallows"
+   },
+   {
+    "name": "Chocolate Bark",
+    "url": "https://shop.ticketchocolate.com/collections/chocolate-bark"
+   }
+  ],
+  "confidence": "Medium; own site checked 2026-10-19 (ok); town from Visit Placer, own site gives no street address; no footer year, no dated events; holiday (hot chocolate, s'mores kits). Photos not viewed: stock only."
+ }
+]

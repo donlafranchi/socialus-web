@@ -5,9 +5,10 @@
 // one and never brings one back (only an operator restores, #353).
 import { toSlug } from '../slugify'
 import { SYSTEM_MEMBER_ID } from '../system-member'
-import type { PlannedPage } from './plan'
-import { SAMPLE_LABEL, sampleWindow, samplePosts, type SampleKind } from './samples'
+import type { PlannedPage, SampleProduct } from './plan'
+import { SAMPLE_LABEL, fitsSchedule, rollSample, sampleSchedule, samplePosts, type SampleKind } from './samples'
 import type { Uploaded } from './upload'
+import { syncMarketDays } from './market-days'
 
 interface Db {
   query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }>
@@ -38,7 +39,7 @@ async function findPlace(db: Db, name: string, kind: 'city' | 'county') {
   )
   const row = found.rows[0] as { id: string; display_name: string; kind: string; in_metro: boolean } | undefined
   if (found.rows.length !== 1 || !row) return { why: `${found.rows.length} ${kind} places named ${name}` }
-  if (!row.in_metro) return { why: `${name} is outside the Sacramento metro` }
+  if (!row.in_metro) return { why: `${name} is outside the Sacramento area` }
   return { place: row }
 }
 
@@ -69,7 +70,8 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
     await db.query('begin')
     try {
       // A Page whose address was fixed is filed under the new one; a first run files it under the old.
-      const had = await db.query(`select 1 from public.groups where unclaimed_at is not null and public_info_url = any($1::text[])`, [[p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])]])
+      // #987 — a claimed Page counts as there: the seeder never makes it again.
+      const had = await db.query(`select 1 from public.groups where (unclaimed_at is not null or claimed_at is not null) and public_info_url = any($1::text[])`, [[p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])]])
       if (had.rows.length) {
         await db.query('rollback')
         result.existing++
@@ -99,7 +101,7 @@ export async function loadUnclaimed(db: Db, pages: PlannedPage[]): Promise<LoadR
   return result
 }
 
-export type EnrichResult = 'missing' | 'complete' | 'enriched' | 'refreshed'
+export type EnrichResult = 'missing' | 'claimed' | 'complete' | 'enriched' | 'refreshed'
 
 export interface Enrichment {
   /** Photos in order: the cover first, then the ones the sample posts carry. */
@@ -113,31 +115,38 @@ export interface Enrichment {
 /** Sample posts want a cover and three more pictures behind it. */
 export const PHOTOS_PER_PAGE = 4
 
-const SOCIAL_FIELDS = ['instagram', 'facebook', 'tiktok', 'x', 'youtube']
+const SOCIAL_FIELDS = ['tiktok', 'instagram', 'facebook', 'x', 'youtube']
 
 /**
  * Brings one Page up to what Don asked for (#556): a cover photo with its credit, a few more pictures (on
  * its sample posts), a phone and profiles where its own site gives them, and sample posts that are not
  * stale. Only what is missing is written, so a re-run changes nothing; `gather` is not called for a Page
- * that already has all of it.
+ * that already has all of it. A picture in `retired` (its file name in the media bucket) comes off: the
+ * samples that carried it are made again, and a retired cover is replaced (#795).
  */
 export async function enrichPage(
   db: Db,
   page: PlannedPage,
   gather: () => Promise<Enrichment>,
   now: Date,
+  retired: string[] = [],
+  /** #809 — the Page is on stock-only (F080): a cover that is not a stock photo comes off, with its samples, and stock goes in. */
+  { stockOnly = false, socials }: { stockOnly?: boolean; socials?: () => Promise<{ social: Partial<Record<string, string>>; siteUrl: string }> } = {},
 ): Promise<EnrichResult> {
   await db.query('begin')
   try {
     const found = await db.query(
-      `select id, photo_url, contact_phone, social_links, public_info_url, public_id
+      `select id, photo_url, photo_source_url, contact_phone, social_links, public_info_url, public_id
          from public.groups
         where unclaimed_at is not null and public_info_url = any($1::text[])`,
       [[page.publicInfoUrl, ...(page.legacyUrl ? [page.legacyUrl] : [])]],
     )
-    const g = found.rows[0] as { id: string; photo_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
+    const g = found.rows[0] as { id: string; photo_url: string | null; photo_source_url: string | null; contact_phone: string | null; social_links: Record<string, string>; public_info_url: string } | undefined
     if (!g) {
       await db.query('rollback')
+      // #987 — its owner runs it now: no samples, pictures or links from the seeder.
+      const claimed = await db.query(`select 1 from public.groups where claimed_at is not null and public_info_url = any($1::text[])`, [[page.publicInfoUrl, ...(page.legacyUrl ? [page.legacyUrl] : [])]])
+      if (claimed.rows.length) return 'claimed'
       return 'missing'
     }
     let touched = false
@@ -146,8 +155,21 @@ export async function enrichPage(
       await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'website', $2, $3, $4)`, [g.id, page.publicInfoUrl, CAPTURED_ON, CAPTURED_BY])
       touched = true
     }
-    const samples = await db.query(`select id, sample_kind, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
-    const needs = !g.photo_url || samples.rows.length < 3
+    if (stockOnly && g.photo_url && !(g.photo_source_url ?? '').startsWith('https://unsplash.com/')) {
+      await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
+      await db.query(`update public.groups set photo_url = null, photo_credit = null, photo_source_url = null where id = $1`, [g.id])
+      g.photo_url = null
+    }
+    if (retired.length) {
+      const files = retired.map((f) => `%/${f}.webp`)
+      await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null and photo_url like any($2::text[])`, [g.id, files])
+      if (g.photo_url && retired.some((f) => g.photo_url!.endsWith(`/${f}.webp`))) {
+        await db.query(`update public.groups set photo_url = null, photo_credit = null, photo_source_url = null where id = $1`, [g.id])
+        g.photo_url = null
+      }
+    }
+    const samples = await db.query(`select id, sample_kind, starts_at, ends_at from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
+    const needs = !g.photo_url || (!page.schedule && !page.events && samples.rows.length < 3)
     if (needs) {
       const e = await gather()
       if (e.photos.length < PHOTOS_PER_PAGE) throw new Error(`only ${e.photos.length} pictures found, ${PHOTOS_PER_PAGE} wanted`)
@@ -160,13 +182,8 @@ export async function enrichPage(
         await db.query(`update public.groups set contact_phone = $2 where id = $1`, [g.id, e.phone])
         await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'phone', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
       }
-      const merged = { ...(g.social_links ?? {}) }
-      for (const k of SOCIAL_FIELDS) if (e.social[k] && !merged[k]) merged[k] = e.social[k]!
-      if (JSON.stringify(merged) !== JSON.stringify(g.social_links ?? {})) {
-        await db.query(`update public.groups set social_links = $2::jsonb where id = $1`, [g.id, JSON.stringify(merged)])
-        await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'social', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
-      }
-      if (samples.rows.length < 3) {
+      await mergeSocial(db, g, e)
+      if (!page.schedule && !page.events && samples.rows.length < 3) {
         await db.query(`delete from public.page_posts where group_id = $1 and sample_kind is not null`, [g.id])
         const posts = samplePosts({ name: page.name, slug: page.slug, pool: page.pool, area: page.area }, now)
         for (const [i, post] of posts.entries()) {
@@ -180,14 +197,16 @@ export async function enrichPage(
       }
       touched = true
     }
-    // A sample whose day has passed is moved to the next one, so Explore never shows a stale "tomorrow".
-    for (const r of samples.rows as { id: string; sample_kind: SampleKind; ends_at: Date | null }[]) {
-      if (r.ends_at && r.ends_at < now) {
-        const w = sampleWindow(r.sample_kind, now, page.slug)
-        await db.query(`update public.page_posts set starts_at = $2, ends_at = $3, updated_at = $4 where id = $1`, [r.id, w.startsAt, w.endsAt, now])
-        touched = true
-      }
+    // Don, 2026-10-16 — a Page missing its TikTok or Instagram has its own site read again for them (links only); older Pages backfill.
+    else if (socials && !(g.social_links?.tiktok && g.social_links?.instagram) && (await mergeSocial(db, g, await socials()))) touched = true
+    // #816 a2 — the Page and its samples carry its interest tags; missing rows are added, so older Pages are backfilled.
+    if (page.interests?.length && (await tagInterests(db, g.id, page.interests))) touched = true
+    if (await redateSamples(db, samples.rows as SampleRow[], page.slug, page.pool, now)) touched = true
+    if (page.schedule) {
+      const { rows: [c] } = await db.query(`select photo_url from public.groups where id = $1`, [g.id])
+      if (await syncMarketDays(db, g.id, page.name, page.schedule, (c?.photo_url as string | null) ?? null, now)) touched = true
     }
+    if (page.products?.length && (await syncSampleProducts(db, g.id, page.products, now))) touched = true
     await db.query('commit')
     return needs ? 'enriched' : touched ? 'refreshed' : 'complete'
   } catch (e) {
@@ -196,4 +215,84 @@ export async function enrichPage(
   }
 }
 
+/** Adds the social links the Page lacks, logging where they came from. True when it added any. */
+async function mergeSocial(db: Db, g: { id: string; social_links: Record<string, string> | null }, e: { social: Partial<Record<string, string>>; siteUrl: string }): Promise<boolean> {
+  const merged = { ...(g.social_links ?? {}) }
+  for (const k of SOCIAL_FIELDS) if (e.social[k] && !merged[k]) merged[k] = e.social[k]!
+  if (JSON.stringify(merged) === JSON.stringify(g.social_links ?? {})) return false
+  await db.query(`update public.groups set social_links = $2::jsonb where id = $1`, [g.id, JSON.stringify(merged)])
+  await db.query(`insert into public.page_sources (group_id, field, url, captured_on, captured_by) values ($1, 'social', $2, $3, $4)`, [g.id, e.siteUrl, CAPTURED_ON, CAPTURED_BY])
+  g.social_links = merged
+  return true
+}
+
+type SampleRow = { id: string; sample_kind: SampleKind; starts_at: Date | null; ends_at: Date | null }
+
+/**
+ * Don, 2026-10-16 — a finished sample rolls three weeks on; one off the Page's weekly pattern (dated before it, or
+ * without a date) is re-dated to it. Without a slug and pool the pattern is unknown, so it only rolls. Returns how many moved.
+ */
+export async function redateSamples(db: Db, rows: SampleRow[], slug: string | null, pool: string | null, now: Date): Promise<number> {
+  const plan = slug && pool !== null ? sampleSchedule(now, slug, pool) : null
+  let moved = 0
+  for (const r of rows) {
+    const cur = r.starts_at && r.ends_at ? { startsAt: new Date(r.starts_at), endsAt: new Date(r.ends_at) } : null
+    let w = cur && (rollSample(cur, now) ?? cur)
+    if (plan && (!w || !fitsSchedule(r.sample_kind, w, slug!, pool!) || w.startsAt.getTime() > now.getTime() + 22 * 86_400_000)) w = plan[r.sample_kind]
+    if (w && (!cur || w.startsAt.getTime() !== cur.startsAt.getTime() || w.endsAt.getTime() !== cur.endsAt.getTime())) {
+      await db.query(`update public.page_posts set starts_at = $2, ends_at = $3, updated_at = $4 where id = $1 and sample_kind is not null`, [r.id, w.startsAt, w.endsAt, now])
+      moved++
+    }
+  }
+  return moved
+}
+
+/** Adds what is missing of the Page's interest tags, on the Page and on each sample post. True when it added any. */
+async function tagInterests(db: Db, groupId: string, labels: string[]): Promise<boolean> {
+  let added = 0
+  for (const label of labels) {
+    const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
+    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    const { rows } = await db.query(`select id from public.tags where normalized = $1`, [normalized])
+    const tagId = (rows[0] as { id: string }).id
+    added += (await db.query(`insert into public.page_tags (group_id, tag_id) values ($1, $2) on conflict do nothing returning 1`, [groupId, tagId])).rows.length
+    added += (await db.query(
+      `insert into public.post_tags (post_id, tag_id)
+       select p.id, $2 from public.page_posts p where p.group_id = $1 and p.sample_kind is not null
+       on conflict do nothing returning 1`,
+      [groupId, tagId],
+    )).rows.length
+  }
+  return added > 0
+}
+
 export { SAMPLE_LABEL }
+
+/**
+ * #909 — the Page's sample products and services, from its own site: published under the system member,
+ * credited by `sample_source_url`, in the row's order. Replaced when the list changes; a Page with a real one
+ * (an owner's, or a sample its owner made theirs) is never touched. True when it wrote anything.
+ */
+export async function syncSampleProducts(db: Db, groupId: string, products: SampleProduct[], now: Date): Promise<boolean> {
+  const have = await db.query(
+    `select title, sample_source_url from public.items
+      where group_id = $1 and deleted_at is null and kind in ('product', 'service') order by position, created_at`,
+    [groupId],
+  )
+  const rows = have.rows as { title: string; sample_source_url: string | null }[]
+  if (rows.some((r) => r.sample_source_url === null)) return false
+  const same = rows.length === products.length && rows.every((r, i) => r.title === products[i]!.name && r.sample_source_url === products[i]!.url)
+  if (same) return false
+  await db.query(`update public.items set deleted_at = $2 where group_id = $1 and sample_source_url is not null and deleted_at is null`, [groupId, now])
+  for (const [i, p] of products.entries()) {
+    const made = await db.query(
+      `insert into public.items (member_id, kind, group_id, title, description, state, in_stock, position, sample_source_url, created_at, updated_at)
+       values ($1, $2, $3, $4, '', 'published', true, $5, $6, $7, $7) returning id`,
+      [SYSTEM_MEMBER_ID, p.kind, groupId, p.name, i, p.url, now],
+    )
+    const id = made.rows[0]!.id as string
+    if (p.kind === 'product') await db.query(`insert into public.item_products (item_id, price_cents) values ($1, $2)`, [id, p.priceCents])
+    else await db.query(`insert into public.item_services (item_id, rate_model, rate_cents) values ($1, $2, $3)`, [id, p.priceCents == null ? 'quote' : 'flat', p.priceCents])
+  }
+  return true
+}

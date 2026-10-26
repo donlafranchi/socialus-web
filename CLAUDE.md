@@ -4,16 +4,22 @@
 
 SocialUs: local discovery, buy/sell/trade/gather. Beta 2026-11-06 (soft target) to one metro. Next.js App Router + TypeScript + Tailwind v4 + Supabase (Postgres/Auth/Realtime) + Mapbox GL JS, deployed on Vercel. Planning lives in the sibling repo `socialus-plan`, the method in `socialus-ops`, design in `socialus-design`; this repo is code. Which folder holds what: `~/.claude/CLAUDE.md` § The repos.
 
+Where each kind of thing goes (one home each, budgets, generated vs maintained): `socialus-ops/process/WHERE-THINGS-GO.md`. Read it before writing any doc.
+
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
 - **Branch:** the Issue number plus a short readable slug, e.g. `361-groups-are-groups` (Don, 2026-10-05): he copies and pastes it, so readability beats brevity. A migration applies with `gh workflow run apply.yml --ref <branch> -f confirm=apply`. Branches opened before then keep their names. **Commit:** `F060/T142: what`. Bugs: `bug #nn: what`.
 - **Provenance is git.** `git log --grep F060` is everything built for that scenario. No registers here.
-- **Build log:** one new file per ticket, `build-log/YYYY-WNN/<ticket>-<slug>.md`. **Never append to a shared weekly file** — appending is what made every merge conflict every other open PR (chore #76; the reasoning is in `BUILD-LOG.md`).
+- **No build-log file:** the PR body is the record (why, what changed, how it was checked). Git and PR bodies are the only history (socialus-plan ruling 2026-10-12).
 
 ## Before opening a ticket
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
+
+## Decision rights (2026-10-25)
+
+The PM decides only ideas, what is in each version (the MVP of a feature), and words and look-and-feel. Everything else — architecture, schema, flows, thresholds, which precedent to follow — you decide by the soul and defaults (socialus-plan `PRINCIPLES.md` § Soul, § Defaults) and the well-worn path, record it (a dated ruling in socialus-plan, or the Issue), and report what you chose. Only new territory that conflicts with the soul goes to the PM as A/B/C. Detail: socialus-ops `process/PIPELINE.md` § Decision rights.
 
 ## Who checks what
 
@@ -105,7 +111,8 @@ Branch per ticket. **A merge to main deploys to production via Vercel** — so b
 ## Rulings that bind this repo
 
 **socialus-plan `constraints/code.md`** — every ratified decision tagged as binding the
-code tier, one line each, generated from `DECISIONS.md`. Read it before building;
+code tier, one line each, generated from the rulings inline in socialus-plan's scenarios and
+product docs. Read it before building;
 it is the only rulings file this repo points at. Never edit it — change the tag on
 the decision in socialus-plan. It lists only live rulings; superseded ones are gone.
 
@@ -147,7 +154,7 @@ between nouns, which had no home before and so lived implicitly in foreign keys.
 
 **The rule: a ruling that introduces or changes a link updates that file in the
 same PR.** Not afterwards, not in a follow-up ticket. Each entry carries its
-`ruled:` date, which is the pointer back to the `DECISIONS.md` line.
+`ruled:` date, which is the pointer back to the ruling in the scenario or doc it governs.
 
 It is code, not a document, on purpose — socialus-plan's `CLAUDE.md` § Naming rules
 that a file only a script compares is fine, because nothing believes it, and a

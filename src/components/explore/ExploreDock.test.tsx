@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { ExploreDock } from './ExploreDock'
+import { ListMapToggle } from './ListMapToggle'
 import { BROWSE_RESULTS_ID } from '@/components/browse/results-id'
 
 const h = { onSearch: vi.fn(), onFilter: vi.fn(), onMetro: vi.fn(), onView: vi.fn() }
@@ -86,5 +87,21 @@ describe('expanded', () => {
     open()
     fireEvent.click(toggle())
     expect(toggle()).toHaveAttribute('aria-expanded', 'false')
+  })
+})
+
+describe('F044 criterion 1a — no full-width fixed List/Map bar', () => {
+  // F044 is retired as a scenario; this keeps the corner dock the only fixed List/Map control (#824)
+  it('the only fixed List/Map control is a corner dock, open or closed; the inline toggle is not fixed', () => {
+    const FULL_WIDTH = /\b(w-full|w-screen|inset-x-\S+|left-0|min-w-full)\b/
+    renderDock()
+    const dock = screen.getByTestId('explore-dock')
+    expect(dock.className).toMatch(/\bfixed\b/)
+    expect(dock.className).not.toMatch(FULL_WIDTH)
+    open()
+    expect(screen.getByTestId('explore-dock').className).not.toMatch(FULL_WIDTH)
+    cleanup()
+    render(<ListMapToggle view="list" onChange={() => {}} />)
+    expect(screen.getByTestId('list-map-toggle').className).not.toMatch(/\b(fixed|sticky)\b/)
   })
 })

@@ -1,0 +1,115 @@
+{
+ "schema": 1,
+ "feature": "F044",
+ "title": "newcomer switches between list and map with an inline toggle",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": true,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1a",
+   "text": "No fixed full-width List/Map segmented bar",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    824
+   ],
+   "note": "The segmented bar is gone: `src` has no full-width List/Map bar; the only controls are `ExploreDock` (one fixed control at the bottom right, a rounded-rectangle bar since #956, under 1024px) and `ListMapToggle`, segmented text with the selected view underlined (#956), docked in the sticky filter bar only in the `docked` layout [V]. Checked: no test asserts the absence at any width, no marker. Reviewed: T116 had no PR; #279 carries no `Reviewed by:`; #479 and #496 are review-skipped; #956 (the 2026-10-18 restyle) has `Reviewed by: Claude (lane agent)` but restyled only [V]. Shipped: T116 landed as direct commit 060ee79 with no deploy run; #279 18948ae7, #479 3c490272, #496 0cee585a, #956 546f0862 are deploy-health green [V]. Smoked: smoke-live run 39805278303 on main e0bdaf15 (2026-10-22) was green and opened explore and explore-map at 390 and 1280 for signed-out, stranger, member, owner and operator personas; run 39977671049 on cb892a75 (2026-10-23) green on explore; it loads the route, it does not tap [V]. Open #824."
+  },
+  {
+   "id": "1b",
+   "text": "A compact `[List] · [Map]` toggle sits in the results",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Retired: the 2026-10-01 ruling on F059 criterion 5 puts list and map by screen width (a floating control under 1024px, side by side from 1024px, a switch docked in the filter bar only with the owner panel open) and states 'Nothing is inserted between rows of results'; the 2026-09-13 ruling had already moved the switch beside search. No toggle renders in the results at any width [V]."
+  },
+  {
+   "id": "2",
+   "text": "Tap Map: same result set as pins, toggle shows map active",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    644
+   ],
+   "note": "`setView('map')` through the dock's view button or the docked tab (`BrowseSurface.tsx`); the docked tab carries `aria-selected` and an underline (#956), the dock names the next view as the ruled control does; the map gets the same mix as the list (`mapVisible`) [V]. Signed out, Map opens sign-in (#334, #496) and `?view=map&focus=` (#944) opens the map only signed in [V]. Checked: unmarked: `BrowseSurface.layout.test.tsx` ('opens into the four actions, and the view switch swaps list and map'), `ListMapToggle.test.tsx` ('marks the active view selected and the other not'), `ExploreDock.test.tsx` ('switching view reports the other view and shrinks back'). Reviewed: T116 had no PR; #279 carries no `Reviewed by:`; #479 and #496 are review-skipped; #956 (the 2026-10-18 restyle) has `Reviewed by: Claude (lane agent)` but restyled only [V]. Shipped: T116 landed as direct commit 060ee79 with no deploy run; #279 18948ae7, #479 3c490272, #496 0cee585a, #956 546f0862 are deploy-health green [V]. Smoked: smoke-live run 39805278303 on main e0bdaf15 (2026-10-22) was green and opened explore and explore-map at 390 and 1280 for signed-out, stranger, member, owner and operator personas; run 39977671049 on cb892a75 (2026-10-23) green on explore; it loads the route, it does not tap [V]. Open #644."
+  },
+  {
+   "id": "3",
+   "text": "Tap List: back to the card list, toggle updates",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    644
+   ],
+   "note": "Same path, `setView('list')` [V]. Checked: unmarked: the same files as criterion 2 ('reports list when Map is active and List is tapped'). Reviewed, Shipped, Smoked: as criterion 2. Open #644."
+  },
+  {
+   "id": "4",
+   "text": "Toggle scrolls with content, never fixed or floating, never occludes a card",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Retired: the 2026-10-01 ruling on F059 criterion 5 makes the control float and 'stay visible while scrolling', the opposite of this criterion (Airbnb precedent); #328 built it as `ExploreDock`, fixed bottom right, and #956 restyled it as a bar [V]. The 'never fixed' test in `ListMapToggle.test.tsx` covers the docked tab only."
+  },
+  {
+   "id": "5",
+   "text": "Toggle sits after the first 3-5 cards, centred, 24px above and below",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Retired: the 2026-10-01 ruling on F059 criterion 5 ('Nothing is inserted between rows of results'); T116 built it after four cards and #279 removed it [V]."
+  }
+ ]
+}

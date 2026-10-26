@@ -1,6 +1,22 @@
 {
-  "_why": "Answers a person from a normal connection but not from the GitHub runner (checked by hand 2026-10-10). Only a network-level failure is excused; a 404 never is.",
-  "urls": [
-    "https://canudance.com/"
-  ]
+ "_why": "Answers a person from a normal connection but not from the GitHub runner (checked by hand 2026-10-10). Only a network-level failure is excused; a 404 never is.",
+ "urls": [
+  "https://canudance.com/",
+  "https://www.placerfoodbank.org/",
+  "https://www.foodbankedc.org/",
+  "https://daviscommunitymeals.org/",
+  "https://ohalloranranch.com/",
+  "https://mohbenicia.org/",
+  "https://fullbellyfarm.com/",
+  "https://www.bikedogbrewing.com/",
+  "https://freeportbakery.com/",
+  "https://oldsoulco.com/",
+  "https://www.cakesbyjeffthechef.com/",
+  "https://www.thebikebiz.com",
+  "https://www.wrm.org/",
+  "https://davisfood.coop/",
+  "https://www.davisfarmersmarket.org/",
+  "https://friendsoftheamadorcountylibrary.org/",
+  "https://www.amadorseniorcenter.org/"
+ ]
 }

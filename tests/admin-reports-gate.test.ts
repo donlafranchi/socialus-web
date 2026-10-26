@@ -4,7 +4,7 @@
 // This asserts the gate at the only place it can be asserted without a browser:
 // the page calls notFound() unless isOperator() passes, and isOperator fails
 // closed. The route-level behaviour is verified by hand (404 with the variable
-// unset, signed out) and recorded in the build log.
+// unset, signed out) and recorded in its PR.
 
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'

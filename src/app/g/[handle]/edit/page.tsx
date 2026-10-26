@@ -15,11 +15,12 @@
 
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { viewerId } from '@/lib/auth/viewer'
 import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
 import { resolvePageById } from '@/lib/groups/resolve-page-address'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { EditCards } from '@/components/group/edit/EditCards'
-import { resolvePageWhere } from '@/lib/groups/page-where'
+import { fixedPlacement, resolvePageWhere, whereNow } from '@/lib/groups/page-where'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { componentOn } from '@/lib/groups/page-components'
 import { resolvePageContact } from '@/lib/groups/page-contact'
@@ -36,14 +37,15 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   // #555 — this was six reads in a row, each a trip to the database, before the owner saw anything. The viewer and the Page
   // are independent; then ownership and everything the cards show are read together. A non-owner still gets a 404 and
   // nothing renders: the extra reads are row-level-secured and their result is thrown away on that path.
-  const [{ data: auth }, shop] = await Promise.all([supabase.auth.getUser(), resolvePageById(supabase, handle)])
-  if (!auth.user) notFound()
+  // #791 — the viewer from the session's verified claims, with no round trip to the auth server.
+  const [memberId, shop] = await Promise.all([viewerId(supabase), resolvePageById(supabase, handle)])
+  if (!memberId) notFound()
   if (!shop) notFound()
 
   const [owns, contactRow, { data: meta }, { data: tagRows }, saved] = await Promise.all([
     viewerOwnsPage(supabase, {
       groupId: shop.groupId,
-      viewerMemberId: auth.user.id,
+      viewerMemberId: memberId,
       kind: shop.kind,
     }),
     resolvePageContact(supabase, shop.groupId),
@@ -69,6 +71,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
     .filter((l): l is string => Boolean(l))
 
   const initialWhere = whereValueFrom(saved, shop.placements[0])
+  const placement = fixedPlacement(saved, shop.placements[0])
 
   return (
     <main className="mx-auto w-full max-w-form gutter py-6 pb-nav">
@@ -86,7 +89,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
         initial={{
           groupId: shop.groupId,
           pagePath,
-          memberId: auth.user.id,
+          memberId,
           name: isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? '' : shop.displayName,
           description: shop.publicDescription,
           photoUrl: shop.photoUrl,
@@ -96,12 +99,12 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
           contact,
           contactOn,
           // Issue #180 — where the Page is, in the words it was saved with.
-          addressLabel: shop.placements[0]?.label || null,
+          addressLabel: whereNow(saved, shop.placements[0]),
           kind: pageKindOf(shop.kind),
           purpose: purposeOf(shop.kind, shop.purpose),
           productsOn,
           where: initialWhere,
-          savedPin: savedPinFrom(shop.placements[0]),
+          savedPin: savedPinFrom(placement),
         }}
       />
     </main>

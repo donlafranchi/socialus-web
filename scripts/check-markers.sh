@@ -52,7 +52,7 @@ for p in sys.argv[1:]:
             if not FULL_G.match(bare, m.start()):
                 err(p, n, "not a guards marker: one scenario criterion per marker, e.g. F093.4, or F093.4 partial: what it leaves unchecked")
         for m in ANY_B.finditer(bare):
-            err(p, n, "binds and supersedes tags belong on socialus-plan DECISIONS.md lines, not here")
+            err(p, n, "binds and supersedes tags belong on socialus-plan rulings (PRINCIPLES.md or a doc's ## Rulings), not here")
 sys.exit(1 if bad else 0)
 PY
 }

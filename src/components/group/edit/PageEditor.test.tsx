@@ -219,7 +219,7 @@ describe('Don, 2026-10-05 — one section per sheet', () => {
   it('Where asks the one question, not an address form', () => {
     openOne('where')
     expect(screen.getByRole('group', { name: /how do people find you/i })).toBeInTheDocument()
-    expect(screen.getAllByRole('radio')).toHaveLength(3)
+    expect(screen.getAllByRole('radio')).toHaveLength(7)
   })
 
   it('Where with no answer says so rather than saving', async () => {

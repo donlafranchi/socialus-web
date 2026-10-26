@@ -543,6 +543,38 @@ describe('an end time on it', () => {
     expect(onPost).not.toHaveBeenCalled()
   })
 
+  // #814 — an end can fall on a later day: a Sat–Sun special ends on Sunday.
+  it('sends an end on a later day', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-date'), { target: { value: '2026-09-26' } })
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '15:00' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-26T22:00:00.000Z' })),
+    )
+  })
+
+  it('an end date with no end time runs to the end of that day', async () => {
+    renderPosts()
+    typeStart()
+    fireEvent.change(screen.getByTestId('announce-end-date'), { target: { value: '2026-09-26' } })
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ endsAt: '2026-09-27T06:59:00.000Z' })))
+  })
+
+  it('shows a multi-day range back, with the end day', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-26T22:00:00.000Z' }] })
+    expect(screen.getByTestId('page-post-when')).toHaveTextContent(/Thursday, September 24 at 7:00pm – Saturday, September 26 at 3:00pm/)
+  })
+
+  it('editing a multi-day post starts from its end day', () => {
+    renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-26T22:00:00.000Z' }] })
+    fireEvent.click(screen.getAllByTestId('page-post-edit')[0]!)
+    expect(screen.getAllByTestId(/end-date$/)[0]).toHaveValue('2026-09-26')
+  })
+
   it('shows the range back', () => {
     renderPosts({ posts: [{ ...POST, startsAt: '2026-09-25T02:00:00.000Z', endsAt: '2026-09-25T04:00:00.000Z' }] })
     expect(screen.getByTestId('page-post-when')).toHaveTextContent('7:00–9:00pm')
@@ -679,7 +711,7 @@ describe('F099 — a post photo', () => {
     const report = { loggedIn: true, returnTo: '/g/x', onSend }
     const send = async () => {
       fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-      fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+      fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
       fireEvent.click(screen.getByRole('radio', { name: /^spam$/i }))
       fireEvent.change(screen.getByRole('textbox'), { target: { value: 'No.' } })
       fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -726,14 +758,14 @@ describe('F078 — reporting a Post', () => {
   it('a visitor gets a More options menu on each post, leading to the report sheet', () => {
     renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     expect(screen.getByText(/why are you reporting this/i)).toBeInTheDocument()
   })
 
   it('sends the post\'s id with the reason and words', async () => {
     renderPosts({ canPost: false, startComposing: false, posts: [postFixture()], onReport, loggedIn: true })
     fireEvent.click(screen.getByRole('button', { name: /more options/i }))
-    fireEvent.click(screen.getByRole('menuitem', { name: /report to the operator/i }))
+    fireEvent.click(screen.getByRole('menuitem', { name: /report this/i }))
     fireEvent.click(screen.getByLabelText('Spam'))
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Looks like an ad.' } })
     fireEvent.click(screen.getByRole('button', { name: /^send$/i }))
@@ -781,5 +813,157 @@ describe('F078 — reporting a Post', () => {
   it('a post nobody has hidden says nothing of the kind', () => {
     renderPosts({ canPost: true, startComposing: false, posts: [postFixture()] })
     expect(screen.queryByTestId('page-post-hidden')).toBeNull()
+  })
+})
+
+// #592 (F074.1) — the composer creates a weekly series once: chosen weekdays, optional start and end,
+// and never an individual date. The first occurrence is worked out from them.
+describe('a weekly series', () => {
+  afterEach(() => vi.useRealTimers())
+  const start = async (opts: { days: string[]; startsOn?: string; endsOn?: string; time?: string }) => {
+    // Monday 2026-10-12, noon in Sacramento.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts({ seriesComposer: true })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Run club' } })
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: opts.time ?? '19:00' } })
+    fireEvent.click(screen.getByRole('button', { name: /repeat weekly/i }))
+    for (const d of opts.days) fireEvent.click(screen.getByRole('checkbox', { name: d }))
+    if (opts.startsOn) fireEvent.change(screen.getByTestId('announce-series-starts'), { target: { value: opts.startsOn } })
+    if (opts.endsOn) fireEvent.change(screen.getByTestId('announce-series-ends'), { target: { value: opts.endsOn } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+  }
+
+  // [guards F074.1 partial: created once as weekly on the chosen weekdays; the first occurrence is derived, never typed]
+  it('sends the weekdays and the first occurrence at the chosen time in the metro\'s zone', async () => {
+    await start({ days: ['Thursday'] })
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(
+        // Thursday 2026-10-15, 7pm Sacramento.
+        expect.objectContaining({ startsAt: '2026-10-16T02:00:00.000Z', series: { weekdays: [4], startsOn: null, endsOn: null } }),
+      ),
+    )
+  })
+
+  it('starts no earlier than the start date, and keeps the local time after daylight saving ends', async () => {
+    await start({ days: ['Saturday', 'Thursday'], startsOn: '2026-11-02', endsOn: '2027-01-31' })
+    await waitFor(() =>
+      expect(onPost).toHaveBeenCalledWith(
+        // Thursday 2026-11-05, 7pm PST.
+        expect.objectContaining({ startsAt: '2026-11-06T03:00:00.000Z', series: { weekdays: [4, 6], startsOn: '2026-11-02', endsOn: '2027-01-31' } }),
+      ),
+    )
+  })
+
+  it('refuses a series with no day picked, and sends nothing', async () => {
+    await start({ days: [] })
+    expect(await screen.findByText(/pick at least one day/i)).toBeInTheDocument()
+    expect(onPost).not.toHaveBeenCalled()
+  })
+
+  it('a post that does not repeat sends no series', async () => {
+    renderPosts({ seriesComposer: true })
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'One-off' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect((onPost.mock.calls.at(-1) as unknown as [Record<string, unknown>])[0]).not.toHaveProperty('series')
+  })
+
+  it('the control is not there unless the composer is switched on', () => {
+    renderPosts()
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    expect(screen.queryByRole('button', { name: /repeat weekly/i })).toBeNull()
+  })
+})
+
+// #314 (Don, 2026-10-02) — an undated post shows for 14 days; the owner can pick another day.
+describe('#314 — show until, on an undated post', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('the composer offers 14 days from today, and sends no date when it is left alone', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts()
+    expect(screen.getByTestId('announce-show-until')).toHaveValue('2026-10-26')
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Plants on the porch.' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ showUntil: null })))
+  })
+
+  it('a day the owner picks shows through the end of that day', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Plants on the porch.' } })
+    fireEvent.change(screen.getByTestId('announce-show-until'), { target: { value: '2026-11-01' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ showUntil: '2026-11-02T07:59:00.000Z' })))
+  })
+
+  it('an edit starts from 14 days after it was posted, or the day the owner set', () => {
+    renderPosts({ posts: [POST, postFixture({ id: 'pp-2', showUntil: '2026-10-11T06:59:00.000Z' } as never)] })
+    fireEvent.click(screen.getAllByTestId('page-post-edit')[0]!)
+    expect(screen.getByTestId('page-post-edit-show-until')).toHaveValue('2026-10-04')
+  })
+
+  it('a dated post has no show-until day: it shows until it ends', () => {
+    renderPosts()
+    fireEvent.click(screen.getByTestId('announce-add-when'))
+    expect(screen.queryByTestId('announce-show-until')).toBeNull()
+  })
+})
+
+// #913 (Don 2026-10-02 on #314, option A) — current posts first, then Earlier for undated posts past their window;
+// "Posted <date>" on each, in the metro's clock (Craigslist, Facebook Marketplace, Nextdoor).
+describe('#913 — Earlier, and Posted <date>', () => {
+  const current = postFixture({ id: 'now', body: 'Fresh loaves', createdAt: '2026-10-15T12:00:00.000Z' })
+  const stale = { ...postFixture({ id: 'old', body: 'Summer jam', createdAt: '2026-09-01T12:00:00.000Z' }), current: false }
+  const pastEvent = {
+    ...postFixture({ id: 'evt', body: 'Bread class', createdAt: '2026-09-02T12:00:00.000Z', startsAt: '2026-09-10T02:00:00.000Z' }),
+    current: false,
+  }
+
+  it('shows current posts first, then undated ones past their window under Earlier', () => {
+    renderPosts({ canPost: false, posts: [stale, current] })
+    const earlier = screen.getByTestId('page-posts-earlier')
+    expect(earlier).toHaveTextContent(/^Earlier/)
+    expect(earlier).toHaveTextContent('Summer jam')
+    expect(earlier).not.toHaveTextContent('Fresh loaves')
+    expect(screen.getByTestId('page-posts-latest')).toHaveTextContent('Fresh loaves')
+    expect(screen.getByTestId('page-posts-latest')).not.toHaveTextContent('Summer jam')
+    const order = [...document.querySelectorAll('[data-testid="page-posts-latest"], [data-testid="page-posts-earlier"]')]
+    expect(order.map((e) => e.getAttribute('data-testid'))).toEqual(['page-posts-latest', 'page-posts-earlier'])
+  })
+
+  it('a dated post is never under Earlier', () => {
+    renderPosts({ canPost: false, posts: [pastEvent, current] })
+    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
+  })
+
+  it('no Earlier heading when nothing has passed', () => {
+    renderPosts({ canPost: false, posts: [current] })
+    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
+  })
+
+  it('only earlier posts: Earlier, and no empty note', () => {
+    renderPosts({ canPost: true, posts: [stale] })
+    expect(screen.getByTestId('page-posts-earlier')).toHaveTextContent('Summer jam')
+    expect(screen.queryByTestId('page-posts-empty')).toBeNull()
+    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
+  })
+
+  it('See all posts counts current posts only', () => {
+    const olds = [1, 2, 3, 4].map((d) => ({ ...postFixture({ id: `o${d}`, createdAt: `2026-09-0${d}T12:00:00.000Z` }), current: false }))
+    renderPosts({ canPost: false, posts: [current, ...olds] })
+    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
+  })
+
+  it('says Posted <date> in the metro’s clock, not UTC', () => {
+    // 8pm Sep 20 in Sacramento is Sep 21 in UTC.
+    renderPosts({ canPost: false, posts: [postFixture({ createdAt: '2026-09-21T03:00:00.000Z' })] })
+    expect(screen.getByTestId('page-post-posted')).toHaveTextContent(/^Posted Sep 20$/)
+  })
+
+  it('every undated post carries it, under Earlier too', () => {
+    renderPosts({ canPost: false, posts: [stale, current] })
+    expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Oct 15', 'Posted Sep 1'])
   })
 })

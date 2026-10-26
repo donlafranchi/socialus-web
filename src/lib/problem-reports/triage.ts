@@ -10,7 +10,7 @@ export const TRIAGE_MODEL = 'claude-haiku-4-5-20251001'
 export const TRIAGE_MAX_TOKENS = 300
 
 const AREAS = ['page-editing', 'sign-in-you', 'explore-map', 'create-posts', 'sharing-links', 'builders-seed', 'moderation', 'ops'] as const
-const MILESTONES = ['Beta 11-06', 'After beta'] as const
+const MILESTONES = ['Beta', 'After beta'] as const
 
 export interface IssueRef {
   number: number

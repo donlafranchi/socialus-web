@@ -4,7 +4,7 @@
 
 import { requirePagePermission } from '@/lib/staff/page-guard'
 import { fetchUnclaimedPages } from '@/lib/admin/unclaimed-queue'
-import { restoreUnclaimedAction } from './actions'
+import { decideClaimAction, restoreUnclaimedAction } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,9 +27,9 @@ export default async function AdminUnclaimedPage() {
                 {p.name}
               </a>
               {p.hiddenAt && (
-                <span className="chip text-xs">Hidden {p.hiddenAt.toISOString().slice(0, 10)}</span>
+                <span className="text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">Hidden {p.hiddenAt.toISOString().slice(0, 10)}</span>
               )}
-              {p.photoHiddenAt && <span className="chip text-xs">Photo hidden</span>}
+              {p.photoHiddenAt && <span className="text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">Photo hidden</span>}
             </div>
             {p.requests.length > 0 && (
               <ul className="flex list-none flex-col gap-1 p-0">
@@ -42,6 +42,23 @@ export default async function AdminUnclaimedPage() {
                 ))}
               </ul>
             )}
+            {p.proofClaims.map((c) => (
+              <div key={c.id} className="flex flex-col gap-1" data-testid="proof-claim">
+                <p>
+                  <strong>Claim with proof</strong> · @{c.handle} · {c.createdAt.toISOString().slice(0, 10)} ·{' '}
+                  <a href={c.proofUrl} rel="noopener nofollow" target="_blank" className="underline">proof</a>
+                  {c.note ? <span className="block text-[var(--color-fg-muted)]">{c.note}</span> : null}
+                </p>
+                <div className="flex gap-2">
+                  <form action={decideClaimAction.bind(null, c.id, true)}>
+                    <button type="submit" className="btn-primary text-sm">Make them the owner</button>
+                  </form>
+                  <form action={decideClaimAction.bind(null, c.id, false)}>
+                    <button type="submit" className="btn-secondary text-sm">Decline</button>
+                  </form>
+                </div>
+              </div>
+            ))}
             <details>
               <summary>Sources ({p.sources.length})</summary>
               <ul className="list-none p-0">

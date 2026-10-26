@@ -41,7 +41,7 @@ const METRO: FeedMetro = {
 
 // What `standingMessage` produces for a cached combined of 50 against 300.
 const CONFIRMATION =
-  'This metro needs 250 more people before there is enough here to be worth showing you.'
+  'This area needs 250 more people before there is enough here to be worth showing you.'
 
 function renderPanel() {
   return render(<MetroNotCoveredPanel metro={METRO} onBack={() => {}} />)
@@ -64,7 +64,7 @@ beforeEach(() => {
     open: false,
     metroName: METRO.name,
     standing: { combined: 50, target: 300 },
-    message: 'This metro needs 250 more people before there is enough here to be worth showing you.',
+    message: 'This area needs 250 more people before there is enough here to be worth showing you.',
   })
 })
 afterEach(cleanup)
@@ -88,12 +88,20 @@ describe('signed out — criterion 13, no account and no second step', () => {
     )
   })
 
-  it('asks for no password and no name', async () => {
+  // [guards F076.13]
+  it('asks for no password and no name, and one tap on Join finishes it with just the address and a role', async () => {
     signedOut()
     const { container } = renderPanel()
-    await screen.findByTestId('waitlist-email')
+    fireEvent.change(await screen.findByTestId('waitlist-email'), { target: { value: 'a@b.com' } })
     expect(container.querySelector('input[type="password"]')).toBeNull()
     expect(screen.queryByLabelText(/name/i)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('waitlist-role-patron'))
+    fireEvent.click(screen.getByTestId('waitlist-join'))
+    await waitFor(() => screen.getByTestId('metro-standing-dialog'))
+    expect(joinAnonymous).toHaveBeenCalledTimes(1)
+    expect(joinAnonymous).toHaveBeenCalledWith({ metroId: METRO.id, email: 'a@b.com', role: 'patron' })
+    expect(getUser).toHaveBeenCalled()
+    expect(container.querySelector('input[type="password"]')).toBeNull()
   })
 
   it('pre-selects neither role — criterion 3', async () => {

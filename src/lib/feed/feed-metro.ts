@@ -116,6 +116,19 @@ export async function resolveFeedMetro(
   return one(supabase, 'slug', DEFAULT_METRO_SLUG)
 }
 
+/** `resolveFeedMetro`'s precedence over a list already in hand: no read. */
+export function pickFeedMetro(
+  metros: readonly FeedMetro[],
+  opts: { memberMetroId?: string | null; requestedSlug?: string | null },
+): FeedMetro | null {
+  return (
+    (opts.requestedSlug ? metros.find((m) => m.slug === opts.requestedSlug) : undefined) ??
+    (opts.memberMetroId ? metros.find((m) => m.id === opts.memberMetroId) : undefined) ??
+    metros.find((m) => m.slug === DEFAULT_METRO_SLUG) ??
+    null
+  )
+}
+
 /**
  * The metros the switcher offers — every seeded row, `isOpen` saying which
  * ones the platform actually serves.

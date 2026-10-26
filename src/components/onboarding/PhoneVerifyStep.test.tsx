@@ -70,3 +70,24 @@ describe('F081 — verifying a phone at signup', () => {
     expect(screen.queryByLabelText(/code/i)).toBeNull()
   })
 })
+
+// #570 (F081.9) — a VoIP number is refused before a code goes anywhere.
+describe('F081.9 — a VoIP number is asked for a mobile one', () => {
+  it('says so in plain words, keeps the form, and moves no further', async () => {
+    const a = auth({ sendCode: vi.fn(async () => ({ ok: false as const, reason: 'voip' as const })) })
+    render(<PhoneVerifyStep auth={a} onVerified={vi.fn()} />)
+    typePhone('9165550134')
+    fireEvent.click(screen.getByRole('button', { name: /text me a code/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/mobile number/i)
+    expect(screen.queryByLabelText(/code/i)).toBeNull()
+    expect(screen.getByLabelText(/phone number/i)).toBeInTheDocument()
+  })
+
+  it('any other failure keeps the old words', async () => {
+    const a = auth({ sendCode: vi.fn(async () => ({ ok: false as const, message: 'x' })) })
+    render(<PhoneVerifyStep auth={a} onVerified={vi.fn()} />)
+    typePhone('9165550134')
+    fireEvent.click(screen.getByRole('button', { name: /text me a code/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/couldn.t send a code/i)
+  })
+})

@@ -20,7 +20,7 @@ vi.mock('./page-contact', () => ({ resolvePageContact }))
 import { loadPageView } from './load-page-view'
 
 const SHOP = { groupId: 'g-1', anchorLocationId: null, kind: 'business' }
-const supabase = { auth: { getUser } } as never
+const supabase = { auth: { getUser, getClaims: async () => ({ data: (await getUser())?.data?.user ? { claims: { sub: (await getUser()).data.user.id } } : null, error: null }) } } as never
 const CONTACT = { phone: '+19165550142', hours: { mon: [{ open: '07:00', close: '15:00' }] } }
 
 beforeEach(() => {

@@ -1,0 +1,102 @@
+{
+ "schema": 1,
+ "feature": "F064",
+ "title": "someone asks for something that isn't built",
+ "area": "create-posts",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "One signal table, two sources (unmapped label, Other description), each row says which",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    33
+   ],
+   "note": "No table: no migration names a signal, not-built or request table [V grep supabase/migrations, src]. `group_category_suggestions` (20260911160535) is the retired free-text table, a different thing, nothing reads it [V]. Both sources sit behind unruled drafts (label layer, F088) per #33. No PR cites F064 [V gh]."
+  },
+  {
+   "id": "2",
+   "text": "Tap on a not-built option is acknowledged; second tap by the same person is a no-op via a constraint",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    33
+   ],
+   "note": "No such option or action. The only 'Coming soon' in the app is the Values & badges card in the Page editor, nothing to tap, no record (`EditCards.tsx`) [V grep]"
+  },
+  {
+   "id": "3",
+   "text": "No copy in this flow implies a date, plan or queue position",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    33
+   ],
+   "note": "No flow, so no copy; absence proves nothing and nothing guards it [V]"
+  },
+  {
+   "id": "4",
+   "text": "The person who signaled sees no count",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    33
+   ],
+   "note": "No flow, no count; nothing guards it [V]"
+  },
+  {
+   "id": "5",
+   "text": "Operator can group the raw table by subject, ranked list, no screen",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    33
+   ],
+   "note": "No table, no query or view [V grep]"
+  }
+ ]
+}

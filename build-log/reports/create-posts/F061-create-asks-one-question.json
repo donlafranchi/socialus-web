@@ -1,0 +1,66 @@
+{
+ "schema": 1,
+ "feature": "F061",
+ "title": "creating a Page asks one question, its kind",
+ "area": "create-posts",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Creating a Page asks one question, its kind: each kind is a question with a one-line purpose, and the screen says this just starts the process",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    575
+   ],
+   "note": "`WhatAreYouStarting.tsx`: 'What are you starting?', four answers each with a one-line purpose, and 'This just gets things started' [V]. The fourth, 'Be creative', is Don's own wording and the one answer that is not a question (ruled 2026-10-05). Built by #326 (Reviewed by), #364 and #382 (both review-skipped); deploy-health green on all three; no PR since 10-16 touches it [V gh]. Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing asserts the 'just gets things started' sentence (#575). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]"
+  },
+  {
+   "id": "2",
+   "text": "Creation lands the owner on their draft Page, where they fill in everything else, the name included",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    575
+   ],
+   "note": "`startDraftAction` makes a draft of the chosen purpose and redirects to `canonicalPagePath` [V create/actions.ts]; the draft Page shows 'Before you publish' (name, where, description, tags, photo) and edits in place (#326, #360). Built by #326 (Reviewed by) and #360 (review-skipped). Checked: unmarked `create/actions.test.ts` ('creates a draft … and lands on it'); nothing asserts the draft offers name, address and tags (#575). Smoked: `page-edit` opens green (10-21 to 10-23) but as a published Page's editor, not a fresh draft."
+  },
+  {
+   "id": "3",
+   "text": "A Page's map and card placement comes from a single resolver evaluated at read time; nothing precomputed or cached",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [
+    576
+   ],
+   "note": "`resolvePagePlacements` in `src/lib/groups/resolve-page-placement.ts`, used by `resolveShop`; no placement column or cache in the migrations (the word appears only in comments) [V grep]. Built by T143 (commit f244852, a direct commit with no PR, so no review) with no deploy-health run on it. `resolve-page-placement.test.ts` tests shape, not the absence of stored placement (#576)."
+  }
+ ]
+}

@@ -52,7 +52,7 @@ stage that marks it and stays required after that.
 | 13 | Product analytics | · | ○ | ● | ● | [→](#13-product-analytics) |
 | 14 | Edge protection | · | · | ○ | ● | [→](#14-edge-protection) |
 | 15 | Payments | · | · | · | ○ | [→](#15-payments) |
-| 16 | Push notifications | · | · | · | ○ | [→](#16-push-notifications) |
+| 16 | Push notifications | · | · | ○ | ○ | [→](#16-push-notifications) |
 
 Nine of the sixteen are required at Launch and not before. Six of those nine
 cost nothing.
@@ -621,13 +621,17 @@ scenario and not an integration.
 
 ### 16. Push notifications
 
-**What it is.** Reaching a user who does not have the tab open.
+**What it is.** Reaching a member who does not have the tab open: opt-in only (Don, 2026-10-18, #904).
 
-**Who provides it.** Nobody, for the web: the Web Push API with self-generated
-VAPID keys costs nothing and needs no vendor. Generate the key pair with
-`npx web-push generate-vapid-keys`, store the subscription per member, send from
-a scheduled job on item 7's pattern. A service is only required for native iOS
-and Android, which is not on the 2026-10-30 path.
+**Who provides it.** Nobody: the Web Push API with our own VAPID keys and the `web-push` library, no vendor.
+Android and desktop browsers work from the browser; iPhone only on iOS 16.4+ once SocialUs is on the Home Screen.
+
+**Current state.** Keys are in Vercel (Production, Preview) and in GitHub secrets as `NEXT_PUBLIC_VAPID_PUBLIC_KEY`,
+`VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. Subscriptions and choices live in the database; `notify.yml` sends every
+15 minutes (followed Pages' new posts, batched and capped), Thursday evening (this weekend), and writes counts
+weekly to the `notify-history` branch and a review Issue monthly. The push handlers are `public/push-sw.js`, loaded
+by the PWA service worker. To rotate the keys: generate a new pair, replace all three in both places; every
+member has to turn notifications on again.
 
 **Do not** add an SMS provider for this. Per-message cost with no free tier, for
 a notification email already covers at Launch scale.
@@ -665,7 +669,11 @@ deployment view: what belongs in Vercel, and which item put it there.
 | `FOLLOW_EMAIL_FROM` | All | 6 |
 | `CRON_SECRET` | All | 7 |
 | `AUTH_BEFORE_USER_CREATED_HOOK_SECRET` | All | 8 |
-| `ADMIN_EMAILS` | All | UI gating, item 9 |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Production, Preview | 16 |
+| `VAPID_PRIVATE_KEY` | Production, Preview, server-only | 16 |
+| `VAPID_SUBJECT` | Production, Preview | 16 |
+| `ADMIN_EMAILS` | All | Where an urgent-report alert is emailed until Twilio exists (no authority) |
+| `ANTHROPIC_MODERATION_KEY` | Production, server-only | F100: the AI first-pass read of reported content. Unset means no read is made. Named for its purpose; the GitHub Actions secret `ANTHROPIC_API_KEY` for problem-report triage is separate |
 | `DATABASE_URL` | **Production and Preview** (and local) | Action-layer pool, item 10 — see the note below |
 | `SIGNUP_BLOCKED_EMAIL_DOMAINS` | Optional | 8 |
 | `SIGNUP_ALLOWED_EMAIL_DOMAINS` | Optional | 8 |

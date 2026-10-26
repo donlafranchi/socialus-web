@@ -1,0 +1,123 @@
+{
+ "schema": 1,
+ "feature": "F058",
+ "title": "a member reports something, and the operator can take a photo down",
+ "area": "moderation",
+ "area_source": "label",
+ "gates": "launch",
+ "retired": false,
+ "as_of": "2026-10-23",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A signed-in member sends a free-text report from an item or shop page",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    578
+   ],
+   "note": "`ReportControl` on the Page and post cards, its entries now labelled \"Report this Page\", \"Report this Page's photo\", \"Report this post\" (#938, 647eccb); `sendReportAction` refuses signed-out callers (#81, #82) [V] Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V] Reviewed: #81, #82 carry no `Reviewed by:`; #938 does [V] Shipped: deploy-health began 2026-09-16, after #81 and #82 merged on 14 Sep, so no run exists for them; #938 green [V] Smoked: `page` and `page-business` green 2026-10-23 (cb892a7) as member and stranger; the route loads, no report is sent [A]"
+  },
+  {
+   "id": "2",
+   "text": "A report changes nothing visible to anyone, including the reported party",
+   "kind": [
+    "invariant"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    62,
+    220
+   ],
+   "note": "RETIRED. Overtaken by F078 criteria 2 and 3 and the 2026-10-11 courtesy-notice ruling in F078 `## Rulings`: a second report hides the item and the owner is told why (`create.test.ts`: \"F078 criterion 3 amends F058 acceptance 2\"). What still holds: the reporter is never named to the owner (`tests/report-privacy-db.test.ts`) [V]. The scenario still carries the old text; `sync-roadmap` amends it [V]."
+  },
+  {
+   "id": "3",
+   "text": "Only the operator sees or can invoke Remove; others rejected by the handler",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    578
+   ],
+   "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373, 2026-09-17) [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1) [V]"
+  },
+  {
+   "id": "4",
+   "text": "Removal stops every surface serving the photo, writes who/when/why, listing survives",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    577,
+    833
+   ],
+   "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards, Browse and the map read it (#779) [V] Checked: `[guards F058.4]` in `tests/f058-remove-every-surface-db.test.ts`, seen failing against five mutants (#912, closed #833); the map marker in `useMapPages.test.ts:82` stays partial [V] Reviewed: #151, #152, #779 carry no `Reviewed by:`; #912 does [V] Shipped: deploy-health green on #151 (311a373), #152 (1c1b0c9), #779 (a265d7c) and #912 (99c10e5) [V] Smoked: `explore` and `page` green 2026-10-23 [A]"
+  },
+  {
+   "id": "5",
+   "text": "The report reaches a place a person reads",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    578
+   ],
+   "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS once the Twilio values are set (#707 still open) [V] Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373) and #751 (ebce891) [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  },
+  {
+   "id": "6",
+   "text": "Every decision reversible from the item by a new decision; reviewer sees history",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [
+    578
+   ],
+   "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: deploy-health green on #152 (1c1b0c9, 2026-09-18) [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+  }
+ ]
+}

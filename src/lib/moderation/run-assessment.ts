@@ -44,26 +44,30 @@ const insertSkipped = (db: Db, reportId: string, why: string) =>
 
 export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): Promise<void> {
   const { assess = (i) => assessContent(i), fetchImage = fetchImageBytes, rebuttal = null, restore = autoRestore } = deps
-  // F100 criterion 1: a Page's photo, its picture, a Post's words or a post's
+  // F100 criterion 1: a Page's photo, its picture, its own words (#625), a Post's words or a post's
   // photo. Each kind's columns are written out; none is built from input.
   const res = await db.query(
     `select r.category, r.subject_kind,
             coalesce(g.name, pg.name) as name,
             case r.subject_kind
               when 'group' then g.description
+              when 'page_words' then g.description
               when 'post' then p.body
               when 'post_photo' then p.body
+              when 'page_item' then it.title || E'\\n' || coalesce(it.description, '')
             end as content_text,
             case r.subject_kind
               when 'group' then g.photo_url
               when 'page_picture' then g.picture_url
               when 'post_photo' then p.photo_url
+              when 'page_item' then it.photo_url
             end as image_url,
             public.is_builder(r.reporter_member_id) as reporter_is_builder
        from public.reports r
-       left join public.groups g     on r.subject_kind in ('group', 'page_picture') and g.id = r.subject_id
+       left join public.groups g     on r.subject_kind in ('group', 'page_picture', 'page_words') and g.id = r.subject_id
        left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
-       left join public.groups pg    on pg.id = p.group_id
+       left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
+       left join public.groups pg    on pg.id = coalesce(p.group_id, it.group_id)
       where r.id = $1`,
     [reportId],
   )

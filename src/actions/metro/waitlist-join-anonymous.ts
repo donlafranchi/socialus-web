@@ -145,11 +145,14 @@ export const metroWaitlistJoinAnonymous = defineHandler(
       // The address's existing row, if any — across ALL metros, because the
       // index is global. Locked so a concurrent submission of the same address
       // cannot slip between this read and the write.
-      const existingRes = await client.query<{ metro_id: string; role: WaitlistRole }>(
-        `select metro_id, role
-           from public.metro_waitlist
-          where lower(email) = $1
-            for update`,
+      // F076 criterion 4: the address may also be a signed-up member's own
+      // sign-in email, and that member is the same person. Same row, same count.
+      const existingRes = await client.query<{ id: string; metro_id: string; role: WaitlistRole }>(
+        `select w.id, w.metro_id, w.role
+           from public.metro_waitlist w
+           left join auth.users u on u.id = w.member_id
+          where lower(w.email) = $1 or lower(u.email) = $1
+            for update of w`,
         [input.email],
       )
       const existing = existingRes.rows[0] ?? null
@@ -182,8 +185,8 @@ export const metroWaitlistJoinAnonymous = defineHandler(
         await client.query(
           `update public.metro_waitlist
               set metro_id = $2, role = $3, updated_at = $4
-            where lower(email) = $1`,
-          [input.email, input.metroId, input.role, ctx.now()],
+            where id = $1`,
+          [existing.id, input.metroId, input.role, ctx.now()],
         )
         await bump(existing.metro_id, existing.role, -1)
         await bump(input.metroId, input.role, 1)

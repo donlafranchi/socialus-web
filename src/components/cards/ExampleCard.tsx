@@ -52,10 +52,8 @@ export function ExampleCard({ title, tagline, location, emoji }: ExampleCardProp
       {/* Persistent. Not a hover reveal, not a corner sticker that scrolls out
           of the image — it sits on the image block, which is the first thing
           the eye lands on. */}
-      <span
-        data-testid="example-mark"
-        className="absolute left-2 top-2 z-10 rounded-full bg-[var(--color-fg)]/80 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-white"
-      >
+      {/* #951 — small-caps text, not a pill: no photo here, so no scrim. */}
+      <span data-testid="example-mark" className="absolute left-3 top-2 z-10 text-micro font-semibold uppercase tracking-wider text-[var(--color-fg)]">
         Example
       </span>
 

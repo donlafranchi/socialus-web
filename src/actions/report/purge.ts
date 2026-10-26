@@ -32,17 +32,22 @@ interface PhotoRow {
   photo_url: string | null
   photo_removed_at: Date | null
   photo_purged_at: Date | null
+  /** #648 — kept as child-safety evidence; the law requires a year after it is reported. */
+  held?: boolean
 }
 
 type Client = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[]; rowCount: number | null }> }
 
 async function removedPhoto(client: Client, verb: string, groupId: string): Promise<{ row: PhotoRow; objectPath: string }> {
   const res = await client.query<PhotoRow>(
-    `select photo_url, photo_removed_at, photo_purged_at from public.groups where id = $1 for update`,
+    `select photo_url, photo_removed_at, photo_purged_at,
+            exists (select 1 from public.legal_holds h where h.subject_kind = 'group' and h.subject_id = groups.id and h.retain_until > now()) as held
+       from public.groups where id = $1 for update`,
     [groupId],
   )
   const row = res.rows[0]
   if (!row) throw new NotFoundError(`${verb}: Page ${groupId} not found`)
+  if (row.held) throw new ValidationError(`${verb}: that photo is held as evidence and must be kept until the hold ends`)
   if (row.photo_purged_at || !row.photo_url) throw new ValidationError(`${verb}: that photo is already deleted`)
   if (!row.photo_removed_at) throw new ValidationError(`${verb}: only a removed photo can be deleted: remove it first`)
   const objectPath = mediaObjectPath(row.photo_url)

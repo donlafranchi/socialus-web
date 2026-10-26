@@ -49,7 +49,7 @@ const SHOP = { groupId: 'g-1', anchorLocationId: 'l-1', kind: 'interest' }
 const withheldRow = { resultKind: 'post', resultId: 'p-1', withheld: true, announcementCount: 2 }
 const realPost = { id: 'p-1', body: 'We are meeting Thursday', startsAt: null }
 
-const supabase = { auth: { getUser } } as never
+const supabase = { auth: { getUser, getClaims: async () => ({ data: (await getUser())?.data?.user ? { claims: { sub: (await getUser()).data.user.id } } : null, error: null }) } } as never
 
 beforeEach(() => {
   vi.clearAllMocks()

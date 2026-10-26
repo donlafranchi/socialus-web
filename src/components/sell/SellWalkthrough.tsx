@@ -546,10 +546,10 @@ function TagStep({
       </label>
 
       {state.tags.length > 0 && (
-        <ul data-testid="sell-tag-list" className="mt-2 flex flex-wrap gap-2">
+        <ul data-testid="sell-tag-list" className="mt-2 flex flex-wrap gap-x-4">
           {state.tags.map((tag) => (
             <li key={tag}>
-              <span className="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-sm">
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-[var(--color-fg)]">
                 {tag}
                 <button
                   type="button"

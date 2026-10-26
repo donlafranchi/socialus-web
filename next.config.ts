@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // #641 — member photos are served from our own address so Cloudflare's cache, and its CSAM Scanning Tool, sit in
+  // front of them. Same object, same path, so nothing that reads a photo's address changes.
+  async rewrites() {
+    const storage = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!storage) return []
+    return [{ source: '/storage/v1/object/public/media/:path*', destination: `${storage}/storage/v1/object/public/media/:path*` }]
+  },
   async redirects() {
     return [
       // `/` only ever forwarded to Explore (src/app/page.tsx, Home paused 2026-09-17). Answered at the edge it skips a server render, about a second.

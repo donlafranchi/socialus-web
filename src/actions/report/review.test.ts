@@ -336,6 +336,25 @@ describe('F099 — a decision on one image', () => {
     expect(u![0]).not.toMatch(/\bphoto_(removed|hidden)_at/)
   })
 
+  // #625 — a Page's own words: restore shows them again and locks those words; remove keeps them hidden.
+  it("restoring a Page's words shows them again and locks exactly those words", async () => {
+    install({ subjectKind: 'page_words', subjectId: GROUP_ID })
+    await reportDecide(ctx(), { reportId: REPORT_ID, outcome: 'restored', reasonCode: 'not_suitable' })
+    const [u] = sql(/update public\.groups/)
+    expect(u![0]).toMatch(/words_hidden_at = null/)
+    expect(u![0]).toMatch(/words_hide_locked_text/)
+    expect(u![0]).not.toMatch(/\bphoto_|picture_/)
+    expect((appendEvent.mock.calls[0]![2] as EventRow).event_kind).toBe('group.words_restored')
+  })
+
+  it("removing a Page's words keeps them hidden until the owner changes them", async () => {
+    install({ subjectKind: 'page_words', subjectId: GROUP_ID })
+    await reportDecide(ctx(), { reportId: REPORT_ID, outcome: 'removed', reasonCode: 'not_suitable' })
+    const [u] = sql(/update public\.groups/)
+    expect(u![0]).toMatch(/words_removed_at/)
+    expect((appendEvent.mock.calls[0]![2] as EventRow).event_kind).toBe('group.words_removed')
+  })
+
   it('reversing a decision on a post photo undoes it on that photo', async () => {
     install({ subjectKind: 'post_photo', subjectId: POST_ID, priorOutcome: 'removed' })
     await reportReverse(ctx(), { decisionId: DECISION_ID, reasonCode: 'not_suitable' })

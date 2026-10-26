@@ -28,8 +28,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000001', '0a000000-0000-4000-8000-000000000001', '0a000000-0000-4000-8000-000000000001', '{"sub":"0a000000-0000-4000-8000-000000000001","email":"qa-stranger@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000001', 'qa-stranger', 'QA Stranger', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000001', 'qa-stranger', 'QA Stranger', 'QA Stranger', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -46,8 +46,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000002', '0a000000-0000-4000-8000-000000000002', '0a000000-0000-4000-8000-000000000002', '{"sub":"0a000000-0000-4000-8000-000000000002","email":"qa-follower@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000002', 'qa-follower', 'QA Follower', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000002', 'qa-follower', 'QA Follower', 'QA Follower', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -64,8 +64,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000003', '0a000000-0000-4000-8000-000000000003', '0a000000-0000-4000-8000-000000000003', '{"sub":"0a000000-0000-4000-8000-000000000003","email":"qa-member@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000003', 'qa-member', 'QA Member', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000003', 'qa-member', 'QA Member', 'QA Member', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -82,8 +82,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000004', '0a000000-0000-4000-8000-000000000004', '0a000000-0000-4000-8000-000000000004', '{"sub":"0a000000-0000-4000-8000-000000000004","email":"qa-applicant@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000004', 'qa-applicant', 'QA Applicant', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000004', 'qa-applicant', 'QA Applicant', 'QA Applicant', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -100,8 +100,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000005', '0a000000-0000-4000-8000-000000000005', '0a000000-0000-4000-8000-000000000005', '{"sub":"0a000000-0000-4000-8000-000000000005","email":"qa-rsvp@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000005', 'qa-rsvp', 'QA Rsvp', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000005', 'qa-rsvp', 'QA Rsvp', 'QA Rsvp', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -118,8 +118,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000006', '0a000000-0000-4000-8000-000000000006', '0a000000-0000-4000-8000-000000000006', '{"sub":"0a000000-0000-4000-8000-000000000006","email":"qa-operator@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000006', 'qa-operator', 'QA Operator', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000006', 'qa-operator', 'QA Operator', 'QA Operator', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -136,8 +136,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000011', '0a000000-0000-4000-8000-000000000011', '0a000000-0000-4000-8000-000000000011', '{"sub":"0a000000-0000-4000-8000-000000000011","email":"qa-ownerbusiness@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000011', 'qa-owner-business', 'QA Owner Business', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000011', 'qa-owner-business', 'QA Owner Business', 'QA Owner Business', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -154,8 +154,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000012', '0a000000-0000-4000-8000-000000000012', '0a000000-0000-4000-8000-000000000012', '{"sub":"0a000000-0000-4000-8000-000000000012","email":"qa-ownerplace@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000012', 'qa-owner-place', 'QA Owner Place', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000012', 'qa-owner-place', 'QA Owner Place', 'QA Owner Place', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -172,8 +172,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000013', '0a000000-0000-4000-8000-000000000013', '0a000000-0000-4000-8000-000000000013', '{"sub":"0a000000-0000-4000-8000-000000000013","email":"qa-ownerinterest@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000013', 'qa-owner-interest', 'QA Owner Interest', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000013', 'qa-owner-interest', 'QA Owner Interest', 'QA Owner Interest', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -190,8 +190,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000014', '0a000000-0000-4000-8000-000000000014', '0a000000-0000-4000-8000-000000000014', '{"sub":"0a000000-0000-4000-8000-000000000014","email":"qa-ownerpractice@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000014', 'qa-owner-practice', 'QA Owner Practice', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000014', 'qa-owner-practice', 'QA Owner Practice', 'QA Owner Practice', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -208,8 +208,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000015', '0a000000-0000-4000-8000-000000000015', '0a000000-0000-4000-8000-000000000015', '{"sub":"0a000000-0000-4000-8000-000000000015","email":"qa-ownerevent@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000015', 'qa-owner-event', 'QA Owner Event', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000015', 'qa-owner-event', 'QA Owner Event', 'QA Owner Event', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)
@@ -226,8 +226,8 @@ insert into auth.identities (id, provider_id, user_id, identity_data, provider, 
 values ('0a000000-0000-4000-8000-000000000016', '0a000000-0000-4000-8000-000000000016', '0a000000-0000-4000-8000-000000000016', '{"sub":"0a000000-0000-4000-8000-000000000016","email":"qa-ownerfamily@example.test","email_verified":true}',
   'email', now(), now(), now())
 on conflict do nothing;
-insert into public.members (id, handle, display_name, stakeholder_visibility, home_metro_id)
-values ('0a000000-0000-4000-8000-000000000016', 'qa-owner-family', 'QA Owner Family', 'public',
+insert into public.members (id, handle, display_name, legal_name, stakeholder_visibility, home_metro_id)
+values ('0a000000-0000-4000-8000-000000000016', 'qa-owner-family', 'QA Owner Family', 'QA Owner Family', 'public',
   (select id from public.metro_polygons where slug = 'sacramento-roseville-ca'))
 on conflict (id) do nothing;
 insert into public.member_place_interests (member_id, place_id, scope_kind)

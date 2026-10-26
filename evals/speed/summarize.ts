@@ -10,7 +10,7 @@ import { checkpointDue, type Baseline, type Status } from '../../src/lib/speed/v
 const dir = process.argv[2] ?? 'speed-out'
 const file = join(dir, 'rows.jsonl')
 if (!existsSync(file)) { console.log('no rows'); process.exit(0) }
-type R = TapMeasure & { mode: string; flags: Flag[]; status: Status; regressed: boolean; waived: boolean; requests: number; waterfall: number; longTaskMs: number; slowReqs: string[]; prefetched: boolean | null; note?: string }
+type R = TapMeasure & { mode: string; flags: Flag[]; status: Status; regressed: boolean; waived: boolean; requests: number; waterfall: number; longTaskMs: number; slowReqs: string[]; afterNetworkMs?: number | null; prefetched: boolean | null; note?: string }
 const rows = readFileSync(file, 'utf8').trim().split('\n').map((l) => JSON.parse(l) as R)
 const baseline: Baseline = JSON.parse(readFileSync(join(__dirname, 'baseline.json'), 'utf8'))
 const done: number[] = existsSync(join(__dirname, 'checkpoints.json')) ? JSON.parse(readFileSync(join(__dirname, 'checkpoints.json'), 'utf8')).benchmarked : []
@@ -34,7 +34,7 @@ const md = [
   '',
   '**Slowest 10**',
   '',
-  ...worst.map((r, i) => `${i + 1}. ${key(r)}: content ${f(r.readyMs)} ms (URL ${f(r.urlMs)}, feedback ${f(r.feedbackMs)}); ${r.slowReqs[0] ?? 'no requests'}${r.prefetched === false ? '; not prefetched' : ''}`),
+  ...worst.map((r, i) => `${i + 1}. ${key(r)}: content ${f(r.readyMs)} ms (URL ${f(r.urlMs)}, feedback ${f(r.feedbackMs)}); ${r.slowReqs[0] ?? 'no requests'}${r.afterNetworkMs != null ? `; phone after network ${r.afterNetworkMs} ms` : ''}${r.prefetched === false ? '; not prefetched' : ''}`),
   ...(faster.length ? ['', `**Faster than baseline by over 20%, so re-baseline:** ${faster.map(key).join('; ')}`] : []),
 ]
 writeFileSync(join(dir, 'summary.md'), md.join('\n') + '\n')

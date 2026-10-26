@@ -319,23 +319,22 @@ export async function placeForPointAction(
   })
 }
 
-/** #413 — "Or type a neighbourhood": the metro's neighbourhoods by name, with a point for the pin. */
-export async function searchNeighborhoodsAction(query: string, msa = '40900'): Promise<ActionResult<NeighborhoodMatch[]>> {
+/** #413 — "Or type a neighbourhood": the neighbourhoods by name, with a point for the pin. */
+export async function searchNeighborhoodsAction(query: string): Promise<ActionResult<NeighborhoodMatch[]>> {
   return asResult(async () => {
-    if (query.trim().length < 2 || !/^\d{5}$/.test(msa)) return []
-    return withTransaction((client) => searchNeighborhoods(client, query, msa))
+    if (query.trim().length < 2) return []
+    return withTransaction((client) => searchNeighborhoods(client, query))
   })
 }
 
-/** #348 — the metro's main town, the anchor for "I go to them" and "It moves". */
-export async function metroAnchorPlaceAction(msa = '40900'): Promise<ActionResult<{ id: string; name: string } | null>> {
+/** #348 — the main town, the anchor for "I go to them" and "It moves". */
+export async function metroAnchorPlaceAction(): Promise<ActionResult<{ id: string; name: string } | null>> {
   return asResult(async () =>
     withTransaction(async (client) => {
       const res = await client.query<{ id: string; display_name: string }>(
         `select p.id, p.display_name from public.places p
-          where p.kind = 'city' and p.msa_code = $1 and p.deleted_at is null
+          where p.kind = 'city' and p.deleted_at is null
           order by st_area(p.geography::geometry) desc nulls last limit 1`,
-        [msa],
       )
       const r = res.rows[0]
       return r ? { id: r.id, name: r.display_name } : null

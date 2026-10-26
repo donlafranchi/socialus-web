@@ -8,12 +8,21 @@ export const COPY = {
   // F080 criterion 5 — ticked for each photo before it can be chosen. Placeholder ([public-is-draft]).
   photoConfirm: 'This photo has no children in it.',
   // F102 criterion 10 — shown once "Threat of harm" is picked. Placeholder ([public-is-draft]).
-  report911: "If someone is in danger right now, please call 911 first. We'll look at this too.",
+  report911: "If someone's in danger right now, please call 911 first. We'll look into this too.",
   // F100 — the operator's row and detail, when a report was held back from the AI. Placeholder ([public-is-draft]).
   aiNotRead: 'Not read by the AI: a person needs to look.',
-  // F078 criterion 10 — on the report sheet, before Send. Kind and gracious. Placeholder ([public-is-draft]).
-  reportMisuse:
-    "Reports help keep everyone safe, so please send one only when something's wrong. A report that didn't match a rule is counted. After three, your reports stop hiding anything while a person looks.",
+  // #627, the PM's calls of 2026-10-11 — the report sheet, before Send, and the line after it.
+  reportCourtesy:
+    "We'll first send the page owner a courtesy notice so they can fix it. We don't share who you are. Please don't misuse reports.",
+  reportUrgentSkip:
+    "For this one we skip the courtesy notice: it's hidden right away and a person from our team takes a look. We don't share who you are. Please don't misuse reports.",
+  // #625 — a Page's own words are reportable on their own (placeholder copy, [public-is-draft]).
+  reportPageWords: 'Report this Page',
+  reportPagePhoto: "Report this Page's photo",
+  reportPageWordsSubject: 'its name or description',
+  pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
+  reportSentCourtesy: "Thanks for looking out for everyone. The page owner is getting a courtesy notice.",
+  reportSentPerson: "Thanks for looking out for everyone. It's being sent to a person from our team.",
   // The same ask in full, for the rules page (#223). Placeholder, Don's 2026-09-30 line. Not shown yet.
   postingSafetyFull:
     "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
@@ -30,6 +39,8 @@ export const COPY = {
   phoneWhy: "Everyone here is a real person. We'll text you a code to check. Your number is never shown to anyone.",
   phoneInvalid: 'Enter a US phone number, like (916) 555-0134.',
   phoneSendFailed: "We couldn't send a code to that number. Check it and try again.",
+  // F081.9 — a VoIP number is asked for a mobile one. Placeholder ([public-is-draft]).
+  phoneVoip: 'Please use a mobile number. We can’t text a code to an internet phone number.',
   phoneCodeTitle: 'Enter your code',
   phoneCodeSent: 'We texted you a 6-digit code.',
   phoneCodeWrong: "That code didn't match. Check it, or send a new one.",
@@ -45,11 +56,7 @@ export const COPY = {
   unclaimedBoxBody: 'We added this Page from public information so neighbors can find you. Claim it to tell your own story, or ask us to take it down.',
   unclaimedClaim: 'Claim this Page',
   unclaimedRemove: 'Ask us to remove it',
-  unclaimedClaimName: 'Your name',
   unclaimedContact: 'Email or phone',
-  unclaimedClaimMessage: 'Anything we should know (optional)',
-  unclaimedClaimSend: 'Send',
-  unclaimedClaimSent: "Thanks. We'll be in touch to confirm it's yours.",
   unclaimedRemoveReason: 'Why (optional)',
   unclaimedRemoveConfirm: 'I represent this business, or it is about me, and I want it removed.',
   unclaimedRemoveSend: 'Remove this Page',
@@ -58,6 +65,29 @@ export const COPY = {
   unclaimedRemoveWholePage: 'The whole Page',
   unclaimedRemovePhoto: 'Just the photo',
   unclaimedRemovePhotoSent: "Done. The photo is hidden now and we'll review it.",
+  // #987 — self-serve claim. New copy, listed in the PR for review ([public-is-draft]).
+  claimSignIn: 'Sign in to claim this Page',
+  claimIntro: "We'll send a code to the business. Enter it here and the Page is yours right away.",
+  claimEmailLabel: (domain: string) => `Your email at ${domain}`,
+  claimEmailSend: 'Email me a code',
+  claimPhoneSend: (masked: string) => `Text a code to ${masked}`,
+  claimCodeSentTo: (to: string) => `We sent a 6-digit code to ${to}. It works for 15 minutes.`,
+  claimCodeLabel: 'Code',
+  claimConfirm: 'Claim this Page',
+  claimResend: 'Send a new code',
+  claimDone: 'This Page is yours. Post your first news below.',
+  claimWrongCode: "That code isn't right. Check it and try again.",
+  claimExpired: 'That code has expired. Send a new one.',
+  claimTaken: "Someone has already claimed this Page. If it's yours, report the Page and we'll sort it out.",
+  claimProofIntro:
+    "This Page has no website or phone we can send a code to. Send a link that shows it's yours, like a photo of you at the business or the business's own social profile.",
+  claimProofLabel: 'Link to your proof',
+  claimProofNote: 'Anything we should know (optional)',
+  claimProofSend: 'Send for review',
+  claimProofSent: "Thanks. We'll look at it soon, and the Page is yours once it checks out.",
+  claimCodeSubject: (page: string) => `Your code to claim ${page} on SocialUs`,
+  claimCodeBody: (code: string, page: string) =>
+    `Your SocialUs code is ${code}. Enter it on the ${page} Page to claim it. It works for 15 minutes. If you didn't ask for this, ignore it.`,
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
 } as const

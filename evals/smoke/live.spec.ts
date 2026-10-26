@@ -19,6 +19,7 @@ import { builderEmail, builderPassword } from '../../src/lib/builders/credential
 import type { PersonaKey } from '../personas'
 import { leaks } from './checks'
 import { navigate } from '../../src/lib/smoke/navigate'
+import { abortedByNavigation } from '../../src/lib/smoke/aborted-fetch'
 
 const SEED = process.env.BUILDER_SEED ?? ''
 const TEMPLATE = process.env.BUILDER_EMAIL_TEMPLATE || undefined
@@ -82,11 +83,22 @@ for (const who of personas) {
         test.skip(!path, `${name} has no stable address on production for ${who}: not smoked`)
         const target = path === 'first-page' ? firstPage : path!
         const problems: string[] = []
-        page.on('pageerror', (e) => problems.push(`uncaught error: ${e.message.slice(0, 160)}`))
+        let aborted = 0
+        const fetchErrors: string[] = []
+        page.on('requestfailed', (r) => {
+          if (/ERR_ABORTED/.test(r.failure()?.errorText ?? '')) aborted++
+        })
+        page.on('pageerror', (e) => {
+          // #888 — supabase-js's tab lock stolen when a navigation interrupts a token refresh; nothing a member sees.
+          if (/Lock .*(stole|steal)/i.test(e.message)) return
+          problems.push(`uncaught error: ${e.message.slice(0, 160)}`)
+        })
         page.on('console', (m) => {
           if (m.type() !== 'error') return
           const t = m.text()
           if (/mapbox|Failed to load resource|favicon|analytics/i.test(t)) return
+          // #993 — a reload for the next width aborts reads still in flight; nobody sees it.
+          if (/Failed to fetch/.test(t)) return fetchErrors.push(`console error: ${t.slice(0, 160)}`)
           problems.push(`console error: ${t.slice(0, 160)}`)
         })
         for (const width of widths) {
@@ -103,6 +115,8 @@ for (const who of personas) {
           await page.screenshot({ path: join(dir, `${name}.png`), fullPage: true })
           writeFileSync(join(dir, `${name}.txt`), text)
         }
+        for (const e of fetchErrors) if (!abortedByNavigation(e, aborted)) problems.push(e)
+        page.removeAllListeners('requestfailed')
         page.removeAllListeners('pageerror')
         page.removeAllListeners('console')
         expect(problems, `${who} on ${name}`).toEqual([])

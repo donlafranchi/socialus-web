@@ -1,6 +1,6 @@
 // #296 — the page shell: footer, not-found, empty/error state, text pages.
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 
 const pathname = { current: '/explore' }
@@ -20,11 +20,24 @@ afterEach(() => {
 describe('#296 — the footer', () => {
   it('links About, Terms and Privacy, from 744 up', () => {
     render(<SiteFooter />)
-    const footer = screen.getByRole('contentinfo')
-    expect(footer.className).toMatch(/\bhidden\b.*\bmd:block\b|\bmd:block\b.*\bhidden\b/)
+    const full = screen.getByTestId('site-footer-full')
+    expect(full.className).toMatch(/\bhidden\b.*\bmd:flex\b|\bmd:flex\b.*\bhidden\b/)
     for (const [name, href] of [['About', '/about'], ['Terms', '/terms'], ['Privacy', '/privacy']]) {
-      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href)
+      expect(within(full).getByRole('link', { name })).toHaveAttribute('href', href)
     }
+  })
+
+  // #443 — "reachable from every screen": on a phone the full footer is hidden, so Report a problem
+  // gets its own line at the end of the screen, clear of the bottom nav, tap-sized.
+  it('keeps Report a problem with the app reachable on a phone', () => {
+    render(<SiteFooter />)
+    const phone = screen.getByTestId('site-footer-phone')
+    expect(phone.className).toMatch(/\bmd:hidden\b/)
+    expect(phone.className).not.toMatch(/(^|\s)hidden\b/)
+    const link = within(phone).getByRole('link', { name: 'Report a problem with the app' })
+    expect(link).toHaveAttribute('href', '/report')
+    expect(link.className).toMatch(/min-h-11/)
+    expect(screen.getByRole('contentinfo').className).toMatch(/nav-height/)
   })
 
   it('is not on sign-in, onboarding or admin', () => {
@@ -94,6 +107,7 @@ describe('#489 — a draft legal page says it is a draft, and never prints the c
 describe('#443 — Report a problem is one tap away', () => {
   it('the footer links it, and the not-found and error pages offer it', async () => {
     render(<SiteFooter />)
-    expect(screen.getByRole('link', { name: 'Report a problem' })).toHaveAttribute('href', '/report')
+    // One for a phone, one in the full footer from 744 up; each shows at its own width.
+    for (const link of screen.getAllByRole('link', { name: 'Report a problem with the app' })) expect(link).toHaveAttribute('href', '/report')
   })
 })

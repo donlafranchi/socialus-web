@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "seed:check": "tsx scripts/unclaimed/check-seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:visibility": "VISIBILITY_MATRIX=1 vitest run --project visibility",
@@ -20,7 +21,8 @@
     "ontology:registry": "tsx scripts/ontology-registry.ts",
     "migrations:manifest": "tsx scripts/generate-migration-manifest.ts",
     "docs:inventory": "tsx scripts/doc-inventory.ts",
-    "docs:regen": "tsx scripts/regen-docs.ts"
+    "docs:regen": "tsx scripts/regen-docs.ts",
+    "storyboard:app": "tsx scripts/storyboard-app.ts"
   },
   "dependencies": {
     "@jsquash/webp": "^1.5.0",
@@ -34,6 +36,7 @@
     "react": "19.2.4",
     "react-day-picker": "^10.0.2",
     "react-dom": "19.2.4",
+    "web-push": "^3.6.7",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -53,6 +56,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/shapefile": "^0.6.4",
+    "@types/web-push": "^3.6.4",
     "@vitejs/plugin-react": "^6.0.1",
     "dotenv": "^17.4.2",
     "eslint": "^9",

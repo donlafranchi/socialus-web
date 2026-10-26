@@ -4,7 +4,7 @@
 
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
-import { demoClaim, demoRemove } from './actions'
+import { demoChoices, demoProofChoices, demoProof, demoRemove, demoStart, demoVerify } from './actions'
 
 const SHOP: ResolvedShop = {
   groupId: '00000000-0000-4000-8000-000000000353',
@@ -16,6 +16,7 @@ const SHOP: ResolvedShop = {
   publicDescription:
     'A neighborhood bakery known for sourdough and morning buns, open early on weekdays. Claim this Page to tell your own story.',
   lifecycleState: 'active',
+  wordsHidden: false,
   anchorLocationId: null,
   category: null,
   photoUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200',
@@ -32,15 +33,17 @@ const SHOP: ResolvedShop = {
   },
 }
 
-export default function UnclaimedDemoPage() {
+// ?as=member shows the claim as a signed-in member would; ?proof=1 the no-domain, no-phone case.
+export default async function UnclaimedDemoPage({ searchParams }: { searchParams: Promise<{ as?: string; proof?: string }> }) {
+  const q = await searchParams
   return (
     <ShopPublicPage
       shop={SHOP}
       badge={null}
       items={[]}
-      loggedIn={false}
+      loggedIn={q.as === 'member'}
       pagePath="/unclaimed-demo"
-      unclaimedActions={{ claim: demoClaim, remove: demoRemove }}
+      unclaimedActions={{ claim: { choices: q.proof ? demoProofChoices : demoChoices, start: demoStart, verify: demoVerify, proof: demoProof }, remove: demoRemove }}
     />
   )
 }

@@ -1,14 +1,15 @@
 // T089 → #222 (F081) — the signup screen, one screen: legal name, zip, display
 // name, and the 18+ box with the Terms beside it (the email is the login, given
-// already). The zip decides the metro and the next screen shows which one; nobody
-// picks a metro here. All copy is a placeholder ([public-is-draft]).
+// already). The zip decides the market (F103) and the next screen shows which one;
+// nobody picks one here. All copy is a placeholder ([public-is-draft]).
 'use client'
 
 import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { completeOnboardingAction, type SaveProfileInput, type SaveProfileResult } from '@/app/onboarding/actions'
+import { addInterestsAction, completeOnboardingAction, type SaveProfileInput, type SaveProfileResult } from '@/app/onboarding/actions'
+import { InterestChoices } from '@/components/member/InterestChoices'
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 import { MetroWaitlistStep, type MetroOption } from '@/components/metro/MetroWaitlistStep'
 import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
@@ -18,15 +19,16 @@ import { validateSignupProfile, type SignupProfileField } from '@/lib/signup/pro
 
 export interface OnboardingActions {
   completeOnboarding: (input: SaveProfileInput) => Promise<SaveProfileResult>
+  /** #892 — the optional interests step after sign-up. */
+  saveInterests?: (input: { tags: string[] }) => Promise<{ ok: true; addedTags: string[] }>
 }
 
-const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction }
+const DEFAULT_ACTIONS: OnboardingActions = { completeOnboarding: completeOnboardingAction, saveInterests: addInterestsAction }
 
 export function OnboardingFlow({
   initialDisplayName = '',
   actions = DEFAULT_ACTIONS,
   onNavigate,
-  metros = [],
   onJoinWaitlist = joinMetroWaitlistAction,
   phoneVerified = true,
   phoneAuth,
@@ -34,8 +36,6 @@ export function OnboardingFlow({
   initialDisplayName?: string
   actions?: OnboardingActions
   onNavigate?: (url: string) => void
-  /** T163 (F076) — every US metro, for the waitlist step a zip with no metro goes to. */
-  metros?: MetroOption[]
   onJoinWaitlist?: typeof joinMetroWaitlistAction
   /** F081 — false sends the member through the text-message code first. */
   phoneVerified?: boolean
@@ -50,10 +50,13 @@ export function OnboardingFlow({
   const [adult, setAdult] = useState(false)
   const [error, setError] = useState<{ field: SignupProfileField; message: string } | null>(null)
   const [busy, setBusy] = useState(false)
-  // After the profile lands: the metro the zip decided (shown), or null (the
-  // waitlist question, because we are not in that zip's metro yet).
+  // After the profile lands: the market the zip decided (shown), or the waiting market it
+  // falls in (the waitlist question, because we are not open there yet).
   const [metroName, setMetroName] = useState<string | null | undefined>(undefined)
+  const [waiting, setWaiting] = useState<MetroOption | null>(null)
   const [phoneDone, setPhoneDone] = useState(phoneVerified)
+  const [askInterests, setAskInterests] = useState(false)
+  const [interests, setInterests] = useState<string[]>([])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -72,6 +75,7 @@ export function OnboardingFlow({
         setError({ field: res.field, message: res.message })
         return
       }
+      setWaiting(res.waiting ? { id: res.waiting.metroId, name: res.waiting.name } : null)
       setMetroName(res.metro?.name ?? null)
     } catch (err) {
       setError({ field: 'displayName', message: err instanceof Error ? err.message : 'Something went wrong. Try again.' })
@@ -84,13 +88,57 @@ export function OnboardingFlow({
     return <PhoneVerifyStep auth={phoneAuth} onVerified={() => setPhoneDone(true)} />
   }
 
+  // #892 — one optional, skippable step: interests, for Explore's "My interests" filter. Draft copy.
+  if (askInterests) {
+    const saveInterests = async () => {
+      if (busy) return
+      setBusy(true)
+      try {
+        if (interests.length > 0) await (actions.saveInterests ?? addInterestsAction)({ tags: interests })
+      } catch {
+        // Skippable step: a failed save never blocks the way in; they can pick again on You.
+      } finally {
+        setBusy(false)
+        navigate('/')
+      }
+    }
+    return (
+      <AuthCard>
+        <div className="space-y-4" data-testid="onboarding-interests">
+          <div className="space-y-1">
+            <h1 className="text-title-1 text-[var(--color-fg)]">What are you into?</h1>
+            <p className="text-body-sm text-[var(--color-fg-muted)]">
+              Pick a few and Explore can show just these. Only you see them, and you can change them on You.
+            </p>
+          </div>
+          <InterestChoices
+            selected={interests}
+            onToggle={(tag) => setInterests((s) => (s.includes(tag) ? s.filter((t) => t !== tag) : [...s, tag]))}
+            label="Your interests"
+          />
+          <button type="button" data-testid="onboarding-interests-save" disabled={busy || interests.length === 0} onClick={saveInterests} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-75">
+            Save
+          </button>
+          <button
+            type="button"
+            data-testid="onboarding-interests-skip"
+            onClick={() => navigate('/')}
+            className="press inline-flex min-h-11 w-full items-center justify-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+          >
+            Skip for now
+          </button>
+        </div>
+      </AuthCard>
+    )
+  }
+
   if (typeof metroName === 'string') {
     return (
       <AuthCard>
         <div className="space-y-4" data-testid="onboarding-metro">
           <h1 className="text-title-1 text-[var(--color-fg)]">You’re in {metroName}</h1>
           <p className="text-body-sm text-[var(--color-fg-muted)]">Your zip code decided this. You can change it any time from your account.</p>
-          <button type="button" data-testid="onboarding-metro-continue" onClick={() => navigate('/')} className="btn-primary w-full">
+          <button type="button" data-testid="onboarding-metro-continue" onClick={() => setAskInterests(true)} className="btn-primary w-full">
             Continue
           </button>
         </div>
@@ -98,17 +146,17 @@ export function OnboardingFlow({
     )
   }
 
-  if (metroName === null) {
+  if (metroName === null && waiting) {
     return (
       <AuthCard>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-title-1 text-[var(--color-fg)]">Where are you, and why?</h1>
+            <h1 className="text-title-1 text-[var(--color-fg)]">SocialUs isn&rsquo;t in your area yet</h1>
             <p className="text-body-sm text-[var(--color-fg-muted)]">
-              We are not everywhere yet. Tell us where you are and we will tell you where it stands.
+              Tell us why you&rsquo;re here and we&rsquo;ll let you know where it stands.
             </p>
           </div>
-          <MetroWaitlistStep metros={metros} onJoin={onJoinWaitlist} onDone={() => navigate('/')} />
+          <MetroWaitlistStep market={waiting} onJoin={onJoinWaitlist} onDone={() => navigate('/')} />
         </div>
       </AuthCard>
     )
@@ -172,7 +220,7 @@ export function OnboardingFlow({
               value={zip}
               onChange={(e) => setZip(e.target.value)}
             />
-            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">It decides your metro. It is never shown to anyone.</p>
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Your zip helps us find your area. It is never shown to anyone.</p>
           </div>
 
           <label data-testid="onboarding-adult-label" className="flex min-h-11 items-start gap-3 text-body-sm text-[var(--color-fg)]">

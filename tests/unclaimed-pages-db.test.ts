@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { groupUnclaimedRemove, groupUnclaimedClaim, groupUnclaimedRestore, DAILY_LIMIT_PER_DEVICE } from '@/actions/group'
+import { groupUnclaimedRemove, groupUnclaimedRestore, DAILY_LIMIT_PER_DEVICE } from '@/actions/group'
 import { resolveAnonymousActionContext, resolveActionContext } from '@/lib/action-context'
 import { SYSTEM_MEMBER_ID } from '@/lib/system-member'
 
@@ -109,16 +109,6 @@ describe.skipIf(!RUNNABLE)('#353 unclaimed Pages', () => {
     await expect(client.query(`delete from public.page_sources where group_id = $1`, [UNCLAIMED])).rejects.toThrow(
       /append-only/,
     )
-  })
-
-  it('a claim request is stored and changes nothing visible', async () => {
-    await groupUnclaimedClaim(resolveAnonymousActionContext(), {
-      groupId: UNCLAIMED,
-      name: 'Pat',
-      contact: 'pat@example.com',
-      deviceHash: OTHER_DEVICE,
-    })
-    expect(await visible(null)).toBe(true)
   })
 
   it("claim and remove refuse a member's own Page", async () => {

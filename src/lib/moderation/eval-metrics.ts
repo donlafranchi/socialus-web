@@ -27,6 +27,7 @@ export function summarise(cases: Scored[]) {
   const sev1Recall = ratio(sev1.filter(caught).length, sev1.length)
   return {
     cases: cases.length,
+    sev1Cases: sev1.length,
     recall,
     falseAlarmRate,
     sev1Recall,

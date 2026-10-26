@@ -1,0 +1,94 @@
+name: Venue shows import
+
+# #997 (Don, 2026-10-22) — every morning, read each venue Page's own events page or feed and post its next 60 days of
+# shows; over, cancelled and dropped shows come off. Idempotent. A venue that fails to read gets an Issue (one open
+# Issue per venue). By hand: gh workflow run unclaimed-events.yml (dry run unless write is ticked; only narrows to one venue).
+on:
+  schedule:
+    - cron: '15 13 * * *' # daily 06:15 Pacific (05:15 in winter)
+  workflow_dispatch:
+    inputs:
+      write:
+        description: 'Tick to write to the production database. Unticked, it only reads the venues.'
+        required: false
+        type: boolean
+        default: false
+      only:
+        description: 'Only venues whose name contains this (blank: all)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: unclaimed-load
+  cancel-in-progress: false
+
+jobs:
+  import:
+    name: Import venue shows
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      # Show pictures go through the Storage API, which needs the service role key (same step as the unclaimed load).
+      - uses: supabase/setup-cli@v2
+        if: github.event_name == 'schedule' || inputs.write
+        with:
+          version: 2.117.0
+      - name: Fetch the service role key
+        id: keys
+        if: github.event_name == 'schedule' || inputs.write
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          key="$(supabase projects api-keys --project-ref "$SUPABASE_PROJECT_REF" -o json | jq -r '.[] | select(.name == "service_role") | .api_key')"
+          [ -n "$key" ] || { echo "::error::Could not read the service role key."; exit 1; }
+          echo "::add-mask::$key"
+          echo "key=$key" >> "$GITHUB_OUTPUT"
+      - name: Import
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ steps.keys.outputs.key }}
+          WRITE: ${{ github.event_name == 'schedule' || inputs.write }}
+          ONLY: ${{ inputs.only }}
+          BROKEN_FILE: ${{ runner.temp }}/broken.json
+        run: |
+          args=()
+          [ "$WRITE" = "true" ] && args+=(--apply)
+          [ -n "$ONLY" ] && args+=(--only "$ONLY")
+          npx tsx scripts/unclaimed/events.ts "${args[@]}"
+      - name: File an Issue for each venue that broke
+        if: always() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BROKEN_FILE: ${{ runner.temp }}/broken.json
+        run: |
+          [ -s "$BROKEN_FILE" ] || exit 0
+          jq -c '.[]' "$BROKEN_FILE" | while read -r v; do
+            name=$(jq -r .name <<<"$v"); url=$(jq -r .url <<<"$v"); err=$(jq -r .error <<<"$v")
+            title="bug · Venue shows import broke: $name"
+            if gh issue list --state open --search "\"$title\" in:title" --json number -q '.[0].number' | grep -q .; then continue; fi
+            printf '**Kind:** bug\n**Scenario:** none\n**Path:** well-worn — fix the venue parser or its feed address (#997).\n\nThe daily venue shows import could not read **%s** (%s): %s\n\nIts existing posts were left as they are. Run: %s/%s/actions/runs/%s\n' \
+              "$name" "$url" "$err" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > body.md
+            gh issue create --title "$title" --body-file body.md
+          done

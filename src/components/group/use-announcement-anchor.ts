@@ -59,7 +59,3 @@ export function useAnnouncementAnchor(key?: unknown): string | null {
   return highlighted
 }
 
-/** The classes that mark one announcement as the one you tapped. A ring
- *  rather than a background: it says "this one" without restyling the
- *  announcement into something that looks like a different kind of thing. */
-export const ANNOUNCEMENT_MARK = ' ring-2 ring-[var(--color-accent)] ring-offset-2'

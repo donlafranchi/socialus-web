@@ -83,10 +83,10 @@ export const LINK_TYPES: readonly LinkType[] = [
     from: 'Member',
     to: 'Page',
     via: { table: 'groups', column: 'founder_member_id' },
-    writtenBy: ['group.create'],
+    writtenBy: ['group.create', 'group.claim_verify', 'group.claim_decide'],
     ruled: null,
     built: true,
-    note: 'Ownership, not membership. The founder column is also what a member\'s own-Pages list reads. An unclaimed Page (#353, a real business added from public info) is founded by the system member and has no owner until claimed.',
+    note: 'Ownership, not membership. The founder column is also what a member\'s own-Pages list reads. An unclaimed Page (#353, a real business added from public info) is founded by the system member until claimed; a claim (#987) makes the claimant its founder and owner.',
   },
   {
     name: 'a Member authored an Item',
@@ -271,7 +271,7 @@ export const LINK_TYPES: readonly LinkType[] = [
     from: 'Member',
     to: 'Page',
     via: { table: 'group_memberships', column: 'role' },
-    writtenBy: ['group.create'],
+    writtenBy: ['group.create', 'group.claim_verify', 'group.claim_decide'],
     ruled: '2026-09-19',
     built: true,
     note:
@@ -283,6 +283,20 @@ export const LINK_TYPES: readonly LinkType[] = [
       'them stay that way, and a steward who did not found a Page has authority under this link ' +
       'and appears under neither of the others. Declared because leaving it implicit is how a ' +
       'relation becomes an identity — the role is on the link, never on the person.',
+  },
+  {
+    name: 'a Page sells at a market Page',
+    from: 'Page',
+    to: 'Page',
+    via: { table: 'market_stalls', column: 'market_group_id' },
+    writtenBy: ['group.market_stall.set'],
+    ruled: '2026-10-18',
+    built: true,
+    note:
+      'A vendor with no place of its own is found where it sells: on the market\'s days, every week or on ' +
+      'listed dates, minus the ones it skips. The vendor\'s managers make and change the link; a market ' +
+      'Page\'s organiser, once claimed, confirms or removes it. A Page to a Page, so neither becomes a ' +
+      'kind of Page: being a market is having market days, being a vendor is this link (#955, Don: "Go").',
   },
 ] as const
 
