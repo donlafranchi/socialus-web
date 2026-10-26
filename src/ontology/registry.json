@@ -429,6 +429,8 @@
     "report.reverse",
     "search.demand_log",
     "tag.review",
+    "town.credit_set",
+    "town.maker_add",
     "wonder.join",
     "wonder.leave",
     "wonder.offer",

@@ -4,11 +4,11 @@
 export const COPY = {
   // F080 criterion 5 — shown wherever a member posts. Placeholder, Don's 2026-09-30 short line.
   postingSafety:
-    "Please don't post anything sensitive, like content involving children, pets, or anyone who can't speak up for themselves. We rely on each other to keep this place kind and decent.",
+    "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.",
   // F080 criterion 5 — ticked for each photo before it can be chosen. Placeholder ([public-is-draft]).
-  photoConfirm: 'This photo has no children in it.',
+  photoConfirm: 'No kids in this photo.',
   // F102 criterion 10 — shown once "Threat of harm" is picked. Placeholder ([public-is-draft]).
-  report911: "If someone's in danger right now, please call 911 first. We'll look into this too.",
+  report911: "If someone's in danger right now, call 911 first. We'll look into this too.",
   // F100 — the operator's row and detail, when a report was held back from the AI. Placeholder ([public-is-draft]).
   aiNotRead: 'Not read by the AI: a person needs to look.',
   // #627, the PM's calls of 2026-10-11 — the report sheet, before Send, and the line after it.
@@ -21,8 +21,8 @@ export const COPY = {
   reportPagePhoto: "Report this Page's photo",
   reportPageWordsSubject: 'its name or description',
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
-  reportSentCourtesy: "Thanks for looking out for everyone. The page owner is getting a courtesy notice.",
-  reportSentPerson: "Thanks for looking out for everyone. It's being sent to a person from our team.",
+  reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for being decent.',
+  reportSentPerson: "It's being sent to a person from our team. Thanks for being decent.",
   // The same ask in full, for the rules page (#223). Placeholder, Don's 2026-09-30 line. Not shown yet.
   postingSafetyFull:
     "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
@@ -88,6 +88,11 @@ export const COPY = {
   claimCodeSubject: (page: string) => `Your code to claim ${page} on SocialUs`,
   claimCodeBody: (code: string, page: string) =>
     `Your SocialUs code is ${code}. Enter it on the ${page} Page to claim it. It works for 15 minutes. If you didn't ask for this, ignore it.`,
+  // The ethos's decency lines (2026-10-25). New copy, listed in the PR for review ([public-is-draft]).
+  decencyThanks: 'Thanks for being decent.',
+  postedThanks: 'Posted. Thanks for being decent.',
+  rulesHeadline: "Be cool. Don't be a jerk.",
+  rulesIntro: "We assume the best of each other. These are for the rare times that doesn't hold.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
   // F117 — new copy, listed in the PR for review ([public-is-draft]).

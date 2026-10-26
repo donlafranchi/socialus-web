@@ -111,7 +111,7 @@ describe('F081 — the signup screen', () => {
 })
 
 describe('F103 — the zip decides the market, and the screen shows it', () => {
-  const waiting = { metroId: 'm-yuba', name: 'Yuba County, CA' }
+  const waiting = { metroId: 'm-yuba', name: 'Yuba County, CA', town: null }
   const waitingActions = () => makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting })) })
 
   it('shows which market, then the optional interests step on Continue', async () => {
@@ -166,6 +166,17 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
     expect(screen.queryByTestId('onboarding-metro')).toBeNull()
   })
 
+  // F118 criterion 3 — a supporter of a town neighbours are opening goes to its page, not the waitlist.
+  it('a town on the Open list sends the person to its page', async () => {
+    const onNavigate = vi.fn()
+    const actions = makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting: { ...waiting, town: 'yuba' } })) })
+    render(<OnboardingFlow actions={actions} onNavigate={onNavigate} />)
+    fill({ zip: '95901' })
+    fireEvent.click(continueBtn())
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/open/yuba'))
+    expect(screen.queryByTestId('waitlist-market')).toBeNull()
+  })
+
   // #1090 — one sign-up path: outside an open market, Don's line and the role question; no count.
   const joined = vi.fn(async () => ({ open: false as const, metroName: 'Yuba County, CA', standing: { combined: 1, target: 300 }, message: '' }))
 
@@ -214,7 +225,7 @@ describe('F103 — the zip decides the market, and the screen shows it', () => {
     ['the open screen', async () => { fill(); fireEvent.click(continueBtn()); await screen.findByTestId('onboarding-metro') }],
     ['the waiting screen', async () => { fill({ zip: '95901' }); fireEvent.click(continueBtn()); await screen.findByTestId('waitlist-market') }],
   ])('%s says no MSA, CSA or metro', async (name, go) => {
-    const actions = name === 'the waiting screen' ? makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting: { metroId: 'm', name: 'Yuba County, CA' } })) }) : makeActions()
+    const actions = name === 'the waiting screen' ? makeActions({ completeOnboarding: vi.fn(async () => ({ ok: true as const, metro: null, waiting: { metroId: 'm', name: 'Yuba County, CA', town: null } })) }) : makeActions()
     const { container } = render(<OnboardingFlow actions={actions} onNavigate={vi.fn()} />)
     await go()
     expect(container.textContent).not.toMatch(/\b(MSA|CSA|metros?)\b/i)

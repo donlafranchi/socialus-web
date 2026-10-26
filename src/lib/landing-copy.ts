@@ -60,6 +60,8 @@ export const LANDING = {
   },
   waitlist: {
     title: 'Get on the list',
+    // F118 — draft, in the human-review PR.
+    openTown: 'Help open your town',
     email: 'Email',
     zip: 'Zip code',
     runs: 'I run a business or group',
