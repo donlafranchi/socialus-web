@@ -967,3 +967,26 @@ describe('#913 — Earlier, and Posted <date>', () => {
     expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Oct 15', 'Posted Sep 1'])
   })
 })
+
+describe('F117 — posting a Wonder', () => {
+  // [guards F117.1 partial: the handler's managing-role and whole-number checks]
+  it('the composer posts a Wonder with a threshold and the sizes the poster names', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Clothes that fit, bought in bulk at cost.' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: COPY.wonderToggle }))
+    fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '500' } })
+    fireEvent.change(screen.getByLabelText(COPY.wonderOptionsLabel), { target: { value: 'S, M, L, M' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect(onPost.mock.calls[0]![0]).toMatchObject({ body: 'Clothes that fit, bought in bulk at cost.', wonder: { threshold: 500, options: ['S', 'M', 'L'] } })
+  })
+  it('refuses a threshold that is not a whole number', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'A tool library?' } })
+    fireEvent.click(screen.getByRole('checkbox', { name: COPY.wonderToggle }))
+    fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '2.5' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    expect(await screen.findByText(COPY.wonderThresholdInvalid)).toBeInTheDocument()
+    expect(onPost).not.toHaveBeenCalled()
+  })
+})
