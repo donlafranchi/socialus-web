@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-24** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-26** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
@@ -24,7 +24,7 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 ## Each run
 
-1. **Take today's theme** from the rotation below (by weekday, Pacific time).
+1. **Take today's theme** from the rotation below, the row for today's weekday (Pacific time). The weekday is the only key: never "the next theme after the last one logged", and a missed day is not made up (#1082, 2026-10-26).
 2. **Add 10 Pages:** 3–4 farms, ranches or animal farms, the rest from the day's theme. Use 4 farms only when the theme can't fill 7.
 3. **Read `ADDED.md` first.** Skip any name or site already there. Don't add a kind of organization that is in the last 7 days, unless it's in today's theme. Skip a town that already has 3 or more Pages in the last 7 days. **Skip a town that runs itself** (2026-10-21, #987): 5 or more claimed Pages there posted within 30 days (`TOWN_SATURATION`, `src/lib/unclaimed/saturation.ts`). The loader holds such a town's new Pages back and names the town in its summary; it never touches a claimed Page, and a claim takes that Page's samples off.
 4. **Spread the area and the interests** (batches of 8 or more): at least 5 different towns and at least 4 interest tags (Coverage, above), at most 2 Pages in the city of Sacramento, and over a week cover every direction (see Area).
