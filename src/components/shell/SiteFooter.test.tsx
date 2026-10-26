@@ -12,7 +12,7 @@ vi.mock('next/link', () => ({
 }))
 
 describe('SiteFooter', () => {
-  // [guards #978]
+  // #978: pinned here, no scenario criterion behind it
   it('never prefetches its links: they sit on every page and queue ahead of the tapped card', () => {
     render(<SiteFooter />)
     expect(prefetch).toHaveBeenCalled()
