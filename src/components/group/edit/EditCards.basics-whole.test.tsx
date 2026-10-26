@@ -26,7 +26,7 @@ const initial: EditorInitial = {
 }
 
 describe('F056 criterion 1a — one prefilled page edits image, name and about', () => {
-  // [guards F056.1a]
+  // [guards F056.1 partial: image, name and about; the free-text values line was cut by the 2026-09-07 ruling]
   it('opens prefilled, saves a new image, name and about in one save, and the public Page shows them', async () => {
     const onSave = vi.fn(async (_i: unknown): Promise<{ ok: true }> => ({ ok: true }))
     render(<EditCards title="Edit Oak Park Sourdough" initial={initial} onSave={onSave} isDraft={false} />)
