@@ -18,6 +18,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { visiblePhotoUrl } from './visible-photo-url'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
+import { viewerId } from '@/lib/auth/viewer'
 import { maskEmails } from '../text/contact-info'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
@@ -227,9 +228,13 @@ export async function resolveShop(
   // with it, since that too was keyed by the id.
   // #978 — the founder and the anchor depend only on the row, so they are asked together (the
   // second used to wait for the first, a round before the Page could start to stream).
-  const [{ data: founderData }, { data: anchorRow, error: anchorErr }] = await Promise.all([
+  // The placements ask only for the row's id too, so they ride along; they are dropped below when the
+  // anchor was refused (F093 criterion 8), as before.
+  const [{ data: founderData }, { data: anchorRow, error: anchorErr }, askedPlacements] = await Promise.all([
     supabase.rpc('page_founder_public', { p_group_id: row.id }),
     supabase.from('groups').select('anchor_location_id').eq('id', row.id).maybeSingle(),
+    // Signed out, the address is never read at all (F093 criterion 8): the session is checked locally, no round trip.
+    (await viewerId(supabase)) ? resolvePagePlacements(row.id) : Promise.resolve([] as Placement[]),
   ])
   const founderRow = ((founderData as FounderRow[] | null) ?? [])[0] ?? null
 
@@ -252,7 +257,7 @@ export async function resolveShop(
   const anchorLocationId = anchorErr
     ? null
     : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)
-  const placements = anchorErr ? [] : await resolvePagePlacements(row.id)
+  const placements = anchorErr ? [] : askedPlacements
 
   const wordsHidden = Boolean(row.words_hidden_at || row.words_removed_at)
   return {
