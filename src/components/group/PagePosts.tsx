@@ -897,9 +897,9 @@ export function PagePosts({
         <section data-testid="page-posts-earlier" aria-labelledby="page-posts-earlier-title" className="mt-6">
           <h3 id="page-posts-earlier-title" className="text-body-sm font-semibold text-[var(--color-fg-muted)]">Earlier</h3>
           <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
-          <Toast message={COPY.postedThanks} visible={postedToast} onHide={hidePostedToast} />
-    </section>
+        </section>
       )}
+      <Toast message={COPY.postedThanks} visible={postedToast} onHide={hidePostedToast} />
     </section>
   )
 }

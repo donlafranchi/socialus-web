@@ -42,7 +42,7 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'SocialUs is a place for good and decent people to find, connect with and support each other. These Terms describe how it works during the beta.',
       'You need to be 18 or older to use SocialUs. By signing up you confirm that you are 18 or older and agree to these Terms.',
       'Use one account, in your own name. Other members see only your display name.',
-      'Be decent. No photos of kids, ever. Nothing involving kids, pets or anyone who can’t speak up for themselves.',
+      'No photos of kids, ever. Nothing involving kids, pets or anyone who can’t speak up for themselves.',
       'Anyone can report a post or a photo. A report can hide it at once while a person looks. If something of yours is hidden, we tell you why and you can answer before anything more happens.',
       'You are responsible for what you post, and for the Pages you run. Pages belong to the people who make them.',
       'We can hide or remove content, and close accounts, that break these Terms.',

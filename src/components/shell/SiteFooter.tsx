@@ -8,7 +8,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { navHidden } from '@/components/BottomNav'
-import { COPY } from '@/lib/copy'
 
 const LINKS = [
   { href: '/about', label: 'About' },
@@ -25,15 +24,13 @@ export function SiteFooter() {
   if (navHidden(pathname)) return null
   return (
     <footer className="border-t border-[var(--color-border)] pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))] md:pb-0">
-      <div data-testid="site-footer-phone" className="flex flex-col items-center py-2 md:hidden">
-        <p data-testid="footer-decency" className="pt-2 text-caption text-[var(--color-fg-muted)]">{COPY.decencyThanks}</p>
+      <div data-testid="site-footer-phone" className="flex justify-center py-2 md:hidden">
         <Link href="/report" prefetch={false} className="inline-flex min-h-11 items-center px-3 text-caption text-[var(--color-fg-muted)] underline">
           Report a problem with the app
         </Link>
       </div>
       <div data-testid="site-footer-full" className="mx-auto hidden w-full max-w-shell items-center gap-6 gutter py-6 text-caption text-[var(--color-fg-muted)] md:flex">
         <span>© SocialUs</span>
-        <span data-testid="footer-decency-full">{COPY.decencyThanks}</span>
         {LINKS.map((l) => (
           <Link key={l.href} href={l.href} prefetch={false} className="hover:text-[var(--color-fg)]">
             {l.label}

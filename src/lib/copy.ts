@@ -4,11 +4,11 @@
 export const COPY = {
   // F080 criterion 5 — shown wherever a member posts. Placeholder, Don's 2026-09-30 short line.
   postingSafety:
-    "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves. Thanks for being decent.",
+    "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.",
   // F080 criterion 5 — ticked for each photo before it can be chosen. Placeholder ([public-is-draft]).
   photoConfirm: 'No kids in this photo.',
   // F102 criterion 10 — shown once "Threat of harm" is picked. Placeholder ([public-is-draft]).
-  report911: "Someone in danger right now? Call 911 first. We're on it too.",
+  report911: "If someone's in danger right now, call 911 first. We'll look into this too.",
   // F100 — the operator's row and detail, when a report was held back from the AI. Placeholder ([public-is-draft]).
   aiNotRead: 'Not read by the AI: a person needs to look.',
   // #627, the PM's calls of 2026-10-11 — the report sheet, before Send, and the line after it.
@@ -91,7 +91,6 @@ export const COPY = {
   // The ethos's decency lines (2026-10-25). New copy, listed in the PR for review ([public-is-draft]).
   decencyThanks: 'Thanks for being decent.',
   postedThanks: 'Posted. Thanks for being decent.',
-  signupDecency: 'We assume the best of each other here, and you choose what you see and share.',
   rulesHeadline: "Be cool. Don't be a jerk.",
   rulesIntro: "We assume the best of each other. These are for the rare times that doesn't hold.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
