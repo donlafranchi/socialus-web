@@ -61,7 +61,6 @@ import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPl
 import { WonderPanel, type WonderActions } from '@/components/wonders/WonderPanel'
 import type { WonderView } from '@/lib/wonders/wonder-view'
 import { WONDER_OPTIONS_MAX, WONDER_OPTION_MAX } from '@/lib/wonders/roles'
-import { COPY } from '@/lib/copy'
 
 const BODY_LIMIT = 5000
 const LATEST = 3
