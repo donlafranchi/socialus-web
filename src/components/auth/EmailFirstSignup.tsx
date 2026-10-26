@@ -275,6 +275,11 @@ export function EmailFirstSignup({
                 {COPY.signupLine}
               </p>
             )}
+            {phase === 'new' && (
+              <p data-testid="signup-decency" className="mt-2 text-sm text-neutral-600">
+                {COPY.signupDecency}
+              </p>
+            )}
           </div>
           <form
             onSubmit={phase === 'new' ? handleCreateAccount : handleSignIn}

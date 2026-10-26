@@ -21,7 +21,8 @@ describe('SiteFooter', () => {
   })
   // [guards ethos-decency] the ethos's thanks sits in the footer at every width.
   it('thanks members for being decent, on the phone row and the full row', () => {
-    const { getByTestId } = render(<SiteFooter />)
+    const { container } = render(<SiteFooter />)
+    const getByTestId = (id: string) => container.querySelector(`[data-testid="${id}"]`)!
     expect(getByTestId('footer-decency').textContent).toBe(COPY.decencyThanks)
     expect(getByTestId('footer-decency-full').textContent).toBe(COPY.decencyThanks)
   })

@@ -21,8 +21,8 @@ export const COPY = {
   reportPagePhoto: "Report this Page's photo",
   reportPageWordsSubject: 'its name or description',
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
-  reportSentCourtesy: "Thanks for looking out for everyone. The page owner is getting a courtesy notice.",
-  reportSentPerson: "Thanks for looking out for everyone. It's being sent to a person from our team.",
+  reportSentCourtesy: 'The page owner is getting a courtesy notice. Thank you for being decent to each other.',
+  reportSentPerson: "It's being sent to a person from our team. Thank you for being decent to each other.",
   // The same ask in full, for the rules page (#223). Placeholder, Don's 2026-09-30 line. Not shown yet.
   postingSafetyFull:
     "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
@@ -88,6 +88,11 @@ export const COPY = {
   claimCodeSubject: (page: string) => `Your code to claim ${page} on SocialUs`,
   claimCodeBody: (code: string, page: string) =>
     `Your SocialUs code is ${code}. Enter it on the ${page} Page to claim it. It works for 15 minutes. If you didn't ask for this, ignore it.`,
+  // The ethos's decency lines (2026-10-25). New copy, listed in the PR for review ([public-is-draft]).
+  decencyThanks: 'Thank you for being decent to each other.',
+  postedThanks: 'Posted. Thank you for being decent to each other.',
+  signupDecency: 'We assume the best of each other here, and you choose what you see and share.',
+  rulesIntro: "We assume the best of each other. These rules are for the rare times that doesn't hold.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
 } as const

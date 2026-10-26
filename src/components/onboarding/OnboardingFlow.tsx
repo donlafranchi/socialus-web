@@ -171,6 +171,9 @@ export function OnboardingFlow({
           <p data-testid="signup-line" className="text-body-sm text-[var(--color-fg-muted)]">
             {COPY.signupLine}
           </p>
+          <p data-testid="signup-decency" className="text-body-sm text-[var(--color-fg-muted)]">
+            {COPY.signupDecency}
+          </p>
         </div>
 
         <div className="space-y-3">

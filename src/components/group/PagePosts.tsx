@@ -25,7 +25,7 @@
 // behind one.
 
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
@@ -54,6 +54,8 @@ import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { DefaultArt, type ArtKind } from '@/components/cards/DefaultArt'
 import { AudienceSwitch, FOLLOWERS_NOT_YET, type Audience } from './AudienceSwitch'
 import { PostingSafetyNote } from '@/components/PostingSafetyNote'
+import { Toast } from '@/components/Toast'
+import { COPY } from '@/lib/copy'
 import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
 import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPlaceFields'
 
@@ -251,6 +253,8 @@ export function PagePosts({
   // #472 first pass — the form is rarely used, so it waits for Announce
   // (Google Business Profile's "Add update" opens on request).
   const [composing, setComposing] = useState(startComposing)
+  const [postedToast, setPostedToast] = useState(false)
+  const hidePostedToast = useCallback(() => setPostedToast(false), [])
   useEffect(() => {
     if (!canPost) return
     const open = () => {
@@ -418,6 +422,7 @@ export function PagePosts({
     setDraft('')
     setWhen(emptyWhenWhere)
     setTags({ tags: [], draft: '' })
+    setPostedToast(true)
   }
 
   const saveEdit = async (postId: string) => {
@@ -811,7 +816,8 @@ export function PagePosts({
         <section data-testid="page-posts-earlier" aria-labelledby="page-posts-earlier-title" className="mt-6">
           <h3 id="page-posts-earlier-title" className="text-body-sm font-semibold text-[var(--color-fg-muted)]">Earlier</h3>
           <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
-        </section>
+          <Toast message={COPY.postedThanks} visible={postedToast} onHide={hidePostedToast} />
+    </section>
       )}
     </section>
   )
