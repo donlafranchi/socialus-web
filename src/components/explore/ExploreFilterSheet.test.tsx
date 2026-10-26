@@ -316,3 +316,26 @@ describe('#892 — My interests in Category', () => {
     expect(within(sheet()).getByRole('link', { name: /pick your interests/i })).toHaveAttribute('href', '/auth/login?next=%2Fyou%23interests')
   })
 })
+
+describe('F045 criterion 3a — the sheet, claimed whole', () => {
+  // [guards F045.3a]
+  it('opens with a Date choice (any, this week, this weekend) and a multi-select Category, Show results last at the bottom, Clear all only once something is set', () => {
+    renderSheet()
+    const s = within(sheet())
+    for (const label of ['Any time', 'This weekend', 'This week']) expect(s.getByRole('radio', { name: label })).toBeInTheDocument()
+    const boxes = within(s.getByRole('group', { name: 'Category' })).getAllByRole('checkbox')
+    fireEvent.click(boxes[0]!)
+    fireEvent.click(boxes[1]!)
+    expect(boxes[0]).toBeChecked()
+    expect(boxes[1]).toBeChecked()
+    const show = s.getByRole('button', { name: /show results/i })
+    const all = Array.from(sheet().querySelectorAll('button, input, a'))
+    expect(all[all.length - 1]).toBe(show)
+    cleanup()
+    renderSheet()
+    expect(within(sheet()).queryByRole('button', { name: /clear all/i })).not.toBeInTheDocument()
+    cleanup()
+    renderSheet({ value: { ...DEFAULT_BROWSE_FILTERS, date: 'week' } })
+    expect(within(sheet()).getByRole('button', { name: /clear all/i })).toBeInTheDocument()
+  })
+})
