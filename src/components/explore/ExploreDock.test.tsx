@@ -91,7 +91,7 @@ describe('expanded', () => {
 })
 
 describe('F044 criterion 1a — no full-width fixed List/Map bar', () => {
-  // [guards F044.1a]
+  // F044 is retired as a scenario; this keeps the corner dock the only fixed List/Map control (#824)
   it('the only fixed List/Map control is a corner dock, open or closed; the inline toggle is not fixed', () => {
     const FULL_WIDTH = /\b(w-full|w-screen|inset-x-\S+|left-0|min-w-full)\b/
     renderDock()

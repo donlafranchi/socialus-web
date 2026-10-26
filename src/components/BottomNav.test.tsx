@@ -149,7 +149,7 @@ describe('BottomNav — thesis §2 visual spec', () => {
 
 // T113 — scroll-to-hide behavior. Trace: scenario F046.
 describe('F046 criterion 7a — the nav look, claimed whole', () => {
-  // [guards F046.7a]
+  // F046 is retired as a scenario; this keeps the nav look pinned (#826)
   it('20px outlined icons at 1.5 stroke (filled when active), charcoal active and gray inactive, hairline top border, opaque white with no blur, safe-area padding', () => {
     pathname.current = '/explore'
     render(<BottomNav />)
