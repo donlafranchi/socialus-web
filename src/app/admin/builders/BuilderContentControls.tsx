@@ -60,7 +60,7 @@ export function BuilderContentControls({ visible, pages, posts, onSetVisible, on
         <p className="font-medium">Delete all builder content</p>
         <p className="text-sm text-[var(--color-fg-muted)]">
           Every Page, Post, follow and membership the builder accounts made. Member-made content is left alone.
-          This can't be undone. Photo files are removed by the GitHub workflow.
+          This can&apos;t be undone. Photo files are removed by the GitHub workflow.
         </p>
         {confirming ? (
           <div className="flex flex-wrap gap-2">
