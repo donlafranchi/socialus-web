@@ -11,7 +11,8 @@ function fakeDb(opts: { isOpen: boolean; emails: string[]; members?: number; tow
       if (/update public\.markets/.test(sql) || /update public\.metro_polygons/.test(sql)) { log.push('open'); return { rows: [] } }
       if (/member_id is null/.test(sql)) return { rows: waiting.filter((w) => !log.includes(`del:${w.id}`)) } as never
       if (/delete from public\.metro_waitlist where id/.test(sql)) { log.push(`del:${params[0]}`); return { rows: [] } }
-      if (/from auth\.users/.test(sql)) return { rows: (opts.town ?? []).map((email) => ({ email })) } as never
+      if (/from auth\.users/.test(sql)) return { rows: (opts.town ?? []).filter((e) => !log.includes(`told:${e}`)).map((email) => ({ id: email, email })) } as never
+      if (/insert into public\.town_open_notices/.test(sql)) { log.push(`told:${params[1]}`); return { rows: [] } }
       if (/with gone/.test(sql)) return { rows: [{ count: String(opts.members ?? 0) }] } as never
       throw new Error(`unexpected sql ${sql}`)
     },
@@ -53,11 +54,14 @@ describe('openMarket', () => {
     expect(send).toHaveBeenCalledWith('m@x.co', 'SocialUs is open in Tahoe', openedText('Tahoe'))
   })
 
-  it('does not message the town again when the market was already open', async () => {
-    const { db } = fakeDb({ isOpen: true, emails: [], town: ['s@x.co'] })
-    const send = vi.fn(async () => {})
-    expect((await openMarket(db, send, 'tahoe')).townSent).toBe(0)
-    expect(send).not.toHaveBeenCalled()
+  it('tells each town member once, and a re-run retries only a failed send', async () => {
+    const { db } = fakeDb({ isOpen: false, emails: [], town: ['s@x.co', 'm@x.co'] })
+    const first = vi.fn(async (to: string) => { if (to === 's@x.co') throw new Error('nope') })
+    expect(await openMarket(db, first, 'tahoe')).toMatchObject({ townSent: 1, failed: 1 })
+    const again = vi.fn(async () => {})
+    expect((await openMarket(db, again, 'tahoe')).townSent).toBe(1)
+    expect(again).toHaveBeenCalledTimes(1)
+    expect(again).toHaveBeenCalledWith('s@x.co', expect.any(String), expect.any(String))
   })
 
   it('refuses a market that does not exist', async () => {

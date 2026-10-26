@@ -207,7 +207,8 @@ describe.skipIf(!RUNNABLE)('F103.5 — the home town is the Place or the county 
         where n.nspname = 'public' and p.prosrc ~* 'home_town|home_market_key'
           and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('authenticated', p.oid, 'execute'))`,
     )
-    expect(fns.rows.map((r) => r.proname).filter((n) => n !== 'backfill_home_towns')).toEqual([]) // it returns a count
+    // backfill_home_towns returns a count; town_board (F118) returns per-town counts only, never a member.
+    expect(fns.rows.map((r) => r.proname).filter((n) => !['backfill_home_towns', 'town_board'].includes(n))).toEqual([])
     expect(namesHomeTown(join(ROOT, 'src')).filter((p) => !['src/actions/member/signup-profile-set.ts', 'src/actions/member/zip-set.ts'].includes(p))).toEqual([])
   })
 })

@@ -32,19 +32,25 @@ export type TownMakerAddResult = { kind: 'added' | 'exists'; publicId: string }
 type Client = { query: <T>(sql: string, params: unknown[]) => Promise<{ rows: T[] }> }
 
 async function areaLocation(client: Client, placeId: string, label: string): Promise<string> {
-  const found = await client.query<{ id: string }>(
-    `select id from public.locations where member_id = $1 and kind = 'area' and place_id = $2 and deleted_at is null limit 1`,
-    [SYSTEM_MEMBER_ID, placeId],
-  )
+  const find = () =>
+    client.query<{ id: string }>(
+      `select id from public.locations where member_id = $1 and kind = 'area' and place_id = $2 and deleted_at is null limit 1`,
+      [SYSTEM_MEMBER_ID, placeId],
+    )
+  const found = await find()
   if (found.rows[0]) return found.rows[0].id
+  // Two first adds in one place at once: one makes it, the other finds it.
   const made = await client.query<{ id: string }>(
     `insert into public.locations (member_id, kind, label, slug, geography, place_id, discoverability)
      values ($1, 'area', $2, $3, (select coalesce(centroid, st_centroid(geography::geometry)::geography) from public.places where id = $4), $4, 'listed')
-     returning id`,
+     on conflict do nothing returning id`,
     [SYSTEM_MEMBER_ID, label, `${toSlug(label)}-${placeId.slice(0, 8)}-unclaimed`, placeId],
   )
-  return made.rows[0]!.id
+  return made.rows[0]?.id ?? (await find()).rows[0]!.id
 }
+
+// The same site however it was typed: no scheme, no www, no trailing slash, any case.
+const SITE_KEY = (col: string) => `rtrim(regexp_replace(lower(${col}), '^https?://(www\\.)?', ''), '/')`
 
 export const townMakerAdd = defineHandler(
   'town.maker_add',
@@ -64,6 +70,8 @@ export const townMakerAdd = defineHandler(
       const place = input.place || undefined
       if (place && !town.place_names.includes(place)) throw new ValidationError('town.maker_add: that town is not in this one', {})
 
+      // One member's adds are counted and written one at a time, so parallel submits can't pass the limit.
+      await client.query(`select pg_advisory_xact_lock(hashtext('town.maker_add:' || $1))`, [ctx.actingMemberId])
       const added = await client.query<{ n: string }>(
         `select count(*) as n from public.town_adds where member_id = $1 and created_at > $2::timestamptz - interval '1 day'`,
         [ctx.actingMemberId, ctx.now()],
@@ -71,22 +79,23 @@ export const townMakerAdd = defineHandler(
       if (Number(added.rows[0]?.n ?? 0) >= DAILY_ADDS) throw new ConflictError('town.maker_add: daily limit reached')
 
       const existing = await client.query<{ public_id: string }>(
+        // Listed Pages only: a private one is never confirmed or handed back.
         `select g.public_id from public.groups g
-          where g.lifecycle_state = 'active'
-            and (rtrim(lower(g.public_info_url), '/') = lower($1)
+          where g.lifecycle_state = 'active' and g.discoverability = 'listed'
+            and (${SITE_KEY('g.public_info_url')} = ${SITE_KEY('$1')}
                  or (lower(g.name) = lower($2) and public.town_of_place(public.location_place(g.anchor_location_id)) = $3))
           limit 1`,
         [link.url, input.name, town.slug],
       )
       if (existing.rows[0]) return { kind: 'exists', publicId: existing.rows[0].public_id }
 
-      const where = place ?? town.place_names[0]
+      // A town inside this one, or the county; either way the place must resolve to this town.
+      const byCity = place || !town.county_names[0]
       const placeRow = (
         await client.query<{ id: string; display_name: string }>(
-          place || !town.county_names[0]
-            ? `select id, display_name from public.places where kind = 'city' and display_name = $1 and deleted_at is null limit 1`
-            : `select id, display_name from public.places where kind = 'county' and display_name = $1 and deleted_at is null limit 1`,
-          [place || !town.county_names[0] ? where : town.county_names[0]],
+          `select id, display_name from public.places
+            where kind = $1 and display_name = $2 and deleted_at is null and public.town_of_place(id) = $3 limit 1`,
+          [byCity ? 'city' : 'county', byCity ? (place ?? town.place_names[0]) : town.county_names[0], town.slug],
         )
       ).rows[0]
       if (!placeRow) throw new NotFoundError(`town.maker_add: no place for ${town.slug}`)
@@ -108,7 +117,7 @@ export const townMakerAdd = defineHandler(
         `insert into public.town_adds (member_id, group_id, town_slug, maker_kind, created_at) values ($1, $2, $3, $4, $5)`,
         [ctx.actingMemberId, g.id, town.slug, input.kind, ctx.now()],
       )
-      await appendEvent(ctx, 'group_events', { group_id: g.id, event_kind: 'group.added_by_neighbour', payload: { town: town.slug } })
+      await appendEvent({ ...ctx, db: client } as ActionContext, 'group_events', { group_id: g.id, event_kind: 'group.created', payload: { via: 'town_add', town: town.slug } })
       return { kind: 'added', publicId: g.public_id }
     })
   },

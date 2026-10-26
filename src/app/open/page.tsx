@@ -8,8 +8,10 @@ import { GoalBar } from '@/components/open/GoalBar'
 import { TownFinder } from '@/components/open/TownFinder'
 import { RoundBanner } from '@/components/open/RoundBanner'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
-  title: 'Help open your town · SocialUs',
+  title: 'Help open your town — SocialUs',
   description: 'A town opens on SocialUs when 100 makers and 1,000 neighbours sign up. The first 3 to get there open.',
 }
 

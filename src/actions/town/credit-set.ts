@@ -14,7 +14,7 @@ export const townCreditSet = defineHandler(
   async (ctx: ActionContext, input): Promise<{ hidden: boolean }> =>
     withTransaction(async (client) => {
       await client.query(`update public.members set open_credit_hidden = $2, updated_at = $3 where id = $1`, [ctx.actingMemberId, input.hidden, ctx.now()])
-      await appendEvent(ctx, 'member_events', { member_id: ctx.actingMemberId, event_kind: 'member.open_credit_set', payload: { hidden: input.hidden } })
+      await appendEvent({ ...ctx, db: client } as ActionContext, 'member_events', { member_id: ctx.actingMemberId, event_kind: 'member.profile_updated', payload: { open_credit_hidden: input.hidden } })
       return { hidden: input.hidden }
     }),
 )

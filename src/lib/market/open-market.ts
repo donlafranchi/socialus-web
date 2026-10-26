@@ -55,26 +55,29 @@ export async function openMarket(db: Db, send: Send, key: string): Promise<OpenR
     sent++
   }
 
-  // F118 — the town's supporters (their zip is here) and makers (a Page here) hear the same words, once.
+  // F118 — only a town neighbours opened: its supporters (zip here) and makers (a Page here) hear the same
+  // words. Each send is recorded, so running again retries only the ones that didn't go out.
   let townSent = 0
-  if (!alreadyOpen) {
-    const town = await db.query<{ email: string }>(
-      `select distinct u.email from auth.users u join public.members m on m.id = u.id
-        where m.deleted_at is null and u.email is not null
-          and (m.home_market_key = $1
-               or exists (select 1 from public.groups g join public.towns t on t.market_key = $1
-                           where g.founder_member_id = m.id and g.unclaimed_at is null
-                             and public.town_of_place(public.location_place(g.anchor_location_id)) = t.slug))`,
-      [key],
-    )
-    for (const row of town.rows) {
-      try {
-        await send(row.email, openedSubject(market.name), openedText(market.name))
-        townSent++
-      } catch {
-        failed++
-      }
+  const town = await db.query<{ id: string; email: string }>(
+    `select distinct m.id, u.email from auth.users u join public.members m on m.id = u.id
+      join public.towns t on t.market_key = $1
+     where m.deleted_at is null and u.email is not null
+       and not exists (select 1 from public.town_open_notices n where n.market_key = $1 and n.member_id = m.id)
+       and (m.home_market_key = $1
+            or exists (select 1 from public.groups g
+                        where g.founder_member_id = m.id and g.unclaimed_at is null
+                          and public.town_of_place(public.location_place(g.anchor_location_id)) = t.slug))`,
+    [key],
+  )
+  for (const row of town.rows) {
+    try {
+      await send(row.email, openedSubject(market.name), openedText(market.name))
+    } catch {
+      failed++
+      continue
     }
+    await db.query(`insert into public.town_open_notices (market_key, member_id) values ($1, $2) on conflict do nothing`, [key, row.id])
+    townSent++
   }
 
   // A signed-up member hears in the app; their make-or-find answer is discarded once the market is open (criterion 3).

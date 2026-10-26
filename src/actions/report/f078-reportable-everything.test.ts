@@ -34,6 +34,8 @@ const KINDS: readonly Kind[] = reportCreateInput.shape.subjectKind.options
 // that reach what it posts.
 const POSTERS: Record<string, readonly Kind[]> = {
   'group.create': ['group', 'page_picture', 'page_words'],
+  // F118 — a neighbour adds a maker: an unclaimed Page, reportable and removable like any.
+  'town.maker_add': ['group', 'page_words'],
   'group.update_draft': ['group', 'page_picture', 'page_words'],
   'group.update': ['group', 'page_picture', 'page_words'],
   'group.activate': ['group', 'page_picture', 'page_words'],
@@ -45,6 +47,7 @@ const POSTERS: Record<string, readonly Kind[]> = {
 // Every other registered action, with why it posts nothing. [for now] where the reason can change.
 const POSTS_NOTHING: Record<string, string> = {
   'member.create': 'creates the account',
+  'town.credit_set': 'private setting',
   'member.business_jurisdiction.set': 'private setting',
   'member.business_jurisdiction.remove': 'private setting',
   'member.place_interest.add': 'private setting',

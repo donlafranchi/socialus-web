@@ -28,6 +28,7 @@ function install(o: { town?: boolean; added?: number; existing?: { public_id: st
   const { town = true, added = 0, existing = null } = o
   query.mockReset()
   query.mockImplementation(async (sql: string) => {
+    if (/pg_advisory_xact_lock/i.test(sql)) return { rows: [] }
     if (/from public\.towns/i.test(sql)) return { rows: town ? [{ slug: 'solano', county_names: ['Solano'], place_names: ['Dixon', 'Vacaville'] }] : [] }
     if (/from public\.town_adds/i.test(sql)) return { rows: [{ n: String(added) }] }
     if (/from public\.groups g/i.test(sql)) return { rows: existing ? [existing] : [] }
@@ -56,6 +57,25 @@ describe('town.maker_add', () => {
     expect(add).toEqual(expect.arrayContaining([MEMBER, 'g-1', 'solano', 'food']))
     expect(calls(/insert into public\.page_sources/i)[0]![1]).toContain('website')
     expect(appendEvent).toHaveBeenCalledOnce()
+    // The event is written inside the transaction, as an existing kind.
+    const [evCtx, , row] = appendEvent.mock.calls[0] as unknown as [{ db: unknown }, string, { event_kind: string }]
+    expect(evCtx.db).toHaveProperty('query')
+    expect(row.event_kind).toBe('group.created')
+  })
+
+  it('takes the member lock before counting, so parallel adds can’t pass the limit', async () => {
+    install()
+    await townMakerAdd(ctx(), input())
+    const sqls = (query.mock.calls as QueryCall[]).map(([q]) => q)
+    expect(sqls.findIndex((q) => /pg_advisory_xact_lock/.test(q))).toBeLessThan(sqls.findIndex((q) => /from public\.town_adds/.test(q)))
+  })
+
+  it('only offers a listed Page, and matches the site however it was typed', async () => {
+    install()
+    await townMakerAdd(ctx(), input())
+    const dedupe = calls(/from public\.groups g/i)[0]![0]
+    expect(dedupe).toMatch(/discoverability = 'listed'/)
+    expect(dedupe).toMatch(/regexp_replace/)
   })
 
   it('records a social profile as the social source', async () => {

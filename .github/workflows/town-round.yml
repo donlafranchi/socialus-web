@@ -43,6 +43,7 @@ jobs:
           npx tsx scripts/market/town-round.ts > ready.jsonl
           while read -r line; do
             [ -z "$line" ] && continue
-            name=$(echo "$line" | jq -r .name); key=$(echo "$line" | jq -r .market_key); rank=$(echo "$line" | jq -r .ready_rank)
-            gh issue create --title "chore · open $name: it reached both goals" --body "$(printf 'Kind: chore\nScenario: F118\nPath: well-worn\n\n%s is ready to open, number %s of 3 this round (%s).\n\nOpen it: `npx tsx scripts/market/open-market.ts %s`. A county market has no markets row yet; add one (and its feed area) first.' "$name" "$rank" "$line" "$key")"
+            slug=$(echo "$line" | jq -r .slug); name=$(echo "$line" | jq -r .name); key=$(echo "$line" | jq -r .market_key); rank=$(echo "$line" | jq -r .ready_rank)
+            gh issue create --title "chore · open $name: it reached both goals" --body "$(printf 'Kind: chore\nScenario: F118\nPath: well-worn\n\n%s is ready to open, number %s of 3 this round (%s).\n\nOpen it: `npx tsx scripts/market/open-market.ts %s`. A county market has no markets row yet; add one (and its feed area) first.' "$name" "$rank" "$line" "$key")" \
+              && npx tsx scripts/market/town-round.ts --logged "$slug"
           done < ready.jsonl

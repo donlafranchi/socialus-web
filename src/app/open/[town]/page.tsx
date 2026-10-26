@@ -14,12 +14,14 @@ import { InviteButton } from '@/components/open/InviteButton'
 import { CreditToggle } from '@/components/open/CreditToggle'
 import { Button } from '@/components/ui/Button'
 
+export const dynamic = 'force-dynamic'
+
 type Props = { params: Promise<{ town: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { town } = await params
   const t = (await cachedBoard()).find((r) => r.slug === town)
-  return t ? { title: `Help open ${t.name} · SocialUs`, description: `${t.makers} of ${t.maker_goal} makers and ${t.supporters} of ${t.supporter_goal} supporters so far.` } : {}
+  return t ? { title: `Help open ${t.name} — SocialUs`, description: `${t.makers} of ${t.maker_goal} makers and ${t.supporters} of ${t.supporter_goal} supporters so far.` } : {}
 }
 
 const inList = (names: string[]) =>
