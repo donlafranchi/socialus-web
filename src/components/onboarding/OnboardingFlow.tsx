@@ -75,6 +75,8 @@ export function OnboardingFlow({
         setError({ field: res.field, message: res.message })
         return
       }
+      // F118 — a town neighbours are opening: its page is where a supporter goes until it opens.
+      if (res.waiting?.town) return navigate(`/open/${res.waiting.town}`)
       setWaiting(res.waiting ? { id: res.waiting.metroId, name: res.waiting.name } : null)
       setMetroName(res.metro?.name ?? null)
     } catch (err) {

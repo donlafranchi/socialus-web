@@ -99,6 +99,9 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'page-not-found', inventory: ['S037'], path: () => '/g/no-such-page-zzzzzz', same: true },
   { name: 'page-edit', inventory: ['S097', 'S098', 'S099', 'S100'], path: (who) => `/g/${pageHandle(pageFor(who))}/edit` },
   { name: 'join', inventory: ['S039', 'S040'], path: () => '/join' },
+  // F118 — open your town. Sutter is a ring county every seed has.
+  { name: 'open', inventory: [], path: () => '/open' },
+  { name: 'open-town', inventory: [], path: () => '/open/sutter' },
   { name: 'member-profile', inventory: ['S041', 'S042', 'S043', 'S044', 'S045'], path: (who) => `/m/${who.handle ?? member.handle}` },
   { name: 'member-product', inventory: ['S047'], path: () => `/m/${member.handle}/p/${SOLO.p}` },
   { name: 'member-service', inventory: ['S048'], path: () => `/m/${member.handle}/s/${SOLO.s}` },

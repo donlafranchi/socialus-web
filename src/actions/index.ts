@@ -65,6 +65,7 @@ import { problemReport } from './problem'
 import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge, reportNcmecRecord } from './report'
 export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
+import { townMakerAdd, townCreditSet } from './town'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
 import type { NamedActionHandler } from './_lib/handler'
 
@@ -162,6 +163,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'group.claim_verify': groupClaimVerify as unknown as NamedActionHandler<unknown, unknown>,
   'group.claim_proof': groupClaimProof as unknown as NamedActionHandler<unknown, unknown>,
   'group.claim_decide': groupClaimDecide as unknown as NamedActionHandler<unknown, unknown>,
+  // F118 — open your town.
+  'town.maker_add': townMakerAdd as unknown as NamedActionHandler<unknown, unknown>,
+  'town.credit_set': townCreditSet as unknown as NamedActionHandler<unknown, unknown>,
   // F117 — Wonders: I'm in with a size, helping in a role; deciding is the Page's managers', checked in the handler.
   'wonder.join': wonderJoin as unknown as NamedActionHandler<unknown, unknown>,
   'wonder.leave': wonderLeave as unknown as NamedActionHandler<unknown, unknown>,
@@ -204,6 +208,7 @@ export {
   memberReminderEveryForPage,
 } from './member'
 export { searchDemandLog } from './search'
+export { townMakerAdd, townCreditSet, DAILY_ADDS, type TownMakerAddResult } from './town'
 export { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide, PICK_A_SIZE } from './wonder'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
 export { groupMarketStallSet, groupMarketStallSkip, groupMarketStallRemove, groupMarketStallConfirm } from './group'

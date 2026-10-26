@@ -34,7 +34,7 @@ export type SaveProfileResult =
       /** The open market the zip decided, shown to the person; null when it is waiting. */
       metro: { name: string } | null
       /** The waiting market the zip decided, and the row it waits on; null when it is open. */
-      waiting: { metroId: string; name: string } | null
+      waiting: { metroId: string; name: string; town: string | null } | null
     }
   | { ok: false; field: SignupProfileField; message: string }
 
@@ -81,9 +81,10 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
   }
 
   await supabase.auth.updateUser({ data: { onboarded: true } })
-  return market.open
-    ? { ok: true, metro: { name: market.name }, waiting: null }
-    : { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name } }
+  if (market.open) return { ok: true, metro: { name: market.name }, waiting: null }
+  // F118 — a town neighbours are opening: the person is its supporter now, and goes to its page.
+  const town = await supabase.from('towns').select('slug').eq('market_key', market.key).maybeSingle()
+  return { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name, town: (town.data as { slug: string } | null)?.slug ?? null } }
 }
 
 export async function addInterestsAction(input: {
