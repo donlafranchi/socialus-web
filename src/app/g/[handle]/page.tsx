@@ -18,6 +18,7 @@ import { PageSkeleton } from '@/components/group/PageSkeleton'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { shareMetadata } from '@/lib/groups/share-metadata'
 import { loadPageSearchDemand } from '@/lib/search/page-demand'
+import { loadWonderViews } from '@/lib/wonders/wonder-view'
 
 interface Props {
   params: Promise<{ handle: string }>
@@ -55,7 +56,12 @@ async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
   const remindersAsked = (await viewerId(supabase)) ? loadViewerReminders(supabase, true).catch(() => NO_REMINDERS) : null
   const view = await loadPageView(supabase, shop)
   // #909 — the owner's card; the database answers only a manager of this Page.
-  const searchDemand = view.viewerOwnsPage ? await loadPageSearchDemand(supabase, shop.groupId) : null
+  // F117 — each Wonder's bar, helpers and the viewer's own state; the split and names only for its managers (the database decides).
+  const wonderIds = view.loggedIn ? view.posts.filter((p) => p.wonder).map((p) => p.id) : []
+  const [searchDemand, wonders] = await Promise.all([
+    view.viewerOwnsPage ? loadPageSearchDemand(supabase, shop.groupId) : Promise.resolve(null),
+    wonderIds.length ? loadWonderViews(supabase, wonderIds) : Promise.resolve({}),
+  ])
   // #945 — the viewer's own reminders, read under their session (nobody else's are readable).
   const reminders = view.viewerOwnsPage ? NO_REMINDERS : ((await remindersAsked) ?? NO_REMINDERS)
   // #625 — only the owner gets their hidden words back, and only here, after ownership is known.
@@ -83,6 +89,7 @@ async function PageBody({ shop: resolved }: { shop: ResolvedShop }) {
       where={view.where}
       searchDemand={searchDemand}
       reminders={reminders}
+      wonders={wonders}
       pagePath={canonicalPagePath(shop.publicId)}
     />
   )

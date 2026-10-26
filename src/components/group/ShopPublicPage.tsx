@@ -36,6 +36,8 @@ import { RemindEveryTimeButton } from '@/components/reminders/RemindMe'
 import { setReminderAction, removeReminderAction, remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
 import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
+import { wonderJoinAction, wonderLeaveAction, wonderOfferAction, wonderOfferWithdrawAction, wonderOfferDecideAction } from '@/app/_actions/wonder-actions'
+import type { WonderView } from '@/lib/wonders/wonder-view'
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { SharePageButton } from './SharePageButton'
@@ -64,6 +66,8 @@ import { saveFeaturedItemAction, removeFeaturedItemAction } from '@/app/_actions
 
 
 const NO_CLAIM = { zip: null, isProximal: false }
+const NO_WONDERS: Record<string, WonderView> = {}
+const WONDER_ACTIONS = { join: wonderJoinAction, leave: wonderLeaveAction, offer: wonderOfferAction, withdraw: wonderOfferWithdrawAction, decide: wonderOfferDecideAction }
 
 interface Props {
   shop: ResolvedShop
@@ -95,6 +99,8 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** F117 — what this viewer may see of each Wonder on the Page, by post id. */
+  wonders?: Record<string, WonderView>
   /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
   reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
@@ -134,6 +140,7 @@ export function ShopPublicPage({
   withheldPosts = [],
   followerCount = 0,
   reminders = NO_REMINDERS,
+  wonders = NO_WONDERS,
   draftTagCount = 0,
   unclaimedActions,
   viewerMemberId = null,
@@ -415,6 +422,7 @@ export function ShopPublicPage({
           loggedIn={loggedIn}
           returnTo={pagePath}
           reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
+          wonders={{ views: wonders, ...WONDER_ACTIONS }}
         />
       )}
 

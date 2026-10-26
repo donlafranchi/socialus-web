@@ -58,6 +58,10 @@ import { Toast } from '@/components/Toast'
 import { COPY } from '@/lib/copy'
 import { AddToCalendarLink } from '@/components/calendar/AddToCalendarLink'
 import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPlaceFields'
+import { WonderPanel, type WonderActions } from '@/components/wonders/WonderPanel'
+import type { WonderView } from '@/lib/wonders/wonder-view'
+import { WONDER_OPTIONS_MAX, WONDER_OPTION_MAX } from '@/lib/wonders/roles'
+import { COPY } from '@/lib/copy'
 
 const BODY_LIMIT = 5000
 const LATEST = 3
@@ -90,7 +94,23 @@ interface PostInput {
   photoUrl?: string | null
   /** F074.1 — weekly on chosen weekdays; this post is the first occurrence. */
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
+  /** F117 — a Wonder: a threshold and optional sizes. */
+  wonder?: { threshold: number; options?: string[] }
 }
+
+/** F117 — sizes typed with commas between them, distinct and trimmed. */
+const splitOptions = (raw: string) => [...new Set(raw.split(',').map((o) => o.trim().slice(0, WONDER_OPTION_MAX)).filter(Boolean))].slice(0, WONDER_OPTIONS_MAX)
+
+/** F117 — what a Wonder shows before the server has a view of it: nobody in yet. */
+const freshWonder = (w: { threshold: number; options: string[] }, manages: boolean): WonderView => ({
+  total: 0,
+  threshold: w.threshold,
+  options: w.options,
+  mine: null,
+  myOffers: [],
+  helpers: [],
+  ...(manages ? { byOption: w.options.map((option) => ({ option, count: 0 })), people: [], offers: [] } : {}),
+})
 
 interface EditInput {
   postId: string
@@ -139,6 +159,8 @@ interface Props {
   seriesComposer?: boolean
   /** #945 — Remind me on a real dated post, for a visitor who does not manage the Page. */
   reminders?: { viewer: ViewerReminders } & RemindActions
+  /** F117 — each Wonder's view for this viewer, and what its controls call. */
+  wonders?: { views: Record<string, WonderView> } & WonderActions
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -215,12 +237,17 @@ export function PagePosts({
   startComposing = false,
   seriesComposer = SERIES_COMPOSER_ON,
   reminders,
+  wonders,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
   const [when, setWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
   const [audience, setAudience] = useState<Audience>('anyone')
   const [photo, setPhoto] = useState<string | null>(null)
+  // F117 — the composer's Wonder: on or off, how many, and the sizes.
+  const [asWonder, setAsWonder] = useState(false)
+  const [threshold, setThreshold] = useState('')
+  const [options, setOptions] = useState('')
   const [editPhoto, setEditPhoto] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -375,6 +402,12 @@ export function PagePosts({
       setError(FOLLOWERS_NOT_YET)
       return
     }
+    const goal = Number(threshold)
+    if (asWonder && !(Number.isInteger(goal) && goal >= 1)) {
+      setError(COPY.wonderThresholdInvalid)
+      return
+    }
+    const wonder = asWonder ? { threshold: goal, options: splitOptions(options) } : null
     setBusy(true)
     setError(null)
 
@@ -386,6 +419,7 @@ export function PagePosts({
     }
 
     const r = await onPost({
+      ...(wonder ? { wonder } : {}),
       groupId,
       body,
       startsAt: resolved.startsAt,
@@ -415,9 +449,13 @@ export function PagePosts({
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
         tags: tagSet(tags),
         photoUrl: photo,
+        ...(wonder ? { wonder } : {}),
       },
       ...items,
     ])
+    setAsWonder(false)
+    setThreshold('')
+    setOptions('')
     setPhoto(null)
     setDraft('')
     setWhen(emptyWhenWhere)
@@ -592,6 +630,16 @@ export function PagePosts({
                   ) : null}
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
                   {post.sampleKind ? <SampleNote /> : null}
+                  {post.wonder && wonders && (
+                    <WonderPanel
+                      postId={post.id}
+                      view={wonders.views[post.id] ?? freshWonder(post.wonder, canPost)}
+                      loggedIn={loggedIn}
+                      canManage={canPost}
+                      returnTo={returnTo ?? '/'}
+                      actions={wonders}
+                    />
+                  )}
 
                   {/* When and where it is — the announcement's own, not its
                       Page's. Shown above the line that says when it was
@@ -740,6 +788,40 @@ export function PagePosts({
             className="w-full rounded border border-[var(--color-control-border)] p-3 text-sm"
           />
 
+          <div className="flex flex-col gap-2" data-testid="wonder-composer">
+            <label className="flex min-h-tap items-center gap-3 text-body-sm font-medium text-[var(--color-fg)]">
+              <input type="checkbox" checked={asWonder} onChange={(e) => setAsWonder(e.target.checked)} className="size-5" />
+              {COPY.wonderToggle}
+            </label>
+            {asWonder && (
+              <>
+                <p className="text-body-sm text-[var(--color-fg-muted)]">{COPY.wonderComposerNote}</p>
+                <label className="flex flex-col gap-1 text-body-sm">
+                  {COPY.wonderThreshold}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    step={1}
+                    value={threshold}
+                    onChange={(e) => setThreshold(e.target.value)}
+                    className="min-h-tap w-32 rounded border border-[var(--color-control-border)] px-3"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-body-sm">
+                  {COPY.wonderOptionsLabel}
+                  <input
+                    type="text"
+                    value={options}
+                    placeholder={COPY.wonderOptionsPlaceholder}
+                    onChange={(e) => setOptions(e.target.value)}
+                    className="min-h-tap rounded border border-[var(--color-control-border)] px-3"
+                  />
+                </label>
+              </>
+            )}
+          </div>
+
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer} />
 
           <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
@@ -772,7 +854,7 @@ export function PagePosts({
               disabled={busy || draft.trim().length === 0 || audience !== 'anyone'}
               className="btn-primary disabled:opacity-50"
             >
-              {busy ? 'Announcing' : 'Announce'}
+              {busy ? 'Announcing' : asWonder ? COPY.wonderPost : 'Announce'}
             </button>
           </div>
         </div>

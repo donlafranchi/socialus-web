@@ -30,6 +30,7 @@ import {
   memberReminderEveryForPage,
 } from './member'
 import { searchDemandLog } from './search'
+import { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from './wonder'
 import {
   groupCreate,
   groupUpdateDraft,
@@ -161,6 +162,12 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'group.claim_verify': groupClaimVerify as unknown as NamedActionHandler<unknown, unknown>,
   'group.claim_proof': groupClaimProof as unknown as NamedActionHandler<unknown, unknown>,
   'group.claim_decide': groupClaimDecide as unknown as NamedActionHandler<unknown, unknown>,
+  // F117 — Wonders: I'm in with a size, helping in a role; deciding is the Page's managers', checked in the handler.
+  'wonder.join': wonderJoin as unknown as NamedActionHandler<unknown, unknown>,
+  'wonder.leave': wonderLeave as unknown as NamedActionHandler<unknown, unknown>,
+  'wonder.offer': wonderOffer as unknown as NamedActionHandler<unknown, unknown>,
+  'wonder.offer_withdraw': wonderOfferWithdraw as unknown as NamedActionHandler<unknown, unknown>,
+  'wonder.offer_decide': wonderOfferDecide as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {
@@ -197,6 +204,7 @@ export {
   memberReminderEveryForPage,
 } from './member'
 export { searchDemandLog } from './search'
+export { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide, PICK_A_SIZE } from './wonder'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
 export { groupMarketStallSet, groupMarketStallSkip, groupMarketStallRemove, groupMarketStallConfirm } from './group'
 export { groupArchive, groupDelete, groupDiscardDraft, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'

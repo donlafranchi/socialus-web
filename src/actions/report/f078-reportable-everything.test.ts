@@ -63,6 +63,13 @@ const POSTS_NOTHING: Record<string, string> = {
   'member.reminder.set': 'private reminder',
   'member.reminder.remove': 'private reminder',
   'member.reminder.every_for_page': 'private reminder',
+  // F117 — a Wonder itself is a post (group.post_create). These record who is in and who offers to help; an offer's
+  // one-line note reaches only the Page's managers, never the public.
+  'wonder.join': "a Wonder's I'm in",
+  'wonder.leave': "a Wonder's I'm in",
+  'wonder.offer': 'an offer to help, seen by the Page managers only',
+  'wonder.offer_withdraw': 'an offer to help, seen by the Page managers only',
+  'wonder.offer_decide': 'accepting a helper',
   'member.saved_search.remove': 'private list',
   'member.saved_search.restore': 'private list',
   'member.search_sharing.set': 'private setting',
