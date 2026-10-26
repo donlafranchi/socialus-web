@@ -32,14 +32,15 @@ for (const who of PERSONAS.filter((p) => (!personas || personas.has(p.key)) && i
       test(`${route.name}`, async ({ page }) => {
         const errors: string[] = []
         page.on('pageerror', (e) => errors.push(e.message))
-        for (const width of widthsFor.filter((w) => !widths || widths.has(String(w)))) {
+        const wanted = widthsFor.filter((w) => !widths || widths.has(String(w)))
+        for (const width of wanted) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
           const res = await page.goto(route.path(who), { waitUntil: 'load' })
           expect(res?.status() ?? 0, `${route.name} at ${width}px`).toBeLessThan(500)
           // Bounded: map tiles and polling can keep the network busy forever. Signed-in
           // pages never settle, so this is 5s each; only a picture needs it (#375).
           if (!smoke) await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
-          if (route.act) await route.act(page)
+          if (route.act) await route.act(page, width === wanted[0])
           // The smoke slice gates on errors only; the pictures come from the nightly run.
           if (!smoke) await page.screenshot({ path: join(DIR, String(width), who.key, `${route.name}.png`), fullPage: true })
         }

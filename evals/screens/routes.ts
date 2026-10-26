@@ -15,7 +15,7 @@ export interface ScreenRoute {
   /** Inventory IDs this covers. */
   inventory: string[]
   path: (who: Persona) => string
-  act?: (page: Page) => Promise<void>
+  act?: (page: Page, firstWidth: boolean) => Promise<void>
   /** The same screen whoever is looking: a redirect, a not-found, a demo, the sign-in pages. */
   same?: true
   /** Only these personas see this state (a report sheet needs someone else's Page to report). */
@@ -84,8 +84,10 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S028'],
     only: ['member'],
     path: () => `/g/${pageHandle(business)}`,
-    act: async (page) => {
+    // report.create caps a member at 2 reports per subject: file once, at the first width.
+    act: async (page, firstWidth) => {
       await openReportSheet(page)
+      if (!firstWidth) return
       await page.getByRole('radio', { name: 'Spam' }).check({ force: true })
       await page.getByRole('textbox').fill('Looks like an ad.')
       await page.getByRole('button', { name: /^send$/i }).click()
