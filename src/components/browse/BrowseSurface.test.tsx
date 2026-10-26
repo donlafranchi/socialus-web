@@ -416,13 +416,42 @@ describe('F092 — the filter sheet writes its selection into the search box', (
     expect(screen.getByRole('checkbox', { name: 'Food & drink' })).toBeChecked()
   })
 
-  it('clearing the box clears the narrowing', async () => {
+  // [guards F092.6]
+  it('clearing the box clears the narrowing: category, schedule and the sheet\'s own state', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
     openBox()
     fireEvent.change(box(), { target: { value: 'food & drink' } })
     expect(screen.queryByText('Rye Co')).toBeNull()
+    fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Food & drink' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'This weekend' })).toBeChecked()
+    fireEvent.click(screen.getByRole('button', { name: /close filters/i }))
     fireEvent.change(box(), { target: { value: '' } })
     expect(screen.getByText('Rye Co')).toBeInTheDocument()
+    expect(screen.getByText('Bean Co')).toBeInTheDocument()
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Food & drink' })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Any time' })).toBeChecked()
+  })
+
+  // [guards F092.3]
+  it('text written by the panel and the same text typed by hand give the same results and the same sheet', async () => {
+    const shown = () => ['Bean Co', 'Rye Co'].filter((n) => screen.queryByText(n))
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Live music' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('live music'))
+    const viaPanel = shown()
+    cleanup()
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'live music' } })
+    expect(shown()).toEqual(viaPanel)
+    expect(viaPanel).toEqual(['Rye Co'])
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Live music' })).toBeChecked()
   })
 
   it('Clear all in the sheet takes its words out of the box and keeps the free ones', async () => {
