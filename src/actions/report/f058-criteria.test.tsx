@@ -1,5 +1,5 @@
 // #578 — F058 criteria 1, 3, 5 and 6: one check each that claims the whole criterion, each seen failing against a
-// mutant (build-log/2026-W42/578-f058-checks.md). Criterion 4 is marked with the map fix (#577).
+// mutant (PR #578). Criterion 4 is marked with the map fix (#577).
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
