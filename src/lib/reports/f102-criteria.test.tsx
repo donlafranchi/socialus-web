@@ -1,5 +1,5 @@
 // #649 (F102 criteria 1, 3, 9) and #650 (criteria 5, 13, 14) — checks that claim the whole criterion and standing
-// guards for the never-rules, each seen failing against a mutant (build-log/2026-W42/645-f102-checks.md).
+// guards for the never-rules, each seen failing against a mutant (PR #645).
 // Criteria 2, 4, 10 and 11 are marked beside the code they test.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
