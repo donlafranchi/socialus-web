@@ -28,7 +28,7 @@ for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
   test.describe(who.key, () => {
     test.use({ storageState: who.email ? `evals/.auth/${who.key}.json` : { cookies: [], origins: [] } })
 
-    for (const route of ROUTES.filter((r) => (!routes || routes.has(r.name)) && !(r.same && who.key !== 'signedOut'))) {
+    for (const route of ROUTES.filter((r) => (!routes || routes.has(r.name)) && !(r.same && who.key !== 'signedOut') && (!r.only || r.only.includes(who.key)))) {
       test(route.name, async ({ page }) => {
         const errors: string[] = []
         page.on('pageerror', (e) => errors.push(e.message))
@@ -38,7 +38,7 @@ for (const who of PERSONAS.filter((p) => !personas || personas.has(p.key))) {
           const status = res?.status() ?? 0
           expect(status, `${route.name} at ${width}px`).toBeLessThan(500)
           await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
-          if (route.act) await route.act(page)
+          if (route.act) await route.act(page, width === widths[0])
           // Open every collapsed group, so a reviewer sees what a tap would show.
           await page.evaluate(() => document.querySelectorAll('details').forEach((d) => (d.open = true)))
           const dir = join(DIR, String(width), who.key)

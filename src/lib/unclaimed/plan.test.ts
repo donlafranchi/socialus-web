@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { planMakers, CLAIM_LINE, type MakerRow } from './plan'
+import { planMakers, planListings, batchCoverage, CLAIM_LINE, type MakerRow, sampleProductsFor } from './plan'
+import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import rows from '../../../scripts/unclaimed/makers.json'
 
 const r = (o: Partial<MakerRow> = {}): MakerRow => ({ name: 'Temple Coffee Roasters', category: 'Food & drink', makes: 'Coffee roaster, subscriptions', area: 'Midtown/Downtown', site: 'https://templecoffee.com/', confidence: 'Medium-high', ...o })
@@ -58,6 +61,30 @@ describe('planMakers (#517)', () => {
     expect(planMakers([r({ category: 'Farm' })]).listed[0]!.purpose).toBe('sell')
     expect(planMakers([r({ category: 'Cakes & bakery' })]).listed[0]!.purpose).toBe('sell')
   })
+  it('a food bank, volunteer group, club or nonprofit gathers people and gets the community pool, never a shop (#786)', () => {
+    for (const category of ['Food bank (nonprofit)', 'Meal program (nonprofit)', 'Volunteer building and ReStore (nonprofit)', 'Service club', 'Animal rescue', 'Friends of the library']) {
+      const [x] = planMakers([r({ category })]).listed
+      expect([x!.pool, x!.purpose], category).toEqual(['Community & volunteer', 'gather'])
+    }
+    for (const category of ['Food & drink', 'Farm', 'Ranch', 'Cakes & bakery', 'Repair & trades', 'Art & print', 'Goods & crafts']) {
+      expect(planMakers([r({ category })]).listed[0]!.pool, category).not.toBe('Community & volunteer')
+    }
+  })
+  it('an arts or history group gathers people and gets arts pictures, not the food-bank ones (#786)', () => {
+    for (const category of ['Art association (nonprofit)', 'Historical society', 'Small museum and makerspace (nonprofit)', 'Community band (nonprofit)', 'Community theatre', 'Choir']) {
+      const [x] = planMakers([r({ category })]).listed
+      expect([x!.pool, x!.purpose], category).toEqual(['Arts & culture', 'gather'])
+    }
+    expect(planMakers([r({ category: 'Art & print' })]).listed[0]!.pool).toBe('Art & print')
+    expect(planMakers([r({ category: 'Food bank (nonprofit)' })]).listed[0]!.pool).toBe('Community & volunteer')
+  })
+  it('a conservancy, land trust, trail group or garden gathers people and gets outdoor pictures; a nursery is a grower (#786)', () => {
+    for (const category of ['Creek conservancy (nonprofit)', 'Land trust (nonprofit)', 'Nature center (nonprofit)', 'Trail group (nonprofit)', 'Demonstration garden (nonprofit)', 'Community garden']) {
+      const [x] = planMakers([r({ category })]).listed
+      expect([x!.pool, x!.purpose], category).toEqual(['Green & outdoors', 'gather'])
+    }
+    expect(planMakers([r({ category: 'Nursery' })]).listed[0]!.pool).toBe('Farm')
+  })
   it('puts a Page in its own city, defaulting to Sacramento', () => {
     expect(planMakers([r({ area: 'West Sacramento' })]).listed[0]!.city).toBe('West Sacramento')
     expect(planMakers([r({ area: 'Granite Bay' })]).listed[0]!.city).toBe('Granite Bay')
@@ -85,5 +112,120 @@ describe('every planned Page can be given pictures (#556)', () => {
   it('files every Page under an https address', async () => {
     const { readPlanned } = await import('../../../scripts/unclaimed/rows')
     for (const p of readPlanned().listed) expect(p.publicInfoUrl, p.name).toMatch(/^https:\/\//)
+  })
+})
+
+// #816 a2 (cap-3, cap-4) — every unclaimed Page carries 1–2 of the 12 interest tags, by what it is.
+describe('a2 — interest tags', () => {
+  const labels = new Set(INTEREST_VOCAB.map((t) => t.label))
+  it('every planned Page, maker or listing, has 1 or 2 interest tags from the vocabulary', async () => {
+    const { readPlanned } = await import('../../../scripts/unclaimed/rows')
+    const { listed } = readPlanned()
+    for (const p of listed) {
+      expect(p.interests.length, p.name).toBeGreaterThanOrEqual(1)
+      expect(p.interests.length, p.name).toBeLessThanOrEqual(2)
+      for (const t of p.interests) expect(labels.has(t), `${p.name}: ${t}`).toBe(true)
+    }
+  })
+  it('reads them from what the Page is', () => {
+    const one = (category: string) => planMakers([r({ category })]).listed[0]!.interests
+    expect(one('Farm')).toContain('Farmers markets')
+    expect(one('Food bank (nonprofit)')).toContain('Volunteering')
+    expect(one('Community band (nonprofit)')).toContain('Live music')
+    expect(one('Demonstration garden (nonprofit)')).toContain('Gardening')
+    expect(one('Trail group (nonprofit)')).toContain('Fitness & outdoors')
+    expect(one('Goods & crafts')).toContain('Crafts & makers')
+    expect(planListings([{ key: 'k', name: 'Davis Farmers Market', purpose: 'sell', town: 'Davis', website: 'https://davisfarmersmarket.org/', description: 'A market.' }])[0]!.interests).toContain('Farmers markets')
+  })
+})
+
+// #816 a3 (cap-2) — each day's batch covers at least 5 towns and at least 4 interest tags.
+describe('a3 — batch coverage', () => {
+  it('counts towns and interest tags across a batch', () => {
+    const rows = ['Davis (Yolo)', 'Woodland (Yolo)', 'Auburn (Placer)', 'Folsom (Sacramento)', 'Rocklin (Placer)'].map((area, i) =>
+      r({ name: `P${i}`, site: `https://p${i}.example/`, area, category: ['Farm', 'Food bank (nonprofit)', 'Goods & crafts', 'Historical society', 'Trail group (nonprofit)'][i]! }),
+    )
+    const c = batchCoverage(rows)
+    expect(c.towns).toBe(5)
+    expect(c.interests).toBeGreaterThanOrEqual(4)
+    expect(c.ok).toBe(true)
+    expect(batchCoverage(rows.slice(0, 2)).ok).toBe(true) // a small batch loads what qualifies (Don)
+  })
+  it('asks for the spread only of a batch of 8 or more Pages', () => {
+    const same = (n: number) => Array.from({ length: n }, (_, i) => r({ name: `P${i}`, site: `https://p${i}.example/`, area: 'Davis (Yolo)', category: 'Farm' }))
+    expect(batchCoverage(same(7)).ok).toBe(true)
+    expect(batchCoverage(same(8)).ok).toBe(false)
+  })
+  it('every daily batch from 2026-10-17 on meets it', () => {
+    const dir = join(__dirname, '../../../scripts/unclaimed')
+    for (const f of readdirSync(dir).filter((f) => /^makers-\d{4}-\d{2}-\d{2}\.json$/.test(f) && f.slice(7, 17) >= '2026-10-17')) {
+      expect(batchCoverage(JSON.parse(readFileSync(join(dir, f), 'utf8'))).ok, f).toBe(true)
+    }
+  })
+})
+
+describe('a maker row carries its own social links (Don, 2026-10-16)', () => {
+  it('passes TikTok and Instagram through to the planned Page', () => {
+    const social = { tiktok: 'https://www.tiktok.com/@tahoedogco', instagram: 'https://www.instagram.com/tahoedogco' }
+    const { listed } = planMakers([{ name: 'Tahoe Dog Co.', category: 'Goods & crafts', makes: 'dog gear', area: 'Tahoma (El Dorado)', site: 'https://tahoedogco.com/', confidence: 'High', social }])
+    expect(listed[0]!.social).toEqual(social)
+  })
+})
+
+// #936 — a planned Page carries its street address when its row names one.
+describe('#936 — the street address', () => {
+  it('a maker row that names its address in its own words carries it', () => {
+    const { listed } = planMakers([{ name: 'Vino Tahoe', category: 'Food & drink', makes: 'A micro-winery making wines at 15010 Ridge Road', area: 'Sutter Creek (Amador)', site: 'https://www.vinotahoe.com/', confidence: 'High' }])
+    expect(listed[0]!.address).toBe('15010 Ridge Road, Sutter Creek, CA')
+  })
+  it('or the address the researcher noted from its own site', () => {
+    const { listed } = planMakers([{ name: 'Goathouse Brewing', category: 'Food & drink', makes: 'A farm brewery', area: 'Lincoln (Placer)', site: 'https://goathousebrewing.com/', confidence: 'High; own site checked 2026-10-16: address 600 Wise Rd.' }])
+    expect(listed[0]!.address).toBe('600 Wise Rd, Lincoln, CA')
+  })
+  it('a listing carries its listed address', () => {
+    const [p] = planListings([{ key: 'k', name: 'Davis Food Co-op', purpose: 'sell', town: 'Davis', address: '620 G St, Davis, CA 95616', website: 'https://davisfood.coop/', description: 'A grocery.' }])
+    expect(p!.address).toBe('620 G St, Davis, CA 95616')
+  })
+  it('no address named, none carried', () => {
+    const { listed } = planMakers([{ name: 'Moon Bakery', category: 'Food & drink', makes: 'Bread in Midtown', area: 'Midtown Sacramento', site: 'https://moon.example/', confidence: 'High' }])
+    expect(listed[0]!.address).toBeUndefined()
+  })
+})
+
+// #909 (Don, 2026-10-18) — an unclaimed Page shows 3–6 sample products and services, taken from the business's
+// own website, labelled Sample and credited. Never from a marketplace.
+describe('sample products from the business’s own site (#909)', () => {
+  const site = 'https://www.fieldandfarm.com/'
+  const row = (products: unknown[]) => ({ name: 'Field and Farm', category: 'Farm', makes: 'native seed', area: 'Davis (Yolo)', site, confidence: 'High', products } as never)
+  const own = (n: number) => ({ name: `Seed ${n}`, url: `https://fieldandfarm.com/shop/seed-${n}`, price: 4.5 })
+
+  it('passes 3 to 6 own-site products through, in order, priced in cents', () => {
+    const { listed } = planMakers([row([own(1), own(2), own(3)])])
+    expect(listed[0]!.products).toEqual([
+      { name: 'Seed 1', url: 'https://fieldandfarm.com/shop/seed-1', priceCents: 450, kind: 'product' },
+      { name: 'Seed 2', url: 'https://fieldandfarm.com/shop/seed-2', priceCents: 450, kind: 'product' },
+      { name: 'Seed 3', url: 'https://fieldandfarm.com/shop/seed-3', priceCents: 450, kind: 'product' },
+    ])
+  })
+
+  it('keeps at most 6', () => {
+    const { listed } = planMakers([row([1, 2, 3, 4, 5, 6, 7, 8].map(own))])
+    expect(listed[0]!.products).toHaveLength(6)
+  })
+
+  it('drops a product from a marketplace or another site', () => {
+    expect(sampleProductsFor(site, [own(1), own(2), own(3), { name: 'Etsy one', url: 'https://www.etsy.com/listing/1' }, { name: 'Other', url: 'https://other.com/x' }])).toHaveLength(3)
+    expect(sampleProductsFor('https://shop.etsy.com/', [1, 2, 3].map((n) => ({ name: `E${n}`, url: `https://shop.etsy.com/${n}` })))).toEqual([])
+  })
+
+  it('fewer than 3 usable gives none, rather than a thin shelf', () => {
+    expect(sampleProductsFor(site, [own(1), own(2)])).toEqual([])
+    const { listed } = planMakers([row([own(1)])])
+    expect(listed[0]!.products).toBeUndefined()
+  })
+
+  it('a service keeps its kind; no price is no price', () => {
+    const out = sampleProductsFor(site, [own(1), own(2), { name: 'Farm tour', url: 'https://fieldandfarm.com/tours', kind: 'service' }])
+    expect(out[2]).toEqual({ name: 'Farm tour', url: 'https://fieldandfarm.com/tours', priceCents: null, kind: 'service' })
   })
 })

@@ -20,8 +20,8 @@ describe('T156 — browseQueryString', () => {
 
   it('round-trips through parseBrowseFilters', () => {
     const qs = browseQueryString({ q: 'x', tags: ['art', 'local food'], schedule: 'week' })
-    expect(parseBrowseFilters(new URLSearchParams(qs))).toEqual({
-      schedule: 'week',
+    expect(parseBrowseFilters(new URLSearchParams(qs))).toMatchObject({
+      date: 'week',
       tags: ['art', 'local food'],
     })
   })

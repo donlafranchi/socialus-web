@@ -13,23 +13,12 @@
   "src/app/join/page.tsx": [
     "tracking-[0.2em]"
   ],
-  "src/components/EventCard.tsx": [
-    "text-[11px]"
-  ],
-  "src/components/MarketPill.tsx": [
-    "max-w-[14ch]"
-  ],
   "src/components/RecruitmentGrid.tsx": [
-    "text-[10px]",
-    "text-[10px]",
     "text-[11px]",
     "text-[11px]",
     "text-[11px]",
     "text-[11px]",
     "text-[11px]"
-  ],
-  "src/components/browse/FollowingRow.tsx": [
-    "w-[min(78vw,20rem)]"
   ],
   "src/components/browse/HappeningRows.tsx": [
     "w-[min(78vw,20rem)]"
@@ -43,7 +32,6 @@
     "min-h-[1.25rem]",
     "min-h-[2.5rem]",
     "min-h-[2.5rem]",
-    "text-[11px]",
     "text-[15px]"
   ],
   "src/components/cards/TileCard.tsx": [

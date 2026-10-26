@@ -14,9 +14,9 @@ import { PageEditorProvider } from './edit/PageEditor'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
-import { TagChips } from '@/components/tags/TagChips'
+import { TagLinks } from '@/components/tags/TagLinks'
 import { PageContactBlock } from './PageContactBlock'
-import { whereLine, type PageWhere } from '@/lib/groups/page-where'
+import { fixedPlacement, whereLine, whereNow, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
 import type { ResolvedShop, ShopItem, LocalOwnerBadge, OwnerClaim } from '@/lib/groups/resolve-shop'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
@@ -24,34 +24,52 @@ import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
 import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
-import { socialLinksForDisplay } from '@/lib/groups/social-links'
+import { contactLinksForDisplay, isSafeLinkUrl, type ContactLinks } from '@/lib/groups/social-links'
+
+const NO_LINKS: ContactLinks = { website: null, socials: [] }
+const CLAIM_HANDLERS: ClaimHandlers = { choices: claimChoicesAction, start: startClaimAction, verify: verifyClaimAction, proof: proofClaimAction }
 import { sendReportAction, sendPostReportAction } from '@/app/_actions/report-actions'
 import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow-actions'
 import { PagePosts } from './PagePosts'
+import { NO_REMINDERS, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
+import { RemindEveryTimeButton } from '@/components/reminders/RemindMe'
+import { setReminderAction, removeReminderAction, remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
 import { WithheldPagePosts } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import type { PagePost } from '@/lib/groups/page-posts'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import { SharePageButton } from './SharePageButton'
 import { NextUp } from './NextUp'
-import { Store, Users } from 'lucide-react'
+import { MapPin, Store, Users } from 'lucide-react'
 import { kindLine, pageKindOf, pageLayoutFor, purposeOf, type Purpose } from '@/lib/groups/page-kind'
 import { componentOn, isBusinessKind } from '@/lib/groups/page-components'
 import { UnclaimedBox } from './UnclaimedBox'
-import { requestUnclaimedClaimAction, requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { requestUnclaimedRemovalAction } from '@/app/_actions/unclaimed-actions'
+import { claimChoicesAction, proofClaimAction, startClaimAction, verifyClaimAction } from '@/app/_actions/claim-actions'
+import type { ClaimHandlers } from './ClaimForm'
 import { COPY } from '@/lib/copy'
 import { LocallyOwnedClaim } from './LocallyOwnedClaim'
+import { LocalOwnerClaimProvider, LocalOwnerBadgeLabel } from './LocalOwnerClaimState'
 import { setJurisdictionAction, removeJurisdictionAction } from '@/app/p/[...slug]/claim-actions'
 import { SHOW_OPENING_HOURS } from '@/lib/features'
 import { PageSection } from './PageSection'
 import { AboutText } from './AboutText'
 import { PageMap } from './PageMap'
+import { PageStops } from './PageStops'
+import { SearchDemandCard } from './SearchDemandCard'
+import type { PageSearchDemand } from '@/lib/search/page-demand'
+import { pageMapView } from '@/lib/groups/page-map'
+import { FeaturedItems } from './FeaturedItems'
+import { saveFeaturedItemAction, removeFeaturedItemAction } from '@/app/_actions/featured-item-actions'
+
+
+const NO_CLAIM = { zip: null, isProximal: false }
 
 interface Props {
   shop: ResolvedShop
   /** #353 — the unclaimed box's writes; the demo page passes stand-ins. */
   unclaimedActions?: {
-    claim: typeof requestUnclaimedClaimAction
+    claim: ClaimHandlers
     remove: typeof requestUnclaimedRemovalAction
   }
   badge: LocalOwnerBadge | null
@@ -77,6 +95,8 @@ interface Props {
   /** F072 — how many people get updates from this Page. Owner-only; the
    *  composer is the only thing that renders it. */
   followerCount?: number
+  /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
+  reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
   draftTagCount?: number
   /** #302 — the owner's in-place editor (Don, 2026-10-04). */
@@ -90,6 +110,8 @@ interface Props {
   contact?: PageContact | null
   /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
   where?: PageWhere | null
+  /** #909 — what locals near the Page searched this month (3+ searches). Owner-only. */
+  searchDemand?: PageSearchDemand | null
 }
 
 // Don, 2026-10-04: an unnamed draft is called what Create asked about.
@@ -111,14 +133,20 @@ export function ShopPublicPage({
   where = null,
   withheldPosts = [],
   followerCount = 0,
+  reminders = NO_REMINDERS,
   draftTagCount = 0,
   unclaimedActions,
   viewerMemberId = null,
   contactOn = false,
   productsOn = componentOn(shop.kind, null, 'products'),
+  searchDemand = null,
 }: Props) {
   const isDraftPreview = shop.lifecycleState === 'draft'
   const layout = pageLayoutFor(shop.kind)
+  // #945 — the weekly series this Page's real, dated posts belong to: following it offers Remind me every time.
+  // #997 — a venue's imported shows: Remind me every time covers each one, as it is posted.
+  const hasShows = posts.some((p) => p.eventKey && !p.hiddenAt)
+  const repeatingSeries = [...new Set(posts.filter((p) => p.seriesId && p.startsAt && !p.sampleKind && !p.hiddenAt).map((p) => p.seriesId!))]
 
   // T160 — the hide, as every surface must read it. `visiblePhotoUrl()` is the
   // single place `photo_hidden_at` is consulted; nothing here reads
@@ -137,22 +165,30 @@ export function ShopPublicPage({
   const showOwnerPanel = viewerOwnsPage && Boolean(pagePath)
   // F093 criterion 8 — signed out is the front door: name, photo, description,
   // the withheld card and Sign up to follow. Listings and links out wait.
-  const socialLinks = loggedIn ? socialLinksForDisplay(shop.socialLinks) : []
+  const contactLinks = loggedIn ? contactLinksForDisplay(shop.socialLinks, shop.unclaimed?.publicInfoUrl) : NO_LINKS
 
-  const placement = shop.placements[0]
-  const placeLabel = placement?.label.trim() || null
+  const placement = fixedPlacement(where, shop.placements[0])
   const how = loggedIn && where ? whereLine(where) : null
-  const hasContact = loggedIn && contact && (contact.phone || (SHOW_OPENING_HOURS && contact.hours))
-  const showFound = loggedIn && (tags.length > 0 || socialLinks.length > 0)
+  // #896 — an area-only Page gets the area, never its point; a Page that moves, no map (#894).
+  const mapView = loggedIn ? pageMapView(shop.placements[0], where?.mode ?? null, shop.displayName) : null
+  const stops = loggedIn && (where?.mode === 'multi' || where?.mode === 'roaming') ? (where.stops ?? []) : []
+  // #896 — Don, 2026-10-18: an area-only Page has no map, but a line says where it is.
+  const area = shop.placements[0]
+  const areaLine = loggedIn && !mapView && area?.kind === 'area' && (!where?.mode || where.mode === 'visit') && area.label.trim() ? `In ${area.label.trim()}` : null
+  const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
+  const showFound = loggedIn && tags.length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
   // #363 — off for a social group until its owner adds it (bug #341).
-  const showProducts = loggedIn && productsOn
+  // #909 — empty, it is the owner's prompt and nobody else's.
+  const showProducts = loggedIn && productsOn && (items.length > 0 || viewerOwnsPage)
   const draftHeading = DRAFT_HEADING[purposeOf(shop.kind, shop.purpose)]
 
   const page = (
-    // #300 — T2 Detail: a centred read-width column; from 1024 the owner's
-    // panel sits beside it (720 + 48 + 360 inside the 1128 detail width).
+    // #806 — the claim card and the badge share the claim, so a save updates both.
+    <LocalOwnerClaimProvider claim={ownerClaim ?? NO_CLAIM} badge={badge}>
+    {/* #300 — T2 Detail: a centred read-width column; from 1024 the owner's
+        panel sits beside it (720 + 48 + 360 inside the 1128 detail width). */}
     <main
       className={
         showOwnerPanel
@@ -212,14 +248,10 @@ export function ShopPublicPage({
                   ? `Your new ${draftHeading ? `${draftHeading} ` : ''}Page`
                   : shop.displayName}
               </h1>
-              {badge && isBusinessKind(shop.kind) && (
-                <span data-testid="local-owner-badge" className="chip chip-selected whitespace-nowrap text-xs">
-                  {badge.label}
-                </span>
-              )}
-              {/* #353 — a neutral tag after the name (Yelp's placement). */}
+              {isBusinessKind(shop.kind) && <LocalOwnerBadgeLabel />}
+              {/* #353 — a neutral label after the name (Yelp's placement); #951 — small-caps text, not a pill. */}
               {shop.unclaimed && (
-                <span data-testid="unclaimed-label" className="chip whitespace-nowrap text-xs">
+                <span data-testid="unclaimed-label" className="whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
                   {COPY.unclaimedLabel}
                 </span>
               )}
@@ -234,10 +266,17 @@ export function ShopPublicPage({
             {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
             {/* #267 — not on your own Page. A signed-out member is sent to sign-in (T160). */}
             {!viewerOwnsPage && (
-              <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} />
+              <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} wordsReportable={!shop.wordsHidden} />
             )}
           </div>
         </div>
+
+        {/* #625 — owner only: a report hid this Page's name and description from everyone else. */}
+        {shop.wordsHidden && viewerOwnsPage && (
+          <p data-testid="page-words-hidden-note" role="status" className="mt-3 rounded-lg bg-[var(--color-surface-muted,#f1f5f9)] px-3 py-2 text-body-sm text-[var(--color-fg)]">
+            {COPY.pageWordsHiddenNote}
+          </p>
+        )}
 
         {/* Owner only, and absent from the markup for everyone else — this
             component is not rendered at all unless the server resolved
@@ -263,7 +302,7 @@ export function ShopPublicPage({
         {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
         {!viewerOwnsPage &&
           (memberOfOpenPage ? (
-            <span data-testid="viewer-member" className="chip self-start whitespace-nowrap text-xs">
+            <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
               Member
             </span>
           ) : (
@@ -277,6 +316,15 @@ export function ShopPublicPage({
                 returnTo={pagePath}
                 onFollow={followPageAction}
                 onUnfollow={unfollowPageAction}
+                whenFollowing={
+                  repeatingSeries.length > 0 || hasShows ? (
+                    <RemindEveryTimeButton
+                      groupId={shop.groupId}
+                      on={repeatingSeries.every((id) => reminders.bySeries[id]) && (!hasShows || !!reminders.byShows?.[shop.groupId])}
+                      everyForPage={remindEveryTimeForPageAction}
+                    />
+                  ) : null
+                }
               />
             </div>
           ))}
@@ -288,8 +336,8 @@ export function ShopPublicPage({
       {(shop.publicDescription || shop.unclaimed?.publicInfoUrl || shop.founder) && (
         <PageSection id="about" title="About">
           {shop.publicDescription && <AboutText text={shop.publicDescription} />}
-          {shop.unclaimed?.publicInfoUrl && (
-            <a data-testid="description-credit" href={shop.unclaimed.publicInfoUrl} rel="noopener nofollow" target="_blank" className="self-start text-caption text-[var(--color-fg-muted)] underline">
+          {shop.unclaimed?.publicInfoUrl && isSafeLinkUrl(shop.unclaimed.publicInfoUrl) && (
+            <a data-testid="description-credit" href={shop.unclaimed.publicInfoUrl.trim()} rel="noopener noreferrer nofollow" target="_blank" className="self-start text-caption text-[var(--color-fg-muted)] underline">
               {COPY.unclaimedDescriptionCredit}
             </a>
           )}
@@ -309,51 +357,38 @@ export function ShopPublicPage({
       )}
 
       {/* F093 criterion 8 — signed out sees no location and no map pin. */}
-      {loggedIn && (placeLabel || how) && (
+      {loggedIn && (mapView || areaLine || how || stops.length > 0) && (
         <PageSection id="location" title="Location">
-          {/* T143 — where this Page resolves to, at read time. */}
-          {placeLabel && (
-            <p data-testid="shop-placement" className="text-body-sm text-[var(--color-fg)]">
-              {placeLabel}
+          {/* T143 — where this Page resolves to, at read time; #896 — the address under the map. */}
+          {mapView && <PageMap view={mapView} caption={mapView.text} publicId={shop.publicId} />}
+          {/* #896 — no map: a plain line with a small location icon says where (no chips). */}
+          {areaLine && (
+            <p data-testid="shop-placement" className="flex items-start gap-2 text-body-sm text-[var(--color-fg)]">
+              <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+              {areaLine}
             </p>
           )}
           {how && (
-            <p data-testid="shop-where" className="text-body-sm text-[var(--color-fg-muted)]">
+            <p data-testid="shop-where" className={mapView || areaLine ? 'text-body-sm text-[var(--color-fg-muted)]' : 'flex items-start gap-2 text-body-sm text-[var(--color-fg)]'}>
+              {!mapView && !areaLine && <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0" />}
               {how}
             </p>
           )}
-          {placement && placeLabel && <PageMap lng={placement.lng} lat={placement.lat} label={placeLabel} area={placement.kind === 'area'} />}
+          {/* #896 — more than one location, or where and when it moves. */}
+          {stops.length > 0 && <PageStops stops={stops} schedule={where?.mode === 'roaming'} name={shop.displayName} />}
         </PageSection>
       )}
 
-      {hasContact && contact && (
+      {hasContact && (
         <PageSection id="contact" title="Contact">
-          <PageContactBlock contact={contact} />
+          <PageContactBlock contact={contact ?? null} links={contactLinks} />
         </PageSection>
       )}
 
       {showFound && (
-        <PageSection id="found" title="Tags & links">
+        <PageSection id="found" title="Tags">
           {/* #316 — the Page's tags as #hashtags, signed in only (F093); moderated after they appear (#287). */}
-          {tags.length > 0 && <TagChips tags={tags} />}
-          {/* F070 — `socialLinksForDisplay` re-checks every URL on read; off-platform, in a new tab. */}
-          {socialLinks.length > 0 && (
-            <ul className="flex flex-wrap gap-3" data-testid="shop-social-links">
-              {socialLinks.map((link) => (
-                <li key={link.platform}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-testid={`shop-social-${link.platform}`}
-                    className="press inline-flex min-h-tap items-center text-body-sm text-[var(--color-accent)] underline"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          {tags.length > 0 && <TagLinks tags={tags} />}
         </PageSection>
       )}
 
@@ -379,41 +414,40 @@ export function ShopPublicPage({
           onReport={sendPostReportAction}
           loggedIn={loggedIn}
           returnTo={pagePath}
+          reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
         />
       )}
 
       {showProducts && (
         <PageSection id="products" title="Products & services">
-          {/* F035 beat 3 — visible but empty: the Page is real, and listings will come. */}
-          {items.length === 0 ? (
-            <div data-testid="shop-items-empty" className="text-body-sm text-[var(--color-fg-muted)]">
-              <p className="font-medium text-[var(--color-fg)]">Nothing posted yet</p>
-              <p className="mt-1">This Page hasn&apos;t posted anything yet. Check back soon.</p>
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {items.map((item) => (
-                <li key={item.id} className="card p-3 text-sm">
-                  {item.title}
-                </li>
-              ))}
-            </ul>
-          )}
+          <FeaturedItems
+            groupId={shop.groupId}
+            items={items}
+            canEdit={viewerOwnsPage}
+            memberId={viewerOwnsPage ? viewerMemberId : null}
+            onSave={saveFeaturedItemAction}
+            onRemove={removeFeaturedItemAction}
+            report={viewerOwnsPage ? undefined : { loggedIn, returnTo: pagePath, onSend: sendReportAction }}
+          />
         </PageSection>
       )}
 
       {/* F037 — owner-only Locally Owned claim management; non-owners and anon never see it. */}
       {/* [open-question owner=cowork raised=2026-10-06] Badges are cut from beta, Locally owned included (DECISIONS 2026-10-06), but F037's eval still requires this claim card; retire F037 for beta or keep the card? */}
       {ownerClaim && isBusinessKind(shop.kind) && (
-        <LocallyOwnedClaim groupId={shop.groupId} claim={ownerClaim} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
+        <LocallyOwnedClaim groupId={shop.groupId} onSet={setJurisdictionAction} onRemove={removeJurisdictionAction} />
       )}
+
+      {/* #909 — owner-only: what locals near the Page searched this month. */}
+      {viewerOwnsPage && !isDraftPreview && <SearchDemandCard demand={searchDemand} />}
 
       {shop.unclaimed && (
         <UnclaimedBox
           groupId={shop.groupId}
           pagePath={pagePath ?? `/g/${shop.publicId}`}
           hasPhoto={Boolean(photoUrl)}
-          onClaim={unclaimedActions?.claim ?? requestUnclaimedClaimAction}
+          loggedIn={loggedIn}
+          claim={unclaimedActions?.claim ?? CLAIM_HANDLERS}
           onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
         />
       )}
@@ -426,6 +460,7 @@ export function ShopPublicPage({
         </aside>
       ) : null}
     </main>
+    </LocalOwnerClaimProvider>
   )
   // #412 — the owner edits on the Edit Page; only a draft's checklist opens
   // a section's sheet here, in place.
@@ -444,12 +479,12 @@ export function ShopPublicPage({
         tags,
         contact: contact ?? { phone: null, hours: null },
         contactOn,
-        addressLabel: shop.placements[0]?.label || null,
+        addressLabel: whereNow(where, shop.placements[0]),
         kind: pageKindOf(shop.kind),
         purpose: purposeOf(shop.kind, shop.purpose),
         productsOn,
-        where: whereValueFrom(where ?? null, shop.placements[0]),
-        savedPin: savedPinFrom(shop.placements[0]),
+        where: whereValueFrom(where ?? null, placement),
+        savedPin: savedPinFrom(placement),
       }}
     >
       {page}

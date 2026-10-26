@@ -19,7 +19,7 @@ const reply = (v: unknown) =>
   new Response(JSON.stringify({ content: [{ type: 'tool_use', name: 'assess', input: v }], usage: { input_tokens: 100, output_tokens: 20 } }), { status: 200 })
 
 const input = { text: 'A post about the bakery.', image: null, reporterReason: 'Harassment', rebuttal: null }
-const env = { ANTHROPIC_API_KEY: 'sk-test' }
+const env = { ANTHROPIC_MODERATION_KEY: 'sk-test' }
 
 describe('F100 — assessContent', () => {
   // [guards F100.2 partial: the shape; the live model is the harness's]

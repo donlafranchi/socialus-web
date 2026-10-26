@@ -7,7 +7,10 @@ import {
   parseBrowseFilters,
   searchBrowseResults,
   toggleTag,
+  type BrowseFilters,
 } from './filters'
+
+const F = (over: Partial<BrowseFilters> = {}): BrowseFilters => ({ ...DEFAULT_BROWSE_FILTERS, ...over })
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 function result(over: Partial<BrowseResult> = {}): BrowseResult {
@@ -44,13 +47,13 @@ describe('T156 — parseBrowseFilters', () => {
     expect(parseBrowseFilters(new URLSearchParams())).toEqual(DEFAULT_BROWSE_FILTERS)
   })
 
-  it('reads schedule and tags', () => {
+  it('reads an old link\'s schedule as the Date and its category as tags', () => {
     const f = parseBrowseFilters(new URLSearchParams('schedule=weekend&category=local food,art'))
-    expect(f).toEqual({ schedule: 'weekend', tags: ['local food', 'art'] })
+    expect(f).toEqual(F({ date: 'weekend', tags: ['local food', 'art'] }))
   })
 
   it('falls back to Any time for a schedule it does not know', () => {
-    expect(parseBrowseFilters(new URLSearchParams('schedule=recurring')).schedule).toBe('any')
+    expect(parseBrowseFilters(new URLSearchParams('schedule=recurring')).date).toBe('any')
   })
 
   it('ignores ?sort= and ?distance= — both controls are gone', () => {
@@ -63,9 +66,12 @@ describe('T156 — hasBrowseFilters', () => {
   it('is false for the defaults', () => {
     expect(hasBrowseFilters(DEFAULT_BROWSE_FILTERS)).toBe(false)
   })
-  it('is true once a tag or a schedule is set', () => {
-    expect(hasBrowseFilters({ schedule: 'week', tags: [] })).toBe(true)
-    expect(hasBrowseFilters({ schedule: 'any', tags: ['art'] })).toBe(true)
+  it('is true once any group is set', () => {
+    expect(hasBrowseFilters(F({ date: 'week' }))).toBe(true)
+    expect(hasBrowseFilters(F({ tags: ['art'] }))).toBe(true)
+    expect(hasBrowseFilters(F({ type: 'posts' }))).toBe(true)
+    expect(hasBrowseFilters(F({ postKinds: ['deal'] }))).toBe(true)
+    expect(hasBrowseFilters(F({ following: true }))).toBe(true)
   })
 })
 
@@ -111,24 +117,24 @@ describe('T156 — applyBrowseFilters', () => {
 
   it('narrows to a tag', () => {
     const rows = [result(), result({ resultId: 'r2', tags: ['art'] })]
-    const out = applyBrowseFilters(rows, { schedule: 'any', tags: ['art'] }, { now })
+    const out = applyBrowseFilters(rows, F({ tags: ['art'] }), { now })
     expect(out.map((r) => r.resultId)).toEqual(['r2'])
   })
 
   it('matches a tag whatever the creator typed for casing and spacing', () => {
     const rows = [result({ tags: ['Local  Food'] })]
-    const out = applyBrowseFilters(rows, { schedule: 'any', tags: ['local food'] }, { now })
+    const out = applyBrowseFilters(rows, F({ tags: ['local food'] }), { now })
     expect(out).toHaveLength(1)
   })
 
   it('a schedule window drops an undated result, because it has no date to judge', () => {
     const rows = [result({ startsAt: null })]
-    expect(applyBrowseFilters(rows, { schedule: 'week', tags: [] }, { now })).toHaveLength(0)
+    expect(applyBrowseFilters(rows, F({ date: 'week' }), { now })).toHaveLength(0)
   })
 
   it('keeps a dated result inside the week', () => {
-    const rows = [result({ startsAt: '2026-09-18T18:00:00Z' })]
-    expect(applyBrowseFilters(rows, { schedule: 'week', tags: [] }, { now })).toHaveLength(1)
+    const rows = [result({ resultKind: 'post', startsAt: '2026-09-18T18:00:00Z' })]
+    expect(applyBrowseFilters(rows, F({ date: 'week' }), { now })).toHaveLength(1)
   })
 
   it('preserves server order — filtering never re-sorts', () => {
@@ -147,5 +153,15 @@ describe('T156 — browseTagOptions', () => {
   it('normalises so one tag does not fork into several options', () => {
     const rows = [result({ tags: ['Art'] }), result({ resultId: 'r2', tags: ['art'] })]
     expect(browseTagOptions(rows)).toEqual(['art'])
+  })
+})
+
+describe('#796 — the Updates view is the posts-only Type', () => {
+  it('comes in from ?view=updates, lights the filter dot, and shows only posts', () => {
+    const f = parseBrowseFilters(new URLSearchParams('view=updates'))
+    expect(f.type).toBe('posts')
+    expect(hasBrowseFilters(f)).toBe(true)
+    const rows = [result({ resultId: 'p', resultKind: 'page' }), result({ resultId: 'post', resultKind: 'post' })]
+    expect(applyBrowseFilters(rows, f, { now: new Date() }).map((r) => r.resultId)).toEqual(['post'])
   })
 })

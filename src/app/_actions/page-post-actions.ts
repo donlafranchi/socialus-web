@@ -30,10 +30,12 @@ export async function postToPageAction(input: {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
   photoUrl?: string | null
+  series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
@@ -51,6 +53,7 @@ export async function editPagePostAction(input: {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
   photoUrl?: string | null

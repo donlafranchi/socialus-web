@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
-import { validateSet, type EvalCase, type ImageLicence } from './eval-cases'
+import { validateSet, validateCoverage, imageMediaType, MIN_CASES, CHILDREN_RULE_SUBJECT, type EvalCase, type ImageLicence } from './eval-cases'
+import { ASSESS_CATEGORIES, SEVERITY_BY_CATEGORY } from './rules'
 
 // F100 criterion 10 — the labelled set the harness runs. Photos only from
 // licensed, open or synthetic sources, with the licence recorded per image; no
@@ -10,7 +11,8 @@ const okCase = (over: Partial<EvalCase> = {}): EvalCase => ({
   id: 'c1',
   text: 'A bakery.',
   reporterReason: 'Spam',
-  label: { outcome: 'approve', severity: 4 },
+  kind: 'clean',
+  label: { outcome: 'approve', severity: 4, category: 'other' },
   ...over,
 })
 const licence = (over: Partial<ImageLicence> = {}): ImageLicence => ({
@@ -35,15 +37,15 @@ describe('F100 criterion 10 — validateSet', () => {
   })
 
   it('a label needs an outcome and a severity of 1 to 4', () => {
-    expect(validateSet([okCase({ label: { outcome: 'remove', severity: 7 } })], [], () => true).join()).toMatch(/severity/)
+    expect(validateSet([okCase({ label: { outcome: 'remove', severity: 7, category: 'other' }, kind: 'violating' })], [], () => true).join()).toMatch(/severity/)
   })
 
-  // [guards F100.10]
+  // [guards F100.10 partial: a picture with no licence record is refused]
   it('an image with no licence record is refused', () => {
     expect(validateSet([okCase({ image: 'b.png' })], [licence()], () => true).join()).toMatch(/b\.png.*no licence/)
   })
 
-  // [guards F100.10]
+  // [guards F100.10 partial: only open, public-domain or synthetic licences]
   it('only open, public-domain or synthetic licences are accepted', () => {
     expect(validateSet([okCase({ image: 'a.png' })], [licence({ licence: 'All rights reserved' })], () => true).join()).toMatch(/licence/i)
     for (const l of ['CC0-1.0', 'CC-BY-4.0', 'CC-BY-SA-4.0', 'public-domain', 'synthetic']) {
@@ -51,7 +53,7 @@ describe('F100 criterion 10 — validateSet', () => {
     }
   })
 
-  // [guards F100.10]
+  // [guards F100.10 partial: no picture of a minor or anything sexual outside the children rule's photo]
   it('no image of a minor or of anything sexual, whatever the licence', () => {
     for (const subject of ['minor', 'child', 'sexual', 'nude']) {
       expect(validateSet([okCase({ image: 'a.png' })], [licence({ subject })], () => true).join()).toMatch(/subject/)
@@ -63,11 +65,171 @@ describe('F100 criterion 10 — validateSet', () => {
   })
 })
 
+describe('F100 criterion 10 — every case is labelled with category, severity and outcome', () => {
+  // [guards F100.10 partial: each case carries a known category]
+  it('a label needs a category the assessment can answer with', () => {
+    expect(validateSet([okCase({ label: { outcome: 'approve', severity: 4, category: 'gossip' as never } })], [], () => true).join()).toMatch(/c1.*category/)
+    expect(validateSet([okCase({ label: { outcome: 'approve', severity: 4 } as never })], [], () => true).join()).toMatch(/c1.*category/)
+    for (const category of ASSESS_CATEGORIES) {
+      expect(validateSet([okCase({ label: { outcome: 'approve', severity: SEVERITY_BY_CATEGORY[category], category } })], [], () => true)).toEqual([])
+    }
+  })
+
+  it('a case is clean, borderline or violating, and violating means the outcome is remove', () => {
+    expect(validateSet([okCase({ kind: 'maybe' as never })], [], () => true).join()).toMatch(/c1.*kind/)
+    expect(validateSet([okCase({ kind: 'violating' })], [], () => true).join()).toMatch(/c1.*violating.*remove/)
+    expect(validateSet([okCase({ kind: 'clean', label: { outcome: 'remove', severity: 2, category: 'harassment' } })], [], () => true).join()).toMatch(/c1.*approve/)
+  })
+
+  it('a violating case\'s severity is the one its category has on the scale', () => {
+    expect(validateSet([okCase({ kind: 'violating', label: { outcome: 'remove', severity: 4, category: 'harassment' } })], [], () => true).join()).toMatch(/c1.*severity 2/)
+  })
+})
+
+describe('F100 criterion 10 — the children rule is tested with an ordinary public-setting photo, and only that', () => {
+  const kids = (over: Partial<ImageLicence> = {}): ImageLicence =>
+    licence({ file: 'park.jpg', licence: 'CC0-1.0', subject: 'children-in-an-ordinary-public-setting', setting: 'ordinary-public', source: 'https://commons.wikimedia.org/wiki/File:Park.jpg', ...over })
+  const kidsCase = okCase({ id: 'kids', image: 'park.jpg', kind: 'violating', label: { outcome: 'remove', severity: 1, category: 'sensitive_child' } })
+
+  // [guards F100.10 partial: an ordinary public-setting photo may show children, and the case is labelled for the children rule]
+  it('accepts one open-licence photo of children in an ordinary public setting', () => {
+    expect(validateSet([kidsCase], [kids()], () => true)).toEqual([])
+  })
+
+  // [guards F100.10 partial: no image of a minor in any other setting, and never a synthetic one]
+  it('refuses it without the public-setting record, from a synthetic source, or under any other wording', () => {
+    expect(validateSet([kidsCase], [kids({ setting: undefined })], () => true).join()).toMatch(/subject/)
+    expect(validateSet([kidsCase], [kids({ licence: 'synthetic' })], () => true).join()).toMatch(/synthetic/i)
+    expect(validateSet([kidsCase], [kids({ source: '' })], () => true).join()).toMatch(/source/)
+    expect(validateSet([kidsCase], [kids({ subject: 'child at home' })], () => true).join()).toMatch(/subject/)
+    expect(validateSet([kidsCase], [kids({ subject: 'minor in a bedroom', setting: 'ordinary-public' })], () => true).join()).toMatch(/subject/)
+  })
+
+  it('an open-licence photo of children has to be used by a case labelled for the children rule', () => {
+    expect(validateSet([okCase({ id: 'x', image: 'park.jpg' })], [kids()], () => true).join()).toMatch(/park\.jpg.*children rule/i)
+  })
+})
+
+describe('F100 criterion 10 — the set covers clean, borderline and violating, the children rule and the adult category', () => {
+  const lic: ImageLicence[] = [
+    licence({ file: 'park.jpg', licence: 'CC0-1.0', subject: 'children-in-an-ordinary-public-setting', setting: 'ordinary-public', source: 'https://commons.wikimedia.org/wiki/File:Park.jpg' }),
+  ]
+  const viol = (id: string, category: (typeof ASSESS_CATEGORIES)[number], extra: Partial<EvalCase> = {}): EvalCase =>
+    okCase({ id, kind: 'violating', label: { outcome: 'remove', severity: SEVERITY_BY_CATEGORY[category], category }, ...extra })
+  const full = (): EvalCase[] => [
+    ...Array.from({ length: MIN_CASES }, (_, i) => okCase({ id: `clean-${i}`, kind: i % 4 === 0 ? 'borderline' : 'clean' })),
+    viol('v-harass', 'harassment'), viol('v-nudity', 'nudity', { text: 'adult banter, crude but not graphic' }), viol('v-spam', 'spam'), viol('v-violence', 'violence'),
+    viol('v-threat', 'threat_of_harm'), viol('v-other-sensitive', 'sensitive_other'),
+    viol('v-kids', 'sensitive_child', { image: 'park.jpg' }),
+    okCase({ id: 'b-adult', kind: 'borderline', text: 'Life drawing class' }),
+  ]
+
+  // [guards F100.10 partial: enough cases of every kind that recall and false-alarm numbers mean something]
+  it('accepts a set that is large enough and has all of it', () => {
+    expect(validateCoverage(full(), lic)).toEqual([])
+  })
+
+  it('needs at least ' + MIN_CASES + ' cases, with violating and clean and borderline all present', () => {
+    expect(validateCoverage(full().slice(0, 10), lic).join()).toMatch(/at least/)
+    expect(validateCoverage(full().filter((c) => c.kind !== 'borderline'), lic).join()).toMatch(/borderline/)
+    expect(validateCoverage(full().filter((c) => c.kind !== 'clean'), lic).join()).toMatch(/clean/)
+  })
+
+  it('needs a violating case for every category the assessment can answer with', () => {
+    for (const category of ['harassment', 'nudity', 'spam', 'violence', 'threat_of_harm', 'sensitive_other', 'sensitive_child'] as const) {
+      expect(validateCoverage(full().filter((c) => c.label.category !== category || c.kind !== 'violating'), lic).join(), category).toContain(category)
+    }
+  })
+
+  // [guards F100.10 partial: a children-rule case with an ordinary public-setting stock photo]
+  it('needs the children-rule case to carry an ordinary public-setting photo', () => {
+    expect(validateCoverage(full().map((c) => (c.id === 'v-kids' ? { ...c, image: undefined } : c)), lic).join()).toMatch(/children rule.*photo/i)
+  })
+
+  // [guards F100.10 partial: the adult category is tested with text and non-explicit borderline]
+  it('needs the adult category tested with text, and a non-explicit borderline case beside it', () => {
+    expect(validateCoverage(full().map((c) => (c.id === 'v-nudity' ? { ...c, text: '' } : c)), lic).join()).toMatch(/adult.*text/i)
+    expect(validateCoverage(full().filter((c) => c.id !== 'b-adult'), lic).join()).toMatch(/borderline.*adult|adult.*borderline/i)
+  })
+
+  it('no case is labelled sexual or explicit in what it says', () => {
+    expect(validateCoverage([...full(), okCase({ id: 'bad', text: 'explicit nude photos for sale' })], lic).join()).toMatch(/bad/)
+  })
+})
+
+describe('imageMediaType', () => {
+  it('sends a JPEG as a JPEG and a generated PNG as a PNG', () => {
+    expect(imageMediaType('swimwear-public-pool.jpg')).toBe('image/jpeg')
+    expect(imageMediaType('a.JPEG')).toBe('image/jpeg')
+    expect(imageMediaType('spam-flyer.png')).toBe('image/png')
+  })
+})
+
 describe('the committed set', () => {
-  it('passes validation as it stands', () => {
-    const cases: EvalCase[] = JSON.parse(readFileSync('evals/moderation/cases.json', 'utf8'))
-    const licences: ImageLicence[] = JSON.parse(readFileSync('evals/moderation/images/LICENCES.json', 'utf8'))
+  const cases: EvalCase[] = JSON.parse(readFileSync('evals/moderation/cases.json', 'utf8'))
+  const licences: ImageLicence[] = JSON.parse(readFileSync('evals/moderation/images/LICENCES.json', 'utf8'))
+
+  it('passes validation and coverage as it stands', () => {
     expect(validateSet(cases, licences, (f) => existsSync(`evals/moderation/images/${f}`))).toEqual([])
-    expect(cases.filter((c) => c.image).length).toBeGreaterThanOrEqual(4)
+    expect(validateCoverage(cases, licences)).toEqual([])
+  })
+
+  // Criterion 10 read against the committed set as a whole, rather than the validator's rules one by one.
+  // [guards F100.10]
+  it('is built as criterion 10 says: kinds, labels, licensed photos, the children rule and the adult category', () => {
+    const exists = (f: string) => existsSync(`evals/moderation/images/${f}`)
+    expect([...validateSet(cases, licences, exists), ...validateCoverage(cases, licences)]).toEqual([])
+    // Clean, borderline and violating, each labelled with category, severity and outcome.
+    for (const kind of ['clean', 'borderline', 'violating']) expect(cases.filter((c) => c.kind === kind).length, kind).toBeGreaterThanOrEqual(2)
+    for (const c of cases) {
+      expect(ASSESS_CATEGORIES, c.id).toContain(c.label.category)
+      expect([1, 2, 3, 4], c.id).toContain(c.label.severity)
+      expect(c.label.outcome, c.id).toBe(c.kind === 'violating' ? 'remove' : 'approve')
+    }
+    // Every picture a case uses has its licence recorded, and a real photo comes from a stock library with its author.
+    const byFile = new Map(licences.map((l) => [l.file, l]))
+    for (const c of cases.filter((c) => c.image)) {
+      const l = byFile.get(c.image!)
+      expect(l, c.id).toBeDefined()
+      if (l!.licence === 'synthetic') expect(l!.source, c.id).toMatch(/^generated by scripts\/moderation-make-images\.ts/)
+      else {
+        expect(['CC0-1.0', 'CC-BY-4.0', 'CC-BY-SA-4.0', 'public-domain'], c.id).toContain(l!.licence)
+        expect(l!.source, c.id).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
+        expect(l!.author, c.id).toBeTruthy()
+      }
+    }
+    // No minor in any sensitive context, real or synthetic: the one picture of children is an ordinary public-setting
+    // stock photo, used only by children-rule cases; no other picture is of a minor or anything sexual.
+    const kids = licences.filter((l) => /minor|child|kid|baby|teen/i.test(`${l.subject} ${l.file}`))
+    expect(kids.map((l) => l.subject)).toEqual([CHILDREN_RULE_SUBJECT])
+    for (const l of kids) {
+      expect(l.setting).toBe('ordinary-public')
+      expect(l.licence).not.toBe('synthetic')
+      expect(l.source).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
+      const users = cases.filter((c) => c.image === l.file)
+      expect(users.length).toBeGreaterThan(0)
+      for (const c of users) expect(c.label.category, c.id).toBe('sensitive_child')
+    }
+    for (const l of licences) expect(`${l.subject} ${l.file}`, l.file).not.toMatch(/sexual|nude|naked|explicit|porn|lingerie/i)
+    // The adult category: violating cases in words only, beside non-explicit borderline ones; a picture only on a
+    // borderline case, and only a stock photo.
+    const adult = cases.filter((c) => c.label.category === 'nudity')
+    expect(adult.filter((c) => c.kind === 'violating' && c.text).length).toBeGreaterThan(0)
+    expect(adult.filter((c) => c.kind === 'borderline').length).toBeGreaterThan(0)
+    for (const c of adult.filter((c) => c.image)) {
+      expect(c.kind, c.id).toBe('borderline')
+      expect(byFile.get(c.image!)!.licence, c.id).not.toBe('synthetic')
+    }
+    expect(adult.filter((c) => c.kind === 'borderline' && c.image && byFile.get(c.image)!.licence !== 'synthetic').length, 'a non-explicit borderline stock photo').toBeGreaterThan(0)
+  })
+
+  // [guards F100.10 partial: real stock photos, licence and author recorded per photo]
+  it('has real open-licence photos, each with its source and (where the licence needs it) its author', () => {
+    const real = licences.filter((l) => l.licence !== 'synthetic')
+    expect(real.length).toBeGreaterThanOrEqual(4)
+    for (const l of real) {
+      expect(l.source, l.file).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
+      if (l.licence.startsWith('CC-BY')) expect(l.author, l.file).toBeTruthy()
+    }
   })
 })

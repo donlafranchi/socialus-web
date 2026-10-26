@@ -52,6 +52,18 @@ export interface PastDecision {
   alreadyReversed: boolean
 }
 
+/** One AI read of a report, as the detail lists it. */
+export interface AssessmentRead {
+  at: Date
+  model: string | null
+  outcome: 'approve' | 'remove' | null
+  severity: number | null
+  confidence: number | null
+  reason: string | null
+  /** Why no read was made, for a skipped row. */
+  skipped: string | null
+}
+
 export interface QueuedReport {
   /** Set for a reported post body ('post'). */
   postId?: string
@@ -64,12 +76,16 @@ export interface QueuedReport {
     | { category: string; severity: number; confidence: number; outcome: 'approve' | 'remove'; reason: string }
     | { skipped: string }
     | null
+  /** F101.12 — every AI read of this report, newest first (a skipped read says why). */
+  assessments?: AssessmentRead[]
   /** F102 — the poster's one answer to the hide, if they gave it. */
-  answer?: { kind: 'fix_and_repost' | 'wrong'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null } | null
+  answer?: { kind: 'fix_and_repost' | 'wrong' | 'mistake'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null; at?: Date | null } | null
   /** F102 — how old the reporter's account was when they reported. */
   reporterAgeDays?: number
   /** F102 criterion 5 — counters on the act of reporting; operator-only, used by nothing outside the report path. */
   reporter?: { filed: number; upheld: number; dismissed: number; open: number }
+  /** #648 — kept as child-safety evidence (operator-only); the NCMEC report number once the operator records it. */
+  hold?: { retainUntil: Date; ncmecReportNumber: string | null; ncmecReportedAt: Date | null } | null
   reportId: string
   /** What the reporter wrote, in their own words. */
   body: string
@@ -81,7 +97,7 @@ export interface QueuedReport {
   /** Non-null means the photo is currently removed. Reversible. */
   removedAt: Date | null
   /** What was reported: the Page's photo, a post body, the Page picture, or one post's photo. */
-  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo'
+  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
   /** The id of the thing reported: a Page for 'group' and 'page_picture', a post for 'post' and 'post_photo'. */
   subjectId: string
   /** The Page it belongs to, for the name and owner. */
@@ -153,6 +169,34 @@ async function fetchHistory(reportIds: string[]): Promise<Map<string, PastDecisi
   return byReport
 }
 
+/** F101.12 — every AI read for a set of reports, newest first. */
+async function fetchAssessments(reportIds: string[]): Promise<Map<string, AssessmentRead[]>> {
+  const byReport = new Map<string, AssessmentRead[]>()
+  if (reportIds.length === 0) return byReport
+  const { rows } = await getPool().query(
+    `select report_id, created_at, model, outcome, severity, confidence, reason, skipped_reason
+       from public.report_assessments
+      where report_id = any($1::uuid[])
+      order by created_at desc`,
+    [reportIds],
+  )
+  for (const r of (rows ?? []) as Record<string, unknown>[]) {
+    const id = r.report_id as string
+    const list = byReport.get(id) ?? []
+    list.push({
+      at: r.created_at as Date,
+      model: (r.model as string | null) ?? null,
+      outcome: (r.outcome as 'approve' | 'remove' | null) ?? null,
+      severity: r.severity === null || r.severity === undefined ? null : Number(r.severity),
+      confidence: r.confidence === null || r.confidence === undefined ? null : Number(r.confidence),
+      reason: (r.reason as string | null) ?? null,
+      skipped: (r.skipped_reason as string | null) ?? null,
+    })
+    byReport.set(id, list)
+  }
+  return byReport
+}
+
 export async function fetchReviewQueue(
   limit = 50,
   { includeBuilders = false }: { includeBuilders?: boolean } = {},
@@ -178,6 +222,20 @@ export async function fetchReviewQueue(
          join public.page_posts pp on pp.id = r.subject_id
          join public.groups g on g.id = pp.group_id
         where r.subject_kind = 'post_photo'
+       union all
+       -- #625 — a Page's own words: its name and description, hidden or removed together.
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              null::text, g.words_hidden_at, g.words_removed_at, g.name || E'\n' || coalesce(g.description, '')
+         from public.reports r join public.groups g on g.id = r.subject_id
+        where r.subject_kind = 'page_words'
+       union all
+       -- #909 — one featured product or service: its photo, and its name and details.
+       select r.id, r.subject_kind, r.subject_id, g.id,
+              it.photo_url, it.hidden_at, it.removed_at, it.title || E'\\n' || coalesce(it.description, '')
+         from public.reports r
+         join public.items it on it.id = r.subject_id
+         join public.groups g on g.id = it.group_id
+        where r.subject_kind = 'page_item'
        union all
        -- A post body is hidden or removed on its own, and has no image to show.
        select r.id, r.subject_kind, r.subject_id, g.id,
@@ -206,11 +264,13 @@ export async function fetchReviewQueue(
             pg.founder_member_id as poster_id,
             (select json_build_object('category', a.category, 'severity', a.severity, 'confidence', a.confidence, 'outcome', a.outcome, 'reason', a.reason, 'skipped', a.skipped_reason)
                from public.report_assessments a where a.report_id = r.id order by a.created_at desc limit 1) as ai,
-            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note)
+            (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note, 'at', a.created_at)
                from public.report_answers a
                join public.member_notices n on n.id = a.notice_id
               where n.subject_kind = r.subject_kind and n.subject_id = r.subject_id
               order by a.created_at desc limit 1) as answer,
+            (select json_build_object('retain_until', h.retain_until, 'ncmec_report_number', h.ncmec_report_number, 'ncmec_reported_at', h.ncmec_reported_at)
+               from public.legal_holds h where h.subject_kind = r.subject_kind and h.subject_id = r.subject_id) as hold,
             extract(epoch from (r.created_at - rm.created_at)) / 86400 as reporter_age_days,
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id)::int as r_filed,
             (select count(*) from public.reports x where x.reporter_member_id = r.reporter_member_id and x.reviewed_at is null and x.removed_at is null)::int as r_open,
@@ -224,6 +284,9 @@ export async function fetchReviewQueue(
       where true
         -- #280 — builder reports and builder Pages reach only the builder operator.
         and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(pg.founder_member_id)))
+        -- #626 — a first report only sent the owner a courtesy notice; it is staff work once the item hides or is decided.
+        and (s.hidden_at is not null or r.reviewed_at is not null
+             or not exists (select 1 from public.member_notices n where n.report_id = r.id and n.kind = 'courtesy'))
       order by (r.reviewed_at is not null),          -- undecided first
                s.hidden_at asc nulls last,
                r.created_at asc
@@ -231,14 +294,17 @@ export async function fetchReviewQueue(
     [limit, includeBuilders],
   )
 
-  const history = await fetchHistory(rows.map((r: Record<string, unknown>) => r.report_id as string))
+  const reportIds = rows.map((r: Record<string, unknown>) => r.report_id as string)
+  const history = await fetchHistory(reportIds)
+  const assessments = await fetchAssessments(reportIds)
 
   return rows.map((r: Record<string, unknown>) => ({
     postId: (r.post_id as string | null) ?? undefined,
     contentText: (r.content_text as string | null) ?? null,
     posterId: (r.poster_id as string | null) ?? undefined,
-    answer: (r.answer as QueuedReport['answer']) ?? null,
+    answer: toAnswer(r.answer),
     ai: toAi(r.ai),
+    hold: toHold(r.hold),
     reporterAgeDays: r.reporter_age_days === null ? undefined : Number(r.reporter_age_days),
     reporter: { filed: Number(r.r_filed), upheld: Number(r.r_upheld), dismissed: Number(r.r_dismissed), open: Number(r.r_open) },
     reportId: r.report_id as string,
@@ -256,6 +322,7 @@ export async function fetchReviewQueue(
     ownerDisplayName: (r.owner_display_name as string | null) ?? null,
     ownerHandle: (r.owner_handle as string | null) ?? null,
     history: history.get(r.report_id as string) ?? [],
+    assessments: assessments.get(r.report_id as string) ?? [],
   }))
 }
 
@@ -276,6 +343,18 @@ export async function fetchWeekSummary(): Promise<{ answers: number; coolDowns: 
           having count(*) >= 2 and max(x.decided_at) > now() - interval '14 days') c) as cool_downs`,
   )
   return { answers: Number(rows[0]?.answers ?? 0), coolDowns: Number(rows[0]?.cool_downs ?? 0) }
+}
+
+function toHold(raw: unknown): QueuedReport['hold'] {
+  if (!raw) return null
+  const h = raw as { retain_until: string; ncmec_report_number: string | null; ncmec_reported_at: string | null }
+  return { retainUntil: new Date(h.retain_until), ncmecReportNumber: h.ncmec_report_number, ncmecReportedAt: h.ncmec_reported_at ? new Date(h.ncmec_reported_at) : null }
+}
+
+function toAnswer(raw: unknown): QueuedReport['answer'] {
+  if (!raw) return null
+  const a = raw as { kind: 'fix_and_repost' | 'wrong' | 'mistake'; reason: 'mistaken' | 'malicious' | 'misusing_reports' | null; note: string | null; at?: string | Date | null }
+  return { kind: a.kind, reason: a.reason, note: a.note, at: a.at ? new Date(a.at) : null }
 }
 
 function toAi(raw: unknown): QueuedReport['ai'] {

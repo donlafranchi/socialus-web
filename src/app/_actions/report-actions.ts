@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { reportCreate, reportAnswer, ActionError } from '@/actions'
+import { REPORT_REFUSED } from '@/actions/report/create'
 import { assessAfterReport } from '@/lib/moderation/after-report'
 import type { ReportCategory } from '@/lib/reports/categories'
 
@@ -25,13 +26,20 @@ async function requireMemberId(): Promise<string> {
   return data.user.id
 }
 
+type SendReportResult = { ok: true } | { ok: false; message: string }
+
+const PLAIN: Record<string, string> = {
+  [REPORT_REFUSED.alreadyReported]: "You've already reported this one. We have it.",
+  [REPORT_REFUSED.tooManyOpen]: "You have a lot of reports open right now. We'll get to them before taking more.",
+}
+
 export async function sendReportAction(input: {
   /** The Page's photo when omitted; F099 — or one of the other images. */
-  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo'
+  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
   subjectId: string
   category: ReportCategory
   body: string
-}): Promise<{ ok: true }> {
+}): Promise<SendReportResult> {
   const memberId = await requireMemberId()
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
@@ -43,8 +51,9 @@ export async function sendReportAction(input: {
     })
     return { ok: true }
   } catch (err) {
-    if (err instanceof ActionError) throw new Error(err.message)
-    throw err
+    // A returned message, not a thrown one: production redacts what a server action throws,
+    // and a member should only ever read plain words, never "report.create: …" (#703).
+    return { ok: false, message: (err instanceof ActionError && PLAIN[err.message]) || "That didn't go through. Mind trying again?" }
   }
 }
 
@@ -53,23 +62,17 @@ export async function sendPostReportAction(input: {
   subjectId: string
   category: ReportCategory
   body: string
-}): Promise<{ ok: true }> {
+}): Promise<SendReportResult> {
   return sendReportAction({ ...input, subjectKind: 'post' })
 }
 
-const REASON_LABEL = { mistaken: 'Mistaken', malicious: 'Malicious', misusing_reports: 'Misusing reports' } as const
-
-/** F102 — the poster's one answer to a hide: the report was mistaken, malicious or misuse. */
-export async function answerNoticeAction(input: {
-  noticeId: string
-  reason: 'mistaken' | 'malicious' | 'misusing_reports'
-  note: string
-}): Promise<void> {
+/** F102 and #626 — the owner's one answer to a notice: "This is a mistake". */
+export async function answerNoticeAction(input: { noticeId: string }): Promise<void> {
   const memberId = await requireMemberId()
   try {
     const r = await reportAnswer(resolveActionContext({ actingMemberId: memberId }), input)
-    // F100 criterion 1 — the reply is read too, in shadow.
-    if (r.reportId) assessAfterReport(r.reportId, { rebuttal: `${REASON_LABEL[input.reason]}: ${input.note}` })
+    // F100 criterion 1 — the claim is read too, in shadow.
+    if (r.reportId) assessAfterReport(r.reportId, { rebuttal: 'The owner says this is a mistake.' })
   } catch (err) {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err

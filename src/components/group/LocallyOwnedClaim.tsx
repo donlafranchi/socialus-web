@@ -10,29 +10,26 @@
 //
 // States off `claim`:
 //   - empty       (zip === null)          → "Add ZIP"
-//   - proximal    (zip set, isProximal)   → "Claimed local owner — ZIP on file"
-//   - non-proximal(zip set, !isProximal)  → honest "isn't in proximity" message
+//   - claimed     (zip set)               → "Claimed local owner — ZIP on file" (#874: any ZIP; no distance test)
 // Add and Edit both call onSet (the handler soft-replaces — T075 deviation #4).
-// Proximity is a render-time derivation; a non-proximal ZIP is accepted, not
-// rejected — the widget reports, it doesn't moralize.
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import type { OwnerClaim } from '@/lib/groups/resolve-shop'
+import { useLocalOwnerClaim, type LocalOwnerClaimState } from './LocalOwnerClaimState'
 
 interface Props {
   groupId: string
-  claim: OwnerClaim
-  onSet: (input: { groupId: string; zip: string }) => Promise<void>
-  onRemove: (input: { groupId: string }) => Promise<void>
+  // #806 — each save returns the claim and badge as they now stand.
+  onSet: (input: { groupId: string; zip: string }) => Promise<LocalOwnerClaimState>
+  onRemove: (input: { groupId: string }) => Promise<LocalOwnerClaimState>
 }
 
 type Mode = 'view' | 'editing' | 'removing'
 
 const ZIP_RE = /^[0-9]{5}$/
 
-export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
-  const router = useRouter()
+export function LocallyOwnedClaim({ groupId, onSet, onRemove }: Props) {
+  const { state, set } = useLocalOwnerClaim()
+  const { claim } = state
   const [mode, setMode] = useState<Mode>('view')
   const [zip, setZip] = useState(claim.zip ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -52,9 +49,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     setError(null)
     setPending(true)
     try {
-      await onSet({ groupId, zip })
+      set(await onSet({ groupId, zip }))
       setMode('view')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save your ZIP.')
     } finally {
@@ -65,9 +61,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
   async function confirmRemove() {
     setPending(true)
     try {
-      await onRemove({ groupId })
+      set(await onRemove({ groupId }))
       setMode('view')
-      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not remove your claim.')
     } finally {
@@ -79,6 +74,8 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
     <section
       data-testid="claim-widget"
       aria-labelledby="claim-heading"
+      // #806 — busy while a save is in flight; the save itself brings the new claim.
+      aria-busy={pending}
       className="mt-6 rounded border border-gray-200 p-4"
     >
       <h2 id="claim-heading" className="text-sm font-medium text-gray-700">
@@ -170,16 +167,9 @@ export function LocallyOwnedClaim({ groupId, claim, onSet, onRemove }: Props) {
         </div>
       ) : (
         <div className="mt-2 flex flex-col gap-2">
-          {claim.isProximal ? (
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">Claimed local owner</span> — ZIP on file: {claim.zip}.
-            </p>
-          ) : (
-            <p data-testid="claim-not-proximal" role="status" className="text-sm text-gray-700">
-              ZIP on file: {claim.zip}. This ZIP isn&apos;t in proximity to your Shop&apos;s anchor
-              Location — the badge isn&apos;t currently displayed.
-            </p>
-          )}
+          <p className="text-sm text-gray-700">
+            <span className="font-medium">Claimed local owner</span> — ZIP on file: {claim.zip}.
+          </p>
           <div className="flex gap-2">
             <button
               type="button"

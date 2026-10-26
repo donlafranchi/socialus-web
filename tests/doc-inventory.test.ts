@@ -3,9 +3,9 @@ import { asOfDate, classify, standardHeader, looksGenerated, npmScriptRefs, path
 
 describe('doc-inventory', () => {
   it('classifies docs by where they live', () => {
-    expect(classify('build-log/2026-W40/bug-1-x.md')).toBe('build-log-entry')
     expect(classify('build-log/reports/moderation/F078.md')).toBe('feature-report')
-    expect(classify('build-log/2026-W36.md')).toBe('archive')
+    // the per-ticket build log is gone (the PR body is the record): a new one is an unreviewed doc, not history
+    expect(classify('build-log/2026-W40/bug-1-x.md')).toBe('doc')
     expect(classify('scripts/fixtures/a/b.md')).toBe('fixture')
     expect(classify('.github/pull_request_template.md')).toBe('template')
     expect(classify('evals/screens/README.md')).toBe('readme')

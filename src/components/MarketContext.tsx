@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase'
 import type { Market } from '@/lib/types'
 
 interface Ctx {
@@ -21,10 +21,7 @@ const MarketCtx = createContext<Ctx>({
 const LS_KEY = 'msm.selectedMarketId'
 
 function supabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  )
+  return createClient()
 }
 
 export function MarketProvider({ children }: { children: React.ReactNode }) {

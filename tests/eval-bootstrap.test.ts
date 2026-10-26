@@ -12,7 +12,7 @@
 //   3. Idempotency — re-running on an already-bootstrapped DB is a no-op.
 //
 // Vitest 4 + rolldown segfaults under Linux x86_64 in the build sandbox
-// (BUILD-LOG T051 note). A plain-node mirror lives at
+// (found in T051). A plain-node mirror lives at
 // `scripts/t052-sandbox-check.mjs` for sandbox verification.
 
 import { describe, it, expect } from 'vitest'

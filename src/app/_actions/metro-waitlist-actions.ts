@@ -22,7 +22,6 @@ import {
   type WaitlistRole,
 } from '@/actions'
 import {
-  metroStanding,
   standingMessage,
   standingFromCombined,
 } from '@/lib/metro/waitlist-standing'
@@ -32,19 +31,20 @@ export interface JoinMetroWaitlistResult {
   /** True when the metro is already live — there is nothing to wait for. */
   open: boolean
   metroName: string
-  /** Exactly what the popup renders. */
-  standing: { combined: number; target: number }
+  /**
+   * Exactly what the popup renders: the cached standing, or null when the
+   * metro is missing from the snapshot (no number rather than a confident zero).
+   */
+  standing: { combined: number; target: number } | null
   message: string
 }
 
+// No counters: a read of the live count here is a surface that can disagree
+// with the cached figure (F076 criteria 8 and 14). tests/f076-never-rules.test.ts.
 interface MetroRow {
   id: string
   name: string
   is_open: boolean
-  creator_count: number
-  patron_count: number
-  creator_threshold: number
-  patron_threshold: number
 }
 
 export async function joinMetroWaitlistAction(input: {
@@ -59,12 +59,12 @@ export async function joinMetroWaitlistAction(input: {
     const { data, error } = await supabase
       .from('metro_polygons')
       .select(
-        'id, name, is_open, creator_count, patron_count, creator_threshold, patron_threshold',
+        'id, name, is_open',
       )
       .eq('id', input.metroId)
       .maybeSingle()
     if (error) throw new Error(error.message)
-    if (!data) throw new Error('That metro is not on the list.')
+    if (!data) throw new Error('That area is not on the list.')
     return data as MetroRow
   }
 
@@ -90,20 +90,17 @@ export async function joinMetroWaitlistAction(input: {
     throw err
   }
 
-  // Read back AFTER the write, so the person sees a number that includes them.
-  const after = await read()
-  const standing = metroStanding({
-    creatorCount: after.creator_count,
-    patronCount: after.patron_count,
-    creatorThreshold: after.creator_threshold,
-    patronThreshold: after.patron_threshold,
-  })
+  // F076 criteria 7 and 8: the same CACHED figure the anonymous popup and the
+  // metro picker use, never a read of the counters after this write. A fresher
+  // number on any surface reopens criterion 14.
+  const waiting = await waitingCountFor(input.metroId)
+  const standing = waiting === null ? null : standingFromCombined(waiting)
 
   return {
     open: false,
-    metroName: after.name,
-    standing: standing.display,
-    message: standingMessage(standing),
+    metroName: before.name,
+    standing,
+    message: standing ? standingMessage(standing) : '',
   }
 }
 
@@ -122,10 +119,8 @@ export async function joinMetroWaitlistAction(input: {
 //
 // The residual is stated where the cache is defined, not glossed here.
 //
-// The signed-in action above still reads the LIVE count after its write, and
-// that stays: a member is entitled to see themselves counted, and there is no
-// oracle on that path — you are authenticated as yourself and cannot probe
-// somebody else's address with it.
+// The signed-in action above shows the same cached figure (F076 criteria 7 and 8:
+// everyone sees one count, and it is the cached one).
 export interface JoinMetroWaitlistAnonymousResult {
   /** True when the metro is already live — there is nothing to wait for. */
   open: boolean

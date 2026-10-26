@@ -13,9 +13,11 @@ import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 const replace = vi.fn()
+// #796 — posts and the personal row live behind the Updates filter; tests that need them open it.
+let search = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(search),
 }))
 
 const browseFeedAction = vi.fn()
@@ -77,7 +79,11 @@ function snapshot(over: Partial<BrowseSnapshot> = {}): BrowseSnapshot {
   }
 }
 
+const here = () => window.location.pathname + window.location.search
+
 beforeEach(() => {
+  search = ''
+  window.history.replaceState(null, '', '/')
   replace.mockClear()
   browseFeedAction.mockReset()
 })
@@ -93,6 +99,7 @@ describe('T156 — Browse renders Pages, not Items', () => {
   })
 
   it('carries the name the people behind it are known by, on a post as well as a Page', () => {
+    search = 'view=updates'
     const post = result({ resultKind: 'post', resultId: 'p1', body: 'rye is back Thursday' })
     render(<BrowseSurface initial={snapshot({ results: [post] })} />)
     expect(screen.getByText('Sourdough Co')).toBeInTheDocument()
@@ -100,6 +107,7 @@ describe('T156 — Browse renders Pages, not Items', () => {
   })
 
   it('shows an undated post without a date, not as a degraded event', () => {
+    search = 'view=updates'
     const post = result({
       resultKind: 'post',
       resultId: 'p1',
@@ -248,17 +256,12 @@ describe('T156 — a shared link reopens the same metro and search', () => {
     render(<BrowseSurface initial={snapshot({ chosen: true })} />)
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sourdough' } })
-    await waitFor(() =>
-      expect(replace).toHaveBeenCalledWith(
-        '/explore?metro=sacramento-roseville-ca&q=sourdough',
-        { scroll: false },
-      ),
-    )
+    await waitFor(() => expect(here()).toBe('/explore?metro=sacramento-roseville-ca&q=sourdough'))
   })
 
   it('leaves an unchosen metro out of the URL — nobody picked it', async () => {
     render(<BrowseSurface initial={snapshot({ chosen: false })} />)
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/explore', { scroll: false }))
+    await waitFor(() => expect(here()).toBe('/explore'))
   })
 })
 
@@ -299,10 +302,12 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
     expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
   })
 
-  it('renders the row when there is something in it', () => {
-    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
-    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
-    expect(screen.getByTestId('browse-following')).toBeInTheDocument()
+  // #876 (Don, 2026-10-16) — no separate row: the loader mixes the followed Pages' updates into the results.
+  it('shows a followed Page’s update in the mixed list, not in a row of its own', () => {
+    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle', followed: true })
+    render(<BrowseSurface initial={snapshot({ signedIn: true, results: [result(), mine], following: [mine] })} />)
+    expect(screen.queryByTestId('browse-following')).not.toBeInTheDocument()
+    expect(within(screen.getByTestId('browse-list-pane')).getByText('Pond Side Circle')).toBeInTheDocument()
   })
 
   it('keeps the personal half out of the result count', () => {
@@ -313,15 +318,6 @@ describe('T169 — F059 criterion 2b, the personal half on the surface', () => {
     expect(screen.getByTestId('result-count').textContent).toMatch(/^1 result/)
   })
 
-  it('does not let a search over the public half filter the personal row', () => {
-    const mine = result({ resultKind: 'post', resultId: 'p-9', name: 'Pond Side Circle' })
-    render(<BrowseSurface initial={snapshot({ signedIn: true, following: [mine] })} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
-    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'zzzzz' } })
-    // The public half is now empty…
-    expect(screen.getByTestId('browse-empty')).toBeInTheDocument()
-    expect(screen.getByTestId('browse-following')).toBeInTheDocument()
-  })
 })
 
 // #476 — a neighbourhood narrows Explore to that place.
@@ -340,7 +336,7 @@ describe('#476 — picking a neighbourhood', () => {
   it('names the neighbourhood on the pill and keeps it in the link', async () => {
     render(<BrowseSurface initial={snapshot({ area: MIDTOWN })} />)
     expect(screen.getByTestId('explore-location-pill')).toHaveTextContent('Midtown')
-    await waitFor(() => expect(replace).toHaveBeenCalledWith(expect.stringContaining('area=p-1'), { scroll: false }))
+    await waitFor(() => expect(here()).toContain('area=p-1'))
   })
 
   it('"All of" the metro clears it', async () => {
@@ -364,5 +360,207 @@ describe('#549 — the pins come after the list', () => {
     render(<BrowseSurface initial={snapshot({ signedIn: false, metro: SAC })} />)
     await new Promise((r) => setTimeout(r, 20))
     expect(browseMapAction).not.toHaveBeenCalled()
+  })
+})
+
+// #619 / #621 (F092.2, F092.4) — the sheet writes plain words into the box, and the box is the state.
+describe('F092 — the filter sheet writes its selection into the search box', () => {
+  const coffee = result({ resultId: 'c1', name: 'Bean Co', tags: ['Food & drink'], description: 'Roasters', startsAt: null })
+  const bread = result({ resultId: 'b1', name: 'Rye Co', tags: ['Live music'], description: 'Bakers' })
+  const openSheet = () => fireEvent.click(screen.getByTestId('explore-filter-icon'))
+  const box = () => screen.getByTestId('search-input') as HTMLInputElement
+  const openBox = () => fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+
+  // [guards F092.2]
+  it('applying dismisses the sheet and writes the selection as plain words, no hashtag', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Food & drink' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'This weekend' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('food & drink this weekend'))
+    expect(box().value).not.toContain('#')
+    expect(screen.queryByTestId('explore-filter-sheet')).toBeNull()
+  })
+
+  it('keeps what was already typed in front of what the sheet writes', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'roasters' } })
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Food & drink' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('roasters food & drink'))
+    expect(screen.getByText('Bean Co')).toBeInTheDocument()
+    expect(screen.queryByText('Rye Co')).toBeNull()
+  })
+
+  // [guards F092.4 partial: what the sheet wrote is read as the same selection, so it narrows]
+  it('the words it wrote narrow the results the way the selection did', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Live music' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('live music'))
+    expect(screen.getByText('Rye Co')).toBeInTheDocument()
+    expect(screen.queryByText('Bean Co')).toBeNull()
+  })
+
+  it('typing the same words by hand does the same, and reopening the sheet shows them checked', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'Food & Drink' } })
+    expect(screen.getByText('Bean Co')).toBeInTheDocument()
+    expect(screen.queryByText('Rye Co')).toBeNull()
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Food & drink' })).toBeChecked()
+  })
+
+  // [guards F092.6]
+  it('clearing the box clears the narrowing: category, schedule and the sheet\'s own state', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'food & drink' } })
+    expect(screen.queryByText('Rye Co')).toBeNull()
+    fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Food & drink' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'This weekend' })).toBeChecked()
+    fireEvent.click(screen.getByRole('button', { name: /close filters/i }))
+    fireEvent.change(box(), { target: { value: '' } })
+    expect(screen.getByText('Rye Co')).toBeInTheDocument()
+    expect(screen.getByText('Bean Co')).toBeInTheDocument()
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Food & drink' })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Any time' })).toBeChecked()
+  })
+
+  // [guards F092.3]
+  it('text written by the panel and the same text typed by hand give the same results and the same sheet', async () => {
+    const shown = () => ['Bean Co', 'Rye Co'].filter((n) => screen.queryByText(n))
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openSheet()
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Live music' }))
+    fireEvent.click(screen.getByRole('button', { name: /show results/i }))
+    await waitFor(() => expect(box().value).toBe('live music'))
+    const viaPanel = shown()
+    cleanup()
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'live music' } })
+    expect(shown()).toEqual(viaPanel)
+    expect(viaPanel).toEqual(['Rye Co'])
+    openSheet()
+    expect(screen.getByRole('checkbox', { name: 'Live music' })).toBeChecked()
+  })
+
+  it('Clear all in the sheet takes its words out of the box and keeps the free ones', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'roasters food & drink this week' } })
+    openSheet()
+    fireEvent.click(screen.getByRole('button', { name: /clear all/i }))
+    await waitFor(() => expect(box().value).toBe('roasters'))
+  })
+
+  it('the URL carries the words, not separate filter parameters', async () => {
+    render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
+    openBox()
+    fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
+    await waitFor(() => expect(here()).toBe('/explore?q=food+%26+drink+this+weekend'))
+  })
+})
+
+describe('#791 — the list renders a step at a time', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('draws one step of cards, not all of them, while the count still says how many', async () => {
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+        takeRecords() {
+          return []
+        }
+      },
+    )
+    const many = Array.from({ length: 60 }, (_, i) => result({ resultId: `r${i}`, groupId: `g${i}`, slug: `p${i}`, name: `Page ${i}`, href: `/g/p${i}` }))
+    render(<BrowseSurface initial={snapshot({ results: many })} />)
+    expect(screen.getByTestId('result-count')).toHaveTextContent('60 results')
+    await waitFor(() => expect(within(screen.getByTestId('card-grid')).getAllByRole('link')).toHaveLength(24))
+    expect(screen.getByTestId('browse-more')).toBeInTheDocument()
+  })
+})
+
+// #916 (Don, 2026-10-18: "I did a search for flowers (plural) and it didn't return anything but flower
+// (singular) did.") — the box asks the server, which searches the whole market, not the rows in hand.
+describe('#916 — search asks the server', () => {
+  it('a Page outside the rows in hand comes back from the server, once the typing settles', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ results: [result({ resultId: 'z1', name: 'Zinnia Flower Farm' })] }))
+    render(<BrowseSurface initial={snapshot()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'flowers' } })
+    expect(browseFeedAction).not.toHaveBeenCalled()
+    await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(null, null, null, 'flowers', null))
+    expect(await screen.findByText('Zinnia Flower Farm')).toBeInTheDocument()
+    expect(browseFeedAction).toHaveBeenCalledTimes(1)
+  })
+
+  it('nothing found says so, and suggests what to try', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
+    render(<BrowseSurface initial={snapshot()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'qqqzzz' } })
+    await waitFor(() => expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing matches “qqqzzz” yet. Try fewer words, or a broader one like “food” or “plants”.'))
+  })
+})
+
+// #935 — typing a search re-rendered the whole Explore page on the server once per keystroke (router.replace),
+// each render several feed reads; signed in, that flood held a tapped result and the Page it opened.
+describe('#935 — a search keeps the link in the address bar without asking the server for the page', () => {
+  it('typing writes the words into the URL in place, and never re-renders Explore on the server', async () => {
+    browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
+    render(<BrowseSurface initial={snapshot({ chosen: true })} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    for (const value of ['s', 'sa', 'sac', 'sacr']) fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
+    await waitFor(() => expect(here()).toBe('/explore?metro=sacramento-roseville-ca&q=sacr'))
+    expect(replace).not.toHaveBeenCalled()
+  })
+
+  it('a Page or post found by search is a link to an address the Page route resolves', async () => {
+    browseMapAction.mockResolvedValue([])
+    browseFeedAction.mockResolvedValue(
+      snapshot({
+        results: [
+          result({ resultId: 'g-own', groupId: 'g-own', name: 'SacRiver Floaters', href: '/g/3k8x0p' }),
+          result({ resultKind: 'post', resultId: 'p-1', groupId: 'g-own', name: 'SacRiver Floaters', body: 'Float Saturday', href: '/g/3k8x0p#announcement-p-1' }),
+        ],
+      }),
+    )
+    render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sacriver' } })
+    const links = await screen.findAllByRole('link', { name: /SacRiver Floaters/ })
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/g/3k8x0p', '/g/3k8x0p#announcement-p-1'])
+  })
+})
+
+// #896 — opened from a Page's map: Explore opens on the map, with a way back to the Page.
+describe("#896 — Explore's map, opened from a Page", () => {
+  afterEach(() => {
+    search = ''
+  })
+  it('opens on the map with a link back to the Page', () => {
+    search = 'view=map&focus=vino12&at=-120.75284,38.40055'
+    render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    expect(screen.getByTestId('browse-map-pane')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to the page/i })).toHaveAttribute('href', '/g/vino12')
+  })
+  it('an ordinary visit still opens on the list, with no way back to show', () => {
+    render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
+    expect(screen.queryByTestId('browse-map-pane')).toBeNull()
+    expect(screen.queryByRole('link', { name: /back to the page/i })).toBeNull()
   })
 })

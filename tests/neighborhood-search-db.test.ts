@@ -4,7 +4,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { searchNeighborhoods } from '../src/lib/places/neighborhood-search'
 
-// #413 — "Or type a neighbourhood" finds the metro's neighbourhoods by name,
+// #413 — "Or type a neighbourhood" finds the neighbourhoods by name,
 // starts-with first, and gives each a point to put the pin on.
 
 const DATABASE_URL =
@@ -12,7 +12,7 @@ const DATABASE_URL =
 
 const safety = databaseWriteSafety(DATABASE_URL, process.env)
 const RUNNABLE = requireRunnable({
-  claim: 'typing a neighbourhood finds the metro’s neighbourhoods by name, with a point for the pin',
+  claim: 'typing a neighbourhood finds the neighbourhoods by name, with a point for the pin',
   available: safety.safe,
   remedy: `${safety.reason} Recipe in .env.local.example`,
 })
@@ -53,9 +53,9 @@ afterAll(async () => {
 })
 
 describe.runIf(RUNNABLE)('#413 — or type a neighbourhood', () => {
-  it('finds the metro’s live neighbourhoods by any part of the name, any case, starts-with first', async () => {
+  it('finds the live neighbourhoods by any part of the name, any case, starts-with first', async () => {
     const found = await searchNeighborhoods(client, 'zqx')
-    expect(found.map((n) => n.name)).toEqual(['Zqx Park', 'Old Zqx Heights'])
+    expect(found.map((n) => n.name)).toEqual(['Zqx Elsewhere', 'Zqx Park', 'Old Zqx Heights'])
   })
 
   it('gives each one a point inside it for the pin', async () => {
@@ -68,8 +68,8 @@ describe.runIf(RUNNABLE)('#413 — or type a neighbourhood', () => {
     expect(lat).toBeLessThan(38.51)
   })
 
-  it('stays inside the metro asked for', async () => {
-    expect((await searchNeighborhoods(client, 'zqx', '99999')).map((n) => n.name)).toEqual(['Zqx Elsewhere'])
+  it('reads no MSA: a neighbourhood tagged with another code is found all the same', async () => {
+    expect((await searchNeighborhoods(client, 'elsewhere')).map((n) => n.name)).toEqual(['Zqx Elsewhere'])
   })
 
   it('treats the typed text as text, not a pattern, and finds nothing for nothing', async () => {

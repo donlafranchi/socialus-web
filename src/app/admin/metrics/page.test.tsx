@@ -5,12 +5,18 @@ const { requirePagePermission, rpc } = vi.hoisted(() => ({
   requirePagePermission: vi.fn(),
   rpc: vi.fn(),
 }))
+const { fetchAiReadiness } = vi.hoisted(() => ({ fetchAiReadiness: vi.fn() }))
 vi.mock('@/lib/staff/page-guard', () => ({ requirePagePermission }))
+vi.mock('@/lib/admin/ai-readiness', () => ({ fetchAiReadiness }))
 vi.mock('@/lib/supabase-server', () => ({ createClient: async () => ({ rpc }) }))
 
+import { renderToStaticMarkup } from 'react-dom/server'
 import AdminMetricsPage from './page'
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  fetchAiReadiness.mockResolvedValue(null)
+})
 
 describe('/admin/metrics', () => {
   it('asks for metrics.view first, and reads nothing when that 404s', async () => {
@@ -25,5 +31,28 @@ describe('/admin/metrics', () => {
     const el = await AdminMetricsPage()
     expect(el).toBeTruthy()
     expect(rpc).toHaveBeenCalledWith('admin_metrics_weekly', { p_weeks: 2 })
+  })
+
+  // #909 — what locals searched: read through the same session, so the database checks metrics.view too.
+  it('reads the search demand for the last four weeks, and the page still loads when it fails', async () => {
+    requirePagePermission.mockResolvedValue('staff-1')
+    rpc.mockImplementation(async (name: string) => (name === 'admin_search_demand' ? { data: null, error: { message: 'x' } } : { data: [], error: null }))
+    const html = renderToStaticMarkup(await AdminMetricsPage())
+    expect(rpc).toHaveBeenCalledWith('admin_search_demand', { p_weeks: 4, p_limit: 10 })
+    expect(html).toContain('search-demand')
+  })
+
+  // #640 — the same ready-to-go-live light, on the staff dashboard (the numbers are on /admin/reports).
+  it('shows the AI readiness light, and the page still loads when it cannot be read', async () => {
+    requirePagePermission.mockResolvedValue('staff-1')
+    rpc.mockResolvedValue({ data: [], error: null })
+    fetchAiReadiness.mockResolvedValue({ ready: false })
+    expect(renderToStaticMarkup(await AdminMetricsPage())).toContain('Not ready to go live yet')
+    fetchAiReadiness.mockResolvedValue({ ready: true })
+    expect(renderToStaticMarkup(await AdminMetricsPage())).toContain('Ready to go live')
+    fetchAiReadiness.mockRejectedValue(new Error('db down'))
+    const html = renderToStaticMarkup(await AdminMetricsPage())
+    expect(html).not.toContain('go live')
+    expect(html).toContain('admin-metrics')
   })
 })

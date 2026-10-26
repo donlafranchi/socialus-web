@@ -5,8 +5,17 @@
 
 import { categoryLabel, type ReportCategory } from './categories'
 
-export function hiddenNoticeMessage(pageName: string, category: ReportCategory, kind: 'group' | 'post' | 'page_picture' | 'post_photo' = 'group'): string {
+/** What a report is about. #625 adds a Page's own words (its name and description). */
+export type ReportSubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+
+export function hiddenNoticeMessage(pageName: string, category: ReportCategory, kind: ReportSubjectKind = 'group'): string {
   const what =
-    kind === 'post' ? 'a post on' : kind === 'page_picture' ? 'the picture on' : kind === 'post_photo' ? 'a photo on a post on' : 'the photo on'
-  return `Someone reported ${what} ${pageName} as "${categoryLabel(category)}", so we've hidden it while we take a look. Nothing is deleted.`
+    kind === 'post' ? 'a post on' : kind === 'page_picture' ? 'the picture on' : kind === 'post_photo' ? 'a photo on a post on' : kind === 'page_words' ? 'the name or description of' : kind === 'page_item' ? 'a product or service on' : 'the photo on'
+  return `Someone reported ${what} ${pageName} as "${categoryLabel(category)}". We've hidden it while a person from our team takes a look. Nothing's been deleted, and you can answer below.`
+}
+
+export function courtesyNoticeMessage(category: ReportCategory, kind: ReportSubjectKind = 'group'): string {
+  const what =
+    kind === 'post' ? 'your post' : kind === 'page_picture' ? 'your Page picture' : kind === 'post_photo' ? 'a photo on your post' : kind === 'page_words' ? "your Page's name or description" : kind === 'page_item' ? 'one of your products or services' : 'your Page photo'
+  return `Someone reported ${what} as "${categoryLabel(category)}". Does this seem like a mistake? You can edit it and resubmit. If it gets reported again, tap "This is a mistake" and we'll put it at the top of our review list.`
 }

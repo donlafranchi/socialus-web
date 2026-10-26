@@ -16,29 +16,42 @@
 
 import { useRef, useState } from 'react'
 import { PageOverflowMenu } from './PageOverflowMenu'
-import { ReportSheet } from './ReportSheet'
+import { ReportSheet, PlainError } from './ReportSheet'
 import type { ReportCategory } from '@/lib/reports/categories'
-import { signInHref as gatedSignInHref } from '@/lib/auth/requires-account'
+import { COPY } from '@/lib/copy'
+import { URGENT_CATEGORIES } from '@/lib/reports/categories'
+import { SignInPrompt } from '@/components/auth/SignInPrompt'
 
 interface Props {
   subjectId: string
   /** F099 — which image: the Page's photo when omitted. */
-  subjectKind?: 'group' | 'page_picture' | 'post_photo'
+  subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_item'
   subjectLabel: string
+  /** #625 — on a Page: its own words (name, description) are a report of their own, beside its photo. */
+  wordsReportable?: boolean
+  /** The single menu entry when the control reports one thing (a post, a photo). */
+  itemLabel?: string
   loggedIn: boolean
   /** Path to come back to after signing in. */
   returnTo?: string
   onSend: (input: {
     subjectId: string
-    subjectKind?: 'group' | 'page_picture' | 'post_photo'
+    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
     category: ReportCategory
     body: string
-  }) => Promise<{ ok: true }>
+  }) => Promise<{ ok: true } | { ok: false; message: string }>
 }
 
-export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend }: Props) {
+export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [confirmed, setConfirmed] = useState(false)
+  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | undefined>(subjectKind)
+  const open = (kind: typeof reporting) => {
+    setReporting(kind)
+    if (loggedIn) setSheetOpen(true)
+    else setPromptOpen(true)
+  }
+  const [confirmed, setConfirmed] = useState<'courtesy' | 'person' | null>(null)
+  const [promptOpen, setPromptOpen] = useState(false)
   // The sheet is opened from a menu item that unmounts with its menu, so the
   // sheet cannot work out on its own where focus came from. Escape must land
   // back on the ⋯, which is the control the member was actually using.
@@ -56,30 +69,36 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
   // revocable; an anonymous reporter is none of those, which is what makes the
   // report-bombing caps in report.create possible at all.
   //
-  // Now routed through the shared helper so the intent survives sign-in and the
-  // report sheet can open on return, rather than the tap being lost.
-  const signInHref = gatedSignInHref('report', returnTo ?? '/')
+  // The shared prompt says why ("Sign in to report this") and carries the
+  // intent through sign-in, so the report sheet can open on return.
 
   return (
     <>
       <PageOverflowMenu
         triggerRef={triggerRef}
-        items={[
-          loggedIn
-            ? { label: 'Report to the operator', onSelect: () => setSheetOpen(true) }
-            : { label: 'Report to the operator', href: signInHref },
-        ]}
+        items={
+          wordsReportable
+            ? [
+                { label: COPY.reportPageWords, onSelect: () => open('page_words') },
+                { label: COPY.reportPagePhoto, onSelect: () => open(subjectKind) },
+              ]
+            : [{ label: itemLabel ?? COPY.reportPageWords, onSelect: () => open(subjectKind) }]
+        }
       />
+
+      {promptOpen && <SignInPrompt action="report" currentPath={returnTo ?? '/'} onClose={() => setPromptOpen(false)} />}
 
       <ReportSheet
         open={sheetOpen}
-        subjectLabel={subjectLabel}
+        subjectLabel={reporting === 'page_words' ? `${subjectLabel}: ${COPY.reportPageWordsSubject}` : subjectLabel}
         returnFocusTo={triggerRef}
         onClose={() => setSheetOpen(false)}
         onSend={async (category, body) => {
-          await onSend({ subjectId, ...(subjectKind ? { subjectKind } : {}), category, body })
+          const sent = await onSend({ subjectId, ...(reporting ? { subjectKind: reporting } : {}), category, body })
+          // The action returns plain words for a refusal; the sheet shows them and keeps the box.
+          if (!sent.ok) throw new PlainError(sent.message)
           setSheetOpen(false)
-          setConfirmed(true)
+          setConfirmed(URGENT_CATEGORIES.includes(category) ? 'person' : 'courtesy')
         }}
       />
 
@@ -95,11 +114,11 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
           className="fixed inset-x-4 bottom-20 z-50 flex items-center gap-3 rounded-lg bg-[var(--color-charcoal-700)] px-4 py-3 text-sm text-white shadow-overlay md:left-1/2 md:right-auto md:w-96 md:-translate-x-1/2"
         >
           <span className="flex-1">
-            Thank you — that went to a person, and they&rsquo;ll take a look.
+            {confirmed === 'person' ? COPY.reportSentPerson : COPY.reportSentCourtesy}
           </span>
           <button
             type="button"
-            onClick={() => setConfirmed(false)}
+            onClick={() => setConfirmed(null)}
             className="shrink-0 rounded-full px-2 py-1 text-sm font-medium underline"
           >
             Dismiss

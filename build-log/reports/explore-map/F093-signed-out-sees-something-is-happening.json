@@ -6,11 +6,11 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
-   "text": "Anonymous PostgREST call returns no body",
+   "text": "An anonymous caller cannot retrieve an announcement body from the database, by any route",
    "kind": [
     "behavior",
     "invariant"
@@ -19,15 +19,15 @@
    "built": "yes",
    "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`page_posts_select_published` is `to authenticated` (#218); `announcements_withheld` return type has no body [V] Checked: yes (`announcements-signed-out-rest.test.ts`, seen failing first per build log; `probe-anon-announcements.sh` observed FAIL locally)."
+   "note": "`page_posts` has no anonymous read (`to authenticated`); `announcements_withheld` has no body in its return type, re-created by #914 and #969 with the same grants [V migrations 20261018170000, 20261019143000]. Checked: `tests/announcements-signed-out-rest.test.ts` `[guards F093.1]` asks PostgREST with the publishable key; #218 records it failing on the pre-migration database [V PR body]. Reviewed no: #218 and #230 carry no `Reviewed by:` [V]. Shipped: deploy-health green on 75c682a8, 1fc06c8b, bfbbd619 [V]. Smoked unknown: the smoke does not call PostgREST."
   },
   {
    "id": "2",
-   "text": "Same for `starts_at`, `location_id` and later columns",
+   "text": "The same is true of the start time and the place, and of any later column that carries them",
    "kind": [
     "invariant"
    ],
@@ -35,15 +35,15 @@
    "built": "yes",
    "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Same policy; exact-key allow-list on the projection [V] Checked: yes (marked `F093.2`; later columns by the F093.3 allow-list)."
+   "note": "Same policy; the return type has no `starts_at` or `location_id`; the new `kind` column (#969) is the Page's kind, not a time or place [V]. `[guards F093.2]` selects `starts_at, location_id` as anon and expects no rows; #906 ran it against a mutant anon policy and recorded the failure (`expected [...] to have a length of +0 but got 2`); the exact-column allow-list under F093.3 covers later columns [V]. Reviewed no: #218 and #230 carry no `Reviewed by:`; shipped yes (75c682a8, 1fc06c8b, bfbbd619). Smoked unknown (PostgREST)."
   },
   {
    "id": "3",
-   "text": "Withholding is enforced in SQL, a projection not a filter",
+   "text": "Withholding is enforced in SQL: a projection that never selects the body, not a filter",
    "kind": [
     "invariant"
    ],
@@ -51,69 +51,32 @@
    "built": "yes",
    "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Return type is id, name, photo, count, ids [V migration 20261001100000] Checked: yes (allow-list of keys)."
+   "note": "`announcements_withheld` returns ten columns since #969: result_id, group_id, slug, name, public_id, photo_url, kind, announcement_count, announcement_ids, updated_at [V migration 20261019143000]. `[guards F093.3]` asserts that exact key set with a reason per column, watched failing in #230 and red on any further column (#969 body) [V]. Reviewed no: #218 and #230 carry no `Reviewed by:`; shipped yes (75c682a8, 19109a1e, b7766901, 1fc06c8b, bfbbd619). Smoked unknown (PostgREST)."
   },
   {
    "id": "4",
-   "text": "Card has exactly five things; no-photo shows the kind's default art",
+   "text": "The signed-out card carries exactly five things; a Page with no or a hidden photo shows its kind's default image",
    "kind": [
     "behavior",
     "invariant"
    ],
    "status": "active",
-   "built": "no",
-   "checked": "no",
+   "built": "yes",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    335,
-    630
-   ],
-   "note": "Five things built: photo, name, count, details line, CTA; no location line [V]. Missing: the Page kind. `announcements_withheld` does not return it and the mapper sets `groupKind: ''`, so the art is generic. Open #335 Checked: no: only partial markers; card unit test unmarked: `WithheldAnnouncementCard.test.tsx`. #630."
+   "issues": [],
+   "note": "Photo, name, count with its period (a small-caps label on a scrim since #956), the details line and the sign-in call, with no body, time, place or Page location; since #969 (change #335, 2026-10-19) `mapWithheldRow` passes the Page's `kind` so a no-photo or hidden-photo card draws the kind's art [V `WithheldAnnouncementCard.tsx`, withheld-announcements.ts]. Checked yes: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the five things against real rows and now the art's `data-kind=\"group\"`, red before the migration (`expected null to be 'group'`, #969 body); mutants for the card in #769 [V]. Reviewed no: #218, #230 no line; #969 has `Reviewed by: Claude (Explore lane)`. Shipped: green on 75c682a8, 19109a1e, bfbbd619 [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]. #335 closed."
   },
   {
    "id": "5",
-   "text": "One card per Page, count named as a period, no nought",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    630
-   ],
-   "note": "One row per Page (#230); \"N posts this week\"; zero reads \"A new post\" [V] Checked: no: partial markers only; unmarked: `withheld-copy` / card test. #630."
-  },
-  {
-   "id": "6",
-   "text": "A signed-in member sees no change",
-   "kind": [
-    "invariant"
-   ],
-   "status": "active",
-   "built": "unknown",
-   "checked": "no",
-   "reviewed": "unknown",
-   "shipped": "unknown",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [],
-   "note": "Policy `to authenticated` leaves `using` unchanged [V build log]; no before/after comparison found Checked: no: two partial markers (member reads a body; Explore load). PM looked: no. #631."
-  },
-  {
-   "id": "7",
-   "text": "Signed-out Explore still has post-kind rows, withheld",
+   "text": "One card per Page, with the count and its period in words; a Page with none this period keeps its card without a nought",
    "kind": [
     "behavior"
    ],
@@ -121,100 +84,126 @@
    "built": "yes",
    "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`getWithheldAnnouncements` merged into Explore (#218) [V] Checked: yes (`load-withheld.test.ts`, `F093.7`)."
+   "note": "One row per Page (#230); label 'N posts this week', zero reads 'A new post'; the period follows `post_current_until` since #914 [V withheld-copy.ts]. `[guards F093.5]` (`tests/f093-withheld-card-criteria.test.tsx`) checks both against real rows, seen failing against mutants (#769) [V PR body]. Reviewed no: #218 and #230 carry no `Reviewed by:`; shipped yes (75c682a8, 19109a1e, 1fc06c8b). Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]."
+  },
+  {
+   "id": "6",
+   "text": "A signed-in member sees no change whatsoever",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`[guards F093.6]` in `tests/f093-front-door-guards.test.tsx` reads bodies, times, places, tags and order as a signed-in member through the real Page and Explore loaders and expects no withheld card; seen failing against 8 mutants (#770); #956 re-ran it against local Postgres [V]. Reviewed no (#218, #255); shipped yes (75c682a8, a7814ce9). Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]. Caveat: Explore for members changed on purpose this week (#881, #932); this scenario's claim is about its own change only."
+  },
+  {
+   "id": "7",
+   "text": "Signed-out Explore still contains post-kind rows, in withheld form",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "yes",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`loadBrowse` merges `getWithheldAnnouncements` into the signed-out mix, one card per Page in reach (#932), and since #906 the signed-out posts-only view lists the same withheld cards instead of 'Nothing here yet' [V load.ts]. Checked yes: `[guards F093.7]` in `tests/f093-signed-out-explore.test.tsx` (#906) loads Explore through the real `loadBrowse` as an anonymous caller, renders the real `BrowseSurface` and finds the withheld card with its sign-in call and no body in both views; failed on main before the fix and against two mutants [V PR body]. Reviewed no (#218 no line; #906 review-skipped). Shipped: green on 75c682a8, 7286b487, f8578fbb [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]. #844 closed 2026-10-18."
   },
   {
    "id": "8",
-   "text": "Signed-out front door: name, default photo, description, card; no location, tags or founder; indexable",
+   "text": "Signed-out front door: name, photo, description and the withheld card; no location, tags or founder; no map pins; indexable",
    "kind": [
     "behavior",
     "invariant"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    631
-   ],
-   "note": "`anon` loses `locations`, `anchor_location_id`, `page_tags`, `tags` (#255); no pin (#259); `robots.ts` admits search crawlers [V]. Card ask is placeholder copy [public-is-draft] Checked: no: `front-door-db.test.ts` is marked partial (database half); two unqualified markers on parts only. #631."
+   "issues": [],
+   "note": "`anon` loses `locations`, `anchor_location_id`, `page_tags`, `tags`; `browse_feed` returns null location, empty tags and no geography signed out; the reach's vantage never leaves the database (#932); quick links ride with the point so a signed-out card has none (#931); `?view=map&focus=` opens the map only signed in (#944); search signed out matches name and description only (#924, #934); `robots.ts` admits search crawlers [V]. `[guards F093.8]` in `tests/f093-front-door-guards.test.tsx` renders a signed-out Page and Explore card against real rows, plus `front-door-db.test.ts`, `member-reads-audit-db.test.ts` and `item-url.test.ts` [V]. Button reads 'Sign in to see what's happening' per the 2026-10-04 ruling (placeholder copy). Reviewed no (#255, #259 carry no `Reviewed by:`). Shipped unknown: no deploy-health run for 73625848 (#259) [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]."
   },
   {
    "id": "9",
-   "text": "Any `#announcement-<id>` link lands on the Page's one card, marked, with CTA",
+   "text": "An #announcement-<id> link, to any of the Page's announcements, lands on a page that resolves with the one card marked",
    "kind": [
     "behavior"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    630
-   ],
-   "note": "`WithheldPagePosts` carries an anchor per id (#230); DB returns all ids [V] Checked: no: DB half marked partial; render half unmarked: `WithheldPagePosts.test.tsx`. #630."
+   "issues": [],
+   "note": "`WithheldPagePosts` carries an anchor per announcement id; the database returns all ids for a Page (#230) [V]. `[guards F093.9]` renders the Page for the latest and an older id, expects one marked card with the sign-in call, no 404; seen failing against mutants (#769) [V]. Reviewed no (#230); shipped yes (19109a1e); smoked yes (run 39977671049 opens page signed out; it does not follow an anchor)."
   },
   {
    "id": "10",
-   "text": "No link to a body signed out; the ask comes first",
+   "text": "Nothing on the signed-out surface is a link to a body; the ask comes first",
    "kind": [
     "invariant"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    630
-   ],
-   "note": "CTA is its own link to `/auth/login?next=<Page>`; the card link goes to the Page only [V] Checked: no: unmarked: `WithheldAnnouncementCard.test.tsx` (\"links to the Page's withheld card\"). #630."
+   "issues": [],
+   "note": "The sign-in call is its own link to `/auth/login?next=<Page>`; the card link goes only to the Page; signed-out cards carry no quick links (#931) [V `WithheldAnnouncementCard.tsx`]. `[guards F093.10]` collects every link on the signed-out Explore card and Page card and matches them against Page or sign-in only; seen failing against mutants (#769) [V]. Reviewed no (#218, #230); shipped yes; smoked yes (as 9)."
   },
   {
    "id": "11",
-   "text": "Same card for every anonymous reader",
+   "text": "The card is the same for every anonymous reader",
    "kind": [
     "invariant"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    631
-   ],
-   "note": "No per-viewer input found in the withheld read path [V grep] Checked: no: unit test \"is the same for every anonymous reader\" unmarked. #631."
+   "issues": [],
+   "note": "Nothing on the withheld path reads a cookie, header, storage, clock or place; signed out the reach starts from the market's principal city, the same for everyone (#932) [V]. `[guards F093.11]` renders for two readers with different headers, timezones and cookies and expects identical output, and scans the path files for per-reader reads; seen failing against mutants (#770) [V]. Reviewed no (#218, #230); shipped yes; smoked yes."
   },
   {
    "id": "12",
-   "text": "Every criterion has a check seen failing",
+   "text": "Every criterion is discharged by a check that has been observed failing",
    "kind": [
     "coverage"
    ],
    "status": "active",
-   "built": "unknown",
+   "built": "yes",
    "checked": "no",
-   "reviewed": "unknown",
-   "shipped": "unknown",
+   "reviewed": "no",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Build logs record fail-first for criteria 1, 3, 4, 8 and the probe; none recorded for 5, 6, 9, 10, 11. The probe script is not run by CI [V workflows]"
+   "issues": [
+    1017
+   ],
+   "note": "Fail-first is now recorded for every criterion: 1 (#218), 2 and 7 (#906 mutants), 3 (#230), 4 (#969, red before the migration), 5, 9, 10 (#769 mutants), 6, 8, 11 (#770 mutants) [V PR bodies]. Checked no: nothing standing asserts that each of F093.1–11 carries a `[guards]` marker in a test file; `scripts/check-markers.sh` checks marker grammar only [V]. Reviewed no (#906 review-skipped, #769 and #770 review-skipped). Shipped: green on 7286b487, bfbbd619, fa202787, 288a5b86 [V]. Smoked unknown: not a route. #844 closed 2026-10-18. Filed #1017 (launch-blocking, Beta 11-06)."
   }
  ]
 }

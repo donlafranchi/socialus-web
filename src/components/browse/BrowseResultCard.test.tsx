@@ -55,12 +55,13 @@ describe('the card renders metro time, the same as the Page', () => {
     expect(screen.queryByText(/Sep 24|September 24/i)).not.toBeInTheDocument()
   })
 
-  // #256: the start leads the card, large, in the metro's words.
-  it('leads with when it happens, in large type', () => {
+  // #256: the start leads the card, in the metro's words. #922: a strong small-caps date line above the title.
+  it('leads with when it happens, as a strong small-caps date line', () => {
     render(<BrowseResultCard result={post()} />)
     const when = screen.getByTestId('browse-post-when')
     expect(when).toHaveTextContent(formatCardWhen(INSTANT))
-    expect(when.className).toMatch(/text-(lg|xl|2xl)/)
+    expect(when.className).toMatch(/uppercase/)
+    expect(when.className).toMatch(/font-bold/)
   })
 
   // #256 (Don, 2026-09-30): an announcement with no time keeps its posted date.
@@ -161,14 +162,14 @@ describe('#299 — no photo shows default art, never the emoji', () => {
   })
 })
 
-describe('#316 — a card shows its tags as #hashtags', () => {
-  it('each tag is a chip linking to Explore filtered by it', () => {
-    render(<BrowseResultCard result={post({ tags: ['Sourdough'] })} />)
-    expect(screen.getByRole('link', { name: '#Sourdough' })).toHaveAttribute('href', '/explore?category=sourdough')
-  })
-  it('a card with no tags (every signed-out card) shows none', () => {
-    render(<BrowseResultCard result={post({ tags: [] })} />)
+// Don, 2026-10-12 (matches #619, #621: plain words, no hashtags): the tags stay on the data and on
+// the Page itself; the Explore card does not show them.
+describe('a card shows no hashtags', () => {
+  it('a card whose result has tags shows none, as chips or as text', () => {
+    const { container } = render(<BrowseResultCard result={post({ tags: ['Sourdough', 'Localfood'] })} />)
     expect(screen.queryByTestId('tag-chips')).toBeNull()
+    expect(screen.queryByRole('link', { name: /^#/ })).toBeNull()
+    expect(container.textContent).not.toMatch(/#Sourdough|#Localfood/)
   })
 })
 

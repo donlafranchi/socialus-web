@@ -88,20 +88,21 @@ describe('T116 — switching views', () => {
   })
 })
 
-describe('T116 — the DLS treatment', () => {
-  it('fills the active tab charcoal with white text', () => {
+describe('T116 — the DLS treatment (#951: segmented text, no pill)', () => {
+  it('underlines the active tab in charcoal, with no fill or border', () => {
     renderToggle('list')
     const active = screen.getByRole('tab', { name: 'List' })
-    expect(active.className).toContain('bg-[var(--color-charcoal-700)]')
-    expect(active.className).toContain('text-white')
+    expect(active.className).toContain('underline')
+    expect(active.className).toContain('text-[var(--color-charcoal-900)]')
+    expect(active.className).not.toMatch(/\b(bg-|border|rounded-full)/)
   })
 
-  it('leaves the inactive tab white with a charcoal hairline', () => {
+  it('leaves the inactive tab as muted text, not underlined', () => {
     renderToggle('list')
     const inactive = screen.getByRole('tab', { name: 'Map' })
-    expect(inactive.className).toContain('bg-white')
-    expect(inactive.className).toContain('text-[var(--color-charcoal-900)]')
-    expect(inactive.className).toContain('border-[var(--color-charcoal-100)]')
+    expect(inactive.className).toContain('text-[var(--color-fg-muted)]')
+    expect(inactive.className).not.toMatch(/(^|\s)underline(\s|$)/)
+    expect(inactive.className).not.toMatch(/\b(bg-white|rounded-full)/)
   })
 
   it('gives each tab a 44px touch target', () => {

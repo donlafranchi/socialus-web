@@ -1,0 +1,62 @@
+name: Moderation eval
+
+# #638 (F100.9) — the evaluation harness runs on every prompt change. Filtered to the files that make up the prompt, the
+# models and the labelled set. It always validates the set (no key, no cost). The full run costs real money, so it needs
+# the repo secret ANTHROPIC_MODERATION_KEY and is skipped, with a visible note, when the secret is absent (a fork, or
+# before the key is added). The numbers go into the run summary; `-- --record` is Don's, on his own machine.
+
+on:
+  pull_request:
+    paths:
+      - 'src/lib/moderation/rules.ts'
+      - 'src/lib/moderation/assess.ts'
+      - 'src/lib/moderation/eval-metrics.ts'
+      - 'evals/moderation/**'
+      - 'scripts/moderation-eval.ts'
+  push:
+    branches: [main]
+    paths:
+      - 'src/lib/moderation/rules.ts'
+      - 'src/lib/moderation/assess.ts'
+      - 'src/lib/moderation/eval-metrics.ts'
+      - 'evals/moderation/**'
+      - 'scripts/moderation-eval.ts'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: moderation-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval:
+    name: Moderation eval
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Validate the labelled set (no key, no cost)
+        run: npm run moderation:eval -- --check
+
+      - name: Run the harness (needs the key)
+        env:
+          ANTHROPIC_MODERATION_KEY: ${{ secrets.ANTHROPIC_MODERATION_KEY }}
+        shell: bash
+        run: |
+          if [ -z "$ANTHROPIC_MODERATION_KEY" ]; then
+            echo "Full harness run skipped: the ANTHROPIC_MODERATION_KEY repo secret is not set (a fork, or the key is not added yet). The set was still validated." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo '### Moderation harness'
+            echo '```'
+            npm run moderation:eval
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"

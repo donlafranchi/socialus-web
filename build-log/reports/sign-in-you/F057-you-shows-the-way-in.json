@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -19,12 +19,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     582
    ],
-   "note": "#379 removed the vendor tabs, market picker and vendor toggle. Rendered text and the You component tree read today contain none of the words; it queries only `members`, `member_notices`, `groups` and the follows projection [V grep]. Absence of code, no standing guard Reviewed: no (#379 `review-skipped`)."
+   "note": "[V] src/app/you/page.tsx and what it renders (OwnPages, YouNotices, ZipChange, YouInterests, SearchSharingSwitch, SignOutButton, the Following row) contain none of the three words and query only members, member_notices, member_interests, the market_name function and the follows reader (grep 2026-10-23); #895 removed the Default metro row and #911 and #966 added rows, none bringing a word or a dead table back. Built in #379 (review-skipped); deploy-health green on 9ff415f and on every later /you merge (4b9558a, 43bcf96). Smoked: /you opened green by smoke-live on 2026-10-19, 21, 22 and 23 (cb892a7). No standing guard, ticket #582"
   },
   {
    "id": "2",
@@ -40,9 +40,9 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    15
+    1011
    ],
-   "note": "Your Pages always shows, with a \"Start something\" link; the empty state is one line, not an invitation. #15"
+   "note": "[V] built half: no shop controls on /you (OwnPages shows a card per Page, the Zip row shows the area, nothing says shop). Missing: the invitation; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.', and 'Start something' is a link in the Your Pages header (OwnPages.tsx, you/page.tsx). #15 (T125) was closed on 2026-10-18 as 'nothing left to build' because the Start something row exists; the invitation it names was never built, so it is refiled. The copy is Don's"
   },
   {
    "id": "3",
@@ -58,13 +58,13 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    15
+    1011
    ],
-   "note": "Nothing found [V grep \"maker\", \"worked example\"]. The wording is new user-facing copy, so it goes to Don"
+   "note": "[V] grep 'maker' in src/app/you and src/components/member finds nothing; no worked example anywhere on You. New user-facing copy, so the wording goes to Don (PM queue). Filed with criterion 2; #15 was closed 2026-10-18 without it"
   },
   {
-   "id": "4",
-   "text": "A Member with Pages sees a row per Page (Edit shop + create controls) and their listings, reusing the existing query",
+   "id": "4a",
+   "text": "A Member with Pages sees a row per Page with an Edit control and create controls, reusing the existing query",
    "kind": [
     "behavior"
    ],
@@ -76,10 +76,25 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    15,
-    100
+    1012
    ],
-   "note": "Built half: a card per Page with Edit page and \"Start something\" (`OwnPages`, `getOwnPages`) [V]. Missing half: their listings are not on You. \"Edit shop\" is old wording; nouns.md says Page (#100) Reviewed: no (#516 reviewed, covers drafts only)."
+   "note": "[V] built half: a card per Page, live or unfinished, with Continue and Delete on drafts and 'Start something' above (OwnPages, getOwnPages; #424, #516). Missing: an Edit control on the row; today the owner opens the Page and edits from there. 'Edit shop' is old wording, nouns.md says Page. #15 was closed 2026-10-18 without it"
+  },
+  {
+   "id": "4b",
+   "text": "A Member with Pages sees their listings on You",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "[V] 'listings' is the vendor-era Items noun (#177: /you/sell still writes Items); the 2026-10-01 ruling on You (#303: private, for the Pages you manage, the Pages you follow, your name and area) names what You holds and listings are not in it, and a Page's products and services now live on the Page itself (#909, #920). Cannot tell what the criterion asks for on today's model: routed to scope-scenario"
   },
   {
    "id": "5",
@@ -91,13 +106,13 @@
    "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
+   "shipped": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
     583
    ],
-   "note": "Redirect in `next.config.ts` [V]; `/you/following` page and `SignOutButton` on You exist [V]. The old `src/app/following/page.tsx` is still on disk, shadowed (the scenario says no deleting) Checked: unmarked: `tests/retired-routes.test.ts` asserts the redirect; no test found for sign-out or the follow list [A]."
+   "note": "[V] redirect in next.config.ts (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); the follow list was rebuilt in #966 (2026-10-19, Reviewed by: Claude, deploy-health green on 43bcf96): /you/following lists Pages with Unfollow and Undo, people and venues below, all through getMemberFollows; the old src/app/following page is deleted, so the redirect is the only path. SignOutButton on /you. Smoked: /following, /you and /you/following opened green by smoke-live on 2026-10-19 (cd913c7, after #966). unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'), you-following-row.test.tsx, FollowedPagesList.test.tsx ('unfollows with Undo'); no test of sign-out"
   }
  ]
 }

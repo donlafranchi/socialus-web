@@ -17,21 +17,21 @@ beforeEach(() => {
 })
 
 describe('answerNoticeAction', () => {
-  it('has the AI read the report again with the poster\'s reason and words', async () => {
+  it('has the AI read the report again with the owner\'s claim', async () => {
     answer.mockResolvedValue({ answerId: 'a1', reportId: 'r1' })
-    await answerNoticeAction({ noticeId: 'n1', reason: 'malicious', note: 'He reports everything.' })
-    expect(schedule).toHaveBeenCalledWith('r1', { rebuttal: 'Malicious: He reports everything.' })
+    await answerNoticeAction({ noticeId: 'n1' })
+    expect(schedule).toHaveBeenCalledWith('r1', { rebuttal: 'The owner says this is a mistake.' })
   })
 
   it('a notice with no report behind it schedules nothing', async () => {
     answer.mockResolvedValue({ answerId: 'a1', reportId: null })
-    await answerNoticeAction({ noticeId: 'n1', reason: 'mistaken', note: 'x' })
+    await answerNoticeAction({ noticeId: 'n1' })
     expect(schedule).not.toHaveBeenCalled()
   })
 
   it('a refused answer schedules nothing', async () => {
     answer.mockRejectedValue(new Error('closed'))
-    await expect(answerNoticeAction({ noticeId: 'n1', reason: 'mistaken', note: 'x' })).rejects.toThrow()
+    await expect(answerNoticeAction({ noticeId: 'n1' })).rejects.toThrow()
     expect(schedule).not.toHaveBeenCalled()
   })
 })

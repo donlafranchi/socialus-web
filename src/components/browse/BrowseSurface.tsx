@@ -18,7 +18,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { useSearchParams, unstable_isUnrecognizedActionError } from 'next/navigation'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { MakeThisYoursBanner } from '@/components/feed/MakeThisYoursBanner'
 import { CardGrid } from '@/components/cards'
@@ -26,24 +27,33 @@ import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
 import { ExploreDock } from '@/components/explore/ExploreDock'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import { mapFocusFrom } from '@/lib/browse/map-focus'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
-import { FollowingRow } from './FollowingRow'
 import { HappeningRows } from './HappeningRows'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
+import { readBox, writeBox } from '@/lib/browse/box-text'
 import {
-  DEFAULT_BROWSE_FILTERS,
   applyBrowseFilters,
+  DEFAULT_BROWSE_FILTERS,
   browseTagOptions,
   hasBrowseFilters,
   parseBrowseFilters,
+  serverFilters,
   searchBrowseResults,
+  CATEGORY_TAGS,
+  isPlainPostsView,
 } from '@/lib/browse/filters'
-import { browseFeedAction, browseMapAction, searchAreasAction } from '@/app/explore/actions'
+import { leadKey } from '@/lib/browse/lead'
+import { parseReach, reachLine, widerReach, type Reach } from '@/lib/browse/reach'
+import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
+import { logSearchAction } from '@/app/_actions/search-demand-actions'
+import { useSearchDemand } from './useSearchDemand'
 import type { BrowseSnapshot } from '@/lib/browse/snapshot'
 import type { FeedMetro } from '@/lib/feed/feed-metro'
 
@@ -58,6 +68,8 @@ const PREFETCH_TOP = 3
 
 /** Long enough that a five-character search announces once, on settle. */
 const ANNOUNCE_DEBOUNCE_MS = 700
+/** #916 — the server search waits for typing to settle: one read per pause, not one per key. */
+const SEARCH_DEBOUNCE_MS = 250
 
 export function BrowseSurface({
   initial,
@@ -67,14 +79,19 @@ export function BrowseSurface({
   initial: BrowseSnapshot
   ownerPanelOpen?: boolean
 }) {
-  const router = useRouter()
   const params = useSearchParams()
 
   const [snapshot, setSnapshot] = useState(initial)
-  const [query, setQuery] = useState(params.get('q') ?? '')
-  const [filters, setFilters] = useState(() => parseBrowseFilters(params))
-  // Ephemeral per F044 — not in the URL, resets to List on the next visit.
-  const [view, setView] = useState<ExploreView>('list')
+  // F092: the box is the state. The sheet writes plain words into it and the reader below takes the
+  // schedule and tags back out, so there is one text and no second filter state. An old link that
+  // carried ?category= or ?schedule= is written into the box on the way in.
+  const [query, setQuery] = useState(() => writeBox(parseBrowseFilters(params), params.get('q') ?? ''))
+  // #922 — the member's reach (a ring, or the whole area); null while the database picks a full screen nearby.
+  const [reach, setReach] = useState<Reach | null>(() => parseReach(params.get('reach')))
+  // #896 — a Page's map opens here, on that Page (?view=map&focus=…&at=…).
+  const [focus] = useState(() => (params.get('view') === 'map' ? mapFocusFrom(params) : null))
+  // Ephemeral per F044 — not in the URL, resets to List on the next visit (unless a Page sent us to the map).
+  const [view, setView] = useState<ExploreView>(focus && initial.signedIn ? 'map' : 'list')
   const [mapCollapsed, setMapCollapsed] = useState(false)
   // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
   // pill; from 1024px list and map side by side; at 1024–1439px with the owner
@@ -136,20 +153,39 @@ export function BrowseSurface({
     },
     [metroSlugNow],
   )
-  const searchAreas = useCallback((query: string) => searchAreasAction(metroSlugNow ?? '', query), [metroSlugNow])
+  const searchAreas = useCallback((query: string) => searchAreasAction(query), [])
 
   const metroSlug = snapshot.chosen ? (snapshot.metro?.slug ?? null) : null
+
+  const changeReach = useCallback(
+    (next: Reach) => {
+      setReach(next)
+      const request = ++requestRef.current
+      startTransition(async () => {
+        try {
+          const fresh = await browseFeedAction(metroSlug, snapshot.area?.id ?? null, null, null, next)
+          if (requestRef.current === request) setSnapshot(fresh)
+        } catch {
+          if (requestRef.current === request) setSnapshot((s) => ({ ...s, results: [], failed: true }))
+        }
+      })
+    },
+    [metroSlug, snapshot.area],
+  )
 
   useEffect(() => {
     const qs = browseQueryString({
       metro: metroSlug,
       area: snapshot.area?.id ?? null,
       q: query,
-      tags: filters.tags,
-      schedule: filters.schedule,
+      reach,
     })
-    router.replace(`/explore${qs ? `?${qs}` : ''}`, { scroll: false })
-  }, [metroSlug, snapshot.area, query, filters, router])
+    // #935 — the address bar only. router.replace re-rendered Explore on the server once per keystroke, several
+    // feed reads each, and signed in that flood held a tapped result and the Page it opened. Next.js keeps
+    // useSearchParams in step with the native History API, so the link still reopens the same search.
+    const url = `/explore${qs ? `?${qs}` : ''}`
+    if (window.location.pathname + window.location.search !== url) window.history.replaceState(window.history.state, '', url)
+  }, [metroSlug, snapshot.area, query, reach])
 
   // #549 — the pins arrive after the list: the server leaves them out of the first
   // response (a phone opens on the list) and this fetches them once it has painted.
@@ -172,21 +208,108 @@ export function BrowseSurface({
     }
   }, [mapWanted, mapMetroId, mapAreaId])
 
-  const visible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(snapshot.results, query), filters, { now }),
-    [snapshot.results, query, filters, now],
-  )
+  // #876 — the Category group's 12 interest tags, plus any creator's own tag in what came back.
+  const tagOptions = useMemo(() => [...new Set([...CATEGORY_TAGS, ...browseTagOptions(snapshot.results)])], [snapshot.results])
+  const { filters, rest } = useMemo(() => readBox(query, tagOptions), [query, tagOptions])
+  const filtered = hasBrowseFilters(filters)
+  // #892 — the reader's own interests, for "My interests". Only ever the person looking (owner-only read).
+  const myTags = useMemo(() => snapshot.myInterests ?? [], [snapshot.myInterests])
+
+  // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
+  // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
+  const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
+  // #896 — sent here from a Page's map: straight to the map, nothing above it.
+  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered && !focus
+  const mix = useMemo(() => {
+    const leadKeys = new Set(lead.map(leadKey))
+    const rest = snapshot.results.filter((r) => !leadKeys.has(leadKey(r)))
+    // Fresh, the lead sits above the list; the rotation standing in for it leads the list itself.
+    return snapshot.leadFresh ? rest : [...lead, ...rest]
+  }, [snapshot.results, snapshot.leadFresh, lead])
+
+  // #876 — a filter asks the server for the targeted set (one read); until it lands, the mix is cut here.
+  // #916 — so does a search, once typing settles: the server searches the whole market, not these rows.
+  const needle = rest.trim()
+  const [settledNeedle, setSettledNeedle] = useState(needle)
+  useEffect(() => {
+    const id = window.setTimeout(() => setSettledNeedle(needle), SEARCH_DEBOUNCE_MS)
+    return () => window.clearTimeout(id)
+  }, [needle])
+  // #892 — "My interests" is never part of that read: it only drops rows from the list as it stands.
+  const narrowing = serverFilters(filters)
+  const narrowed = hasBrowseFilters(narrowing)
+  const filterKey =
+    narrowed || settledNeedle
+      ? JSON.stringify([snapshot.metro?.slug ?? null, snapshot.area?.id ?? null, narrowed ? narrowing : null, settledNeedle, reach])
+      : null
+  const [targeted, setTargeted] = useState<{ key: string; results: BrowseSnapshot['results'] } | null>(null)
+  // #947 — a read that did not come back is said, never shown as an empty list. `stale`: this page is from an
+  // older deploy than the server (Next.js cannot find the action); one retry, then a reload is the way out.
+  const [failure, setFailure] = useState<{ key: string; stale: boolean } | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  useEffect(() => {
+    if (!filterKey || targeted?.key === filterKey) return
+    let live = true
+    setFailure(null)
+    const read = () =>
+      browseFeedAction(snapshot.chosen ? (snapshot.metro?.slug ?? null) : null, snapshot.area?.id ?? null, narrowed ? narrowing : null, settledNeedle || null, reach)
+    Promise.resolve()
+      .then(read)
+      .catch((error: unknown) => {
+        if (!unstable_isUnrecognizedActionError(error)) throw error
+        return read()
+      })
+      .then((next) => {
+        if (!live) return
+        if (next && !next.failed) setTargeted({ key: filterKey, results: next.results })
+        else setFailure({ key: filterKey, stale: false })
+      })
+      .catch((error: unknown) => {
+        if (live) setFailure({ key: filterKey, stale: unstable_isUnrecognizedActionError(error) })
+      })
+    return () => {
+      live = false
+    }
+    // `narrowing` and the search are captured in `filterKey`; `attempt` is Try again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey, attempt])
+  // The server's answer once it is for what the box says now; until then, the rows in hand, cut here.
+  const landed = filterKey !== null && targeted?.key === filterKey && settledNeedle === needle
+  // #947 — the rows in hand are only the nearby ring (#922): cut for a word, an empty cut is not an answer.
+  const searchFailed = filterKey !== null && !landed && failure?.key === filterKey
+  const searching = filterKey !== null && !landed && !searchFailed
+  const visible = useMemo(() => {
+    const found = landed ? targeted!.results : searchBrowseResults(!narrowed ? mix : applyBrowseFilters(mix, narrowing, { now }), rest)
+    // #892 — My interests drops rows from the list as returned: no read, no reorder, no widening.
+    return filters.mine ? applyBrowseFilters(found, { ...DEFAULT_BROWSE_FILTERS, mine: true, tags: filters.tags }, { now, myTags }) : found
+    // `narrowing` is derived from `filters`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [landed, targeted, narrowed, mix, filters, now, rest, myTags])
+  // #909 — a settled search is counted, with no member id, so locals' searches can help local businesses.
+  useSearchDemand({ query: rest, resultCount: visible.length, metroSlug: snapshot.metro?.slug ?? null, areaId: snapshot.area?.id ?? null, failed: snapshot.failed || searching || searchFailed, log: logSearchAction })
+  // The old Updates view's top, kept for plain posts-only: what is on today, this week and this weekend.
+  const postsOnlyView = isPlainPostsView(filters)
+
+  // What the first look showed counts as seen from the next visit on. Sent once, after paint.
+  const leadSent = useRef(false)
+  useEffect(() => {
+    if (leadSent.current || !snapshot.leadFresh || lead.length === 0) return
+    leadSent.current = true
+    const keys = lead.map(leadKey)
+    const id = window.setTimeout(() => void markLeadSeenAction(keys).catch(() => {}), 0)
+    return () => window.clearTimeout(id)
+  }, [snapshot.leadFresh, lead])
 
   // #331 — the map shows the tunable mix; filters and search narrow within it.
   const mapVisible = useMemo(
-    () => applyBrowseFilters(searchBrowseResults(snapshot.map, query), filters, { now }),
-    [snapshot.map, query, filters, now],
+    () => applyBrowseFilters(searchBrowseResults(snapshot.map, rest), filters, { now, myTags }),
+    [snapshot.map, rest, filters, now, myTags],
   )
   const mapNarrowed = snapshot.map.length > 0 && mapVisible.length === 0
 
-  const tagOptions = useMemo(() => browseTagOptions(snapshot.results), [snapshot.results])
-
-  useScrollRestoration('explore', visible.length > 0)
+  // #791 — the list draws a step at a time; the restore waits for the session's depth.
+  const { shown, settled, sentinel } = useRevealOnScroll('explore', visible.length, `${filterKey ?? ''}|${rest}`)
+  useScrollRestoration('explore', visible.length > 0 && settled)
 
   const metroName = snapshot.metro?.name ?? null
   // #476 — the pill names the neighbourhood when one is picked.
@@ -197,17 +320,16 @@ export function BrowseSurface({
   // times, and so switching metro does not race the count that follows it.
   const [announcement, setAnnouncement] = useState('')
   useEffect(() => {
+    // #947 — no count until the answer is in; a failure speaks through its own alert.
+    if (searching || searchFailed) return
     const message = metroName
       ? `${visible.length} result${visible.length === 1 ? '' : 's'} in ${metroName}`
       : `${visible.length} result${visible.length === 1 ? '' : 's'}`
     const id = setTimeout(() => setAnnouncement(message), ANNOUNCE_DEBOUNCE_MS)
     return () => clearTimeout(id)
-  }, [visible.length, metroName])
+  }, [visible.length, metroName, searching, searchFailed])
 
-  const clearAll = () => {
-    setQuery('')
-    setFilters(DEFAULT_BROWSE_FILTERS)
-  }
+  const clearAll = () => setQuery('')
 
   // Nothing resolvable to browse. The controls are suppressed rather than
   // rendered inert: a scope picker is the one thing that could help, and it is
@@ -260,6 +382,15 @@ export function BrowseSurface({
       {/* Above the results, and absent for a signed-in Member. */}
       {!snapshot.signedIn && <MakeThisYoursBanner isAuthenticated={false} />}
 
+      {/* #922 — how far Explore reaches, as a quiet line: never a chip (Don, 2026-10-18). Gone while a filter or search narrows. */}
+      {snapshot.reach && !filtered && !rest.trim() && (
+        <ReachLine
+          line={reachLine(snapshot.reach.minutes, snapshot.reach.from, snapshot.signedIn)}
+          wider={widerReach(snapshot.reach.minutes)}
+          onWiden={changeReach}
+        />
+      )}
+
       {/* F059 criterion 2b. Above the public results because it is what this
           person came back for, and NOT tucked into the member's own area —
           Browse is for discovery, /you is for management, and the content
@@ -267,8 +398,22 @@ export function BrowseSurface({
           is every signed-out load and every member who follows nothing. It is
           outside the results region on purpose: it is not a result of the
           search, and the count above the grid must not include it. */}
-      <FollowingRow results={snapshot.following} />
-      <HappeningRows rows={snapshot.happening} />
+      {postsOnlyView ? (
+        <HappeningRows rows={snapshot.happening} />
+      ) : (
+        showLead && (
+          <section className="px-3 pt-4 md:px-6" data-testid="explore-lead" aria-labelledby="explore-lead-heading">
+            <h2 id="explore-lead-heading" className="mb-3 text-base font-semibold text-[var(--color-charcoal-900)]">
+              What&rsquo;s new since you were here
+            </h2>
+            <CardGrid data-testid="explore-lead-grid">
+              {lead.map((r, i) => (
+                <BrowseResultCard key={`lead-${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
+              ))}
+            </CardGrid>
+          </section>
+        )
+      )}
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}
@@ -288,17 +433,65 @@ export function BrowseSurface({
           <div key={`list-${layout}`} data-testid="browse-list-pane" className="explore-fade-in min-w-0 flex-1">
             <section className="px-3 py-4 md:px-6">
               <p className="mb-3 text-sm text-neutral-600" data-testid="result-count">
-                {visible.length} result{visible.length === 1 ? '' : 's'}
-                {query && <> match &ldquo;{query}&rdquo;</>}
+                {/* #947 — draft copy (human-review). */}
+                {searching ? (
+                  needle ? 'Searching…' : 'Loading…'
+                ) : searchFailed ? null : (
+                  <>
+                    {visible.length} result{visible.length === 1 ? '' : 's'}
+                    {query && <> match &ldquo;{query}&rdquo;</>}
+                  </>
+                )}
               </p>
+
+              {searchFailed && (
+                <div className="py-6 text-center text-sm text-neutral-600" data-testid="browse-search-failed" role="alert">
+                  {/* #947 — draft copy (human-review). */}
+                  {failure?.stale ? (
+                    <>
+                      <p>SocialUs was just updated. Reload to search again.</p>
+                      <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="press mt-2 inline-flex min-h-11 items-center font-medium text-[var(--color-charcoal-900)] underline"
+                      >
+                        Reload
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p>{needle ? 'Search didn’t load.' : 'This didn’t load.'}</p>
+                      <button
+                        type="button"
+                        onClick={() => setAttempt((n) => n + 1)}
+                        className="press mt-2 inline-flex min-h-11 items-center font-medium text-[var(--color-charcoal-900)] underline"
+                      >
+                        Try again
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
 
               {snapshot.failed ? (
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-error">
                   <p>We couldn&rsquo;t load {metroName} just now. Try again in a moment.</p>
                 </div>
-              ) : visible.length === 0 ? (
+              ) : visible.length === 0 && (searching || searchFailed) ? null : visible.length === 0 ? (
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-empty">
-                  <p>Nothing here yet — try another filter</p>
+                  {/* #916 — draft copy (human-review). */}
+                  <p>{needle ? `Nothing matches “${needle}” yet. Try fewer words, or a broader one like “food” or “plants”.` : 'Nothing here yet — try another filter'}</p>
+                  {/* #892 — "My interests" with none chosen: lead them to pick some. Draft copy. */}
+                  {filters.mine && myTags.length === 0 && (
+                    <p className="mt-2" data-testid="browse-pick-interests">
+                      <Link
+                        href={snapshot.signedIn ? '/you#interests' : `/auth/login?next=${encodeURIComponent('/you#interests')}`}
+                        className="press inline-flex min-h-11 items-center font-medium text-[var(--color-charcoal-900)] underline"
+                      >
+                        Pick your interests
+                      </Link>
+                    </p>
+                  )}
                   {/* Charcoal, not the accent token: `--color-accent` on
                       white is 2.9:1, short of AA for 14px text. The filter
                       sheet's "Clear all" took the same resolution — the
@@ -326,12 +519,13 @@ export function BrowseSurface({
                 </div>
               ) : (
                 <CardGrid>
-                  {visible.map((r, i) => (
+                  {visible.slice(0, shown).map((r, i) => (
                     // #555 — the first three are read ahead of the tap; the rest keep the router's default.
                     <BrowseResultCard key={`${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
                   ))}
                 </CardGrid>
               )}
+              {shown < visible.length && <div ref={sentinel} aria-hidden="true" className="h-px" data-testid="browse-more" />}
             </section>
           </div>
         )}
@@ -372,7 +566,16 @@ export function BrowseSurface({
               }
             >
               <div className="relative h-full">
-                <BrowseMap results={mapVisible} center={snapshot.metro?.center} />
+                <BrowseMap results={mapVisible} center={snapshot.metro?.center} focus={focus ?? undefined} />
+                {focus && (
+                  <Link
+                    href={focus.href}
+                    className="press absolute left-3 top-3 inline-flex min-h-tap items-center gap-1 rounded-md bg-[var(--color-bg)] px-3 text-body-sm font-medium text-[var(--color-accent)] shadow-lift"
+                  >
+                    <ArrowLeft size={16} aria-hidden="true" />
+                    Back to the Page
+                  </Link>
+                )}
                 {mapNarrowed && (
                   <div
                     data-testid="map-empty"
@@ -418,10 +621,39 @@ export function BrowseSurface({
       <ExploreFilterSheet
         open={sheetOpen}
         value={filters}
-        tags={tagOptions}
+        reach={reach ?? snapshot.reach?.minutes ?? null}
+        onReachChange={changeReach}
+        myInterests={snapshot.myInterests ?? null}
+        signedIn={snapshot.signedIn}
         onClose={() => setSheetOpen(false)}
-        onApply={setFilters}
+        onApply={(f) => {
+          const text = writeBox(f, rest)
+          setQuery(text)
+          // The box opens on what the sheet wrote, so the person reads it (F092.2).
+          if (text) setSearchRequest((n) => n + 1)
+        }}
       />
     </main>
+  )
+}
+
+function ReachLine({ line, wider, onWiden }: { line: string; wider: Reach | null; onWiden: (r: Reach) => void }) {
+  return (
+    <p className="px-3 pt-3 text-body-sm text-[var(--color-fg-muted)] md:px-6" data-testid="explore-reach">
+      {line}
+      {wider !== null && (
+        <>
+          <span aria-hidden="true"> · </span>
+          <button
+            type="button"
+            onClick={() => onWiden(wider)}
+            data-testid="explore-reach-more"
+            className="press inline-flex min-h-tap items-center text-[var(--color-charcoal-900)] underline underline-offset-2"
+          >
+            Show more nearby
+          </button>
+        </>
+      )}
+    </p>
   )
 }

@@ -6,6 +6,7 @@
 // that needs it does not copy the six reads and get one of them wrong.
 
 import { resolvePageMetadata } from './page-metadata'
+import { viewerId } from '@/lib/auth/viewer'
 import { resolvePageTags } from './page-tags'
 import { componentOn } from './page-components'
 import { resolvePageContact, type PageContact } from './page-contact'
@@ -29,6 +30,8 @@ import { metroWeekBounds } from '@/lib/metro/metro-week'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 export interface PageView {
+  /** #625 — the owner's own name and description while a report hides them from others; null otherwise. */
+  ownWords: { name: string; description: string } | null
   items: ShopItem[]
   posts: PagePost[]
   /**
@@ -72,7 +75,14 @@ export async function loadPageView(
   supabase: SupabaseClient,
   shop: ResolvedShop,
 ): Promise<PageView> {
-  const [items, posts, badge, { data: auth }] = await Promise.all([
+  // #791 — who is looking is read from the session's verified claims, with no
+  // round trip, so every read below starts at once: one round to the database
+  // (#529 had it at two, behind a call to the auth server). Only the owner's two
+  // extras wait for `owns`.
+  const viewerMemberId = await viewerId(supabase)
+  const signedIn = viewerMemberId !== null
+
+  const [items, posts, badge, ownerClaim, owns, relationship, tags, contact, where, withheldPosts, metadata] = await Promise.all([
     resolveShopItems(supabase, shop.groupId),
     // RLS is the visibility gate here too: the owner's own posts come back for
     // the owner and for nobody else.
@@ -81,15 +91,6 @@ export async function loadPageView(
       groupId: shop.groupId,
       anchorLocationId: shop.anchorLocationId,
     }),
-    supabase.auth.getUser(),
-  ])
-
-  const viewerMemberId = auth.user?.id ?? null
-
-  // One round for everything that does not depend on another read (#529: these
-  // were eight rounds in a row, each a trip to the database). Only the owner's
-  // two extras wait for `owns`.
-  const [ownerClaim, owns, relationship, tags, contact, where, withheldPosts, metadata] = await Promise.all([
     resolveOwnerClaim(supabase, {
       groupId: shop.groupId,
       anchorLocationId: shop.anchorLocationId,
@@ -104,9 +105,9 @@ export async function loadPageView(
       kind: shop.kind,
     }),
     viewerRelationship(supabase, { groupId: shop.groupId, viewerMemberId }),
-    auth.user ? resolvePageTags(supabase, shop.groupId) : Promise.resolve([] as string[]),
-    auth.user ? resolvePageContact(supabase, shop.groupId) : Promise.resolve(null),
-    auth.user ? resolvePageWhere(supabase, shop.groupId) : Promise.resolve(null),
+    signedIn ? resolvePageTags(supabase, shop.groupId) : Promise.resolve([] as string[]),
+    signedIn ? resolvePageContact(supabase, shop.groupId) : Promise.resolve(null),
+    signedIn ? resolvePageWhere(supabase, shop.groupId) : Promise.resolve(null),
     // F093 criterion 9 — signed out, `page_posts` returns nothing, so without
     // this the Announcements section would not render at all and an
     // `#announcement-<id>` link from Explore would scroll to nothing. That is
@@ -114,7 +115,7 @@ export async function loadPageView(
     //
     // A failure costs the announcements and never the Page, the rule
     // `resolvePagePosts` already follows.
-    auth.user
+    signedIn
       ? Promise.resolve([] as BrowseResult[])
       : getWithheldAnnouncements(supabase, {
           scope: { groupId: shop.groupId },
@@ -126,7 +127,7 @@ export async function loadPageView(
     // One read of metadata: the owner's components, and whether a signed-in
     // visitor sees Products & services (#363: a component any Page can add).
     // An owner is always signed in, so signed in is the whole condition.
-    auth.user ? resolvePageMetadata(supabase, shop.groupId) : Promise.resolve(null),
+    signedIn ? resolvePageMetadata(supabase, shop.groupId) : Promise.resolve(null),
   ])
 
   // Asked for only when there is somewhere to show it. RLS would return zero
@@ -149,7 +150,19 @@ export async function loadPageView(
   const contactOn = owns ? componentOn(shop.kind, metadata, 'contact') : false
   const productsOn = componentOn(shop.kind, metadata, 'products')
 
+  // #625 — the owner sees their own words, masked for everyone else, and a note on how to show them again.
+  const ownWords =
+    owns && shop.wordsHidden
+      ? await supabase
+          .from('groups')
+          .select('name, description')
+          .eq('id', shop.groupId)
+          .maybeSingle()
+          .then(({ data }) => (data ? { name: (data as { name: string }).name, description: (data as { description: string | null }).description ?? '' } : null))
+      : null
+
   return {
+    ownWords,
     items,
     posts,
     withheldPosts,
@@ -161,7 +174,7 @@ export async function loadPageView(
     productsOn,
     viewerFollows: relationship !== null,
     viewerIsMember: relationship === 'member',
-    loggedIn: Boolean(auth.user),
+    loggedIn: signedIn,
     followerCount,
     draftTagCount,
     tags,

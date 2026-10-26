@@ -9,7 +9,7 @@ export const REPORT_CATEGORIES = [
   { value: 'violence', label: 'Violence' },
   {
     value: 'sensitive_content',
-    label: "Sensitive content — children, animals and pets, or anyone who can't fend for themselves",
+    label: "Sensitive content: children, animals and pets, or anyone who can't speak up for themselves",
   },
   { value: 'threat_of_harm', label: 'Threat of harm' },
   { value: 'other', label: 'Something else' },

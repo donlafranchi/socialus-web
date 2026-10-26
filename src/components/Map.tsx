@@ -8,6 +8,7 @@ import { stylePin, styleCluster } from '@/lib/map-pins'
 import { useMapPages, type Bounds, type MapPage } from '@/hooks/useMapPages'
 import { SearchBar } from './SearchBar'
 import { PageDetailCard } from './group/PageDetailCard'
+import { handleMapErrors } from '@/lib/map/errors'
 
 const SOURCE_ID = 'pages'
 
@@ -74,6 +75,8 @@ export function Map() {
       center: MAP_DEFAULTS.center,
       zoom: MAP_DEFAULTS.zoom,
     })
+
+    handleMapErrors(map)
 
     mapRef.current = map
 

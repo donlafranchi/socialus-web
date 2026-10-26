@@ -59,3 +59,36 @@ describe('#348 — where a Page is', () => {
     expect(query).not.toHaveBeenCalled()
   })
 })
+
+// #896 — more answers for a Page with no street address, and its stops.
+describe('#896 — landmark, more than one location, a where-and-when list, online', () => {
+  it('accepts the six answers and nothing else', () => {
+    for (const m of ['visit', 'landmark', 'multi', 'roaming', 'travel', 'online']) expect(whereInput.safeParse({ whereMode: m }).success).toBe(true)
+  })
+
+  it('replaces the stops with the list given, in order, blank rows dropped', async () => {
+    const { query, patched } = await run({
+      stops: [
+        { label: ' Midtown Farmers Market ', whenText: ' Saturdays, 8am–1pm ' },
+        { label: '   ', whenText: 'Sundays' },
+        { label: 'Oak Park Sunday Market', whenText: '' },
+      ],
+    })
+    const calls = query.mock.calls as unknown as [string, unknown[]][]
+    expect(calls[0]![0]).toMatch(/delete from public\.page_stops where group_id = \$1/)
+    expect(calls[1]![0]).toMatch(/insert into public\.page_stops/)
+    expect(calls[1]![1]).toEqual([GROUP, ['Midtown Farmers Market', 'Oak Park Sunday Market'], ['Saturdays, 8am–1pm', null]])
+    expect(patched).toContain('stops')
+  })
+
+  it('an empty list clears them', async () => {
+    const { query } = await run({ stops: [] })
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('refuses more than twenty stops, or one too long', () => {
+    expect(whereInput.safeParse({ stops: Array.from({ length: 21 }, () => ({ label: 'x', whenText: null })) }).success).toBe(false)
+    expect(whereInput.safeParse({ stops: [{ label: 'x'.repeat(121), whenText: null }] }).success).toBe(false)
+    expect(whereInput.safeParse({ stops: [{ label: 'x', whenText: 'x'.repeat(81) }] }).success).toBe(false)
+  })
+})

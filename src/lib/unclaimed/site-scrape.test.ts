@@ -35,6 +35,20 @@ describe('extractSiteMeta (#556)', () => {
   })
 })
 
+// Don, 2026-10-16 — TikTok and Instagram first; a Facebook profile with no vanity name keeps its id; AI-made pictures stay off.
+describe('extractSiteMeta — socials and made-up pictures', () => {
+  const page = `<a href="https://www.facebook.com/profile.php?id=61576552717408">fb</a><a href="https://www.tiktok.com/@tahoedogco">tt</a>
+    <a href="https://www.instagram.com/tahoedogco/">ig</a><a href="https://www.facebook.com/profile.php">bare</a>
+    <img src="/cdn/ChatGPT_Image_Sep_20_2026.png"><img src="/cdn/a_crisp_high_resolution_outdoor_product_style_pho.png"><img src="/cdn/DALL-E_dog.png"><img src="/cdn/WhatsApp_Image_2026-07-10.jpg">`
+  const m = extractSiteMeta(page, 'https://tahoedogco.com/')
+  it('keeps a numeric Facebook profile whole, and drops a bare profile.php', () => {
+    expect(m.social).toEqual({ facebook: 'https://www.facebook.com/profile.php?id=61576552717408', tiktok: 'https://www.tiktok.com/@tahoedogco', instagram: 'https://www.instagram.com/tahoedogco' })
+  })
+  it('leaves out pictures whose names say an AI made them', () => {
+    expect(m.images).toEqual(['https://tahoedogco.com/cdn/WhatsApp_Image_2026-07-10.jpg'])
+  })
+})
+
 describe('normaliseUsPhone', () => {
   it.each([['(916) 555-0142', '+19165550142'], ['1-916-555-0142', '+19165550142'], ['+1 916 555 0142', '+19165550142'], ['555-0142', null], ['011-44-20-7946-0958', null], ['(116) 555-0142', null]])('%s', (i, o) => {
     expect(normaliseUsPhone(i)).toBe(o)

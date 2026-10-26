@@ -5,13 +5,20 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import '@testing-library/jest-dom/vitest'
 import { UnclaimedBox } from './UnclaimedBox'
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
+
 afterEach(cleanup)
 
 const setup = (result: { ok: true } | { ok: false; reason: 'limit' | 'failed' } = { ok: true }) => {
-  const onClaim = vi.fn().mockResolvedValue(result)
   const onRemove = vi.fn().mockResolvedValue(result)
-  render(<UnclaimedBox groupId="g-1" pagePath="/g/abc" hasPhoto onClaim={onClaim} onRemove={onRemove} />)
-  return { onClaim, onRemove }
+  const claim = {
+    choices: vi.fn().mockResolvedValue({ emailDomain: 'rosas.com', phone: null, proof: false }),
+    start: vi.fn(),
+    verify: vi.fn(),
+    proof: vi.fn(),
+  }
+  render(<UnclaimedBox groupId="g-1" pagePath="/g/abc" hasPhoto loggedIn claim={claim} onRemove={onRemove} />)
+  return { claim, onRemove }
 }
 
 const fill = (name: string, value: string) =>
@@ -46,14 +53,12 @@ describe('UnclaimedBox', () => {
     expect(onRemove.mock.calls[0]![0].scope).toBe('photo')
   })
 
-  it('Claim sends name and contact', async () => {
-    const { onClaim } = setup()
+  it('Claim opens the self-serve claim, not a contact form', async () => {
+    const { claim } = setup()
     fireEvent.click(screen.getByTestId('unclaimed-claim'))
-    fill('name', 'Pat')
-    fill('contact', 'pat@example.com')
-    fireEvent.submit(screen.getByTestId('unclaimed-claim-form'))
-    await waitFor(() => expect(screen.getByTestId('unclaimed-done')).toBeInTheDocument())
-    expect(onClaim).toHaveBeenCalledWith({ groupId: 'g-1', name: 'Pat', contact: 'pat@example.com', message: undefined })
+    expect(await screen.findByText('@rosas.com')).toBeInTheDocument()
+    expect(claim.choices).toHaveBeenCalledWith('g-1')
+    expect(document.querySelector('[name="name"]')).toBeNull()
   })
 
   it('says so when the device is over its daily limit', async () => {

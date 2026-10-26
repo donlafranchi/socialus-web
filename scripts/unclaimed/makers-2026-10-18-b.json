@@ -1,0 +1,115 @@
+[
+ {
+  "name": "Knight Foundry",
+  "category": "Historical society",
+  "makes": "A historic water-powered foundry and machine shop, established in 1873, open the second and fourth Saturday of every month year-round, with docent-led demonstrations on the second and self-guided visits on the fourth",
+  "area": "Sutter Creek (Amador)",
+  "site": "https://knightfoundry.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/visitknightfoundry",
+   "facebook": "https://www.facebook.com/visitknightfoundry"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): 2026 footer, open days on the home page; city and tourism pages agree."
+ },
+ {
+  "name": "Sutter Creek Community Benefit Foundation",
+  "category": "Historical society",
+  "makes": "A nonprofit founded in 2012 to restore, preserve and develop the community's historic assets, now renovating the Historic Sutter Creek Grammar School",
+  "area": "Sutter Creek (Amador)",
+  "site": "https://suttercreekfoundation.org/",
+  "social": {
+   "facebook": "https://www.facebook.com/suttercreekfoundation"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): copyright 2026, P.O. Box in Sutter Creek."
+ },
+ {
+  "name": "Vino Tahoe",
+  "category": "Food & drink",
+  "makes": "A micro-winery making minimal-intervention wines from certified organic estate grapes at 15010 Ridge Road",
+  "area": "Sutter Creek (Amador)",
+  "site": "https://www.vinotahoe.com/",
+  "confidence": "High; own site checked 2026-10-18 (200): address on the site; no social links found."
+ },
+ {
+  "name": "Jeremy Wine Co.",
+  "category": "Food & drink",
+  "makes": "A tasting room with a climate-controlled barrel room and patio inside its estate vineyard on Highway 88, open Thursday to Sunday 12 to 5, plus a Zin Lab for blending your own wine",
+  "area": "Lockeford (San Joaquin)",
+  "site": "https://jeremywineco.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/jeremywineco",
+   "facebook": "https://www.facebook.com/jeremywineco"
+  },
+  "confidence": "High; own site /visit/ checked 2026-10-18 (200): 16750 CA-88, Lockeford; Page names the Lockeford room, not the Lodi one."
+ },
+ {
+  "name": "Volcano Theatre Company",
+  "category": "Art association (nonprofit)",
+  "makes": "A community theatre on Main Street in Volcano; its 2026 season includes Dr. Jekyll and Mr. Hyde and the holiday comedy On The Farce Day of Christmas, November 6 to December 13",
+  "area": "Volcano (Amador)",
+  "site": "https://volcanotheatre.net/",
+  "social": {
+   "facebook": "https://www.facebook.com/volcanotheatrecompany"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): season and Christmas show dates on the show page; holiday."
+ },
+ {
+  "name": "Craft Guild of Nevada County",
+  "category": "Art association (nonprofit)",
+  "makes": "A non-profit, member-based guild giving crafters and artists a place to show and sell their work, with its Winterfaire on October 24 and 25 at the Nevada County Fairgrounds",
+  "area": "Grass Valley (Nevada)",
+  "site": "https://www.craftguildofnevadacounty.org/",
+  "social": {
+   "instagram": "https://www.instagram.com/craftguildofnevadacounty",
+   "facebook": "https://www.facebook.com/craftguildofnevadacounty"
+  },
+  "confidence": "Medium-high; own site checked 2026-10-18 (200): Winterfaire Oct 24-25 2026, 9 to 4, stated in the page body (slug says 2025); holiday."
+ },
+ {
+  "name": "Horton Iris Garden",
+  "category": "Farm stay & agritourism",
+  "makes": "A country iris farm with about 1,300 varieties to see in bloom and buy, and a fall pumpkin patch open Fridays to Sundays",
+  "area": "Loomis (Placer)",
+  "site": "http://www.hortonirisgarden.com/",
+  "social": {
+   "facebook": "https://www.facebook.com/hortonirisgarden"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): 7440 King Road, 2026 pumpkin patch hours; holiday (pumpkins)."
+ },
+ {
+  "name": "Foothill Roots Farm",
+  "category": "Farm",
+  "makes": "Certified organic vegetables in the Gold Country through a CSA and a farmstand, open Thursdays and Fridays 2 to 7 through October, then Thursdays 1 to 5 from November to January",
+  "area": "Meadow Vista (Placer)",
+  "site": "https://www.foothillrootsfarm.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/FoothillRootsFarm",
+   "facebook": "https://www.facebook.com/FoothillRootsFarm"
+  },
+  "confidence": "High; own site checked 2026-10-18 (200): title names Meadow Vista, 2026 footer."
+ },
+ {
+  "name": "Serendipity Ranch",
+  "category": "Farm",
+  "makes": "A small flower farm growing seasonal flowers from seed by organic methods, selling cut blooms and offering pick-your-own flowers and farm tours by appointment",
+  "area": "Lincoln (Placer)",
+  "site": "https://www.serendipityflowers.shop/",
+  "social": {
+   "instagram": "https://www.instagram.com/ranch.serendipity",
+   "facebook": "https://www.facebook.com/profile.php?id=100087005080896"
+  },
+  "confidence": "Medium-high; own site checked 2026-10-18 (200): 2026 tour and market dates listed; no street address."
+ },
+ {
+  "name": "Granny May's Strawberry Farm",
+  "category": "Farm",
+  "makes": "A strawberry farm on Auburn Folsom Road with a farm stand open 9 to 5 or until sold out",
+  "area": "Granite Bay (Placer)",
+  "site": "https://www.grannymaysstrawberries.com/",
+  "social": {
+   "instagram": "https://www.instagram.com/grannymays_",
+   "facebook": "https://www.facebook.com/GrannyMaysFarm/"
+  },
+  "confidence": "Medium-high; own site checked 2026-10-18 (200): 7246 Auburn Folsom Rd; says U-Pick closed for the 2026 season, so the Page describes the stand only."
+ }
+]

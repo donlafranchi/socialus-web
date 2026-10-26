@@ -14,7 +14,7 @@
 // same lie by a longer route.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { DEFAULT_METRO_SLUG, resolveFeedMetro, type FeedMetro } from '@/lib/feed/feed-metro'
+import { DEFAULT_METRO_SLUG, pickFeedMetro, resolveFeedMetro, type FeedMetro } from '@/lib/feed/feed-metro'
 
 type FromClient = Pick<SupabaseClient, 'from'>
 
@@ -33,11 +33,15 @@ export async function resolveBrowseScope(
     requestedSlug?: string | null
     /** Last metro picked on this device (cookie). Used when nothing is requested. */
     rememberedSlug?: string | null
+    /** #978 — every metro, already read: the scope is picked from it with no read of its own. */
+    catalog?: readonly FeedMetro[]
   },
 ): Promise<BrowseScope | null> {
   const requested = opts.requestedSlug?.trim() || opts.rememberedSlug?.trim() || null
   const memberMetroId = opts.memberDefaultMetroId ?? opts.memberMetroId
-  const metro = await resolveFeedMetro(supabase, { memberMetroId, requestedSlug: requested })
+  const metro = opts.catalog?.length
+    ? pickFeedMetro(opts.catalog, { memberMetroId, requestedSlug: requested })
+    : await resolveFeedMetro(supabase, { memberMetroId, requestedSlug: requested })
   if (!metro) return null
 
   if (requested && metro.slug === requested) return { metro, chosen: true }

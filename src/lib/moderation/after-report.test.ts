@@ -7,14 +7,14 @@ vi.mock('./run-assessment', () => ({ runAssessment: run }))
 
 import { assessAfterReport } from './after-report'
 
-const KEY = process.env.ANTHROPIC_API_KEY
+const KEY = process.env.ANTHROPIC_MODERATION_KEY
 beforeEach(() => {
   run.mockClear()
-  process.env.ANTHROPIC_API_KEY = 'sk-test'
+  process.env.ANTHROPIC_MODERATION_KEY = 'sk-test'
 })
 afterEach(() => {
-  if (KEY === undefined) delete process.env.ANTHROPIC_API_KEY
-  else process.env.ANTHROPIC_API_KEY = KEY
+  if (KEY === undefined) delete process.env.ANTHROPIC_MODERATION_KEY
+  else process.env.ANTHROPIC_MODERATION_KEY = KEY
 })
 
 describe('assessAfterReport', () => {
@@ -30,7 +30,7 @@ describe('assessAfterReport', () => {
   })
 
   it('without an API key it does nothing', () => {
-    delete process.env.ANTHROPIC_API_KEY
+    delete process.env.ANTHROPIC_MODERATION_KEY
     assessAfterReport('r1')
     expect(run).not.toHaveBeenCalled()
   })

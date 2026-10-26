@@ -37,6 +37,7 @@
 // (F059 criterion 3). Community response may in principle order it and does
 // not today — no Page or post carries a response count.
 
+import { searchRaw, searchTsQuery } from '@/lib/search/query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
@@ -45,6 +46,7 @@ import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
 import { maskEmails, maskEmailsOrNull } from '../text/contact-info'
+import { isSafeLinkUrl } from '@/lib/groups/social-links'
 
 /** What a row IS. A Page and one of its posts are different results. */
 export type BrowseResultKind = 'page' | 'post'
@@ -98,6 +100,10 @@ export interface BrowseFeedOpts {
    * tag, and a caller should not have to know that.
    */
   tags?: readonly string[] | null
+  /** #876 — the Type filter's post kinds; a dated real post counts as an event. */
+  postKinds?: readonly ('event' | 'deal' | 'last_minute')[] | null
+  /** #916 — the search box's words; searched on the server over every row in scope, widened by synonyms. */
+  search?: string | null
   /** The time lens window. Both ends optional and independent. */
   startsFrom?: string | null
   startsBefore?: string | null
@@ -107,6 +113,8 @@ export interface BrowseFeedOpts {
   /** The cutoff past-dated posts are judged against. Omitted, the db clock. */
   now?: string | null
   limit?: number | null
+  /** #922 — only rows within this many minutes' drive of the reader's vantage (metro scope only). */
+  reachMinutes?: number | null
 }
 
 /** One row exactly as `browse_feed` returns it. */
@@ -136,6 +144,8 @@ export interface BrowseFeedRow {
   posted_at: string | null
   /** #262 — a post's optional end. */
   ends_at?: string | null
+  /** #796 — set only on a seeder sample (#556). */
+  sample_kind?: 'event' | 'deal' | 'last_minute' | null
   sort_at: string
 }
 
@@ -175,6 +185,10 @@ export interface BrowseResult {
   postedAt: string | null
   /** #262 — a post's optional end. */
   endsAt?: string | null
+  /** #796 — a seeder sample (#556): every surface marks it as one. Null on real posts and Pages. */
+  sampleKind?: 'event' | 'deal' | 'last_minute' | null
+  /** #876 — from a Page the member follows: the Following filter's field. Set by Explore's loader. */
+  followed?: boolean
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
   sortAt: string
   /**
@@ -196,6 +210,32 @@ export interface BrowseResult {
   announcementCount: number | null
   /** F093 — every announcement id a withheld Page card answers to. */
   announcementIds: string[] | null
+  /**
+   * #922 — a Page card's quick links (signed in only, with the location): its website, Instagram and TikTok
+   * when it has them, and whether it sits at a fixed point Directions can go to.
+   */
+  quickLinks?: QuickLinks | null
+  /** #922 — the Page's own picture, for a post card's avatar. Already through visiblePhotoUrl. */
+  pageAvatarUrl?: string | null
+}
+
+export interface QuickLinks {
+  website?: string
+  instagram?: string
+  tiktok?: string
+  /** False for an area, or a Page that moves or travels: no exact point, so no Directions. */
+  fixedPoint: boolean
+}
+
+/** What a card needs from the Page beyond the feed row, read in the one lookup that finds its public id. */
+interface PageExtras {
+  publicId: string | null
+  socialLinks: Record<string, unknown> | null
+  whereMode: string | null
+  anchorKind: string | null
+  avatarUrl: string | null
+  /** False when the links were not read (signed out, or the read fell back): no quick links then. */
+  linksRead: boolean
 }
 
 type RpcClient = Pick<SupabaseClient, 'rpc' | 'from'>
@@ -249,7 +289,8 @@ export function resultHref(
   return `${page}#${announcementAnchor(r.result_id)}`
 }
 
-export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseResult {
+export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?: PageExtras): BrowseResult {
+  const point = pointOf(r.location_geography)
   return {
     resultKind: r.result_kind,
     resultId: r.result_id,
@@ -271,15 +312,31 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
     startsAt: r.starts_at ?? null,
     locationId: r.location_id,
     locationLabel: r.location_label,
-    ...pointOf(r.location_geography),
+    ...point,
     pageCreatedAt: r.page_created_at,
     updatedAt: r.updated_at,
     postedAt: r.posted_at ?? null,
     endsAt: r.ends_at ?? null,
+    sampleKind: r.sample_kind ?? null,
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,
     announcementIds: null,
+    // Quick links ride with the point: browse_feed withholds it from a signed-out reader (F093 criterion 8).
+    quickLinks: r.result_kind === 'page' && extras?.linksRead && point.latitude !== null ? quickLinksOf(extras) : null,
+    pageAvatarUrl: extras?.avatarUrl ?? null,
+  }
+}
+
+const safeHttps = (v: unknown): string | undefined => (typeof v === 'string' && isSafeLinkUrl(v) ? v.trim() : undefined)
+
+function quickLinksOf(e: PageExtras): QuickLinks {
+  const s = e.socialLinks ?? {}
+  return {
+    ...(safeHttps(s.website) ? { website: safeHttps(s.website) } : {}),
+    ...(safeHttps(s.instagram) ? { instagram: safeHttps(s.instagram) } : {}),
+    ...(safeHttps(s.tiktok) ? { tiktok: safeHttps(s.tiktok) } : {}),
+    fixedPoint: e.anchorKind !== 'area' && e.whereMode !== 'roaming' && e.whereMode !== 'travel',
   }
 }
 
@@ -291,6 +348,11 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null): BrowseR
  * tell "nothing matched this lens" from "the query is broken", and the whole
  * point of the hide-an-empty-row rule is that an absent row means the first.
  */
+function searchArgs(text: string | null | undefined) {
+  const raw = text ? searchRaw(text) : null
+  return raw ? { p_search: searchTsQuery(text!), p_search_raw: raw } : {}
+}
+
 export async function getBrowseFeed(
   supabase: RpcClient,
   opts: BrowseFeedOpts,
@@ -310,11 +372,89 @@ export async function getBrowseFeed(
     p_sort: opts.sort ?? 'recent',
     p_now: opts.now ?? null,
     p_limit: clampLimit(opts.limit),
+    ...(opts.postKinds?.length ? { p_post_kinds: [...opts.postKinds] } : {}),
+    ...searchArgs(opts.search),
+    // A drive minute is a straight-line kilometre, as in browse_nearby.
+    ...(opts.reachMinutes ? { p_reach_m: opts.reachMinutes * 1000 } : {}),
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]
-  const publicIds = await fetchPagePublicIds(supabase, rows.map((r) => r.group_id))
-  return rows.map((r) => mapBrowseRow(r, publicIds.get(r.group_id) ?? null))
+  const pages = await fetchPageExtras(supabase, rows)
+  return rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
+}
+
+/**
+ * #791 — Explore's three "happening" rows in one read (`browse_happening`):
+ * this week and this weekend, each browse_feed's posts soonest first. Today and
+ * this week start at the same moment, so today is the front of the week list
+ * cut at tonight, exact for the same limit. Was three reads, each with its own
+ * public-id lookup: six round trips, and the three feeds contending.
+ */
+export async function getHappening(
+  supabase: RpcClient,
+  scope: { metroId: string } | { placeId: string },
+  windows: { today: { to: string }; thisWeek: { from: string; to: string }; thisWeekend: { from: string } },
+  limit: number,
+): Promise<{ today: BrowseResult[]; thisWeek: BrowseResult[]; thisWeekend: BrowseResult[] }> {
+  const { data, error } = await supabase.rpc('browse_happening', {
+    p_metro_id: 'metroId' in scope ? scope.metroId : null,
+    p_place_id: 'placeId' in scope ? scope.placeId : null,
+    p_from: windows.thisWeek.from,
+    p_weekend_from: windows.thisWeekend.from,
+    p_before: windows.thisWeek.to,
+    p_limit: clampLimit(limit),
+  })
+  if (error) throw error
+  const rows = ((data ?? []) as (BrowseFeedRow & { bucket: 'week' | 'weekend' })[]).slice().sort(soonestFirst)
+  const pages = await fetchPageExtras(supabase, rows)
+  const map = (b: 'week' | 'weekend') =>
+    rows.filter((r) => r.bucket === b).map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
+  const thisWeek = map('week')
+  const tonight = Date.parse(windows.today.to)
+  return {
+    today: thisWeek.filter((r) => r.startsAt !== null && Date.parse(r.startsAt) < tonight),
+    thisWeek,
+    thisWeekend: map('weekend'),
+  }
+}
+
+/**
+ * #922 — Explore's default read in one call (`browse_nearby`): the database picks the smallest ring from the
+ * reader's vantage holding a full screen of things on before `weekEnd` (or takes `minutes` when the member set
+ * it), and returns browse_feed's rows within it plus the reach it used. `from` is a town's name, or null for
+ * the member's own town; the vantage itself never leaves the database.
+ */
+export async function getNearbyFeed(
+  supabase: RpcClient,
+  opts: { metroId: string; resultKinds?: readonly BrowseResultKind[] | null; weekEnd: string; minutes?: number | null; target: number; cap: number; limit?: number | null },
+): Promise<{ results: BrowseResult[]; reach: { minutes: number; from: string | null } }> {
+  const { data, error } = await supabase.rpc('browse_nearby', {
+    p_metro_id: opts.metroId,
+    p_result_kinds: opts.resultKinds ? [...opts.resultKinds] : null,
+    p_week_end: opts.weekEnd,
+    p_minutes: opts.minutes ?? null,
+    p_target: opts.target,
+    p_cap_minutes: opts.cap,
+    p_limit: clampLimit(opts.limit),
+  })
+  if (error) throw error
+  const rows = (data ?? []) as (BrowseFeedRow & { reach_minutes: number; reach_from: string | null })[]
+  const pages = await fetchPageExtras(supabase, rows)
+  const first = rows[0]
+  return {
+    results: rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id))),
+    // Nothing within reach still has a reach: the widest it tried, so "Show more nearby" is there to tap.
+    reach: first ? { minutes: first.reach_minutes, from: first.reach_from } : { minutes: opts.minutes ?? opts.cap, from: null },
+  }
+}
+
+/** browse_feed's 'soonest' order, kept across the union the database may not preserve. */
+function soonestFirst(a: BrowseFeedRow, b: BrowseFeedRow): number {
+  const s = Date.parse(a.sort_at) - Date.parse(b.sort_at)
+  if (s) return s
+  const u = Date.parse(b.updated_at) - Date.parse(a.updated_at)
+  if (u) return u
+  return a.result_id < b.result_id ? -1 : a.result_id > b.result_id ? 1 : 0
 }
 
 /**
@@ -329,17 +469,42 @@ export async function getBrowseFeed(
  * `fetchGroupPrefixes` follows, and the same rule that made this bug quiet for
  * so long, so it is worth saying out loud: a missing id is a dead card.
  */
-async function fetchPagePublicIds(
+async function fetchPageExtras(
   supabase: RpcClient,
-  groupIds: readonly string[],
-): Promise<Map<string, string>> {
-  const ids = Array.from(new Set(groupIds.filter(Boolean)))
-  const out = new Map<string, string>()
+  rows: readonly Pick<BrowseFeedRow, 'group_id' | 'result_kind' | 'location_geography'>[],
+): Promise<Map<string, PageExtras>> {
+  const ids = Array.from(new Set(rows.map((r) => r.group_id).filter(Boolean)))
+  const out = new Map<string, PageExtras>()
   if (ids.length === 0) return out
-  const { data, error } = await supabase.from('groups').select('id, public_id').in('id', ids)
+  // #922 — the quick links come in the same read, and only for a reader browse_feed gave a point to: a
+  // signed-out reader has neither the point (F093.8) nor the grant on where_mode or the anchor, and asking
+  // for them would fail the whole lookup and with it every card's link.
+  const withLinks = rows.some((r) => r.result_kind === 'page' && r.location_geography)
+  const base = 'id, public_id, picture_url, picture_hidden_at, picture_removed_at'
+  const read = (cols: string) => supabase.from('groups').select(cols).in('id', ids)
+  let { data, error } = await read(withLinks ? `${base}, social_links, where_mode, anchor:locations!groups_anchor_location_id_fkey(kind)` : base)
+  if (error && withLinks) ({ data, error } = await read(base))
   if (error || !data) return out
-  for (const row of data as { id: string; public_id: string | null }[]) {
-    if (row.public_id) out.set(row.id, row.public_id)
+  type Row = {
+    id: string
+    public_id: string | null
+    social_links: Record<string, unknown> | null
+    where_mode: string | null
+    picture_url: string | null
+    picture_hidden_at: string | null
+    picture_removed_at: string | null
+    anchor: { kind: string } | { kind: string }[] | null
+  }
+  for (const row of data as unknown as Row[]) {
+    const anchor = Array.isArray(row.anchor) ? row.anchor[0] : row.anchor
+    out.set(row.id, {
+      publicId: row.public_id,
+      socialLinks: row.social_links ?? null,
+      whereMode: row.where_mode ?? null,
+      anchorKind: anchor?.kind ?? null,
+      avatarUrl: visiblePhotoUrl({ photo_url: row.picture_url, photo_hidden_at: row.picture_hidden_at, photo_removed_at: row.picture_removed_at }),
+      linksRead: 'where_mode' in row,
+    })
   }
   return out
 }

@@ -1,6 +1,6 @@
-// #353 — an unclaimed Page (a real business added from public info, Don,
-// 2026-10-04): anyone can ask to remove it or claim it, signed in or out, and
-// an operator restores one that was hidden.
+// #353 — an unclaimed Page (a real business added from public info,
+// 2026-10-04): anyone can ask to remove it, signed in or out, and an operator
+// restores one that was hidden. Claiming it is claim.ts (#987).
 //
 // A REMOVAL REQUEST HIDES THE PAGE AT ONCE, before anyone reviews it (Don's
 // guardrail, stricter than Yelp, Google or Tripadvisor). Abuse protection never
@@ -112,31 +112,6 @@ export const groupUnclaimedRemove = defineHandler(
         })
       }
       return { hidden: true }
-    })
-  },
-)
-
-export const groupUnclaimedClaimInput = z.object({
-  groupId: z.string().uuid(),
-  name: z.string().trim().min(1).max(120),
-  contact,
-  message: z.string().trim().max(2000).optional(),
-  deviceHash,
-})
-
-export const groupUnclaimedClaim = defineHandler(
-  'group.unclaimed_claim',
-  groupUnclaimedClaimInput,
-  async (ctx: ActionContext, input): Promise<{ received: true }> => {
-    return withTransaction(async (client) => {
-      await requireUnclaimed(client, input.groupId, 'group.unclaimed_claim')
-      await requireUnderLimit(client, 'page_claim_requests', input.deviceHash, ctx.now(), 'group.unclaimed_claim')
-      await client.query(
-        `insert into public.page_claim_requests (group_id, name, contact, message, device_hash, created_at)
-         values ($1, $2, $3, $4, $5, $6)`,
-        [input.groupId, input.name, input.contact, input.message || null, input.deviceHash, ctx.now()],
-      )
-      return { received: true }
     })
   },
 )

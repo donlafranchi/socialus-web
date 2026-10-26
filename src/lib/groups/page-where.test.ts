@@ -1,7 +1,7 @@
 // #348 — where a Page is, read for signed-in visitors (the front door shows none of it).
 
 import { describe, it, expect, vi } from 'vitest'
-import { resolvePageWhere, whereLine } from './page-where'
+import { fixedPlacement, resolvePageWhere, whereLine, whereNow } from './page-where'
 
 function supabaseWith(group: unknown, towns: unknown[] = []) {
   return {
@@ -9,10 +9,11 @@ function supabaseWith(group: unknown, towns: unknown[] = []) {
       const chain = {
         select: vi.fn(() => chain),
         eq: vi.fn(() => chain),
+        order: vi.fn(() => chain),
         maybeSingle: vi.fn(async () => ({ data: group, error: null })),
-        then: (res: (v: unknown) => unknown) => res({ data: towns, error: null }),
+        then: (res: (v: unknown) => unknown) => res({ data: table === 'page_service_areas' ? towns : [], error: null }),
       }
-      return table === 'groups' || table === 'page_service_areas' ? chain : chain
+      return chain
     }),
   } as never
 }
@@ -23,7 +24,7 @@ describe('#348 — resolvePageWhere', () => {
       supabaseWith({ where_mode: 'travel', how_to_find: null, usually_around: null }, [{ places: { id: 'pl-d', display_name: 'Davis' } }]),
       'g1',
     )
-    expect(where).toEqual({ mode: 'travel', howToFind: null, usuallyAround: null, towns: [{ id: 'pl-d', name: 'Davis' }] })
+    expect(where).toEqual({ mode: 'travel', howToFind: null, usuallyAround: null, towns: [{ id: 'pl-d', name: 'Davis' }], stops: [] })
   })
 
   it('is null when nothing was ever answered', async () => {
@@ -56,5 +57,55 @@ d450('whereLine — contact details', () => {
   i450('hides an email address in how to find us and usually around', () => {
     e450(wl450({ mode: 'visit', howToFind: 'ask a@example.com', usuallyAround: null, towns: [] })).not.toContain('@example.com')
     e450(wl450({ mode: 'roaming', howToFind: null, usuallyAround: 'b@example.com', towns: [] })).not.toContain('@example.com')
+  })
+})
+
+// #894 — the Location card's "Now:" line for a Page that moves is its own line, not the metro anchor's neighbourhood.
+describe('whereNow', () => {
+  const area = { kind: 'area' as const, label: 'East Sacramento' }
+  it('a Page that moves reads as moving', () => {
+    expect(whereNow({ mode: 'roaming', howToFind: null, usuallyAround: null, towns: [] }, area)).toBe('Around the Sacramento area')
+  })
+  it('a Page people come to reads as its place', () => {
+    expect(whereNow({ mode: 'visit', howToFind: null, usuallyAround: null, towns: [] }, area)).toBe('East Sacramento')
+  })
+})
+
+// #896 — more answers for a Page with no street address.
+describe('#896 — landmark, more than one location, online, and stops', () => {
+  const base = { howToFind: null, usuallyAround: null, towns: [] }
+  it('reads the stops in order', async () => {
+    const stops = [{ label: 'Midtown Farmers Market', when_text: 'Saturdays' }]
+    const supabase = {
+      from: vi.fn((table: string) => {
+        const chain = {
+          select: vi.fn(() => chain),
+          eq: vi.fn(() => chain),
+          order: vi.fn(() => chain),
+          maybeSingle: vi.fn(async () => ({ data: { where_mode: 'roaming', how_to_find: null, usually_around: null }, error: null })),
+          then: (res: (v: unknown) => unknown) => res({ data: table === 'page_stops' ? stops : [], error: null }),
+        }
+        return chain
+      }),
+    } as never
+    expect(await resolvePageWhere(supabase, 'g1')).toMatchObject({ mode: 'roaming', stops: [{ label: 'Midtown Farmers Market', whenText: 'Saturdays' }] })
+  })
+  it('a landmark reads like an address: how to find us', () => {
+    expect(whereLine({ ...base, mode: 'landmark', howToFind: 'Under the oak' })).toBe('How to find us: Under the oak')
+  })
+  it('online: its note, or a plain line', () => {
+    expect(whereLine({ ...base, mode: 'online' })).toBe('Online, or by appointment')
+    expect(whereLine({ ...base, mode: 'online', howToFind: 'By appointment in Midtown' })).toBe('By appointment in Midtown')
+  })
+  it('more than one location, or online, has no single fixed place', () => {
+    const area = { kind: 'area' as const, label: 'East Sacramento' }
+    expect(fixedPlacement({ mode: 'multi' }, area)).toBeUndefined()
+    expect(fixedPlacement({ mode: 'online' }, area)).toBeUndefined()
+    expect(fixedPlacement({ mode: 'landmark' }, area)).toBe(area)
+  })
+  it('the Location card names the first location and how many more', () => {
+    const stops = [{ label: '1 A St', whenText: null }, { label: '2 B St', whenText: null }, { label: '3 C St', whenText: null }]
+    expect(whereNow({ ...base, mode: 'multi', stops }, undefined)).toBe('1 A St and 2 more')
+    expect(whereNow({ ...base, mode: 'multi', stops: stops.slice(0, 1) }, undefined)).toBe('1 A St')
   })
 })

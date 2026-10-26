@@ -36,7 +36,11 @@ export const memberSignupProfileSet = defineHandler(
       const res = await client.query(
         `update public.members
             set legal_name = $1, display_name = $2, zip = $3,
-                home_metro_id = $4, adult_confirmed_at = now()
+                home_metro_id = $4, adult_confirmed_at = now(),
+                -- F103.5: the market and the home town the zip decides, resolved here from the zip, never from the caller.
+                home_market_key = (select h.market_key from public.zip_home($3) h),
+                home_town = (select h.town_name from public.zip_home($3) h),
+                home_town_geoid = (select h.town_geoid from public.zip_home($3) h)
           where id = $5 and deleted_at is null
           returning id`,
         [input.legalName, input.displayName, input.zip, input.metroId, memberId],

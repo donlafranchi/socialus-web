@@ -10,6 +10,7 @@ import type { QueuedReport } from './reports-queue'
 import type { ReasonCode } from './reason-codes'
 import { SEVERITY_OF_REPORT_CATEGORY, type ReportCategory } from '@/lib/reports/categories'
 import { removeReasonFor } from './reason-codes'
+import { ANSWER_WINDOW_MS } from '@/lib/reports/answer-window'
 
 export type Severity = 1 | 2 | 3 | 4
 
@@ -38,6 +39,8 @@ export interface ReviewSubject {
   answer: QueuedReport['answer']
   /** F102 criterion 8 — a flag for the operator, never acted on automatically. */
   coordinated: boolean
+  /** #648 — kept as evidence, and the NCMEC report number once recorded; the report to record it against. */
+  hold: { retainUntil: Date; ncmecReportNumber: string | null; ncmecReportedAt: Date | null; reportId: string } | null
   /** What was reported, for the excerpt. */
   contentText: string | null
   hiddenAt: Date | null
@@ -64,6 +67,7 @@ export function groupBySubject(queue: QueuedReport[], { live = false }: { live?:
       contentText: r.contentText ?? null,
       reasons: [],
       coordinated: false,
+      hold: null,
       answer: null,
       ai: null,
       removeReason: 'not_suitable' as ReasonCode,
@@ -89,6 +93,8 @@ export function groupBySubject(queue: QueuedReport[], { live = false }: { live?:
     s.answer = s.reports.find((r) => r.answer)?.answer ?? null
     s.coordinated = s.reports.some((r) => r.posterId && flagged.has(r.posterId))
     s.ai = [...s.reports].reverse().find((r) => r.ai)?.ai ?? null
+    const held = s.reports.find((r) => r.hold)
+    s.hold = held?.hold ? { ...held.hold, reportId: held.reportId } : null
     s.severity = severityOf(s, live)
     s.reasons = tally(s)
     s.removeReason = removeReasonFor(topCategory(s))
@@ -148,6 +154,9 @@ export function orderSubjects(subjects: ReviewSubject[], key: SortKey = 'severit
   return [...subjects].sort((a, b) => {
     const wait = Number(b.openReportIds.length > 0) - Number(a.openReportIds.length > 0)
     if (wait) return wait
+    // #626: the owner said it is a mistake; those wait at the top, whatever the sort.
+    const claim = Number(b.answer?.kind === 'mistake') - Number(a.answer?.kind === 'mistake')
+    if (claim) return claim
     if (key === 'count' && b.reports.length !== a.reports.length) return b.reports.length - a.reports.length
     if (key === 'severity') {
       const sev = (a.severity ?? 5) - (b.severity ?? 5)
@@ -168,3 +177,34 @@ export const DEFAULT_REASON: Record<'restored' | 'removed', ReasonCode> = {
 
 /** F101 criterion 13: blur unless the row is known to be spam-tier. */
 export const blurred = (s: ReviewSubject) => s.severity !== 4
+
+/** One line of a subject's history (F101.12). */
+export type TimelineItem =
+  | { kind: 'report'; at: Date; report: QueuedReport }
+  | { kind: 'assessment'; at: Date; reportId: string; model: string | null; outcome: 'approve' | 'remove' | null; severity: number | null; confidence: number | null; reason: string | null; skipped: string | null }
+  | { kind: 'rebuttal'; at: Date; answer: NonNullable<QueuedReport['answer']> }
+  | { kind: 'decision'; at: Date; reportId: string; decision: QueuedReport['history'][number] }
+
+// Newest first; at the same instant the later thing in the story comes first.
+const KIND_RANK = { decision: 0, rebuttal: 1, assessment: 2, report: 3 } as const
+
+/** F101.12: every report, AI read, rebuttal and decision on a subject, newest first. */
+export function subjectTimeline(s: ReviewSubject): TimelineItem[] {
+  const items: TimelineItem[] = []
+  for (const r of s.reports) {
+    items.push({ kind: 'report', at: r.reportedAt, report: r })
+    for (const a of r.assessments ?? []) items.push({ kind: 'assessment', at: a.at, reportId: r.reportId, model: a.model, outcome: a.outcome, severity: a.severity, confidence: a.confidence, reason: a.reason, skipped: a.skipped })
+    for (const d of r.history) items.push({ kind: 'decision', at: d.decidedAt, reportId: r.reportId, decision: d })
+    // The poster's answer belongs to the subject, so every report row carries the same one: it is one line.
+    if (r.answer?.at && !items.some((i) => i.kind === 'rebuttal')) items.push({ kind: 'rebuttal', at: r.answer.at, answer: r.answer })
+  }
+  return items.sort((a, b) => b.at.getTime() - a.at.getTime() || KIND_RANK[a.kind] - KIND_RANK[b.kind])
+}
+
+/**
+ * F102 criterion 4: no answer is no work. A hide the poster has not answered in 14 days closes itself: it stays
+ * hidden and leaves the batch, unless it is severity 1 (the PM always sees that).
+ */
+export function lapsed(s: ReviewSubject, now: Date): boolean {
+  return s.status === 'hidden' && s.hiddenAt !== null && s.answer === null && s.severity !== 1 && now.getTime() - s.hiddenAt.getTime() >= ANSWER_WINDOW_MS
+}

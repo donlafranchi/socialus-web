@@ -28,6 +28,7 @@ const page = (n: string, city = 'Sacramento', county?: string): PlannedPage => (
   county,
   purpose: 'sell',
   pool: 'Food & drink',
+  interests: ['Food & drink', 'Local business'],
   area: 'Midtown',
   sources: (['name', 'description', 'website', 'address'] as const).map((field) => ({ field, url: `https://test-517-${n}.example/` })),
 })
@@ -40,6 +41,7 @@ const count = async (sql: string, p: unknown[] = []) => Number((await client.que
 const groupsLike = () => count(`select count(*) n from public.groups where public_info_url like 'https://test-517-%'`)
 
 async function cleanup() {
+  await client.query(`delete from public.items where group_id in (select id from public.groups where public_info_url like 'https://test-517-%')`)
   await client.query(`delete from public.groups where public_info_url like 'https://test-517-%'`)
 }
 
@@ -116,10 +118,10 @@ describe.skipIf(!RUNNABLE)('loadUnclaimed (#517)', () => {
     expect(where).toEqual({ kind: 'county', display_name: 'Sacramento' })
   })
 
-  it('a place outside the Sacramento metro is refused, so a Page nobody can find is not made', async () => {
+  it('a place outside the Sacramento area is refused, so a Page nobody can find is not made', async () => {
     const r = await loadUnclaimed(client, [page('e', 'Yuba City', 'Sutter')])
     expect(r.created).toBe(0)
-    expect(r.failed[0]!.error).toMatch(/metro/i)
+    expect(r.failed[0]!.error).toMatch(/outside the Sacramento area/)
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, ['https://test-517-e.example/'])).toBe(0)
   })
 
@@ -162,6 +164,17 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [E.publicInfoUrl])).toBe(3)
   })
 
+  // Don, 2026-10-16 — TikTok and Instagram first: a complete Page missing either has its own site read for them, links only.
+  it('backfills a missing TikTok from the Page\'s own site, then stops looking once both are there', async () => {
+    let calls = 0
+    const socials = async () => (calls++, { social: { tiktok: 'https://www.tiktok.com/@t517e', instagram: 'https://www.instagram.com/other' }, siteUrl: E.publicInfoUrl })
+    expect(await enrichPage(client, E, async () => enrichment, now, [], { socials })).toBe('refreshed')
+    const g = (await client.query(`select social_links from public.groups where public_info_url = $1`, [E.publicInfoUrl])).rows[0]
+    expect(g.social_links).toEqual({ instagram: 'https://www.instagram.com/t517e', tiktok: 'https://www.tiktok.com/@t517e' })
+    expect(await enrichPage(client, E, async () => enrichment, now, [], { socials })).toBe('complete')
+    expect(calls).toBe(1)
+  })
+
   it('rolls a stale sample forward to the next day', async () => {
     const later = new Date('2026-10-30T18:00:00Z')
     expect(await enrichPage(client, E, async () => enrichment, later)).toBe('refreshed')
@@ -180,6 +193,81 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.groups where public_info_url = $1 and photo_url is not null`, [F.publicInfoUrl])).toBe(0)
   })
 
+  it('a retired picture comes off the Page: its sample posts are made again from fresh pictures, and a retired cover is replaced (#795)', async () => {
+    const H = page('h')
+    await loadUnclaimed(client, [H])
+    const bad = { url: 'https://media.test-517.example/u/5740ac8e2dc5.webp', credit: 'Unsplash (stock photo, not this business)', sourceUrl: 'https://unsplash.com/photos/e3-9x-Ee238', own: false }
+    await enrichPage(client, H, async () => ({ ...enrichment, photos: [bad, photo(2), photo(3), photo(4)] }), now)
+    const fresh: Enrichment = { ...enrichment, photos: [photo(5, true), photo(6), photo(7), photo(8)] }
+    expect(await enrichPage(client, H, async () => fresh, now, ['5740ac8e2dc5'])).toBe('enriched')
+    const g = (await client.query(`select photo_url, photo_source_url from public.groups where public_info_url = $1`, [H.publicInfoUrl])).rows[0]
+    expect(g.photo_url).toBe(photo(5).url)
+    const urls = (await client.query(`select p.photo_url from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [H.publicInfoUrl])).rows.map((r) => r.photo_url as string)
+    expect(urls).toHaveLength(3)
+    expect(urls.some((u) => u.includes('5740ac8e2dc5'))).toBe(false)
+    // Once it is gone, the next run finds nothing to do.
+    expect(await enrichPage(client, H, async () => fresh, now, ['5740ac8e2dc5'])).toBe('complete')
+  })
+
+  // #816 a2 — the Page and its samples carry its interest tags; a Page loaded before them gets them on the next run.
+  it('tags the Page and every sample with its interests, once, and backfills a Page that has none', async () => {
+    const K = page('k')
+    await loadUnclaimed(client, [K])
+    await enrichPage(client, K, async () => enrichment, now)
+    const tagsOf = async () =>
+      (await client.query(
+        `select t.label from public.page_tags pt join public.tags t on t.id = pt.tag_id join public.groups g on g.id = pt.group_id where g.public_info_url = $1 order by 1`,
+        [K.publicInfoUrl],
+      )).rows.map((r) => r.label as string)
+    const postTagCount = async () =>
+      Number((await client.query(
+        `select count(*) n from public.post_tags x join public.page_posts p on p.id = x.post_id join public.groups g on g.id = p.group_id where g.public_info_url = $1`,
+        [K.publicInfoUrl],
+      )).rows[0].n)
+    expect((await tagsOf()).map((l) => l.toLowerCase())).toEqual(['food & drink', 'local business'])
+    expect(await postTagCount()).toBe(6)
+    // A Page tagged before keeps one row per tag; a run with no tags missing changes nothing.
+    expect(await enrichPage(client, K, async () => enrichment, now)).toBe('complete')
+    expect(await postTagCount()).toBe(6)
+    // Backfill: take the tags off, as on a Page loaded before #816; the next run puts them back.
+    await client.query(`delete from public.page_tags where group_id = (select id from public.groups where public_info_url = $1)`, [K.publicInfoUrl])
+    expect(await enrichPage(client, K, async () => enrichment, now)).toBe('refreshed')
+    expect(await tagsOf()).toHaveLength(2)
+  })
+
+  // Don, 2026-10-16 — a Page loaded before has its samples moved onto its weekly pattern, once; samples only.
+  it('moves samples off the weekly pattern onto one weekday, weeks 1–3, and leaves real posts alone', async () => {
+    const M = page('m')
+    await loadUnclaimed(client, [M])
+    await enrichPage(client, M, async () => enrichment, now)
+    const id = `(select id from public.groups where public_info_url = '${M.publicInfoUrl}')`
+    await client.query(`update public.page_posts set starts_at = '2026-10-14T19:00:00Z', ends_at = '2026-10-14T21:00:00Z' where group_id = ${id}`)
+    await client.query(`insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state, discoverability) values (${id}, 'A real post', '2026-10-14T19:00:00Z', '2026-10-14T21:00:00Z', 'active', 'listed')`)
+    const later = new Date('2026-10-12T18:00:00Z')
+    expect(await enrichPage(client, M, async () => enrichment, later)).toBe('refreshed')
+    const rows = (await client.query(`select starts_at, sample_kind from public.page_posts where group_id = ${id} order by starts_at`)).rows
+    const samples = rows.filter((r) => r.sample_kind)
+    const wd = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short' }).format(d)
+    expect(new Set(samples.map((r) => wd(r.starts_at))).size).toBe(1)
+    expect(samples.map((r) => Math.round((r.starts_at.getTime() - samples[0].starts_at.getTime()) / 86_400_000))).toEqual([0, 7, 14])
+    expect(rows.find((r) => !r.sample_kind).starts_at.toISOString()).toBe('2026-10-14T19:00:00.000Z')
+    expect(await enrichPage(client, M, async () => enrichment, later)).toBe('complete')
+  })
+
+  it('a Page put on stock-only after it loaded gets its own pictures replaced by stock on the next run (#809, F080)', async () => {
+    const J = page('j')
+    await loadUnclaimed(client, [J])
+    await enrichPage(client, J, async () => enrichment, now) // its own cover, from its site
+    const stock: Enrichment = { ...enrichment, photos: [photo(11), photo(12), photo(13), photo(14)].map((p) => ({ ...p, sourceUrl: 'https://unsplash.com/photos/x' })) }
+    expect(await enrichPage(client, J, async () => stock, now, [], { stockOnly: true })).toBe('enriched')
+    const g = (await client.query(`select photo_url, photo_source_url from public.groups where public_info_url = $1`, [J.publicInfoUrl])).rows[0]
+    expect(g).toMatchObject({ photo_url: photo(11).url, photo_source_url: 'https://unsplash.com/photos/x' })
+    const urls = (await client.query(`select p.photo_url from public.page_posts p join public.groups g on g.id = p.group_id where g.public_info_url = $1`, [J.publicInfoUrl])).rows.map((r) => r.photo_url as string)
+    expect(urls.every((u) => [photo(12).url, photo(13).url, photo(14).url, photo(11).url].includes(u))).toBe(true)
+    // Already stock: nothing more to do.
+    expect(await enrichPage(client, J, async () => stock, now, [], { stockOnly: true })).toBe('complete')
+  })
+
   it('moves a Page filed under a dead address to the fixed one', async () => {
     const G = page('g')
     await loadUnclaimed(client, [G])
@@ -189,5 +277,46 @@ describe.skipIf(!RUNNABLE)('enrichPage (#556)', () => {
     expect(await count(`select count(*) n from public.groups where public_info_url = $1`, [G.publicInfoUrl])).toBe(0)
     // A later run still finds it under the new address and makes no second one (a duplicate slug used to fail here).
     expect(await loadUnclaimed(client, [fixed])).toMatchObject({ created: 0, existing: 1, failed: [] })
+  })
+})
+
+// #909 — an unclaimed Page's sample products and services, from its own site: labelled by their source, replaced
+// when the list changes, and never touched once the Page has a real one.
+describe.skipIf(!RUNNABLE)('sample products (#909)', () => {
+  const S = page('s')
+  const products = [1, 2, 3].map((n) => ({ name: `T909 seed ${n}`, url: `https://test-517-s.example/shop/${n}`, priceCents: n * 100, kind: 'product' as const }))
+  const now = new Date('2026-10-18T18:00:00Z')
+  const enrichment: Enrichment = { photos: [1, 2, 3, 4].map((n) => ({ url: `https://media.test-517.example/s${n}.webp`, credit: 'c', sourceUrl: `https://test-517-s.example/${n}`, own: true })), phone: null, social: {}, siteUrl: S.publicInfoUrl }
+  const items = async () =>
+    (await client.query(
+      `select i.title, i.sample_source_url, i.state, i.position, i.member_id, p.price_cents
+         from public.items i join public.groups g on g.id = i.group_id left join public.item_products p on p.item_id = i.id
+        where g.public_info_url = $1 and i.deleted_at is null order by i.position`,
+      [S.publicInfoUrl],
+    )).rows
+
+  it('puts the samples on the Page, published, in order, credited to their own pages, under the system member', async () => {
+    await loadUnclaimed(client, [S])
+    await enrichPage(client, { ...S, products }, async () => enrichment, now)
+    expect(await items()).toEqual(products.map((p, i) => ({ title: p.name, sample_source_url: p.url, state: 'published', position: i, member_id: SYSTEM_MEMBER_ID, price_cents: p.priceCents })))
+  })
+
+  it('a second run with the same list changes nothing', async () => {
+    const before = (await client.query(`select i.id from public.items i join public.groups g on g.id = i.group_id where g.public_info_url = $1 order by i.position`, [S.publicInfoUrl])).rows
+    expect(await enrichPage(client, { ...S, products }, async () => enrichment, now)).toBe('complete')
+    const after = (await client.query(`select i.id from public.items i join public.groups g on g.id = i.group_id where g.public_info_url = $1 order by i.position`, [S.publicInfoUrl])).rows
+    expect(after).toEqual(before)
+  })
+
+  it('a changed list replaces the samples', async () => {
+    const next = [...products.slice(1), { name: 'T909 tour', url: 'https://test-517-s.example/tour', priceCents: null, kind: 'service' as const }]
+    expect(await enrichPage(client, { ...S, products: next }, async () => enrichment, now)).toBe('refreshed')
+    expect((await items()).map((r) => r.title)).toEqual(['T909 seed 2', 'T909 seed 3', 'T909 tour'])
+  })
+
+  it('a Page with a real one of its own is left alone', async () => {
+    await client.query(`update public.items set sample_source_url = null where title = 'T909 seed 2'`)
+    expect(await enrichPage(client, { ...S, products }, async () => enrichment, now)).toBe('complete')
+    expect((await items()).map((r) => r.title)).toEqual(['T909 seed 2', 'T909 seed 3', 'T909 tour'])
   })
 })

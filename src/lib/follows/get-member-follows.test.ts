@@ -49,6 +49,22 @@ const VENUE_DATA = {
   locations: [{ id: 'l1', slug: 'blue-bottle', label: 'Blue Bottle' }],
 }
 
+describe('#962 — a Page the member runs is not one they follow', () => {
+  it('leaves out owner and steward rows', async () => {
+    const { client } = makeClient({
+      group_memberships: [
+        { group_id: 'g1', joined_at: '2026-06-15T00:00:00Z', role: 'member' },
+        { group_id: 'own', joined_at: '2026-06-16T00:00:00Z', role: 'owner' },
+      ],
+      groups: [
+        { id: 'g1', public_id: 'r7nc1b', name: 'Run Club' },
+        { id: 'own', public_id: 'own111', name: 'My Shop' },
+      ],
+    })
+    expect((await getMemberFollows(client, 'me')).map((e) => e.displayName)).toEqual(['Run Club'])
+  })
+})
+
 describe('getMemberFollows — union + ordering', () => {
   it('unions all three substrates, ordered by createdAt DESC (mixed kinds interleave)', async () => {
     const { client } = makeClient({ ...PERSON_DATA, ...GROUP_DATA, ...VENUE_DATA })
@@ -117,7 +133,10 @@ describe('getMemberFollows — substrate filters', () => {
     expect(calls.member_follows).toContainEqual(['eq', ['follower_member_id', 'me']])
 
     expect(calls.group_memberships).toContainEqual(['is', ['left_at', null]])
-    expect(calls.group_memberships).toContainEqual(['eq', ['source', 'explicit']])
+    // #962 — by relationship, as Explore's Following filter reads it: following an open Page writes source
+    // 'soft_via_follow', so a source = 'explicit' read left out every business a member follows.
+    expect(calls.group_memberships).toContainEqual(['in', ['relationship', ['follower', 'member']]])
+    expect(calls.group_memberships.some(([m, a]) => m === 'eq' && (a as unknown[])[0] === 'source')).toBe(false)
     expect(calls.group_memberships).toContainEqual(['eq', ['member_id', 'me']])
 
     expect(calls.member_saved_searches).toContainEqual(['is', ['removed_at', null]])

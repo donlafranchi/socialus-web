@@ -13,12 +13,23 @@ import {
   memberPlaceInterestRemove,
   memberDefaultMetroSet,
   memberSignupProfileSet,
+  memberZipSet,
   memberInterestsAdd,
+  memberInterestsRemove,
   memberFollow,
   memberUnfollow,
   memberSavedSearchRemove,
   memberSavedSearchRestore,
+  memberSearchSharingSet,
+  memberNotificationsSet,
+  memberPushSubscribe,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
+  memberReminderSet,
+  memberReminderRemove,
+  memberReminderEveryForPage,
 } from './member'
+import { searchDemandLog } from './search'
 import {
   groupCreate,
   groupUpdateDraft,
@@ -36,14 +47,21 @@ import {
   groupDiscardDraft,
   groupRestore,
   groupUnclaimedRemove,
-  groupUnclaimedClaim,
   groupUnclaimedRestore,
+  groupMarketStallSet,
+  groupMarketStallSkip,
+  groupMarketStallRemove,
+  groupMarketStallConfirm,
+  groupClaimStart,
+  groupClaimVerify,
+  groupClaimProof,
+  groupClaimDecide,
 } from './group'
-import { itemCreate, itemPublish, itemAttachLocation } from './item'
+import { itemCreate, itemPublish, itemAttachLocation, featuredItemSave, featuredItemRemove } from './item'
 import { tagReview } from './tag'
 import { originRecord } from './origin'
 import { problemReport } from './problem'
-import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge } from './report'
+import { reportCreate, reportDecide, reportReverse, reportAnswer, reportPurgeTarget, reportPurge, reportNcmecRecord } from './report'
 export { originRecord, originRecordInput, type OriginRecordInput } from './origin'
 import { metroWaitlistJoin, metroWaitlistJoinAnonymous } from './metro'
 import { builderContentSetVisible, builderContentDeleteAll } from './builder'
@@ -66,18 +84,38 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'item.create': itemCreate as unknown as NamedActionHandler<unknown, unknown>,
   'item.publish': itemPublish as unknown as NamedActionHandler<unknown, unknown>,
   'item.attach_location': itemAttachLocation as unknown as NamedActionHandler<unknown, unknown>,
+  'item.featured_save': featuredItemSave as unknown as NamedActionHandler<unknown, unknown>,
+  'item.featured_remove': featuredItemRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.business_jurisdiction.set': memberBusinessJurisdictionSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.business_jurisdiction.remove': memberBusinessJurisdictionRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.place_interest.add': memberPlaceInterestAdd as unknown as NamedActionHandler<unknown, unknown>,
   'member.place_interest.remove': memberPlaceInterestRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.default_metro.set': memberDefaultMetroSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.signup_profile.set': memberSignupProfileSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member.zip.set': memberZipSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.interests.add': memberInterestsAdd as unknown as NamedActionHandler<unknown, unknown>,
+  'member.interests.remove': memberInterestsRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.follow': memberFollow as unknown as NamedActionHandler<unknown, unknown>,
   'member.unfollow': memberUnfollow as unknown as NamedActionHandler<unknown, unknown>,
+  // #904 — notifications
+  'member.notifications.set': memberNotificationsSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member.push.subscribe': memberPushSubscribe as unknown as NamedActionHandler<unknown, unknown>,
+  'member.push.unsubscribe': memberPushUnsubscribe as unknown as NamedActionHandler<unknown, unknown>,
+  'member.notifications.opened': memberNotificationsOpened as unknown as NamedActionHandler<unknown, unknown>,
+  // #945 — Remind me
+  'member.reminder.set': memberReminderSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member.reminder.remove': memberReminderRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'member.reminder.every_for_page': memberReminderEveryForPage as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.set': groupMarketStallSet as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.skip': groupMarketStallSkip as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.remove': groupMarketStallRemove as unknown as NamedActionHandler<unknown, unknown>,
+  'group.market_stall.confirm': groupMarketStallConfirm as unknown as NamedActionHandler<unknown, unknown>,
   // T109 — F042 management-page write paths (venue unfollow/restore + group leave/join)
   'member.saved_search.remove': memberSavedSearchRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.saved_search.restore': memberSavedSearchRestore as unknown as NamedActionHandler<unknown, unknown>,
+  // #909 — search demand: the switch on You, and a settled Explore search counted with no member id.
+  'member.search_sharing.set': memberSearchSharingSet as unknown as NamedActionHandler<unknown, unknown>,
+  'search.demand_log': searchDemandLog as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
   // F067 — following a Page. Privacy decides follow vs join.
@@ -102,6 +140,7 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // F102 — the poster's one answer to a hide.
   'report.answer': reportAnswer as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge_target': reportPurgeTarget as unknown as NamedActionHandler<unknown, unknown>,
+  'report.ncmec_record': reportNcmecRecord as unknown as NamedActionHandler<unknown, unknown>,
   'report.purge': reportPurge as unknown as NamedActionHandler<unknown, unknown>,
   // F102 criterion 13 — where a post or upload came from; operator-only, kept a year.
   'origin.record': originRecord as unknown as NamedActionHandler<unknown, unknown>,
@@ -113,11 +152,15 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // #388 — builder content, all at once. Operator-only, checked in the handlers.
   'builder.content_set_visible': builderContentSetVisible as unknown as NamedActionHandler<unknown, unknown>,
   'builder.content_delete_all': builderContentDeleteAll as unknown as NamedActionHandler<unknown, unknown>,
-  // #353 — an unclaimed Page. Remove and claim take no account; a removal hides
+  // #353 — an unclaimed Page. Remove takes no account; a removal hides
   // the Page at once. Restore is operator-only, checked in the handler.
   'group.unclaimed_remove': groupUnclaimedRemove as unknown as NamedActionHandler<unknown, unknown>,
-  'group.unclaimed_claim': groupUnclaimedClaim as unknown as NamedActionHandler<unknown, unknown>,
   'group.unclaimed_restore': groupUnclaimedRestore as unknown as NamedActionHandler<unknown, unknown>,
+  // #987 — a signed-in claimant proves the business by a code; proof goes to an operator (decide is operator-only).
+  'group.claim_start': groupClaimStart as unknown as NamedActionHandler<unknown, unknown>,
+  'group.claim_verify': groupClaimVerify as unknown as NamedActionHandler<unknown, unknown>,
+  'group.claim_proof': groupClaimProof as unknown as NamedActionHandler<unknown, unknown>,
+  'group.claim_decide': groupClaimDecide as unknown as NamedActionHandler<unknown, unknown>,
 }
 
 export function getHandler(name: string): NamedActionHandler<unknown, unknown> | null {
@@ -134,7 +177,9 @@ export {
   memberPlaceInterestAdd,
   memberDefaultMetroSet,
   memberSignupProfileSet,
+  memberZipSet,
   memberInterestsAdd,
+  memberInterestsRemove,
   memberFollow,
   memberUnfollow,
   memberBusinessJurisdictionSet,
@@ -142,8 +187,18 @@ export {
   memberSavedSearchCreate,
   memberSavedSearchRemove,
   memberSavedSearchRestore,
+  memberSearchSharingSet,
+  memberNotificationsSet,
+  memberPushSubscribe,
+  memberPushUnsubscribe,
+  memberNotificationsOpened,
+  memberReminderSet,
+  memberReminderRemove,
+  memberReminderEveryForPage,
 } from './member'
+export { searchDemandLog } from './search'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'
+export { groupMarketStallSet, groupMarketStallSkip, groupMarketStallRemove, groupMarketStallConfirm } from './group'
 export { groupArchive, groupDelete, groupDiscardDraft, groupRestore, DELETE_GRACE_DAYS, type GroupLifecycleResult } from './group'
 export { groupFollow, groupUnfollow, relationshipFor, type Relationship } from './group'
 export {
@@ -157,7 +212,7 @@ export {
   type GroupPostCreateResult,
   type GroupPostEditResult,
 } from './group'
-export { itemCreate, itemPublish, itemAttachLocation } from './item'
+export { itemCreate, itemPublish, itemAttachLocation, featuredItemSave, featuredItemRemove } from './item'
 export {
   reportCreate,
   reportDecide,
@@ -165,6 +220,7 @@ export {
   reportAnswer,
   reportPurgeTarget,
   reportPurge,
+  reportNcmecRecord,
   reportCreateInput,
   type ReportCreateInput,
   type ReportCreateResult,

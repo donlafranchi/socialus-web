@@ -141,7 +141,8 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
       await page.goto('/you/following')
 
       const groupRow = rowByName(page, GROUP.name)
-      await groupRow.getByRole('button', { name: /Leave/i }).click()
+      // #962 — a followed Page lists under Pages with Unfollow, whatever the relationship.
+      await groupRow.getByRole('button', { name: /Unfollow/i }).click()
 
       await expect
         .poll(() => membershipIsActive(SEEDED.groupId, SEEDED.mutatorId), { timeout: 5000 })
@@ -152,7 +153,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
         .poll(() => groupEventExists(SEEDED.groupId, 'group.member_left'), { timeout: 5000 })
         .toBe(true)
 
-      // Row stays; Leave flips to Undo (scenario "or shows an Undo affordance").
+      // Row stays; Unfollow flips to Undo (scenario "or shows an Undo affordance").
       await expect(
         rowByName(page, GROUP.name).getByRole('button', { name: /Undo/i }),
       ).toBeVisible()
@@ -199,7 +200,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
 
       // Why: the empty state must invite re-engagement, not dead-end (scenario
       // Edge Cases → "Nothing followed yet — start exploring.").
-      await expect(page.getByText(/Nothing followed yet/i)).toBeVisible()
+      await expect(page.getByText(/not following any Pages yet/i)).toBeVisible()
       const cta = page.getByRole('link', { name: /explor/i })
       await expect(cta.first()).toHaveAttribute('href', /\/(explore)?$/)
     })

@@ -68,15 +68,27 @@ export {
   type PageLifecycleState,
 } from './lifecycle'
 
-// #353 — unclaimed Pages: remove (hides at once), claim (a contact form), restore (operator).
+// #353 — unclaimed Pages: remove (hides at once), restore (operator).
 export {
   groupUnclaimedRemove,
   groupUnclaimedRemoveInput,
-  groupUnclaimedClaim,
-  groupUnclaimedClaimInput,
   groupUnclaimedRestore,
   groupUnclaimedRestoreInput,
   DAILY_LIMIT_PER_DEVICE,
   UNCLAIMED_REMOVAL_SCOPES,
   type UnclaimedRemovalScope,
 } from './unclaimed'
+// #987 — self-serve claims: a code to the business's own domain or phone; proof to an operator only when neither.
+export {
+  groupClaimStart,
+  groupClaimStartInput,
+  groupClaimVerify,
+  groupClaimVerifyInput,
+  groupClaimProof,
+  groupClaimProofInput,
+  groupClaimDecide,
+  groupClaimDecideInput,
+  CLAIM_REFUSED,
+  type ClaimStarted,
+} from './claim'
+export { groupMarketStallSet, groupMarketStallSkip, groupMarketStallRemove, groupMarketStallConfirm } from './market-stalls'

@@ -1,0 +1,3 @@
+# F076.4 · #613: one person counts once across signed-up and emailed-only
+
+A person who left an address and then joined signed in (or the reverse) held two waitlist rows and moved both counters. `metro.waitlist_join` now looks for a row on the member's sign-in email with no member: with no member row of their own it adopts that row (member set, address cleared, no extra count; a move if metro or role differ); with one already, the emailed row is deleted and its count taken back. `metro.waitlist_join_anonymous` looks the address up among members' sign-in emails too, so an address that is already a waiting member moves that member's row instead of adding one. The anonymous response is unchanged, so criterion 14 holds. No migration.

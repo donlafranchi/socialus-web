@@ -38,17 +38,35 @@ const {
     resolveBrowseScope: vi.fn(),
   }))
 
+const { authServer } = vi.hoisted(() => ({ authServer: vi.fn() }))
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser }, from, rpc })),
+  createClient: vi.fn(async () => ({
+    auth: {
+      // #791 — the session comes from the token's verified claims; `getUser` is the auth server.
+      getUser: authServer,
+      getClaims: async () => {
+        const user = (await getUser())?.data?.user
+        return { data: user ? { claims: { sub: user.id } } : null, error: null }
+      },
+    },
+    from,
+    rpc,
+  })),
 }))
-vi.mock('@/lib/feed/browse-feed', () => ({ getBrowseFeed }))
+vi.mock('@/lib/feed/browse-feed', () => ({
+  getBrowseFeed,
+  getHappening: async () => ({ today: [], thisWeek: [], thisWeekend: [] }),
+  getNearbyFeed: async (sb: unknown, o: { metroId: string; resultKinds?: unknown; limit?: number }) => ({
+    // #922 — the default mix reads through browse_nearby; these tests are about what it asks for and gets.
+    results: await getBrowseFeed(sb, { scope: { metroId: o.metroId }, resultKinds: o.resultKinds ?? null, limit: o.limit }),
+    reach: { minutes: 15, from: null },
+  }),
+}))
 vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
-vi.mock('@/lib/feed/feed-metro', async (importActual) => {
-  const actual = await importActual<typeof import('@/lib/feed/feed-metro')>()
-  // `withWaitingCounts` stays real — it is a pure merge, and stubbing it would
-  // hide the thing worth checking: that the cached counts reach the picker.
-  return { ...actual, listFeedMetros }
-})
+// `withWaitingCounts` stays real — it is a pure merge, and stubbing it would
+// hide the thing worth checking: that the cached counts reach the picker.
+vi.mock('@/lib/feed/metro-catalog', () => ({ cachedMetros: () => listFeedMetros() }))
+
 vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
 // F093's signed-out read. Stubbed here rather than left real because the real
 // one calls `supabase.rpc` on this file's mock client and throws — which
@@ -110,6 +128,25 @@ describe('signed out — criterion 2b, the personal half is absent', () => {
     signedOut()
     const snap = await loadBrowse(null)
     expect(snap.results).toEqual([publicRow])
+  })
+})
+
+describe('#791 — signed in, nothing waits on a round trip it does not need', () => {
+  it('never asks the auth server who is looking', async () => {
+    signedIn()
+    await loadBrowse(null)
+    expect(authServer).not.toHaveBeenCalled()
+  })
+
+  it('asks for the follow set without waiting for the metro to resolve', async () => {
+    signedIn()
+    let release!: (v: unknown) => void
+    resolveBrowseScope.mockReturnValue(new Promise((r) => (release = r)))
+    const pending = loadBrowse(null)
+    await new Promise((r) => setTimeout(r, 0))
+    expect(resolveFollowedPageIds).toHaveBeenCalledWith(expect.anything(), MEMBER)
+    release({ metro: METRO, chosen: false })
+    await pending
   })
 })
 
@@ -307,5 +344,128 @@ describe('#549 — the map has its own read', () => {
     signedIn()
     await loadMemberMap(METRO.id, null)
     expect(getBrowseFeed).toHaveBeenCalled()
+  })
+})
+
+// #796 — the first look comes out of rows already read: no extra query, so Explore's tap time does not grow.
+describe('#796 — the first look', () => {
+  const page = (id: string, pageCreatedAt: string) => ({ resultKind: 'page', resultId: id, pageCreatedAt, sortAt: pageCreatedAt, postedAt: null, startsAt: null, withheld: false })
+  const cookies = (jar: Record<string, string>) => cookieGet.mockImplementation((name: string) => (jar[name] ? { value: jar[name] } : undefined))
+  const last = Date.parse('2026-10-10T00:00:00Z').toString(36)
+
+  it('leads with Pages new since the last visit, from the same single read', async () => {
+    signedOut()
+    cookies({ su_visit: `${last}.${Date.now().toString(36)}`, su_seed: 'a.aaaaaaaaaaaaaaaa' })
+    getBrowseFeed.mockResolvedValue([page('old', '2026-09-01T00:00:00Z'), page('new', new Date(Date.now() - 3600_000).toISOString())])
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    expect(snap.leadFresh).toBe(true)
+    expect(snap.lead!.map((r) => r.resultId)).toEqual(['new'])
+    expect(getBrowseFeed).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not lead again with what an earlier visit already showed; the rotation stands in', async () => {
+    signedOut()
+    const { leadKey } = await import('@/lib/browse/lead')
+    const shown = leadKey({ resultKind: 'page', resultId: 'new' })
+    cookies({ su_visit: `${last}.${Date.now().toString(36)}`, su_seen: `bbbbbbbbbbbbbbbb~${shown}~` })
+    getBrowseFeed.mockResolvedValue([page('old', '2026-09-01T00:00:00Z'), page('new', new Date(Date.now() - 3600_000).toISOString())])
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    expect(snap.leadFresh).toBe(false)
+    expect(snap.lead!.length).toBeGreaterThan(0)
+  })
+})
+
+
+// #876 (Don, 2026-10-16, on #796): "We should mix everything on explore. Even updates from people you follow."
+describe('#876 — the default mixes everything', () => {
+  const row = (kind: 'page' | 'post', id: string, groupId = `g-${id}`, at = '2026-10-15T00:00:00Z') =>
+    ({ resultKind: kind, resultId: id, groupId, sortAt: at, postedAt: at, pageCreatedAt: at, startsAt: null, withheld: false, tags: [] })
+  const cookies = (jar: Record<string, string>) => cookieGet.mockImplementation((name: string) => (jar[name] ? { value: jar[name] } : undefined))
+
+  it('Pages, posts and the followed Pages’ updates in one list, each once, the followed ones flagged', async () => {
+    signedIn()
+    resolveFollowedPageIds.mockResolvedValue(['g-f'])
+    getBrowseFeed.mockImplementation(async (_c: unknown, opts: { audience?: { audience: string } }) =>
+      opts?.audience?.audience === 'following' ? [row('post', 'fp', 'g-f'), row('post', 'both', 'g-f')] : [row('page', 'p1'), row('post', 'both', 'g-f'), row('post', 'p2')],
+    )
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    expect(snap.results.map((r) => r.resultId).sort()).toEqual(['both', 'fp', 'p1', 'p2'])
+    expect(snap.results.filter((r) => r.followed).map((r) => r.resultId).sort()).toEqual(['both', 'fp'])
+  })
+
+  it('an already-seen post never lands in the first screen', async () => {
+    signedIn()
+    const { leadKey } = await import('@/lib/browse/lead')
+    const seenPost = row('post', 'seen')
+    const many = [seenPost, ...Array.from({ length: 10 }, (_, i) => row('page', `p${i}`))]
+    getBrowseFeed.mockImplementation(async (_c: unknown, opts: { audience?: { audience: string } }) => (opts?.audience?.audience === 'following' ? [] : many))
+    // Several sessions, so the shuffle alone cannot pass this.
+    for (const seed of ['aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb', 'cccccccccccccccc', 'dddddddddddddddd', 'eeeeeeeeeeeeeeee', 'ffffffffffffffff']) {
+      cookies({ su_seed: `m.${seed}`, su_seen: `9999999999999999~${leadKey(seenPost as never)}~` }) // shown on an earlier visit
+      const snap = await loadBrowse(null, null, { seed })
+      expect(snap.results.findIndex((r) => r.resultId === 'seen'), seed).toBeGreaterThanOrEqual(6)
+    }
+  })
+
+  it('#897 — a theme batch loaded in one moment never shows 3 in a row of one category', async () => {
+    signedIn()
+    const at = '2026-10-15T17:19:00Z'
+    const tagged = (id: string, tag: string) => ({ ...row('page', id, `g-${id}`, at), tags: [tag] })
+    const batch = [
+      ...['museum', 'historical-society', 'gallery', 'theatre', 'choir', 'pottery'].map((id) => tagged(id, 'Arts & culture')),
+      ...['farm-a', 'farm-b', 'ranch', 'orchard', 'food-bank', 'repair-cafe'].map((id) => tagged(id, id.startsWith('f') || id === 'ranch' || id === 'orchard' ? 'Local food' : 'Volunteering')),
+    ]
+    getBrowseFeed.mockImplementation(async (_c: unknown, opts: { audience?: { audience: string } }) => (opts?.audience?.audience === 'following' ? [] : batch))
+    for (const seed of [null, 'aaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbb', 'cccccccccccccccc']) {
+      const tags = (await loadBrowse(null, null, { seed })).results.map((r) => r.tags[0])
+      const run = tags.some((t, i) => i >= 2 && t === tags[i - 1] && t === tags[i - 2])
+      expect(run, `${seed}: ${tags.join(' | ')}`).toBe(false)
+    }
+  })
+})
+
+describe('#876 — a filter is one targeted read', () => {
+  it('asks the feed once with the filters pushed down, and skips the first look and the rows', async () => {
+    signedIn()
+    resolveFollowedPageIds.mockResolvedValue(['g-f'])
+    getBrowseFeed.mockResolvedValue([])
+    const { DEFAULT_BROWSE_FILTERS } = await import('@/lib/browse/filters')
+    const snap = await loadBrowse(null, null, { filters: { ...DEFAULT_BROWSE_FILTERS, postKinds: ['deal'], following: true, tags: ['farmers markets'], date: 'weekend' } })
+    expect(getBrowseFeed).toHaveBeenCalledTimes(1)
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({
+      resultKinds: ['post'], postKinds: ['deal'], tags: ['farmers markets'], sort: 'soonest',
+      audience: { audience: 'following', following: ['g-f'] }, scope: { metroId: METRO.id },
+    })
+    expect(getBrowseFeed.mock.calls[0]![1].startsFrom).toBeTruthy()
+    expect(snap.lead ?? []).toEqual([])
+    expect(getWithheldAnnouncements).not.toHaveBeenCalled()
+  })
+})
+
+// #916 — a search is one read of the whole market on the server, not a cut of the 100 rows in hand.
+describe('#916 — a search is one targeted read', () => {
+  it('sends the words with the filters, once, and skips the first look', async () => {
+    signedIn()
+    getBrowseFeed.mockResolvedValue([])
+    const snap = await loadBrowse(null, null, { search: 'flowers' })
+    expect(getBrowseFeed).toHaveBeenCalledTimes(1)
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', scope: { metroId: METRO.id } })
+    expect(snap.lead ?? []).toEqual([])
+  })
+
+  it('signed out, it searches Pages only: post text never answers a stranger', async () => {
+    signedOut()
+    getBrowseFeed.mockResolvedValue([])
+    await loadBrowse(null, null, { search: 'flowers' })
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', resultKinds: ['page'] })
+    expect(getWithheldAnnouncements).not.toHaveBeenCalled()
+  })
+})
+
+describe('#978 — the metros are the cached list', () => {
+  it('picks the scope from it, not a read of its own', async () => {
+    signedOut()
+    await loadBrowse(null)
+    expect(resolveBrowseScope).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ catalog: [METRO] }))
   })
 })

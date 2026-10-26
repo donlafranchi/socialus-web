@@ -12,11 +12,13 @@
 // Supabase-client-shaped (not pg-shaped) so it runs from a server component
 // with the session-bound client. Same convention as src/lib/sell/getDraftGroup.ts.
 
+import { FEATURED_ITEMS_MAX, type FeaturedItem } from '@/lib/items/featured'
 import { managingRoleForKind, type GroupKind } from '@/actions/group/constants'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { visiblePhotoUrl } from './visible-photo-url'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
+import { viewerId } from '@/lib/auth/viewer'
 import { maskEmails } from '../text/contact-info'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
@@ -28,6 +30,9 @@ export interface ShopFounder {
   /** T137 — gates the conditional link on the "Founded by" line; plain text when false. */
   hasPublished: boolean
 }
+
+/** #625 — what a Page's name reads as while a report has its words hidden. Placeholder copy ([public-is-draft]). */
+export const WORDS_HIDDEN_NAME = 'Hidden while we look'
 
 export interface ResolvedShop {
   groupId: string
@@ -41,6 +46,8 @@ export interface ResolvedShop {
   kind: string
   displayName: string
   publicDescription: string
+  /** #625 — the name and description above are masked because a report hid them. */
+  wordsHidden: boolean
   lifecycleState: GroupLifecycleState
   anchorLocationId: string | null
   /** T144 — the fixed-vocabulary term, or null (either pre-T144 row,
@@ -83,19 +90,16 @@ export interface ShopUnclaimed {
   photoSourceUrl: string | null
 }
 
-export interface ShopItem {
-  id: string
-  title: string
-  kind: string
-}
+/** #909 — a Page's featured products and services. */
+export type ShopItem = FeaturedItem
 
 export interface LocalOwnerBadge {
   label: string
 }
 
 /** T096 — the acting owner's own claim state, backing the F037 management widget.
- *  `zip` is null when the owner hasn't claimed; `isProximal` reports whether that
- *  ZIP currently earns the public badge (render-time derivation, not validation). */
+ *  `zip` is null when the owner hasn't claimed; `isProximal` is true whenever a claim
+ *  is on file: the claim itself earns the badge (#874), no distance test. */
 export interface OwnerClaim {
   zip: string | null
   isProximal: boolean
@@ -147,6 +151,9 @@ interface ShopRow {
   social_links: unknown
   photo_hidden_at: string | null
   photo_removed_at?: string | null
+  /** #625 — set when a report hid the Page's own words, or a person removed them. */
+  words_hidden_at?: string | null
+  words_removed_at?: string | null
   discoverability: string
   unclaimed_at: string | null
   public_info_url: string | null
@@ -203,7 +210,7 @@ export async function resolveShop(
     .select(
       'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, picture_url, picture_hidden_at, picture_removed_at, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
-        'unclaimed_at, public_info_url, photo_credit, photo_source_url, ' +
+        'unclaimed_at, public_info_url, photo_credit, photo_source_url, words_hidden_at, words_removed_at, ' +
         'group_businesses(display_name, public_description)',
     )
     .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
@@ -219,7 +226,16 @@ export async function resolveShop(
   // read: embedding through it fails the whole query and 404s the Page. The
   // function returns the founder without their id, and T137's "has published"
   // with it, since that too was keyed by the id.
-  const { data: founderData } = await supabase.rpc('page_founder_public', { p_group_id: row.id })
+  // #978 — the founder and the anchor depend only on the row, so they are asked together (the
+  // second used to wait for the first, a round before the Page could start to stream).
+  // The placements ask only for the row's id too, so they ride along; they are dropped below when the
+  // anchor was refused (F093 criterion 8), as before.
+  const [{ data: founderData }, { data: anchorRow, error: anchorErr }, askedPlacements] = await Promise.all([
+    supabase.rpc('page_founder_public', { p_group_id: row.id }),
+    supabase.from('groups').select('anchor_location_id').eq('id', row.id).maybeSingle(),
+    // Signed out, the address is never read at all (F093 criterion 8): the session is checked locally, no round trip.
+    (await viewerId(supabase)) ? resolvePagePlacements(row.id) : Promise.resolve([] as Placement[]),
+  ])
   const founderRow = ((founderData as FounderRow[] | null) ?? [])[0] ?? null
 
   // T144 — a Page's own free text when it chose "Something else" instead
@@ -238,16 +254,12 @@ export async function resolveShop(
   // F093 criterion 8 — where a Page is never reaches a signed-out caller. The
   // anchor is asked for as the caller, whom the database refuses signed out,
   // and the address (read through the pool, past RLS) only once it answered.
-  const { data: anchorRow, error: anchorErr } = await supabase
-    .from('groups')
-    .select('anchor_location_id')
-    .eq('id', row.id)
-    .maybeSingle()
   const anchorLocationId = anchorErr
     ? null
     : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)
-  const placements = anchorErr ? [] : await resolvePagePlacements(row.id)
+  const placements = anchorErr ? [] : askedPlacements
 
+  const wordsHidden = Boolean(row.words_hidden_at || row.words_removed_at)
   return {
     groupId: row.id,
     kind: row.kind,
@@ -257,8 +269,10 @@ export async function resolveShop(
     // description; the database keeps a business's group_businesses copy equal
     // to it. Reading the copy first is what left a renamed Page on its old name.
     // #450 — an address stored before the save check is masked, not shown.
-    displayName: maskEmails(row.name || biz?.display_name || ''),
-    publicDescription: maskEmails(row.description || biz?.public_description || ''),
+    // #625 — words a report hid (or a person removed) never leave the server; the Page itself stays up.
+    displayName: wordsHidden ? WORDS_HIDDEN_NAME : maskEmails(row.name || biz?.display_name || ''),
+    publicDescription: wordsHidden ? '' : maskEmails(row.description || biz?.public_description || ''),
+    wordsHidden,
     lifecycleState: row.lifecycle_state as GroupLifecycleState,
     anchorLocationId,
     category: row.category,
@@ -299,29 +313,47 @@ export async function resolveShopItems(
 ): Promise<ShopItem[]> {
   const { data, error } = await supabase
     .from('items')
-    .select('id, title, kind')
+    .select('id, kind, title, description, in_stock, photo_url, sample_source_url, hidden_at, removed_at, item_products(price_cents), item_services(rate_cents)')
     .eq('group_id', groupId)
     .in('kind', ['product', 'service'])
     .eq('state', 'published')
     .is('deleted_at', null)
+    .order('position', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(FEATURED_ITEMS_MAX)
   if (error || !data) return []
-  return (data as ShopItem[]).map((r) => ({ id: r.id, title: r.title, kind: r.kind }))
+  return (data as unknown as ItemRow[]).map(featuredFromRow)
 }
 
-/** Render-time proximity test (T075's SECURITY DEFINER function, granted to
- *  anon + authenticated). Null-safe: any RPC error or non-true result → false,
- *  so a missing-data join never earns the badge. */
-async function zipIsProximal(
-  supabase: SupabaseClient,
-  zip: string,
-  locationId: string,
-): Promise<boolean> {
-  const { data, error } = await supabase.rpc('zip_is_proximal_to_location', {
-    zip,
-    location_id: locationId,
-  })
-  if (error) return false
-  return data === true
+type One<T> = T | T[] | null
+type ItemRow = {
+  id: string
+  kind: 'product' | 'service'
+  title: string
+  description: string | null
+  in_stock: boolean
+  photo_url: string | null
+  sample_source_url: string | null
+  hidden_at: string | null
+  removed_at: string | null
+  item_products: One<{ price_cents: number | null }>
+  item_services: One<{ rate_cents: number | null }>
+}
+const first = <T,>(v: One<T>): T | null => (Array.isArray(v) ? v[0] ?? null : v)
+
+export function featuredFromRow(r: ItemRow): ShopItem {
+  const price = r.kind === 'product' ? first(r.item_products)?.price_cents : first(r.item_services)?.rate_cents
+  return {
+    id: r.id,
+    kind: r.kind,
+    name: r.title,
+    details: r.description ?? '',
+    priceCents: price ?? null,
+    inStock: r.in_stock,
+    photoUrl: r.photo_url,
+    sampleSourceUrl: r.sample_source_url,
+    hidden: r.hidden_at != null || r.removed_at != null,
+  }
 }
 
 /**
@@ -329,8 +361,7 @@ async function zipIsProximal(
  *
  * #246 — a registration is collected and never displayed (Don, 2026-09-29), so
  * this never reads member_business_jurisdictions. page_local_owner_badge()
- * answers true if ANY active registration's ZIP shares the anchor Location's
- * metro, and returns nothing but that boolean. No "not locally owned"
+ * answers true if the Page has any active registration (the owner's claim, #874), and returns nothing but that boolean. No "not locally owned"
  * negative space: false, an error or no anchor all render nothing.
  */
 export async function resolveLocalOwnerBadge(
@@ -448,8 +479,6 @@ export async function resolveOwnerClaim(
   const zip = (row as { zip: string } | null)?.zip ?? null
   if (!zip) return { zip: null, isProximal: false }
 
-  const isProximal = args.anchorLocationId
-    ? await zipIsProximal(supabase, zip, args.anchorLocationId)
-    : false
-  return { zip, isProximal }
+  // #874: a claim earns the badge wherever its ZIP is; local is the owner's claim, not distance.
+  return { zip, isProximal: true }
 }

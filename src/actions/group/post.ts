@@ -33,6 +33,9 @@ import type { ActionContext } from '../_lib/context'
 import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
 import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { managingRoleForKind, type GroupKind } from './constants'
+import { seriesSchema, isoWeekdayOf } from '../../lib/posts/series'
+import { metroDate } from '../../lib/metro/metro-week'
+import { METRO_TIME_ZONE } from '../../lib/metro/metro-time'
 
 /** Matches the column's own CHECK, so a too-long body is refused before the
  *  database has to refuse it and the caller gets a message rather than a
@@ -54,6 +57,11 @@ const note = (v: string | null | undefined) => (v == null || v.trim() === '' ? n
 /** #262 — optional, only beside a start, and after it. The column's check
  *  enforces the same, so an edit that clears the start cannot strand an end. */
 const endsAt = z.string().datetime({ offset: true }).nullable().optional()
+
+/** #314 — an undated post shows for 14 days; the owner can pick another day. Only on an undated post (the column's check). */
+const showUntil = z.string().datetime({ offset: true }).nullable().optional()
+const SHOW_UNTIL_DATED = 'A post with a date shows until it ends.'
+const SHOW_UNTIL_PAST = 'Pick a day that hasn’t passed.'
 
 const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) =>
   !v.endsAt || (!!v.startsAt && new Date(v.endsAt) > new Date(v.startsAt))
@@ -105,10 +113,13 @@ export const groupPostCreateInput = z
     body,
     startsAt,
     endsAt,
+    showUntil,
     locationId,
     howToFind,
     tags,
     photoUrl,
+    /** F074.1 — weekly on chosen weekdays, optional start and end. This post is the first occurrence. */
+    series: seriesSchema.optional(),
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -118,6 +129,7 @@ export const groupPostEditInput = z.object({
   body,
   startsAt,
   endsAt,
+  showUntil,
   locationId,
   howToFind,
   tags,
@@ -128,6 +140,8 @@ export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 export interface GroupPostCreateResult {
   postId: string
   groupId: string
+  /** F074: the series this post begins, if it began one. */
+  seriesId: string | null
   /** The row's own timestamp, so the Page can render the new post without a
    *  round trip and without inventing a time of its own. */
   createdAt: string
@@ -145,13 +159,19 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
+type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
   ): Promise<{ rows: T[]; rowCount: number }>
+}
+
+function checkShowUntil(input: { startsAt?: string | null; showUntil?: string | null }, now: Date) {
+  if (!input.showUntil) return
+  if (input.startsAt) throw new ValidationError(SHOW_UNTIL_DATED)
+  if (new Date(input.showUntil) <= now) throw new ValidationError(SHOW_UNTIL_PAST)
 }
 
 function requireMember(ctx: ActionContext, verb: string): string {
@@ -196,9 +216,33 @@ export const groupPostCreate = defineHandler(
     if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_create')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
+    checkShowUntil(input, ctx.now())
+
+    // F074.1: the series repeats at its first post's time of day, and that post stands on one of the
+    // chosen weekdays, in the metro's zone and inside the start and end dates — so the creator never
+    // enters an individual date.
+    if (input.series) {
+      if (!input.startsAt) throw new ValidationError('A repeating post needs a start time.')
+      const first = metroDate(new Date(input.startsAt), METRO_TIME_ZONE)
+      if (!input.series.weekdays.includes(isoWeekdayOf(first))) throw new ValidationError('The first one has to fall on one of the days you picked.')
+      if ((input.series.startsOn && first < input.series.startsOn) || (input.series.endsOn && first > input.series.endsOn)) {
+        throw new ValidationError('The first one has to fall between the start and the end.')
+      }
+    }
 
     return withTransaction(async (client) => {
       const page = await requireManagingRole(client, 'group.post_create', input.groupId, memberId)
+
+      let seriesId: string | null = null
+      if (input.series) {
+        const made = await client.query<{ id: string }>(
+          `insert into public.post_series (group_id, weekdays, starts_on, ends_on, created_by, created_at)
+           values ($1, $2, $3, $4, $5, $6)
+           returning id`,
+          [input.groupId, input.series.weekdays, input.series.startsOn ?? null, input.series.endsOn ?? null, memberId, ctx.now()],
+        )
+        seriesId = made.rows[0]!.id
+      }
 
       // Live and listed on write. A post has no draft state of its own: the
       // owner decides to say something by saying it, and the Page's own
@@ -207,8 +251,8 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12)
          returning id, created_at`,
         [
           input.groupId,
@@ -227,6 +271,8 @@ export const groupPostCreate = defineHandler(
           input.endsAt ?? null,
           note(input.howToFind),
           input.photoUrl ?? null,
+          seriesId,
+          input.showUntil ?? null,
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -240,7 +286,7 @@ export const groupPostCreate = defineHandler(
         payload: { post_id: postId },
       })
 
-      return { postId, groupId: input.groupId, createdAt }
+      return { postId, groupId: input.groupId, createdAt, seriesId }
     })
   },
 )
@@ -253,6 +299,7 @@ export const groupPostEdit = defineHandler(
     if (anyContainsEmail(input.body, input.howToFind)) throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     const memberId = requireMember(ctx, 'group.post_edit')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
+    checkShowUntil(input, ctx.now())
 
     return withTransaction(async (client) => {
       const found = await client.query<{
@@ -261,8 +308,14 @@ export const groupPostEdit = defineHandler(
         hidden_at: Date | null
         removed_at: Date | null
         repost_used: boolean
+        severity_one: boolean
       }>(
-        `select id, group_id, hidden_at, removed_at, repost_used from public.page_posts
+        // severity_one: a report on this post was filed as Sensitive content (F102.2, F102.14).
+        `select id, group_id, hidden_at, removed_at, repost_used,
+                exists (select 1 from public.reports r
+                         where r.subject_kind in ('post', 'post_photo') and r.subject_id = page_posts.id
+                           and r.category = 'sensitive_content' and r.removed_at is null) as severity_one
+           from public.page_posts
           where id = $1 and dissolved_at is null`,
         [input.postId],
       )
@@ -281,6 +334,8 @@ export const groupPostEdit = defineHandler(
       // input — the same rule group.update follows. A field left out is left
       // alone; an explicit null clears it.
       const sets: string[] = ['body = $2', 'updated_at = $3']
+      // #314 — a dated post shows until it ends, so a start clears any show-until date.
+      if (input.startsAt) sets.push('show_until = null')
       const params: unknown[] = [input.postId, input.body, ctx.now()]
       const patch: { clause: PostSetClause; value: unknown }[] = []
       if (input.startsAt !== undefined) {
@@ -288,6 +343,9 @@ export const groupPostEdit = defineHandler(
       }
       if (input.endsAt !== undefined) {
         patch.push({ clause: 'ends_at = $', value: input.endsAt })
+      }
+      if (input.showUntil !== undefined) {
+        patch.push({ clause: 'show_until = $', value: input.showUntil })
       }
       if (input.locationId !== undefined) {
         patch.push({ clause: 'location_id = $', value: input.locationId })
@@ -319,8 +377,9 @@ export const groupPostEdit = defineHandler(
 
       // F102 criterion 2 — fix and repost. Editing a post a report hid shows it
       // again at once, once; its reports stay on the row for review. Never after
-      // a person removed it, and a second hide offers no second repost.
-      const reposted = post.hidden_at !== null && post.removed_at === null && !post.repost_used
+      // a person removed it, never for severity 1, and a second hide offers no second repost.
+      // Never for severity 1: the most serious kind is a person's to decide and never goes back to the poster (criterion 14).
+      const reposted = post.hidden_at !== null && post.removed_at === null && !post.repost_used && !post.severity_one
       if (reposted) {
         await client.query(
           `update public.page_posts

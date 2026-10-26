@@ -62,12 +62,20 @@ export interface ReportDecisionResult {
   reversedDecisionId: string | null
 }
 
-export type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo'
+export type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
 
 type SubjectRow = { subject_kind: SubjectKind; subject_id: string; group_id: string }
 
 const eventKind = (kind: SubjectKind, outcome: Outcome) =>
-  kind === 'post'
+  kind === 'page_item'
+    ? outcome === 'restored'
+      ? 'group.item_restored'
+      : 'group.item_removed'
+    : kind === 'page_words'
+    ? outcome === 'restored'
+      ? 'group.words_restored'
+      : 'group.words_removed'
+    : kind === 'post'
     ? outcome === 'restored'
       ? 'group.post_restored'
       : 'group.post_removed'
@@ -126,6 +134,34 @@ async function projectPost(client: Client, postId: string, outcome: Outcome, now
 
 export async function project(client: Client, subject: Subject, outcome: Outcome, now: Date) {
   if (subject.kind === 'post') return projectPost(client, subject.id, outcome, now)
+  // #625 — a Page's own words. Restored: shown again and locked to exactly these words (an edit un-locks them).
+  // Removed: kept hidden until the owner changes them.
+  // #909 — one featured product or service. Restored: shown and locked to exactly these words (an edit un-locks
+  // them). Removed: kept hidden until the owner changes it.
+  if (subject.kind === 'page_item') {
+    await client.query(
+      outcome === 'restored'
+        ? `update public.items
+              set hidden_at = null, removed_at = null,
+                  hide_locked_text = title || E'\\n' || coalesce(description, '')
+            where id = $1`
+        : `update public.items set removed_at = $2, hidden_at = null where id = $1`,
+      outcome === 'restored' ? [subject.id] : [subject.id, now],
+    )
+    return
+  }
+  if (subject.kind === 'page_words') {
+    await client.query(
+      outcome === 'restored'
+        ? `update public.groups
+              set words_hidden_at = null, words_removed_at = null,
+                  words_hide_locked_text = name || E'\\n' || coalesce(description, '')
+            where id = $1`
+        : `update public.groups set words_removed_at = $2, words_hidden_at = null where id = $1`,
+      outcome === 'restored' ? [subject.id] : [subject.id, now],
+    )
+    return
+  }
   const kind = subject.kind
   const subjectId = subject.id
   if (outcome === 'restored') {
@@ -216,11 +252,12 @@ export const reportDecide = defineHandler(
     return withTransaction(async (client) => {
       const res = await client.query<SubjectRow>(
         `select r.subject_kind, r.subject_id,
-                coalesce(p.group_id, g.id) as group_id
+                coalesce(p.group_id, it.group_id, g.id) as group_id
            from public.reports r
-           left join public.groups g on r.subject_kind in ('group', 'page_picture') and g.id = r.subject_id
+           left join public.groups g on r.subject_kind in ('group', 'page_picture', 'page_words') and g.id = r.subject_id
            left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
-          where r.id = $1 and coalesce(p.group_id, g.id) is not null
+           left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
+          where r.id = $1 and coalesce(p.group_id, it.group_id, g.id) is not null
           for update of r`,
         [input.reportId],
       )
@@ -281,7 +318,7 @@ export const reportReverse = defineHandler(
       }>(
         `select d.id,
                 d.report_id,
-                coalesce(p.group_id, r.subject_id) as group_id,
+                coalesce(p.group_id, it.group_id, r.subject_id) as group_id,
                 r.subject_kind,
                 r.subject_id,
                 d.outcome,
@@ -292,6 +329,7 @@ export const reportReverse = defineHandler(
            from public.report_decisions d
            join public.reports r on r.id = d.report_id
            left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
+           left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
           where d.id = $1
           for update of d`,
         [input.decisionId],

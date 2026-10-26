@@ -24,12 +24,14 @@ const BASE = process.env.BUILDERS_BASE_URL ?? 'https://www.socialus.org'
 const NET = { latency: Number(process.env.SPEED_RTT_MS ?? 100), down: 9_000_000 / 8, up: 3_000_000 / 8 }
 const CPU = Number(process.env.SPEED_CPU ?? 4)
 const ONLY = (process.env.SPEED_ONLY ?? '').toLowerCase()
+// #791 — a Chrome performance trace per tap (open in DevTools > Performance): where the phone's time went.
+const TRACE = process.env.SPEED_TRACE === '1'
 const BASELINE: Baseline = existsSync(join(__dirname, 'baseline.json')) ? JSON.parse(readFileSync(join(__dirname, 'baseline.json'), 'utf8')) : {}
 const REGRESSION_BINDS = (existsSync(join(__dirname, 'baseline-source.json')) ? JSON.parse(readFileSync(join(__dirname, 'baseline-source.json'), 'utf8')).source : 'none') === 'ci'
 const BUDGETS: Budgets = JSON.parse(readFileSync(join(__dirname, 'budgets.json'), 'utf8'))
 
-interface Req { path: string; type: string; start: number; end: number; status: number; cache: string; id: string }
-interface Row extends TapMeasure { mode: 'quick' | 'settled'; longTaskMs: number; requests: number; waterfall: number; slowReqs: string[]; prefetched: boolean | null; finalPath: string; flags: Flag[]; status?: Status; regressed?: boolean; waived?: boolean; note?: string }
+interface Req { path: string; type: string; start: number; firstByte: number; end: number; status: number; cache: string; id: string }
+interface Row extends TapMeasure { mode: 'quick' | 'settled'; longTaskMs: number; requests: number; waterfall: number; slowReqs: string[]; afterNetworkMs: number | null; prefetched: boolean | null; finalPath: string; flags: Flag[]; status?: Status; regressed?: boolean; waived?: boolean; note?: string }
 
 test.use({ ...devices['Pixel 7'], baseURL: BASE })
 test.skip(!BASE.startsWith('https://'), 'tap-speed measures production: set BUILDERS_BASE_URL')
@@ -74,15 +76,19 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
   const page = await ctx.newPage()
   const reqs: Req[] = []
   const born = new Map<string, number>()
+  const headed = new Map<string, number>()
   page.on('request', (r) => born.set(r.url() + r.method(), Date.now()))
+  // #791 — when the headers arrived: the server's share of a slow request, apart from its download.
+  page.on('response', (res) => headed.set(res.url() + res.request().method(), Date.now()))
   page.on('requestfinished', async (r) => {
     const res = await r.response().catch(() => null)
     const u = new URL(r.url())
     if (u.origin !== BASE) return
     const h = res ? await res.allHeaders().catch(() => ({} as Record<string, string>)) : {}
-    reqs.push({ path: u.pathname + (u.search.includes('_rsc') ? ' (rsc)' : ''), type: r.resourceType(), start: born.get(r.url() + r.method()) ?? Date.now(), end: Date.now(), status: res?.status() ?? 0, cache: h['x-vercel-cache'] ?? '', id: (h['x-vercel-id'] ?? '').split('::')[0] ?? '' })
+    reqs.push({ path: u.pathname + (u.search.includes('_rsc') ? ' (rsc)' : ''), type: r.resourceType(), start: born.get(r.url() + r.method()) ?? Date.now(), firstByte: headed.get(r.url() + r.method()) ?? Date.now(), end: Date.now(), status: res?.status() ?? 0, cache: h['x-vercel-cache'] ?? '', id: (h['x-vercel-id'] ?? '').split('::')[0] ?? '' })
   })
   await throttle(page)
+  let tracing = false
   let note: string | undefined
   try {
     if (step.back) {
@@ -98,18 +104,24 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     else await page.waitForTimeout(400)
     if (step.pre) await step.pre(page)
     await page.waitForTimeout(300)
+    if (TRACE) {
+      mkdirSync(OUT, { recursive: true })
+      await browser.startTracing(page, { path: join(OUT, `trace-${step.name.replace(/[^a-z0-9]+/gi, '-')}-${mode}.json`), screenshots: true })
+      tracing = true
+    }
     const spec = { ready: step.ready, notReady: step.notReady ?? [], expectsUrl: step.expectsUrl }
     await page.evaluate((s) => (window as unknown as { __tapArm: (x: unknown) => void }).__tapArm(s), spec)
     const before = Date.now()
     if (step.back) await page.evaluate(() => { (window as unknown as { __tapStart: () => void }).__tapStart(); history.back() })
     else {
       const target = step.tap(page)
-      if (step.optional && (await target.count()) === 0) return { name: step.name, kind: step.kind, expectsUrl: step.expectsUrl, feedbackMs: null, urlMs: null, readyMs: null, mode, longTaskMs: 0, requests: 0, waterfall: 0, slowReqs: [], prefetched: null, finalPath: '', flags: [], note: SKIPPED }
+      if (step.optional && (await target.count()) === 0) return { name: step.name, kind: step.kind, expectsUrl: step.expectsUrl, feedbackMs: null, urlMs: null, readyMs: null, mode, longTaskMs: 0, requests: 0, waterfall: 0, slowReqs: [], afterNetworkMs: null, prefetched: null, finalPath: '', flags: [], note: SKIPPED }
       await target.waitFor({ state: 'visible', timeout: 15_000 })
       await target.tap({ timeout: 10_000 })
     }
     // Wait for the page to report ready, or give up after 12 s of phone time.
     const done = await page.waitForFunction(() => (window as unknown as { __tapState: () => { ready: number | null } | null }).__tapState()?.ready != null, null, { timeout: 12_000, polling: 50 }).then(() => true).catch(() => false)
+    await page.waitForTimeout(300) // let finished requests land in `reqs`; the phone's numbers are already taken
     const st = await page.evaluate(() => (window as unknown as { __tapState: () => { t0: number | null; fb: number | null; url: number | null; ready: number | null; long: number } }).__tapState())
     // A back tap has no pointerdown: its clock starts when the test pressed back.
     const t0 = step.back ? before : st?.t0 ?? before
@@ -121,13 +133,14 @@ async function measure(browser: Browser, step: Step, mode: 'quick' | 'settled', 
     const finalPath = new URL(page.url()).pathname
     const pre = reqs.some((r) => r.start < t0 && r.path.includes('(rsc)') && r.path.startsWith(finalPath))
     const m: TapMeasure = { name: step.name, kind: step.kind, expectsUrl: step.expectsUrl, feedbackMs: step.back ? ms(st?.fb ?? st?.url) : ms(st?.fb), urlMs: ms(st?.url), readyMs: done ? ms(st?.ready) : null }
-    const row: Row = { ...m, mode, longTaskMs: Math.round(st?.long ?? 0), requests: relevant.length, waterfall: layers, slowReqs: [...relevant].sort((a, b) => b.end - b.start - (a.end - a.start)).slice(0, 3).map((r) => `${r.path} ${r.end - r.start}ms ${r.cache || '-'} ${r.id}`.trim()), prefetched: step.expectsUrl ? pre : null, finalPath, flags: judge(m), note }
+    const row: Row = { ...m, mode, longTaskMs: Math.round(st?.long ?? 0), requests: relevant.length, waterfall: layers, slowReqs: [...relevant].sort((a, b) => b.end - b.start - (a.end - a.start)).slice(0, 3).map((r) => `${r.path} ${r.end - r.start}ms (first byte ${r.firstByte - r.start}) ${r.cache || '-'} ${r.id}`.trim()), afterNetworkMs: done && st?.ready != null && relevant.length ? Math.max(0, Math.round(st.ready - Math.max(...relevant.filter((r) => r.end <= st.ready!).map((r) => r.end), t0))) : null, prefetched: step.expectsUrl ? pre : null, finalPath, flags: judge(m), note }
     return row
   } catch (e) {
     note = String(e instanceof Error ? e.message : e).split('\n')[0]!.slice(0, 160)
     const m: TapMeasure = { name: step.name, kind: step.kind, expectsUrl: step.expectsUrl, feedbackMs: null, urlMs: null, readyMs: null }
-    return { ...m, mode, longTaskMs: 0, requests: 0, waterfall: 0, slowReqs: [], prefetched: null, finalPath: '', flags: [], note: `could not run: ${note}` }
+    return { ...m, mode, longTaskMs: 0, requests: 0, waterfall: 0, slowReqs: [], afterNetworkMs: null, prefetched: null, finalPath: '', flags: [], note: `could not run: ${note}` }
   } finally {
+    if (tracing) await browser.stopTracing().catch(() => {})
     await ctx.close()
   }
 }

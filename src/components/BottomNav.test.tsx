@@ -148,6 +148,32 @@ describe('BottomNav — thesis §2 visual spec', () => {
 })
 
 // T113 — scroll-to-hide behavior. Trace: scenario F046.
+describe('F046 criterion 7a — the nav look, claimed whole', () => {
+  // F046 is retired as a scenario; this keeps the nav look pinned (#826)
+  it('20px outlined icons at 1.5 stroke (filled when active), charcoal active and gray inactive, hairline top border, opaque white with no blur, safe-area padding', () => {
+    pathname.current = '/explore'
+    render(<BottomNav />)
+    const nav = screen.getByTestId('bottom-nav')
+    nav.querySelectorAll('svg').forEach((svg) => {
+      expect(svg.getAttribute('width')).toBe('20')
+      expect(svg.getAttribute('stroke-width')).toBe('1.5')
+    })
+    const explore = screen.getByRole('link', { name: 'Explore' })
+    const you = screen.getByRole('link', { name: 'You' })
+    expect(explore.querySelector('svg')!.getAttribute('fill')).toBe('currentColor')
+    expect(you.querySelector('svg')!.getAttribute('fill')).toBe('none')
+    expect(explore.className).toContain('text-[var(--color-charcoal)]')
+    expect(explore.className).not.toContain('--color-accent')
+    expect(you.className).toContain('text-[var(--color-nav-inactive)]')
+    expect(nav.className).toContain('border-t')
+    expect(nav.className).toContain('border-[var(--color-nav-border)]')
+    expect(nav.className).toContain('bg-white')
+    expect(nav.className).not.toContain('blur')
+    expect(nav.className).not.toMatch(/bg-white\/\d+/)
+    expect(nav).toHaveStyle({ paddingBottom: 'env(safe-area-inset-bottom)' })
+  })
+})
+
 describe('BottomNav — scroll-to-hide', () => {
   const renderWithVisibility = (visible: boolean) =>
     render(

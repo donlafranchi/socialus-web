@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
@@ -16,13 +16,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [],
-   "note": "`ReportControl` on `ShopPublicPage` and `PagePosts`; `report.create` (#81, #82); signed-out gets a sign-in link [V] Checked: unmarked: `ReportControl.test.tsx`, `report-actions.test.ts`."
+   "issues": [
+    578
+   ],
+   "note": "`ReportControl` on the Page and post cards, its entries now labelled \"Report this Page\", \"Report this Page's photo\", \"Report this post\" (#938, 647eccb); `sendReportAction` refuses signed-out callers (#81, #82) [V] Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V] Reviewed: #81, #82 carry no `Reviewed by:`; #938 does [V] Shipped: deploy-health began 2026-09-16, after #81 and #82 merged on 14 Sep, so no run exists for them; #938 green [V] Smoked: `page` and `page-business` green 2026-10-23 (cb892a7) as member and stranger; the route loads, no report is sent [A]"
   },
   {
    "id": "2",
@@ -30,7 +32,7 @@
    "kind": [
     "invariant"
    ],
-   "status": "spec-conflict",
+   "status": "retired",
    "built": "no",
    "checked": "no",
    "reviewed": "no",
@@ -41,7 +43,7 @@
     62,
     220
    ],
-   "note": "SPEC-CONFLICT. The reporter is never named to the owner (`report-privacy-db.test.ts`, seen failing both ways). But a report now hides the photo at once and the owner sees a notice (T160 #62, F078 #220 \"poster is told why\"); `create.test.ts` says F078 criterion 3 \"amends F058 acceptance 2\". F058 text was never amended [V] Checked: unmarked: `tests/report-privacy-db.test.ts`."
+   "note": "RETIRED. Overtaken by F078 criteria 2 and 3 and the 2026-10-11 courtesy-notice ruling in F078 `## Rulings`: a second report hides the item and the owner is told why (`create.test.ts`: \"F078 criterion 3 amends F058 acceptance 2\"). What still holds: the reporter is never named to the owner (`tests/report-privacy-db.test.ts`) [V]. The scenario still carries the old text; `sync-roadmap` amends it [V]."
   },
   {
    "id": "3",
@@ -51,13 +53,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [],
-   "note": "`report.remove` / `report.reverse` refuse ordinary member, owner, unset operator before touching the DB; `/admin/reports` is 404 to others [V] Checked: unmarked: `review.test.ts`, `ReviewQueue.test.tsx`."
+   "issues": [
+    578
+   ],
+   "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373, 2026-09-17) [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1) [V]"
   },
   {
    "id": "4",
@@ -66,16 +70,17 @@
     "behavior"
    ],
    "status": "active",
-   "built": "no",
-   "checked": "no",
+   "built": "yes",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    577
+    577,
+    833
    ],
-   "note": "`report.remove` sets `photo_removed_at`, keeps URL, writes `report_decisions`; Page, share, Browse honor it. Map does not: `useMapPages.ts` reads only `photo_hidden_at`, and removal clears that column, so pins still show a removed photo [V]. Issue #577 Checked: unmarked: `review.test.ts` (decision row, never nulls URL); nothing on the map."
+   "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards, Browse and the map read it (#779) [V] Checked: `[guards F058.4]` in `tests/f058-remove-every-surface-db.test.ts`, seen failing against five mutants (#912, closed #833); the map marker in `useMapPages.test.ts:82` stays partial [V] Reviewed: #151, #152, #779 carry no `Reviewed by:`; #912 does [V] Shipped: deploy-health green on #151 (311a373), #152 (1c1b0c9), #779 (a265d7c) and #912 (99c10e5) [V] Smoked: `explore` and `page` green 2026-10-23 [A]"
   },
   {
    "id": "5",
@@ -86,13 +91,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Always: `/admin/reports` queue, oldest hidden first. Plus SMS to the operator for urgent categories (`operator-sms.ts`, Twilio) [V]. Ordinary reports are queue-only, which meets \"somewhere a person reads\" [A] Checked: unmarked: `create.test.ts`, `operator-sms.test.ts`, `reports-queue-builders.test.ts`."
+   "issues": [
+    578
+   ],
+   "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS once the Twilio values are set (#707 still open) [V] Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373) and #751 (ebce891) [V] Smoked: `admin-reports` green 2026-10-22 [V]"
   },
   {
    "id": "6",
@@ -102,13 +109,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
-   "shipped": "unknown",
-   "smoked": "unknown",
+   "shipped": "yes",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [],
-   "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: unmarked: `review.test.ts` (reversal inserts, never UPDATE/DELETE), `ReportEntry.test.tsx`."
+   "issues": [
+    578
+   ],
+   "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: deploy-health green on #152 (1c1b0c9, 2026-09-18) [V] Smoked: `admin-reports` green 2026-10-22 [V]"
   }
  ]
 }

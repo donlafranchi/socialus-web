@@ -11,6 +11,8 @@ import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 
 afterEach(cleanup)
 
+const LOAF = { id: 'i1', kind: 'product' as const, name: 'Country Loaf', details: '', priceCents: null, inStock: true, photoUrl: null, sampleSourceUrl: null, hidden: false }
+
 const SHOP: ResolvedShop = {
   groupId: 'grp-1',
   kind: 'business',
@@ -18,6 +20,7 @@ const SHOP: ResolvedShop = {
   publicId: '7k3x8m',
   displayName: 'Oak Park Sourdough',
   publicDescription: 'Real bread, baked local.',
+  wordsHidden: false,
   lifecycleState: 'active',
   anchorLocationId: 'loc-1',
   purpose: 'sell',
@@ -136,6 +139,21 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
     expect(screen.getByTestId('shop-placement')).toHaveTextContent('Midtown')
   })
 
+  // #894 — "It moves" and "I go to them" anchor to the metro, whose centre falls in East Sacramento: no fixed neighbourhood, no map.
+  it.each([
+    ['roaming', 'Around the Sacramento area, usually Midtown markets'],
+    ['travel', 'Comes to you anywhere in the Sacramento area'],
+  ] as const)('a Page that is %s shows only its own line, never the anchor\'s neighbourhood', (mode, line) => {
+    renderShop({
+      shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'area', label: 'East Sacramento', lng: -121.46, lat: 38.56 }] },
+      where: { mode, howToFind: null, usuallyAround: mode === 'roaming' ? 'Midtown markets' : null, towns: [] },
+      loggedIn: true,
+    })
+    expect(screen.queryByTestId('shop-placement')).toBeNull()
+    expect(screen.queryByText('East Sacramento')).toBeNull()
+    expect(screen.getByTestId('shop-where')).toHaveTextContent(line)
+  })
+
   it('renders nothing when there is no placement — no empty heading, no placeholder', () => {
     renderShop({ shop: { ...SHOP, placements: [] } })
     expect(screen.queryByTestId('shop-placement')).not.toBeInTheDocument()
@@ -155,12 +173,16 @@ describe('ShopPublicPage — Beat 2 (local owner badge render path)', () => {
 })
 
 describe('ShopPublicPage — Beat 3 (items)', () => {
-  // F035 beat 3: visible-but-empty says the Page is real and listings will come.
-  it('shows a visible empty state, not a hidden section, when there are no items', () => {
+  // #909 (Don, 2026-10-18) — empty, the section is hidden from visitors and is the owner's prompt.
+  it('hides an empty section from a visitor', () => {
     renderShop({ items: [], loggedIn: true })
-    const empty = screen.getByTestId('shop-items-empty')
-    expect(empty).toHaveTextContent(/check back soon/i)
-    expect(empty.textContent).not.toContain('\u2014')
+    expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
+  })
+
+  it("an empty section asks the owner for the first one", () => {
+    renderShop({ items: [], loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x', viewerMemberId: 'm' })
+    expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
+    expect(screen.getByTestId('featured-empty-owner')).toBeInTheDocument()
   })
 
   // bug #341 — a private family Page shows no card until its owner adds one (#363's ruling).
@@ -170,8 +192,7 @@ describe('ShopPublicPage — Beat 3 (items)', () => {
   })
 
   it('lists items when present', () => {
-    renderShop({ items: [{ id: 'i1', title: 'Country Loaf', kind: 'product' }], loggedIn: true })
-    expect(screen.queryByTestId('shop-items-empty')).not.toBeInTheDocument()
+    renderShop({ items: [LOAF], loggedIn: true })
     expect(screen.getByText('Country Loaf')).toBeInTheDocument()
   })
 })
@@ -414,7 +435,7 @@ describe('#301 — the draft Page, in the owner view', () => {
 })
 
 describe('#300 — the front door, signed out (F093 criterion 8)', () => {
-  const items = [{ id: 'i1', title: 'Country Loaf', kind: 'product' as const }]
+  const items = [LOAF]
   const socialLinks = { instagram: 'https://instagram.com/claras' }
 
   it('shows no listings and no links out signed out', () => {
@@ -557,7 +578,7 @@ describe('#363 — the kind line and what each type leads with', () => {
     expect(screen.getByTestId('page-next-up')).not.toHaveTextContent('Star party')
     expect(screen.queryByRole('heading', { name: /products/i })).toBeNull()
     cleanup()
-    renderShop({ loggedIn: true, shop: GROUP, productsOn: true })
+    renderShop({ loggedIn: true, shop: GROUP, productsOn: true, items: [LOAF] })
     expect(screen.getByRole('heading', { name: /products/i })).toBeInTheDocument()
   })
 
@@ -633,6 +654,7 @@ describe('#458 — a header block, then contained sections', () => {
     tags: ['sourdough'],
     contact: { phone: '+19165550142', hours: null } as never,
     shop: { ...SHOP, placements: [{ source: 'anchor' as const, kind: 'point' as const, label: '3117 Broadway', lng: -121.47, lat: 38.55 }], socialLinks: { instagram: 'https://instagram.com/oakpark' } },
+    items: [LOAF],
     posts: [{ id: 'p1', body: 'Bread', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }],
   }
   const sections = () => [...document.querySelectorAll('main section[data-section]')].map((el) => el.getAttribute('data-section'))
@@ -645,7 +667,7 @@ describe('#458 — a header block, then contained sections', () => {
     expect(header).toContainElement(screen.getByRole('button', { name: /follow/i }))
   })
 
-  it('then About, Location, Contact, Tags & links and Posts, each titled and contained', () => {
+  it('then About, Location, Contact, Tags and Posts, each titled and contained', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
     renderShop(full)
     expect(sections()).toEqual(['about', 'location', 'contact', 'found', 'posts', 'products'])
@@ -653,7 +675,7 @@ describe('#458 — a header block, then contained sections', () => {
       expect(el.querySelector('h2')).not.toBeNull()
       expect(el.className).toMatch(/\bcard\b/)
     }
-    expect(screen.getByRole('heading', { level: 2, name: 'Tags & links' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Tags' })).toBeInTheDocument()
     vi.unstubAllEnvs()
   })
 
@@ -733,5 +755,323 @@ describe('#472 first pass — nothing loose', () => {
   it('the founder line says what it is', () => {
     renderShop({ loggedIn: true })
     expect(screen.getByTestId('shop-founder')).toHaveTextContent('Started by Maya Rivera')
+  })
+})
+
+// #625 — the owner of a Page whose words a report hid sees a note saying so and how to show them again; nobody else does.
+describe('ShopPublicPage — #625 a Page\'s own words, hidden', () => {
+  it('tells the owner, and only the owner', () => {
+    renderShop({ shop: { ...SHOP, wordsHidden: true }, loggedIn: true, viewerOwnsPage: true })
+    expect(screen.getByTestId('page-words-hidden-note')).toHaveTextContent(/Edit either one to show them again/)
+    cleanup()
+    renderShop({ shop: { ...SHOP, wordsHidden: true, displayName: 'Hidden while we look' }, loggedIn: true, viewerOwnsPage: false })
+    expect(screen.queryByTestId('page-words-hidden-note')).toBeNull()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hidden while we look')
+  })
+})
+
+// #909 — the owner's search-demand card: theirs only, and only on a live Page.
+describe('ShopPublicPage — what locals searched (#909)', () => {
+  const demand = { fit: [{ query: 'sourdough', searches: 4 }], zero: [] }
+  it('the owner sees it', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand })
+    expect(screen.getByTestId('search-demand-card')).toBeInTheDocument()
+  })
+  it('a visitor never does, even if a value slipped through', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false, pagePath: '/g/7k3x8m', searchDemand: demand })
+    expect(screen.queryByTestId('search-demand-card')).toBeNull()
+  })
+  it('not on a draft', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/7k3x8m', searchDemand: demand, shop: { ...SHOP, lifecycleState: 'draft' } })
+    expect(screen.queryByTestId('search-demand-card')).toBeNull()
+  })
+})
+
+// #896 — the map shows where the Page is, and opens in Maps.
+describe('#896 — the Location map', () => {
+  const point = { source: 'anchor' as const, kind: 'point' as const, label: '2700 K St, Sacramento, CA 95816', lng: -121.47103, lat: 38.57271 }
+  const area = { source: 'anchor' as const, kind: 'area' as const, label: 'Midtown', lng: -121.48456, lat: 38.57123 }
+  const visit = { mode: 'visit' as const, howToFind: null, usuallyAround: null, towns: [] }
+  const roaming = { mode: 'roaming' as const, howToFind: null, usuallyAround: 'farmers markets', towns: [] }
+
+  it('the address sits under the map; the map opens our own map on this Page; Directions leave the app', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: true, where: visit })
+    const map = screen.getByRole('img', { name: `Map of ${point.label}` })
+    const address = screen.getByTestId('shop-placement')
+    expect(address).toHaveTextContent(point.label)
+    expect(map.compareDocumentPosition(address) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('link', { name: `Show ${point.label} on the map` })).toHaveAttribute('href', `/explore?view=map&focus=${SHOP.publicId}&at=-121.47103%2C38.57271`)
+    expect(screen.queryByText(/open in maps/i)).toBeNull()
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute('href', expect.stringContaining('google.com/maps/dir/'))
+    vi.unstubAllEnvs()
+  })
+
+  // Privacy: a Page that shares only an area, or that moves, never puts its
+  // exact point or address anywhere in what the visitor's browser receives.
+  // Don, 2026-10-18: "area only doesn't need a map to open but does need some kind of indicator about where it's at".
+  it('an area-only Page: no map, a plain line saying where, never its point', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [area] }, loggedIn: true, where: visit })
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('In Midtown')
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(screen.queryByRole('link', { name: /on the map/ })).toBeNull()
+    expect(container.innerHTML).not.toContain('-121.48456')
+    expect(container.innerHTML).not.toContain('38.57123')
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    vi.unstubAllEnvs()
+  })
+
+  it('a Page that moves never sends its address or point, even with a fixed anchor', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: true, where: roaming })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Around the Sacramento area, usually farmers markets')
+    expect(screen.queryByRole('link', { name: /on the map/ })).toBeNull()
+    expect(container.innerHTML).not.toContain('2700 K St')
+    expect(container.innerHTML).not.toContain('-121.47103')
+    expect(container.innerHTML).not.toContain('38.57271')
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    vi.unstubAllEnvs()
+  })
+
+  it('signed out, no map and no Maps links', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: false, where: visit })
+    expect(screen.queryByRole('link', { name: /on the map|Directions/ })).toBeNull()
+    expect(container.innerHTML).not.toContain('38.57271')
+    vi.unstubAllEnvs()
+  })
+})
+
+// #896 — Contact holds the website and the social links (Yelp, Google Business Profile).
+describe('#896 — Contact holds website, phone and socials', () => {
+  const socialLinks = {
+    instagram: 'https://instagram.com/claras',
+    facebook: 'https://facebook.com/clarasbakery',
+    tiktok: 'https://www.tiktok.com/@claras',
+    youtube: 'https://youtube.com/@claras',
+    website: 'https://clarasbakery.com/',
+  }
+
+  it('every link out sits in Contact, TikTok, Instagram, Facebook first, each href as stored', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: true, contact: { phone: '+19165550142', hours: null } })
+    const contact = screen.getByTestId('page-section-contact')
+    expect(within(contact).getByTestId('page-phone')).toHaveAttribute('href', 'tel:+19165550142')
+    const site = within(contact).getByTestId('shop-social-website')
+    expect(site).toHaveAttribute('href', 'https://clarasbakery.com/')
+    expect(site).toHaveTextContent('clarasbakery.com')
+    const socials = within(contact).getAllByTestId(/^shop-social-(?!website|links)/)
+    expect(socials.map((a) => a.getAttribute('data-testid'))).toEqual([
+      'shop-social-tiktok', 'shop-social-instagram', 'shop-social-facebook', 'shop-social-youtube',
+    ])
+    for (const a of [site, ...socials]) {
+      const href = a.getAttribute('href')!
+      expect(Object.values(socialLinks)).toContain(href)
+      expect(new URL(href).protocol).toBe('https:')
+      expect(a).toHaveAttribute('target', '_blank')
+      expect(a).toHaveAttribute('rel', 'noopener noreferrer')
+    }
+    expect(within(contact).getByRole('link', { name: 'Instagram: @claras' })).toBeInTheDocument()
+    expect(within(contact).getByRole('link', { name: 'TikTok: @claras' })).toBeInTheDocument()
+  })
+
+  it('tags stay for interests only: no links out beside them', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: true, tags: ['Sourdough'] })
+    const tags = screen.getByTestId('page-section-found')
+    expect(within(tags).queryAllByRole('link').map((a) => a.getAttribute('href'))).not.toContain(socialLinks.instagram)
+    expect(within(tags).getByRole('heading')).toHaveTextContent('Tags')
+  })
+
+  it("an unclaimed Page's source site is credited in About and listed in Contact", () => {
+    const unclaimed = { publicInfoUrl: 'https://cornerbakery.example/', photoCredit: null, photoSourceUrl: null }
+    renderShop({ shop: { ...SHOP, unclaimed } as never, loggedIn: true })
+    expect(screen.getByTestId('description-credit')).toHaveAttribute('href', 'https://cornerbakery.example/')
+    const site = within(screen.getByTestId('page-section-contact')).getByTestId('shop-social-website')
+    expect(site).toHaveAttribute('href', 'https://cornerbakery.example/')
+  })
+
+  it('withholds a website that is not https', () => {
+    const unclaimed = { publicInfoUrl: 'javascript:alert(1)', photoCredit: null, photoSourceUrl: null }
+    renderShop({ shop: { ...SHOP, unclaimed } as never, loggedIn: true })
+    expect(screen.queryByTestId('shop-social-website')).toBeNull()
+  })
+
+  it('signed out, no Contact at all, even if handed every field', () => {
+    const { container } = renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: false, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.queryByTestId('page-section-contact')).toBeNull()
+    expect(container.innerHTML).not.toContain('5550142')
+    for (const url of Object.values(socialLinks)) expect(container.innerHTML).not.toContain(url)
+  })
+})
+
+// Don, 2026-10-18 [always]: no chip or pill UI — typography, spacing and quiet text links.
+describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
+  it('nothing rounded-full or button-styled in those sections', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    renderShop({
+      shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras', website: 'https://claras.example/' }, placements: [{ source: 'anchor', kind: 'point', label: '1 Main St', lng: -121.5, lat: 38.5 }] },
+      loggedIn: true,
+      tags: ['Sourdough'],
+      contact: { phone: '+19165550142', hours: null },
+    })
+    for (const id of ['location', 'contact', 'found']) {
+      const section = screen.getByTestId(`page-section-${id}`)
+      expect(section.querySelector('[class*="rounded-full"], [class*="btn-"]')).toBeNull()
+    }
+    vi.unstubAllEnvs()
+  })
+})
+
+describe('#830 — Report is a ⋯ menu entry on the Page and on each post, for non-owners only', () => {
+  const POSTS = [
+    { id: 'p1', body: 'Bread', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null },
+    { id: 'p2', body: 'Rolls', createdAt: '2026-10-02T00:00:00Z', updatedAt: '2026-10-02T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null },
+  ]
+  const labels = () => screen.queryAllByRole('menuitem').map((i) => i.textContent)
+
+  it('a signed-in non-owner finds "Report this Page" in the Page header menu and "Report this post" on each post', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false, posts: POSTS })
+    const menus = screen.getAllByRole('button', { name: 'More options' })
+    expect(menus).toHaveLength(1 + POSTS.length)
+    fireEvent.click(menus[0])
+    expect(labels()).toContain('Report this Page')
+    fireEvent.click(menus[0])
+    for (const m of menus.slice(1)) {
+      fireEvent.click(m)
+      expect(labels()).toEqual(['Report this post'])
+      fireEvent.click(m)
+    }
+  })
+
+  it('an owner sees no Report anywhere on their own Page', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: true, posts: POSTS })
+    expect(screen.queryByRole('button', { name: 'More options' })).toBeNull()
+    expect(screen.queryByText(/^Report this/)).toBeNull()
+  })
+
+  it('the Page menu names the photo as its own item', () => {
+    renderShop({ loggedIn: true, viewerOwnsPage: false })
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    expect(labels()).toEqual(['Report this Page', "Report this Page's photo"])
+  })
+})
+
+// #896 — every answer to "where is it?" on the Page.
+describe('#896 — the Location card for each answer', () => {
+  const anchor = { source: 'anchor' as const, kind: 'area' as const, label: 'East Sacramento', lng: -121.46123, lat: 38.56456 }
+  const base = { howToFind: null, usuallyAround: null, towns: [] }
+  const html = (c: HTMLElement) => c.innerHTML
+
+  it('cross streets or a landmark: a pin, the words under it, Directions by the pin', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const landmark = { source: 'anchor' as const, kind: 'point' as const, label: 'J St & 20th St, by the fountain', lng: -121.47103, lat: 38.57271 }
+    renderShop({ shop: { ...SHOP, placements: [landmark] }, loggedIn: true, where: { ...base, mode: 'landmark' } })
+    expect(screen.getByRole('img', { name: 'Map of J St & 20th St, by the fountain' })).toBeInTheDocument()
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('J St & 20th St, by the fountain')
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=38.57271,-121.47103')
+    vi.unstubAllEnvs()
+  })
+
+  it('more than one location: each listed with its own Directions, by name and address, no single map', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const stops = [{ label: '2700 K St, Sacramento', whenText: null }, { label: '915 I St, Sacramento', whenText: null }]
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'multi', stops } })
+    const items = within(screen.getByTestId('page-stops')).getAllByRole('listitem')
+    expect(items).toHaveLength(2)
+    expect(items[0]).toHaveTextContent('2700 K St, Sacramento')
+    expect(within(items[0]!).getByRole('link', { name: 'Directions to 2700 K St, Sacramento' })).toHaveAttribute('href', expect.stringContaining('destination=Oak%20Park%20Sourdough%2C%202700%20K%20St%2C%20Sacramento'))
+    expect(within(items[1]!).getByRole('link', { name: 'Directions to 915 I St, Sacramento' })).toHaveAttribute('href', expect.stringContaining('destination=Oak%20Park%20Sourdough%2C%20915%20I%20St'))
+    expect(screen.queryByText(/open in maps/i)).toBeNull()
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(html(container)).not.toContain('East Sacramento')
+    vi.unstubAllEnvs()
+  })
+
+  it('it moves: where it usually is, then where and when, each with Directions', () => {
+    const stops = [{ label: 'Midtown Farmers Market', whenText: 'Saturdays, 8am–1pm' }]
+    renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'roaming', usuallyAround: 'Midtown', stops } })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Around the Sacramento area, usually Midtown')
+    const [item] = within(screen.getByTestId('page-stops')).getAllByRole('listitem')
+    expect(item).toHaveTextContent('Saturdays, 8am–1pm')
+    expect(item).toHaveTextContent('Midtown Farmers Market')
+    expect(within(item!).getByRole('link', { name: 'Directions to Midtown Farmers Market' })).toHaveAttribute('href', expect.stringContaining('destination=Midtown%20Farmers%20Market'))
+  })
+
+  // Visibility: (a) I go to them, (b) neighbourhood only and (f) online never send an exact point.
+  it('online: its line, no map, no Maps link, no point', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'online' } })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Online, or by appointment')
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(screen.queryByRole('link', { name: /on the map|Directions/ })).toBeNull()
+    expect(html(container)).not.toContain('-121.46123')
+    expect(html(container)).not.toContain('38.56456')
+    vi.unstubAllEnvs()
+  })
+
+  it('I go to them: a line naming where it serves, no map, never its anchor point', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: true, where: { ...base, mode: 'travel', towns: [{ id: 't1', name: 'Midtown' }, { id: 't2', name: 'East Sacramento' }].slice(0, 1) } })
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('Comes to you in Midtown')
+    expect(container.querySelector('img[src*="mapbox"]')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    expect(html(container)).not.toContain('-121.46123')
+    expect(html(container)).not.toContain('East Sacramento')
+    vi.unstubAllEnvs()
+  })
+
+  it('signed out, none of it — not the stops either', () => {
+    const stops = [{ label: 'Midtown Farmers Market', whenText: 'Saturdays' }]
+    const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: false, where: { ...base, mode: 'roaming', stops } })
+    expect(html(container)).not.toContain('Midtown Farmers Market')
+  })
+})
+
+// #936 — Directions find the business by name at its street address, not its town.
+describe('#936 — Maps finds the business by name and address', () => {
+  it('Directions carry the Page name and its full street address', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const point = { source: 'anchor' as const, kind: 'point' as const, label: '15010 Ridge Road, Sutter Creek, CA', lng: -120.8401, lat: 38.3655 }
+    renderShop({ shop: { ...SHOP, displayName: 'Vino Tahoe', placements: [point] }, loggedIn: true })
+    expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=Vino%20Tahoe%2C%2015010%20Ridge%20Road%2C%20Sutter%20Creek%2C%20CA',
+    )
+    expect(screen.getByRole('img', { name: 'Map of 15010 Ridge Road, Sutter Creek, CA' }).getAttribute('src')).toContain('pin-l+24405a(-120.8401,38.3655)')
+    vi.unstubAllEnvs()
+  })
+
+  it('an area-only Page never gets a name-and-address search or directions', () => {
+    vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
+    const area = { source: 'anchor' as const, kind: 'area' as const, label: 'Sutter Creek', lng: -120.80241, lat: 38.39301 }
+    const { container } = renderShop({ shop: { ...SHOP, displayName: 'Vino Tahoe', placements: [area] }, loggedIn: true })
+    expect(screen.queryByRole('link', { name: 'Directions' })).toBeNull()
+    expect(container.innerHTML).not.toContain('Vino%20Tahoe')
+    expect(container.innerHTML).not.toContain('-120.80241')
+    vi.unstubAllEnvs()
+  })
+})
+
+describe('F056 criterion 5 — every optional field empty', () => {
+  // [guards F056.5]
+  it('renders the Page with nothing nagging about a missing field, for a visitor, a member and the owner', () => {
+    // A visitor sees no prompt of any kind. The owner's own empty sections (posts, products) carry
+    // their deliberate "add your first" prompts; what must never nag is a missing optional field.
+    const ANY_NAG = /\b(add (your|a|an|some|more)|complete your|finish (setting|your)|set up your|still missing|not yet (added|set)|incomplete|nothing here yet)\b/i
+    const FIELD_NAG = /\b(add|set|upload|write|fill in|missing|no)\b[^.]{0,30}\b(description|about text|photo|picture|logo|tags?|phone|hours|links?|address|location|website)\b/i
+    const bare = { ...SHOP, publicDescription: '', photoUrl: null, socialLinks: {}, placements: [], category: null }
+    const views = [
+      { loggedIn: false, any: true },
+      { loggedIn: true, any: true },
+      { loggedIn: true, viewerOwnsPage: true, any: false },
+    ]
+    for (const { any, ...v } of views) {
+      const { container } = renderShop({ shop: bare, tags: [], contact: null, where: null, ...v })
+      expect(screen.getByTestId('shop-name')).toHaveTextContent('Oak Park Sourdough')
+      const text = container.innerHTML.replace(/<[^>]+>/g, ' ')
+      if (any) expect(text).not.toMatch(ANY_NAG)
+      expect(text).not.toMatch(FIELD_NAG)
+      cleanup()
+    }
   })
 })

@@ -1,0 +1,82 @@
+[
+ {
+  "name": "Goathouse Brewing",
+  "category": "Farm stay & agritourism",
+  "makes": "Farm-to-tap brewery on a working hop farm with goats, a donkey and a highland cow to meet; goat yoga and food trucks",
+  "area": "Lincoln (Placer)",
+  "site": "https://www.goathousebrewing.com/",
+  "confidence": "High; own site checked 2026-10-14 (ok): 600 Wise Rd, Lincoln; 916-663-8858; taproom, food truck schedule and visit pages live."
+ },
+ {
+  "name": "Millertown Sheep",
+  "category": "Ranch",
+  "makes": "100% pasture-raised lamb and wool, targeted grazing for fire-risk vegetation, guard donkeys",
+  "area": "Auburn (Placer)",
+  "site": "https://www.millertownsheep.com/",
+  "confidence": "Medium; own site checked 2026-10-14 (ok): live, lamb and wool sales and grazing services; footer 2023, on the Oct 11, 2026 Placer Farm & Barn Tour."
+ },
+ {
+  "name": "Coffee Pot Ranch",
+  "category": "Ranch",
+  "makes": "Grass-fed, grass-finished beef, pork, chicken and eggs from a family ranch",
+  "area": "Sheridan (Placer)",
+  "site": "https://coffeepotranch.square.site/",
+  "confidence": "Medium; own site checked 2026-10-14 (ok): Square store live selling grass-fed meats; 4225 Karchner Rd, on the 2026 Placer Farm & Barn Tour."
+ },
+ {
+  "name": "High Hill Ranch",
+  "category": "Farm",
+  "makes": "155-acre Apple Hill orchard with apple pies, donuts, fresh cider, caramel apples and a craft fair",
+  "area": "Placerville (El Dorado)",
+  "site": "https://highhillranch.com/",
+  "confidence": "High; own site checked 2026-10-14 (ok): open 7 days 9-5 until Christmas Eve; footer 2026."
+ },
+ {
+  "name": "Harris Family Farm",
+  "category": "Farm",
+  "makes": "Berries, apples, pies and choose-and-cut Christmas trees; Apple Hill farm #84",
+  "area": "Pollock Pines (El Dorado)",
+  "site": "https://harrisfamilyfarm.com/",
+  "confidence": "High; own site checked 2026-10-14 (ok): 2640 Blair Rd; (530) 644-2194; open Thu-Sun 9-4:30 to Dec 24; pie class Nov 17, 2026; page modified Oct 7, 2026."
+ },
+ {
+  "name": "Larsen Apple Barn",
+  "category": "Farm",
+  "makes": "20+ apple varieties, bake shop, deli, family museum and park; longest family-owned Apple Hill farm, since the 1860s",
+  "area": "Camino (El Dorado)",
+  "site": "https://www.larsenapplebarn.com/",
+  "confidence": "Medium-high; own site checked 2026-10-14 (ok): says open for the 2026 season, Sun-Fri 9-4, closed Saturdays."
+ },
+ {
+  "name": "Cache Creek Lavender",
+  "category": "Farm",
+  "makes": "Family lavender farm in Capay Valley with home-made lavender products, open house and small weddings",
+  "area": "Rumsey (Yolo)",
+  "site": "https://www.cachecreeklavender.com/",
+  "confidence": "Medium; own site checked 2026-10-14 (ok): 3430 Madrone St, Rumsey; store weekdays 10-4; 2026 banner, open-house page still says 2025."
+ },
+ {
+  "name": "Bondolio",
+  "category": "Farm",
+  "makes": "Organic Sicilian-style olive oil, hand-harvested and milled on the farm; tours by appointment",
+  "area": "Winters (Yolo)",
+  "site": "https://www.bondolio.com/",
+  "confidence": "High; own site checked 2026-10-14 (ok): 9352 Campbell Rd, Winters; (916) 715-9007; 2026 harvest pre-orders open."
+ },
+ {
+  "name": "Earthbound Ceramic",
+  "category": "Art & print",
+  "makes": "Pottery studio with wheel-throwing and hand-building classes, workshops and memberships",
+  "area": "Woodland (Yolo)",
+  "site": "https://www.earthboundceramic.com/",
+  "confidence": "Medium-high; own site checked 2026-10-14 (ok): 427 College St, Woodland; (530) 309-8781; hours Tue-Sun."
+ },
+ {
+  "name": "Salted Earth Ceramics",
+  "category": "Goods & crafts",
+  "makes": "Small-batch handmade stoneware mugs and functional ware, custom orders and classes",
+  "area": "Auburn (Placer)",
+  "site": "https://www.saltedearthceramics.com/",
+  "confidence": "Medium; own site checked 2026-10-14 (ok): wares at Thrown Together Pottery Shop, 111 Sacramento St Unit D, Auburn, Fri-Sun."
+ }
+]

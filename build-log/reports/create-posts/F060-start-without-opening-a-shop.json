@@ -6,11 +6,11 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
-   "text": "A Member with no Page can create a hosted gathering: no business record, no document/ID/ZIP check; F082 agreement is the only thing before publish",
+   "text": "A Member with no Page can create a hosted gathering: no business record, no document, ID or ZIP check; the F082 rules agreement is the only thing before publish",
    "kind": [
     "behavior",
     "invariant"
@@ -18,7 +18,7 @@
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "yes",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
@@ -26,18 +26,18 @@
     580,
     581
    ],
-   "note": "`startDraftAction` → `group.create` makes a draft from the kind alone; `group_businesses` row only for kind business; `group.activate` needs name, place, description and the F082 agreement [V]. Nothing guards \"no check\" Checked: unmarked: `src/app/create/actions.test.ts`. Reviewed: yes (#326)."
+   "note": "Create's 'Do you manage a group or meetup…?' (gather) calls `startDraftAction` → `group.create` with kind group, no `group_businesses` row, no ID or ZIP field; `group.activate` needs name, place, description, a tag and the F082 agreement [V src/app/create/actions.ts, actions/group/create.ts, activate.ts]. Built by #326 (Reviewed by) and #364 (review-skipped); deploy-health green on both. No PR since 10-16 touches Create [V gh]. Checked: unmarked `src/app/create/actions.test.ts`; nothing guards the absence of a check in Create (#580, #581); F082.1's new guard (#908) scans `members` and `groups` for role or mode columns, not the Create flow. Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]"
   },
   {
    "id": "2",
-   "text": "First question is what they're starting; no self-classification anywhere",
+   "text": "Create's first question is what they're starting, not what they are; no self-classification anywhere in the flow",
    "kind": [
     "invariant"
    ],
-   "status": "spec-conflict",
+   "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "yes",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
@@ -45,52 +45,51 @@
     580,
     581
    ],
-   "note": "`/create` heading \"What are you starting?\", four radios [V]. But the answers read \"Have a business where you sell…?\", \"Do you manage a group…?\" (Don's wording, 2026-10-04/05): scenario says \"no self-classification\". Route is `/create`, not `/you/create` Checked: unmarked: `WhatAreYouStarting.test.tsx`. Reviewed: yes (#326)."
+   "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) and 'This just gets things started' [V WhatAreYouStarting.tsx]. The answers are questions about the thing, worded by Don 2026-10-04 and 2026-10-05, the newer rulings on this surface (F061 Rulings); the criterion's `/you/create` path is stale, the route is `/create` (#301). Built by #326, #364, #382 (the last two review-skipped). The retired `members.maker_mode_enabled` flag was dropped by #908 (migration 20261018160000). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' in Create's copy (#580, #581). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]"
   },
   {
    "id": "3",
-   "text": "No legal/tax language or legal-entity questions at Page creation",
+   "text": "Page creation shows no legal or tax language and asks for no legal-entity information",
    "kind": [
     "invariant"
    ],
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "yes",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     581
    ],
-   "note": "No such words in Create, draft checklist or rules text [V grep]; no field asks for entity info. Nothing guards it for Create (F082's rules text has its own test) Reviewed: yes (#326)."
+   "note": "No legal, tax, licence or entity words in Create, the Before-you-publish checklist or the rules text; no field asks for entity information [V grep src/components/create, src/lib/creator-rules.ts]. Built by #326 (Reviewed by) and #364 (review-skipped). Nothing guards it for Create: the only scan is F082.5's, over the rules block alone (#581)."
   },
   {
    "id": "4",
-   "text": "Second Page is one tap from the end of the first; first unchanged",
+   "text": "Starting a second Page is one tap from the end of the first, and leaves the first unchanged",
    "kind": [
     "behavior"
    ],
    "status": "active",
    "built": "yes",
    "checked": "no",
-   "reviewed": "unknown",
-   "shipped": "no",
+   "reviewed": "no",
+   "shipped": "unknown",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
-    55,
     580
    ],
-   "note": "Create is in the bottom nav on every screen (T158, #55) and \"Start something\" on /you; `group.create` only inserts a new draft [V]. No test of the one-tap path from a Page or of the first staying unchanged; deploy of #58 unconfirmed"
+   "note": "Create is a tab in the phone bottom nav (`md:hidden`) and 'Start something' sits on /you; `group.create` only inserts a new draft row [V BottomNav.tsx, you/page.tsx, create.ts]. Built by #58 (T158), whose body carries no `Reviewed by:`; deploy-health shows no run for its merge commit f79dd46 (it predates the workflow). No test of the one-tap path or of the first Page staying unchanged (#580). How a desktop-width member reaches Create is not read [A]."
   },
   {
    "id": "5",
-   "text": "`/you/sell` redirects to `/you/create` preserving the query string",
+   "text": "`/you/sell` redirects to Create, preserving any query string",
    "kind": [
     "behavior"
    ],
-   "status": "spec-conflict",
+   "status": "active",
    "built": "no",
    "checked": "no",
    "reviewed": "no",
@@ -98,10 +97,9 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    336,
     579
    ],
-   "note": "`/you/sell/page.tsx` does `redirect('/create')` (#336, #392): target path differs and the query string is dropped. The venue \"host here\" link used `?compose=gathering&location=…`, now sent to bare `/create`. No test of the redirect. #392 was `review-skipped`"
+   "note": "`/you/sell/page.tsx` does `redirect('/create')` and drops the query string, so the venue 'host here' link's `?compose=gathering&location=…` is lost [V]. The criterion's target `/you/create` is stale; the route is `/create` (#301) and #579 keeps that target. The redirect half is built by #392 (`review-skipped`, deploy-health green); the query-string half is not, and no test asserts the redirect (#579)."
   }
  ]
 }

@@ -15,7 +15,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
-import { reportDecide, reportReverse, ActionError } from '@/actions'
+import { reportDecide, reportReverse, reportNcmecRecord, ActionError } from '@/actions'
 import type { ReasonCode } from '@/lib/admin/reason-codes'
 
 async function context() {
@@ -52,6 +52,17 @@ export async function reverseDecisionAction(input: {
   const ctx = await context()
   try {
     await reportReverse(ctx, input)
+  } catch (err) {
+    rethrow(err)
+  }
+  revalidatePath('/admin/reports')
+}
+
+/** #648 — the number NCMEC gave back after the manual CyberTipline form; kept on the legal hold. */
+export async function recordNcmecAction(input: { reportId: string; reportNumber: string }): Promise<void> {
+  const ctx = await context()
+  try {
+    await reportNcmecRecord(ctx, input)
   } catch (err) {
     rethrow(err)
   }

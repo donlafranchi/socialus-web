@@ -31,15 +31,21 @@ import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
 import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
 import { isValidTagLabel } from '@/lib/groups/tags'
-import { formatPostDate } from '@/lib/groups/post-date'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
-import { ANNOUNCEMENT_MARK, useAnnouncementAnchor } from './use-announcement-anchor'
-import { METRO_TIME_ZONE, formatMetroDateTime, metroWallTimeToInstant } from '@/lib/metro/metro-time'
+import { useAnnouncementAnchor } from './use-announcement-anchor'
+import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
+import { METRO_TIME_ZONE, formatMetroDateTime, formatPostedDate, metroWallTimeToInstant } from '@/lib/metro/metro-time'
+import { metroDate } from '@/lib/metro/metro-week'
+import { firstOccurrenceDate } from '@/lib/posts/series'
+import { RemindMeButton, type RemindActions } from '@/components/reminders/RemindMe'
+import { reminderFor, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
   AnnouncementFields,
+  defaultShowUntil,
   emptyWhenWhere,
+  SERIES_COMPOSER_ON,
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { Sheet } from '@/components/ui/Sheet'
@@ -53,14 +59,18 @@ import { isLocationPlaceFieldsComplete } from '@/components/locations/LocationPl
 
 const BODY_LIMIT = 5000
 const LATEST = 3
+/** #913 — an undated post past its window (the database's post_current_until) sits under Earlier. */
+const isEarlier = (p: PagePost) => !p.startsAt && p.current === false
 const latestIds = (posts: PagePost[]) =>
-  [...posts].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
+  [...posts].filter((p) => !isEarlier(p)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
 const TRY_AGAIN = "That didn't go through. Mind trying again?"
 /** F072 § Not this rules out all-day announcements, so a date with no time has
  *  nothing to become. Said as a sentence rather than refused silently. */
 const HALF_A_TIME = 'Add both a date and a time, or leave them both empty.'
 // #262 — placeholders ([public-is-draft]).
 const END_NEEDS_START = 'Add a date and a start time before an end time.'
+const PICK_A_DAY = 'Pick at least one day.'
+const SERIES_ENDED = 'The end comes before the first one.'
 const END_BEFORE_START = 'The end time is before it starts.'
 
 type CreateLocation = typeof createLocationAction
@@ -70,11 +80,14 @@ interface PostInput {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
   /** F099 — one photo of its own, or none. */
   photoUrl?: string | null
+  /** F074.1 — weekly on chosen weekdays; this post is the first occurrence. */
+  series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
 }
 
 interface EditInput {
@@ -82,6 +95,7 @@ interface EditInput {
   body: string
   startsAt?: string | null
   endsAt?: string | null
+  showUntil?: string | null
   locationId?: string | null
   tags?: string[]
   /** F099 — absent leaves the photo alone; null removes it. */
@@ -91,7 +105,7 @@ interface EditInput {
 interface Props {
   groupId: string
   /** F078 — reporting a Post. Offered to everyone who does not manage the Page. */
-  onReport?: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true }>
+  onReport?: (input: { subjectId: string; category: ReportCategory; body: string }) => Promise<{ ok: true } | { ok: false; message: string }>
   loggedIn?: boolean
   returnTo?: string
   posts: PagePost[]
@@ -117,8 +131,12 @@ interface Props {
       subjectKind: 'page_picture' | 'post_photo'
       category: ReportCategory
       body: string
-    }) => Promise<{ ok: true }>
+    }) => Promise<{ ok: true } | { ok: false; message: string }>
   }
+  /** F074.1 — offer the weekly repeat in the composer (off until its occurrences exist). */
+  seriesComposer?: boolean
+  /** #945 — Remind me on a real dated post, for a visitor who does not manage the Page. */
+  reminders?: { viewer: ViewerReminders } & RemindActions
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -137,7 +155,10 @@ interface Props {
 /** `yyyy-mm-dd` and `hh:mm` back out of an instant, for an edit form that has
  *  to start from what is already there. */
 function whenWhereFrom(post: PagePost): AnnouncementWhenWhere {
-  if (!post.startsAt) return emptyWhenWhere
+  if (!post.startsAt) {
+    const own = post.showUntil ? metroDate(new Date(post.showUntil), METRO_TIME_ZONE) : ''
+    return { ...emptyWhenWhere, showUntil: own === defaultShowUntil(new Date(post.createdAt)) ? '' : own }
+  }
   const d = new Date(post.startsAt)
   if (Number.isNaN(d.getTime())) return emptyWhenWhere
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -155,6 +176,7 @@ function whenWhereFrom(post: PagePost): AnnouncementWhenWhere {
     date: `${at('year')}-${at('month')}-${at('day')}`,
     time: `${String(Number(at('hour')) % 24).padStart(2, '0')}:${at('minute')}`,
     endTime: post.endsAt ? metroClock(post.endsAt) : '',
+    endDate: post.endsAt && metroDate(new Date(post.endsAt), METRO_TIME_ZONE) !== `${at('year')}-${at('month')}-${at('day')}` ? metroDate(new Date(post.endsAt), METRO_TIME_ZONE) : '',
   }
 }
 
@@ -189,6 +211,8 @@ export function PagePosts({
   onCreateLocation = createLocationAction,
   onDelete,
   startComposing = false,
+  seriesComposer = SERIES_COMPOSER_ON,
+  reminders,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -212,7 +236,9 @@ export function PagePosts({
   // (F093), because an `#announcement-<id>` link has to land the same way on
   // both and two copies of the effect is how they stop doing that.
   // #462 — newest first; the latest three in a row, the rest a tap away.
-  const sorted = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const newest = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const sorted = newest.filter((p) => !isEarlier(p))
+  const earlier = newest.filter(isEarlier)
   const [showAll, setShowAll] = useState(false)
   // A link to an older post opens the list, so the post it names is there to land on.
   useEffect(() => {
@@ -262,27 +288,41 @@ export function PagePosts({
         ok: true
         startsAt: string | null
         endsAt: string | null
+        showUntil: string | null
         locationId: string | null
         locationLabel: string | null
+        series?: NonNullable<PostInput['series']>
       }
     | { ok: false; message: string }
   > {
-    const hasDate = w.date.trim().length > 0
+    // F074.1 — a series has no date of its own: the first occurrence is the first chosen weekday on or
+    // after today (and the start date), and the creator never types an individual date.
+    const repeating = seriesComposer && w.repeat.open
+    if (repeating && w.repeat.days.length === 0) return { ok: false, message: PICK_A_DAY }
+    const date = repeating ? firstOccurrenceDate(w.repeat.days, w.repeat.startsOn || null, metroDate(new Date(), METRO_TIME_ZONE)) : w.date
+    if (repeating && w.repeat.endsOn && w.repeat.endsOn < date) return { ok: false, message: SERIES_ENDED }
+    const hasDate = date.trim().length > 0
     const hasTime = w.time.trim().length > 0
-    if (hasDate !== hasTime) return { ok: false, message: HALF_A_TIME }
+    if (repeating ? !hasTime : hasDate !== hasTime) return { ok: false, message: HALF_A_TIME }
 
     let startsAt: string | null = null
     if (hasDate && hasTime) {
-      startsAt = metroWallTimeToInstant(w.date, w.time)
+      startsAt = metroWallTimeToInstant(date, w.time)
       if (!startsAt) return { ok: false, message: HALF_A_TIME }
     }
 
     let endsAt: string | null = null
-    if (w.endTime.trim()) {
+    // #814 — the end can fall on a later day; an end day with no end time runs to the end of that day.
+    const endDay = !repeating && w.endDate.trim() ? w.endDate : date
+    const endClock = w.endTime.trim() || (endDay !== date ? '23:59' : '')
+    if (endClock) {
       if (!startsAt) return { ok: false, message: END_NEEDS_START }
-      endsAt = metroWallTimeToInstant(w.date, w.endTime)
+      endsAt = metroWallTimeToInstant(endDay, endClock)
       if (!endsAt || new Date(endsAt) <= new Date(startsAt)) return { ok: false, message: END_BEFORE_START }
     }
+
+    // #314 — an undated post shows through the end of the day its owner picked; none is the 14-day default.
+    const showUntil = !startsAt && w.showUntil ? metroWallTimeToInstant(w.showUntil, '23:59') : null
 
     let locationId: string | null = null
     let locationLabel: string | null = null
@@ -310,7 +350,15 @@ export function PagePosts({
       locationLabel = made.data.label
     }
 
-    return { ok: true, startsAt, endsAt, locationId, locationLabel }
+    return {
+      ok: true,
+      startsAt,
+      endsAt,
+      showUntil,
+      locationId,
+      locationLabel,
+      ...(repeating ? { series: { weekdays: w.repeat.days, startsOn: w.repeat.startsOn || null, endsOn: w.repeat.endsOn || null } } : {}),
+    }
   }
 
   const submit = async () => {
@@ -338,10 +386,12 @@ export function PagePosts({
       body,
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
+      showUntil: resolved.showUntil,
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
       tags: tagSet(tags),
       ...(photo ? { photoUrl: photo } : {}),
+      ...(resolved.series ? { series: resolved.series } : {}),
     })
     setBusy(false)
     if (!r.ok) {
@@ -356,6 +406,7 @@ export function PagePosts({
         updatedAt: r.data.createdAt,
         startsAt: resolved.startsAt,
         endsAt: resolved.endsAt,
+        showUntil: resolved.showUntil,
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
         tags: tagSet(tags),
@@ -387,6 +438,8 @@ export function PagePosts({
       body,
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
+      // #314 — a dated post clears it in the handler; an undated one sends its day, or null for the default.
+      ...(resolved.startsAt ? {} : { showUntil: resolved.showUntil }),
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
@@ -409,6 +462,7 @@ export function PagePosts({
               body,
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
+              showUntil: resolved.startsAt ? null : resolved.showUntil,
               tags: tagSet(editTags),
               // F102: a hidden post the edit reposted shows again at once.
               ...(r.data.reposted ? { hiddenAt: null } : {}),
@@ -426,12 +480,11 @@ export function PagePosts({
               key={post.id}
               id={announcementAnchor(post.id)}
               data-testid="page-post"
-              // The mark is a ring rather than a background: it says "this
-              // one" without restyling the announcement into something that
-              // looks like a different kind of thing.
+              // #796 — the tapped post is scrolled into view; no ring (it was clipped to two sides in the strip).
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${highlighted === post.id ? ANNOUNCEMENT_MARK : ''}`}
+              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${post.sampleKind ? ' relative overflow-hidden' : ''}`}
             >
+              {post.sampleKind && editingId !== post.id ? <SampleWatermark /> : null}
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   <label htmlFor={`edit-${post.id}`} className="sr-only">
@@ -451,6 +504,7 @@ export function PagePosts({
                     onChange={setEditWhen}
                     idPrefix="page-post-edit"
                     placeLabel={post.locationLabel}
+                    postedAt={new Date(post.createdAt)}
                   />
                   <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
                   {memberId && (
@@ -512,6 +566,7 @@ export function PagePosts({
                           subjectId={post.photoUrl ? post.id : groupId}
                           subjectKind={post.photoUrl ? 'post_photo' : 'page_picture'}
                           subjectLabel={post.photoUrl ? 'this photo' : 'this picture'}
+                          itemLabel="Report this photo"
                           loggedIn={report.loggedIn}
                           returnTo={report.returnTo}
                           onSend={report.onSend as never}
@@ -524,7 +579,14 @@ export function PagePosts({
                       <HiddenPhotoNotice which="post" />
                     </div>
                   )}
+                  {post.sampleKind ? (
+                    <p className="mb-1 flex items-center gap-1.5">
+                      <TypeMark type="post" />
+                      <SampleLabel />
+                    </p>
+                  ) : null}
                   <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
+                  {post.sampleKind ? <SampleNote /> : null}
 
                   {/* When and where it is — the announcement's own, not its
                       Page's. Shown above the line that says when it was
@@ -544,7 +606,17 @@ export function PagePosts({
                   )}
 
                   {post.startsAt && (
-                    <div className="mt-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                      {reminders && !canPost && !post.sampleKind && !post.hiddenAt && (
+                        <RemindMeButton
+                          postId={post.id}
+                          repeats={!!post.seriesId}
+                          reminderId={reminderFor(reminders.viewer, post)}
+                          loggedIn={loggedIn}
+                          returnTo={returnTo ?? '/'}
+                          actions={reminders}
+                        />
+                      )}
                       <AddToCalendarLink
                         uid={`${post.id}@socialus.org`}
                         title={post.body.split('\n')[0].slice(0, 120)}
@@ -552,6 +624,11 @@ export function PagePosts({
                         end={post.endsAt}
                         location={post.locationLabel ?? null}
                       />
+                      {post.ticketUrl && (
+                        <a href={post.ticketUrl} target="_blank" rel="noopener noreferrer" data-testid="page-post-tickets" className="text-sm text-[var(--color-accent)] hover:underline">
+                          Tickets
+                        </a>
+                      )}
                     </div>
                   )}
 
@@ -562,9 +639,9 @@ export function PagePosts({
                   )}
 
                   <div className="mt-2 flex items-center gap-3">
-                    <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
                     {!canPost && onReport && (
-                      <ReportControl subjectId={post.id} subjectLabel="this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
+                      <ReportControl subjectId={post.id} subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
                     )}
                     {canPost && (
                       <button
@@ -658,7 +735,7 @@ export function PagePosts({
             className="w-full rounded border border-[var(--color-control-border)] p-3 text-sm"
           />
 
-          <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" />
+          <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer} />
 
           <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
           {memberId && (
@@ -709,7 +786,7 @@ export function PagePosts({
         >
           <p>Nothing here yet. Tell people what&apos;s going on.</p>
         </div>
-      ) : showAll ? (
+      ) : sorted.length === 0 ? null : showAll ? (
         <ul data-testid="page-posts-all" className="mt-4 flex flex-col gap-3">
           {sorted.map((post) => renderPost(post, false))}
         </ul>
@@ -729,6 +806,12 @@ export function PagePosts({
         >
           {showAll ? 'Show the latest' : 'See all posts'}
         </button>
+      )}
+      {earlier.length > 0 && (
+        <section data-testid="page-posts-earlier" aria-labelledby="page-posts-earlier-title" className="mt-6">
+          <h3 id="page-posts-earlier-title" className="text-body-sm font-semibold text-[var(--color-fg-muted)]">Earlier</h3>
+          <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
+        </section>
       )}
     </section>
   )

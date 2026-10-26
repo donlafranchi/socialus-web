@@ -19,39 +19,64 @@
 // Two groups left. Distance and Sort went with T156: see
 // `@/lib/browse/filters` for why each one could not stay honest.
 
-import { hashtag } from '@/components/tags/TagChips'
+import { isReservedWord } from '@/lib/browse/box-text'
+import Link from 'next/link'
 import { useId, useState } from 'react'
 import { Sheet } from '@/components/ui/Sheet'
+import { normalizeTag } from '@/lib/groups/tags'
+import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
 import {
+  DATE_OPTIONS,
   DEFAULT_BROWSE_FILTERS,
-  SCHEDULE_OPTIONS,
+  POST_KIND_OPTIONS,
+  TYPE_OPTIONS,
   hasBrowseFilters,
+  isPickedDay,
+  togglePostKind,
   toggleTag,
   type BrowseFilters,
-  type ScheduleFilter,
 } from '@/lib/browse/filters'
+import { REACH_OPTIONS, type Reach } from '@/lib/browse/reach'
 
 interface ExploreFilterSheetProps {
   open: boolean
   value: BrowseFilters
-  /** Tags present in the current result set — creators make their own. */
-  tags: string[]
   onClose: () => void
   onApply: (filters: BrowseFilters) => void
+  /** #922 — how far Explore reaches; the sheet sets it exactly. Absent: no "How far" group. */
+  reach?: Reach | null
+  onReachChange?: (reach: Reach) => void
+  /** #892 — the reader's own interests as Page tags; null signed out. Only decides what the choice offers. */
+  myInterests?: string[] | null
+  signedIn?: boolean
 }
+
+/** #892 — where "My interests" leads someone who has none yet: You, through sign-in when signed out. */
+const PICK_INTERESTS = '/you#interests'
+const pickInterestsHref = (signedIn: boolean) => (signedIn ? PICK_INTERESTS : `/auth/login?next=${encodeURIComponent(PICK_INTERESTS)}`)
+
+// #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Three groups, opt-in, that
+// combine with each other and with search; the default is everything mixed.
+const CATEGORIES = INTEREST_VOCAB.map((t) => ({ value: normalizeTag(t.label), label: t.label }))
 
 export function ExploreFilterSheet({
   open,
   value,
-  tags,
   onClose,
   onApply,
+  reach = null,
+  onReachChange,
+  myInterests = null,
+  signedIn = false,
 }: ExploreFilterSheetProps) {
   const [draft, setDraft] = useState(value)
+  const [draftReach, setDraftReach] = useState(reach)
   // Options come from the current result set, so a search can drop a tag that
   // is still selected. Union the selection back in, or the sheet would show a
   // filter the member cannot turn off from inside the sheet.
-  const tagOptions = Array.from(new Set([...tags, ...draft.tags])).sort()
+  // A tag with exactly a schedule phrase is the box's own word, so it is not offered (box-text).
+  const known = new Set(CATEGORIES.map((c) => c.value))
+  const extraTags = draft.tags.filter((t) => !known.has(t) && !isReservedWord(t))
   const groupId = useId()
 
   // Re-seed from the committed value on each open, which is what makes a
@@ -60,11 +85,15 @@ export function ExploreFilterSheet({
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
     setWasOpen(open)
-    if (open) setDraft(value)
+    if (open) {
+      setDraft(value)
+      setDraftReach(reach)
+    }
   }
 
   const commit = (filters: BrowseFilters) => {
     onApply(filters)
+    if (onReachChange && draftReach !== null && draftReach !== reach) onReachChange(draftReach)
     onClose()
   }
 
@@ -85,7 +114,7 @@ export function ExploreFilterSheet({
               setDraft(DEFAULT_BROWSE_FILTERS)
               commit(DEFAULT_BROWSE_FILTERS)
             }}
-            className="inline-flex min-h-tap items-center rounded-full px-2 text-body-sm font-medium text-[var(--color-charcoal-900)] underline hover:bg-neutral-100"
+            className="inline-flex min-h-tap items-center px-2 text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
           >
             Clear all
           </button>
@@ -95,45 +124,107 @@ export function ExploreFilterSheet({
         <button
           type="button"
           onClick={() => commit(draft)}
-          className="w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-body-sm font-semibold text-white"
+          className="w-full rounded-md bg-[var(--color-charcoal-700)] py-3 text-body-sm font-semibold text-white"
         >
           Show results
         </button>
       }
     >
       <div data-testid="filter-sheet-body">
-        <Group label="Schedule">
+        <Group label="Type">
           <Options>
-            {SCHEDULE_OPTIONS.map((s) => (
+            {TYPE_OPTIONS.map((t) => (
+              <Choice key={t.value} name={`${groupId}-type`} label={t.label} checked={draft.type === t.value} onChange={() => setDraft((d) => ({ ...d, type: t.value }))} />
+            ))}
+          </Options>
+          <Options className="mt-2">
+            {POST_KIND_OPTIONS.map((k) => (
               <Choice
-                key={s.value}
-                name={`${groupId}-schedule`}
-                label={s.label}
-                checked={draft.schedule === s.value}
-                onChange={() => setDraft((d) => ({ ...d, schedule: s.value as ScheduleFilter }))}
+                key={k.value}
+                type="checkbox"
+                name={`${groupId}-kind-${k.value}`}
+                label={k.label}
+                checked={draft.postKinds.includes(k.value)}
+                onChange={() => setDraft((d) => togglePostKind(d, k.value))}
+              />
+            ))}
+            <Choice
+              type="checkbox"
+              name={`${groupId}-following`}
+              label="Following only"
+              checked={draft.following}
+              onChange={() => setDraft((d) => ({ ...d, following: !d.following }))}
+            />
+          </Options>
+        </Group>
+
+        <Group label="Category">
+          <Options>
+            {/* #892 — a filter over the member's own interests, never a ranking. Draft copy ([public-is-draft]). */}
+            {(myInterests?.length ?? 0) > 0 || draft.mine ? (
+              <Choice
+                type="checkbox"
+                name={`${groupId}-mine`}
+                label="My interests"
+                checked={draft.mine}
+                onChange={() => setDraft((d) => ({ ...d, mine: !d.mine }))}
+              />
+            ) : (
+              <Link
+                href={pickInterestsHref(signedIn)}
+                data-testid="filter-pick-interests"
+                className="inline-flex min-h-11 items-center text-sm text-[var(--color-fg-muted)] underline underline-offset-4 hover:text-[var(--color-charcoal-900)]"
+              >
+                Pick your interests
+              </Link>
+            )}
+            {[...CATEGORIES, ...extraTags.map((t) => ({ value: t, label: t }))].map((c) => (
+              <Choice
+                key={c.value}
+                type="checkbox"
+                name={`${groupId}-tag-${c.value}`}
+                label={c.label}
+                checked={draft.tags.includes(c.value)}
+                onChange={() => setDraft((d) => toggleTag(d, c.value))}
               />
             ))}
           </Options>
         </Group>
 
-        {tagOptions.length > 0 && (
-          <Group label="Tags">
+        {onReachChange && (
+          <Group label="How far">
             <Options>
-              {tagOptions.map((tag) => (
+              {REACH_OPTIONS.map((o) => (
                 <Choice
-                  key={tag}
-                  type="checkbox"
-                  name={`${groupId}-tag-${tag}`}
-                  /* The tag IS the label. Creators type their own — nothing
-                     seeds a display name to look up (T159, #64). */
-                  label={hashtag(tag)}
-                  checked={draft.tags.includes(tag)}
-                  onChange={() => setDraft((d) => toggleTag(d, tag))}
+                  key={String(o.value)}
+                  name={`${groupId}-reach`}
+                  label={o.label}
+                  checked={draftReach === o.value}
+                  onChange={() => setDraftReach(o.value)}
                 />
               ))}
             </Options>
           </Group>
         )}
+
+        <Group label="Date">
+          <Options>
+            {DATE_OPTIONS.map((o) => (
+              <Choice key={o.value} name={`${groupId}-date`} label={o.label} checked={draft.date === o.value} onChange={() => setDraft((d) => ({ ...d, date: o.value }))} />
+            ))}
+            <label className="inline-flex min-h-11 items-center gap-2 text-sm text-[var(--color-fg-muted)]">
+              <span>Pick a date</span>
+              <input
+                type="date"
+                data-testid="filter-date-pick"
+                aria-label="Pick a date"
+                value={isPickedDay(draft.date) ? draft.date : ''}
+                onChange={(e) => setDraft((d) => ({ ...d, date: isPickedDay(e.target.value) ? e.target.value : 'any' }))}
+                className="min-w-0 bg-transparent text-sm"
+              />
+            </label>
+          </Options>
+        </Group>
       </div>
     </Sheet>
   )
@@ -148,8 +239,8 @@ function Group({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Options({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-wrap gap-2">{children}</div>
+function Options({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`flex flex-wrap gap-x-5 ${className}`.trim()}>{children}</div>
 }
 
 interface ChoiceProps {
@@ -162,11 +253,13 @@ interface ChoiceProps {
 
 function Choice({ name, label, checked, onChange, type = 'radio' }: ChoiceProps) {
   return (
+    // #922 (Don, 2026-10-18) — no chips or pills [always]: a choice is a quiet word; chosen, it is bold and underlined.
     <label
-      className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-medium transition-colors ${
+      data-checked={checked || undefined}
+      className={`inline-flex min-h-11 cursor-pointer items-center text-sm underline-offset-[6px] transition-colors ${
         checked
-          ? 'border-transparent bg-[var(--color-charcoal-700)] text-white'
-          : 'border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)]'
+          ? 'font-semibold text-[var(--color-charcoal-900)] underline decoration-2'
+          : 'text-[var(--color-fg-muted)] hover:text-[var(--color-charcoal-900)]'
       } has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--color-accent)]`}
     >
       <input type={type} name={name} className="sr-only" checked={checked} onChange={onChange} />

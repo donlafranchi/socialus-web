@@ -9,16 +9,20 @@
 // only what it lacks is added. The lists are scripts/unclaimed/makers*.json and listings.json (see
 // rows.ts). A broken website, or a Page that ends up without its pictures or that does not open,
 // fails the run.
+import { pinUnclaimed } from '../../src/lib/unclaimed/address'
+import { censusGeocode } from '../../src/lib/geocoding/census'
 import { createClient } from '@supabase/supabase-js'
 import { Client } from 'pg'
 import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { checkLink, checkLinks } from '../../src/lib/unclaimed/links'
 import { enrichPage, loadUnclaimed, PHOTOS_PER_PAGE, type Enrichment } from '../../src/lib/unclaimed/load'
-import { gatherPhotos } from '../../src/lib/unclaimed/photos'
+import { fetchHtml, gatherPhotos } from '../../src/lib/unclaimed/photos'
+import { extractSiteMeta } from '../../src/lib/unclaimed/site-scrape'
 import { uploadPhotos } from '../../src/lib/unclaimed/upload'
 import type { PlannedPage } from '../../src/lib/unclaimed/plan'
 import { readLinkAllow, readPlanned } from './rows'
+import { holdSaturated, saturatedTowns, TOWN_SATURATION } from '../../src/lib/unclaimed/saturation'
 
 const need = (name: string) => {
   const v = process.env[name]?.trim()
@@ -32,16 +36,17 @@ const summary = (line: string) => {
 }
 
 async function main() {
-  const { listed, removed, skipped, files } = readPlanned()
+  const { listed: planned, removed, skipped, files } = readPlanned()
+  let listed = planned
   const allow = new Set(readLinkAllow())
-  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[] }
+  const overrides = JSON.parse(readFileSync(join(__dirname, 'photo-overrides.json'), 'utf8')) as { stockCover: string[]; stockOnly: string[]; ownMatch?: Record<string, string>; retiredFiles: Record<string, string> }
   console.log(`Read ${files.join(', ')}: ${listed.length} to list, ${skipped.length} held back`)
   for (const s of skipped) console.log(`  held back: ${s.name} (${s.reason})`)
 
   // Every website, before anything is written. A broken one is a failure, not a Page to hide.
   const sites = await checkLinks(listed.map((p) => p.publicInfoUrl))
-  // A hand-checked address that only fails from here at the network level (refused, timed out) is let through; a 404 never is.
-  const excused = (i: number) => allow.has(listed[i]!.publicInfoUrl) && sites[i]!.status === null
+  // A hand-checked address that only fails from here at the network level (refused, timed out) or with a 5xx from the host's own edge (520, 503 bot walls) is let through; a 404 never is.
+  const excused = (i: number) => allow.has(listed[i]!.publicInfoUrl) && (sites[i]!.status === null || sites[i]!.status! >= 500)
   const dead = listed.filter((_, i) => !sites[i]!.ok && !excused(i))
   for (const [i, p] of listed.entries()) if (!sites[i]!.ok && !excused(i)) console.log(`  BROKEN website ${p.name}: ${p.publicInfoUrl} (${sites[i]!.note})`)
   summary(`${listed.length} Pages planned, ${removed.length} removed for a dead address, ${dead.length} with a broken website`)
@@ -73,22 +78,47 @@ async function main() {
     }
   }
 
+  // #987 — a town where enough claimed Pages post their own news gets no new seeded Page.
+  {
+    const db = new Client({ connectionString: dbUrl })
+    await db.connect()
+    try {
+      const full = await saturatedTowns(db, now)
+      const { rows } = await db.query(`select public_info_url from public.groups where public_info_url = any($1::text[])`, [listed.flatMap((p) => [p.publicInfoUrl, ...(p.legacyUrl ? [p.legacyUrl] : [])])])
+      const split = holdSaturated(listed, full, new Set(rows.map((r) => r.public_info_url as string)))
+      listed = split.load
+      if (full.size) summary(`Towns that run themselves (${TOWN_SATURATION.claimedPages}+ claimed Pages posting in ${TOWN_SATURATION.withinDays} days): ${[...full].join(', ')}`)
+      for (const p of split.held) summary(`Held back ${p.name}: ${p.city} runs itself`)
+    } finally {
+      await db.end()
+    }
+  }
+
   const failed: { name: string; error: string }[] = []
-  const tally = { created: 0, existing: 0, enriched: 0, refreshed: 0, complete: 0 }
+  const tally = { created: 0, existing: 0, enriched: 0, refreshed: 0, complete: 0, claimed: 0 }
   const ownCover: string[] = []
   const stockCover: string[] = []
 
   const gatherFor = (p: PlannedPage) => async (): Promise<Enrichment> => {
     const site = p.legacyUrl ?? p.publicInfoUrl
-    const g = await gatherPhotos({ name: p.name, slug: p.slug, site, pool: p.pool, want: PHOTOS_PER_PAGE, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name) })
+    const g = await gatherPhotos({ name: p.name, slug: p.slug, site, pool: p.pool, want: PHOTOS_PER_PAGE, slot: slots.get(p.slug), stockCover: overrides.stockCover.includes(p.name), stockOnly: overrides.stockOnly.includes(p.name), ownMatch: overrides.ownMatch?.[p.name] ? new RegExp(overrides.ownMatch[p.name]!, 'i') : undefined })
     const photos = await uploadPhotos(supabase, p.slug, g.photos)
+    ;(photos[0]?.own ? ownCover : stockCover).push(p.name)
+    return { photos, phone: g.meta.phone, social: await workingSocial(p, g.meta.social), siteUrl: site }
+  }
+  // Links only, from the Page's own site (or its row): never their posts or pictures.
+  const workingSocial = async (p: PlannedPage, found: Record<string, string>) => {
     const social: Record<string, string> = {}
-    for (const [k, url] of Object.entries({ ...g.meta.social, ...(p.social ?? {}) })) {
+    for (const [k, url] of Object.entries({ ...found, ...(p.social ?? {}) })) {
       if ((await checkLink(url)).ok) social[k] = url
       else console.log(`  dropped broken ${k} link for ${p.name}: ${url}`)
     }
-    ;(photos[0]?.own ? ownCover : stockCover).push(p.name)
-    return { photos, phone: g.meta.phone, social, siteUrl: site }
+    return social
+  }
+  const socialsFor = (p: PlannedPage) => async () => {
+    const site = p.legacyUrl ?? p.publicInfoUrl
+    const html = await fetchHtml(site)
+    return { social: await workingSocial(p, html ? (extractSiteMeta(html, site).social as Record<string, string>) : {}), siteUrl: site }
   }
 
   let next = 0
@@ -105,9 +135,16 @@ async function main() {
             if (made.failed.length) throw new Error(made.failed[0]!.error)
             tally.created += made.created
             tally.existing += made.existing
-            const r = await enrichPage(db, p, gatherFor(p), now)
+            const r = await enrichPage(db, p, gatherFor(p), now, Object.keys(overrides.retiredFiles ?? {}), { stockOnly: overrides.stockOnly.includes(p.name), socials: socialsFor(p) })
             if (r === 'missing') throw new Error('the Page is not in the database after loading')
             tally[r]++
+            if (r === 'claimed') {
+              console.log(`${p.name}: claimed by its owner, left alone`)
+              continue
+            }
+            // #936 — a Page with a street address sits there, not at its town's centre.
+            const pin = await pinUnclaimed(db, p, (q) => censusGeocode(q))
+            if (pin.status === 'not-found') console.log(`  ${p.name}: its address would not geocode (${p.address}); left at its town`)
             console.log(`${p.name}: ${made.created ? 'created, ' : ''}${r}`)
           } catch (e) {
             failed.push({ name: p.name, error: e instanceof Error ? e.message : String(e) })
@@ -126,19 +163,22 @@ async function main() {
   try {
     const { rows } = await db.query(
       `select g.name, g.public_id, g.photo_url, g.public_info_url,
-              coalesce(array_agg(p.photo_url) filter (where p.sample_kind is not null), '{}') as post_photos,
-              count(p.id) filter (where p.sample_kind is not null)::int as samples
+              coalesce(array_agg(p.photo_url) filter (where p.sample_kind is not null or p.series_id is not null), '{}') as post_photos,
+              count(p.id) filter (where p.sample_kind is not null or p.series_id is not null)::int as samples
          from public.groups g left join public.page_posts p on p.group_id = g.id
         where g.unclaimed_at is not null and g.unclaimed_hidden_at is null and g.public_info_url = any($1::text[])
         group by g.id`,
       [listed.map((p) => p.publicInfoUrl)],
     )
+    const venues = new Set(listed.filter((p) => p.events).map((p) => p.publicInfoUrl))
     const checks = await checkLinks(rows.flatMap((r) => [`${BASE}/g/${r.public_id}`, r.photo_url as string, ...(r.post_photos as string[])].filter(Boolean)), fetch, 8)
     const bad = new Map(checks.filter((c) => !c.ok).map((c) => [c.url, c]))
     for (const r of rows) {
       const urls = [`${BASE}/g/${r.public_id}`, r.photo_url as string | null, ...(r.post_photos as string[])]
       for (const u of urls) if (u && bad.has(u)) failed.push({ name: r.name, error: `broken link ${u} (${bad.get(u)!.note})` })
       if (!r.photo_url) failed.push({ name: r.name, error: 'no cover photo' })
+      // #997 — a venue's posts are its real shows, imported daily by events.ts; it has no samples.
+      if (venues.has(r.public_info_url as string)) continue
       if (r.samples < 3 || (r.post_photos as string[]).filter(Boolean).length < 3) failed.push({ name: r.name, error: `only ${r.samples} sample posts with pictures` })
     }
     summary(`${rows.length} live Pages checked`)
@@ -146,7 +186,7 @@ async function main() {
     await db.end()
   }
 
-  summary(`Created ${tally.created}, already there ${tally.existing}; enriched ${tally.enriched}, refreshed ${tally.refreshed}, complete ${tally.complete}`)
+  summary(`Created ${tally.created}, already there ${tally.existing}; enriched ${tally.enriched}, refreshed ${tally.refreshed}, complete ${tally.complete}, claimed by their owner ${tally.claimed}`)
   summary(`Covers: ${ownCover.length} the business's own photo, ${stockCover.length} stock`)
   for (const f of failed) summary(`FAILED ${f.name}: ${f.error}`)
   if (failed.length) process.exitCode = 1

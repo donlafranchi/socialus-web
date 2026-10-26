@@ -41,4 +41,18 @@ export interface BrowseSnapshot {
   signedIn: boolean
   /** The read failed. Distinct from "nothing matched", which is `[]`. */
   failed: boolean
+  /** #796 — the first look: what is new since the last visit, or the #557 rotation when nothing is. */
+  lead?: BrowseResult[]
+  /** #796 — true when `lead` is new things; false when it is the rotation standing in. */
+  leadFresh?: boolean
+  /**
+   * #922 — how far the default mix reaches: minutes' drive from `from` (a town, or null for the member's own),
+   * or 'all' for the whole area. Absent on a filtered read and when a neighbourhood is picked.
+   */
+  reach?: { minutes: number | 'all'; from: string | null } | null
+  /**
+   * #892 — the reader's own interests, as the Category tags Pages carry: what "My interests" filters to.
+   * Null signed out. Read under owner-only RLS, so it is only ever the person looking.
+   */
+  myInterests?: string[] | null
 }

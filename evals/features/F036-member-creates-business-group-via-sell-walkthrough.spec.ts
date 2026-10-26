@@ -219,13 +219,9 @@ test.describe.skip("F036 — Maya creates a business Group through the Sell walk
         page.locator(`a[href="/m/${MAYA.handle}"]`)
       ).toHaveCount(0);
 
-      // Then — empty Items section on the freshly-created Shop
-      // Why: scenario Then-clause "empty Items section". The merged F035 page
-      // renders the empty state (data-testid="shop-items-empty"). The owner-facing
-      // "Add a product" CTA is membership-driven and lives on the seller index
-      // /you/sell (T078/T080), not on the public Shop page — it is asserted in the
-      // "Selling-tool affordances surface from Group membership" test below.
-      await expect(page.getByTestId("shop-items-empty")).toBeVisible();
+      // Then — empty Items section on the freshly-created Shop: #909 (Don, 2026-10-18) makes it the
+      // owner's "add your first" prompt, on the Page itself.
+      await expect(page.getByTestId("featured-empty-owner")).toBeVisible();
     });
   });
 

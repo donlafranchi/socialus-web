@@ -35,7 +35,7 @@ export default function CardGalleryPage() {
             key={t.title}
             {...t}
             href="/#"
-            action={<button type="button" className="chip w-full justify-center">Follow</button>}
+            action={<button type="button" className="press inline-flex w-full justify-center rounded-md border border-[var(--color-border)] px-3.5 py-2 text-sm">Follow</button>}
           />
         ))}
       </CardGrid>

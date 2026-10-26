@@ -75,6 +75,23 @@ describe('a live Page keeps its address', () => {
   })
 })
 
+// #625 — fix and it shows again (F102 criterion 2): an owner who changes the Page's name or description
+// un-hides words a report hid; the reports stay on the review list.
+describe("a Page's own words, after a report", () => {
+  it('changing the name or the description shows the words again', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, description: 'Bread and kindness, daily.' })
+    const [u] = sql(/words_hidden_at = null/)
+    expect(u![0]).toMatch(/words_removed_at = null/)
+    expect(u![1]).toContain(GROUP)
+  })
+  it('an edit that leaves the words alone does not', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, contactPhone: '(916) 555-0142' })
+    expect(sql(/words_hidden_at = null/)).toHaveLength(0)
+  })
+})
+
 describe('only the managing role may edit', () => {
   it('refuses a stranger', async () => {
     install({ isManager: false })

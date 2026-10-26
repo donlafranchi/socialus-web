@@ -1,270 +1,48 @@
 {
  "schema": 1,
  "feature": "F076",
- "title": "a person outside an open metro joins its waitlist",
+ "title": "a person outside an open market joins its waitlist",
  "area": "explore-map",
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-10",
+ "as_of": "2026-10-23",
  "criteria": [
   {
    "id": "1",
-   "text": "Every US metro is in the list at signup",
+   "text": "Every US zip resolves to a market before launch; nothing is selected from a list",
    "kind": [
     "coverage"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "296 metros seeded as the catalog; the picker offers all [V migration, `MetroWaitlistStep`] Checked: unmarked: `tests/migrations-metro-waitlist.test.ts`, `MetroWaitlistStep.test.tsx`."
+   "issues": [],
+   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905, planning regions); a PO-box-only zip with no ZCTA is refused [V migrations]. Checked yes: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907): 52 states, DC and PR present, every zip's key names a market, no county in two markets, both ways in call `marketForZip(...zip)` and read no market from input; seen failing on main (CT missing) and against three mutants [V PR body]. Reviewed no: #709 is review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: deploy-health green on 4f571f5c, 4f691c01, 8659ea4a [V]. Smoked: smoke-live run 39291029395 (2026-10-19, main cd913c7d) was green and opened join and onboarding at 390 and 1280; it loads the route, it does not type a zip [V]. #843 closed 2026-10-18."
   },
   {
    "id": "2",
-   "text": "Zip may suggest a metro; never IP, default or nearest-match selection",
+   "text": "The platform never selects a market for the person: no IP, default, nearest match or shortlist; the zip decides",
    "kind": [
     "invariant"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "unknown",
+   "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    618
-   ],
-   "note": "Picker starts on a non-metro placeholder; F081 zip decides the member's metro. No zip shortlist built (optional: \"may\") [V] Checked: unmarked: `MetroWaitlistStep.test` \"selects no metro for them\"; nothing scans for IP/nearest."
+   "issues": [],
+   "note": "Restated 2026-10-11. `[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls (and checks it can see them) [V]. No IP guess exists in src; #932's `explore_vantage` reads the member's own zip inside the database, never IP [V]. Reviewed no (#709 review-skipped); shipped yes (4f571f5c). Smoked: join, onboarding (2026-10-19) and explore (2026-10-23) green [V]."
   },
   {
    "id": "3",
-   "text": "Role is on the waitlist entry, none pre-selected, no role on the member",
-   "kind": [
-    "invariant",
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    616,
-    618
-   ],
-   "note": "`metro_waitlist.role` check creator/patron, no default; radios unchecked [V]. Discarding the answer when the metro opens is not built (see 15) Checked: unmarked: `MetroWaitlistStep.test`, `MetroNotCoveredPanel.test` \"pre-selects neither role\"; no guard on `members`."
-  },
-  {
-   "id": "4",
-   "text": "One person counts once in one metro, signed up or email only",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [
-    613
-   ],
-   "note": "Each path is idempotent alone (unique member index, unique `lower(email)` index, PR #191/#197). A person who leaves an address and later signs up holds two rows and counts twice; the member handler never reads the auth email [V] Checked: yes for each path alone (`waitlist-join*.test`, migrations tests), unmarked; cross case untested."
-  },
-  {
-   "id": "5",
-   "text": "Changing metro moves the count, no double count or strand",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "Update plus down/up bump in one transaction, both handlers [V] Checked: unmarked: `waitlist-join.test`, `waitlist-join-anonymous.test`, `migrations-metro-waitlist-anonymous.test`."
-  },
-  {
-   "id": "6",
-   "text": "Creator and patron counts stored separately, readable apart",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "`creator_count`, `patron_count` on `metro_polygons` [V] Checked: unmarked: `migrations-metro-waitlist.test` \"counters recompute\"."
-  },
-  {
-   "id": "7",
-   "text": "A popup shows a count for everyone, from the cache",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [
-    614
-   ],
-   "note": "Anonymous path uses the cached figure (`waitlist-counts.ts`, PR #217). Signed-in path writes then reads the live counts and shows them [V `metro-waitlist-actions.ts`]; build log says \"deliberately\", the scenario says everyone Checked: yes for the anonymous path, unmarked: `MetroNotCoveredPanel.test`, `metro-waitlist-anonymous-actions.test`; signed-in asserts the live read."
-  },
-  {
-   "id": "8",
-   "text": "One combined number against 300; same figure as the picker's ordering",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "no",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
-   "pm_looked": "no",
-   "issues": [
-    615
-   ],
-   "note": "Combined-only against 300 [V `metroStanding`]. Signed-in popup shows a different, fresher figure than the picker, up to an hour apart [V] Checked: unmarked: `waitlist-standing.test`, `MetroWaitlistStep.test` (the split is hidden; \"same figure\" untested)."
-  },
-  {
-   "id": "9",
-   "text": "Message says what is needed, never a date or a promise",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "`standingMessage` (remaining count only) [V] Checked: unmarked: `waitlist-standing.test`, `MetroNotCoveredPanel.test` \"promises no date\"."
-  },
-  {
-   "id": "10",
-   "text": "Eligible only at 50 creators and 250 patrons",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "`metroStanding.eligible` uses both thresholds [V]; nothing consumes it yet (no operator view) Checked: unmarked: `waitlist-standing.test` (49 creators at 300 is false)."
-  },
-  {
-   "id": "11",
-   "text": "Thresholds per metro, no migration or deploy",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "Per-metro columns, default 50 / 250, plain UPDATE [V] Checked: unmarked: `migrations-metro-waitlist.test` \"lets a threshold be changed with an UPDATE\"."
-  },
-  {
-   "id": "12",
-   "text": "Opening a metro is deliberate; crossing the threshold never opens it",
-   "kind": [
-    "invariant"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    618
-   ],
-   "note": "No code writes `is_open` except the Sacramento seed [V grep]. The deliberate act is a raw database UPDATE; no operator path exists Checked: unmarked: handler tests assert no `is_open` write, two handlers only."
-  },
-  {
-   "id": "13",
-   "text": "Leave an email, no account, no password, no name",
-   "kind": [
-    "behavior"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    617
-   ],
-   "note": "`MetroNotCoveredPanel` email form, `metro.waitlist_join_anonymous` (PR #197, #198) [V] Checked: unmarked: `MetroNotCoveredPanel.test`, `waitlist-join-anonymous.test`."
-  },
-  {
-   "id": "14",
-   "text": "Identical response for a new and a known address, same number",
-   "kind": [
-    "invariant"
-   ],
-   "status": "active",
-   "built": "yes",
-   "checked": "no",
-   "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
-   "pm_looked": "no",
-   "issues": [
-    618
-   ],
-   "note": "Result type has no flag or count; number comes from the cache, not the write [V] Checked: unmarked and mock-only: `waitlist-join-anonymous.test`, `metro-waitlist-anonymous-actions.test`. The build log records this exact test passing while false against Postgres; no real-database differencing test."
-  },
-  {
-   "id": "15",
-   "text": "An address is used only to say the metro opened, then discarded",
+   "text": "The waitlist entry records make or find, neither pre-selected; no role on the member; the answer is discarded when the market opens",
    "kind": [
     "behavior",
     "invariant"
@@ -279,26 +57,224 @@
    "issues": [
     616
    ],
-   "note": "Addresses are stored and the panel states the single use. No send, no discard, no mail provider, no way to open a metro that triggers either [V grep] Checked: no (panel wording only: `MetroNotCoveredPanel.test`)."
+   "note": "Built half: `metro_waitlist.role`, no default, no pre-selected radio, no role column on any member table [V]; `[guards F076.3]` scans migrations for member role columns. Missing: discarding the role when the market opens. Nothing writes `is_open` and nothing deletes waitlist rows; opening is a raw database update [V grep]. #616 lists it as missing item 3. Checked no: the guard does not cover the discard."
   },
   {
-   "id": "16",
-   "text": "Metros are ordered by the cached waiting count",
+   "id": "4",
+   "text": "One person counts once in one market, whether they signed up or only left an email",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Member row unique by `member_id`; address row unique by `lower(email)` across all markets; a member who had left an address is folded into the member row (#763, #613) [V handlers]. `[guards F076.4]` x2 in `waitlist-join.test.ts` (SQL-call level, mocked database) plus a partial for the reverse order [V]. Reviewed no: #86, #191, #197 have no `Reviewed by:` (#763 does). Shipped unknown: no deploy-health run for 640e1fc2 (#86). Smoked unknown: the anonymous panel is reached only by picking a waiting market, which the smoke does not do."
+  },
+  {
+   "id": "5",
+   "text": "Changing the market moves the count; neither double-counted nor stranded",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Both handlers update the row and move the counter in one transaction [V]. `[guards F076.5]` in `f076-criteria.test.ts` runs the move through both ways of joining (mocked database; mutants run by hand, #766) [V]. Built by #86, #191, #197: no `Reviewed by:`; deploy-health unknown for #86. Smoked unknown (as 4)."
+  },
+  {
+   "id": "6",
+   "text": "Creator and patron counts are stored separately and readable apart",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`metro_polygons.creator_count` and `patron_count` (and the same on `markets`) [V migrations]. `[guards F076.6]` in `f076-criteria.test.ts` for both paths [V]. Built by #86; reviewed no, shipped unknown, smoked unknown (as 4)."
+  },
+  {
+   "id": "7",
+   "text": "After joining, a popup shows a count and a message, for everyone, from the cache",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    686
+   ],
+   "note": "Built half: both actions call `waitingCountFor` (#217, #764) and the panel opens a dialog [V]. Missing: `getMetroWaitingCounts` is still an `unstable_cache` whose function calls `createServerClient()`, which reads `cookies()`; Next refuses that, so the popup action throws after the row is written [V src/lib/metro/waitlist-counts.ts lines 60-99, unchanged since #686 was filed; not reproduced today, A]. Checked no: only partial markers, and the tests mock `waitingCountFor`. Open #686 (bug, no milestone)."
+  },
+  {
+   "id": "8",
+   "text": "One combined number against 300, the same figure everywhere",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    686,
+    699
+   ],
+   "note": "The combined figure and target exist (`standingFromCombined`, 300) [V]. Missing: the one cached read throws (see 7), and `load.ts` swallows it into an empty map. Since 2026-10-11 the only other surface that should show it is a waiting vantage (F105 criterion 4, #699, deferred), unbuilt. Checked no: partial marker. Open #686, #699."
+  },
+  {
+   "id": "9",
+   "text": "The message says what is still needed and never a date, a timeline or a promise",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`standingMessage` in `waitlist-standing.ts`; `[guards F076.9]` asserts no date or promise wording [V]. New wording sits in draft PR #684 (do not merge) and is Don's to approve. Built by #86; reviewed no, shipped unknown, smoked unknown (as 4)."
+  },
+  {
+   "id": "10",
+   "text": "A market is eligible only at 50 creators and 250 patrons; 300 combined with fewer than 50 creators is not enough",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`metroStanding` gates on creators and patrons separately; `[guards F076.10]` as one table [V]. Built by #86; reviewed no, shipped unknown, smoked unknown."
+  },
+  {
+   "id": "11",
+   "text": "Thresholds are configurable per market without a migration or a deploy",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Threshold columns on `metro_polygons` and `markets`; `[guards F076.11]` scans for hard-coded thresholds and reads the column defaults [V]. Built by #86; reviewed no, shipped unknown, smoked unknown."
+  },
+  {
+   "id": "12",
+   "text": "Opening a market is deliberate; crossing the threshold never opens it",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "unknown",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "No application code writes `is_open`; `[guards F076.12]` scans src, scripts and every migration except the two seeds [V]. Because nothing opens a market, the opening itself is a raw SQL update today (see #616). Built by #86; reviewed no, shipped unknown, smoked unknown."
+  },
+  {
+   "id": "13",
+   "text": "A person can leave an email to be told when a market opens, with no account",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`metro.waitlist_join_anonymous` and `MetroNotCoveredPanel`: address and role only, no password or name, one tap [V]. `[guards F076.13]` drives the panel and asserts the exact call [V]. The row is written; the confirmation popup then fails (#686). Built by #197, #198: no `Reviewed by:`; deploy-health success on 0ac5c54f and 8ad3ee56. Smoked unknown: the panel is reached only by picking a waiting market, which the smoke does not do."
+  },
+  {
+   "id": "14",
+   "text": "The response is identical whether or not the address was already there, the number included",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "The result type has no changed or created flag and no count; the number is the cached figure, not a function of the submission [V]. `[guards F076.14]` runs the handler on a real database for a new, a repeated and another known address and expects byte-identical results, and scans that no other code reads the live counters [V]. While #686 stands the number never appears, so the end-to-end response is untested at the screen [A]. Reviewed no (#197); shipped yes (0ac5c54f, a3faf37c); smoked unknown (as 13)."
+  },
+  {
+   "id": "15",
+   "text": "An address is used only to say the market opened, then discarded",
    "kind": [
     "behavior",
     "invariant"
    ],
    "status": "active",
-   "built": "yes",
+   "built": "no",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "yes",
-   "smoked": "unknown",
+   "shipped": "no",
+   "smoked": "no",
    "pm_looked": "no",
    "issues": [
-    618
+    616
    ],
-   "note": "`withWaitingCounts` and `splitByOpen` sort not-yet metros by cached count, alphabetical tiebreak [V `feed-metro.ts`] Checked: unmarked: `feed-metro-sort.test`; no guard that the ordering path never reads live."
+   "note": "Addresses are stored and the panel states the single use; nothing reads them back; Resend is wired for operator alerts and reminders (`src/lib/notify/email.ts`, a raw fetch to api.resend.com, no package) but nothing sends the market-opened message, nothing deletes the addresses, nothing opens a market [V grep]. The PM chose Resend and the wording on #616 (2026-10-11). Missing: the send, the discard, and a deliberate way to open a market that triggers both. Open #616 (Beta 11-06; carries neither `launch-blocking` nor `needs-pm`)."
+  },
+  {
+   "id": "16",
+   "text": "Metros are ordered by how many people are waiting",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Struck 2026-10-11 (F103 ruling, in the scenario): there is no list of markets to order, since the zip decides. The surviving rule, that no surface reads the live counters, is under criteria 8 and 14. Shown, not counted."
   }
  ]
 }

@@ -64,6 +64,7 @@ function makeSupabaseStub(routes: {
   anchorError?: unknown
 }) {
   return {
+    auth: { getClaims: async () => ({ data: routes.anchorError ? null : { claims: { sub: 'member-1' } }, error: null }) },
     rpc: (name: string) =>
       Promise.resolve({
         data: name === 'page_founder_public' && routes.founder ? [routes.founder] : [],
@@ -136,6 +137,26 @@ describe('resolveShop — where the Page is', () => {
   })
 })
 
+describe('#978 — the founder and the anchor are asked together', () => {
+  it('asks for the anchor while the founder is still outstanding', async () => {
+    const base = makeSupabaseStub({ group: ACTIVE_ROW })
+    let release!: (v: unknown) => void
+    let fromCalls = 0
+    const stub = {
+      rpc: () => new Promise((r) => (release = r)),
+      from: (t: string) => {
+        fromCalls++
+        return base.from(t)
+      },
+    }
+    const pending = resolveShop(stub as never, 'oak-park-sourdough')
+    await new Promise((r) => setTimeout(r, 0))
+    expect(fromCalls).toBe(2)
+    release({ data: [], error: null })
+    expect(await pending).not.toBeNull()
+  })
+})
+
 describe('resolveShop', () => {
   it('carries an operator removal, so no surface shows a removed photo', async () => {
     const shop = await resolveShop(
@@ -154,6 +175,18 @@ describe('resolveShop', () => {
     expect((await pic({ picture_hidden_at: '2026-10-02T00:00:00Z' }))?.pictureHiddenAt).toBe('2026-10-02T00:00:00Z')
     expect((await pic({ picture_removed_at: '2026-10-02T00:00:00Z' }))?.pictureUrl).toBeNull()
     expect((await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW }), 'oak-park-sourdough'))?.pictureUrl).toBeNull()
+  })
+
+  // #625 — a report hid the Page's own words: the Page resolves, its name and description do not leave the server.
+  it('masks the name and description when a report hid them, or a person removed them', async () => {
+    for (const over of [{ words_hidden_at: '2026-10-16T00:00:00Z' }, { words_removed_at: '2026-10-16T00:00:00Z' }]) {
+      const shop = await resolveShop(makeSupabaseStub({ group: { ...ACTIVE_ROW, name: 'Rude Name', description: 'Rude words.', ...over } }), 'oak-park-sourdough')
+      expect(shop?.displayName).toBe('Hidden while we look')
+      expect(shop?.publicDescription).toBe('')
+      expect(shop?.wordsHidden).toBe(true)
+      expect(JSON.stringify(shop)).not.toMatch(/Rude/)
+    }
+    expect((await resolveShop(makeSupabaseStub({ group: ACTIVE_ROW }), 'oak-park-sourdough'))?.wordsHidden).toBe(false)
   })
 
   it('returns null when RLS yields no row (draft-to-non-owner, dissolved, nonexistent)', async () => {
@@ -357,7 +390,7 @@ describe('resolveOwnerClaim', () => {
     expect(claim).toEqual({ zip: '95817', isProximal: true })
   })
 
-  it('returns the owner ZIP with isProximal=false for a non-proximal claim', async () => {
+  it('a claim from a far ZIP still earns the badge: local is the claim, not distance (#874)', async () => {
     const claim = await resolveOwnerClaim(
       makeJurisdictionStub({
         ownerMembership: { role: 'owner' },
@@ -366,7 +399,7 @@ describe('resolveOwnerClaim', () => {
       }),
       { groupId: 'grp-1', anchorLocationId: 'loc-1', viewerMemberId: 'maya' },
     )
-    expect(claim).toEqual({ zip: '90210', isProximal: false })
+    expect(claim).toEqual({ zip: '90210', isProximal: true })
   })
 })
 

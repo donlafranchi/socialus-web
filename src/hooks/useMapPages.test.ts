@@ -33,6 +33,7 @@ const row = (over: Partial<MapPageRow> = {}): MapPageRow => ({
   category: 'bakery',
   photo_url: null,
   photo_hidden_at: null,
+  photo_removed_at: null,
   photo_hide_locked_url: null,
   anchor: { label: 'Oak Park', geography: point(-121.47, 38.55) },
   ...over,
@@ -76,6 +77,17 @@ describe('rowsToMapPages', () => {
   it('drops a Page whose point will not decode, and keeps the others', () => {
     const out = rowsToMapPages([row({ id: 'bad', anchor: { label: 'x', geography: 'nonsense' } }), row()])
     expect(out.map((p) => p.id)).toEqual(['g1'])
+  })
+
+  // [guards F058.4 partial: the map; the Page, share cards and Browse read the same projection]
+  it('a removed photo does not reach the map: removal clears the hide, so the removal itself must be read', () => {
+    const [p] = rowsToMapPages([row({ photo_url: 'https://x/a.webp', photo_hidden_at: null, photo_removed_at: '2026-09-17T00:00:00Z' })])
+    expect(p.photoUrl).toBeNull()
+  })
+
+  it('asks the database for the removal, not only the hide', async () => {
+    const { readFileSync } = await import('node:fs')
+    expect(readFileSync(`${__dirname}/useMapPages.ts`, 'utf8')).toMatch(/const SELECT =[^]*?photo_removed_at/)
   })
 
   it('respects the photo hide — a hidden photo does not reach the map', () => {
