@@ -2,6 +2,8 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { OPEN_YOUR_TOWN } from '@/lib/features'
 import { cachedBoard } from '@/lib/open/board'
 import { placesLeft, ROUND_SIZE } from '@/lib/open/towns'
 import { GoalBar } from '@/components/open/GoalBar'
@@ -16,6 +18,7 @@ export const metadata: Metadata = {
 }
 
 export default async function OpenPage() {
+  if (!OPEN_YOUR_TOWN) notFound()
   const towns = await cachedBoard()
   return (
     <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="open-page">

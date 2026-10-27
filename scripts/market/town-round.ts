@@ -4,8 +4,10 @@
 // `town-round.ts --logged <slug>` records that its Issue now exists.
 // Opening stays a person's act: scripts/market/open-market.ts.
 import { Client } from 'pg'
+import { OPEN_YOUR_TOWN } from '../../src/lib/features'
 
 async function main() {
+  if (!OPEN_YOUR_TOWN) return
   const url = process.env.DATABASE_URL?.trim()
   if (!url) throw new Error('set DATABASE_URL')
   const db = new Client({ connectionString: url })
