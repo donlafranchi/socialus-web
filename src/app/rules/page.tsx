@@ -12,13 +12,10 @@ export default function RulesPage() {
     <main className="mx-auto w-full max-w-read gutter py-8 pb-dock">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">The rules</h1>
       <p data-testid="rules-headline" className="mt-4 text-title-2 text-[var(--color-fg)]">{COPY.rulesHeadline}</p>
-      <p data-testid="rules-intro" className="mt-2 text-body text-[var(--color-fg)]">{COPY.rulesIntro}</p>
-      <ul className="mt-6 flex flex-col gap-5">
+      {/* The rule lines alone; the reasons stay in the publish step's agreement (F082), the PM's call 2026-10-27. */}
+      <ul className="mt-6 flex flex-col gap-3">
         {CREATOR_RULES.map((r) => (
-          <li key={r.rule}>
-            <p className="text-body font-medium text-[var(--color-fg)]">{r.rule}</p>
-            <p className="mt-1 text-body text-[var(--color-fg-muted)]">{r.reason}</p>
-          </li>
+          <li key={r.rule} className="text-body font-medium text-[var(--color-fg)]">{r.rule}</li>
         ))}
       </ul>
       <p data-testid="rules-thanks" className="mt-8 text-body text-[var(--color-fg-muted)]">{COPY.decencyThanks}</p>

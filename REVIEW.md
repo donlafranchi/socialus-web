@@ -14,7 +14,7 @@ What a reviewer of a pull request flags, at what severity, and what it skips. Re
 
 ## Flag as important (fix before merge on a UI PR)
 
-The PM's UX checklist (2026-10-05, tidy lines 2026-10-06), applied to every changed surface at 390 and 1280 as each affected persona:
+The PM's UX checklist (2026-10-05, tidy lines 2026-10-06), applied to every changed surface at 390 and 1280 as each affected persona. Run the app for it; CI captures no pictures per PR (the PM, 2026-10-27), and the full screenshot matrix is Actions → CI → Run workflow → full, for a redesign:
 
 - WCAG 2.1 AA: contrast through the colour tokens, visible focus in a logical order, every control labelled, alt text, tap targets at least 44px.
 - Every state present: empty, loading, error, offline or slow, signed out.
