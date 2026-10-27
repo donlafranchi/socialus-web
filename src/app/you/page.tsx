@@ -59,7 +59,7 @@ export default async function YouPage() {
   const name = row?.display_name ?? null
 
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="you-page">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="you-page">
       <header>
         <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">{name || 'You'}</h1>
         <p className="mt-0.5 text-body-sm text-[var(--color-fg-muted)]">{user.email}</p>

@@ -21,13 +21,13 @@ beforeEach(() => Object.values(h).forEach((f) => f.mockClear()))
 afterEach(cleanup)
 
 describe('collapsed', () => {
-  it('is one button, fixed at the bottom right above the nav and the safe area', () => {
+  it('is one button, fixed at the bottom right beside the ➕, above the safe area', () => {
     renderDock()
     const dock = screen.getByTestId('explore-dock')
     expect(dock.className).toMatch(/\bfixed\b/)
     expect(dock.className).toMatch(/\bright-/)
     expect(dock.className).not.toMatch(/left-1\/2/)
-    expect(dock.className).toContain('var(--float-offset)')
+    expect(dock.className).toContain('var(--explore-dock-bottom)')
     expect(screen.getAllByRole('button')).toHaveLength(1)
     expect(toggle()).toHaveAttribute('aria-expanded', 'false')
   })
