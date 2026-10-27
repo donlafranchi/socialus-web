@@ -87,12 +87,6 @@ Build concurrency
 - Each change gets its own dev server port, and the server is shut down when the change finishes.
 - Close all headless browsers when a run ends; never leave them open between runs.
 
-Persona reviews
-- Run personas one after another as a background queue, never all at once.
-- Run at most 1 build change alongside the queue.
-- Share one dev server and one browser across all personas, with a separate session per persona.
-- Report each persona's findings as it finishes rather than waiting for all five.
-
 Parallelism rule
 - Parallelize work that waits on the network or the model.
 - Serialize work that drives browsers or builds.

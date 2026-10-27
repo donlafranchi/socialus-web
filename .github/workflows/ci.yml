@@ -45,7 +45,6 @@ on:
     branches: [main]
   schedule:
     - cron: '0 10 * * *'   # nightly: Browser, smoke slice
-    - cron: '0 11 * * 0'   # Sunday: the whole screenshot matrix (~45 minutes)
   workflow_dispatch:
     inputs:
       full:
@@ -209,10 +208,11 @@ jobs:
   #   screens        on a PR, a merge or nightly, the smoke slice (#375): every route
   #                  signed out, and every route that differs by viewer as a
   #                  member and an owner, at 390px; it gates on errors and
-  #                  captures no pictures. Sundays and on demand (Actions →
-  #                  CI → Run workflow → full), the whole matrix: every route,
-  #                  as every persona, at six widths, uploaded as the
-  #                  `screenshots` artifact.
+  #                  captures no pictures. On demand only (Actions → CI →
+  #                  Run workflow → full), for a UX redesign (the PM,
+  #                  2026-10-27): the whole matrix, every route as every
+  #                  persona at six widths, uploaded as the `screenshots`
+  #                  artifact. Nothing is captured per PR.
   #
   # Which pushes run this job at all is #402's diet, at the top of this file.
   # ---------------------------------------------------------------------
@@ -244,7 +244,7 @@ jobs:
       github.event_name != 'pull_request' || (
         !github.event.pull_request.draft && github.event.action != 'labeled' && needs.changes.outputs.runtime == 'true')
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 90 || ((github.event.schedule == '0 10 * * *' || inputs.journeys) && 40 || 20) }}
+    timeout-minutes: ${{ inputs.full && 90 || ((github.event.schedule == '0 10 * * *' || inputs.journeys) && 40 || 20) }}
     env:
       SUPABASE_URL: http://127.0.0.1:54321
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
@@ -371,40 +371,12 @@ jobs:
         env:
           SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
-          SCREENS_SCOPE: ${{ (github.event.schedule == '0 11 * * 0' || inputs.full) && 'full' || 'smoke' }}
+          SCREENS_SCOPE: ${{ inputs.full && 'full' || 'smoke' }}
         run: npx playwright test --project=mobile-chrome --project=screens
-
-      # #428 — the review bundle: only the screens this PR can change, as the
-      # personas worth looking at them as, with every group opened, axe results
-      # and the page text. Reviewers read it from the artifact.
-      - name: Which screens this PR changes
-        id: changed
-        if: github.event_name == 'pull_request'
-        run: |
-          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
-          npx tsx scripts/changed-routes.ts --base ${{ github.event.pull_request.base.sha }} --github-output
-      - name: Review bundle
-        if: github.event_name == 'pull_request' && steps.changed.outputs.routes != ''
-        env:
-          SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
-          CAPTURE_ROUTES: ${{ steps.changed.outputs.routes }}
-          CAPTURE_PERSONAS: ${{ steps.changed.outputs.personas }}
-          CAPTURE_WIDTHS: ${{ steps.changed.outputs.widths }}
-        run: npx playwright test --project=capture
-
-      - name: Upload the review bundle
-        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: review-bundle
-          path: review-bundle/
-          retention-days: 7
-          if-no-files-found: ignore
 
       # #713 — the app storyboard: every 390px screen by area, one strip per
       # persona, as screenshots/storyboard.html in the same artifact. Only runs
-      # where the matrix took pictures (the full run: Sundays and on demand).
+      # where the matrix took pictures (the full run, on demand).
       - name: App storyboard
         if: ${{ !cancelled() && hashFiles('screenshots/390/**/*.png') != '' }}
         run: npm run storyboard:app
