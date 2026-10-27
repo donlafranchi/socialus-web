@@ -7,6 +7,7 @@
 //   3. #222 — four fields and the 18+ box; the zip decides the metro.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { OPEN_YOUR_TOWN } from '@/lib/features'
 
 const { getUser, updateUser, signupProfileSet, placeInterestAdd, marketForZip, townRow } = vi.hoisted(() => ({
   townRow: vi.fn(async (): Promise<{ data: { slug: string } | null }> => ({ data: null })),
@@ -77,11 +78,20 @@ describe('completeOnboardingAction', () => {
   })
 
   // F118 criterion 3 — a supporter in a town neighbours are opening is sent to that town's page.
-  it('a zip in a town on the Open list hands over the town', async () => {
+  it.skipIf(!OPEN_YOUR_TOWN)('a zip in a town on the Open list hands over the town', async () => {
     marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
     townRow.mockResolvedValueOnce({ data: { slug: 'yuba' } })
     const res = await completeOnboardingAction({ ...INPUT, zip: '95901' })
     expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA', town: 'yuba' } })
+  })
+
+  // Don, 2026-10-27 (web #1093): Open your town is flagged off until after soft launch; ring-county zips take the plain waiting path.
+  it('with Open your town off, a ring-county zip gets no town page, even when a town row exists', async () => {
+    marketForZip.mockResolvedValue({ key: 'county-06115', name: 'Yuba County, CA', open: false, metroId: 'metro-yuba' })
+    townRow.mockResolvedValue({ data: { slug: 'yuba' } })
+    const res = await completeOnboardingAction({ ...INPUT, zip: '95901' })
+    expect(res).toEqual({ ok: true, metro: null, waiting: { metroId: 'metro-yuba', name: 'Yuba County, CA', town: null } })
+    townRow.mockResolvedValue({ data: null })
   })
 
   // [guards F081.7]
