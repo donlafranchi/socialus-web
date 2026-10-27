@@ -3,6 +3,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { OPEN_YOUR_TOWN } from '@/lib/features'
 import { createClient } from '@/lib/supabase-server'
 import { getPool } from '@/actions/_lib/db'
 import { cachedBoard, cachedContributors } from '@/lib/open/board'
@@ -50,6 +51,7 @@ async function mine(memberId: string, slug: string): Promise<Mine> {
 }
 
 export default async function TownPage({ params }: Props) {
+  if (!OPEN_YOUR_TOWN) notFound()
   const { town } = await params
   const board = await cachedBoard()
   const t = board.find((r) => r.slug === town)
