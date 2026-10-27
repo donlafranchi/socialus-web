@@ -318,4 +318,3 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-27 | Food Bank of Contra Costa and Solano | Food bank (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Upper Room Dining Hall | Meal program (nonprofit) | Placerville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Rancho Cordova Food Locker | Food bank (nonprofit) | Rancho Cordova | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
-| 2026-10-27 | Long Dream Farm | Farm | Lincoln | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: Visit Placer, then own site |
