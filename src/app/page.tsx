@@ -119,9 +119,13 @@ export default function HomeLanding() {
           <ul className="flex flex-wrap gap-x-2">
             {HOME.footer.links.map((l) => (
               <li key={l.label}>
-                <Link href={l.href} prefetch={false} className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-fg-muted)] underline hover:text-[var(--color-fg)]">
-                  {l.label}
-                </Link>
+                {l.href ? (
+                  <Link href={l.href} prefetch={false} className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-fg-muted)] underline hover:text-[var(--color-fg)]">
+                    {l.label}
+                  </Link>
+                ) : (
+                  <span className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-fg-muted)]">{l.label}</span>
+                )}
               </li>
             ))}
           </ul>

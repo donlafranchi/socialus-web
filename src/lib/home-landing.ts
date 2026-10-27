@@ -11,7 +11,7 @@ export const HOME_TODO = {
 
 const T = HOME_TODO
 
-// TODO(Don): where Contact goes (a page or a mailto:). Null leaves it off the footer.
+// TODO(Don): Contact waits on the socialus.org mailbox Don is setting up. Null shows the word without a link.
 export const CONTACT_HREF: string | null = null
 
 // TODO(Don): consent line under the last Join button; wording and its Terms/Privacy links pending. Null leaves it off.
@@ -78,11 +78,10 @@ export const HOME = {
     line: 'Designed to get people together in real life.',
     links: [
       { href: '/about', label: 'About' },
-      // TODO(Don): Contact's destination is pending (no page or address yet); hidden until there is one.
       { href: CONTACT_HREF, label: 'Contact' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
-    ].filter((l): l is { href: string; label: string } => l.href !== null),
+    ] as { href: string | null; label: string }[],
   },
 }
 

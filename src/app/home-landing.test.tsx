@@ -30,7 +30,13 @@ describe('the front door', () => {
 
   it('footer links go to real pages', () => {
     render(<HomeLanding />)
-    for (const l of HOME.footer.links) expect(screen.getByRole('link', { name: l.label }).getAttribute('href')).toBe(l.href)
+    for (const l of HOME.footer.links.filter((l) => l.href)) expect(screen.getByRole('link', { name: l.label }).getAttribute('href')).toBe(l.href)
+  })
+
+  it('shows Contact unlinked until it has a destination', () => {
+    const { container } = render(<HomeLanding />)
+    expect(container.querySelector('footer')!.textContent).toContain('Contact')
+    expect(screen.queryByRole('link', { name: 'Contact' })).toBeNull()
   })
 
   it('section 06 reads Draft 5: who can join, then the button', () => {
