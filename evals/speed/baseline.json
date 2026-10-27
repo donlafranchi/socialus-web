@@ -45,7 +45,7 @@
     "feedbackMs": 41,
     "readyMs": 94
   },
-  "Bottom nav → You (signed out) [settled]": {
+  "Header → You (signed out) [settled]": {
     "feedbackMs": 44,
     "readyMs": 358
   },
@@ -94,7 +94,7 @@
     "feedbackMs": 58,
     "readyMs": 293
   },
-  "Bottom nav → Explore [settled]": {
+  "Header → Explore [settled]": {
     "feedbackMs": 45,
     "readyMs": 1916,
     "issue": 549
@@ -111,7 +111,7 @@
     "feedbackMs": 46,
     "readyMs": 828
   },
-  "Creator: Create (bottom nav) [settled]": {
+  "Creator: Create (➕) [settled]": {
     "feedbackMs": 44,
     "readyMs": 478
   }

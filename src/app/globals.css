@@ -3,22 +3,21 @@
 :root {
   --background: #ffffff;
   --foreground: #1a1a1a;
-  /* Bottom-nav bar height (thesis §2). Sticky elements clear it via calc().
-     Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys.
-     #296: the design's 56px bottom nav. */
-  --nav-height: var(--nav-bottom-h);
+  /* #1094 — no bottom bar: one floating ➕ sits bottom-right. Pages keep clear of it via --dock-clearance.
+     Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys. */
   /* Explore's sticky search row, measured (#187). */
   --search-row-h: 61px;
 
   /* #294 — design tokens (socialus-owner-page-design/socialus-tokens.css,
      2026-10-01). No colour here: colours above and below stay as they are.
      This file is the single source for visual values. */
-  --nav-bottom-h: 56px;
-  --nav-top-h: 64px;
+  --dock-size: 56px;
+  --nav-top-h: 56px;
   --action-bar-h: 64px;
-  --nav-clearance: calc(var(--nav-bottom-h) + env(safe-area-inset-bottom, 0px));
-  --float-offset: calc(var(--nav-clearance) + 16px);
-  --float-offset-top-nav: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  --dock-clearance: calc(var(--dock-size) + 32px + env(safe-area-inset-bottom, 0px));
+  --float-offset: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  --explore-dock-bottom: calc(var(--float-offset) + 6px);
+  --explore-dock-right: calc(var(--dock-size) + 28px);
   --panel-w: 360px;
   --tap: 44px;
 
@@ -175,8 +174,7 @@
 
   /* Spacing stays Tailwind's 4px base; named heights for chrome. */
   --spacing-tap: 2.75rem;      /* 44 → min-h-tap, size-tap */
-  --spacing-nav-bottom: 3.5rem;
-  --spacing-nav-top: 4rem;
+  --spacing-nav-top: var(--nav-top-h);
   --spacing-action-bar: 4rem;
 
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -490,9 +488,8 @@ a:hover {
   @variant 2xl { padding-inline: 2.5rem; }
 }
 
-@utility pb-nav {
-  padding-bottom: var(--nav-clearance);
-  @variant md { padding-bottom: 0; }
+@utility pb-dock {
+  padding-bottom: var(--dock-clearance);
 }
 
 @media (prefers-reduced-motion: reduce) {

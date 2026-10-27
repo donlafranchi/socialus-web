@@ -37,7 +37,7 @@ describe('#296 — the footer', () => {
     const link = within(phone).getByRole('link', { name: 'Report a problem with the app' })
     expect(link).toHaveAttribute('href', '/report')
     expect(link.className).toMatch(/min-h-11/)
-    expect(screen.getByRole('contentinfo').className).toMatch(/nav-height/)
+    expect(screen.getByRole('contentinfo').className).toMatch(/dock-clearance/)
   })
 
   it('is not on sign-in, onboarding or admin', () => {

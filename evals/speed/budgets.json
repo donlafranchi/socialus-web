@@ -29,7 +29,7 @@
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Bottom nav → You (signed out)": {
+  "Header → You (signed out)": {
     "kind": "consumer",
     "feedbackMs": 100,
     "readyMs": 1000
@@ -79,7 +79,7 @@
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Bottom nav → Explore": {
+  "Header → Explore": {
     "kind": "consumer",
     "feedbackMs": 100,
     "readyMs": 1000
@@ -104,7 +104,7 @@
     "feedbackMs": 250,
     "readyMs": 2500
   },
-  "Creator: Create (bottom nav)": {
+  "Creator: Create (➕)": {
     "kind": "creator",
     "feedbackMs": 250,
     "readyMs": 2500

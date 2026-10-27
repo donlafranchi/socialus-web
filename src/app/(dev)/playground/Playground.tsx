@@ -34,7 +34,7 @@ export function Playground() {
   const [area, setArea] = useState(false)
 
   return (
-    <main className="mx-auto w-full max-w-detail gutter py-8 pb-nav">
+    <main className="mx-auto w-full max-w-detail gutter py-8 pb-dock">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Playground</h1>
       <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">Dev only. Every shared component, in its states.</p>
 

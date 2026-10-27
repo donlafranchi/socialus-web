@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { BottomNav, TopNavDesktop } from "@/components/BottomNav"
+import { AppHeader } from "@/components/shell/AppHeader"
+import { CreateDock } from "@/components/create/CreateDock"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
@@ -65,13 +66,13 @@ export default function RootLayout({
         <NewVersionNotice buildId={process.env.VERCEL_GIT_COMMIT_SHA ?? ""} />
         <NavVisibilityProvider>
           <div className="flex min-h-full flex-col">
-            <TopNavDesktop />
+            <AppHeader />
             {/* #296 — content stops growing at 1680 and centres above it. */}
             <PushLandingBar />
             <div className="mx-auto w-full max-w-shell flex-1">{children}</div>
             <SiteFooter />
           </div>
-          <BottomNav />
+          <CreateDock />
         </NavVisibilityProvider>
       </body>
     </html>

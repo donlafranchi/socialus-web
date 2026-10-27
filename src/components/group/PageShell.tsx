@@ -7,7 +7,7 @@ import type { CardHandoff } from '@/lib/browse/card-handoff'
 
 export function PageShell({ card }: { card: CardHandoff }) {
   return (
-    <main className="pb-nav" aria-busy="true">
+    <main className="pb-dock" aria-busy="true">
       <p role="status" className="sr-only">
         Loading this Page
       </p>
