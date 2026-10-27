@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-26** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-27** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -314,3 +314,8 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-26 | Foothill Mercantile | Goods & crafts | Grass Valley | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
 | 2026-10-26 | Anderson's Sierra Pipe Co. | Repair & trades | Auburn | Local business, Sustainability | Shops and repair; stock photos only; lead: own site |
 | 2026-10-26 | The Cave | Goods & crafts | Folsom | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
+| 2026-10-27 | Meals on Wheels Solano County | Meal program (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Food Bank of Contra Costa and Solano | Food bank (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Upper Room Dining Hall | Meal program (nonprofit) | Placerville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Rancho Cordova Food Locker | Food bank (nonprofit) | Rancho Cordova | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Long Dream Farm | Farm | Lincoln | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: Visit Placer, then own site |
