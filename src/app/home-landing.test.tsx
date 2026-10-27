@@ -1,10 +1,13 @@
 // `/` — Don's reviewed copy, word for word, with his open brackets kept visible until answered.
 
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import HomeLanding from './page'
 import { HOME, HOME_TODO } from '@/lib/home-landing'
 import { navHidden } from '@/components/BottomNav'
+
+// page.tsx pulls a webfont through next/font/google, which needs a Next build.
+vi.mock('next/font/google', () => ({ Fraunces: () => ({ variable: '--font-serif', className: 'serif' }) }))
 
 afterEach(cleanup)
 
