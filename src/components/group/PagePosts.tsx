@@ -899,7 +899,7 @@ export function PagePosts({
           <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
         </section>
       )}
-      <Toast message={COPY.postedThanks} visible={postedToast} onHide={hidePostedToast} />
+      <Toast message={COPY.posted} visible={postedToast} onHide={hidePostedToast} />
     </section>
   )
 }

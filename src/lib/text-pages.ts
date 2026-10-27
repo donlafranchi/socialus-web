@@ -27,12 +27,9 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
     slug: 'about',
     title: 'About',
     status: 'draft',
-    // F081 criterion 5's line, Don's words (2026-10-01). Placeholder [public-is-draft].
-    body: [
-      'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
-      // The dedication, the PM's words (socialus-plan voice-and-tone.md ruling 2026-10-26). No name.
-      'An old friend always used to remind us... Be decent. We like that and designed this app around that idea.',
-    ],
+    // The dedication alone, the PM's words (socialus-plan voice-and-tone.md ruling 2026-10-26). No name.
+    // The signup line (F081.5) shows at signup and is not repeated here (the PM, 2026-10-27: only the necessary).
+    body: ['An old friend always used to remind us... Be decent. We like that and designed this app around that idea.'],
   },
   terms: {
     slug: 'terms',

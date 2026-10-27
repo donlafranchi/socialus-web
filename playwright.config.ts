@@ -49,14 +49,6 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      // #428 — the review bundle for the screens a diff changes (screenshots, text, axe).
-      name: 'capture',
-      testMatch: /screens\/capture\.spec\.ts/,
-      dependencies: ['setup'],
-      timeout: 240_000,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
       // #432 — the live smoke: read-only, on production, as builder accounts.
       name: 'smoke-live',
       testMatch: /smoke\/live\.spec\.ts/,
