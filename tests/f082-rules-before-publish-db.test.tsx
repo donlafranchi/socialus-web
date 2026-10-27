@@ -237,7 +237,8 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
   })
 
   // [guards F082.9]
-  it('one of the rules is the photo rule, with its reason, on the publish step and on the rules page', () => {
+  // The rules page carries the rule line alone since 2026-10-27 (the PM: only the necessary); the reason stays on the publish step.
+  it('one of the rules is the photo rule: with its reason on the publish step, the rule line on the rules page', () => {
     const plain = (s: string) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim()
     // The scenario's draft wording (F082 criterion 9).
     const RULE = 'No pictures of children.'
@@ -255,6 +256,5 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     const { container } = render(<RulesPage />)
     const page = plain(container.textContent ?? '')
     expect(page).toContain(RULE)
-    expect(page).toContain(REASON)
   })
 })
