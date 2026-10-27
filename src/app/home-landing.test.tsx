@@ -1,6 +1,6 @@
 // `/` — Don's reviewed copy, word for word, with his open brackets kept visible until answered.
 
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import HomeLanding from './page'
 import { HOME, HOME_TODO } from '@/lib/home-landing'
@@ -31,6 +31,19 @@ describe('the front door', () => {
   it('footer links go to real pages', () => {
     render(<HomeLanding />)
     for (const l of HOME.footer.links) expect(screen.getByRole('link', { name: l.label }).getAttribute('href')).toBe(l.href)
+  })
+
+  it('section 06 reads Draft 5: who can join, then the button', () => {
+    const { container } = render(<HomeLanding />)
+    const join = container.querySelector('#join')!
+    expect(join.textContent).toContain('Sacramento is our first open market. If you’re here, join us.')
+    expect(join.textContent).toContain('Not in Sacramento? You can join too. We’re not open in your area yet. If enough people there join, we could open yours next.')
+    expect([...join.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['Join SocialUs'])
+  })
+
+  it('the hero art is decoration, not a slogan', () => {
+    const { container } = render(<HomeLanding />)
+    expect(container.querySelector('section img')?.getAttribute('alt')).toBe('')
   })
 
   it('hides the app’s own nav and footer', () => {

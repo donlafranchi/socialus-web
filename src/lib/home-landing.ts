@@ -1,21 +1,24 @@
-// The signed-out home at `/`. Don's reviewed copy (2026-10-26), word for word.
-// `TODO(Don)` marks a line he hasn't approved yet; nothing else here should
-// change without him.
+// The signed-out home at `/`. Don's approved Draft 5 (2026-10-26), word for word;
+// source of truth: socialus-plan planning/briefs/landing-copy-draft5-2026-10-26.md.
+// `TODO(Don)` marks something still pending; nothing else here changes without him.
 
 export const HOME_TODO = {
   // Don, 2026-10-26: Sacramento and the towns around it.
   launchMarket: 'Sacramento',
   // Don, 2026-10-26: one sign-up path for everyone; the zip decides what comes after.
   primaryCta: 'Join SocialUs',
-  launchAction: 'create your account',
-  // TODO(Don): new line (2026-10-26) for people outside Sacramento: one sign-up for everyone.
-  outOfMarket: 'Somewhere else? Join anyway. If enough people near you join, we could open there next.',
 }
 
 const T = HOME_TODO
 
 // TODO(Don): where Contact goes (a page or a mailto:). Null leaves it off the footer.
 export const CONTACT_HREF: string | null = null
+
+// TODO(Don): consent line under the last Join button; wording and its Terms/Privacy links pending. Null leaves it off.
+export const CONSENT_LINE: string | null = null
+
+// TODO(Don): final hero art (the "way out" neighbourhood-square illustration) with usage rights; a drawn placeholder stands in.
+export const HERO_ART: { src: string; alt: string } | null = null
 
 export const HOME = {
   nav: {
@@ -48,7 +51,7 @@ export const HOME = {
     {
       id: 'local-businesses',
       title: 'Support people who live here.',
-      body: 'Find businesses owned and operated by locals. Get to know the places around you and the people behind them.',
+      body: 'Find businesses owned and operated by locals. Get to know the places around you and the people behind them, so you know who you’re supporting and why.',
     },
   ],
   why: {
@@ -63,22 +66,19 @@ export const HOME = {
     title: 'Somewhere to go. People to see.',
     body: [
       'The cafe where you meet every week. A group that gets together at the park. A local spot where people start to know your name.',
-      'We want to help bring back third spaces: places beyond home and work where people spend time together. SocialUs helps people find each other and organize. The goal is to give those connections somewhere to grow in real life.',
+      'We want to help bring back third spaces: places beyond home and work where people spend time together. SocialUs helps people find each other and organize. The goal is to give those connections somewhere to grow in real life. Familiar places. People you get to know over time.',
     ],
   },
   launch: {
     title: `Starting in ${T.launchMarket}.`,
-    body: [
-      'We’re launching in one market first. From there, people who meet our requirements will be able to open SocialUs in new markets.',
-      `If you’re in ${T.launchMarket}, ${T.launchAction}.`,
-    ],
-    outOfMarket: T.outOfMarket,
+    body: [`${T.launchMarket} is our first open market. If you’re here, join us.`],
+    outOfMarket: `Not in ${T.launchMarket}? You can join too. We’re not open in your area yet. If enough people there join, we could open yours next.`,
   },
   footer: {
     line: 'Designed to get people together in real life.',
     links: [
       { href: '/about', label: 'About' },
-      // TODO(Don): no contact page or address exists, and Report needs a sign-in; hidden until there is one.
+      // TODO(Don): Contact's destination is pending (no page or address yet); hidden until there is one.
       { href: CONTACT_HREF, label: 'Contact' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },

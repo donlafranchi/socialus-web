@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480">
+  <!-- Placeholder for the final hero art: an elevated, angled neighbourhood square. TODO(Don): replace with licensed art. -->
+  <defs>
+    <filter id="paper" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 .35  0 0 0 0 .28  0 0 0 0 .2  0 0 0 .09 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+      <feBlend in2="SourceGraphic" mode="multiply"/>
+    </filter>
+    <filter id="brush"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="2"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter>
+  </defs>
+  <g filter="url(#paper)">
+    <rect width="640" height="480" fill="#efe7d8"/>
+    <g filter="url(#brush)">
+      <!-- the square -->
+      <path d="M40 330 L320 190 L600 330 L320 470 Z" fill="#e3d6bf"/>
+      <path d="M150 330 L320 245 L490 330 L320 415 Z" fill="#d9c8ab"/>
+      <!-- shops along the back edges -->
+      <path d="M70 300 L70 250 L170 200 L170 250 Z" fill="#c4704f"/>
+      <path d="M70 250 L120 205 L170 200 L120 225 Z" fill="#8e4a35"/>
+      <path d="M170 250 L170 190 L270 140 L270 200 Z" fill="#e6dcc8"/>
+      <path d="M180 232 L260 192 L260 205 L180 245 Z" fill="#7d8a5a"/>
+      <path d="M370 140 L370 200 L470 250 L470 190 Z" fill="#a9b394"/>
+      <path d="M380 192 L460 232 L460 245 L380 205 Z" fill="#c4704f"/>
+      <path d="M470 190 L470 250 L570 300 L570 240 Z" fill="#d9a184"/>
+      <path d="M270 140 L320 115 L370 140 L320 165 Z" fill="#3a3632"/>
+      <!-- market stalls -->
+      <path d="M215 330 L255 310 L295 330 L255 350 Z" fill="#c4704f"/>
+      <path d="M345 330 L385 310 L425 330 L385 350 Z" fill="#7d8a5a"/>
+      <path d="M280 380 L320 360 L360 380 L320 400 Z" fill="#d9a184"/>
+      <!-- trees -->
+      <circle cx="110" cy="345" r="26" fill="#7d8a5a"/>
+      <circle cx="530" cy="345" r="26" fill="#8f9c6b"/>
+      <circle cx="320" cy="300" r="20" fill="#6c7a4c"/>
+      <circle cx="200" cy="400" r="18" fill="#a9b394"/>
+      <circle cx="450" cy="400" r="18" fill="#7d8a5a"/>
+    </g>
+    <!-- people -->
+    <g fill="#3a3632">
+      <circle cx="240" cy="365" r="4"/><circle cx="252" cy="370" r="4"/>
+      <circle cx="400" cy="362" r="4"/><circle cx="300" cy="335" r="4"/>
+      <circle cx="345" cy="420" r="4"/><circle cx="356" cy="424" r="4"/>
+      <circle cx="170" cy="335" r="4"/><circle cx="470" cy="330" r="4"/>
+    </g>
+    <g fill="#c4704f"><circle cx="246" cy="372" r="3"/><circle cx="406" cy="368" r="3"/><circle cx="352" cy="428" r="3"/></g>
+  </g>
+</svg>

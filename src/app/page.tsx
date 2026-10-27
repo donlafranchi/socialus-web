@@ -4,9 +4,10 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
+import { CONSENT_LINE, HERO_ART, HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
 
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
+const ART = HERO_ART ?? { src: '/home/hero-placeholder.svg', alt: '' }
 
 export default function HomeLanding() {
   return (
@@ -33,24 +34,28 @@ export default function HomeLanding() {
 
       <main>
         <section className="bg-[var(--color-surface)]">
-          <div className="mx-auto w-full max-w-detail gutter py-12 md:py-20">
-            <h1 className="text-display text-[var(--color-fg)]">
-              {HOME.hero.lines[0]}
-              <br />
-              {HOME.hero.lines[1]}
-            </h1>
-            {HOME.hero.body.map((p) => (
-              <p key={p} className="mt-4 max-w-read text-body md:text-title-2 md:font-normal text-[var(--color-fg-muted)]">
-                {p}
-              </p>
-            ))}
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href={CTA.href}>{CTA.label}</Button>
-              <Button href="#what-you-can-do" variant="secondary">
-                {HOME.hero.secondary}
-              </Button>
+          <div className="mx-auto grid w-full max-w-detail items-center gap-10 gutter py-12 md:grid-cols-2 md:py-20">
+            <div>
+              <h1 className="text-display text-[var(--color-fg)]">
+                {HOME.hero.lines[0]}
+                <br />
+                {HOME.hero.lines[1]}
+              </h1>
+              {HOME.hero.body.map((p) => (
+                <p key={p} className="mt-4 max-w-read text-body md:text-title-2 md:font-normal text-[var(--color-fg-muted)]">
+                  {p}
+                </p>
+              ))}
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button href={CTA.href}>{CTA.label}</Button>
+                <Button href="#what-you-can-do" variant="secondary">
+                  {HOME.hero.secondary}
+                </Button>
+              </div>
+              <p className="mt-4 text-body-sm text-[var(--color-fg-muted)]">{HOME.hero.launch}</p>
             </div>
-            <p className="mt-4 text-body-sm text-[var(--color-fg-muted)]">{HOME.hero.launch}</p>
+            {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG; next/image adds nothing here */}
+            <img src={ART.src} alt={ART.alt} width={640} height={480} className="h-auto w-full" />
           </div>
         </section>
 
@@ -96,12 +101,11 @@ export default function HomeLanding() {
                 {p}
               </p>
             ))}
+            <p className="mt-4 text-body text-[var(--color-fg)]">{HOME.launch.outOfMarket}</p>
             <div className="mt-8">
               <Button href={CTA.href}>{CTA.label}</Button>
             </div>
-            <p className="mt-6 text-body-sm text-[var(--color-fg-muted)]">
-              {HOME.launch.outOfMarket}
-            </p>
+            {CONSENT_LINE && <p className="mt-4 text-body-sm text-[var(--color-fg-muted)]">{CONSENT_LINE}</p>}
           </div>
         </section>
       </main>
