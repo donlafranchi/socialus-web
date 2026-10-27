@@ -13,6 +13,7 @@
 // invoke) exactly like createProductAction (T078).
 
 import { createClient } from '@/lib/supabase-server'
+import { OPEN_YOUR_TOWN } from '@/lib/features'
 import { resolveActionContext } from '@/lib/action-context'
 import { memberInterestsAdd, memberSignupProfileSet, ActionError } from '@/actions'
 import { NotFoundError } from '@/actions/_lib/errors'
@@ -84,8 +85,8 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
 
   if (market.open) return { ok: true, metro: { name: market.name }, waiting: null }
   // F118 — a town neighbours are opening: the person is its supporter now, and goes to its page.
-  const town = await supabase.from('towns').select('slug').eq('market_key', market.key).maybeSingle()
-  return { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name, town: (town.data as { slug: string } | null)?.slug ?? null } }
+  const town = OPEN_YOUR_TOWN ? await supabase.from('towns').select('slug').eq('market_key', market.key).maybeSingle() : null
+  return { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name, town: (town?.data as { slug: string } | null)?.slug ?? null } }
 }
 
 export async function addInterestsAction(input: {
