@@ -153,6 +153,23 @@
   --text-title-1-lg: 1.75rem; --text-title-1-lg--line-height: 2.125rem; --text-title-1-lg--font-weight: 700;
   --text-display: 2rem;       --text-display--line-height: 2.375rem;   --text-display--font-weight: 700;
 
+  /* The signed-out front door only (2026-10-26, Don's "way out" direction):
+     a serif voice and larger editorial sizes than the app's 32 ceiling. */
+  --text-lede: 1.125rem;       --text-lede--line-height: 1.75rem;
+  --text-section: 1.875rem;    --text-section--line-height: 2.25rem;
+  --text-section-lg: 2.75rem;  --text-section-lg--line-height: 3.125rem;
+  --text-hero: 2.75rem;        --text-hero--line-height: 3rem;
+  --text-hero-lg: 4rem;        --text-hero-lg--line-height: 4.25rem;
+  --color-paper: #f6f0e4;      /* limestone cream */
+  --color-stone: #ece3d1;
+  --color-ink: #2b2724;        /* charcoal */
+  --color-ink-muted: #5e554b;
+  --color-ink-soft: #d9cfbd;   /* text on ink */
+  --color-clay: #a3462a;       /* terracotta, white text 6:1 */
+  --color-clay-deep: #8f3d24;
+  --color-olive: #4f5a34;
+  --color-sage-rule: #b9b79a;
+
   /* Radius: bigger name = bigger corner. */
   --radius-sm: 0.375rem;  /* 6  badges, date box */
   --radius-md: 0.75rem;   /* 12 buttons, inputs, cards */
@@ -497,4 +514,21 @@ a:hover {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* The front door's palette, scoped so the app keeps its own. */
+.landing {
+  --color-accent: var(--color-clay);
+  --color-accent-hover: var(--color-clay-deep);
+  --color-fg: var(--color-ink);
+  --color-fg-muted: var(--color-ink-muted);
+  --color-border: var(--color-sage-rule);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.landing :focus-visible {
+  outline-color: var(--color-clay);
+}
+.landing .on-ink :focus-visible {
+  outline-color: var(--color-paper);
 }

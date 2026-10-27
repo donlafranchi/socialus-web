@@ -1,26 +1,31 @@
 // `/` is the signed-out front door (2026-10-26). A signed-in member never sees
 // it: the proxy sends them to Explore, so this page reads no session and stays
-// static. Home's LocalityFeed is still paused, not deleted (Don, 2026-09-17).
+// static. Look: Don's "way out" direction — warm limestone, terracotta, olive,
+// charcoal; a serif voice; open space; nothing laid over the art.
 
 import Link from 'next/link'
+import { Fraunces } from 'next/font/google'
 import { Button } from '@/components/ui/Button'
 import { CONSENT_LINE, HERO_ART, HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
 
+const serif = Fraunces({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-serif', display: 'swap' })
+
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
 const ART = HERO_ART ?? { src: '/home/hero-placeholder.svg', alt: '' }
+const SERIF = 'font-serif font-normal tracking-tight'
 
 export default function HomeLanding() {
   return (
-    <>
-      <header className="border-b border-[var(--color-border)] bg-white">
-        <nav aria-label="Primary" className="mx-auto flex w-full max-w-detail items-center gap-6 gutter h-nav-top">
-          <Link href="/" className="text-title-3 text-[var(--color-accent)]">
+    <div className={`landing ${serif.variable} min-h-full`}>
+      <header>
+        <nav aria-label="Primary" className="mx-auto flex w-full max-w-shell items-center gap-8 gutter h-nav-top md:px-10">
+          <Link href="/" className={`${SERIF} text-title-1 text-[var(--color-ink)]`}>
             SocialUs
           </Link>
-          <ul className="hidden flex-1 items-center gap-6 md:flex">
+          <ul className="hidden flex-1 items-center gap-8 md:flex">
             {HOME.nav.links.map((l) => (
               <li key={l.href}>
-                <a href={l.href} className="text-body-sm text-[var(--color-fg)] hover:underline">
+                <a href={l.href} className="text-body-sm text-[var(--color-ink)] underline-offset-4 hover:underline">
                   {l.label}
                 </a>
               </li>
@@ -33,104 +38,106 @@ export default function HomeLanding() {
       </header>
 
       <main>
-        <section className="bg-[var(--color-surface)]">
-          <div className="mx-auto grid w-full max-w-detail items-center gap-10 gutter py-12 md:grid-cols-2 md:py-20">
-            <div>
-              <h1 className="text-display text-[var(--color-fg)]">
-                {HOME.hero.lines[0]}
-                <br />
-                {HOME.hero.lines[1]}
-              </h1>
-              {HOME.hero.body.map((p) => (
-                <p key={p} className="mt-4 max-w-read text-body md:text-title-2 md:font-normal text-[var(--color-fg-muted)]">
-                  {p}
-                </p>
-              ))}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button href={CTA.href}>{CTA.label}</Button>
-                <Button href="#what-you-can-do" variant="secondary">
-                  {HOME.hero.secondary}
-                </Button>
-              </div>
-              <p className="mt-4 text-body-sm text-[var(--color-fg-muted)]">{HOME.hero.launch}</p>
+        <section className="mx-auto grid w-full max-w-shell items-center gap-10 gutter pt-10 pb-16 md:px-10 lg:grid-cols-12 lg:gap-12 lg:pt-16 lg:pb-24">
+          <div className="lg:col-span-6">
+            <h1 className={`${SERIF} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
+              {HOME.hero.lines[0]}
+              <br />
+              {HOME.hero.lines[1]}
+            </h1>
+            {HOME.hero.body.map((p) => (
+              <p key={p} className="mt-6 max-w-read text-lede text-[var(--color-ink-muted)]">
+                {p}
+              </p>
+            ))}
+            <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <Button href={CTA.href}>{CTA.label}</Button>
+              <a href="#what-you-can-do" className="inline-flex min-h-tap items-center text-body-sm font-semibold text-[var(--color-ink)] underline underline-offset-4">
+                {HOME.hero.secondary}
+              </a>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG; next/image adds nothing here */}
-            <img src={ART.src} alt={ART.alt} width={640} height={480} className="h-auto w-full" />
+            <p className="mt-8 text-body-sm text-[var(--color-olive)]">{HOME.hero.launch}</p>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG; next/image adds nothing here */}
+          <img src={ART.src} alt={ART.alt} width={1260} height={830} className="h-auto w-full rounded-lg lg:col-span-6" />
+        </section>
+
+        <section id="what-you-can-do" aria-labelledby="what-you-can-do-title" className="scroll-mt-4 bg-[var(--color-stone)]">
+          <div className="mx-auto w-full max-w-detail gutter py-16 md:py-24">
+            <h2 id="what-you-can-do-title" className="sr-only">
+              {HOME.hero.secondary}
+            </h2>
+            <ul className="grid gap-12 md:grid-cols-3 md:gap-10">
+              {HOME.can.map((c) => (
+                <li key={c.id} id={c.id} className="scroll-mt-4 border-t border-[var(--color-ink)] pt-6">
+                  <h3 className={`${SERIF} text-section text-[var(--color-ink)]`}>{c.title}</h3>
+                  <p className="mt-4 text-body text-[var(--color-ink-muted)]">{c.body}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
-        <section id="what-you-can-do" aria-labelledby="what-you-can-do-title" className="mx-auto w-full max-w-detail gutter py-12 md:py-16 scroll-mt-4">
-          <h2 id="what-you-can-do-title" className="sr-only">
-            {HOME.hero.secondary}
-          </h2>
-          <ul className="grid gap-8 md:grid-cols-3 md:gap-10">
-            {HOME.can.map((c) => (
-              <li key={c.id} id={c.id} className="scroll-mt-4 border-t-2 border-[var(--color-highlight-mark)] pt-4">
-                <h3 className="text-title-2 text-[var(--color-fg)]">{c.title}</h3>
-                <p className="mt-3 text-body text-[var(--color-fg)]">{c.body}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section id="why" className="on-frame scroll-mt-4 bg-[var(--color-frame)]">
-          <div className="mx-auto w-full max-w-read gutter py-12 md:py-16">
-            <h2 className="text-title-1 md:text-title-1-lg text-[var(--color-on-frame)]">{HOME.why.title}</h2>
+        <section id="why" className="on-ink scroll-mt-4 bg-[var(--color-ink)]">
+          <div className="mx-auto w-full max-w-read gutter py-20 md:py-28">
+            <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-paper)]`}>{HOME.why.title}</h2>
             {HOME.why.body.map((p) => (
-              <p key={p} className="mt-4 text-body text-[var(--color-on-frame)]">
+              <p key={p} className="mt-6 text-lede text-[var(--color-ink-soft)]">
                 {p}
               </p>
             ))}
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-read gutter py-12 md:py-16">
-          <h2 className="text-title-1 text-[var(--color-fg)]">{HOME.thirdSpaces.title}</h2>
-          {HOME.thirdSpaces.body.map((p) => (
-            <p key={p} className="mt-4 text-body text-[var(--color-fg)]">
-              {p}
-            </p>
-          ))}
-        </section>
-
-        <section id="join" className="scroll-mt-4 bg-[var(--color-surface)]">
-          <div className="mx-auto w-full max-w-read gutter py-12 md:py-16">
-            <h2 className="text-title-1 text-[var(--color-fg)]">{HOME.launch.title}</h2>
-            {HOME.launch.body.map((p) => (
-              <p key={p} className="mt-4 text-body text-[var(--color-fg)]">
+        <section className="mx-auto grid w-full max-w-detail gap-8 gutter py-20 md:grid-cols-12 md:py-28">
+          <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-ink)] md:col-span-5`}>{HOME.thirdSpaces.title}</h2>
+          <div className="md:col-span-7">
+            {HOME.thirdSpaces.body.map((p, i) => (
+              <p key={p} className={`${i ? 'mt-6' : ''} text-lede text-[var(--color-ink-muted)]`}>
                 {p}
               </p>
             ))}
-            <p className="mt-4 text-body text-[var(--color-fg)]">{HOME.launch.outOfMarket}</p>
-            <div className="mt-8">
+          </div>
+        </section>
+
+        <section id="join" className="scroll-mt-4 bg-[var(--color-stone)]">
+          <div className="mx-auto w-full max-w-read gutter py-20 text-center md:py-28">
+            <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-ink)]`}>{HOME.launch.title}</h2>
+            {HOME.launch.body.map((p) => (
+              <p key={p} className="mt-6 text-lede text-[var(--color-ink)]">
+                {p}
+              </p>
+            ))}
+            <p className="mx-auto mt-4 max-w-form text-body text-[var(--color-ink-muted)]">{HOME.launch.outOfMarket}</p>
+            <div className="mt-10">
               <Button href={CTA.href}>{CTA.label}</Button>
             </div>
-            {CONSENT_LINE && <p className="mt-4 text-body-sm text-[var(--color-fg-muted)]">{CONSENT_LINE}</p>}
+            {CONSENT_LINE && <p className="mt-4 text-body-sm text-[var(--color-ink-muted)]">{CONSENT_LINE}</p>}
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-[var(--color-border)] bg-white">
-        <div className="mx-auto flex w-full max-w-detail flex-col gap-4 gutter py-8 md:flex-row md:items-center md:justify-between">
+      <footer>
+        <div className="mx-auto flex w-full max-w-shell flex-col gap-4 gutter py-10 md:flex-row md:items-center md:justify-between md:px-10">
           <div>
-            <p className="text-title-3 text-[var(--color-fg)]">SocialUs</p>
-            <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">{HOME.footer.line}</p>
+            <p className={`${SERIF} text-title-1 text-[var(--color-ink)]`}>SocialUs</p>
+            <p className="mt-1 text-body-sm text-[var(--color-ink-muted)]">{HOME.footer.line}</p>
           </div>
-          <ul className="flex flex-wrap gap-x-2">
+          <ul className="flex flex-wrap gap-x-2 -mx-2">
             {HOME.footer.links.map((l) => (
               <li key={l.label}>
                 {l.href ? (
-                  <Link href={l.href} prefetch={false} className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-fg-muted)] underline hover:text-[var(--color-fg)]">
+                  <Link href={l.href} prefetch={false} className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-ink-muted)] underline underline-offset-4 hover:text-[var(--color-ink)]">
                     {l.label}
                   </Link>
                 ) : (
-                  <span className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-fg-muted)]">{l.label}</span>
+                  <span className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-ink-muted)]">{l.label}</span>
                 )}
               </li>
             ))}
           </ul>
         </div>
       </footer>
-    </>
+    </div>
   )
 }
