@@ -62,15 +62,10 @@ describe('F080 — the safety message where a member posts', () => {
     )
   })
 
-  it("keeps Don's full placeholder as its own key, for the rules page (#223)", () => {
-    expect(COPY.postingSafetyFull).toBe(
-      "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
-    )
-  })
-
-  it('shows the short line at posting, never the full one', () => {
+  it('shows the short line at posting and nothing longer about it (the long paragraph was cut 2026-10-27)', () => {
     render(<PagePosts {...postProps} canPost startComposing />)
-    expect(screen.queryByText(COPY.postingSafetyFull)).toBeNull()
+    expect(screen.getByText(COPY.postingSafety)).toBeInTheDocument()
+    expect(screen.queryByText(/while we grow into a platform/i)).toBeNull()
   })
 
   // Every surface a member can post from: a new Page (with its photo), an

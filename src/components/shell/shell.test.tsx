@@ -56,14 +56,11 @@ describe('F082 — the rules page', () => {
   })
 
   // [guards F082.7]
-  it('sets out every rule with its reason', async () => {
+  it('sets out every rule (the lines alone; the reasons stay in the publish step, the PM 2026-10-27)', async () => {
     const { default: RulesPage } = await import('@/app/rules/page')
     render(<RulesPage />)
     expect(screen.getByRole('heading', { level: 1, name: 'The rules' })).toBeInTheDocument()
-    for (const { rule, reason } of CREATOR_RULES) {
-      expect(screen.getByText(rule)).toBeInTheDocument()
-      expect(screen.getByText(reason)).toBeInTheDocument()
-    }
+    for (const { rule } of CREATOR_RULES) expect(screen.getByText(rule)).toBeInTheDocument()
   })
 })
 
