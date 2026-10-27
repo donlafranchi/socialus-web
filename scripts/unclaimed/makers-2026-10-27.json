@@ -1,0 +1,124 @@
+[
+  {
+    "name": "Meals on Wheels Solano County",
+    "category": "Meal program (nonprofit)",
+    "makes": "Fairfield-based nonprofit delivering meals to homebound older adults across Solano County; volunteers drive meal routes, pack meals, haul food from the Fairfield food bank and clean coolers",
+    "area": "Fairfield (Solano)",
+    "address": "1000 Union Avenue, Fairfield, CA 94533",
+    "site": "https://www.mealsonwheelssolano.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/MOWSolanoCounty/",
+      "facebook": "https://www.facebook.com/MOWSolanoCounty/"
+    },
+    "products": [
+      {
+        "name": "Home-Delivered Meals",
+        "url": "https://www.mealsonwheelssolano.org/home-delivered-meals/",
+        "kind": "service"
+      },
+      {
+        "name": "MealsPlus(+)",
+        "url": "https://www.mealsonwheelssolano.org/mealsplus/",
+        "kind": "service"
+      },
+      {
+        "name": "PAWS Program",
+        "url": "https://www.mealsonwheelssolano.org/paws-program/",
+        "kind": "service"
+      },
+      {
+        "name": "Fall Prevention",
+        "url": "https://www.mealsonwheelssolano.org/fallprevention/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-27 (ok): address, delivery hours and volunteer roles live; footer 2026. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Food Bank of Contra Costa and Solano",
+    "category": "Food bank (nonprofit)",
+    "makes": "Regional food bank with a Fairfield warehouse serving Solano County neighbors seven days a week; volunteer shifts on weekdays, evenings and Saturdays, plus food drives and monthly giving",
+    "area": "Fairfield (Solano)",
+    "address": "2370 N Watney Way, Fairfield, CA 94533",
+    "site": "https://www.foodbankccs.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/foodbankccs/",
+      "facebook": "https://www.facebook.com/foodbankccs"
+    },
+    "products": [
+      {
+        "name": "Find Food",
+        "url": "https://www.foodbankccs.org/find-food/",
+        "kind": "service"
+      },
+      {
+        "name": "Volunteer",
+        "url": "https://volunteer.foodbankccs.org/",
+        "kind": "service"
+      },
+      {
+        "name": "Host a Food Drive",
+        "url": "https://www.foodbankccs.org/give-help/give-food/",
+        "kind": "service"
+      },
+      {
+        "name": "Hunger Fighters (Advocate)",
+        "url": "https://www.foodbankccs.org/give-help/advocate/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium-high; own site checked 2026-10-27 (ok): Fairfield address and volunteer portal live; footer 2026. Social handles taken from the site's own icons, not opened. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Upper Room Dining Hall",
+    "category": "Meal program (nonprofit)",
+    "makes": "Placerville nonprofit dining hall serving daily meals, with volunteers for food prep and table service and drop-offs of fresh vegetables, hygiene and camping supplies",
+    "area": "Placerville (El Dorado)",
+    "address": "1868 Broadway, Placerville, CA 95667",
+    "site": "https://upperroomdininghall.org/",
+    "confidence": "High; own site checked 2026-10-27 (ok): dining hours, volunteer and ways-to-help pages live; footer 2026. No working social links found on the site (its Facebook icon points to a donation page). Photos not viewed: stock only. Fewer than 3 own-site products, so none. Lead: search, then own site."
+  },
+  {
+    "name": "Rancho Cordova Food Locker",
+    "category": "Food bank (nonprofit)",
+    "makes": "Rancho Cordova food pantry and community food hub with grocery recovery, senior boxes, veterans deliveries, a homeless outreach team and weekday volunteer shifts",
+    "area": "Rancho Cordova (Sacramento)",
+    "address": "2771 Don Juan Drive, Rancho Cordova, CA 95670",
+    "site": "https://www.ranchocordovafoodlocker.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/ranchocordovafoodlocker/",
+      "facebook": "https://www.facebook.com/ranchocordovafoodlocker"
+    },
+    "products": [
+      {
+        "name": "Food Recovery",
+        "url": "https://www.ranchocordovafoodlocker.org/programs/",
+        "kind": "service"
+      },
+      {
+        "name": "Food for Seniors",
+        "url": "https://www.ranchocordovafoodlocker.org/programs/",
+        "kind": "service"
+      },
+      {
+        "name": "Veterans' Village",
+        "url": "https://www.ranchocordovafoodlocker.org/programs/",
+        "kind": "service"
+      },
+      {
+        "name": "H.O.T. Team (Homeless Outreach)",
+        "url": "https://www.ranchocordovafoodlocker.org/programs/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-27 (ok): address, distribution hours (from Aug 19, 2026) and volunteer page live. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Long Dream Farm",
+    "category": "Farm",
+    "makes": "Micro-dairy in the Placer County foothills near Lincoln with heritage-breed cows, a farmstead creamery, free-range laying hens and agritourism",
+    "area": "Lincoln (Placer)",
+    "site": "https://longdreamfarm.com/",
+    "confidence": "Low-medium; own site checked 2026-10-27 (ok): describes the micro-dairy, creamery and agritourism; no street address, hours, prices or social links listed, no footer year. Photos not viewed: stock only. Fewer than 3 own-site products, so none. Lead: Visit Placer, then own site."
+  }
+]
