@@ -1,0 +1,225 @@
+[
+  {
+    "name": "Stockton Symphony",
+    "category": "Symphony orchestra (nonprofit)",
+    "makes": "Stockton nonprofit orchestra founded in 1926 that brings live orchestral concerts to the Central Valley, with a 2026–27 season that includes Viva Italia! and Holiday Pops, plus education programs, volunteer roles and orchestra auditions",
+    "area": "Stockton (San Joaquin)",
+    "address": "7400 Shoreline Drive, Suite 4, Stockton, CA 95219",
+    "site": "https://stocktonsymphony.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/stocktonsymphony/",
+      "facebook": "https://www.facebook.com/StocktonSymphonyCA"
+    },
+    "products": [
+      {
+        "name": "Get Involved (volunteer)",
+        "url": "https://stocktonsymphony.org/get-involved/",
+        "kind": "service"
+      },
+      {
+        "name": "Orchestra Auditions",
+        "url": "https://stocktonsymphony.org/orchestra-auditions/",
+        "kind": "service"
+      },
+      {
+        "name": "Sponsorship Opportunities",
+        "url": "https://stocktonsymphony.org/sponsorship-opportunities/",
+        "kind": "service"
+      },
+      {
+        "name": "Give",
+        "url": "https://stocktonsymphony.org/give/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-28 (ok): address, season dates and volunteer page live; footer 2026. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Vacaville Museum",
+    "category": "Museum (nonprofit)",
+    "makes": "Vacaville museum of Solano County arts, history and culture with gallery exhibitions, events, a research library, courtyard rentals, memberships and volunteers",
+    "area": "Vacaville (Solano)",
+    "address": "213 Buck Avenue, Vacaville, CA 95688",
+    "site": "https://vacavillemuseum.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/thevacavillemuseum",
+      "facebook": "https://www.facebook.com/thevacavillemuseum",
+      "tiktok": "https://www.tiktok.com/@thevacavillemuseum"
+    },
+    "products": [
+      {
+        "name": "Become a Member",
+        "url": "https://vacavillemuseum.org/become-a-member/",
+        "kind": "service"
+      },
+      {
+        "name": "Volunteer",
+        "url": "https://vacavillemuseum.org/volunteer/",
+        "kind": "service"
+      },
+      {
+        "name": "Events",
+        "url": "https://vacavillemuseum.org/events/",
+        "kind": "service"
+      },
+      {
+        "name": "Donate",
+        "url": "https://vacavillemuseum.org/donate/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-28 (ok): address, gallery hours and current exhibits live (site notes the museum is closed, check hours before visiting); no footer year. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Rio Vista Museum",
+    "category": "Historical museum (nonprofit)",
+    "makes": "Volunteer-run Rio Vista museum of local history open Saturdays and Sundays 1:30 to 4:30, with a gift shop, newsletters and donated artifacts",
+    "area": "Rio Vista (Solano)",
+    "site": "https://riovistamuseum.com/",
+    "social": {
+      "facebook": "https://www.facebook.com/riovistamuseum"
+    },
+    "products": [
+      {
+        "name": "Gift Shop",
+        "url": "https://riovistamuseum.com/gift-shop/",
+        "kind": "service"
+      },
+      {
+        "name": "Events",
+        "url": "https://riovistamuseum.com/events/",
+        "kind": "service"
+      },
+      {
+        "name": "Museum Newsletters",
+        "url": "https://riovistamuseum.com/museum-newsletters/",
+        "kind": "service"
+      },
+      {
+        "name": "Sponsors",
+        "url": "https://riovistamuseum.com/sponsors/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-10-28 (ok): weekend hours and volunteer contact live, footer 2026, no street address on the page. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Amador County Arts Council (AmadorArts)",
+    "category": "Art association (nonprofit)",
+    "makes": "Jackson-based nonprofit supporting arts in Amador County schools and community: Poetry Out Loud, free summer concerts, arts education, grants, memberships and volunteers",
+    "area": "Jackson (Amador)",
+    "address": "24 Main Street #2, Jackson, CA 95642",
+    "site": "https://www.amadorarts.org/",
+    "products": [
+      {
+        "name": "Volunteer",
+        "url": "https://www.amadorarts.org/volunteers/",
+        "kind": "service"
+      },
+      {
+        "name": "Membership",
+        "url": "https://www.amadorarts.org/membership/",
+        "kind": "service"
+      },
+      {
+        "name": "Donate",
+        "url": "https://www.amadorarts.org/donate-2/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-28 (ok): Jackson office address, volunteer, membership and donate pages live; footer 2026. Social icons exist on the site (Instagram, Facebook, YouTube, TikTok) but handles not opened. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Elk Grove Fine Arts Center",
+    "category": "Art association (nonprofit)",
+    "makes": "Elk Grove nonprofit gallery with monthly exhibitions, adult art classes, a gift shop, artist consignment, First Saturday receptions and a Holiday Gift Boutique from November 7",
+    "area": "Elk Grove (Sacramento)",
+    "address": "9020 Elk Grove Boulevard, Suite 101, Elk Grove, CA 95624",
+    "site": "https://elkgrovefineartscenter.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/egfineartscenter",
+      "facebook": "https://www.facebook.com/elkgrovefineartscenter"
+    },
+    "products": [
+      {
+        "name": "Join as an Artist",
+        "url": "https://elkgrovefineartscenter.org/join/",
+        "kind": "service"
+      },
+      {
+        "name": "Membership and Donate",
+        "url": "https://elkgrovefineartscenter.org/support/",
+        "kind": "service"
+      },
+      {
+        "name": "Sponsorship",
+        "url": "https://elkgrovefineartscenter.org/support/sponsorship/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-28 (ok): address, gallery hours Wed to Sat 11 to 5 and exhibit dates live. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Davis Musical Theatre Company",
+    "category": "Community theatre (nonprofit)",
+    "makes": "Davis community musical theatre producing Main Stage shows (Mean Girls Nov 6 to 29), young performers' productions and special events, with volunteers, ushers and sponsors",
+    "area": "Davis (Yolo)",
+    "site": "https://www.dmtc.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/dmtc3682",
+      "tiktok": "https://www.tiktok.com/@dmtc368219",
+      "facebook": "https://www.facebook.com/pages/Davis-Musical-Theatre-Company-DMTC/106995755746"
+    },
+    "products": [
+      {
+        "name": "Volunteer",
+        "url": "https://www.dmtc.org/volunteer",
+        "kind": "service"
+      },
+      {
+        "name": "Ushering",
+        "url": "https://www.dmtc.org/ushering",
+        "kind": "service"
+      },
+      {
+        "name": "Business Sponsorships",
+        "url": "https://www.dmtc.org/sponsor",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium-high; own site checked 2026-10-28 (ok): season dates live, footer 1984-2026; street address is on its contact page, not copied here. Youth programs, so photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Symphony d'Oro",
+    "category": "Symphony orchestra (nonprofit)",
+    "makes": "Rancho Cordova community orchestra performing at Cordova High's performing arts theater, with Halloween Fantasies on Oct 31 and Nov 1 and a holiday concert Dec 12",
+    "area": "Rancho Cordova (Sacramento)",
+    "site": "https://www.symphonydoro.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/theSDO"
+    },
+    "products": [
+      {
+        "name": "Join Us",
+        "url": "https://www.symphonydoro.org/Join-Us",
+        "kind": "service"
+      },
+      {
+        "name": "Donate",
+        "url": "https://www.symphonydoro.org/Donate",
+        "kind": "service"
+      },
+      {
+        "name": "Support",
+        "url": "https://www.symphonydoro.org/Support",
+        "kind": "service"
+      },
+      {
+        "name": "Our Sponsors",
+        "url": "https://www.symphonydoro.org/Our-Sponsors",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-10-28 (ok): concert dates live, PO box only, no footer year. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]
