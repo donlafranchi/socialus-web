@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-27** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-28** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -318,3 +318,10 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-27 | Food Bank of Contra Costa and Solano | Food bank (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Upper Room Dining Hall | Meal program (nonprofit) | Placerville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Rancho Cordova Food Locker | Food bank (nonprofit) | Rancho Cordova | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-28 | Stockton Symphony | Symphony orchestra (nonprofit) | Stockton | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Vacaville Museum | Museum (nonprofit) | Vacaville | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Rio Vista Museum | Historical museum (nonprofit) | Rio Vista | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Amador County Arts Council (AmadorArts) | Art association (nonprofit) | Jackson | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Elk Grove Fine Arts Center | Art association (nonprofit) | Elk Grove | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Davis Musical Theatre Company | Community theatre (nonprofit) | Davis | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Symphony d'Oro | Symphony orchestra (nonprofit) | Rancho Cordova | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
