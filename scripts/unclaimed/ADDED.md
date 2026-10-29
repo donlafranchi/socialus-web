@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-27** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-29** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -318,3 +318,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-27 | Food Bank of Contra Costa and Solano | Food bank (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Upper Room Dining Hall | Meal program (nonprofit) | Placerville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Rancho Cordova Food Locker | Food bank (nonprofit) | Rancho Cordova | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-29 | Mahon Ranch | Ranch | Elk Grove | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: Explore Elk Grove, then own site |
+| 2026-10-29 | Lillards Lavenders | Farm | Lincoln | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: PlacerGROWN, then own site |
+| 2026-10-29 | Galt Lions Club | Service club | Galt | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-29 | Woodland Host Lions Club | Service club | Woodland | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-29 | Davis Bike Club | Sports club | Davis | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: SABA club list, then own site |
+| 2026-10-29 | Golden Valley Harriers | Sports club | Davis | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: SRA club list, then own site |
+| 2026-10-29 | Lodi Garden Club | Garden club | Lodi | Gardening, Sustainability | Clubs and service; stock photos only; lead: Visit Lodi, then own site |
+| 2026-10-29 | Sacramento Valley Astronomical Society | Astronomy club | Sacramento | Arts & culture, Neighborhood life | Clubs and service; stock photos only; lead: NASA Night Sky Network, then own site |
+| 2026-10-29 | Little Bear Tree Farm | Farm | Alta | Farmers markets, Sustainability | Clubs and service (farms); holiday (Christmas trees); stock photos only; lead: PlacerGROWN, then own site |
+| 2026-10-29 | Loomis Lions Club | Service club | Loomis | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
