@@ -1,10 +1,12 @@
 # SocialUs
 
-**As of 2026-10-11** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-29** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 *As of 2026-09-15 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
 
-Map-based platform helping consumers find independently owned local businesses and distinguish them from PE-acquired or corporate-owned competitors.
+Locals supporting locals. SocialUs is a map-based place where the people of a town find and support each other: buy, sell, trade, teach, gather, hire, and give, with the money and the help staying with the people who live there. Businesses are one kind of local among many, not the point of the app.
+
+It works the same when you travel. Visiting somewhere, you can find lodging, food and services owned by the people who live there, over chains and outside owners, so what you spend stays in the place you are visiting.
 
 ## Prerequisites
 
