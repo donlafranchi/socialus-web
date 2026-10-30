@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1a",
@@ -24,7 +24,7 @@
    "issues": [
     624
    ],
-   "note": "`ActiveFilterChips` and `KindFilterPills` were deleted in #174; `BrowseSurface.tsx` renders the search row (one 'Open filters' control, the place as text, the docked List/Map tabs only with the owner panel) and the dock; #956 (Don, 2026-10-18 [always]) removed the last chips and pills app-wide [V]. Checked no: `tests/no-chips.test.ts` (#956) scans `src/components` and `src/app` for `*Chip`/`*Pill` names, the `.chip` class and rounded-full chip shapes, seen failing with 41 findings, but it is not marked `[guards F092.1]` and does not catch a plain-text filter row (#624). Reviewed no (#174 no `Reviewed by:`; #956 reviewed). Shipped: deploy-health green on 9dde664f, 546f0862 [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+   "note": "`ActiveFilterChips` and `KindFilterPills` were deleted in #174; `BrowseSurface.tsx` renders the search row (one 'Open filters' control, the place as text, the docked List/Map tabs only with the owner panel) and the dock; the sheet opens only from those two filter buttons (`setSheetOpen(true)` at lines 376 and 601) [V]. #956 (Don, 2026-10-18 [always]) removed the last chips and pills app-wide [V]. Checked no: `tests/no-chips.test.ts` (#956) scans `src/components` and `src/app` for `*Chip`/`*Pill` names, the `.chip` class and rounded-full chip shapes, but carries no `[guards F092.1]` marker and does not catch a plain-text filter row (#624) [V grep]. Reviewed no (#174 no `Reviewed by:`; #956 reviewed). Shipped: deploy-health green on 9dde664f, 546f0862 [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
   },
   {
    "id": "1b",
@@ -40,7 +40,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "Retired: Don's 2026-10-18 ruling on #796 and #922 (built in #932) puts a reach line under the search bar, above the results: 'Within 15 minutes of you · Show more nearby', a plain text link that widens the reach one ring, which the sheet's How far group also sets; it hides while a search or filter narrows the list [V `ReachLine` in BrowseSurface.tsx]. That is a narrowing control on the results surface, which the 2026-09-19 ruling and this criterion forbid; the newer ruling wins. `sync-roadmap` should amend the scenario; `tests/no-chips.test.ts` keeps it a text link."
+   "note": "Retired: Don's 2026-10-18 ruling on #796 and #922 (built in #932) puts a reach line under the search bar, above the results: 'Within 15 minutes of you · Show more nearby', a plain text link that widens the reach one ring, which the sheet's How far group also sets; it hides while a search or filter narrows the list [V `ReachLine`, `BrowseSurface.tsx:640`]. That is a narrowing control on the results surface, which the 2026-09-19 ruling and this criterion forbid; the newer ruling wins. `sync-roadmap` should amend the scenario; `tests/no-chips.test.ts` keeps it a text link."
   },
   {
    "id": "2",
@@ -56,7 +56,7 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "#750, extended by #881 and #911: the sheet closes and the box reads e.g. 'posts coffee this weekend' or 'my interests', plain lowercase words, no hashtag; typed words are kept in front (PM, 2026-10-11) [V]. Checked: `[guards F092.2]` in `BrowseSurface.test.tsx` plus `box-text.test.ts` (partial); red before green per #750. Reviewed no (#750 review-skipped; #881, #911 reviewed). Shipped: green on c16c86a7, 3da54545, afcb9111. #619 closed by #750. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+   "note": "#750, extended by #881 and #911: the sheet closes and the box reads e.g. 'food & drink this weekend' or 'my interests', plain lowercase words, no hashtag; typed words are kept in front (PM, 2026-10-11) [V]. Checked: `[guards F092.2]` in `BrowseSurface.test.tsx:374` plus `box-text.test.ts:16` (partial); red before green per #750 [V]. Reviewed no (#750 review-skipped; #881, #911 reviewed). Shipped: green on c16c86a7, 3da54545, afcb9111. #619 closed by #750. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
   },
   {
    "id": "3",
@@ -66,16 +66,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    620,
-    830
+    620
    ],
-   "note": "`readBox` takes the Type, Category, Date and 'my interests' words out of the box and the rest is the free search; a filter is one targeted `browse_feed` read and search is server-side (#881, #924), so the words and the results come from one state [V]. The reach (`?reach=`, #932) and the area are scope, outside the box, like `?metro=` before them; read here as 'where', not narrowing, per F105's where/what split [A]. Checked: `BrowseSurface.test.tsx` 'typing the same words by hand does the same' and `#916` tests are unmarked (#830). Reviewed no (#750 review-skipped; #881, #924 reviewed). Shipped: green on c16c86a7, 3da54545, bc919743. #620 is stale (built). Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+   "note": "`readBox` takes the Type, Category, Date and 'my interests' words out of the box and the rest is the free search; a filter is one targeted `browse_feed` read and search is server-side (#881, #924), so the words and the results come from one state [V]. The reach (`?reach=`, #932) and the area are scope, outside the box, like `?metro=` before them; read here as 'where', not narrowing, per F105's where/what split [A]. Checked: #1064 (2026-10-26, closed #830) added `[guards F092.3]` in `BrowseSurface.test.tsx:438` ('text written by the panel and the same text typed by hand give the same results and the same sheet'), seen failing with tags dropped from the box read [V]. Reviewed no (#750 review-skipped; #881, #924 reviewed; #1064 tests only). Shipped: green on c16c86a7, 3da54545, bc919743, 7f97937e. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. #620 is open but stale: built and checked; close it."
   },
   {
    "id": "4",
@@ -93,7 +92,7 @@
    "issues": [
     621
    ],
-   "note": "One grammar read both ways in `box-text.ts` (#750, extended for Type, Date and My interests by #881 and #911) [V]. Checked: `[guards F092.4]` in `box-text.test.ts`, a round trip over the selections, seen red first per #750; `BrowseSurface.test.tsx` carries a partial. Reviewed no (#750 review-skipped). Shipped: green on c16c86a7, 3da54545, afcb9111. #621 stays open though built (the PR's 'Closes #619, #621' closed only #619). Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+   "note": "One grammar read both ways in `box-text.ts` (#750, extended for Type, Date and My interests by #881 and #911) [V]. Checked: `[guards F092.4]` in `box-text.test.ts:74`, a round trip over the selections, seen red first per #750; `BrowseSurface.test.tsx:398` carries a partial [V]. Reviewed no (#750 review-skipped). Shipped: green on c16c86a7, 3da54545, afcb9111. #621 stays open though built (the PR's 'Closes #619, #621' closed only #619); close it. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]."
   },
   {
    "id": "5",
@@ -111,7 +110,7 @@
    "issues": [
     622
    ],
-   "note": "Free text never errors: unknown words stay as the free search and go to the server (#924), and since #953 a pending search says 'Searching…' and a failed one says so with Try again, never a false zero [V]. Nothing opens the sheet on text it does not understand; an empty result reads the #924 'Nothing matches … yet' line with Clear filters. Replaces #57's chips fallback. Open #622."
+   "note": "Free text never errors: unknown words stay as the free search and go to the server (#924), a pending search says 'Searching…' and a failed one says so with Try again (#953), never a false zero; an empty result reads 'Nothing matches … yet' with Clear filters [V `BrowseSurface.tsx:438-483`]. Nothing opens the sheet on text it does not understand: `setSheetOpen(true)` is called only from the two filter buttons [V]. Replaces #57's chips fallback. Open #622."
   },
   {
    "id": "6",
@@ -121,16 +120,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [
-    623,
-    830
+    623
    ],
-   "note": "The box is the narrowing state, so emptying it clears Type, Category, Date and My interests; the search bar's close also clears (`BrowseSurface.tsx`) [V]. The reach and area stay, as scope [A, see 3]. Checked: 'clearing the box clears the narrowing' in `BrowseSurface.test.tsx` is unmarked (#830). Reviewed no (#750 review-skipped). Shipped: green on c16c86a7, 3da54545. #623 is stale (built). Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas; it loads the route, it does not tap [V]."
+   "note": "The box is the narrowing state, so emptying it clears Type, Category, Date and My interests; the search bar's close also clears (`BrowseSurface.tsx`) [V]. The reach and area stay, as scope [A, see 3]. Checked: #1064 (2026-10-26, closed #830) added `[guards F092.6]` in `BrowseSurface.test.tsx:419` ('clearing the box clears the narrowing: category, schedule and the sheet's own state'), seen failing with the schedule parse removed and with tags dropped from the box read [V]. Reviewed no (#750 review-skipped; #1064 tests only). Shipped: green on c16c86a7, 3da54545, 7f97937e. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. #623 is open but stale: built and checked; close it."
   }
  ]
 }
