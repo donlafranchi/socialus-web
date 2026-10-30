@@ -8,11 +8,11 @@
 |---|---|---|---|---|---|---|---|---|
 | builders-seed | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
 | create-posts | 61 | 46/61 | 29/61 | 19/61 | 42/61 (4?) | 16/61 (30?) | 0/61 | 0 |
-| explore-map | 77 | 51/77 | 27/77 | 0/77 | 39/77 (12?) | 34/77 (17?) | 0/77 | 4 |
+| explore-map | 77 | 51/77 | 30/77 | 0/77 | 39/77 (12?) | 34/77 (17?) | 0/77 | 4 |
 | moderation | 64 | 61/64 | 61/64 | 6/64 | 47/64 (14?) | 34/64 (27?) | 0/64 | 3 |
 | page-editing | 20 | 10/20 | 3/20 | 3/20 | 9/20 (1?) | 0/20 (10?) | 0/20 | 0 |
 | sign-in-you | 33 | 24/33 | 14/33 | 0/33 | 20/33 (4?) | 6/33 (18?) | 0/33 | 2 |
-| **All** | 261 | 192/261 | 134/261 | 28/261 | 157/261 (35?) | 90/261 (102?) | 0/261 | 9 |
+| **All** | 261 | 192/261 | 137/261 | 28/261 | 157/261 (35?) | 90/261 (102?) | 0/261 | 9 |
 
 ## By feature
 
@@ -27,15 +27,15 @@
 | create-posts | [F082 the rules a member agrees to before publishing a Page](create-posts/F082-rules-before-publish.md) | launch | 9 | 9/9 | 9/9 | 8/9 | 9/9 | 1/9 (8?) | 0/9 | 0 |
 | create-posts | [F099 every post shows a picture, and every Page can have a Page picture](create-posts/F099-every-post-shows-a-picture.md) | none | 14 | 13/14 | 10/14 | 11/14 | 13/14 | 3/14 (10?) | 0/14 | 0 |
 | create-posts | [F117 a Wonder asks who is in and who will help](create-posts/F117-a-wonder-asks-who-is-in.md) | none | 9 | 9/9 | 9/9 | 0/9 | 9/9 | 9/9 | 0/9 | 0 |
-| explore-map | [F044 newcomer switches between list and map with an inline toggle](explore-map/F044-inline-list-map-toggle.md) (retired, not counted) | none | 3 | 3/3 | 0/3 | 0/3 | 0/3 (3?) | 3/3 | 0/3 | 0 |
-| explore-map | [F045 a newcomer filters Explore with a filter icon, kind pills and a bottom sheet](explore-map/F045-filter-icon-and-sheet.md) (retired, not counted) | none | 6 | 4/6 | 0/6 | 0/6 | 1/6 (3?) | 4/6 | 0/6 | 0 |
-| explore-map | [F046 scrolling hides the bottom nav](explore-map/F046-scroll-hides-the-bottom-nav.md) (retired, not counted) | none | 8 | 7/8 | 0/8 | 0/8 | 0/8 (7?) | 7/8 | 0/8 | 0 |
+| explore-map | [F044 newcomer switches between list and map with an inline toggle](explore-map/F044-inline-list-map-toggle.md) (retired, not counted) | none | 3 | 3/3 | 1/3 | 0/3 | 0/3 (3?) | 3/3 | 0/3 | 0 |
+| explore-map | [F045 a newcomer filters Explore with a filter icon, kind pills and a bottom sheet](explore-map/F045-filter-icon-and-sheet.md) (retired, not counted) | none | 6 | 4/6 | 1/6 | 0/6 | 1/6 (3?) | 4/6 | 0/6 | 0 |
+| explore-map | [F046 scrolling hides the bottom nav](explore-map/F046-scroll-hides-the-bottom-nav.md) (retired, not counted) | none | 8 | 7/8 | 1/8 | 0/8 | 0/8 (7?) | 7/8 | 0/8 | 0 |
 | explore-map | [F059 Browse, where a newcomer finds the neighbourhood](explore-map/F059-browse-finds-the-neighbourhood.md) | none | 17 | 11/17 | 0/17 | 0/17 | 10/17 (1?) | 11/17 | 0/17 | 0 |
 | explore-map | [F063 someone says they're coming](explore-map/F063-someone-says-theyre-coming.md) | none | 4 | 0/4 | 0/4 | 0/4 | 0/4 | 0/4 | 0/4 | 0 |
 | explore-map | [F070 every Page has a face, even without a photo](explore-map/F070-every-page-has-a-face.md) | none | 5 | 5/5 | 0/5 | 0/5 | 2/5 (3?) | 2/5 (3?) | 0/5 | 0 |
 | explore-map | [F076 a person outside an open market joins its waitlist](explore-map/F076-metro-waitlist.md) | launch | 15 | 11/15 | 11/15 | 0/15 | 4/15 (7?) | 2/15 (9?) | 0/15 | 4 |
-| explore-map | [F091 What's happening, today and this week](explore-map/F091-whats-happening-today-and-this-week.md) | none | 8 | 7/8 | 3/8 | 0/8 | 7/8 | 6/8 (1?) | 0/8 | 0 |
-| explore-map | [F092 Narrowing happens in a modal that writes what it did](explore-map/F092-narrowing-in-a-modal.md) | none | 6 | 5/6 | 2/6 | 0/6 | 5/6 | 5/6 | 0/6 | 0 |
+| explore-map | [F091 What's happening, today and this week](explore-map/F091-whats-happening-today-and-this-week.md) | none | 8 | 7/8 | 4/8 | 0/8 | 7/8 | 6/8 (1?) | 0/8 | 0 |
+| explore-map | [F092 Narrowing happens in a modal that writes what it did](explore-map/F092-narrowing-in-a-modal.md) | none | 6 | 5/6 | 4/6 | 0/6 | 5/6 | 5/6 | 0/6 | 0 |
 | explore-map | [F093 a signed-out visitor sees that something is happening, and is asked in to read it](explore-map/F093-signed-out-sees-something-is-happening.md) | launch | 12 | 12/12 | 11/12 | 0/12 | 11/12 (1?) | 8/12 (4?) | 0/12 | 0 |
 | explore-map | [F104 Explore shows the whole market, ordered hood, town, market, online, with towns by adjacency](explore-map/F104-explore-ordered-by-towns.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
 | explore-map | [F105 A member looks from a typed place, and home stays the default](explore-map/F105-look-from-a-typed-place.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
@@ -61,7 +61,7 @@
 | SPEC-CONFLICT | 9 | F072.2b, F099.11b, F059.5a, F091.1b, F102.7, F056.1b, F056.3, F057.4b, F065.2b | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
 | NOT-BUILT | 62 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F076.3, F076.7, F076.8, F076.15, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, … (22 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 20 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F099.11a, F059.2c, F059.3, F059.4b, F059.5e, F070.2, F092.1a, F056.7a, F056.8, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
-| NO-CHECK | 36 | F060.4, F061.1, F061.2, F072.2c, F072.3, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F091.1a, F091.5, F091.7, F092.3, F092.6, F093.12, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.1, F081.1, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NO-CHECK | 33 | F060.4, F061.1, F061.2, F072.2c, F072.3, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F091.1a, F091.7, F093.12, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.1, F081.1, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
 | NOT-REVIEWED | 162 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.7, F099.8, F099.11a, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, … (122 more) | `review-pr-bundle` |
 | NOT-SHIPPED | 35 | F060.4, F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10, F076.11, F076.12, F093.8, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F069.3, F057.5, F065.1, F065.2a, F065.4 | CI: `deploy-health` green on the merge commit |
 | NOT-SMOKED | 100 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.11a, F099.12, F099.13, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10, F076.11, F076.12, F076.13, … (60 more) | CI: a `smoke-live` run that covers the route |
