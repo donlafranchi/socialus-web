@@ -11,8 +11,8 @@
 | explore-map | 77 | 51/77 | 27/77 | 0/77 | 39/77 (12?) | 34/77 (17?) | 0/77 | 4 |
 | moderation | 64 | 61/64 | 61/64 | 6/64 | 47/64 (14?) | 34/64 (27?) | 0/64 | 3 |
 | page-editing | 20 | 10/20 | 3/20 | 3/20 | 9/20 (1?) | 0/20 (10?) | 0/20 | 0 |
-| sign-in-you | 33 | 21/33 | 11/33 | 0/33 | 17/33 (4?) | 5/33 (16?) | 0/33 | 4 |
-| **All** | 261 | 189/261 | 131/261 | 28/261 | 154/261 (35?) | 89/261 (100?) | 0/261 | 11 |
+| sign-in-you | 33 | 24/33 | 14/33 | 0/33 | 20/33 (4?) | 6/33 (18?) | 0/33 | 2 |
+| **All** | 261 | 192/261 | 134/261 | 28/261 | 157/261 (35?) | 90/261 (102?) | 0/261 | 9 |
 
 ## By feature
 
@@ -50,22 +50,22 @@
 | page-editing | [F106 A Page says where its give-back goes, and the local badge is the receipt](page-editing/F106-page-says-where-giveback-goes.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
 | sign-in-you | [F057 someone who isn't selling yet finds the way in](sign-in-you/F057-you-shows-the-way-in.md) | none | 6 | 2/6 | 0/6 | 0/6 | 1/6 (1?) | 2/6 | 0/6 | 0 |
 | sign-in-you | [F065 someone follows a person, Page or venue, and nothing else changes](sign-in-you/F065-someone-follows-something.md) | none | 6 | 5/6 | 1/6 | 0/6 | 2/6 (3?) | 1/6 (4?) | 0/6 | 0 |
-| sign-in-you | [F077 members see a display name; the legal name stays with the platform](sign-in-you/F077-display-name-public-legal-name-private.md) | none | 5 | 2/5 | 0/5 | 0/5 | 2/5 | 2/5 | 0/5 | 0 |
-| sign-in-you | [F081 everyone signs up the same way, and the zip sets the market](sign-in-you/F081-one-signup-zip-sets-metro.md) | launch | 9 | 8/9 | 6/9 | 0/9 | 8/9 | 0/9 (8?) | 0/9 | 1 |
-| sign-in-you | [F103 a market is a set of towns, and the zip decides which one a person is in](sign-in-you/F103-the-zip-decides-the-market.md) | launch | 7 | 4/7 | 4/7 | 0/7 | 4/7 | 0/7 (4?) | 0/7 | 3 |
+| sign-in-you | [F077 members see a display name; the legal name stays with the platform](sign-in-you/F077-display-name-public-legal-name-private.md) | none | 5 | 3/5 | 1/5 | 0/5 | 3/5 | 2/5 (1?) | 0/5 | 0 |
+| sign-in-you | [F081 everyone signs up the same way, and the zip sets the market](sign-in-you/F081-one-signup-zip-sets-metro.md) | launch | 9 | 9/9 | 7/9 | 0/9 | 9/9 | 0/9 (9?) | 0/9 | 0 |
+| sign-in-you | [F103 a market is a set of towns, and the zip decides which one a person is in](sign-in-you/F103-the-zip-decides-the-market.md) | launch | 7 | 5/7 | 5/7 | 0/7 | 5/7 | 1/7 (4?) | 0/7 | 2 |
 
 ## Gaps by type
 
 | Gap | Count | Criteria | Next skill |
 |---|---|---|---|
 | SPEC-CONFLICT | 9 | F072.2b, F099.11b, F059.5a, F091.1b, F102.7, F056.1b, F056.3, F057.4b, F065.2b | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
-| NOT-BUILT | 65 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F076.3, F076.7, F076.8, F076.15, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, … (25 more) | `write-tickets` then `build-ticket` |
+| NOT-BUILT | 62 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F076.3, F076.7, F076.8, F076.15, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, … (22 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 20 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F099.11a, F059.2c, F059.3, F059.4b, F059.5e, F070.2, F092.1a, F056.7a, F056.8, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
-| NO-CHECK | 36 | F060.4, F061.1, F061.2, F072.2c, F072.3, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F091.1a, F091.5, F091.7, F092.3, F092.6, F093.12, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.2, F081.5, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
-| NOT-REVIEWED | 159 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.7, F099.8, F099.11a, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, … (119 more) | `review-pr-bundle` |
+| NO-CHECK | 36 | F060.4, F061.1, F061.2, F072.2c, F072.3, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F091.1a, F091.5, F091.7, F092.3, F092.6, F093.12, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.1, F081.1, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NOT-REVIEWED | 162 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.7, F099.8, F099.11a, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, … (122 more) | `review-pr-bundle` |
 | NOT-SHIPPED | 35 | F060.4, F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10, F076.11, F076.12, F093.8, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F069.3, F057.5, F065.1, F065.2a, F065.4 | CI: `deploy-health` green on the merge commit |
-| NOT-SMOKED | 98 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.11a, F099.12, F099.13, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10, F076.11, F076.12, F076.13, … (58 more) | CI: a `smoke-live` run that covers the route |
-| NOT-LOOKED | 187 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, … (147 more) | `record-pm-review` (UAT Issue), after the rows above |
+| NOT-SMOKED | 100 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.11a, F099.12, F099.13, F070.1, F070.2, F070.3, F076.4, F076.5, F076.6, F076.9, F076.10, F076.11, F076.12, F076.13, … (60 more) | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 190 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, … (150 more) | `record-pm-review` (UAT Issue), after the rows above |
 
 ## Data problems
 
@@ -96,5 +96,6 @@
 - F069: unknown cells: Shipped 1, Smoked 3
 - F057: unknown cells: Shipped 1
 - F065: unknown cells: Shipped 3, Smoked 4
-- F081: unknown cells: Smoked 8
+- F077: unknown cells: Smoked 1
+- F081: unknown cells: Smoked 9
 - F103: unknown cells: Smoked 4

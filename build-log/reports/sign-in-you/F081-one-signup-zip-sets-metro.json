@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
@@ -15,18 +15,19 @@
     "behavior"
    ],
    "status": "active",
-   "built": "no",
+   "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "no",
-   "smoked": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     851,
     847,
-    1014
+    1014,
+    707
    ],
-   "note": "[V] built half: the profile screen collects legal name, display name, zip and the unticked 18+/Terms box (#497, review-skipped), and the 6-digit code verifies the email (#946, Reviewed by; production mailer_autoconfirm false, read 2026-10-18). Missing half: since #946 (2026-10-18) the one way in is /auth/login, email then code, which creates the account (shouldCreateUser) and lands on `next`, default /; nothing sends a new member to /onboarding (the proxy gate is off until PHONE_VERIFICATION_REQUIRED, and /auth/password's /onboarding default is the unlinked builder screen), so a person who signs in from You, a Page or the nav gets an account with only an email. Only the feed banner's ?next=/onboarding link reaches the step. #847 (a member with no legal name is sent to /onboarding) is the fix. Checked: `signup-screens.test.tsx` (#851) walks EmailFirstSignup, the retired password screen, not the live form"
+   "note": "[V] the live way in is /auth/login: SignInForm takes the email, CodeEntry the 6-digit code that verifies it (#946, Reviewed by; production mailer_autoconfirm false, read 2026-10-18), and lands on `next` (default /). Since #1032 (2026-10-24, closes #847, review-skipped) src/proxy.ts sends a signed-in member with no legal_name to /onboarding before any other page, builders exempt, so the profile step is now reached from every entry: one screen with legal name (2-120), display name (1-60), 5-digit zip and the unticked 18+/Terms box, all four refused together by validateSignupProfile (#497, review-skipped). The phone step (#282, #749) exists and is off until PHONE_VERIFICATION_REQUIRED and the keys in #707 (the PM, 2026-10-12: not before the soft launch). Shipped: deploy-health on 730abcf was cancelled, superseded six seconds later by e97cdf0 (green), which contains it; d5ebc93 and 5e902cb green. Smoked: unknown, /onboarding has no live address in evals/smoke/live.spec.ts, auth-login was not in any run since 10-24, and the smoke signs in as builders, who are exempt from the gate. Checked: no, `signup-screens.test.tsx` (#1034, closes #1014) walks SignInForm -> CodeEntry -> the profile form and is marked [guards F081.1 partial: the phone step waits on #707]; the phone half is the PM's keys, so no new check ticket"
   },
   {
    "id": "2",
@@ -44,7 +45,7 @@
    "issues": [
     852
    ],
-   "note": "[V] members.zip readable by its owner only (members_select_self). Checked: yes, `tests/member-zip-private-db.test.ts` marked F081.2 (#852, PR #910, deploy-health green on 82a9edc): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it. Reviewed: no, the zip itself landed in #497 (review-skipped)"
+   "note": "[V] members.zip readable by its owner only (members_select_self). Checked: yes, `tests/member-zip-private-db.test.ts` marked F081.2 (#852, PR #910, deploy-health green on 82a9edc): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it. Reviewed: no, the zip itself landed in #497 (review-skipped). Smoked: /you and page opened green through 10-30, but the smoke looks for stray emails, not zips"
   },
   {
    "id": "3",
@@ -62,7 +63,7 @@
    "issues": [
     853
    ],
-   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.3 (#853, PR #910): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read. The screen is reached only through the profile step, which the live sign-in skips since #946 (criterion 1)"
+   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.3 (#853, PR #910): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read. The screen is reached through the profile step, which every new member now lands on (#1032, criterion 1); the 10-27 ruling that grows Sacramento (#1101) changes which market a zip decides, not how"
   },
   {
    "id": "4",
@@ -80,7 +81,7 @@
    "issues": [
     854
    ],
-   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.4 (#854, PR #910): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's Zip row shows the area the zip decided (ZipChange, #757); the Default metro row is gone (#895). Smoked: /you opened green 2026-10-23, but the zip change is an action the smoke never runs"
+   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.4 (#854, PR #910): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's Zip row shows the area the zip decided (ZipChange, #757); the Default metro row is gone (#895). Smoked: /you opened green 2026-10-25 to 10-27, but the zip change is an action the smoke never runs"
   },
   {
    "id": "5",
@@ -90,7 +91,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -99,7 +100,7 @@
     855,
     1014
    ],
-   "note": "[V] the line, word for word, on the profile screen (OnboardingFlow, COPY.signupLine) and no never-sell line on any screen (grep 2026-10-23); the live sign-in screens from #946 (SignInForm, CodeEntry) carry neither the line nor a never-sell line. Checked: `signup-screens.test.tsx` marked F081.5 (#855) asserts the line on EmailFirstSignup's password screen, which no member sees since #946, and scans only that flow for a never-sell line: the live screens are outside it"
+   "note": "[V] the line, word for word, on the profile screen (OnboardingFlow, COPY.signupLine) and no never-sell line on any screen (grep 2026-10-30); the sign-in screens (SignInForm, CodeEntry) carry neither; text-pages.ts says the line is not repeated on About (the PM, 2026-10-27). Checked: yes, `signup-screens.test.tsx` marked [guards F081.5] whole (#1034, 2026-10-24, closes #1014; deploy-health green on e97cdf0): the line is on the profile screen word for word and none of the three live screens carries a never-sell line; seen failing against a never-sell line on CodeEntry and the line dropped from the profile screen. Reviewed: no, the screen is #497's (review-skipped)"
   },
   {
    "id": "6",
@@ -117,7 +118,7 @@
    "issues": [
     856
    ],
-   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.6 (#856, PR #910): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. SignInForm and CodeEntry ask only for the email and the code (reread 2026-10-23). The make-or-find question after signup belongs to F076's waitlist entry"
+   "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.6 (#856, PR #910): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. SignInForm and CodeEntry ask only for the email and the code (reread 2026-10-30). The make-or-find question after signup belongs to F076's waitlist entry"
   },
   {
    "id": "7",
@@ -133,7 +134,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries marked F081.7. Reviewed: no (#283 no Reviewed by, #497 skipped)"
+   "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries [guards F081.7]. Reviewed: no (#283 no Reviewed by, #497 skipped)"
   },
   {
    "id": "8",
@@ -152,7 +153,7 @@
     853,
     849
    ],
-   "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` marked F081.8 partial (#853, PR #910): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against a reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS, which is #849 (open, needs the PM's HUD token); Connecticut's planning regions were added by #959 (2026-10-18). No separate check ticket: the gap is #849's"
+   "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` marked F081.8 partial (#853, PR #910): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against a reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS, which is #849 (open, needs the PM's HUD token, no comment since filing); Connecticut's planning regions were added by #959 (2026-10-18). No separate check ticket: the gap is #849's"
   },
   {
    "id": "9",
@@ -172,7 +173,7 @@
     857,
     707
    ],
-   "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` marked F081.9 (#857, PR #910): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist (still open, untouched since 2026-10-13)"
+   "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` marked F081.9 (#857, PR #910): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist (open; the PM, 2026-10-12: Twilio Verify at launch, nothing before the soft launch)"
   }
  ]
 }

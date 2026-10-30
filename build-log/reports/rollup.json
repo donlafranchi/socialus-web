@@ -8074,18 +8074,18 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "sign-in-you/F077-display-name-public-legal-name-private.md",
    "n": 5,
    "totals": {
     "built": {
-     "yes": 2,
-     "no": 3,
+     "yes": 3,
+     "no": 2,
      "unknown": 0
     },
     "checked": {
-     "yes": 0,
-     "no": 5,
+     "yes": 1,
+     "no": 4,
      "unknown": 0
     },
     "reviewed": {
@@ -8094,14 +8094,14 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 2,
-     "no": 3,
+     "yes": 3,
+     "no": 2,
      "unknown": 0
     },
     "smoked": {
      "yes": 2,
-     "no": 3,
-     "unknown": 0
+     "no": 2,
+     "unknown": 1
     },
     "pm_looked": {
      "yes": 0,
@@ -8118,21 +8118,24 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       610,
       847
      ],
-     "note": "[V] built half: the profile screen requires 2-120 characters (signup/profile.ts, OnboardingFlow, handler signup-profile-set; #497, review-skipped). Missing half: members.legal_name is nullable (migration 20261007200000), nothing forces a signed-in member to /onboarding unless the phone gate is on (proxy.ts, phone.ts), and since #946 (2026-10-18) the live way in is /auth/login, email then code, which lands on `next` (default /) and never on /onboarding, so a new member uses the app with no legal name at all. Ticket #847 is the fix (now F081.1's gap too); check ticket #610. unmarked: profile.test.ts, onboarding/actions.test.ts, OnboardingFlow.test.tsx, signup-profile-set.test.ts",
+     "note": "[V] the profile screen requires 2-120 characters (signup/profile.ts, OnboardingFlow, handler signup-profile-set; #497, review-skipped), and since #1032 (2026-10-24, closes #847, review-skipped) src/proxy.ts sends any signed-in GET outside /onboarding, /auth and /api to /onboarding when members.legal_name is null or blank, whatever PHONE_VERIFICATION_REQUIRED says; builders exempt; an httpOnly su_named cookie skips the lookup once a name is found; onboarding/page.tsx no longer bounces a named-less member to /. So the email-then-code sign-in (#946) now lands on the profile step before any other page. members.legal_name stays nullable (migration 20261007200000): the gate, not the schema, is what refuses. Shipped: deploy-health on 730abcf itself was cancelled, superseded six seconds later by e97cdf0 (green), which contains it. Smoked: unknown, /onboarding has no live address in evals/smoke/live.spec.ts and the smoke signs in as builders, who are exempt. Checked: no, src/proxy.test.ts carries [guards F077.1 partial: the redirect; not the signup form]; the form tests are unmarked (profile.test.ts, onboarding/actions.test.ts, OnboardingFlow.test.tsx, signup-profile-set.test.ts); the whole-criterion marker is #610's",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
+     "score": 2,
      "red": false
     },
     {
@@ -8143,7 +8146,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "yes",
@@ -8151,13 +8154,12 @@
      "issues": [
       1013
      ],
-     "note": "[V] the display name is collected at signup (OnboardingFlow, #497 review-skipped) and is what every peer-facing surface shows: a Page's 'Started by' line reads page_founder_public, which returns display_name only (migration 20260930180000, #249, no Reviewed by, deploy-health green on aba449d), and the following list shows followed people's display_name (get-member-follows.ts). legal_name is rendered nowhere (grep 2026-10-23: the signup path, the admin queue's comment and tests). Posts are by Pages, responses do not exist and the member profile is retired (/m/[handle] 404s, #303), so these are every surface the criterion names that exists. Smoked: page and /you/following opened green (2026-10-19 cd913c7, 10-23 cb892a7). No test asserts display over legal on any of them",
+     "note": "[V] the display name is collected at signup (OnboardingFlow, #497 review-skipped) and is what every peer-facing surface shows: a Page's 'Started by' line reads page_founder_public, which returns display_name only (migration 20260930180000, #249, no Reviewed by, deploy-health green on aba449d), and the following list shows display_name (get-member-follows.ts). Posts are by Pages, responses do not exist, the member profile is retired (#303), so those are every surface the criterion names that exists. Checked: yes, tests/f077-display-name-db.test.ts marked [guards F077.2] (#1072, 2026-10-26, closes #1013 today; deploy-health green on a9d265d): against a real database the Started by read returns the display name and no legal-name column to the founder and a peer and nothing to a stranger, the following list reads no legal name, and legal_name is read only by the signup gate, profile form and operator note; seen failing against a Page function that also returns legal_name. Smoked: page opened green 2026-10-25 to 10-27, you-following 10-19 (cd913c7); the smoke looks for stray emails, not names",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
@@ -8176,7 +8178,7 @@
      "issues": [
       611
      ],
-     "note": "[V] members has only members_select_self (migration 20260930180000, #249, no Reviewed by; deploy-health green on aba449d); the only src files that name legal_name are the signup path, the admin queue's comment and tests (grep 2026-10-23). Behavior holds today; no standing guard, ticket #611. Smoked: explore and page, the public surfaces, opened green 2026-10-23 (cb892a7), though the smoke looks for stray emails, not names",
+     "note": "[V] members has only members_select_self (migration 20260930180000, #249, no Reviewed by; deploy-health green on aba449d); the src files that name legal_name are the signup path, the gate (proxy.ts, legal-name.ts), the admin queue's stale comment and tests (grep 2026-10-30). Behavior holds today; no standing guard marked F077.3: the #1072 test scans src for legal_name reads and checks page_founder_public for anon, which is part of what #611 asks, but not members, views or functions generally. Ticket #611. Smoked: explore and page, the public surfaces, opened green 2026-10-25 to 10-30; the smoke looks for stray emails, not names",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -8201,7 +8203,7 @@
      "issues": [
       608
      ],
-     "note": "[V] the column exists since #497, but src/lib/admin/reports-queue.ts:30 still says 'there is no members.legal_name column' and ReportEntry.tsx:95 shows display name and handle only (reread 2026-10-23). Ticket #608",
+     "note": "[V] the column exists since #497, but src/lib/admin/reports-queue.ts:30 still says 'there is no members.legal_name column' and ReportEntry.tsx:95 shows display name and handle only (reread 2026-10-30; #691's operator wording pass on 10-25 did not touch it). Ticket #608",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8224,7 +8226,7 @@
      "issues": [
       609
      ],
-     "note": "[V] migration 20261007200000 adds legal_name nullable with no default and no backfill, and no later migration touches it (grep 2026-10-23); no flag or marker for members without one. Ticket #609",
+     "note": "[V] built part: the QA personas (supabase/seeds/personas.sql, scripts/seed-personas.ts; #1041) and the Playwright fixtures (evals/fixtures; #1040) now set legal_name, done on 2026-10-24 because the #1032 gate sent them to /onboarding. Missing: the showcase members in supabase/seeds/the-good-place.sql insert no legal_name (line 152), migration 20261007200000 has no backfill and no later migration touches the column (grep 2026-10-30), and nothing flags a member without one. Ticket #609",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8304,18 +8306,18 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "sign-in-you/F081-one-signup-zip-sets-metro.md",
    "n": 9,
    "totals": {
     "built": {
-     "yes": 8,
-     "no": 1,
+     "yes": 9,
+     "no": 0,
      "unknown": 0
     },
     "checked": {
-     "yes": 6,
-     "no": 3,
+     "yes": 7,
+     "no": 2,
      "unknown": 0
     },
     "reviewed": {
@@ -8324,14 +8326,14 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 8,
-     "no": 1,
+     "yes": 9,
+     "no": 0,
      "unknown": 0
     },
     "smoked": {
      "yes": 0,
-     "no": 1,
-     "unknown": 8
+     "no": 0,
+     "unknown": 9
     },
     "pm_looked": {
      "yes": 0,
@@ -8339,7 +8341,7 @@
      "unknown": 0
     }
    },
-   "red": 1,
+   "red": 0,
    "criteria": [
     {
      "id": "1",
@@ -8348,23 +8350,27 @@
       "behavior"
      ],
      "status": "active",
-     "built": "no",
+     "built": "yes",
      "checked": "no",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       851,
       847,
-      1014
+      1014,
+      707
      ],
-     "note": "[V] built half: the profile screen collects legal name, display name, zip and the unticked 18+/Terms box (#497, review-skipped), and the 6-digit code verifies the email (#946, Reviewed by; production mailer_autoconfirm false, read 2026-10-18). Missing half: since #946 (2026-10-18) the one way in is /auth/login, email then code, which creates the account (shouldCreateUser) and lands on `next`, default /; nothing sends a new member to /onboarding (the proxy gate is off until PHONE_VERIFICATION_REQUIRED, and /auth/password's /onboarding default is the unlinked builder screen), so a person who signs in from You, a Page or the nav gets an account with only an email. Only the feed banner's ?next=/onboarding link reaches the step. #847 (a member with no legal name is sent to /onboarding) is the fix. Checked: `signup-screens.test.tsx` (#851) walks EmailFirstSignup, the retired password screen, not the live form",
+     "note": "[V] the live way in is /auth/login: SignInForm takes the email, CodeEntry the 6-digit code that verifies it (#946, Reviewed by; production mailer_autoconfirm false, read 2026-10-18), and lands on `next` (default /). Since #1032 (2026-10-24, closes #847, review-skipped) src/proxy.ts sends a signed-in member with no legal_name to /onboarding before any other page, builders exempt, so the profile step is now reached from every entry: one screen with legal name (2-120), display name (1-60), 5-digit zip and the unticked 18+/Terms box, all four refused together by validateSignupProfile (#497, review-skipped). The phone step (#282, #749) exists and is off until PHONE_VERIFICATION_REQUIRED and the keys in #707 (the PM, 2026-10-12: not before the soft launch). Shipped: deploy-health on 730abcf was cancelled, superseded six seconds later by e97cdf0 (green), which contains it; d5ebc93 and 5e902cb green. Smoked: unknown, /onboarding has no live address in evals/smoke/live.spec.ts, auth-login was not in any run since 10-24, and the smoke signs in as builders, who are exempt from the gate. Checked: no, `signup-screens.test.tsx` (#1034, closes #1014) walks SignInForm -> CodeEntry -> the profile form and is marked [guards F081.1 partial: the phone step waits on #707]; the phone half is the PM's keys, so no new check ticket",
      "gaps": [
-      "NOT-BUILT"
+      "NO-CHECK",
+      "NOT-REVIEWED",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
-     "red": true
+     "score": 2,
+     "red": false
     },
     {
      "id": "2",
@@ -8382,7 +8388,7 @@
      "issues": [
       852
      ],
-     "note": "[V] members.zip readable by its owner only (members_select_self). Checked: yes, `tests/member-zip-private-db.test.ts` marked F081.2 (#852, PR #910, deploy-health green on 82a9edc): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it. Reviewed: no, the zip itself landed in #497 (review-skipped)",
+     "note": "[V] members.zip readable by its owner only (members_select_self). Checked: yes, `tests/member-zip-private-db.test.ts` marked F081.2 (#852, PR #910, deploy-health green on 82a9edc): no visitor or other member reads it by row, view or callable function, and no page selects it outside signup, You and the zip change; seen failing against a view on members.zip and a page selecting it. Reviewed: no, the zip itself landed in #497 (review-skipped). Smoked: /you and page opened green through 10-30, but the smoke looks for stray emails, not zips",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8407,7 +8413,7 @@
      "issues": [
       853
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.3 (#853, PR #910): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read. The screen is reached only through the profile step, which the live sign-in skips since #946 (criterion 1)",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.3 (#853, PR #910): signup through the real action, handler and database names the market the zip decided, the zip box starts empty, nothing to pick, and no IP, position or default on the signup path; seen failing against a default market, a pre-filled zip and a geolocation read. The screen is reached through the profile step, which every new member now lands on (#1032, criterion 1); the 10-27 ruling that grows Sacramento (#1101) changes which market a zip decides, not how",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8432,7 +8438,7 @@
      "issues": [
       854
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.4 (#854, PR #910): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's Zip row shows the area the zip decided (ZipChange, #757); the Default metro row is gone (#895). Smoked: /you opened green 2026-10-23, but the zip change is an action the smoke never runs",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.4 (#854, PR #910): sign up in Sacramento with nothing to pick, then three zip changes on You move the market and home town each time; seen failing against a zip that locks after signup. /you's Zip row shows the area the zip decided (ZipChange, #757); the Default metro row is gone (#895). Smoked: /you opened green 2026-10-25 to 10-27, but the zip change is an action the smoke never runs",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8449,7 +8455,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -8458,14 +8464,13 @@
       855,
       1014
      ],
-     "note": "[V] the line, word for word, on the profile screen (OnboardingFlow, COPY.signupLine) and no never-sell line on any screen (grep 2026-10-23); the live sign-in screens from #946 (SignInForm, CodeEntry) carry neither the line nor a never-sell line. Checked: `signup-screens.test.tsx` marked F081.5 (#855) asserts the line on EmailFirstSignup's password screen, which no member sees since #946, and scans only that flow for a never-sell line: the live screens are outside it",
+     "note": "[V] the line, word for word, on the profile screen (OnboardingFlow, COPY.signupLine) and no never-sell line on any screen (grep 2026-10-30); the sign-in screens (SignInForm, CodeEntry) carry neither; text-pages.ts says the line is not repeated on About (the PM, 2026-10-27). Checked: yes, `signup-screens.test.tsx` marked [guards F081.5] whole (#1034, 2026-10-24, closes #1014; deploy-health green on e97cdf0): the line is on the profile screen word for word and none of the three live screens carries a never-sell line; seen failing against a never-sell line on CodeEntry and the line dropped from the profile screen. Reviewed: no, the screen is #497's (review-skipped)",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -8484,7 +8489,7 @@
      "issues": [
       856
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.6 (#856, PR #910): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. SignInForm and CodeEntry ask only for the email and the code (reread 2026-10-23). The make-or-find question after signup belongs to F076's waitlist entry",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F081.6 (#856, PR #910): no make-or-find field, control or string on the signup screens, the handler takes no such input, a signup writes no other column; seen failing against an 'I make things' box. SignInForm and CodeEntry ask only for the email and the code (reread 2026-10-30). The make-or-find question after signup belongs to F076's waitlist entry",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8507,7 +8512,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries marked F081.7. Reviewed: no (#283 no Reviewed by, #497 skipped)",
+     "note": "[V] completeOnboardingAction writes no place (#283, #497); the home town comes from the zip (F103.5, #757). Checked: yes, src/app/onboarding/actions.test.ts ('writes no home place for anyone') carries [guards F081.7]. Reviewed: no (#283 no Reviewed by, #497 skipped)",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8533,7 +8538,7 @@
       853,
       849
      ],
-     "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` marked F081.8 partial (#853, PR #910): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against a reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS, which is #849 (open, needs the PM's HUD token); Connecticut's planning regions were added by #959 (2026-10-18). No separate check ticket: the gap is #849's",
+     "note": "[V] Checked: partial: `tests/signup-zip-market-db.test.tsx` marked F081.8 partial (#853, PR #910): every zip in the national table resolves, an unknown zip is refused in the exact words on screen, a waiting zip joins that market's waitlist with the zip kept; seen failing against a reworded refusal. Leaves out the source: Census ZCTA land share stands in for HUD-USPS, which is #849 (open, needs the PM's HUD token, no comment since filing); Connecticut's planning regions were added by #959 (2026-10-18). No separate check ticket: the gap is #849's",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -8561,7 +8566,7 @@
       857,
       707
      ],
-     "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` marked F081.9 (#857, PR #910): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist (still open, untouched since 2026-10-13)",
+     "note": "[V] Checked: yes, `PhoneVerifyStep.voip.test.tsx` marked F081.9 (#857, PR #910): through the real phone screen and checkPhoneAction with Twilio Lookup mocked, a non-fixed VoIP number is refused with the plain ask and sent no code, a mobile number is looked up first then gets its code, and a Lookup outage lets the person through; seen failing against sending the code before the check. Live only once the keys in #707 exist (open; the PM, 2026-10-12: Twilio Verify at launch, nothing before the soft launch)",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8579,18 +8584,18 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "sign-in-you/F103-the-zip-decides-the-market.md",
    "n": 7,
    "totals": {
     "built": {
-     "yes": 4,
-     "no": 3,
+     "yes": 5,
+     "no": 2,
      "unknown": 0
     },
     "checked": {
-     "yes": 4,
-     "no": 3,
+     "yes": 5,
+     "no": 2,
      "unknown": 0
     },
     "reviewed": {
@@ -8599,13 +8604,13 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 4,
-     "no": 3,
+     "yes": 5,
+     "no": 2,
      "unknown": 0
     },
     "smoked": {
-     "yes": 0,
-     "no": 3,
+     "yes": 1,
+     "no": 2,
      "unknown": 4
     },
     "pm_looked": {
@@ -8614,7 +8619,7 @@
      "unknown": 0
     }
    },
-   "red": 3,
+   "red": 2,
    "criteria": [
     {
      "id": "1",
@@ -8630,9 +8635,10 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
-      850
+      850,
+      1101
      ],
-     "note": "[V] `markets`, `market_members`, `market_key()` (#693, PR #708, review-skipped, deploy-health green on 4431c25). Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850, PR #910, green on 82a9edc): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members. #907 (2026-10-18) adds F076's check that every US zip and county resolves to one market",
+     "note": "[V] `markets`, `market_members`, `market_key()` (#693, PR #708, review-skipped, deploy-health green on 4431c25). Checked: yes, `tests/f103-markets-db.test.ts` marked F103.1 (#850, PR #910, green on 82a9edc): Sacramento's counties and the Tahoe carve-outs, every US county in exactly one market, one row moves a county, and a Nevada county joins Tahoe; seen failing against a market_key that ignores out-of-state members. The 2026-10-27 ruling (F103 Rulings; web #1101, open, no PR yet) grows Sacramento to its 60-minute drive-time reach (Yuba City, Marysville, Vacaville, Dixon, Grass Valley, Nevada City) by an assignment script and an overrides file, reviewed as a diff of market_members rows first: it changes which rows, not the mechanism, so the criterion's example list is overtaken (sync-roadmap amends it) and the cells stand",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8657,7 +8663,7 @@
      "issues": [
       850
      ],
-     "note": "[V] `zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709, review-skipped, green on 4f571f5); Connecticut's planning regions added by #959 (green on 4f691c0). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849)",
+     "note": "[V] `zip_county`, `zip_market_key`, refusal \"We don't recognize that zip, try again.\" (#694, PR #709, review-skipped, green on 4f571f5); Connecticut's planning regions added by #959 (green on 4f691c0). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.2 partial (#850): zip → county → market, the subdivision decides inside split Placer, one county per zip, same answer every time, unknown zip refused; seen failing against a lookup that ignores the subdivision. The marker is partial only for the source (row 2b, #849). Nothing touched it since 10-23 (git log)",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8683,7 +8689,7 @@
      "issues": [
       849
      ],
-     "note": "[V] stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment; scripts/generate-zip-county-migration.ts). HUD token not registered; #849 open with the PM (needs-pm), no comment since filing",
+     "note": "[V] stand-in: Census 2020 ZCTA files, largest land area, 10,174 zips flagged `guess`; PO-box-only zips unknown (#694 PR body, #693 comment; scripts/generate-zip-county-migration.ts). HUD token not registered; #849 open with the PM (needs-pm), no comment since filing on 2026-10-16",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8706,7 +8712,7 @@
      "issues": [
       850
      ],
-     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850, PR #910): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. The zip step is reached only through the profile screen, which the live sign-in skips since #946 (F081.1, #847). Explore's visitor fallback is F104/F105 (#588), not sign-up",
+     "note": "[V] Checked: yes, `tests/signup-zip-market-db.test.tsx` marked F103.3 (#850, PR #910): an open zip signs the person in and names the market, a waiting zip names its market and joins that waitlist, nothing to pick, and a scan finds no IP, position or default on the signup path; seen failing against a default market. The zip step is reached through the profile screen, which every new member now lands on since #1032 (F081.1). Explore's visitor fallback is F104/F105 (#588), not sign-up",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8722,21 +8728,22 @@
       "invariant"
      ],
      "status": "active",
-     "built": "no",
-     "checked": "no",
+     "built": "yes",
+     "checked": "yes",
      "reviewed": "no",
-     "shipped": "no",
-     "smoked": "no",
+     "shipped": "yes",
+     "smoked": "yes",
      "pm_looked": "no",
      "issues": [
       1015
      ],
-     "note": "[V] built half (#895, review-skipped, deploy-health green on 4b9558a): the Default metro row is gone from /you and src/lib/copy-no-metro-words.test.ts scans member-facing .tsx prose for metro, MSA and CSA. Missing: three routed screens still say metro and are allow-listed in that guard (AreaPicker 'this metro', MetroNotCoveredPanel 'this metro opens', MetroWaitlistStep 'Pick your metro'; RecruitmentGrid's CSA is the farm box), and member-facing reads of the MSA remain: explore/actions.ts reads metro_polygons, location-actions.ts, /api/boundaries and neighborhood-search.ts filter places by msa_code (grep 2026-10-23). #848 was closed on #895 with those named as left open; the strings wait on F105's place control and a word from Don",
+     "note": "[V] #1038 (2026-10-24, closes #1015; human-review, review-skipped; deploy-health green on 337830c): every leftover 'metro' became 'area' (area picker, not-covered panel, waitlist step, waitlist popup, Page location line, Privacy page, seeder message), and neighbourhood search, /api/boundaries and the main-town anchor no longer filter by places.msa_code or take an msa parameter; saveDefaultMetroAction removed; markets.msa_code stays report-only. Checked: yes, a standing guard: src/lib/copy-no-metro-words.test.ts marked [guards F103.4] whole scans member-facing .tsx prose and .ts string literals for metro, MSA and CSA (only RecruitmentGrid's farm 'CSA' allow-listed) and fails on any msa_code or ?msa= read in app code; seen failing before the swap (3 screen strings, 7 .ts strings) and against the old neighborhood-search.ts. Reads of metro_polygons by the waitlist handlers remain (grep 2026-10-30): that is the waitlist table keyed from markets.metro_id, not the MSA code. Smoked: explore and /you opened green 2026-10-25, 10-26, 10-27 and explore 10-30, all after the merge. PM looked: the PR asked for a look on socialus.org; no uat Issue or pm-reviewed label records one",
      "gaps": [
-      "NOT-BUILT"
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
      ],
-     "score": 0,
-     "red": true
+     "score": 4,
+     "red": false
     },
     {
      "id": "5a",
@@ -8754,7 +8761,7 @@
      "issues": [
       850
      ],
-     "note": "[V] `members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757, review-skipped, green on e0f16a9). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page; seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b, #616)",
+     "note": "[V] `members.home_town`, `zip_home()`, `member.zip.set` (#695, PR #757, review-skipped, green on e0f16a9). Checked: yes for this row, `tests/f103-markets-db.test.ts` marked F103.5 partial (#850): signup stores the Place, a zip in no Place gives the county remainder, each move re-resolves it, and no visitor or other member reads it by row, view, function or page (town_board, F118, returns counts only); seen failing against a zip change that keeps the old town. The marker is partial only for the day-it-opens half (row 5b)",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8777,9 +8784,10 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [
-      616
+      616,
+      1112
      ],
-     "note": "[V] `backfill_home_towns(market)` exists and is tested (`home-town-db.test`), and since #919 (2026-10-18) writes only as service_role; nothing calls it: no code opens a market (#616 comment names the call). Half built, so no",
+     "note": "[V] `backfill_home_towns(market)` exists, is idempotent and tested (`home-town-db.test`), service_role-only since #919. Since #1056 (2026-10-25, #616) there is a way to open a market: scripts/market/open-market.ts calls openMarket (src/lib/market/open-market.ts), which sets markets.is_open and metro_polygons.is_open, sends the one message and discards the addresses; it never calls backfill_home_towns (lines 27-38, read 2026-10-30), so a member who signed up while the market waited keeps no home town after it opens. Filed today as #1112 (launch-blocking: one call in the opener, agents alone)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8978,16 +8986,16 @@
   "sign-in-you": {
    "features": 5,
    "n": 33,
-   "red": 4,
+   "red": 2,
    "totals": {
     "built": {
-     "yes": 21,
-     "no": 12,
+     "yes": 24,
+     "no": 9,
      "unknown": 0
     },
     "checked": {
-     "yes": 11,
-     "no": 22,
+     "yes": 14,
+     "no": 19,
      "unknown": 0
     },
     "reviewed": {
@@ -8996,14 +9004,14 @@
      "unknown": 0
     },
     "shipped": {
-     "yes": 17,
-     "no": 12,
+     "yes": 20,
+     "no": 9,
      "unknown": 4
     },
     "smoked": {
-     "yes": 5,
-     "no": 12,
-     "unknown": 16
+     "yes": 6,
+     "no": 9,
+     "unknown": 18
     },
     "pm_looked": {
      "yes": 0,
@@ -9016,16 +9024,16 @@
  "all": {
   "features": 32,
   "n": 261,
-  "red": 11,
+  "red": 9,
   "totals": {
    "built": {
-    "yes": 189,
-    "no": 72,
+    "yes": 192,
+    "no": 69,
     "unknown": 0
    },
    "checked": {
-    "yes": 131,
-    "no": 130,
+    "yes": 134,
+    "no": 127,
     "unknown": 0
    },
    "reviewed": {
@@ -9034,14 +9042,14 @@
     "unknown": 0
    },
    "shipped": {
-    "yes": 154,
-    "no": 72,
+    "yes": 157,
+    "no": 69,
     "unknown": 35
    },
    "smoked": {
-    "yes": 89,
-    "no": 72,
-    "unknown": 100
+    "yes": 90,
+    "no": 69,
+    "unknown": 102
    },
    "pm_looked": {
     "yes": 0,
@@ -9121,12 +9129,9 @@
    "F057.2",
    "F057.3",
    "F057.4a",
-   "F077.1",
    "F077.4",
    "F077.5",
-   "F081.1",
    "F103.2b",
-   "F103.4",
    "F103.5b"
   ],
   "INVARIANT-UNPROVEN": [
@@ -9185,8 +9190,8 @@
    "F065.1",
    "F065.3",
    "F065.4",
-   "F077.2",
-   "F081.5",
+   "F077.1",
+   "F081.1",
    "F081.8"
   ],
   "NOT-REVIEWED": [
@@ -9335,8 +9340,10 @@
    "F065.3",
    "F065.4",
    "F065.5",
+   "F077.1",
    "F077.2",
    "F077.3",
+   "F081.1",
    "F081.2",
    "F081.3",
    "F081.4",
@@ -9348,6 +9355,7 @@
    "F103.1",
    "F103.2a",
    "F103.3",
+   "F103.4",
    "F103.5a"
   ],
   "NOT-SHIPPED": [
@@ -9474,6 +9482,8 @@
    "F065.2a",
    "F065.3",
    "F065.4",
+   "F077.1",
+   "F081.1",
    "F081.2",
    "F081.3",
    "F081.4",
@@ -9661,8 +9671,10 @@
    "F065.3",
    "F065.4",
    "F065.5",
+   "F077.1",
    "F077.2",
    "F077.3",
+   "F081.1",
    "F081.2",
    "F081.3",
    "F081.4",
@@ -9674,6 +9686,7 @@
    "F103.1",
    "F103.2a",
    "F103.3",
+   "F103.4",
    "F103.5a"
   ]
  },
@@ -9705,7 +9718,8 @@
   "F069: unknown cells: Shipped 1, Smoked 3",
   "F057: unknown cells: Shipped 1",
   "F065: unknown cells: Shipped 3, Smoked 4",
-  "F081: unknown cells: Smoked 8",
+  "F077: unknown cells: Smoked 1",
+  "F081: unknown cells: Smoked 9",
   "F103: unknown cells: Smoked 4"
  ]
 }
