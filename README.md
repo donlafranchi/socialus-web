@@ -2,7 +2,6 @@
 
 **As of 2026-10-29** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
-*As of 2026-09-15 (content last changed that day). Review notes: `docs/DOC-INVENTORY.md`.*
 
 Locals supporting locals. SocialUs is a map-based place where the people of a town find and support each other: buy, sell, trade, teach, gather, hire, and give, with the money and the help staying with the people who live there. Businesses are one kind of local among many, not the point of the app.
 
