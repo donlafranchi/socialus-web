@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
@@ -25,7 +25,7 @@
    "issues": [
     636
    ],
-   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled; #820, #920 green [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1), after the last queue change [V]"
+   "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx:51` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled and cannot be rerun against that commit; every merge since, #820, #920 and #691 (cd70380) included, is green [V] Smoked: `admin-reports` green as operator 2026-10-26 (dc65fac), after #691's wording change [V]"
   },
   {
    "id": "2",
@@ -43,7 +43,7 @@
    "issues": [
     636
    ],
-   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V] Checked: `[guards F101.2]` in `criteria.test.tsx` [V] Reviewed: #380 none, #771 `review-skipped` [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V]; #691 (2026-10-26) dropped the em dash from the AI line and reworded the error line [V] Checked: `[guards F101.2]` in `criteria.test.tsx:62`, green on main after #691 [V] Reviewed: #380 none, #771 and #691 `review-skipped` [V] Shipped: #380 cancelled; #691 (cd70380) green [V] Smoked: `admin-reports` green 2026-10-26 [V]"
   },
   {
    "id": "3",
@@ -61,7 +61,7 @@
    "issues": [
     636
    ],
-   "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx:249` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]"
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     636
    ],
-   "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx:102` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]"
   },
   {
    "id": "5",
@@ -97,7 +97,7 @@
    "issues": [
     636
    ],
-   "note": "`min-h-12` buttons in the row footer [V] Checked: `[guards F101.5]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "`min-h-12` buttons in the row footer; the words Approve and Remove are untouched by #691 [V] Checked: `[guards F101.5]` in `criteria.test.tsx:131` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]"
   },
   {
    "id": "6",
@@ -115,7 +115,7 @@
    "issues": [
     636
    ],
-   "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx:165` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; the smoke swipes nothing [V]"
   },
   {
    "id": "7",
@@ -133,7 +133,7 @@
    "issues": [
     636
    ],
-   "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx:195` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
   },
   {
    "id": "8",
@@ -152,7 +152,7 @@
    "issues": [
     636
    ],
-   "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx:215` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
   },
   {
    "id": "9",
@@ -170,7 +170,7 @@
    "issues": [
     636
    ],
-   "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx:239` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
   },
   {
    "id": "10",
@@ -188,7 +188,7 @@
    "issues": [
     636
    ],
-   "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836) [V] Checked: `[guards F101.10]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836); the reason pickers' titles read \"Approve. Why?\" / \"Reject. Why?\" since #691 [V] Checked: `[guards F101.10]` in `criteria.test.tsx:250` [V] Reviewed: #380 none; #691 `review-skipped` [V] Shipped: #380 cancelled; #691 green [V] Smoked: the page opens; no decision is made [V]"
   },
   {
    "id": "11",
@@ -206,7 +206,7 @@
    "issues": [
     636
    ],
-   "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts:80` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]"
   },
   {
    "id": "12",
@@ -224,7 +224,7 @@
    "issues": [
     634
    ],
-   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx:422`; the order is also checked in `review-subjects.test.ts:64` (partial) [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-26; the detail is not opened [V]"
   },
   {
    "id": "13",
@@ -242,7 +242,7 @@
    "issues": [
     635
    ],
-   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V]"
+   "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx:179` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V] Smoked: `admin-reports` green 2026-10-26; nothing is pressed [V]"
   },
   {
    "id": "14",
@@ -260,7 +260,7 @@
    "issues": [
     636
    ],
-   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]"
+   "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx:276`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green at 1280px 2026-10-26; no key is pressed [V]"
   },
   {
    "id": "15",
@@ -276,7 +276,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec [V] Reviewed: #538 no `Reviewed by:` [V] Shipped: #538 (ab7691d) green [V]"
+   "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec, run by the CI Browser job (`mobile-chrome`); it was red on main on 2026-10-24 after #1032 sent the persona members with no legal name to onboarding, fixed the same day by #1041 (the QA persona seeds carry one); main's Browser job is green 2026-10-29 and 10-30 [V] Reviewed: #538 no `Reviewed by:` [V] Shipped: #538 (ab7691d) green [V] Smoked: a timing in CI, not a live route [V]"
   }
  ]
 }

@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     835
    ],
-   "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483) [V]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload (#810, #811, #887, #890, #976, #980) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Smoked: `page-edit` green 2026-10-23 (cb892a7); the editor loads, no upload is made [A]"
+   "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483); its label is now \"No kids in this photo.\" (#1087) [V]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload; the daily seeds keep applying it (#1001 this week: youth programs go stock-only) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Shipped: #483 (0b26c0d) and #1087 (8b313b0) green [V] Smoked: `page-edit` green 2026-10-27 (dccf21c); the editor loads, no upload is made [A]"
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     637
    ],
-   "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V]"
+   "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts:34` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V] Smoked: an absence, no screen shows it [V]"
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     637
    ],
-   "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V]"
+   "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts:57` [V] Reviewed: #781 no `Reviewed by:` [V] Smoked: an absence, no screen shows it [V]"
   },
   {
    "id": "4",
@@ -79,11 +79,11 @@
    "issues": [
     835
    ],
-   "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751, #707 open) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V]"
+   "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751; #707 open, unchanged this week) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V] Smoked: no run sends a report [V]"
   },
   {
-   "id": "5",
-   "text": "Wherever a member posts, the app asks not to post sensitive content, and why; each photo upload asks to confirm",
+   "id": "5a",
+   "text": "Wherever a member posts, the app asks not to post sensitive content; each photo upload asks to confirm",
    "kind": [
     "behavior"
    ],
@@ -95,7 +95,23 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder pending the PM's tone look [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped` [V] Shipped: deploy-health green on #250 (e737db1) and #251 (399f8fe), both 2026-09-30, and #483 [V] Smoked: `page-edit` green 2026-10-23; the note renders on the editor [A]"
+   "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. #1087 (2026-10-26, under #1078) cut the line to \"Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.\" and the tick to \"No kids in this photo.\"; #1096 (2026-10-27) deleted the unused long paragraph [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx:73`: the line on every posting surface, pinned word for word; the per-photo tick is `PagePhotoPicker.test.tsx:66` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped`; #1087, #1096 carry `Reviewed by:` [V] Shipped: green on #250 (e737db1), #251 (399f8fe), #483, #1087 (8b313b0), #1096 (0dc430f) [V] Smoked: `page-edit` green 2026-10-27 (dccf21c), after both copy merges; the note renders on the editor [A] PM looked: #1087 and #1096 opened with Review blocks for his look on socialus.org; nothing ticked [V]"
+  },
+  {
+   "id": "5b",
+   "text": "The ask at posting says why",
+   "kind": [
+    "behavior"
+   ],
+   "status": "retired",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "RETIRED. Overtaken by the PM's call of 2026-10-27 (recorded in #1096's body, not yet in F080 `## Rulings`): only what is absolutely necessary at posting; the reasons stay in the publish step's agreement (F082), which is the attestation. Until #1087 the line carried \"We rely on each other to keep this place kind and decent.\"; it no longer says why. `sync-roadmap` amends criterion 5 [V]."
   }
  ]
 }
