@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function LandingAboutPage() {
   return (
-    <main className="mx-auto w-full max-w-read gutter py-8 pb-nav">
+    <main className="mx-auto w-full max-w-read gutter py-8 pb-dock">
       <Link href="/landing" className="text-body-sm text-[var(--color-accent-text)]">
         &larr; Back
       </Link>

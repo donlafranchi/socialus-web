@@ -32,7 +32,7 @@ export function Toast({ message, visible, onHide, duration = 3000, action }: Toa
       onMouseLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)}
       onBlur={() => setHeld(false)}
-      className="fixed bottom-[var(--float-offset)] left-1/2 z-[var(--z-toast)] flex -translate-x-1/2 items-center gap-3 rounded-xl bg-zinc-800 px-4 py-2 text-body-sm text-white shadow-overlay md:bottom-6"
+      className="fixed bottom-[var(--float-offset)] left-1/2 z-[var(--z-toast)] flex -translate-x-1/2 items-center gap-3 rounded-xl bg-zinc-800 px-4 py-2 text-body-sm text-white shadow-overlay"
     >
       <span>{message}</span>
       {action && (

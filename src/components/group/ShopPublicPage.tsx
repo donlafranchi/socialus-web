@@ -199,8 +199,8 @@ export function ShopPublicPage({
     <main
       className={
         showOwnerPanel
-          ? 'mx-auto w-full max-w-detail gutter py-6 pb-nav lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12'
-          : 'mx-auto w-full max-w-read gutter py-6 pb-nav'
+          ? 'mx-auto w-full max-w-detail gutter py-6 pb-dock lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12'
+          : 'mx-auto w-full max-w-read gutter py-6 pb-dock'
       }
     >
      <div className="flex min-w-0 flex-col gap-4">

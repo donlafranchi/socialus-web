@@ -64,7 +64,7 @@ export default async function TownPage({ params }: Props) {
   const here = `/open/${t.slug}`
 
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="town-page">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="town-page">
       <Link href="/open" className="text-body-sm text-[var(--color-accent-text)]">All towns</Link>
       <h1 className="mt-2 text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Help open {t.name}</h1>
       {t.place_names.length > 0 && <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">{inList(t.place_names)}</p>}

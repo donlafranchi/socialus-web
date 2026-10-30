@@ -4,7 +4,7 @@ import { TEXT_PAGE_PLACEHOLDER, type TextPageContent } from '@/lib/text-pages'
 
 export function TextPage({ page }: { page: TextPageContent }) {
   return (
-    <main className="mx-auto w-full max-w-read gutter py-8 pb-nav">
+    <main className="mx-auto w-full max-w-read gutter py-8 pb-dock">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">{page.title}</h1>
       {page.counsel?.length ? (
         // Copy is a placeholder ([public-is-draft]). The counsel list itself is never shown.

@@ -40,7 +40,7 @@ export default async function YouNotificationsPage() {
   const reminders = await loadReminderList(supabase)
 
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="you-notifications">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="you-notifications">
       <Link href="/you" className="press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-accent)]">
         ← You
       </Link>

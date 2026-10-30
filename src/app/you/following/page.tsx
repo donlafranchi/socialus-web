@@ -29,7 +29,7 @@ export default async function FollowingPage() {
   const others = entries.filter((e) => e.kind !== 'group')
 
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="following-page">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="following-page">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Following</h1>
       <section className="mt-4" data-testid="section-pages">
         <h2 className="sr-only">Pages</h2>

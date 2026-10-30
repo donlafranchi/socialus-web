@@ -38,7 +38,7 @@ export default async function AdminReportsPage() {
   return (
     // F101 / #304 — phone-first (#12): one column, full-bleed at 375, capped at
     // the read width on a laptop.
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="admin-reports">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="admin-reports">
       <p className="mb-3 flex flex-wrap gap-x-4 text-body-sm">
         <Link href="/admin/reports/purge" className="inline-flex min-h-11 items-center underline" data-testid="purge-link">
           Removed photos

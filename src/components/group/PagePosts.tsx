@@ -284,7 +284,13 @@ export function PagePosts({
   useEffect(() => {
     if (!canPost) return
     const open = () => {
-      if (window.location.hash === `#${ANNOUNCE_ANCHOR}`) requestAnimationFrame(() => setComposing(true))
+      if (window.location.hash !== `#${ANNOUNCE_ANCHOR}`) return
+      // #1094 — the ➕ sheet's Wonder arrives with the Wonder box already ticked.
+      const asWonderLink = new URLSearchParams(window.location.search).get('compose') === 'wonder'
+      requestAnimationFrame(() => {
+        setComposing(true)
+        if (asWonderLink) setAsWonder(true)
+      })
     }
     open()
     // A tap on the Announce link while already on the Page changes the fragment with

@@ -336,7 +336,7 @@ export function BrowseSurface({
   // in the panel itself.
   if (!snapshot.metro) {
     return (
-      <main className="pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))] md:pb-24" data-testid="browse-page">
+      <main className="pb-[var(--dock-clearance)]" data-testid="browse-page">
         <div className="mx-auto max-w-xl px-3 py-10 md:px-6">
           <div className="card p-6 text-center" data-testid="feed-no-place">
             <p className="text-sm text-[var(--color-fg)]">
@@ -364,7 +364,7 @@ export function BrowseSurface({
 
   return (
     <main
-      className="pb-[calc(var(--nav-height)+env(safe-area-inset-bottom))] md:pb-24"
+      className="pb-[var(--dock-clearance)]"
       data-testid="browse-page"
     >
       <ExploreSearchBar
@@ -562,7 +562,7 @@ export function BrowseSurface({
               className={
                 layout === 'split'
                   ? 'h-full overflow-hidden rounded-md'
-                  : 'h-[calc(100dvh-var(--nav-clearance)-var(--search-row-h)-var(--float-offset)-var(--tap))] overflow-hidden rounded-md md:h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h)-var(--float-offset)-var(--tap))]'
+                  : 'h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h)-var(--dock-clearance))] overflow-hidden rounded-md'
               }
             >
               <div className="relative h-full">
