@@ -7,12 +7,12 @@
 | | Criteria | Built | Checked | Reviewed | Shipped | Smoked | PM looked | Launch blockers |
 |---|---|---|---|---|---|---|---|---|
 | builders-seed | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
-| create-posts | 52 | 37/52 | 19/52 | 19/52 | 33/52 (4?) | 7/52 (30?) | 0/52 | 0 |
-| explore-map | 99 | 59/99 | 29/99 | 3/99 | 45/99 (14?) | 35/99 (24?) | 0/99 | 1 |
-| moderation | 64 | 61/64 | 60/64 | 6/64 | 47/64 (14?) | 34/64 (27?) | 0/64 | 3 |
-| page-editing | 20 | 10/20 | 0/20 | 3/20 | 9/20 (1?) | 0/20 (10?) | 0/20 | 0 |
-| sign-in-you | 33 | 21/33 | 11/33 | 0/33 | 17/33 (4?) | 5/33 (16?) | 0/33 | 4 |
-| **All** | 274 | 188/274 | 119/274 | 31/274 | 151/274 (37?) | 81/274 (107?) | 0/274 | 8 |
+| create-posts | 61 | 46/61 | 29/61 | 19/61 | 42/61 (4?) | 16/61 (30?) | 0/61 | 0 |
+| explore-map | 99 | 59/99 | 32/99 | 3/99 | 45/99 (14?) | 35/99 (24?) | 0/99 | 1 |
+| moderation | 64 | 61/64 | 61/64 | 6/64 | 47/64 (14?) | 34/64 (27?) | 0/64 | 3 |
+| page-editing | 20 | 10/20 | 3/20 | 3/20 | 9/20 (1?) | 0/20 (10?) | 0/20 | 0 |
+| sign-in-you | 33 | 24/33 | 14/33 | 0/33 | 20/33 (4?) | 6/33 (18?) | 0/33 | 2 |
+| **All** | 283 | 200/283 | 139/283 | 31/283 | 163/283 (37?) | 91/283 (109?) | 0/283 | 6 |
 
 ## By feature
 
@@ -34,8 +34,8 @@
 | explore-map | [F063 someone says they're coming](explore-map/F063-someone-says-theyre-coming.md) | none | 4 | 0/4 | 0/4 | 0/4 | 0/4 | 0/4 | 0/4 | 0 |
 | explore-map | [F070 every Page has a face, even without a photo](explore-map/F070-every-page-has-a-face.md) | none | 5 | 5/5 | 0/5 | 0/5 | 2/5 (3?) | 2/5 (3?) | 0/5 | 0 |
 | explore-map | [F076 a person outside an open market joins its waitlist](explore-map/F076-metro-waitlist.md) | launch | 16 | 16/16 | 12/16 | 0/16 | 8/16 (8?) | 3/16 (13?) | 0/16 | 1 |
-| explore-map | [F091 What's happening, today and this week](explore-map/F091-whats-happening-today-and-this-week.md) | none | 8 | 7/8 | 3/8 | 0/8 | 7/8 | 6/8 (1?) | 0/8 | 0 |
-| explore-map | [F092 Narrowing happens in a modal that writes what it did](explore-map/F092-narrowing-in-a-modal.md) | none | 6 | 5/6 | 2/6 | 0/6 | 5/6 | 5/6 | 0/6 | 0 |
+| explore-map | [F091 What's happening, today and this week](explore-map/F091-whats-happening-today-and-this-week.md) | none | 8 | 7/8 | 4/8 | 0/8 | 7/8 | 6/8 (1?) | 0/8 | 0 |
+| explore-map | [F092 Narrowing happens in a modal that writes what it did](explore-map/F092-narrowing-in-a-modal.md) | none | 6 | 5/6 | 4/6 | 0/6 | 5/6 | 5/6 | 0/6 | 0 |
 | explore-map | [F093 a signed-out visitor sees that something is happening, and is asked in to read it](explore-map/F093-signed-out-sees-something-is-happening.md) | launch | 12 | 12/12 | 12/12 | 0/12 | 10/12 (2?) | 8/12 (4?) | 0/12 | 0 |
 | explore-map | [F104 Explore shows the whole market, ordered hood, town, market, online, with towns by adjacency](explore-map/F104-explore-ordered-by-towns.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
 | explore-map | [F105 A member looks from a typed place, and home stays the default](explore-map/F105-look-from-a-typed-place.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
@@ -61,13 +61,13 @@
 | Gap | Count | Criteria | Next skill |
 |---|---|---|---|
 | SPEC-CONFLICT | 9 | F072.2b, F099.11b, F059.5a, F091.1b, F102.7, F056.1b, F056.3, F057.4b, F065.2b | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
-| NOT-BUILT | 79 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3, F105.4, … (39 more) | `write-tickets` then `build-ticket` |
+| NOT-BUILT | 76 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3, F105.4, … (36 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 22 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F099.11a, F059.2c, F059.3, F059.4b, F059.5e, F070.2, F076.15, F092.1a, F118.11, F056.7a, F056.8, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
-| NO-CHECK | 45 | F060.4, F061.1, F061.2, F072.2c, F072.3, F074.1, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3b, F076.7, F076.8, F091.1a, F091.5, F091.7, F092.3, F092.6, F118.8, F118.9, F078.1, F056.1a, F056.2, F056.5, F056.6, F056.9a, F069.1, F069.3, F069.4, F057.5, F065.1, … (5 more) | `write-tickets` (check) then `build-ticket`, tests seen failing |
-| NOT-REVIEWED | 155 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.7, F099.8, F099.11a, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, F070.4, F070.5b, F076.1, F076.2, F076.3a, F076.3b, F076.4, F076.5, F076.6, … (115 more) | `review-pr-bundle` |
+| NO-CHECK | 37 | F060.4, F061.1, F061.2, F072.2c, F072.3, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3b, F076.7, F076.8, F091.1a, F091.7, F118.8, F118.9, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.1, F081.1, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NOT-REVIEWED | 167 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.7, F099.8, F099.11a, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, F070.2, F070.3, … (127 more) | `review-pr-bundle` |
 | NOT-SHIPPED | 37 | F060.4, F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.3a, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F093.8, F093.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F069.3, F057.5, F065.1, F065.2a, F065.4 | CI: `deploy-health` green on the merge commit |
-| NOT-SMOKED | 105 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.11a, F099.12, F099.13, F070.1, F070.2, F070.3, F076.3a, F076.3b, F076.4, F076.5, F076.6, F076.7, F076.9, F076.10a, … (65 more) | CI: a `smoke-live` run that covers the route |
-| NOT-LOOKED | 186 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F059.1, F059.2b, F059.2c, F059.3, … (146 more) | `record-pm-review` (UAT Issue), after the rows above |
+| NOT-SMOKED | 107 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.8, F082.9, F099.1, F099.3, F099.4, F099.5, F099.7, F099.8, F099.9, F099.11a, F099.12, F099.13, F070.1, F070.2, F070.3, F076.3a, F076.3b, F076.4, F076.5, F076.6, F076.7, F076.9, F076.10a, … (67 more) | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 198 | F060.1, F060.2, F060.3, F060.4, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.2c, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, … (158 more) | `record-pm-review` (UAT Issue), after the rows above |
 
 ## Data problems
 

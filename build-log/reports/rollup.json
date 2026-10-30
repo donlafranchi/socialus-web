@@ -9467,8 +9467,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 29,
-     "no": 70,
+     "yes": 32,
+     "no": 67,
      "unknown": 0
     },
     "reviewed": {
@@ -9606,38 +9606,38 @@
   }
  },
  "all": {
-  "features": 33,
-  "n": 274,
-  "red": 8,
+  "features": 34,
+  "n": 283,
+  "red": 6,
   "totals": {
    "built": {
-    "yes": 188,
-    "no": 86,
+    "yes": 200,
+    "no": 83,
     "unknown": 0
    },
    "checked": {
-    "yes": 119,
-    "no": 155,
+    "yes": 139,
+    "no": 144,
     "unknown": 0
    },
    "reviewed": {
     "yes": 31,
-    "no": 243,
+    "no": 252,
     "unknown": 0
    },
    "shipped": {
-    "yes": 151,
-    "no": 86,
+    "yes": 163,
+    "no": 83,
     "unknown": 37
    },
    "smoked": {
-    "yes": 81,
-    "no": 86,
-    "unknown": 107
+    "yes": 91,
+    "no": 83,
+    "unknown": 109
    },
    "pm_looked": {
     "yes": 0,
-    "no": 274,
+    "no": 283,
     "unknown": 0
    }
   }
@@ -9780,12 +9780,8 @@
    "F076.8",
    "F091.1a",
    "F091.7",
-   "F092.3",
-   "F092.6",
    "F118.8",
    "F118.9",
-   "F078.1",
-   "F056.1a",
    "F056.2",
    "F056.6",
    "F056.9a",
