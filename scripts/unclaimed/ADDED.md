@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-29** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-30** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -328,3 +328,9 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-29 | Sacramento Valley Astronomical Society | Astronomy club | Sacramento | Arts & culture, Neighborhood life | Clubs and service; stock photos only; lead: NASA Night Sky Network, then own site |
 | 2026-10-29 | Little Bear Tree Farm | Farm | Alta | Farmers markets, Sustainability | Clubs and service (farms); holiday (Christmas trees); stock photos only; lead: PlacerGROWN, then own site |
 | 2026-10-29 | Loomis Lions Club | Service club | Loomis | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-30 | Truckee Trails Foundation | Trail group (nonprofit) | Truckee | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Cache Creek Conservancy | Creek conservancy (nonprofit) | Woodland | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Sierra Streams Institute | Watershed group (nonprofit) | Nevada City | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | American River Conservancy | Land trust (nonprofit) | Coloma | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Solano Resource Conservation District | Conservation district (nonprofit) | Dixon | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Restore the Delta | Delta conservation group (nonprofit) | Stockton | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
