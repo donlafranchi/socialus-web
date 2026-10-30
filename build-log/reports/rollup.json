@@ -9022,18 +9022,18 @@
   }
  },
  "all": {
-  "features": 31,
-  "n": 252,
+  "features": 32,
+  "n": 261,
   "red": 9,
   "totals": {
    "built": {
-    "yes": 183,
+    "yes": 192,
     "no": 69,
     "unknown": 0
    },
    "checked": {
-    "yes": 120,
-    "no": 132,
+    "yes": 134,
+    "no": 127,
     "unknown": 0
    },
    "reviewed": {
@@ -9042,12 +9042,12 @@
     "unknown": 0
    },
    "shipped": {
-    "yes": 148,
+    "yes": 157,
     "no": 69,
     "unknown": 35
    },
    "smoked": {
-    "yes": 81,
+    "yes": 90,
     "no": 69,
     "unknown": 102
    },
