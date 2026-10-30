@@ -935,7 +935,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "create-posts/F074-a-series-repeats.md",
    "n": 8,
    "totals": {
@@ -945,8 +945,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 0,
-     "no": 8,
+     "yes": 1,
+     "no": 7,
      "unknown": 0
     },
     "reviewed": {
@@ -980,7 +980,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "unknown",
@@ -988,14 +988,13 @@
      "issues": [
       841
      ],
-     "note": "Built: `post_series` table and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control and bounds [V post.ts, AnnouncementFields.tsx]. It is OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`), unset per #753 and still 'behind the series switch' per #952 [A]. #956 (10-18) restyled the weekday chips as underlined text. #753 is review-skipped; deploy-health green on 685f5d1 and 546f086. Checked: every marker says `partial` (wording, shape, bounds, first-occurrence rule) [V grep]; no check claims all of it (#841).",
+     "note": "Built: `post_series` and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control with weekday chips and two optional dates (#753) [V post.ts, AnnouncementFields.tsx]. OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`) [V AnnouncementFields.tsx:80], unset per #753 [A]. Checked: `[guards F074.1]` whole in `AnnouncementFields.series-whole.test.tsx` (#1070, merged 10-26): seven chips and nothing else, no date field, no other pattern word, what it records passes `seriesSchema`, and an empty weekday list, an interval, individual dates or 'monthly' are refused; seen failing with strict mode off and a Monthly pattern added, per the PR body [V]. The older `partial` markers stand beside it. Reviewed: #753 and #1070 are both `review-skipped`. Shipped: Deploy health green on 685f5d1 and ac7377c [V]. Smoked: the flag hides the control, so no run exercises it. #841 is still open although #1070 did its work ('Refs', not 'Closes').",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 3,
      "red": false
     },
     {
@@ -1014,7 +1013,7 @@
      "issues": [
       593
      ],
-     "note": "Half built, for loader-managed market Pages only: #963 (10-19) `syncMarketDays` writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and #952's reminders compute a series' dates from its weekdays at send time rather than from rows ('future dates aren't stored as rows yet (#593)') [V post.ts, reminder-sender.ts]. Ticket #593.",
+     "note": "Half built, for loader-managed market Pages only: `syncMarketDays` (#963) writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and the reminders (#952) compute a series' dates from its weekdays at send time [V post.ts, reminder-sender.ts]. No commit since 10-23 touched this [V git log]. Ticket #593.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1037,7 +1036,7 @@
      "issues": [
       594
      ],
-     "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Ticket #594.",
+     "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Unchanged since 10-23 [V git log]. Ticket #594.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1084,7 +1083,7 @@
       173,
       597
      ],
-     "note": "The arithmetic exists: `metroWallTimeToInstant` is two-pass and DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back (`reminders.test.ts`), and market days are computed in `METRO_TIME_ZONE` (#963) [V]. But nothing expands a member's series into occurrences, and the metro still carries no zone of its own in code (#173 open; `markets.timezone` exists and nothing reads it) [V grep]. Daylight saving ends 2026-11-01. Ticket #597.",
+     "note": "The arithmetic exists: `metroWallTimeToInstant` is DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back, and market days are computed in `METRO_TIME_ZONE` (a constant, `America/Los_Angeles`) [V src/lib/metro/metro-time.ts]. But nothing expands a member's series into occurrences, and the metro carries no zone of its own in code: nothing in `src` reads `markets.timezone` (#173 open) [V grep]. Daylight saving ends 2026-11-01, two days from now. Ticket #597.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1107,7 +1106,7 @@
      "issues": [
       600
      ],
-     "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct or grouping by series or parent [V grep]. Market Pages now have three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion.",
+     "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct and no grouping by series or parent [V grep]. Market Pages carry three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -1169,7 +1168,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "create-posts/F082-rules-before-publish.md",
    "n": 9,
    "totals": {
@@ -1221,7 +1220,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and inserts one `creator_rules_agreements` row per Page; the retired `members.maker_mode_enabled` flag is dropped (migration 20261018160000, #908), so no role, account-type, creator or mode column remains in any migration or `src` [V grep]. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx` (#908, merged 10-18): a second Page is refused without a fresh agreement and records its own; the step starts unticked; `members` and `groups` carry no role, account-type, creator, tier, badge or mode column, a standing scan seen failing against planted columns per the PR body. Reviewed: #326, #493 and #908 carry `Reviewed by:`, none review-skipped. Shipped: deploy-health green on f89b294. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts]. #839 and #840 closed by #908.",
+     "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and inserts one `creator_rules_agreements` row per Page; `members.maker_mode_enabled` is dropped (migration 20261018160000, #908) [V]. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): a second Page is refused without a fresh agreement and records its own; the step starts unticked; a standing scan that `members` and `groups` carry no role, account-type, creator, tier, badge or mode column, seen failing against planted columns per the PR body [V]. Reviewed: #326, #493 and #908 carry `Reviewed by:`, none review-skipped. Shipped: Deploy health green on f89b294 [V]. Smoked: smoke-live has no route for the draft Page publish card [V evals/smoke/live.spec.ts LIVE_PATHS]. Unchanged since 10-23 [V git log].",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1233,8 +1232,7 @@
      "id": "2",
      "text": "The step is fixed statements presented as rules with the reason for each, agreed to; nothing typed, no free text stored; no document upload, ID, selfie, photo, lookup, automated check or approval queue",
      "kind": [
-      "behavior",
-      "invariant"
+      "behavior"
      ],
      "status": "active",
      "built": "yes",
@@ -1244,7 +1242,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Four rules with reasons in `creator-rules.ts`, a checkbox 'I agree to these rules'; no upload or check in `BeforeYouPublish.tsx` [V]. Checked: `BeforeYouPublish.test.tsx` [guards F082.2] sets out each rule with its reason; it asserts the positive half, not the absence of upload or check. Reviewed: #493 (and #326) `Reviewed by:`. Draft wording is for the PM's copy review. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "note": "Four fixed rules with a reason each in `creator-rules.ts` (`RULES_VERSION = 1`), a checkbox 'I agree to these rules', no input and no upload in `BeforeYouPublish.tsx` [V]. Kind: the 'no upload, no check, no queue' clauses describe this one step, so they are part of its behavior (skill: a 'no' clause about one screen is not an invariant). Checked: `BeforeYouPublish.test.tsx` `[guards F082.2]` sets out each rule with its reason; `[guards F082.8]` (#908) shows an agreed draft publishing at once and reaching Explore with nothing else asked, so no upload, check or queue sits in the path [V]. Reviewed: #493 (and #326) `Reviewed by:`. Shipped: 96b0ea6 and f89b294 green. The reasons stay on the step after #1096 moved the rules page to rule lines alone [V page.tsx]. Smoked: no route for the publish card.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1266,7 +1264,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`creator_rules_agreements` is referenced only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated, so no read path projects it [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): RLS on, no policy, no grant, both roles refused a select, no view or function reads it, only `group.activate` names it in `src`, and no peer surface reads a rules version or agreement; seen failing against a planted policy and a component that reads the table per the PR body. Reviewed: #326, #493, #908. Shipped: f89b294 green. #839 closed.",
+     "note": "`creator_rules_agreements` is named only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): RLS on, no policy, no grant, both roles refused a select, no view or function reads it, only `group.activate` names it in `src`, no peer surface reads a rules version or agreement; seen failing against a planted policy and a component that reads the table per the PR body [V]. Reviewed: #326, #493, #908. Shipped: f89b294 green. Unchanged since 10-23.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1288,7 +1286,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `activate.test.ts` and `BeforeYouPublish.test.tsx` [guards F082.4]. Reviewed: #326 and #493. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `activate.test.ts` and `BeforeYouPublish.test.tsx` `[guards F082.4]` [V]. Reviewed: #326 and #493. Shipped: 96b0ea6 green. Smoked: no route for the publish card.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1310,7 +1308,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Rule text and the agree line read clean [V]. Checked: `BeforeYouPublish.test.tsx` [guards F082.5] scans the rules block for business, legal, tax, licence and entity words, seen failing with 'business' injected per #493. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "note": "Rule text and the agree line read clean [V creator-rules.ts]. Checked: `BeforeYouPublish.test.tsx` `[guards F082.5]` scans the step's rules block for business, legal, tax, licence, entity, incorporat and llc, seen failing with 'business' injected per #493 [V]. The new rules-page headline from #1087 ('Be cool. Don't be a jerk.') is outside the step and carries none of those words [V copy]. Reviewed: #493. Shipped: 96b0ea6 green.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1332,7 +1330,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`RULES_VERSION` is compared on every publish; the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` [guards F082.6] x2 (earlier version refused, row recorded); the 'only operators read it' half is now also asserted by F082.3's guard. Reviewed: #493. Smoked: smoke-live has no route for the draft Page publish card [V evals/screens/routes.ts].",
+     "note": "`RULES_VERSION` (still 1: #1087 and #1096 changed the page around the rules, not the rules) is compared on every publish; the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` `[guards F082.6]` x2 (earlier version refused, row recorded) and `create/actions.test.ts` `[guards F082.6]`; the 'only operators read it' half is asserted by F082.3's guard [V]. Reviewed: #493. Shipped: 96b0ea6 green. Smoked: no route for the publish card.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1354,7 +1352,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`/rules` is linked from the Publish card, the desktop footer and a Rules row in You → Settings [V]. Checked: `you-rules-row.test.tsx`, `shell.test.tsx`, `BeforeYouPublish.test.tsx` [guards F082.7]. Reviewed: #772 is `review-skipped` ('Reviewed by: lane B'), so no. Shipped: deploy-health green on edb6bcb. Smoked: smoke-live opened `you` green on 10-21, 10-22 and 10-23, a load check only. Issue #573 closed.",
+     "note": "`/rules` is linked from the Publish card, the desktop footer and a Rules row in You → Settings [V]. Since 10-23 the page itself changed: #1087 (10-26) added the headline 'Be cool. Don't be a jerk.' and a thanks line, #1096 (10-27) left the four rule lines alone on it, the reasons staying on the publish step [V src/app/rules/page.tsx]. Checked: `you-rules-row.test.tsx`, `shell.test.tsx`, `BeforeYouPublish.test.tsx` `[guards F082.7]` [V]. Reviewed: #772, which built the row, is `review-skipped` ('Reviewed by: lane B'); #1087 and #1096 carry `Reviewed by:` a second session, but they changed the page, not the doors. Shipped: Deploy health green on edb6bcb, 8b313b0 and 0dc430f [V]. Smoked: smoke-live opened `you` green for every persona on 10-25, 10-26 and 10-27 (the last after #1096), a load check only; `/rules` has no LIVE_PATHS entry [V]. #573 closed; PR #882 (a second branch for #573) is still open and stale.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -1376,7 +1374,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`group.activate` requires name (or business display name), anchor location, description and one tag for every kind; the checklist marks the photo optional; `DefaultArt` stands in without one [V]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): each missing part refused and the draft stays a draft; a photoless draft publishes, reaches Explore and its card shows the kind's default art; seen failing against a publish without a description and a required photo per the PR body. Reviewed: #326, #493, #908. Shipped: f89b294 green. #840 closed. Smoked: no route for the publish card.",
+     "note": "`group.activate` requires name (or business display name), anchor location, description and one tag for every kind; the checklist marks the photo optional; `DefaultArt` stands in without one [V]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): each missing part refused and the draft stays a draft; a photoless draft publishes, reaches Explore and its card shows the kind's default art; seen failing against a publish without a description and a required photo per the PR body [V]. Reviewed: #326, #493, #908. Shipped: f89b294 green. Smoked: no route for the publish card.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1398,7 +1396,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Rule 4 'No pictures of children.' with the scenario's reason sentence word for word [V creator-rules.ts]. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): the rule and its reason match the scenario's wording on the publish step and on /rules, seen failing with the reason dropped per the PR body. Reviewed: #493, #908. Shipped: f89b294 green. Wording is draft for the PM's copy review ([public-is-draft]). #840 closed. Smoked: no route for the publish card.",
+     "note": "Rule 4 'No pictures of children.' with the scenario's reason sentence word for word, on the publish step; since #1096 (10-27) the rules page shows the rule line alone [V creator-rules.ts, page.tsx]. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx`, rewritten in #1096: the rule and its reason match the scenario on the step, the rule line is on the rules page [V]. Reviewed: #493, #908 and #1096 all carry `Reviewed by:`. Shipped: f89b294 and 0dc430f green. Wording is draft ([public-is-draft]); the PM chose on 10-26 (#1078) to ship copy and edit live. Smoked: no route for the publish card.",
      "gaps": [
       "NOT-SMOKED",
       "NOT-LOOKED"
@@ -1762,6 +1760,251 @@
      "note": "`photo_url` is untouched; `picture_url` is a new nullable column, null by default [V migration 20261007290000]. Checked: [guards F099.13] in `PageEditor.test.tsx`.",
      "gaps": [
       "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F117",
+   "title": "a Wonder asks who is in and who will help",
+   "area": "create-posts",
+   "area_source": "guess",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-10-30",
+   "path": "create-posts/F117-a-wonder-asks-who-is-in.md",
+   "n": 9,
+   "totals": {
+    "built": {
+     "yes": 9,
+     "no": 0,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 9,
+     "no": 0,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 9,
+     "no": 0,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 9,
+     "no": 0,
+     "unknown": 0
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 9,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1",
+     "text": "A Wonder is a post kind on a Page the member manages: words, a threshold (a whole number), and an optional list of sizes or options the poster names",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Built by #1081 (merged 10-26): `page_posts.kind` ('announcement' | 'wonder'), `wonder_threshold` (1 to 1,000,000) and `wonder_options` (1 to 12) with a shape check, `group.post_create` taking `wonder: { threshold, options }`, and a 'Make it a Wonder' switch in the Page composer [V migration 20261025120000, post.ts, PagePosts.tsx]. Checked: `[guards F117.1]` in `tests/wonders-db.test.ts`: the row's kind, threshold and sizes, a non-manager refused, 2.5 and 0 refused, a raw insert without a threshold refused; `PagePosts.test.tsx` adds a `partial` for the composer; each seen failing first per the PR body [V]. Reviewed: #1081 is `review-skipped` and has no GitHub review; its visibility review is the builder's own. Shipped: Deploy health green on dc65fac; the migration applied on the branch at 16:43 before the 16:44 merge [V run list]. Smoked: smoke-live opened `page` green for every persona on 10-26 (on dc65fac) and 10-27, a load check of the first Page on Explore, which carries no Wonder [V].",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "I'm in: any signed-in member can join once, picking one size when the Wonder has sizes; they can change their size or leave",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`wonder.join` upserts one `wonder_interest` row per (post, member), refuses a missing or unknown size when the Wonder has sizes, `wonder.leave` deletes it; the count on the post is rewritten in the same transaction; a signed-out caller is refused [V wonder.ts]. The panel's 'I'm in' sheet with size radios, 'Change size' and 'Leave' [V WonderPanel.tsx]. Checked: `[guards F117.2]` in `tests/wonders-db.test.ts` (join without a size, an unknown size, join, change, a Wonder with no sizes, leave twice, signed out); `WonderPanel.test.tsx` adds a `partial` for the sheet [V]. Reviewed: no (#1081 review-skipped). Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3",
+     "text": "Progress bar: the Wonder shows the count of members in and the threshold as a bar, to anyone who can see the post; it reads full at the threshold and keeps counting past it",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`wonder_in_count` and `wonder_threshold` ride on the post row; `wonder_view` returns total and threshold to anyone signed in who can read the post; the panel renders a `progressbar` capped at 100% with 'Goal reached. Still counting.' past the threshold [V migration, WonderPanel.tsx]. Checked: `[guards F117.3]` twice: `tests/wonders-db.test.ts` (four in on a threshold of three reach a non-poster and the row; signed out gets null) and `WonderPanel.test.tsx` (120, 500 and 612 of 500) [V]. Signed-out readers get no view at all, which is the post's own visibility rule, not a gap. Reviewed: no. Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Size split: the poster sees the count per size; others see only the total",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`wonder_view` adds `byOption` only when the caller manages the Page; the panel shows 'By size' to managers only [V]. 'The poster' means the Page's managers, decided in #1081 by the decision rule. Checked: `[guards F117.4]` in `tests/wonders-db.test.ts` (the manager's per-size counts, a member's view without them); `WonderPanel.test.tsx` adds a `partial` that a visitor sees no split [V]. Reviewed: no. Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "5",
+     "text": "I can help as: any signed-in member can offer one or more of the eight roles (lead, designer, pattern-maker or sampler, sourcing, quality, logistics, support, treasurer), with an optional one-line note",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`wonder.offer` writes one `wonder_offers` row per role from the eight in `WONDER_ROLES`, the same list in the table's check, note up to 140 characters; the panel's 'I can help' sheet lists the eight as checkboxes with a note field [V roles.ts, migration, WonderPanel.tsx]. Checked: `[guards F117.5]` in `tests/wonders-db.test.ts` (two roles with a note, a repeat kept, all eight accepted, a ninth role, an empty list, a 141-character note and a signed-out caller refused); `WonderPanel.test.tsx` adds a `partial` for the sheet [V]. Reviewed: no. Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "Accepting a helper: the poster accepts or declines each offer; accepted helpers show on the Wonder by display name and role; pending and declined offers are seen only by the poster and the person who offered",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`wonder.offer_decide` (managers only) sets accepted or declined; `wonder_view` gives everyone the accepted helpers by display name and role, the caller their own offers, and managers every offer; RLS on `wonder_offers` lets only the offerer or a manager select a row [V wonder.ts, migration]. Checked: `[guards F117.6]` in `tests/wonders-db.test.ts` (a non-manager refused, accept and decline, what a third member, the offerer and the manager each see, the table as each role, anon refused, withdraw only by its owner); `WonderPanel.test.tsx` adds a `partial` for Accept [V]. Reviewed: no. Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Privacy: nobody sees who is in except the poster, who sees names and sizes; a member's own state is visible to them",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "RLS on `wonder_interest` lets only the row's member or a Page manager select it; anon has no grant; `wonder_view` adds `people` (name and size) only for managers and `mine` for the caller; names reach anyone only as display names, never member ids [V migration]. Checked: `[guards F117.7]` in `tests/wonders-db.test.ts`, a standing guard on the live schema: the manager's names and sizes, a member's own row and nothing else through the view and the table, a third member seeing nothing, anon refused, and a dissolved Wonder answering nobody [V]. Reviewed: no. Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Reports: a Wonder is reportable like any post",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "A Wonder is a `page_posts` row, so the post card's 'Report this post' control (F078) and `report.create` with `subjectKind: 'post'` cover it unchanged [V PagePosts.tsx:695, migration comment]. Checked: `[guards F117.8]` in `tests/wonders-db.test.ts` files a report on the Wonder through `reportCreate` [V]. Reviewed: no. Shipped: dc65fac green. Smoked: `page` green 10-26 and 10-27, load check only.",
+     "gaps": [
+      "NOT-REVIEWED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "No money: nothing on a Wonder takes, holds or promises payment",
+     "kind": [
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "no",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "No price, pledge or payment column, call or string: the handlers, the panel, the server actions and the Wonder copy carry none, and the composer note says 'No money changes hands.' [V grep src/actions/wonder, src/components/wonders, src/app/_actions/wonder-actions.ts, copy.ts]. Checked: `[guards F117.9]` in `tests/wonders-db.test.ts`, a standing guard: every column on `wonder_interest`, `wonder_offers` and the `wonder*` columns of `page_posts`, and the wonders migration's code, scanned for price, amount, cents, pledge, payment, paid, fee, stripe, money, budget and payout [V]. The guard reads the schema and the migration, not `src`; today's grep of `src` is clean.",
+     "gaps": [
+      "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
      "score": 4,
@@ -8566,38 +8809,38 @@
    }
   },
   "create-posts": {
-   "features": 7,
-   "n": 52,
+   "features": 8,
+   "n": 61,
    "red": 0,
    "totals": {
     "built": {
-     "yes": 37,
+     "yes": 46,
      "no": 15,
      "unknown": 0
     },
     "checked": {
-     "yes": 19,
-     "no": 33,
+     "yes": 29,
+     "no": 32,
      "unknown": 0
     },
     "reviewed": {
      "yes": 19,
-     "no": 33,
+     "no": 42,
      "unknown": 0
     },
     "shipped": {
-     "yes": 33,
+     "yes": 42,
      "no": 15,
      "unknown": 4
     },
     "smoked": {
-     "yes": 7,
+     "yes": 16,
      "no": 15,
      "unknown": 30
     },
     "pm_looked": {
      "yes": 0,
-     "no": 52,
+     "no": 61,
      "unknown": 0
     }
    }
@@ -8752,38 +8995,38 @@
   }
  },
  "all": {
-  "features": 31,
-  "n": 252,
+  "features": 32,
+  "n": 261,
   "red": 11,
   "totals": {
    "built": {
-    "yes": 180,
+    "yes": 189,
     "no": 72,
     "unknown": 0
    },
    "checked": {
-    "yes": 120,
-    "no": 132,
+    "yes": 130,
+    "no": 131,
     "unknown": 0
    },
    "reviewed": {
     "yes": 28,
-    "no": 224,
+    "no": 233,
     "unknown": 0
    },
    "shipped": {
-    "yes": 145,
+    "yes": 154,
     "no": 72,
     "unknown": 35
    },
    "smoked": {
-    "yes": 80,
+    "yes": 89,
     "no": 72,
     "unknown": 100
    },
    "pm_looked": {
     "yes": 0,
-    "no": 252,
+    "no": 261,
     "unknown": 0
    }
   }
@@ -8895,7 +9138,6 @@
    "F061.2",
    "F072.2c",
    "F072.3",
-   "F074.1",
    "F099.2",
    "F099.9",
    "F059.1",
@@ -8947,6 +9189,15 @@
    "F082.7",
    "F099.8",
    "F099.11a",
+   "F117.1",
+   "F117.2",
+   "F117.3",
+   "F117.4",
+   "F117.5",
+   "F117.6",
+   "F117.7",
+   "F117.8",
+   "F117.9",
    "F059.1",
    "F059.2b",
    "F059.2c",
@@ -9255,6 +9506,15 @@
    "F099.11a",
    "F099.12",
    "F099.13",
+   "F117.1",
+   "F117.2",
+   "F117.3",
+   "F117.4",
+   "F117.5",
+   "F117.6",
+   "F117.7",
+   "F117.8",
+   "F117.9",
    "F059.1",
    "F059.2b",
    "F059.2c",
@@ -9401,6 +9661,7 @@
  },
  "problems": [
   "F064: area 'create-posts' is a guess; no Issue carries an area: label",
+  "F117: area 'create-posts' is a guess; no Issue carries an area: label",
   "F044: scenario retired; shown, not counted",
   "F045: scenario retired; shown, not counted",
   "F046: scenario retired; shown, not counted",
