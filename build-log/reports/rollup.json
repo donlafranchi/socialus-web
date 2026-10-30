@@ -5295,7 +5295,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "moderation/F078-flagged-content-hides-itself.md",
    "n": 12,
    "totals": {
@@ -5305,8 +5305,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 11,
-     "no": 1,
+     "yes": 12,
+     "no": 0,
      "unknown": 0
     },
     "reviewed": {
@@ -5340,7 +5340,7 @@
      ],
      "status": "active",
      "built": "yes",
-     "checked": "no",
+     "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
      "smoked": "yes",
@@ -5349,13 +5349,12 @@
       625,
       1005
      ],
-     "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: two partial markers only (`create.test.ts:949` the words, `tests/featured-items-reportable-db.test.ts:102` the items); no whole-criterion check; filed #1005 [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f) and #920 (0aa3c68) [V] Smoked: `page` and `page-business` green 2026-10-23; the menu entries render, no report is sent [A]",
+     "note": "Six subject kinds go through `report.create`: Page photo, Page picture, post, post photo, the Page's own words (`page_words`, #820, closed #625) and a featured product or service (`page_item`, #920); the checks on `reports`, `member_notices` and `legal_holds` carry all six (migration 20261019013909); `run-assessment.ts` joins each kind's text and photo for the shadow read [V] Checked: `[guards F078.1]` in `f078-reportable-everything.test.ts:163` (#1036, closed #1005): every registered action is classified as a poster or as posting nothing, every poster's kind is accepted and stored and queued for the AI read, and no other kind is accepted; seen failing against eight mutants; F117 (#1081) and F118 (#1093) added their new actions to its classification [V] Reviewed: #820 `review-skipped`; #499, #513 clean; #920 carries `Reviewed by:` [V] Shipped: deploy-health green on #820 (e82442f), #920 (0aa3c68) and #1036 (3e5020d) [V] Smoked: `page` and `page-business` green 2026-10-27 (dccf21c); the menu entries render, no report is sent [A]",
      "gaps": [
-      "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 4,
      "red": false
     },
     {
@@ -5374,7 +5373,7 @@
      "issues": [
       834
      ],
-     "note": "`create.ts`: `shouldHide` needs `priorByOthers > 0`; the first report writes a courtesy notice (#706) [V] Checked: `[guards F078.2]` in `f078-criteria.test.ts:241`, seen failing against four mutants (#901, closed #834) [V] Reviewed: #706 `review-skipped` [V] Shipped: green on #494, #499, #506, #706 [V] Smoked: the `report-sent` route exists in `evals/screens/routes.ts` but no run since 2026-10-12 has included it [V]",
+     "note": "`create.ts`: `shouldHide` needs `priorByOthers > 0`; the first report writes a courtesy notice (#706) [V] Checked: `[guards F078.2]` in `f078-criteria.test.ts:241`, seen failing against four mutants (#901, closed #834) [V] Reviewed: #706 `review-skipped` [V] Shipped: green on #494, #499, #506, #706 [V] Smoked: the `report-sent` route exists in `evals/screens/routes.ts` but `smoke-live` has no live address for it (`LIVE_PATHS` in `evals/smoke/live.spec.ts`), so no run sends a report [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5401,7 +5400,7 @@
       628,
       629
      ],
-     "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts` [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: `you` green 2026-10-23 (cb892a7) [A]",
+     "note": "`member_notices` row written in the hide transaction; `YouNotices` on `/you`; child content sends none by ruling (F078 criterion 8) [V] Checked: `[guards F078.3]` in `f078-criteria.test.ts:72`; the never-email guard in `f078-guards.test.ts:21` is partial on purpose (the in-app write is the handler's check) [V] Reviewed: #494, #706 `review-skipped` [V] Shipped: green [V] Smoked: `you` green 2026-10-27 (dccf21c); the notices list renders, none is seeded [A]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -5425,9 +5424,10 @@
      "issues": [
       628,
       629,
-      834
+      834,
+      1020
      ],
-     "note": "`report.answer` one per hide, a single \"This is a mistake\" button (#706); an unanswered hide closes after 14 days (#773) [V] Checked: `[guards F078.4a]` in `f078-criteria.test.ts:300`, seen failing against three mutants (#901) [V] Reviewed: #706, #773 `review-skipped` [V]",
+     "note": "`report.answer` one per hide, a single \"This is a mistake\" button (#706); an unanswered hide closes after 14 days (#773) [V] Checked: `f078-criteria.test.ts:300` (the #834 check, seen failing against three mutants in #901) now carries `[guards F078.4 partial: ...]` since #1035 (closed #1020: the scenario has no 4a, so the marker cites 4); its only exclusion is the retired 4b clause, so it claims all of 4a [V] Reviewed: #706, #773 `review-skipped` [V] Shipped: #1035 (c3845a8) green [V] Smoked: the answer button lives on `/you` behind a seeded notice; no run has one [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5452,7 +5452,7 @@
      "issues": [
       626
      ],
-     "note": "RETIRED. Overtaken by the 2026-10-11 courtesy-notice ruling in F078 `## Rulings` (and criterion 6): a second report now sends the item to a person. `f078-criteria.test.ts:169` says so. The scenario still carries the old clause in criterion 4; `sync-roadmap` amends it [V].",
+     "note": "RETIRED. Overtaken by the 2026-10-11 courtesy-notice ruling in F078 `## Rulings` (and criterion 6): a second report now sends the item to a person. The partial markers at `f078-criteria.test.ts:169` and `:300` say so. The scenario still carries the old clause in criterion 4; `sync-roadmap` amends it [V].",
      "gaps": [],
      "score": 0,
      "red": false
@@ -5474,7 +5474,7 @@
      "issues": [
       628
      ],
-     "note": "`alertOperator` after commit: SMS when Twilio values exist, email through Resend today (#751); the mobile queue is `/admin/reports` [V]. Nobody is texted yet: no Twilio number (#707 open) [V]. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts` [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]",
+     "note": "`alertOperator` after commit: SMS when Twilio values exist, email through Resend today (#751); the mobile queue is `/admin/reports` [V]. Nobody is texted yet: no Twilio number (#707 open, unchanged this week) [V]. The alert text says \"hid a Page photo\" for a picture, post photo, words or item too (#901's note) [V] Checked: `[guards F078.5]` in `f078-criteria.test.ts:95` [V] Reviewed: #483 `review-skipped`; #751 no `Reviewed by:` [V] Smoked: `admin-reports` green as operator 2026-10-26 (dc65fac) [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -5498,7 +5498,7 @@
      "issues": [
       628
      ],
-     "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts` [V] Reviewed: #706 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "A report is always stored and queued; hiding is separate (`create.ts`) [V] Checked: `[guards F078.6]` in `f078-criteria.test.ts:120` [V] Reviewed: #706 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-26 (dc65fac) [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -5522,7 +5522,7 @@
      "issues": [
       628
      ],
-     "note": "`metro_polygons.hide_bar` coalesces to 0, min() on overlap; the AI stays in shadow so no score drives hiding, as ruled (#626) [V] Checked: `[guards F078.7]` in `f078-criteria.test.ts` [V] Reviewed: #494 `review-skipped` [V]",
+     "note": "`metro_polygons.hide_bar` coalesces to 0, min() on overlap; the AI stays in shadow so no score drives hiding, as ruled (#626) [V] Checked: `[guards F078.7]` in `f078-criteria.test.ts:136` [V] Reviewed: #494 `review-skipped` [V] Smoked: a data value, no screen shows it [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5545,7 +5545,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`URGENT_CATEGORIES` bypass the bar, the courtesy step and the reporter limits (`create.ts`) [V] Checked: `[guards F078.8]` in `create.test.ts` [V] Reviewed: #483 `review-skipped` [V]",
+     "note": "`URGENT_CATEGORIES` bypass the bar, the courtesy step and the reporter limits (`create.ts`) [V] Checked: `[guards F078.8]` in `create.test.ts:561` [V] Reviewed: #483 `review-skipped` [V] Smoked: no run sends a report [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5568,7 +5568,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "Handler and sheet both refuse [V] Checked: `[guards F078.9]` in `create.test.ts` and `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet` route exists but no run has included it [V]",
+     "note": "Handler and sheet both refuse [V] Checked: `[guards F078.9]` in `create.test.ts:453` and `ReportControl.test.tsx:159` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet` route exists but `smoke-live` has no live address for it [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5593,7 +5593,7 @@
      "issues": [
       834
      ],
-     "note": "Sheet line \"Please don't misuse reports\" (no numbers, per the 2026-10-11 copy ruling); strikes counted at report time in `create.ts` [V] Checked: `[guards F078.10]` in `f078-criteria.test.ts:335` claims the line before Send and the strikes together, seen failing against three mutants (#901); the strikes-only marker in `create.test.ts:793` is now partial [V] Reviewed: #706 `review-skipped` [V]",
+     "note": "Sheet lines `reportCourtesy` and `reportUrgentSkip` end \"Please don't misuse reports.\" (no numbers, per the 2026-10-11 copy ruling; untouched by #1087) [V]; strikes counted at report time in `create.ts` [V] Checked: `[guards F078.10]` in `f078-criteria.test.ts:335` claims the line before Send and the strikes together, seen failing against three mutants (#901); the strikes-only marker in `create.test.ts:793` is partial [V] Reviewed: #706 `review-skipped` [V] Smoked: no run opens the sheet [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5619,7 +5619,7 @@
       627,
       834
      ],
-     "note": "Strings shipped from the PM's recorded copy calls (#706; `copy.ts`, `notices.ts`); #938 relabelled the menu entries [V] Checked: `report-path-copy.test.tsx:62` asserts every reporter and poster string against the PM's rules (no numbers in the warning, \"a person from our team\", no developer string), seen failing against four mutants (#901); its marker leaves out only the PM's storyboard approval, which is a look, not a test, so it counts here [V] Reviewed: #706 `review-skipped` [V] PM looked: the storyboard (socialus-plan #94, open) is still unapproved [V]",
+     "note": "Strings from the PM's recorded copy calls (#706; `copy.ts`, `notices.ts`, `ReportSheet.tsx`); #938 relabelled the menu entries [V]. #1087 (2026-10-26, under #1078: ship under the voice rules, the PM edits live) rewrote the two after-send lines (\"The Page owner gets a courtesy notice first. Thanks for being decent.\" / \"It's being sent to a person from our team. Thanks for being decent.\") and the 911 line; the sheet's intro, the misuse lines and the poster notices are unchanged [V] Checked: `report-path-copy.test.tsx:62` asserts every reporter and poster string against the PM's rules (no numbers in the warning, \"a person from our team\", no developer string), seen failing against four mutants (#901), green on main after #1087; its marker leaves out only the PM's storyboard approval, which is a look, not a test, so it counts here [V] Reviewed: #706 `review-skipped`; #1087 carries `Reviewed by:` and a posted review [V] Shipped: #706 (b628e62) and #1087 (8b313b0) green [V] Smoked: no run opens the sheet [V] PM looked: #1087 opened with a Review block for his look on socialus.org; nothing ticked; the storyboard (socialus-plan #94) is still open [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5644,7 +5644,7 @@
      "issues": [
       834
      ],
-     "note": "`create.ts` counts `priorByOthers`; one member filing twice hides nothing (#706, ruled 2026-10-11) [V] Checked: `[guards F078.12]` in `f078-criteria.test.ts:271`, seen failing against two mutants (#901) [V] Reviewed: #706 `review-skipped` [V]",
+     "note": "`create.ts` counts `priorByOthers`; one member filing twice hides nothing (#706, ruled 2026-10-11) [V] Checked: `[guards F078.12]` in `f078-criteria.test.ts:271`, seen failing against two mutants (#901) [V] Reviewed: #706 `review-skipped` [V] Smoked: no run sends a report [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5662,7 +5662,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "moderation/F080-no-sensitive-photos.md",
    "n": 5,
    "totals": {
@@ -5715,7 +5715,7 @@
      "issues": [
       835
      ],
-     "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483) [V]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload (#810, #811, #887, #890, #976, #980) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Smoked: `page-edit` green 2026-10-23 (cb892a7); the editor loads, no upload is made [A]",
+     "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483); its label is now \"No kids in this photo.\" (#1087) [V]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload; the daily seeds keep applying it (#1001 this week: youth programs go stock-only) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Shipped: #483 (0b26c0d) and #1087 (8b313b0) green [V] Smoked: `page-edit` green 2026-10-27 (dccf21c); the editor loads, no upload is made [A]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -5739,7 +5739,7 @@
      "issues": [
       637
      ],
-     "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V]",
+     "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts:34` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V] Smoked: an absence, no screen shows it [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5764,7 +5764,7 @@
      "issues": [
       637
      ],
-     "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts` [V] Reviewed: #781 no `Reviewed by:` [V]",
+     "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts:57` [V] Reviewed: #781 no `Reviewed by:` [V] Smoked: an absence, no screen shows it [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5790,7 +5790,7 @@
      "issues": [
       835
      ],
-     "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751, #707 open) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V]",
+     "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751; #707 open, unchanged this week) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V] Smoked: no run sends a report [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -5800,8 +5800,8 @@
      "red": false
     },
     {
-     "id": "5",
-     "text": "Wherever a member posts, the app asks not to post sensitive content, and why; each photo upload asks to confirm",
+     "id": "5a",
+     "text": "Wherever a member posts, the app asks not to post sensitive content; each photo upload asks to confirm",
      "kind": [
       "behavior"
      ],
@@ -5813,12 +5813,31 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. Copy is placeholder pending the PM's tone look [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped` [V] Shipped: deploy-health green on #250 (e737db1) and #251 (399f8fe), both 2026-09-30, and #483 [V] Smoked: `page-edit` green 2026-10-23; the note renders on the editor [A]",
+     "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. #1087 (2026-10-26, under #1078) cut the line to \"Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.\" and the tick to \"No kids in this photo.\"; #1096 (2026-10-27) deleted the unused long paragraph [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx:73`: the line on every posting surface, pinned word for word; the per-photo tick is `PagePhotoPicker.test.tsx:66` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped`; #1087, #1096 carry `Reviewed by:` [V] Shipped: green on #250 (e737db1), #251 (399f8fe), #483, #1087 (8b313b0), #1096 (0dc430f) [V] Smoked: `page-edit` green 2026-10-27 (dccf21c), after both copy merges; the note renders on the editor [A] PM looked: #1087 and #1096 opened with Review blocks for his look on socialus.org; nothing ticked [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
      ],
      "score": 4,
+     "red": false
+    },
+    {
+     "id": "5b",
+     "text": "The ask at posting says why",
+     "kind": [
+      "behavior"
+     ],
+     "status": "retired",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "RETIRED. Overtaken by the PM's call of 2026-10-27 (recorded in #1096's body, not yet in F080 `## Rulings`): only what is absolutely necessary at posting; the reasons stay in the publish step's agreement (F082), which is the attestation. Until #1087 the line carried \"We rely on each other to keep this place kind and decent.\"; it no longer says why. `sync-roadmap` amends criterion 5 [V].",
+     "gaps": [],
+     "score": 0,
      "red": false
     }
    ]
@@ -6195,7 +6214,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-10-30",
    "path": "moderation/F101-one-page-of-flagged-posts.md",
    "n": 15,
    "totals": {
@@ -6249,7 +6268,7 @@
      "issues": [
       636
      ],
-     "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled; #820, #920 green [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1), after the last queue change [V]",
+     "note": "`page.tsx` gates on `reports.review`; `groupBySubject` rolls reports per subject (Post, Page, Page picture, post photo, Page words, featured item: `reports-queue.ts`, #820, #920) [V] Checked: `[guards F101.1]` in `criteria.test.tsx:51` [V] Reviewed: #771, #785 `review-skipped`; #380 no `Reviewed by:` [V] Shipped: #380 (66a346a) deploy-health was cancelled and cannot be rerun against that commit; every merge since, #820, #920 and #691 (cd70380) included, is green [V] Smoked: `admin-reports` green as operator 2026-10-26 (dc65fac), after #691's wording change [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6274,7 +6293,7 @@
      "issues": [
       636
      ],
-     "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V] Checked: `[guards F101.2]` in `criteria.test.tsx` [V] Reviewed: #380 none, #771 `review-skipped` [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "Every field renders, including \"Under appeal\" for a hidden subject whose poster answered [V]; #691 (2026-10-26) dropped the em dash from the AI line and reworded the error line [V] Checked: `[guards F101.2]` in `criteria.test.tsx:62`, green on main after #691 [V] Reviewed: #380 none, #771 and #691 `review-skipped` [V] Shipped: #380 cancelled; #691 (cd70380) green [V] Smoked: `admin-reports` green 2026-10-26 [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6299,7 +6318,7 @@
      "issues": [
       636
      ],
-     "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "`review-subjects.ts` tier map; `ai_mode` data flag (#513) [V] Checked: `[guards F101.3]` in `ReviewQueue.test.tsx:249` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6324,7 +6343,7 @@
      "issues": [
       636
      ],
-     "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "Sort has all three; filter has waiting, hidden, appeal, restored, removed; header counts by severity [V] Checked: `[guards F101.4]` in `criteria.test.tsx:102` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6349,7 +6368,7 @@
      "issues": [
       636
      ],
-     "note": "`min-h-12` buttons in the row footer [V] Checked: `[guards F101.5]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "`min-h-12` buttons in the row footer; the words Approve and Remove are untouched by #691 [V] Checked: `[guards F101.5]` in `criteria.test.tsx:131` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green 2026-10-26 [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6374,7 +6393,7 @@
      "issues": [
       636
      ],
-     "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "Pointer handlers with a green and red reveal in `ReviewQueue.tsx` [V] Checked: `[guards F101.6]` in `criteria.test.tsx:165` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; the smoke swipes nothing [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6399,7 +6418,7 @@
      "issues": [
       636
      ],
-     "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "Severity-1 confirm in the row [V] Checked: `[guards F101.7]` in `criteria.test.tsx:195` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6425,7 +6444,7 @@
      "issues": [
       636
      ],
-     "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "Decision held client-side five seconds before the server call [V] Checked: `[guards F101.8]` in `criteria.test.tsx:215` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6450,7 +6469,7 @@
      "issues": [
       636
      ],
-     "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "The decided row leaves the list [V] Checked: `[guards F101.9]` in `criteria.test.tsx:239` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6475,7 +6494,7 @@
      "issues": [
       636
      ],
-     "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836) [V] Checked: `[guards F101.10]` in `criteria.test.tsx` [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "`DEFAULT_REASON` and category reason codes (#513, migration 20261008005836); the reason pickers' titles read \"Approve. Why?\" / \"Reject. Why?\" since #691 [V] Checked: `[guards F101.10]` in `criteria.test.tsx:250` [V] Reviewed: #380 none; #691 `review-skipped` [V] Shipped: #380 cancelled; #691 green [V] Smoked: the page opens; no decision is made [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6500,7 +6519,7 @@
      "issues": [
       636
      ],
-     "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "`decideReportAction` per open report id [V] Checked: `[guards F101.11]` in `tests/f101-decisions-db.test.ts:80` (database rows) [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: the page opens; no decision is made [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6525,7 +6544,7 @@
      "issues": [
       634
      ],
-     "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "`SubjectTimeline` lists every report, assessment, rebuttal and decision (#771) [V] Checked: `[guards F101.12]` in `ReviewQueue.test.tsx:422`; the order is also checked in `review-subjects.test.ts:64` (partial) [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 (d7cea3a) green [V] Smoked: `admin-reports` green 2026-10-26; the detail is not opened [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -6549,7 +6568,7 @@
      "issues": [
       635
      ],
-     "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V]",
+     "note": "Press-and-hold reveal (#771) [V] Checked: `[guards F101.13]` in `ReviewQueue.test.tsx:179` [V] Reviewed: #771 `review-skipped` [V] Shipped: #771 green [V] Smoked: `admin-reports` green 2026-10-26; nothing is pressed [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -6573,7 +6592,7 @@
      "issues": [
       636
      ],
-     "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V]",
+     "note": "Key handler in `ReviewQueue.tsx` [V] Checked: `[guards F101.14]` in `criteria.test.tsx:276`; its focus wait was lengthened in #900 after a timing flake [V] Reviewed: #380 none [V] Shipped: #380 cancelled [V] Smoked: `admin-reports` green at 1280px 2026-10-26; no key is pressed [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
@@ -6596,7 +6615,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec [V] Reviewed: #538 no `Reviewed by:` [V] Shipped: #538 (ab7691d) green [V]",
+     "note": "`evals/features/F101-report-decisions-at-375.spec.ts`: 50 decisions in 23.7 s (#538) [V] Checked: `[guards F101.15]` in that spec, run by the CI Browser job (`mobile-chrome`); it was red on main on 2026-10-24 after #1032 sent the persona members with no legal name to onboarding, fixed the same day by #1041 (the QA persona seeds carry one); main's Browser job is green 2026-10-29 and 10-30 [V] Reviewed: #538 no `Reviewed by:` [V] Shipped: #538 (ab7691d) green [V] Smoked: a timing in CI, not a live route [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8893,8 +8912,8 @@
      "unknown": 0
     },
     "checked": {
-     "yes": 60,
-     "no": 4,
+     "yes": 61,
+     "no": 3,
      "unknown": 0
     },
     "reviewed": {
@@ -9005,8 +9024,8 @@
     "unknown": 0
    },
    "checked": {
-    "yes": 130,
-    "no": 131,
+    "yes": 118,
+    "no": 134,
     "unknown": 0
    },
    "reviewed": {
@@ -9157,7 +9176,7 @@
    "F092.3",
    "F092.6",
    "F093.12",
-   "F078.1",
+   "F056.1a",
    "F056.2",
    "F056.6",
    "F056.9a",
@@ -9269,7 +9288,7 @@
    "F080.2",
    "F080.3",
    "F080.4",
-   "F080.5",
+   "F080.5a",
    "F100.1",
    "F100.2",
    "F100.3",
@@ -9586,7 +9605,7 @@
    "F080.2",
    "F080.3",
    "F080.4",
-   "F080.5",
+   "F080.5a",
    "F100.1",
    "F100.2",
    "F100.3",
