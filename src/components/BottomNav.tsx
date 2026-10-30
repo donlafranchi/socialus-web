@@ -52,7 +52,8 @@ const CREATE_AFTER = 1
 // #296 — no nav on sign-in, onboarding or admin: each is a flow or a tool, and
 // the nav is a way out of the thing you are meant to finish. #358 — nor on a
 // full-height edit screen (the 2026-10-01 ruling), where it covered Save.
-const NO_NAV = [/^\/auth(\/|$)/, /^\/onboarding(\/|$)/, /^\/admin(\/|$)/, /^\/g\/[^/]+\/edit(\/|$)/]
+// `/` is the signed-out front door, which carries its own header and footer.
+const NO_NAV = [/^\/$/, /^\/auth(\/|$)/, /^\/onboarding(\/|$)/, /^\/admin(\/|$)/, /^\/g\/[^/]+\/edit(\/|$)/]
 export const navHidden = (pathname: string | null) => NO_NAV.some((r) => r.test(pathname ?? '/'))
 
 /** F086 — on a phone the nav has no room for a name, so the You tab carries

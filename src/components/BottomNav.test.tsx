@@ -19,7 +19,7 @@ vi.mock('./AuthCtaButtons', () => ({ AuthCtaButtons: () => null }))
 vi.mock('./NavYouBadge', () => ({ NavYouBadge: () => null }))
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
 
-const pathname = { current: '/' }
+const pathname = { current: '/explore' }
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname.current,
   useRouter: () => ({ push: vi.fn() }),
@@ -27,7 +27,7 @@ vi.mock('next/navigation', () => ({
 
 afterEach(() => {
   cleanup()
-  pathname.current = '/'
+  pathname.current = '/explore'
 })
 
 const bar = () => screen.getByTestId('bottom-nav').querySelector('ul')!
