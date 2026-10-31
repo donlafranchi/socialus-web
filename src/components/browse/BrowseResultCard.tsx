@@ -175,7 +175,7 @@ function PostCard(props: CardProps) {
     <Shell {...props} kind="post" imageUrl={photo}>
       <div className="flex gap-3 p-3">
         <div data-testid="tile-text" className="min-w-0 flex-1">
-          <p data-testid="browse-post-lead" className={`${SMALL_CAPS} line-clamp-1 font-bold text-[var(--color-fg)]`}>
+          <p data-testid="browse-post-lead" className={`${SMALL_CAPS} line-clamp-2 font-bold text-[var(--color-fg)]`}>
             {lead}
           </p>
           {headline && (
