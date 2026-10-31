@@ -1086,3 +1086,32 @@ describe('plan #230 — the composer: kind, headline, details', () => {
     expect(screen.getByTestId('page-post-headline-text')).toHaveTextContent('Sourdough is back')
   })
 })
+
+// Don, 2026-10-31: "I can't share an anouncment?" — Share on every post, to its own address; the post view lands on it.
+describe('Share on a post', () => {
+  const ID = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
+  afterEach(() => Object.assign(navigator, { share: undefined }))
+
+  it('shares the post’s own address under its Page, titled by its headline', async () => {
+    const share = vi.fn(async () => undefined)
+    Object.assign(navigator, { share })
+    renderPosts({ canPost: false, pagePath: '/g/7k3x8m', posts: [{ ...postFixture({ id: ID }), headline: 'Bread is back' }] })
+    fireEvent.click(within(document.getElementById(`announcement-${ID}`)!).getByRole('button', { name: 'Share' }))
+    await waitFor(() => expect(share).toHaveBeenCalledWith({ title: 'Bread is back', url: `${window.location.origin}/g/7k3x8m/posts/${ID}` }))
+  })
+
+  it('the owner can share their own post too, but not one hidden after a report, and nothing without an address', () => {
+    renderPosts({ canPost: true, pagePath: '/g/7k3x8m', posts: [postFixture({ id: 'p-1' }), { ...postFixture({ id: 'p-2' }), hiddenAt: '2026-10-31T00:00:00Z' }] })
+    expect(within(document.getElementById('announcement-p-1')!).getByRole('button', { name: 'Share' })).toBeInTheDocument()
+    expect(within(document.getElementById('announcement-p-2')!).queryByRole('button', { name: 'Share' })).toBeNull()
+    cleanup()
+    renderPosts({ canPost: false, posts: [postFixture({ id: 'p-1' })] })
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
+  })
+
+  it('opened at a post’s address, it lands on that post, older ones included', async () => {
+    const five = ['p-5', 'p-4', 'p-3', 'p-2', 'p-1'].map((id, i) => postFixture({ id, createdAt: `2026-09-2${5 - i}T12:00:00.000Z` }))
+    renderPosts({ canPost: false, posts: five, focusPostId: 'p-1' })
+    await waitFor(() => expect(document.getElementById('announcement-p-1')).toHaveAttribute('data-highlighted', 'true'))
+  })
+})

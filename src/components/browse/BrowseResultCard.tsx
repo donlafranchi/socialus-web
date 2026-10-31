@@ -32,6 +32,8 @@ import { cardImageAlt } from '@/lib/calendar/ics'
 import { browseCardLocation } from '@/lib/browse/card'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { ReactNode } from 'react'
+import { SharePageButton } from '@/components/group/SharePageButton'
+import { postPath } from '@/lib/posts/post-path'
 
 /** Small caps for labels and the date line: typography, never a pill. */
 const SMALL_CAPS = 'text-micro font-semibold uppercase tracking-wider'
@@ -172,7 +174,13 @@ function PostCard(props: CardProps) {
           place: result.locationLabel,
         })
   return (
-    <Shell {...props} kind="post" imageUrl={photo}>
+    <Shell
+      {...props}
+      kind="post"
+      imageUrl={photo}
+      // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card.
+      after={result.href ? <div className="-mt-3 flex justify-end px-1 pb-0.5"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+    >
       <div className="flex gap-3 p-3">
         <div data-testid="tile-text" className="min-w-0 flex-1">
           <p data-testid="browse-post-lead" className={`${SMALL_CAPS} line-clamp-2 font-bold text-[var(--color-fg)]`}>

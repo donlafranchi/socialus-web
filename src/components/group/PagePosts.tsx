@@ -34,6 +34,7 @@ import { isValidTagLabel } from '@/lib/groups/tags'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { useAnnouncementAnchor } from './use-announcement-anchor'
+import { SharePageButton } from './SharePageButton'
 import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
 import { METRO_TIME_ZONE, formatMetroDateTime, formatPostedDate, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
@@ -53,7 +54,8 @@ import {
 } from './AnnouncementFields'
 import { PostKindPicker } from './PostKindPicker'
 import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, needsDate, type PostKind } from '@/lib/posts/kinds'
-import { leadLine } from '@/lib/posts/lead-line'
+import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
+import { postPath } from '@/lib/posts/post-path'
 import { Sheet } from '@/components/ui/Sheet'
 import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
@@ -195,6 +197,10 @@ interface Props {
   onDelete?: (input: { postId: string }) => Promise<
     { ok: true; data: { postId: string } } | { ok: false; message: string; code: string }
   >
+  /** Don, 2026-10-31 — the Page's address: each post gets Share, to its own address under it. None on a draft. */
+  pagePath?: string | null
+  /** The post a post's own address names: the list lands on it. */
+  focusPostId?: string | null
 }
 
 /** `yyyy-mm-dd` and `hh:mm` back out of an instant, for an edit form that has
@@ -263,6 +269,8 @@ export function PagePosts({
   seriesComposer = SERIES_COMPOSER_ON,
   reminders,
   wonders,
+  pagePath = null,
+  focusPostId = null,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
@@ -301,12 +309,12 @@ export function PagePosts({
   const [showAll, setShowAll] = useState(false)
   // A link to an older post opens the list, so the post it names is there to land on.
   useEffect(() => {
-    const id = announcementIdFromHash(window.location.hash)
+    const id = announcementIdFromHash(window.location.hash) ?? focusPostId
     if (!id || !posts.some((p) => p.id === id) || latestIds(posts).includes(id)) return
     const frame = requestAnimationFrame(() => setShowAll(true))
     return () => cancelAnimationFrame(frame)
-  }, [posts])
-  const highlighted = useAnnouncementAnchor(showAll)
+  }, [posts, focusPostId])
+  const highlighted = useAnnouncementAnchor(showAll, focusPostId)
   // #472 first pass — the form is rarely used, so it waits for Announce
   // (Google Business Profile's "Add update" opens on request).
   const [composing, setComposing] = useState(startComposing)
@@ -765,6 +773,9 @@ export function PagePosts({
 
                   <div className="mt-2 flex items-center gap-3">
                     <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
+                    {pagePath && !post.hiddenAt && (
+                      <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post.id)} />
+                    )}
                     {!canPost && onReport && (
                       <ReportControl subjectId={post.id} subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
                     )}

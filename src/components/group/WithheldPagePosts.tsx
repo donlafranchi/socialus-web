@@ -25,8 +25,8 @@ import {
   withheldJoinHref,
 } from '@/components/browse/withheld-copy'
 
-export function WithheldPagePosts({ posts }: { posts: BrowseResult[] }) {
-  const highlighted = useAnnouncementAnchor()
+export function WithheldPagePosts({ posts, focusPostId = null }: { posts: BrowseResult[]; focusPostId?: string | null }) {
+  const highlighted = useAnnouncementAnchor(undefined, focusPostId)
   const [page] = posts
 
   // A heading over nothing tells a stranger less than no heading does.

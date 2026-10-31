@@ -7,7 +7,7 @@
 // The card formatted in the READER'S DEVICE timezone; the Page formats in the
 // metro's. Both were deliberate and nobody reconciled them.
 
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseResultCard } from './BrowseResultCard'
@@ -190,5 +190,27 @@ describe('the kind line', () => {
     cleanup()
     render(<BrowseResultCard result={post({ resultKind: 'page', groupKind: 'business' })} />)
     expect(screen.getByTestId('tile-kind')).toHaveTextContent('Business')
+  })
+})
+
+// Don, 2026-10-31: "I can't share an anouncment?" — a quiet Share on every post card, outside the card's own link.
+describe('Share on a post card', () => {
+  it('offers Share, outside the card’s link, with the post’s own address', async () => {
+    const { fireEvent, waitFor } = await import('@testing-library/react')
+    const share = vi.fn(async () => undefined)
+    Object.assign(navigator, { share })
+    render(<BrowseResultCard result={post({ href: '/g/abc123#announcement-p-1', headline: 'Float day' })} />)
+    const button = screen.getByRole('button', { name: 'Share' })
+    expect(button.closest('a')).toBeNull()
+    fireEvent.click(button)
+    await waitFor(() => expect(share).toHaveBeenCalledWith({ title: 'Float day', url: `${window.location.origin}/g/abc123/posts/p-1` }))
+    Object.assign(navigator, { share: undefined })
+  })
+
+  it('is not on a Page card, a withheld card, or a post with no address', () => {
+    render(<BrowseResultCard result={post({ resultKind: 'page' })} />)
+    render(<BrowseResultCard result={post({ href: null })} />)
+    render(<BrowseResultCard result={post({ withheld: true, announcementIds: ['p-1'], announcementCount: 1 })} />)
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

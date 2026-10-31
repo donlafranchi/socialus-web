@@ -90,8 +90,9 @@ export async function resolvePagePosts(
   supabase: SupabaseClient,
   groupId: string,
   now: Date = new Date(),
+  opts: { postId?: string } = {},
 ): Promise<PagePost[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from('page_posts')
     .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, kind, headline, wonder_threshold, wonder_options, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
@@ -99,6 +100,9 @@ export async function resolvePagePosts(
     .is('dissolved_at', null)
     .order('created_at', { ascending: false })
     .limit(50)
+  // A shared post's address asks for the one post; RLS still decides whether it comes back.
+  if (opts.postId) query = query.eq('id', opts.postId)
+  const { data, error } = await query
   if (error || !data) return []
   return (data as Row[]).map((r) => {
     // PostgREST returns an embedded relation as an array or an object
