@@ -43,11 +43,17 @@ import { reminderFor, type ViewerReminders } from '@/lib/reminders/viewer-remind
 import { createLocationAction } from '@/app/_actions/location-actions'
 import {
   AnnouncementFields,
+  defaultSaleThrough,
   defaultShowUntil,
   emptyWhenWhere,
+  shelfDays,
   SERIES_COMPOSER_ON,
+  whenDefaults,
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
+import { PostKindPicker } from './PostKindPicker'
+import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, needsDate, type PostKind } from '@/lib/posts/kinds'
+import { leadLine } from '@/lib/posts/lead-line'
 import { Sheet } from '@/components/ui/Sheet'
 import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
@@ -95,7 +101,21 @@ interface PostInput {
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
   /** F117 — a Wonder: a threshold and optional sizes. */
   wonder?: { threshold: number; options?: string[] }
+  /** plan #230 — what it is, and its one line. */
+  kind?: PostKind
+  headline?: string
 }
+
+/** plan #230 — the when fields as a kind needs them: a sale starts on a week, a dated kind on the next hour. */
+function whenForKind(prev: PostKind, next: PostKind, w: AnnouncementWhenWhere, now: Date): AnnouncementWhenWhere {
+  if (next === 'sale') return prev === 'sale' ? w : { ...w, endDate: defaultSaleThrough(now) }
+  const out = prev === 'sale' ? { ...w, endDate: '' } : w
+  if ((next === 'event' || next === 'reminder') && !out.date && !out.repeat.open) return { ...out, ...whenDefaults(now) }
+  return out
+}
+
+/** Kinds an edit may switch to: a Wonder needs its threshold, so it is neither picked nor left in an edit. */
+const EDIT_KINDS = POST_KINDS.filter((k) => k !== 'wonder')
 
 /** F117 — sizes typed with commas between them, distinct and trimmed. */
 const splitOptions = (raw: string) => [...new Set(raw.split(',').map((o) => o.trim().slice(0, WONDER_OPTION_MAX)).filter(Boolean))].slice(0, WONDER_OPTIONS_MAX)
@@ -121,6 +141,8 @@ interface EditInput {
   tags?: string[]
   /** F099 — absent leaves the photo alone; null removes it. */
   photoUrl?: string | null
+  kind?: PostKind
+  headline?: string
 }
 
 interface Props {
@@ -178,9 +200,13 @@ interface Props {
 /** `yyyy-mm-dd` and `hh:mm` back out of an instant, for an edit form that has
  *  to start from what is already there. */
 function whenWhereFrom(post: PagePost): AnnouncementWhenWhere {
+  if (post.kind === 'sale' && post.startsAt) {
+    const through = post.endsAt ?? new Date(new Date(post.startsAt).getTime() + 7 * 86_400_000).toISOString()
+    return { ...emptyWhenWhere, endDate: metroDate(new Date(through), METRO_TIME_ZONE) }
+  }
   if (!post.startsAt) {
     const own = post.showUntil ? metroDate(new Date(post.showUntil), METRO_TIME_ZONE) : ''
-    return { ...emptyWhenWhere, showUntil: own === defaultShowUntil(new Date(post.createdAt)) ? '' : own }
+    return { ...emptyWhenWhere, showUntil: own === defaultShowUntil(new Date(post.createdAt), shelfDays(post.kind)) ? '' : own }
   }
   const d = new Date(post.startsAt)
   if (Number.isNaN(d.getTime())) return emptyWhenWhere
@@ -240,11 +266,16 @@ export function PagePosts({
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
+  // plan #230 — the kind, picked first (News to start, as Google Business Profile's "Add update" does), and the headline.
+  const [kind, setKind] = useState<PostKind>('news')
+  const [headline, setHeadline] = useState('')
+  const [editKind, setEditKind] = useState<PostKind>('news')
+  const [editHeadline, setEditHeadline] = useState('')
   const [when, setWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
   const [audience, setAudience] = useState<Audience>('anyone')
   const [photo, setPhoto] = useState<string | null>(null)
-  // F117 — the composer's Wonder: on or off, how many, and the sizes.
-  const [asWonder, setAsWonder] = useState(false)
+  // F117 — the composer's Wonder (the Count me in kind): how many, and the sizes.
+  const asWonder = kind === 'wonder'
   const [threshold, setThreshold] = useState('')
   const [options, setOptions] = useState('')
   const [editPhoto, setEditPhoto] = useState<string | null>(null)
@@ -313,6 +344,9 @@ export function PagePosts({
    */
   async function resolveWhenWhere(
     w: AnnouncementWhenWhere,
+    postKind: PostKind,
+    /** A sale being edited keeps the moment it started; a new one starts now. */
+    saleStart?: string | null,
   ): Promise<
     | {
         ok: true
@@ -325,17 +359,20 @@ export function PagePosts({
       }
     | { ok: false; message: string }
   > {
+    // plan #230 — a sale runs from now (or when it started) through the end of the day it ends.
+    if (postKind === 'sale' && !w.endDate) return { ok: false, message: DATE_NEEDED.sale }
     // F074.1 — a series has no date of its own: the first occurrence is the first chosen weekday on or
     // after today (and the start date), and the creator never types an individual date.
-    const repeating = seriesComposer && w.repeat.open
+    const repeating = postKind !== 'sale' && seriesComposer && w.repeat.open
     if (repeating && w.repeat.days.length === 0) return { ok: false, message: PICK_A_DAY }
     const date = repeating ? firstOccurrenceDate(w.repeat.days, w.repeat.startsOn || null, metroDate(new Date(), METRO_TIME_ZONE)) : w.date
     if (repeating && w.repeat.endsOn && w.repeat.endsOn < date) return { ok: false, message: SERIES_ENDED }
-    const hasDate = date.trim().length > 0
-    const hasTime = w.time.trim().length > 0
+    const hasDate = postKind !== 'sale' && date.trim().length > 0
+    const hasTime = postKind !== 'sale' && w.time.trim().length > 0
+    if (needsDate(postKind) && postKind !== 'sale' && !hasDate && !hasTime) return { ok: false, message: DATE_NEEDED[postKind as 'event' | 'reminder'] }
     if (repeating ? !hasTime : hasDate !== hasTime) return { ok: false, message: HALF_A_TIME }
 
-    let startsAt: string | null = null
+    let startsAt: string | null = postKind === 'sale' ? (saleStart ?? new Date().toISOString()) : null
     if (hasDate && hasTime) {
       startsAt = metroWallTimeToInstant(date, w.time)
       if (!startsAt) return { ok: false, message: HALF_A_TIME }
@@ -344,7 +381,7 @@ export function PagePosts({
     let endsAt: string | null = null
     // #814 — the end can fall on a later day; an end day with no end time runs to the end of that day.
     const endDay = !repeating && w.endDate.trim() ? w.endDate : date
-    const endClock = w.endTime.trim() || (endDay !== date ? '23:59' : '')
+    const endClock = postKind === 'sale' ? '23:59' : w.endTime.trim() || (endDay !== date ? '23:59' : '')
     if (endClock) {
       if (!startsAt) return { ok: false, message: END_NEEDS_START }
       endsAt = metroWallTimeToInstant(endDay, endClock)
@@ -391,8 +428,19 @@ export function PagePosts({
     }
   }
 
+  const chooseKind = (k: PostKind) => {
+    setWhen((w) => whenForKind(kind, k, w, new Date()))
+    setKind(k)
+  }
+  const chooseEditKind = (k: PostKind) => {
+    setEditWhen((w) => whenForKind(editKind, k, w, new Date()))
+    setEditKind(k)
+  }
+
   const submit = async () => {
-    const body = draft.trim()
+    // plan #230 — a headline alone is a whole post; its details default to it.
+    const line = headline.trim()
+    const body = draft.trim() || line
     if (!body || busy) return
     // The restricted setting is visible and not postable: delivery to the
     // people who get updates from you does not exist, and an announcement
@@ -410,7 +458,7 @@ export function PagePosts({
     setBusy(true)
     setError(null)
 
-    const resolved = await resolveWhenWhere(when)
+    const resolved = await resolveWhenWhere(when, kind)
     if (!resolved.ok) {
       setBusy(false)
       setError(resolved.message)
@@ -420,6 +468,8 @@ export function PagePosts({
     const r = await onPost({
       ...(wonder ? { wonder } : {}),
       groupId,
+      kind,
+      ...(line ? { headline: line } : {}),
       body,
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
@@ -448,11 +498,14 @@ export function PagePosts({
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
         tags: tagSet(tags),
         photoUrl: photo,
+        kind,
+        headline: line || null,
         ...(wonder ? { wonder } : {}),
       },
       ...items,
     ])
-    setAsWonder(false)
+    setKind('news')
+    setHeadline('')
     setThreshold('')
     setOptions('')
     setPhoto(null)
@@ -468,16 +521,20 @@ export function PagePosts({
     setBusy(true)
     setError(null)
 
-    const resolved = await resolveWhenWhere(editWhen)
+    const before = items.find((p) => p.id === postId)
+    const resolved = await resolveWhenWhere(editWhen, editKind, before?.kind === 'sale' ? before.startsAt : null)
     if (!resolved.ok) {
       setBusy(false)
       setError(resolved.message)
       return
     }
+    const line = editHeadline.trim()
 
     const r = await onEdit({
       postId,
       body,
+      ...(before?.kind === 'wonder' ? {} : { kind: editKind }),
+      ...(line ? { headline: line } : {}),
       startsAt: resolved.startsAt,
       endsAt: resolved.endsAt,
       // #314 — a dated post clears it in the handler; an undated one sends its day, or null for the default.
@@ -506,6 +563,8 @@ export function PagePosts({
               endsAt: resolved.endsAt,
               showUntil: resolved.startsAt ? null : resolved.showUntil,
               tags: tagSet(editTags),
+              kind: p.kind === 'wonder' ? p.kind : editKind,
+              headline: line || p.headline,
               // F102: a hidden post the edit reposted shows again at once.
               ...(r.data.reposted ? { hiddenAt: null } : {}),
               ...(editWhen.addingPlace ? { locationLabel: resolved.locationLabel } : {}),
@@ -529,6 +588,8 @@ export function PagePosts({
               {post.sampleKind && editingId !== post.id ? <SampleWatermark /> : null}
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
+                  {post.kind !== 'wonder' && <PostKindPicker value={editKind} onChange={chooseEditKind} idPrefix={`page-post-edit-${post.id}`} kinds={EDIT_KINDS} />}
+                  <HeadlineField id={`edit-headline-${post.id}`} testId="page-post-edit-headline" value={editHeadline} onChange={setEditHeadline} />
                   <label htmlFor={`edit-${post.id}`} className="sr-only">
                     Edit your post
                   </label>
@@ -547,6 +608,7 @@ export function PagePosts({
                     idPrefix="page-post-edit"
                     placeLabel={post.locationLabel}
                     postedAt={new Date(post.createdAt)}
+                    kind={post.kind === 'wonder' ? 'wonder' : editKind}
                   />
                   <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
                   {memberId && (
@@ -627,7 +689,18 @@ export function PagePosts({
                       <SampleLabel />
                     </p>
                   ) : null}
-                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
+                  {/* plan #230 — what it is first: the lead line from its fields, then its one line. */}
+                  {post.kind && (
+                    <p data-testid="page-post-lead" className="text-micro font-bold uppercase tracking-wider text-[var(--color-fg)]">
+                      {leadLine({ kind: post.kind, startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel })}
+                    </p>
+                  )}
+                  {post.headline && (
+                    <p data-testid="page-post-headline-text" className="mt-0.5 line-clamp-1 text-body font-semibold text-[var(--color-fg)]">
+                      {post.headline}
+                    </p>
+                  )}
+                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${post.kind || post.headline ? ' mt-1' : ''}${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
                   {post.sampleKind ? <SampleNote /> : null}
                   {post.wonder && wonders && (
                     <WonderPanel
@@ -703,6 +776,8 @@ export function PagePosts({
                           setShowAll(true)
                           setEditingId(post.id)
                           setEditDraft(post.body)
+                          setEditKind(post.kind ?? 'news')
+                          setEditHeadline(post.headline ?? '')
                           setEditWhen(whenWhereFrom(post))
                           setEditTags({ tags: post.tags ?? [], draft: '' })
                           setEditPhoto(post.photoUrl ?? null)
@@ -773,8 +848,10 @@ export function PagePosts({
 
       {canPost && composing && (
         <div className="mt-3 flex flex-col gap-3">
-          <label htmlFor="page-post-body" className="sr-only">
-            What do you want people to know?
+          <PostKindPicker value={kind} onChange={chooseKind} idPrefix="announce" />
+          <HeadlineField id="page-post-headline" testId="page-post-headline" value={headline} onChange={setHeadline} />
+          <label htmlFor="page-post-body" className="text-body-sm font-medium text-[var(--color-fg)]">
+            Details
           </label>
           <textarea
             id="page-post-body"
@@ -788,10 +865,6 @@ export function PagePosts({
           />
 
           <div className="flex flex-col gap-2" data-testid="wonder-composer">
-            <label className="flex min-h-tap items-center gap-3 text-body-sm font-medium text-[var(--color-fg)]">
-              <input type="checkbox" checked={asWonder} onChange={(e) => setAsWonder(e.target.checked)} className="size-5" />
-              {COPY.wonderToggle}
-            </label>
             {asWonder && (
               <>
                 <p className="text-body-sm text-[var(--color-fg-muted)]">{COPY.wonderComposerNote}</p>
@@ -821,7 +894,7 @@ export function PagePosts({
             )}
           </div>
 
-          <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer} />
+          <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer && kind !== 'sale'} kind={kind} />
 
           <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
           {memberId && (
@@ -850,7 +923,7 @@ export function PagePosts({
               type="button"
               data-testid="page-post-send"
               onClick={submit}
-              disabled={busy || draft.trim().length === 0 || audience !== 'anyone'}
+              disabled={busy || (draft.trim().length === 0 && headline.trim().length === 0) || audience !== 'anyone'}
               className="btn-primary disabled:opacity-50"
             >
               {busy ? 'Announcing' : asWonder ? COPY.wonderPost : 'Announce'}
@@ -901,5 +974,31 @@ export function PagePosts({
       )}
       <Toast message={COPY.posted} visible={postedToast} onHide={hidePostedToast} />
     </section>
+  )
+}
+
+/** plan #230 — the card's one line, at most 60 characters, with a count. Draft copy (human-review). */
+function HeadlineField({ id, testId, value, onChange }: { id: string; testId: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between">
+        <label htmlFor={id} className="text-body-sm font-medium text-[var(--color-fg)]">
+          Headline
+        </label>
+        <span data-testid={`${testId}-count`} aria-live="polite" className="text-caption text-[var(--color-fg-muted)]">
+          {value.length}/{HEADLINE_MAX}
+        </span>
+      </div>
+      <input
+        id={id}
+        type="text"
+        data-testid={testId}
+        value={value}
+        maxLength={HEADLINE_MAX}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Free tasting of the fall lineup"
+        className="min-h-tap w-full rounded border border-[var(--color-control-border)] px-3 text-sm"
+      />
+    </div>
   )
 }

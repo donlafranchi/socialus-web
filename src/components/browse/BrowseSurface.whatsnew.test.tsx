@@ -135,7 +135,8 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     browseFeedAction.mockResolvedValue(snapshot({ signedIn: true, results: [post('d', '2026-10-15T00:00:00Z', 'Server Deal')] }))
     render(<BrowseSurface initial={snapshot({ signedIn: true, results: [page('a', 'Old A')], lead: [], leadFresh: false })} />)
     expect(await screen.findByText('Server Deal')).toBeInTheDocument()
-    expect(browseFeedAction).toHaveBeenCalledWith(null, null, expect.objectContaining({ postKinds: ['deal'] }), null, null)
+    // plan #230 — an old link's "deals" is read as today's Sales.
+    expect(browseFeedAction).toHaveBeenCalledWith(null, null, expect.objectContaining({ postKinds: ['sale'] }), null, null)
   })
 
   it('tells the server what the first look showed, once, after it is on screen', async () => {
