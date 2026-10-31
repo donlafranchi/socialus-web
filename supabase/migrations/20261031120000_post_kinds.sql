@@ -36,6 +36,24 @@ alter table public.page_posts
   -- show_until (#314) now also ends a dated sale early, and marks a limited item gone (set to now).
   add constraint page_posts_show_until_after check (show_until is null or show_until > created_at);
 
+-- The app before this change writes kind 'announcement'. Between this migration applying and its code deploying,
+-- such a write is filed as the backfill would file it, so posting never breaks.
+create or replace function public.page_posts_legacy_kind() returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.kind = 'announcement' then
+    new.kind := case when new.starts_at is not null then 'event' else 'news' end;
+  end if;
+  return new;
+end
+$$;
+
+create trigger page_posts_legacy_kind
+  before insert or update of kind on public.page_posts
+  for each row execute function public.page_posts_legacy_kind();
+
 comment on column public.page_posts.kind is
   'plan #230 — what the post is, picked first: event, sale, limited, reminder, news, wonder (Count me in) or hiring. Its shelf life follows it (post_current_until).';
 comment on column public.page_posts.headline is
@@ -458,7 +476,10 @@ as $$
       and (p_starts_before is null or (pp.starts_at is not null and pp.starts_at < p_starts_before))
       -- #796 (Don, 2026-10-16): the Type filter's post kinds. A sample carries its own; a real post has no kind
       -- field, so a dated one counts as an event. Pages are not narrowed by it.
-      and (p_post_kinds is null or pp.kind = any (p_post_kinds))
+      and (p_post_kinds is null or (pp.kind = any (p_post_kinds)
+           -- the old filter words, until every client sends kinds
+           or (pp.kind = 'sale' and 'deal' = any (p_post_kinds))
+           or (pp.kind = 'limited' and 'last_minute' = any (p_post_kinds))))
   )
   -- #941 — the place path is built after the sort and the limit, for the rows returned only. A subquery rather
   -- than trusting the planner to postpone it: searching, it did not. The order is repeated outside, on the keys
