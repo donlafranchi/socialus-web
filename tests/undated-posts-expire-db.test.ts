@@ -109,15 +109,13 @@ describe.skipIf(!RUNNABLE)('#314 — undated posts expire after 14 days', () => 
     })
   })
 
-  it('a show-until date is only for an undated post, and only after it was posted', async () => {
-    for (const sql of [
-      `update public.page_posts set starts_at = now() + interval '1 day' where id = '${ids.extended}'`,
-      `update public.page_posts set show_until = created_at - interval '1 hour' where id = '${ids.fresh}'`,
-    ]) {
-      await client.query('begin')
-      await expect(client.query(sql)).rejects.toThrow(/page_posts_show_until/)
-      await client.query('rollback')
-    }
+  // plan #230 — a show-until date may now sit on a dated post (it ends a sale early), but never before it was posted.
+  it('a show-until date is only after the post was posted', async () => {
+    await client.query('begin')
+    await expect(
+      client.query(`update public.page_posts set show_until = created_at - interval '1 hour' where id = '${ids.fresh}'`),
+    ).rejects.toThrow(/page_posts_show_until/)
+    await client.query('rollback')
   })
 
   // #913 — the Page reads the same rule, as a computed field on the row, to put an expired undated post under Earlier.
