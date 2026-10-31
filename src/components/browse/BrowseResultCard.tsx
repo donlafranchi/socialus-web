@@ -179,7 +179,7 @@ function PostCard(props: CardProps) {
       kind="post"
       imageUrl={photo}
       // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card.
-      after={result.href ? <div className="-mt-3 flex justify-end px-1 pb-0.5"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+      after={result.href ? <div className="-mt-5 flex justify-end px-1"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
     >
       <div className="flex gap-3 p-3">
         <div data-testid="tile-text" className="min-w-0 flex-1">
