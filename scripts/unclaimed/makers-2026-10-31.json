@@ -1,0 +1,88 @@
+[
+  {
+    "name": "Indian Rock Tree Farm",
+    "category": "Farm",
+    "makes": "Apple Hill choose-and-cut Christmas tree farm on the Camino side of the hill, open Thursday to Monday from November 27, 2026 (entry tickets required opening weekend), also a wedding and events venue and a Trees for Troops donor",
+    "area": "Camino (El Dorado)",
+    "site": "https://www.indianrocktreefarm.com/",
+    "social": {
+      "facebook": "https://www.facebook.com/Indian-Rock-Tree-Farm-and-Ranch-191649302163/"
+    },
+    "confidence": "High; own site checked 2026-10-31 (ok): footer 2026, 2026 season dates and ticket link posted; no street address on the page. Photos not viewed: stock only. Holiday (Christmas trees). Lead: county ag-tourism listing, then own site."
+  },
+  {
+    "name": "Hillside Tree Farm",
+    "category": "Farm",
+    "makes": "30-acre choose-and-cut Christmas tree farm in Camino with about 25,000 trees, wreaths, tree wrapping, a train ride and a picnic area; opens the day after Thanksgiving 2026",
+    "area": "Camino (El Dorado)",
+    "address": "2881 N. Canyon Road, Camino, CA 95709",
+    "site": "https://www.hillsidetreefarm.com/",
+    "confidence": "High; own site checked 2026-10-31 (ok): footer 2008-2026, 2026 opening posted, phone 530-621-2053; no social links on the site. Photos not viewed: stock only. Holiday (Christmas trees). Lead: Visit El Dorado, then own site."
+  },
+  {
+    "name": "Sinclair Family Farm",
+    "category": "Farm",
+    "makes": "Newcastle family farm raising pasture-fed beef, lamb, goat and pork, with about, pasture-fed basics and photo gallery pages",
+    "area": "Newcastle (Placer)",
+    "address": "645 Lozanos Road, Newcastle, CA 95658",
+    "site": "https://sinclairfamilyfarm.net/",
+    "confidence": "Medium; own site checked 2026-10-31 (ok): footer 2026, contact phone and email posted; its shop link goes to another domain so no products listed; no hours or social links. Photos not viewed: stock only. Lead: CalAgTour listing, then own site."
+  },
+  {
+    "name": "Hardy Books",
+    "category": "Goods & crafts",
+    "makes": "Nevada City seller of rare and out-of-print books and ephemera: All Things Californian, Western Americana, maps, posters, movie memorabilia, with new arrivals, catalogs and a want list",
+    "area": "Nevada City (Nevada)",
+    "site": "https://www.hardybooks.com/",
+    "products": [
+      {
+        "name": "Western Americana",
+        "url": "https://www.hardybooks.com/searchResults.php?category_id=220&action=browse&orderBy="
+      },
+      {
+        "name": "Maps",
+        "url": "https://www.hardybooks.com/searchResults.php?category_id=328&action=browse&orderBy="
+      },
+      {
+        "name": "Art",
+        "url": "https://www.hardybooks.com/searchResults.php?category_id=293&action=browse&orderBy="
+      },
+      {
+        "name": "Poetry",
+        "url": "https://www.hardybooks.com/searchResults.php?category_id=246&action=browse&orderBy="
+      }
+    ],
+    "confidence": "Medium; own site checked 2026-10-31 (ok): footer 2026, PO Box 95 and phone posted, online and by mail so no storefront hours; no social links. Photos not viewed: stock only. Lead: Go Nevada County bookstore list, then own site."
+  },
+  {
+    "name": "Word After Word Books",
+    "category": "Goods & crafts",
+    "makes": "Independent Truckee bookstore on Donner Pass Road open daily 10 to 5, with staff favorites, local authors and regional interest titles, audio books, merchandise and Rock Cellar Records",
+    "area": "Truckee (Nevada)",
+    "address": "10052 Donner Pass Rd, Truckee, CA 96161",
+    "site": "https://www.wordafterwordbooks.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/wordafterwordbooks",
+      "facebook": "https://www.facebook.com/wordafterwordbooks"
+    },
+    "products": [
+      {
+        "name": "Books",
+        "url": "https://wordafterwordbooks.com/books"
+      },
+      {
+        "name": "Bookseller Favorites",
+        "url": "https://wordafterwordbooks.com/catalog/staff-favorites"
+      },
+      {
+        "name": "Local Authors & Regional Interest Books",
+        "url": "https://wordafterwordbooks.com/local-authors-and-regional-interest"
+      },
+      {
+        "name": "Rock Cellar Records",
+        "url": "https://wordafterwordbooks.com/rock-cellar-records-0"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-31 (ok): footer 2026, address and hours posted. Photos not viewed: stock only. Lead: Go Nevada County bookstore list, then own site."
+  }
+]
