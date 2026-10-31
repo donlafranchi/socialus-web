@@ -1,8 +1,8 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-26** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-31** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
-The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
+The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. **Meet-ups first** (Don, 2026-10-31, builds on #1102): the seeder looks for groups and events where people need to show up in person, not for businesses. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
 ## Pitch rules (#816)
 
@@ -25,10 +25,10 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 ## Each run
 
 1. **Take today's theme** from the rotation below, the row for today's weekday (Pacific time). The weekday is the only key: never "the next theme after the last one logged", and a missed day is not made up (#1082, 2026-10-26).
-2. **Add 10 Pages:** 3–4 farms, ranches or animal farms, the rest from the day's theme. Use 4 farms only when the theme can't fill 7.
+2. **Add 10 Pages, all meet-ups:** a group or event with a stated time and place to turn up (its own site or page says when and where). The day's theme fills all 10. A farm, ranch or shop counts only when it hosts a dated public event (u-pick day, tree cutting, farm tour, workshop, market), and then at most 2 a day; no quota. Plain businesses stop (#1102).
 3. **Read `ADDED.md` first.** Skip any name or site already there. Don't add a kind of organization that is in the last 7 days, unless it's in today's theme. Skip a town that already has 3 or more Pages in the last 7 days. **Skip a town that runs itself** (2026-10-21, #987): 5 or more claimed Pages there posted within 30 days (`TOWN_SATURATION`, `src/lib/unclaimed/saturation.ts`). The loader holds such a town's new Pages back and names the town in its summary; it never touches a claimed Page, and a claim takes that Page's samples off.
 4. **Spread the area and the interests** (batches of 8 or more): at least 5 different towns and at least 4 interest tags (Coverage, above), at most 2 Pages in the city of Sacramento, and over a week cover every direction (see Area).
-5. **Coffee shops and roasters: at most 1 a week**, Mondays only, and none if `ADDED.md` has one in the last 7 days.
+5. **Meet-up test (Don, 2026-10-31):** each Page names what it is, when it meets or runs, and where, taken from its own site. No stated time and place means skip it. Samples lead with what · when · where (#1102). Prefer recurring (weekly or monthly) over one-off, and skip anything already past.
 6. **Own site only** (#353): never Yelp, Google or another directory. A non-business with only a Facebook page is fine if that page is its own. **Etsy, Instagram and other marketplaces are for finding makers only** (Don, 2026-10-16): look a maker up there, then build the Page from the maker's own website, or skip them if they have none. Never copy text, photos or listings from the marketplace, and don't scrape it (look-ups by hand only). Credit and photos come from the maker's own site as usual. Note the lead source in `ADDED.md` (`lead: Etsy`).
 7. **Social links, TikTok and Instagram first** (Don, 2026-10-16), then Facebook and the rest: take them from links on the business's own site, or from a search when the profile is clearly the same business. Put them in the row's `social` field; the loader also reads them off the site, and backfills older Pages that lack TikTok or Instagram. Link only: never copy their posts or photos into SocialUs. Owners use these to tell their own story.
 8. **Look at every photo before loading** (`preview-photos.ts`). **No children in any photo** (F080). If a site's own photos show children, add the Page to `stockOnly` in `photo-overrides.json`. Pictures whose file names say an AI made them are skipped; when a site's real photos share a name pattern, `ownMatch` keeps to those.
@@ -42,29 +42,29 @@ Each rule serves a capability of the pitch; the check that holds it is named.
     - Run `npm run seed:check -- YYYY-MM-DD --body-file <body file>`, then `npx tsx scripts/unclaimed/check-links.ts`, then `npx vitest run src/lib/unclaimed`. Fix every `FIX` line and failure. A link that fails on certificate or address: try the bare name without `www`, or drop the Page.
     - Open the PR only when all pass. After it merges, run `gh workflow run unclaimed-load.yml -f write=false`, read the result, then `-f write=true`.
 
-## Rotation
+## Rotation (meet-ups)
 
 | Day | Theme | Look for |
 |---|---|---|
-| Mon | Food makers | bakeries, specialty food makers, chocolatiers, breweries, cideries, wineries, olive oil and honey producers; **the week's one coffee shop, if any** |
-| Tue | Volunteer and mutual aid | food banks and pantries, meal programs, Habitat for Humanity and ReStores, volunteer centers, mutual aid networks, community fridges, gleaning groups, tool libraries, repair cafés |
-| Wed | Arts and culture | arts collectives, community theatres, galleries, choirs, community bands and orchestras, printmaking and pottery studios, makerspaces, historical societies, small museums |
-| Thu | Clubs and service | Rotary, Lions, Kiwanis and other service clubs, garden clubs, quilting and craft guilds, astronomy, chess, birding and hiking clubs, adult sports leagues, running and cycling clubs |
-| Fri | Green and outdoors | community gardens, land trusts, creek and river conservancies, trail groups, native plant societies, nurseries, farmers' markets |
-| Sat | Shops and repair | bike shops, repair and trades, hardware, independent bookstores, record shops, nonprofit thrift stores, makers of goods |
-| Sun | Neighbourhood life | Friends of the Library groups, neighbourhood associations, granges, community and senior centers, animal rescues and shelters, community programs |
+| Mon | Run and walk | run clubs, parkrun and fun runs, walking groups, couch-to-5K, trail running, track clubs |
+| Tue | Ride | road, gravel and mountain bike groups, social rides, bike co-ops with open shop nights, bike-to-work and Critical Mass style rides, e-bike clubs |
+| Wed | Hike, paddle and birds | hiking and backpacking clubs, Sierra Club and land-trust guided hikes, birding walks, kayak and paddle clubs, stargazing nights, fishing clubs |
+| Thu | Games and hobbies | chess, bridge, board-game and card nights, pickleball, bocce, disc golf, adult leagues, astronomy, quilting and craft circles, book clubs, open mics |
+| Fri | Markets and fairs | farmers' markets, holiday markets and craft fairs, night markets, swap meets, plant and seed swaps, car-free street days, concerts in the park |
+| Sat | Work days and repair | trail and creek clean-up days, community garden work days, gleaning, tool libraries, repair cafés, bike repair nights, habitat builds, food-drive sorting |
+| Sun | Gatherings | service club meetings (Rotary, Lions, Kiwanis), Friends of the Library sales, grange and senior-center events, adoption days at animal rescues, neighbourhood association meetings, open houses |
 
 **Next run, Sat 2026-10-17: Native creators and producers** (Don, 2026-10-16), in place of Shops and repair; after that, Native creators who meet the rule below join whichever day's theme they fit. Look for Native artists and makers, food producers, Native-led nonprofits, cultural centres and arts groups in the area.
 - **Only when their own site says so:** it states they are Native or names a tribal affiliation. Never infer it from a name, a style or what they make. The Indian Arts and Crafts Act makes a false Native-made claim illegal, and honest origin is `cap-8`.
 - **Describe them in their own words**, from their own site.
 
-**Holidays, now through 2026-12-31:** 2–3 of each day's 10 are holiday-related: pumpkin patches, harvest and Christmas tree farms, holiday markets and craft fairs, gift makers, food for gatherings, and toy and food drives. A holiday farm still counts toward the 3–4 farms. Their sample posts carry holiday dates within their weekly dates (see Dates).
+**Holidays, now through 2026-12-31:** 2–3 of each day's 10 may be holiday meet-ups: tree-lighting nights, holiday markets and craft fairs, toy and food drives, tree-cutting days, parades, Turkey Trots. Their sample posts carry holiday dates within their weekly dates (see Dates).
 
 **Native plants and pollinators, recurring** (Don, 2026-10-18): native plant nurseries, seed sellers and seed libraries, vegetable and herb starts, garden centres, community seed swaps, CNPS and Master Gardener plant sales, arboretum nursery sales. It joins any day's theme; fall is the season (natives that need winter cold are sown now). **Native milkweed first** (narrowleaf *Asclepias fascicularis*, showy *A. speciosa*), as seed or plugs; confirm it from the seller's own site, and say what the site says. **Never promote tropical milkweed** (*A. curassavica*): it harms monarchs in California. A seller that carries it can still load, but no sample post features it. Use a category that doesn't say "garden" or "native plant" (those get the volunteer-style samples): `Nursery (natives and seeds)`, `Seed seller`. Sellers get the Farm pictures and the Farm sample voice, which never names a plant.
 
 **Music and events venues, recurring** (Don, 2026-10-22, #997): music clubs, concert halls, theatres with live shows, arenas, bars and cafés with a real music calendar. It joins any day's theme, at most 2 a day. Load one only when its **own site** lists dated shows; give the row `events` (above) and check it reads with `tsx scripts/unclaimed/events.ts --only <name>` before loading. Category `Music venue` (arts pictures and the music interest). Its photos are its own room or stage; a family-show venue whose photos show children goes on `stockOnly`.
 
-**Farms every day (3–4):** farms, orchards, ranches, animal farms, farm stands, u-pick, flower farms, agritourism.
+**Farms (no quota):** a farm, orchard, ranch or animal farm loads only for a dated public event it hosts (u-pick day, harvest festival, farm tour, workshop), at most 2 a day.
 
 **Not for now:** personal-care salons (#517). Organizations whose work centers on children (youth leagues, scouts, schools, PTAs), because their photos would show children (F080).
 
