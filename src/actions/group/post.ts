@@ -37,6 +37,7 @@ import { seriesSchema, isoWeekdayOf } from '../../lib/posts/series'
 import { metroDate } from '../../lib/metro/metro-week'
 import { METRO_TIME_ZONE } from '../../lib/metro/metro-time'
 import { WONDER_OPTION_MAX, WONDER_OPTIONS_MAX } from '../../lib/wonders/roles'
+import { DATE_NEEDED, POST_KINDS, HEADLINE_MAX, SALE_MAX_DAYS, inferKind, needsDate, type PostKind } from '../../lib/posts/kinds'
 
 /** F117 criterion 1 — a Wonder: a whole-number threshold and an optional list of sizes the poster names. */
 const wonder = z
@@ -76,6 +77,21 @@ const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) 
   !v.endsAt || (!!v.startsAt && new Date(v.endsAt) > new Date(v.startsAt))
 const END_MESSAGE = 'An end time needs a start time before it.'
 const PHOTO_MESSAGE = 'That photo didn’t come from your uploads.'
+
+/** plan #230 — what the post is, picked first. Absent (an older caller): inferred as the backfill did. */
+const kind = z.enum(POST_KINDS).optional()
+/** plan #230 — the card's one line, matching the column's check. */
+const headline = z.string().trim().min(1).max(HEADLINE_MAX).optional()
+const SALE_TOO_LONG = `A sale can run up to ${SALE_MAX_DAYS} days from today.`
+const WONDER_NEEDS_THRESHOLD = 'Count me in needs how many people it takes.'
+
+function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: string | null | undefined, now: Date) {
+  if (needsDate(k) && !startsAt) throw new ValidationError(DATE_NEEDED[k as keyof typeof DATE_NEEDED])
+  if (k === 'sale') {
+    const last = endsAt ?? startsAt
+    if (last && new Date(last).getTime() > now.getTime() + SALE_MAX_DAYS * 86_400_000) throw new ValidationError(SALE_TOO_LONG)
+  }
+}
 
 /** #286 — a post's own tags (Don, 2026-10-01). None means it carries its
  *  Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
@@ -130,6 +146,8 @@ export const groupPostCreateInput = z
     /** F074.1 — weekly on chosen weekdays, optional start and end. This post is the first occurrence. */
     series: seriesSchema.optional(),
     wonder,
+    kind,
+    headline,
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -144,6 +162,8 @@ export const groupPostEditInput = z.object({
   howToFind,
   tags,
   photoUrl,
+  kind,
+  headline,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 
@@ -169,7 +189,7 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
+type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $' | 'kind = $' | 'headline = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
@@ -233,6 +253,9 @@ export const groupPostCreate = defineHandler(
     const memberId = requireMember(ctx, 'group.post_create')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
     checkShowUntil(input, ctx.now())
+    if (input.kind === 'wonder' && !input.wonder) throw new ValidationError(WONDER_NEEDS_THRESHOLD)
+    const postKind: PostKind = input.wonder ? 'wonder' : (input.kind ?? inferKind(input))
+    checkKind(postKind, input.startsAt, input.endsAt, ctx.now())
 
     // F074.1: the series repeats at its first post's time of day, and that post stands on one of the
     // chosen weekdays, in the metro's zone and inside the start and end dates — so the creator never
@@ -268,8 +291,8 @@ export const groupPostCreate = defineHandler(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
             lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until,
-            kind, wonder_threshold, wonder_options)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            kind, wonder_threshold, wonder_options, headline)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
          returning id, created_at`,
         [
           input.groupId,
@@ -290,9 +313,10 @@ export const groupPostCreate = defineHandler(
           input.photoUrl ?? null,
           seriesId,
           input.showUntil ?? null,
-          input.wonder ? 'wonder' : 'announcement',
+          postKind,
           input.wonder?.threshold ?? null,
           wonderOptions(input.wonder?.options),
+          input.headline ?? null,
         ],
       )
       const postId = inserted.rows[0]!.id
@@ -329,9 +353,11 @@ export const groupPostEdit = defineHandler(
         removed_at: Date | null
         repost_used: boolean
         severity_one: boolean
+        starts_at?: Date | string | null
+        kind?: string
       }>(
         // severity_one: a report on this post was filed as Sensitive content (F102.2, F102.14).
-        `select id, group_id, hidden_at, removed_at, repost_used,
+        `select id, group_id, hidden_at, removed_at, repost_used, starts_at, kind,
                 exists (select 1 from public.reports r
                          where r.subject_kind in ('post', 'post_photo') and r.subject_id = page_posts.id
                            and r.category = 'sensitive_content' and r.removed_at is null) as severity_one
@@ -345,6 +371,13 @@ export const groupPostEdit = defineHandler(
       }
 
       await requireManagingRole(client, 'group.post_edit', post.group_id, memberId)
+      // plan #230 — the kind and the date are checked together: a dated kind keeps a date.
+      if (input.kind === 'wonder' && post.kind !== 'wonder') throw new ValidationError(WONDER_NEEDS_THRESHOLD)
+      if (input.kind !== undefined || input.startsAt !== undefined) {
+        const k = (input.kind ?? post.kind ?? 'news') as PostKind
+        const start = input.startsAt !== undefined ? input.startsAt : post.starts_at ? new Date(post.starts_at).toISOString() : null
+        if (needsDate(k) && !start) throw new ValidationError(DATE_NEEDED[k as keyof typeof DATE_NEEDED])
+      }
 
       // In place, and the row keeps its id (acceptance 4). `updated_at` moves
       // because browse orders on it; nothing else about the row changes, so an
@@ -376,6 +409,8 @@ export const groupPostEdit = defineHandler(
       if (input.photoUrl !== undefined) {
         patch.push({ clause: 'photo_url = $', value: input.photoUrl })
       }
+      if (input.kind !== undefined) patch.push({ clause: 'kind = $', value: input.kind })
+      if (input.headline !== undefined) patch.push({ clause: 'headline = $', value: input.headline })
       for (const f of patch) {
         params.push(f.value)
         sets.push(`${f.clause}${params.length}`)

@@ -42,6 +42,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { announcementAnchor } from '@/components/group/announcement-anchor'
+import { isPostKind, type PostKind } from '@/lib/posts/kinds'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
@@ -101,7 +102,7 @@ export interface BrowseFeedOpts {
    */
   tags?: readonly string[] | null
   /** #876 — the Type filter's post kinds; a dated real post counts as an event. */
-  postKinds?: readonly ('event' | 'deal' | 'last_minute')[] | null
+  postKinds?: readonly PostKind[] | null
   /** #916 — the search box's words; searched on the server over every row in scope, widened by synonyms. */
   search?: string | null
   /** The time lens window. Both ends optional and independent. */
@@ -146,6 +147,9 @@ export interface BrowseFeedRow {
   ends_at?: string | null
   /** #796 — set only on a seeder sample (#556). */
   sample_kind?: 'event' | 'deal' | 'last_minute' | null
+  /** plan #230 — what the post is, and its one-line headline. Null on a Page row. */
+  post_kind?: PostKind | null
+  headline?: string | null
   sort_at: string
 }
 
@@ -187,6 +191,10 @@ export interface BrowseResult {
   endsAt?: string | null
   /** #796 — a seeder sample (#556): every surface marks it as one. Null on real posts and Pages. */
   sampleKind?: 'event' | 'deal' | 'last_minute' | null
+  /** plan #230 — what the post is (null on a Page row, or a row read before the column existed). */
+  postKind?: PostKind | null
+  /** plan #230 — the card's one line; null on an older post, which falls back to its body. */
+  headline?: string | null
   /** #876 — from a Page the member follows: the Following filter's field. Set by Explore's loader. */
   followed?: boolean
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
@@ -318,6 +326,8 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?:
     postedAt: r.posted_at ?? null,
     endsAt: r.ends_at ?? null,
     sampleKind: r.sample_kind ?? null,
+    postKind: isPostKind(r.post_kind) ? r.post_kind : null,
+    headline: maskEmailsOrNull(r.headline ?? null),
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,

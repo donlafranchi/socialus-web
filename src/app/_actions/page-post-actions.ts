@@ -9,6 +9,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
+import type { PostKind } from '@/lib/posts/kinds'
 import { groupPostCreate, groupPostEdit, groupPostDelete, ActionError } from '@/actions'
 import { recordOrigin } from './origin-actions'
 import { succeeded, failed, type ActionResult } from '@/app/you/sell/action-result'
@@ -37,6 +38,8 @@ export async function postToPageAction(input: {
   photoUrl?: string | null
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
   wonder?: { threshold: number; options?: string[] }
+  kind?: PostKind
+  headline?: string
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
@@ -58,6 +61,8 @@ export async function editPagePostAction(input: {
   locationId?: string | null
   howToFind?: string | null
   photoUrl?: string | null
+  kind?: PostKind
+  headline?: string
 }): Promise<ActionResult<{ postId: string; reposted: boolean }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
