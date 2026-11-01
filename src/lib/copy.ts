@@ -21,8 +21,8 @@ export const COPY = {
   reportPagePhoto: "Report this Page's photo",
   reportPageWordsSubject: 'its name or description',
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
-  reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for being decent.',
-  reportSentPerson: "It's being sent to a person from our team. Thanks for being decent.",
+  reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for being helpful.',
+  reportSentPerson: "It's being sent to a person from our team. Thanks for being helpful.",
   // F093 criterion 8 — the withheld card's ask, the front door's main button.
   // Don's words, 2026-10-04 ("Sign up to follow" is the secondary). Placeholder.
   withheldCta: "Sign in to see what's happening",
@@ -86,7 +86,6 @@ export const COPY = {
   claimCodeBody: (code: string, page: string) =>
     `Your SocialUs code is ${code}. Enter it on the ${page} Page to claim it. It works for 15 minutes. If you didn't ask for this, ignore it.`,
   // The ethos's decency lines (2026-10-25), cut to the necessary on the PM's call (2026-10-27).
-  decencyThanks: 'Thanks for being decent.',
   posted: 'Posted.',
   rulesHeadline: "Be cool. Don't be a jerk.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
