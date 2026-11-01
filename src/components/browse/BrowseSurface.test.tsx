@@ -18,7 +18,10 @@ let search = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
   useSearchParams: () => new URLSearchParams(search),
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
 const browseMapAction = vi.fn()
@@ -149,10 +152,9 @@ describe('T156 — the results region', () => {
     expect(region).toHaveAccessibleName(/Sacramento-Roseville/)
   })
 
-  it('the view pill points at it', () => {
+  it('the List | Map tabs point at it', () => {
     render(<BrowseSurface initial={snapshot()} />)
-    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
-    expect(screen.getByTestId('view-pill')).toHaveAttribute('aria-controls', 'browse-results')
+    expect(screen.getByRole('tab', { name: 'Map' })).toHaveAttribute('aria-controls', 'browse-results')
   })
 })
 
@@ -178,7 +180,6 @@ describe('T156 — filtering preserves server order', () => {
       result({ resultId: 'c', name: 'Gamma forge', tags: [] }),
     ]
     render(<BrowseSurface initial={snapshot({ results: rows })} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'bakery' } })
     const titles = screen.getAllByTestId('tile-title').map((n) => n.textContent)
     expect(titles).toEqual(['Alpha bakery', 'Beta bakery'])
@@ -254,7 +255,6 @@ describe('T156 — switching metro', () => {
 describe('T156 — a shared link reopens the same metro and search', () => {
   it('writes the chosen metro and the search into the URL', async () => {
     render(<BrowseSurface initial={snapshot({ chosen: true })} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sourdough' } })
     await waitFor(() => expect(here()).toBe('/explore?metro=sacramento-roseville-ca&q=sourdough'))
   })
@@ -369,7 +369,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   const bread = result({ resultId: 'b1', name: 'Rye Co', tags: ['Live music'], description: 'Bakers' })
   const openSheet = () => fireEvent.click(screen.getByTestId('explore-filter-icon'))
   const box = () => screen.getByTestId('search-input') as HTMLInputElement
-  const openBox = () => fireEvent.click(screen.getByRole('button', { name: 'Search' }))
 
   // [guards F092.2]
   it('applying dismisses the sheet and writes the selection as plain words, no hashtag', async () => {
@@ -385,7 +384,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
 
   it('keeps what was already typed in front of what the sheet writes', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
-    openBox()
     fireEvent.change(box(), { target: { value: 'roasters' } })
     openSheet()
     fireEvent.click(screen.getByRole('checkbox', { name: 'Food & drink' }))
@@ -408,7 +406,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
 
   it('typing the same words by hand does the same, and reopening the sheet shows them checked', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
-    openBox()
     fireEvent.change(box(), { target: { value: 'Food & Drink' } })
     expect(screen.getByText('Bean Co')).toBeInTheDocument()
     expect(screen.queryByText('Rye Co')).toBeNull()
@@ -419,7 +416,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
   // [guards F092.6]
   it('clearing the box clears the narrowing: category, schedule and the sheet\'s own state', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
-    openBox()
     fireEvent.change(box(), { target: { value: 'food & drink' } })
     expect(screen.queryByText('Rye Co')).toBeNull()
     fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
@@ -446,7 +442,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
     const viaPanel = shown()
     cleanup()
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
-    openBox()
     fireEvent.change(box(), { target: { value: 'live music' } })
     expect(shown()).toEqual(viaPanel)
     expect(viaPanel).toEqual(['Rye Co'])
@@ -456,7 +451,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
 
   it('Clear all in the sheet takes its words out of the box and keeps the free ones', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
-    openBox()
     fireEvent.change(box(), { target: { value: 'roasters food & drink this week' } })
     openSheet()
     fireEvent.click(screen.getByRole('button', { name: /clear all/i }))
@@ -465,7 +459,6 @@ describe('F092 — the filter sheet writes its selection into the search box', (
 
   it('the URL carries the words, not separate filter parameters', async () => {
     render(<BrowseSurface initial={snapshot({ results: [coffee, bread] })} />)
-    openBox()
     fireEvent.change(box(), { target: { value: 'food & drink this weekend' } })
     await waitFor(() => expect(here()).toBe('/explore?q=food+%26+drink+this+weekend'))
   })
@@ -500,7 +493,6 @@ describe('#916 — search asks the server', () => {
   it('a Page outside the rows in hand comes back from the server, once the typing settles', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [result({ resultId: 'z1', name: 'Zinnia Flower Farm' })] }))
     render(<BrowseSurface initial={snapshot()} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'flowers' } })
     expect(browseFeedAction).not.toHaveBeenCalled()
     await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(null, null, null, 'flowers', null))
@@ -511,7 +503,6 @@ describe('#916 — search asks the server', () => {
   it('nothing found says so, and suggests what to try', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
     render(<BrowseSurface initial={snapshot()} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'qqqzzz' } })
     await waitFor(() => expect(screen.getByTestId('browse-empty')).toHaveTextContent('Nothing matches “qqqzzz” yet. Try fewer words, or a broader one like “food” or “plants”.'))
   })
@@ -523,7 +514,6 @@ describe('#935 — a search keeps the link in the address bar without asking the
   it('typing writes the words into the URL in place, and never re-renders Explore on the server', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
     render(<BrowseSurface initial={snapshot({ chosen: true })} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     for (const value of ['s', 'sa', 'sac', 'sacr']) fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
     await waitFor(() => expect(here()).toBe('/explore?metro=sacramento-roseville-ca&q=sacr'))
     expect(replace).not.toHaveBeenCalled()
@@ -540,7 +530,6 @@ describe('#935 — a search keeps the link in the address bar without asking the
       }),
     )
     render(<BrowseSurface initial={snapshot({ signedIn: true })} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'sacriver' } })
     const links = await screen.findAllByRole('link', { name: /SacRiver Floaters/ })
     expect(links.map((a) => a.getAttribute('href'))).toEqual(['/g/3k8x0p', '/g/3k8x0p#announcement-p-1'])

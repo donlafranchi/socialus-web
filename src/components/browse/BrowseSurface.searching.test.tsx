@@ -15,7 +15,10 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
   useSearchParams: () => new URLSearchParams(search),
   unstable_isUnrecognizedActionError: (e: unknown) => e instanceof Error && e.name === 'UnrecognizedActionError',
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
 const browseMapAction = vi.fn()
@@ -84,7 +87,6 @@ beforeEach(() => {
 afterEach(cleanup)
 
 const type = (value: string) => {
-  fireEvent.click(screen.getByRole('button', { name: 'Search' }))
   fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
 }
 const stale = () => Object.assign(new Error('Server Action "abc" was not found on the server.'), { name: 'UnrecognizedActionError' })

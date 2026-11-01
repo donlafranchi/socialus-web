@@ -1,13 +1,14 @@
 'use client'
 
 // #1094 — the one header, every width. Left: the way back (anywhere but Explore) and the name.
-// Right: You. There is no bottom bar; the ➕ is CreateDock.
+// Right: the ➕ (from 744px up, signed in) and You. There is no bottom bar; on a phone the ➕ floats (CreateDock).
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import { navHidden } from './nav-hidden'
 import { YouAvatar } from './YouAvatar'
+import { CreateHeaderButton } from '@/components/create/CreateHeaderButton'
 
 const isHome = (p: string) => p === '/' || p.startsWith('/explore')
 
@@ -34,8 +35,11 @@ export function AppHeader() {
       <Link href="/explore" className="font-semibold text-[var(--color-accent)]">
         SocialUs
       </Link>
-      <div className="ml-auto -mr-2">
-        <YouAvatar />
+      <div className="ml-auto flex items-center gap-2">
+        <CreateHeaderButton />
+        <div className="-mr-2">
+          <YouAvatar />
+        </div>
       </div>
     </header>
   )

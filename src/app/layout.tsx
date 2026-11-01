@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AppHeader } from "@/components/shell/AppHeader"
-import { CreateDock } from "@/components/create/CreateDock"
+import { GlobalMobileBar } from "@/components/shell/GlobalMobileBar"
 import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
 import { SiteFooter } from "@/components/shell/SiteFooter"
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
@@ -72,7 +72,7 @@ export default function RootLayout({
             <div className="mx-auto w-full max-w-shell flex-1">{children}</div>
             <SiteFooter />
           </div>
-          <CreateDock />
+          <GlobalMobileBar />
         </NavVisibilityProvider>
       </body>
     </html>

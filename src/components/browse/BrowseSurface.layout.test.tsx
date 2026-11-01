@@ -12,7 +12,10 @@ let params = new URLSearchParams()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn() }),
   useSearchParams: () => params,
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 vi.mock('@/app/explore/actions', () => ({ browseFeedAction: vi.fn() }))
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
 vi.mock('next/dynamic', () => ({
@@ -110,37 +113,54 @@ describe('T187 — nothing sits between rows of results', () => {
   }
 })
 
-describe('#328 — under 1024px, one control at the bottom right', () => {
-  it('floats at bottom right, beside the ➕, above the safe area', () => {
+describe('#1141 — on a phone, the bottom bar', () => {
+  it('is fixed at the bottom with Back, Forward, the search field with Area and Filters, and ⋯', () => {
     renderAt(390)
-    const dock = screen.getByTestId('explore-dock')
-    expect(dock.className).toMatch(/\bfixed\b/)
-    expect(dock.className).toMatch(/\bright-/)
-    expect(dock.className).toContain('var(--explore-dock-bottom)')
-    expect(dock.closest('[data-testid="card-grid"]')).toBeNull()
-  })
-
-  it('opens into the four actions, and the view switch swaps list and map', () => {
-    renderAt(744)
-    expect(screen.queryByTestId('browse-map')).toBeNull()
-    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
-    for (const id of ['search', 'filter', 'metro']) {
-      expect(screen.getByTestId(`explore-dock-${id}`)).toBeInTheDocument()
+    const bar = screen.getByTestId('mobile-bar')
+    expect(bar.className).toMatch(/\bfixed\b/)
+    expect(bar.className).toContain('md:hidden')
+    expect(bar.closest('[data-testid="card-grid"]')).toBeNull()
+    for (const id of ['bar-back', 'bar-forward', 'bar-area', 'bar-search-input', 'bar-filter', 'bar-more']) {
+      expect(within(bar).getByTestId(id)).toBeInTheDocument()
     }
-    fireEvent.click(screen.getByRole('button', { name: 'Map' }))
-    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
-    expect(screen.queryByTestId('card-grid')).toBeNull()
-    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
-    fireEvent.click(screen.getByRole('button', { name: 'List' }))
-    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
-    expect(screen.queryByTestId('browse-map')).toBeNull()
+    expect(within(bar).getByTestId('bar-forward')).toBeDisabled()
   })
 
-  it('Filter opens the filter sheet and Change area opens the metro picker', () => {
+  it('the old floating dock is gone', () => {
     renderAt(390)
-    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
-    fireEvent.click(screen.getByRole('button', { name: 'Change area' }))
+    expect(screen.queryByTestId('explore-dock')).toBeNull()
+    expect(screen.queryByTestId('explore-dock-toggle')).toBeNull()
+  })
+
+  it('the field is the same search as the one in the row above the results from 744px', () => {
+    renderAt(390)
+    fireEvent.change(screen.getByTestId('bar-search-input'), { target: { value: 'rye' } })
+    expect((screen.getByTestId('search-input') as HTMLInputElement).value).toBe('rye')
+  })
+
+  it('Area opens the metro picker and Filters opens the filter sheet', () => {
+    renderAt(390)
+    fireEvent.click(screen.getByTestId('bar-area'))
     expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
+  })
+
+  it('⋯ offers the list/map switch, which swaps list and map', () => {
+    renderAt(390, { signedIn: true })
+    fireEvent.click(screen.getByTestId('bar-more'))
+    fireEvent.click(screen.getByTestId('bar-menu-view'))
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('bar-more'))
+    expect(screen.getByTestId('bar-menu-view')).toHaveTextContent('Show the list')
+  })
+})
+
+describe('#1141 — from 744px the List | Map tabs sit in the search row', () => {
+  it('swaps list and map', () => {
+    renderAt(744, { signedIn: true })
+    fireEvent.click(screen.getByRole('tab', { name: 'Map' }))
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'List' }))
+    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
   })
 })
 
@@ -224,8 +244,7 @@ describe('#334 — signed out: list only, Map opens sign-up', () => {
 
   it('the Map control opens the sign-up sheet instead of the map', () => {
     renderAt(1280, { signedIn: false })
-    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
-    fireEvent.click(screen.getByTestId('view-pill'))
+    fireEvent.click(screen.getByRole('tab', { name: 'Map' }))
     const sheet = screen.getByTestId('sign-in-prompt')
     expect(sheet).toBeInTheDocument()
     expect(screen.getByTestId('sign-in-prompt-continue').getAttribute('href')).toMatch(/^\/auth\/login\?next=/)
@@ -234,8 +253,8 @@ describe('#334 — signed out: list only, Map opens sign-up', () => {
 
   it('the sheet can be dismissed and the list is still there', () => {
     renderAt(390, { signedIn: false })
-    fireEvent.click(screen.getByTestId('explore-dock-toggle'))
-    fireEvent.click(screen.getByTestId('view-pill'))
+    fireEvent.click(screen.getByTestId('bar-more'))
+    fireEvent.click(screen.getByTestId('bar-menu-view'))
     fireEvent.click(screen.getByTestId('sign-in-prompt-dismiss'))
     expect(screen.queryByTestId('sign-in-prompt')).toBeNull()
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()

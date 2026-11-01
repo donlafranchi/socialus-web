@@ -12,7 +12,10 @@ let search = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
   useSearchParams: () => new URLSearchParams(search),
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
 vi.mock('@/app/explore/actions', () => ({

@@ -55,13 +55,15 @@ describe('T115 — one row, three elements', () => {
 
   // Still one row, three elements (F045 thesis §5) — the locality is now the
   // first of the three rather than a label sitting beside two.
-  it('offers the area, then search, then filters, in that order', () => {
+  // #1141 — search is always a field now, so it is not a button; the area and the filters are.
+  it('offers the search field, the area and the filters, with no search button', () => {
     renderBar()
     const row = screen.getByTestId('explore-search-bar')
+    expect(within(row).getByTestId('search-input')).toBeInTheDocument()
     const labels = within(row)
       .getAllByRole('button')
       .map((b) => b.getAttribute('aria-label'))
-    expect(labels).toEqual(['Area: West Sacramento — change it', 'Search', 'Open filters'])
+    expect(labels).toEqual(['Area: West Sacramento — change it', 'Open filters'])
   })
 
   it('sticks to the top of the viewport', () => {
@@ -105,34 +107,40 @@ describe('T115 — the filter icon', () => {
   })
 })
 
-describe('T115 — the search affordance', () => {
-  it('starts collapsed', () => {
+describe('#1141 — search is a permanent field', () => {
+  it('is there with nothing typed and nothing tapped', () => {
     renderBar()
-    expect(screen.queryByTestId('search-input')).not.toBeInTheDocument()
-  })
-
-  it('expands to an input when the search icon is tapped', () => {
-    renderBar()
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     expect(screen.getByTestId('search-input')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByTestId('search-input')).toHaveAttribute('placeholder', 'Search Pages and posts')
+    expect(screen.queryByRole('button', { name: 'Search' })).toBeNull()
   })
 
-  it('starts expanded when a query is already in play, so a shared link shows its own terms', () => {
+  it('shows a query already in play, so a shared link shows its own terms', () => {
     renderBar({ query: 'sourdough' })
     expect(screen.getByTestId('search-input')).toHaveValue('sourdough')
   })
 
   it('reports typing up to the page', () => {
     renderBar()
-    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
     fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'rye' } })
     expect(onQueryChange).toHaveBeenCalledWith('rye')
   })
 
-  it('clears the query and collapses when the input is dismissed', () => {
-    renderBar({ query: 'rye' })
+  it('offers Clear only once there is something to clear, and the field stays', () => {
+    const { rerender } = renderBar()
+    expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+    rerender(
+      <ExploreSearchBar placeName="West Sacramento" query="rye" onQueryChange={onQueryChange} filtersActive={false}
+        onOpenFilters={onOpenFilters} onOpenScope={onOpenScope} />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
+    expect(onQueryChange).toHaveBeenCalledWith('')
+    expect(screen.getByTestId('search-input')).toBeInTheDocument()
+  })
+
+  it('Escape clears a query', () => {
+    renderBar({ query: 'rye' })
+    fireEvent.keyDown(screen.getByTestId('search-input'), { key: 'Escape' })
     expect(onQueryChange).toHaveBeenCalledWith('')
   })
 })
@@ -153,10 +161,10 @@ describe('the location pill as the scope control', () => {
   })
 })
 
-describe('#328 — the bottom dock can open search', () => {
-  it('opens and focuses the search input when asked from outside', () => {
+describe('#328 — an outside request focuses the field', () => {
+  it('focuses the search input when asked from outside', () => {
     const { rerender } = renderBar({ searchRequest: 0 })
-    expect(screen.queryByTestId('search-input')).toBeNull()
+    expect(screen.getByTestId('search-input')).not.toHaveFocus()
     rerender(
       <ExploreSearchBar placeName="West Sacramento" query="" onQueryChange={onQueryChange} filtersActive={false}
         onOpenFilters={onOpenFilters} onOpenScope={onOpenScope} searchRequest={1} />,

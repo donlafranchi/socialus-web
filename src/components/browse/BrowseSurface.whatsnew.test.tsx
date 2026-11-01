@@ -12,7 +12,10 @@ let search = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
   useSearchParams: () => new URLSearchParams(search),
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
 const browseMapAction = vi.fn(async (..._args: unknown[]) => [])
@@ -124,7 +127,7 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     expect(within(list).queryByText('Old A')).toBeNull()
     expect(within(list).getAllByText(/News$/)).toHaveLength(2)
     await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(SAC.slug, null, expect.objectContaining({ type: 'posts' }), null, null))
-    const box = screen.getByRole('searchbox') as HTMLInputElement
+    const box = screen.getByTestId('search-input') as HTMLInputElement
     fireEvent.change(box, { target: { value: 'older posts' } })
     expect(within(list).queryByText('Newer News')).toBeNull()
     expect(within(list).getByText('Older News')).toBeInTheDocument()

@@ -26,7 +26,7 @@ import { CardGrid } from '@/components/cards'
 import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
-import { ExploreDock } from '@/components/explore/ExploreDock'
+import { MobileBar } from '@/components/shell/MobileBar'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { mapFocusFrom } from '@/lib/browse/map-focus'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
@@ -399,7 +399,7 @@ export function BrowseSurface({
         onOpenFilters={() => setSheetOpen(true)}
         onOpenScope={() => setScopeOpen(true)}
         searchRequest={searchRequest}
-        viewSwitch={layout === 'docked' ? <ListMapToggle view={view} onChange={(v) => showMapView(v === 'map')} /> : undefined}
+        viewSwitch={layout !== 'split' ? <ListMapToggle view={view} onChange={(v) => showMapView(v === 'map')} /> : undefined}
       />
 
       {/* Above the results, and absent for a signed-in Member. */}
@@ -632,16 +632,17 @@ export function BrowseSurface({
         )}
       </div>
 
-      {layout === 'single' && (
-        <ExploreDock
-          view={view}
-          filtersActive={hasBrowseFilters(filters)}
-          onSearch={() => setSearchRequest((n) => n + 1)}
-          onFilter={() => setSheetOpen(true)}
-          onMetro={() => setScopeOpen(true)}
-          onViewChange={(v) => showMapView(v === 'map')}
-        />
-      )}
+      <MobileBar
+        query={query}
+        onQueryChange={setQuery}
+        focusRequest={searchRequest}
+        areaLabel={placeLabel ?? undefined}
+        onOpenScope={() => setScopeOpen(true)}
+        filtersActive={hasBrowseFilters(filters)}
+        onOpenFilters={() => setSheetOpen(true)}
+        view={view}
+        onViewChange={(v) => showMapView(v === 'map')}
+      />
 
       {mapPromptOpen && <SignInPrompt action="map" currentPath="/explore" onClose={() => setMapPromptOpen(false)} />}
 

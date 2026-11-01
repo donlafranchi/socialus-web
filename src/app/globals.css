@@ -6,18 +6,16 @@
   /* #1094 — no bottom bar: one floating ➕ sits bottom-right. Pages keep clear of it via --dock-clearance.
      Lives here, not in @theme — Tailwind v4 only emits namespaced theme keys. */
   /* Explore's sticky search row, measured (#187). */
-  --search-row-h: 61px;
+  --search-row-h: 0px;
 
   /* #294 — design tokens (socialus-owner-page-design/socialus-tokens.css,
      2026-10-01). No colour here: colours above and below stay as they are.
      This file is the single source for visual values. */
-  --dock-size: 56px;
   --nav-top-h: 56px;
   --action-bar-h: 64px;
-  --dock-clearance: calc(var(--dock-size) + 32px + env(safe-area-inset-bottom, 0px));
-  --float-offset: calc(env(safe-area-inset-bottom, 0px) + 16px);
-  --explore-dock-bottom: calc(var(--float-offset) + 6px);
-  --explore-dock-right: calc(var(--dock-size) + 28px);
+  /* #1141 — a phone's bottom bar is 56px; pages and toasts clear it. From 744px up there is none. */
+  --dock-clearance: calc(64px + env(safe-area-inset-bottom, 0px));
+  --float-offset: calc(var(--dock-clearance) + 8px);
   --panel-w: 360px;
   --tap: 44px;
 
@@ -35,6 +33,10 @@
   --z-panel: 50;
   --z-sheet: 60;
   --z-toast: 70;
+}
+
+@media (min-width: 46.5rem) {
+  :root { --search-row-h: 61px; --dock-clearance: 16px; --float-offset: 24px; }
 }
 
 @media (min-width: 1536px) {

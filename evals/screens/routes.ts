@@ -49,11 +49,14 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S012', 'S013'],
     path: () => '/explore',
     act: async (page) => {
-      // Under 1024px the bottom dock opens to the map switch; wider, the map is already beside the list.
-      const dock = page.getByTestId('explore-dock-toggle')
-      if (await dock.isVisible().catch(() => false)) {
-        await dock.click()
-        await page.getByTestId('view-pill').click()
+      // On a phone the ⋯ menu carries the map switch; from 744px the List | Map tabs do; wide and signed in, the map is already beside the list.
+      const more = page.getByTestId('bar-more')
+      if (await more.isVisible().catch(() => false)) {
+        await more.click()
+        await page.getByTestId('bar-menu-view').click()
+      } else {
+        const tab = page.getByRole('tab', { name: 'Map' })
+        if (await tab.isVisible().catch(() => false)) await tab.click()
       }
     },
   },

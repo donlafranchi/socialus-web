@@ -41,7 +41,7 @@
     "readyMs": 164,
     "issue": 530
   },
-  "Explore: map view [settled]": {
+  "Explore: ⋯ menu opens [settled]": {
     "feedbackMs": 41,
     "readyMs": 94
   },
@@ -111,7 +111,7 @@
     "feedbackMs": 46,
     "readyMs": 828
   },
-  "Creator: Create (➕) [settled]": {
+  "Creator: ⋯ menu offers Create [settled]": {
     "feedbackMs": 44,
     "readyMs": 478
   }
