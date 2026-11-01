@@ -23,7 +23,7 @@ describe('createChoices', () => {
     }
   })
 
-  it('with one Page, News opens that Page’s composer', () => {
+  it('with one Page, Update opens that Page’s composer', () => {
     expect(createChoices({ signedIn: true, pages: [sac] }).find((c) => c.id === 'news')!.href).toBe('/g/abc#announce')
   })
 

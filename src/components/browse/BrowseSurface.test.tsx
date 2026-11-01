@@ -116,7 +116,7 @@ describe('T156 — Browse renders Pages, not Items', () => {
       postedAt: '2026-09-02T18:00:00Z',
     })
     render(<BrowseSurface initial={snapshot({ results: [post] })} />)
-    // #256: it keeps the date it was posted; plan #230: in its lead line, as news.
+    // #256: it keeps the date it was posted; plan #230: in its lead line, as an update.
     expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Update · Sep 2/)
   })
 })

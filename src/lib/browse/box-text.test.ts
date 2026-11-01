@@ -92,14 +92,19 @@ describe('the round trip', () => {
   })
 })
 
-describe('#796 — Updates is a word the box knows', () => {
-  it('reads the old "updates" word as posts only', () => {
+describe('#1152 — updates and offers are the kind words; the old words still read', () => {
+  it('reads "updates" as the Update kind, not the old posts-only view', () => {
     const { filters, rest } = readBox('bread updates', [])
-    // #876 — the old word reads as the posts-only Type, and is written as "posts" from then on.
-    expect(filters.type).toBe('posts')
+    expect(filters.type).toBe('all')
+    expect(filters.postKinds).toEqual(['news'])
     expect(rest).toBe('bread')
-    expect(writeBox({ ...filters }, rest)).toBe('bread posts')
-    expect(readBox('bread', []).filters.type).toBe('all')
+    expect(writeBox({ ...filters }, rest)).toBe('bread updates')
+    expect(readBox('bread', []).filters.postKinds).toEqual([])
+  })
+  it('an old link’s sales and news read as Offers and Updates and are written back as the new words', () => {
+    const { filters } = readBox('sales news', [])
+    expect(filters.postKinds).toEqual(['sale', 'news'])
+    expect(writeBox(filters)).toBe('offers updates')
   })
 })
 

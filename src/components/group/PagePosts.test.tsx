@@ -987,7 +987,7 @@ describe('plan #230 — the composer: kind, headline, details', () => {
   afterEach(() => vi.useRealTimers())
   const kindRadio = (name: string) => screen.getByRole('radio', { name })
 
-  it('offers the seven kinds first, News picked to start', () => {
+  it('offers the seven kinds first, Update picked to start', () => {
     renderPosts()
     const group = screen.getByRole('radiogroup', { name: 'What is it?' })
     expect(group).toBeInTheDocument()
