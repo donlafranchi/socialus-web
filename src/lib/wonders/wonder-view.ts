@@ -1,5 +1,6 @@
 // F117 — what one viewer may see of a Wonder, from the database's wonder_view projection.
-// The size split, names and every offer arrive only for the Page's managers; the database decides that.
+// Who is in arrives by name for every viewer (inNames, newest first, at most 50); the size split, each person's
+// size and every offer arrive only for the Page's managers. The database decides that.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { WonderRole } from './roles'
 
@@ -10,6 +11,7 @@ export interface WonderView {
   mine: { option: string | null } | null
   myOffers: { id: string; role: WonderRole; status: 'pending' | 'accepted' | 'declined' }[]
   helpers: { name: string; role: WonderRole }[]
+  inNames?: string[]
   byOption?: { option: string; count: number }[]
   people?: { name: string; option: string | null }[]
   offers?: { id: string; name: string; role: WonderRole; note: string | null; status: 'pending' | 'accepted' | 'declined' }[]
