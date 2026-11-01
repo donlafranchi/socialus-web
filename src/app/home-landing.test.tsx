@@ -6,11 +6,8 @@ import HomeLanding from './page'
 import { HOME, HOME_TODO } from '@/lib/home-landing'
 import { navHidden } from '@/components/BottomNav'
 
-// page.tsx pulls a webfont through next/font/google, which needs a Next build.
-vi.mock('next/font/google', () => ({
-  Newsreader: () => ({ variable: '--font-serif', className: 'serif' }),
-  Source_Sans_3: () => ({ variable: '--font-landing', className: 'sans' }),
-}))
+// page.tsx loads its webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
 
 afterEach(cleanup)
 
