@@ -3,7 +3,7 @@
 // publish step and card components. Each check claims its whole criterion.
 
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, cleanup, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { Pool, type PoolClient } from 'pg'
 import { createClient } from '@supabase/supabase-js'
@@ -127,7 +127,7 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
   afterEach(cleanup)
 
   // [guards F082.1]
-  it('every new Page asks for the agreement again, the publish step always starts unagreed, and creator status is the record, never a role, account type or mode column', async () => {
+  it('every new Page asks for the agreement again, the publish step says the Terms apply, and creator status is the record, never a role, account type or mode column', async () => {
     // The first Page: agreed, published, recorded for that Page.
     await groupActivate(ctx(), { groupId: FIRST, tags: [TAG], rulesVersion: RULES_VERSION })
     expect(await state(FIRST)).toBe('active')
@@ -140,11 +140,10 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     await groupActivate(ctx(), { groupId: SECOND, tags: [TAG], rulesVersion: RULES_VERSION })
     expect(await agreements(SECOND)).toEqual([{ member_id: OWNER, rules_version: RULES_VERSION }])
 
-    // The publish step asks every time: nothing pre-ticks it, and Publish waits for the tick.
-    const onPublish = async () => {}
-    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={onPublish} />)
-    expect(screen.getByRole('checkbox', { name: /i agree/i })).not.toBeChecked()
-    expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
+    // The publish step carries the one Terms line, and Publish needs no tick (Don, 2026-10-31).
+    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={async () => {}} />)
+    expect(screen.queryByRole('checkbox')).toBeNull()
+    expect(screen.getByTestId('publish-terms')).toHaveTextContent('By posting you agree to the Terms.')
     expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled()
 
     // No stored role, account type or mode flag on a member or a Page.
