@@ -6,7 +6,8 @@ import type { WonderRole } from './roles'
 
 export interface WonderView {
   total: number
-  threshold: number
+  /** Null: the poster set no goal, so there is a count and no bar. */
+  threshold: number | null
   options: string[]
   mine: { option: string | null } | null
   myOffers: { id: string; role: WonderRole; status: 'pending' | 'accepted' | 'declined' }[]

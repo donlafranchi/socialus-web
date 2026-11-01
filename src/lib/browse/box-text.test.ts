@@ -106,5 +106,10 @@ describe('#1152 — updates and offers are the kind words; the old words still r
     expect(filters.postKinds).toEqual(['sale', 'news'])
     expect(writeBox(filters)).toBe('offers updates')
   })
-})
 
+  it('Proposals is the word for the proposal kind; an old link\'s "count me in" still reads as it', () => {
+    expect(writeBox({ ...DEFAULT_BROWSE_FILTERS, postKinds: ['wonder'] })).toBe('proposals')
+    expect(readBox('proposals', KNOWN).filters.postKinds).toEqual(['wonder'])
+    expect(readBox('count me in', KNOWN).filters.postKinds).toEqual(['wonder'])
+  })
+})

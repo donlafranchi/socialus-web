@@ -45,9 +45,10 @@ describe('plan #230 — the card lead line: KIND · WHEN · WHERE, from fields o
     expect(leadLine({ kind: 'news' }, NOW)).toBe('Update')
   })
 
-  it('a Wonder counts who is in toward its threshold', () => {
-    expect(leadLine({ kind: 'wonder', wonder: { in: 12, threshold: 30 } }, NOW)).toBe('Count me in · 12 of 30')
-    expect(leadLine({ kind: 'wonder' }, NOW)).toBe('Count me in')
+  it('a Proposal counts who is in, toward its goal when it has one', () => {
+    expect(leadLine({ kind: 'wonder', wonder: { in: 12, threshold: 30 } }, NOW)).toBe('Proposal · 12 of 30')
+    expect(leadLine({ kind: 'wonder', wonder: { in: 4, threshold: null } }, NOW)).toBe('Proposal · 4 in')
+    expect(leadLine({ kind: 'wonder' }, NOW)).toBe('Proposal')
   })
 
   it('a sample says Sample once, in front of the kind', () => {

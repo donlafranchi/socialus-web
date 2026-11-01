@@ -11,7 +11,7 @@ const KIND_WORD: Record<PostKind, string> = {
   limited: 'limited',
   reminder: 'reminders',
   news: 'updates',
-  wonder: 'count me in',
+  wonder: 'proposals',
   hiring: 'hiring',
 }
 /** plan #230, #1152 — an old link's kind words, read as today's kinds and never written again. */
@@ -20,6 +20,7 @@ const LEGACY_KIND_WORD: [string, PostKind][] = [
   ['sales', 'sale'],
   ['last-minute', 'limited'],
   ['news', 'news'],
+  ['count me in', 'wonder'],
 ]
 export const FOLLOWING_WORD = 'following'
 /** #892 — the words, not the tags: a shared link carries no one's interests, and each reader's own apply. */

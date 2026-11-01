@@ -58,7 +58,7 @@ export const POST_KIND_OPTIONS = [
   { value: 'limited', label: 'Limited' },
   { value: 'reminder', label: 'Reminders' },
   { value: 'news', label: 'Updates' },
-  { value: 'wonder', label: 'Count me in' },
+  { value: 'wonder', label: 'Proposals' },
   { value: 'hiring', label: 'Hiring' },
 ] as const satisfies readonly { value: PostKind; label: string }[]
 

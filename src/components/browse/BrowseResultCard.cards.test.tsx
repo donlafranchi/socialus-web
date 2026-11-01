@@ -103,7 +103,7 @@ describe('the post card: what it is, first', () => {
     expect(screen.getByTestId('tile-title')).toHaveTextContent(/^New rye loaves\.$/)
   })
 
-  for (const [kind, word] of [['event', 'Event'], ['sale', 'Offer'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'Update'], ['wonder', 'Count me in'], ['hiring', 'Hiring']] as const) {
+  for (const [kind, word] of [['event', 'Event'], ['sale', 'Offer'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'Update'], ['wonder', 'Proposal'], ['hiring', 'Hiring']] as const) {
     it(`leads a ${kind} post with ${word}`, () => {
       render(<BrowseResultCard result={post({ postKind: kind, headline: 'One line' })} now={NOW} />)
       expect(screen.getByTestId('browse-post-lead').textContent!.startsWith(word)).toBe(true)

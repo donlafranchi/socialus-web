@@ -13,7 +13,7 @@ export const POST_KIND_WORD: Record<PostKind, string> = {
   limited: 'Limited',
   reminder: 'Reminder',
   news: 'Update',
-  wonder: 'Count me in',
+  wonder: 'Proposal',
   hiring: 'Hiring',
 }
 
@@ -24,7 +24,7 @@ export const POST_KIND_HINT: Record<PostKind, string> = {
   limited: 'Only a few, while they last.',
   reminder: 'A nudge about something coming up.',
   news: 'An update from your Page.',
-  wonder: 'See if enough Locals are in before you commit.',
+  wonder: 'Propose a thing and see who’s in or would help.',
   hiring: 'A job or a role to fill.',
 }
 

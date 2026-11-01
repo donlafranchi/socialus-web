@@ -52,7 +52,8 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { PostKindPicker } from './PostKindPicker'
-import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, SAMPLE_POST_KIND, isPostKind, needsDate, type PostKind } from '@/lib/posts/kinds'
+import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, SAMPLE_POST_KIND, needsDate, type PostKind } from '@/lib/posts/kinds'
+import { kindFromComposeParam } from '@/lib/create/create-targets'
 import { cardHeadline, leadLine, venueShow, SAMPLE_PREFIX } from '@/lib/posts/lead-line'
 import { postPath } from '@/lib/posts/post-path'
 import { pageTimeline } from '@/lib/posts/timeline'
@@ -101,7 +102,7 @@ interface PostInput {
   /** F074.1 — weekly on chosen weekdays; this post is the first occurrence. */
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
   /** F117 — a Wonder: a threshold and optional sizes. */
-  wonder?: { threshold: number; options?: string[] }
+  wonder?: { threshold?: number; options?: string[] }
   /** plan #230 — what it is, and its one line. */
   kind?: PostKind
   headline?: string
@@ -122,9 +123,9 @@ const EDIT_KINDS = POST_KINDS.filter((k) => k !== 'wonder')
 const splitOptions = (raw: string) => [...new Set(raw.split(',').map((o) => o.trim().slice(0, WONDER_OPTION_MAX)).filter(Boolean))].slice(0, WONDER_OPTIONS_MAX)
 
 /** F117 — what a Wonder shows before the server has a view of it: nobody in yet. */
-const freshWonder = (w: { threshold: number; options: string[] }, manages: boolean): WonderView => ({
+const freshWonder = (w: { threshold?: number | null; options: string[] }, manages: boolean): WonderView => ({
   total: 0,
-  threshold: w.threshold,
+  threshold: w.threshold ?? null,
   options: w.options,
   mine: null,
   myOffers: [],
@@ -281,7 +282,7 @@ export function PagePosts({
   const [when, setWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
   const [audience, setAudience] = useState<Audience>('anyone')
   const [photo, setPhoto] = useState<string | null>(null)
-  // F117 — the composer's Wonder (the Count me in kind): how many, and the sizes.
+  // F117 — the composer's Proposal (internally a wonder): an optional goal, and the sizes.
   const asWonder = kind === 'wonder'
   const [threshold, setThreshold] = useState('')
   const [options, setOptions] = useState('')
@@ -341,10 +342,10 @@ export function PagePosts({
     const open = () => {
       if (window.location.hash !== `#${ANNOUNCE_ANCHOR}`) return
       // #1094 — the ➕ sheet arrives with the chosen kind already picked.
-      const composeKind = new URLSearchParams(window.location.search).get('compose')
+      const composeKind = kindFromComposeParam(new URLSearchParams(window.location.search).get('compose'))
       requestAnimationFrame(() => {
         setComposing(true)
-        if (isPostKind(composeKind)) {
+        if (composeKind) {
           setWhen((w) => whenForKind('news', composeKind, w, new Date()))
           setKind(composeKind)
         }
@@ -482,12 +483,13 @@ export function PagePosts({
       setError(FOLLOWERS_NOT_YET)
       return
     }
-    const goal = Number(threshold)
-    if (asWonder && !(Number.isInteger(goal) && goal >= 1)) {
+    // plan #218 (2026-11-01) — the goal number is optional; blank means a count with no bar.
+    const goal = threshold.trim() === '' ? null : Number(threshold)
+    if (asWonder && goal !== null && !(Number.isInteger(goal) && goal >= 1)) {
       setError(COPY.wonderThresholdInvalid)
       return
     }
-    const wonder = asWonder ? { threshold: goal, options: splitOptions(options) } : null
+    const wonder = asWonder ? { ...(goal !== null ? { threshold: goal } : {}), options: splitOptions(options) } : null
     setBusy(true)
     setError(null)
 
@@ -533,7 +535,7 @@ export function PagePosts({
         photoUrl: photo,
         kind,
         headline: line || null,
-        ...(wonder ? { wonder } : {}),
+        ...(wonder ? { wonder: { threshold: wonder.threshold ?? null, options: wonder.options } } : {}),
       },
       ...items,
     ])
