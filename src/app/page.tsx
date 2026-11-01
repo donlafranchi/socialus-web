@@ -1,17 +1,24 @@
 // `/` is the signed-out front door (2026-10-26). A signed-in member never sees
 // it: the proxy sends them to Explore, so this page reads no session and stays
 // static. Look: Don's concept (2026-10-31) — warm off-white, terracotta, sage,
-// a dark footer; a serif for headings, a humanist sans for reading.
+// a dark footer — set in Family Type's Aime, Don's pick (2026-10-31).
 
 import Link from 'next/link'
-import { Newsreader, Source_Sans_3 } from 'next/font/google'
+import localFont from 'next/font/local'
 import { ART, CONSENT_LINE, HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
 
-const serif = Newsreader({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-serif', display: 'swap' })
-const sans = Source_Sans_3({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-landing', display: 'swap' })
+// TODO(Don): these are Family Type's trial files (ASCII only, evaluation licence); swap in the Brand Licence WOFF2s once bought.
+const aime = localFont({
+  src: [
+    { path: './fonts/aime-regular.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/aime-semibold.woff2', weight: '600', style: 'normal' },
+  ],
+  variable: '--font-landing',
+  display: 'swap',
+})
 
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
-const SERIF = 'font-serif font-normal tracking-tight'
+const HEAD = 'font-normal tracking-tight'
 const WRAP = 'mx-auto w-full max-w-landing gutter md:px-10'
 const BTN = 'press inline-flex min-h-tap items-center justify-center rounded-xs px-6 text-body font-semibold hover:no-underline'
 const PRIMARY = `${BTN} bg-[var(--color-clay)] text-[var(--color-paper)] hover:bg-[var(--color-clay-deep)]`
@@ -19,10 +26,10 @@ const SECONDARY = `${BTN} border border-[var(--color-ink-muted)] text-[var(--col
 
 export default function HomeLanding() {
   return (
-    <div className={`landing ${serif.variable} ${sans.variable} min-h-full font-[family-name:var(--font-landing)] text-body`}>
+    <div className={`landing ${aime.variable} min-h-full font-[family-name:var(--font-landing)] text-body`}>
       <header className="border-b border-[var(--color-rule)]">
         <nav aria-label="Primary" className={`${WRAP} flex items-center gap-8 py-4`}>
-          <Link href="/" className={`${SERIF} text-title-1 font-medium text-[var(--color-ink)]`}>
+          <Link href="/" className={`${HEAD} text-title-1 text-[var(--color-ink)]`}>
             SocialUs
           </Link>
           <ul className="ml-auto hidden items-center gap-6 md:flex">
@@ -54,7 +61,7 @@ export default function HomeLanding() {
             className="h-auto w-full rounded-xs md:flex-1"
           />
           <div className="md:flex-1">
-            <h1 className={`${SERIF} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
+            <h1 className={`${HEAD} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
               {HOME.hero.lines[0]}
               <br />
               {HOME.hero.lines[1]}
@@ -84,7 +91,7 @@ export default function HomeLanding() {
             <ul className="grid gap-6 md:grid-cols-3 md:gap-8">
               {HOME.can.map((c) => (
                 <li key={c.id} id={c.id} className="scroll-mt-4 rounded-xs border border-[var(--color-rule)] bg-white p-8">
-                  <h3 className={`${SERIF} text-title-1 font-medium text-[var(--color-ink)]`}>{c.title}</h3>
+                  <h3 className={`${HEAD} text-title-1 text-[var(--color-ink)]`}>{c.title}</h3>
                   <p className="mt-4 text-[var(--color-ink-muted)]">{c.body}</p>
                 </li>
               ))}
@@ -94,7 +101,7 @@ export default function HomeLanding() {
 
         <section id="why" className="scroll-mt-4 bg-white py-16 md:py-24">
           <div className={`${WRAP} flex flex-col gap-8 text-center md:flex-row md:gap-16 md:text-left`}>
-            <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-ink)] md:flex-1`}>{HOME.why.title}</h2>
+            <h2 className={`${HEAD} text-section md:text-section-lg text-[var(--color-ink)] md:flex-1`}>{HOME.why.title}</h2>
             <div className="mx-auto max-w-read md:mx-0 md:flex-1">
               {HOME.why.body.map((p, i) => (
                 <p key={p} className={`${i ? 'mt-5' : 'font-semibold text-[var(--color-ink)]'} text-lede text-[var(--color-ink-muted)]`}>
@@ -108,7 +115,7 @@ export default function HomeLanding() {
         <section className="bg-[var(--color-sage)] py-16 md:py-24">
           <div className={`${WRAP} flex flex-col items-center gap-10 text-center md:flex-row md:gap-16 md:text-left`}>
             <div className="max-w-read md:flex-1">
-              <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-ink)]`}>{HOME.thirdSpaces.title}</h2>
+              <h2 className={`${HEAD} text-section md:text-section-lg text-[var(--color-ink)]`}>{HOME.thirdSpaces.title}</h2>
               {HOME.thirdSpaces.body.map((p, i) => (
                 <p key={p} className={`${i ? 'mt-5' : 'mt-6 font-semibold'} text-lede text-[var(--color-ink)]`}>
                   {p}
@@ -131,7 +138,7 @@ export default function HomeLanding() {
 
         <section id="join" className="on-dark scroll-mt-4 bg-[var(--color-clay)] py-16 text-center md:py-24">
           <div className={`${WRAP} max-w-read`}>
-            <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-paper)]`}>{HOME.launch.title}</h2>
+            <h2 className={`${HEAD} text-section md:text-section-lg text-[var(--color-paper)]`}>{HOME.launch.title}</h2>
             {HOME.launch.body.map((p) => (
               <p key={p} className="mt-6 text-lede font-semibold text-[var(--color-paper)]">
                 {p}
@@ -150,7 +157,7 @@ export default function HomeLanding() {
       <footer className="on-dark bg-[var(--color-ink)] py-10 text-[var(--color-paper)]">
         <div className={`${WRAP} flex flex-col gap-8 md:flex-row md:justify-between`}>
           <div>
-            <p className={`${SERIF} text-title-1 font-medium`}>SocialUs</p>
+            <p className={`${HEAD} text-title-1`}>SocialUs</p>
             <p className="mt-1 text-body-sm text-[var(--color-ink-soft)]">{HOME.footer.line}</p>
           </div>
           <div className="flex gap-12">
