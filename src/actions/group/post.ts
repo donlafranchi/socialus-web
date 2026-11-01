@@ -84,6 +84,7 @@ const kind = z.enum(POST_KINDS).optional()
 const headline = z.string().trim().min(1).max(HEADLINE_MAX).optional()
 const SALE_TOO_LONG = `A sale can run up to ${SALE_MAX_DAYS} days from today.`
 const PROPOSAL_ONLY_NEW = 'A post can’t become a Proposal once it’s up. Start a new one to propose something.'
+const PROPOSAL_STAYS = 'A Proposal stays a Proposal. Start a new post for something else.'
 
 function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: string | null | undefined, now: Date) {
   if (needsDate(k) && !startsAt) throw new ValidationError(DATE_NEEDED[k as keyof typeof DATE_NEEDED])
@@ -372,6 +373,8 @@ export const groupPostEdit = defineHandler(
       await requireManagingRole(client, 'group.post_edit', post.group_id, memberId)
       // plan #230 — the kind and the date are checked together: a dated kind keeps a date.
       if (input.kind === 'wonder' && post.kind !== 'wonder') throw new ValidationError(PROPOSAL_ONLY_NEW)
+      // Its in and helper rows belong to it; the database no longer stops a goal-less one changing kind.
+      if (post.kind === 'wonder' && input.kind !== undefined && input.kind !== 'wonder') throw new ValidationError(PROPOSAL_STAYS)
       if (input.kind !== undefined || input.startsAt !== undefined) {
         const k = (input.kind ?? post.kind ?? 'news') as PostKind
         const start = input.startsAt !== undefined ? input.startsAt : post.starts_at ? new Date(post.starts_at).toISOString() : null
