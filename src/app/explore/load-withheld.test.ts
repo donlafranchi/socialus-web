@@ -215,7 +215,7 @@ describe("what's happening", () => {
   })
 
   // [guards F091.5]
-  it('the same link reopens the same rows: same scope and clock give the same read whatever the session seed, and the old ?q=updates link still means posts', async () => {
+  it('the same link reopens the same rows: same scope and clock give the same read whatever the session seed, and an old ?q=updates link now means the Update kind (#1152: posts, narrowed to updates)', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-10-25T12:00:00Z'))
     try {
@@ -229,7 +229,9 @@ describe("what's happening", () => {
       vi.useRealTimers()
     }
     const { readBox } = await import('@/lib/browse/box-text')
-    expect(readBox('updates', []).filters.type).toBe('posts')
+    const reread = readBox('updates', []).filters
+    expect(reread.postKinds).toEqual(['news'])
+    expect(reread.type).toBe('all')
   })
 
   it('signed in, hands the rows to the surface', async () => {
