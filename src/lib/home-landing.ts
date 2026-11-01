@@ -11,6 +11,9 @@ export const HOME_TODO = {
 
 const T = HOME_TODO
 
+// TODO(Don): Don's one-line ethos goes here (coming). Null leaves the spot empty on the landing page and the welcome screen.
+export const ETHOS_LINE: string | null = null
+
 // TODO(Don): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
 export const CONSENT_LINE: string | null = null
 

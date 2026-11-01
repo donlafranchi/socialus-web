@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { safeNext } from '@/lib/safe-next'
 import { HOME } from '@/lib/home-landing'
-import { aime, CanBlocks, HEAD, HeroHeadline, PRIMARY, WRAP } from '@/components/landing/landing-shared'
+import { aime, CanBlocks, EthosSpot, HEAD, HeroHeadline, PRIMARY, WRAP } from '@/components/landing/landing-shared'
 import { MarkWelcomed } from './MarkWelcomed'
 
 export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
@@ -33,6 +33,7 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
             </p>
           ))}
         </div>
+        <EthosSpot className="mt-10 text-center md:text-left" />
         <section aria-labelledby="welcome-can" className="mt-12">
           <h2 id="welcome-can" className="sr-only">
             {HOME.hero.secondary}

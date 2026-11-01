@@ -11,7 +11,6 @@ import { navHidden } from '@/components/shell/nav-hidden'
 
 const LINKS = [
   { href: '/about', label: 'About' },
-  { href: '/rules', label: 'Rules' },
   { href: '/terms', label: 'Terms' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/report', label: 'Report a problem with the app' },

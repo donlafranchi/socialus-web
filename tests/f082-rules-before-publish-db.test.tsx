@@ -21,11 +21,11 @@ vi.mock('next/navigation', () => ({
 import { groupActivate } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
-import { CREATOR_RULES, RULES_VERSION } from '@/lib/creator-rules'
+import { RULES_VERSION } from '@/lib/creator-rules'
 import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { BrowseResultCard } from '@/components/browse/BrowseResultCard'
 import { getBrowseFeed } from '@/lib/feed/browse-feed'
-import RulesPage from '@/app/rules/page'
+import { TEXT_PAGES } from '@/lib/text-pages'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const ANON_KEY = process.env.SUPABASE_ANON_KEY
@@ -145,7 +145,6 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={onPublish} />)
     expect(screen.getByRole('checkbox', { name: /i agree/i })).not.toBeChecked()
     expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
-    fireEvent.click(screen.getByRole('checkbox', { name: /i agree/i }))
     expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled()
 
     // No stored role, account type or mode flag on a member or a Page.
@@ -232,29 +231,11 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     // The publish step says the photo is optional and lets a photoless Page through.
     render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={async () => {}} />)
     expect(screen.getByTestId('publish-item-photo').textContent).toMatch(/optional/i)
-    fireEvent.click(screen.getByRole('checkbox', { name: /i agree/i }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled())
   })
 
-  // [guards F082.9]
-  // The rules page carries the rule line alone since 2026-10-27 (the PM: only the necessary); the reason stays on the publish step.
-  it('one of the rules is the photo rule: with its reason on the publish step, the rule line on the rules page', () => {
-    const plain = (s: string) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim()
-    // The scenario's draft wording (F082 criterion 9).
-    const RULE = 'No pictures of children.'
-    const REASON = "Please don't post a photo that shows a child. We can't check every photo, so we count on you."
-    const photoRule = CREATOR_RULES.find((r) => plain(r.rule) === RULE)
-    expect(photoRule, 'the photo rule').toBeDefined()
-    expect(plain(photoRule!.reason)).toBe(REASON)
-
-    render(<BeforeYouPublish editPath="/x" hasName={false} hasPlace={false} hasDescription={false} hasTags={false} hasPhoto={false} onPublish={async () => {}} />)
-    const step = plain(screen.getByTestId('creator-rules').textContent ?? '')
-    expect(step).toContain(RULE)
-    expect(step).toContain(REASON)
-    cleanup()
-
-    const { container } = render(<RulesPage />)
-    const page = plain(container.textContent ?? '')
-    expect(page).toContain(RULE)
+  // [guards F082.9] (Don, 2026-10-31: the rules page and the four-rule step are gone; the photo rule is in the Terms.)
+  it('the photo rule is in the Terms', () => {
+    expect(TEXT_PAGES.terms.body.join(' ')).toMatch(/No photos of kids/)
   })
 })

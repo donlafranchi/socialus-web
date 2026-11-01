@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Don, 2026-10-31: the Rules page is gone; its rules live in the Terms.
+      { source: '/rules', destination: '/terms', statusCode: 301 },
       // `/` is the signed-out front door now; the proxy sends a signed-in member to Explore.
       // `/following` is the pre-rebuild duplicate of the shipped `/you/following`.
       // The route file is still on disk; this shadows it, so the address answers

@@ -2,7 +2,7 @@
 // strings, the hero headline and the "What you can do" blocks, so the two cannot drift apart.
 
 import localFont from 'next/font/local'
-import { HOME } from '@/lib/home-landing'
+import { ETHOS_LINE, HOME } from '@/lib/home-landing'
 
 // TODO(Don): these are Family Type's trial files (ASCII only, evaluation licence); swap in the Brand Licence WOFF2s once bought.
 export const aime = localFont({
@@ -40,5 +40,15 @@ export function CanBlocks() {
         </li>
       ))}
     </ul>
+  )
+}
+
+/** The spot for Don's one-line ethos (coming): nothing renders until ETHOS_LINE has words. */
+export function EthosSpot({ className = '' }: { className?: string }) {
+  if (!ETHOS_LINE) return null
+  return (
+    <p data-testid="ethos" className={`${HEAD} text-title-1 text-[var(--color-ink)] ${className}`}>
+      {ETHOS_LINE}
+    </p>
   )
 }

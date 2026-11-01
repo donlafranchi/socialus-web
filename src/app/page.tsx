@@ -5,7 +5,7 @@
 
 import Link from 'next/link'
 import { ART, CONSENT_LINE, HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
-import { aime, BTN, CanBlocks, HEAD, HeroHeadline, PRIMARY, SECONDARY, WRAP } from '@/components/landing/landing-shared'
+import { aime, BTN, CanBlocks, EthosSpot, HEAD, HeroHeadline, PRIMARY, SECONDARY, WRAP } from '@/components/landing/landing-shared'
 
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
 
@@ -63,6 +63,8 @@ export default function HomeLanding() {
             <p className="mt-6 text-body-sm font-semibold text-[var(--color-ink-muted)]">{HOME.hero.launch}</p>
           </div>
         </section>
+
+        <EthosSpot className={`${WRAP} pt-4 text-center`} />
 
         <section id="what-you-can-do" aria-labelledby="what-you-can-do-title" className="scroll-mt-4 py-12 md:py-16">
           <div className={WRAP}>
