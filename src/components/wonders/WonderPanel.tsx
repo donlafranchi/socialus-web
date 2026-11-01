@@ -1,6 +1,6 @@
 'use client'
 
-// F117 — a Wonder on its post card. Everyone who can see the post sees the bar and the accepted helpers;
+// F117 — a Wonder on its post card. Everyone who can see the post sees the bar, who is in by name and the accepted helpers;
 // a visitor says I'm in (with a size) or offers to help; the Page's managers see the split, who is in and
 // every offer, and accept or decline. What reaches this component is already only what the viewer may see.
 
@@ -127,6 +127,11 @@ export function WonderPanel({
           </span>
           {view.total >= view.threshold && <span className="text-[var(--color-fg-muted)]">{COPY.wonderReached}</span>}
         </p>
+        {view.inNames && view.inNames.length > 0 && (
+          <p data-testid="wonder-in-names" className="mt-1 text-body-sm text-[var(--color-fg-muted)]">
+            {COPY.wonderInNames(view.inNames, view.total)}
+          </p>
+        )}
       </div>
 
       {view.helpers.length > 0 && (

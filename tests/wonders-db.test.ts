@@ -48,6 +48,7 @@ type View = {
   myOffers: { id: string; role: string; status: string }[]
   helpers: { name: string; role: string }[]
   byOption?: { option: string; count: number }[]
+  inNames: string[]
   people?: { name: string; option: string | null }[]
   offers?: { id: string; name: string; role: string; note: string | null; status: string }[]
 }
@@ -192,14 +193,20 @@ describe.skipIf(!RUNNABLE)('F117 — a Wonder', () => {
   })
 
   // [guards F117.7]
-  it("nobody sees who is in except the poster, who sees names and sizes; a member sees their own", async () => {
+  it("anyone who can see it sees who is in by name; only the poster sees each size; a member sees their own", async () => {
     await wonderJoin(ctx(DANA), { postId: WONDER, option: 'S' })
+    await q(`update public.wonder_interest set created_at = now() - interval '1 minute' where post_id = $1 and member_id = $2`, [WONDER, DANA])
     await wonderJoin(ctx(EVE), { postId: WONDER, option: 'M' })
     expect((await view(POSTER, WONDER))!.people!.map((p) => [p.name, p.option]).sort()).toEqual([['Dana', 'S'], ['Eve', 'M']])
     const dana = (await view(DANA, WONDER))!
     expect(dana.mine).toEqual({ option: 'S' })
     expect(dana.people).toBeUndefined()
-    expect((await view(FRAN, WONDER))!.mine).toBeNull()
+    const fran = (await view(FRAN, WONDER))!
+    expect(fran.mine).toBeNull()
+    expect(fran.inNames).toEqual(['Eve', 'Dana'])
+    expect(fran.people).toBeUndefined()
+    expect((await view(POSTER, WONDER))!.inNames).toEqual(['Eve', 'Dana'])
+    expect((await view(FRAN, PLAIN_WONDER))!.inNames).toEqual([])
     expect(await as(DANA, `select member_id, option from public.wonder_interest where post_id = $1`, [WONDER])).toEqual([{ member_id: DANA, option: 'S' }])
     expect(await as(FRAN, `select member_id from public.wonder_interest where post_id = $1`, [WONDER])).toEqual([])
     expect(await as(POSTER, `select count(*)::int as n from public.wonder_interest where post_id = $1`, [WONDER])).toEqual([{ n: 2 }])

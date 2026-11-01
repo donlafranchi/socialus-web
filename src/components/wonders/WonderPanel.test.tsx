@@ -83,8 +83,25 @@ describe('WonderPanel', () => {
     await waitFor(() => expect(a.decide).toHaveBeenCalledWith({ offerId: 'o9', decision: 'accepted' }))
   })
 
+  // [guards F117.7 partial: the database withholding each size from all but the poster]
+  it("anyone who can see it sees who is in by name, never their size", () => {
+    const { rerender } = render(
+      <WonderPanel postId="p" view={{ ...base, total: 15, inNames: ['Ana', 'Ben', 'Cy', 'Dee'] }} loggedIn={false} canManage={false} returnTo="/g/x" actions={actions()} />,
+    )
+    const line = screen.getByTestId('wonder-in-names')
+    expect(line.textContent).toBe(COPY.wonderInNames(['Ana', 'Ben', 'Cy', 'Dee'], 15))
+    expect(line.textContent).toBe('Ana, Ben, Cy and 12 more are in')
+    expect(line.textContent).not.toMatch(/\bS\b|\bM\b|\bL\b/)
+    rerender(<WonderPanel postId="p" view={{ ...base, total: 2, inNames: ['Ana', 'Ben'] }} loggedIn canManage={false} returnTo="/g/x" actions={actions()} />)
+    expect(screen.getByTestId('wonder-in-names').textContent).toBe('Ana and Ben are in')
+    rerender(<WonderPanel postId="p" view={{ ...base, total: 1, inNames: ['Ana'] }} loggedIn canManage={false} returnTo="/g/x" actions={actions()} />)
+    expect(screen.getByTestId('wonder-in-names').textContent).toBe('Ana is in')
+    rerender(<WonderPanel postId="p" view={{ ...base, total: 0, inNames: [] }} loggedIn canManage={false} returnTo="/g/x" actions={actions()} />)
+    expect(screen.queryByTestId('wonder-in-names')).toBeNull()
+  })
+
   // [guards F117.4 partial: the database withholding the split from others]
-  it('a visitor sees no size split and no names', () => {
+  it('a visitor sees no size split and no sizes by name', () => {
     render(<WonderPanel postId="p" view={{ ...base, total: 3 }} loggedIn canManage={false} returnTo="/g/x" actions={actions()} />)
     expect(screen.queryByTestId('wonder-sizes')).toBeNull()
     expect(screen.queryByTestId('wonder-people')).toBeNull()
