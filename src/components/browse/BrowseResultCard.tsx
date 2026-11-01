@@ -181,17 +181,17 @@ function PostCard(props: CardProps) {
       imageUrl={photo}
       // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
       // bottom corner, level with the Page's name, rather than on a row of its own.
-      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[18rem]:right-[6.25rem]"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[18rem]:right-25"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
     >
       {/* #1127 — a wide card (a phone's full width) sets the small photo beside the words; a narrow grid tile (desktop)
           sets it above them as a short strip, so the words keep the tile's whole width. */}
       <div data-testid="browse-post-body" className="flex flex-col-reverse gap-2.5 p-3 @[18rem]:flex-row @[18rem]:gap-3">
         <div data-testid="tile-text" className="min-w-0 flex-1">
-          {/* #1127 — one line. A long where is cut short; with too little room for it (under 4.5rem) it wraps onto a
+          {/* #1127 — one line. A long where is cut short; with too little room for it (under 4.5rem, basis-18) it wraps onto a
               second line the fixed height hides, so a lead never ends in a bare "· …". */}
           <p data-testid="browse-post-lead" className={`${SMALL_CAPS} flex h-4 min-w-0 flex-wrap overflow-hidden whitespace-nowrap font-bold leading-4 text-[var(--color-fg)]`}>
             <span data-testid="browse-post-lead-head" className="max-w-full shrink-0 truncate">{lead.head}</span>
-            {lead.where && <span data-testid="browse-post-lead-where" className="min-w-0 grow basis-[4.5rem] truncate">&nbsp;· {lead.where}</span>}
+            {lead.where && <span data-testid="browse-post-lead-where" className="min-w-0 grow basis-18 truncate">&nbsp;· {lead.where}</span>}
           </p>
           {headline && (
             <p data-testid="tile-title" className="mt-1 line-clamp-1 text-body font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">

@@ -152,7 +152,7 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     expect(where).toHaveTextContent(/^· East Sacramento near the river$/)
     expect(where.className).toMatch(/truncate/)
     expect(within(lead).getByTestId('browse-post-lead-head').className).toMatch(/shrink-0/)
-    expect(where.className).toMatch(/basis-\[4\.5rem\]/)
+    expect(where.className).toMatch(/basis-18/)
   })
 
   it('stacks the photo above the words in a narrow grid tile, and sits it beside them in a wide one', () => {
@@ -182,7 +182,7 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     // The Page name's row leaves room for the 44px button (padding 12 + 40 ≥ 6 + 44).
     expect(screen.getByTestId('tile-kind-row').className).toMatch(/\bpr-10\b/)
     // Beside the photo in a wide card, never on top of it.
-    expect(share.className).toMatch(/@\[18rem\]:right-\[6\.25rem\]/)
+    expect(share.className).toMatch(/@\[18rem\]:right-25/)
     expect(screen.getByTestId('tile-card').className).toMatch(/relative/)
   })
 
