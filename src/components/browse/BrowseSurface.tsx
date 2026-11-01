@@ -373,7 +373,8 @@ export function BrowseSurface({
     areaLabel: placeLabel ?? null,
     onOpenScope: () => setScopeOpen(true),
     filtersActive: filtered,
-    onOpenFilters: () => setSheetOpen(true),
+    // With no area there is no filter sheet: the search offers none.
+    onOpenFilters: snapshot.metro ? () => setSheetOpen(true) : undefined,
     focusRequest: searchRequest,
     view: snapshot.metro && layout !== 'split' ? view : undefined,
     onViewChange: (v) => showMapView(v === 'map'),

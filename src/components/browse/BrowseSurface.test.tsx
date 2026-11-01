@@ -199,7 +199,8 @@ describe('T156 — the empty and failed states are different things', () => {
   it('no resolvable scope suppresses the controls', () => {
     renderExplore(<BrowseSurface initial={snapshot({ metro: null, results: [] })} />)
     expect(screen.getByTestId('feed-no-place')).toBeInTheDocument()
-    expect(screen.queryByTestId('search-where')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('search-pill'))
+    expect(screen.queryByTestId('search-filters')).not.toBeInTheDocument()
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
   })
 })

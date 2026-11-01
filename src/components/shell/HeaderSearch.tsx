@@ -5,7 +5,8 @@
 // Every choice writes the one box (F092), so it is the same search the results already answer.
 // Precedents: Airbnb web and app search, Google Maps' search field.
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
 import { readBox } from '@/lib/browse/box-text'
@@ -15,13 +16,18 @@ import { Choice, Group, Options } from '@/components/explore/choices'
 import { useExploreSearch } from './explore-search'
 
 const WIDE = '(min-width: 46.5rem)'
+/** Scroll travel that folds the wide panel: a page reflowing under a search is not the person scrolling. */
+const FOLD_PX = 40
+const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])'
 
 export function HeaderSearch() {
   const router = useRouter()
   const live = useExploreSearch()
   const [draft, setDraft] = useState('')
   const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState<CSSProperties | undefined>()
   const pill = useRef<HTMLButtonElement>(null)
+  const panel = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const titleId = useId()
 
@@ -39,11 +45,20 @@ export function HeaderSearch() {
     if (focusRequest > 0) setOpen(true)
   }
 
+  // From 744px the panel hangs under the field; on a phone it is the whole screen. Portalled to the
+  // body so no header layer or transform can cover or trap it.
+  const show = () => {
+    const r = pill.current?.getBoundingClientRect()
+    setAnchor(r && window.matchMedia?.(WIDE).matches ? { top: r.bottom + 8, left: r.left, width: Math.max(r.width, 360) } : undefined)
+    setOpen(true)
+  }
+
   useEffect(() => {
     if (!open) return
     const id = requestAnimationFrame(() => input.current?.focus())
     // From 744px it is a panel over the page: scrolling folds it back to the pill, as Airbnb's does.
-    const fold = () => window.matchMedia?.(WIDE).matches && setOpen(false)
+    const from = window.scrollY
+    const fold = () => window.matchMedia?.(WIDE).matches && Math.abs(window.scrollY - from) > FOLD_PX && setOpen(false)
     window.addEventListener('scroll', fold, { passive: true })
     return () => {
       cancelAnimationFrame(id)
@@ -73,7 +88,7 @@ export function HeaderSearch() {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={`Search: ${sum.what}, ${sum.where}, ${sum.when}`}
-        onClick={() => setOpen(true)}
+        onClick={show}
         className="press flex min-h-11 w-full min-w-0 items-center gap-2 rounded-full border border-neutral-300 bg-white pl-3 pr-2 text-left text-body-sm shadow-sm hover:shadow-md"
       >
         <Search size={16} aria-hidden="true" className="shrink-0 text-[var(--color-charcoal-900)]" />
@@ -87,10 +102,12 @@ export function HeaderSearch() {
         {live?.filtersActive && <span data-testid="filter-active-dot" aria-hidden="true" className="size-2 shrink-0 rounded-full bg-[var(--color-accent)]" />}
       </button>
 
-      {open && (
+      {open && createPortal(
         <>
           <div aria-hidden="true" onClick={close} className="fixed inset-0 z-[var(--z-sheet)] hidden bg-black/20 md:block" />
           <div
+            ref={panel}
+            style={anchor}
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
@@ -99,9 +116,22 @@ export function HeaderSearch() {
               if (e.key === 'Escape') {
                 e.stopPropagation()
                 close()
+                return
+              }
+              if (e.key !== 'Tab') return
+              const nodes = Array.from(panel.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+              const first = nodes[0]
+              const last = nodes[nodes.length - 1]
+              if (!first || !last) return
+              if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault()
+                last.focus()
+              } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault()
+                first.focus()
               }
             }}
-            className="fixed inset-0 z-[var(--z-sheet)] flex flex-col bg-white md:absolute md:inset-auto md:left-0 md:top-full md:mt-2 md:max-h-[80dvh] md:w-full md:rounded-2xl md:border md:border-neutral-200 md:shadow-lift"
+            className={`fixed inset-0 z-[var(--z-sheet)] flex flex-col bg-white md:bottom-auto md:max-h-[80dvh] ${anchor ? 'md:right-auto' : 'md:top-16 md:mx-auto md:max-w-xl'} md:rounded-2xl md:border md:border-neutral-200 md:shadow-lift`}
           >
             <div className="flex items-center justify-between gap-2 px-4 pt-2" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
               <h2 id={titleId} className="text-body font-semibold">Search</h2>
@@ -126,7 +156,7 @@ export function HeaderSearch() {
                       ref={input}
                       type="search"
                       enterKeyHint="search"
-                      aria-label="Search Browse"
+                      aria-label="Search Explore"
                       placeholder="Search Pages and posts"
                       value={box}
                       onChange={(e) => setBox(e.target.value)}
@@ -169,10 +199,11 @@ export function HeaderSearch() {
                   </Options>
                 </Group>
 
-                {live && (
-                  <button type="button" data-testid="search-filters" aria-haspopup="dialog" onClick={() => handOff(live.onOpenFilters)} className="press inline-flex min-h-11 items-center gap-2 self-start text-body-sm font-medium text-[var(--color-charcoal-900)] underline underline-offset-4">
+                {live?.onOpenFilters && (
+                  <button type="button" data-testid="search-filters" aria-haspopup="dialog" aria-label={live.filtersActive ? 'More filters, filters applied' : 'More filters'} onClick={() => handOff(live.onOpenFilters!)} className="press inline-flex min-h-11 items-center gap-2 self-start text-body-sm font-medium text-[var(--color-charcoal-900)] underline underline-offset-4">
                     <SlidersHorizontal size={16} aria-hidden="true" />
-                    {live.filtersActive ? 'More filters — filters applied' : 'More filters'}
+                    More filters
+                    {live.filtersActive && <span aria-hidden="true" className="size-2 rounded-full bg-[var(--color-accent)]" />}
                   </button>
                 )}
               </div>
@@ -188,7 +219,8 @@ export function HeaderSearch() {
               </div>
             </form>
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   )

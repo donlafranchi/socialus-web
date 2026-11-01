@@ -41,16 +41,23 @@ export function CreateMenu() {
   if (!user) return null
 
   const loadPages = () =>
-    (pages.current ??= getOwnPages(createClient(), user.id).then((own) =>
-      own.filter((p) => p.lifecycleState === 'active' && p.href).map((p) => ({ name: p.name, href: p.href! })),
+    (pages.current ??= getOwnPages(createClient(), user.id).then(
+      (own) => own.filter((p) => p.lifecycleState === 'active' && p.href).map((p) => ({ name: p.name, href: p.href! })),
+      (e) => {
+        // A failed read is not remembered: the next tap asks again.
+        pages.current = null
+        throw e
+      },
     ))
+  const prefetch = () => void loadPages().catch(() => {})
   const close = () => {
     setOpen(false)
     button.current?.focus()
   }
   const propose = async () => {
     setOpen(false)
-    const own = await loadPages()
+    const own = await loadPages().catch(() => loadPages().catch(() => null))
+    if (!own) return
     const choice = createChoices({ signedIn: true, pages: own }).find((c) => c.id === 'wonder')!
     if (choice.href) router.push(choice.href)
     else setWhich(own)
@@ -59,6 +66,10 @@ export function CreateMenu() {
     if (e.key === 'Escape') {
       e.stopPropagation()
       close()
+      return
+    }
+    if (e.key === 'Tab') {
+      setOpen(false)
       return
     }
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
@@ -77,9 +88,9 @@ export function CreateMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         data-testid="create-menu"
-        onPointerEnter={loadPages}
+        onPointerEnter={prefetch}
         onClick={() => {
-          loadPages()
+          prefetch()
           setOpen((o) => !o)
         }}
         className="press inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-white hover:opacity-90"

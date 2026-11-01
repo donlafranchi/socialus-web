@@ -91,6 +91,25 @@ describe('CreateMenu — the one ➕ (Don, 2026-11-01)', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
+  it('a failed Pages read is asked again on the next tap', async () => {
+    own.mockRejectedValueOnce(new Error('offline')).mockRejectedValueOnce(new Error('offline')).mockResolvedValue([page('Bakery', '/g/b')])
+    render(<CreateMenu />)
+    openMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Propose something' }))
+    await waitFor(() => expect(own).toHaveBeenCalledTimes(2))
+    expect(push).not.toHaveBeenCalled()
+    openMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Propose something' }))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/g/b?compose=proposal#announce'))
+  })
+
+  it('Tab out of the menu closes it', () => {
+    render(<CreateMenu />)
+    openMenu()
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Tab' })
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+  })
+
   it('Escape closes it', () => {
     render(<CreateMenu />)
     openMenu()

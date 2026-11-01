@@ -74,6 +74,11 @@
     "feedbackMs": 100,
     "readyMs": 1000
   },
+  "Explore: ➕ → Show the map": {
+    "kind": "consumer",
+    "feedbackMs": 100,
+    "readyMs": 1000
+  },
   "Header → Explore": {
     "kind": "consumer",
     "feedbackMs": 100,
