@@ -70,6 +70,17 @@ export default function HomeLanding() {
               {HOME.hero.secondary}
             </h2>
             <CanBlocks />
+            {/* eslint-disable-next-line @next/next/no-img-element -- pre-sized webp set; next/image adds nothing here */}
+            <img
+              src={ART.localBusinesses.src}
+              srcSet={ART.localBusinesses.srcSet}
+              sizes="(min-width: 1200px) 1100px, 100vw"
+              alt={ART.localBusinesses.alt}
+              width={ART.localBusinesses.width}
+              height={ART.localBusinesses.height}
+              loading="lazy"
+              className="mt-10 h-auto w-full rounded-xs"
+            />
           </div>
         </section>
 
