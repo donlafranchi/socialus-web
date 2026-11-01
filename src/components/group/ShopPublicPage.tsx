@@ -24,6 +24,7 @@ import { FollowPageButton } from './FollowPageButton'
 import { ReportControl } from './ReportControl'
 import { OwnerBar } from './OwnerBar'
 import { HiddenPhotoNotice } from './HiddenPhotoNotice'
+import { PageLinksRow } from './PageLinksRow'
 import { contactLinksForDisplay, isSafeLinkUrl, type ContactLinks } from '@/lib/groups/social-links'
 
 const NO_LINKS: ContactLinks = { website: null, socials: [] }
@@ -273,6 +274,7 @@ export function ShopPublicPage({
               {pageKindOf(shop.kind) === 'business' ? <Store size={14} aria-hidden="true" /> : <Users size={14} aria-hidden="true" />}
               {kindLine(shop.kind, shop.purpose, shop.category)}
             </p>
+            <PageLinksRow links={contactLinks} />
           </div>
           <div className="ml-auto flex shrink-0 items-center">
             {/* #409 — anyone can share a published Page, signed in or out. */}
