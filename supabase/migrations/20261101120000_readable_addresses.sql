@@ -26,16 +26,20 @@ as $$
 $$;
 
 ------------------------------------------------------------
--- Name to slug: lower case, accents folded, & as "and", apostrophes dropped, anything else a hyphen, cut at a
--- word boundary. Null when nothing is left.
+-- Name to slug: emails and phone numbers dropped (the patterns of src/lib/text/contact-info.ts: an address is never
+-- frozen into a public URL), lower case, accents folded, & as "and", apostrophes dropped, anything else a hyphen, cut
+-- at a word boundary. Null when nothing is left.
 ------------------------------------------------------------
 create function public.url_slugify(p text, p_max int default 60) returns text
 language plpgsql immutable parallel safe
 set search_path = public
 as $$
 declare
-  v text := lower(coalesce(p, ''));
+  v text := coalesce(p, '');
 begin
+  v := regexp_replace(v, '[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', ' ', 'g');
+  v := regexp_replace(v, '(\+?1[\s.-]?)?(\(\d{3}\)|\m\d{3})[\s.-]?\d{3}[\s.-]?\d{4}\M', ' ', 'g');
+  v := lower(v);
   v := translate(v, 'àáâãäåāèéêëēìíîïīòóôõöøōùúûüūñçýÿ', 'aaaaaaaeeeeeiiiiioooooooouuuuuncyy');
   v := replace(v, '&', ' and ');
   v := regexp_replace(v, '[''’]', '', 'g');
@@ -73,6 +77,7 @@ declare
   st text;
   county text;
   o public.place_url_overrides;
+  base text;
   cand text;
   n int := 2;
 begin
@@ -82,13 +87,14 @@ begin
   if o.place_id is not null then new.url_slug := o.url_slug; return new; end if;
   select s.slug into st from public.places s where s.id = new.ancestor_state_id and s.kind = 'state';
   if st is null or st !~ '^[a-z]{2}$' then return new; end if;
-  cand := new.slug || case when new.kind = 'county' then '-county' else '' end || '-' || st;
+  base := new.slug || case when new.kind = 'county' then '-county' else '' end;
+  cand := base || '-' || st;
   if exists (select 1 from public.places p where p.url_slug = cand and p.id <> new.id) and new.kind = 'city' then
     select c.slug into county from public.places c where c.id = new.parent_id and c.kind = 'county';
-    if county is not null then cand := new.slug || '-' || county || '-' || st; end if;
+    if county is not null then base := new.slug || '-' || county; cand := base || '-' || st; end if;
   end if;
   while exists (select 1 from public.places p where p.url_slug = cand and p.id <> new.id) loop
-    cand := regexp_replace(cand, '-[a-z]{2}$', '') || '-' || n || '-' || st;
+    cand := base || '-' || n || '-' || st;
     n := n + 1;
   end loop;
   new.url_slug := cand;
@@ -98,7 +104,7 @@ $$;
 
 -- Named after places_set_ancestor_state_id so it runs second and sees the state.
 create trigger places_set_url_slug
-  before insert or update of slug, kind, parent_id, deleted_at, url_slug on public.places
+  before insert or update of slug, kind, parent_id, deleted_at, url_slug, display_name on public.places
   for each row execute function public.places_set_url_slug();
 
 -- Backfill, oldest first, so an established place keeps the plain slug. updated_at is left alone.
@@ -167,6 +173,8 @@ declare
     or exists (select 1 from public.groups where place_url_slug = $2 and page_url_slug = $1 and id <> $3)';
   t boolean;
 begin
+  -- Two Pages of one name publishing at once in one place would both pick the same slug; one waits for the other.
+  perform pg_advisory_xact_lock(hashtext('page-url:' || p_place || '/' || base));
   execute taken into t using cand, p_place, p_group_id;
   if not t then return cand; end if;
   select p.slug into nb from public.locations l join public.places p
@@ -192,13 +200,15 @@ set search_path = public
 as $$
 declare place text;
 begin
-  if tg_op = 'UPDATE' and old.page_url_slug is not null then
+  -- An operator re-mints a frozen address only on purpose: set local app.address_override = 'on'.
+  if tg_op = 'UPDATE' and old.page_url_slug is not null and coalesce(current_setting('app.address_override', true), '') <> 'on' then
     if new.place_url_slug is distinct from old.place_url_slug or new.page_url_slug is distinct from old.page_url_slug then
       raise exception 'A Page''s address is frozen once set (%/%)', old.place_url_slug, old.page_url_slug
         using errcode = 'check_violation';
     end if;
     return new;
   end if;
+  if tg_op = 'UPDATE' and old.page_url_slug is not null then return new; end if;
   if new.page_url_slug is not null or new.lifecycle_state in ('draft', 'dissolved') then return new; end if;
   place := public.page_home_place_slug(new.anchor_location_id);
   if place is null then return new; end if;
@@ -256,6 +266,7 @@ declare
   cand text := base;
   n int := 2;
 begin
+  perform pg_advisory_xact_lock(hashtext('post-url:' || p_group_id || '/' || base));
   while public.url_reserved(cand)
      or exists (select 1 from public.page_posts where group_id = p_group_id and url_slug = cand and id <> p_id) loop
     cand := base || '-' || n;
@@ -270,12 +281,13 @@ language plpgsql
 set search_path = public
 as $$
 begin
-  if tg_op = 'UPDATE' and old.url_slug is not null then
+  if tg_op = 'UPDATE' and old.url_slug is not null and coalesce(current_setting('app.address_override', true), '') <> 'on' then
     if new.url_slug is distinct from old.url_slug then
       raise exception 'A post''s address is frozen once set (%)', old.url_slug using errcode = 'check_violation';
     end if;
     return new;
   end if;
+  if tg_op = 'UPDATE' and old.url_slug is not null then return new; end if;
   if new.url_slug is null and new.lifecycle_state = 'active' then
     new.url_slug := public.post_url_slug_for(new.id, new.group_id, new.headline, new.kind, new.starts_at);
   end if;
@@ -300,7 +312,8 @@ create trigger page_posts_url_slug
 
 ------------------------------------------------------------
 -- Reads. Each answers only for what a signed-out reader could already reach, restated because security definer
--- skips RLS: a published, listed Page (shared_post_preview's rule), and for a post, a live listed one.
+-- skips RLS: a published, listed Page (shared_post_preview's rule), not hidden unclaimed and with its words not
+-- hidden (the slug is made of them), and for a post, a live listed one.
 ------------------------------------------------------------
 
 -- Where /g/<id> and /g/<id>/posts/<post id> now live. No row: the old route answers as before.
@@ -317,6 +330,7 @@ as $$
    where g.public_id = p_public_id
      and g.page_url_slug is not null
      and g.lifecycle_state = 'active' and g.discoverability = 'listed' and g.dissolved_at is null
+     and g.unclaimed_hidden_at is null and g.words_hidden_at is null and g.words_removed_at is null
      and public.builder_visible(g.founder_member_id)
      and (p_post_id is null or pp.url_slug is not null)
 $$;
@@ -331,6 +345,7 @@ as $$
      and pp.lifecycle_state = 'active' and pp.discoverability = 'listed' and pp.dissolved_at is null
      and pp.hidden_at is null and pp.removed_at is null
      and g.lifecycle_state = 'active' and g.discoverability = 'listed' and g.dissolved_at is null
+     and g.unclaimed_hidden_at is null and g.words_hidden_at is null and g.words_removed_at is null
      and public.builder_visible(g.founder_member_id)
 $$;
 
@@ -343,7 +358,9 @@ as $$
    where pp.id = any (p_post_ids) and pp.url_slug is not null
      and pp.lifecycle_state = 'active' and pp.discoverability = 'listed' and pp.dissolved_at is null
      and pp.hidden_at is null and pp.removed_at is null
-     and g.lifecycle_state = 'active' and g.dissolved_at is null
+     and g.lifecycle_state = 'active' and g.discoverability = 'listed' and g.dissolved_at is null
+     and g.unclaimed_hidden_at is null and g.words_hidden_at is null and g.words_removed_at is null
+     and public.builder_visible(g.founder_member_id)
 $$;
 
 revoke all on function public.page_address(text, uuid) from public;

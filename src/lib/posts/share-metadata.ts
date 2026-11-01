@@ -21,6 +21,7 @@ interface PageForShare {
   publicId: string
   placeUrlSlug?: string | null
   pageUrlSlug?: string | null
+  wordsHidden?: boolean
   lifecycleState: string
   photoUrl: string | null
   photoHiddenAt: string | null

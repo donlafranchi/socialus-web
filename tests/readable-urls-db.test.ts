@@ -89,6 +89,15 @@ describe.skipIf(!RUNNABLE)('#1139 — readable addresses, for real', () => {
     expect(r).toEqual({ a: 'the-plant-foundry-nursery-and-store', b: 'joes-cafe-pizza', c: Array(12).fill('word').join('-'), d: null })
   })
 
+  // Review of #1146: an email or phone in older or loaded text never becomes a permanent public URL.
+  it('drops email addresses and phone numbers before making a slug', async () => {
+    const r = await one<Record<string, string | null>>(
+      `select public.url_slugify('Call (916) 555-1212 today') a, public.url_slugify('Bread by jane.doe@example.com') b,
+              public.url_slugify('Text +1 916.555.1212') c`,
+    )
+    expect(r).toEqual({ a: 'call-today', b: 'bread-by', c: 'text' })
+  })
+
   it('reserves the same words as the app, and every top-level route is one of them', async () => {
     const app = resolve(__dirname, '../src/app')
     const routes = readdirSync(app).filter((d) => statSync(join(app, d)).isDirectory() && !/^[_(\[]/.test(d))
@@ -165,6 +174,35 @@ describe.skipIf(!RUNNABLE)('#1139 — readable addresses, for real', () => {
     const pid = (await one<{ public_id: string }>(`select public_id from public.groups where id = $1`, [page])).public_id
     expect(await one(`select * from public.page_address($1, $2)`, [pid, draft.id])).toEqual({ place_url_slug: 'sacramento-ca', page_url_slug: 'readable-kite-club-1139', post_url_slug: 'not-yet' })
     expect((await one<{ id: string }>(`select public.page_post_id_by_slug($1, 'not-yet') id`, [page])).id).toBe(draft.id)
+  })
+
+  // Review of #1146: no read hands out an address the reader could not otherwise reach.
+  it('forwards and answers for nothing whose words are hidden, that is hidden unclaimed, or unlisted', async () => {
+    const page = made[0]
+    const pid = (await one<{ public_id: string }>(`select public_id from public.groups where id = $1`, [page])).public_id
+    const post = (await one<{ id: string }>(`select id from public.page_posts where group_id = $1 and url_slug = 'fall-plant-sale'`, [page])).id
+    const forwards = async () => (await client.query(`select * from public.page_address($1)`, [pid])).rowCount
+    const slugs = async () => (await client.query(`select * from public.post_url_slugs($1)`, [[post]])).rowCount
+    const bySlug = async () => (await one<{ id: string | null }>(`select public.page_post_id_by_slug($1, 'fall-plant-sale') id`, [page])).id
+    expect([await forwards(), await slugs(), await bySlug()]).toEqual([1, 1, post])
+    for (const set of [`words_hidden_at = now()`, `unclaimed_at = now(), unclaimed_hidden_at = now()`, `discoverability = 'unlisted'`]) {
+      await client.query(`update public.groups set ${set} where id = $1`, [page])
+      expect([await forwards(), await slugs(), await bySlug()]).toEqual([0, 0, null])
+      await client.query(`update public.groups set words_hidden_at = null, unclaimed_hidden_at = null, unclaimed_at = null, discoverability = 'listed' where id = $1`, [page])
+    }
+  })
+
+  it('lets an operator re-mint a frozen address on purpose, and nobody else', async () => {
+    const id = made[0]
+    await client.query('begin')
+    try {
+      await client.query(`set local app.address_override = 'on'`)
+      await client.query(`update public.groups set page_url_slug = 'readable-kites-renamed' where id = $1`, [id])
+      expect((await one<{ s: string }>(`select page_url_slug s from public.groups where id = $1`, [id])).s).toBe('readable-kites-renamed')
+    } finally {
+      await client.query('rollback')
+    }
+    await expect(client.query(`update public.groups set page_url_slug = 'other' where id = $1`, [id])).rejects.toThrow(/frozen/)
   })
 
   it('a draft Page has no address and no forward, and an unclaimed Page added as active gets one at once', async () => {

@@ -37,12 +37,14 @@ export interface PageAddressParts {
   publicId: string
   placeUrlSlug?: string | null
   pageUrlSlug?: string | null
+  /** #625 — a report hid the Page's words; the slug is made of them, so it is shared by its id until they are back. */
+  wordsHidden?: boolean
 }
 
 /** #1139 (Don, 2026-11-01) — a Page's address: /<place>-<st>/<page-slug>, e.g. /sacramento-ca/plant-foundry, frozen
  *  at first publish. The id address only while the Page has none. */
 export function pagePath(p: PageAddressParts): string {
-  return p.placeUrlSlug && p.pageUrlSlug ? `/${p.placeUrlSlug}/${p.pageUrlSlug}` : canonicalPagePath(p.publicId)
+  return p.placeUrlSlug && p.pageUrlSlug && !p.wordsHidden ? `/${p.placeUrlSlug}/${p.pageUrlSlug}` : canonicalPagePath(p.publicId)
 }
 
 /** A place segment: a slug with its state on the end (sacramento-ca, lakeside-san-diego-ca). */
