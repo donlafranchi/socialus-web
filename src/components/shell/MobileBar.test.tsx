@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { MobileBar } from './MobileBar'
 import { GlobalMobileBar } from './GlobalMobileBar'
@@ -41,7 +41,9 @@ describe('MobileBar (#1141)', () => {
     window.history.pushState({}, '', '/b')
     fireEvent.click(screen.getByTestId('bar-back'))
     expect(router.back).toHaveBeenCalled()
-    window.dispatchEvent(new PopStateEvent('popstate'))
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
     expect(screen.getByTestId('bar-forward')).not.toBeDisabled()
   })
 
@@ -74,12 +76,12 @@ describe('MobileBar (#1141)', () => {
   })
 
   it('the List/Map switch is in ⋯ only when the screen has one', () => {
-    const { rerender } = render(<MobileBar {...base} />)
+    render(<MobileBar {...base} />)
     fireEvent.click(screen.getByTestId('bar-more'))
     expect(screen.queryByTestId('bar-menu-view')).toBeNull()
     cleanup()
     const onViewChange = vi.fn()
-    rerender(<MobileBar {...base} view="list" onViewChange={onViewChange} />)
+    render(<MobileBar {...base} view="list" onViewChange={onViewChange} />)
     fireEvent.click(screen.getByTestId('bar-more'))
     fireEvent.click(screen.getByTestId('bar-menu-view'))
     expect(onViewChange).toHaveBeenCalledWith('map')
