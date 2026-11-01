@@ -63,6 +63,11 @@ describe('a published post previews when shared', () => {
     expect(m.twitter).toMatchObject({ card: 'summary_large_image', title: 'Pizza night in the garden', images: ['https://cdn.example/pizza.webp'] })
   })
 
+  it('#1127 — a venue show previews with the kind of show and the venue, as the card does', () => {
+    const show = { ...POST, headline: null, locationLabel: '1901 10th St', body: "Emo Night at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test", tags: ['Live music'] }
+    expect(postShareMetadata({ page: PAGE, post: show, now: NOW }).openGraph).toMatchObject({ description: 'Live music · Sat 5–8pm · The Old Ironsides' })
+  })
+
   it('falls back to the card headline, then the Page picture, as the card does', () => {
     const m = postShareMetadata({ page: PAGE, post: { ...POST, headline: null, photoUrl: null }, now: NOW })
     expect(m.openGraph).toMatchObject({ title: 'Bring a chair.', images: [{ url: 'https://cdn.example/picture.webp' }] })

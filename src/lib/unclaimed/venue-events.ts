@@ -3,7 +3,7 @@
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
 import { metroDate } from '../metro/metro-week'
 import { SYSTEM_MEMBER_ID } from '../system-member'
-import { classifyEvent, EVENT_INTERESTS, type EventType } from './event-type'
+import { CALENDAR_LINE, classifyEvent, EVENT_INTERESTS, type EventType } from './event-type'
 
 export interface VenueShow {
   title: string
@@ -409,7 +409,7 @@ const clock = (d: Date) =>
 /** The post's words; its date sits on the post's own when line, and its ticket link on its own Tickets link. */
 export function showBody(venue: string, s: VenueShow, source: string, photoCredit?: string): string {
   const times = [...(s.doorsAt ? [`Doors ${clock(s.doorsAt)}`] : []), `Show ${clock(s.startsAt)}`].join(' · ')
-  return [`${s.title} at ${venue}`, times, `From ${venue}'s own calendar: ${source}`, ...(photoCredit ? [`Photo: ${photoCredit}`] : [])].join('\n\n')
+  return [`${s.title} at ${venue}`, times, `${CALENDAR_LINE(venue)}${source}`, ...(photoCredit ? [`Photo: ${photoCredit}`] : [])].join('\n\n')
 }
 
 /** The shows to post: ahead of now, within the horizon, not cancelled, one per key, ticket links off aggregators kept (a venue's own pick). */
