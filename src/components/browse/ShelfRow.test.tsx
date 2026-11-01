@@ -1,0 +1,69 @@
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest'
+import { ShelfRow, ShelfScreen } from './ShelfRow'
+
+afterEach(cleanup)
+
+const items = Array.from({ length: 30 }, (_, i) => `item ${i}`)
+const row = (over: Partial<Parameters<typeof ShelfRow<string>>[0]> = {}) => (
+  <ShelfRow title="Concerts" items={items} keyOf={(s) => s} renderItem={(s) => <span>{s}</span>} onSeeAll={() => {}} {...over} />
+)
+
+describe('ShelfRow', () => {
+  it('is one row that scrolls sideways, never wrapping to a new line', () => {
+    render(row())
+    const list = screen.getByRole('list')
+    expect(list.className).toMatch(/\bflex\b/)
+    expect(list.className).toMatch(/flex-nowrap/)
+    expect(list.className).toMatch(/overflow-x-auto/)
+    expect(list.className).not.toMatch(/flex-wrap\b|grid/)
+  })
+
+  it('shows a capped number of items; the rest are behind See all', () => {
+    render(row({ limit: 12 }))
+    expect(screen.getAllByRole('listitem')).toHaveLength(12)
+  })
+
+  it('opens the full list from the title and from See all', () => {
+    const onSeeAll = vi.fn()
+    render(row({ onSeeAll }))
+    fireEvent.click(screen.getByRole('button', { name: /^Concerts/ }))
+    fireEvent.click(screen.getByRole('button', { name: /See all/ }))
+    expect(onSeeAll).toHaveBeenCalledTimes(2)
+  })
+
+  it('has left and right arrows that move the row by about a screen', () => {
+    render(row())
+    const list = screen.getByRole('list')
+    const scrollBy = vi.fn()
+    Object.assign(list, { scrollBy })
+    Object.defineProperty(list, 'clientWidth', { value: 1000 })
+    fireEvent.click(screen.getByRole('button', { name: 'Scroll Concerts right' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Scroll Concerts left' }))
+    expect(scrollBy.mock.calls.map(([o]) => Math.sign(o.left))).toEqual([1, -1])
+    expect(Math.abs(scrollBy.mock.calls[0]![0].left)).toBeGreaterThan(500)
+  })
+
+  it('hides the arrows on a phone, where a swipe does it', () => {
+    render(row())
+    for (const b of screen.getAllByRole('button', { name: /^Scroll Concerts/ })) expect(b.className).toMatch(/\bhidden\b.*md:inline-flex|md:inline-flex.*\bhidden\b/)
+  })
+
+  it('renders nothing when there is nothing to show', () => {
+    const { container } = render(row({ items: [] }))
+    expect(container).toBeEmptyDOMElement()
+  })
+})
+
+describe('ShelfScreen', () => {
+  it('lists every item and closes with Back or Escape', () => {
+    const onClose = vi.fn()
+    render(<ShelfScreen title="Concerts" items={items} keyOf={(s) => s} renderItem={(s) => <span>{s}</span>} onClose={onClose} />)
+    expect(screen.getByRole('heading', { name: 'Concerts' })).toBeInTheDocument()
+    expect(screen.getAllByText(/^item /)).toHaveLength(30)
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(2)
+  })
+})

@@ -35,15 +35,15 @@ describe('HappeningRows', () => {
   it('reads as a sentence: the stem, then each row completing it, soonest row first', () => {
     render(<HappeningRows rows={{ today: [post('a')], thisWeek: [post('b')], thisWeekend: [post('c')] }} />)
     expect(screen.getByText(COPY.happeningStem)).toBeInTheDocument()
-    const labels = screen.getAllByTestId('happening-row').map((r) => r.getAttribute('aria-label'))
-    expect(labels).toEqual([COPY.happeningToday, COPY.happeningThisWeek, COPY.happeningThisWeekend].map((l) => `${COPY.happeningStem} ${l}`))
+    const labels = screen.getAllByTestId('shelf-row').map((r) => r.getAttribute('aria-label'))
+    expect(labels).toEqual([COPY.happeningToday, COPY.happeningThisWeek, COPY.happeningThisWeekend])
   })
 
   // [guards F091.3]
   it('leaves an empty row out, rather than rendering it empty', () => {
     render(<HappeningRows rows={{ today: [], thisWeek: [post('b')], thisWeekend: [] }} />)
-    expect(screen.getAllByTestId('happening-row')).toHaveLength(1)
-    expect(screen.queryByText(COPY.happeningToday)).toBeNull()
+    expect(screen.getAllByTestId('shelf-row')).toHaveLength(1)
+    expect(screen.queryByRole('heading', { name: COPY.happeningToday })).toBeNull()
   })
 
   // [guards F091.4]
