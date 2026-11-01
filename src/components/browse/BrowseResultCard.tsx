@@ -181,11 +181,11 @@ function PostCard(props: CardProps) {
       imageUrl={photo}
       // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
       // bottom corner, level with the Page's name, rather than on a row of its own.
-      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[20rem]:right-[6.25rem]"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[18rem]:right-[6.25rem]"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
     >
       {/* #1127 — a wide card (a phone's full width) sets the small photo beside the words; a narrow grid tile (desktop)
           sets it above them as a short strip, so the words keep the tile's whole width. */}
-      <div data-testid="browse-post-body" className="flex flex-col-reverse gap-2.5 p-3 @[20rem]:flex-row @[20rem]:gap-3">
+      <div data-testid="browse-post-body" className="flex flex-col-reverse gap-2.5 p-3 @[18rem]:flex-row @[18rem]:gap-3">
         <div data-testid="tile-text" className="min-w-0 flex-1">
           {/* #1127 — one line. A long where is cut short; with too little room for it (under 4.5rem) it wraps onto a
               second line the fixed height hides, so a lead never ends in a bare "· …". */}
@@ -198,7 +198,7 @@ function PostCard(props: CardProps) {
               {headline}
             </p>
           )}
-          <p data-testid="tile-kind-row" className={`mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]${result.href ? ' pr-9' : ''}`}>
+          <p data-testid="tile-kind-row" className={`mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]${result.href ? ' pr-10' : ''}`}>
             <span aria-hidden className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-micro font-semibold text-[var(--color-fg)]">
               {avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -210,7 +210,7 @@ function PostCard(props: CardProps) {
             <span data-testid="post-page-name" className="line-clamp-1 font-medium text-[var(--color-fg)]">{result.name}</span>
           </p>
         </div>
-        <div data-testid="tile-image" className="flex aspect-[2/1] w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)] @[20rem]:aspect-square @[20rem]:size-20">
+        <div data-testid="tile-image" className="flex aspect-[2/1] w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)] @[18rem]:aspect-square @[18rem]:size-20">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={sizedMediaUrl(photo, 320)} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />

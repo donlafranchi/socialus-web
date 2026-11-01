@@ -160,10 +160,17 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     const body = screen.getByTestId('browse-post-body')
     expect(screen.getByTestId('tile-card').className).toMatch(/@container/)
     expect(body.className).toMatch(/flex-col-reverse/)
-    expect(body.className).toMatch(/@\[20rem\]:flex-row/)
+    expect(body.className).toMatch(/@\[18rem\]:flex-row/)
     const img = screen.getByTestId('tile-image')
     expect(img.className).toMatch(/aspect-\[2\/1\]/)
-    expect(img.className).toMatch(/@\[20rem\]:size-20/)
+    expect(img.className).toMatch(/@\[18rem\]:size-20/)
+  })
+
+  it('switches below a phone’s Happening shelf card (304px) and above a desktop grid tile (~236px)', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const rem = Number(/@\[(\d+(?:\.\d+)?)rem\]:flex-row/.exec(screen.getByTestId('browse-post-body').className)![1])
+    expect(rem * 16).toBeGreaterThan(236)
+    expect(rem * 16).toBeLessThanOrEqual(304)
   })
 
   it('puts Share in the card’s bottom corner, beside the Page name, not on a row of its own', () => {
@@ -172,8 +179,10 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     expect(share.className).toMatch(/absolute/)
     expect(share.className).toMatch(/bottom-/)
     expect(share.className).not.toMatch(/-mt-/)
+    // The Page name's row leaves room for the 44px button (padding 12 + 40 ≥ 6 + 44).
+    expect(screen.getByTestId('tile-kind-row').className).toMatch(/\bpr-10\b/)
     // Beside the photo in a wide card, never on top of it.
-    expect(share.className).toMatch(/@\[20rem\]:right-\[6\.25rem\]/)
+    expect(share.className).toMatch(/@\[18rem\]:right-\[6\.25rem\]/)
     expect(screen.getByTestId('tile-card').className).toMatch(/relative/)
   })
 
