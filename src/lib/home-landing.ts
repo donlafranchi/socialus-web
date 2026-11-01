@@ -11,10 +11,7 @@ export const HOME_TODO = {
 
 const T = HOME_TODO
 
-// TODO(Don): Contact waits on the socialus.org mailbox Don is setting up. Null shows the word without a link.
-export const CONTACT_HREF: string | null = null
-
-// TODO(Don): consent line under the last Join button; wording and its Terms/Privacy links pending. Null leaves it off.
+// TODO(Don): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
 export const CONSENT_LINE: string | null = null
 
 // TODO(Don): final hero art (the "way out" neighbourhood-square illustration) with usage rights; a drawn placeholder stands in.
@@ -78,10 +75,10 @@ export const HOME = {
     line: 'Designed to get people together in real life.',
     links: [
       { href: '/about', label: 'About' },
-      { href: CONTACT_HREF, label: 'Contact' },
+      // TODO(Don): add Contact here once its destination exists (the socialus.org mailbox).
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
-    ] as { href: string | null; label: string }[],
+    ],
   },
 }
 

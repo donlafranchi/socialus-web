@@ -38,15 +38,15 @@ export default function HomeLanding() {
       </header>
 
       <main>
-        <section className="mx-auto grid w-full max-w-shell items-center gap-10 gutter pt-10 pb-16 md:px-10 lg:grid-cols-12 lg:gap-12 lg:pt-16 lg:pb-24">
+        <section className="mx-auto grid w-full max-w-shell items-center gap-10 gutter pt-12 pb-20 md:px-10 lg:grid-cols-12 lg:gap-16 lg:pt-20 lg:pb-28">
           <div className="lg:col-span-6">
             <h1 className={`${SERIF} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
               {HOME.hero.lines[0]}
               <br />
               {HOME.hero.lines[1]}
             </h1>
-            {HOME.hero.body.map((p) => (
-              <p key={p} className="mt-6 max-w-read text-lede text-[var(--color-ink-muted)]">
+            {HOME.hero.body.map((p, i) => (
+              <p key={p} className={`${i ? 'mt-5 font-medium text-[var(--color-ink)]' : 'mt-8 text-[var(--color-ink-muted)]'} max-w-read text-lede`}>
                 {p}
               </p>
             ))}
@@ -56,22 +56,22 @@ export default function HomeLanding() {
                 {HOME.hero.secondary}
               </a>
             </div>
-            <p className="mt-8 text-body-sm text-[var(--color-olive)]">{HOME.hero.launch}</p>
+            <p className="mt-8 text-body-sm font-medium text-[var(--color-olive)]">{HOME.hero.launch}</p>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element -- a static SVG; next/image adds nothing here */}
           <img src={ART.src} alt={ART.alt} width={1260} height={830} className="h-auto w-full rounded-lg lg:col-span-6" />
         </section>
 
         <section id="what-you-can-do" aria-labelledby="what-you-can-do-title" className="scroll-mt-4 bg-[var(--color-stone)]">
-          <div className="mx-auto w-full max-w-detail gutter py-16 md:py-24">
+          <div className="mx-auto w-full max-w-detail gutter py-20 md:py-28">
             <h2 id="what-you-can-do-title" className="sr-only">
               {HOME.hero.secondary}
             </h2>
-            <ul className="grid gap-12 md:grid-cols-3 md:gap-10">
+            <ul className="grid gap-14 md:grid-cols-3 md:gap-12">
               {HOME.can.map((c) => (
-                <li key={c.id} id={c.id} className="scroll-mt-4 border-t border-[var(--color-ink)] pt-6">
+                <li key={c.id} id={c.id} className="scroll-mt-4 border-t-2 border-[var(--color-clay)] pt-6">
                   <h3 className={`${SERIF} text-section text-[var(--color-ink)]`}>{c.title}</h3>
-                  <p className="mt-4 text-body text-[var(--color-ink-muted)]">{c.body}</p>
+                  <p className="mt-5 text-lede text-[var(--color-ink-muted)]">{c.body}</p>
                 </li>
               ))}
             </ul>
@@ -81,19 +81,19 @@ export default function HomeLanding() {
         <section id="why" className="on-ink scroll-mt-4 bg-[var(--color-ink)]">
           <div className="mx-auto w-full max-w-read gutter py-20 md:py-28">
             <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-paper)]`}>{HOME.why.title}</h2>
-            {HOME.why.body.map((p) => (
-              <p key={p} className="mt-6 text-lede text-[var(--color-ink-soft)]">
+            {HOME.why.body.map((p, i) => (
+              <p key={p} className={`${i ? 'mt-6' : 'mt-8 font-medium text-[var(--color-paper)]'} text-lede text-[var(--color-ink-soft)]`}>
                 {p}
               </p>
             ))}
           </div>
         </section>
 
-        <section className="mx-auto grid w-full max-w-detail gap-8 gutter py-20 md:grid-cols-12 md:py-28">
+        <section className="mx-auto grid w-full max-w-detail gap-8 gutter py-24 md:grid-cols-12 md:gap-12 md:py-32">
           <h2 className={`${SERIF} text-section md:text-section-lg text-[var(--color-ink)] md:col-span-5`}>{HOME.thirdSpaces.title}</h2>
           <div className="md:col-span-7">
             {HOME.thirdSpaces.body.map((p, i) => (
-              <p key={p} className={`${i ? 'mt-6' : ''} text-lede text-[var(--color-ink-muted)]`}>
+              <p key={p} className={`${i ? 'mt-6 text-lede text-[var(--color-ink-muted)]' : 'text-title-1 font-normal text-[var(--color-ink)]'}`}>
                 {p}
               </p>
             ))}
@@ -112,6 +112,7 @@ export default function HomeLanding() {
             <div className="mt-10">
               <Button href={CTA.href}>{CTA.label}</Button>
             </div>
+            {/* TODO(Don): consent line pending its final wording (see CONSENT_LINE). */}
             {CONSENT_LINE && <p className="mt-4 text-body-sm text-[var(--color-ink-muted)]">{CONSENT_LINE}</p>}
           </div>
         </section>
@@ -126,13 +127,9 @@ export default function HomeLanding() {
           <ul className="flex flex-wrap gap-x-2 -mx-2">
             {HOME.footer.links.map((l) => (
               <li key={l.label}>
-                {l.href ? (
-                  <Link href={l.href} prefetch={false} className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-ink-muted)] underline underline-offset-4 hover:text-[var(--color-ink)]">
-                    {l.label}
-                  </Link>
-                ) : (
-                  <span className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-ink-muted)]">{l.label}</span>
-                )}
+                <Link href={l.href} prefetch={false} className="inline-flex min-h-tap items-center px-2 text-body-sm text-[var(--color-ink-muted)] underline underline-offset-4 hover:text-[var(--color-ink)]">
+                  {l.label}
+                </Link>
               </li>
             ))}
           </ul>
