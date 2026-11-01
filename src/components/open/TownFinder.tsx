@@ -3,6 +3,7 @@
 // F118 criterion 1 — find your town by its name, a town inside it, or a zip.
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { matchTown, type TownRow } from '@/lib/open/towns'
 import { townForZipAction } from '@/app/_actions/open-actions'
@@ -48,8 +49,8 @@ export function TownFinder({ towns }: { towns: TownRow[] }) {
       {note && (
         <p className="mt-2 text-body-sm text-[var(--color-fg-muted)]" role="status">
           {note}
-          {note.startsWith('That zip') && <> <a href="/auth/login?next=/open" className="text-[var(--color-accent-text)] underline">Sign up</a></>}
-          {note.startsWith('SocialUs is already') && <> <a href="/explore" className="text-[var(--color-accent-text)] underline">See what’s on</a></>}
+          {note.startsWith('That zip') && <> <Link href="/auth/login?next=/open" className="text-[var(--color-accent-text)] underline">Sign up</Link></>}
+          {note.startsWith('SocialUs is already') && <> <Link href="/explore" className="text-[var(--color-accent-text)] underline">See what’s on</Link></>}
         </p>
       )}
     </form>

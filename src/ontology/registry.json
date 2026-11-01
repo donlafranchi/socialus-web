@@ -296,6 +296,21 @@
       "note": "The join two SQL functions walk: place_url_path() for a Page's URL, and zip_is_proximal_to_location() for the local-owner badge (T075). NOTHING IN THE ACTION LAYER WRITES IT, and that is the fact worth declaring rather than a gap to close here — Places are platform-curated with no member-facing create surface, so the column is populated by seed data. The one member-facing location insert omits it, which means those Locations have a null place_path in browse until a backfill gives them one."
     },
     {
+      "name": "a Page's address names its home Place",
+      "from": "Page",
+      "to": "Place",
+      "via": {
+        "table": "groups",
+        "column": "place_url_slug"
+      },
+      "writtenBy": [
+        "group.activate"
+      ],
+      "ruled": "2026-11-01",
+      "built": true,
+      "note": "Its home town, set once when the Page is first published (the groups_url_address trigger, which also covers the unclaimed loader and anything else that inserts a live Page) and then frozen with the Page slug: a move across town changes nothing in the URL, and the real address shows on the Page. Chosen from the anchor Location's city polygon, then its place, then the postal city, then the county; never the founder's home."
+    },
+    {
       "name": "a Member runs a Page",
       "from": "Member",
       "to": "Page",

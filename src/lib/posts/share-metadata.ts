@@ -8,7 +8,7 @@ import type { Metadata } from 'next'
 import { siteOrigin } from '@/lib/site-url'
 import { shareMetadata } from '@/lib/groups/share-metadata'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { WITHHELD_DETAILS } from '@/components/browse/withheld-copy'
 import { cardHeadline, leadLine, venueShow } from './lead-line'
 import { postPath } from './post-path'
@@ -19,6 +19,9 @@ interface PageForShare {
   publicDescription: string
   slug: string
   publicId: string
+  placeUrlSlug?: string | null
+  pageUrlSlug?: string | null
+  wordsHidden?: boolean
   lifecycleState: string
   photoUrl: string | null
   photoHiddenAt: string | null
@@ -56,17 +59,20 @@ export function postShareMetadata({
   page,
   post,
   postId,
+  postUrlSlug,
   now = new Date(),
 }: {
   page: PageForShare
   /** Without `body` when read signed out; null when this reader may not read it at all. */
   post: PostForShare | null
   postId?: string
+  /** #1139 — the post's slug, so the preview names its readable address. */
+  postUrlSlug?: string | null
   now?: Date
 }): Metadata {
   if (page.lifecycleState !== 'active') return shareMetadata(page)
   const origin = siteOrigin()
-  const url = `${origin}${postPath(canonicalPagePath(page.publicId), post?.id ?? postId ?? '')}`
+  const url = `${origin}${postPath(pagePath(page), { id: post?.id ?? postId ?? '', urlSlug: postUrlSlug })}`
   const pagePicture = page.pictureUrl ?? visiblePhotoUrl({ photo_url: page.photoUrl, photo_hidden_at: page.photoHiddenAt, photo_removed_at: page.photoRemovedAt })
   const readable = post && !post.hiddenAt ? post : null
   const photo = (readable?.photoUrl ?? null) || pagePicture

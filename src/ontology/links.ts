@@ -267,6 +267,20 @@ export const LINK_TYPES: readonly LinkType[] = [
       'Locations have a null place_path in browse until a backfill gives them one.',
   },
   {
+    name: "a Page's address names its home Place",
+    from: 'Page',
+    to: 'Place',
+    via: { table: 'groups', column: 'place_url_slug' },
+    writtenBy: ['group.activate'],
+    ruled: '2026-11-01',
+    built: true,
+    note:
+      'Its home town, set once when the Page is first published (the groups_url_address trigger, which also covers ' +
+      'the unclaimed loader and anything else that inserts a live Page) and then frozen with the Page slug: a move ' +
+      'across town changes nothing in the URL, and the real address shows on the Page. Chosen from the anchor ' +
+      "Location's city polygon, then its place, then the postal city, then the county; never the founder's home.",
+  },
+  {
     name: 'a Member runs a Page',
     from: 'Member',
     to: 'Page',

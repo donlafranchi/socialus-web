@@ -18,7 +18,7 @@
 // authenticated Member. Groups and Locations carry no image column at b1, so
 // only People resolve a thumbnail; Groups/Venues fall back to a placeholder.
 
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { SUBSCRIBED_RELATIONSHIPS } from '@/lib/feed/followed-pages'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -62,6 +62,8 @@ const RUNS_IT = new Set(['owner', 'steward'])
 interface GroupRow {
   id: string
   public_id: string
+  place_url_slug?: string | null
+  page_url_slug?: string | null
   name: string
 }
 interface SavedSearchRow {
@@ -129,7 +131,7 @@ async function readGroups(
 
   const ids = memberships.map((g) => g.group_id)
   // #423 — a deleted Page's owner still reads it, to restore it from Your Pages; not here.
-  const { data: groupData } = await supabase.from('groups').select('id, public_id, name').in('id', ids).is('dissolved_at', null)
+  const { data: groupData } = await supabase.from('groups').select('id, public_id, place_url_slug, page_url_slug, name').in('id', ids).is('dissolved_at', null)
   const groups = new Map(((groupData as GroupRow[] | null) ?? []).map((g) => [g.id, g]))
 
   return memberships.flatMap((gm) => {
@@ -143,7 +145,7 @@ async function readGroups(
         displayName: g.name,
         thumbnailUrl: null,
         createdAt: gm.joined_at,
-        href: canonicalPagePath(g.public_id),
+        href: pagePath({ publicId: g.public_id, placeUrlSlug: g.place_url_slug, pageUrlSlug: g.page_url_slug }),
         isTombstone: false,
       },
     ]

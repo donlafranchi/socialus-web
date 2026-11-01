@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle, postId } = await params
   const [shop, shared] = await Promise.all([shopFor(handle), postFor(handle, postId)])
   if (!shop || !shared) return { title: 'Not found — SocialUs' }
-  return postShareMetadata({ page: shop, post: shared.access === 'full' ? shared.post : shared.preview, postId })
+  return postShareMetadata({ page: shop, post: shared.access === 'full' ? shared.post : shared.preview, postId, postUrlSlug: shared.access === 'full' ? shared.post.urlSlug : null })
 }
 
 export default async function PostAtItsAddress({ params }: Props) {

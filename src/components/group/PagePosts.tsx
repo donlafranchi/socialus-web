@@ -324,6 +324,13 @@ export function PagePosts({
     return () => cancelAnimationFrame(frame)
   }, [posts, focusPostId])
   const highlighted = useAnnouncementAnchor(showEarlier, focusPostId)
+  // #1139 — an old #announcement-<id> link, once it has landed, takes the post's own readable address.
+  useEffect(() => {
+    const id = announcementIdFromHash(window.location.hash)
+    const post = id && id === highlighted ? posts.find((p) => p.id === id) : undefined
+    if (!pagePath || !post?.urlSlug || pagePath.startsWith('/g/')) return
+    window.history.replaceState(window.history.state, '', postPath(pagePath, post))
+  }, [posts, pagePath, highlighted])
   // #472 first pass — the form is rarely used, so it waits for Announce
   // (Google Business Profile's "Add update" opens on request).
   const [composing, setComposing] = useState(startComposing)
@@ -785,7 +792,7 @@ export function PagePosts({
                   <div className="mt-2 flex items-center gap-3">
                     <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
                     {pagePath && !post.hiddenAt && (
-                      <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post.id)} />
+                      <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post)} />
                     )}
                     {!canPost && onReport && (
                       <ReportControl subjectId={post.id} subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />

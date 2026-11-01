@@ -3,7 +3,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { viewerId } from '@/lib/auth/viewer'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { loadPageView } from '@/lib/groups/load-page-view'
 import { ShopPublicPage } from '@/components/group/ShopPublicPage'
 import { loadViewerReminders, NO_REMINDERS } from '@/lib/reminders/viewer-reminders'
@@ -53,7 +53,7 @@ export async function PageBody({ shop: resolved, focusPostId = null, preview = n
       searchDemand={searchDemand}
       reminders={reminders}
       wonders={wonders}
-      pagePath={canonicalPagePath(shop.publicId)}
+      pagePath={pagePath(shop)}
       focusPostId={focusPostId}
       sharedPreview={preview}
     />

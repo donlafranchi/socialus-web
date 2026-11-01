@@ -54,6 +54,7 @@ describe('resolvePagePosts', () => {
         ticketUrl: null,
         kind: 'news',
         headline: null,
+        urlSlug: null,
         current: true,
       },
     ])
