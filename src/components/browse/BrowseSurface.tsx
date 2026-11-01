@@ -90,9 +90,11 @@ export function BrowseSurface({
   const [reach, setReach] = useState<Reach | null>(() => parseReach(params.get('reach')))
   // #896 — a Page's map opens here, on that Page (?view=map&focus=…&at=…).
   const [focus] = useState(() => (params.get('view') === 'map' ? mapFocusFrom(params) : null))
-  // Ephemeral per F044 — not in the URL, resets to List on the next visit (unless a Page sent us to the map).
-  const [view, setView] = useState<ExploreView>(focus && initial.signedIn ? 'map' : 'list')
-  const [mapCollapsed, setMapCollapsed] = useState(false)
+  // plan #230 (Don, 2026-10-31): "the map [doesn't help] unless it's requested." A list at every width; the map
+  // opens on request and ?view=map carries it, as Yelp, Airbnb and Google Maps carry theirs.
+  const wantsMap = params.get('view') === 'map' && initial.signedIn
+  const [view, setView] = useState<ExploreView>(wantsMap ? 'map' : 'list')
+  const [mapCollapsed, setMapCollapsed] = useState(!wantsMap)
   // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
   // pill; from 1024px list and map side by side; at 1024–1439px with the owner
   // panel open, one view at a time behind a switch docked in the search row.
@@ -105,6 +107,27 @@ export function BrowseSurface({
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
   const [mapPromptOpen, setMapPromptOpen] = useState(false)
+  /** Opens or closes the map, keeping ?view=map in step so the address says what the screen shows. */
+  const showMapView = useCallback(
+    (open: boolean) => {
+      if (open && !snapshot.signedIn) {
+        setMapPromptOpen(true)
+        return
+      }
+      setView(open ? 'map' : 'list')
+      setMapCollapsed(!open)
+      const u = new URL(window.location.href)
+      if (open) u.searchParams.set('view', 'map')
+      else if (u.searchParams.get('view') === 'map') u.searchParams.delete('view')
+      window.history.replaceState(window.history.state, '', u.toString())
+    },
+    [snapshot.signedIn],
+  )
+  const mapHref = (() => {
+    const q = new URLSearchParams(params.toString())
+    q.set('view', 'map')
+    return `/explore?${q.toString()}`
+  })()
   const [searchRequest, setSearchRequest] = useState(0)
   const [, startTransition] = useTransition()
   // One clock per mount, so the week/weekend boundaries stay stable across
@@ -376,7 +399,7 @@ export function BrowseSurface({
         onOpenFilters={() => setSheetOpen(true)}
         onOpenScope={() => setScopeOpen(true)}
         searchRequest={searchRequest}
-        viewSwitch={layout === 'docked' ? <ListMapToggle view={view} onChange={setView} /> : undefined}
+        viewSwitch={layout === 'docked' ? <ListMapToggle view={view} onChange={(v) => showMapView(v === 'map')} /> : undefined}
       />
 
       {/* Above the results, and absent for a signed-in Member. */}
@@ -432,7 +455,8 @@ export function BrowseSurface({
         {showList && (
           <div key={`list-${layout}`} data-testid="browse-list-pane" className="explore-fade-in min-w-0 flex-1">
             <section className="px-3 py-4 md:px-6">
-              <p className="mb-3 text-sm text-neutral-600" data-testid="result-count">
+              <div className="mb-3 flex items-baseline justify-between gap-3">
+              <p className="text-sm text-neutral-600" data-testid="result-count">
                 {/* #947 — draft copy (human-review). */}
                 {searching ? (
                   needle ? 'Searching…' : 'Loading…'
@@ -443,6 +467,21 @@ export function BrowseSurface({
                   </>
                 )}
               </p>
+              {/* plan #230 — the map only on request: a quiet text link, never a chip. Draft copy (human-review). */}
+              {!showMap && visible.length > 0 && (
+                <a
+                  href={mapHref}
+                  data-testid="show-on-map"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    showMapView(true)
+                  }}
+                  className="press inline-flex min-h-tap shrink-0 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
+                >
+                  Show on map
+                </a>
+              )}
+              </div>
 
               {searchFailed && (
                 <div className="py-6 text-center text-sm text-neutral-600" data-testid="browse-search-failed" role="alert">
@@ -534,7 +573,7 @@ export function BrowseSurface({
           <div className={`sticky ${SPLIT_TOP} ${SPLIT_HEIGHT} flex shrink-0 items-center border-l border-[var(--color-charcoal-100)]`}>
             <button
               type="button"
-              onClick={() => setMapCollapsed((c) => !c)}
+              onClick={() => showMapView(mapCollapsed)}
               aria-label={mapCollapsed ? 'Show map' : 'Hide map'}
               aria-expanded={!mapCollapsed}
               aria-controls={MAP_PANE_ID}
@@ -600,7 +639,7 @@ export function BrowseSurface({
           onSearch={() => setSearchRequest((n) => n + 1)}
           onFilter={() => setSheetOpen(true)}
           onMetro={() => setScopeOpen(true)}
-          onViewChange={(v) => (snapshot.signedIn || v === 'list' ? setView(v) : setMapPromptOpen(true))}
+          onViewChange={(v) => showMapView(v === 'map')}
         />
       )}
 

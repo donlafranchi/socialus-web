@@ -189,9 +189,9 @@ export async function enrichPage(
         for (const [i, post] of posts.entries()) {
           const photo = rest[i] ?? cover
           await db.query(
-            `insert into public.page_posts (group_id, body, starts_at, ends_at, how_to_find, photo_url, lifecycle_state, discoverability, sample_kind, created_at, updated_at)
-             values ($1, $2, $3, $4, $5, $6, 'active', 'listed', $7, $8, $8)`,
-            [g.id, `${post.body}\n\nPhoto: ${photo.credit}`, post.startsAt, post.endsAt, post.howToFind, photo.url, post.kind, new Date(now.getTime() - (posts.length - i) * 3600_000)],
+            `insert into public.page_posts (group_id, body, starts_at, ends_at, how_to_find, photo_url, lifecycle_state, discoverability, sample_kind, created_at, updated_at, kind, headline)
+             values ($1, $2, $3, $4, $5, $6, 'active', 'listed', $7, $8, $8, $9, $10)`,
+            [g.id, `${post.body}\n\nPhoto: ${photo.credit}`, post.startsAt, post.endsAt, post.howToFind, photo.url, post.kind, new Date(now.getTime() - (posts.length - i) * 3600_000), post.postKind, post.headline],
           )
         }
       }

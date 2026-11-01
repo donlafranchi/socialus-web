@@ -144,7 +144,11 @@ describe('#328 — under 1024px, one control at the bottom right', () => {
   })
 })
 
+// plan #230 — once the map is asked for (?view=map).
 describe('T187 — 1024px and up, side by side', () => {
+  beforeEach(() => {
+    params = new URLSearchParams('view=map')
+  })
   it('shows list and map together, with no toggle', () => {
     renderAt(1024)
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
@@ -179,6 +183,7 @@ describe('T187 — 1024–1439px with the owner panel open', () => {
   })
 
   it('stays side by side from 1440px, panel open or not', () => {
+    params = new URLSearchParams('view=map')
     renderAt(1440, { ownerPanelOpen: true })
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
@@ -190,13 +195,14 @@ describe('#331 — the map shows the tunable mix, narrowed by search and filters
   const mix = [{ ...result(1), name: 'Bread class', bucket: 'dated' as const }, { ...result(2), name: 'Pottery', bucket: 'new' as const }]
   it('the map gets the mix, not the list', () => {
     stubWidth(1280)
+    params = new URLSearchParams('view=map')
     render(<BrowseSurface initial={{ ...snapshot, signedIn: true, map: mix }} />)
     expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', 'Bread class|Pottery')
   })
 
   it('a search that empties the map offers to clear it', () => {
     stubWidth(1280)
-    params = new URLSearchParams('q=zzz-nothing')
+    params = new URLSearchParams('q=zzz-nothing&view=map')
     render(<BrowseSurface initial={{ ...snapshot, signedIn: true, map: mix }} />)
     expect(screen.getByTestId('browse-map')).toHaveAttribute('data-names', '')
     expect(screen.getByTestId('map-empty')).toHaveTextContent('Clear filters')
@@ -235,8 +241,56 @@ describe('#334 — signed out: list only, Map opens sign-up', () => {
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
   })
 
-  it('a member still gets the map beside the list at 1280', () => {
+  it('a member still gets the map beside the list at 1280, on request', () => {
+    params = new URLSearchParams('view=map')
     renderAt(1280, { signedIn: true })
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+  })
+})
+
+// plan #230 (Don, 2026-10-31): "I also don't think the map helps here unless it's requested." Explore is a list;
+// a quiet "Show on map" link opens the map, and ?view=map carries it (Yelp, Airbnb, Google Maps).
+describe('plan #230 — the map on request', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  for (const w of [390, 1024, 1440]) {
+    it(`shows the list and no map by default at ${w}px, with a Show on map link`, () => {
+      renderAt(w)
+      expect(screen.getByTestId('card-grid')).toBeInTheDocument()
+      expect(screen.queryByTestId('browse-map')).toBeNull()
+      const link = screen.getByRole('link', { name: 'Show on map' })
+      expect(link.getAttribute('href')).toMatch(/view=map/)
+      expect(link.className).not.toMatch(/rounded-full|border/)
+    })
+  }
+
+  it('the link opens the map beside the list from 1024px, and writes ?view=map', () => {
+    const replace = vi.spyOn(window.history, 'replaceState')
+    renderAt(1280)
+    fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
+    expect(String(replace.mock.calls.at(-1)?.[2])).toMatch(/view=map/)
+    expect(screen.queryByRole('link', { name: 'Show on map' })).toBeNull()
+  })
+
+  it('the link opens the map in place of the list on a phone', () => {
+    renderAt(390)
+    fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+    expect(screen.queryByTestId('card-grid')).toBeNull()
+  })
+
+  it('?view=map opens on the map', () => {
+    params = new URLSearchParams('view=map')
+    renderAt(1280)
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+  })
+
+  it('signed out, the link opens sign-up instead of the map', () => {
+    renderAt(1280, { signedIn: false })
+    fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
+    expect(screen.getByTestId('sign-in-prompt')).toBeInTheDocument()
+    expect(screen.queryByTestId('browse-map')).toBeNull()
   })
 })

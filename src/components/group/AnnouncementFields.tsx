@@ -30,6 +30,7 @@ import { DateField, TimeField } from '@/components/ui/DateTimeFields'
 import { metroDate } from '@/lib/metro/metro-week'
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
 import { SERIES_WEEKDAYS } from '@/lib/posts/series'
+import { SALE_MAX_DAYS, SHELF_DAYS, type PostKind } from '@/lib/posts/kinds'
 import {
   LocationPlaceFields,
   initialLocationPlaceFieldsState,
@@ -60,7 +61,11 @@ export interface AnnouncementWhenWhere {
 
 /** #314 (Don, 2026-10-02) — an undated post shows for this long unless its owner picks another day. */
 export const UNDATED_SHOWS_DAYS = 14
-export const defaultShowUntil = (postedAt: Date) => metroDate(new Date(postedAt.getTime() + UNDATED_SHOWS_DAYS * 86_400_000), METRO_TIME_ZONE)
+export const defaultShowUntil = (postedAt: Date, days: number = UNDATED_SHOWS_DAYS) => metroDate(new Date(postedAt.getTime() + days * 86_400_000), METRO_TIME_ZONE)
+/** plan #230 — how long an undated post of this kind shows by default. */
+export const shelfDays = (kind?: PostKind) => (kind ? SHELF_DAYS[kind] : null) ?? UNDATED_SHOWS_DAYS
+/** plan #230 — a sale's default last day: a week from today. */
+export const defaultSaleThrough = (now: Date) => metroDate(new Date(now.getTime() + 7 * 86_400_000), METRO_TIME_ZONE)
 
 export const emptyRepeat: AnnouncementWhenWhere['repeat'] = { open: false, days: [], startsOn: '', endsOn: '' }
 
@@ -87,6 +92,7 @@ export function AnnouncementFields({
   now = new Date(),
   repeats = false,
   postedAt,
+  kind,
 }: {
   value: AnnouncementWhenWhere
   onChange: (next: AnnouncementWhenWhere) => void
@@ -99,8 +105,13 @@ export function AnnouncementFields({
   repeats?: boolean
   /** #314 — when an edited post was posted, so its default show-until day counts from then. */
   postedAt?: Date
+  /** plan #230 — the post's kind: an event or a reminder needs its time, a sale the day it ends. */
+  kind?: PostKind
 }) {
-  const showUntilDefault = defaultShowUntil(postedAt ?? now)
+  const days = shelfDays(kind)
+  const showUntilDefault = defaultShowUntil(postedAt ?? now, days)
+  const dated = kind === 'event' || kind === 'reminder'
+  const empty = !dated && !(value.date || value.time || value.endTime)
   const repeatOn = repeats && value.repeat.open
   const [endTouched, setEndTouched] = useState(Boolean(value.endTime))
   return (
@@ -109,11 +120,29 @@ export function AnnouncementFields({
           optional: undated is a first-class post. Asking for a time fills
           today, the next whole hour, and an end an hour later that follows
           the start until the owner sets it. */}
+      {kind === 'sale' ? (
+        // plan #230 — a sale runs from now through the day it ends, at most 30 days out. Draft copy.
+        <fieldset className="border-0 p-0">
+          <legend className="text-body-sm font-medium text-[var(--color-fg)]">When does it end?</legend>
+          <div className="mt-1 sm:max-w-xs">
+            <DateField
+              label="Through"
+              testId={`${idPrefix}-sale-through`}
+              min={metroDate(now, METRO_TIME_ZONE)}
+              max={metroDate(new Date(now.getTime() + SALE_MAX_DAYS * 86_400_000), METRO_TIME_ZONE)}
+              value={value.endDate}
+              onChange={(endDate) => onChange({ ...value, endDate })}
+            />
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">A sale can run up to {SALE_MAX_DAYS} days.</p>
+          </div>
+        </fieldset>
+      ) : (
       <fieldset className="border-0 p-0">
         <legend className="text-body-sm font-medium text-[var(--color-fg)]">
-          When is it? <span className="font-normal text-[var(--color-fg-muted)]">Optional</span>
+          {kind === 'reminder' ? 'When is the next one?' : 'When is it?'}
+          {dated ? null : <> <span className="font-normal text-[var(--color-fg-muted)]">Optional</span></>}
         </legend>
-        {!(value.date || value.time || value.endTime) ? (
+        {empty ? (
           <button
             type="button"
             data-testid={`${idPrefix}-add-when`}
@@ -127,7 +156,7 @@ export function AnnouncementFields({
             Add a date and time
           </button>
         ) : null}
-        {!(value.date || value.time || value.endTime) ? (
+        {empty ? (
           <div className="mt-3 sm:max-w-xs">
             <DateField
               label="Show until"
@@ -136,7 +165,7 @@ export function AnnouncementFields({
               value={value.showUntil || showUntilDefault}
               onChange={(d) => onChange({ ...value, showUntil: d === showUntilDefault ? '' : d })}
             />
-            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Posts without a date show for {UNDATED_SHOWS_DAYS} days unless you pick another day.</p>
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Posts without a date show for {days} days unless you pick another day.</p>
           </div>
         ) : (
           <>
@@ -246,17 +275,20 @@ export function AnnouncementFields({
                 </button>
               </fieldset>
             )}
-            <button
-              type="button"
-              data-testid={`${idPrefix}-clear-when`}
-              className="mt-1 flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
-              onClick={() => onChange({ ...value, date: '', time: '', endTime: '', endDate: '', repeat: emptyRepeat })}
-            >
-              No particular time
-            </button>
+            {!dated && (
+              <button
+                type="button"
+                data-testid={`${idPrefix}-clear-when`}
+                className="mt-1 flex min-h-tap items-center text-body-sm text-[var(--color-fg-muted)] underline"
+                onClick={() => onChange({ ...value, date: '', time: '', endTime: '', endDate: '', repeat: emptyRepeat })}
+              >
+                No particular time
+              </button>
+            )}
           </>
         )}
       </fieldset>
+      )}
 
       <div>
         <span className="text-sm font-medium text-[var(--color-fg)]">
@@ -319,7 +351,7 @@ function plusOneHour(hhmm: string): string {
 }
 
 /** Today in the metro, the next whole hour, and an hour after it. */
-function whenDefaults(now: Date): { date: string; time: string; endTime: string } {
+export function whenDefaults(now: Date): { date: string; time: string; endTime: string } {
   const hour = Number(
     new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: METRO_TIME_ZONE }).format(now),
   )

@@ -5,7 +5,20 @@ import { normalizeTag } from '@/lib/groups/tags'
 import { DEFAULT_BROWSE_FILTERS, isPickedDay, type BrowseFilters, type DateFilter, type PostKind, type ResultType } from './filters'
 
 const TYPE_WORD: Record<Exclude<ResultType, 'all'>, string> = { pages: 'pages', posts: 'posts' }
-const KIND_WORD: Record<PostKind, string> = { event: 'events', deal: 'deals', last_minute: 'last-minute' }
+const KIND_WORD: Record<PostKind, string> = {
+  event: 'events',
+  sale: 'sales',
+  limited: 'limited',
+  reminder: 'reminders',
+  news: 'news',
+  wonder: 'count me in',
+  hiring: 'hiring',
+}
+/** plan #230 — an old link's kind words, read as today's kinds and never written again. */
+const LEGACY_KIND_WORD: [string, PostKind][] = [
+  ['deals', 'sale'],
+  ['last-minute', 'limited'],
+]
 export const FOLLOWING_WORD = 'following'
 /** #892 — the words, not the tags: a shared link carries no one's interests, and each reader's own apply. */
 export const MY_INTERESTS_WORDS = 'my interests'
@@ -30,7 +43,7 @@ export function writeBox(f: BrowseFilters, rest = ''): string {
     .trim()
 }
 
-const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), FOLLOWING_WORD, MY_INTERESTS_WORDS, ...Object.values(DATE_PHRASE), LEGACY_UPDATES]
+const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), ...LEGACY_KIND_WORD.map(([w]) => w), FOLLOWING_WORD, MY_INTERESTS_WORDS, ...Object.values(DATE_PHRASE), LEGACY_UPDATES]
 
 /** The group words are the box's own: a tag with exactly that text cannot be written as a tag. */
 export const isReservedWord = (tag: string): boolean => RESERVED.includes(normalizeTag(tag))
@@ -76,6 +89,7 @@ export function readBox(text: string, knownTags: readonly string[]): { filters: 
   for (const t of ['pages', 'posts'] as const) if (type === 'all' && pull(TYPE_WORD[t])) type = t
   if (type === 'all' && pull(LEGACY_UPDATES)) type = 'posts'
   const postKinds = (Object.keys(KIND_WORD) as PostKind[]).filter((k) => pull(KIND_WORD[k]))
+  for (const [w, k] of LEGACY_KIND_WORD) if (pull(w) && !postKinds.includes(k)) postKinds.push(k)
   const following = Boolean(pull(FOLLOWING_WORD))
 
   let date: DateFilter = 'any'

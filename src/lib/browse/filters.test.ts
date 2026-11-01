@@ -70,7 +70,7 @@ describe('T156 — hasBrowseFilters', () => {
     expect(hasBrowseFilters(F({ date: 'week' }))).toBe(true)
     expect(hasBrowseFilters(F({ tags: ['art'] }))).toBe(true)
     expect(hasBrowseFilters(F({ type: 'posts' }))).toBe(true)
-    expect(hasBrowseFilters(F({ postKinds: ['deal'] }))).toBe(true)
+    expect(hasBrowseFilters(F({ postKinds: ['sale'] }))).toBe(true)
     expect(hasBrowseFilters(F({ following: true }))).toBe(true)
   })
 })

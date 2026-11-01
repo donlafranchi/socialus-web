@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { PagePosts } from './PagePosts'
 import { COPY } from '@/lib/copy'
@@ -880,10 +880,11 @@ describe('a weekly series', () => {
 describe('#314 — show until, on an undated post', () => {
   afterEach(() => vi.useRealTimers())
 
-  it('the composer offers 14 days from today, and sends no date when it is left alone', async () => {
+  // plan #230 — news now shows for 7 days (was 14 for every undated post).
+  it('the composer offers 7 days from today for news, and sends no date when it is left alone', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
     renderPosts()
-    expect(screen.getByTestId('announce-show-until')).toHaveValue('2026-10-26')
+    expect(screen.getByTestId('announce-show-until')).toHaveValue('2026-10-19')
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Plants on the porch.' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ showUntil: null })))
@@ -898,10 +899,10 @@ describe('#314 — show until, on an undated post', () => {
     await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ showUntil: '2026-11-02T07:59:00.000Z' })))
   })
 
-  it('an edit starts from 14 days after it was posted, or the day the owner set', () => {
+  it('an edit starts from its kind’s days after it was posted, or the day the owner set', () => {
     renderPosts({ posts: [POST, postFixture({ id: 'pp-2', showUntil: '2026-10-11T06:59:00.000Z' } as never)] })
     fireEvent.click(screen.getAllByTestId('page-post-edit')[0]!)
-    expect(screen.getByTestId('page-post-edit-show-until')).toHaveValue('2026-10-04')
+    expect(screen.getByTestId('page-post-edit-show-until')).toHaveValue('2026-09-27')
   })
 
   it('a dated post has no show-until day: it shows until it ends', () => {
@@ -973,7 +974,7 @@ describe('F117 — posting a Wonder', () => {
   it('the composer posts a Wonder with a threshold and the sizes the poster names', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Clothes that fit, bought in bulk at cost.' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: COPY.wonderToggle }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '500' } })
     fireEvent.change(screen.getByLabelText(COPY.wonderOptionsLabel), { target: { value: 'S, M, L, M' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
@@ -983,10 +984,134 @@ describe('F117 — posting a Wonder', () => {
   it('refuses a threshold that is not a whole number', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'A tool library?' } })
-    fireEvent.click(screen.getByRole('checkbox', { name: COPY.wonderToggle }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '2.5' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     expect(await screen.findByText(COPY.wonderThresholdInvalid)).toBeInTheDocument()
     expect(onPost).not.toHaveBeenCalled()
+  })
+})
+
+// plan #230 (Don, 2026-10-31) — pick the kind first, then a one-line headline, then the details.
+describe('plan #230 — the composer: kind, headline, details', () => {
+  afterEach(() => vi.useRealTimers())
+  const kindRadio = (name: string) => screen.getByRole('radio', { name })
+
+  it('offers the seven kinds first, News picked to start', () => {
+    renderPosts()
+    const group = screen.getByRole('radiogroup', { name: 'What is it?' })
+    expect(group).toBeInTheDocument()
+    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Count me in', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
+    expect(kindRadio('News')).toBeChecked()
+    // The kind comes before the headline, which comes before the details.
+    const order = [group, screen.getByTestId('page-post-headline'), screen.getByTestId('page-post-body')]
+    for (let i = 1; i < order.length; i++) expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('the headline is one line of at most 60 characters, with a count', () => {
+    renderPosts()
+    const h = screen.getByTestId('page-post-headline')
+    expect(h).toHaveAttribute('maxLength', '60')
+    fireEvent.change(h, { target: { value: 'Half off fall bulbs' } })
+    expect(screen.getByTestId('page-post-headline-count')).toHaveTextContent('19/60')
+  })
+
+  it('sends the kind and the headline; a headline alone is enough', async () => {
+    renderPosts()
+    fireEvent.click(kindRadio('Hiring'))
+    fireEvent.change(screen.getByTestId('page-post-headline'), { target: { value: 'Weekend barista' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect(onPost.mock.calls[0]![0]).toMatchObject({ kind: 'hiring', headline: 'Weekend barista', body: 'Weekend barista' })
+  })
+
+  it('an event opens its date and time, and refuses to go without them', async () => {
+    renderPosts()
+    fireEvent.click(kindRadio('Event'))
+    expect(screen.getByTestId('announce-date')).toBeInTheDocument()
+    expect(screen.queryByTestId('announce-clear-when')).toBeNull()
+    fireEvent.change(screen.getByTestId('page-post-headline'), { target: { value: 'Bread class' } })
+    fireEvent.change(screen.getByTestId('announce-date'), { target: { value: '' } })
+    fireEvent.change(screen.getByTestId('announce-time'), { target: { value: '' } })
+    fireEvent.change(screen.getByTestId('announce-end-time'), { target: { value: '' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    expect(await screen.findByText('An event needs a day and time.')).toBeInTheDocument()
+    expect(onPost).not.toHaveBeenCalled()
+  })
+
+  it('a reminder asks for the next time', () => {
+    renderPosts()
+    fireEvent.click(kindRadio('Reminder'))
+    expect(screen.getByText('When is the next one?')).toBeInTheDocument()
+    expect(screen.getByTestId('announce-time')).toBeInTheDocument()
+  })
+
+  it('a sale asks for the day it ends, at most 30 days out, and sends it as its end', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts()
+    fireEvent.click(kindRadio('Sale'))
+    const through = screen.getByTestId('announce-sale-through')
+    expect(through).toHaveAttribute('max', '2026-11-11')
+    expect(screen.queryByTestId('announce-time')).toBeNull()
+    fireEvent.change(through, { target: { value: '2026-10-18' } })
+    fireEvent.change(screen.getByTestId('page-post-headline'), { target: { value: 'Half off fall bulbs' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    expect(onPost.mock.calls[0]![0]).toMatchObject({ kind: 'sale', startsAt: '2026-10-12T19:00:00.000Z', endsAt: '2026-10-19T06:59:00.000Z' })
+  })
+
+  it('news shows for 7 days unless the owner picks another day', () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
+    renderPosts()
+    expect(screen.getByTestId('announce-show-until')).toHaveValue('2026-10-19')
+    fireEvent.click(kindRadio('Hiring'))
+    expect(screen.getByTestId('announce-show-until')).toHaveValue('2026-11-11')
+  })
+
+  it('an edit can change the headline and the kind', async () => {
+    renderPosts({ posts: [{ ...POST, kind: 'news', headline: 'Sourdough is back' } as never] })
+    fireEvent.click(screen.getByTestId('page-post-edit'))
+    const h = screen.getByTestId('page-post-edit-headline')
+    expect(h).toHaveValue('Sourdough is back')
+    fireEvent.change(h, { target: { value: 'Sourdough is back Thursday' } })
+    fireEvent.click(within(screen.getAllByRole('radiogroup', { name: 'What is it?' }).at(-1)!).getByRole('radio', { name: 'Limited' }))
+    fireEvent.click(screen.getByTestId('page-post-edit-save'))
+    await waitFor(() => expect(onEdit).toHaveBeenCalled())
+    expect(onEdit.mock.calls[0]![0]).toMatchObject({ kind: 'limited', headline: 'Sourdough is back Thursday' })
+  })
+
+  it('the Page shows the lead line and the headline above the details', () => {
+    renderPosts({ canPost: false, posts: [{ ...POST, kind: 'limited', headline: 'Sourdough is back', locationLabel: 'Midtown' } as never] })
+    expect(screen.getByTestId('page-post-lead')).toHaveTextContent(/^Limited · .+ · Midtown$/)
+    expect(screen.getByTestId('page-post-headline-text')).toHaveTextContent('Sourdough is back')
+  })
+})
+
+// Don, 2026-10-31: "I can't share an anouncment?" — Share on every post, to its own address; the post view lands on it.
+describe('Share on a post', () => {
+  const ID = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
+  afterEach(() => Object.assign(navigator, { share: undefined }))
+
+  it('shares the post’s own address under its Page, titled by its headline', async () => {
+    const share = vi.fn(async () => undefined)
+    Object.assign(navigator, { share })
+    renderPosts({ canPost: false, pagePath: '/g/7k3x8m', posts: [{ ...postFixture({ id: ID }), headline: 'Bread is back' }] })
+    fireEvent.click(within(document.getElementById(`announcement-${ID}`)!).getByRole('button', { name: 'Share' }))
+    await waitFor(() => expect(share).toHaveBeenCalledWith({ title: 'Bread is back', url: `${window.location.origin}/g/7k3x8m/posts/${ID}` }))
+  })
+
+  it('the owner can share their own post too, but not one hidden after a report, and nothing without an address', () => {
+    renderPosts({ canPost: true, pagePath: '/g/7k3x8m', posts: [postFixture({ id: 'p-1' }), { ...postFixture({ id: 'p-2' }), hiddenAt: '2026-10-31T00:00:00Z' }] })
+    expect(within(document.getElementById('announcement-p-1')!).getByRole('button', { name: 'Share' })).toBeInTheDocument()
+    expect(within(document.getElementById('announcement-p-2')!).queryByRole('button', { name: 'Share' })).toBeNull()
+    cleanup()
+    renderPosts({ canPost: false, posts: [postFixture({ id: 'p-1' })] })
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
+  })
+
+  it('opened at a post’s address, it lands on that post, older ones included', async () => {
+    const five = ['p-5', 'p-4', 'p-3', 'p-2', 'p-1'].map((id, i) => postFixture({ id, createdAt: `2026-09-2${5 - i}T12:00:00.000Z` }))
+    renderPosts({ canPost: false, posts: five, focusPostId: 'p-1' })
+    await waitFor(() => expect(document.getElementById('announcement-p-1')).toHaveAttribute('data-highlighted', 'true'))
   })
 })

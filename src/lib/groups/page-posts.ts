@@ -11,6 +11,7 @@
 
 import { maskEmails, maskEmailsOrNull } from '@/lib/text/contact-info'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
+import { inferKind, isPostKind, SAMPLE_POST_KIND, type PostKind } from '@/lib/posts/kinds'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface PagePost {
@@ -49,6 +50,10 @@ export interface PagePost {
   ticketUrl?: string | null
   /** F117 — a Wonder: who's in toward a threshold, with optional sizes. Absent on an announcement. */
   wonder?: { threshold: number; options: string[] } | null
+  /** plan #230 — what the post is, picked first. Always set by resolvePagePosts. */
+  kind?: PostKind
+  /** plan #230 — the card's one line; null on an older post. */
+  headline?: string | null
   /** #913 — false once the database's post_current_until has passed; an undated one then sits under Earlier. */
   current?: boolean
 }
@@ -72,6 +77,7 @@ interface Row {
   ticket_url?: string | null
   current_until?: string | null
   kind?: string | null
+  headline?: string | null
   wonder_threshold?: number | null
   wonder_options?: string[] | null
   location: { label: string | null } | { label: string | null }[] | null
@@ -84,15 +90,19 @@ export async function resolvePagePosts(
   supabase: SupabaseClient,
   groupId: string,
   now: Date = new Date(),
+  opts: { postId?: string } = {},
 ): Promise<PagePost[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, kind, wonder_threshold, wonder_options, location:locations(label), post_tags(tags(label))')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, kind, headline, wonder_threshold, wonder_options, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)
     .order('created_at', { ascending: false })
     .limit(50)
+  // A shared post's address asks for the one post; RLS still decides whether it comes back.
+  if (opts.postId) query = query.eq('id', opts.postId)
+  const { data, error } = await query
   if (error || !data) return []
   return (data as Row[]).map((r) => {
     // PostgREST returns an embedded relation as an array or an object
@@ -123,6 +133,8 @@ export async function resolvePagePosts(
       seriesId: r.series_id ?? null,
       eventKey: r.event_key ?? null,
       ticketUrl: r.ticket_url ?? null,
+      kind: isPostKind(r.kind) ? r.kind : r.sample_kind ? SAMPLE_POST_KIND[r.sample_kind] : inferKind({ wonder: r.kind === 'wonder', startsAt: r.starts_at }),
+      headline: maskEmailsOrNull(r.headline ?? null),
       ...(r.kind === 'wonder' && r.wonder_threshold ? { wonder: { threshold: r.wonder_threshold, options: r.wonder_options ?? [] } } : {}),
       current: !r.current_until || new Date(r.current_until).getTime() >= now.getTime(),
     }

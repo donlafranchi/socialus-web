@@ -663,7 +663,7 @@ describe('#458 — a header block, then contained sections', () => {
     renderShop(full)
     const header = screen.getByTestId('page-header')
     for (const id of ['page-cover', 'shop-name', 'page-kind']) expect(header).toContainElement(screen.getByTestId(id))
-    expect(header).toContainElement(screen.getByRole('button', { name: 'Share' }))
+    expect(header).toContainElement(screen.getByTestId('page-share'))
     expect(header).toContainElement(screen.getByRole('button', { name: /follow/i }))
   })
 

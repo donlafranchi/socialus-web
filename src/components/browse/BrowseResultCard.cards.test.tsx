@@ -76,18 +76,53 @@ describe('quick links: Page cards only', () => {
   })
 })
 
-describe('the post card: text-led', () => {
-  it('a strong date line, the title, two lines of body, a smaller photo, and the Page’s name and avatar', () => {
-    render(<BrowseResultCard result={post()} />)
-    const when = screen.getByTestId('browse-post-when')
-    expect(when).toHaveTextContent(/Sun Oct 25 · 10am/)
-    expect(when.className).toMatch(/uppercase/)
-    expect(screen.getByTestId('tile-title')).toHaveTextContent('Pumpkin bread is back')
-    expect(screen.getByTestId('tile-tagline')).toHaveTextContent(/^Fresh from the oven/)
-    expect(screen.getByTestId('tile-tagline').className).toMatch(/line-clamp-2/)
+// plan #230 (Don, 2026-10-31) — "I need people to see exactly what's being offered." KIND · WHEN · WHERE in
+// small caps, built from fields; the headline in one line; the Page's avatar and name; the smaller photo.
+describe('the post card: what it is, first', () => {
+  const NOW = new Date('2026-10-22T17:00:00Z') // Thu
+  it('a small-caps lead line, a one-line headline, the Page’s avatar and name, and a smaller photo', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const lead = screen.getByTestId('browse-post-lead')
+    expect(lead).toHaveTextContent('Event · Sun 10am · Midtown')
+    expect(lead.className).toMatch(/uppercase/)
+    expect(lead.className).toMatch(/font-bold/)
+    const title = screen.getByTestId('tile-title')
+    expect(title).toHaveTextContent(/^Pumpkin bread is back$/)
+    expect(title.className).toMatch(/line-clamp-1/)
+    expect(screen.queryByTestId('tile-tagline')).toBeNull()
     expect(screen.getByTestId('tile-image').className).toMatch(/size-20/)
     expect(screen.getByTestId('post-page-name')).toHaveTextContent('Corner Bakery')
-    expect(screen.getByTestId('card-type')).toHaveAttribute('data-type', 'post')
+    const order = ['browse-post-lead', 'tile-title', 'post-page-name'].map((id) => screen.getByTestId(id))
+    expect(order[0]!.compareDocumentPosition(order[1]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(order[1]!.compareDocumentPosition(order[2]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('never builds the lead line from the body, and never puts the Page name in the headline', () => {
+    render(<BrowseResultCard result={post({ postKind: 'news', headline: null, startsAt: null, postedAt: '2026-10-20T17:00:00Z', body: 'Corner Bakery: new rye loaves.\nDetails here.' })} now={NOW} />)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^News · Tue · Midtown$/)
+    expect(screen.getByTestId('tile-title')).toHaveTextContent(/^New rye loaves\.$/)
+  })
+
+  for (const [kind, word] of [['event', 'Event'], ['sale', 'Sale'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'News'], ['wonder', 'Count me in'], ['hiring', 'Hiring']] as const) {
+    it(`leads a ${kind} post with ${word}`, () => {
+      render(<BrowseResultCard result={post({ postKind: kind, headline: 'One line' })} now={NOW} />)
+      expect(screen.getByTestId('browse-post-lead').textContent!.startsWith(word)).toBe(true)
+    })
+  }
+
+  it('a sample says Sample once, in the lead line: no watermark, no label, no disclaimer', () => {
+    render(
+      <BrowseResultCard
+        result={post({ postKind: 'sale', sampleKind: 'deal', headline: 'Two pastries for one', endsAt: '2026-10-25T23:00:00Z', body: 'Sample · Corner Bakery deal.\nThis is a sample post showing what Corner Bakery’s Page could look like.' })}
+        now={NOW}
+      />,
+    )
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Sample sale · Through Sun · Midtown$/)
+    expect(screen.queryByTestId('sample-watermark')).toBeNull()
+    expect(screen.queryByTestId('sample-label')).toBeNull()
+    expect(screen.queryByText(/This is a sample post/)).toBeNull()
+    const card = screen.getByTestId('tile-card')
+    expect(card.textContent!.match(/sample/gi)).toHaveLength(1)
   })
 
   it('a post with no photo of its own keeps F099’s one image (the Page picture) and uses it as the avatar too', () => {

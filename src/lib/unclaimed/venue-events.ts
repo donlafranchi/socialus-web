@@ -459,8 +459,8 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
     const body = showBody(venue, s, source, fresh?.credit ?? (old && old.photo_url !== photoUrl ? /\n\nPhoto: (.+)$/.exec(old.body)?.[1] : undefined))
     if (!old) {
       await db.query(
-        `insert into public.page_posts (group_id, body, starts_at, photo_url, lifecycle_state, discoverability, event_key, ticket_url, created_at, updated_at)
-         values ($1, $2, $3, $4, 'active', 'listed', $5, $7, $6, $6)
+        `insert into public.page_posts (group_id, kind, body, starts_at, photo_url, lifecycle_state, discoverability, event_key, ticket_url, created_at, updated_at)
+         values ($1, 'event', $2, $3, $4, 'active', 'listed', $5, $7, $6, $6)
          on conflict (group_id, event_key) where event_key is not null do nothing`,
         [groupId, body, s.startsAt, photo, key, now, s.ticketUrl ?? null],
       )

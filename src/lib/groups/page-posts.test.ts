@@ -52,6 +52,8 @@ describe('resolvePagePosts', () => {
         seriesId: null,
         eventKey: null,
         ticketUrl: null,
+        kind: 'news',
+        headline: null,
         current: true,
       },
     ])
@@ -244,5 +246,34 @@ describe('current or earlier', () => {
       const [p] = await resolvePagePosts(supabase, 'g1', now)
       expect(p!.current).toBe(current)
     }
+  })
+})
+
+// plan #230 — every post has a kind and, from now on, a one-line headline.
+describe('kind and headline', () => {
+  const row = (extra: Record<string, unknown>) => ({
+    id: 'a', body: 'x', created_at: '2026-10-01T10:00:00Z', updated_at: '2026-10-01T10:00:00Z', starts_at: null, location: null, ...extra,
+  })
+
+  it('asks for both', async () => {
+    const { supabase, chain } = client({ data: [], error: null })
+    await resolvePagePosts(supabase, 'g1')
+    const selected = String(chain.select.mock.calls[0]![0])
+    expect(selected).toMatch(/\bkind\b/)
+    expect(selected).toMatch(/\bheadline\b/)
+  })
+
+  it('projects them, masking an address in the headline', async () => {
+    const { supabase } = client({ data: [row({ kind: 'sale', headline: 'Half off, write a@b.co' })], error: null })
+    const [p] = await resolvePagePosts(supabase, 'g1')
+    expect(p!.kind).toBe('sale')
+    expect(p!.headline).not.toContain('a@b.co')
+  })
+
+  it('reads an unknown or missing kind as the backfill did', async () => {
+    const dated = client({ data: [row({ kind: null, starts_at: '2026-10-02T10:00:00Z' })], error: null })
+    expect((await resolvePagePosts(dated.supabase, 'g1'))[0]!.kind).toBe('event')
+    const plain = client({ data: [row({ kind: 'announcement' })], error: null })
+    expect((await resolvePagePosts(plain.supabase, 'g1'))[0]!.kind).toBe('news')
   })
 })
