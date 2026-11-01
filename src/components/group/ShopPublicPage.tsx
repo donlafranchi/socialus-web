@@ -63,6 +63,7 @@ import { SearchDemandCard } from './SearchDemandCard'
 import type { PageSearchDemand } from '@/lib/search/page-demand'
 import { pageMapView } from '@/lib/groups/page-map'
 import { FeaturedItems } from './FeaturedItems'
+import { PageAboutProvider, PageAboutLink, PageAboutAside } from './PageAbout'
 import { saveFeaturedItemAction, removeFeaturedItemAction } from '@/app/_actions/featured-item-actions'
 
 
@@ -201,15 +202,10 @@ export function ShopPublicPage({
   const page = (
     // #806 — the claim card and the badge share the claim, so a save updates both.
     <LocalOwnerClaimProvider claim={ownerClaim ?? NO_CLAIM} badge={badge}>
-    {/* #300 — T2 Detail: a centred read-width column; from 1024 the owner's
-        panel sits beside it (720 + 48 + 360 inside the 1128 detail width). */}
-    <main
-      className={
-        showOwnerPanel
-          ? 'mx-auto w-full max-w-detail gutter py-6 pb-dock lg:grid lg:grid-cols-[minmax(0,var(--container-read))_var(--panel-w)] lg:gap-12'
-          : 'mx-auto w-full max-w-read gutter py-6 pb-dock'
-      }
-    >
+    <PageAboutProvider>
+    {/* plan #230 — Facebook's Page: the header across, then the posts as the body and the info in a
+        right column from 1024 (720 + 48 + 360 inside the 1128 detail width); on a phone, About opens it. */}
+    <main className="mx-auto w-full max-w-detail gutter py-6 pb-dock">
      <div className="flex min-w-0 flex-col gap-4">
       {/* #301 — a draft is finished here, on the Page, not in a walkthrough. */}
       {isDraftPreview && (
@@ -277,8 +273,6 @@ export function ShopPublicPage({
             <PageLinksRow links={contactLinks} />
           </div>
           <div className="ml-auto flex shrink-0 items-center">
-            {/* #409 — anyone can share a published Page, signed in or out. */}
-            {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
             {/* #267 — not on your own Page. A signed-out member is sent to sign-in (T160). */}
             {!viewerOwnsPage && (
               <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} wordsReportable={!shop.wordsHidden} />
@@ -314,40 +308,87 @@ export function ShopPublicPage({
           </div>
         ) : null}
 
-        {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
-        {!viewerOwnsPage &&
-          (memberOfOpenPage ? (
-            <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
-              Member
-            </span>
-          ) : (
-            <div>
-              <FollowPageButton
-                groupId={shop.groupId}
-                isPrivate={shop.discoverability === 'private'}
-                join={layout.lead === 'join'}
-                loggedIn={loggedIn}
-                following={viewerFollows}
-                returnTo={pagePath}
-                onFollow={followPageAction}
-                onUnfollow={unfollowPageAction}
-                whenFollowing={
-                  repeatingSeries.length > 0 || hasShows ? (
-                    <RemindEveryTimeButton
-                      groupId={shop.groupId}
-                      on={repeatingSeries.every((id) => reminders.bySeries[id]) && (!hasShows || !!reminders.byShows?.[shop.groupId])}
-                      everyForPage={remindEveryTimeForPageAction}
-                    />
-                  ) : null
-                }
-              />
-            </div>
-          ))}
+        {/* plan #230 — Follow, Share and About in one row under the name, as on a Facebook Page. */}
+        <div data-testid="page-actions" className="flex flex-wrap items-center gap-2">
+          {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
+          {!viewerOwnsPage &&
+            (memberOfOpenPage ? (
+              <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
+                Member
+              </span>
+            ) : (
+              <div>
+                <FollowPageButton
+                  groupId={shop.groupId}
+                  isPrivate={shop.discoverability === 'private'}
+                  join={layout.lead === 'join'}
+                  loggedIn={loggedIn}
+                  following={viewerFollows}
+                  returnTo={pagePath}
+                  onFollow={followPageAction}
+                  onUnfollow={unfollowPageAction}
+                  whenFollowing={
+                    repeatingSeries.length > 0 || hasShows ? (
+                      <RemindEveryTimeButton
+                        groupId={shop.groupId}
+                        on={repeatingSeries.every((id) => reminders.bySeries[id]) && (!hasShows || !!reminders.byShows?.[shop.groupId])}
+                        everyForPage={remindEveryTimeForPageAction}
+                      />
+                    ) : null
+                  }
+                />
+              </div>
+            ))}
+          {/* #409 — anyone can share a published Page, signed in or out. */}
+          {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
+          <PageAboutLink />
+        </div>
       </header>
 
+     </div>
+     <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_var(--panel-w)] lg:items-start lg:gap-12">
+     <div className="flex min-w-0 flex-col gap-4">
       {/* Page kinds (dispatch, 2026-10-05): a group leads with its next meetup (Meetup). */}
       {layout.lead === 'join' && loggedIn && <NextUp posts={posts} heading="Next event" limit={1} />}
 
+      {/* F093 — one list or the other, never both: two would mean two
+          elements carrying the same `announcement-<id>`. */}
+      {withheldPosts.length > 0 ? (
+        <WithheldPagePosts posts={withheldPosts} focusPostId={focusPostId} preview={sharedPreview} />
+      ) : (
+        <PagePosts
+          groupId={shop.groupId}
+          posts={posts}
+          canPost={viewerOwnsPage}
+          followerCount={followerCount}
+          isPrivate={shop.discoverability === 'private'}
+          memberId={viewerOwnsPage ? viewerMemberId : null}
+          pageName={shop.displayName}
+          pictureUrl={shop.pictureUrl ?? null}
+          artKind={artKindFor(shop.kind, shop.purpose)}
+          report={{ loggedIn, returnTo: pagePath, onSend: sendReportAction }}
+          onPost={postToPageAction}
+          onEdit={editPagePostAction}
+          onDelete={deletePagePostAction}
+          onReport={sendPostReportAction}
+          loggedIn={loggedIn}
+          returnTo={pagePath}
+          pagePath={shop.lifecycleState === 'active' ? pagePath : null}
+          focusPostId={focusPostId}
+          reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
+          wonders={{ views: wonders, ...WONDER_ACTIONS }}
+        />
+      )}
+
+     </div>
+      <PageAboutAside name={shop.displayName}>
+      {showOwnerPanel && pagePath && !isDraftPreview ? (
+        <aside data-testid="owner-panel" className="hidden lg:block">
+          <div>
+            <OwnerPanel pagePath={pagePath} />
+          </div>
+        </aside>
+      ) : null}
       {(shop.publicDescription || shop.unclaimed?.publicInfoUrl || shop.founder) && (
         <PageSection id="about" title="About">
           {shop.publicDescription && <AboutText text={shop.publicDescription} />}
@@ -407,35 +448,6 @@ export function ShopPublicPage({
         </PageSection>
       )}
 
-      {/* F093 — one list or the other, never both: two would mean two
-          elements carrying the same `announcement-<id>`. */}
-      {withheldPosts.length > 0 ? (
-        <WithheldPagePosts posts={withheldPosts} focusPostId={focusPostId} preview={sharedPreview} />
-      ) : (
-        <PagePosts
-          groupId={shop.groupId}
-          posts={posts}
-          canPost={viewerOwnsPage}
-          followerCount={followerCount}
-          isPrivate={shop.discoverability === 'private'}
-          memberId={viewerOwnsPage ? viewerMemberId : null}
-          pageName={shop.displayName}
-          pictureUrl={shop.pictureUrl ?? null}
-          artKind={artKindFor(shop.kind, shop.purpose)}
-          report={{ loggedIn, returnTo: pagePath, onSend: sendReportAction }}
-          onPost={postToPageAction}
-          onEdit={editPagePostAction}
-          onDelete={deletePagePostAction}
-          onReport={sendPostReportAction}
-          loggedIn={loggedIn}
-          returnTo={pagePath}
-          pagePath={shop.lifecycleState === 'active' ? pagePath : null}
-          focusPostId={focusPostId}
-          reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
-          wonders={{ views: wonders, ...WONDER_ACTIONS }}
-        />
-      )}
-
       {showProducts && (
         <PageSection id="products" title="Products & services">
           <FeaturedItems
@@ -469,15 +481,10 @@ export function ShopPublicPage({
           onRemove={unclaimedActions?.remove ?? requestUnclaimedRemovalAction}
         />
       )}
+      </PageAboutAside>
      </div>
-      {showOwnerPanel && pagePath && !isDraftPreview ? (
-        <aside data-testid="owner-panel" className="hidden lg:block">
-          <div className="sticky top-[calc(var(--nav-top-h)+--spacing(4))]">
-            <OwnerPanel pagePath={pagePath} />
-          </div>
-        </aside>
-      ) : null}
     </main>
+    </PageAboutProvider>
     </LocalOwnerClaimProvider>
   )
   // #412 — the owner edits on the Edit Page; only a draft's checklist opens

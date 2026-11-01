@@ -58,7 +58,9 @@ function renderPosts(over: Partial<Parameters<typeof PagePosts>[0]> = {}) {
   )
 }
 
+// plan #230 — the list depends on now; the fixtures are dated September 2026, so the clock sits before them.
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-09-01T12:00:00Z') })
   onPost.mockClear()
   onEdit.mockClear()
   onCreateLocation.mockClear()
@@ -68,7 +70,10 @@ beforeEach(() => {
     data: [{ id: 'pl-oak-park', name: 'Oak Park', kind: 'neighborhood', parentName: 'Sacramento' }],
   })
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 async function pickAPlace(prefix = 'announce') {
   fireEvent.click(screen.getByTestId(`${prefix}-add-place`))
@@ -118,53 +123,72 @@ describe('the composer opens from Announce', () => {
   })
 })
 
-// #462 — the PM, 2026-10-06: the latest three as cards in a row, newest on the
-// left; See all posts opens the rest as a list, newest first (Google Business
-// Profile's updates; Facebook Pages and Instagram keep the rest a tap away).
-describe('#462 — the latest three in a row, then See all posts', () => {
-  const five = ['2026-09-21', '2026-09-25', '2026-09-23', '2026-09-24', '2026-09-22'].map((d, i) =>
-    postFixture({ id: `p-${d}`, body: `Post ${i}`, createdAt: `${d}T12:00:00.000Z`, updatedAt: `${d}T12:00:00.000Z` }),
-  )
+// plan #230 (Don, 10-31) — a timeline anchored at now: Earlier above (a tap away, newest nearest now),
+// the latest at now, Coming up below, soonest first. Facebook Page's single column of posts.
+describe('plan #230 — the posts as a timeline anchored at now', () => {
+  const NOW = new Date('2026-11-01T20:00:00.000Z')
+  beforeEach(() => vi.useFakeTimers({ now: NOW, toFake: ['Date'] }))
+  afterEach(() => vi.useRealTimers())
+  const news = postFixture({ id: 'news', body: 'Fresh loaves', createdAt: '2026-10-31T12:00:00.000Z' })
+  const older = postFixture({ id: 'news2', body: 'New hours', createdAt: '2026-10-29T12:00:00.000Z' })
+  const soon = postFixture({ id: 'soon', body: 'Bread class', createdAt: '2026-10-20T12:00:00.000Z', startsAt: '2026-11-03T02:00:00.000Z' })
+  const far = postFixture({ id: 'far', body: 'Harvest fair', createdAt: '2026-10-21T12:00:00.000Z', startsAt: '2026-11-20T02:00:00.000Z' })
+  const ended = postFixture({ id: 'ended', body: 'Pie night', createdAt: '2026-10-01T12:00:00.000Z', startsAt: '2026-10-25T02:00:00.000Z' })
+  const stale = { ...postFixture({ id: 'stale', body: 'Summer jam', createdAt: '2026-09-01T12:00:00.000Z' }), current: false }
   const ids = (el: HTMLElement) => [...el.querySelectorAll('[data-testid="page-post"]')].map((li) => li.id.replace('announcement-', ''))
+  const all = [stale, far, news, ended, soon, older]
 
-  it('shows the newest three in a row that scrolls inside its own section', () => {
-    renderPosts({ canPost: false, posts: five })
-    const row = screen.getByTestId('page-posts-latest')
-    expect(ids(row)).toEqual(['p-2026-09-25', 'p-2026-09-24', 'p-2026-09-23'])
-    expect(row.className).toMatch(/\boverflow-x-auto\b/)
-    expect(row.className).toMatch(/\bflex\b/)
-    expect(screen.queryByTestId('page-posts-all')).toBeNull()
+  it('one column, in order: Earlier, Now, the latest, Coming up', () => {
+    renderPosts({ canPost: false, posts: all })
+    const order = [...document.querySelectorAll('[data-testid^="page-posts-"]:not([data-testid$="-title"])')].map((e) => e.getAttribute('data-testid'))
+    expect(order).toEqual(['page-posts-earlier', 'page-posts-now', 'page-posts-latest', 'page-posts-upcoming'])
+    expect(ids(screen.getByTestId('page-posts-latest'))).toEqual(['news', 'news2'])
+    expect(ids(screen.getByTestId('page-posts-upcoming'))).toEqual(['soon', 'far'])
+    expect(screen.getByTestId('page-posts-latest').className).not.toMatch(/overflow-x-auto/)
   })
 
-  it('See all posts opens every post as a list, newest first', () => {
-    renderPosts({ canPost: false, posts: five })
-    const more = screen.getByRole('button', { name: 'See all posts' })
+  it('the now marker is quiet type, not a control', () => {
+    renderPosts({ canPost: false, posts: all })
+    const marker = screen.getByTestId('page-posts-now')
+    expect(marker).toHaveTextContent(/^Now$/)
+    expect(within(marker).queryByRole('button')).toBeNull()
+    expect(screen.getByTestId('page-posts-upcoming-title')).toHaveTextContent('Coming up')
+  })
+
+  it('opens at now: the past waits above, and opens oldest first so the newest sits nearest now', () => {
+    renderPosts({ canPost: false, posts: all })
+    expect(screen.getByTestId('page-posts-earlier')).not.toHaveTextContent('Summer jam')
+    const more = screen.getByRole('button', { name: 'Earlier posts (2)' })
     expect(more).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(more)
-    const all = screen.getByTestId('page-posts-all')
-    expect(ids(all)).toEqual(['p-2026-09-25', 'p-2026-09-24', 'p-2026-09-23', 'p-2026-09-22', 'p-2026-09-21'])
-    expect(all.className).toMatch(/\bflex-col\b/)
-    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
+    expect(ids(screen.getByTestId('page-posts-earlier'))).toEqual(['stale', 'ended'])
+    expect(screen.getByRole('button', { name: 'Hide earlier posts' })).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('three or fewer: the row, and nothing to see all of', () => {
-    renderPosts({ canPost: false, posts: five.slice(0, 3) })
-    expect(screen.getByTestId('page-posts-latest')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
+  it('nothing past and nothing coming up: just the posts, no markers', () => {
+    renderPosts({ canPost: false, posts: [news, older] })
+    expect(screen.queryByTestId('page-posts-now')).toBeNull()
+    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
+    expect(screen.queryByTestId('page-posts-upcoming')).toBeNull()
+    expect(ids(screen.getByTestId('page-posts-latest'))).toEqual(['news', 'news2'])
   })
 
-  it('a link to an older post still lands on it', async () => {
-    window.history.replaceState(null, '', '/g/x-abc#announcement-p-2026-09-21')
-    renderPosts({ canPost: false, posts: five })
-    await waitFor(() => expect(document.getElementById('announcement-p-2026-09-21')).toHaveAttribute('data-highlighted', 'true'))
+  it('only past posts: Earlier, and no empty note', () => {
+    renderPosts({ canPost: true, posts: [stale] })
+    expect(screen.getByTestId('page-posts-earlier')).toBeInTheDocument()
+    expect(screen.queryByTestId('page-posts-empty')).toBeNull()
+  })
+
+  it('a link to a past post opens Earlier and lands on it', async () => {
+    window.history.replaceState(null, '', '/g/x-abc#announcement-stale')
+    renderPosts({ canPost: false, posts: all })
+    await waitFor(() => expect(document.getElementById('announcement-stale')).toHaveAttribute('data-highlighted', 'true'))
     window.history.replaceState(null, '', '/')
   })
 
-  it('the owner edits in the list: Edit on a card opens it there', () => {
-    renderPosts({ canPost: true, posts: five })
-    fireEvent.click(screen.getAllByTestId('page-post-edit')[1]!)
-    expect(screen.getByTestId('page-posts-all')).toBeInTheDocument()
-    expect(screen.getByTestId('page-post-edit-body')).toHaveValue('Post 3')
+  it('each post leaves room for what comes under it later', () => {
+    renderPosts({ canPost: false, posts: [news] })
+    expect(within(screen.getAllByTestId('page-post')[0]!).getByTestId('page-post-after')).toBeEmptyDOMElement()
   })
 })
 
@@ -922,41 +946,6 @@ describe('#913 — Earlier, and Posted <date>', () => {
     current: false,
   }
 
-  it('shows current posts first, then undated ones past their window under Earlier', () => {
-    renderPosts({ canPost: false, posts: [stale, current] })
-    const earlier = screen.getByTestId('page-posts-earlier')
-    expect(earlier).toHaveTextContent(/^Earlier/)
-    expect(earlier).toHaveTextContent('Summer jam')
-    expect(earlier).not.toHaveTextContent('Fresh loaves')
-    expect(screen.getByTestId('page-posts-latest')).toHaveTextContent('Fresh loaves')
-    expect(screen.getByTestId('page-posts-latest')).not.toHaveTextContent('Summer jam')
-    const order = [...document.querySelectorAll('[data-testid="page-posts-latest"], [data-testid="page-posts-earlier"]')]
-    expect(order.map((e) => e.getAttribute('data-testid'))).toEqual(['page-posts-latest', 'page-posts-earlier'])
-  })
-
-  it('a dated post is never under Earlier', () => {
-    renderPosts({ canPost: false, posts: [pastEvent, current] })
-    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
-  })
-
-  it('no Earlier heading when nothing has passed', () => {
-    renderPosts({ canPost: false, posts: [current] })
-    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
-  })
-
-  it('only earlier posts: Earlier, and no empty note', () => {
-    renderPosts({ canPost: true, posts: [stale] })
-    expect(screen.getByTestId('page-posts-earlier')).toHaveTextContent('Summer jam')
-    expect(screen.queryByTestId('page-posts-empty')).toBeNull()
-    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
-  })
-
-  it('See all posts counts current posts only', () => {
-    const olds = [1, 2, 3, 4].map((d) => ({ ...postFixture({ id: `o${d}`, createdAt: `2026-09-0${d}T12:00:00.000Z` }), current: false }))
-    renderPosts({ canPost: false, posts: [current, ...olds] })
-    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
-  })
-
   it('says Posted <date> in the metro’s clock, not UTC', () => {
     // 8pm Sep 20 in Sacramento is Sep 21 in UTC.
     renderPosts({ canPost: false, posts: [postFixture({ createdAt: '2026-09-21T03:00:00.000Z' })] })
@@ -965,7 +954,8 @@ describe('#913 — Earlier, and Posted <date>', () => {
 
   it('every undated post carries it, under Earlier too', () => {
     renderPosts({ canPost: false, posts: [stale, current] })
-    expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Oct 15', 'Posted Sep 1'])
+    fireEvent.click(screen.getByRole('button', { name: 'Earlier posts (1)' }))
+    expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Sep 1', 'Posted Oct 15'])
   })
 })
 
