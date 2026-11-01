@@ -49,15 +49,14 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S012', 'S013'],
     path: () => '/explore',
     act: async (page) => {
-      // On a phone the ⋯ menu carries the map switch; from 744px the List | Map tabs do; wide and signed in, the map is already beside the list.
-      const more = page.getByTestId('bar-more')
-      if (await more.isVisible().catch(() => false)) {
-        await more.click()
-        await page.getByTestId('bar-menu-view').click()
-      } else {
-        const tab = page.getByRole('tab', { name: 'Map' })
-        if (await tab.isVisible().catch(() => false)) await tab.click()
-      }
+      // The ➕ menu carries the map switch where the layout shows one at a time; wide and signed in, the map is already beside the list.
+      // Signed out there is no ➕ and no map (Don, 2026-11-01).
+      const plus = page.getByTestId('create-menu')
+      if (!(await plus.isVisible().catch(() => false))) return
+      await plus.click()
+      const view = page.getByTestId('create-menu-view')
+      if (await view.isVisible().catch(() => false)) await view.click()
+      else await page.keyboard.press('Escape')
     },
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },

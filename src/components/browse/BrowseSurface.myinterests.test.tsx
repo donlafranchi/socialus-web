@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, render, screen, cleanup, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -95,7 +96,7 @@ describe('#892 — My interests on Explore', () => {
     const results = [tagged('d', ['Gardening']), tagged('b', ['coffee']), tagged('a', ['live music']), tagged('c', ['gardening', 'arts & culture'])]
     // A read in another order, as a targeted read would bring: it must not replace the list's own order.
     browseFeedAction.mockResolvedValue(snapshot({ results: [results[3]!, results[2]!, results[0]!] }))
-    render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false, myInterests: ['gardening', 'live music'] })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false, myInterests: ['gardening', 'live music'] })} />)
     await act(async () => {
       await new Promise((r) => setTimeout(r, 0))
     })
@@ -106,13 +107,13 @@ describe('#892 — My interests on Explore', () => {
 
   it('with none chosen, the empty list leads the member to pick some', () => {
     search = 'q=my+interests'
-    render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results: [tagged('a', ['coffee'])], lead: [], leadFresh: false, myInterests: [] })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results: [tagged('a', ['coffee'])], lead: [], leadFresh: false, myInterests: [] })} />)
     expect(within(screen.getByTestId('browse-pick-interests')).getByRole('link', { name: /pick your interests/i })).toHaveAttribute('href', '/you#interests')
   })
   it('composes with a chosen reach: filters the list as returned, asks for no wider read', async () => {
     search = 'q=my+interests&reach=15'
     const results = [tagged('d', ['gardening']), tagged('b', ['coffee'])]
-    render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false, myInterests: ['gardening'], reach: { minutes: 15, from: null } })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false, myInterests: ['gardening'], reach: { minutes: 15, from: null } })} />)
     await act(async () => {
       await new Promise((r) => setTimeout(r, 0))
     })

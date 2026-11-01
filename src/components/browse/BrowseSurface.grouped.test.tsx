@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore, searchBox } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -88,7 +89,7 @@ beforeEach(() => {
 afterEach(cleanup)
 
 const type = (value: string) => {
-  fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
+  fireEvent.change(searchBox(), { target: { value } })
 }
 
 const venue = result({ resultId: 'v1', name: 'Harlow Hall', tags: ['Live music'] })
@@ -98,7 +99,7 @@ const gig = result({ resultKind: 'post', resultId: 'e1', name: 'Harlow Hall', po
 describe('a search comes back in labelled rows', () => {
   it('groups Pages and posts into separate rows, and never mixes them', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [venue, gig] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('music')
     const rows = await screen.findAllByTestId('shelf-row')
     expect(rows.map((r) => r.getAttribute('aria-label'))).toEqual(expect.arrayContaining(['Places & groups', 'Open mics']))
@@ -110,7 +111,7 @@ describe('a search comes back in labelled rows', () => {
 
   it('offers everything as one flat list, and back', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [venue, gig] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('music')
     await screen.findAllByTestId('shelf-row')
     fireEvent.click(screen.getByRole('button', { name: 'Show as one list' }))
@@ -122,7 +123,7 @@ describe('a search comes back in labelled rows', () => {
 
   it('a search with only one kind of answer stays one list', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [venue, result({ resultId: 'v2', name: 'Torch Club' })] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('music')
     expect(await screen.findByText('Torch Club')).toBeInTheDocument()
     expect(screen.queryByTestId('shelf-row')).toBeNull()
@@ -133,7 +134,7 @@ describe('a search comes back in labelled rows', () => {
   it('a new search drops the open list from the address', async () => {
     window.history.replaceState(null, '', '/explore?q=jazz&shelf=today')
     browseFeedAction.mockResolvedValue(snapshot({ results: [venue, gig] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     await waitFor(() => expect(new URL(window.location.href).searchParams.get('shelf')).toBe('today'))
     type('music')
     await waitFor(() => expect(new URL(window.location.href).searchParams.get('shelf')).toBeNull())
@@ -142,7 +143,7 @@ describe('a search comes back in labelled rows', () => {
   })
 
   it('no search, no groups: the opening list is unchanged', () => {
-    render(<BrowseSurface initial={snapshot({ results: [venue, gig] })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ results: [venue, gig] })} />)
     expect(screen.queryByTestId('shelf-row')).toBeNull()
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
   })

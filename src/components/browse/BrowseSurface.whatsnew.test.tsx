@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore, searchBox } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -89,29 +90,23 @@ const page = (id: string, name = `Page ${id}`) => result({ resultId: id, groupId
 const post = (id: string, postedAt: string, name = `Post ${id}`) =>
   result({ resultKind: 'post', resultId: id, groupId: `g-${id}`, name, slug: `g-${id}`, href: `/g/g-${id}#post-${id}`, body: `Body of ${id}`, postedAt, sortAt: postedAt, tags: [] })
 
-describe('#796 — Explore opens on what is new since you were here', () => {
-  it('leads with what is new, then everything mixed: Pages and posts in one list', () => {
+describe('#796 — Explore opens on what is new', () => {
+  it('what is new leads the one list: no "What\u2019s new" block above it (Don, 2026-11-01)', () => {
     const fresh = page('new', 'New Bakery')
     const results = [page('a', 'Old A'), page('b', 'Old B'), post('p1', '2026-10-14T00:00:00Z', 'Announcement One'), fresh]
-    render(<BrowseSurface initial={snapshot({ signedIn: true, results, lead: [fresh], leadFresh: true, following: [post('f1', '2026-10-14T00:00:00Z', 'Followed Post')] })} />)
-    const lead = screen.getByTestId('explore-lead')
-    expect(within(lead).getByText('New Bakery')).toBeInTheDocument()
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, results, lead: [fresh], leadFresh: true })} />)
+    expect(screen.queryByTestId('explore-lead')).toBeNull()
+    expect(screen.queryByText(/since you were here/)).toBeNull()
     const list = screen.getByTestId('browse-list-pane')
-    expect(within(list).getByText('Old A')).toBeInTheDocument()
-    // #876 — posts are in the mix; the loader already merged the followed Pages' updates into results.
-    expect(within(list).getByText('Announcement One')).toBeInTheDocument()
-    expect(screen.queryByTestId('browse-following')).toBeNull()
-    // One results grid: the lead is shelves, so card-grid still means the results (F059 evals, tap speed).
-    expect(screen.getAllByTestId('card-grid')).toHaveLength(1)
-    expect(within(lead).getAllByTestId('shelf-row').map((r) => r.getAttribute('aria-label'))).toEqual(['Places & groups'])
-    // The lead is not shown twice.
+    const names = within(list).getAllByText(/^(New Bakery|Old A|Old B|Announcement One)$/).map((e) => e.textContent)
+    expect(names[0]).toBe('New Bakery')
     expect(screen.getAllByText('New Bakery')).toHaveLength(1)
-    expect(within(list).queryByText('New Bakery')).toBeNull()
+    expect(screen.getAllByTestId('card-grid')).toHaveLength(1)
   })
 
   it('with nothing new, the rotation leads the list: a full screen, no "new" heading', () => {
     const pages = Array.from({ length: 8 }, (_, i) => page(`p${i}`, `Rotation ${i}`))
-    render(<BrowseSurface initial={snapshot({ results: pages, lead: [pages[5]!, pages[2]!], leadFresh: false })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ results: pages, lead: [pages[5]!, pages[2]!], leadFresh: false })} />)
     expect(screen.queryByTestId('explore-lead')).toBeNull()
     const cards = within(screen.getByTestId('browse-list-pane')).getAllByText(/^Rotation \d$/).map((e) => e.textContent)
     expect(cards).toHaveLength(8)
@@ -122,12 +117,12 @@ describe('#796 — Explore opens on what is new since you were here', () => {
     search = 'view=updates'
     browseFeedAction.mockReturnValue(new Promise(() => {}))
     const results = [page('a', 'Old A'), post('old', '2026-10-01T00:00:00Z', 'Older News'), post('new', '2026-10-12T00:00:00Z', 'Newer News')]
-    render(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, chosen: true, results, lead: [], leadFresh: false })} />)
     const list = screen.getByTestId('browse-list-pane')
     expect(within(list).queryByText('Old A')).toBeNull()
     expect(within(list).getAllByText(/News$/)).toHaveLength(2)
     await waitFor(() => expect(browseFeedAction).toHaveBeenCalledWith(SAC.slug, null, expect.objectContaining({ type: 'posts' }), null, null))
-    const box = screen.getByTestId('search-input') as HTMLInputElement
+    const box = searchBox()
     fireEvent.change(box, { target: { value: 'older posts' } })
     expect(within(list).queryByText('Newer News')).toBeNull()
     expect(within(list).getByText('Older News')).toBeInTheDocument()
@@ -136,7 +131,7 @@ describe('#796 — Explore opens on what is new since you were here', () => {
   it('shows the targeted read when it comes back', async () => {
     search = 'q=deals'
     browseFeedAction.mockResolvedValue(snapshot({ signedIn: true, results: [post('d', '2026-10-15T00:00:00Z', 'Server Deal')] }))
-    render(<BrowseSurface initial={snapshot({ signedIn: true, results: [page('a', 'Old A')], lead: [], leadFresh: false })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true, results: [page('a', 'Old A')], lead: [], leadFresh: false })} />)
     expect(await screen.findByText('Server Deal')).toBeInTheDocument()
     // plan #230 — an old link's "deals" is read as today's Sales.
     expect(browseFeedAction).toHaveBeenCalledWith(null, null, expect.objectContaining({ postKinds: ['sale'] }), null, null)
@@ -144,7 +139,7 @@ describe('#796 — Explore opens on what is new since you were here', () => {
 
   it('tells the server what the first look showed, once, after it is on screen', async () => {
     const fresh = page('new', 'New Bakery')
-    render(<BrowseSurface initial={snapshot({ results: [fresh], lead: [fresh], leadFresh: true })} />)
+    renderExplore(<BrowseSurface initial={snapshot({ results: [fresh], lead: [fresh], leadFresh: true })} />)
     await waitFor(() => expect(markLeadSeenAction).toHaveBeenCalledTimes(1))
     expect((markLeadSeenAction.mock.calls[0] as unknown as [string[]])[0]).toHaveLength(1)
   })

@@ -23,10 +23,8 @@ import { useSearchParams, unstable_isUnrecognizedActionError } from 'next/naviga
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
 import { MakeThisYoursBanner } from '@/components/feed/MakeThisYoursBanner'
 import { CardGrid } from '@/components/cards'
-import { ExploreSearchBar } from '@/components/explore/ExploreSearchBar'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
-import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
-import { MobileBar } from '@/components/shell/MobileBar'
+import { useLendExploreSearch, type ExploreView } from '@/components/shell/explore-search'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { shelvesFitScope } from '@/lib/shelves/shelves'
 import { mapFocusFrom } from '@/lib/browse/map-focus'
@@ -53,7 +51,7 @@ import {
   isPlainPostsView,
 } from '@/lib/browse/filters'
 import { leadKey } from '@/lib/browse/lead'
-import { parseReach, reachLine, widerReach, type Reach } from '@/lib/browse/reach'
+import { parseReach, type Reach } from '@/lib/browse/reach'
 import { browseFeedAction, browseMapAction, markLeadSeenAction, searchAreasAction } from '@/app/explore/actions'
 import { logSearchAction } from '@/app/_actions/search-demand-actions'
 import { useSearchDemand } from './useSearchDemand'
@@ -62,9 +60,9 @@ import type { FeedMetro } from '@/lib/feed/feed-metro'
 
 const BrowseMap = dynamic(() => import('./BrowseMap').then((m) => m.BrowseMap), { ssr: false })
 
-/** T187 — the map column sits under the top nav and the search row. */
-const SPLIT_TOP = 'top-[calc(var(--nav-top-h)+var(--search-row-h))]'
-const SPLIT_HEIGHT = 'h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h))]'
+/** T187 — the map column sits under the top row, which holds the search (Don, 2026-11-01). */
+const SPLIT_TOP = 'top-nav-top'
+const SPLIT_HEIGHT = 'h-[calc(100dvh-var(--nav-top-h))]'
 const MAP_PANE_ID = 'browse-map-pane'
 /** #555 — how many cards from the top read their Page ahead of the tap. Each is a server render, so not the whole list. */
 const PREFETCH_TOP = 3
@@ -252,23 +250,12 @@ export function BrowseSurface({
   // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
   // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
   const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
-  // Pages and posts never share a row (Dispatch, 2026-11-01). Draft copy (human-review).
-  const leadGroups = useMemo(
-    () =>
-      [
-        { key: 'new-pages', label: 'Places & groups', results: lead.filter((r) => r.resultKind === 'page') },
-        { key: 'new-posts', label: 'Posts', results: lead.filter((r) => r.resultKind !== 'page') },
-      ].filter((g) => g.results.length > 0),
-    [lead],
-  )
-  // #896 — sent here from a Page's map: straight to the map, nothing above it.
-  const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered && !focus
   const mix = useMemo(() => {
     const leadKeys = new Set(lead.map(leadKey))
     const rest = snapshot.results.filter((r) => !leadKeys.has(leadKey(r)))
-    // Fresh, the lead sits above the list; the rotation standing in for it leads the list itself.
-    return snapshot.leadFresh ? rest : [...lead, ...rest]
-  }, [snapshot.results, snapshot.leadFresh, lead])
+    // Don, 2026-11-01 — no "What's new" block above: what is new leads the list itself.
+    return [...lead, ...rest]
+  }, [snapshot.results, lead])
 
   // #876 — a filter asks the server for the targeted set (one read); until it lands, the mix is cut here.
   // #916 — so does a search, once typing settles: the server searches the whole market, not these rows.
@@ -378,6 +365,20 @@ export function BrowseSurface({
 
   const clearAll = () => setQuery('')
 
+  // Don, 2026-11-01 — the search is the header's pill; Explore lends it the live box, area and sheets.
+  useLendExploreSearch({
+    query,
+    onQueryChange: setQuery,
+    knownTags: tagOptions,
+    areaLabel: placeLabel ?? null,
+    onOpenScope: () => setScopeOpen(true),
+    filtersActive: filtered,
+    onOpenFilters: () => setSheetOpen(true),
+    focusRequest: searchRequest,
+    view: snapshot.metro && layout !== 'split' ? view : undefined,
+    onViewChange: (v) => showMapView(v === 'map'),
+  })
+
   // Nothing resolvable to browse. The controls are suppressed rather than
   // rendered inert: a scope picker is the one thing that could help, and it is
   // in the panel itself.
@@ -414,49 +415,10 @@ export function BrowseSurface({
       className="pb-[var(--dock-clearance)]"
       data-testid="browse-page"
     >
-      <ExploreSearchBar
-        placeName={placeLabel}
-        placeChosen={snapshot.chosen}
-        query={query}
-        onQueryChange={setQuery}
-        filtersActive={hasBrowseFilters(filters)}
-        onOpenFilters={() => setSheetOpen(true)}
-        onOpenScope={() => setScopeOpen(true)}
-        searchRequest={searchRequest}
-        viewSwitch={layout !== 'split' ? <ListMapToggle view={view} onChange={(v) => showMapView(v === 'map')} /> : undefined}
-      />
-
       {/* Above the results, and absent for a signed-in Member. */}
       {!snapshot.signedIn && <MakeThisYoursBanner isAuthenticated={false} />}
 
-      {/* #922 — how far Explore reaches, as a quiet line: never a chip (Don, 2026-10-18). Gone while a filter or search narrows. */}
-      {snapshot.reach && !filtered && !rest.trim() && (
-        <ReachLine
-          line={reachLine(snapshot.reach.minutes, snapshot.reach.from, snapshot.signedIn)}
-          wider={widerReach(snapshot.reach.minutes)}
-          onWiden={changeReach}
-        />
-      )}
-
-      {/* F059 criterion 2b. Above the public results because it is what this
-          person came back for, and NOT tucked into the member's own area —
-          Browse is for discovery, /you is for management, and the content
-          belongs on the former. Renders nothing when the list is empty, which
-          is every signed-out load and every member who follows nothing. It is
-          outside the results region on purpose: it is not a result of the
-          search, and the count above the grid must not include it. */}
-      {postsOnlyView ? (
-        <HappeningRows rows={snapshot.happening} />
-      ) : (
-        showLead && (
-          <section className="px-3 pt-4 md:px-6" data-testid="explore-lead" aria-labelledby="explore-lead-heading">
-            <h2 id="explore-lead-heading" className="mb-3 text-base font-semibold text-[var(--color-charcoal-900)]">
-              What&rsquo;s new since you were here
-            </h2>
-            <BrowseShelves groups={leadGroups} prefetch={PREFETCH_TOP} />
-          </section>
-        )
-      )}
+      {postsOnlyView && <HappeningRows rows={snapshot.happening} />}
 
       {/* F121 — the shelves, under the first look; a search or a filter is answered by the list instead. */}
       {!postsOnlyView && !filtered && !rest.trim() && !focus && shelvesFitScope(initial, snapshot) && shelves}
@@ -636,7 +598,7 @@ export function BrowseSurface({
               className={
                 layout === 'split'
                   ? 'h-full overflow-hidden rounded-md'
-                  : 'h-[calc(100dvh-var(--nav-top-h)-var(--search-row-h)-var(--dock-clearance))] overflow-hidden rounded-md'
+                  : 'h-[calc(100dvh-var(--nav-top-h)-var(--dock-clearance))] overflow-hidden rounded-md'
               }
             >
               <div className="relative h-full">
@@ -666,18 +628,6 @@ export function BrowseSurface({
           </div>
         )}
       </div>
-
-      <MobileBar
-        query={query}
-        onQueryChange={setQuery}
-        focusRequest={searchRequest}
-        areaLabel={placeLabel ?? undefined}
-        onOpenScope={() => setScopeOpen(true)}
-        filtersActive={hasBrowseFilters(filters)}
-        onOpenFilters={() => setSheetOpen(true)}
-        view={view}
-        onViewChange={(v) => showMapView(v === 'map')}
-      />
 
       {mapPromptOpen && <SignInPrompt action="map" currentPath="/explore" onClose={() => setMapPromptOpen(false)} />}
 
@@ -709,26 +659,5 @@ export function BrowseSurface({
         }}
       />
     </main>
-  )
-}
-
-function ReachLine({ line, wider, onWiden }: { line: string; wider: Reach | null; onWiden: (r: Reach) => void }) {
-  return (
-    <p className="px-3 pt-3 text-body-sm text-[var(--color-fg-muted)] md:px-6" data-testid="explore-reach">
-      {line}
-      {wider !== null && (
-        <>
-          <span aria-hidden="true"> · </span>
-          <button
-            type="button"
-            onClick={() => onWiden(wider)}
-            data-testid="explore-reach-more"
-            className="press inline-flex min-h-tap items-center text-[var(--color-charcoal-900)] underline underline-offset-2"
-          >
-            Show more nearby
-          </button>
-        </>
-      )}
-    </p>
   )
 }

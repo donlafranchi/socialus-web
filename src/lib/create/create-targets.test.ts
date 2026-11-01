@@ -5,8 +5,10 @@ const sac: CreatePage = { name: 'Sac Floaters', href: '/g/abc' }
 const bake: CreatePage = { name: 'Bakery', href: '/g/def' }
 
 describe('createChoices', () => {
-  it('lists every post kind, then Page', () => {
-    expect(createChoices({ signedIn: true, pages: [sac] }).map((c) => c.id)).toEqual(['event', 'sale', 'limited', 'reminder', 'news', 'wonder', 'hiring', 'page'])
+  it('offers only Start a Page and Propose something (Don, 2026-11-01)', () => {
+    const c = createChoices({ signedIn: true, pages: [sac] })
+    expect(c.map((c) => c.id)).toEqual(['page', 'wonder'])
+    expect(c.map((c) => c.label)).toEqual(['Start a Page', 'Propose something'])
   })
 
   it('signed out, every choice goes to sign-in and back to /create', () => {
@@ -14,28 +16,18 @@ describe('createChoices', () => {
     expect(new Set(hrefs)).toEqual(new Set(['/create']))
   })
 
-  it('with no Page yet, every post kind starts by creating one', () => {
-    const c = createChoices({ signedIn: true, pages: [] })
-    for (const id of ['event', 'sale', 'news', 'wonder', 'hiring'] as const) {
-      const choice = c.find((x) => x.id === id)!
-      expect(choice.href).toBe('/create')
-      expect(choice.needsPage).toBe(true)
-    }
+  it('with no Page yet, a Proposal starts by creating one', () => {
+    const choice = createChoices({ signedIn: true, pages: [] }).find((x) => x.id === 'wonder')!
+    expect(choice.href).toBe('/create')
+    expect(choice.needsPage).toBe(true)
   })
 
-  it('with one Page, Update opens that Page’s composer', () => {
-    expect(createChoices({ signedIn: true, pages: [sac] }).find((c) => c.id === 'news')!.href).toBe('/g/abc#announce')
+  it('with one Page, a Proposal opens that Page’s composer, named by its word', () => {
+    expect(createChoices({ signedIn: true, pages: [sac] }).find((c) => c.id === 'wonder')!.href).toBe('/g/abc?compose=proposal#announce')
   })
 
-  it('Other kinds say what they are in the link', () => {
-    const c = createChoices({ signedIn: true, pages: [sac] })
-    expect(c.find((c) => c.id === 'event')!.href).toBe('/g/abc?compose=event#announce')
-    expect(c.find((c) => c.id === 'wonder')!.href).toBe('/g/abc?compose=proposal#announce')
-  })
-
-  it('with several Pages, a kind asks which one instead of guessing', () => {
-    const post = createChoices({ signedIn: true, pages: [sac, bake] }).find((c) => c.id === 'news')!
-    expect(post.href).toBeNull()
+  it('with several Pages, a Proposal asks which one instead of guessing', () => {
+    expect(createChoices({ signedIn: true, pages: [sac, bake] }).find((c) => c.id === 'wonder')!.href).toBeNull()
   })
 
   it('a Proposal is offered as Propose something (plan #218, 2026-11-01)', () => {

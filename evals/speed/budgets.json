@@ -9,22 +9,17 @@
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Explore: filter icon opens sheet": {
+  "Explore: search pill opens": {
     "kind": "consumer",
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Explore: location pill opens picker": {
+  "Explore: More filters opens sheet": {
     "kind": "consumer",
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Explore: search opens": {
-    "kind": "consumer",
-    "feedbackMs": 100,
-    "readyMs": 1000
-  },
-  "Explore: ⋯ menu opens": {
+  "Explore: Where opens picker": {
     "kind": "consumer",
     "feedbackMs": 100,
     "readyMs": 1000
@@ -104,7 +99,7 @@
     "feedbackMs": 250,
     "readyMs": 2500
   },
-  "Creator: ⋯ menu offers Create": {
+  "Creator: ➕ offers Propose something": {
     "kind": "creator",
     "feedbackMs": 250,
     "readyMs": 2500

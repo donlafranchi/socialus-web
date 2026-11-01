@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -37,7 +38,7 @@ afterEach(cleanup)
 
 describe('Explore cards prefetch their Page (#555)', () => {
   it('the first three read ahead; the rest use the default', () => {
-    render(<BrowseSurface initial={snapshot(6)} />)
+    renderExplore(<BrowseSurface initial={snapshot(6)} />)
     const links = [0, 1, 2, 3, 4, 5].map((i) => screen.getByText(`Page ${i}`).closest('a')!)
     expect(links.map((a) => a.getAttribute('data-prefetch'))).toEqual(['true', 'true', 'true', 'default', 'default', 'default'])
   })
