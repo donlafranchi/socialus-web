@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { searchTsQuery, searchRaw } from './query'
+import { searchTsQuery, searchRaw, anyWordTsQuery } from './query'
 
 // #916 — the box's words become one tsquery: each word OR its synonyms, all words required.
 describe('searchTsQuery', () => {
@@ -37,5 +37,13 @@ describe('searchRaw', () => {
   it('is the words, lowercased and trimmed, for the typo fallback', () => {
     expect(searchRaw('  Flwers ')).toBe('flwers')
     expect(searchRaw('')).toBeNull()
+  })
+})
+
+describe('F121 — a shelf’s words', () => {
+  it('any one word matches, phrases stay phrases, and nothing typed acts as syntax', () => {
+    expect(anyWordTsQuery(['run', 'ride'])).toBe('run | ride')
+    expect(anyWordTsQuery(['farm animals', "goat's"])).toBe('(farm <-> animals) | (goat <-> s)')
+    expect(anyWordTsQuery(['!!', ''])).toBeNull()
   })
 })

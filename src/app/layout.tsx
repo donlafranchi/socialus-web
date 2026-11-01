@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/shell/SiteFooter"
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
 import { NewVersionNotice } from "@/components/shell/NewVersionNotice"
 import { PushLandingBar } from "@/components/notify/PushLandingBar"
+import { ShelfSaveCredit } from "@/components/browse/ShelfLogging"
 import { siteMetadataBase } from "@/lib/site-url"
 
 const inter = Inter({
@@ -62,6 +63,8 @@ export default function RootLayout({
     >
       <body className="h-full font-sans">
         <ServiceWorkerRegister />
+        {/* F121 — a save on a card tapped from a shelf counts for that shelf. */}
+        <ShelfSaveCredit />
         {/* #958 — the build this page came from; empty on a dev server, which never checks. */}
         <NewVersionNotice buildId={process.env.VERCEL_GIT_COMMIT_SHA ?? ""} />
         <NavVisibilityProvider>

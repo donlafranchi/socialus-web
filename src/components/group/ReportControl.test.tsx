@@ -188,14 +188,18 @@ describe('sending', () => {
     renderControl()
     openAndSend()
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('Thanks for being decent.')
+    // Don, 2026-11-01: "thanks for being decent … is awkward wording. Perhaps thanks for being helpful."
+    expect(status).toHaveTextContent('Thanks for being helpful.')
+    expect(status).not.toHaveTextContent(/decent/i)
     expect(status).toHaveTextContent(/courtesy notice/i)
   })
 
   it('confirms threat of harm as sent to a person from our team', async () => {
     renderControl()
     openAndSend('x', /threat of harm/i)
-    expect(await screen.findByRole('status')).toHaveTextContent("It's being sent to a person from our team.")
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent("It's being sent to a person from our team.")
+    expect(status).toHaveTextContent('Thanks for being helpful.')
   })
 
   // [guards F078.11 partial: no developer string reaches a member (#703)]

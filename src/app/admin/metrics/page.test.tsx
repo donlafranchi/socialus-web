@@ -42,6 +42,22 @@ describe('/admin/metrics', () => {
     expect(html).toContain('search-demand')
   })
 
+  // [guards F121.13] — the shelf scoreboard: two weeks back so a verdict can see the week before.
+  it('reads the shelf scoreboard and shows each shelf with its verdict; the page still loads when it fails', async () => {
+    requirePagePermission.mockResolvedValue('staff-1')
+    rpc.mockImplementation(async (name: string) =>
+      name === 'admin_shelf_scoreboard'
+        ? { data: [{ shelf_id: 'lend-a-hand', name: 'Lend a hand', place: 'rotating', season_end: null, enabled: true, week_start: '2026-11-09', impressions: 40, members: 3, taps: 4, saves: 1 }], error: null }
+        : { data: [], error: null },
+    )
+    const html = renderToStaticMarkup(await AdminMetricsPage())
+    expect(rpc).toHaveBeenCalledWith('admin_shelf_scoreboard', { p_weeks: 8 })
+    expect(html).toContain('Lend a hand')
+    expect(html).toContain('Too little data')
+    rpc.mockImplementation(async (name: string) => (name === 'admin_shelf_scoreboard' ? { data: null, error: { message: 'x' } } : { data: [], error: null }))
+    expect(renderToStaticMarkup(await AdminMetricsPage())).toContain('shelf-scoreboard-empty')
+  })
+
   // #640 — the same ready-to-go-live light, on the staff dashboard (the numbers are on /admin/reports).
   it('shows the AI readiness light, and the page still loads when it cannot be read', async () => {
     requirePagePermission.mockResolvedValue('staff-1')
