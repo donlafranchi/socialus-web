@@ -274,7 +274,7 @@ export function PagePosts({
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
-  // plan #230 — the kind, picked first (News to start, as Google Business Profile's "Add update" does), and the headline.
+  // plan #230 — the kind, picked first (Update to start, as Google Business Profile's "Add update" does), and the headline.
   const [kind, setKind] = useState<PostKind>('news')
   const [headline, setHeadline] = useState('')
   const [editKind, setEditKind] = useState<PostKind>('news')

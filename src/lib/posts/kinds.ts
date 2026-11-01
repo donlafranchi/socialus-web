@@ -9,10 +9,10 @@ export const isPostKind = (v: unknown): v is PostKind => typeof v === 'string' &
 /** The card's lead-line word, set in small caps by the card. Draft copy (human-review). */
 export const POST_KIND_WORD: Record<PostKind, string> = {
   event: 'Event',
-  sale: 'Sale',
+  sale: 'Offer',
   limited: 'Limited',
   reminder: 'Reminder',
-  news: 'News',
+  news: 'Update',
   wonder: 'Proposal',
   hiring: 'Hiring',
 }
@@ -20,7 +20,7 @@ export const POST_KIND_WORD: Record<PostKind, string> = {
 /** The composer's one-line hint under each kind. Draft copy (human-review). */
 export const POST_KIND_HINT: Record<PostKind, string> = {
   event: 'Something happening at a set time.',
-  sale: 'A price or an offer, through a date.',
+  sale: 'A price or a deal, through a date.',
   limited: 'Only a few, while they last.',
   reminder: 'A nudge about something coming up.',
   news: 'An update from your Page.',
@@ -43,7 +43,7 @@ export const SHELF_DAYS: Record<PostKind, number | null> = {
   hiring: 30,
 }
 
-/** A sale never runs past this many days from posting (post_current_until caps it too). */
+/** An offer never runs past this many days from posting (post_current_until caps it too). */
 export const SALE_MAX_DAYS = 30
 export const HEADLINE_MAX = 60
 
@@ -59,6 +59,6 @@ export const SAMPLE_POST_KIND = { event: 'event', deal: 'sale', last_minute: 'li
 /** Why a dated kind was refused without its date. Draft copy (human-review). */
 export const DATE_NEEDED: Record<'event' | 'sale' | 'reminder', string> = {
   event: 'An event needs a day and time.',
-  sale: 'A sale needs the day it ends.',
+  sale: 'An offer needs the day it ends.',
   reminder: 'A reminder needs the next day and time.',
 }

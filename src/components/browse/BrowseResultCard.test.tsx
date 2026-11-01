@@ -67,7 +67,7 @@ describe('the card renders metro time, the same as the Page', () => {
   // #256 (Don, 2026-09-30): an announcement with no time keeps its posted date.
   it('says when an undated announcement was posted', () => {
     render(<BrowseResultCard result={post({ startsAt: null, postedAt: '2026-09-02T18:00:00Z' })} />)
-    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^News · Sep 2/)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Update · Sep 2/)
   })
 })
 

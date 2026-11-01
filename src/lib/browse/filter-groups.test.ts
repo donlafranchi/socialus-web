@@ -87,12 +87,13 @@ describe('the box and the URL', () => {
     expect(readBox(writeBox(sel, 'bread'), tags)).toEqual({ filters: sel, rest: 'bread' })
     for (const date of ['today', 'weekend', 'week'] as const) expect(readBox(writeBox(f({ date })), tags).filters.date).toBe(date)
   })
-  it('an old link’s deals and last-minute read as Sales and Limited', () => {
+  it('an old link’s deals and last-minute read as Offers and Limited', () => {
     expect(readBox('deals last-minute', []).filters.postKinds).toEqual(['sale', 'limited'])
   })
-  it('?view=updates, the old Updates view, is the posts-only filter', () => {
+  it('?view=updates, the old Updates view, is the posts-only filter; the typed word is the Update kind (#1152)', () => {
     expect(parseBrowseFilters(new URLSearchParams('view=updates')).type).toBe('posts')
-    expect(readBox('updates', []).filters.type).toBe('posts')
+    expect(readBox('updates', []).filters.type).toBe('all')
+    expect(readBox('updates', []).filters.postKinds).toEqual(['news'])
   })
   it('?schedule=weekend still reads as this weekend', () => {
     expect(parseBrowseFilters(new URLSearchParams('schedule=weekend')).date).toBe('weekend')

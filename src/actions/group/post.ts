@@ -82,7 +82,7 @@ const PHOTO_MESSAGE = 'That photo didn’t come from your uploads.'
 const kind = z.enum(POST_KINDS).optional()
 /** plan #230 — the card's one line, matching the column's check. */
 const headline = z.string().trim().min(1).max(HEADLINE_MAX).optional()
-const SALE_TOO_LONG = `A sale can run up to ${SALE_MAX_DAYS} days from today.`
+const SALE_TOO_LONG = `An offer can run up to ${SALE_MAX_DAYS} days from today.`
 const PROPOSAL_ONLY_NEW = 'A post can’t become a Proposal once it’s up. Start a new one to propose something.'
 const PROPOSAL_STAYS = 'A Proposal stays a Proposal. Start a new post for something else.'
 

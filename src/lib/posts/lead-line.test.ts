@@ -27,22 +27,22 @@ describe('plan #230 — the card lead line: KIND · WHEN · WHERE, from fields o
   })
 
   it('a sale says through its end day', () => {
-    expect(leadLine({ kind: 'sale', startsAt: NOW.toISOString(), endsAt: '2026-11-02T06:00:00Z', where: 'East Sac' }, NOW)).toBe('Sale · Through Sun · East Sac')
+    expect(leadLine({ kind: 'sale', startsAt: NOW.toISOString(), endsAt: '2026-11-02T06:00:00Z', where: 'East Sac' }, NOW)).toBe('Offer · Through Sun · East Sac')
   })
 
   it('a sale with no end runs 7 days from its start', () => {
-    expect(leadLine({ kind: 'sale', startsAt: NOW.toISOString() }, NOW)).toBe('Sale · Through Nov 5')
+    expect(leadLine({ kind: 'sale', startsAt: NOW.toISOString() }, NOW)).toBe('Offer · Through Nov 5')
   })
 
   it('news, limited and hiring carry the day they were posted', () => {
     const postedAt = '2026-10-27T17:00:00Z'
-    expect(leadLine({ kind: 'news', postedAt }, NOW)).toBe('News · Tue')
+    expect(leadLine({ kind: 'news', postedAt }, NOW)).toBe('Update · Tue')
     expect(leadLine({ kind: 'limited', postedAt, where: 'Midtown' }, NOW)).toBe('Limited · Tue · Midtown')
     expect(leadLine({ kind: 'hiring', postedAt }, NOW)).toBe('Hiring · Tue')
   })
 
   it('without a posted day, the when is omitted rather than invented', () => {
-    expect(leadLine({ kind: 'news' }, NOW)).toBe('News')
+    expect(leadLine({ kind: 'news' }, NOW)).toBe('Update')
   })
 
   it('a Proposal counts who is in, toward its goal when it has one', () => {
@@ -52,7 +52,7 @@ describe('plan #230 — the card lead line: KIND · WHEN · WHERE, from fields o
   })
 
   it('a sample says Sample once, in front of the kind', () => {
-    expect(leadLine({ kind: 'sale', startsAt: NOW.toISOString(), endsAt: '2026-11-02T06:00:00Z', sample: true }, NOW)).toBe('Sample sale · Through Sun')
+    expect(leadLine({ kind: 'sale', startsAt: NOW.toISOString(), endsAt: '2026-11-02T06:00:00Z', sample: true }, NOW)).toBe('Sample offer · Through Sun')
   })
 })
 
@@ -89,7 +89,7 @@ describe('#1127 — the lead line reads true for every kind', () => {
 
   it('splits into what and when (kept whole) and the where (the part a narrow card cuts)', () => {
     expect(leadLineParts({ kind: 'event', startsAt: SAT_5PM_PT, endsAt: SAT_8PM_PT, where: ' Midtown ' }, NOW)).toEqual({ head: 'Event · Sat 5–8pm', where: 'Midtown' })
-    expect(leadLineParts({ kind: 'news' }, NOW)).toEqual({ head: 'News', where: null })
+    expect(leadLineParts({ kind: 'news' }, NOW)).toEqual({ head: 'Update', where: null })
   })
 
   it('a venue show leads with what kind of show it is and the venue as its where', () => {

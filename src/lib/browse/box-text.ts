@@ -7,25 +7,27 @@ import { DEFAULT_BROWSE_FILTERS, isPickedDay, type BrowseFilters, type DateFilte
 const TYPE_WORD: Record<Exclude<ResultType, 'all'>, string> = { pages: 'pages', posts: 'posts' }
 const KIND_WORD: Record<PostKind, string> = {
   event: 'events',
-  sale: 'sales',
+  sale: 'offers',
   limited: 'limited',
   reminder: 'reminders',
-  news: 'news',
+  news: 'updates',
   wonder: 'proposals',
   hiring: 'hiring',
 }
-/** plan #230 — an old link's kind words, read as today's kinds and never written again. */
+/** plan #230, #1152 — an old link's kind words, read as today's kinds and never written again. */
 const LEGACY_KIND_WORD: [string, PostKind][] = [
   ['deals', 'sale'],
+  ['sales', 'sale'],
   ['last-minute', 'limited'],
+  ['news', 'news'],
   ['count me in', 'wonder'],
 ]
 export const FOLLOWING_WORD = 'following'
 /** #892 — the words, not the tags: a shared link carries no one's interests, and each reader's own apply. */
 export const MY_INTERESTS_WORDS = 'my interests'
 const DATE_PHRASE: Record<'today' | 'weekend' | 'week', string> = { today: 'today', weekend: 'this weekend', week: 'this week' }
-/** #796 — the old Updates view's word, read as the posts-only Type and never written again. */
-const LEGACY_UPDATES = 'updates'
+// #796's old Updates view word is gone from the box: since #1152 "updates" is the Update kind (the newer
+// meaning wins); an old ?view=updates link still reads as the posts-only Type in parseBrowseFilters.
 
 const words = (s: string) => s.trim().split(/\s+/).filter(Boolean)
 
@@ -44,7 +46,7 @@ export function writeBox(f: BrowseFilters, rest = ''): string {
     .trim()
 }
 
-const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), ...LEGACY_KIND_WORD.map(([w]) => w), FOLLOWING_WORD, MY_INTERESTS_WORDS, ...Object.values(DATE_PHRASE), LEGACY_UPDATES]
+const RESERVED = [...Object.values(TYPE_WORD), ...Object.values(KIND_WORD), ...LEGACY_KIND_WORD.map(([w]) => w), FOLLOWING_WORD, MY_INTERESTS_WORDS, ...Object.values(DATE_PHRASE)]
 
 /** The group words are the box's own: a tag with exactly that text cannot be written as a tag. */
 export const isReservedWord = (tag: string): boolean => RESERVED.includes(normalizeTag(tag))
@@ -88,7 +90,6 @@ export function readBox(text: string, knownTags: readonly string[]): { filters: 
 
   let type: ResultType = 'all'
   for (const t of ['pages', 'posts'] as const) if (type === 'all' && pull(TYPE_WORD[t])) type = t
-  if (type === 'all' && pull(LEGACY_UPDATES)) type = 'posts'
   const postKinds = (Object.keys(KIND_WORD) as PostKind[]).filter((k) => pull(KIND_WORD[k]))
   for (const [w, k] of LEGACY_KIND_WORD) if (pull(w) && !postKinds.includes(k)) postKinds.push(k)
   const following = Boolean(pull(FOLLOWING_WORD))
