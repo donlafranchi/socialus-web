@@ -78,7 +78,7 @@ export function CreateDock() {
         testId="create-sheet"
         title={which ? 'Which Page?' : 'Create'}
         returnFocusTo={opener}
-        description={noPage ? 'Posts, events and wonders live on a Page. Start one first.' : undefined}
+        description={noPage ? 'Posts, events and proposals live on a Page. Start one first.' : undefined}
       >
         {which ? (
           <ul className="flex flex-col gap-1">

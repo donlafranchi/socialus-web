@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createChoices, type CreatePage } from './create-targets'
+import { createChoices, type CreatePage, kindFromComposeParam } from './create-targets'
 
 const sac: CreatePage = { name: 'Sac Floaters', href: '/g/abc' }
 const bake: CreatePage = { name: 'Bakery', href: '/g/def' }
@@ -30,7 +30,7 @@ describe('createChoices', () => {
   it('Other kinds say what they are in the link', () => {
     const c = createChoices({ signedIn: true, pages: [sac] })
     expect(c.find((c) => c.id === 'event')!.href).toBe('/g/abc?compose=event#announce')
-    expect(c.find((c) => c.id === 'wonder')!.href).toBe('/g/abc?compose=wonder#announce')
+    expect(c.find((c) => c.id === 'wonder')!.href).toBe('/g/abc?compose=proposal#announce')
   })
 
   it('with several Pages, a kind asks which one instead of guessing', () => {
@@ -38,8 +38,16 @@ describe('createChoices', () => {
     expect(post.href).toBeNull()
   })
 
-  it('Wonder keeps its plain name in the menu', () => {
-    expect(createChoices({ signedIn: true, pages: [sac] }).find((c) => c.id === 'wonder')!.label).toBe('Wonder')
+  it('a Proposal is offered as Propose something (plan #218, 2026-11-01)', () => {
+    expect(createChoices({ signedIn: true, pages: [sac] }).find((c) => c.id === 'wonder')!.label).toBe('Propose something')
+  })
+
+  it('reads the old ?compose=wonder link as a Proposal', () => {
+    expect(kindFromComposeParam('wonder')).toBe('wonder')
+    expect(kindFromComposeParam('proposal')).toBe('wonder')
+    expect(kindFromComposeParam('event')).toBe('event')
+    expect(kindFromComposeParam('nope')).toBeNull()
+    expect(kindFromComposeParam(null)).toBeNull()
   })
 
   it('Page always starts a new Page', () => {

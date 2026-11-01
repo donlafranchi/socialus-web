@@ -49,7 +49,7 @@ export interface PagePost {
   eventKey?: string | null
   ticketUrl?: string | null
   /** F117 — a Wonder: who's in toward a threshold, with optional sizes. Absent on an announcement. */
-  wonder?: { threshold: number; options: string[] } | null
+  wonder?: { threshold: number | null; options: string[] } | null
   /** plan #230 — what the post is, picked first. Always set by resolvePagePosts. */
   kind?: PostKind
   /** plan #230 — the card's one line; null on an older post. */
@@ -139,7 +139,7 @@ export async function resolvePagePosts(
       kind: isPostKind(r.kind) ? r.kind : r.sample_kind ? SAMPLE_POST_KIND[r.sample_kind] : inferKind({ wonder: r.kind === 'wonder', startsAt: r.starts_at }),
       headline: maskEmailsOrNull(r.headline ?? null),
       urlSlug: r.url_slug ?? null,
-      ...(r.kind === 'wonder' && r.wonder_threshold ? { wonder: { threshold: r.wonder_threshold, options: r.wonder_options ?? [] } } : {}),
+      ...(r.kind === 'wonder' ? { wonder: { threshold: r.wonder_threshold ?? null, options: r.wonder_options ?? [] } } : {}),
       current: !r.current_until || new Date(r.current_until).getTime() >= now.getTime(),
     }
   })

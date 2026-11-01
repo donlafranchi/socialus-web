@@ -37,7 +37,7 @@ export async function postToPageAction(input: {
   tags?: string[]
   photoUrl?: string | null
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
-  wonder?: { threshold: number; options?: string[] }
+  wonder?: { threshold?: number; options?: string[] }
   kind?: PostKind
   headline?: string
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
