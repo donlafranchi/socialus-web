@@ -50,6 +50,12 @@ describe('ShelfRow', () => {
     for (const b of screen.getAllByRole('button', { name: /^Scroll Concerts/ })) expect(b.className).toMatch(/\bhidden\b.*md:inline-flex|md:inline-flex.*\bhidden\b/)
   })
 
+  it('keeps the title a heading that screen readers can jump to, with the button inside it', () => {
+    render(row())
+    const heading = screen.getByRole('heading', { name: /^Concerts/ })
+    expect(heading.querySelector('button')).not.toBeNull()
+  })
+
   it('renders nothing when there is nothing to show', () => {
     const { container } = render(row({ items: [] }))
     expect(container).toBeEmptyDOMElement()
@@ -57,6 +63,34 @@ describe('ShelfRow', () => {
 })
 
 describe('ShelfScreen', () => {
+  const screenOf = (onClose = vi.fn()) => (
+    <ShelfScreen title="Concerts" items={['a', 'b']} keyOf={(s) => s} renderItem={(s) => <a href={`/${s}`}>{s}</a>} onClose={onClose} />
+  )
+
+  it('keeps Tab inside the list, and gives focus back to what opened it', () => {
+    const opener = document.createElement('button')
+    document.body.appendChild(opener)
+    opener.focus()
+    const { unmount } = render(screenOf())
+    const back = screen.getByRole('button', { name: 'Back' })
+    const last = screen.getByRole('link', { name: 'b' })
+    last.focus()
+    fireEvent.keyDown(document, { key: 'Tab' })
+    expect(document.activeElement).toBe(back)
+    back.focus()
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(last)
+    unmount()
+    expect(document.activeElement).toBe(opener)
+    opener.remove()
+  })
+
+  it('two open lists never share a title id', () => {
+    render(<>{screenOf()}{screenOf()}</>)
+    const ids = screen.getAllByRole('dialog').map((d) => d.getAttribute('aria-labelledby'))
+    expect(new Set(ids).size).toBe(2)
+  })
+
   it('lists every item and closes with Back or Escape', () => {
     const onClose = vi.fn()
     render(<ShelfScreen title="Concerts" items={items} keyOf={(s) => s} renderItem={(s) => <span>{s}</span>} onClose={onClose} />)

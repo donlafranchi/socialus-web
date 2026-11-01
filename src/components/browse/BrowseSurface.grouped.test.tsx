@@ -126,6 +126,18 @@ describe('a search comes back in labelled rows', () => {
     expect(screen.queryByRole('button', { name: 'Show as one list' })).toBeNull()
   })
 
+  // Review of #1155 — a shared link's open list must not pop up again after the search changes.
+  it('a new search drops the open list from the address', async () => {
+    window.history.replaceState(null, '', '/explore?q=jazz&shelf=today')
+    browseFeedAction.mockResolvedValue(snapshot({ results: [venue, gig] }))
+    render(<BrowseSurface initial={snapshot()} />)
+    await waitFor(() => expect(new URL(window.location.href).searchParams.get('shelf')).toBe('today'))
+    type('music')
+    await waitFor(() => expect(new URL(window.location.href).searchParams.get('shelf')).toBeNull())
+    await screen.findAllByTestId('shelf-row')
+    expect(screen.queryByTestId('shelf-screen')).toBeNull()
+  })
+
   it('no search, no groups: the opening list is unchanged', () => {
     render(<BrowseSurface initial={snapshot({ results: [venue, gig] })} />)
     expect(screen.queryByTestId('shelf-row')).toBeNull()

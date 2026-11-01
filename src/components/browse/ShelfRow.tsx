@@ -5,7 +5,7 @@
 // sideways, its title and "See all" open the full list as its own screen. Arrows from 768px; a phone swipes.
 // One type per row (Pages or posts, never both) is the caller's job. Draft copy (human-review).
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { CardGrid } from '@/components/cards'
 
@@ -38,14 +38,16 @@ export function ShelfRow<T>({
   return (
     <section data-testid={testId ?? 'shelf-row'} aria-label={title} className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
-        {onSeeAll ? (
-          <button type="button" onClick={onSeeAll} className="press inline-flex min-h-tap items-center gap-1 text-left">
-            <h3 className="text-base font-semibold text-[var(--color-charcoal-900)]">{title}</h3>
-            <ChevronRight size={18} aria-hidden="true" />
-          </button>
-        ) : (
-          <h3 className="text-base font-semibold text-[var(--color-charcoal-900)]">{title}</h3>
-        )}
+        <h3 className="text-base font-semibold text-[var(--color-charcoal-900)]">
+          {onSeeAll ? (
+            <button type="button" onClick={onSeeAll} className="press inline-flex min-h-tap items-center gap-1 text-left">
+              {title}
+              <ChevronRight size={18} aria-hidden="true" />
+            </button>
+          ) : (
+            title
+          )}
+        </h3>
         <div className="flex shrink-0 items-center gap-2">
           {onSeeAll && (
             <button
@@ -79,24 +81,52 @@ export function ShelfRow<T>({
   )
 }
 
-/** The shelf opened: every item, as its own screen. Back and Escape close it. */
+const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
+/** The shelf opened: every item, as its own screen. Back and Escape close it; Tab stays inside; focus returns to the opener. */
 export function ShelfScreen<T>({ title, items, keyOf, renderItem, onClose }: ShelfItems<T> & { onClose: () => void }) {
+  const titleId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
+  const onCloseRef = useRef(onClose)
   useEffect(() => {
+    onCloseRef.current = onClose
+  })
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     headingRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return onCloseRef.current()
+      if (e.key !== 'Tab' || !dialogRef.current) return
+      const all = [...dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)]
+      const [first, last] = [all[0], all[all.length - 1]]
+      if (!first || !last) return
+      if (e.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && (document.activeElement === last || !dialogRef.current.contains(document.activeElement))) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = overflow
+      opener?.focus?.()
+    }
+  }, [])
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="shelf-screen-title" data-testid="shelf-screen" className="fixed inset-0 z-50 overflow-y-auto bg-[var(--color-bg)]">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} data-testid="shelf-screen" className="fixed inset-0 z-50 overflow-y-auto bg-[var(--color-bg)]">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-[var(--color-charcoal-100)] bg-[var(--color-bg)] px-3 md:px-6">
         <button type="button" onClick={onClose} className="press inline-flex min-h-tap items-center gap-1 text-sm font-medium text-[var(--color-charcoal-900)]">
           <ArrowLeft size={18} aria-hidden="true" />
           Back
         </button>
-        <h2 id="shelf-screen-title" ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-[var(--color-charcoal-900)] outline-none">
+        <h2 id={titleId} ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-[var(--color-charcoal-900)] outline-none">
           {title}
         </h2>
       </div>

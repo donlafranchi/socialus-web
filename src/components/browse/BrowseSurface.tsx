@@ -198,6 +198,7 @@ export function BrowseSurface({
     [metroSlug, snapshot.area],
   )
 
+  const firstQs = useRef<string | null>(null)
   useEffect(() => {
     const qs = browseQueryString({
       metro: metroSlug,
@@ -208,8 +209,9 @@ export function BrowseSurface({
     // #935 — the address bar only. router.replace re-rendered Explore on the server once per keystroke, several
     // feed reads each, and signed in that flood held a tapped result and the Page it opened. Next.js keeps
     // useSearchParams in step with the native History API, so the link still reopens the same search.
-    // An open shelf (BrowseShelves) keeps its place in the address.
-    const shelf = new URL(window.location.href).searchParams.get('shelf')
+    // A shared link's open shelf (BrowseShelves) holds while the address it came with does; a new search makes it stale.
+    firstQs.current ??= qs
+    const shelf = qs === firstQs.current ? new URL(window.location.href).searchParams.get('shelf') : null
     const full = shelf ? `${qs ? `${qs}&` : ''}shelf=${encodeURIComponent(shelf)}` : qs
     const url = `/explore${full ? `?${full}` : ''}`
     if (window.location.pathname + window.location.search !== url) window.history.replaceState(window.history.state, '', url)

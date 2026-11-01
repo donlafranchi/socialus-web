@@ -9,9 +9,9 @@ import type { HappeningSnapshot } from '@/lib/browse/snapshot'
 
 export function HappeningRows({ rows }: { rows: HappeningSnapshot }) {
   const groups = [
-    { key: 'today', label: COPY.happeningToday, results: rows.today },
-    { key: 'this-week', label: COPY.happeningThisWeek, results: rows.thisWeek },
-    { key: 'this-weekend', label: COPY.happeningThisWeekend, results: rows.thisWeekend },
+    { key: 'happening-today', label: COPY.happeningToday, results: rows.today },
+    { key: 'happening-this-week', label: COPY.happeningThisWeek, results: rows.thisWeek },
+    { key: 'happening-this-weekend', label: COPY.happeningThisWeekend, results: rows.thisWeekend },
   ].filter((g) => g.results.length > 0)
   if (groups.length === 0) return null
 
