@@ -13,7 +13,7 @@ export interface LeadLineInput {
   postedAt?: string | null
   where?: string | null
   sample?: boolean
-  wonder?: { in: number; threshold: number } | null
+  wonder?: { in: number; threshold: number | null } | null
   /** #1127 — an imported venue show: the lead line names the kind of show and the venue is its where. */
   show?: { type: EventType; venue: string } | null
 }
@@ -79,7 +79,8 @@ function when(p: LeadLineInput, now: Date, tz: string): string | null {
       return through ? `Through ${dayLabel(through, now, tz)}` : null
     }
     case 'wonder':
-      return p.wonder && p.wonder.threshold > 0 ? `${p.wonder.in} of ${p.wonder.threshold}` : null
+      if (!p.wonder) return null
+      return p.wonder.threshold ? `${p.wonder.in} of ${p.wonder.threshold}` : `${p.wonder.in} in`
     default:
       return posted(p, now, tz)
   }

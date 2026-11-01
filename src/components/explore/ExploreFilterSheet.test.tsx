@@ -54,7 +54,7 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
     renderSheet()
     const type = within(within(sheet()).getByRole('group', { name: 'Type' }))
     for (const label of ['Everything', 'Pages', 'Posts']) expect(type.getByRole('radio', { name: label })).toBeInTheDocument()
-    for (const label of ['Events', 'Sales', 'Limited', 'Reminders', 'News', 'Count me in', 'Hiring', 'Following only']) expect(type.getByRole('checkbox', { name: label })).toBeInTheDocument()
+    for (const label of ['Events', 'Sales', 'Limited', 'Reminders', 'News', 'Proposals', 'Hiring', 'Following only']) expect(type.getByRole('checkbox', { name: label })).toBeInTheDocument()
   })
 
   it('Category: the 12 interest tags', () => {

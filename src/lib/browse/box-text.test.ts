@@ -101,5 +101,10 @@ describe('#796 — Updates is a word the box knows', () => {
     expect(writeBox({ ...filters }, rest)).toBe('bread posts')
     expect(readBox('bread', []).filters.type).toBe('all')
   })
-})
 
+  it('Proposals is the word for the proposal kind; an old link\'s "count me in" still reads as it', () => {
+    expect(writeBox({ ...DEFAULT_BROWSE_FILTERS, postKinds: ['wonder'] })).toBe('proposals')
+    expect(readBox('proposals', KNOWN).filters.postKinds).toEqual(['wonder'])
+    expect(readBox('count me in', KNOWN).filters.postKinds).toEqual(['wonder'])
+  })
+})

@@ -33,6 +33,14 @@ describe('WonderPanel', () => {
     expect(screen.getByText(COPY.wonderReached)).toBeTruthy()
   })
 
+  // [guards F117.3 partial: with no goal, the count of who's in and no bar (plan #218, 2026-11-01)]
+  it('with no goal number, shows only how many are in and no bar', () => {
+    render(<WonderPanel postId="p" view={{ ...base, threshold: null, total: 7 }} loggedIn canManage={false} returnTo="/g/x" actions={actions()} />)
+    expect(screen.queryByRole('progressbar')).toBeNull()
+    expect(screen.getByTestId('wonder-count').textContent).toBe(COPY.wonderCountNoGoal(7))
+    expect(screen.queryByText(COPY.wonderReached)).toBeNull()
+  })
+
   // [guards F117.2 partial: the database's once-per-member rule]
   it("I'm in asks for one size, then can change it or leave", async () => {
     const a = actions()

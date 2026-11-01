@@ -33,11 +33,11 @@ describe('CreateDock (#1094)', () => {
     expect(dock.className).toContain('--float-offset')
   })
 
-  it('opens a dialog offering Post, Event, Page and Wonder', () => {
+  it('opens a dialog offering Post, Event, Page and Propose something', () => {
     render(<CreateDock />)
     openSheet()
     const dialog = screen.getByRole('dialog', { name: 'Create' })
-    for (const n of ['Event', 'Sale', 'News', 'Wonder', 'Hiring', 'Page']) expect(within(dialog).getByText(n)).toBeInTheDocument()
+    for (const n of ['Event', 'Sale', 'News', 'Propose something', 'Hiring', 'Page']) expect(within(dialog).getByText(n)).toBeInTheDocument()
   })
 
   it('with no Page yet, News leads to creating one first and says why', async () => {
@@ -55,7 +55,7 @@ describe('CreateDock (#1094)', () => {
     render(<CreateDock />)
     openSheet()
     await waitFor(() => expect(screen.getByTestId('create-news')).toHaveAttribute('href', '/g/abc#announce'))
-    expect(screen.getByTestId('create-wonder')).toHaveAttribute('href', '/g/abc?compose=wonder#announce')
+    expect(screen.getByTestId('create-wonder')).toHaveAttribute('href', '/g/abc?compose=proposal#announce')
   })
 
   it('with several Pages, a kind asks which Page', async () => {

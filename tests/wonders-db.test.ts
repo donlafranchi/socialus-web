@@ -5,7 +5,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { resolveActionContext } from '@/lib/action-context'
-import { groupPostCreate, reportCreate, wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from '@/actions'
+import { groupPostCreate, groupPostEdit, reportCreate, wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from '@/actions'
 
 // F117 — Wonders v1 against a real database: a Wonder is a post kind, "I'm in" with a size, the count and bar,
 // who sees the size split and the names, helper offers in the eight roles, the poster accepting, reports, no money.
@@ -42,7 +42,7 @@ async function as<T>(sub: string | null, sql: string, params: unknown[] = []) {
 
 type View = {
   total: number
-  threshold: number
+  threshold: number | null
   options: string[]
   mine: { option: string | null } | null
   myOffers: { id: string; role: string; status: string }[]
@@ -118,7 +118,17 @@ describe.skipIf(!RUNNABLE)('F117 — a Wonder', () => {
     await expect(groupPostCreate(ctx(DANA), { groupId: PAGE, body: 'Mine now', wonder: { threshold: 5 } })).rejects.toThrow(/manage/i)
     await expect(groupPostCreate(ctx(POSTER), { groupId: PAGE, body: 'Half', wonder: { threshold: 2.5 } })).rejects.toThrow()
     await expect(groupPostCreate(ctx(POSTER), { groupId: PAGE, body: 'None', wonder: { threshold: 0 } })).rejects.toThrow()
-    await expect(q(`insert into public.page_posts (group_id, body, kind) values ($1, 'x', 'wonder')`, [PAGE])).rejects.toThrow()
+    await expect(q(`insert into public.page_posts (group_id, body, kind, wonder_threshold) values ($1, 'x', 'news', 3)`, [PAGE])).rejects.toThrow()
+  })
+
+  // [guards F117.1 partial: the goal number is optional (plan #218, 2026-11-01)]
+  it('takes no goal number: the post is still a Proposal, and its view counts who is in with no threshold', async () => {
+    const open = (await groupPostCreate(ctx(POSTER), { groupId: PAGE, body: 'Weekday dog walking?', kind: 'wonder' })).postId
+    expect((await q(`select kind, wonder_threshold from public.page_posts where id = $1`, [open])).rows[0]).toEqual({ kind: 'wonder', wonder_threshold: null })
+    expect(await wonderJoin(ctx(DANA), { postId: open })).toEqual({ inCount: 1 })
+    expect(await view(EVE, open)).toMatchObject({ total: 1, threshold: null })
+    await expect(groupPostEdit(ctx(POSTER), { postId: open, body: 'Weekday dog walking?', kind: 'news' })).rejects.toThrow(/stays a Proposal/)
+    expect((await q(`select kind from public.page_posts where id = $1`, [open])).rows[0]).toEqual({ kind: 'wonder' })
   })
 
   // [guards F117.2]

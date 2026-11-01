@@ -964,7 +964,7 @@ describe('F117 — posting a Wonder', () => {
   it('the composer posts a Wonder with a threshold and the sizes the poster names', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Clothes that fit, bought in bulk at cost.' } })
-    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '500' } })
     fireEvent.change(screen.getByLabelText(COPY.wonderOptionsLabel), { target: { value: 'S, M, L, M' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
@@ -974,11 +974,23 @@ describe('F117 — posting a Wonder', () => {
   it('refuses a threshold that is not a whole number', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'A tool library?' } })
-    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '2.5' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     expect(await screen.findByText(COPY.wonderThresholdInvalid)).toBeInTheDocument()
     expect(onPost).not.toHaveBeenCalled()
+  })
+  // [guards F117.1 partial: the goal number is optional (plan #218, 2026-11-01)]
+  it('posts a Proposal with no goal number', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Dog walking on weekday mornings?' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
+    expect(screen.getByTestId('page-post-send')).toHaveTextContent(COPY.wonderPost)
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    const sent = onPost.mock.calls[0]![0] as { kind: string; wonder: unknown }
+    expect(sent.kind).toBe('wonder')
+    expect(sent.wonder).toEqual({ options: [] })
   })
 })
 
@@ -991,7 +1003,7 @@ describe('plan #230 — the composer: kind, headline, details', () => {
     renderPosts()
     const group = screen.getByRole('radiogroup', { name: 'What is it?' })
     expect(group).toBeInTheDocument()
-    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Count me in', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
+    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Proposal', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
     expect(kindRadio('News')).toBeChecked()
     // The kind comes before the headline, which comes before the details.
     const order = [group, screen.getByTestId('page-post-headline'), screen.getByTestId('page-post-body')]
