@@ -37,7 +37,7 @@ export function LoggedShelf({ logId, children }: { logId: string; children: Reac
   const tapped = (e: React.MouseEvent) => {
     const href = (e.target as Element).closest?.('a[href]')?.getAttribute('href')
     if (!href) return
-    void logShelfAction(logId, 'tap')
+    void logShelfAction(logId, 'tap', new URL(href, window.location.href).pathname)
     try {
       rememberShelfTap(sessionStorage, logId, href)
     } catch {
@@ -63,7 +63,7 @@ export function ShelfSaveCredit() {
       } catch {
         return
       }
-      if (shelfId) void logShelfAction(shelfId, 'save')
+      if (shelfId) void logShelfAction(shelfId, 'save', window.location.pathname)
     }
     document.addEventListener('click', clicked, true)
     return () => document.removeEventListener('click', clicked, true)

@@ -19,6 +19,14 @@ export interface FilledShelf {
 
 // Enough to fill a shelf after the items earlier shelves took and the samples the cap leaves out.
 const READ_SIZE = SHELF_SIZE * 3
+// Shelves stream in after Explore; a few reads at a time keep them from crowding the main feed's connections.
+const AT_ONCE = 4
+
+async function inBatches<T, R>(items: readonly T[], size: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = []
+  for (let i = 0; i < items.length; i += size) out.push(...(await Promise.all(items.slice(i, i + size).map(fn))))
+  return out
+}
 
 type Row = {
   id: string
@@ -61,7 +69,7 @@ export async function loadShelves(
     })),
     { today: metroDate(now, METRO_TIME_ZONE), member: memberId, interests: INTEREST_VOCAB.filter((t) => own.has(t.tag)) },
   )
-  const reads = await Promise.all(shelves.map((s) => read(supabase, s, scope, follows, now)))
+  const reads = await inBatches(shelves, AT_ONCE, (s) => read(supabase, s, scope, follows, now))
   return fillShelves(shelves, reads, now).map(({ shelf, items }) => ({ id: shelf.id, logId: shelf.logId, title: shelf.title, items }))
 }
 

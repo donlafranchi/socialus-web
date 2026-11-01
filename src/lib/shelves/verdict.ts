@@ -49,7 +49,7 @@ export function scoreboard(rows: readonly ScoreRow[]): ScoreLine[] {
     const best = Math.max(...rates)
     const half = median(rates) / 2
     ws.forEach((r, i) => {
-      if (rates[i] === best) top.add(`${r.shelfId}|${week}`)
+      if (best > 0 && rates[i] === best) top.add(`${r.shelfId}|${week}`)
       if (rates[i]! < half) low.add(`${r.shelfId}|${week}`)
     })
   }

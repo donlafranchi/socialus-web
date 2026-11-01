@@ -51,10 +51,10 @@ describe('F121 — counting a shelf in the browser', () => {
       </>,
     )
     fireEvent.click(getByText('card'))
-    expect(log).toHaveBeenCalledWith('lend-a-hand', 'tap')
+    expect(log).toHaveBeenCalledWith('lend-a-hand', 'tap', window.location.pathname)
     fireEvent.click(getByText('Other'))
-    expect(log).not.toHaveBeenCalledWith('lend-a-hand', 'save')
+    expect(log).not.toHaveBeenCalledWith('lend-a-hand', 'save', expect.anything())
     fireEvent.click(getByText('Follow'))
-    expect(log).toHaveBeenCalledWith('lend-a-hand', 'save')
+    expect(log).toHaveBeenCalledWith('lend-a-hand', 'save', window.location.pathname)
   })
 })

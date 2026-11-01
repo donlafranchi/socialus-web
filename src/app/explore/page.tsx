@@ -14,7 +14,7 @@
 import { Suspense } from 'react'
 import { loadBrowse, readSessionSeed } from './load'
 import { readBox, writeBox } from '@/lib/browse/box-text'
-import { parseBrowseFilters, CATEGORY_TAGS } from '@/lib/browse/filters'
+import { parseBrowseFilters, hasBrowseFilters, CATEGORY_TAGS } from '@/lib/browse/filters'
 import { parseReach } from '@/lib/browse/reach'
 import { BrowseSurface } from '@/components/browse/BrowseSurface'
 import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
@@ -30,7 +30,7 @@ export default async function Page({
   const sp = await searchParams
   // #876 — a link that carries filters opens on the targeted read, not on a client cut of the mix.
   const params = new URLSearchParams(Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === 'string'))
-  const { filters } = readBox(writeBox(parseBrowseFilters(params), sp.q ?? ''), CATEGORY_TAGS)
+  const { filters, rest } = readBox(writeBox(parseBrowseFilters(params), sp.q ?? ''), CATEGORY_TAGS)
   const snapshot = await loadBrowse(sp.metro ?? null, sp.area ?? null, { withMap: false, seed: await readSessionSeed(), filters, reach: parseReach(sp.reach) })
 
   return (
@@ -39,7 +39,8 @@ export default async function Page({
         initial={snapshot}
         shelves={
           // F121 — signed in only (a stranger's feed carries no posts); streamed, so Explore never waits for them.
-          snapshot.signedIn && snapshot.metro ? (
+          // Only the default view shows them, so only it reads them: a search, filter or the map never does.
+          snapshot.signedIn && snapshot.metro && !hasBrowseFilters(filters) && !rest.trim() && sp.view !== 'map' ? (
             <Suspense fallback={null}>
               <ExploreShelves scope={snapshot.area ? { placeId: snapshot.area.id } : { metroId: snapshot.metro.id }} />
             </Suspense>

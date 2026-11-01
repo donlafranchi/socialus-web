@@ -37,6 +37,11 @@ describe('F121 — the shelf scoreboard', () => {
     expect(top).toMatchObject({ weekStart: W3, impressions: 300, tapRate: 0.1, saveRate: 0.1 })
   })
 
+  it('no saves anywhere is no top: nothing moves up on a tie at zero', () => {
+    const rows = [W2, W3].flatMap((w) => [r('a', w, 300, 20, 0), r('b', w, 300, 20, 0)])
+    expect(scoreboard(rows).map((b) => b.verdict)).toEqual(['keep', 'keep'])
+  })
+
   it('one week at the top is not yet two', () => {
     const rows = [r('top', W3, 300, 20, 30), r('other', W3, 300, 20, 10), r('top', W2, 300, 20, 5), r('other', W2, 300, 20, 10)]
     expect(scoreboard(rows).find((b) => b.shelfId === 'top')!.verdict).toBe('keep')

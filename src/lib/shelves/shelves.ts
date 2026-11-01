@@ -2,7 +2,6 @@
 // browse_feed for, and what fills it. Rotation, not a bandit (ruled 2026-10-30): the followed shelf and Next 7 days
 // stay first; the rest shift one place a day per member, so over n days each shelf spends one day in each slot.
 
-import { createHash } from 'node:crypto'
 import { normalizeTag } from '@/lib/groups/tags'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { PostKind } from '@/lib/posts/kinds'
@@ -38,13 +37,23 @@ export interface Shelf {
 }
 
 export const SHELF_SIZE = 12
+
+type Scoped = { metro: { id: string } | null; area: { id: string } | null }
+/** Shelves are built on the server for the place the page loaded with; a change of place in the browser hides them. */
+export const shelvesFitScope = (built: Scoped, now: Scoped): boolean =>
+  built.metro?.id === now.metro?.id && (built.area?.id ?? null) === (now.area?.id ?? null)
 const MAX_INTEREST_SHELVES = 3
 const DAY = 86_400_000
 
 export const inSeason = (r: Pick<ShelfRow, 'seasonStart' | 'seasonEnd'>, today: string): boolean =>
   !r.seasonStart || !r.seasonEnd || (today >= r.seasonStart && today <= r.seasonEnd)
 
-const hashNumber = (s: string) => createHash('sha256').update(s).digest().readUInt32BE(0)
+/** FNV-1a: a stable offset per member, not a secret. */
+function hashNumber(s: string): number {
+  let h = 0x811c9dc5
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0
+  return h
+}
 
 /** A cyclic shift of `items` by the member's offset plus the day: a Latin square over n days. */
 export function rotate<T>(items: readonly T[], member: string, day: number): T[] {

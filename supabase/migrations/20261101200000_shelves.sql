@@ -4,8 +4,10 @@
 --                  on/off. Adding, renaming or retiring a shelf is a row change, not a deploy. Anyone may read
 --                  the ones that are on; nobody writes them through the API.
 --   shelf_weekly   per shelf per week (Monday, Pacific): impressions, distinct members, taps, saves. No member id.
---   shelf_seen     sha256 dedupe keys (one impression per member per shelf per day, one member per shelf per
---                  week), deleted after 30 days by the shelf.log handler. The hash never reaches shelf_weekly.
+--   shelf_seen     sha256 dedupe keys: one impression per member per shelf per day, one member per shelf per week,
+--                  one tap or save per member per card per day, at most a shelf's worth (12) of each per member per
+--                  shelf per day (`bucket`, also a hash). Deleted after 8 days by the shelf.log handler, once no
+--                  day or week can still need them. No hash reaches shelf_weekly.
 -- Writes go through the action layer (ADR-7): shelf.log, which skips a member who turned logging off on You
 -- (members.search_sharing) and every builder.
 
@@ -46,8 +48,10 @@ create table public.shelf_weekly (
 create table public.shelf_seen (
   key      text not null primary key,
   shelf_id text not null references public.shelves(id) on delete cascade,
+  bucket   text,
   seen_on  date not null default current_date
 );
+create index shelf_seen_bucket on public.shelf_seen (bucket) where bucket is not null;
 create index shelf_seen_on on public.shelf_seen (seen_on);
 
 alter table public.shelf_weekly enable row level security;
@@ -71,7 +75,8 @@ revoke all on function public.admin_shelf_scoreboard(int) from public, anon;
 grant execute on function public.admin_shelf_scoreboard(int) to authenticated;
 
 -- The starting shelves: the followed shelf and Next 7 days first, then the catalog's starred rotation
--- (socialus-plan planning/research/shelves-and-rally-2026-10-31.md) and up to three interest shelves.
+-- (socialus-plan planning/research/shelves-and-rally-2026-10-31.md), two more things to buy from the same catalog so
+-- there are three (criterion 6), and up to three interest shelves.
 insert into public.shelves (id, name, query, lead_days, place, fixed_order, season_start, season_end, kind) values
   ('from-who-you-follow',            'From who you follow',             '{"audience":"following"}',                                                    14, 'fixed', 1, null, null, 'followed'),
   ('next-7-days',                    'Next 7 days',                     '{"datedOnly":true}',                                                           7, 'fixed', 2, null, null, 'query'),
@@ -88,5 +93,7 @@ insert into public.shelves (id, name, query, lead_days, place, fixed_order, seas
   ('plan-ahead-next-month',          'Plan ahead: next month',          '{"datedOnly":true,"startsFromDays":14}',                                      42, 'rotating', null, null, null, 'query'),
   ('live-music-this-week',           'Live music this week',            '{"tags":["live music"],"datedOnly":true}',                                     7, 'rotating', null, null, null, 'query'),
   ('big-nights-out',                 'Big nights out',                  '{"anyOf":["theater","theatre","symphony","ballet","opera","arena","concert"],"datedOnly":true}', 14, 'rotating', null, null, null, 'query'),
+  ('bakers-and-sweets',              'Bakers and sweets',               '{"anyOf":["bakery","bakers","pie","bread","pastry","chocolate","creamery"]}', 14, 'rotating', null, null, null, 'query'),
+  ('plants-and-gardens',             'Plants and gardens',              '{"anyOf":["nursery","plant","plants","garden","flower","seedling"]}',         14, 'rotating', null, null, null, 'query'),
   ('fresh-from-the-farm',            'Fresh from the farm',             '{"tags":["farmers markets"]}',                                                14, 'rotating', null, null, null, 'query'),
   ('getting-ready-for-thanksgiving', 'Getting ready for Thanksgiving',  '{"anyOf":["thanksgiving","pie","turkey","harvest","gratitude"]}',               28, 'rotating', null, '2026-11-02', '2026-11-28', 'query');

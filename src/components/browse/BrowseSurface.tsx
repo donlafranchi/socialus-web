@@ -28,6 +28,7 @@ import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { ListMapToggle, type ExploreView } from '@/components/explore/ListMapToggle'
 import { ExploreDock } from '@/components/explore/ExploreDock'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
+import { shelvesFitScope } from '@/lib/shelves/shelves'
 import { mapFocusFrom } from '@/lib/browse/map-focus'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
@@ -458,7 +459,7 @@ export function BrowseSurface({
       )}
 
       {/* F121 — the shelves, under the first look; a search or a filter is answered by the list instead. */}
-      {!postsOnlyView && !filtered && !rest.trim() && !focus && shelves}
+      {!postsOnlyView && !filtered && !rest.trim() && !focus && shelvesFitScope(initial, snapshot) && shelves}
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}

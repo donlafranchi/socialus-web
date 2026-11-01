@@ -55,3 +55,21 @@ describe('F121 — loadShelves', () => {
     expect(shelves.map((s) => s.id)).toEqual(['from-who-you-follow'])
   })
 })
+
+describe('F121 — loadShelves load', () => {
+  it('reads at most four shelves at once', async () => {
+    let live = 0
+    let peak = 0
+    feed.mockImplementation(async () => {
+      peak = Math.max(peak, ++live)
+      await new Promise((r) => setTimeout(r, 5))
+      live--
+      return []
+    })
+    const many = Array.from({ length: 10 }, (_, i) => ({ ...ROWS[2]!, id: `r${i}` }))
+    const s = { ...supabase, from: (t: string) => ({ select: () => ({ eq: async () => (t === 'shelves' ? { data: many, error: null } : { data: [], error: null }) }) }) }
+    await loadShelves(s as never, { scope: { metroId: 'm' }, memberId: 'me', now: NOW })
+    expect(feed).toHaveBeenCalledTimes(10)
+    expect(peak).toBeLessThanOrEqual(4)
+  })
+})

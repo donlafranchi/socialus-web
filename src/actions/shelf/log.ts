@@ -4,7 +4,8 @@
 // screen for a second), a tap (a card opened from it) or a save (a like, add to calendar or follow that came from
 // it). No member id is written. A member who turned logging off on You (search_sharing) and every builder are
 // never counted. An impression counts once per member per shelf per day, and a member once per shelf per week, by
-// sha256 keys in shelf_seen that are deleted after 30 days, here, on every write.
+// sha256 keys in shelf_seen. A tap or save counts once per member per card a day, and at most a shelf's worth a
+// day per member per shelf, so no one can run the scoreboard up. Keys are deleted after 8 days, here, on every write.
 
 import { createHash } from 'node:crypto'
 import { z } from 'zod'
@@ -16,11 +17,14 @@ export const SHELF_EVENTS = ['impression', 'tap', 'save'] as const
 export const shelfLogInput = z.object({
   shelfId: z.string().regex(/^[a-z0-9-]{2,60}$/),
   event: z.enum(SHELF_EVENTS),
+  /** The card's path, for a tap or a save; only ever hashed. */
+  item: z.string().max(300).optional(),
 })
 export type ShelfLogInput = z.infer<typeof shelfLogInput>
 
 const key = (...parts: string[]) => createHash('sha256').update(parts.join('\u0000')).digest('hex')
 const COLUMN = { impression: 'impressions', tap: 'taps', save: 'saves' } as const
+const DAILY_CAP = 12
 
 export const shelfLog = defineHandler(
   'shelf.log',
@@ -39,15 +43,20 @@ export const shelfLog = defineHandler(
       const w = who.rows[0]!
       if (!w.sharing || w.builder || !w.shelf) return { logged: false }
 
-      await client.query(`delete from public.shelf_seen where seen_on < current_date - 30`)
-      const fresh = async (k: string) =>
-        (await client.query(`insert into public.shelf_seen (key, shelf_id) values ($1, $2) on conflict (key) do nothing returning key`, [k, input.shelfId])).rows.length > 0
+      await client.query(`delete from public.shelf_seen where seen_on < current_date - 8`)
+      const fresh = async (k: string, bucket: string | null = null) =>
+        (await client.query(`insert into public.shelf_seen (key, shelf_id, bucket) values ($1, $2, $3) on conflict (key) do nothing returning key`, [k, input.shelfId, bucket]))
+          .rows.length > 0
 
       let add = { impressions: 0, members: 0, taps: 0, saves: 0 }
       if (input.event === 'impression') {
         if (!(await fresh(key('day', memberId, input.shelfId, w.day)))) return { logged: false }
         add = { ...add, impressions: 1, members: (await fresh(key('week', memberId, input.shelfId, w.week))) ? 1 : 0 }
       } else {
+        const bucket = key(input.event, memberId, input.shelfId, w.day)
+        if (!(await fresh(key(input.event, memberId, input.shelfId, w.day, input.item ?? ''), bucket))) return { logged: false }
+        const n = await client.query<{ n: number }>(`select count(*)::int as n from public.shelf_seen where bucket = $1`, [bucket])
+        if (n.rows[0]!.n > DAILY_CAP) return { logged: false }
         add = { ...add, [COLUMN[input.event]]: 1 }
       }
       await client.query(

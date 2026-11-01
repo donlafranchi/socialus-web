@@ -1,6 +1,6 @@
 // F121 — the shelves Explore shows: which, in what order, what each asks the feed for, and what fills it.
 import { describe, it, expect } from 'vitest'
-import { arrangeShelves, feedArgs, fillShelves, inSeason, rotate, type ShelfRow } from './shelves'
+import { arrangeShelves, feedArgs, fillShelves, inSeason, rotate, shelvesFitScope, type ShelfRow } from './shelves'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
 const row = (id: string, over: Partial<ShelfRow> = {}): ShelfRow => ({
@@ -121,5 +121,14 @@ describe('F121 — what fills a shelf', () => {
     expect(f!.items.filter((i) => i.sampleKind)).toHaveLength(1)
     expect(f!.items).toHaveLength(4)
     expect(fillShelves([shelf('s')], [samples], NOW)).toEqual([])
+  })
+})
+
+describe('F121 — shelves belong to the place they were built for', () => {
+  it('a change of metro or neighbourhood in the browser hides them until the page reloads', () => {
+    const sac = { metro: { id: 'm1' }, area: null }
+    expect(shelvesFitScope(sac, { metro: { id: 'm1' }, area: null })).toBe(true)
+    expect(shelvesFitScope(sac, { metro: { id: 'm2' }, area: null })).toBe(false)
+    expect(shelvesFitScope(sac, { metro: { id: 'm1' }, area: { id: 'midtown' } })).toBe(false)
   })
 })

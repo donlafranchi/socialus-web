@@ -103,8 +103,9 @@ describe.skipIf(!RUNNABLE)('F121 — shelves as data', () => {
     expect(names.join(' ')).not.toMatch(/rally/i)
     expect(rows.filter((r) => r.place === 'fixed').map((r) => r.name)).toEqual(expect.arrayContaining(['From who you follow', 'Next 7 days']))
     expect(rows.filter((r) => r.kind === 'interest')).toHaveLength(1)
-    // The 15 starred shelves of the catalog (Next 7 days among them).
-    expect(rows.filter((r) => r.kind === 'query')).toHaveLength(15)
+    // The 15 starred shelves of the catalog (Next 7 days among them), plus two more things to buy (criterion 6: at least three).
+    expect(rows.filter((r) => r.kind === 'query')).toHaveLength(17)
+    expect(names).toEqual(expect.arrayContaining(['Fresh from the farm', 'Bakers and sweets', 'Plants and gardens']))
   })
 
   it('every seeded shelf’s words parse as a search', async () => {
@@ -123,12 +124,18 @@ describe.skipIf(!RUNNABLE)('F121 — shelves as data', () => {
 
 describe.skipIf(!RUNNABLE)('F121 — counting a shelf', () => {
   // [guards F121.11]
-  it('counts an impression once per member a day, members once a week, and every tap and save', async () => {
+  it('counts an impression once per member a day, members once a week, a tap or save once per card a day', async () => {
     for (const m of [DANA, DANA, EVE]) await shelfLog(ctx(m), { shelfId: SHELF, event: 'impression' })
-    await shelfLog(ctx(DANA), { shelfId: SHELF, event: 'tap' })
-    await shelfLog(ctx(DANA), { shelfId: SHELF, event: 'tap' })
-    await shelfLog(ctx(EVE), { shelfId: SHELF, event: 'save' })
+    await shelfLog(ctx(DANA), { shelfId: SHELF, event: 'tap', item: '/a/b/one' })
+    await shelfLog(ctx(DANA), { shelfId: SHELF, event: 'tap', item: '/a/b/one' })
+    await shelfLog(ctx(DANA), { shelfId: SHELF, event: 'tap', item: '/a/b/two' })
+    await shelfLog(ctx(EVE), { shelfId: SHELF, event: 'save', item: '/a/b/one' })
     expect(await week()).toMatchObject({ impressions: 2, members: 2, taps: 2, saves: 1 })
+  })
+
+  it('a member counts at most a shelf’s worth of taps a day, however they call it', async () => {
+    for (let i = 0; i < 20; i++) await shelfLog(ctx(DANA), { shelfId: SHELF, event: 'tap', item: `/x/${i}` })
+    expect(await week()).toMatchObject({ taps: 12 })
   })
 
   // [guards F121.12]
@@ -147,8 +154,8 @@ describe.skipIf(!RUNNABLE)('F121 — counting a shelf', () => {
   })
 
   // [guards F121.12]
-  it('deletes its dedupe keys after 30 days', async () => {
-    await q(`insert into public.shelf_seen (key, shelf_id, seen_on) values ('zz121-old', $1, current_date - 31)`, [SHELF])
+  it('deletes its dedupe keys once their week is over (well inside 30 days)', async () => {
+    await q(`insert into public.shelf_seen (key, shelf_id, seen_on) values ('zz121-old', $1, current_date - 9)`, [SHELF])
     await shelfLog(ctx(EVE), { shelfId: SHELF, event: 'impression' })
     expect((await q(`select 1 from public.shelf_seen where key = 'zz121-old'`)).rows).toEqual([])
   })
