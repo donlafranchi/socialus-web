@@ -163,3 +163,59 @@ describe.skipIf(!RUNNABLE)('F121 — counting a shelf', () => {
     expect(await as(null, `select * from public.shelf_seen`)).toMatch(/permission/i)
   })
 })
+
+// [guards F121.2] [guards F121.3] — each seeded shelf's query, read the way loadShelves reads it, finds what it should.
+describe.skipIf(!RUNNABLE)('F121 — a seeded shelf reads browse_feed', () => {
+  const PAGE = id(20), LOC = id(30)
+  const METRO = `(select id from public.metro_polygons where slug = 'sacramento-roseville-ca')`
+  const posts: Record<string, string> = {}
+
+  beforeAll(async () => {
+    await q(`insert into public.locations (id, member_id, kind, label, slug, geography) values ($1,$2,'permanent','Barn','f121-barn', ST_GeogFromText('POINT(-121.47 38.54)'))`, [LOC, DANA])
+    await q(`insert into public.groups (id, kind, name, slug, lifecycle_state, discoverability, founder_member_id, anchor_location_id) values ($1,'business','F121 Barn','f121-barn','active','listed',$2,$3)`, [PAGE, DANA, LOC])
+    const add = async (key: string, body: string, startsInDays: number | null, kind = 'event') => {
+      const starts = startsInDays === null ? null : new Date(Date.now() + startsInDays * 86_400_000).toISOString()
+      posts[key] = (await q(`insert into public.page_posts (group_id, body, starts_at, kind, lifecycle_state) values ($1,$2,$3,$4,'active') returning id`, [PAGE, body, starts, starts ? kind : 'news'])).rows[0].id
+    }
+    await add('goats', 'Goat yoga at the barn', 2)
+    await add('soon', 'Barn dance', 3)
+    await add('later', 'Winter barn dance', 30)
+    await add('wonder', 'Weekday dog walking?', null)
+    await q(`update public.page_posts set kind = 'wonder' where id = $1`, [posts.wonder])
+  })
+  afterAll(async () => {
+    await q(`delete from public.page_posts where group_id = $1`, [PAGE])
+    await q(`delete from public.groups where id = $1`, [PAGE])
+    await q(`delete from public.locations where id = $1`, [LOC])
+  })
+
+  const read = async (shelfId: string) => {
+    const { feedArgs } = await import('@/lib/shelves/shelves')
+    const { anyWordTsQuery } = await import('@/lib/search/query')
+    const row = (await q(`select query, lead_days from public.shelves where id = $1`, [shelfId])).rows[0] as { query: Record<string, unknown>; lead_days: number | null }
+    const a = feedArgs({ query: row.query, leadDays: row.lead_days }, new Date())
+    const rows = (await as<{ result_id: string }>(
+      EVE,
+      `select result_id from public.browse_feed(p_metro_id => ${METRO}, p_result_kinds => array['post'], p_tags => $1, p_post_kinds => $2,
+         p_starts_from => $3, p_starts_before => $4, p_search => $5, p_sort => $6, p_limit => 200)`,
+      [a.tags ?? null, a.postKinds ?? null, a.startsFrom, a.startsBefore, a.anyOf ? anyWordTsQuery(a.anyOf) : null, a.startsFrom ? 'soonest' : 'recent'],
+    )) as { result_id: string }[]
+    return new Set(rows.map((r) => r.result_id))
+  }
+
+  it('Play with farm animals finds the goats by any of its words; Next 7 days holds what starts this week, not next month', async () => {
+    const farm = await read('play-with-farm-animals')
+    expect(farm.has(posts.goats!)).toBe(true)
+    expect(farm.has(posts.soon!)).toBe(false)
+    const week = await read('next-7-days')
+    expect(week.has(posts.soon!)).toBe(true)
+    expect(week.has(posts.later!)).toBe(false)
+    expect((await read('plan-ahead-next-month')).has(posts.later!)).toBe(true)
+  })
+
+  it('Who’s proposing what? holds open Proposals only', async () => {
+    const proposing = await read('whos-proposing-what')
+    expect(proposing.has(posts.wonder!)).toBe(true)
+    expect(proposing.has(posts.goats!)).toBe(false)
+  })
+})

@@ -16,7 +16,7 @@
 // shape in a build ticket would answer by implementation a question recorded
 // as open. So this ships the constraint — no pills — and no replacement.
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useSearchParams, unstable_isUnrecognizedActionError } from 'next/navigation'
@@ -77,9 +77,12 @@ export function BrowseSurface({
   initial,
   // [open-question owner=cowork raised=2026-10-01] Nothing opens an owner panel on Explore yet; what should, if anything?
   ownerPanelOpen = false,
+  shelves = null,
 }: {
   initial: BrowseSnapshot
   ownerPanelOpen?: boolean
+  /** F121 — Explore's shelves, streamed in by the page; shown on the default view only. */
+  shelves?: ReactNode
 }) {
   const params = useSearchParams()
 
@@ -453,6 +456,9 @@ export function BrowseSurface({
           </section>
         )
       )}
+
+      {/* F121 — the shelves, under the first look; a search or a filter is answered by the list instead. */}
+      {!postsOnlyView && !filtered && !rest.trim() && !focus && shelves}
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="browse-announcement">
         {announcement}

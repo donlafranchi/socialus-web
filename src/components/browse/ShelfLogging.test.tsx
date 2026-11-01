@@ -30,7 +30,7 @@ afterEach(() => {
 
 describe('F121 — counting a shelf in the browser', () => {
   it('an impression after half the shelf has been on screen for a second, not a glance', () => {
-    render(<LoggedShelf logId="next-7-days"><a href="/p">card</a></LoggedShelf>)
+    render(<LoggedShelf logId="next-7-days"><a href="#card">card</a></LoggedShelf>)
     act(() => seen!([{ isIntersecting: true, intersectionRatio: 0.6 }]))
     act(() => vi.advanceTimersByTime(500))
     act(() => seen!([{ isIntersecting: false, intersectionRatio: 0 }]))

@@ -17,6 +17,8 @@ export interface ResultGroup {
   key: string
   label: string
   results: BrowseResult[]
+  /** F121 — the shelf row this group counts against; set only for Explore's shelves. */
+  logId?: string
 }
 
 const TIME: [key: string, label: string][] = [

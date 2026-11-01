@@ -18,6 +18,7 @@ import { parseBrowseFilters, CATEGORY_TAGS } from '@/lib/browse/filters'
 import { parseReach } from '@/lib/browse/reach'
 import { BrowseSurface } from '@/components/browse/BrowseSurface'
 import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
+import { ExploreShelves } from '@/components/browse/ExploreShelves'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,7 +35,17 @@ export default async function Page({
 
   return (
     <Suspense fallback={<ExploreSkeleton />}>
-      <BrowseSurface initial={snapshot} />
+      <BrowseSurface
+        initial={snapshot}
+        shelves={
+          // F121 — signed in only (a stranger's feed carries no posts); streamed, so Explore never waits for them.
+          snapshot.signedIn && snapshot.metro ? (
+            <Suspense fallback={null}>
+              <ExploreShelves scope={snapshot.area ? { placeId: snapshot.area.id } : { metroId: snapshot.metro.id }} />
+            </Suspense>
+          ) : null
+        }
+      />
     </Suspense>
   )
 }
