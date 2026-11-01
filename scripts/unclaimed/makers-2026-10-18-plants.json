@@ -92,14 +92,17 @@
  {
   "name": "The Plant Foundry Nursery & Store",
   "category": "Nursery and plant shop",
-  "makes": "A destination nursery for people who love edible and ornamental plants, in Oak Park",
+  "makes": "A destination nursery for people who love edible and ornamental plants, now at 3621 Broadway in Sacramento",
   "area": "Sacramento (Sacramento)",
   "site": "https://plantfoundry.com/store/",
+  "address": "3621 Broadway, Sacramento, CA 95817",
   "social": {
    "instagram": "https://www.instagram.com/plantfoundry",
-   "facebook": "https://www.facebook.com/plantfoundry"
+   "facebook": "https://www.facebook.com/plantfoundry",
+   "tiktok": "https://www.tiktok.com/@plantfoundry",
+   "youtube": "https://www.youtube.com/@plantfoundry"
   },
-  "confidence": "Medium; own site read 2026-10-18 (page answers 406 to curl, reads in a browser); address may be moving about a block, so no street named; milkweed not stated."
+  "confidence": "Medium; own site read 2026-10-18 (page answers 406 to curl, reads in a browser); moved to 3621 Broadway (Don, 2026-10-31, from plantfoundry.com); milkweed not stated."
  },
  {
   "name": "Sperbeck's Nursery & Landscape Center",
