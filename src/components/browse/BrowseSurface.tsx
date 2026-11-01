@@ -35,6 +35,8 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { HappeningRows } from './HappeningRows'
+import { BrowseShelves } from './BrowseShelves'
+import { groupResults } from '@/lib/browse/groups'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import { readBox, writeBox } from '@/lib/browse/box-text'
@@ -196,6 +198,7 @@ export function BrowseSurface({
     [metroSlug, snapshot.area],
   )
 
+  const firstQs = useRef<string | null>(null)
   useEffect(() => {
     const qs = browseQueryString({
       metro: metroSlug,
@@ -206,7 +209,11 @@ export function BrowseSurface({
     // #935 — the address bar only. router.replace re-rendered Explore on the server once per keystroke, several
     // feed reads each, and signed in that flood held a tapped result and the Page it opened. Next.js keeps
     // useSearchParams in step with the native History API, so the link still reopens the same search.
-    const url = `/explore${qs ? `?${qs}` : ''}`
+    // A shared link's open shelf (BrowseShelves) holds while the address it came with does; a new search makes it stale.
+    firstQs.current ??= qs
+    const shelf = qs === firstQs.current ? new URL(window.location.href).searchParams.get('shelf') : null
+    const full = shelf ? `${qs ? `${qs}&` : ''}shelf=${encodeURIComponent(shelf)}` : qs
+    const url = `/explore${full ? `?${full}` : ''}`
     if (window.location.pathname + window.location.search !== url) window.history.replaceState(window.history.state, '', url)
   }, [metroSlug, snapshot.area, query, reach])
 
@@ -241,6 +248,15 @@ export function BrowseSurface({
   // #796 — Explore leads with what is new. #876 (Don, 2026-10-16) — then everything, mixed: Pages,
   // posts and the followed Pages' updates (the loader merged them, in place-and-time order).
   const lead = useMemo(() => snapshot.lead ?? [], [snapshot.lead])
+  // Pages and posts never share a row (Dispatch, 2026-11-01). Draft copy (human-review).
+  const leadGroups = useMemo(
+    () =>
+      [
+        { key: 'new-pages', label: 'Places & groups', results: lead.filter((r) => r.resultKind === 'page') },
+        { key: 'new-posts', label: 'Posts', results: lead.filter((r) => r.resultKind !== 'page') },
+      ].filter((g) => g.results.length > 0),
+    [lead],
+  )
   // #896 — sent here from a Page's map: straight to the map, nothing above it.
   const showLead = Boolean(snapshot.leadFresh) && lead.length > 0 && !rest.trim() && !filtered && !focus
   const mix = useMemo(() => {
@@ -308,6 +324,10 @@ export function BrowseSurface({
     // `narrowing` is derived from `filters`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [landed, targeted, narrowed, mix, filters, now, rest, myTags])
+  // Don (2026-11-01) — a search comes back in labelled rows, one type each; one flat list on request.
+  const [flat, setFlat] = useState(false)
+  const groups = useMemo(() => (needle && !searching && !searchFailed ? groupResults(visible, now) : []), [needle, searching, searchFailed, visible, now])
+  const grouped = !flat && groups.length > 1
   // #909 — a settled search is counted, with no member id, so locals' searches can help local businesses.
   useSearchDemand({ query: rest, resultCount: visible.length, metroSlug: snapshot.metro?.slug ?? null, areaId: snapshot.area?.id ?? null, failed: snapshot.failed || searching || searchFailed, log: logSearchAction })
   // The old Updates view's top, kept for plain posts-only: what is on today, this week and this weekend.
@@ -429,11 +449,7 @@ export function BrowseSurface({
             <h2 id="explore-lead-heading" className="mb-3 text-base font-semibold text-[var(--color-charcoal-900)]">
               What&rsquo;s new since you were here
             </h2>
-            <CardGrid data-testid="explore-lead-grid">
-              {lead.map((r, i) => (
-                <BrowseResultCard key={`lead-${r.resultKind}:${r.resultId}`} result={r} prefetch={i < PREFETCH_TOP ? true : undefined} />
-              ))}
-            </CardGrid>
+            <BrowseShelves groups={leadGroups} prefetch={PREFETCH_TOP} />
           </section>
         )
       )}
@@ -467,6 +483,16 @@ export function BrowseSurface({
                   </>
                 )}
               </p>
+              {groups.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setFlat((f) => !f)}
+                  data-testid="browse-group-toggle"
+                  className="press ml-auto inline-flex min-h-tap shrink-0 items-center text-sm font-medium text-[var(--color-charcoal-900)] underline underline-offset-4"
+                >
+                  {flat ? 'Show in groups' : 'Show as one list'}
+                </button>
+              )}
               {/* plan #230 — the map only on request: a quiet text link, never a chip. Draft copy (human-review). */}
               {!showMap && visible.length > 0 && (
                 <a
@@ -556,6 +582,8 @@ export function BrowseSurface({
                     </button>
                   </p>
                 </div>
+              ) : grouped ? (
+                <BrowseShelves groups={groups} prefetch={PREFETCH_TOP} />
               ) : (
                 <CardGrid>
                   {visible.slice(0, shown).map((r, i) => (
@@ -564,7 +592,7 @@ export function BrowseSurface({
                   ))}
                 </CardGrid>
               )}
-              {shown < visible.length && <div ref={sentinel} aria-hidden="true" className="h-px" data-testid="browse-more" />}
+              {!grouped && shown < visible.length && <div ref={sentinel} aria-hidden="true" className="h-px" data-testid="browse-more" />}
             </section>
           </div>
         )}
