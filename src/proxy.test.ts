@@ -274,6 +274,12 @@ describe('proxy — an old /g/ address forwards to the readable one', () => {
     expect(pageAddress).toHaveBeenCalledWith('page_address', { p_public_id: '81bjk0', p_post_id: POST })
   })
 
+  // A link checker or crawler asks with HEAD; it is told the same.
+  it('forwards a HEAD request too', async () => {
+    pageAddress.mockResolvedValueOnce({ data: [{ place_url_slug: 'sacramento-ca', page_url_slug: 'plant-foundry', post_url_slug: null }], error: null })
+    expect((await proxy(request('/g/81bjk0', 'HEAD'))).status).toBe(301)
+  })
+
   it('leaves the old route to answer when there is no readable address (a draft), or the read fails', async () => {
     expect((await proxy(request('/g/81bjk0'))).status).toBe(200)
     pageAddress.mockResolvedValueOnce({ data: null, error: { message: 'down' } })

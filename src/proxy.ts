@@ -90,7 +90,7 @@ export async function proxy(request: NextRequest) {
 
   // #1139 (Don, 2026-11-01) — an old /g/ link forwards, permanently, to the readable address. No row (a draft, a
   // Page with no address yet) or a failed read: the old route answers, as before. The fragment rides along.
-  const old = request.method === 'GET' ? oldAddress(request.nextUrl.pathname) : null
+  const old = request.method === 'GET' || request.method === 'HEAD' ? oldAddress(request.nextUrl.pathname) : null
   if (old) {
     try {
       const { data, error } = await supabase.rpc('page_address', { p_public_id: old.publicId, p_post_id: old.postId })
