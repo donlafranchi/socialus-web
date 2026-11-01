@@ -328,7 +328,10 @@ export function PagePosts({
       const composeKind = new URLSearchParams(window.location.search).get('compose')
       requestAnimationFrame(() => {
         setComposing(true)
-        if (isPostKind(composeKind)) chooseKind(composeKind)
+        if (isPostKind(composeKind)) {
+          setWhen((w) => whenForKind('news', composeKind, w, new Date()))
+          setKind(composeKind)
+        }
       })
     }
     open()

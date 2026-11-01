@@ -1,7 +1,7 @@
 // #1094 — what the ➕ sheet offers, and where each choice goes.
 // Posts, events and wonders are written on a Page, so with no Page the first step is making one.
 
-import { POST_KINDS, POST_KIND_HINT, POST_KIND_WORD, isPostKind, type PostKind } from '@/lib/posts/kinds'
+import { POST_KINDS, POST_KIND_HINT, POST_KIND_WORD, type PostKind } from '@/lib/posts/kinds'
 
 export type CreateKind = PostKind | 'page'
 export interface CreatePage {

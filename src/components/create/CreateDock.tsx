@@ -15,7 +15,7 @@ import { navHidden } from '@/components/shell/nav-hidden'
 import { Sheet } from '@/components/ui/Sheet'
 import { getOwnPages } from '@/lib/member/own-pages'
 import type { PostKind } from '@/lib/posts/kinds'
-import { composerHref, createChoices, type CreateKind, type CreatePage } from '@/lib/create/create-targets'
+import { composerHref, createChoices, type CreatePage } from '@/lib/create/create-targets'
 
 const ROW = 'press flex min-h-14 w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-body font-medium text-[var(--color-fg)] hover:bg-neutral-100'
 
