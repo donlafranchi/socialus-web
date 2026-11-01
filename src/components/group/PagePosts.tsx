@@ -324,22 +324,11 @@ export function PagePosts({
     if (!canPost) return
     const open = () => {
       if (window.location.hash !== `#${ANNOUNCE_ANCHOR}`) return
-<<<<<<< HEAD
       // #1094 — the ➕ sheet arrives with the chosen kind already picked.
       const composeKind = new URLSearchParams(window.location.search).get('compose')
       requestAnimationFrame(() => {
         setComposing(true)
         if (isPostKind(composeKind)) chooseKind(composeKind)
-=======
-      // #1094 — the ➕ sheet's Event and Wonder arrive with that kind already picked.
-      const picked = new URLSearchParams(window.location.search).get('compose')
-      requestAnimationFrame(() => {
-        setComposing(true)
-        if (picked === 'event' || picked === 'wonder') {
-          setWhen((w) => whenForKind('news', picked, w, new Date()))
-          setKind(picked)
-        }
->>>>>>> 82c15f7 (change #1094: ➕ Event and Wonder pick that post kind on the composer)
       })
     }
     open()
