@@ -7,7 +7,10 @@ import { HOME, HOME_TODO } from '@/lib/home-landing'
 import { navHidden } from '@/components/BottomNav'
 
 // page.tsx pulls a webfont through next/font/google, which needs a Next build.
-vi.mock('next/font/google', () => ({ Fraunces: () => ({ variable: '--font-serif', className: 'serif' }) }))
+vi.mock('next/font/google', () => ({
+  Newsreader: () => ({ variable: '--font-serif', className: 'serif' }),
+  Source_Sans_3: () => ({ variable: '--font-landing', className: 'sans' }),
+}))
 
 afterEach(cleanup)
 
@@ -49,9 +52,12 @@ describe('the front door', () => {
     expect([...join.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['Join SocialUs'])
   })
 
-  it('the hero art is decoration, not a slogan', () => {
+  it('both illustrations say what they show, and the page says locals, never neighbours', () => {
     const { container } = render(<HomeLanding />)
-    expect(container.querySelector('section img')?.getAttribute('alt')).toBe('')
+    const imgs = [...container.querySelectorAll('img')]
+    expect(imgs.length).toBe(2)
+    for (const img of imgs) expect(img.getAttribute('alt')!.length).toBeGreaterThan(20)
+    expect((container.textContent + imgs.map((i) => i.alt).join(' ')).toLowerCase()).not.toMatch(/neighbo/)
   })
 
   it('hides the app’s own nav and footer', () => {
