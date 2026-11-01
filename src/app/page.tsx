@@ -4,25 +4,10 @@
 // a dark footer — set in Family Type's Aime, Don's pick (2026-10-31).
 
 import Link from 'next/link'
-import localFont from 'next/font/local'
 import { ART, CONSENT_LINE, HOME, HOME_TODO, JOIN_HREF } from '@/lib/home-landing'
-
-// TODO(Don): these are Family Type's trial files (ASCII only, evaluation licence); swap in the Brand Licence WOFF2s once bought.
-const aime = localFont({
-  src: [
-    { path: './fonts/aime-regular.woff2', weight: '400', style: 'normal' },
-    { path: './fonts/aime-semibold.woff2', weight: '600', style: 'normal' },
-  ],
-  variable: '--font-landing',
-  display: 'swap',
-})
+import { aime, BTN, CanBlocks, HEAD, HeroHeadline, PRIMARY, SECONDARY, WRAP } from '@/components/landing/landing-shared'
 
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
-const HEAD = 'font-normal tracking-tight'
-const WRAP = 'mx-auto w-full max-w-landing gutter md:px-10'
-const BTN = 'press inline-flex min-h-tap items-center justify-center rounded-xs px-6 text-body font-semibold hover:no-underline'
-const PRIMARY = `${BTN} bg-[var(--color-clay)] text-[var(--color-paper)] hover:bg-[var(--color-clay-deep)]`
-const SECONDARY = `${BTN} border border-[var(--color-ink-muted)] text-[var(--color-ink-muted)] hover:bg-white`
 
 export default function HomeLanding() {
   return (
@@ -61,11 +46,7 @@ export default function HomeLanding() {
             className="h-auto w-full rounded-xs md:flex-1"
           />
           <div className="md:flex-1">
-            <h1 className={`${HEAD} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
-              {HOME.hero.lines[0]}
-              <br />
-              {HOME.hero.lines[1]}
-            </h1>
+            <HeroHeadline />
             {HOME.hero.body.map((p, i) => (
               <p key={p} className={`${i ? 'mt-4 font-semibold text-[var(--color-ink)]' : 'mt-6 text-[var(--color-ink-muted)]'} mx-auto max-w-read text-lede md:mx-0`}>
                 {p}
@@ -88,14 +69,7 @@ export default function HomeLanding() {
             <h2 id="what-you-can-do-title" className="sr-only">
               {HOME.hero.secondary}
             </h2>
-            <ul className="grid gap-6 md:grid-cols-3 md:gap-8">
-              {HOME.can.map((c) => (
-                <li key={c.id} id={c.id} className="scroll-mt-4 rounded-xs border border-[var(--color-rule)] bg-white p-8">
-                  <h3 className={`${HEAD} text-title-1 text-[var(--color-ink)]`}>{c.title}</h3>
-                  <p className="mt-4 text-[var(--color-ink-muted)]">{c.body}</p>
-                </li>
-              ))}
-            </ul>
+            <CanBlocks />
           </div>
         </section>
 

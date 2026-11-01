@@ -135,12 +135,12 @@ describe('completeOnboardingAction', () => {
 })
 
 describe('#1090 — finishOnboardingAction', () => {
-  it('marks the login onboarded, then goes where the flow ends', async () => {
-    await expect(finishOnboardingAction('/explore')).rejects.toThrow('REDIRECT:/explore')
+  it('marks the login onboarded, then the one-time welcome, which carries on to where the flow ends', async () => {
+    await expect(finishOnboardingAction('/explore')).rejects.toThrow('REDIRECT:/welcome?next=%2Fexplore')
     expect(updateUser).toHaveBeenCalledWith({ data: { onboarded: true } })
   })
 
   it('never leaves the site', async () => {
-    await expect(finishOnboardingAction('https://evil.example')).rejects.toThrow('REDIRECT:/')
+    await expect(finishOnboardingAction('https://evil.example')).rejects.toThrow('REDIRECT:/welcome?next=%2F')
   })
 })

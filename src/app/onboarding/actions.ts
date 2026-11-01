@@ -106,12 +106,13 @@ export async function addInterestsAction(input: {
 }
 
 /**
- * #1090 — the last step: the login marked onboarded, then where the flow ends. Marked here and
+ * #1090 — the last step: the login marked onboarded, then the one-time welcome (/welcome), which
+ * carries on to where the flow ends. Marked here and
  * not with the profile, because the mark refreshes the page and its gate sends an onboarded
  * member home before the screens after the profile can show.
  */
 export async function finishOnboardingAction(next: string): Promise<void> {
   const supabase = await createClient()
   await supabase.auth.updateUser({ data: { onboarded: true } })
-  redirect(safeNext(next, '/'))
+  redirect(`/welcome?next=${encodeURIComponent(safeNext(next, '/'))}`)
 }
