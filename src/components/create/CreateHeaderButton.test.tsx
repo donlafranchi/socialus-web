@@ -24,17 +24,14 @@ afterEach(() => {
   own.mockReset()
 })
 
-const openSheet = () => fireEvent.click(screen.getByTestId('create-fab'))
+const openSheet = () => fireEvent.click(screen.getByTestId('create-header'))
 
 describe('CreateHeaderButton (#1094, #1141)', () => {
-  it('is one labelled 56px round button, with room beside it', () => {
+  it('is one labelled round button', () => {
     render(<CreateHeaderButton />)
-    const fab = screen.getByRole('button', { name: 'Create' })
-    expect(fab.className).toContain('size-[var(--dock-size)]')
-    expect(fab.className).toContain('rounded-full')
-    const dock = screen.getByTestId('create-dock')
-    expect(dock.className).toContain('justify-end')
-    expect(dock.className).toContain('--float-offset')
+    const btn = screen.getByRole('button', { name: 'Create' })
+    expect(btn.className).toContain('rounded-full')
+    expect(btn).toHaveAttribute('aria-haspopup', 'dialog')
   })
 
   it('opens a dialog offering Post, Event, Page and Wonder', () => {
@@ -74,7 +71,7 @@ describe('CreateHeaderButton (#1094, #1141)', () => {
 
   it('Escape closes the sheet and focus returns to the ➕', () => {
     render(<CreateHeaderButton />)
-    screen.getByTestId('create-fab').focus()
+    screen.getByTestId('create-header').focus()
     openSheet()
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -92,13 +89,11 @@ describe('CreateHeaderButton (#1094, #1141)', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('is for phones: the floating one hides from 744px up, where the header button takes over (#1141)', () => {
+  it('is for large screens: hidden under 744px, where the phone bar\'s ⋯ menu offers Create (#1141)', () => {
     render(<CreateHeaderButton />)
-    expect(screen.getByTestId('create-dock').className).toContain('md:hidden')
     const header = screen.getByTestId('create-header')
     expect(header.className).toContain('hidden')
     expect(header.className).toContain('md:inline-flex')
-    expect(header).toHaveAccessibleName('Create')
   })
 
   it('the header button opens the same sheet', () => {

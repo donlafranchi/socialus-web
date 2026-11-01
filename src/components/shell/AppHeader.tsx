@@ -1,7 +1,7 @@
 'use client'
 
 // #1094 — the one header, every width. Left: the way back (anywhere but Explore) and the name.
-// Right: the ➕ (from 744px up, signed in) and You. There is no bottom bar; on a phone the ➕ floats (CreateDock).
+// Right: the ➕ (from 744px up, signed in) and You. There is no bottom bar; on a phone Create is in the bar's ⋯ menu (MobileBar).
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
