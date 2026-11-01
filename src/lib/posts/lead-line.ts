@@ -22,7 +22,7 @@ export interface LeadLineInput {
 export const SHOW_WORD: Partial<Record<EventType, string>> = {
   music: 'Live music',
   comedy: 'Comedy',
-  theater: 'Theatre',
+  theater: 'Theater',
   sports: 'Sports',
   family: 'Family',
 }

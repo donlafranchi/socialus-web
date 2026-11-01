@@ -94,7 +94,7 @@ describe('#1127 — the lead line reads true for every kind', () => {
   it('a venue show leads with what kind of show it is and the venue as its where', () => {
     expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'music', venue: 'The Old Ironsides' }, where: '1901 10th St' }, NOW)).toBe('Live music · Sat 8pm · The Old Ironsides')
     expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'comedy', venue: 'Punch Line' } }, NOW)).toBe('Comedy · Sat 8pm · Punch Line')
-    expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'theater', venue: 'B Street' } }, NOW)).toBe('Theatre · Sat 8pm · B Street')
+    expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'theater', venue: 'B Street' } }, NOW)).toBe('Theater · Sat 8pm · B Street')
     expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'other', venue: 'Golden 1 Center' } }, NOW)).toBe('Event · Sat 8pm · Golden 1 Center')
   })
 })
