@@ -999,12 +999,12 @@ describe('plan #230 — the composer: kind, headline, details', () => {
   afterEach(() => vi.useRealTimers())
   const kindRadio = (name: string) => screen.getByRole('radio', { name })
 
-  it('offers the seven kinds first, News picked to start', () => {
+  it('offers the seven kinds first, Update picked to start', () => {
     renderPosts()
     const group = screen.getByRole('radiogroup', { name: 'What is it?' })
     expect(group).toBeInTheDocument()
-    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Proposal', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
-    expect(kindRadio('News')).toBeChecked()
+    for (const k of ['Event', 'Offer', 'Limited', 'Reminder', 'Update', 'Proposal', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
+    expect(kindRadio('Update')).toBeChecked()
     // The kind comes before the headline, which comes before the details.
     const order = [group, screen.getByTestId('page-post-headline'), screen.getByTestId('page-post-body')]
     for (let i = 1; i < order.length; i++) expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -1051,7 +1051,7 @@ describe('plan #230 — the composer: kind, headline, details', () => {
   it('a sale asks for the day it ends, at most 30 days out, and sends it as its end', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
     renderPosts()
-    fireEvent.click(kindRadio('Sale'))
+    fireEvent.click(kindRadio('Offer'))
     const through = screen.getByTestId('announce-sale-through')
     expect(through).toHaveAttribute('max', '2026-11-11')
     expect(screen.queryByTestId('announce-time')).toBeNull()
@@ -1127,10 +1127,10 @@ describe('#1127 — a sample post on its Page says Sample once in the lead line;
     body: "Sample · This week only at Corner Bakery: 15% off.\n\nThis is a sample post showing what Corner Bakery's Page could look like. It is not a real offer.",
   }
 
-  it('leads "Sample sale", with no watermark, no extra Sample label and no extra note', () => {
+  it('leads "Sample offer", with no watermark, no extra Sample label and no extra note', () => {
     renderPosts({ posts: [sample] as never, canPost: false, pageName: 'Corner Bakery' })
     const card = screen.getByTestId('page-post')
-    expect(within(card).getByTestId('page-post-lead').textContent).toMatch(/^Sample sale · /)
+    expect(within(card).getByTestId('page-post-lead').textContent).toMatch(/^Sample offer · /)
     expect(within(card).queryByTestId('sample-watermark')).toBeNull()
     expect(within(card).queryByTestId('sample-label')).toBeNull()
     expect(within(card).queryByTestId('sample-note')).toBeNull()

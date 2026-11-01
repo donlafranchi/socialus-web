@@ -61,7 +61,7 @@ describe('the Page’s post card', () => {
   // #1127 (plan #230): Sample once, in the lead line; no label, no watermark. The disclaimer is the body's own.
   it('a sample says Sample in its lead line, with no label and no watermark', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, sampleKind: 'deal' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)
-    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Sample sale\b/)
+    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Sample offer\b/)
     expect(screen.queryByTestId('sample-label')).not.toBeInTheDocument()
     expect(screen.queryByTestId('sample-watermark')).not.toBeInTheDocument()
   })

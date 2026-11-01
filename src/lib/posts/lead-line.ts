@@ -91,7 +91,7 @@ function posted(p: LeadLineInput, now: Date, tz: string): string | null {
   return at ? dayLabel(at, now, tz) : null
 }
 
-/** "Event · Sat 5–8pm · Midtown". The card sets it in small caps; samples read "Sample sale · …". */
+/** "Event · Sat 5–8pm · Midtown". The card sets it in small caps; samples read "Sample offer · …". */
 export function leadLine(p: LeadLineInput, now: Date = new Date(), tz: string = METRO_TIME_ZONE): string {
   const { head, where } = leadLineParts(p, now, tz)
   return where ? `${head} · ${where}` : head

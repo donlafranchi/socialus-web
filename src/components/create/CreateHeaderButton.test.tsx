@@ -38,10 +38,10 @@ describe('CreateHeaderButton (#1094, #1141)', () => {
     render(<CreateHeaderButton />)
     openSheet()
     const dialog = screen.getByRole('dialog', { name: 'Create' })
-    for (const n of ['Event', 'Sale', 'News', 'Propose something', 'Hiring', 'Page']) expect(within(dialog).getByText(n)).toBeInTheDocument()
+    for (const n of ['Event', 'Offer', 'Update', 'Propose something', 'Hiring', 'Page']) expect(within(dialog).getByText(n)).toBeInTheDocument()
   })
 
-  it('with no Page yet, News leads to creating one first and says why', async () => {
+  it('with no Page yet, Update leads to creating one first and says why', async () => {
     auth.user = { id: 'm1', email: 'a@b.c' }
     own.mockResolvedValue([])
     render(<CreateHeaderButton />)
@@ -50,7 +50,7 @@ describe('CreateHeaderButton (#1094, #1141)', () => {
     expect(screen.getByTestId('create-news')).toHaveAttribute('href', '/create')
   })
 
-  it('with one Page, News opens its composer and a draft is not offered', async () => {
+  it('with one Page, Update opens its composer and a draft is not offered', async () => {
     auth.user = { id: 'm1', email: 'a@b.c' }
     own.mockResolvedValue([page('Sac', '/g/abc'), page('Draft', '/g/zzz', 'draft')])
     render(<CreateHeaderButton />)
