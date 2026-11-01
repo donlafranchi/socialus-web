@@ -27,7 +27,13 @@ let SEEDED: SeededF037Fixture;
 // plan #230 — on a phone the Page's info (the claim card with it) is behind About.
 const openAbout = async (page: Page) => {
   const about = page.getByTestId("page-about-open");
-  if (await about.isVisible()) await about.click();
+  await expect(page.getByTestId("shop-name")).toBeVisible();
+  if (!(await about.isVisible())) return;
+  // A tap before hydration does nothing; tap until the sheet is open.
+  await expect(async () => {
+    await about.click();
+    await expect(page.getByRole("dialog", { name: /^About / })).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
 };
 const settled = (page: Page) => expect(page.getByTestId("claim-widget")).toHaveAttribute("aria-busy", "false", { timeout: 20_000 });
 
