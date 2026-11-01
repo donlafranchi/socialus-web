@@ -136,3 +136,64 @@ describe('the post card: what it is, first', () => {
     expect(splitPost(null)).toEqual({ title: '', rest: '' })
   })
 })
+
+describe('#1127 — the post card reads cleanly at a phone’s width and in a desktop grid tile', () => {
+  const NOW = new Date('2026-10-22T17:00:00Z') // Thu
+
+  it('keeps the lead line to one line: a long where is the part cut short first', () => {
+    render(<BrowseResultCard result={post({ postKind: 'sale', sampleKind: 'deal', headline: 'Two for one', endsAt: '2026-10-25T23:00:00Z', locationLabel: 'East Sacramento near the river' })} now={NOW} />)
+    const lead = screen.getByTestId('browse-post-lead')
+    expect(lead.className).not.toMatch(/line-clamp-2/)
+    expect(lead.className).toMatch(/whitespace-nowrap/)
+    expect(lead.className).toMatch(/\bh-4\b/)
+    expect(lead.className).toMatch(/overflow-hidden/)
+    expect(within(lead).getByTestId('browse-post-lead-head')).toHaveTextContent(/^Sample sale · Through Sun$/)
+    const where = within(lead).getByTestId('browse-post-lead-where')
+    expect(where).toHaveTextContent(/^· East Sacramento near the river$/)
+    expect(where.className).toMatch(/truncate/)
+    expect(within(lead).getByTestId('browse-post-lead-head').className).toMatch(/shrink-0/)
+    expect(where.className).toMatch(/basis-18/)
+  })
+
+  it('stacks the photo above the words in a narrow grid tile, and sits it beside them in a wide one', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const body = screen.getByTestId('browse-post-body')
+    expect(screen.getByTestId('tile-card').className).toMatch(/@container/)
+    expect(body.className).toMatch(/flex-col-reverse/)
+    expect(body.className).toMatch(/@\[18rem\]:flex-row/)
+    const img = screen.getByTestId('tile-image')
+    expect(img.className).toMatch(/aspect-\[2\/1\]/)
+    expect(img.className).toMatch(/@\[18rem\]:size-20/)
+  })
+
+  it('switches below a phone’s Happening shelf card (304px) and above a desktop grid tile (~236px)', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const rem = Number(/@\[(\d+(?:\.\d+)?)rem\]:flex-row/.exec(screen.getByTestId('browse-post-body').className)![1])
+    expect(rem * 16).toBeGreaterThan(236)
+    expect(rem * 16).toBeLessThanOrEqual(304)
+  })
+
+  it('puts Share in the card’s bottom corner, beside the Page name, not on a row of its own', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const share = screen.getByTestId('browse-post-share').parentElement!
+    expect(share.className).toMatch(/absolute/)
+    expect(share.className).toMatch(/bottom-/)
+    expect(share.className).not.toMatch(/-mt-/)
+    // The Page name's row leaves room for the 44px button (padding 12 + 40 ≥ 6 + 44).
+    expect(screen.getByTestId('tile-kind-row').className).toMatch(/\bpr-10\b/)
+    // Beside the photo in a wide card, never on top of it.
+    expect(share.className).toMatch(/@\[18rem\]:right-25/)
+    expect(screen.getByTestId('tile-card').className).toMatch(/relative/)
+  })
+
+  it('a venue show says what kind of show and where, and its headline is the act', () => {
+    render(
+      <BrowseResultCard
+        result={post({ name: 'The Old Ironsides', postKind: 'event', headline: null, tags: ['Live music'], startsAt: '2026-10-25T04:00:00Z', locationLabel: '1901 10th St', body: "Emo Night with DJ Somebody at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test" })}
+        now={NOW}
+      />,
+    )
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Live music · Sat 9pm · The Old Ironsides$/)
+    expect(screen.getByTestId('tile-title')).toHaveTextContent(/^Emo Night with DJ Somebody$/)
+  })
+})

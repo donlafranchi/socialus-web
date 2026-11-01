@@ -26,7 +26,7 @@ import { QuickLinks } from '@/components/cards/QuickLinks'
 import { TypeMark, SampleLabel, SampleWatermark } from '@/components/cards/CardMarks'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen } from '@/lib/metro/metro-time'
-import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
+import { cardHeadline, leadLineParts, venueShow } from '@/lib/posts/lead-line'
 import { postKindOf } from '@/lib/browse/filters'
 import { cardImageAlt } from '@/lib/calendar/ics'
 import { browseCardLocation } from '@/lib/browse/card'
@@ -71,7 +71,7 @@ function Shell({ result, as, prefetch, kind, imageUrl, children, after }: CardPr
       interactive={Boolean(result.href)}
       data-testid="tile-card"
       data-card={kind}
-      className={`group/tile flex flex-col${watermark ? ' relative overflow-hidden' : ''}`}
+      className={`group/tile flex flex-col${watermark ? ' relative overflow-hidden' : kind === 'post' ? ' @container relative' : ''}`}
     >
       {result.href ? (
         // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
@@ -149,7 +149,7 @@ export function splitPost(body: string | null): { title: string; rest: string } 
 function PostCard(props: CardProps) {
   const { result, now } = props
   const headline = cardHeadline({ headline: result.headline, body: result.body, pageName: result.name })
-  const lead = leadLine(
+  const lead = leadLineParts(
     {
       kind: postKindOf(result) ?? 'news',
       startsAt: result.startsAt,
@@ -157,6 +157,7 @@ function PostCard(props: CardProps) {
       postedAt: result.postedAt,
       where: result.locationLabel,
       sample: Boolean(result.sampleKind),
+      show: venueShow({ body: result.body, tags: result.tags }),
     },
     now,
   )
@@ -178,20 +179,26 @@ function PostCard(props: CardProps) {
       {...props}
       kind="post"
       imageUrl={photo}
-      // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card.
-      after={result.href ? <div className="-mt-5 flex justify-end px-1"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+      // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
+      // bottom corner, level with the Page's name, rather than on a row of its own.
+      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[18rem]:right-25"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
     >
-      <div className="flex gap-3 p-3">
+      {/* #1127 — a wide card (a phone's full width) sets the small photo beside the words; a narrow grid tile (desktop)
+          sets it above them as a short strip, so the words keep the tile's whole width. */}
+      <div data-testid="browse-post-body" className="flex flex-col-reverse gap-2.5 p-3 @[18rem]:flex-row @[18rem]:gap-3">
         <div data-testid="tile-text" className="min-w-0 flex-1">
-          <p data-testid="browse-post-lead" className={`${SMALL_CAPS} line-clamp-2 font-bold text-[var(--color-fg)]`}>
-            {lead}
+          {/* #1127 — one line. A long where is cut short; with too little room for it (under 4.5rem, basis-18) it wraps onto a
+              second line the fixed height hides, so a lead never ends in a bare "· …". */}
+          <p data-testid="browse-post-lead" className={`${SMALL_CAPS} flex h-4 min-w-0 flex-wrap overflow-hidden whitespace-nowrap font-bold leading-4 text-[var(--color-fg)]`}>
+            <span data-testid="browse-post-lead-head" className="max-w-full shrink-0 truncate">{lead.head}</span>
+            {lead.where && <span data-testid="browse-post-lead-where" className="min-w-0 grow basis-18 truncate">&nbsp;· {lead.where}</span>}
           </p>
           {headline && (
             <p data-testid="tile-title" className="mt-1 line-clamp-1 text-body font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
               {headline}
             </p>
           )}
-          <p data-testid="tile-kind-row" className="mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]">
+          <p data-testid="tile-kind-row" className={`mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]${result.href ? ' pr-10' : ''}`}>
             <span aria-hidden className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-micro font-semibold text-[var(--color-fg)]">
               {avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -203,7 +210,7 @@ function PostCard(props: CardProps) {
             <span data-testid="post-page-name" className="line-clamp-1 font-medium text-[var(--color-fg)]">{result.name}</span>
           </p>
         </div>
-        <div data-testid="tile-image" className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
+        <div data-testid="tile-image" className="flex aspect-[2/1] w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)] @[18rem]:aspect-square @[18rem]:size-20">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={sizedMediaUrl(photo, 320)} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />

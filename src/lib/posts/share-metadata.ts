@@ -10,7 +10,7 @@ import { shareMetadata } from '@/lib/groups/share-metadata'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { canonicalPagePath } from '@/lib/groups/page-handle'
 import { WITHHELD_DETAILS } from '@/components/browse/withheld-copy'
-import { cardHeadline, leadLine } from './lead-line'
+import { cardHeadline, leadLine, venueShow } from './lead-line'
 import { postPath } from './post-path'
 import type { PostKind } from './kinds'
 
@@ -40,6 +40,8 @@ export interface PostForShare {
   photoUrl?: string | null
   hiddenAt?: string | null
   sampleKind?: string | null
+  /** The post's own tags, when read: they tell a venue show's kind (#1127). */
+  tags?: string[]
 }
 
 export const withheldPostTitle = (pageName: string) => `A post from ${pageName}`
@@ -48,7 +50,7 @@ export const sharedPostTitle = (post: PostForShare, pageName: string) =>
   post.body != null ? cardHeadline({ headline: post.headline, body: post.body, pageName }) : post.headline?.trim() || withheldPostTitle(pageName)
 
 export const sharedPostLeadLine = (post: PostForShare, now = new Date()) =>
-  leadLine({ kind: post.kind ?? 'news', startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel, sample: Boolean(post.sampleKind) }, now)
+  leadLine({ kind: post.kind ?? 'news', startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel, sample: Boolean(post.sampleKind), show: venueShow({ body: post.body, tags: post.tags ?? [] }) }, now)
 
 export function postShareMetadata({
   page,

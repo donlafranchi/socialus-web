@@ -35,7 +35,6 @@ import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { useAnnouncementAnchor } from './use-announcement-anchor'
 import { SharePageButton } from './SharePageButton'
-import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
 import { METRO_TIME_ZONE, formatMetroDateTime, formatPostedDate, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
 import { firstOccurrenceDate } from '@/lib/posts/series'
@@ -53,8 +52,8 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { PostKindPicker } from './PostKindPicker'
-import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, isPostKind, needsDate, type PostKind } from '@/lib/posts/kinds'
-import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
+import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, SAMPLE_POST_KIND, isPostKind, needsDate, type PostKind } from '@/lib/posts/kinds'
+import { cardHeadline, leadLine, venueShow, SAMPLE_PREFIX } from '@/lib/posts/lead-line'
 import { postPath } from '@/lib/posts/post-path'
 import { pageTimeline } from '@/lib/posts/timeline'
 import { Sheet } from '@/components/ui/Sheet'
@@ -72,6 +71,10 @@ import type { WonderView } from '@/lib/wonders/wonder-view'
 import { WONDER_OPTIONS_MAX, WONDER_OPTION_MAX } from '@/lib/wonders/roles'
 
 const BODY_LIMIT = 5000
+
+/** The lead line's kind: the post's own, else (a sample read without one) its sample kind's, so a sample always says Sample. */
+const leadKind = (post: Pick<PagePost, 'kind' | 'sampleKind'>): PostKind | undefined =>
+  post.kind ?? (post.sampleKind ? SAMPLE_POST_KIND[post.sampleKind] : undefined)
 const TRY_AGAIN = "That didn't go through. Mind trying again?"
 /** F072 § Not this rules out all-day announcements, so a date with no time has
  *  nothing to become. Said as a sentence rather than refused silently. */
@@ -606,9 +609,8 @@ export function PagePosts({
               data-testid="page-post"
               // #796 — the tapped post is scrolled into view; no ring (it was clipped to two sides in the strip).
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${post.sampleKind ? ' relative overflow-hidden' : ''}`}
+              className="card border border-[var(--color-border)] p-3 scroll-mt-24"
             >
-              {post.sampleKind && editingId !== post.id ? <SampleWatermark /> : null}
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   {post.kind !== 'wonder' && <PostKindPicker value={editKind} onChange={chooseEditKind} idPrefix={`page-post-edit-${post.id}`} kinds={EDIT_KINDS} />}
@@ -706,16 +708,11 @@ export function PagePosts({
                       <HiddenPhotoNotice which="post" />
                     </div>
                   )}
-                  {post.sampleKind ? (
-                    <p className="mb-1 flex items-center gap-1.5">
-                      <TypeMark type="post" />
-                      <SampleLabel />
-                    </p>
-                  ) : null}
-                  {/* plan #230 — what it is first: the lead line from its fields, then its one line. */}
-                  {post.kind && (
+                  {/* plan #230 — what it is first: the lead line from its fields, then its one line. #1127: a sample says
+                      Sample once, here; no watermark or extra label, and its body keeps the disclaimer. */}
+                  {leadKind(post) && (
                     <p data-testid="page-post-lead" className="text-micro font-bold uppercase tracking-wider text-[var(--color-fg)]">
-                      {leadLine({ kind: post.kind, startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel })}
+                      {leadLine({ kind: leadKind(post)!, startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel, sample: Boolean(post.sampleKind), show: venueShow({ body: post.body, tags: post.tags ?? [] }) })}
                     </p>
                   )}
                   {post.headline && (
@@ -723,8 +720,7 @@ export function PagePosts({
                       {post.headline}
                     </p>
                   )}
-                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${post.kind || post.headline ? ' mt-1' : ''}`}>{post.body}</p>
-                  {post.sampleKind ? <SampleNote /> : null}
+                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${leadKind(post) || post.headline ? ' mt-1' : ''}`}>{post.sampleKind && leadKind(post) ? post.body.replace(SAMPLE_PREFIX, '') : post.body}</p>
                   {post.wonder && wonders && (
                     <WonderPanel
                       postId={post.id}

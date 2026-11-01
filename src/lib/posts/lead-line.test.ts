@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { leadLine, cardHeadline } from './lead-line'
+import { leadLine, leadLineParts, cardHeadline, venueShow } from './lead-line'
+import { CALENDAR_LINE } from '@/lib/unclaimed/event-type'
+import { showBody } from '@/lib/unclaimed/venue-events'
 
 // Thu 2026-10-29 10:00 in Sacramento.
 const NOW = new Date('2026-10-29T17:00:00Z')
@@ -76,5 +78,46 @@ describe('plan #230 — the card headline is one line, never the Page name', () 
 
   it('is empty for an empty post', () => {
     expect(cardHeadline({ headline: null, body: null, pageName: 'P' })).toBe('')
+  })
+})
+
+describe('#1127 — the lead line reads true for every kind', () => {
+  it('a limited post with a start leads with that start, never the old day it was posted', () => {
+    expect(leadLine({ kind: 'limited', startsAt: '2026-10-31T16:00:00Z', endsAt: '2026-10-31T20:00:00Z', postedAt: '2026-10-09T17:00:00Z', sample: true }, NOW)).toBe('Sample limited · Sat 9am')
+  })
+
+  it('splits into what and when (kept whole) and the where (the part a narrow card cuts)', () => {
+    expect(leadLineParts({ kind: 'event', startsAt: SAT_5PM_PT, endsAt: SAT_8PM_PT, where: ' Midtown ' }, NOW)).toEqual({ head: 'Event · Sat 5–8pm', where: 'Midtown' })
+    expect(leadLineParts({ kind: 'news' }, NOW)).toEqual({ head: 'News', where: null })
+  })
+
+  it('a venue show leads with what kind of show it is and the venue as its where', () => {
+    expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'music', venue: 'The Old Ironsides' }, where: '1901 10th St' }, NOW)).toBe('Live music · Sat 8pm · The Old Ironsides')
+    expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'comedy', venue: 'Punch Line' } }, NOW)).toBe('Comedy · Sat 8pm · Punch Line')
+    expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'theater', venue: 'B Street' } }, NOW)).toBe('Theater · Sat 8pm · B Street')
+    expect(leadLine({ kind: 'event', startsAt: SAT_8PM_PT, show: { type: 'other', venue: 'Golden 1 Center' } }, NOW)).toBe('Event · Sat 8pm · Golden 1 Center')
+  })
+})
+
+describe('#1127 — an imported venue show is recognised from its calendar line', () => {
+  const body = (title: string) => `${title} at The Old Ironsides\n\nDoors 8pm · Show 9pm\n\n${CALENDAR_LINE('The Old Ironsides')}https://example.com/cal`
+  it('classifies by the title, then the show’s interests', () => {
+    expect(venueShow({ body: body('Emo Night'), tags: ['Live music'] })).toEqual({ type: 'music', venue: 'The Old Ironsides' })
+    expect(venueShow({ body: body('Stand-up Saturday'), tags: [] })).toEqual({ type: 'comedy', venue: 'The Old Ironsides' })
+    expect(venueShow({ body: body('The Nutcracker'), tags: [] })).toEqual({ type: 'theater', venue: 'The Old Ironsides' })
+  })
+
+  it('reads the body the venue importer actually writes', () => {
+    const real = showBody('Ace of Spades', { title: 'Comedy Night', startsAt: new Date(SAT_8PM_PT) }, 'https://aceofspades.test/cal', 'Unsplash')
+    expect(venueShow({ body: real, tags: [] })).toEqual({ type: 'comedy', venue: 'Ace of Spades' })
+  })
+
+  it('is null for a post a member wrote, and when the body is withheld', () => {
+    expect(venueShow({ body: 'Live music tonight at The Old Ironsides', tags: ['Live music'] })).toBeNull()
+    expect(venueShow({ body: null, tags: [] })).toBeNull()
+  })
+
+  it('the headline drops the venue the card already names', () => {
+    expect(cardHeadline({ headline: null, body: body('Emo Night with DJ Somebody'), pageName: 'The Old Ironsides' })).toBe('Emo Night with DJ Somebody')
   })
 })

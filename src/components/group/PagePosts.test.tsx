@@ -1105,3 +1105,35 @@ describe('Share on a post', () => {
     await waitFor(() => expect(document.getElementById('announcement-p-1')).toHaveAttribute('data-highlighted', 'true'))
   })
 })
+
+describe('#1127 — a sample post on its Page says Sample once in the lead line; the disclaimer stays in the body', () => {
+  const sample = {
+    ...postFixture({ id: 'pp-s', startsAt: '2026-09-05T17:00:00.000Z', endsAt: '2026-09-07T04:00:00.000Z', locationLabel: 'Midtown' }),
+    kind: 'sale' as const,
+    sampleKind: 'deal' as const,
+    headline: '15% off your first order',
+    body: "Sample · This week only at Corner Bakery: 15% off.\n\nThis is a sample post showing what Corner Bakery's Page could look like. It is not a real offer.",
+  }
+
+  it('leads "Sample sale", with no watermark, no extra Sample label and no extra note', () => {
+    renderPosts({ posts: [sample] as never, canPost: false, pageName: 'Corner Bakery' })
+    const card = screen.getByTestId('page-post')
+    expect(within(card).getByTestId('page-post-lead').textContent).toMatch(/^Sample sale · /)
+    expect(within(card).queryByTestId('sample-watermark')).toBeNull()
+    expect(within(card).queryByTestId('sample-label')).toBeNull()
+    expect(within(card).queryByTestId('sample-note')).toBeNull()
+    expect(within(card).getByText(/This is a sample post showing what Corner Bakery's Page could look like/)).toBeInTheDocument()
+    expect(card.textContent!.match(/\bSample\b/g)).toHaveLength(1)
+  })
+
+  it('a venue show on its Page leads with the kind of show and the venue', () => {
+    const show = {
+      ...postFixture({ id: 'pp-v', startsAt: '2026-09-05T04:00:00.000Z', locationLabel: '1901 10th St' }),
+      kind: 'event' as const,
+      tags: ['Live music'],
+      body: "Emo Night at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test",
+    }
+    renderPosts({ posts: [show] as never, canPost: false, pageName: 'The Old Ironsides' })
+    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Live music · .+ · The Old Ironsides$/)
+  })
+})
