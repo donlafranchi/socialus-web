@@ -68,6 +68,7 @@ export function HeaderSearch() {
 
   const close = () => {
     setOpen(false)
+    setAnchor(undefined)
     pill.current?.focus()
   }
   const submit = () => {
@@ -76,6 +77,7 @@ export function HeaderSearch() {
   }
   const handOff = (to: () => void) => {
     setOpen(false)
+    setAnchor(undefined)
     to()
   }
 
