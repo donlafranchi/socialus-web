@@ -20,6 +20,18 @@ describe('the front door', () => {
     for (const a of ctas) expect(a.getAttribute('href')).toBe('/auth/login')
   })
 
+  it('carries Don’s 2026-11-01 copy: Why SocialUs, Third spaces, the launch line, the hobby sentence', () => {
+    render(<HomeLanding />)
+    expect(screen.getByRole('heading', { name: 'Made to work for you. Not the other way around.' })).toBeTruthy()
+    expect(screen.getByText(/rather than keeping you in the app\.$/)).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Somewhere to go. People to see.' })).toBeTruthy()
+    expect(screen.getByText('There used to be a place beyond home and work where people knew your name. For a lot of us, it went missing.')).toBeTruthy()
+    expect(screen.getByText('SocialUs helps people find their way back. The rest happens in person.')).toBeTruthy()
+    expect(screen.getByText('We’re launching first in Sacramento.')).toBeTruthy()
+    expect(screen.getByText(/something you care about: a hobby, a shared ambition/)).toBeTruthy()
+    expect(screen.queryByText(/keep scrolling/)).toBeNull()
+  })
+
   it('carries every section heading', () => {
     render(<HomeLanding />)
     for (const t of [...HOME.can.map((c) => c.title), HOME.why.title, HOME.thirdSpaces.title, HOME.launch.title])
