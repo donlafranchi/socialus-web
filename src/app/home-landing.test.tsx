@@ -49,10 +49,10 @@ describe('the front door', () => {
     expect([...join.querySelectorAll('a')].map((a) => a.textContent)).toEqual(['Join SocialUs'])
   })
 
-  it('both illustrations say what they show, and the page says locals, never neighbours', () => {
+  it('all three illustrations say what they show, and the page says locals, never neighbours', () => {
     const { container } = render(<HomeLanding />)
     const imgs = [...container.querySelectorAll('img')]
-    expect(imgs.length).toBe(2)
+    expect(imgs.length).toBe(3)
     for (const img of imgs) expect(img.getAttribute('alt')!.length).toBeGreaterThan(20)
     expect((container.textContent + imgs.map((i) => i.alt).join(' ')).toLowerCase()).not.toMatch(/neighbo/)
   })

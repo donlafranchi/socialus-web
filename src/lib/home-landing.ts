@@ -14,7 +14,7 @@ const T = HOME_TODO
 // TODO(Don): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
 export const CONSENT_LINE: string | null = null
 
-// Don's illustration (2026-10-31): the whole square in the hero, its café corner beside Third spaces.
+// Don's illustrations (2026-10-31): the town square in the hero, the main street under the three blocks, a park beside Third spaces.
 export const ART = {
   hero: {
     srcSet: '/home/square-768.webp 768w, /home/square-1200.webp 1200w, /home/square-1536.webp 1536w',
@@ -24,11 +24,18 @@ export const ART = {
     alt: 'Illustration of a sunny town square: people talk on a bench around an olive tree, shop at a market stall, sit outside a café and walk a dog.',
   },
   thirdSpaces: {
-    srcSet: '/home/cafe-600.webp 600w, /home/cafe-1080.webp 1080w',
-    src: '/home/cafe-1080.webp',
-    width: 1080,
-    height: 810,
-    alt: 'Illustration of people at café tables and a market stall, stopping to talk.',
+    srcSet: '/home/park-768.webp 768w, /home/park-1200.webp 1200w',
+    src: '/home/park-1200.webp',
+    width: 1536,
+    height: 1024,
+    alt: 'Illustration of friends sharing coffee at a picnic table in a park, with a community garden, string lights, bikes and a dog nearby.',
+  },
+  localBusinesses: {
+    srcSet: '/home/street-768.webp 768w, /home/street-1200.webp 1200w, /home/street-1536.webp 1536w',
+    src: '/home/street-1200.webp',
+    width: 1536,
+    height: 1024,
+    alt: 'Illustration of a street of local shops, a bakery, a bookshop and a workshop, with their owners chatting at the doors.',
   },
 }
 
