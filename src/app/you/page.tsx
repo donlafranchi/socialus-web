@@ -116,13 +116,6 @@ export default async function YouPage() {
             wrap
             action={<Link href="/report?from=%2Fyou" className={LINK}>Report a problem with the app</Link>}
           />
-          <Row
-            label="Rules"
-            value="What every Page agrees to"
-            testId="settings-rules"
-            wrap
-            action={<Link href="/rules" className={LINK}>Read</Link>}
-          />
         </ul>
         <div className="mt-4">
           <SignOutButton />
