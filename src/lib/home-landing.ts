@@ -1,4 +1,4 @@
-// The signed-out home at `/`. The copywriter's final copy (2026-10-31), word for word;
+// The signed-out home at `/`. The copywriter's final copy (2026-10-31), with Don's 2026-11-01 changes, word for word;
 // layout and look follow Don's concept of the same day.
 // `TODO(Don)` marks something still pending; nothing else here changes without him.
 
@@ -56,7 +56,7 @@ export const HOME = {
       'SocialUs was designed to get people together in real life. Find groups and events, support locally owned businesses, and organize with people who want to make things happen.',
       'Meet people who share your interests. Get a group going. Do something together.',
     ],
-    launch: `Launching first in ${T.launchMarket}.`,
+    launch: `We’re launching first in ${T.launchMarket}.`,
     secondary: 'See what you can do',
   },
   can: [
@@ -68,7 +68,7 @@ export const HOME = {
     {
       id: 'get-people-together',
       title: 'Get people together.',
-      body: 'Start a group or organize an event around something you care about. A hobby, a shared ambition, a project you want to get off the ground. Find others who want to be part of it.',
+      body: 'Start a group or organize an event around something you care about: a hobby, a shared ambition, a project you want to get off the ground. Find others who want to be part of it.',
     },
     {
       id: 'local-businesses',
@@ -77,18 +77,17 @@ export const HOME = {
     },
   ],
   why: {
-    title: 'We don’t need another reason to keep scrolling.',
+    title: 'Made to work for you. Not the other way around.',
     body: [
-      'We need ways to get out of the house, get to know each other, and do things together.',
-      'That’s what SocialUs is for. The platform should work for you, not make you work for its algorithm. Finding a group, making a plan, meeting someone face to face: that’s the point.',
+      'We built SocialUs to help people find each other and get together in real life. Finding a group, making a plan and meeting face to face are the point, rather than keeping you in the app.',
       'We want decent people to find each other and work together on a better future. That can start with something as simple as meeting up.',
     ],
   },
   thirdSpaces: {
     title: 'Somewhere to go. People to see.',
     body: [
-      'The cafe where you meet every week. A group that gets together at the park. A local spot where people start to know your name.',
-      'We want to help bring back third spaces: places beyond home and work where people spend time together. SocialUs helps people find each other and organize. The goal is to give those connections somewhere to grow in real life. Familiar places. People you get to know over time.',
+      'There used to be a place beyond home and work where people knew your name. For a lot of us, it went missing.',
+      'SocialUs helps people find their way back. The rest happens in person.',
     ],
   },
   launch: {
