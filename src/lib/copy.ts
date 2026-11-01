@@ -93,8 +93,17 @@ export const COPY = {
   unclaimedFailed: "That didn't go through. Please try again.",
   // F117 — new copy, listed in the PR for review ([public-is-draft]).
   wonderCount: (n: number, of: number) => `${n.toLocaleString('en-US')} of ${of.toLocaleString('en-US')} in`,
+  wonderCountNoGoal: (n: number) => `${n.toLocaleString('en-US')} in`,
   wonderBarLabel: 'People in so far',
   wonderReached: 'Goal reached. Still counting.',
+  // #1127 — who is in, by name, under the bar. Draft copy ([public-is-draft]).
+  wonderInNames: (names: string[], total: number) => {
+    const shown = names.slice(0, 3)
+    const more = Math.max(0, total - shown.length)
+    const people = more > 0 ? [...shown, `${more.toLocaleString('en-US')} more`] : shown
+    const list = people.length > 1 ? `${people.slice(0, -1).join(', ')} and ${people[people.length - 1]}` : (people[0] ?? '')
+    return `${list} ${people.length === 1 && more === 0 ? 'is' : 'are'} in`
+  },
   wonderImIn: "I'm in",
   wonderPickSize: 'Pick your size',
   wonderJoinSave: 'Count me in',
@@ -128,11 +137,10 @@ export const COPY = {
   wonderOffers: 'Offers to help',
   wonderAccept: 'Accept',
   wonderDecline: 'Decline',
-  wonderToggle: "Make it a Wonder: ask who's in",
-  wonderThreshold: 'How many people would make it happen?',
+  wonderThreshold: 'How many people would make it happen? (optional)',
   wonderOptionsLabel: 'Sizes or options (optional, commas between)',
   wonderOptionsPlaceholder: 'S, M, L',
   wonderComposerNote: "People can say they're in, pick a size, and offer to help. No money changes hands.",
-  wonderThresholdInvalid: 'Enter a whole number, 1 or more.',
-  wonderPost: 'Post Wonder',
+  wonderThresholdInvalid: 'Enter a whole number, 1 or more, or leave it blank.',
+  wonderPost: 'Propose it',
 } as const

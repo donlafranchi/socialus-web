@@ -53,4 +53,10 @@ describe('F082 — publishDraftAction', () => {
     await expect(publishDraftAction('g-1', 3)).rejects.toThrow('REDIRECT /g/x7k2m9')
     expect(groupActivate).toHaveBeenCalledWith(expect.anything(), { groupId: 'g-1', rulesVersion: 3 })
   })
+
+  // #1139 — a published Page lands on its readable address, the one it will be shared by.
+  it('lands on the published Page at its readable address', async () => {
+    single.mockResolvedValueOnce({ data: { slug: 'x', public_id: 'x7k2m9', place_url_slug: 'sacramento-ca', page_url_slug: 'kite-club' } })
+    await expect(publishDraftAction('g-1', 3)).rejects.toThrow('REDIRECT /sacramento-ca/kite-club')
+  })
 })

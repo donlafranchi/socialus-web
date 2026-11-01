@@ -5,6 +5,7 @@ import { needsPhoneVerification } from '@/lib/auth/phone'
 import { NAMED_COOKIE, NAMED_COOKIE_MAX_AGE, needsLegalNameCheck } from '@/lib/auth/legal-name'
 import { resolveSeedCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { nextVisitCookie, VISIT_COOKIE, VISIT_COOKIE_MAX_AGE } from '@/lib/browse/visits'
+import { oldAddress, forwardPath, type AddressRow } from '@/lib/addresses/forward'
 
 /** The shapes Supabase uses for "this session cookie is no longer good". */
 function isStaleSession(message: string): boolean {
@@ -84,6 +85,25 @@ export async function proxy(request: NextRequest) {
       // signed out — but it is worth saying, because a failure nothing reports
       // is how a four-month outage happens.
       console.warn('[proxy] getClaims failed unexpectedly:', message)
+    }
+  }
+
+  // #1139 (Don, 2026-11-01) — an old /g/ link forwards, permanently, to the readable address. No row (a draft, a
+  // Page with no address yet) or a failed read: the old route answers, as before. The fragment rides along.
+  const old = request.method === 'GET' || request.method === 'HEAD' ? oldAddress(request.nextUrl.pathname) : null
+  if (old) {
+    try {
+      const { data, error } = await supabase.rpc('page_address', { p_public_id: old.publicId, p_post_id: old.postId })
+      const row = !error && Array.isArray(data) ? (data[0] as AddressRow | undefined) : undefined
+      const path = row ? forwardPath(row, old) : null
+      if (path) {
+        const to = new URL(path + request.nextUrl.search, request.url)
+        const redirect = NextResponse.redirect(to, 301)
+        response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+        return redirect
+      }
+    } catch (err) {
+      console.warn('[proxy] page address lookup failed:', err instanceof Error ? err.message : String(err))
     }
   }
 

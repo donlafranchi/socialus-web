@@ -58,11 +58,12 @@ describe('Explore cards', () => {
 const POST = { id: 'pp-1', body: 'Sample · Deal this week.', createdAt: '2026-10-16T00:00:00Z', updatedAt: '2026-10-16T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }
 
 describe('the Page’s post card', () => {
-  it('a sample shows the label, the watermark and the not-a-real-offer line', () => {
+  // #1127 (plan #230): Sample once, in the lead line; no label, no watermark. The disclaimer is the body's own.
+  it('a sample says Sample in its lead line, with no label and no watermark', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, sampleKind: 'deal' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)
-    expect(screen.getByTestId('sample-label')).toBeInTheDocument()
-    expect(screen.getByTestId('sample-watermark')).toHaveAttribute('aria-hidden', 'true')
-    expect(screen.getByText(/not a real offer/i)).toBeInTheDocument()
+    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Sample sale\b/)
+    expect(screen.queryByTestId('sample-label')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sample-watermark')).not.toBeInTheDocument()
   })
   it('a real post shows none of them', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, body: 'Bread is back.' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)

@@ -18,7 +18,7 @@ import { createClient } from '@/lib/supabase-server'
 import { viewerId } from '@/lib/auth/viewer'
 import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
 import { resolvePageById } from '@/lib/groups/resolve-page-address'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath as addressOf } from '@/lib/groups/page-handle'
 import { EditCards } from '@/components/group/edit/EditCards'
 import { fixedPlacement, resolvePageWhere, whereNow } from '@/lib/groups/page-where'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
@@ -57,7 +57,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   ])
   if (!owns) notFound()
 
-  const pagePath = canonicalPagePath(shop.publicId)
+  const pagePath = addressOf(shop)
   const isDraft = shop.lifecycleState === 'draft'
   const contact = contactRow ?? { phone: null, hours: null }
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a

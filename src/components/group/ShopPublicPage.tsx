@@ -13,6 +13,7 @@ import { OwnerPanel } from './OwnerPanel'
 import { PageEditorProvider } from './edit/PageEditor'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
 import { editPageAction } from '@/app/g/[handle]/edit/actions'
+import { pagePath as addressOf } from '@/lib/groups/page-handle'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagLinks } from '@/components/tags/TagLinks'
 import { PageContactBlock } from './PageContactBlock'
@@ -474,7 +475,7 @@ export function ShopPublicPage({
       {shop.unclaimed && (
         <UnclaimedBox
           groupId={shop.groupId}
-          pagePath={pagePath ?? `/g/${shop.publicId}`}
+          pagePath={pagePath ?? addressOf(shop)}
           hasPhoto={Boolean(photoUrl)}
           loggedIn={loggedIn}
           claim={unclaimedActions?.claim ?? CLAIM_HANDLERS}

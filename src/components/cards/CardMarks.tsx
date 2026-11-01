@@ -49,12 +49,3 @@ export function SampleWatermark() {
     </span>
   )
 }
-
-/** The not-a-real-offer line under a sample post (Don, 2026-10-10: "so nobody shows up for a deal that does not exist"). */
-export function SampleNote() {
-  return (
-    <p data-testid="sample-note" className="text-xs text-[var(--color-fg-muted)]">
-      Sample: not a real offer.
-    </p>
-  )
-}

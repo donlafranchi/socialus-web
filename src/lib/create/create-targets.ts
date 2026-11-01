@@ -1,7 +1,7 @@
 // #1094 — what the ➕ sheet offers, and where each choice goes.
-// Posts, events and wonders are written on a Page, so with no Page the first step is making one.
+// Posts, events and proposals are written on a Page, so with no Page the first step is making one.
 
-import { POST_KINDS, POST_KIND_HINT, POST_KIND_WORD, type PostKind } from '@/lib/posts/kinds'
+import { POST_KINDS, POST_KIND_HINT, POST_KIND_WORD, isPostKind, type PostKind } from '@/lib/posts/kinds'
 
 export type CreateKind = PostKind | 'page'
 export interface CreatePage {
@@ -18,13 +18,21 @@ export interface CreateChoice {
   needsPage: boolean
 }
 
-// "Wonder" keeps its plain name here until the card word ("Count me in") is settled.
-const LABEL: Record<CreateKind, string> = { ...POST_KIND_WORD, wonder: 'Wonder', page: 'Page' }
+// plan #218 (Don, 2026-11-01) — the button for a Proposal reads "Propose something".
+const LABEL: Record<CreateKind, string> = { ...POST_KIND_WORD, wonder: 'Propose something', page: 'Page' }
 const HINT: Record<CreateKind, string> = { ...POST_KIND_HINT, page: 'Start a new Page' }
 const ORDER: CreateKind[] = [...POST_KINDS, 'page']
 
+/** The link names a Proposal by its word, not the internal `wonder`; an old `?compose=wonder` link still opens one. */
+const COMPOSE_PARAM: Partial<Record<PostKind, string>> = { wonder: 'proposal' }
+
+export function kindFromComposeParam(v: string | null): PostKind | null {
+  if (v === 'proposal') return 'wonder'
+  return isPostKind(v) ? v : null
+}
+
 export function composerHref(page: CreatePage, kind: PostKind): string {
-  const q = kind === 'news' ? '' : `?compose=${kind}`
+  const q = kind === 'news' ? '' : `?compose=${COMPOSE_PARAM[kind] ?? kind}`
   return `${page.href}${q}#announce`
 }
 

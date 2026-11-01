@@ -964,7 +964,7 @@ describe('F117 — posting a Wonder', () => {
   it('the composer posts a Wonder with a threshold and the sizes the poster names', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Clothes that fit, bought in bulk at cost.' } })
-    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '500' } })
     fireEvent.change(screen.getByLabelText(COPY.wonderOptionsLabel), { target: { value: 'S, M, L, M' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
@@ -974,11 +974,23 @@ describe('F117 — posting a Wonder', () => {
   it('refuses a threshold that is not a whole number', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'A tool library?' } })
-    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '2.5' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     expect(await screen.findByText(COPY.wonderThresholdInvalid)).toBeInTheDocument()
     expect(onPost).not.toHaveBeenCalled()
+  })
+  // [guards F117.1 partial: the goal number is optional (plan #218, 2026-11-01)]
+  it('posts a Proposal with no goal number', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Dog walking on weekday mornings?' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
+    expect(screen.getByTestId('page-post-send')).toHaveTextContent(COPY.wonderPost)
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    const sent = onPost.mock.calls[0]![0] as { kind: string; wonder: unknown }
+    expect(sent.kind).toBe('wonder')
+    expect(sent.wonder).toEqual({ options: [] })
   })
 })
 
@@ -991,7 +1003,7 @@ describe('plan #230 — the composer: kind, headline, details', () => {
     renderPosts()
     const group = screen.getByRole('radiogroup', { name: 'What is it?' })
     expect(group).toBeInTheDocument()
-    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Count me in', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
+    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Proposal', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
     expect(kindRadio('News')).toBeChecked()
     // The kind comes before the headline, which comes before the details.
     const order = [group, screen.getByTestId('page-post-headline'), screen.getByTestId('page-post-body')]
@@ -1103,5 +1115,37 @@ describe('Share on a post', () => {
     const five = ['p-5', 'p-4', 'p-3', 'p-2', 'p-1'].map((id, i) => postFixture({ id, createdAt: `2026-09-2${5 - i}T12:00:00.000Z` }))
     renderPosts({ canPost: false, posts: five, focusPostId: 'p-1' })
     await waitFor(() => expect(document.getElementById('announcement-p-1')).toHaveAttribute('data-highlighted', 'true'))
+  })
+})
+
+describe('#1127 — a sample post on its Page says Sample once in the lead line; the disclaimer stays in the body', () => {
+  const sample = {
+    ...postFixture({ id: 'pp-s', startsAt: '2026-09-05T17:00:00.000Z', endsAt: '2026-09-07T04:00:00.000Z', locationLabel: 'Midtown' }),
+    kind: 'sale' as const,
+    sampleKind: 'deal' as const,
+    headline: '15% off your first order',
+    body: "Sample · This week only at Corner Bakery: 15% off.\n\nThis is a sample post showing what Corner Bakery's Page could look like. It is not a real offer.",
+  }
+
+  it('leads "Sample sale", with no watermark, no extra Sample label and no extra note', () => {
+    renderPosts({ posts: [sample] as never, canPost: false, pageName: 'Corner Bakery' })
+    const card = screen.getByTestId('page-post')
+    expect(within(card).getByTestId('page-post-lead').textContent).toMatch(/^Sample sale · /)
+    expect(within(card).queryByTestId('sample-watermark')).toBeNull()
+    expect(within(card).queryByTestId('sample-label')).toBeNull()
+    expect(within(card).queryByTestId('sample-note')).toBeNull()
+    expect(within(card).getByText(/This is a sample post showing what Corner Bakery's Page could look like/)).toBeInTheDocument()
+    expect(card.textContent!.match(/\bSample\b/g)).toHaveLength(1)
+  })
+
+  it('a venue show on its Page leads with the kind of show and the venue', () => {
+    const show = {
+      ...postFixture({ id: 'pp-v', startsAt: '2026-09-05T04:00:00.000Z', locationLabel: '1901 10th St' }),
+      kind: 'event' as const,
+      tags: ['Live music'],
+      body: "Emo Night at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test",
+    }
+    renderPosts({ posts: [show] as never, canPost: false, pageName: 'The Old Ironsides' })
+    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Live music · .+ · The Old Ironsides$/)
   })
 })

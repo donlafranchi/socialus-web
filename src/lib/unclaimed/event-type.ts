@@ -1,6 +1,9 @@
 // #1045 — what kind of event an imported show is, from its title (then its venue), so its picture and interest tags fit it.
 export type EventType = 'sports' | 'music' | 'comedy' | 'family' | 'theater' | 'other'
 
+/** #1127 — the line every imported show's body carries (showBody); the card reads it to know a post is a venue show. */
+export const CALENDAR_LINE = (venue: string) => `From ${venue}'s own calendar: `
+
 const SPORTS = /\b(vs\.?|v\.)\s|\b(wwe|ufc|pbr|nba|wnba|mlb|nfl|nhl|mls|basketball|baseball|football|hockey|soccer|rodeo|wrestling|boxing|monster jam|supercross|river cats|republic fc|playoffs?|tournament)\b/i
 const FAMILY = /\b(disney|paw patrol|sesame street|bluey|cocomelon|circus|kids?|children'?s?|family|storytime|puppet)\b/i
 const COMEDY = /\b(comed(y|ian)|stand-?up|improv|roast)\b/i

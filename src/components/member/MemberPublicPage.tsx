@@ -6,6 +6,7 @@
 // unit-testable. The only client island is <FollowMemberButton>. No
 // place-interest surface is rendered anywhere (privacy commitment).
 
+import Link from 'next/link'
 import type { ResolvedMemberPage } from '@/lib/member/resolve-member-page'
 import { kindLabel } from '@/lib/feed/item-url'
 import { FollowMemberButton } from './FollowMemberButton'
@@ -52,9 +53,9 @@ export function MemberPublicPage({ member, loggedIn }: Props) {
 
         <div className="mt-2">
           {member.isSelf ? (
-            <a data-testid="member-edit-profile" href="/you" className="btn-secondary">
+            <Link data-testid="member-edit-profile" href="/you" className="btn-secondary">
               Edit profile
-            </a>
+            </Link>
           ) : (
             <FollowMemberButton
               loggedIn={loggedIn}

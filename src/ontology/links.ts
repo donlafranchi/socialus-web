@@ -267,6 +267,20 @@ export const LINK_TYPES: readonly LinkType[] = [
       'Locations have a null place_path in browse until a backfill gives them one.',
   },
   {
+    name: "a Page's address names its home Place",
+    from: 'Page',
+    to: 'Place',
+    via: { table: 'groups', column: 'place_url_slug' },
+    writtenBy: ['group.activate'],
+    ruled: '2026-11-01',
+    built: true,
+    note:
+      'Its home town, set once when the Page is first published (the groups_url_address trigger, which also covers ' +
+      'the unclaimed loader and anything else that inserts a live Page) and then frozen with the Page slug: a move ' +
+      'across town changes nothing in the URL, and the real address shows on the Page. Chosen from the anchor ' +
+      "Location's city polygon, then its place, then the postal city, then the county; never the founder's home.",
+  },
+  {
     name: 'a Member runs a Page',
     from: 'Member',
     to: 'Page',
@@ -299,7 +313,7 @@ export const LINK_TYPES: readonly LinkType[] = [
       'kind of Page: being a market is having market days, being a vendor is this link (#955, Don: "Go").',
   },
   {
-    name: 'a Member is in on a Wonder',
+    name: 'a Member is in on a Proposal',
     from: 'Member',
     to: 'Announcement',
     via: { table: 'wonder_interest', column: 'member_id' },
@@ -307,12 +321,12 @@ export const LINK_TYPES: readonly LinkType[] = [
     ruled: '2026-10-25',
     built: true,
     note:
-      'F117 option B. A Wonder is a post kind, not a noun of its own: one row per member per Wonder, with the size ' +
+      'F117 option B. A Proposal (schema wonder) is a post kind, not a noun of its own: one row per member per Proposal, with the size ' +
       'they picked. Who is in is the poster\'s to see (names and sizes) and the member\'s own; everyone else gets the ' +
       'count on the post. No money moves.',
   },
   {
-    name: 'a Member offers to help on a Wonder in a role',
+    name: 'a Member offers to help on a Proposal in a role',
     from: 'Member',
     to: 'Announcement',
     via: { table: 'wonder_offers', column: 'member_id' },
@@ -321,8 +335,8 @@ export const LINK_TYPES: readonly LinkType[] = [
     built: true,
     note:
       'F117 option B. One of the eight playbook roles per row; the Page\'s managers accept or decline. An accepted helper ' +
-      'shows with the Wonder by display name and role, never by member id; a pending or declined offer is seen only by ' +
-      'the poster and the offerer. A role here is a relation to one Wonder, never a kind of person.',
+      'shows with the Proposal by display name and role, never by member id; a pending or declined offer is seen only by ' +
+      'the poster and the offerer. A role here is a relation to one Proposal, never a kind of person.',
   },
 ] as const
 
