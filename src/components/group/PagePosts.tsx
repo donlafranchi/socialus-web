@@ -53,7 +53,7 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { PostKindPicker } from './PostKindPicker'
-import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, needsDate, type PostKind } from '@/lib/posts/kinds'
+import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, isPostKind, needsDate, type PostKind } from '@/lib/posts/kinds'
 import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
 import { postPath } from '@/lib/posts/post-path'
 import { Sheet } from '@/components/ui/Sheet'
@@ -323,7 +323,16 @@ export function PagePosts({
   useEffect(() => {
     if (!canPost) return
     const open = () => {
-      if (window.location.hash === `#${ANNOUNCE_ANCHOR}`) requestAnimationFrame(() => setComposing(true))
+      if (window.location.hash !== `#${ANNOUNCE_ANCHOR}`) return
+      // #1094 — the ➕ sheet arrives with the chosen kind already picked.
+      const composeKind = new URLSearchParams(window.location.search).get('compose')
+      requestAnimationFrame(() => {
+        setComposing(true)
+        if (isPostKind(composeKind)) {
+          setWhen((w) => whenForKind('news', composeKind, w, new Date()))
+          setKind(composeKind)
+        }
+      })
     }
     open()
     // A tap on the Announce link while already on the Page changes the fragment with

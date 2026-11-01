@@ -74,7 +74,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   const placement = fixedPlacement(saved, shop.placements[0])
 
   return (
-    <main className="mx-auto w-full max-w-form gutter py-6 pb-nav">
+    <main className="mx-auto w-full max-w-form gutter py-6 pb-dock">
       <EditCards
         title={isDraft && shop.displayName === DRAFT_NAME_PLACEHOLDER ? 'Edit your new Page' : `Edit ${shop.displayName}`}
         isDraft={isDraft}

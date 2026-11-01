@@ -49,7 +49,7 @@ export function ExploreDock({
   return (
     <div
       data-testid="explore-dock"
-      className="fixed bottom-[var(--float-offset)] right-3 z-30 flex items-center rounded-lg bg-[var(--color-charcoal-700)] p-0.5 shadow-overlay md:bottom-[var(--float-offset-top-nav)]"
+      className="fixed bottom-[var(--explore-dock-bottom)] right-[var(--explore-dock-right)] z-30 flex items-center rounded-lg bg-[var(--color-charcoal-700)] p-0.5 shadow-overlay"
     >
       {open && (
         <div className="flex items-center">

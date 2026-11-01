@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import HomeLanding from './page'
 import { HOME, HOME_TODO } from '@/lib/home-landing'
-import { navHidden } from '@/components/BottomNav'
+import { navHidden } from '@/components/shell/nav-hidden'
 
 // page.tsx loads its webfont through next/font/local, which needs a Next build.
 vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <main className="pb-nav">
+    <main className="pb-dock">
       <section className="bg-[var(--color-surface)]">
         <div className="mx-auto w-full max-w-detail gutter py-12 md:py-20">
           <h1 className="text-title-1-lg md:text-display text-[var(--color-fg)]">{LANDING.headline}</h1>

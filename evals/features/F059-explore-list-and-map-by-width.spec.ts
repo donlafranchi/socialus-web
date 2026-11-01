@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test'
 // [guards F059.5 partial: the 1024–1439px owner-panel switch, which nothing opens yet]
 test.describe('F059 — list and map by width', () => {
   // #334 (ruling 2026-10-01): signed out is list only at every width; the Map control opens sign-up.
-  test('under 1024px the dock stays on screen, above the nav, and its Map opens sign-up', async ({ page }) => {
+  test('under 1024px the dock stays on screen, clear of the bottom edge (no tab bar since #1094), and its Map opens sign-up', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/explore')
     const dock = page.getByTestId('explore-dock-toggle')
@@ -16,7 +16,7 @@ test.describe('F059 — list and map by width', () => {
     const box = await dock.boundingBox()
     expect(box).not.toBeNull()
     expect(box!.y).toBeGreaterThan(0)
-    expect(box!.y + box!.height).toBeLessThanOrEqual(844 - 44)
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844 - 16) // --float-offset; the tab bar it once cleared is gone
     await expect(page.getByTestId('card-grid').getByRole('button', { name: /^(map|list)$/i })).toHaveCount(0)
 
     await dock.click()

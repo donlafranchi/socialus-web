@@ -111,12 +111,12 @@ describe('T187 — nothing sits between rows of results', () => {
 })
 
 describe('#328 — under 1024px, one control at the bottom right', () => {
-  it('floats at bottom right, above the nav and the safe area', () => {
+  it('floats at bottom right, beside the ➕, above the safe area', () => {
     renderAt(390)
     const dock = screen.getByTestId('explore-dock')
     expect(dock.className).toMatch(/\bfixed\b/)
     expect(dock.className).toMatch(/\bright-/)
-    expect(dock.className).toContain('var(--float-offset)')
+    expect(dock.className).toContain('var(--explore-dock-bottom)')
     expect(dock.closest('[data-testid="card-grid"]')).toBeNull()
   })
 
