@@ -13,9 +13,13 @@ const replace = vi.fn()
 let search = ''
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
+  usePathname: () => '/explore',
   useSearchParams: () => new URLSearchParams(search),
   unstable_isUnrecognizedActionError: (e: unknown) => e instanceof Error && e.name === 'UnrecognizedActionError',
 }))
+
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
 const browseMapAction = vi.fn()
@@ -84,7 +88,6 @@ beforeEach(() => {
 afterEach(cleanup)
 
 const type = (value: string) => {
-  fireEvent.click(screen.getByRole('button', { name: 'Search' }))
   fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
 }
 
