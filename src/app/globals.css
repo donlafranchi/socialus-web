@@ -171,6 +171,7 @@
   --color-sage: #8a9a86;       /* ink text 4.7:1 */
 
   /* Radius: bigger name = bigger corner. */
+  --radius-xs: 0.25rem;   /* 4  the front door's buttons, cards, art */
   --radius-sm: 0.375rem;  /* 6  badges, date box */
   --radius-md: 0.75rem;   /* 12 buttons, inputs, cards */
   --radius-lg: 1rem;      /* 16 sheets, dialogs, panels, cover */
@@ -188,6 +189,7 @@
   --container-form: 35rem;     /* 560 */
   --container-read: 45rem;     /* 720 */
   --container-detail: 70.5rem; /* 1128 */
+  --container-landing: 75rem;  /* 1200, the front door */
   --container-shell: 105rem;   /* 1680 */
 
   /* Spacing stays Tailwind's 4px base; named heights for chrome. */

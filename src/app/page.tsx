@@ -12,8 +12,8 @@ const sans = Source_Sans_3({ subsets: ['latin'], weight: ['400', '600', '700'], 
 
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
 const SERIF = 'font-serif font-normal tracking-tight'
-const WRAP = 'mx-auto w-full max-w-[75rem] gutter md:px-10'
-const BTN = 'press inline-flex min-h-tap items-center justify-center rounded-[4px] px-6 text-body font-semibold hover:no-underline'
+const WRAP = 'mx-auto w-full max-w-landing gutter md:px-10'
+const BTN = 'press inline-flex min-h-tap items-center justify-center rounded-xs px-6 text-body font-semibold hover:no-underline'
 const PRIMARY = `${BTN} bg-[var(--color-clay)] text-[var(--color-paper)] hover:bg-[var(--color-clay-deep)]`
 const SECONDARY = `${BTN} border border-[var(--color-ink-muted)] text-[var(--color-ink-muted)] hover:bg-white`
 
@@ -51,7 +51,7 @@ export default function HomeLanding() {
             width={ART.hero.width}
             height={ART.hero.height}
             fetchPriority="high"
-            className="h-auto w-full rounded-[4px] md:flex-1"
+            className="h-auto w-full rounded-xs md:flex-1"
           />
           <div className="md:flex-1">
             <h1 className={`${SERIF} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
@@ -83,7 +83,7 @@ export default function HomeLanding() {
             </h2>
             <ul className="grid gap-6 md:grid-cols-3 md:gap-8">
               {HOME.can.map((c) => (
-                <li key={c.id} id={c.id} className="scroll-mt-4 rounded-[4px] border border-[var(--color-rule)] bg-white p-8">
+                <li key={c.id} id={c.id} className="scroll-mt-4 rounded-xs border border-[var(--color-rule)] bg-white p-8">
                   <h3 className={`${SERIF} text-title-1 font-medium text-[var(--color-ink)]`}>{c.title}</h3>
                   <p className="mt-4 text-[var(--color-ink-muted)]">{c.body}</p>
                 </li>
@@ -124,7 +124,7 @@ export default function HomeLanding() {
               width={ART.thirdSpaces.width}
               height={ART.thirdSpaces.height}
               loading="lazy"
-              className="h-auto w-full rounded-[4px] md:flex-1"
+              className="h-auto w-full rounded-xs md:flex-1"
             />
           </div>
         </section>
