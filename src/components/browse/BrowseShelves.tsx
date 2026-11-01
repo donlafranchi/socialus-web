@@ -6,6 +6,7 @@
 import { useCallback, useRef, useSyncExternalStore } from 'react'
 import { BrowseResultCard } from './BrowseResultCard'
 import { ShelfRow, ShelfScreen } from './ShelfRow'
+import { LoggedShelf } from './ShelfLogging'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { ResultGroup } from '@/lib/browse/groups'
 
@@ -52,16 +53,25 @@ export function BrowseShelves({ groups, prefetch = 0 }: { groups: readonly Resul
   const current = groups.find((g) => g.key === open)
   return (
     <>
-      {groups.map((g, n) => (
-        <ShelfRow
-          key={g.key}
-          title={g.label}
-          items={g.results}
-          keyOf={keyOf}
-          renderItem={(r, i) => <BrowseResultCard result={r} as="div" prefetch={n === 0 && i < prefetch ? true : undefined} />}
-          onSeeAll={() => show(g.key)}
-        />
-      ))}
+      {groups.map((g, n) => {
+        const row = (
+          <ShelfRow
+            key={g.key}
+            title={g.label}
+            items={g.results}
+            keyOf={keyOf}
+            renderItem={(r, i) => <BrowseResultCard result={r} as="div" prefetch={n === 0 && i < prefetch ? true : undefined} />}
+            onSeeAll={() => show(g.key)}
+          />
+        )
+        return g.logId ? (
+          <LoggedShelf key={g.key} logId={g.logId}>
+            {row}
+          </LoggedShelf>
+        ) : (
+          row
+        )
+      })}
       {current && <ShelfScreen title={current.label} items={current.results} keyOf={keyOf} renderItem={(r) => <BrowseResultCard result={r} as="div" />} onClose={close} />}
     </>
   )

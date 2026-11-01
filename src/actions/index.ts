@@ -30,6 +30,7 @@ import {
   memberReminderEveryForPage,
 } from './member'
 import { searchDemandLog } from './search'
+import { shelfLog } from './shelf'
 import { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from './wonder'
 import {
   groupCreate,
@@ -118,6 +119,8 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // #909 — search demand: the switch on You, and a settled Explore search counted with no member id.
   'member.search_sharing.set': memberSearchSharingSet as unknown as NamedActionHandler<unknown, unknown>,
   'search.demand_log': searchDemandLog as unknown as NamedActionHandler<unknown, unknown>,
+  // F121 — a shelf's weekly impressions, taps and saves, with no member id.
+  'shelf.log': shelfLog as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
   // F067 — following a Page. Privacy decides follow vs join.
@@ -208,6 +211,7 @@ export {
   memberReminderEveryForPage,
 } from './member'
 export { searchDemandLog } from './search'
+export { shelfLog, SHELF_EVENTS } from './shelf'
 export { townMakerAdd, townCreditSet, DAILY_ADDS, type TownMakerAddResult } from './town'
 export { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide, PICK_A_SIZE } from './wonder'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'

@@ -86,6 +86,7 @@ export function FollowPageButton({
       <button
         type="button"
         data-testid="page-follow"
+        {...(isFollowing ? {} : { 'data-shelf-save': '' })}
         onClick={toggle}
         disabled={busy}
         className={isFollowing ? buttonClass('secondary') : buttonClass('primary')}

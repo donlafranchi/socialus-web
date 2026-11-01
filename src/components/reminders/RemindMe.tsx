@@ -68,6 +68,7 @@ export function RemindMeButton({
         type="button"
         disabled={busy}
         aria-pressed={!!reminderId}
+        {...(reminderId ? {} : { 'data-shelf-save': '' })}
         onClick={() => (reminderId ? remove() : repeats ? setChoosing(true) : set(false))}
         className={CONTROL}
       >

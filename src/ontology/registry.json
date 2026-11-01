@@ -443,6 +443,7 @@
     "report.purge_target",
     "report.reverse",
     "search.demand_log",
+    "shelf.log",
     "tag.review",
     "town.credit_set",
     "town.maker_add",
