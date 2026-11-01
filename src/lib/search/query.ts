@@ -25,6 +25,12 @@ export function searchTsQuery(text: string): string | null {
   return parts.length ? parts.join(' & ') : null
 }
 
+/** F121 — a shelf's words: any one of them matches. Sanitized like the box's words. */
+export function anyWordTsQuery(terms: readonly string[]): string | null {
+  const parts = terms.filter((t) => words(t).length > 0).map(phrase)
+  return parts.length ? parts.join(' | ') : null
+}
+
 /** The words as typed, lowercased: what the typo fallback (pg_trgm) compares against names and tags. */
 export function searchRaw(text: string): string | null {
   const t = words(text).join(' ')

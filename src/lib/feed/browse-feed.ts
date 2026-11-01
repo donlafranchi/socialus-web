@@ -37,7 +37,7 @@
 // (F059 criterion 3). Community response may in principle order it and does
 // not today — no Page or post carries a response count.
 
-import { searchRaw, searchTsQuery } from '@/lib/search/query'
+import { anyWordTsQuery, searchRaw, searchTsQuery } from '@/lib/search/query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 import { canonicalPagePath, pagePath, type PageAddressParts } from '@/lib/groups/page-handle'
@@ -106,6 +106,8 @@ export interface BrowseFeedOpts {
   postKinds?: readonly PostKind[] | null
   /** #916 — the search box's words; searched on the server over every row in scope, widened by synonyms. */
   search?: string | null
+  /** F121 — a shelf's words: any one of them matches. Ignored when `search` is set. */
+  anyOf?: readonly string[] | null
   /** The time lens window. Both ends optional and independent. */
   startsFrom?: string | null
   startsBefore?: string | null
@@ -355,6 +357,11 @@ function searchArgs(text: string | null | undefined) {
   return raw ? { p_search: searchTsQuery(text!), p_search_raw: raw } : {}
 }
 
+function anyOfArgs(terms: readonly string[] | null | undefined) {
+  const q = terms?.length ? anyWordTsQuery(terms) : null
+  return q ? { p_search: q } : {}
+}
+
 export async function getBrowseFeed(
   supabase: RpcClient,
   opts: BrowseFeedOpts,
@@ -375,7 +382,7 @@ export async function getBrowseFeed(
     p_now: opts.now ?? null,
     p_limit: clampLimit(opts.limit),
     ...(opts.postKinds?.length ? { p_post_kinds: [...opts.postKinds] } : {}),
-    ...searchArgs(opts.search),
+    ...(opts.search ? searchArgs(opts.search) : anyOfArgs(opts.anyOf)),
     // A drive minute is a straight-line kilometre, as in browse_nearby.
     ...(opts.reachMinutes ? { p_reach_m: opts.reachMinutes * 1000 } : {}),
   })
