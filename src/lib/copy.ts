@@ -95,6 +95,14 @@ export const COPY = {
   wonderCount: (n: number, of: number) => `${n.toLocaleString('en-US')} of ${of.toLocaleString('en-US')} in`,
   wonderBarLabel: 'People in so far',
   wonderReached: 'Goal reached. Still counting.',
+  // #1127 — who is in, by name, under the bar. Draft copy ([public-is-draft]).
+  wonderInNames: (names: string[], total: number) => {
+    const shown = names.slice(0, 3)
+    const more = Math.max(0, total - shown.length)
+    const people = more > 0 ? [...shown, `${more.toLocaleString('en-US')} more`] : shown
+    const list = people.length > 1 ? `${people.slice(0, -1).join(', ')} and ${people[people.length - 1]}` : (people[0] ?? '')
+    return `${list} ${people.length === 1 && more === 0 ? 'is' : 'are'} in`
+  },
   wonderImIn: "I'm in",
   wonderPickSize: 'Pick your size',
   wonderJoinSave: 'Count me in',
