@@ -1,5 +1,5 @@
-// The signed-out home at `/`. Don's approved Draft 5 (2026-10-26), word for word;
-// source of truth: socialus-plan planning/briefs/landing-copy-draft5-2026-10-26.md.
+// The signed-out home at `/`. The copywriter's final copy (2026-10-31), word for word;
+// layout and look follow Don's concept of the same day.
 // `TODO(Don)` marks something still pending; nothing else here changes without him.
 
 export const HOME_TODO = {
@@ -14,8 +14,23 @@ const T = HOME_TODO
 // TODO(Don): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
 export const CONSENT_LINE: string | null = null
 
-// TODO(Don): final hero art (the "way out" neighbourhood-square illustration) with usage rights; a drawn placeholder stands in.
-export const HERO_ART: { src: string; alt: string } | null = null
+// Don's illustration (2026-10-31): the whole square in the hero, its café corner beside Third spaces.
+export const ART = {
+  hero: {
+    srcSet: '/home/square-768.webp 768w, /home/square-1200.webp 1200w, /home/square-1536.webp 1536w',
+    src: '/home/square-1200.webp',
+    width: 1536,
+    height: 1024,
+    alt: 'Illustration of a sunny town square: people talk on a bench around an olive tree, shop at a market stall, sit outside a café and walk a dog.',
+  },
+  thirdSpaces: {
+    srcSet: '/home/cafe-600.webp 600w, /home/cafe-1080.webp 1080w',
+    src: '/home/cafe-1080.webp',
+    width: 1080,
+    height: 810,
+    alt: 'Illustration of people at café tables and a market stall, stopping to talk.',
+  },
+}
 
 export const HOME = {
   nav: {
