@@ -451,12 +451,10 @@ describe('#300 — the front door, signed out (F093 criterion 8)', () => {
     expect(screen.getByTestId('shop-social-links')).toBeInTheDocument()
   })
 
-  it('centres the column for a visitor; only the owner gets the two-column grid', () => {
-    const { container, unmount } = renderShop({ loggedIn: true })
-    expect(container.querySelector('main')!.className).not.toMatch(/lg:grid/)
-    unmount()
-    const owner = renderShop({ loggedIn: true, viewerOwnsPage: true, pagePath: '/g/x-abc123' })
-    expect(owner.container.querySelector('main')!.className).toMatch(/lg:grid/)
+  // plan #230 — superseded the owner-only grid: every viewer gets the posts with the info beside them.
+  it('gives every viewer the posts with the info beside them from a laptop', () => {
+    const { container } = renderShop({ loggedIn: true })
+    expect(container.querySelector('main [class*="lg:grid"]')).toContainElement(screen.getByTestId('page-about-aside'))
   })
 })
 
@@ -667,10 +665,10 @@ describe('#458 — a header block, then contained sections', () => {
     expect(header).toContainElement(screen.getByRole('button', { name: /follow/i }))
   })
 
-  it('then About, Location, Contact, Tags and Posts, each titled and contained', () => {
+  it('then Posts first, and About, Location, Contact, Tags and Products beside them, each titled and contained', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
     renderShop(full)
-    expect(sections()).toEqual(['about', 'location', 'contact', 'found', 'posts', 'products'])
+    expect(sections()).toEqual(['posts', 'about', 'location', 'contact', 'found', 'products'])
     for (const el of document.querySelectorAll('main section[data-section]')) {
       expect(el.querySelector('h2')).not.toBeNull()
       expect(el.className).toMatch(/\bcard\b/)
@@ -1073,5 +1071,49 @@ describe('F056 criterion 5 — every optional field empty', () => {
       expect(text).not.toMatch(FIELD_NAG)
       cleanup()
     }
+  })
+})
+
+// plan #230 (Don, 10-31) — Facebook's Page: the posts are the body; the business info sits in a
+// right column on a laptop and behind a quiet About on a phone.
+describe('plan #230 — posts are the Page, the info is on the side', () => {
+  const full = {
+    loggedIn: true,
+    pagePath: '/g/7k3x8m',
+    contact: { phone: '+19165550142', hours: null } as never,
+    shop: { ...SHOP, unclaimed: { publicInfoUrl: 'https://bakery.example', photoCredit: null, photoSourceUrl: null } } as ResolvedShop,
+    items: [LOAF],
+    posts: [{ id: 'p1', body: 'Bread', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }],
+  }
+
+  it('the info sits in one side column, the posts do not', () => {
+    renderShop(full)
+    const aside = screen.getByTestId('page-about-aside')
+    for (const id of ['page-section-about', 'page-section-contact', 'unclaimed-box']) expect(aside).toContainElement(screen.getByTestId(id))
+    expect(aside).not.toContainElement(screen.getByTestId('page-posts'))
+    expect(aside.className).toMatch(/\bhidden\b/)
+    expect(aside.className).toMatch(/\blg:flex\b/)
+  })
+
+  it('a phone gets a quiet About in the header that opens the info as a sheet, and closes it', () => {
+    renderShop(full)
+    const open = within(screen.getByTestId('page-header')).getByRole('button', { name: 'About' })
+    expect(open.className).toMatch(/\blg:hidden\b/)
+    fireEvent.click(open)
+    const sheet = screen.getByRole('dialog', { name: 'About Oak Park Sourdough' })
+    expect(sheet).toBe(screen.getByTestId('page-about-aside'))
+    expect(sheet.className).not.toMatch(/(^| )hidden\b/)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.click(open)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('Share sits beside Follow, Facebook-style', () => {
+    renderShop(full)
+    const actions = screen.getByTestId('page-actions')
+    expect(actions).toContainElement(screen.getByTestId('page-share'))
+    expect(actions).toContainElement(screen.getByRole('button', { name: /follow/i }))
   })
 })

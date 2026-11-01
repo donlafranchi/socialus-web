@@ -25,7 +25,7 @@
 // behind one.
 
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
@@ -56,6 +56,7 @@ import { PostKindPicker } from './PostKindPicker'
 import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, isPostKind, needsDate, type PostKind } from '@/lib/posts/kinds'
 import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
 import { postPath } from '@/lib/posts/post-path'
+import { pageTimeline } from '@/lib/posts/timeline'
 import { Sheet } from '@/components/ui/Sheet'
 import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
@@ -71,11 +72,6 @@ import type { WonderView } from '@/lib/wonders/wonder-view'
 import { WONDER_OPTIONS_MAX, WONDER_OPTION_MAX } from '@/lib/wonders/roles'
 
 const BODY_LIMIT = 5000
-const LATEST = 3
-/** #913 — an undated post past its window (the database's post_current_until) sits under Earlier. */
-const isEarlier = (p: PagePost) => !p.startsAt && p.current === false
-const latestIds = (posts: PagePost[]) =>
-  [...posts].filter((p) => !isEarlier(p)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
 const TRY_AGAIN = "That didn't go through. Mind trying again?"
 /** F072 § Not this rules out all-day announcements, so a date with no time has
  *  nothing to become. Said as a sentence rather than refused silently. */
@@ -302,19 +298,29 @@ export function PagePosts({
   // with a compose box where you expected it. Shared with the signed-out list
   // (F093), because an `#announcement-<id>` link has to land the same way on
   // both and two copies of the effect is how they stop doing that.
-  // #462 — newest first; the latest three in a row, the rest a tap away.
-  const newest = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  const sorted = newest.filter((p) => !isEarlier(p))
-  const earlier = newest.filter(isEarlier)
-  const [showAll, setShowAll] = useState(false)
-  // A link to an older post opens the list, so the post it names is there to land on.
+  // plan #230 (Don, 10-31) — a timeline anchored at now: the past a tap away above, coming up below.
+  const { past, latest, upcoming } = pageTimeline(items)
+  const [showEarlier, setShowEarlier] = useState(false)
+  const nowRef = useRef<HTMLDivElement>(null)
+  const nowTop = useRef<number | null>(null)
+  // Opening the past grows the column upward: the now marker stays where it was, and the past is a scroll up.
+  useLayoutEffect(() => {
+    if (nowTop.current === null || !nowRef.current) return
+    window.scrollBy(0, nowRef.current.getBoundingClientRect().top - nowTop.current)
+    nowTop.current = null
+  }, [showEarlier])
+  const toggleEarlier = () => {
+    nowTop.current = nowRef.current?.getBoundingClientRect().top ?? null
+    setShowEarlier(!showEarlier)
+  }
+  // A link to a past post opens Earlier, so the post it names is there to land on.
   useEffect(() => {
     const id = announcementIdFromHash(window.location.hash) ?? focusPostId
-    if (!id || !posts.some((p) => p.id === id) || latestIds(posts).includes(id)) return
-    const frame = requestAnimationFrame(() => setShowAll(true))
+    if (!id || !pageTimeline(posts).past.some((p) => p.id === id)) return
+    const frame = requestAnimationFrame(() => setShowEarlier(true))
     return () => cancelAnimationFrame(frame)
   }, [posts, focusPostId])
-  const highlighted = useAnnouncementAnchor(showAll, focusPostId)
+  const highlighted = useAnnouncementAnchor(showEarlier, focusPostId)
   // #472 first pass — the form is rarely used, so it waits for Announce
   // (Google Business Profile's "Add update" opens on request).
   const [composing, setComposing] = useState(startComposing)
@@ -593,14 +599,14 @@ export function PagePosts({
     setEditingId(null)
   }
 
-  const renderPost = (post: PagePost, compact: boolean) => (
+  const renderPost = (post: PagePost) => (
             <li
               key={post.id}
               id={announcementAnchor(post.id)}
               data-testid="page-post"
               // #796 — the tapped post is scrolled into view; no ring (it was clipped to two sides in the strip).
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${post.sampleKind ? ' relative overflow-hidden' : ''}`}
+              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${post.sampleKind ? ' relative overflow-hidden' : ''}`}
             >
               {post.sampleKind && editingId !== post.id ? <SampleWatermark /> : null}
               {editingId === post.id ? (
@@ -717,7 +723,7 @@ export function PagePosts({
                       {post.headline}
                     </p>
                   )}
-                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${post.kind || post.headline ? ' mt-1' : ''}${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
+                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${post.kind || post.headline ? ' mt-1' : ''}`}>{post.body}</p>
                   {post.sampleKind ? <SampleNote /> : null}
                   {post.wonder && wonders && (
                     <WonderPanel
@@ -793,7 +799,6 @@ export function PagePosts({
                         type="button"
                         data-testid="page-post-edit"
                         onClick={() => {
-                          setShowAll(true)
                           setEditingId(post.id)
                           setEditDraft(post.body)
                           setEditKind(post.kind ?? 'news')
@@ -813,7 +818,6 @@ export function PagePosts({
                         type="button"
                         data-testid="page-post-delete"
                         onClick={() => {
-                          setShowAll(true)
                           setConfirmingDelete(post.id)
                         }}
                         className="inline-flex min-h-tap items-center px-1 text-xs underline"
@@ -859,6 +863,8 @@ export function PagePosts({
                   </Sheet>
                 </>
               )}
+              {/* plan #230 — room under each post for what comes later (comments); empty for now. */}
+              <div data-testid="page-post-after" />
             </li>
   )
 
@@ -965,32 +971,42 @@ export function PagePosts({
         >
           <p>Nothing here yet. Tell people what&apos;s going on.</p>
         </div>
-      ) : sorted.length === 0 ? null : showAll ? (
-        <ul data-testid="page-posts-all" className="mt-4 flex flex-col gap-3">
-          {sorted.map((post) => renderPost(post, false))}
-        </ul>
       ) : (
-        // A row that scrolls inside its own section, never the page.
-        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling region must take focus to scroll by keyboard (WCAG 2.1.1)
-        <ul data-testid="page-posts-latest" tabIndex={0} aria-label="Latest posts" className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
-          {sorted.slice(0, LATEST).map((post) => renderPost(post, true))}
-        </ul>
-      )}
-      {sorted.length > LATEST && (
-        <button
-          type="button"
-          aria-expanded={showAll}
-                    onClick={() => setShowAll(!showAll)}
-          className="press mt-3 inline-flex min-h-tap items-center text-body-sm font-semibold text-[var(--color-accent)] underline"
-        >
-          {showAll ? 'Show the latest' : 'See all posts'}
-        </button>
-      )}
-      {earlier.length > 0 && (
-        <section data-testid="page-posts-earlier" aria-labelledby="page-posts-earlier-title" className="mt-6">
-          <h3 id="page-posts-earlier-title" className="text-body-sm font-semibold text-[var(--color-fg-muted)]">Earlier</h3>
-          <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
-        </section>
+        <>
+          {past.length > 0 && (
+            <section data-testid="page-posts-earlier" aria-label="Earlier posts" className="mt-3">
+              <button
+                type="button"
+                aria-expanded={showEarlier}
+                onClick={toggleEarlier}
+                className="press inline-flex min-h-tap items-center text-body-sm font-semibold text-[var(--color-fg-muted)] underline"
+              >
+                {showEarlier ? 'Hide earlier posts' : `Earlier posts (${past.length})`}
+              </button>
+              {showEarlier && <ul className="mt-2 flex flex-col gap-3">{past.map((post) => renderPost(post))}</ul>}
+            </section>
+          )}
+          {(past.length > 0 || upcoming.length > 0) && (
+            <div ref={nowRef} data-testid="page-posts-now" className="mt-4 flex items-center gap-3 text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
+              <span aria-hidden="true" className="h-px flex-1 bg-[var(--color-border)]" />
+              Now
+              <span aria-hidden="true" className="h-px flex-1 bg-[var(--color-border)]" />
+            </div>
+          )}
+          {latest.length > 0 && (
+            <ul data-testid="page-posts-latest" aria-label="Latest posts" className="mt-3 flex flex-col gap-3">
+              {latest.map((post) => renderPost(post))}
+            </ul>
+          )}
+          {upcoming.length > 0 && (
+            <section data-testid="page-posts-upcoming" aria-labelledby="page-posts-upcoming-title" className="mt-6">
+              <h3 id="page-posts-upcoming-title" data-testid="page-posts-upcoming-title" className="text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
+                Coming up
+              </h3>
+              <ul className="mt-2 flex flex-col gap-3">{upcoming.map((post) => renderPost(post))}</ul>
+            </section>
+          )}
+        </>
       )}
       <Toast message={COPY.posted} visible={postedToast} onHide={hidePostedToast} />
     </section>
