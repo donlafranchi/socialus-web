@@ -19,6 +19,8 @@ import { memberInterestsAdd, memberSignupProfileSet, ActionError } from '@/actio
 import { NotFoundError } from '@/actions/_lib/errors'
 import { validateSignupProfile, type SignupProfileInput, type SignupProfileField } from '@/lib/signup/profile'
 import { marketForZip } from '@/lib/signup/zip-market'
+import { redirect } from 'next/navigation'
+import { safeNext } from '@/lib/safe-next'
 
 async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
@@ -81,7 +83,6 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
     throw err
   }
 
-  await supabase.auth.updateUser({ data: { onboarded: true } })
   if (market.open) return { ok: true, metro: { name: market.name }, waiting: null }
   // F118 — a town neighbours are opening: the person is its supporter now, and goes to its page.
   const town = OPEN_YOUR_TOWN ? await supabase.from('towns').select('slug').eq('market_key', market.key).maybeSingle() : null
@@ -102,4 +103,15 @@ export async function addInterestsAction(input: {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err
   }
+}
+
+/**
+ * #1090 — the last step: the login marked onboarded, then where the flow ends. Marked here and
+ * not with the profile, because the mark refreshes the page and its gate sends an onboarded
+ * member home before the screens after the profile can show.
+ */
+export async function finishOnboardingAction(next: string): Promise<void> {
+  const supabase = await createClient()
+  await supabase.auth.updateUser({ data: { onboarded: true } })
+  redirect(safeNext(next, '/'))
 }

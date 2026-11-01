@@ -32,9 +32,14 @@ vi.mock('@/actions', () => ({
   memberInterestsAdd: vi.fn(),
   ActionError: class ActionError extends Error {},
 }))
+vi.mock('next/navigation', () => ({
+  redirect: (url: string) => {
+    throw new Error(`REDIRECT:${url}`)
+  },
+}))
 vi.mock('@/actions/_lib/errors', () => ({ NotFoundError: class NotFoundError extends Error {} }))
 
-import { completeOnboardingAction } from './actions'
+import { finishOnboardingAction, completeOnboardingAction } from './actions'
 import { NotFoundError } from '@/actions/_lib/errors'
 
 const MEMBER = '11111111-1111-1111-1111-111111111111'
@@ -54,6 +59,9 @@ describe('completeOnboardingAction', () => {
     const res = await completeOnboardingAction(INPUT)
     expect(res).toEqual({ ok: true, metro: { name: SAC.name }, waiting: null })
     expect(marketForZip).toHaveBeenCalledWith(expect.anything(), '95819')
+    // #1090 — not marked onboarded yet: that refreshes the page, whose gate sends an onboarded
+    // member home before the market, interests or waiting screens can show.
+    expect(updateUser).not.toHaveBeenCalled()
     expect(signupProfileSet).toHaveBeenCalledWith(
       { actingMemberId: MEMBER },
       { legalName: 'Maya Rivera', displayName: 'Maya', zip: '95819', adultConfirmed: true, metroId: SAC.metroId },
@@ -100,11 +108,6 @@ describe('completeOnboardingAction', () => {
     expect(placeInterestAdd).not.toHaveBeenCalled()
   })
 
-  it('marks the login onboarded once the profile lands', async () => {
-    await completeOnboardingAction(INPUT)
-    expect(updateUser).toHaveBeenCalledWith({ data: { onboarded: true } })
-  })
-
   it('refuses without the 18+ box and touches nothing', async () => {
     const res = await completeOnboardingAction({ ...INPUT, adultConfirmed: false })
     expect(res).toMatchObject({ ok: false, field: 'adultConfirmed' })
@@ -128,5 +131,16 @@ describe('completeOnboardingAction', () => {
   it('needs a signed-in member', async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null })
     await expect(completeOnboardingAction(INPUT)).rejects.toThrow('signed in')
+  })
+})
+
+describe('#1090 — finishOnboardingAction', () => {
+  it('marks the login onboarded, then goes where the flow ends', async () => {
+    await expect(finishOnboardingAction('/explore')).rejects.toThrow('REDIRECT:/explore')
+    expect(updateUser).toHaveBeenCalledWith({ data: { onboarded: true } })
+  })
+
+  it('never leaves the site', async () => {
+    await expect(finishOnboardingAction('https://evil.example')).rejects.toThrow('REDIRECT:/')
   })
 })

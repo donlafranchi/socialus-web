@@ -127,6 +127,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // The front door is for people who aren't members yet; a member goes straight to Explore.
+  if (user && request.nextUrl.pathname === '/') {
+    const redirect = NextResponse.redirect(new URL('/explore', request.url))
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+    return redirect
+  }
+
   // #557 — the session seed behind Explore's order. A session cookie (no max-age):
   // it dies with the browser session, holds no personal data, and is re-minted when
   // signed-in state flips, so each sign-in leads with different content.
