@@ -20,6 +20,12 @@ describe('ShelfRow', () => {
     expect(list.className).not.toMatch(/flex-wrap\b|grid/)
   })
 
+  // F059 eval, 2026-11-01: a card's sr-only label escaped an unpositioned row item and widened a phone's page to 1224px.
+  it('anchors each item, so nothing in a card can escape the row and widen the page', () => {
+    render(row())
+    for (const li of screen.getAllByRole('listitem')) expect(li.className).toMatch(/\brelative\b/)
+  })
+
   it('shows a capped number of items; the rest are behind See all', () => {
     render(row({ limit: 12 }))
     expect(screen.getAllByRole('listitem')).toHaveLength(12)

@@ -71,8 +71,9 @@ export function ShelfRow<T>({
         ref={listRef}
         className="-mx-3 flex flex-nowrap snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-3 px-3 pb-2 [scrollbar-width:none] md:-mx-6 md:scroll-px-6 md:px-6"
       >
+        {/* relative: a card's absolutely placed parts (sr-only labels) stay inside the scroller, or a phone zooms out to fit them. */}
         {items.slice(0, limit).map((item, i) => (
-          <li key={keyOf(item)} className="w-[min(78vw,18rem)] shrink-0 snap-start">
+          <li key={keyOf(item)} className="relative w-4/5 max-w-72 shrink-0 snap-start">
             {renderItem(item, i)}
           </li>
         ))}
