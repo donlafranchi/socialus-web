@@ -8,6 +8,7 @@ import { resolvePagePosts, type PagePost } from '@/lib/groups/page-posts'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { maskEmailsOrNull } from '@/lib/text/contact-info'
 import { isPostId } from './post-path'
+import { isSlugSegment } from '@/lib/groups/page-handle'
 import { isPostKind, type PostKind } from './kinds'
 
 export interface PostPreview {
@@ -59,4 +60,16 @@ export async function resolveSharedPost(supabase: SupabaseClient, shop: Pick<Res
       sampleKind: r.sample_kind,
     },
   }
+}
+
+/** #1139 (Don, 2026-11-01) — the post a readable address names by its slug: signed in, as RLS lets this reader see
+ *  it; signed out, only a live, listed post on a published Page (page_post_id_by_slug). */
+export async function resolvePostIdBySlug(supabase: SupabaseClient, shop: Pick<ResolvedShop, 'groupId'>, slug: string): Promise<string | null> {
+  if (!isSlugSegment(slug)) return null
+  if (await viewerId(supabase)) {
+    const { data, error } = await supabase.from('page_posts').select('id').eq('group_id', shop.groupId).eq('url_slug', slug).maybeSingle()
+    return !error && data ? (data as { id: string }).id : null
+  }
+  const { data, error } = await supabase.rpc('page_post_id_by_slug', { p_group_id: shop.groupId, p_slug: slug })
+  return !error && typeof data === 'string' ? data : null
 }

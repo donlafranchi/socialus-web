@@ -11,7 +11,7 @@ const { viewerId, resolvePagePosts, rpc } = vi.hoisted(() => ({
 vi.mock('@/lib/auth/viewer', () => ({ viewerId }))
 vi.mock('@/lib/groups/page-posts', () => ({ resolvePagePosts }))
 
-import { resolveSharedPost } from './resolve-shared-post'
+import { resolveSharedPost, resolvePostIdBySlug } from './resolve-shared-post'
 
 const ID = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
 const SHOP = { groupId: 'g-1' } as never
@@ -87,5 +87,35 @@ describe('resolveSharedPost', () => {
     expect(await resolveSharedPost(dbRpc, SHOP, ID)).toBeNull()
     rpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
     expect(await resolveSharedPost(dbRpc, SHOP, ID)).toBeNull()
+  })
+})
+
+// #1139 (Don, 2026-11-01) — a post's readable address names it by its slug.
+describe('resolvePostIdBySlug', () => {
+  const maybeSingle = vi.fn()
+  const eq2 = vi.fn(() => ({ maybeSingle }))
+  const eq1 = vi.fn(() => ({ eq: eq2 }))
+  const from = vi.fn(() => ({ select: () => ({ eq: eq1 }) }))
+  const client = { rpc, from } as never
+
+  it('is nothing for a slug the database would never mint, without a read', async () => {
+    expect(await resolvePostIdBySlug(client, SHOP, 'Not_A_Slug')).toBeNull()
+    expect(rpc).not.toHaveBeenCalled()
+    expect(from).not.toHaveBeenCalled()
+  })
+  it('signed in: the post RLS lets this reader see, by its slug on this Page', async () => {
+    viewerId.mockResolvedValue('m-1')
+    maybeSingle.mockResolvedValue({ data: { id: ID }, error: null })
+    expect(await resolvePostIdBySlug(client, SHOP, 'pizza-night')).toBe(ID)
+    expect(eq1).toHaveBeenCalledWith('group_id', 'g-1')
+    expect(eq2).toHaveBeenCalledWith('url_slug', 'pizza-night')
+  })
+  it('signed out: through the one read that answers only for a live, listed post', async () => {
+    viewerId.mockResolvedValue(null)
+    rpc.mockResolvedValue({ data: ID, error: null })
+    expect(await resolvePostIdBySlug(client, SHOP, 'pizza-night')).toBe(ID)
+    expect(rpc).toHaveBeenCalledWith('page_post_id_by_slug', { p_group_id: 'g-1', p_slug: 'pizza-night' })
+    rpc.mockResolvedValue({ data: null, error: null })
+    expect(await resolvePostIdBySlug(client, SHOP, 'gone')).toBeNull()
   })
 })

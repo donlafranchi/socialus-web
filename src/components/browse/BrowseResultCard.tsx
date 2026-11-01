@@ -181,7 +181,7 @@ function PostCard(props: CardProps) {
       imageUrl={photo}
       // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
       // bottom corner, level with the Page's name, rather than on a row of its own.
-      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[18rem]:right-25"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+      after={result.href ? <div className="absolute bottom-1.5 right-1.5 @[18rem]:right-25"><SharePageButton quiet testId="browse-post-share" title={headline} path={result.href.startsWith('/g/') ? postPath(result.href, { id: result.resultId }) : result.href} /></div> : null}
     >
       {/* #1127 — a wide card (a phone's full width) sets the small photo beside the words; a narrow grid tile (desktop)
           sets it above them as a short strip, so the words keep the tile's whole width. */}

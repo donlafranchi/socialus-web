@@ -4,7 +4,7 @@
 
 import type { Metadata } from 'next'
 import { siteOrigin } from '@/lib/site-url'
-import { canonicalPagePath } from './page-handle'
+import { pagePath } from './page-handle'
 import { visiblePhotoUrl } from './visible-photo-url'
 
 interface PageForMetadata {
@@ -12,6 +12,8 @@ interface PageForMetadata {
   publicDescription: string
   slug: string
   publicId: string
+  placeUrlSlug?: string | null
+  pageUrlSlug?: string | null
   lifecycleState: string
   photoUrl: string | null
   photoHiddenAt: string | null
@@ -25,7 +27,7 @@ export function shareMetadata(page: PageForMetadata): Metadata {
     return { title: `${title} — SocialUs`, description, robots: { index: false, follow: false } }
   }
   const origin = siteOrigin()
-  const url = `${origin}${canonicalPagePath(page.publicId)}`
+  const url = `${origin}${pagePath(page)}`
   const photo = visiblePhotoUrl({ photo_url: page.photoUrl, photo_hidden_at: page.photoHiddenAt, photo_removed_at: page.photoRemovedAt })
   const image = photo ? { url: photo } : { url: `${origin}/og-default`, width: 1200, height: 630 }
   return {

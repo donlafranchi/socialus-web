@@ -26,7 +26,7 @@ export function AddMaker({ townSlug, townName, places }: { townSlug: string; tow
   const [link, setLink] = useState('')
   const [kind, setKind] = useState<MakerKind | ''>('')
   const [busy, setBusy] = useState(false)
-  const [done, setDone] = useState<{ kind: 'added' | 'exists'; publicId: string; name: string } | null>(null)
+  const [done, setDone] = useState<{ kind: 'added' | 'exists'; path: string; name: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function submit(e: React.FormEvent) {
@@ -37,7 +37,7 @@ export function AddMaker({ townSlug, townName, places }: { townSlug: string; tow
     const r = await addMakerAction({ townSlug, place: place || undefined, name, link, kind })
     setBusy(false)
     if (!r.ok) return setError(REFUSED[r.reason])
-    setDone({ kind: r.kind, publicId: r.publicId, name: name.trim() })
+    setDone({ kind: r.kind, path: r.path, name: name.trim() })
     setName('')
     setLink('')
     setKind('')
@@ -51,8 +51,8 @@ export function AddMaker({ townSlug, townName, places }: { townSlug: string; tow
         </p>
         <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">Send them the link. When they claim it, they count toward {townName}’s makers.</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <InviteButton label="Send the link" title={CLAIM_INVITE} text={`${CLAIM_INVITE}:`} path={`/g/${done.publicId}`} variant="primary" />
-          <a href={`/g/${done.publicId}`} className={buttonClass('secondary', 'md')}>See the Page</a>
+          <InviteButton label="Send the link" title={CLAIM_INVITE} text={`${CLAIM_INVITE}:`} path={done.path} variant="primary" />
+          <a href={done.path} className={buttonClass('secondary', 'md')}>See the Page</a>
         </div>
         <button type="button" onClick={() => setDone(null)} className="mt-3 text-body-sm text-[var(--color-accent-text)] underline">Add another</button>
       </div>
