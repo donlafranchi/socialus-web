@@ -74,8 +74,32 @@ describe('a published post previews when shared', () => {
   })
 })
 
+// Don, 2026-10-31 (B, #1126): a preview is fetched signed out, so it shows the headline, the lead line and the photo,
+// read without the body; the details stay for members.
+describe('signed out, a shared post previews with its headline and lead line, never its body', () => {
+  const PREVIEW = { ...POST, body: undefined }
+
+  it('titles it with its headline, describes it with its lead line and shows its photo', () => {
+    const m = postShareMetadata({ page: PAGE, post: PREVIEW, now: NOW })
+    expect(m.openGraph).toMatchObject({
+      title: 'Pizza night in the garden',
+      description: 'Event · Sat 5–8pm · Midtown',
+      url: URL_,
+      images: [{ url: 'https://cdn.example/pizza.webp' }],
+    })
+    expect(m.twitter).toMatchObject({ title: 'Pizza night in the garden', description: 'Event · Sat 5–8pm · Midtown' })
+    expect(words(m)).not.toMatch(/chair|oven/)
+  })
+
+  it('without a headline: the Page name, not a line taken from the body; the Page picture without a photo', () => {
+    const m = postShareMetadata({ page: PAGE, post: { ...PREVIEW, headline: null, photoUrl: null }, now: NOW })
+    expect(m.openGraph).toMatchObject({ title: 'A post from Oak Park Sourdough', images: [{ url: 'https://cdn.example/picture.webp' }] })
+    expect(words(m)).not.toMatch(/chair|oven/)
+  })
+})
+
 describe('a post this reader may not read previews without its words', () => {
-  it('signed out (withheld): the Page name and the withheld line, never the headline, body or place', () => {
+  it('not readable at all: the Page name and the withheld line, never the headline, body or place', () => {
     const m = postShareMetadata({ page: PAGE, post: null, postId: ID, now: NOW })
     expect(m.openGraph).toMatchObject({ title: 'A post from Oak Park Sourdough', url: URL_ })
     expect(words(m)).not.toMatch(/Pizza|chair|Midtown|pizza\.webp/)

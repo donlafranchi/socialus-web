@@ -84,6 +84,27 @@ describe('WithheldPagePosts', () => {
   })
 })
 
+// Don, 2026-10-31 (B, #1126): a shared post's own address shows a stranger its headline, lead line and photo, and the
+// ask in place of the details.
+describe('landed on a shared post', () => {
+  const PREVIEW = { title: 'Pizza night in the garden', leadLine: 'Event · Sat 5–8pm · Midtown', photoUrl: 'https://cdn.example/pizza.webp' }
+
+  it('shows its headline, lead line and photo above the ask', () => {
+    render(<WithheldPagePosts posts={[PAGE]} focusPostId="p-2" preview={PREVIEW} />)
+    const card = screen.getByTestId('page-post-preview')
+    expect(card).toHaveTextContent('Pizza night in the garden')
+    expect(card).toHaveTextContent('Event · Sat 5–8pm · Midtown')
+    expect(card.querySelector('img')?.getAttribute('src')).toBe('https://cdn.example/pizza.webp')
+    expect(card).toHaveTextContent('The details are for members and followers of this Page.')
+    expect(card.contains(screen.getByTestId('withheld-cta'))).toBe(true)
+  })
+
+  it('shows no picture when the post has none', () => {
+    render(<WithheldPagePosts posts={[PAGE]} focusPostId="p-2" preview={{ ...PREVIEW, photoUrl: null }} />)
+    expect(screen.getByTestId('page-post-preview').querySelector('img')).toBeNull()
+  })
+})
+
 // Don, 2026-10-04: on the signed-out front door this is the main button, and
 // "Sign up to follow" is secondary.
 describe('the front door\'s main button', () => {

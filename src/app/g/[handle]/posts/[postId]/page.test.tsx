@@ -21,6 +21,7 @@ const ID = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
 const params = Promise.resolve({ handle: '7k3x8m', postId: ID })
 const SHOP = { publicId: '7k3x8m', groupId: 'g-1', displayName: 'Oak Park Sourdough', publicDescription: '', slug: 's', lifecycleState: 'active', photoUrl: null, photoHiddenAt: null, photoRemovedAt: null, pictureUrl: null }
 const POST = { id: ID, kind: 'news', headline: 'Bread is back', body: 'Rye on Saturday.', startsAt: null, createdAt: '2026-10-30T12:00:00Z', locationLabel: 'Oak Park', photoUrl: null }
+const PREVIEW = { ...POST, body: undefined }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -40,19 +41,31 @@ describe('/g/[handle]/posts/[postId]', () => {
 
   it('shows the Page landed on the post', async () => {
     resolvePageById.mockResolvedValue(SHOP)
-    resolveSharedPost.mockResolvedValue({ access: 'withheld' })
+    resolveSharedPost.mockResolvedValue({ access: 'full', post: POST })
     const el = await PostAtItsAddress({ params })
     expect(el.type).toBe(Suspense)
-    expect((el.props as { children: { props: { focusPostId: string; shop: unknown } } }).children.props).toMatchObject({ focusPostId: ID, shop: SHOP })
+    const props = (el.props as { children: { props: Record<string, unknown> } }).children.props
+    expect(props).toMatchObject({ focusPostId: ID, shop: SHOP })
+    expect(props.preview ?? null).toBeNull()
   })
 
-  it('previews a readable post with its headline, and a withheld one with the Page name only', async () => {
+  // Don, 2026-10-31 (B, #1126): signed out, the post's headline, lead line and photo, with the ask in place of details.
+  it('signed out: lands on the post with its headline and lead line, never its body', async () => {
+    resolvePageById.mockResolvedValue(SHOP)
+    resolveSharedPost.mockResolvedValue({ access: 'withheld', preview: PREVIEW })
+    const el = await PostAtItsAddress({ params })
+    const props = (el.props as { children: { props: Record<string, unknown> } }).children.props
+    expect(props.preview).toMatchObject({ title: 'Bread is back', leadLine: expect.stringMatching(/^News/), photoUrl: null })
+    expect(JSON.stringify(props.preview)).not.toMatch(/Rye/)
+  })
+
+  it('previews with the headline and lead line, signed in or out, and never the body signed out', async () => {
     resolvePageById.mockResolvedValue(SHOP)
     resolveSharedPost.mockResolvedValue({ access: 'full', post: POST })
     expect((await generateMetadata({ params })).openGraph).toMatchObject({ title: 'Bread is back', url: `https://www.socialus.org/g/7k3x8m/posts/${ID}` })
-    resolveSharedPost.mockResolvedValue({ access: 'withheld' })
+    resolveSharedPost.mockResolvedValue({ access: 'withheld', preview: PREVIEW })
     const m = await generateMetadata({ params })
-    expect(m.openGraph).toMatchObject({ title: 'A post from Oak Park Sourdough', url: `https://www.socialus.org/g/7k3x8m/posts/${ID}` })
-    expect(JSON.stringify(m)).not.toMatch(/Bread|Rye/)
+    expect(m.openGraph).toMatchObject({ title: 'Bread is back', description: expect.stringMatching(/^News/), url: `https://www.socialus.org/g/7k3x8m/posts/${ID}` })
+    expect(JSON.stringify(m)).not.toMatch(/Rye/)
   })
 })

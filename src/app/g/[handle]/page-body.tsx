@@ -10,8 +10,9 @@ import { loadViewerReminders, NO_REMINDERS } from '@/lib/reminders/viewer-remind
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { loadPageSearchDemand } from '@/lib/search/page-demand'
 import { loadWonderViews } from '@/lib/wonders/wonder-view'
+import type { SharedPostPreview } from '@/components/group/WithheldPagePosts'
 
-export async function PageBody({ shop: resolved, focusPostId = null }: { shop: ResolvedShop; focusPostId?: string | null }) {
+export async function PageBody({ shop: resolved, focusPostId = null, preview = null }: { shop: ResolvedShop; focusPostId?: string | null; preview?: SharedPostPreview | null }) {
   let shop = resolved
   const supabase = await createClient()
   // #978 — the viewer's reminders ride along with the Page's reads instead of waiting behind them; an owner's are dropped.
@@ -54,6 +55,7 @@ export async function PageBody({ shop: resolved, focusPostId = null }: { shop: R
       wonders={wonders}
       pagePath={canonicalPagePath(shop.publicId)}
       focusPostId={focusPostId}
+      sharedPreview={preview}
     />
   )
 }

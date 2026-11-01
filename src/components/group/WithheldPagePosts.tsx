@@ -25,7 +25,14 @@ import {
   withheldJoinHref,
 } from '@/components/browse/withheld-copy'
 
-export function WithheldPagePosts({ posts, focusPostId = null }: { posts: BrowseResult[]; focusPostId?: string | null }) {
+/** #1126 (Don, B, 2026-10-31) — on a shared post's address: its headline, lead line and photo. Never its body. */
+export interface SharedPostPreview {
+  title: string
+  leadLine: string
+  photoUrl: string | null
+}
+
+export function WithheldPagePosts({ posts, focusPostId = null, preview = null }: { posts: BrowseResult[]; focusPostId?: string | null; preview?: SharedPostPreview | null }) {
   const highlighted = useAnnouncementAnchor(undefined, focusPostId)
   const [page] = posts
 
@@ -34,6 +41,11 @@ export function WithheldPagePosts({ posts, focusPostId = null }: { posts: Browse
 
   const ids = page.announcementIds ?? [page.resultId]
   const marked = highlighted !== null && ids.includes(highlighted)
+  const ask = (
+    <Link data-testid="withheld-cta" href={withheldJoinHref(page.href)} className={`${buttonClass('primary')} mt-3 hover:no-underline`}>
+      {WITHHELD_CTA}
+    </Link>
+  )
 
   return (
     <section id={ANNOUNCE_ANCHOR} className="card scroll-mt-20 border border-[var(--color-border)] p-4" data-testid="page-posts-withheld" data-section="posts" aria-labelledby="page-posts-title">
@@ -46,25 +58,34 @@ export function WithheldPagePosts({ posts, focusPostId = null }: { posts: Browse
         {ids.map((id) => (
           <span key={id} id={announcementAnchor(id)} aria-hidden className="sr-only scroll-mt-24" />
         ))}
-        <span
-          aria-hidden
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface)]"
-        >
-          <Megaphone className="h-4 w-4 text-[var(--color-accent)]" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-[var(--color-fg)]">
-            {withheldCountLabel(page.announcementCount ?? 0)}
-          </p>
-          <p className="mt-0.5 text-sm text-[var(--color-fg-muted)]">{WITHHELD_DETAILS}</p>
-          <Link
-            data-testid="withheld-cta"
-            href={withheldJoinHref(page.href)}
-            className={`${buttonClass('primary')} mt-3 hover:no-underline`}
-          >
-            {WITHHELD_CTA}
-          </Link>
-        </div>
+        {preview ? (
+          <div data-testid="page-post-preview" className="min-w-0 flex-1">
+            {preview.photoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={preview.photoUrl} alt="" className="mb-3 aspect-[16/9] w-full rounded-lg object-cover" />
+            )}
+            <p className="text-xs font-medium text-[var(--color-fg-muted)]">{preview.leadLine}</p>
+            <h3 className="mt-1 text-base font-semibold text-[var(--color-fg)]">{preview.title}</h3>
+            <p className="mt-2 text-sm text-[var(--color-fg-muted)]">{WITHHELD_DETAILS}</p>
+            {ask}
+          </div>
+        ) : (
+          <>
+            <span
+              aria-hidden
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-surface)]"
+            >
+              <Megaphone className="h-4 w-4 text-[var(--color-accent)]" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[var(--color-fg)]">
+                {withheldCountLabel(page.announcementCount ?? 0)}
+              </p>
+              <p className="mt-0.5 text-sm text-[var(--color-fg-muted)]">{WITHHELD_DETAILS}</p>
+              {ask}
+            </div>
+          </>
+        )}
       </div>
     </section>
   )

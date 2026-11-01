@@ -34,7 +34,7 @@ import { PagePosts } from './PagePosts'
 import { NO_REMINDERS, type ViewerReminders } from '@/lib/reminders/viewer-reminders'
 import { RemindEveryTimeButton } from '@/components/reminders/RemindMe'
 import { setReminderAction, removeReminderAction, remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
-import { WithheldPagePosts } from './WithheldPagePosts'
+import { WithheldPagePosts, type SharedPostPreview } from './WithheldPagePosts'
 import { postToPageAction, editPagePostAction, deletePagePostAction } from '@/app/_actions/page-post-actions'
 import { wonderJoinAction, wonderLeaveAction, wonderOfferAction, wonderOfferWithdrawAction, wonderOfferDecideAction } from '@/app/_actions/wonder-actions'
 import type { WonderView } from '@/lib/wonders/wonder-view'
@@ -103,6 +103,8 @@ interface Props {
   wonders?: Record<string, WonderView>
   /** Don, 2026-10-31 — the post a post's own address names: its list lands on it. */
   focusPostId?: string | null
+  /** #1126 — signed out on a shared post's address: its headline, lead line and photo. */
+  sharedPreview?: SharedPostPreview | null
   /** #945 — the viewer's own reminders; absent for an owner or a visitor. */
   reminders?: ViewerReminders
   /** #301 — a draft's tag count, for its owner's publish checklist. */
@@ -134,6 +136,7 @@ export function ShopPublicPage({
   viewerOwnsPage = false,
   pagePath,
   focusPostId = null,
+  sharedPreview = null,
   viewerFollows = false,
   viewerIsMember = false,
   posts = [],
@@ -405,7 +408,7 @@ export function ShopPublicPage({
       {/* F093 — one list or the other, never both: two would mean two
           elements carrying the same `announcement-<id>`. */}
       {withheldPosts.length > 0 ? (
-        <WithheldPagePosts posts={withheldPosts} focusPostId={focusPostId} />
+        <WithheldPagePosts posts={withheldPosts} focusPostId={focusPostId} preview={sharedPreview} />
       ) : (
         <PagePosts
           groupId={shop.groupId}

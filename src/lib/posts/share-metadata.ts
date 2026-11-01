@@ -1,9 +1,8 @@
 // Don, 2026-10-31: "I can't share an anouncment?" — every post has its own address under its Page, and a shared
 // link previews like the card: the headline, the lead line KIND · WHEN · WHERE, and the card's one picture.
-// What the reader may not read previews with none of the post's words: the builder is handed `post: null` then,
-// because the caller's read under RLS returned nothing to hand it.
-//
-// [open-question owner=don raised=2026-10-31] Link previews are fetched signed out, and F093 withholds a post's words from anyone signed out, so a shared post previews as "A post from <Page>" rather than its headline. Show the headline and lead line in previews of shared posts?
+// Previews are fetched signed out, so a signed-out reader is handed the post without its body (Don, B, #1126): the
+// headline, lead line and photo; the details stay for members (F093). With no headline the title is the Page's,
+// never a line from the body. What the reader may not read at all previews with none of its words (`post: null`).
 
 import type { Metadata } from 'next'
 import { siteOrigin } from '@/lib/site-url'
@@ -32,7 +31,8 @@ export interface PostForShare {
   id: string
   kind?: PostKind
   headline?: string | null
-  body: string
+  /** Absent when read signed out: the body never leaves the database then. */
+  body?: string | null
   startsAt: string | null
   endsAt?: string | null
   createdAt: string
@@ -44,6 +44,12 @@ export interface PostForShare {
 
 export const withheldPostTitle = (pageName: string) => `A post from ${pageName}`
 
+export const sharedPostTitle = (post: PostForShare, pageName: string) =>
+  post.body != null ? cardHeadline({ headline: post.headline, body: post.body, pageName }) : post.headline?.trim() || withheldPostTitle(pageName)
+
+export const sharedPostLeadLine = (post: PostForShare, now = new Date()) =>
+  leadLine({ kind: post.kind ?? 'news', startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel, sample: Boolean(post.sampleKind) }, now)
+
 export function postShareMetadata({
   page,
   post,
@@ -51,7 +57,7 @@ export function postShareMetadata({
   now = new Date(),
 }: {
   page: PageForShare
-  /** Null when this reader may not read it (signed out: F093). */
+  /** Without `body` when read signed out; null when this reader may not read it at all. */
   post: PostForShare | null
   postId?: string
   now?: Date
@@ -63,10 +69,8 @@ export function postShareMetadata({
   const readable = post && !post.hiddenAt ? post : null
   const photo = (readable?.photoUrl ?? null) || pagePicture
   const image = photo ? { url: photo } : { url: `${origin}/og-default`, width: 1200, height: 630 }
-  const title = readable ? cardHeadline({ headline: readable.headline, body: readable.body, pageName: page.displayName }) : withheldPostTitle(page.displayName)
-  const description = readable
-    ? leadLine({ kind: readable.kind ?? 'news', startsAt: readable.startsAt, endsAt: readable.endsAt, postedAt: readable.createdAt, where: readable.locationLabel, sample: Boolean(readable.sampleKind) }, now)
-    : WITHHELD_DETAILS
+  const title = readable ? sharedPostTitle(readable, page.displayName) : withheldPostTitle(page.displayName)
+  const description = readable ? sharedPostLeadLine(readable, now) : WITHHELD_DETAILS
   return {
     title: `${title} — SocialUs`,
     description,
