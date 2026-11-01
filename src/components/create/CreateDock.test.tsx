@@ -37,7 +37,7 @@ describe('CreateDock (#1094)', () => {
     render(<CreateDock />)
     openSheet()
     const dialog = screen.getByRole('dialog', { name: 'Create' })
-    for (const n of ['Event', 'Sale', 'News', 'Wonder', 'Hiring', 'Page']) expect(within(dialog).getByText(n)).toBeInTheDocument()
+    for (const n of ['Event', 'Offer', 'Update', 'Wonder', 'Hiring', 'Page']) expect(within(dialog).getByText(n)).toBeInTheDocument()
   })
 
   it('with no Page yet, News leads to creating one first and says why', async () => {

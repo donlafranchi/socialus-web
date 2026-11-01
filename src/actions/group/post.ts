@@ -82,7 +82,7 @@ const PHOTO_MESSAGE = 'That photo didn’t come from your uploads.'
 const kind = z.enum(POST_KINDS).optional()
 /** plan #230 — the card's one line, matching the column's check. */
 const headline = z.string().trim().min(1).max(HEADLINE_MAX).optional()
-const SALE_TOO_LONG = `A sale can run up to ${SALE_MAX_DAYS} days from today.`
+const SALE_TOO_LONG = `An offer can run up to ${SALE_MAX_DAYS} days from today.`
 const WONDER_NEEDS_THRESHOLD = 'Count me in needs how many people it takes.'
 
 function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: string | null | undefined, now: Date) {

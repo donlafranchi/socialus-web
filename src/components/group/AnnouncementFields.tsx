@@ -133,7 +133,7 @@ export function AnnouncementFields({
               value={value.endDate}
               onChange={(endDate) => onChange({ ...value, endDate })}
             />
-            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">A sale can run up to {SALE_MAX_DAYS} days.</p>
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">An offer can run up to {SALE_MAX_DAYS} days.</p>
           </div>
         </fieldset>
       ) : (

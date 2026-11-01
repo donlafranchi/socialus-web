@@ -99,11 +99,11 @@ describe('the post card: what it is, first', () => {
 
   it('never builds the lead line from the body, and never puts the Page name in the headline', () => {
     render(<BrowseResultCard result={post({ postKind: 'news', headline: null, startsAt: null, postedAt: '2026-10-20T17:00:00Z', body: 'Corner Bakery: new rye loaves.\nDetails here.' })} now={NOW} />)
-    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^News · Tue · Midtown$/)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Update · Tue · Midtown$/)
     expect(screen.getByTestId('tile-title')).toHaveTextContent(/^New rye loaves\.$/)
   })
 
-  for (const [kind, word] of [['event', 'Event'], ['sale', 'Sale'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'News'], ['wonder', 'Count me in'], ['hiring', 'Hiring']] as const) {
+  for (const [kind, word] of [['event', 'Event'], ['sale', 'Offer'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'Update'], ['wonder', 'Count me in'], ['hiring', 'Hiring']] as const) {
     it(`leads a ${kind} post with ${word}`, () => {
       render(<BrowseResultCard result={post({ postKind: kind, headline: 'One line' })} now={NOW} />)
       expect(screen.getByTestId('browse-post-lead').textContent!.startsWith(word)).toBe(true)
@@ -117,7 +117,7 @@ describe('the post card: what it is, first', () => {
         now={NOW}
       />,
     )
-    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Sample sale · Through Sun · Midtown$/)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Sample offer · Through Sun · Midtown$/)
     expect(screen.queryByTestId('sample-watermark')).toBeNull()
     expect(screen.queryByTestId('sample-label')).toBeNull()
     expect(screen.queryByText(/This is a sample post/)).toBeNull()
@@ -147,7 +147,7 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     expect(lead.className).toMatch(/whitespace-nowrap/)
     expect(lead.className).toMatch(/\bh-4\b/)
     expect(lead.className).toMatch(/overflow-hidden/)
-    expect(within(lead).getByTestId('browse-post-lead-head')).toHaveTextContent(/^Sample sale · Through Sun$/)
+    expect(within(lead).getByTestId('browse-post-lead-head')).toHaveTextContent(/^Sample offer · Through Sun$/)
     const where = within(lead).getByTestId('browse-post-lead-where')
     expect(where).toHaveTextContent(/^· East Sacramento near the river$/)
     expect(where.className).toMatch(/truncate/)

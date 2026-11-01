@@ -54,10 +54,10 @@ export const TYPE_OPTIONS = [
 // plan #230 — the seven post kinds. Draft copy (human-review).
 export const POST_KIND_OPTIONS = [
   { value: 'event', label: 'Events' },
-  { value: 'sale', label: 'Sales' },
+  { value: 'sale', label: 'Offers' },
   { value: 'limited', label: 'Limited' },
   { value: 'reminder', label: 'Reminders' },
-  { value: 'news', label: 'News' },
+  { value: 'news', label: 'Updates' },
   { value: 'wonder', label: 'Count me in' },
   { value: 'hiring', label: 'Hiring' },
 ] as const satisfies readonly { value: PostKind; label: string }[]
