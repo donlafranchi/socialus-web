@@ -9,6 +9,7 @@ import { fetchAiReadiness } from '@/lib/admin/ai-readiness'
 import { MetricsView, type WeekRow } from './MetricsView'
 import { SearchDemandView, type DemandRow } from './SearchDemandView'
 import { ShelfScoreboardView } from './ShelfScoreboardView'
+import { MapTapsView, type MapTapRow } from './MapTapsView'
 import { scoreboard } from '@/lib/shelves/verdict'
 
 export const dynamic = 'force-dynamic'
@@ -28,12 +29,14 @@ const toScoreRow = (r: ShelfWeekRow) => ({
 export default async function AdminMetricsPage() {
   await requirePagePermission('metrics.view')
   const supabase = await createClient()
-  const [{ data }, demand, shelves] = await Promise.all([
+  const [{ data }, demand, shelves, mapTaps] = await Promise.all([
     supabase.rpc('admin_metrics_weekly', { p_weeks: 2 }),
     // #909 — what locals searched; a failed read shows the empty state, never takes the page down.
     supabase.rpc('admin_search_demand', { p_weeks: 4, p_limit: 10 }),
     // F121 — the shelf scoreboard; weeks back so a verdict can see two judged weeks.
     supabase.rpc('admin_shelf_scoreboard', { p_weeks: 8 }),
+    // plan #258 — map taps per day, for the 2026-11-15 map review.
+    supabase.rpc('admin_map_taps', { p_days: 14 }),
   ])
   // #640 — the same light as /admin/reports; a failed read leaves it out, never the metrics.
   const readiness = await fetchAiReadiness().catch(() => null)
@@ -55,6 +58,9 @@ export default async function AdminMetricsPage() {
       </div>
       <div className="mt-3">
         <ShelfScoreboardView lines={scoreboard(((shelves?.data ?? []) as ShelfWeekRow[]).map(toScoreRow))} />
+      </div>
+      <div className="mt-3">
+        <MapTapsView rows={(mapTaps?.data ?? []) as MapTapRow[]} />
       </div>
     </main>
   )

@@ -120,6 +120,7 @@ export function CreateMenu() {
                 role="menuitem"
                 type="button"
                 data-testid="create-menu-view"
+                {...(explore.view === 'list' ? { 'data-map-tap': 'show_on_map' } : {})}
                 onClick={() => {
                   close()
                   explore.onViewChange!(explore.view === 'list' ? 'map' : 'list')

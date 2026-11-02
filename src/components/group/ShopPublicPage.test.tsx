@@ -993,6 +993,7 @@ describe('#896 — the Location card for each answer', () => {
     expect(item).toHaveTextContent('Saturdays, 8am–1pm')
     expect(item).toHaveTextContent('Midtown Farmers Market')
     expect(within(item!).getByRole('link', { name: 'Directions to Midtown Farmers Market' })).toHaveAttribute('href', expect.stringContaining('destination=Midtown%20Farmers%20Market'))
+    expect(within(item!).getByRole('link', { name: 'Directions to Midtown Farmers Market' })).toHaveAttribute('data-map-tap', 'directions')
   })
 
   // Visibility: (a) I go to them, (b) neighbourhood only and (f) online never send an exact point.

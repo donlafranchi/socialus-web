@@ -137,9 +137,21 @@ describe('Don, 2026-11-01 — no bottom bar: the search is the header pill, List
     expect(screen.getByTestId('scope-sheet')).toBeInTheDocument()
   })
 
+  it('Show on map is a small text link under the results, counted per day (plan #258)', () => {
+    renderAt(390)
+    const link = screen.getByTestId('show-on-map')
+    expect(link.tagName).toBe('A')
+    expect(link).toHaveAttribute('data-map-tap', 'show_on_map')
+    expect(screen.queryByTestId('browse-map')).toBeNull()
+  })
+
   for (const w of [390, 744]) {
     it(`the ➕ swaps list and map at ${w}px`, () => {
       renderAt(w)
+      fireEvent.click(screen.getByTestId('create-menu'))
+      // plan #258 — Show the map is counted per day; Show the list is not.
+      expect(screen.getByTestId('create-menu-view')).toHaveAttribute('data-map-tap', 'show_on_map')
+      fireEvent.click(screen.getByTestId('create-menu'))
       switchView()
       expect(screen.getByTestId('browse-map')).toBeInTheDocument()
       fireEvent.click(screen.getByTestId('create-menu'))
@@ -167,7 +179,10 @@ describe('T187 — 1024px and up, side by side', () => {
     renderAt(1440)
     const handle = screen.getByRole('button', { name: 'Hide map' })
     expect(handle).toHaveAttribute('aria-expanded', 'true')
+    expect(handle).not.toHaveAttribute('data-map-tap')
     fireEvent.click(handle)
+    // plan #258 — reopening it is a Show on map tap.
+    expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('data-map-tap', 'show_on_map')
     expect(screen.queryByTestId('browse-map')).toBeNull()
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Show map' }))

@@ -468,6 +468,7 @@ export function BrowseSurface({
                 <a
                   href={mapHref}
                   data-testid="show-on-map"
+                  data-map-tap="show_on_map"
                   onClick={(e) => {
                     e.preventDefault()
                     showMapView(true)
@@ -576,6 +577,7 @@ export function BrowseSurface({
               aria-expanded={!mapCollapsed}
               aria-controls={MAP_PANE_ID}
               data-testid="map-collapse-handle"
+              {...(mapCollapsed ? { 'data-map-tap': 'show_on_map' } : {})}
               className="press -ml-3 inline-flex h-11 w-6 items-center justify-center rounded-full border border-[var(--color-charcoal-100)] bg-white text-[var(--color-charcoal-900)] shadow-sm outline-[var(--color-accent)] focus-visible:outline focus-visible:outline-2"
             >
               {mapCollapsed ? <ChevronLeft size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
