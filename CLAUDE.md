@@ -21,6 +21,16 @@ Files live only in Don's project repos (socialus-plan, socialus-ops, socialus-we
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
 
+## How decisions flow (2026-11-01)
+
+Don, 2026-11-01: "me as the human I set guidelines and desired outcomes or trajectories or concepts of where I'd like to go as the human decision maker and you are there to try to figure out options and choices. Do the research to help guide me make the best decision based on whatever information is available and that's how this app development should work from top to bottom."
+
+1. **Don gives direction:** guidelines, desired outcomes, trajectories, concepts.
+2. **Agents research and turn it into options:** the evidence and precedents, as A/B/C with a recommendation.
+3. **Don decides.**
+
+This sharpens the decision rule and decision rights below, it doesn't replace them: agents still decide well-worn and mechanical calls and report them; what Don decides reaches him as researched options.
+
 ## Decision rights (2026-10-25)
 
 The PM decides only ideas, what is in each version (the MVP of a feature), and words and look-and-feel. Everything else — architecture, schema, flows, thresholds, which precedent to follow — you decide by the soul and defaults (socialus-plan `PRINCIPLES.md` § Soul, § Defaults) and the well-worn path, record it (a dated ruling in socialus-plan, or the Issue), and report what you chose. Only new territory that conflicts with the soul goes to the PM as A/B/C. Detail: socialus-ops `process/PIPELINE.md` § Decision rights.
