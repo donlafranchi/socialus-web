@@ -664,6 +664,16 @@ describe('F099 — a post photo', () => {
     expect(screen.queryByTestId('default-art')).toBeNull()
   })
 
+  // Don, 2026-11-02: "our posts should be a little bit larger." The timeline's picture keeps Eventbrite's 2:1 shape
+  // at the card's full width, so it grows with the screen instead of a fixed 128px strip.
+  it('gives the photo a 2:1 area at the card’s full width, not a fixed short strip', () => {
+    renderPosts({ posts: [postFixture({ photoUrl: PHOTO } as never)] })
+    const area = screen.getByTestId('page-post-image')
+    expect(area.className).toMatch(/aspect-\[2\/1\]/)
+    expect(area.className).toMatch(/\bw-full\b/)
+    expect(area.className).not.toMatch(/\bh-32\b/)
+  })
+
   // [guards F099.6]
   it('a post without one shows its kind’s placeholder, so no card is without an image', () => {
     renderPosts({ posts: [postFixture()], pageName: 'Maya’s Bakery', artKind: 'shop' })

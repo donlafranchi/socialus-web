@@ -92,7 +92,7 @@ describe('the post card: what it is, first', () => {
     expect(title).toHaveTextContent(/^Pumpkin bread is back$/)
     expect(title.className).toMatch(/line-clamp-1/)
     expect(screen.queryByTestId('tile-tagline')).toBeNull()
-    expect(screen.getByTestId('tile-image').className).toMatch(/size-20/)
+    expect(screen.getByTestId('tile-image').className).toMatch(/aspect-\[3\/2\]/)
     expect(screen.getByTestId('post-page-name')).toHaveTextContent('Corner Bakery')
     const order = ['browse-post-lead', 'tile-title', 'post-page-name'].map((id) => screen.getByTestId(id))
     expect(order[0]!.compareDocumentPosition(order[1]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -157,22 +157,27 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     expect(where.className).toMatch(/basis-18/)
   })
 
-  it('stacks the photo above the words in a narrow grid tile, and sits it beside them in a wide one', () => {
+  // Don, 2026-11-02: "our posts should be a little bit larger." Eventbrite's and Airbnb's cards: the picture on top,
+  // the card's full width, the words beneath it, at every width.
+  it('puts a large photo above the words at every width, never a thumbnail beside them', () => {
     render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
     const body = screen.getByTestId('browse-post-body')
-    expect(screen.getByTestId('tile-card').className).toMatch(/@container/)
     expect(body.className).toMatch(/flex-col-reverse/)
-    expect(body.className).toMatch(/@\[18rem\]:flex-row/)
+    expect(body.className).not.toMatch(/flex-row/)
     const img = screen.getByTestId('tile-image')
-    expect(img.className).toMatch(/aspect-\[2\/1\]/)
-    expect(img.className).toMatch(/@\[18rem\]:size-20/)
+    expect(img.className).toMatch(/aspect-\[3\/2\]/)
+    expect(img.className).toMatch(/\bw-full\b/)
+    expect(img.className).not.toMatch(/size-20/)
+    // Edge to edge, as the Page card's photo is: the card's padding is the words', not the photo's.
+    expect(body.className).not.toMatch(/\bp-\d/)
+    expect(screen.getByTestId('tile-text').className).toMatch(/\bpx-3\b/)
   })
 
-  it('switches below a phone’s Happening shelf card (304px) and above a desktop grid tile (~236px)', () => {
-    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
-    const rem = Number(/@\[(\d+(?:\.\d+)?)rem\]:flex-row/.exec(screen.getByTestId('browse-post-body').className)![1])
-    expect(rem * 16).toBeGreaterThan(236)
-    expect(rem * 16).toBeLessThanOrEqual(304)
+  it('asks for a photo big enough for a wide card on a sharp screen', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back', photoUrl: 'https://x.supabase.co/storage/v1/object/public/media/a.jpg', photoSource: 'post' })} now={NOW} />)
+    const img = screen.getByTestId('tile-image').querySelector('img')!
+    expect(img.getAttribute('src')).toMatch(/width=480/)
+    expect(img.getAttribute('srcset')).toMatch(/width=960\S* 2x/)
   })
 
   it('puts Share in the card’s bottom corner, beside the Page name, not on a row of its own', () => {
@@ -181,10 +186,10 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     expect(share.className).toMatch(/absolute/)
     expect(share.className).toMatch(/bottom-/)
     expect(share.className).not.toMatch(/-mt-/)
+    expect(share.className).toMatch(/\bright-1\.5\b/)
+    expect(share.className).not.toMatch(/@\[/)
     // The Page name's row leaves room for the 44px button (padding 12 + 40 ≥ 6 + 44).
     expect(screen.getByTestId('tile-kind-row').className).toMatch(/\bpr-10\b/)
-    // Beside the photo in a wide card, never on top of it.
-    expect(share.className).toMatch(/@\[18rem\]:right-25/)
     expect(screen.getByTestId('tile-card').className).toMatch(/relative/)
   })
 

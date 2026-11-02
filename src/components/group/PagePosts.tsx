@@ -680,7 +680,8 @@ export function PagePosts({
                       its own photo, else the Page picture,
                       else the kind's placeholder. Alt: the owner's words (the
                       post's first line); the placeholder's is the Page's name. */}
-                  <div className="relative mb-2 h-32 w-full overflow-hidden rounded-md">
+                  {/* Don, 2026-11-02: "a little bit larger" — Eventbrite's 2:1 at the card's full width, not a 128px strip. */}
+                  <div data-testid="page-post-image" className="relative mb-2 aspect-[2/1] w-full overflow-hidden rounded-md">
                     {post.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

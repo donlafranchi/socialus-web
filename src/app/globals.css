@@ -183,6 +183,7 @@
   --shadow-bar: 0 -4px 16px rgb(0 0 0 / 0.08);
 
   /* Content widths (max-w-auth … max-w-shell). */
+  --container-post-card: 26rem; /* 416, the widest a post card in a sideways row gets */
   --container-auth: 25rem;     /* 400 */
   --container-form: 35rem;     /* 560 */
   --container-read: 45rem;     /* 720 */

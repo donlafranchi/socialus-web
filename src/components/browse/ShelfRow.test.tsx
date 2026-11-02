@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
+import { readFileSync } from 'node:fs'
 import { ShelfRow, ShelfScreen } from './ShelfRow'
 
 afterEach(cleanup)
@@ -62,6 +63,25 @@ describe('ShelfRow', () => {
     expect(heading.querySelector('button')).not.toBeNull()
   })
 
+  // Don, 2026-11-02: posts "a little bit larger … take up more screen space". About one and a half post cards on a
+  // phone (the next one peeks, as Airbnb's and Eventbrite's rows do); fewer, wider cards than Pages on a wide screen.
+  it('sizes a row of posts to about one and a half cards on a phone, and wider than Pages on a wide screen', () => {
+    render(row({ size: 'post' }))
+    const li = screen.getAllByRole('listitem')[0]!
+    // The row's gap is spacing 3: one gap before the half card on a phone, two from 768px.
+    expect(li.className).toMatch(/(^|\s)w-\[calc\(\(100%-var\(--spacing\)\*3\)\/1\.5\)\]/)
+    expect(li.className).toMatch(/md:w-\[calc\(\(100%-var\(--spacing\)\*6\)\/2\.25\)\]/)
+    const css = readFileSync('src/app/globals.css', 'utf8')
+    expect(li.className).toMatch(/\bmax-w-post-card\b/)
+    expect(Number(/--container-post-card:\s*([\d.]+)rem/.exec(css)![1]) * 16).toBeGreaterThan(288)
+  })
+
+  it('leaves a row of Pages at its size', () => {
+    render(row())
+    const li = screen.getAllByRole('listitem')[0]!
+    expect(li.className).toMatch(/w-4\/5 max-w-72/)
+  })
+
   it('renders nothing when there is nothing to show', () => {
     const { container } = render(row({ items: [] }))
     expect(container).toBeEmptyDOMElement()
@@ -95,6 +115,14 @@ describe('ShelfScreen', () => {
     render(<>{screenOf()}{screenOf()}</>)
     const ids = screen.getAllByRole('dialog').map((d) => d.getAttribute('aria-labelledby'))
     expect(new Set(ids).size).toBe(2)
+  })
+
+  it('lays a full list of posts out in fewer, wider columns than Pages', () => {
+    const { unmount } = render(<ShelfScreen title="Concerts" size="post" items={['a']} keyOf={(s) => s} renderItem={(s) => <span>{s}</span>} onClose={() => {}} />)
+    expect(screen.getByTestId('card-grid')).toHaveAttribute('data-density', 'roomy')
+    unmount()
+    render(<ShelfScreen title="Cafés" items={['a']} keyOf={(s) => s} renderItem={(s) => <span>{s}</span>} onClose={() => {}} />)
+    expect(screen.getByTestId('card-grid')).toHaveAttribute('data-density', 'comfortable')
   })
 
   it('lists every item and closes with Back or Escape', () => {
