@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
+import { createHash } from 'node:crypto'
 import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
@@ -38,12 +39,25 @@ async function as<T>(sub: string | null, sql: string, params: unknown[] = []): P
   }
 }
 
-const today = async () =>
-  (await q(`select kind, taps from public.map_tap_daily where day = (now() at time zone 'America/Los_Angeles')::date order by kind`)).rows as { kind: string; taps: number }[]
+// Shared database: read today's totals and compare, and delete only the keys this file's members made.
+const totals = async () => {
+  const rows = (await q(`select kind, taps from public.map_tap_daily where day = (now() at time zone 'America/Los_Angeles')::date`)).rows as { kind: string; taps: number }[]
+  return { show_on_map: 0, directions: 0, ...Object.fromEntries(rows.map((r) => [r.kind, r.taps])) } as Record<'show_on_map' | 'directions', number>
+}
+let before: Record<'show_on_map' | 'directions', number>
+const added = async () => {
+  const now = await totals()
+  return { show_on_map: now.show_on_map - before.show_on_map, directions: now.directions - before.directions }
+}
+const hash = (...parts: string[]) => createHash('sha256').update(parts.join('\u0000')).digest('hex')
+async function forgetOurKeys() {
+  const day = (await q(`select (now() at time zone 'America/Los_Angeles')::date::text as d`)).rows[0].d as string
+  const buckets = MEMBERS.flatMap((m) => ['show_on_map', 'directions'].map((k) => hash(k, m, day)))
+  await q(`delete from public.map_tap_seen where bucket = any($1) or key like 'zz258-%'`, [buckets])
+}
 
 async function cleanup() {
-  await q(`delete from public.map_tap_daily where day = (now() at time zone 'America/Los_Angeles')::date`)
-  await q(`delete from public.map_tap_seen`)
+  await forgetOurKeys()
   await q(`delete from public.staff_assignments where member_id = any($1)`, [MEMBERS]).catch(() => undefined)
   await q(`delete from public.builders where member_id = any($1)`, [MEMBERS]).catch(() => undefined)
   await q(`delete from public.members where id = any($1)`, [MEMBERS])
@@ -77,8 +91,8 @@ afterAll(async () => {
 
 beforeEach(async () => {
   if (!RUNNABLE) return
-  await q(`delete from public.map_tap_daily where day = (now() at time zone 'America/Los_Angeles')::date`)
-  await q(`delete from public.map_tap_seen`)
+  await forgetOurKeys()
+  before = await totals()
 })
 
 describe.skipIf(!RUNNABLE)('plan #258 — map taps per day', () => {
@@ -88,21 +102,18 @@ describe.skipIf(!RUNNABLE)('plan #258 — map taps per day', () => {
     await mapLog(ctx(EVE), { kind: 'show_on_map', target: '/explore' })
     await mapLog(ctx(DANA), { kind: 'directions', target: '/g/abc' })
     await mapLog(ctx(DANA), { kind: 'directions', target: '/g/def' })
-    expect(await today()).toEqual([
-      { kind: 'directions', taps: 2 },
-      { kind: 'show_on_map', taps: 2 },
-    ])
+    expect(await added()).toEqual({ show_on_map: 2, directions: 2 })
   })
 
   it('a member counts at most 12 of a kind a day, however they call it', async () => {
     for (let i = 0; i < 20; i++) await mapLog(ctx(DANA), { kind: 'directions', target: `/g/${i}` })
-    expect(await today()).toEqual([{ kind: 'directions', taps: 12 }])
+    expect(await added()).toEqual({ show_on_map: 0, directions: 12 })
   })
 
   it('stores no member id, and skips a member who turned logging off and every builder', async () => {
     expect(await mapLog(ctx(QUIET), { kind: 'directions', target: '/g/a' })).toEqual({ logged: false })
     expect(await mapLog(ctx(BUILDER), { kind: 'directions', target: '/g/a' })).toEqual({ logged: false })
-    expect(await today()).toEqual([])
+    expect(await added()).toEqual({ show_on_map: 0, directions: 0 })
     const cols = (await q(`select column_name from information_schema.columns where table_schema = 'public' and table_name in ('map_tap_daily','map_tap_seen')`)).rows.map((r) => r.column_name)
     expect(cols.some((c: string) => /member/.test(c))).toBe(false)
   })
@@ -116,7 +127,7 @@ describe.skipIf(!RUNNABLE)('plan #258 — map taps per day', () => {
   it('only staff with metrics.view read the counts; members and strangers read none', async () => {
     await mapLog(ctx(DANA), { kind: 'directions', target: '/g/a' })
     const staff = (await as<{ directions: number }>(ANALYST, `select directions from public.admin_map_taps(14) where day = (now() at time zone 'America/Los_Angeles')::date`)) as { directions: number }[]
-    expect(staff).toEqual([{ directions: 1 }])
+    expect(staff).toEqual([{ directions: before.directions + 1 }])
     expect(await as(DANA, `select * from public.admin_map_taps(14)`)).toEqual([])
     expect(await as(DANA, `select * from public.map_tap_daily`)).toMatch(/permission/i)
     expect(await as(null, `select * from public.map_tap_seen`)).toMatch(/permission/i)

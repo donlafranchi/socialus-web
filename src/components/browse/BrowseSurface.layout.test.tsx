@@ -179,7 +179,10 @@ describe('T187 — 1024px and up, side by side', () => {
     renderAt(1440)
     const handle = screen.getByRole('button', { name: 'Hide map' })
     expect(handle).toHaveAttribute('aria-expanded', 'true')
+    expect(handle).not.toHaveAttribute('data-map-tap')
     fireEvent.click(handle)
+    // plan #258 — reopening it is a Show on map tap.
+    expect(screen.getByRole('button', { name: 'Show map' })).toHaveAttribute('data-map-tap', 'show_on_map')
     expect(screen.queryByTestId('browse-map')).toBeNull()
     expect(screen.getByTestId('card-grid')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Show map' }))

@@ -27,9 +27,22 @@ describe('MapTapCounter (plan #258)', () => {
     fireEvent.click(screen.getByText('Show on map'))
     fireEvent.click(screen.getByText('Something else'))
     expect(log.mock.calls).toEqual([
-      ['directions', '/g/abc'],
+      ['directions', 'https://maps.apple.com/?daddr=1'],
       ['show_on_map', '/g/abc'],
     ])
+  })
+
+  it('two Directions on one page are two places', () => {
+    render(
+      <>
+        <MapTapCounter />
+        <a href="https://maps.apple.com/?daddr=1" data-map-tap="directions" onClick={(e) => e.preventDefault()}>one</a>
+        <a href="https://maps.apple.com/?daddr=2" data-map-tap="directions" onClick={(e) => e.preventDefault()}>two</a>
+      </>,
+    )
+    fireEvent.click(screen.getByText('one'))
+    fireEvent.click(screen.getByText('two'))
+    expect(new Set(log.mock.calls.map((c) => c[1])).size).toBe(2)
   })
 
   it('ignores a mark it does not know', () => {

@@ -14,8 +14,8 @@ import type { ActionContext } from '../_lib/context'
 export const MAP_TAP_KINDS = ['show_on_map', 'directions'] as const
 export const mapLogInput = z.object({
   kind: z.enum(MAP_TAP_KINDS),
-  /** The page the tap happened on; only ever hashed. */
-  target: z.string().max(300).optional(),
+  /** The link the tap opened, else the page it happened on; only ever hashed. */
+  target: z.string().max(600).optional(),
 })
 export type MapLogInput = z.infer<typeof mapLogInput>
 

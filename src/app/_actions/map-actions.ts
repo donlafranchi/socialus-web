@@ -11,7 +11,7 @@ export async function logMapTapAction(kind: (typeof MAP_TAP_KINDS)[number], targ
     const supabase = await createClient()
     const { data } = await supabase.auth.getUser()
     if (!data.user) return
-    await mapLog(resolveActionContext({ actingMemberId: data.user.id }), { kind, ...(target ? { target: target.slice(0, 300) } : {}) })
+    await mapLog(resolveActionContext({ actingMemberId: data.user.id }), { kind, ...(target ? { target: target.slice(0, 600) } : {}) })
   } catch {
     // Counting a tap is never worth an error.
   }
