@@ -6,6 +6,10 @@
 // it stays unit-testable. The client islands are <FollowPageButton> and
 // <ReportControl>.
 
+import { HeartButton } from '@/components/hearts/HeartSave'
+import { HeartedBy } from '@/components/hearts/HeartedBy'
+import { GetUpdatesProvider, PageMenu, WhenGettingUpdates } from './GetUpdates'
+import type { HeartView } from '@/lib/hearts/heart-view'
 import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { publishDraftAction } from '@/app/create/actions'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
@@ -92,6 +96,8 @@ interface Props {
   pagePath?: string
   /** F067 — whether the viewer already follows or belongs to this Page. */
   viewerFollows?: boolean
+  /** #1171 — hearts on this Page and its posts: counts, and names for its managers. */
+  hearts?: HeartView | null
   /** bug #338 — their row is a membership, not a follow. */
   viewerIsMember?: boolean
   /** F072 — what this Page has said, newest first. RLS decides what is in
@@ -141,6 +147,7 @@ export function ShopPublicPage({
   focusPostId = null,
   sharedPreview = null,
   viewerFollows = false,
+  hearts = null,
   viewerIsMember = false,
   posts = [],
   tags = [],
@@ -195,6 +202,17 @@ export function ShopPublicPage({
   const showFound = loggedIn && tags.length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
+  // #1171 — a private Page or one that leads with joining keeps its Join button; every other Page's follow is Get updates.
+  const joinsRatherThanFollows = shop.discoverability === 'private' || layout.lead === 'join'
+  const canGetUpdates = !viewerOwnsPage && !memberOfOpenPage && !joinsRatherThanFollows
+  const remindEveryTime =
+    repeatingSeries.length > 0 || hasShows ? (
+      <RemindEveryTimeButton
+        groupId={shop.groupId}
+        on={repeatingSeries.every((id) => reminders.bySeries[id]) && (!hasShows || !!reminders.byShows?.[shop.groupId])}
+        everyForPage={remindEveryTimeForPageAction}
+      />
+    ) : null
   // #363 — off for a social group until its owner adds it (bug #341).
   // #909 — empty, it is the owner's prompt and nobody else's.
   const showProducts = loggedIn && productsOn && (items.length > 0 || viewerOwnsPage)
@@ -226,6 +244,16 @@ export function ShopPublicPage({
       {showPictureNotice && <HiddenPhotoNotice which="picture" />}
 
       {/* #458 — the header block: photo, name, kind, Share and Follow. */}
+      <GetUpdatesProvider
+        enabled={canGetUpdates}
+        groupId={shop.groupId}
+        name={shop.displayName}
+        following={viewerFollows}
+        loggedIn={loggedIn}
+        returnTo={pagePath}
+        onFollow={followPageAction}
+        onUnfollow={unfollowPageAction}
+      >
       <header data-testid="page-header" className="flex flex-col gap-3">
         {/* #300 — the cover: the photo, or the default art when there is none or
             it is hidden. Decorative: the name is right under it. */}
@@ -276,7 +304,7 @@ export function ShopPublicPage({
           <div className="ml-auto flex shrink-0 items-center">
             {/* #267 — not on your own Page. A signed-out member is sent to sign-in (T160). */}
             {!viewerOwnsPage && (
-              <ReportControl subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} wordsReportable={!shop.wordsHidden} />
+              <PageMenu subjectId={shop.groupId} subjectLabel={shop.displayName} loggedIn={loggedIn} returnTo={pagePath} onSend={sendReportAction} wordsReportable={!shop.wordsHidden} />
             )}
           </div>
         </div>
@@ -309,42 +337,39 @@ export function ShopPublicPage({
           </div>
         ) : null}
 
-        {/* plan #230 — Follow, Share and About in one row under the name, as on a Facebook Page. */}
+        {/* plan #230 — Share and About in one row under the name, as on a Facebook Page. #1171 — Follow is now Get
+            updates in the ⋯; a private or meetup Page keeps Join here, and ♡ sits here for anyone who doesn't run it. */}
         <div data-testid="page-actions" className="flex flex-wrap items-center gap-2">
           {/* #267 — not on your own Page: your row there is your authority, not a follow. */}
-          {!viewerOwnsPage &&
-            (memberOfOpenPage ? (
-              <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
-                Member
-              </span>
-            ) : (
-              <div>
-                <FollowPageButton
-                  groupId={shop.groupId}
-                  isPrivate={shop.discoverability === 'private'}
-                  join={layout.lead === 'join'}
-                  loggedIn={loggedIn}
-                  following={viewerFollows}
-                  returnTo={pagePath}
-                  onFollow={followPageAction}
-                  onUnfollow={unfollowPageAction}
-                  whenFollowing={
-                    repeatingSeries.length > 0 || hasShows ? (
-                      <RemindEveryTimeButton
-                        groupId={shop.groupId}
-                        on={repeatingSeries.every((id) => reminders.bySeries[id]) && (!hasShows || !!reminders.byShows?.[shop.groupId])}
-                        everyForPage={remindEveryTimeForPageAction}
-                      />
-                    ) : null
-                  }
-                />
-              </div>
-            ))}
+          {!viewerOwnsPage && memberOfOpenPage && (
+            <span data-testid="viewer-member" className="self-start whitespace-nowrap text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
+              Member
+            </span>
+          )}
+          {!viewerOwnsPage && !memberOfOpenPage && joinsRatherThanFollows && (
+            <div>
+              <FollowPageButton
+                groupId={shop.groupId}
+                isPrivate={shop.discoverability === 'private'}
+                join={layout.lead === 'join'}
+                loggedIn={loggedIn}
+                following={viewerFollows}
+                returnTo={pagePath}
+                onFollow={followPageAction}
+                onUnfollow={unfollowPageAction}
+                whenFollowing={remindEveryTime}
+              />
+            </div>
+          )}
+          {canGetUpdates && remindEveryTime && <WhenGettingUpdates>{remindEveryTime}</WhenGettingUpdates>}
+          {!viewerOwnsPage && !isDraftPreview && <HeartButton target={{ groupId: shop.groupId }} returnTo={pagePath} />}
           {/* #409 — anyone can share a published Page, signed in or out. */}
           {!isDraftPreview && pagePath && <SharePageButton title={shop.displayName} path={pagePath} />}
           <PageAboutLink />
         </div>
+        {viewerOwnsPage && <HeartedBy tally={hearts?.page} testId="page-hearted-by" />}
       </header>
+      </GetUpdatesProvider>
 
      </div>
      <div className="mt-4 lg:grid lg:grid-cols-[minmax(0,1fr)_var(--panel-w)] lg:items-start lg:gap-12">
@@ -378,6 +403,7 @@ export function ShopPublicPage({
           focusPostId={focusPostId}
           reminders={viewerOwnsPage ? undefined : { viewer: reminders, set: setReminderAction, remove: removeReminderAction }}
           wonders={{ views: wonders, ...WONDER_ACTIONS }}
+          hearts={hearts}
         />
       )}
 

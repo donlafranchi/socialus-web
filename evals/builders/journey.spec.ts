@@ -203,9 +203,20 @@ test('builders follow each other and look for a way to RSVP', async ({ page }) =
     for (const [name, p] of pages.filter(([, p]) => p.kind !== kind).slice(0, 4)) {
       await j.step(`Follow ${name}`, `Followed ${name}`, async () => {
         await page.goto(p.href)
-        const follow = page.getByRole('button', { name: /^(Follow|Join)$/ })
-        if (await follow.isVisible().catch(() => false)) await follow.click()
-        await expect(page.getByRole('button', { name: /Following|Joined/ })).toBeVisible({ timeout: 15_000 })
+        // #1171 — an open Page's follow is Get updates in its ⋯; a private or meetup Page keeps Join.
+        const join = page.getByRole('button', { name: /^Join$/ })
+        if (await join.isVisible().catch(() => false)) {
+          await join.click()
+          await expect(page.getByRole('button', { name: /Joined/ })).toBeVisible({ timeout: 15_000 })
+        } else {
+          await page.getByTestId('page-header').getByRole('button', { name: 'More options' }).click()
+          const item = page.getByTestId('page-get-updates')
+          if ((await item.textContent())?.includes('Get updates')) await item.click()
+          else await page.keyboard.press('Escape')
+          await page.getByTestId('page-header').getByRole('button', { name: 'More options' }).click()
+          await expect(page.getByTestId('page-get-updates')).toHaveText('Stop updates', { timeout: 15_000 })
+          await page.keyboard.press('Escape')
+        }
       })
       const rsvp = page.getByRole('button', { name: /going|rsvp|i'?ll be there/i })
       if ((await rsvp.count()) === 0) j.friction(`RSVP on ${name}`, 'missing', 'an event post has no way to say you are going')

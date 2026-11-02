@@ -118,3 +118,4 @@ export {
   memberReminderRemove,
   memberReminderEveryForPage,
 } from './reminders'
+export { memberHeartSet, memberHeartSetInput, memberSaveSet, memberSaveSetInput, type MemberHeartSetInput } from './hearts-saves'

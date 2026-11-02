@@ -64,6 +64,8 @@ const POSTS_NOTHING: Record<string, string> = {
   'member.push.unsubscribe': 'private setting',
   'member.notifications.opened': 'private read receipt',
   'member.reminder.set': 'private reminder',
+  'member.heart.set': 'a heart, no words',
+  'member.save.set': 'private save',
   'member.reminder.remove': 'private reminder',
   'member.reminder.every_for_page': 'private reminder',
   // F117 — a Wonder itself is a post (group.post_create). These record who is in and who offers to help; an offer's

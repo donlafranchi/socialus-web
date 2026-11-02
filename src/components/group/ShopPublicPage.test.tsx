@@ -2,9 +2,13 @@
 // Trace: planning/now/scenario-F035-rosa-finds-mayas-shop.md story beats 1–6.
 
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, within, waitFor, act } from '@testing-library/react'
+import { resetMarks } from '@/lib/hearts/marks-store'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {} }), usePathname: () => '/' }))
+const follow = vi.fn(async () => ({}))
+const unfollow = vi.fn(async () => ({}))
+vi.mock('@/app/_actions/page-follow-actions', () => ({ followPageAction: () => follow(), unfollowPageAction: () => unfollow() }))
 import '@testing-library/jest-dom/vitest'
 import { ShopPublicPage } from './ShopPublicPage'
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
@@ -225,17 +229,31 @@ describe('ShopPublicPage — Beat 6 (draft owner preview)', () => {
 // itself: a signed-out viewer gets a way in, a signed-in one gets the control.
 // The control's own behaviour is covered in FollowPageButton.test.tsx.
 
-describe('F035 Beats 4 & 5 — the follow control is present for both viewers', () => {
-  it('Beat 5: a signed-out viewer gets a way to sign in', () => {
+// #1171 (plan #269, Don 2026-11-02): Follow becomes "Get updates", a quiet option in the Page's ⋯ menu.
+describe('F035 Beats 4 & 5 — Get updates is in the ⋯ for both viewers', () => {
+  const getUpdates = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    return screen.getByRole('menuitem', { name: /updates/ })
+  }
+
+  it('Beat 5: signed out, Get updates asks them to sign in', () => {
     renderShop({ loggedIn: false })
-    expect(screen.getByTestId('page-follow-signin')).toBeInTheDocument()
-    expect(screen.queryByTestId('page-follow')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('page-follow-signin')).toBeNull()
+    fireEvent.click(getUpdates())
+    expect(screen.getByText('Sign up to get updates')).toBeInTheDocument()
   })
 
-  it('Beat 4: a signed-in viewer gets the control itself', () => {
+  it('Beat 4: signed in, Get updates is the first item in the ⋯, and no Follow button is left in the header', async () => {
     renderShop({ loggedIn: true })
-    expect(screen.getByTestId('page-follow')).toBeInTheDocument()
-    expect(screen.queryByTestId('page-follow-signin')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('page-follow')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^follow/i })).toBeNull()
+    const item = getUpdates()
+    expect(item).toHaveTextContent(/^Get updates$/)
+    expect(screen.getAllByRole('menuitem')[0]).toBe(item)
+    fireEvent.click(item)
+    await waitFor(() => expect(follow).toHaveBeenCalled())
+    expect(await screen.findByText(/You’ll get updates from/)).toBeInTheDocument()
+    expect(getUpdates()).toHaveTextContent(/^Stop updates$/)
   })
 
   it('a private Page is joined, not followed', () => {
@@ -367,8 +385,8 @@ describe('#267 — the owner on their own Page', () => {
 
   it('a signed-in visitor who does not own it still sees both', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: false })
-    expect(screen.getByTestId('page-follow')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'More options' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    expect(screen.getByRole('menuitem', { name: 'Get updates' })).toBeInTheDocument()
   })
 })
 
@@ -657,12 +675,12 @@ describe('#458 — a header block, then contained sections', () => {
   }
   const sections = () => [...document.querySelectorAll('main section[data-section]')].map((el) => el.getAttribute('data-section'))
 
-  it('the header holds the photo, name, kind, Share and Follow', () => {
+  it('the header holds the photo, name, kind, Share and the ⋯ with Get updates', () => {
     renderShop(full)
     const header = screen.getByTestId('page-header')
     for (const id of ['page-cover', 'shop-name', 'page-kind']) expect(header).toContainElement(screen.getByTestId(id))
     expect(header).toContainElement(screen.getByTestId('page-share'))
-    expect(header).toContainElement(screen.getByRole('button', { name: /follow/i }))
+    expect(within(header).getByRole('button', { name: 'More options' })).toBeInTheDocument()
   })
 
   it('then Posts first, and About, Location, Contact, Tags and Products beside them, each titled and contained', () => {
@@ -737,9 +755,10 @@ describe('#338 — a member of an open Page', () => {
     expect(screen.queryByRole('button', { name: /following/i })).toBeNull()
     expect(screen.getByTestId('viewer-member')).toHaveTextContent('Member')
   })
-  it('a follower still gets Following', () => {
+  it('someone getting updates sees Stop updates in the ⋯', () => {
     renderShop({ loggedIn: true, viewerFollows: true, viewerIsMember: false })
-    expect(screen.getByRole('button', { name: /following/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    expect(screen.getByRole('menuitem', { name: 'Stop updates' })).toBeInTheDocument()
   })
 })
 
@@ -950,7 +969,7 @@ describe('#830 — Report is a ⋯ menu entry on the Page and on each post, for 
   it('the Page menu names the photo as its own item', () => {
     renderShop({ loggedIn: true, viewerOwnsPage: false })
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
-    expect(labels()).toEqual(['Report this Page', "Report this Page's photo"])
+    expect(labels()).toEqual(['Get updates', 'Report this Page', "Report this Page's photo"])
   })
 })
 
@@ -1111,10 +1130,42 @@ describe('plan #230 — posts are the Page, the info is on the side', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('Share sits beside Follow, Facebook-style', () => {
+  it('Share sits beside the Page’s heart, Facebook-style', () => {
+    act(() => resetMarks({ signedIn: true }))
     renderShop(full)
     const actions = screen.getByTestId('page-actions')
     expect(actions).toContainElement(screen.getByTestId('page-share'))
-    expect(actions).toContainElement(screen.getByRole('button', { name: /follow/i }))
+    expect(actions).toContainElement(screen.getByRole('button', { name: 'Heart this Page' }))
+  })
+})
+
+// #1171 (plan #269, Don 2026-11-02, option A) — ♡ on the Page; its managers see who, by name; nobody else does.
+describe('#1171 — hearts on the Page', () => {
+  it('a visitor can heart the Page; its owner cannot heart their own', () => {
+    act(() => resetMarks({ signedIn: true }))
+    renderShop({ loggedIn: true })
+    expect(screen.getByRole('button', { name: 'Heart this Page' })).toBeInTheDocument()
+    cleanup()
+    renderShop({ loggedIn: true, viewerOwnsPage: true })
+    expect(screen.queryByRole('button', { name: 'Heart this Page' })).toBeNull()
+  })
+
+  it('the owner sees who hearted the Page and each post, by name; a visitor sees neither', () => {
+    const hearts = { manages: true, page: { count: 2, names: ['Ana', 'Bea'] }, posts: { p1: { count: 1, names: ['Cy'] } } }
+    const posts = [{ id: 'p1', body: 'Bread is back', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }]
+    renderShop({ loggedIn: true, viewerOwnsPage: true, hearts, posts })
+    expect(screen.getByTestId('page-hearted-by')).toHaveTextContent('Ana and 1 other hearted this')
+    expect(screen.getByTestId('page-post-hearted-by')).toHaveTextContent('Cy hearted this')
+    cleanup()
+    renderShop({ loggedIn: true, hearts: { manages: false, page: { count: 2 }, posts: { p1: { count: 1 } } }, posts })
+    expect(screen.queryByTestId('page-hearted-by')).toBeNull()
+    expect(screen.queryByTestId('page-post-hearted-by')).toBeNull()
+  })
+
+  it('a private Page keeps Join in the header, and its ⋯ has no Get updates', () => {
+    renderShop({ loggedIn: true, shop: { ...SHOP, discoverability: 'private' } })
+    expect(screen.getByTestId('page-follow')).toHaveTextContent(/^Join$/)
+    fireEvent.click(screen.getByRole('button', { name: 'More options' }))
+    expect(screen.queryByRole('menuitem', { name: /updates/ })).toBeNull()
   })
 })

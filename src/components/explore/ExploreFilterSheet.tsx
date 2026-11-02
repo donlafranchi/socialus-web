@@ -152,7 +152,7 @@ export function ExploreFilterSheet({
             <Choice
               type="checkbox"
               name={`${groupId}-following`}
-              label="Following only"
+              label="Pages I get updates from"
               checked={draft.following}
               onChange={() => setDraft((d) => ({ ...d, following: !d.following }))}
             />

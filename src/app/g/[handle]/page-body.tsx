@@ -10,6 +10,7 @@ import { loadViewerReminders, NO_REMINDERS } from '@/lib/reminders/viewer-remind
 import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { loadPageSearchDemand } from '@/lib/search/page-demand'
 import { loadWonderViews } from '@/lib/wonders/wonder-view'
+import { loadHeartView } from '@/lib/hearts/heart-view'
 import type { SharedPostPreview } from '@/components/group/WithheldPagePosts'
 
 export async function PageBody({ shop: resolved, focusPostId = null, preview = null }: { shop: ResolvedShop; focusPostId?: string | null; preview?: SharedPostPreview | null }) {
@@ -21,9 +22,11 @@ export async function PageBody({ shop: resolved, focusPostId = null, preview = n
   // #909 — the owner's card; the database answers only a manager of this Page.
   // F117 — each Wonder's bar, helpers and the viewer's own state; the split and names only for its managers (the database decides).
   const wonderIds = view.loggedIn ? view.posts.filter((p) => p.wonder).map((p) => p.id) : []
-  const [searchDemand, wonders] = await Promise.all([
+  // #1171 — hearts: names for the Page's managers, counts for the rest (shown only when public counts are on).
+  const [searchDemand, wonders, hearts] = await Promise.all([
     view.viewerOwnsPage ? loadPageSearchDemand(supabase, shop.groupId) : Promise.resolve(null),
     wonderIds.length ? loadWonderViews(supabase, wonderIds) : Promise.resolve({}),
+    view.loggedIn ? loadHeartView(supabase, shop.groupId).catch(() => null) : Promise.resolve(null),
   ])
   // #945 — the viewer's own reminders, read under their session (nobody else's are readable).
   const reminders = view.viewerOwnsPage ? NO_REMINDERS : ((await remindersAsked) ?? NO_REMINDERS)
@@ -53,6 +56,7 @@ export async function PageBody({ shop: resolved, focusPostId = null, preview = n
       searchDemand={searchDemand}
       reminders={reminders}
       wonders={wonders}
+      hearts={hearts}
       pagePath={pagePath(shop)}
       focusPostId={focusPostId}
       sharedPreview={preview}

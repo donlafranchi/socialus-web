@@ -91,6 +91,20 @@ export const RESOURCES: Resource[] = [
     rest: NONE,
   },
   {
+    name: 'Hearts (hearts): only your own by table; a Page\'s managers get names through heart_view',
+    sql: 'select count(*)::int n from public.hearts',
+    total: 1,
+    cells: { follower: own(1) },
+    rest: NONE,
+  },
+  {
+    name: 'Saves (saves): only your own',
+    sql: 'select count(*)::int n from public.saves',
+    total: 1,
+    cells: { follower: own(1) },
+    rest: NONE,
+  },
+  {
     name: 'Members (members): only yourself',
     sql: 'select count(*)::int n from public.members',
     total: 13,

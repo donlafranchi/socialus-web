@@ -453,6 +453,11 @@ insert into public.reports (id, reporter_member_id, subject_kind, subject_id, bo
   ('0f000000-0000-4000-8000-000000000101', '0a000000-0000-4000-8000-000000000001', 'group', '0b000000-0000-4000-8000-000000000001', 'Seeded report for the operator queue.')
 on conflict (id) do nothing;
 
+-- 5. #1171 — the follower hearts and saves the first Page's Saturday post: its owner sees the heart by name
+--    (heart_view), never the save; no one else reads either.
+insert into public.hearts (member_id, post_id) values ('0a000000-0000-4000-8000-000000000002', '0e000000-0000-4000-8000-000000000101') on conflict do nothing;
+insert into public.saves (member_id, post_id) values ('0a000000-0000-4000-8000-000000000002', '0e000000-0000-4000-8000-000000000101') on conflict do nothing;
+
 commit;
 
 refresh materialized view public.discoverable_items;

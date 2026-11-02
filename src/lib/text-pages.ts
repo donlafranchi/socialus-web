@@ -66,6 +66,7 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'Your display name, and the Pages and posts you publish, can be seen by other members. Visitors who are not signed in see a limited list.',
       'Your legal name, your email and your phone number are seen only by operators. Your zip code is never shown to another member or to a visitor; it is used to place you in your area, and you can change it from your account.',
       'A Page shows the area it is in, and an exact address only when the owner has made one public.',
+      'When you heart a post, its poster sees your name. Saves are private.',
       'When something is reported, an automated first pass may read the reported post or photo, the reason the reporter gave, and the poster’s reply before a person makes the call. It is run for us by Anthropic, an AI company that processes this only on our behalf and on our instructions. We never send it names, emails or other member details. A person always decides.',
       'You can archive or delete a Page you run. A deleted Page can be restored for 14 days.',
       'When you post or upload, we record the internet address and time it came from, to keep SocialUs safe. Only operators can see it, and it is deleted after one year.',

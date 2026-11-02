@@ -7,5 +7,5 @@ const LABEL_MAX = 80
 // Default label derived from the venue's name, truncated to the label CHECK
 // ceiling (member.md § Saved searches). Private to the owner; editable at b2.
 export function buildVenueFollowLabel(venueName: string): string {
-  return `Following ${venueName}`.slice(0, LABEL_MAX)
+  return `Updates from ${venueName}`.slice(0, LABEL_MAX)
 }

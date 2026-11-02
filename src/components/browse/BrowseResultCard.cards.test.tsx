@@ -2,10 +2,11 @@
 // cards only; no chips or pills anywhere [always].
 
 import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup, within } from '@testing-library/react'
+import { render, screen, cleanup, within, act } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseResultCard, splitPost } from './BrowseResultCard'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
+import { resetMarks } from '@/lib/hearts/marks-store'
 
 afterEach(cleanup)
 
@@ -229,5 +230,31 @@ describe('#1127 — the post card reads cleanly at a phone’s width and in a de
     )
     expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Live music · Sat 9pm · The Old Ironsides$/)
     expect(screen.getByTestId('tile-title')).toHaveTextContent(/^Emo Night with DJ Somebody$/)
+  })
+})
+
+// #1171 (plan #269, Don 2026-11-02) — ♡ and Save on every post card, under the picture (Instagram's place), outside the
+// card's link so a tap never opens the post. A sample has neither; signed out shows neither.
+describe('the post card: heart and save', () => {
+  it('sits the heart and the save together under the picture, outside the card’s link', () => {
+    act(() => resetMarks({ signedIn: true }))
+    render(<BrowseResultCard result={post({ headline: 'Pumpkin bread is back' })} />)
+    const marks = screen.getByTestId('post-marks')
+    const heart = within(marks).getByRole('button', { name: 'Heart this post' })
+    const save = within(marks).getByRole('button', { name: 'Save this post' })
+    expect(heart.closest('a')).toBeNull()
+    expect(save.closest('a')).toBeNull()
+    expect(marks.className).toMatch(/top-\[calc\(100cqw\*2\/3\)\]/)
+    expect(screen.getByTestId('tile-card').className).toMatch(/@container/)
+  })
+
+  it('shows neither on a sample, and neither signed out', () => {
+    act(() => resetMarks({ signedIn: true }))
+    render(<BrowseResultCard result={post({ sampleKind: 'deal', headline: 'Two for one' })} />)
+    expect(screen.queryByTestId('post-marks')).toBeNull()
+    cleanup()
+    act(() => resetMarks({ signedIn: false }))
+    render(<BrowseResultCard result={post({ headline: 'Pumpkin bread is back' })} />)
+    expect(screen.queryByRole('button', { name: /heart|save/i })).toBeNull()
   })
 })

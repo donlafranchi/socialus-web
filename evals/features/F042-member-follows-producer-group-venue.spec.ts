@@ -53,7 +53,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
 
       // Why: F042 surfaces all three substrates in ONE "Following" section
       // without leaking the substrate distinction (scenario "The Person").
-      await expect(page.getByRole('heading', { name: /Following/i })).toBeVisible()
+      await expect(page.getByRole('heading', { name: /Getting updates/i })).toBeVisible()
 
       // Mixed entities render by display name (Member), name (Group), label (Venue).
       await expect(page.getByText(FOLLOWED_MEMBER.displayName)).toBeVisible()
@@ -84,7 +84,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
       // — Leave is reserved for Groups (scenario "The Story").
       const peopleRow = rowByName(page, FOLLOWED_MEMBER.displayName)
       await expect(peopleRow).toBeVisible()
-      await expect(peopleRow.getByRole('button', { name: /Unfollow/i })).toBeVisible()
+      await expect(peopleRow.getByRole('button', { name: /Stop updates/i })).toBeVisible()
 
       // Group row → name + Leave (a membership, not a follow).
       const groupRow = rowByName(page, GROUP.name)
@@ -94,7 +94,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
       // Venue row → label + Unfollow.
       const venueRow = rowByName(page, VENUE.label)
       await expect(venueRow).toBeVisible()
-      await expect(venueRow.getByRole('button', { name: /Unfollow/i })).toBeVisible()
+      await expect(venueRow.getByRole('button', { name: /Stop updates/i })).toBeVisible()
     })
   })
 
@@ -107,7 +107,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
       await page.goto('/you/following')
 
       const peopleRow = rowByName(page, FOLLOWED_MEMBER.displayName)
-      await peopleRow.getByRole('button', { name: /Unfollow/i }).click()
+      await peopleRow.getByRole('button', { name: /Stop updates/i }).click()
 
       // Soft-delete is the scenario's exact "Then" — assert the column flips.
       await expect
@@ -141,8 +141,8 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
       await page.goto('/you/following')
 
       const groupRow = rowByName(page, GROUP.name)
-      // #962 — a followed Page lists under Pages with Unfollow, whatever the relationship.
-      await groupRow.getByRole('button', { name: /Unfollow/i }).click()
+      // #962 — a followed Page lists under Pages with Stop updates (#1171), whatever the relationship.
+      await groupRow.getByRole('button', { name: /Stop updates/i }).click()
 
       await expect
         .poll(() => membershipIsActive(SEEDED.groupId, SEEDED.mutatorId), { timeout: 5000 })
@@ -169,7 +169,7 @@ test.describe('F042 — Member follows a producer, a group, and a venue', () => 
       await page.goto('/you/following')
 
       const venueRow = rowByName(page, VENUE.label)
-      await venueRow.getByRole('button', { name: /Unfollow/i }).click()
+      await venueRow.getByRole('button', { name: /Stop updates/i }).click()
 
       await expect
         .poll(() => venueSavedSearchIsActive(SEEDED.mutatorId, SEEDED.venueLocationId), {

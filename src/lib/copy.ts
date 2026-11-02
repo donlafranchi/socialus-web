@@ -143,3 +143,23 @@ export const COPY = {
   wonderThresholdInvalid: 'Enter a whole number, 1 or more, or leave it blank.',
   wonderPost: 'Propose it',
 } as const
+
+// #1171 (socialus-plan #269, Don 2026-11-02) — ♡ and Save, and Follow as Get updates. Draft copy (human-review).
+export const HEART_COPY = {
+  heartPost: 'Heart this post',
+  heartPage: 'Heart this Page',
+  savePost: 'Save this post',
+  saved: 'Saved',
+  /** What a Page's managers see: who hearted, by name, newest first. */
+  heartedBy: (names: readonly string[], count: number) =>
+    count <= 1 ? `${names[0] ?? 'Someone'} hearted this` : `${names[0] ?? 'Someone'} and ${count - 1} ${count - 1 === 1 ? 'other' : 'others'} hearted this`,
+  heartedByList: 'Who hearted this',
+  getUpdates: 'Get updates',
+  stopUpdates: 'Stop updates',
+  gettingUpdates: (name: string) => `You’ll get updates from ${name}.`,
+  updatesStopped: (name: string) => `You won’t get updates from ${name}.`,
+  savedTitle: 'Saved',
+  savedEmpty: 'Nothing saved yet. Tap the bookmark on a post to keep it here.',
+  savedPast: 'Already happened',
+  unsave: 'Remove',
+} as const

@@ -24,6 +24,9 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
+import { HeartButton, SaveButton } from '@/components/hearts/HeartSave'
+import { HeartedBy } from '@/components/hearts/HeartedBy'
+import type { HeartView } from '@/lib/hearts/heart-view'
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ReportControl } from './ReportControl'
@@ -184,6 +187,8 @@ interface Props {
   reminders?: { viewer: ViewerReminders } & RemindActions
   /** F117 — each Wonder's view for this viewer, and what its controls call. */
   wonders?: { views: Record<string, WonderView> } & WonderActions
+  /** #1171 — hearts on this Page's posts: counts, and names for its managers (heart_view). */
+  hearts?: HeartView | null
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -269,6 +274,7 @@ export function PagePosts({
   seriesComposer = SERIES_COMPOSER_ON,
   reminders,
   wonders,
+  hearts,
   pagePath = null,
   focusPostId = null,
 }: Props) {
@@ -794,6 +800,13 @@ export function PagePosts({
 
                   <div className="mt-2 flex items-center gap-3">
                     <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
+                    {/* #1171 — ♡ and Save beside Share for everyone but the Page's managers; a sample has neither. */}
+                    {!canPost && !post.sampleKind && !post.hiddenAt && (
+                      <span className="-mx-2 inline-flex items-center">
+                        <HeartButton target={{ postId: post.id }} returnTo={returnTo} />
+                        <SaveButton postId={post.id} returnTo={returnTo} />
+                      </span>
+                    )}
                     {pagePath && !post.hiddenAt && (
                       <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post)} />
                     )}
@@ -832,6 +845,7 @@ export function PagePosts({
                       </button>
                     )}
                   </div>
+                  <HeartedBy tally={hearts?.posts[post.id]} testId="page-post-hearted-by" />
                   <Sheet
                     open={confirmingDelete === post.id && !!onDelete}
                     title="Delete this post?"

@@ -37,6 +37,7 @@ export interface OverflowItem {
   /** A link item — rendered as an anchor. Mutually exclusive with onSelect. */
   href?: string
   onSelect?: () => void
+  testId?: string
 }
 
 interface Props {
@@ -148,6 +149,7 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
                 key={item.label}
                 type="button"
                 role="menuitem"
+                data-testid={item.testId}
                 onClick={() => {
                   // Close without refocusing the ⋯: the item is about to open
                   // a sheet that takes focus itself, and returning focus here
