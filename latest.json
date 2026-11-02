@@ -1,12 +1,12 @@
 {
- "at": "2026-10-26T20:36:51.118Z",
- "state": "quiet",
+ "at": "2026-11-02T23:09:35.302Z",
+ "state": "green",
  "kinds": [
   {
    "kind": "follow_posts",
-   "state": "quiet",
+   "state": "green",
    "why": null,
-   "optInRate": 0,
+   "optInRate": 0.07142857142857142,
    "openRate": null,
    "weeks": [
     {
@@ -38,20 +38,32 @@
      "kind": "follow_posts",
      "sends": 0,
      "opens": 0,
-     "opt_ins": 0,
+     "opt_ins": 1,
      "unsubscribes": 0,
      "mutes": 0,
      "emails": 0,
      "opted_in_members": 0,
+     "members": 14
+    },
+    {
+     "week": "2026-11-02",
+     "kind": "follow_posts",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 1,
      "members": 14
     }
    ]
   },
   {
    "kind": "weekend",
-   "state": "quiet",
+   "state": "green",
    "why": null,
-   "optInRate": 0,
+   "optInRate": 0.07142857142857142,
    "openRate": null,
    "weeks": [
     {
@@ -83,20 +95,32 @@
      "kind": "weekend",
      "sends": 0,
      "opens": 0,
-     "opt_ins": 0,
+     "opt_ins": 1,
      "unsubscribes": 0,
      "mutes": 0,
      "emails": 0,
      "opted_in_members": 0,
+     "members": 14
+    },
+    {
+     "week": "2026-11-02",
+     "kind": "weekend",
+     "sends": 0,
+     "opens": 0,
+     "opt_ins": 0,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 1,
      "members": 14
     }
    ]
   },
   {
    "kind": "reminder",
-   "state": "quiet",
+   "state": "green",
    "why": null,
-   "optInRate": 0,
+   "optInRate": 0.07142857142857142,
    "openRate": null,
    "weeks": [
     {
@@ -116,11 +140,23 @@
      "kind": "reminder",
      "sends": 0,
      "opens": 0,
+     "opt_ins": 1,
+     "unsubscribes": 0,
+     "mutes": 0,
+     "emails": 0,
+     "opted_in_members": 1,
+     "members": 14
+    },
+    {
+     "week": "2026-11-02",
+     "kind": "reminder",
+     "sends": 0,
+     "opens": 0,
      "opt_ins": 0,
      "unsubscribes": 0,
      "mutes": 0,
      "emails": 0,
-     "opted_in_members": 0,
+     "opted_in_members": 1,
      "members": 14
     }
    ]
