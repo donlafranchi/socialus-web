@@ -37,6 +37,7 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { ReactNode } from 'react'
 import { SharePageButton } from '@/components/group/SharePageButton'
 import { postPath } from '@/lib/posts/post-path'
+import { HeartButton, SaveButton } from '@/components/hearts/HeartSave'
 
 /** Small caps for labels and the date line: typography, never a pill. */
 const SMALL_CAPS = 'text-micro font-semibold uppercase tracking-wider'
@@ -74,7 +75,7 @@ function Shell({ result, as, prefetch, kind, imageUrl, children, after }: CardPr
       interactive={Boolean(result.href)}
       data-testid="tile-card"
       data-card={kind}
-      className={`group/tile flex flex-col${watermark ? ' relative overflow-hidden' : kind === 'post' ? ' relative' : ''}`}
+      className={`group/tile flex flex-col${watermark ? ' relative overflow-hidden' : kind === 'post' ? ' @container relative' : ''}`}
     >
       {result.href ? (
         // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
@@ -152,6 +153,7 @@ export function splitPost(body: string | null): { title: string; rest: string } 
 function PostCard(props: CardProps) {
   const { result, now } = props
   const headline = cardHeadline({ headline: result.headline, body: result.body, pageName: result.name })
+  const marks = !result.sampleKind
   const preview = cardPreview({ headline: result.headline, body: result.body, pageName: result.name })
   const lead = leadLineParts(
     {
@@ -185,10 +187,22 @@ function PostCard(props: CardProps) {
       imageUrl={photo}
       // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
       // bottom corner, level with the Page's name, rather than on a row of its own.
-      after={result.href ? <div className="absolute bottom-1.5 right-1.5"><SharePageButton quiet testId="browse-post-share" title={headline} path={result.href.startsWith('/g/') ? postPath(result.href, { id: result.resultId }) : result.href} /></div> : null}
+      after={
+        <>
+          {result.href ? <div className="absolute bottom-1.5 right-1.5"><SharePageButton quiet testId="browse-post-share" title={headline} path={result.href.startsWith('/g/') ? postPath(result.href, { id: result.resultId }) : result.href} /></div> : null}
+          {/* #1171 — ♡ and Save under the picture, Instagram's place: the heart at the left, the save at the right. Outside the
+              card's link, so a tap never opens the card; the spacer below keeps their row. A sample has neither. */}
+          {marks && (
+            <div data-testid="post-marks" className="absolute inset-x-1 top-[calc(100cqw*2/3)] flex items-center justify-between">
+              <HeartButton target={{ postId: result.resultId }} />
+              <SaveButton postId={result.resultId} />
+            </div>
+          )}
+        </>
+      }
     >
       <div data-testid="browse-post-body" className="flex flex-col-reverse">
-        <div data-testid="tile-text" className="min-w-0 flex-1 px-3 pb-3 pt-2.5">
+        <div data-testid="tile-text" className={`min-w-0 flex-1 px-3 pb-3${marks ? '' : ' pt-2.5'}`}>
           {/* #1127 — one line. A long where is cut short; with too little room for it (under 4.5rem, basis-18) it wraps onto a
               second line the fixed height hides, so a lead never ends in a bare "· …". */}
           <p data-testid="browse-post-lead" className={`${SMALL_CAPS} flex h-4 min-w-0 flex-wrap overflow-hidden whitespace-nowrap font-bold leading-4 text-[var(--color-fg)]`}>
@@ -218,6 +232,7 @@ function PostCard(props: CardProps) {
             <span data-testid="post-page-name" className="line-clamp-1 font-medium text-[var(--color-fg)]">{result.name}</span>
           </p>
         </div>
+        {marks && <div aria-hidden="true" className="h-tap shrink-0" />}
         <div data-testid="tile-image" className="flex aspect-[3/2] w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
