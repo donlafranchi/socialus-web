@@ -40,9 +40,23 @@ async function load() {
   })
 }
 
+const reload = () => (loading = load().catch(() => setMarks({ signedIn: false })))
+
 function subscribe(l: () => void) {
   listeners.add(l)
-  loading ??= load().catch(() => setMarks({ signedIn: false }))
+  if (!loading) {
+    reload()
+    // A sign-out, or someone else signing in on this tab, never keeps the last member's marks.
+    try {
+      createClient().auth.onAuthStateChange((event) => {
+        // SIGNED_IN also fires when a session is recovered on focus: reload in place rather than blink the icons.
+        if (event === 'SIGNED_OUT') setMarks({ ...EMPTY, signedIn: false })
+        if (event === 'SIGNED_IN') reload()
+      })
+    } catch {
+      setMarks({ signedIn: false })
+    }
+  }
   return () => listeners.delete(l)
 }
 
