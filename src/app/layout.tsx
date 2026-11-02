@@ -8,6 +8,7 @@ import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
 import { NewVersionNotice } from "@/components/shell/NewVersionNotice"
 import { PushLandingBar } from "@/components/notify/PushLandingBar"
 import { ShelfSaveCredit } from "@/components/browse/ShelfLogging"
+import { MapTapCounter } from "@/components/map/MapTapCounter"
 import { siteMetadataBase } from "@/lib/site-url"
 
 const inter = Inter({
@@ -64,6 +65,8 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         {/* F121 — a save on a card tapped from a shelf counts for that shelf. */}
         <ShelfSaveCredit />
+        {/* plan #258 — Show on map and Directions taps, counted per day. */}
+        <MapTapCounter />
         {/* #958 — the build this page came from; empty on a dev server, which never checks. */}
         <NewVersionNotice buildId={process.env.VERCEL_GIT_COMMIT_SHA ?? ""} />
         <ExploreSearchProvider>

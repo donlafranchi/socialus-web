@@ -78,6 +78,7 @@ const POSTS_NOTHING: Record<string, string> = {
   'member.search_sharing.set': 'private setting',
   'search.demand_log': 'anonymous count',
   'shelf.log': 'anonymous count',
+  'map.log': 'anonymous count',
   'group.archive': 'lifecycle, no new content',
   'group.delete': 'lifecycle, no new content',
   'group.discard_draft': 'lifecycle, no new content',

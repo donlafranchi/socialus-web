@@ -53,6 +53,8 @@ describe('quick links: Page cards only', () => {
     const row = screen.getByTestId('quick-links')
     const links = within(row).getAllByRole('link')
     expect(links.map((a) => a.textContent)).toEqual(['Directions to Corner Bakery', 'Corner Bakery website', 'Corner Bakery on Instagram'])
+    // plan #258 — a Directions tap is counted per day.
+    expect(links[0]).toHaveAttribute('data-map-tap', 'directions')
     for (const a of links) {
       expect(a).toHaveAttribute('target', '_blank')
       expect(a).toHaveAttribute('rel', 'noopener noreferrer')

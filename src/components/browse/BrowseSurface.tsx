@@ -468,6 +468,7 @@ export function BrowseSurface({
                 <a
                   href={mapHref}
                   data-testid="show-on-map"
+                  data-map-tap="show_on_map"
                   onClick={(e) => {
                     e.preventDefault()
                     showMapView(true)

@@ -409,6 +409,7 @@
     "item.featured_remove",
     "item.featured_save",
     "item.publish",
+    "map.log",
     "member.business_jurisdiction.remove",
     "member.business_jurisdiction.set",
     "member.create",

@@ -24,7 +24,7 @@ export function PageStops({ stops, schedule, name }: { stops: PageStop[]; schedu
             {schedule && s.whenText && <span className="text-body-sm font-medium text-[var(--color-fg)]">{s.whenText}</span>}
             <span className={schedule && s.whenText ? 'text-body-sm text-[var(--color-fg-muted)]' : 'text-body-sm text-[var(--color-fg)]'}>{s.label}</span>
             {links.directions && (
-              <a href={links.directions} {...out} aria-label={`Directions to ${s.label}`} className={`${LINK} self-start`}>
+              <a href={links.directions} {...out} data-map-tap="directions" aria-label={`Directions to ${s.label}`} className={`${LINK} self-start`}>
                 Directions
               </a>
             )}
