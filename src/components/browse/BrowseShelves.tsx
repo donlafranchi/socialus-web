@@ -51,6 +51,7 @@ export function BrowseShelves({ groups, prefetch = 0 }: { groups: readonly Resul
   }, [])
 
   const current = groups.find((g) => g.key === open)
+  const sizeOf = (g: ResultGroup) => (g.results[0]?.resultKind === 'post' ? 'post' : 'page')
   return (
     <>
       {groups.map((g, n) => {
@@ -58,6 +59,7 @@ export function BrowseShelves({ groups, prefetch = 0 }: { groups: readonly Resul
           <ShelfRow
             key={g.key}
             title={g.label}
+            size={sizeOf(g)}
             items={g.results}
             keyOf={keyOf}
             renderItem={(r, i) => <BrowseResultCard result={r} as="div" prefetch={n === 0 && i < prefetch ? true : undefined} />}
@@ -72,7 +74,7 @@ export function BrowseShelves({ groups, prefetch = 0 }: { groups: readonly Resul
           row
         )
       })}
-      {current && <ShelfScreen title={current.label} items={current.results} keyOf={keyOf} renderItem={(r) => <BrowseResultCard result={r} as="div" />} onClose={close} />}
+      {current && <ShelfScreen title={current.label} size={sizeOf(current)} items={current.results} keyOf={keyOf} renderItem={(r) => <BrowseResultCard result={r} as="div" />} onClose={close} />}
     </>
   )
 }

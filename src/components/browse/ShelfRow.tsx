@@ -3,14 +3,26 @@
 // Don (2026-11-01): a shelf should "not continue on a new line and instead scroll off the page", with arrows or a
 // tap on the shelf to open "a longer list". The App Store's shelf (Apple HIG, Collections): one row that scrolls
 // sideways, its title and "See all" open the full list as its own screen. Arrows from 768px; a phone swipes.
-// One type per row (Pages or posts, never both) is the caller's job. Draft copy (human-review).
+// One type per row (Pages or posts, never both) is the caller's job, and it says which with `size`. Draft copy (human-review).
+//
+// Don (2026-11-02): "our posts should be a little bit larger. Eg take up more screen space." A row of posts shows about
+// one and a half cards on a phone, so the next one peeks (Airbnb's and Eventbrite's rows), and fewer, wider cards than
+// Pages from 768px, capped so a monitor never gets one enormous card.
 
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
 import { CardGrid } from '@/components/cards'
 
+export type ShelfSize = 'page' | 'post'
+
+const ITEM: Record<ShelfSize, string> = {
+  page: 'w-4/5 max-w-72',
+  post: 'w-[calc((100%-var(--spacing)*3)/1.5)] max-w-post-card md:w-[calc((100%-var(--spacing)*6)/2.25)]',
+}
+
 interface ShelfItems<T> {
   title: string
+  size?: ShelfSize
   items: readonly T[]
   keyOf: (item: T) => string
   renderItem: (item: T, index: number) => ReactNode
@@ -27,6 +39,7 @@ export function ShelfRow<T>({
   onSeeAll,
   limit = 12,
   testId,
+  size = 'page',
 }: ShelfItems<T> & { onSeeAll?: () => void; limit?: number; testId?: string }) {
   const listRef = useRef<HTMLUListElement>(null)
   if (items.length === 0) return null
@@ -73,7 +86,7 @@ export function ShelfRow<T>({
       >
         {/* relative: a card's absolutely placed parts (sr-only labels) stay inside the scroller, or a phone zooms out to fit them. */}
         {items.slice(0, limit).map((item, i) => (
-          <li key={keyOf(item)} className="relative w-4/5 max-w-72 shrink-0 snap-start">
+          <li key={keyOf(item)} className={`relative ${ITEM[size]} shrink-0 snap-start`}>
             {renderItem(item, i)}
           </li>
         ))}
@@ -85,7 +98,7 @@ export function ShelfRow<T>({
 const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
 /** The shelf opened: every item, as its own screen. Back and Escape close it; Tab stays inside; focus returns to the opener. */
-export function ShelfScreen<T>({ title, items, keyOf, renderItem, onClose }: ShelfItems<T> & { onClose: () => void }) {
+export function ShelfScreen<T>({ title, items, keyOf, renderItem, onClose, size = 'page' }: ShelfItems<T> & { onClose: () => void }) {
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -132,7 +145,7 @@ export function ShelfScreen<T>({ title, items, keyOf, renderItem, onClose }: She
         </h2>
       </div>
       <div className="px-3 py-4 md:px-6">
-        <CardGrid>
+        <CardGrid density={size === 'post' ? 'roomy' : 'comfortable'}>
           {items.map((item, i) => (
             <li key={keyOf(item)}>{renderItem(item, i)}</li>
           ))}
