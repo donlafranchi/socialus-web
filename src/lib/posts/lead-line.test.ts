@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { leadLine, leadLineParts, cardHeadline, venueShow } from './lead-line'
+import { leadLine, leadLineParts, cardHeadline, cardPreview, venueShow } from './lead-line'
 import { CALENDAR_LINE } from '@/lib/unclaimed/event-type'
 import { showBody } from '@/lib/unclaimed/venue-events'
 
@@ -120,5 +120,53 @@ describe('#1127 — an imported venue show is recognised from its calendar line'
 
   it('the headline drops the venue the card already names', () => {
     expect(cardHeadline({ headline: null, body: body('Emo Night with DJ Somebody'), pageName: 'The Old Ironsides' })).toBe('Emo Night with DJ Somebody')
+  })
+})
+
+// Don, 2026-11-02: "Also should show a line or two about the post". The card's words under the headline: the post's
+// own text, never repeating the headline, never the sample disclaimer or an import's source line; null when nothing is left.
+describe('the card preview: a line or two of the post itself', () => {
+  it('is the body after the line the headline came from, when the post has no headline of its own', () => {
+    expect(cardPreview({ body: 'Pumpkin bread is back. Every Saturday while it lasts.\nCome early.', pageName: 'Corner Bakery' })).toBe('Every Saturday while it lasts. Come early.')
+  })
+
+  it('is the whole body when the headline is separate, and drops the body’s opening if it repeats the headline', () => {
+    expect(cardPreview({ headline: 'Pumpkin bread', body: 'Fresh every Saturday.\n\nCome early.', pageName: 'Corner Bakery' })).toBe('Fresh every Saturday. Come early.')
+    expect(cardPreview({ headline: 'Pumpkin bread is back', body: 'Pumpkin bread is back\nFresh every Saturday.', pageName: 'Corner Bakery' })).toBe('Fresh every Saturday.')
+  })
+
+  it('drops a repeated headline only as whole words', () => {
+    expect(cardPreview({ headline: 'Open mic', body: 'Open mic night every Thursday.', pageName: 'The Shop' })).toBe('Open mic night every Thursday.')
+    expect(cardPreview({ headline: 'Yoga', body: 'Yogalates at noon.', pageName: 'The Shop' })).toBe('Yogalates at noon.')
+    expect(cardPreview({ headline: 'Open mic', body: 'Open mic: sign up at seven.', pageName: 'The Shop' })).toBe('sign up at seven.')
+  })
+
+  // Review of #1170: the two-line cut is visual, and the card is one link, so a screen reader would read a whole post.
+  it('is at most about two lines’ worth of words, cut at a word with an ellipsis', () => {
+    const long = Array.from({ length: 200 }, (_, i) => `word${i}`).join(' ')
+    const preview = cardPreview({ headline: 'Big news', body: long, pageName: 'The Shop' })!
+    expect(preview.length).toBeLessThanOrEqual(201)
+    expect(preview.endsWith('…')).toBe(true)
+    expect(preview.slice(0, -1)).toMatch(/word\d+$/)
+  })
+
+  it('is nothing when the post has no words beyond its headline: no filler', () => {
+    expect(cardPreview({ headline: 'Open mic tonight', body: 'Open mic tonight', pageName: 'The Shop' })).toBeNull()
+    expect(cardPreview({ body: 'Open mic tonight', pageName: 'The Shop' })).toBeNull()
+    expect(cardPreview({ headline: 'Open mic', body: null, pageName: 'The Shop' })).toBeNull()
+    expect(cardPreview({ body: '   ', pageName: 'The Shop' })).toBeNull()
+  })
+
+  it('never shows a sample’s Sample prefix or its disclaimer: the lead line says Sample once', () => {
+    const body = "Sample · Two pastries for one this weekend.\n\nThis is a sample post showing what Corner Bakery's Page could look like. It is not a real offer."
+    expect(cardPreview({ headline: 'Two for one', body, pageName: 'Corner Bakery' })).toBe('Two pastries for one this weekend.')
+    expect(cardPreview({ body, pageName: 'Corner Bakery' })).toBeNull()
+  })
+
+  it('gives an imported show its times, never its calendar or photo credit line', () => {
+    const body = showBody('Ace of Spades', { title: 'Big Band', startsAt: new Date(SAT_8PM_PT), doorsAt: new Date(SAT_5PM_PT) }, 'https://ace.example/cal', 'Jo Lens')
+    const preview = cardPreview({ body, pageName: 'Ace of Spades' })!
+    expect(preview).toMatch(/^Doors .* · Show /)
+    expect(preview).not.toMatch(/calendar|Photo:/)
   })
 })

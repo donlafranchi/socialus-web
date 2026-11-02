@@ -139,6 +139,33 @@ describe('the post card: what it is, first', () => {
   })
 })
 
+// Don, 2026-11-02: "Also should show a line or two about the post or how does Fb do it?" Facebook's feed shows 3–5
+// lines and See more; Airbnb and Eventbrite one short line. Two lines, cut short, under the headline; the card opens the post.
+describe('the post card: a line or two about the post', () => {
+  it('shows up to two lines of the post’s own words under the headline, before the Page name', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} />)
+    const preview = screen.getByTestId('browse-post-preview')
+    expect(preview).toHaveTextContent(/^Fresh from the oven every Saturday morning while it lasts\. Come early\.$/)
+    expect(preview.className).toMatch(/line-clamp-2/)
+    const [title, name] = [screen.getByTestId('tile-title'), screen.getByTestId('post-page-name')]
+    expect(title.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(preview.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByText(/see more/i)).toBeNull()
+  })
+
+  it('shows nothing extra when the post has no words beyond its headline', () => {
+    render(<BrowseResultCard result={post({ headline: 'Open mic tonight', body: 'Open mic tonight' })} />)
+    expect(screen.queryByTestId('browse-post-preview')).toBeNull()
+  })
+
+  it('keeps a sample’s one Sample in the lead line, first', () => {
+    render(<BrowseResultCard result={post({ postKind: 'sale', sampleKind: 'deal', headline: 'Two for one', body: 'Sample · Two pastries for one this weekend.\nThis is a sample post showing what Corner Bakery’s Page could look like.' })} />)
+    expect(screen.getByTestId('browse-post-lead').textContent!.startsWith('Sample')).toBe(true)
+    expect(screen.getByTestId('browse-post-preview')).toHaveTextContent(/^Two pastries for one this weekend\.$/)
+    expect(screen.getByTestId('tile-card').textContent!.match(/sample/gi)).toHaveLength(1)
+  })
+})
+
 describe('#1127 — the post card reads cleanly at a phone’s width and in a desktop grid tile', () => {
   const NOW = new Date('2026-10-22T17:00:00Z') // Thu
 
