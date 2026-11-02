@@ -18,33 +18,6 @@
     "readyMs": 194,
     "issue": 532
   },
-  "Explore: filter icon opens sheet [quick]": {
-    "feedbackMs": 79,
-    "readyMs": 130
-  },
-  "Explore: filter icon opens sheet [settled]": {
-    "feedbackMs": 81,
-    "readyMs": 128
-  },
-  "Explore: location pill opens picker [quick]": {
-    "feedbackMs": 106,
-    "readyMs": 152,
-    "issue": 530
-  },
-  "Explore: location pill opens picker [settled]": {
-    "feedbackMs": 108,
-    "readyMs": 161,
-    "issue": 530
-  },
-  "Explore: search opens [settled]": {
-    "feedbackMs": 112,
-    "readyMs": 164,
-    "issue": 530
-  },
-  "Explore: map view [settled]": {
-    "feedbackMs": 41,
-    "readyMs": 94
-  },
   "Header → You (signed out) [settled]": {
     "feedbackMs": 44,
     "readyMs": 358
@@ -110,9 +83,5 @@
   "Creator: Page edit screen [settled]": {
     "feedbackMs": 46,
     "readyMs": 828
-  },
-  "Creator: Create (➕) [settled]": {
-    "feedbackMs": 44,
-    "readyMs": 478
   }
 }

@@ -1,9 +1,10 @@
-// #1094 — what the ➕ sheet offers, and where each choice goes.
-// Posts, events and proposals are written on a Page, so with no Page the first step is making one.
+// #1094 — what the ➕ offers, and where each choice goes. Don, 2026-11-01: only Start a Page and
+// Propose something; a Page's own posts start from its owner bar (Announce). A Proposal is written on
+// a Page, so with no Page the first step is making one.
 
-import { POST_KINDS, POST_KIND_HINT, POST_KIND_WORD, isPostKind, type PostKind } from '@/lib/posts/kinds'
+import { isPostKind, type PostKind } from '@/lib/posts/kinds'
 
-export type CreateKind = PostKind | 'page'
+export type CreateKind = 'wonder' | 'page'
 export interface CreatePage {
   name: string
   href: string
@@ -11,7 +12,6 @@ export interface CreatePage {
 export interface CreateChoice {
   id: CreateKind
   label: string
-  hint: string
   /** Null: more than one Page, so the sheet asks which. */
   href: string | null
   /** True when the member has no Page yet and this leads to making one first. */
@@ -19,9 +19,8 @@ export interface CreateChoice {
 }
 
 // plan #218 (Don, 2026-11-01) — the button for a Proposal reads "Propose something".
-const LABEL: Record<CreateKind, string> = { ...POST_KIND_WORD, wonder: 'Propose something', page: 'Page' }
-const HINT: Record<CreateKind, string> = { ...POST_KIND_HINT, page: 'Start a new Page' }
-const ORDER: CreateKind[] = [...POST_KINDS, 'page']
+const LABEL: Record<CreateKind, string> = { page: 'Start a Page', wonder: 'Propose something' }
+const ORDER: CreateKind[] = ['page', 'wonder']
 
 /** The link names a Proposal by its word, not the internal `wonder`; an old `?compose=wonder` link still opens one. */
 const COMPOSE_PARAM: Partial<Record<PostKind, string>> = { wonder: 'proposal' }
@@ -38,10 +37,10 @@ export function composerHref(page: CreatePage, kind: PostKind): string {
 
 export function createChoices({ signedIn, pages }: { signedIn: boolean; pages: CreatePage[] }): CreateChoice[] {
   return ORDER.map((id) => {
-    const base = { id, label: LABEL[id], hint: HINT[id] }
+    const base = { id, label: LABEL[id] }
     if (id === 'page' || !signedIn) return { ...base, href: '/create', needsPage: false }
     if (pages.length === 0) return { ...base, href: '/create', needsPage: true }
     if (pages.length > 1) return { ...base, href: null, needsPage: false }
-    return { ...base, href: composerHref(pages[0]!, id as PostKind), needsPage: false }
+    return { ...base, href: composerHref(pages[0]!, id), needsPage: false }
   })
 }

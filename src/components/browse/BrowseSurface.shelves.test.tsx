@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -87,17 +88,17 @@ const SHELVES = <div data-testid="the-shelves">shelves</div>
 
 describe('F121 — shelves on Explore', () => {
   it('the default view shows the shelves', () => {
-    render(<BrowseSurface initial={snapshot({ signedIn: true })} shelves={SHELVES} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true })} shelves={SHELVES} />)
     expect(screen.getByTestId('the-shelves')).toBeInTheDocument()
   })
 
   it('a search or a filter hides them: the answer is the list', () => {
     search = 'q=pottery'
-    render(<BrowseSurface initial={snapshot({ signedIn: true })} shelves={SHELVES} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true })} shelves={SHELVES} />)
     expect(screen.queryByTestId('the-shelves')).toBeNull()
     cleanup()
     search = 'q=events'
-    render(<BrowseSurface initial={snapshot({ signedIn: true })} shelves={SHELVES} />)
+    renderExplore(<BrowseSurface initial={snapshot({ signedIn: true })} shelves={SHELVES} />)
     expect(screen.queryByTestId('the-shelves')).toBeNull()
   })
 })
