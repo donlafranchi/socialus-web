@@ -189,7 +189,7 @@
       ],
       "ruled": "2026-11-02",
       "built": true,
-      "note": "\"I like this\" (socialus-plan #269). A row names a post or a Page, never both. The Page's managers see who, by display name, through heart_view; the member sees their own; no one else. It subscribes no one and sends nothing. Kept with its time as a declared interest signal for the taste scale. A public count is a flag (PUBLIC_HEART_COUNT), off by default: public counts are open for review."
+      "note": "\"I like this\" (socialus-plan #269). A row names a post or a Page, never both. The Page's managers see who, by display name, through heart_view; the member sees their own; no one else. It subscribes no one and sends nothing. Kept with its time as a declared interest signal for the taste scale. A public count is one database switch (heart_counts_public), off by default: public counts are open for review."
     },
     {
       "name": "a Member saves an Announcement",

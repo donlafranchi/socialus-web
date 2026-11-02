@@ -22,7 +22,7 @@ export async function PageBody({ shop: resolved, focusPostId = null, preview = n
   // #909 — the owner's card; the database answers only a manager of this Page.
   // F117 — each Wonder's bar, helpers and the viewer's own state; the split and names only for its managers (the database decides).
   const wonderIds = view.loggedIn ? view.posts.filter((p) => p.wonder).map((p) => p.id) : []
-  // #1171 — hearts: names for the Page's managers, counts for the rest (shown only when public counts are on).
+  // #1171 — hearts: names for the Page's managers; nothing for anyone else while public counts are off (the database decides).
   const [searchDemand, wonders, hearts] = await Promise.all([
     view.viewerOwnsPage ? loadPageSearchDemand(supabase, shop.groupId) : Promise.resolve(null),
     wonderIds.length ? loadWonderViews(supabase, wonderIds) : Promise.resolve({}),

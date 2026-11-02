@@ -77,7 +77,7 @@ function Provider({
 /** The Page's ⋯: Get updates (or Stop updates) first, then Report. */
 export function PageMenu(props: React.ComponentProps<typeof ReportControl>) {
   const state = useContext(Ctx)
-  const lead = state ? [{ label: state.following ? HEART_COPY.stopUpdates : HEART_COPY.getUpdates, onSelect: () => void state.toggle(), testId: 'page-get-updates' }] : []
+  const lead = state ? [{ label: state.following ? HEART_COPY.stopUpdates : HEART_COPY.getUpdates, onSelect: () => void state.toggle(), testId: 'page-get-updates', shelfSave: !state.following }] : []
   return <ReportControl {...props} leadItems={lead} />
 }
 

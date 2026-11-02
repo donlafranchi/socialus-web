@@ -1,5 +1,5 @@
-// #1171 — the hearts on one Page and its posts, from the database's heart_view. Counts for any signed-in viewer
-// who can see the Page; names, newest first, only for its managers (the database decides).
+// #1171 — the hearts on one Page and its posts, from the database's heart_view: counts and names, newest first, for
+// its managers; nothing for anyone else unless public counts are on (heart_counts_public), then counts only.
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface HeartTally {

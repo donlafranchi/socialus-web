@@ -1157,7 +1157,8 @@ describe('#1171 — hearts on the Page', () => {
     expect(screen.getByTestId('page-hearted-by')).toHaveTextContent('Ana and 1 other hearted this')
     expect(screen.getByTestId('page-post-hearted-by')).toHaveTextContent('Cy hearted this')
     cleanup()
-    renderShop({ loggedIn: true, hearts: { manages: false, page: { count: 2 }, posts: { p1: { count: 1 } } }, posts })
+    // The database sends a visitor nothing while public counts are off.
+    renderShop({ loggedIn: true, hearts: null, posts })
     expect(screen.queryByTestId('page-hearted-by')).toBeNull()
     expect(screen.queryByTestId('page-post-hearted-by')).toBeNull()
   })
@@ -1167,5 +1168,29 @@ describe('#1171 — hearts on the Page', () => {
     expect(screen.getByTestId('page-follow')).toHaveTextContent(/^Join$/)
     fireEvent.click(screen.getByRole('button', { name: 'More options' }))
     expect(screen.queryByRole('menuitem', { name: /updates/ })).toBeNull()
+  })
+})
+
+// Review of #1172: what depended on Follow keeps working from the ⋯.
+describe('#1171 — Get updates keeps what Follow did', () => {
+  const soon = new Date(Date.now() + 3 * 864e5).toISOString()
+  const repeating = [{ id: 'r1', body: 'Market day', createdAt: soon, updatedAt: soon, startsAt: soon, endsAt: null, locationLabel: null, seriesId: 's1' }]
+
+  it('Remind me every time appears once getting updates from a Page that repeats', async () => {
+    renderShop({ loggedIn: true, posts: repeating })
+    expect(screen.queryByTestId('remind-every-time')).toBeNull()
+    fireEvent.click(within(screen.getByTestId('page-header')).getByRole('button', { name: 'More options' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Get updates' }))
+    expect(await screen.findByTestId('remind-every-time')).toBeInTheDocument()
+  })
+
+  it('Get updates counts as a save for the shelf the Page came from; Stop updates does not (F121)', () => {
+    renderShop({ loggedIn: true })
+    fireEvent.click(within(screen.getByTestId('page-header')).getByRole('button', { name: 'More options' }))
+    expect(screen.getByRole('menuitem', { name: 'Get updates' })).toHaveAttribute('data-shelf-save')
+    cleanup()
+    renderShop({ loggedIn: true, viewerFollows: true })
+    fireEvent.click(within(screen.getByTestId('page-header')).getByRole('button', { name: 'More options' }))
+    expect(screen.getByRole('menuitem', { name: 'Stop updates' })).not.toHaveAttribute('data-shelf-save')
   })
 })

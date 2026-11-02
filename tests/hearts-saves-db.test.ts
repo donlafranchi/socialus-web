@@ -20,7 +20,7 @@ const RUNNABLE = requireRunnable({
 const id = (n: number) => `9${String(n).padStart(7, '0')}-0000-4000-8000-000000001171`
 const OWNER = id(1), ANA = id(2), BEA = id(3), GONE = id(4)
 const PAGE = id(10), PRIVATE = id(11)
-const POST = id(100), SAMPLE = id(101), HIDDEN = id(102), SECRET = id(103)
+const POST = id(100), SAMPLE = id(101), HIDDEN = id(102), SECRET = id(103), MEMBERS_ONLY = id(104)
 
 let pool: Pool
 let client: PoolClient
@@ -35,6 +35,19 @@ async function as<T>(sub: string | null, sql: string, p: unknown[] = []) {
     return (await q(sql, p)).rows as T[]
   } catch (err) {
     return (err as Error).message as unknown as T[]
+  } finally {
+    await q('rollback')
+  }
+}
+
+/** As `as`, with public heart counts switched on for the one transaction. */
+async function asPublic<T>(sub: string, sql: string, p: unknown[] = []) {
+  await q('begin')
+  try {
+    await q(`create or replace function public.heart_counts_public() returns boolean language sql immutable set search_path = '' as $$ select true $$`)
+    await q(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub, role: 'authenticated' })])
+    await q('set local role authenticated')
+    return (await q(sql, p)).rows as T[]
   } finally {
     await q('rollback')
   }
@@ -72,6 +85,7 @@ beforeAll(async () => {
   await q(post, [HIDDEN, PAGE, 'Hidden while we look', 'listed', null, null])
   await q(`update public.page_posts set hidden_at = now(), hidden_prior_discoverability = discoverability where id = $1`, [HIDDEN])
   await q(post, [SECRET, PRIVATE, 'Members only', 'unlisted', null, null])
+  await q(post, [MEMBERS_ONLY, PAGE, 'For members of the hall', 'unlisted', null, null])
 })
 
 afterAll(async () => {
@@ -133,10 +147,20 @@ describe.skipIf(!RUNNABLE)('#1171 — a heart', () => {
     expect(owner!.v.manages).toBe(true)
     expect(owner!.v.page).toEqual({ count: 1, names: ['Bea'] })
     expect(owner!.v.posts).toEqual([{ postId: POST, count: 2, names: ['Bea', 'Ana'] }])
-    const [bea] = await as<{ v: { manages: boolean; page: object; posts: object[] } }>(BEA, 'select public.heart_view($1) v', [PAGE])
-    expect(bea!.v.manages).toBe(false)
-    expect(JSON.stringify(bea!.v)).not.toMatch(/Ana|names/)
+    // Review of #1172: no public count for now, so anyone else gets nothing at all, not even a count or a post id.
+    expect(await as<{ v: unknown }>(BEA, 'select public.heart_view($1) v', [PAGE])).toEqual([{ v: null }])
     expect(await as<{ v: unknown }>(null, 'select public.heart_view($1) v', [PAGE])).toEqual([{ v: null }])
+  })
+
+  it('with public counts switched on, anyone else gets counts on what they can see, never names or a members-only post', async () => {
+    await memberHeartSet(ctx(ANA), { postId: POST, on: true })
+    await memberHeartSet(ctx(OWNER), { postId: MEMBERS_ONLY, on: true })
+    const [owner] = await as<{ v: { posts: { postId: string }[] } }>(OWNER, 'select public.heart_view($1) v', [PAGE])
+    expect(owner!.v.posts.map((p) => p.postId).sort()).toEqual([POST, MEMBERS_ONLY].sort())
+    const [bea] = await asPublic<{ v: { manages: boolean; posts: object[] } }>(BEA, 'select public.heart_view($1) v', [PAGE])
+    expect(bea!.v.manages).toBe(false)
+    expect(bea!.v.posts).toEqual([{ postId: POST, count: 1 }])
+    expect(JSON.stringify(bea!.v)).not.toMatch(/Ana|names/)
   })
 
   it('a deleted member’s heart leaves the names and the count', async () => {

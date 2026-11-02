@@ -38,6 +38,8 @@ export interface OverflowItem {
   href?: string
   onSelect?: () => void
   testId?: string
+  /** F121 — a tap that counts as a save for the shelf the Page was reached from. */
+  shelfSave?: boolean
 }
 
 interface Props {
@@ -150,6 +152,7 @@ export function PageOverflowMenu({ items, testId = 'page-overflow-menu', trigger
                 type="button"
                 role="menuitem"
                 data-testid={item.testId}
+                {...(item.shelfSave ? { 'data-shelf-save': '' } : {})}
                 onClick={() => {
                   // Close without refocusing the ⋯: the item is about to open
                   // a sheet that takes focus itself, and returning focus here

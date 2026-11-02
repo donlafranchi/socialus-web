@@ -6,7 +6,7 @@ import { HeartedBy } from './HeartedBy'
 afterEach(cleanup)
 
 // #1171 (plan #269, option A, Don 2026-11-02): the poster sees who hearted, by name ("Ana and 4 others"), newest
-// first; tapping shows the list. No public count for now: a default, not a ruling, so it is one flag.
+// first; tapping shows the list. No public count for now: a default, not a ruling, so it is one database switch.
 describe('who hearted', () => {
   it('shows the poster the newest name and how many others, and the list on a tap', () => {
     render(<HeartedBy tally={{ count: 5, names: ['Ana', 'Bea', 'Cy', 'Di', 'Ed'] }} />)
@@ -23,12 +23,12 @@ describe('who hearted', () => {
     expect(screen.getByText('Ana and 1 other hearted this')).toBeInTheDocument()
   })
 
-  it('shows anyone else nothing, not even a count, unless public counts are switched on', () => {
-    const { container } = render(<HeartedBy tally={{ count: 5 }} />)
+  it('shows anyone else nothing (the database sends them no tally), and a bare count when public counts are on', () => {
+    const { container } = render(<HeartedBy tally={undefined} />)
     expect(container).toBeEmptyDOMElement()
     cleanup()
-    render(<HeartedBy tally={{ count: 5 }} publicCount />)
-    expect(screen.getByTestId('hearted-by')).toHaveTextContent('5')
+    render(<HeartedBy tally={{ count: 5 }} />)
+    expect(screen.getByTestId('hearted-by')).toHaveTextContent(/^5$/)
   })
 
   it('shows nothing with no hearts', () => {

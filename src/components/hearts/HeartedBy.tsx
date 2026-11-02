@@ -1,15 +1,14 @@
 // #1171 (plan #269, option A, Don 2026-11-02) — who hearted, for the poster: "Ana and 4 others hearted this", newest
-// first; a tap opens the list. Everyone else sees nothing, unless public counts are switched on (PUBLIC_HEART_COUNT).
+// first; a tap opens the list. Anyone else gets a tally only when public counts are on (the database's
+// heart_counts_public, off for now: counts are open for review), and then sees the number, never names.
 
 import { Heart } from 'lucide-react'
 import { HEART_COPY } from '@/lib/copy'
-import { PUBLIC_HEART_COUNT } from '@/lib/features'
 import type { HeartTally } from '@/lib/hearts/heart-view'
 
-export function HeartedBy({ tally, testId = 'hearted-by', publicCount = PUBLIC_HEART_COUNT }: { tally: HeartTally | undefined; testId?: string; publicCount?: boolean }) {
+export function HeartedBy({ tally, testId = 'hearted-by' }: { tally: HeartTally | undefined; testId?: string }) {
   if (!tally || tally.count === 0) return null
   if (!tally.names) {
-    if (!publicCount) return null
     return (
       <p data-testid={testId} className="flex items-center gap-1 text-caption text-[var(--color-fg-muted)]">
         <Heart size={14} aria-hidden="true" />

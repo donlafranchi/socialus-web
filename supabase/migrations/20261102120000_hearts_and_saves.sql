@@ -3,8 +3,8 @@
 --            display name, newest first, only through heart_view (option A, ruled 2026-11-02); never a member id.
 --            A heart subscribes no one. It is a declared interest signal: created_at is kept for the taste scale.
 --   saves    "Keep this for later", on a post. Private: only its member reads it.
--- heart_view returns each count to anyone who may see the Page; whether a count shows publicly is the app's flag
--- (PUBLIC_HEART_COUNT), because public counts are open for review, not ruled.
+-- No public count for now: a default, not a ruling (public counts are open for review). heart_counts_public() is the
+-- one switch: replace it to return true and everyone who can see a post gets its count (never names).
 -- Writes go through the action layer (ADR-7): no write policies.
 
 create table public.hearts (
@@ -34,8 +34,16 @@ grant select on public.hearts, public.saves to authenticated;
 create policy hearts_select_own on public.hearts for select to authenticated using (member_id = (select auth.uid()));
 create policy saves_select_own on public.saves for select to authenticated using (member_id = (select auth.uid()));
 
--- The hearts on one Page and its posts, for a signed-in caller who may see the Page. Everyone gets the counts;
--- the Page's managers also get the names, newest first, at most 50 each. A deleted member is neither.
+create or replace function public.heart_counts_public()
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$ select false $$;
+
+-- The hearts on one Page and its posts. Its managers get every count and the names, newest first, at most 50 each;
+-- a deleted member is neither. Anyone else gets nothing, unless public counts are on: then the counts on what they
+-- can see (a live post, listed or on a Page they belong to). Never a member id.
 create or replace function public.heart_view(p_group_id uuid)
 returns jsonb
 language sql
@@ -44,14 +52,16 @@ security definer
 set search_path = ''
 as $$
   with g as (
-    select g.id, g.id in (select public.current_member_managing_group_ids()) as manages
+    select g.id,
+           g.id in (select public.current_member_managing_group_ids()) as manages,
+           g.id in (select public.current_member_roster_group_ids()) as belongs
       from public.groups g
      where g.id = p_group_id
        and (select auth.uid()) is not null
        and g.dissolved_at is null
        and (
          g.id in (select public.current_member_managing_group_ids())
-         or (g.lifecycle_state = 'active' and g.unclaimed_hidden_at is null
+         or (public.heart_counts_public() and g.lifecycle_state = 'active' and g.unclaimed_hidden_at is null
              and (g.discoverability = 'listed' or g.id in (select public.current_member_roster_group_ids())))
        )
   ),
@@ -62,7 +72,9 @@ as $$
       left join public.page_posts p on p.id = h.post_id
      where h.group_id = (select id from g)
         or (p.group_id = (select id from g) and p.dissolved_at is null and p.removed_at is null
-            and ((select manages from g) or (p.lifecycle_state = 'active' and p.hidden_at is null)))
+            and ((select manages from g)
+                 or (p.lifecycle_state = 'active' and p.hidden_at is null
+                     and (p.discoverability = 'listed' or (select belongs from g)))))
   ),
   per_post as (
     select h.post_id, count(*)::int as n,
