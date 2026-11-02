@@ -135,6 +135,21 @@ describe('the card preview: a line or two of the post itself', () => {
     expect(cardPreview({ headline: 'Pumpkin bread is back', body: 'Pumpkin bread is back\nFresh every Saturday.', pageName: 'Corner Bakery' })).toBe('Fresh every Saturday.')
   })
 
+  it('drops a repeated headline only as whole words', () => {
+    expect(cardPreview({ headline: 'Open mic', body: 'Open mic night every Thursday.', pageName: 'The Shop' })).toBe('Open mic night every Thursday.')
+    expect(cardPreview({ headline: 'Yoga', body: 'Yogalates at noon.', pageName: 'The Shop' })).toBe('Yogalates at noon.')
+    expect(cardPreview({ headline: 'Open mic', body: 'Open mic: sign up at seven.', pageName: 'The Shop' })).toBe('sign up at seven.')
+  })
+
+  // Review of #1170: the two-line cut is visual, and the card is one link, so a screen reader would read a whole post.
+  it('is at most about two lines’ worth of words, cut at a word with an ellipsis', () => {
+    const long = Array.from({ length: 200 }, (_, i) => `word${i}`).join(' ')
+    const preview = cardPreview({ headline: 'Big news', body: long, pageName: 'The Shop' })!
+    expect(preview.length).toBeLessThanOrEqual(201)
+    expect(preview.endsWith('…')).toBe(true)
+    expect(preview.slice(0, -1)).toMatch(/word\d+$/)
+  })
+
   it('is nothing when the post has no words beyond its headline: no filler', () => {
     expect(cardPreview({ headline: 'Open mic tonight', body: 'Open mic tonight', pageName: 'The Shop' })).toBeNull()
     expect(cardPreview({ body: 'Open mic tonight', pageName: 'The Shop' })).toBeNull()

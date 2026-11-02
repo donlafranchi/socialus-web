@@ -147,11 +147,18 @@ export function cardPreview(p: { headline?: string | null; body: string | null; 
   if (paras.length === 0) return null
   const h = p.headline?.trim()
   if (h) {
-    if (paras[0]!.toLowerCase().startsWith(h.toLowerCase())) paras[0] = paras[0]!.slice(h.length).replace(/^[\s.:·,!?\-–—]+/, '')
+    // Only a whole repeated line or clause: "Open mic: sign up" drops "Open mic", "Open mic night" keeps it.
+    const rest = paras[0]!.slice(h.length)
+    if (paras[0]!.toLowerCase().startsWith(h.toLowerCase()) && /^(\s*[.:·,!?\-–—]|$)/.test(rest)) paras[0] = rest.replace(/^[\s.:·,!?\-–—]+/, '')
   } else {
     // The headline came from the first line's first sentence; the rest of that line stays.
     const sentence = /^(.+?[.!?])(\s|$)/.exec(paras[0]!)
     paras[0] = sentence ? paras[0]!.slice(sentence[1]!.length).trim() : ''
   }
-  return paras.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null
+  const text = paras.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+  if (!text) return null
+  // About two lines' worth: the clamp is visual, and a screen reader reads the card's link whole.
+  return text.length <= PREVIEW_MAX ? text : `${text.slice(0, PREVIEW_MAX + 1).replace(/\s+\S*$/, '').replace(/[\s.,;:·\-–—]+$/, '')}…`
 }
+
+const PREVIEW_MAX = 200
