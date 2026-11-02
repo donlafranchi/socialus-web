@@ -15,6 +15,8 @@ test.describe('F059 — list and map by width', () => {
     await expect(page.getByTestId('create-menu')).toHaveCount(0)
     await expect(page.getByTestId('card-grid').getByRole('button', { name: /^(map|list)$/i })).toHaveCount(0)
 
+    // Room to scroll whatever the seed returns: this checks the row, not the list.
+    await page.evaluate(() => (document.body.style.minHeight = '3000px'))
     await page.mouse.wheel(0, 600)
     await expect.poll(async () => (await header.boundingBox())?.y ?? 0).toBeLessThan(-40)
     await page.mouse.wheel(0, -200)
