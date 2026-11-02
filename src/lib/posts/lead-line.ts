@@ -136,3 +136,22 @@ export function cardHeadline(p: { headline?: string | null; body: string | null;
   const sentence = /^(.+?[.!?])(\s|$)/.exec(s)
   return (sentence ? sentence[1]! : s).trim()
 }
+
+// Don, 2026-11-02: "Also should show a line or two about the post". Paragraphs a card never shows: a sample's disclaimer
+// (the lead line says Sample), and an imported show's calendar and photo-credit lines.
+const NOT_PREVIEW = /^(This is a sample post\b|From .+'s own calendar: |Photo: )/
+
+/** The card's line or two under the headline: the body without what the headline already says. Null when nothing is left. */
+export function cardPreview(p: { headline?: string | null; body: string | null; pageName: string }): string | null {
+  const paras = (p.body ?? '').trim().replace(SAMPLE_PREFIX, '').split(/\n+/).map((l) => l.trim()).filter((l) => l && !NOT_PREVIEW.test(l))
+  if (paras.length === 0) return null
+  const h = p.headline?.trim()
+  if (h) {
+    if (paras[0]!.toLowerCase().startsWith(h.toLowerCase())) paras[0] = paras[0]!.slice(h.length).replace(/^[\s.:·,!?\-–—]+/, '')
+  } else {
+    // The headline came from the first line's first sentence; the rest of that line stays.
+    const sentence = /^(.+?[.!?])(\s|$)/.exec(paras[0]!)
+    paras[0] = sentence ? paras[0]!.slice(sentence[1]!.length).trim() : ''
+  }
+  return paras.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || null
+}

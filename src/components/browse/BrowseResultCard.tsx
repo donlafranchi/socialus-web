@@ -29,7 +29,7 @@ import { QuickLinks } from '@/components/cards/QuickLinks'
 import { TypeMark, SampleLabel, SampleWatermark } from '@/components/cards/CardMarks'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen } from '@/lib/metro/metro-time'
-import { cardHeadline, leadLineParts, venueShow } from '@/lib/posts/lead-line'
+import { cardHeadline, cardPreview, leadLineParts, venueShow } from '@/lib/posts/lead-line'
 import { postKindOf } from '@/lib/browse/filters'
 import { cardImageAlt } from '@/lib/calendar/ics'
 import { browseCardLocation } from '@/lib/browse/card'
@@ -152,6 +152,7 @@ export function splitPost(body: string | null): { title: string; rest: string } 
 function PostCard(props: CardProps) {
   const { result, now } = props
   const headline = cardHeadline({ headline: result.headline, body: result.body, pageName: result.name })
+  const preview = cardPreview({ headline: result.headline, body: result.body, pageName: result.name })
   const lead = leadLineParts(
     {
       kind: postKindOf(result) ?? 'news',
@@ -197,6 +198,12 @@ function PostCard(props: CardProps) {
           {headline && (
             <p data-testid="tile-title" className="mt-1 line-clamp-1 text-body font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
               {headline}
+            </p>
+          )}
+          {/* Don, 2026-11-02: "a line or two about the post". Two lines, cut short; the whole card opens the post, so no See more. */}
+          {preview && (
+            <p data-testid="browse-post-preview" className="mt-0.5 line-clamp-2 text-sm leading-5 text-[var(--color-fg-muted)]">
+              {preview}
             </p>
           )}
           <p data-testid="tile-kind-row" className={`mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]${result.href ? ' pr-10' : ''}`}>
