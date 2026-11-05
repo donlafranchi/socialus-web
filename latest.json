@@ -1,44 +1,44 @@
 {
-  "at": "2026-11-04T18:32:47.263Z",
+  "at": "2026-11-05T18:37:06.819Z",
   "sha": "49f942f0b1e6ed02aa847f5c36aeb8ff9b06a485",
   "red": true,
-  "redCount": 6,
-  "amberCount": 1,
+  "redCount": 8,
+  "amberCount": 0,
   "rebenchmarkDue": null,
   "slowest": [
     {
       "screen": "Header → Explore [settled]",
       "kind": "consumer",
-      "readyMs": 4415,
-      "feedbackMs": 48,
+      "readyMs": 4046,
+      "feedbackMs": 47,
       "status": "red"
     },
     {
       "screen": "Explore card → Page [quick]",
       "kind": "consumer",
-      "readyMs": 1144,
-      "feedbackMs": 54,
-      "status": "amber"
-    },
-    {
-      "screen": "Explore: ➕ → Show the map [settled]",
-      "kind": "consumer",
-      "readyMs": 913,
-      "feedbackMs": 80,
-      "status": "green"
+      "readyMs": 1363,
+      "feedbackMs": 49,
+      "status": "red"
     },
     {
       "screen": "Explore card → Page [settled]",
       "kind": "consumer",
-      "readyMs": 825,
-      "feedbackMs": 56,
+      "readyMs": 1225,
+      "feedbackMs": 51,
+      "status": "red"
+    },
+    {
+      "screen": "Explore: ➕ → Show the map [settled]",
+      "kind": "consumer",
+      "readyMs": 870,
+      "feedbackMs": 77,
       "status": "green"
     },
     {
       "screen": "You → Following list [settled]",
       "kind": "consumer",
-      "readyMs": 544,
-      "feedbackMs": 54,
+      "readyMs": 543,
+      "feedbackMs": 49,
       "status": "green"
     }
   ],
@@ -46,10 +46,10 @@
     {
       "screen": "Explore card → Page [quick]",
       "kind": "consumer",
-      "feedbackMs": 54,
-      "urlMs": 686,
-      "readyMs": 1144,
-      "status": "amber",
+      "feedbackMs": 49,
+      "urlMs": 1034,
+      "readyMs": 1363,
+      "status": "red",
       "flags": [
         "slow-content"
       ]
@@ -57,72 +57,74 @@
     {
       "screen": "Explore card → Page [settled]",
       "kind": "consumer",
-      "feedbackMs": 56,
-      "urlMs": 524,
-      "readyMs": 825,
-      "status": "green",
-      "flags": []
+      "feedbackMs": 51,
+      "urlMs": 914,
+      "readyMs": 1225,
+      "status": "red",
+      "flags": [
+        "slow-content"
+      ]
     },
     {
       "screen": "Explore: search pill opens [quick]",
       "kind": "consumer",
-      "feedbackMs": 98,
-      "urlMs": 422,
-      "readyMs": 145,
+      "feedbackMs": 85,
+      "urlMs": null,
+      "readyMs": 133,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: search pill opens [settled]",
       "kind": "consumer",
-      "feedbackMs": 99,
+      "feedbackMs": 85,
       "urlMs": null,
-      "readyMs": 146,
+      "readyMs": 131,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: More filters opens sheet [settled]",
       "kind": "consumer",
-      "feedbackMs": 66,
+      "feedbackMs": 69,
       "urlMs": null,
-      "readyMs": 117,
+      "readyMs": 114,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: Where opens picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 88,
+      "feedbackMs": 76,
       "urlMs": null,
-      "readyMs": 141,
+      "readyMs": 123,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Header → You (signed out) [settled]",
       "kind": "consumer",
-      "feedbackMs": 46,
-      "urlMs": 324,
-      "readyMs": 359,
+      "feedbackMs": 48,
+      "urlMs": 333,
+      "readyMs": 377,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: sign in / sign up link [settled]",
       "kind": "consumer",
-      "feedbackMs": 51,
-      "urlMs": 235,
-      "readyMs": 259,
+      "feedbackMs": 44,
+      "urlMs": 307,
+      "readyMs": 325,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Waitlist: open from the area picker [settled]",
       "kind": "consumer",
-      "feedbackMs": 74,
+      "feedbackMs": 68,
       "urlMs": null,
-      "readyMs": 123,
+      "readyMs": 111,
       "status": "green",
       "flags": []
     },
@@ -177,27 +179,27 @@
     {
       "screen": "You → Following list [settled]",
       "kind": "consumer",
-      "feedbackMs": 54,
-      "urlMs": 520,
-      "readyMs": 544,
+      "feedbackMs": 49,
+      "urlMs": 505,
+      "readyMs": 543,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Explore: ➕ → Show the map [settled]",
       "kind": "consumer",
-      "feedbackMs": 80,
-      "urlMs": 80,
-      "readyMs": 913,
+      "feedbackMs": 77,
+      "urlMs": 77,
+      "readyMs": 870,
       "status": "green",
       "flags": []
     },
     {
       "screen": "Header → Explore [settled]",
       "kind": "consumer",
-      "feedbackMs": 48,
-      "urlMs": 125,
-      "readyMs": 4415,
+      "feedbackMs": 47,
+      "urlMs": 117,
+      "readyMs": 4046,
       "status": "red",
       "flags": [
         "slow-content"
@@ -220,7 +222,7 @@
       "kind": "creator",
       "feedbackMs": 52,
       "urlMs": null,
-      "readyMs": 102,
+      "readyMs": 94,
       "status": "green",
       "flags": []
     }
