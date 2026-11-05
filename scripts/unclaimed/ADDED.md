@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-30** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-05** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -334,3 +334,9 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-30 | American River Conservancy | Land trust (nonprofit) | Coloma | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-30 | Solano Resource Conservation District | Conservation district (nonprofit) | Dixon | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-30 | Restore the Delta | Delta conservation group (nonprofit) | Stockton | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-05 | Kiwanis Club of Citrus Heights | Service club | Citrus Heights | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Soroptimist International of Rancho Cordova & Gold River | Service club | Rancho Cordova | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Sacramento Wheelmen Bicycling Club | Sports club | Carmichael | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Placerville Lions Club | Service club | Placerville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Folsom Lake Lions Club | Service club | Folsom | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Roseville Host Lions Club | Service club | Roseville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
