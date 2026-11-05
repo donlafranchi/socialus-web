@@ -18,10 +18,20 @@ const RUNNABLE = requireRunnable({
   remedy: `${safety.reason} Recipe in .env.local.example`,
 })
 
-const MIGRATION = readFileSync(path.join(__dirname, '../supabase/migrations/20261105120000_listed_under.sql'), 'utf8')
-const MAPPING = MIGRATION.slice(MIGRATION.indexOf('create temp table label_words'))
-
 const OWNER = 'a4000000-0000-4000-8000-000000001180'
+
+const MIGRATION = readFileSync(path.join(__dirname, '../supabase/migrations/20261105120000_listed_under.sql'), 'utf8')
+// Scoped to this file's own Pages: the suite shares one database, and mapping every Page from an open transaction
+// would wait on other files' rows.
+const scope = (sql: string, find: string, add: string) => {
+  if (!sql.includes(find)) throw new Error(`the migration no longer has: ${find}`)
+  return sql.replace(find, `${find} ${add}`)
+}
+const MAPPING = scope(
+  scope(MIGRATION.slice(MIGRATION.indexOf('create temp table label_words')), 'from public.groups gr\n', `where gr.founder_member_id = '${OWNER}'\n`),
+  'join public.tags t on t.id = ptg.tag_id\n',
+  `where gr.founder_member_id = '${OWNER}'\n`,
+)
 const ANCHOR = 'd4000000-0000-4000-8000-000000001180'
 const BAKERY = 'c4000000-0000-4000-8000-000000001181'
 const POTTERY = 'c4000000-0000-4000-8000-000000001182'
@@ -52,6 +62,7 @@ beforeAll(async () => {
   pool = new Pool({ connectionString: DATABASE_URL })
   client = await pool.connect()
   await client.query('begin')
+  await client.query(`set local lock_timeout = '20s'`)
   await client.query(
     `insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at)
      values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','l1180@test.invalid','x',now(),now(),now())`,
