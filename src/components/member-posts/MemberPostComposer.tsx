@@ -5,6 +5,7 @@
 // with the member's display name and the neighborhood, never their own area. Every word is a draft for Don.
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Typeahead } from '@/components/locations/Typeahead'
 import { ListedUnder, labelsToSend, UNPINNED, type ListedValue } from '@/components/labels/ListedUnder'
@@ -67,9 +68,9 @@ export function MemberPostComposer({
           {phoneOpen ? '' : ' Confirming a phone number isn’t open yet, so posting without a Page waits for it.'}
         </p>
         {phoneOpen && (
-          <a href="/onboarding" className="btn-primary self-start">
+          <Link href="/onboarding" className="btn-primary self-start">
             Confirm my phone
-          </a>
+          </Link>
         )}
       </div>
     )
