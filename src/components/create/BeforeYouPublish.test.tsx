@@ -12,8 +12,9 @@ const base = { editPath: '/g/draft-x/edit', hasName: false, hasPlace: false, has
 describe('#301 — Before you publish', () => {
   it('lists the four things and the optional photo, each with a way to add it', () => {
     render(<BeforeYouPublish {...base} onPublish={vi.fn()} />)
-    for (const name of [/^name/i, /where it is/i, /description/i, /tags/i, /photo \(optional\)/i]) {
-      const row = screen.getByTestId(`publish-item-${String(name).match(/[a-z]+/)![0]}`)
+    for (const [key, name] of [['name', /^name/i], ['where', /where it is/i], ['description', /description/i], ['tags', /listed under/i], ['photo', /photo \(optional\)/i]] as const) {
+      const row = screen.getByTestId(`publish-item-${key}`)
+      expect(row).toHaveTextContent(name)
       expect(within(row).getByRole('link', { name: /add/i })).toHaveAttribute('href', '/g/draft-x/edit')
     }
   })
@@ -24,11 +25,11 @@ describe('#301 — Before you publish', () => {
     expect(screen.getByText(/add a description to publish/i)).toBeInTheDocument()
   })
 
-  // 2026-10-01: tags are set on the draft Page and still required to publish.
-  it('a Page with no tags cannot publish', () => {
+  // #1180 — a Page is always listed under something: none picked, publishing lists it under what its words say.
+  it('a Page with nothing picked under Listed under can still publish', () => {
     render(<BeforeYouPublish {...base} hasName hasPlace hasDescription onPublish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
-    expect(screen.getByText(/add a tag to publish/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled()
+    expect(screen.queryByText(/add a tag/i)).toBeNull()
   })
 
   it('publishes once they are, photo or not', async () => {

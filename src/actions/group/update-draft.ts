@@ -24,7 +24,7 @@ import { managingRoleForKind, type GroupKind } from './constants'
 import { whereInput, applyWhere, type WhereClause } from './where'
 import { normaliseSocialLinks } from '../../lib/groups/social-links'
 import { isOwnMediaUrl } from '../../lib/media/own-media-url'
-import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
+import { labelsInput, labelsPinnedInput, storedLabels, writePageLabels, writePagePinned } from './labels'
 import type { ActionContext } from '../_lib/context'
 import { applyTypeChange } from './change-kind'
 import { PAGE_KINDS, PURPOSES, type PageKind, type Purpose } from '../../lib/groups/page-kind'
@@ -53,7 +53,8 @@ export const groupUpdateDraftInput = z.object({
   socialLinks: z.record(z.string(), z.string()).optional(),
   // #301 — the whole set, replacing the old one. Set on the draft Page and
   // required at publish (group.activate checks), so none is fine here.
-  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional(),
+  tags: labelsInput,
+  labelsPinned: labelsPinnedInput,
   // group_businesses patches (only meaningful for kind='business' rows; the
   // handler skips them silently if the underlying Group is a community kind).
   businessDisplayName: z.string().min(1).max(120).optional(),
@@ -109,6 +110,7 @@ export const groupUpdateDraft = defineHandler(
     if (anyContainsEmail(input.name, input.description, input.businessDisplayName, input.businessPublicDescription, input.howToFind, input.usuallyAround)) {
       throw new ValidationError(EMAIL_IN_PAGE_TEXT_MESSAGE)
     }
+    const labels = input.tags === undefined ? undefined : storedLabels(input.tags)
     return withTransaction(async (client) => {
       // Load the row + verify (a) it exists, (b) it's in draft state, (c) caller
       // is an owner. Three refusals, three distinct error codes.
@@ -313,37 +315,10 @@ export const groupUpdateDraft = defineHandler(
       }
 
       if (input.tags !== undefined) {
-        const tags = new Map<string, string>()
-        for (const label of input.tags.filter(isValidTagLabel)) {
-          const n = normalizeTag(label)
-          if (!tags.has(n)) tags.set(n, label.trim())
-        }
-        for (const [normalized, label] of tags) {
-          await client.query(
-            `insert into public.tags (label, normalized, created_by)
-             values ($1, $2, $3)
-             on conflict (normalized) do nothing`,
-            [label, normalized, ctx.actingMemberId],
-          )
-        }
-        await client.query(
-          `delete from public.page_tags pt
-            using public.tags t
-            where pt.tag_id = t.id
-              and pt.group_id = $1
-              and t.normalized <> all($2)`,
-          [input.groupId, [...tags.keys()]],
-        )
-        for (const normalized of tags.keys()) {
-          await client.query(
-            `insert into public.page_tags (group_id, tag_id)
-             select $1, t.id from public.tags t where t.normalized = $2
-             on conflict (group_id, tag_id) do nothing`,
-            [input.groupId, normalized],
-          )
-        }
+        await writePageLabels(client, input.groupId, labels!, ctx.actingMemberId!)
         patched.push('tags')
       }
+      if (input.labelsPinned !== undefined) await writePagePinned(client, input.groupId, input.labelsPinned)
 
       if (
         (input.pageKind !== undefined || input.purpose !== undefined) &&

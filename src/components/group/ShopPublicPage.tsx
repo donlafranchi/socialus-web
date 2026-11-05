@@ -20,6 +20,7 @@ import { editPageAction } from '@/app/g/[handle]/edit/actions'
 import { pagePath as addressOf } from '@/lib/groups/page-handle'
 import { DefaultArt, artKindFor } from '@/components/cards/DefaultArt'
 import { TagLinks } from '@/components/tags/TagLinks'
+import { picksFromTags } from '@/lib/labels/match'
 import { PageContactBlock } from './PageContactBlock'
 import { fixedPlacement, whereLine, whereNow, type PageWhere } from '@/lib/groups/page-where'
 import type { PageContact } from '@/lib/groups/page-contact'
@@ -199,7 +200,8 @@ export function ShopPublicPage({
   const area = shop.placements[0]
   const areaLine = loggedIn && !mapView && area?.kind === 'area' && (!where?.mode || where.mode === 'visit') && area.label.trim() ? `In ${area.label.trim()}` : null
   const hasContact = loggedIn && Boolean(contact?.phone || (SHOW_OPENING_HOURS && contact?.hours) || contactLinks.website || contactLinks.socials.length)
-  const showFound = loggedIn && tags.length > 0
+  // #1180 — only list labels show; a stray old tag never leaves an empty section.
+  const showFound = loggedIn && picksFromTags(tags).length > 0
   // bug #338 — a member's row is membership, not a follow, so nothing offers to undo it.
   const memberOfOpenPage = viewerIsMember && shop.discoverability !== 'private'
   // #1171 — a private Page or one that leads with joining keeps its Join button; every other Page's follow is Get updates.
@@ -390,6 +392,7 @@ export function ShopPublicPage({
           isPrivate={shop.discoverability === 'private'}
           memberId={viewerOwnsPage ? viewerMemberId : null}
           pageName={shop.displayName}
+          pageTags={tags}
           pictureUrl={shop.pictureUrl ?? null}
           artKind={artKindFor(shop.kind, shop.purpose)}
           report={{ loggedIn, returnTo: pagePath, onSend: sendReportAction }}
@@ -469,8 +472,8 @@ export function ShopPublicPage({
       )}
 
       {showFound && (
-        <PageSection id="found" title="Tags">
-          {/* #316 — the Page's tags as #hashtags, signed in only (F093); moderated after they appear (#287). */}
+        <PageSection id="found" title="Listed under">
+          {/* #1180 — what the Page is listed under, signed in only (F093). */}
           {tags.length > 0 && <TagLinks tags={tags} />}
         </PageSection>
       )}
