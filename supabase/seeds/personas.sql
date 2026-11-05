@@ -458,6 +458,13 @@ on conflict (id) do nothing;
 insert into public.hearts (member_id, post_id) values ('0a000000-0000-4000-8000-000000000002', '0e000000-0000-4000-8000-000000000101') on conflict do nothing;
 insert into public.saves (member_id, post_id) values ('0a000000-0000-4000-8000-000000000002', '0e000000-0000-4000-8000-000000000101') on conflict do nothing;
 
+-- 6. #1183 — the follower posts without a Page in Oak Park, and the member answers it: signed-in members read it
+--    through member_posts_read(); only the poster reads who answered.
+insert into public.member_posts (id, member_id, kind, body, place_id, expires_at) values
+  ('0e000000-0000-4000-8000-000000009901', '0a000000-0000-4000-8000-000000000002', 'ask', 'Who fixes old bikes around here?', (select id from public.places where slug = 'oak-park' limit 1), now() + interval '7 days')
+on conflict (id) do nothing;
+insert into public.member_post_responses (post_id, member_id) values ('0e000000-0000-4000-8000-000000009901', '0a000000-0000-4000-8000-000000000003') on conflict do nothing;
+
 commit;
 
 refresh materialized view public.discoverable_items;
