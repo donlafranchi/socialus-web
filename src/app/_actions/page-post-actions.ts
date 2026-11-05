@@ -35,6 +35,7 @@ export async function postToPageAction(input: {
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
+  labelsPinned?: boolean
   photoUrl?: string | null
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
   wonder?: { threshold?: number; options?: string[] }
@@ -60,6 +61,8 @@ export async function editPagePostAction(input: {
   showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
+  tags?: string[]
+  labelsPinned?: boolean
   photoUrl?: string | null
   kind?: PostKind
   headline?: string

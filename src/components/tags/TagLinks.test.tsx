@@ -1,31 +1,36 @@
-// #316 — tags as familiar hashtags: #tag chips you can tap to search.
+// #316 / #1180 — a Page's labels: plain words from the shared list, each opening Explore under it.
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { TagLinks, hashtag } from './TagLinks'
+import { TagLinks } from './TagLinks'
 
 afterEach(cleanup)
 
-describe('#316 — TagLinks', () => {
-  it('shows each tag as #tag, linking to Explore filtered by it', () => {
-    render(<TagLinks tags={['Sourdough', 'Local food']} />)
-    const a = screen.getByRole('link', { name: '#Sourdough' })
-    expect(a).toHaveAttribute('href', '/explore?category=sourdough')
-    expect(screen.getByRole('link', { name: '#Localfood' })).toHaveAttribute('href', '/explore?category=local%20food')
+describe('#1180 — TagLinks', () => {
+  it('shows each label as plain words, linking to Explore filtered by it', () => {
+    render(<TagLinks tags={['Food & drink', 'Bakery']} />)
+    expect(screen.getByRole('link', { name: 'Bakery' })).toHaveAttribute('href', '/explore?category=bakery')
+    expect(screen.getByRole('link', { name: 'Food & drink' })).toHaveAttribute('href', '/explore?category=food%20%26%20drink')
+    expect(screen.getByTestId('tag-chips')).not.toHaveTextContent('#')
   })
 
-  it('each chip is a 44px tap target', () => {
-    render(<TagLinks tags={['Sourdough']} />)
-    expect(screen.getByRole('link', { name: '#Sourdough' })).toHaveClass('min-h-11')
+  it('in the list’s order, a top label before its finer one', () => {
+    render(<TagLinks tags={['Bakery', 'Food & drink']} />)
+    expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(['Food & drink', 'Bakery'])
   })
 
-  it('renders nothing for no tags', () => {
+  it('leaves out an old free tag', () => {
+    render(<TagLinks tags={['sourdough', 'Bakery']} />)
+    expect(screen.queryByRole('link', { name: 'sourdough' })).toBeNull()
+  })
+
+  it('each link is a 44px tap target', () => {
+    render(<TagLinks tags={['Bakery']} />)
+    expect(screen.getByRole('link', { name: 'Bakery' })).toHaveClass('min-h-11')
+  })
+
+  it('renders nothing for no labels', () => {
     const { container } = render(<TagLinks tags={[]} />)
     expect(container).toBeEmptyDOMElement()
-  })
-
-  it('writes a tag the way people write hashtags', () => {
-    expect(hashtag('Local food')).toBe('#Localfood')
-    expect(hashtag('#bread')).toBe('#bread')
   })
 })

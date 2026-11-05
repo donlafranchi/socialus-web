@@ -1,8 +1,8 @@
 'use client'
 
 // #301 — L14, on the draft Page in the owner view. Publishing needs a name,
-// where it is (an address or an area), a description and a tag; a photo is
-// optional.
+// where it is (an address or an area) and a description; a photo is optional.
+// #1180 — Listed under is suggested, so it never holds publishing up.
 // Don, 2026-10-31 — one line under Publish, "By posting you agree to the Terms"; the four-rule step is gone.
 // Copy is the design's placeholder ([public-is-draft]).
 
@@ -32,23 +32,23 @@ interface Props {
   hasName: boolean
   hasPlace: boolean
   hasDescription: boolean
-  hasTags: boolean
   hasPhoto: boolean
   /** Called with the rules version the member agreed to. */
   onPublish: (rulesVersion: number) => Promise<void>
 }
 
-export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasTags, hasPhoto, onPublish }: Props) {
+export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasPhoto, onPublish }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const items = [
     { key: 'name', label: 'Name', done: hasName },
     { key: 'where', label: 'Where it is', done: hasPlace },
     { key: 'description', label: 'Description', done: hasDescription },
-    { key: 'tags', label: 'Tags', done: hasTags },
+    // Suggested from its words when nothing is picked, so it is never a to-do.
+    { key: 'tags', label: 'Listed under', done: true },
     { key: 'photo', label: 'Photo (optional)', done: hasPhoto },
   ]
-  const missing = [!hasName && 'a name', !hasPlace && 'where it is', !hasDescription && 'a description', !hasTags && 'a tag'].filter(
+  const missing = [!hasName && 'a name', !hasPlace && 'where it is', !hasDescription && 'a description'].filter(
     Boolean,
   ) as string[]
   const ready = missing.length === 0
@@ -67,7 +67,7 @@ export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, 
   return (
     <section data-testid="before-you-publish" className="rounded-lg border border-[var(--color-border)] p-4">
       <h2 className="text-title-3 text-[var(--color-fg)]">Before you publish</h2>
-      <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Four things, then it&rsquo;s live.</p>
+      <p className="mt-1 text-caption text-[var(--color-fg-muted)]">Three things, then it&rsquo;s live.</p>
       <ul className="mt-3 flex flex-col">
         {items.map((i) => (
           <li
