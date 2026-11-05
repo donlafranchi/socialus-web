@@ -4,9 +4,11 @@
 -- 1. labels_pinned: the poster picked these under Change, so they are never re-matched from the words.
 -- 2. Existing tags are mapped once onto the list, with the same match the app runs (match.ts): whole words, a
 --    plural s/es allowed, a phrase counting once per word in it; the top label with the most hits (a tie goes to
---    the one with more finer hits, then list order), then up to two of its finer labels. A Page is matched on its
---    name, description and old tags together, and falls back to Neighborhood life. A post's own tags are matched
---    alone; ones that match nothing are dropped, so it carries its Page's, as an untagged post always has.
+--    the one with more finer hits, then list order), then up to two of its finer labels, plus Free when its words
+--    appear. Old tags that already are list labels (an unclaimed Page's two interests) are kept as they are. A Page
+--    is matched on its name, description and old tags together, and falls back to Neighborhood life. A post's own
+--    tags are matched alone; ones that match nothing are dropped, so it carries its Page's, as an untagged post
+--    always has.
 -- 3. A list label is a known word: marked safe, so it never waits in the tag review queue (#287).
 --
 -- The words below are generated from list.ts as it stood on 2026-11-05. This runs once; later edits to the list
@@ -23,6 +25,7 @@ comment on column public.page_posts.labels_pinned is
   '#1180 — the poster picked what this post is listed under; the composer never re-matches it from the words.';
 
 create temp table label_words (top_ord int, label_ord int, top text, label text, pattern text, weight int) on commit drop;
+-- top_ord -1: a label beside any category (Free), with no top label.
 insert into label_words (top_ord, label_ord, top, label, pattern, weight) values
   (0, 0, 'Farmers markets', 'Farmers markets', 'farmers\s+market', 2),
   (0, 0, 'Farmers markets', 'Farmers markets', 'farmer''s\s+market', 2),
@@ -416,20 +419,22 @@ insert into label_words (top_ord, label_ord, top, label, pattern, weight) values
   (11, 3, 'Neighborhood life', 'Yard sales', 'estate\s+sale', 2),
   (11, 3, 'Neighborhood life', 'Yard sales', 'moving\s+sale', 2),
   (11, 3, 'Neighborhood life', 'Yard sales', 'rummage\s+sale', 2),
-  (11, 4, 'Neighborhood life', 'Free stuff', 'curb\s+alert', 2),
-  (11, 4, 'Neighborhood life', 'Free stuff', 'giveaway', 1),
-  (11, 4, 'Neighborhood life', 'Free stuff', 'free\s+to\s+a\s+good\s+home', 5),
-  (11, 4, 'Neighborhood life', 'Free stuff', 'free\s+couch', 2),
-  (11, 5, 'Neighborhood life', 'Recommendations', 'recommend', 1),
-  (11, 5, 'Neighborhood life', 'Recommendations', 'recommendation', 1),
-  (11, 5, 'Neighborhood life', 'Recommendations', 'anyone\s+know', 2),
-  (11, 5, 'Neighborhood life', 'Recommendations', 'looking\s+for', 2),
-  (11, 5, 'Neighborhood life', 'Recommendations', 'can\s+anyone\s+suggest', 3),
-  (11, 6, 'Neighborhood life', 'Neighborhood news', 'news', 1),
-  (11, 6, 'Neighborhood life', 'Neighborhood news', 'notice', 1),
-  (11, 6, 'Neighborhood life', 'Neighborhood news', 'announcement', 1),
-  (11, 6, 'Neighborhood life', 'Neighborhood news', 'road\s+closure', 2),
-  (11, 6, 'Neighborhood life', 'Neighborhood news', 'new\s+in\s+town', 3);
+  (11, 4, 'Neighborhood life', 'Recommendations', 'recommend', 1),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'recommendation', 1),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'anyone\s+know', 2),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'looking\s+for', 2),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'can\s+anyone\s+suggest', 3),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'news', 1),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'notice', 1),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'announcement', 1),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'road\s+closure', 2),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'new\s+in\s+town', 3),
+  (-1, 1, null, 'Free', 'free', 1),
+  (-1, 1, null, 'Free', 'free\s+admission', 2),
+  (-1, 1, null, 'Free', 'no\s+cover', 2),
+  (-1, 1, null, 'Free', 'giveaway', 1),
+  (-1, 1, null, 'Free', 'curb\s+alert', 2),
+  (-1, 1, null, 'Free', 'free\s+to\s+a\s+good\s+home', 5);
 
 create function pg_temp.listed_under(txt text) returns text[]
 language sql stable as $$
@@ -441,7 +446,7 @@ language sql stable as $$
      group by w.top_ord, w.label_ord, w.top, w.label
   ),
   best as (
-    select top_ord, top from hits group by top_ord, top
+    select top_ord, top from hits where top_ord >= 0 group by top_ord, top
      order by sum(n) desc, sum(n) filter (where label_ord > 0) desc nulls last, top_ord limit 1
   )
   select case when (select top from best) is null then array[]::text[]
@@ -450,6 +455,17 @@ language sql stable as $$
         from (select h.label, h.n, h.label_ord from hits h join best b on b.top_ord = h.top_ord
                where h.label_ord > 0 order by h.n desc, h.label_ord limit 2) f
     ), array[]::text[]) end
+    || coalesce((select array_agg(label order by label_ord) from hits where top_ord < 0), array[]::text[])
+$$;
+
+-- Old tags that already are list labels, in the list's spelling, each with its top label.
+create function pg_temp.exact_labels(old text[]) returns text[]
+language sql stable as $$
+  select coalesce(array_agg(distinct x), array[]::text[]) from (
+    select w.label as x from label_words w where lower(w.label) = any (select lower(o) from unnest(old) o)
+    union
+    select w.top from label_words w where w.top is not null and lower(w.label) = any (select lower(o) from unnest(old) o)
+  ) e
 $$;
 
 create function pg_temp.ensure_label(lbl text, member uuid) returns uuid
@@ -458,7 +474,9 @@ declare tid uuid;
 begin
   insert into public.tags (label, normalized, created_by, review)
   values (lbl, lower(lbl), member, 'safe')
-  on conflict (normalized) do update set review = 'safe' where public.tags.review = 'needs_review';
+  on conflict (normalized) do update
+    set label = excluded.label,
+        review = case when public.tags.review = 'needs_review' then 'safe' else public.tags.review end;
   select id into tid from public.tags where normalized = lower(lbl);
   return tid;
 end $$;
@@ -472,11 +490,14 @@ declare
 begin
   for g in
     select gr.id, gr.founder_member_id, gr.name, gr.description,
-           (select string_agg(t.label, ' ') from public.page_tags pt join public.tags t on t.id = pt.tag_id where pt.group_id = gr.id) as old
+           (select array_agg(t.label) from public.page_tags pt join public.tags t on t.id = pt.tag_id where pt.group_id = gr.id) as old
       from public.groups gr
   loop
-    picks := pg_temp.listed_under(coalesce(g.name, '') || ' ' || coalesce(g.description, '') || ' ' || coalesce(g.old, ''));
-    if cardinality(picks) = 0 then picks := array['Neighborhood life']; end if;
+    picks := pg_temp.exact_labels(coalesce(g.old, array[]::text[]))
+          || pg_temp.listed_under(coalesce(g.name, '') || ' ' || coalesce(g.description, '') || ' ' || coalesce(array_to_string(g.old, ' '), ''));
+    if not exists (select 1 from unnest(picks) x join label_words w on w.label = x and w.top_ord >= 0) then
+      picks := array['Neighborhood life'] || picks;
+    end if;
     delete from public.page_tags where group_id = g.id;
     foreach lbl in array picks loop
       insert into public.page_tags (group_id, tag_id) values (g.id, pg_temp.ensure_label(lbl, g.founder_member_id))
@@ -485,15 +506,14 @@ begin
   end loop;
 
   for p in
-    select pp.id, gr.founder_member_id,
-           string_agg(t.label, ' ') as old
+    select pp.id, gr.founder_member_id, array_agg(t.label) as old
       from public.page_posts pp
       join public.groups gr on gr.id = pp.group_id
       join public.post_tags ptg on ptg.post_id = pp.id
       join public.tags t on t.id = ptg.tag_id
      group by pp.id, gr.founder_member_id
   loop
-    picks := pg_temp.listed_under(p.old);
+    picks := pg_temp.exact_labels(p.old) || pg_temp.listed_under(array_to_string(p.old, ' '));
     delete from public.post_tags where post_id = p.id;
     foreach lbl in array picks loop
       insert into public.post_tags (post_id, tag_id) values (p.id, pg_temp.ensure_label(lbl, p.founder_member_id))

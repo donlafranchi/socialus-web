@@ -449,6 +449,14 @@ describe('#1180 — Listed under: a post is listed under labels from the shared 
     expect(calls(/insert into public\.tags/)[0]![0]).toMatch(/'safe'/)
   })
 
+  it('refuses more than 3 picks; Free does not count', async () => {
+    install()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['Bakery', 'Pottery', 'Gardening', 'Concerts'] })).rejects.toThrow(/up to 3/)
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['Bakery', 'Pottery', 'Gardening', 'Free'] })
+    expect(calls(/insert into public\.post_tags/)).toHaveLength(6)
+  })
+
   it('refuses a free-typed tag: only the list', async () => {
     install()
     await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves', tags: ['sourdough'] })).rejects.toBeInstanceOf(ValidationError)

@@ -5,17 +5,20 @@
 import { z } from 'zod'
 import { ValidationError } from '../_lib/errors'
 import { MAX_TAGS_PER_PAGE, normalizeTag, TAG_MAX_LENGTH } from '../../lib/groups/tags'
-import { isListLabel, toStoredTags } from '../../lib/labels/match'
+import { countedPicks, isListLabel, toStoredTags } from '../../lib/labels/match'
+import { MAX_PICKS } from '../../lib/labels/list'
 
 export const labelsInput = z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional()
 /** The poster picked these under Change: never re-matched from the words. */
 export const labelsPinnedInput = z.boolean().optional()
 
 export const NOT_ON_LIST = 'Pick where it’s listed from the list.'
+export const TOO_MANY = `Pick up to ${MAX_PICKS}.`
 
 /** The labels to store, as list labels with their top labels. Refuses anything off the list. */
 export function storedLabels(tags: readonly string[]): string[] {
   if (tags.some((t) => !isListLabel(t))) throw new ValidationError(NOT_ON_LIST)
+  if (countedPicks(tags) > MAX_PICKS) throw new ValidationError(TOO_MANY)
   return toStoredTags(tags)
 }
 
@@ -29,7 +32,9 @@ export async function ensureLabelRows(client: Client, labels: readonly string[],
     await client.query(
       `insert into public.tags (label, normalized, created_by, review)
        values ($1, $2, $3, 'safe')
-       on conflict (normalized) do update set review = 'safe' where public.tags.review = 'needs_review'`,
+       on conflict (normalized) do update
+         set label = excluded.label,
+             review = case when public.tags.review = 'needs_review' then 'safe' else public.tags.review end`,
       [label, normalized, memberId],
     )
     keys.push(normalized)

@@ -163,15 +163,20 @@ export const LABELS: readonly TopLabel[] = [
       { label: 'Meetups & socials', words: ['meetup', 'social', 'mixer', 'potluck', 'club', 'block party'] },
       { label: 'Lost & found', words: ['lost', 'found', 'missing', 'stray', 'lost dog', 'lost cat'] },
       { label: 'Yard sales', words: ['yard sale', 'garage sale', 'estate sale', 'moving sale', 'rummage sale'] },
-      { label: 'Free stuff', words: ['curb alert', 'giveaway', 'free to a good home', 'free couch'] },
       { label: 'Recommendations', words: ['recommend', 'recommendation', 'anyone know', 'looking for', 'can anyone suggest'] },
       { label: 'Neighborhood news', words: ['news', 'notice', 'announcement', 'road closure', 'new in town'] },
     ],
   },
 ]
 
+/** Labels that sit beside any category rather than under one. "Free" is the free-things lens (2026-10-25: the
+ *  lens is the tag lens pointed at that one word), so it stays a label a post can carry whatever it is. */
+export const EXTRAS: readonly FinerLabel[] = [
+  { label: 'Free', words: ['free', 'free admission', 'no cover', 'giveaway', 'curb alert', 'free to a good home'] },
+]
+
 /** Where a member's post lands when nothing in it matches (#1180). */
 export const FALLBACK_LABEL = 'Neighborhood life'
 
-/** The most a poster picks under Change. */
+/** The most a poster picks under Change, not counting an extra such as Free. */
 export const MAX_PICKS = 3

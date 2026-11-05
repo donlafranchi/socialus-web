@@ -27,6 +27,8 @@ const BAKERY = 'c4000000-0000-4000-8000-000000001181'
 const POTTERY = 'c4000000-0000-4000-8000-000000001182'
 const PLAIN = 'c4000000-0000-4000-8000-000000001183'
 const REPAIR = 'c4000000-0000-4000-8000-000000001184'
+const TWO = 'c4000000-0000-4000-8000-000000001185'
+const FREE_POST = 'e4000000-0000-4000-8000-000000001183'
 const CONCERT_POST = 'e4000000-0000-4000-8000-000000001181'
 const ODD_POST = 'e4000000-0000-4000-8000-000000001182'
 
@@ -65,6 +67,7 @@ beforeAll(async () => {
     [BAKERY, 'Oak Loaves', 'Bread.'],
     [POTTERY, 'Riverside Pottery Studio', 'Wheel classes.'],
     [REPAIR, 'Repair Cafe Regulars', 'Bring it broken.'],
+    [TWO, 'Corner Stand', 'Open Saturdays.'],
     [PLAIN, 'Hello', 'There.'],
   ]) {
     await client.query(
@@ -79,6 +82,9 @@ beforeAll(async () => {
   await client.query(`insert into public.page_posts (id, group_id, body, lifecycle_state) values ($1,$2,'Friday','active'), ($3,$2,'Hi','active')`, [CONCERT_POST, BAKERY, ODD_POST])
   await client.query(`insert into public.post_tags (post_id, tag_id) values ($1, $2)`, [CONCERT_POST, await tag('Concert')])
   await client.query(`insert into public.post_tags (post_id, tag_id) values ($1, $2)`, [ODD_POST, await tag('qqzz')])
+  for (const l of ['Food & drink', 'Farmers markets']) await client.query(`insert into public.page_tags (group_id, tag_id) values ($1, $2)`, [TWO, await tag(l)])
+  await client.query(`insert into public.page_posts (id, group_id, body, lifecycle_state) values ($1,$2,'Saturday','active')`, [FREE_POST, BAKERY])
+  await client.query(`insert into public.post_tags (post_id, tag_id) values ($1, $2)`, [FREE_POST, await tag('free')])
   await client.query(MAPPING)
 })
 
@@ -112,6 +118,14 @@ describe('#1180 — existing tags map once onto the list', () => {
 
   it.runIf(RUNNABLE)("a post's own tag that matches nothing is dropped, so it carries its Page's", async () => {
     expect(await labelsOf('post_tags', 'post_id', ODD_POST)).toEqual([])
+  })
+
+  it.runIf(RUNNABLE)("old tags that already are list labels stay, both of an unclaimed Page's interests", async () => {
+    expect(await labelsOf('page_tags', 'group_id', TWO)).toEqual(['Farmers markets', 'Food & drink'])
+  })
+
+  it.runIf(RUNNABLE)('a "free" tag keeps the free-things lens, in the list spelling', async () => {
+    expect(await labelsOf('post_tags', 'post_id', FREE_POST)).toEqual(['Free'])
   })
 
   it.runIf(RUNNABLE)('the list labels it wrote are safe, never in the review queue', async () => {

@@ -473,7 +473,8 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
   // #1045 — each show carries the interests of its kind, so My interests and the Category filter find it (the Page's own tags never say "a game").
   for (const [label, keys] of tagged) {
     const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
-    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    // #1180 — list labels, so safe on arrival.
+    await db.query(`insert into public.tags (label, normalized, created_by, review) values ($1, $2, $3, 'safe') on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
     await db.query(
       `insert into public.post_tags (post_id, tag_id)
        select p.id, t.id from public.page_posts p, public.tags t

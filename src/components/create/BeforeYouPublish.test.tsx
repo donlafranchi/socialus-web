@@ -7,7 +7,7 @@ import { BeforeYouPublish } from './BeforeYouPublish'
 import { RULES_VERSION } from '@/lib/creator-rules'
 
 afterEach(cleanup)
-const base = { editPath: '/g/draft-x/edit', hasName: false, hasPlace: false, hasDescription: false, hasTags: false, hasPhoto: false }
+const base = { editPath: '/g/draft-x/edit', hasName: false, hasPlace: false, hasDescription: false, hasPhoto: false }
 
 describe('#301 — Before you publish', () => {
   it('lists the four things and the optional photo, each with a way to add it', () => {
@@ -15,12 +15,13 @@ describe('#301 — Before you publish', () => {
     for (const [key, name] of [['name', /^name/i], ['where', /where it is/i], ['description', /description/i], ['tags', /listed under/i], ['photo', /photo \(optional\)/i]] as const) {
       const row = screen.getByTestId(`publish-item-${key}`)
       expect(row).toHaveTextContent(name)
-      expect(within(row).getByRole('link', { name: /add/i })).toHaveAttribute('href', '/g/draft-x/edit')
+      // Listed under is suggested from the words, so it is done from the start and offers Change.
+      expect(within(row).getByRole('link', { name: key === 'tags' ? /change/i : /add/i })).toHaveAttribute('href', '/g/draft-x/edit')
     }
   })
 
   it('will not publish until the four are done, and says what is missing', () => {
-    render(<BeforeYouPublish {...base} hasName hasPlace hasTags onPublish={vi.fn()} />)
+    render(<BeforeYouPublish {...base} hasName hasPlace onPublish={vi.fn()} />)
     expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
     expect(screen.getByText(/add a description to publish/i)).toBeInTheDocument()
   })
@@ -34,7 +35,7 @@ describe('#301 — Before you publish', () => {
 
   it('publishes once they are, photo or not', async () => {
     const onPublish = vi.fn(async () => {})
-    render(<BeforeYouPublish {...base} hasName hasPlace hasDescription hasTags onPublish={onPublish} />)
+    render(<BeforeYouPublish {...base} hasName hasPlace hasDescription onPublish={onPublish} />)
     fireEvent.click(screen.getByRole('button', { name: 'Publish' }))
     await waitFor(() => expect(onPublish).toHaveBeenCalledWith(RULES_VERSION))
   })
@@ -48,7 +49,7 @@ describe('#301 — Before you publish', () => {
 
 // Don, 2026-10-31 — one line, no four-rule step and no checkbox.
 describe('publishing says the Terms apply, in one line', () => {
-  const ready = { ...base, hasName: true, hasPlace: true, hasDescription: true, hasTags: true }
+  const ready = { ...base, hasName: true, hasPlace: true, hasDescription: true }
 
   it('"By posting you agree to the Terms", the Terms linked, no checkbox, no rules list', () => {
     render(<BeforeYouPublish {...ready} onPublish={vi.fn()} />)

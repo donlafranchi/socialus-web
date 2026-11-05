@@ -158,7 +158,6 @@ export function ShopPublicPage({
   followerCount = 0,
   reminders = NO_REMINDERS,
   wonders = NO_WONDERS,
-  draftTagCount = 0,
   unclaimedActions,
   viewerMemberId = null,
   contactOn = false,
@@ -327,7 +326,7 @@ export function ShopPublicPage({
             hasName={shop.displayName !== DRAFT_NAME_PLACEHOLDER && shop.displayName.trim() !== ''}
             hasPlace={Boolean(shop.anchorLocationId)}
             hasDescription={shop.publicDescription.trim() !== ''}
-            hasTags={draftTagCount > 0}
+           
             hasPhoto={Boolean(photoUrl)}
             onPublish={publishDraftAction.bind(null, shop.groupId)}
           />

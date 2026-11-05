@@ -2,7 +2,7 @@
 // What a poster picks under Change is pinned and never re-matched (plan #273 B).
 
 import { normalizeTag } from '@/lib/groups/tags'
-import { FALLBACK_LABEL, LABELS, MAX_PICKS } from './list'
+import { EXTRAS, FALLBACK_LABEL, LABELS, MAX_PICKS } from './list'
 
 const TOP_OF = new Map<string, string>()
 const LABEL_OF = new Map<string, string>()
@@ -14,6 +14,10 @@ for (const t of LABELS) {
     LABEL_OF.set(normalizeTag(f.label), f.label)
   }
 }
+const EXTRA = new Set(EXTRAS.map((e) => normalizeTag(e.label)))
+for (const e of EXTRAS) LABEL_OF.set(normalizeTag(e.label), e.label)
+/** A label beside any category (Free): no top label, and not one of the 3 picks. */
+export const isExtra = (label: string) => EXTRA.has(normalizeTag(label))
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const pattern = (word: string) =>
@@ -45,17 +49,18 @@ export function suggestLabels(text: string): string[] {
     // A tie goes to the one with more finer hits: "pottery" says more than "food".
     if (score > 0 && (!best || score > best.score || (score === best.score && specific > best.specific))) best = { label: top.label, score, specific, finer }
   }
-  if (!best) return []
+  const extras = EXTRAS.filter((e) => hits(t, e.words) > 0).map((e) => e.label)
+  if (!best) return extras
   const finer = [...best.finer].sort((a, b) => b.score - a.score).slice(0, MAX_PICKS - 1)
-  return [best.label, ...finer.map((f) => f.label)]
+  return [best.label, ...finer.map((f) => f.label), ...extras]
 }
 
 /** What "Listed under" shows before the poster picks: the words, else the Page's labels, else the fallback. */
 export function listedUnder({ text, pageTags = [] }: { text: string; pageTags?: readonly string[] }): string[] {
   const words = suggestLabels(text)
-  if (words.length > 0) return words
-  const page = picksFromTags(pageTags)
-  return page.length > 0 ? page : [FALLBACK_LABEL]
+  if (words.some((w) => !isExtra(w))) return words
+  const page = picksFromTags(pageTags).filter((p) => !isExtra(p))
+  return [...(page.length > 0 ? page : [FALLBACK_LABEL]), ...words]
 }
 
 /** Stored tags: list labels only, each finer one preceded by its top label, no duplicates. */
@@ -64,12 +69,21 @@ export function toStoredTags(picks: readonly string[]): string[] {
   for (const p of picks) {
     const label = listLabel(p)
     if (!label) continue
-    const top = topOf(label)!
-    if (!out.includes(top)) out.push(top)
+    const top = topOf(label)
+    if (top && !out.includes(top)) out.push(top)
     if (!out.includes(label)) out.push(label)
   }
   return out
 }
+
+/** Stored labels back to the picks they came from: a top label goes when one of its finer ones is there. */
+export function reducePicks(tags: readonly string[]): string[] {
+  const stored = toStoredTags(tags)
+  return stored.filter((l) => isExtra(l) || topOf(l) !== l || !stored.some((o) => o !== l && topOf(o) === l))
+}
+
+/** How many of the poster's picks count toward the limit (an extra such as Free does not). */
+export const countedPicks = (tags: readonly string[]) => reducePicks(tags).filter((l) => !isExtra(l)).length
 
 /** A row's tags read back as list labels, in the list's spelling. Anything else is dropped. */
 export function picksFromTags(tags: readonly string[]): string[] {

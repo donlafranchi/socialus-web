@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { ListedUnder, labelsToSend, UNPINNED } from './ListedUnder'
+import { ListedUnder, labelsToSend, savedValue, UNPINNED } from './ListedUnder'
 
 afterEach(cleanup)
 
@@ -28,9 +28,10 @@ describe('#1180 — Listed under', () => {
     render(<ListedUnder idPrefix="l" value={UNPINNED} onChange={() => {}} text="Sourdough" />)
     fireEvent.click(screen.getByRole('button', { name: 'Change' }))
     const sheet = screen.getByTestId('l-sheet')
-    expect(within(sheet).getAllByRole('group')).toHaveLength(12)
+    expect(within(sheet).getAllByRole('group')).toHaveLength(13)
     expect(within(sheet).getByRole('checkbox', { name: 'Bakery' })).toBeChecked()
-    expect(within(sheet).getByRole('checkbox', { name: 'Food & drink' })).toBeChecked()
+    // Food & drink comes with Bakery, so it isn't a pick of its own.
+    expect(within(sheet).getByRole('checkbox', { name: 'Food & drink' })).not.toBeChecked()
   })
 
   it('picks up to 3, then the rest wait', () => {
@@ -46,10 +47,23 @@ describe('#1180 — Listed under', () => {
     render(<ListedUnder idPrefix="l" value={UNPINNED} onChange={onChange} text="Sourdough" />)
     fireEvent.click(screen.getByRole('button', { name: 'Change' }))
     fireEvent.click(screen.getByRole('checkbox', { name: 'Bakery' }))
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Food & drink' }))
     fireEvent.click(screen.getByRole('checkbox', { name: 'Coffee & tea' }))
     fireEvent.click(screen.getByTestId('l-save'))
     expect(onChange).toHaveBeenCalledWith({ picks: ['Coffee & tea'], pinned: true })
+  })
+
+  it('reopening keeps every pick, however many top labels they carried', () => {
+    const onChange = vi.fn()
+    render(<ListedUnder idPrefix="l" value={savedValue(['Food & drink', 'Bakery', 'Coffee & tea', 'Restaurants'], true)} onChange={onChange} text="" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Change' }))
+    fireEvent.click(screen.getByTestId('l-save'))
+    expect(onChange).toHaveBeenCalledWith({ picks: ['Bakery', 'Coffee & tea', 'Restaurants'], pinned: true })
+  })
+
+  it('Free is picked beside the 3, never instead of one', () => {
+    render(<ListedUnder idPrefix="l" value={{ picks: ['Bakery', 'Pottery', 'Gardening'], pinned: true }} onChange={() => {}} text="" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Change' }))
+    expect(screen.getByRole('checkbox', { name: 'Free' })).toBeEnabled()
   })
 
   it('cannot save nothing', () => {

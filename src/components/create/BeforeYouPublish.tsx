@@ -32,20 +32,20 @@ interface Props {
   hasName: boolean
   hasPlace: boolean
   hasDescription: boolean
-  hasTags: boolean
   hasPhoto: boolean
   /** Called with the rules version the member agreed to. */
   onPublish: (rulesVersion: number) => Promise<void>
 }
 
-export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasTags, hasPhoto, onPublish }: Props) {
+export function BeforeYouPublish({ editPath, hasName, hasPlace, hasDescription, hasPhoto, onPublish }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const items = [
     { key: 'name', label: 'Name', done: hasName },
     { key: 'where', label: 'Where it is', done: hasPlace },
     { key: 'description', label: 'Description', done: hasDescription },
-    { key: 'tags', label: 'Listed under', done: hasTags },
+    // Suggested from its words when nothing is picked, so it is never a to-do.
+    { key: 'tags', label: 'Listed under', done: true },
     { key: 'photo', label: 'Photo (optional)', done: hasPhoto },
   ]
   const missing = [!hasName && 'a name', !hasPlace && 'where it is', !hasDescription && 'a description'].filter(
