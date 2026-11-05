@@ -30,6 +30,9 @@ import {
   memberReminderEveryForPage,
   memberHeartSet,
   memberSaveSet,
+  memberPostCreate,
+  memberPostWithdraw,
+  memberPostAnswer,
 } from './member'
 import { searchDemandLog } from './search'
 import { shelfLog } from './shelf'
@@ -114,6 +117,9 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.reminder.every_for_page': memberReminderEveryForPage as unknown as NamedActionHandler<unknown, unknown>,
   'member.heart.set': memberHeartSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.save.set': memberSaveSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member_post.create': memberPostCreate as unknown as NamedActionHandler<unknown, unknown>,
+  'member_post.withdraw': memberPostWithdraw as unknown as NamedActionHandler<unknown, unknown>,
+  'member_post.answer': memberPostAnswer as unknown as NamedActionHandler<unknown, unknown>,
   'group.market_stall.set': groupMarketStallSet as unknown as NamedActionHandler<unknown, unknown>,
   'group.market_stall.skip': groupMarketStallSkip as unknown as NamedActionHandler<unknown, unknown>,
   'group.market_stall.remove': groupMarketStallRemove as unknown as NamedActionHandler<unknown, unknown>,
@@ -218,8 +224,12 @@ export {
   memberReminderEveryForPage,
   memberHeartSet,
   memberSaveSet,
+  memberPostCreate,
+  memberPostWithdraw,
+  memberPostAnswer,
+  MEMBER_POST_REFUSED,
 } from './member'
-export type { MemberHeartSetInput } from './member'
+export type { MemberHeartSetInput, MemberPostCreateInput } from './member'
 export { searchDemandLog } from './search'
 export { shelfLog, SHELF_EVENTS } from './shelf'
 export { mapLog, MAP_TAP_KINDS } from './map'

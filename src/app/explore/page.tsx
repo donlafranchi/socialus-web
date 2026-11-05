@@ -19,6 +19,7 @@ import { parseReach } from '@/lib/browse/reach'
 import { BrowseSurface } from '@/components/browse/BrowseSurface'
 import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
 import { ExploreShelves } from '@/components/browse/ExploreShelves'
+import { ExploreMemberPosts } from '@/components/member-posts/ExploreMemberPosts'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,9 +42,15 @@ export default async function Page({
           // F121 — signed in only (a stranger's feed carries no posts); streamed, so Explore never waits for them.
           // Only the default view shows them, so only it reads them: a search, filter or the map never does.
           snapshot.signedIn && snapshot.metro && !hasBrowseFilters(filters) && !rest.trim() && sp.view !== 'map' ? (
-            <Suspense fallback={null}>
-              <ExploreShelves scope={snapshot.area ? { placeId: snapshot.area.id } : { metroId: snapshot.metro.id }} />
-            </Suspense>
+            <>
+              <Suspense fallback={null}>
+                <ExploreShelves scope={snapshot.area ? { placeId: snapshot.area.id } : { metroId: snapshot.metro.id }} />
+              </Suspense>
+              {/* #1183 — posts from members, in rows of their own. */}
+              <Suspense fallback={null}>
+                <ExploreMemberPosts scope={snapshot.area ? { placeId: snapshot.area.id } : { metroId: snapshot.metro.id }} />
+              </Suspense>
+            </>
           ) : null
         }
       />

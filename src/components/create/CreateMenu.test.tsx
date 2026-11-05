@@ -40,12 +40,13 @@ describe('CreateMenu — the one ➕ (Don, 2026-11-01)', () => {
     expect(screen.queryByTestId('create-menu')).not.toBeInTheDocument()
   })
 
-  it('offers Start a Page and Propose something, nothing else', () => {
+  it('offers Start a Page, Propose something and Post to the neighborhood, nothing else', () => {
     render(<CreateMenu />)
     openMenu()
     const items = within(screen.getByRole('menu')).getAllByRole('menuitem')
-    expect(items.map((i) => i.textContent)).toEqual(['Start a Page', 'Propose something'])
+    expect(items.map((i) => i.textContent)).toEqual(['Start a Page', 'Propose something', 'Post to the neighborhood'])
     expect(items[0]).toHaveAttribute('href', '/create')
+    expect(items[2]).toHaveAttribute('href', '/neighbors/new')
   })
 
   it('with no Page, Propose something starts one', async () => {

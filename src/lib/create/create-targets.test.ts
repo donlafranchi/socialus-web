@@ -5,15 +5,21 @@ const sac: CreatePage = { name: 'Sac Floaters', href: '/g/abc' }
 const bake: CreatePage = { name: 'Bakery', href: '/g/def' }
 
 describe('createChoices', () => {
-  it('offers only Start a Page and Propose something (Don, 2026-11-01)', () => {
+  it('offers Start a Page, Propose something, and a post without a Page (#1183, plan #270 B)', () => {
     const c = createChoices({ signedIn: true, pages: [sac] })
-    expect(c.map((c) => c.id)).toEqual(['page', 'wonder'])
-    expect(c.map((c) => c.label)).toEqual(['Start a Page', 'Propose something'])
+    expect(c.map((c) => c.id)).toEqual(['page', 'wonder', 'neighbor'])
+    expect(c.map((c) => c.label)).toEqual(['Start a Page', 'Propose something', 'Post to the neighborhood'])
+  })
+
+  it('a post without a Page needs no Page, with or without one', () => {
+    for (const pages of [[], [sac], [sac, bake]]) {
+      expect(createChoices({ signedIn: true, pages }).find((c) => c.id === 'neighbor')).toMatchObject({ href: '/neighbors/new', needsPage: false })
+    }
   })
 
   it('signed out, every choice goes to sign-in and back to /create', () => {
     const hrefs = createChoices({ signedIn: false, pages: [] }).map((c) => c.href)
-    expect(new Set(hrefs)).toEqual(new Set(['/create']))
+    expect(new Set(hrefs)).toEqual(new Set(['/create', '/neighbors/new']))
   })
 
   it('with no Page yet, a Proposal starts by creating one', () => {

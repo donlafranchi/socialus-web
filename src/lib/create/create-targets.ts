@@ -4,7 +4,7 @@
 
 import { isPostKind, type PostKind } from '@/lib/posts/kinds'
 
-export type CreateKind = 'wonder' | 'page'
+export type CreateKind = 'wonder' | 'page' | 'neighbor'
 export interface CreatePage {
   name: string
   href: string
@@ -19,8 +19,9 @@ export interface CreateChoice {
 }
 
 // plan #218 (Don, 2026-11-01) — the button for a Proposal reads "Propose something".
-const LABEL: Record<CreateKind, string> = { page: 'Start a Page', wonder: 'Propose something' }
-const ORDER: CreateKind[] = ['page', 'wonder']
+// #1183 (plan #270 B) — a post without a Page. Draft words.
+const LABEL: Record<CreateKind, string> = { page: 'Start a Page', wonder: 'Propose something', neighbor: 'Post to the neighborhood' }
+const ORDER: CreateKind[] = ['page', 'wonder', 'neighbor']
 
 /** The link names a Proposal by its word, not the internal `wonder`; an old `?compose=wonder` link still opens one. */
 const COMPOSE_PARAM: Partial<Record<PostKind, string>> = { wonder: 'proposal' }
@@ -38,6 +39,7 @@ export function composerHref(page: CreatePage, kind: PostKind): string {
 export function createChoices({ signedIn, pages }: { signedIn: boolean; pages: CreatePage[] }): CreateChoice[] {
   return ORDER.map((id) => {
     const base = { id, label: LABEL[id] }
+    if (id === 'neighbor') return { ...base, href: '/neighbors/new', needsPage: false }
     if (id === 'page' || !signedIn) return { ...base, href: '/create', needsPage: false }
     if (pages.length === 0) return { ...base, href: '/create', needsPage: true }
     if (pages.length > 1) return { ...base, href: null, needsPage: false }
