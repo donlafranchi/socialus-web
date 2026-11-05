@@ -1,0 +1,63 @@
+[
+  {
+    "name": "Kiwanis Club of Citrus Heights",
+    "category": "Service club",
+    "makes": "Citrus Heights service club chartered in 1972, running a free annual community Easter egg hunt and two fundraisers a year in support of local youth and family programs; meets the 3rd Wednesday of every month at 6:00 p.m. at R Vida Cantina, 7040 Sunrise Blvd",
+    "area": "Citrus Heights (Sacramento)",
+    "site": "https://k07015.site.kiwanis.org/",
+    "confidence": "Medium-high; own site checked 2026-11-05 (ok): about and meeting pages live, meeting time and place stated; no footer year or street address for the club. Photos not viewed: stock only. Lead: search (Kiwanis), then own site."
+  },
+  {
+    "name": "Soroptimist International of Rancho Cordova & Gold River",
+    "category": "Service club",
+    "makes": "Women's volunteer service club chartered in 2009 running Comfort Kits, Dream It Be It and the Live Your Dream Award, plus Operation Holiday Stocking; business meetings are at 6:30 p.m. and open to the public",
+    "area": "Rancho Cordova (Sacramento)",
+    "address": "PO Box 1814, Rancho Cordova, CA 95741",
+    "site": "https://soroptimistranchocordova.org/",
+    "social": {
+      "facebook": "https://soroptimistranchocordova.org/public-relations/join-our-facebook-page/"
+    },
+    "confidence": "High; own site checked 2026-11-05 (ok): post dated Nov 2 2026 and 2026-27 board listed; meeting day and place not stated, mailing address only. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sacramento Wheelmen Bicycling Club",
+    "category": "Sports club",
+    "makes": "Recreational adult cycling club with weekday and weekend rides every month plus multi-day tours, such as the Tuesday Coffee Ride at 9:00 a.m. from Old Fair Oaks Village Park and the Saturday Granite Bay ride at 8:30 a.m.; ride calendar and membership on its site",
+    "area": "Carmichael (Sacramento)",
+    "address": "P.O. Box 3083, Carmichael, CA 95609",
+    "site": "https://sacwheelmen.wildapricot.org/",
+    "confidence": "High; own site checked 2026-11-05 (ok): ride calendar shows Nov 2026 rides, Oct 11 2026 ride report; footer has no year; mailing address only. Photos not viewed: stock only. Lead: Sacramento Area Bicycle Advocates club list, then own site."
+  },
+  {
+    "name": "Placerville Lions Club",
+    "category": "Service club",
+    "makes": "Placerville Lions club in its second century of service, supporting scholarships, youth recreation and the fight against blindness; meets the 1st and 3rd Tuesday of the month at noon in the Raleys Community Room",
+    "area": "Placerville (El Dorado)",
+    "site": "https://e-clubhouse.org/sites/placervilleca",
+    "social": {
+      "facebook": "https://www.facebook.com/placervillelions"
+    },
+    "confidence": "Medium-high; own site checked 2026-11-05 (ok): meeting schedule live, footer 2026; no street address for the meeting room. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Folsom Lake Lions Club",
+    "category": "Service club",
+    "makes": "Folsom service club collecting used eyeglasses for the Folsom Vision Project and supporting local causes; meets 2nd and 4th Thursdays at 6:30 p.m. at the Folsom VFW Clubhouse",
+    "area": "Folsom (Sacramento)",
+    "address": "1300 Forrest St, Folsom, CA 95630",
+    "site": "https://e-clubhouse.org/sites/folsomlake",
+    "confidence": "High; own site checked 2026-11-05 (ok): meeting time and place live, footer 2026. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Roseville Host Lions Club",
+    "category": "Service club",
+    "makes": "Roseville service club behind high school scholarships, the annual Christmas Food Basket program and eyeglass recycling with drop boxes at the clubhouse and local libraries; meets 1st and 3rd Wednesdays at 6:00 p.m. at 107 Sutter Avenue",
+    "area": "Roseville (Placer)",
+    "address": "107 Sutter Avenue, Roseville, CA 95678",
+    "site": "https://e-clubhouse.org/sites/rosevillehostca",
+    "social": {
+      "facebook": "https://www.facebook.com/rosevillehostlionsclub"
+    },
+    "confidence": "High; own site checked 2026-11-05 (ok): meeting schedule and projects live, footer 2026. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]
