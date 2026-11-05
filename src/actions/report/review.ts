@@ -266,7 +266,7 @@ function subjectEvent(
 ) {
   return row.subject_kind === 'member_post'
     ? appendEvent(ctx, 'member_events', { member_id: row.poster_id, event_kind: kind, payload })
-    : appendEvent(ctx, 'group_events', { group_id: row.group_id, event_kind: kind, payload })
+    : appendEvent(ctx, 'group_events', { group_id: row.group_id ?? undefined, event_kind: kind, payload })
 }
 
 export const reportDecide = defineHandler(
