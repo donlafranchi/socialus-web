@@ -25,9 +25,10 @@ const READER = 'b8000000-0000-4000-8000-000000001183'
 const OTHER = 'c8000000-0000-4000-8000-000000001183'
 const NO_PHONE = 'd8000000-0000-4000-8000-000000001183'
 const OPERATOR = 'e8000000-0000-4000-8000-000000001183'
+const BUILDER = '98000000-0000-4000-8000-000000001183'
 const HOOD = 'f8000000-0000-4000-8000-000000001183'
 const CITY = 'f8000000-0000-4000-8000-000000001184'
-const MEMBERS = [POSTER, READER, OTHER, NO_PHONE, OPERATOR]
+const MEMBERS = [POSTER, READER, OTHER, NO_PHONE, OPERATOR, BUILDER]
 
 const NOW = new Date()
 const DAY = 86_400_000
@@ -40,9 +41,10 @@ const ctx = (id: string, now = NOW): ActionContext =>
   ({ actingMemberId: id, viaDelegationId: null, traceId: 't', db: {} as never, now: () => now }) as ActionContext
 
 type Read = Record<string, unknown> & { id: string }
-async function read(sub: string | null, args: { place?: string; post?: string; search?: string } = { place: HOOD }): Promise<Read[]> {
+async function read(sub: string | null, args: { place?: string; post?: string; search?: string } = { place: HOOD }, switchOff = false): Promise<Read[]> {
   await client.query('begin')
   try {
+    if (switchOff) await client.query(`insert into public.builder_content (id, visible) values (true, false) on conflict (id) do update set visible = false`)
     await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub, role: sub ? 'authenticated' : 'anon' })])
     await client.query(`set local role ${sub ? 'authenticated' : 'anon'}`)
     const r = await client.query<{ j: Read[] }>(`select public.member_posts_read(p_place_id => $1, p_post_id => $2, p_search => $3) as j`, [
@@ -68,10 +70,12 @@ beforeAll(async () => {
     await client.query(
       `insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, phone, phone_confirmed_at, created_at, updated_at)
        values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,'x',now(),$3,$4,now(),now())`,
-      [id, `${h}@test.invalid`, id === NO_PHONE ? null : `191655511${i}3`, id === NO_PHONE ? null : new Date()],
+      // A builder has no confirmed phone: builders are the named exception (#280).
+      [id, `${h}@test.invalid`, id === NO_PHONE || id === BUILDER ? null : `191655511${i}3`, id === NO_PHONE || id === BUILDER ? null : new Date()],
     )
     await client.query(`insert into public.members (id, handle, display_name) values ($1,$2,$3)`, [id, h, id === POSTER ? 'Rosa P' : h])
   }
+  await client.query(`insert into public.builders (member_id, persona) values ($1, 'm1183')`, [BUILDER])
   await client.query(
     `insert into public.places (id, slug, display_name, kind, geography, centroid) values
        ($1, 'm1183-hood', 'Curtis Park', 'neighborhood',
@@ -91,6 +95,7 @@ afterAll(async () => {
   await client.query(`delete from public.member_posts where member_id = any($1)`, [MEMBERS])
   await client.query(`delete from public.member_events where member_id = any($1)`, [MEMBERS])
   await client.query(`delete from public.places where id = any($1)`, [[HOOD, CITY]])
+  await client.query(`delete from public.builders where member_id = $1`, [BUILDER])
   // List labels this file was first to use: dropped when nothing else holds them, else handed to another member.
   await client.query(
     `delete from public.tags t where t.created_by = any($1)
@@ -140,6 +145,10 @@ describe.skipIf(!RUNNABLE)('#1183 — posting without a Page', () => {
     expect(new Date(row.expires_at).getTime()).toBe(Date.parse(metroWallTimeToInstant(shiftDays(SALE_DAY, 1), '00:00', METRO_TIME_ZONE)!))
     const seen = (await read(READER, { post: sale }))[0]!
     expect(seen.street).toBe('2700 Portola Way')
+    // Once its day is over, the street is gone from everyone, its poster included.
+    await client.query(`update public.member_posts set sale_on = current_date - 2 where id = $1`, [sale])
+    expect((await read(POSTER, { post: sale }))[0]!.street).toBeNull()
+    await client.query(`update public.member_posts set sale_on = $2 where id = $1`, [sale, SALE_DAY])
   })
 
   it('a few live at once: the fourth waits until one comes down', async () => {
@@ -175,11 +184,30 @@ describe.skipIf(!RUNNABLE)('#1183 — posting without a Page', () => {
     expect((await read(OTHER, { post: old }))[0]).toMatchObject({ ended: true })
   })
 
+  it("a builder's post reaches members only while the builder-content switch is on, and a builder's answer never reaches a real poster", async () => {
+    const built = (await memberPostCreate(ctx(BUILDER), { kind: 'ask', body: 'Builder test: a good tailor?', placeId: HOOD })).postId
+    expect((await read(READER)).map((p) => p.id)).toContain(built)
+    expect((await read(READER, { place: HOOD }, true)).map((p) => p.id)).not.toContain(built)
+    expect((await read(BUILDER, { place: HOOD }, true)).map((p) => p.id)).toContain(built)
+    await memberPostAnswer(ctx(BUILDER), { postId: lost, on: true })
+    const names = ((await read(POSTER, { post: lost }))[0]!.answers as { displayName: string }[]).map((a) => a.displayName)
+    expect(names).not.toContain('m1183-98')
+    await client.query('begin')
+    try {
+      const gone = (await client.query(`select public.delete_builder_content() as d`)).rows[0].d
+      expect(gone).toMatchObject({ member_posts: 1, post_answers: 1 })
+    } finally {
+      await client.query('rollback')
+    }
+  })
+
   it('the poster takes it down, which frees a place under the cap', async () => {
     await memberPostWithdraw(ctx(POSTER), { postId: lost })
     expect((await read(READER)).map((p) => p.id)).not.toContain(lost)
     await expect(memberPostWithdraw(ctx(READER), { postId: lost })).rejects.toThrow()
     await post(POSTER, { kind: 'ask', body: 'A good tailor?' })
+    // A post its poster took down is not reported: there is nothing up to hide, and no notice to send.
+    await expect(reportCreate(ctx(READER), { subjectKind: 'member_post', subjectId: lost, category: 'spam', body: 'Spam.' })).rejects.toThrow(/not found/)
   })
 })
 
@@ -211,5 +239,14 @@ describe.skipIf(!RUNNABLE)('#1183 — reporting a post from a member', () => {
     process.env.OPERATOR_MEMBER_ID = OPERATOR
     await reportDecide(ctx(OPERATOR), { reportId, outcome: 'restored', reasonCode: 'nothing_wrong' })
     expect((await read(READER)).map((p) => p.id)).toContain(id)
+  })
+
+  it('removed by a person, it is gone for everyone, its poster included', async () => {
+    await reportCreate(ctx(NO_PHONE), { subjectKind: 'member_post', subjectId: id, category: 'harassment', body: 'Again.' })
+    const reportId = (await client.query(`select id from public.reports where subject_id = $1 and reporter_member_id = $2`, [id, NO_PHONE])).rows[0].id
+    await reportDecide(ctx(OPERATOR), { reportId, outcome: 'removed', reasonCode: 'harassment' })
+    expect((await read(READER)).map((p) => p.id)).not.toContain(id)
+    expect(await read(OTHER, { post: id })).toEqual([])
+    expect((await client.query(`select count(*)::int n from public.member_events where member_id = $1 and event_kind = 'member.post_removed'`, [OTHER])).rows[0].n).toBe(1)
   })
 })

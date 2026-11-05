@@ -40,11 +40,14 @@ export function MemberPostComposer({
   onPosted,
   searchNeighborhoods,
   needsPhone = false,
+  phoneOpen = false,
 }: {
   onPost: (draft: MemberPostDraft) => Promise<Sent>
   onPosted: (postId: string) => void
   searchNeighborhoods: (q: string) => Promise<NeighborhoodMatch[]>
   needsPhone?: boolean
+  /** Phone confirmation is switched on (PHONE_VERIFICATION_REQUIRED): the gate leads to it. */
+  phoneOpen?: boolean
 }) {
   const [kind, setKind] = useState<MemberPostKind | null>(null)
   const [body, setBody] = useState('')
@@ -59,7 +62,15 @@ export function MemberPostComposer({
     return (
       <div data-testid="member-post-phone" className="flex flex-col gap-3">
         <p className="text-body text-[var(--color-fg)]">Confirm your phone number before you post.</p>
-        <p className="text-body-sm text-[var(--color-fg-muted)]">One number per person keeps posts from real neighbors.</p>
+        <p className="text-body-sm text-[var(--color-fg-muted)]">
+          One number per person keeps posts from real neighbors.
+          {phoneOpen ? '' : ' Confirming a phone number isn’t open yet, so posting without a Page waits for it.'}
+        </p>
+        {phoneOpen && (
+          <a href="/onboarding" className="btn-primary self-start">
+            Confirm my phone
+          </a>
+        )}
       </div>
     )
   }
@@ -134,7 +145,13 @@ export function MemberPostComposer({
             <div className="flex flex-col gap-3">
               <label className="flex flex-col gap-1">
                 <span className="text-body-sm font-medium text-[var(--color-fg)]">A yard sale? Its day (optional)</span>
-                <input type="date" value={saleOn} onChange={(e) => setSaleOn(e.target.value)} className="min-h-tap rounded-md border border-[var(--color-border)] px-3" />
+                <input
+                  type="date"
+                  value={saleOn}
+                  onChange={(e) => {
+                    setSaleOn(e.target.value)
+                    if (!e.target.value) setStreet('')
+                  }} className="min-h-tap rounded-md border border-[var(--color-border)] px-3" />
               </label>
               {saleOn && (
                 <label className="flex flex-col gap-1">

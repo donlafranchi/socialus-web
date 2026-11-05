@@ -78,6 +78,8 @@ as $$
       join public.places pl on pl.id = p.place_id
       join public.members m on m.id = p.member_id and m.deleted_at is null
      where (select id from me) is not null
+       -- #280/#388: a builder's post reaches a real member only while the builder-content switch is on.
+       and (p.member_id = (select id from me) or public.builder_visible(p.member_id))
        and p.removed_at is null
        and (p.member_id = (select id from me)
             or (p.withdrawn_at is null and p.hidden_at is null and p.expires_at > now()))
@@ -112,7 +114,8 @@ as $$
     'answers', case when l.member_id = (select id from me) then coalesce((
         select jsonb_agg(jsonb_build_object('displayName', rm.display_name, 'at', r.created_at) order by r.created_at desc)
           from public.member_post_responses r join public.members rm on rm.id = r.member_id and rm.deleted_at is null
-         where r.post_id = l.id), '[]'::jsonb) end
+         -- A builder's answer never reaches a real poster, whatever the switch says (#280).
+         where r.post_id = l.id and public.builder_relation_visible(r.member_id)), '[]'::jsonb) end
   ) order by l.created_at desc), '[]'::jsonb)
     from live l
     join public.members m on m.id = l.member_id
@@ -160,3 +163,45 @@ as $$
     'welcome', 'you'
   ])
 $$;
+
+-- #388: Delete all builder content takes builders' posts without a Page, and their answers, with the rest.
+create or replace function public.delete_builder_content()
+returns jsonb
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  n_pages int; n_items int; n_follows int; n_memberships int; n_responses int; n_reports int; n_locations int;
+  n_member_posts int; n_post_answers int;
+begin
+  delete from public.reports r using public.builders b where r.reporter_member_id = b.member_id;
+  get diagnostics n_reports = row_count;
+  delete from public.member_post_responses x using public.builders b where x.member_id = b.member_id;
+  get diagnostics n_post_answers = row_count;
+  delete from public.member_posts x using public.builders b where x.member_id = b.member_id;
+  get diagnostics n_member_posts = row_count;
+  delete from public.member_follows f
+   where public.is_builder(f.follower_member_id) or public.is_builder(f.followed_member_id);
+  get diagnostics n_follows = row_count;
+  delete from public.item_responses r using public.builders b where r.responder_member_id = b.member_id;
+  get diagnostics n_responses = row_count;
+  delete from public.group_memberships m using public.builders b where m.member_id = b.member_id;
+  get diagnostics n_memberships = row_count;
+  delete from public.items i using public.builders b where i.member_id = b.member_id;
+  get diagnostics n_items = row_count;
+  delete from public.groups g using public.builders b where g.founder_member_id = b.member_id;
+  get diagnostics n_pages = row_count;
+  delete from public.locations l using public.builders b
+   where l.member_id = b.member_id
+     and not exists (select 1 from public.groups g where g.anchor_location_id = l.id)
+     and not exists (select 1 from public.page_posts p where p.location_id = l.id)
+     and not exists (select 1 from public.item_locations il where il.location_id = l.id)
+     and not exists (select 1 from public.members m where m.home_location_id = l.id)
+     and not exists (select 1 from public.member_saved_searches s where s.location_id = l.id);
+  get diagnostics n_locations = row_count;
+  return jsonb_build_object(
+    'pages', n_pages, 'items', n_items, 'follows', n_follows, 'memberships', n_memberships,
+    'responses', n_responses, 'reports', n_reports, 'locations', n_locations,
+    'member_posts', n_member_posts, 'post_answers', n_post_answers);
+end $$;
+revoke all on function public.delete_builder_content() from public, anon, authenticated;

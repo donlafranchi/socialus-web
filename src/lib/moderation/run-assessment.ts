@@ -48,7 +48,7 @@ export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): 
   // photo. Each kind's columns are written out; none is built from input.
   const res = await db.query(
     `select r.category, r.subject_kind,
-            coalesce(g.name, pg.name) as name,
+            coalesce(g.name, pg.name, case when mp.id is not null then 'a post from a member' end) as name,
             case r.subject_kind
               when 'group' then g.description
               when 'page_words' then g.description

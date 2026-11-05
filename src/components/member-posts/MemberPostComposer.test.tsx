@@ -60,5 +60,12 @@ describe('#1183 — MemberPostComposer', () => {
     render(<MemberPostComposer onPost={vi.fn()} onPosted={vi.fn()} searchNeighborhoods={hoods} needsPhone />)
     expect(screen.getByTestId('member-post-phone')).toHaveTextContent('Confirm your phone number before you post.')
     expect(screen.queryByTestId('member-post-composer')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Confirm my phone' })).toBeNull()
+    expect(screen.getByTestId('member-post-phone')).toHaveTextContent('isn’t open yet')
+  })
+
+  it('once phone confirmation is open, the gate leads to it', () => {
+    render(<MemberPostComposer onPost={vi.fn()} onPosted={vi.fn()} searchNeighborhoods={hoods} needsPhone phoneOpen />)
+    expect(screen.getByRole('link', { name: 'Confirm my phone' })).toHaveAttribute('href', '/onboarding')
   })
 })

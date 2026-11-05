@@ -14,7 +14,7 @@ export default async function NewMemberPostPage() {
     <main className="mx-auto w-full max-w-form gutter py-8 pb-dock">
       <h1 className="mb-2 text-title-1 text-[var(--color-fg)]">Post to the neighborhood</h1>
       <p className="mb-6 text-body-sm text-[var(--color-fg-muted)]">No Page needed. It’s signed with your name and the neighborhood, and comes down on its own.</p>
-      <NewMemberPost needsPhone={needsPhone} />
+      <NewMemberPost needsPhone={needsPhone} phoneOpen={process.env.PHONE_VERIFICATION_REQUIRED === '1'} />
     </main>
   )
 }

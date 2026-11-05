@@ -355,7 +355,7 @@ async function loadSubject(
               public.is_builder($2) as reporter_is_builder
          from public.member_posts p
          join public.members m on m.id = p.member_id
-        where p.id = $1 and p.removed_at is null`,
+        where p.id = $1 and p.removed_at is null and p.withdrawn_at is null`,
       [id, reporterId],
     )
     const p = res.rows[0]
