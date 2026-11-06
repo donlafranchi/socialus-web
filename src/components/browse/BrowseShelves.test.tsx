@@ -34,6 +34,14 @@ describe('BrowseShelves', () => {
     expect(screen.queryByTestId('shelf-screen')).toBeNull()
   })
 
+  it('sizes a row of posts as posts and a row of Pages as Pages', () => {
+    const p = (id: string) => ({ ...r(id), resultKind: 'post' }) as BrowseResult
+    render(<BrowseShelves groups={[groups[0]!, { key: 'concerts', label: 'Concerts', results: [p('c')] }]} />)
+    const [pages, posts] = screen.getAllByTestId('shelf-row').map((s) => within(s).getAllByRole('listitem')[0]!.className)
+    expect(pages).toMatch(/w-4\/5/)
+    expect(posts).toMatch(/\/1\.5\)\]/)
+  })
+
   it('a shared link opens straight on that list', () => {
     window.history.replaceState(null, '', '/explore?q=music&shelf=concerts')
     render(<BrowseShelves groups={groups} />)

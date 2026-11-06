@@ -96,12 +96,12 @@ describe.skipIf(!RUNNABLE)('F121 — shelves as data', () => {
   it('starts with the followed shelf, Next 7 days, the interest shelves and the approved rotation, Who’s proposing what? among them', async () => {
     const rows = (await q(`select id, name, place, kind from public.shelves where enabled and id not like 'zz121%'`)).rows as { id: string; name: string; place: string; kind: string }[]
     const names = rows.map((r) => r.name)
-    expect(names).toContain('From who you follow')
+    expect(names).toContain('Updates from your Pages')
     expect(names).toContain('Next 7 days')
     expect(names).toContain('Who’s proposing what?')
     expect(names).toContain('Getting ready for Thanksgiving')
     expect(names.join(' ')).not.toMatch(/rally/i)
-    expect(rows.filter((r) => r.place === 'fixed').map((r) => r.name)).toEqual(expect.arrayContaining(['From who you follow', 'Next 7 days']))
+    expect(rows.filter((r) => r.place === 'fixed').map((r) => r.name)).toEqual(expect.arrayContaining(['Updates from your Pages', 'Next 7 days']))
     expect(rows.filter((r) => r.kind === 'interest')).toHaveLength(1)
     // The 15 starred shelves of the catalog (Next 7 days among them), plus two more things to buy (criterion 6: at least three).
     expect(rows.filter((r) => r.kind === 'query')).toHaveLength(17)

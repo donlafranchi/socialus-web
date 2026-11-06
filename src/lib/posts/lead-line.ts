@@ -136,3 +136,29 @@ export function cardHeadline(p: { headline?: string | null; body: string | null;
   const sentence = /^(.+?[.!?])(\s|$)/.exec(s)
   return (sentence ? sentence[1]! : s).trim()
 }
+
+// Don, 2026-11-02: "Also should show a line or two about the post". Paragraphs a card never shows: a sample's disclaimer
+// (the lead line says Sample), and an imported show's calendar and photo-credit lines.
+const NOT_PREVIEW = /^(This is a sample post\b|From .+'s own calendar: |Photo: )/
+
+/** The card's line or two under the headline: the body without what the headline already says. Null when nothing is left. */
+export function cardPreview(p: { headline?: string | null; body: string | null; pageName: string }): string | null {
+  const paras = (p.body ?? '').trim().replace(SAMPLE_PREFIX, '').split(/\n+/).map((l) => l.trim()).filter((l) => l && !NOT_PREVIEW.test(l))
+  if (paras.length === 0) return null
+  const h = p.headline?.trim()
+  if (h) {
+    // Only a whole repeated line or clause: "Open mic: sign up" drops "Open mic", "Open mic night" keeps it.
+    const rest = paras[0]!.slice(h.length)
+    if (paras[0]!.toLowerCase().startsWith(h.toLowerCase()) && /^(\s*[.:·,!?\-–—]|$)/.test(rest)) paras[0] = rest.replace(/^[\s.:·,!?\-–—]+/, '')
+  } else {
+    // The headline came from the first line's first sentence; the rest of that line stays.
+    const sentence = /^(.+?[.!?])(\s|$)/.exec(paras[0]!)
+    paras[0] = sentence ? paras[0]!.slice(sentence[1]!.length).trim() : ''
+  }
+  const text = paras.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+  if (!text) return null
+  // About two lines' worth: the clamp is visual, and a screen reader reads the card's link whole.
+  return text.length <= PREVIEW_MAX ? text : `${text.slice(0, PREVIEW_MAX + 1).replace(/\s+\S*$/, '').replace(/[\s.,;:·\-–—]+$/, '')}…`
+}
+
+const PREVIEW_MAX = 200

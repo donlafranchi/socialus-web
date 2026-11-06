@@ -633,21 +633,27 @@ describe('#348 — an event at a dropped pin', () => {
   })
 })
 
-describe('#286 — tags on posts', () => {
-  it('a new post carries the tags typed into it', async () => {
+describe('#1180 — Listed under, on a post', () => {
+  it('a new post is listed under what it says, unpinned', async () => {
     renderPosts()
-    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Concert Friday' } })
-    fireEvent.change(screen.getByTestId('announce-tag-input'), { target: { value: 'concert,' } })
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Jazz concert Friday' } })
+    expect(screen.getByTestId('announce-listed-listed')).toHaveTextContent('Listed under: Live music · Concerts · Jazz & blues')
     fireEvent.click(screen.getByTestId('page-post-send'))
-    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Live music', 'Concerts', 'Jazz & blues'], labelsPinned: false })))
   })
 
-  it('an edit starts from the post\'s own tags and sends the new set', async () => {
-    renderPosts({ posts: [postFixture({ tags: ['concert', 'jazz'] } as never)] })
+  it("words that match nothing take the Page's labels", async () => {
+    renderPosts({ pageTags: ['Gardening'] })
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'See you Friday' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Gardening'] })))
+  })
+
+  it("an edit keeps a poster's pinned pick, whatever the words now say", async () => {
+    renderPosts({ posts: [postFixture({ tags: ['Crafts & makers', 'Pottery'], labelsPinned: true } as never)] })
     fireEvent.click(screen.getByTestId('page-post-edit'))
-    fireEvent.click(screen.getByTestId('announce-edit-tag-remove-jazz'))
     fireEvent.click(screen.getByTestId('page-post-edit-save'))
-    await waitFor(() => expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+    await waitFor(() => expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Crafts & makers', 'Pottery'], labelsPinned: true })))
   })
 })
 
@@ -662,6 +668,16 @@ describe('F099 — a post photo', () => {
     expect(post.querySelectorAll('img')).toHaveLength(1)
     expect(post.querySelector('img')).toHaveAttribute('src', PHOTO)
     expect(screen.queryByTestId('default-art')).toBeNull()
+  })
+
+  // Don, 2026-11-02: "our posts should be a little bit larger." The timeline's picture keeps Eventbrite's 2:1 shape
+  // at the card's full width, so it grows with the screen instead of a fixed 128px strip.
+  it('gives the photo a 2:1 area at the card’s full width, not a fixed short strip', () => {
+    renderPosts({ posts: [postFixture({ photoUrl: PHOTO } as never)] })
+    const area = screen.getByTestId('page-post-image')
+    expect(area.className).toMatch(/aspect-\[2\/1\]/)
+    expect(area.className).toMatch(/\bw-full\b/)
+    expect(area.className).not.toMatch(/\bh-32\b/)
   })
 
   // [guards F099.6]

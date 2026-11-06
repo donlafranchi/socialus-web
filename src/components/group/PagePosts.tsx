@@ -24,13 +24,15 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
+import { HeartButton, SaveButton } from '@/components/hearts/HeartSave'
+import { HeartedBy } from '@/components/hearts/HeartedBy'
+import type { HeartView } from '@/lib/hearts/heart-view'
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
-import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
-import { isValidTagLabel } from '@/lib/groups/tags'
+import { ListedUnder, currentLabels, labelsToSend, savedValue, UNPINNED, type ListedValue } from '@/components/labels/ListedUnder'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { useAnnouncementAnchor } from './use-announcement-anchor'
@@ -97,6 +99,7 @@ interface PostInput {
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
+  labelsPinned?: boolean
   /** F099 — one photo of its own, or none. */
   photoUrl?: string | null
   /** F074.1 — weekly on chosen weekdays; this post is the first occurrence. */
@@ -141,6 +144,7 @@ interface EditInput {
   showUntil?: string | null
   locationId?: string | null
   tags?: string[]
+  labelsPinned?: boolean
   /** F099 — absent leaves the photo alone; null removes it. */
   photoUrl?: string | null
   kind?: PostKind
@@ -164,6 +168,8 @@ interface Props {
   memberId?: string | null
   /** F099 — the Page's name, and its kind's placeholder: what a post without a photo of its own shows. */
   pageName?: string
+  /** #1180 — the Page's own labels: what a post is listed under when its words match nothing. */
+  pageTags?: string[]
   /** F099 — the Page picture, resolved (null when none, hidden or removed). */
   pictureUrl?: string | null
   artKind?: ArtKind | null
@@ -184,6 +190,8 @@ interface Props {
   reminders?: { viewer: ViewerReminders } & RemindActions
   /** F117 — each Wonder's view for this viewer, and what its controls call. */
   wonders?: { views: Record<string, WonderView> } & WonderActions
+  /** #1171 — hearts on this Page's posts: counts, and names for its managers (heart_view). */
+  hearts?: HeartView | null
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -258,6 +266,7 @@ export function PagePosts({
   isPrivate = false,
   memberId = null,
   pageName = '',
+  pageTags = [],
   pictureUrl = null,
   artKind = null,
   report,
@@ -269,6 +278,7 @@ export function PagePosts({
   seriesComposer = SERIES_COMPOSER_ON,
   reminders,
   wonders,
+  hearts,
   pagePath = null,
   focusPostId = null,
 }: Props) {
@@ -293,10 +303,10 @@ export function PagePosts({
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
-  // #286 — a post's own tags; none means it carries its Page's.
-  const [tags, setTags] = useState<TagInputValue>({ tags: [], draft: '' })
-  const [editTags, setEditTags] = useState<TagInputValue>({ tags: [], draft: '' })
-  const tagSet = (v: TagInputValue) => [...v.tags, v.draft].filter(isValidTagLabel)
+  // #1180 — what a post is listed under: the word match on what it says, else the Page's, until the poster picks.
+  const [listed, setListed] = useState<ListedValue>(UNPINNED)
+  const [editListed, setEditListed] = useState<ListedValue>(UNPINNED)
+  const words = (line: string, body: string) => ({ text: `${line} ${body}`, pageTags })
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
   // with a compose box where you expected it. Shared with the signed-out list
@@ -511,7 +521,7 @@ export function PagePosts({
       showUntil: resolved.showUntil,
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
-      tags: tagSet(tags),
+      ...labelsToSend(listed, words(line, body)),
       ...(photo ? { photoUrl: photo } : {}),
       ...(resolved.series ? { series: resolved.series } : {}),
     })
@@ -531,7 +541,8 @@ export function PagePosts({
         showUntil: resolved.showUntil,
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
-        tags: tagSet(tags),
+        tags: currentLabels(listed, words(line, body)),
+        labelsPinned: listed.pinned,
         photoUrl: photo,
         kind,
         headline: line || null,
@@ -546,7 +557,7 @@ export function PagePosts({
     setPhoto(null)
     setDraft('')
     setWhen(emptyWhenWhere)
-    setTags({ tags: [], draft: '' })
+    setListed(UNPINNED)
     setPostedToast(true)
   }
 
@@ -577,7 +588,7 @@ export function PagePosts({
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
-      tags: tagSet(editTags),
+      ...labelsToSend(editListed, words(line, body)),
       // Only a changed photo is sent: absent leaves it, null removes it.
       ...(editPhoto !== (items.find((p) => p.id === postId)?.photoUrl ?? null) ? { photoUrl: editPhoto } : {}),
     })
@@ -597,7 +608,8 @@ export function PagePosts({
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
               showUntil: resolved.startsAt ? null : resolved.showUntil,
-              tags: tagSet(editTags),
+              tags: currentLabels(editListed, words(line, body)),
+              labelsPinned: editListed.pinned,
               kind: p.kind === 'wonder' ? p.kind : editKind,
               headline: line || p.headline,
               // F102: a hidden post the edit reposted shows again at once.
@@ -644,7 +656,7 @@ export function PagePosts({
                     postedAt={new Date(post.createdAt)}
                     kind={post.kind === 'wonder' ? 'wonder' : editKind}
                   />
-                  <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
+                  <ListedUnder idPrefix="announce-edit-listed" value={editListed} onChange={setEditListed} text={`${editHeadline} ${editDraft}`} pageTags={pageTags} />
                   {memberId && (
                     <PagePhotoPicker
                       memberId={memberId}
@@ -680,7 +692,8 @@ export function PagePosts({
                       its own photo, else the Page picture,
                       else the kind's placeholder. Alt: the owner's words (the
                       post's first line); the placeholder's is the Page's name. */}
-                  <div className="relative mb-2 h-32 w-full overflow-hidden rounded-md">
+                  {/* Don, 2026-11-02: "a little bit larger" — Eventbrite's 2:1 at the card's full width, not a 128px strip. */}
+                  <div data-testid="page-post-image" className="relative mb-2 aspect-[2/1] w-full overflow-hidden rounded-md">
                     {post.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -793,6 +806,13 @@ export function PagePosts({
 
                   <div className="mt-2 flex items-center gap-3">
                     <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
+                    {/* #1171 — ♡ and Save beside Share for everyone but the Page's managers; a sample has neither. */}
+                    {!canPost && !post.sampleKind && !post.hiddenAt && (
+                      <span className="-mx-2 inline-flex items-center">
+                        <HeartButton target={{ postId: post.id }} returnTo={returnTo} />
+                        <SaveButton postId={post.id} returnTo={returnTo} />
+                      </span>
+                    )}
                     {pagePath && !post.hiddenAt && (
                       <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post)} />
                     )}
@@ -809,7 +829,7 @@ export function PagePosts({
                           setEditKind(post.kind ?? 'news')
                           setEditHeadline(post.headline ?? '')
                           setEditWhen(whenWhereFrom(post))
-                          setEditTags({ tags: post.tags ?? [], draft: '' })
+                          setEditListed(post.labelsPinned ? savedValue(post.tags ?? [], true) : UNPINNED)
                           setEditPhoto(post.photoUrl ?? null)
                           setError(null)
                         }}
@@ -831,6 +851,7 @@ export function PagePosts({
                       </button>
                     )}
                   </div>
+                  <HeartedBy tally={hearts?.posts[post.id]} testId="page-post-hearted-by" />
                   <Sheet
                     open={confirmingDelete === post.id && !!onDelete}
                     title="Delete this post?"
@@ -927,7 +948,7 @@ export function PagePosts({
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer && kind !== 'sale'} kind={kind} />
 
-          <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
+          <ListedUnder idPrefix="announce-listed" value={listed} onChange={setListed} text={`${headline} ${draft}`} pageTags={pageTags} />
           {memberId && (
             <PagePhotoPicker
               memberId={memberId}

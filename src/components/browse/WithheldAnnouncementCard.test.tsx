@@ -60,7 +60,7 @@ describe('WithheldAnnouncementCard', () => {
   it('says who can read it', () => {
     render(<WithheldAnnouncementCard result={RESULT} />)
     expect(screen.getByTestId('withheld-details').textContent).toBe(
-      'The details are for members and followers of this Page.',
+      'The details are for this Page’s members and people who get its updates.',
     )
   })
 
@@ -75,7 +75,7 @@ describe('WithheldAnnouncementCard', () => {
     // Criterion 4, as a whole-card match so a line added later fails here.
     const { container } = render(<WithheldAnnouncementCard result={RESULT} />)
     expect(container.textContent).toBe(
-      "3 posts this weekSacRiver FloatersThe details are for members and followers of this Page.Sign in to see what's happening",
+      "3 posts this weekSacRiver FloatersThe details are for this Page’s members and people who get its updates.Sign in to see what's happening",
     )
   })
 

@@ -73,7 +73,7 @@ export default function JoinPage() {
       <section className="px-6 py-10 bg-neutral-50">
         <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           <Benefit
-            title="Followable between markets"
+            title="Reachable between markets"
             body="Customers who love what you made on Saturday can find you on Wednesday."
           />
           <Benefit
@@ -104,7 +104,7 @@ export default function JoinPage() {
           />
           <Step
             n={4}
-            title="Customers follow you"
+            title="Customers get your updates"
             body="They get updates when you'll be at an upcoming market. No more 'I forgot your name.'"
           />
         </ol>

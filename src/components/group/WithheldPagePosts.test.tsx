@@ -79,7 +79,7 @@ describe('WithheldPagePosts', () => {
   it('says nothing about what the announcements say, when, or where', () => {
     const { container } = render(<WithheldPagePosts posts={[PAGE]} />)
     expect(container.textContent).toBe(
-      "Posts3 posts this weekThe details are for members and followers of this Page.Sign in to see what's happening",
+      "Posts3 posts this weekThe details are for this Page’s members and people who get its updates.Sign in to see what's happening",
     )
   })
 })
@@ -95,7 +95,7 @@ describe('landed on a shared post', () => {
     expect(card).toHaveTextContent('Pizza night in the garden')
     expect(card).toHaveTextContent('Event · Sat 5–8pm · Midtown')
     expect(card.querySelector('img')?.getAttribute('src')).toBe('https://cdn.example/pizza.webp')
-    expect(card).toHaveTextContent('The details are for members and followers of this Page.')
+    expect(card).toHaveTextContent('The details are for this Page’s members and people who get its updates.')
     expect(card.contains(screen.getByTestId('withheld-cta'))).toBe(true)
   })
 

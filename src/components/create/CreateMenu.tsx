@@ -113,6 +113,10 @@ export function CreateMenu() {
           <button role="menuitem" type="button" onClick={propose} data-testid="create-wonder" className={ITEM}>
             Propose something
           </button>
+          {/* #1183 — a post without a Page. Draft words. */}
+          <Link role="menuitem" href="/neighbors/new" onClick={() => setOpen(false)} data-testid="create-neighbor" className={ITEM}>
+            Post to the neighborhood
+          </Link>
           {explore?.view && explore.onViewChange && (
             <>
               <div role="separator" className="my-1 border-t border-neutral-200" />

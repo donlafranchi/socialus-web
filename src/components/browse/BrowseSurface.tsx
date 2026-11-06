@@ -36,6 +36,9 @@ import { BrowseResultCard } from './BrowseResultCard'
 import { HappeningRows } from './HappeningRows'
 import { BrowseShelves } from './BrowseShelves'
 import { groupResults } from '@/lib/browse/groups'
+import { MemberPostRows } from '@/components/member-posts/MemberPostRows'
+import { searchMemberPostsAction } from '@/app/_actions/member-post-actions'
+import type { MemberPost } from '@/lib/member-posts/read'
 import { BROWSE_RESULTS_ID } from './results-id'
 import { browseQueryString } from '@/lib/browse/query'
 import { readBox, writeBox } from '@/lib/browse/box-text'
@@ -315,6 +318,23 @@ export function BrowseSurface({
     // `narrowing` is derived from `filters`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [landed, targeted, narrowed, mix, filters, now, rest, myTags])
+  // #1183 — posts from members answer a search too, as one group of their own. Signed in only.
+  const [neighbors, setNeighbors] = useState<{ key: string; posts: MemberPost[] } | null>(null)
+  const neighborScope = snapshot.area ? { placeId: snapshot.area.id } : snapshot.metro ? { metroId: snapshot.metro.id } : null
+  const neighborKey = snapshot.signedIn && settledNeedle && neighborScope ? JSON.stringify([neighborScope, settledNeedle]) : null
+  useEffect(() => {
+    if (!neighborKey || !neighborScope || neighbors?.key === neighborKey) return
+    let live = true
+    searchMemberPostsAction(neighborScope, settledNeedle)
+      .then((posts) => live && setNeighbors({ key: neighborKey, posts }))
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+    // `neighborScope` and the search are captured in `neighborKey`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [neighborKey])
+  const neighborPosts = neighborKey && neighbors?.key === neighborKey && settledNeedle === needle ? neighbors.posts : []
   // Don (2026-11-01) — a search comes back in labelled rows, one type each; one flat list on request.
   const [flat, setFlat] = useState(false)
   const groups = useMemo(() => (needle && !searching && !searchFailed ? groupResults(visible, now) : []), [needle, searching, searchFailed, visible, now])
@@ -508,6 +528,8 @@ export function BrowseSurface({
                   )}
                 </div>
               )}
+
+              {neighborPosts.length > 0 && <MemberPostRows posts={neighborPosts} byKind={false} />}
 
               {snapshot.failed ? (
                 <div className="py-12 text-center text-sm text-neutral-600" data-testid="browse-error">

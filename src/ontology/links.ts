@@ -141,6 +141,53 @@ export const LINK_TYPES: readonly LinkType[] = [
       'Unbuilt alongside it: nothing yet READS these rows to show a subscriber their updates.',
   },
   {
+    name: 'a Member hearts an Announcement or a Page',
+    from: 'Member',
+    to: 'Announcement',
+    via: { table: 'hearts', column: 'member_id' },
+    writtenBy: ['member.heart.set'],
+    ruled: '2026-11-02',
+    built: true,
+    note:
+      '"I like this" (socialus-plan #269). A row names a post or a Page, never both. The Page\'s managers see who, ' +
+      'by display name, through heart_view; the member sees their own; no one else. It subscribes no one and sends ' +
+      'nothing. Kept with its time as a declared interest signal for the taste scale. A public count is one database ' +
+      'switch (heart_counts_public), off by default: public counts are open for review.',
+  },
+  {
+    name: 'a Member saves an Announcement',
+    from: 'Member',
+    to: 'Announcement',
+    via: { table: 'saves', column: 'member_id' },
+    writtenBy: ['member.save.set'],
+    ruled: '2026-11-02',
+    built: true,
+    note: '"Keep this for later" (socialus-plan #269). Private: only its member reads it. Listed on You, upcoming first.',
+  },
+  {
+    name: 'a Member posts an Announcement without a Page',
+    from: 'Member',
+    to: 'Announcement',
+    via: { table: 'member_posts', column: 'member_id' },
+    writtenBy: ['member_post.create', 'member_post.withdraw'],
+    ruled: '2026-11-05',
+    built: true,
+    note:
+      'Plan #270, Don ruled B: Lost & found, Free / for sale, Ask a neighbor. Signed with display name, avatar and ' +
+      'neighborhood to signed-in members only, through member_posts_read(); never a profile, never the member\'s own ' +
+      'area. It comes down on its own (7 or 14 days, or a yard sale\'s day) and a member has 3 up at once.',
+  },
+  {
+    name: 'a Member answers an Announcement made without a Page',
+    from: 'Member',
+    to: 'Announcement',
+    via: { table: 'member_post_responses', column: 'member_id' },
+    writtenBy: ['member_post.answer'],
+    ruled: '2026-11-05',
+    built: true,
+    note: '"I\'m interested" / "I saw it", in place of comments (plan #270). Only the poster sees who, by display name.',
+  },
+  {
     name: 'a Member supports a Page',
     from: 'Member',
     to: 'Page',
@@ -249,6 +296,26 @@ export const LINK_TYPES: readonly LinkType[] = [
       'own carries its Page\'s, so a lens never finds a Page and misses its posts. Signed in only, ' +
       'like a Page\'s. Post is now the noun and an announcement a kind of post; the object keeps ' +
       'its nouns.md name until that file changes it.',
+  },
+  {
+    name: 'an Announcement made without a Page carries a Tag',
+    from: 'Announcement',
+    to: 'Tag',
+    via: { table: 'member_post_tags', column: 'tag_id' },
+    writtenBy: ['member_post.create'],
+    ruled: '2026-11-05',
+    built: true,
+    note: 'Listed under labels from the shared list only (#1180), as a Page\'s post is, so Explore and search read one vocabulary.',
+  },
+  {
+    name: 'an Announcement made without a Page is in a Place',
+    from: 'Announcement',
+    to: 'Place',
+    via: { table: 'member_posts', column: 'place_id' },
+    writtenBy: ['member_post.create'],
+    ruled: '2026-11-05',
+    built: true,
+    note: 'A neighborhood the poster picks, shown on the post and used to scope Explore; never the member\'s own area.',
   },
   {
     name: 'a Location is in a Place',

@@ -48,6 +48,10 @@ describe('Privacy', () => {
     expect(text).toMatch(/never.*(name|email)/i)
     expect(text).toMatch(/a person always decides/i)
   })
+  // #1171 (plan #269, Don 2026-11-02): the line, word for word.
+  it('says a heart shows the poster your name, and saves are private', () => {
+    expect(TEXT_PAGES.privacy.body).toContain('When you heart a post, its poster sees your name. Saves are private.')
+  })
   it('lists the processor agreement for counsel', () => {
     expect(TEXT_PAGES.privacy.counsel!.join(' ')).toMatch(/Anthropic/)
   })

@@ -54,7 +54,7 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
     renderSheet()
     const type = within(within(sheet()).getByRole('group', { name: 'Type' }))
     for (const label of ['Everything', 'Pages', 'Posts']) expect(type.getByRole('radio', { name: label })).toBeInTheDocument()
-    for (const label of ['Events', 'Offers', 'Limited', 'Reminders', 'Updates', 'Proposals', 'Hiring', 'Following only']) expect(type.getByRole('checkbox', { name: label })).toBeInTheDocument()
+    for (const label of ['Events', 'Offers', 'Limited', 'Reminders', 'Updates', 'Proposals', 'Hiring', 'Pages I get updates from']) expect(type.getByRole('checkbox', { name: label })).toBeInTheDocument()
   })
 
   it('Category: the 12 interest tags', () => {
@@ -103,7 +103,7 @@ describe('T156 — what the sheet holds, and what it no longer does', () => {
     expect(within(sheet()).getByRole('radio', { name: 'This weekend' })).toBeChecked()
     expect(within(sheet()).getByRole('checkbox', { name: 'Gardening' })).toBeChecked()
     expect(within(sheet()).getByRole('checkbox', { name: 'Offers' })).toBeChecked()
-    expect(within(sheet()).getByRole('checkbox', { name: 'Following only' })).toBeChecked()
+    expect(within(sheet()).getByRole('checkbox', { name: 'Pages I get updates from' })).toBeChecked()
   })
 })
 

@@ -19,11 +19,11 @@ export function classifyEvent(title: string, venueInterests: readonly string[]):
   return 'other'
 }
 
-/** The interest labels a show of this type carries: the member vocabulary (src/lib/onboarding/interest-vocab.ts) plus a plain word for sports and comedy. */
+/** The labels a show of this type carries, from the shared list (src/lib/labels/list.ts, #1180). */
 export const EVENT_INTERESTS: Record<EventType, string[]> = {
-  sports: ['Fitness & outdoors', 'Sports'],
+  sports: ['Fitness & outdoors', 'Team sports'],
   music: ['Live music'],
-  comedy: ['Arts & culture', 'Comedy'],
+  comedy: ['Arts & culture', 'Theater & comedy'],
   family: ['Kids & family'],
   theater: ['Arts & culture'],
   other: [],

@@ -61,7 +61,8 @@ const POST_SOON = 'f3000000-0000-4000-8000-000000000932'
 const BODY_SOON = 'F931 EARLIER BODY first Tuesday at nine'
 const METRO_SLUG = 'sacramento-roseville-ca'
 const PLACE_TEXT = '12 Broadway Oak Park'
-const TAG_TEXT = 'F931Running'
+// #1180 — a Page shows only labels from the shared list; one unlikely to appear in any other text here.
+const TAG_TEXT = 'Paddling & swimming'
 const FOUNDER_TEXT = 'f931founder'
 const BODY = 'F931 SECRET BODY come Thursday at six'
 const DESCRIPTION = 'We run together every week.'
@@ -127,8 +128,11 @@ describe.skipIf(!RUNNABLE)("F093 — a Page's front door, signed out", () => {
       [PAGE, OWNER, LOCATION, DESCRIPTION],
     )
     publicId = (await client.query(`select public_id from public.groups where id = $1`, [PAGE])).rows[0].public_id
-    await client.query(`insert into public.tags (id, label, normalized, status, created_by) values ($1,$2,'f931-running','visible',$3)`, [TAG, TAG_TEXT, OWNER])
-    await client.query(`insert into public.page_tags (group_id, tag_id) values ($1,$2)`, [PAGE, TAG])
+    await client.query(
+      `insert into public.tags (id, label, normalized, status, created_by) values ($1,$2,lower($2),'visible',$3) on conflict (normalized) do nothing`,
+      [TAG, TAG_TEXT, OWNER],
+    )
+    await client.query(`insert into public.page_tags (group_id, tag_id) select $1, id from public.tags where normalized = lower($2)`, [PAGE, TAG_TEXT])
     await client.query(
       `insert into public.page_posts (id, group_id, body, starts_at, location_id, lifecycle_state, discoverability)
        values ($1,$2,$3, now() + interval '3 days', $4, 'active', 'listed')`,

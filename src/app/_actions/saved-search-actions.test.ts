@@ -43,7 +43,7 @@ beforeEach(() => {
 
 describe('buildVenueFollowLabel', () => {
   it('prefixes "Following "', () => {
-    expect(buildVenueFollowLabel('Blue Bottle')).toBe('Following Blue Bottle')
+    expect(buildVenueFollowLabel('Blue Bottle')).toBe('Updates from Blue Bottle')
   })
 
   it('truncates to 80 chars (label CHECK ceiling)', () => {
@@ -58,7 +58,7 @@ describe('followVenueAction', () => {
     const res = await followVenueAction({ locationId: LOC, venueName: 'Blue Bottle' })
     expect(res).toEqual({ ok: true, savedSearchId: 'ss-1' })
     expect(create).toHaveBeenCalledWith(expect.anything(), {
-      label: 'Following Blue Bottle',
+      label: 'Updates from Blue Bottle',
       locationId: LOC,
     })
   })
