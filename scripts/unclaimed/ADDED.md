@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-03** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-04** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -354,3 +354,9 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-03 | Nevada County Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Grass Valley | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-11-03 | Foothills Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Roseville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-11-03 | Community Harvest of Davis | Fruit gleaning (nonprofit) | Davis | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-04 | Woodland Opera House | Community theatre (nonprofit) | Woodland | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Music in the Mountains Chorus | Community chorus (nonprofit) | Grass Valley | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Nevada County Historical Society | Historical society | Nevada City | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Elk Grove Community Concert Band | Community band (nonprofit) | Elk Grove | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Sacramento Ballet | Ballet company (nonprofit) | Sacramento | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Lodi Community Band | Community band (nonprofit) | Lodi | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
