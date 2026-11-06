@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -35,12 +35,12 @@
    "checked": "no",
    "reviewed": "yes",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     632
    ],
-   "note": "`DefaultArt` by kind on the Page and the post card; since #969 (10-19) the signed-out withheld card draws it too when the Page has no photo [V]. Checked: no `[guards F099.2]` marker (#632); F082.8's guard (#908) asserts the kind's default art on a photoless Page's Explore card as a side effect. Smoked: `page` and `explore` green on 10-21 to 10-23, after the last merge, a load check only."
+   "note": "`DefaultArt` by kind on the Page and the post card; since #969 (10-19) the signed-out withheld card draws it too when the Page has no photo [V]. Checked: no `[guards F099.2]` marker (#632); F082.8's guard (#908) asserts the kind's default art on a photoless Page's Explore card as a side effect. Earlier smoke (10-21 to 10-23): `page` and `explore` green on 10-21 to 10-23, after the last merge, a load check only. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
   },
   {
    "id": "3",
@@ -101,10 +101,10 @@
    "checked": "yes",
    "reviewed": "yes",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`browse_feed` resolves `photo_url` and `photo_source` in SQL; Page posts and `BrowseResultCard` fall to `DefaultArt` [V]. Since 10-16: #931 (#922 B) made the post card text-led with the one image as an 80px thumbnail, `Reviewed by:` and the F099.6 checks still pass; #983, #989 and #992 (review-skipped, image `src` and `loading` attributes only) serve card-sized WebP at 1x and 2x, the same image. Checked: [guards F099.6] in `tests/migrations-browse-feed.test.ts` (three cases), `BrowseResultCard.test.tsx`, `PagePosts.test.tsx`. Shipped: deploy-health green on 0ebfaa1, 4d4417e, 0455ca2, 3753fd2. Smoked: `explore` and `page` green on 10-23 after every merge; `root` (Home) was last opened green on 10-19, before the sizing PRs; a load check only."
+   "note": "`browse_feed` resolves `photo_url` and `photo_source` in SQL; Page posts and `BrowseResultCard` fall to `DefaultArt` [V]. Since 10-16: #931 (#922 B) made the post card text-led with the one image as an 80px thumbnail, `Reviewed by:` and the F099.6 checks still pass; #983, #989 and #992 (review-skipped, image `src` and `loading` attributes only) serve card-sized WebP at 1x and 2x, the same image. Checked: [guards F099.6] in `tests/migrations-browse-feed.test.ts` (three cases), `BrowseResultCard.test.tsx`, `PagePosts.test.tsx`. Shipped: deploy-health green on 0ebfaa1, 4d4417e, 0455ca2, 3753fd2. Earlier smoke (10-21 to 10-23): `explore` and `page` green on 10-23 after every merge; `root` (Home) was last opened green on 10-19, before the sizing PRs; a load check only. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run] Since 10-23 the card was reworked (#1126, #1143, #1168, #1170, all `Reviewed by:`); the F099.6 and F099.10 checks still pass [V]."
   },
   {
    "id": "7",
@@ -167,10 +167,10 @@
    "checked": "yes",
    "reviewed": "yes",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Page picture alt is the Page name; a post photo's alt on the Page is the first line of the post (read as 'the owner's words' [A]); Explore cards fall back to `cardImageAlt` [V PagePosts.tsx, BrowseResultCard.tsx]. #931 kept the F099.10 checks passing on the restyled card. Checked: [guards F099.10] in `BrowseResultCard.test.tsx` and `PagePosts.test.tsx`. Smoked: `page` and `explore` green on 10-23, a load check only."
+   "note": "Page picture alt is the Page name; a post photo's alt on the Page is the first line of the post (read as 'the owner's words' [A]); Explore cards fall back to `cardImageAlt` [V PagePosts.tsx, BrowseResultCard.tsx]. #931 kept the F099.10 checks passing on the restyled card. Checked: [guards F099.10] in `BrowseResultCard.test.tsx` and `PagePosts.test.tsx`. Earlier smoke (10-21 to 10-23): `page` and `explore` green on 10-23, a load check only. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
   },
   {
    "id": "11a",

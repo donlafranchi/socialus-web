@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -26,7 +26,7 @@
     580,
     581
    ],
-   "note": "Create's 'Do you manage a group or meetup…?' (gather) calls `startDraftAction` → `group.create` with kind group, no `group_businesses` row, no ID or ZIP field; `group.activate` needs name, place, description, a tag and the F082 agreement [V src/app/create/actions.ts, actions/group/create.ts, activate.ts]. Built by #326 (Reviewed by) and #364 (review-skipped); deploy-health green on both. No PR since 10-16 touches Create [V gh]. Checked: unmarked `src/app/create/actions.test.ts`; nothing guards the absence of a check in Create (#580, #581); F082.1's new guard (#908) scans `members` and `groups` for role or mode columns, not the Create flow. Smoked: smoke-live has no route for /create or the draft Page publish card [V evals/screens/routes.ts]"
+   "note": "Create (`/create`) calls `startDraftAction` -> `group.create` with kind from the purpose, no `group_businesses` row and no ID or ZIP field; `group.activate` needs a name, where it is, a description and the agreed-rules version [V src/app/create/actions.ts, actions/group/activate.ts]. The agreement is now the one line 'By posting you agree to the Terms' (#1135), not a rules step; `RULES_VERSION = 1` is still sent. Built by #326 (Reviewed by) and #364 (review-skipped). Checked: no `[guards F060.1]` marker exists anywhere; `create/actions.test.ts` carries only an F082.6 marker (#580, #581). Shipped: Deploy health green on a5eefa3, c006495 and 3df9260. Smoked: no smoke route for /create or the publish card [V evals/screens/routes.ts]"
   },
   {
    "id": "2",
@@ -45,7 +45,7 @@
     580,
     581
    ],
-   "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) and 'This just gets things started' [V WhatAreYouStarting.tsx]. The answers are questions about the thing, worded by Don 2026-10-04 and 2026-10-05, the newer rulings on this surface (F061 Rulings); the criterion's `/you/create` path is stale, the route is `/create` (#301). Built by #326, #364, #382 (the last two review-skipped). The retired `members.maker_mode_enabled` flag was dropped by #908 (migration 20261018160000). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' in Create's copy (#580, #581). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]"
+   "note": "`/create` heading 'What are you starting?' with four answers (sell, gather, offer, Be creative) and 'This just gets things started' [V WhatAreYouStarting.tsx]. The answers are questions about the thing, worded by Don 2026-10-04 and 2026-10-05, newer than this criterion (F061 Rulings); its `/you/create` path is stale, the route is `/create`. Entry is now the one + menu's 'Start a Page' (#1095). Built by #326, #364, #382 (the last two review-skipped). Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing guards 'no self-classification' in Create's copy (#580, #581). Smoked: no smoke route for /create"
   },
   {
    "id": "3",
@@ -63,7 +63,7 @@
    "issues": [
     581
    ],
-   "note": "No legal, tax, licence or entity words in Create, the Before-you-publish checklist or the rules text; no field asks for entity information [V grep src/components/create, src/lib/creator-rules.ts]. Built by #326 (Reviewed by) and #364 (review-skipped). Nothing guards it for Create: the only scan is F082.5's, over the rules block alone (#581)."
+   "note": "No legal, tax, licence or entity words in Create, the publish checklist or the Terms line; no field asks for entity information [V grep src/components/create, src/app/create]. Built by #326 (Reviewed by) and #364 (review-skipped). #1135 removed the rules block and with it the only scan (F082.5), so nothing guards it for Create now (#581). Shipped: green on a5eefa3, c006495, 3df9260. Smoked: no smoke route for /create"
   },
   {
    "id": "4",
@@ -71,17 +71,17 @@
    "kind": [
     "behavior"
    ],
-   "status": "active",
+   "status": "spec-conflict",
    "built": "yes",
    "checked": "no",
    "reviewed": "no",
-   "shipped": "unknown",
+   "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     580
    ],
-   "note": "Create is a tab in the phone bottom nav (`md:hidden`) and 'Start something' sits on /you; `group.create` only inserts a new draft row [V BottomNav.tsx, you/page.tsx, create.ts]. Built by #58 (T158), whose body carries no `Reviewed by:`; deploy-health shows no run for its merge commit f79dd46 (it predates the workflow). No test of the one-tap path or of the first Page staying unchanged (#580). How a desktop-width member reaches Create is not read [A]."
+   "note": "Spec conflict, not a build gap. The criterion says 'one tap'. Since #1095 (Don, 2026-11-01: 'one + and a You avatar replace the bottom tab bar') a second Page is the + then 'Start a Page' then the kind, two taps to the question where the old Create tab was one [V CreateMenu.tsx, create-targets.ts]; no ruling in this scenario says whether a menu item counts. `group.create` still inserts only a new draft row, so the first Page is unchanged [V]. Built by #58 (no `Reviewed by:`, no Deploy health run on f79dd46) and #1095 (`Reviewed by: pending`). Routed to `scope-scenario`: restate 'one tap' as the + menu, or ask Don."
   },
   {
    "id": "5",
@@ -99,7 +99,7 @@
    "issues": [
     579
    ],
-   "note": "`/you/sell/page.tsx` does `redirect('/create')` and drops the query string, so the venue 'host here' link's `?compose=gathering&location=…` is lost [V]. The criterion's target `/you/create` is stale; the route is `/create` (#301) and #579 keeps that target. The redirect half is built by #392 (`review-skipped`, deploy-health green); the query-string half is not, and no test asserts the redirect (#579)."
+   "note": "`/you/sell/page.tsx` is still `redirect('/create')` and drops the query string, so a link's `?compose=gathering&location=...` is lost [V]. The criterion's `/you/create` target is stale; the route is `/create` (#301) and #579 keeps that target. The redirect half came with #392 (review-skipped); the query-string half is not built and no test asserts the redirect (#579). Held, not cancelled, by the 11-06 build freeze (unbuilt criteria of the Now lane)."
   }
  ]
 }
