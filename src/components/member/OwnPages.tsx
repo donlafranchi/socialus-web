@@ -142,12 +142,24 @@ export function OwnPages({
                   p.lifecycleState === 'archived' || p.lifecycleState === 'dissolved' ? (
                     hiddenState(p)
                   ) : (
-                    <span
-                      data-testid="own-page-live"
-                      className="text-xs uppercase tracking-wide font-semibold text-[var(--color-accent)]"
-                    >
-                      Live
-                    </span>
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span
+                        data-testid="own-page-live"
+                        className="text-xs uppercase tracking-wide font-semibold text-[var(--color-accent)]"
+                      >
+                        Live
+                      </span>
+                      {p.href && (
+                        <Link
+                          href={`${p.href}/edit`}
+                          aria-label={`Edit ${p.name}`}
+                          data-testid="own-page-edit"
+                          className="press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+                        >
+                          Edit
+                        </Link>
+                      )}
+                    </div>
                   )
                 }
               />
