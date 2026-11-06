@@ -8174,46 +8174,71 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "page-editing/F106-page-says-where-giveback-goes.md",
-   "n": 5,
+   "n": 6,
    "totals": {
     "built": {
-     "yes": 0,
+     "yes": 1,
      "no": 5,
      "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 5,
+     "no": 6,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 0,
+     "yes": 1,
      "no": 5,
      "unknown": 0
     },
     "shipped": {
-     "yes": 0,
+     "yes": 1,
      "no": 5,
      "unknown": 0
     },
     "smoked": {
      "yes": 0,
      "no": 5,
-     "unknown": 0
+     "unknown": 1
     },
     "pm_looked": {
      "yes": 0,
-     "no": 5,
+     "no": 6,
      "unknown": 0
     }
    },
    "red": 0,
    "criteria": [
     {
-     "id": "1",
-     "text": "A Page has a home town: its anchor Location's town, else its owner's home town",
+     "id": "1a",
+     "text": "A Page has a home town: the town of its anchor Location's place",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      700
+     ],
+     "note": "[V 2026-11-06] #1146 (8a9fb51, 2026-11-01) freezes a Page's home town at first publish: `groups.place_url_slug` from `page_home_place_slug(anchor_location_id)` (migration 20261101120000; the column comment calls it \"the Page's home town in its address\"); city polygon first, then the Location's own place, postal city, county. Checked: no test claims criterion 1 and no `[guards F106` marker exists. Reviewed: #1146 carries `Reviewed by:` a second session, no `review-skipped`. Shipped: deploy-health green on 8a9fb51. Smoked: no run covers the address, and nothing shows it as a home town. Comment added to #700.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "1b",
+     "text": "With no Location, the Page's home town is its owner's home town",
      "kind": [
       "behavior"
      ],
@@ -8227,7 +8252,7 @@
      "issues": [
       700
      ],
-     "note": "[V] Member home town exists (F103.5, migrations 20261012060000 and 20261018191800) but no Page-level home town in src or supabase/migrations. Deferred, not beta (#700)",
+     "note": "[V 2026-11-06] `page_home_place_slug` returns null for a Page with no anchor Location and the trigger then leaves the address unset (`if place is null then return new`); the member's `home_town` exists (F103.5, migrations 20261012060000 and 20261018191800) but nothing falls back to it for a Page. Deferred, not beta (#700).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8251,7 +8276,7 @@
      "issues": [
       700
      ],
-     "note": "[V] No give-back field, column or setting anywhere in src, scripts or supabase/migrations (grep give_back, giveBack, give-back)",
+     "note": "[V 2026-11-06] No give-back field, column or setting anywhere in src, scripts, supabase or tests (grep give_back, giveBack, give-back finds nothing). Deferred (#700).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8274,7 +8299,7 @@
      "issues": [
       701
      ],
-     "note": "[V] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)",
+     "note": "[V reread 2026-11-06] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8297,7 +8322,7 @@
      "issues": [
       701
      ],
-     "note": "[V] Not built; depends on F105 vantage and on criterion 3 (#701)",
+     "note": "[V reread 2026-11-06] Not built; depends on F105 vantage and on criterion 3 (#701)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8320,7 +8345,7 @@
      "issues": [
       700
      ],
-     "note": "[V] Not built; no declaration exists to change (#700)",
+     "note": "[V reread 2026-11-06] Not built; no declaration exists to change (#700)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -9595,37 +9620,37 @@
   },
   "page-editing": {
    "features": 3,
-   "n": 20,
+   "n": 21,
    "red": 0,
    "totals": {
     "built": {
-     "yes": 10,
+     "yes": 11,
      "no": 10,
      "unknown": 0
     },
     "checked": {
      "yes": 3,
-     "no": 17,
+     "no": 18,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 3,
+     "yes": 4,
      "no": 17,
      "unknown": 0
     },
     "shipped": {
-     "yes": 9,
+     "yes": 10,
      "no": 10,
      "unknown": 1
     },
     "smoked": {
      "yes": 0,
      "no": 10,
-     "unknown": 10
+     "unknown": 11
     },
     "pm_looked": {
      "yes": 0,
-     "no": 20,
+     "no": 21,
      "unknown": 0
     }
    }
@@ -9670,37 +9695,37 @@
  },
  "all": {
   "features": 34,
-  "n": 285,
+  "n": 286,
   "red": 8,
   "totals": {
    "built": {
-    "yes": 200,
+    "yes": 201,
     "no": 85,
     "unknown": 0
    },
    "checked": {
     "yes": 139,
-    "no": 146,
+    "no": 147,
     "unknown": 0
    },
    "reviewed": {
-    "yes": 31,
+    "yes": 32,
     "no": 254,
     "unknown": 0
    },
    "shipped": {
-    "yes": 163,
+    "yes": 164,
     "no": 85,
     "unknown": 37
    },
    "smoked": {
     "yes": 75,
     "no": 85,
-    "unknown": 125
+    "unknown": 126
    },
    "pm_looked": {
     "yes": 0,
-    "no": 285,
+    "no": 286,
     "unknown": 0
    }
   }
@@ -9784,7 +9809,7 @@
    "F056.4",
    "F056.9b",
    "F069.2",
-   "F106.1",
+   "F106.1b",
    "F106.2",
    "F106.3",
    "F106.4",
@@ -9852,6 +9877,7 @@
    "F056.9a",
    "F069.1",
    "F069.3",
+   "F106.1a",
    "F057.5",
    "F065.1",
    "F065.3",
@@ -10174,6 +10200,7 @@
    "F069.1",
    "F069.3",
    "F069.4",
+   "F106.1a",
    "F065.1",
    "F065.2a",
    "F065.3",
@@ -10368,6 +10395,7 @@
    "F069.1",
    "F069.3",
    "F069.4",
+   "F106.1a",
    "F057.1",
    "F057.5",
    "F065.1",
@@ -10423,6 +10451,7 @@
   "F102: unknown cells: Shipped 1, Smoked 13",
   "F056: unknown cells: Smoked 7",
   "F069: unknown cells: Shipped 1, Smoked 3",
+  "F106: unknown cells: Smoked 1",
   "F057: unknown cells: Shipped 1",
   "F065: unknown cells: Shipped 3, Smoked 4",
   "F077: unknown cells: Smoked 1",
