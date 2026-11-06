@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Chill Krew Run Club",
+    "category": "Sports club",
+    "makes": "Rancho Cordova and Sacramento social running club for runners, joggers, walkers and non-runners at any pace; Sunday Miles & Smiles easy run/walk at 8:00 a.m. from the Hagan Community Park toll booth, with schedule updates on its Strava club",
+    "area": "Rancho Cordova (Sacramento)",
+    "site": "https://www.chillkrew.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/chillkrewrunclub"
+    },
+    "confidence": "High; own site checked 2026-11-02 (ok): footer 2026, Sunday 8:00 a.m. Hagan Community Park meeting point and waiver form live; no street address on the page; its meta text mentions Tuesday runs but the page gives none, so only Sunday is used. Photos not viewed: stock only. Lead: Sacramento Running Association club list, then own site."
+  },
+  {
+    "name": "Sacramento FrontRunners & FrontWalkers",
+    "category": "Sports club",
+    "makes": "LGBTQ+ and allies running and walking club founded in 1992, all paces welcome: Saturday 9 a.m. river-trail run or walk from the Guy West Bridge followed by coffee, Monday 6:30 p.m. at Sacramento Running Company, Wednesday 6:30 p.m. at McKinley Park tennis courts, and a monthly fourth-Wednesday social run",
+    "area": "Sacramento (Sacramento)",
+    "address": "2505 T Street, Sacramento, CA 95816",
+    "site": "https://www.sacfr.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sacfrontrunners",
+      "tiktok": "https://www.tiktok.com/@sacfrontrunners",
+      "facebook": "https://www.facebook.com/groups/54997302579"
+    },
+    "confidence": "High; own site checked 2026-11-02 (ok): weekly schedule with times and meeting places, membership form and newsletter signup live; 501(c)(3) stated; no footer year. Photos not viewed: stock only. Lead: Sacramento Running Association club list, then own site."
+  }
+]
