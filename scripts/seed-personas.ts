@@ -176,6 +176,13 @@ on conflict (id) do nothing;
 insert into public.hearts (member_id, post_id) values (${q(persona('follower').id!)}, ${q(postId(0, 1))}) on conflict do nothing;
 insert into public.saves (member_id, post_id) values (${q(persona('follower').id!)}, ${q(postId(0, 1))}) on conflict do nothing;
 
+-- 6. #1183 — the follower posts without a Page in Oak Park, and the member answers it: signed-in members read it
+--    through member_posts_read(); only the poster reads who answered.
+insert into public.member_posts (id, member_id, kind, body, place_id, expires_at) values
+  ('0e000000-0000-4000-8000-000000009901', ${q(persona('follower').id!)}, 'ask', 'Who fixes old bikes around here?', ${OAK_PARK}, now() + interval '7 days')
+on conflict (id) do nothing;
+insert into public.member_post_responses (post_id, member_id) values ('0e000000-0000-4000-8000-000000009901', ${q(persona('member').id!)}) on conflict do nothing;
+
 commit;
 
 refresh materialized view public.discoverable_items;

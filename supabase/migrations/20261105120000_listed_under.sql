@@ -1,0 +1,523 @@
+-- #1180 — "Listed under" (plan #273, Don ruled B, 2026-11-05). A Page or post is listed under labels from one
+-- shared list (src/lib/labels/list.ts), suggested by a word match and changeable in one tap; the free tag box goes.
+--
+-- 1. labels_pinned: the poster picked these under Change, so they are never re-matched from the words.
+-- 2. Existing tags are mapped once onto the list, with the same match the app runs (match.ts): whole words, a
+--    plural s/es allowed, a phrase counting once per word in it; the top label with the most hits (a tie goes to
+--    the one with more finer hits, then list order), then up to two of its finer labels, plus Free when its words
+--    appear. Old tags that already are list labels (an unclaimed Page's two interests) are kept as they are. A Page
+--    is matched on its name, description and old tags together, and falls back to Neighborhood life. A post's own
+--    tags are matched alone; ones that match nothing are dropped, so it carries its Page's, as an untagged post
+--    always has.
+-- 3. A list label is a known word: marked safe, so it never waits in the tag review queue (#287).
+--
+-- The words below are generated from list.ts as it stood on 2026-11-05. This runs once; later edits to the list
+-- do not come back here.
+
+alter table public.groups add column labels_pinned boolean not null default false;
+alter table public.page_posts add column labels_pinned boolean not null default false;
+-- groups is read column by column; the editor reads this one.
+grant select (labels_pinned) on public.groups to anon, authenticated;
+
+comment on column public.groups.labels_pinned is
+  '#1180 — the owner picked what this Page is listed under; the composer never re-matches it from the words.';
+comment on column public.page_posts.labels_pinned is
+  '#1180 — the poster picked what this post is listed under; the composer never re-matches it from the words.';
+
+create temp table label_words (top_ord int, label_ord int, top text, label text, pattern text, weight int) on commit drop;
+-- top_ord -1: a label beside any category (Free), with no top label.
+insert into label_words (top_ord, label_ord, top, label, pattern, weight) values
+  (0, 0, 'Farmers markets', 'Farmers markets', 'farmers\s+market', 2),
+  (0, 0, 'Farmers markets', 'Farmers markets', 'farmer''s\s+market', 2),
+  (0, 0, 'Farmers markets', 'Farmers markets', 'farm\s+stand', 2),
+  (0, 0, 'Farmers markets', 'Farmers markets', 'csa', 1),
+  (0, 0, 'Farmers markets', 'Farmers markets', 'farm', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'produce', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'vegetable', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'veggie', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'fruit', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'berry', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'berries', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'tomato', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'apple', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'peach', 1),
+  (0, 1, 'Farmers markets', 'Produce', 'citrus', 1),
+  (0, 2, 'Farmers markets', 'Eggs & dairy', 'egg', 1),
+  (0, 2, 'Farmers markets', 'Eggs & dairy', 'dairy', 1),
+  (0, 2, 'Farmers markets', 'Eggs & dairy', 'milk', 1),
+  (0, 2, 'Farmers markets', 'Eggs & dairy', 'cheese', 1),
+  (0, 2, 'Farmers markets', 'Eggs & dairy', 'butter', 1),
+  (0, 2, 'Farmers markets', 'Eggs & dairy', 'yogurt', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'meat', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'beef', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'pork', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'chicken', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'lamb', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'fish', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'seafood', 1),
+  (0, 3, 'Farmers markets', 'Meat & fish', 'butcher', 1),
+  (0, 4, 'Farmers markets', 'Honey & preserves', 'honey', 1),
+  (0, 4, 'Farmers markets', 'Honey & preserves', 'jam', 1),
+  (0, 4, 'Farmers markets', 'Honey & preserves', 'preserves', 1),
+  (0, 4, 'Farmers markets', 'Honey & preserves', 'pickle', 1),
+  (0, 4, 'Farmers markets', 'Honey & preserves', 'salsa', 1),
+  (0, 4, 'Farmers markets', 'Honey & preserves', 'olive\s+oil', 2),
+  (0, 5, 'Farmers markets', 'Flowers', 'flower', 1),
+  (0, 5, 'Farmers markets', 'Flowers', 'bouquet', 1),
+  (0, 5, 'Farmers markets', 'Flowers', 'cut\s+flowers', 2),
+  (0, 5, 'Farmers markets', 'Flowers', 'tulip', 1),
+  (0, 5, 'Farmers markets', 'Flowers', 'sunflower', 1),
+  (1, 0, 'Live music', 'Live music', 'live\s+music', 2),
+  (1, 0, 'Live music', 'Live music', 'music', 1),
+  (1, 0, 'Live music', 'Live music', 'musician', 1),
+  (1, 0, 'Live music', 'Live music', 'gig', 1),
+  (1, 1, 'Live music', 'Concerts', 'concert', 1),
+  (1, 1, 'Live music', 'Concerts', 'headliner', 1),
+  (1, 1, 'Live music', 'Concerts', 'tour', 1),
+  (1, 2, 'Live music', 'Open mics', 'open\s+mic', 2),
+  (1, 2, 'Live music', 'Open mics', 'jam\s+session', 2),
+  (1, 2, 'Live music', 'Open mics', 'karaoke', 1),
+  (1, 2, 'Live music', 'Open mics', 'songwriter', 1),
+  (1, 3, 'Live music', 'Bands & DJs', 'band', 1),
+  (1, 3, 'Live music', 'Bands & DJs', 'dj', 1),
+  (1, 3, 'Live music', 'Bands & DJs', 'cover\s+band', 2),
+  (1, 3, 'Live music', 'Bands & DJs', 'dance\s+party', 2),
+  (1, 4, 'Live music', 'Classical & choir', 'symphony', 1),
+  (1, 4, 'Live music', 'Classical & choir', 'orchestra', 1),
+  (1, 4, 'Live music', 'Classical & choir', 'choir', 1),
+  (1, 4, 'Live music', 'Classical & choir', 'chamber\s+music', 2),
+  (1, 4, 'Live music', 'Classical & choir', 'opera', 1),
+  (1, 4, 'Live music', 'Classical & choir', 'quartet', 1),
+  (1, 5, 'Live music', 'Jazz & blues', 'jazz', 1),
+  (1, 5, 'Live music', 'Jazz & blues', 'blues', 1),
+  (1, 5, 'Live music', 'Jazz & blues', 'swing', 1),
+  (2, 0, 'Food & drink', 'Food & drink', 'food', 1),
+  (2, 0, 'Food & drink', 'Food & drink', 'drink', 1),
+  (2, 0, 'Food & drink', 'Food & drink', 'eat', 1),
+  (2, 0, 'Food & drink', 'Food & drink', 'menu', 1),
+  (2, 0, 'Food & drink', 'Food & drink', 'kitchen', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'bakery', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'bread', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'sourdough', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'pastry', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'pastries', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'baked\s+goods', 2),
+  (2, 1, 'Food & drink', 'Bakery', 'cake', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'cookie', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'pie', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'croissant', 1),
+  (2, 1, 'Food & drink', 'Bakery', 'bagel', 1),
+  (2, 2, 'Food & drink', 'Coffee & tea', 'coffee', 1),
+  (2, 2, 'Food & drink', 'Coffee & tea', 'espresso', 1),
+  (2, 2, 'Food & drink', 'Coffee & tea', 'latte', 1),
+  (2, 2, 'Food & drink', 'Coffee & tea', 'tea', 1),
+  (2, 2, 'Food & drink', 'Coffee & tea', 'cafe', 1),
+  (2, 2, 'Food & drink', 'Coffee & tea', 'café', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'restaurant', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'diner', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'bistro', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'dinner', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'brunch', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'lunch', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'pizza', 1),
+  (2, 3, 'Food & drink', 'Restaurants', 'tacos', 1),
+  (2, 4, 'Food & drink', 'Food trucks', 'food\s+truck', 2),
+  (2, 4, 'Food & drink', 'Food trucks', 'taco\s+truck', 2),
+  (2, 4, 'Food & drink', 'Food trucks', 'pop-up\s+kitchen', 2),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'beer', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'brewery', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'taproom', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'wine', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'winery', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'cider', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'cocktail', 1),
+  (2, 5, 'Food & drink', 'Beer, wine & spirits', 'distillery', 1),
+  (2, 6, 'Food & drink', 'Sweets', 'chocolate', 1),
+  (2, 6, 'Food & drink', 'Sweets', 'candy', 1),
+  (2, 6, 'Food & drink', 'Sweets', 'ice\s+cream', 2),
+  (2, 6, 'Food & drink', 'Sweets', 'creamery', 1),
+  (2, 6, 'Food & drink', 'Sweets', 'donut', 1),
+  (2, 6, 'Food & drink', 'Sweets', 'gelato', 1),
+  (2, 6, 'Food & drink', 'Sweets', 'sweets', 1),
+  (3, 0, 'Crafts & makers', 'Crafts & makers', 'craft', 1),
+  (3, 0, 'Crafts & makers', 'Crafts & makers', 'handmade', 1),
+  (3, 0, 'Crafts & makers', 'Crafts & makers', 'handcrafted', 1),
+  (3, 1, 'Crafts & makers', 'Pottery', 'pottery', 1),
+  (3, 1, 'Crafts & makers', 'Pottery', 'ceramic', 1),
+  (3, 1, 'Crafts & makers', 'Pottery', 'ceramics', 1),
+  (3, 1, 'Crafts & makers', 'Pottery', 'clay', 1),
+  (3, 2, 'Crafts & makers', 'Jewelry', 'jewelry', 1),
+  (3, 2, 'Crafts & makers', 'Jewelry', 'earring', 1),
+  (3, 2, 'Crafts & makers', 'Jewelry', 'necklace', 1),
+  (3, 2, 'Crafts & makers', 'Jewelry', 'bracelet', 1),
+  (3, 2, 'Crafts & makers', 'Jewelry', 'bead', 1),
+  (3, 3, 'Crafts & makers', 'Woodwork', 'woodwork', 1),
+  (3, 3, 'Crafts & makers', 'Woodwork', 'woodworking', 1),
+  (3, 3, 'Crafts & makers', 'Woodwork', 'carpentry', 1),
+  (3, 3, 'Crafts & makers', 'Woodwork', 'woodturning', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'knit', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'knitting', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'crochet', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'yarn', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'sewing', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'quilt', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'quilting', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'fabric', 1),
+  (3, 4, 'Crafts & makers', 'Textiles & knitting', 'embroidery', 1),
+  (3, 5, 'Crafts & makers', 'Candles & soap', 'candle', 1),
+  (3, 5, 'Crafts & makers', 'Candles & soap', 'soap', 1),
+  (3, 5, 'Crafts & makers', 'Candles & soap', 'bath\s+bomb', 2),
+  (3, 6, 'Crafts & makers', 'Craft fairs', 'craft\s+fair', 2),
+  (3, 6, 'Crafts & makers', 'Craft fairs', 'artisan\s+market', 2),
+  (3, 6, 'Crafts & makers', 'Craft fairs', 'holiday\s+market', 2),
+  (3, 6, 'Crafts & makers', 'Craft fairs', 'bazaar', 1),
+  (4, 0, 'Gardening', 'Gardening', 'garden', 1),
+  (4, 0, 'Gardening', 'Gardening', 'gardening', 1),
+  (4, 0, 'Gardening', 'Gardening', 'gardener', 1),
+  (4, 1, 'Gardening', 'Plants & nurseries', 'plant', 1),
+  (4, 1, 'Gardening', 'Plants & nurseries', 'nursery', 1),
+  (4, 1, 'Gardening', 'Plants & nurseries', 'seedling', 1),
+  (4, 1, 'Gardening', 'Plants & nurseries', 'succulent', 1),
+  (4, 1, 'Gardening', 'Plants & nurseries', 'houseplant', 1),
+  (4, 1, 'Gardening', 'Plants & nurseries', 'native\s+plants', 2),
+  (4, 2, 'Gardening', 'Community gardens', 'community\s+garden', 2),
+  (4, 2, 'Gardening', 'Community gardens', 'garden\s+plot', 2),
+  (4, 2, 'Gardening', 'Community gardens', 'plot', 1),
+  (4, 3, 'Gardening', 'Seed swaps', 'seed\s+swap', 2),
+  (4, 3, 'Gardening', 'Seed swaps', 'seed', 1),
+  (4, 3, 'Gardening', 'Seed swaps', 'seed\s+library', 2),
+  (4, 4, 'Gardening', 'Yards & landscaping', 'landscaping', 1),
+  (4, 4, 'Gardening', 'Yards & landscaping', 'yard\s+work', 2),
+  (4, 4, 'Gardening', 'Yards & landscaping', 'lawn', 1),
+  (4, 4, 'Gardening', 'Yards & landscaping', 'mulch', 1),
+  (4, 5, 'Gardening', 'Trees & orchards', 'tree', 1),
+  (4, 5, 'Gardening', 'Trees & orchards', 'orchard', 1),
+  (4, 5, 'Gardening', 'Trees & orchards', 'pruning', 1),
+  (4, 5, 'Gardening', 'Trees & orchards', 'arborist', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'kids', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'kid', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'children', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'child', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'family', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'families', 1),
+  (5, 0, 'Kids & family', 'Kids & family', 'all\s+ages', 2),
+  (5, 1, 'Kids & family', 'Storytime', 'storytime', 1),
+  (5, 1, 'Kids & family', 'Storytime', 'story\s+time', 2),
+  (5, 1, 'Kids & family', 'Storytime', 'read\s+aloud', 2),
+  (5, 2, 'Kids & family', 'Camps & classes for kids', 'kids\s+class', 2),
+  (5, 2, 'Kids & family', 'Camps & classes for kids', 'summer\s+camp', 2),
+  (5, 2, 'Kids & family', 'Camps & classes for kids', 'camp', 1),
+  (5, 2, 'Kids & family', 'Camps & classes for kids', 'after\s+school', 2),
+  (5, 3, 'Kids & family', 'Babies & toddlers', 'playgroup', 1),
+  (5, 3, 'Kids & family', 'Babies & toddlers', 'playdate', 1),
+  (5, 3, 'Kids & family', 'Babies & toddlers', 'toddler', 1),
+  (5, 3, 'Kids & family', 'Babies & toddlers', 'baby', 1),
+  (5, 3, 'Kids & family', 'Babies & toddlers', 'babies', 1),
+  (5, 3, 'Kids & family', 'Babies & toddlers', 'stroller', 1),
+  (5, 4, 'Kids & family', 'Family outings', 'family\s+day', 2),
+  (5, 4, 'Kids & family', 'Family outings', 'family\s+fun', 2),
+  (5, 4, 'Kids & family', 'Family outings', 'family\s+friendly', 2),
+  (5, 4, 'Kids & family', 'Family outings', 'pumpkin\s+patch', 2),
+  (5, 5, 'Kids & family', 'Childcare', 'childcare', 1),
+  (5, 5, 'Kids & family', 'Childcare', 'babysitting', 1),
+  (5, 5, 'Kids & family', 'Childcare', 'babysitter', 1),
+  (5, 5, 'Kids & family', 'Childcare', 'daycare', 1),
+  (5, 5, 'Kids & family', 'Childcare', 'nanny', 1),
+  (6, 0, 'Fitness & outdoors', 'Fitness & outdoors', 'fitness', 1),
+  (6, 0, 'Fitness & outdoors', 'Fitness & outdoors', 'outdoors', 1),
+  (6, 0, 'Fitness & outdoors', 'Fitness & outdoors', 'outdoor', 1),
+  (6, 0, 'Fitness & outdoors', 'Fitness & outdoors', 'exercise', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', 'run', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', 'running', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', 'runner', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', '5k', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', '10k', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', 'marathon', 1),
+  (6, 1, 'Fitness & outdoors', 'Running', 'jog', 1),
+  (6, 2, 'Fitness & outdoors', 'Cycling', 'bike', 1),
+  (6, 2, 'Fitness & outdoors', 'Cycling', 'biking', 1),
+  (6, 2, 'Fitness & outdoors', 'Cycling', 'cycling', 1),
+  (6, 2, 'Fitness & outdoors', 'Cycling', 'bike\s+ride', 2),
+  (6, 3, 'Fitness & outdoors', 'Yoga & dance', 'yoga', 1),
+  (6, 3, 'Fitness & outdoors', 'Yoga & dance', 'pilates', 1),
+  (6, 3, 'Fitness & outdoors', 'Yoga & dance', 'dance\s+class', 2),
+  (6, 3, 'Fitness & outdoors', 'Yoga & dance', 'dancing', 1),
+  (6, 3, 'Fitness & outdoors', 'Yoga & dance', 'zumba', 1),
+  (6, 3, 'Fitness & outdoors', 'Yoga & dance', 'tai\s+chi', 2),
+  (6, 4, 'Fitness & outdoors', 'Hiking & trails', 'hike', 1),
+  (6, 4, 'Fitness & outdoors', 'Hiking & trails', 'hiking', 1),
+  (6, 4, 'Fitness & outdoors', 'Hiking & trails', 'trail', 1),
+  (6, 4, 'Fitness & outdoors', 'Hiking & trails', 'nature\s+walk', 2),
+  (6, 4, 'Fitness & outdoors', 'Hiking & trails', 'state\s+park', 2),
+  (6, 4, 'Fitness & outdoors', 'Hiking & trails', 'regional\s+park', 2),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'kayak', 1),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'paddle', 1),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'paddleboard', 1),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'swim', 1),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'swimming', 1),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'river', 1),
+  (6, 5, 'Fitness & outdoors', 'Paddling & swimming', 'lake', 1),
+  (6, 6, 'Fitness & outdoors', 'Gyms & workouts', 'gym', 1),
+  (6, 6, 'Fitness & outdoors', 'Gyms & workouts', 'workout', 1),
+  (6, 6, 'Fitness & outdoors', 'Gyms & workouts', 'bootcamp', 1),
+  (6, 6, 'Fitness & outdoors', 'Gyms & workouts', 'crossfit', 1),
+  (6, 6, 'Fitness & outdoors', 'Gyms & workouts', 'boxing', 1),
+  (6, 6, 'Fitness & outdoors', 'Gyms & workouts', 'martial\s+arts', 2),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'soccer', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'softball', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'baseball', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'basketball', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'pickleball', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'tennis', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'volleyball', 1),
+  (6, 7, 'Fitness & outdoors', 'Team sports', 'league', 1),
+  (7, 0, 'Arts & culture', 'Arts & culture', 'art', 1),
+  (7, 0, 'Arts & culture', 'Arts & culture', 'arts', 1),
+  (7, 0, 'Arts & culture', 'Arts & culture', 'culture', 1),
+  (7, 0, 'Arts & culture', 'Arts & culture', 'cultural', 1),
+  (7, 0, 'Arts & culture', 'Arts & culture', 'artist', 1),
+  (7, 1, 'Arts & culture', 'Galleries', 'gallery', 1),
+  (7, 1, 'Arts & culture', 'Galleries', 'exhibit', 1),
+  (7, 1, 'Arts & culture', 'Galleries', 'exhibition', 1),
+  (7, 1, 'Arts & culture', 'Galleries', 'art\s+walk', 2),
+  (7, 1, 'Arts & culture', 'Galleries', 'second\s+saturday', 2),
+  (7, 1, 'Arts & culture', 'Galleries', 'mural', 1),
+  (7, 2, 'Arts & culture', 'Theater & comedy', 'theater', 1),
+  (7, 2, 'Arts & culture', 'Theater & comedy', 'theatre', 1),
+  (7, 2, 'Arts & culture', 'Theater & comedy', 'improv', 1),
+  (7, 2, 'Arts & culture', 'Theater & comedy', 'comedy', 1),
+  (7, 2, 'Arts & culture', 'Theater & comedy', 'stand-up', 1),
+  (7, 2, 'Arts & culture', 'Theater & comedy', 'musical', 1),
+  (7, 3, 'Arts & culture', 'Film', 'film', 1),
+  (7, 3, 'Arts & culture', 'Film', 'movie', 1),
+  (7, 3, 'Arts & culture', 'Film', 'screening', 1),
+  (7, 3, 'Arts & culture', 'Film', 'cinema', 1),
+  (7, 4, 'Arts & culture', 'Books & talks', 'book', 1),
+  (7, 4, 'Arts & culture', 'Books & talks', 'author', 1),
+  (7, 4, 'Arts & culture', 'Books & talks', 'book\s+club', 2),
+  (7, 4, 'Arts & culture', 'Books & talks', 'poetry', 1),
+  (7, 4, 'Arts & culture', 'Books & talks', 'library', 1),
+  (7, 4, 'Arts & culture', 'Books & talks', 'lecture', 1),
+  (7, 4, 'Arts & culture', 'Books & talks', 'talk', 1),
+  (7, 5, 'Arts & culture', 'Museums & history', 'museum', 1),
+  (7, 5, 'Arts & culture', 'Museums & history', 'history', 1),
+  (7, 5, 'Arts & culture', 'Museums & history', 'historic', 1),
+  (7, 5, 'Arts & culture', 'Museums & history', 'walking\s+tour', 2),
+  (7, 6, 'Arts & culture', 'Art classes', 'painting', 1),
+  (7, 6, 'Arts & culture', 'Art classes', 'drawing', 1),
+  (7, 6, 'Arts & culture', 'Art classes', 'art\s+class', 2),
+  (7, 6, 'Arts & culture', 'Art classes', 'printmaking', 1),
+  (7, 6, 'Arts & culture', 'Art classes', 'photography', 1),
+  (8, 0, 'Volunteering', 'Volunteering', 'volunteer', 1),
+  (8, 0, 'Volunteering', 'Volunteering', 'volunteering', 1),
+  (8, 0, 'Volunteering', 'Volunteering', 'give\s+back', 2),
+  (8, 1, 'Volunteering', 'Cleanups', 'cleanup', 1),
+  (8, 1, 'Volunteering', 'Cleanups', 'clean-up', 1),
+  (8, 1, 'Volunteering', 'Cleanups', 'litter', 1),
+  (8, 1, 'Volunteering', 'Cleanups', 'trash\s+pickup', 2),
+  (8, 2, 'Volunteering', 'Food banks', 'food\s+bank', 2),
+  (8, 2, 'Volunteering', 'Food banks', 'food\s+pantry', 2),
+  (8, 2, 'Volunteering', 'Food banks', 'pantry', 1),
+  (8, 2, 'Volunteering', 'Food banks', 'meal\s+service', 2),
+  (8, 2, 'Volunteering', 'Food banks', 'soup\s+kitchen', 2),
+  (8, 3, 'Volunteering', 'Animal rescue', 'animal\s+rescue', 2),
+  (8, 3, 'Volunteering', 'Animal rescue', 'rescue', 1),
+  (8, 3, 'Volunteering', 'Animal rescue', 'shelter', 1),
+  (8, 3, 'Volunteering', 'Animal rescue', 'adopt', 1),
+  (8, 3, 'Volunteering', 'Animal rescue', 'adoption', 1),
+  (8, 3, 'Volunteering', 'Animal rescue', 'foster', 1),
+  (8, 4, 'Volunteering', 'Fundraisers', 'fundraiser', 1),
+  (8, 4, 'Volunteering', 'Fundraisers', 'donate', 1),
+  (8, 4, 'Volunteering', 'Fundraisers', 'donation', 1),
+  (8, 4, 'Volunteering', 'Fundraisers', 'benefit', 1),
+  (8, 4, 'Volunteering', 'Fundraisers', 'charity', 1),
+  (8, 5, 'Volunteering', 'Tutoring & mentoring', 'tutor', 1),
+  (8, 5, 'Volunteering', 'Tutoring & mentoring', 'tutoring', 1),
+  (8, 5, 'Volunteering', 'Tutoring & mentoring', 'mentor', 1),
+  (8, 5, 'Volunteering', 'Tutoring & mentoring', 'mentoring', 1),
+  (8, 5, 'Volunteering', 'Tutoring & mentoring', 'literacy', 1),
+  (9, 0, 'Local business', 'Local business', 'business', 1),
+  (9, 0, 'Local business', 'Local business', 'shop\s+local', 2),
+  (9, 0, 'Local business', 'Local business', 'small\s+business', 2),
+  (9, 0, 'Local business', 'Local business', 'locally\s+owned', 2),
+  (9, 1, 'Local business', 'Shops & boutiques', 'shop', 1),
+  (9, 1, 'Local business', 'Shops & boutiques', 'boutique', 1),
+  (9, 1, 'Local business', 'Shops & boutiques', 'store', 1),
+  (9, 1, 'Local business', 'Shops & boutiques', 'gift', 1),
+  (9, 1, 'Local business', 'Shops & boutiques', 'gifts', 1),
+  (9, 2, 'Local business', 'Home services', 'plumber', 1),
+  (9, 2, 'Local business', 'Home services', 'plumbing', 1),
+  (9, 2, 'Local business', 'Home services', 'electrician', 1),
+  (9, 2, 'Local business', 'Home services', 'handyman', 1),
+  (9, 2, 'Local business', 'Home services', 'house\s+cleaning', 2),
+  (9, 2, 'Local business', 'Home services', 'repair', 1),
+  (9, 2, 'Local business', 'Home services', 'contractor', 1),
+  (9, 2, 'Local business', 'Home services', 'roofing', 1),
+  (9, 3, 'Local business', 'Health & beauty', 'salon', 1),
+  (9, 3, 'Local business', 'Health & beauty', 'barber', 1),
+  (9, 3, 'Local business', 'Health & beauty', 'spa', 1),
+  (9, 3, 'Local business', 'Health & beauty', 'massage', 1),
+  (9, 3, 'Local business', 'Health & beauty', 'nails', 1),
+  (9, 3, 'Local business', 'Health & beauty', 'skincare', 1),
+  (9, 4, 'Local business', 'Pets', 'pet', 1),
+  (9, 4, 'Local business', 'Pets', 'dog', 1),
+  (9, 4, 'Local business', 'Pets', 'cat', 1),
+  (9, 4, 'Local business', 'Pets', 'grooming', 1),
+  (9, 4, 'Local business', 'Pets', 'vet', 1),
+  (9, 4, 'Local business', 'Pets', 'veterinarian', 1),
+  (9, 5, 'Local business', 'Thrift & vintage', 'thrift', 1),
+  (9, 5, 'Local business', 'Thrift & vintage', 'vintage', 1),
+  (9, 5, 'Local business', 'Thrift & vintage', 'consignment', 1),
+  (9, 5, 'Local business', 'Thrift & vintage', 'secondhand', 1),
+  (9, 5, 'Local business', 'Thrift & vintage', 'antique', 1),
+  (10, 0, 'Sustainability', 'Sustainability', 'sustainability', 1),
+  (10, 0, 'Sustainability', 'Sustainability', 'sustainable', 1),
+  (10, 0, 'Sustainability', 'Sustainability', 'eco', 1),
+  (10, 0, 'Sustainability', 'Sustainability', 'zero\s+waste', 2),
+  (10, 0, 'Sustainability', 'Sustainability', 'climate', 1),
+  (10, 1, 'Sustainability', 'Repair & reuse', 'repair\s+cafe', 2),
+  (10, 1, 'Sustainability', 'Repair & reuse', 'fix-it', 1),
+  (10, 1, 'Sustainability', 'Repair & reuse', 'reuse', 1),
+  (10, 1, 'Sustainability', 'Repair & reuse', 'upcycle', 1),
+  (10, 1, 'Sustainability', 'Repair & reuse', 'upcycled', 1),
+  (10, 2, 'Sustainability', 'Composting', 'compost', 1),
+  (10, 2, 'Sustainability', 'Composting', 'composting', 1),
+  (10, 2, 'Sustainability', 'Composting', 'worm\s+bin', 2),
+  (10, 3, 'Sustainability', 'Swaps', 'swap', 1),
+  (10, 3, 'Sustainability', 'Swaps', 'clothing\s+swap', 2),
+  (10, 3, 'Sustainability', 'Swaps', 'free\s+store', 2),
+  (10, 3, 'Sustainability', 'Swaps', 'tool\s+library', 2),
+  (10, 4, 'Sustainability', 'Transit & carpools', 'transit', 1),
+  (10, 4, 'Sustainability', 'Transit & carpools', 'bus', 1),
+  (10, 4, 'Sustainability', 'Transit & carpools', 'carpool', 1),
+  (10, 4, 'Sustainability', 'Transit & carpools', 'light\s+rail', 2),
+  (10, 4, 'Sustainability', 'Transit & carpools', 'ebike', 1),
+  (10, 5, 'Sustainability', 'Clean energy', 'solar', 1),
+  (10, 5, 'Sustainability', 'Clean energy', 'clean\s+energy', 2),
+  (10, 5, 'Sustainability', 'Clean energy', 'electric\s+vehicle', 2),
+  (10, 5, 'Sustainability', 'Clean energy', 'heat\s+pump', 2),
+  (11, 0, 'Neighborhood life', 'Neighborhood life', 'neighborhood', 1),
+  (11, 0, 'Neighborhood life', 'Neighborhood life', 'neighbourhood', 1),
+  (11, 0, 'Neighborhood life', 'Neighborhood life', 'neighbor', 1),
+  (11, 0, 'Neighborhood life', 'Neighborhood life', 'neighbour', 1),
+  (11, 0, 'Neighborhood life', 'Neighborhood life', 'community', 1),
+  (11, 0, 'Neighborhood life', 'Neighborhood life', 'block', 1),
+  (11, 1, 'Neighborhood life', 'Meetups & socials', 'meetup', 1),
+  (11, 1, 'Neighborhood life', 'Meetups & socials', 'social', 1),
+  (11, 1, 'Neighborhood life', 'Meetups & socials', 'mixer', 1),
+  (11, 1, 'Neighborhood life', 'Meetups & socials', 'potluck', 1),
+  (11, 1, 'Neighborhood life', 'Meetups & socials', 'club', 1),
+  (11, 1, 'Neighborhood life', 'Meetups & socials', 'block\s+party', 2),
+  (11, 2, 'Neighborhood life', 'Lost & found', 'lost', 1),
+  (11, 2, 'Neighborhood life', 'Lost & found', 'found', 1),
+  (11, 2, 'Neighborhood life', 'Lost & found', 'missing', 1),
+  (11, 2, 'Neighborhood life', 'Lost & found', 'stray', 1),
+  (11, 2, 'Neighborhood life', 'Lost & found', 'lost\s+dog', 2),
+  (11, 2, 'Neighborhood life', 'Lost & found', 'lost\s+cat', 2),
+  (11, 3, 'Neighborhood life', 'Yard sales', 'yard\s+sale', 2),
+  (11, 3, 'Neighborhood life', 'Yard sales', 'garage\s+sale', 2),
+  (11, 3, 'Neighborhood life', 'Yard sales', 'estate\s+sale', 2),
+  (11, 3, 'Neighborhood life', 'Yard sales', 'moving\s+sale', 2),
+  (11, 3, 'Neighborhood life', 'Yard sales', 'rummage\s+sale', 2),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'recommend', 1),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'recommendation', 1),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'anyone\s+know', 2),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'looking\s+for', 2),
+  (11, 4, 'Neighborhood life', 'Recommendations', 'can\s+anyone\s+suggest', 3),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'news', 1),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'notice', 1),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'announcement', 1),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'road\s+closure', 2),
+  (11, 5, 'Neighborhood life', 'Neighborhood news', 'new\s+in\s+town', 3),
+  (-1, 1, null, 'Free', 'free', 1),
+  (-1, 1, null, 'Free', 'free\s+admission', 2),
+  (-1, 1, null, 'Free', 'no\s+cover', 2),
+  (-1, 1, null, 'Free', 'giveaway', 1),
+  (-1, 1, null, 'Free', 'curb\s+alert', 2),
+  (-1, 1, null, 'Free', 'free\s+to\s+a\s+good\s+home', 5);
+
+create function pg_temp.listed_under(txt text) returns text[]
+language sql stable as $$
+  with t as (select lower(replace(replace(coalesce(txt, ''), '’', ''''), '‘', '''')) as s),
+  hits as (
+    select w.top_ord, w.label_ord, w.top, w.label, sum(w.weight) as n
+      from label_words w, t
+     where t.s ~ ('(^|[^[:alnum:]])' || w.pattern || '(s|es)?($|[^[:alnum:]])')
+     group by w.top_ord, w.label_ord, w.top, w.label
+  ),
+  best as (
+    select top_ord, top from hits where top_ord >= 0 group by top_ord, top
+     order by sum(n) desc, sum(n) filter (where label_ord > 0) desc nulls last, top_ord limit 1
+  )
+  select case when (select top from best) is null then array[]::text[]
+    else array[(select top from best)] || coalesce((
+      select array_agg(label order by n desc, label_ord)
+        from (select h.label, h.n, h.label_ord from hits h join best b on b.top_ord = h.top_ord
+               where h.label_ord > 0 order by h.n desc, h.label_ord limit 2) f
+    ), array[]::text[]) end
+    || coalesce((select array_agg(label order by label_ord) from hits where top_ord < 0), array[]::text[])
+$$;
+
+-- Old tags that already are list labels, in the list's spelling, each with its top label.
+create function pg_temp.exact_labels(old text[]) returns text[]
+language sql stable as $$
+  select coalesce(array_agg(distinct x), array[]::text[]) from (
+    select w.label as x from label_words w where lower(w.label) = any (select lower(o) from unnest(old) o)
+    union
+    select w.top from label_words w where w.top is not null and lower(w.label) = any (select lower(o) from unnest(old) o)
+  ) e
+$$;
+
+create function pg_temp.ensure_label(lbl text, member uuid) returns uuid
+language plpgsql as $$
+declare tid uuid;
+begin
+  insert into public.tags (label, normalized, created_by, review)
+  values (lbl, lower(lbl), member, 'safe')
+  on conflict (normalized) do update
+    set label = excluded.label,
+        review = case when public.tags.review = 'needs_review' then 'safe' else public.tags.review end;
+  select id into tid from public.tags where normalized = lower(lbl);
+  return tid;
+end $$;
+
+do $$
+declare
+  g record;
+  p record;
+  picks text[];
+  lbl text;
+begin
+  for g in
+    select gr.id, gr.founder_member_id, gr.name, gr.description,
+           (select array_agg(t.label) from public.page_tags pt join public.tags t on t.id = pt.tag_id where pt.group_id = gr.id) as old
+      from public.groups gr
+  loop
+    picks := pg_temp.exact_labels(coalesce(g.old, array[]::text[]))
+          || pg_temp.listed_under(coalesce(g.name, '') || ' ' || coalesce(g.description, '') || ' ' || coalesce(array_to_string(g.old, ' '), ''));
+    if not exists (select 1 from unnest(picks) x join label_words w on w.label = x and w.top_ord >= 0) then
+      picks := array['Neighborhood life'] || picks;
+    end if;
+    delete from public.page_tags where group_id = g.id;
+    foreach lbl in array picks loop
+      insert into public.page_tags (group_id, tag_id) values (g.id, pg_temp.ensure_label(lbl, g.founder_member_id))
+      on conflict do nothing;
+    end loop;
+  end loop;
+
+  for p in
+    select pp.id, gr.founder_member_id, array_agg(t.label) as old
+      from public.page_posts pp
+      join public.groups gr on gr.id = pp.group_id
+      join public.post_tags ptg on ptg.post_id = pp.id
+      join public.tags t on t.id = ptg.tag_id
+     group by pp.id, gr.founder_member_id
+  loop
+    picks := pg_temp.exact_labels(p.old) || pg_temp.listed_under(array_to_string(p.old, ' '));
+    delete from public.post_tags where post_id = p.id;
+    foreach lbl in array picks loop
+      insert into public.post_tags (post_id, tag_id) values (p.id, pg_temp.ensure_label(lbl, p.founder_member_id))
+      on conflict do nothing;
+    end loop;
+  end loop;
+end $$;

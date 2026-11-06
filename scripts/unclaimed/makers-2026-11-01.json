@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Friends of the Roseville Public Library",
+    "category": "Friends of the library",
+    "makes": "All-volunteer nonprofit supporting Roseville's three libraries: runs used bookstores at the Downtown, Maidu and Martha Riley libraries, holds seasonal book sales and takes new volunteers and members",
+    "area": "Roseville (Placer)",
+    "address": "P.O. Box 232, Roseville, CA 95678",
+    "site": "https://www.rosevillefriendsofthelibrary.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/rosevillefol",
+      "facebook": "https://www.facebook.com/rosevillefol"
+    },
+    "confidence": "High; own site checked 2026-11-01 (ok): footer 2026, volunteer, book-sales and bookstore pages live. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sacramento SPCA",
+    "category": "Animal rescue",
+    "makes": "Sacramento animal rescue and shelter: pet adoption, foster care, low-cost spay/neuter and vaccine clinics, the PAWPantry free pet food program and senior services, with volunteer and foster pages",
+    "area": "Sacramento (Sacramento)",
+    "address": "6201 Florin Perkins Road, Sacramento, CA 95828",
+    "site": "https://www.sspca.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sacramento_spca",
+      "facebook": "https://www.facebook.com/SacSPCA"
+    },
+    "confidence": "High; own site checked 2026-11-01 (ok): sponsor items dated Oct 2026, volunteer and foster pages live; no footer year. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Animal Refugee Response",
+    "category": "Animal rescue",
+    "makes": "No-kill Vacaville nonprofit offering shelter and sanctuary, adoption, community education and assistance programs that keep pets in their homes; visits and adoptions by appointment, with volunteer pages",
+    "area": "Vacaville (Solano)",
+    "address": "4770 McEathron Lane, Vacaville, CA 95688",
+    "site": "https://animalrefugee.org/",
+    "confidence": "High; own site checked 2026-11-01 (ok): footer 2026, volunteer and program pages live. Site lists a Facebook link; loader reads socials off the site. Nonprofit: no products. Photos not viewed: stock only. Lead: Visit Vacaville, then own site."
+  },
+  {
+    "name": "Sammie's Friends",
+    "category": "Animal rescue",
+    "makes": "Grass Valley nonprofit paying for medical care of animals at the Nevada County Animal Shelter so they can be adopted; spay/neuter vouchers, help for pet owners, a thrift shop and volunteer page",
+    "area": "Grass Valley (Nevada)",
+    "address": "14647 McCourtney Road, Grass Valley, CA 95949",
+    "site": "https://www.sammiesfriends.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sammiesfriends/",
+      "facebook": "https://www.facebook.com/SammiesFriends"
+    },
+    "confidence": "Medium; own site checked 2026-11-01 (ok): holiday campaign and 2025 articles live, footer 2020. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Gold Trail Grange",
+    "category": "Grange (community hall)",
+    "makes": "Grange that runs the 1926 Coloma-Lotus Community Hall in the Coloma Lotus Valley: monthly meetings and community talks, dances, concerts, pancake breakfasts, hall rentals and scholarships; marking its 100th year",
+    "area": "Coloma (El Dorado)",
+    "site": "https://sites.google.com/site/goldtrailgrange/home",
+    "confidence": "Medium; own site checked 2026-11-01 (ok): centennial posts live, but no dates, street address or footer year on the page, and the town is taken from the Coloma-Lotus name. Nonprofit: no products. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]

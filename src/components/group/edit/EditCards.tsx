@@ -25,8 +25,8 @@ function firstLine(text: string) {
   return line.length > DESCRIPTION_MAX ? `${line.slice(0, DESCRIPTION_MAX).trimEnd()}…` : line
 }
 
-const tagsLine = (tags: string[]) =>
-  tags.length === 0 ? '' : `${tags.length} ${tags.length === 1 ? 'tag' : 'tags'}: ${tags.slice(0, 2).join(', ')}${tags.length > 2 ? ', …' : ''}`
+// #1180 — what it is listed under, as the composer says it.
+const tagsLine = (tags: string[]) => (tags.length === 0 ? '' : `Listed under ${tags.join(' · ')}`)
 
 function summary(section: Section, i: EditorInitial): string {
   switch (section) {
@@ -43,7 +43,7 @@ function summary(section: Section, i: EditorInitial): string {
     case 'found': {
       const links = socialLinksForDisplay(i.socialLinks).map((l) => l.label).join(', ')
       if (i.tags.length === 0 && !links) return NOT_SET
-      return [tagsLine(i.tags) || 'No tags', links || 'No links'].join(' · ')
+      return [tagsLine(i.tags) || 'Not listed yet', links || 'No links'].join(' · ')
     }
     case 'components': {
       const on = [i.contactOn && SECTION_TITLE.contact, i.productsOn && 'Products & services'].filter(Boolean)

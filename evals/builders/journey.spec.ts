@@ -111,13 +111,10 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
       await page.getByTestId('edit-description').fill(org.description)
     })
   })
-  await j.step('Tags', null, async () => {
+  // #1180 — no tag box: Listed under is suggested from the name and description, and kept as suggested.
+  await j.step('Listed under', null, async () => {
     await section('found', async () => {
-      for (const tag of org.tags) {
-        await page.getByTestId('edit-tag-input').fill(tag)
-        await page.getByTestId('edit-tag-input').press('Enter')
-      }
-      await expect(page.getByTestId('edit-tag-list')).toContainText(org.tags[0]!)
+      await expect(page.getByTestId('edit-listed-listed')).toContainText('Listed under:')
     })
   })
   // #348's "How do people find you?". Invented organizations have no address
@@ -135,7 +132,7 @@ async function createOrg(page: Page, kind: BuilderKind, org: Org) {
       await expect(page.getByTestId('page-photo-preview')).toBeVisible({ timeout: 30_000 })
     })
   })
-  const saved = await j.step('Links', 'Filled in: name, description, tags, area, photo and links', async () => {
+  const saved = await j.step('Links', 'Filled in: name, description, listed under, area, photo and links', async () => {
     if (!org.instagram && !org.website) return
     await section('found', async () => {
       if (org.instagram) {

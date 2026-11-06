@@ -252,7 +252,8 @@ async function tagInterests(db: Db, groupId: string, labels: string[]): Promise<
   let added = 0
   for (const label of labels) {
     const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
-    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    // #1180 — the interest labels are list labels, so safe on arrival.
+    await db.query(`insert into public.tags (label, normalized, created_by, review) values ($1, $2, $3, 'safe') on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
     const { rows } = await db.query(`select id from public.tags where normalized = $1`, [normalized])
     const tagId = (rows[0] as { id: string }).id
     added += (await db.query(`insert into public.page_tags (group_id, tag_id) values ($1, $2) on conflict do nothing returning 1`, [groupId, tagId])).rows.length

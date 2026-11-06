@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Woodland Opera House",
+    "category": "Community theatre (nonprofit)",
+    "makes": "Woodland's historic 19th-century opera house (National Register) producing community musicals and shows; season, flex and single tickets, youth productions, volunteer and crew pages, with Anything Goes auditions Dec 6 and 8, 2026 and a Nutcracker on its season",
+    "area": "Woodland (Yolo)",
+    "site": "https://www.woodlandoperahouse.org/",
+    "confidence": "Medium; own site read 2026-11-04: get-involved page lists dated auditions for 2026-27 shows and ticket pages are live; no street address or footer year on the pages read. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Music in the Mountains Chorus",
+    "category": "Community chorus (nonprofit)",
+    "makes": "Grass Valley auditioned community chorus of about 80 singers from the region, rehearsing Mondays 7-9 pm September to June at Peace Lutheran Church, with auditions each September and February and concerts announced early each season",
+    "area": "Grass Valley (Nevada)",
+    "address": "465 S Auburn St, Grass Valley, CA 95945",
+    "site": "https://www.musicinthemountains.org/chorus",
+    "social": {
+      "instagram": "https://www.instagram.com/musicinthemountains/",
+      "facebook": "https://www.facebook.com/Musicinthemountains/"
+    },
+    "confidence": "High; own site read 2026-11-04: footer 2025, rehearsal day, time and place and audition details posted. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Nevada County Historical Society",
+    "category": "Historical society",
+    "makes": "Nevada City historical society running the Searls Historical Library (1-4 pm Monday to Saturday), the Narrow Gauge Railroad Museum, Firehouse No. 1 Museum, North Star Mining Museum and Mount St. Mary's Convent; free admission, free monthly membership meetings, membership and volunteer pages",
+    "area": "Nevada City (Nevada)",
+    "site": "https://nevadacountyhistory.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/nvcountyhistoricalsociety"
+    },
+    "confidence": "Medium; own site read 2026-11-04: museum hours listed, no street address, event dates or footer year on the page. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Elk Grove Community Concert Band",
+    "category": "Community band (nonprofit)",
+    "makes": "Elk Grove community band rehearsing Monday evenings August to May (doors 6:45 pm, rehearsal 7:15-9 pm) at Joseph Kerr Middle School, with a 2026-27 schedule of events, past programs, music listening and a donate page",
+    "area": "Elk Grove (Sacramento)",
+    "site": "https://sites.google.com/view/egccb/home",
+    "confidence": "Medium; own site read 2026-11-04: rehearsal day, time and place posted; concert dates are in a linked sheet; no footer year. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sacramento Ballet",
+    "category": "Ballet company (nonprofit)",
+    "makes": "Sacramento's professional ballet company, with a 2026-27 season on sale, Nutcracker tickets, a Nutcracker tea and a sensory-friendly performance; studios and box office at 2420 N Street",
+    "area": "Sacramento (Sacramento)",
+    "address": "2420 N Street, Suite 100, Sacramento, CA 95816",
+    "site": "https://www.sacballet.org/",
+    "social": {
+      "instagram": "https://instagram.com/sacballet",
+      "facebook": "https://www.facebook.com/sacballet"
+    },
+    "confidence": "High; own site read 2026-11-04: footer 2026, box office hours, season and Nutcracker ticket pages live. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Lodi Community Band",
+    "category": "Community band (nonprofit)",
+    "makes": "Lodi volunteer community band rehearsing Mondays at 7 pm in the Millswood Middle School band room, with a Veterans Day ceremony on Nov 11, a Christmas Concert on Dec 6, 2026 at Hutchins Street Square and a spring concert Feb 28, 2027",
+    "area": "Lodi (San Joaquin)",
+    "site": "https://lodicommunityband.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/lodicommunityband/",
+      "facebook": "https://www.facebook.com/Lodi-Community-Band-81018941738/"
+    },
+    "confidence": "Medium; own site read 2026-11-04 (dated 2026-27 concert list); the page was read on a staging host, so the lodicommunityband.com address needs the link check. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]
