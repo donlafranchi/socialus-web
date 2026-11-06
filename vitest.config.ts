@@ -81,6 +81,7 @@ const PROBE_SUITES = [
 // membership rule that is written down and still correct.
 const SUBPROCESS_SUITES = [
   'tests/main-build-alarm.test.ts',
+  'tests/main-build-recovered.test.ts',
   'tests/vercel-ignore.test.ts',
   'tests/ci-enforcement-rule-5.test.ts',
   'tests/runnable-gate.test.ts',
