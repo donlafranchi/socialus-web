@@ -12,7 +12,7 @@
 // (default smoke-out/) for the reader that compares them with the PR's bundle.
 // A route with no stable live address (see LIVE_PATHS) is skipped, and the run
 // says so rather than passing it.
-import { test, expect, type BrowserContext, type Page } from '@playwright/test'
+import { test, expect, type BrowserContext, type Page, type Request } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { builderEmail, builderPassword } from '../../src/lib/builders/credentials'
@@ -85,7 +85,14 @@ for (const who of personas) {
         const problems: string[] = []
         let aborted = 0
         const fetchErrors: string[] = []
+        // #1166 — what was still in flight when a page did not open, so a CI stall names its cause instead of "browser closed".
+        const inflight = new Set<string>()
+        const onRequest = (r: Request) => inflight.add(r.url())
+        const onDone = (r: Request) => inflight.delete(r.url())
+        page.on('request', onRequest)
+        page.on('requestfinished', onDone)
         page.on('requestfailed', (r) => {
+          onDone(r)
           if (/ERR_ABORTED/.test(r.failure()?.errorText ?? '')) aborted++
         })
         page.on('pageerror', (e) => {
@@ -103,9 +110,14 @@ for (const who of personas) {
         })
         for (const width of widths) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
+          // #1166 — drop the previous document first: its map and timers compete for the runner's two cores with the next load.
+          await page.goto('about:blank')
+          inflight.clear()
           // #500 — the document, not every external resource; one retry; a repeat timeout is a problem on this route, not a throw.
+          const t0 = Date.now()
           const nav = await navigate(page, target)
-          if (nav.timedOut) problems.push(`${width}px: the page did not open in time (twice)`)
+          console.log(`[smoke] ${who} ${name} ${width}px: ${nav.timedOut ? 'timed out' : 'HTTP ' + nav.status} after ${Date.now() - t0} ms`)
+          if (nav.timedOut) problems.push(`${width}px: the page did not open in time (twice); still loading: ${[...inflight].slice(0, 5).map((u) => u.slice(0, 90)).join(', ') || 'nothing in flight'}`)
           else if (nav.status >= 400) problems.push(`${width}px: HTTP ${nav.status}`)
           await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
           const text = await page.locator('body').innerText()
@@ -116,6 +128,8 @@ for (const who of personas) {
           writeFileSync(join(dir, `${name}.txt`), text)
         }
         for (const e of fetchErrors) if (!abortedByNavigation(e, aborted)) problems.push(e)
+        page.removeAllListeners('request')
+        page.removeAllListeners('requestfinished')
         page.removeAllListeners('requestfailed')
         page.removeAllListeners('pageerror')
         page.removeAllListeners('console')
