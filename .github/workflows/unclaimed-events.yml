@@ -92,3 +92,18 @@ jobs:
               "$name" "$url" "$err" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > body.md
             gh issue create --title "$title" --body-file body.md
           done
+      # #1173 — a one-morning outage (a feed timing out) heals itself: once a full run reads the venue again, its Issue closes.
+      - name: Close the Issue of each venue that reads again
+        if: always() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BROKEN_FILE: ${{ runner.temp }}/broken.json
+        run: |
+          [ -f "$BROKEN_FILE" ] || exit 0
+          prefix='bug · Venue shows import broke: '
+          gh issue list --state open --search "\"$prefix\" in:title" --limit 100 --json number,title | jq -c '.[]' | while read -r i; do
+            title=$(jq -r .title <<<"$i"); name=${title#"$prefix"}
+            [ "$name" != "$title" ] || continue
+            jq -e --arg n "$name" 'any(.[]; .name == $n)' "$BROKEN_FILE" >/dev/null && continue
+            gh issue close "$(jq -r .number <<<"$i")" --comment "Read again in $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID, so this closes on its own."
+          done
