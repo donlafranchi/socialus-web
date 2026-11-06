@@ -50,13 +50,19 @@ const OPERATOR_ONLY = { 'admin-reports': '/admin/reports' }
 test.skip(!SEED || routes.length === 0, 'BUILDER_SEED or SMOKE_ROUTES is not set')
 
 async function signIn(page: Page, persona: PersonaKey) {
-  // #1166 — the document, not `load`: the signed-in screen's map and pictures can hold `load` open past the timeout on a two-core runner.
+  // #1166 — a tap before the page has hydrated submits the form as a plain GET (…/auth/password?email=…) and never reaches the
+  // password step; the runner's two cores hydrate slowly. Reload and enter the email again until the password field is there.
   try {
-    await page.goto('/auth/password', { waitUntil: 'domcontentloaded' })
-    await page.getByTestId('email-input').fill(builderEmail(persona, TEMPLATE))
-    await page.getByTestId('submit-button').click()
+    await page.goto('/auth/password')
+    await expect(async () => {
+      if (await page.getByTestId('password-input').isVisible()) return
+      await page.getByTestId('email-input').fill(builderEmail(persona, TEMPLATE))
+      await page.getByTestId('submit-button').click()
+      await expect(page.getByTestId('password-input')).toBeVisible({ timeout: 8_000 })
+    }).toPass({ timeout: 60_000 })
     await page.getByTestId('password-input').fill(builderPassword(SEED, persona))
     await page.getByTestId('submit-button').click()
+    // The document, not `load`: the signed-in screen's map and pictures can hold `load` open past the timeout.
     await page.waitForURL((u) => !u.pathname.startsWith('/auth/'), { waitUntil: 'domcontentloaded', timeout: 30_000 })
   } catch (e) {
     const seen = await page.locator('body').innerText({ timeout: 2_000 }).catch(() => '(no page text)')
