@@ -12,7 +12,7 @@
 // (default smoke-out/) for the reader that compares them with the PR's bundle.
 // A route with no stable live address (see LIVE_PATHS) is skipped, and the run
 // says so rather than passing it.
-import { test, expect, type BrowserContext, type Page } from '@playwright/test'
+import { test, expect, type BrowserContext, type Page, type Request } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { builderEmail, builderPassword } from '../../src/lib/builders/credentials'
@@ -50,12 +50,24 @@ const OPERATOR_ONLY = { 'admin-reports': '/admin/reports' }
 test.skip(!SEED || routes.length === 0, 'BUILDER_SEED or SMOKE_ROUTES is not set')
 
 async function signIn(page: Page, persona: PersonaKey) {
-  await page.goto('/auth/password')
-  await page.getByTestId('email-input').fill(builderEmail(persona, TEMPLATE))
-  await page.getByTestId('submit-button').click()
-  await page.getByTestId('password-input').fill(builderPassword(SEED, persona))
-  await page.getByTestId('submit-button').click()
-  await page.waitForURL((u) => !u.pathname.startsWith('/auth/'), { timeout: 20_000 })
+  // #1166 — a tap before the page has hydrated submits the form as a plain GET (…/auth/password?email=…) and never reaches the
+  // password step; the runner's two cores hydrate slowly. Reload and enter the email again until the password field is there.
+  try {
+    await page.goto('/auth/password')
+    await expect(async () => {
+      if (await page.getByTestId('password-input').isVisible()) return
+      await page.getByTestId('email-input').fill(builderEmail(persona, TEMPLATE))
+      await page.getByTestId('submit-button').click()
+      await expect(page.getByTestId('password-input')).toBeVisible({ timeout: 8_000 })
+    }).toPass({ timeout: 60_000 })
+    await page.getByTestId('password-input').fill(builderPassword(SEED, persona))
+    await page.getByTestId('submit-button').click()
+    // The document, not `load`: the signed-in screen's map and pictures can hold `load` open past the timeout.
+    await page.waitForURL((u) => !u.pathname.startsWith('/auth/'), { waitUntil: 'domcontentloaded', timeout: 30_000 })
+  } catch (e) {
+    const seen = await page.locator('body').innerText({ timeout: 2_000 }).catch(() => '(no page text)')
+    throw new Error(`sign-in as ${persona} stalled at ${page.url()}: ${(e as Error).message.split('\n')[0]}. The page showed: ${seen.replace(/\s+/g, ' ').slice(0, 200)}`)
+  }
 }
 
 for (const who of personas) {
@@ -85,7 +97,14 @@ for (const who of personas) {
         const problems: string[] = []
         let aborted = 0
         const fetchErrors: string[] = []
+        // #1166 — what was still in flight when a page did not open, so a CI stall names its cause instead of "browser closed".
+        const inflight = new Set<string>()
+        const onRequest = (r: Request) => inflight.add(r.url())
+        const onDone = (r: Request) => inflight.delete(r.url())
+        page.on('request', onRequest)
+        page.on('requestfinished', onDone)
         page.on('requestfailed', (r) => {
+          onDone(r)
           if (/ERR_ABORTED/.test(r.failure()?.errorText ?? '')) aborted++
         })
         page.on('pageerror', (e) => {
@@ -103,9 +122,14 @@ for (const who of personas) {
         })
         for (const width of widths) {
           await page.setViewportSize({ width, height: Math.round(width < 744 ? width * 2.16 : width * 0.625) })
+          // #1166 — drop the previous document first: its map and timers compete for the runner's two cores with the next load.
+          await page.goto('about:blank')
+          inflight.clear()
           // #500 — the document, not every external resource; one retry; a repeat timeout is a problem on this route, not a throw.
+          const t0 = Date.now()
           const nav = await navigate(page, target)
-          if (nav.timedOut) problems.push(`${width}px: the page did not open in time (twice)`)
+          console.log(`[smoke] ${who} ${name} ${width}px: ${nav.timedOut ? 'timed out' : 'HTTP ' + nav.status} after ${Date.now() - t0} ms`)
+          if (nav.timedOut) problems.push(`${width}px: the page did not open in time (twice); still loading: ${[...inflight].slice(0, 5).map((u) => u.slice(0, 90)).join(', ') || 'nothing in flight'}`)
           else if (nav.status >= 400) problems.push(`${width}px: HTTP ${nav.status}`)
           await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {})
           const text = await page.locator('body').innerText()
@@ -116,6 +140,8 @@ for (const who of personas) {
           writeFileSync(join(dir, `${name}.txt`), text)
         }
         for (const e of fetchErrors) if (!abortedByNavigation(e, aborted)) problems.push(e)
+        page.removeAllListeners('request')
+        page.removeAllListeners('requestfinished')
         page.removeAllListeners('requestfailed')
         page.removeAllListeners('pageerror')
         page.removeAllListeners('console')
