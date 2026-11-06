@@ -42,11 +42,13 @@ describe('Type', () => {
     expect(ids(f({ type: 'pages' }))).toEqual(['page'])
     expect(ids(f({ type: 'posts' }))).not.toContain('page')
   })
-  it('post kind: a sample by its own kind, a dated real post as an event, an undated one as none', () => {
-    expect(postKindOf(deal)).toBe('deal')
+  // plan #230 — every post has a kind; a row without one reads as the backfill did (a sample deal is a sale).
+  it('post kind: its own kind, else a sample deal is a sale, a dated post an event, an undated one news', () => {
+    expect(postKindOf(deal)).toBe('sale')
     expect(postKindOf(tonight)).toBe('event')
-    expect(postKindOf(undated)).toBeNull()
-    expect(ids(f({ postKinds: ['deal'] }))).toEqual(['deal'])
+    expect(postKindOf(undated)).toBe('news')
+    expect(postKindOf({ ...undated, postKind: 'hiring' })).toBe('hiring')
+    expect(ids(f({ postKinds: ['sale'] }))).toEqual(['deal'])
     expect(ids(f({ postKinds: ['event'] }))).toEqual(['tonight', 'saturday', 'ongoing'])
   })
   it('following only', () => {
@@ -81,13 +83,17 @@ describe('the groups combine', () => {
 describe('the box and the URL', () => {
   const tags = ['farmers markets']
   it('every group round-trips through the box words', () => {
-    const sel = f({ type: 'posts', postKinds: ['deal', 'last_minute'], following: true, tags, date: '2026-10-21' })
+    const sel = f({ type: 'posts', postKinds: ['sale', 'limited', 'wonder', 'hiring'], following: true, tags, date: '2026-10-21' })
     expect(readBox(writeBox(sel, 'bread'), tags)).toEqual({ filters: sel, rest: 'bread' })
     for (const date of ['today', 'weekend', 'week'] as const) expect(readBox(writeBox(f({ date })), tags).filters.date).toBe(date)
   })
-  it('?view=updates, the old Updates view, is the posts-only filter', () => {
+  it('an old link’s deals and last-minute read as Offers and Limited', () => {
+    expect(readBox('deals last-minute', []).filters.postKinds).toEqual(['sale', 'limited'])
+  })
+  it('?view=updates, the old Updates view, is the posts-only filter; the typed word is the Update kind (#1152)', () => {
     expect(parseBrowseFilters(new URLSearchParams('view=updates')).type).toBe('posts')
-    expect(readBox('updates', []).filters.type).toBe('posts')
+    expect(readBox('updates', []).filters.type).toBe('all')
+    expect(readBox('updates', []).filters.postKinds).toEqual(['news'])
   })
   it('?schedule=weekend still reads as this weekend', () => {
     expect(parseBrowseFilters(new URLSearchParams('schedule=weekend')).date).toBe('weekend')

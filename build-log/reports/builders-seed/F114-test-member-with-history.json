@@ -6,12 +6,14 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
    "text": "Two builder-flagged test accounts, Settled (history) and Newcomer (none), each with a PM-controlled address in private env",
-   "kind": ["behavior"],
+   "kind": [
+    "behavior"
+   ],
    "status": "active",
    "built": "no",
    "checked": "no",
@@ -19,13 +21,17 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [778],
-   "note": "[V] Builder accounts exist (`scripts/builders.ts`, one per eval persona, #281; unchanged since 2026-10-16) but no Settled or Newcomer persona anywhere in scripts, evals or the builders workflows (grep). No PR cites F114"
+   "issues": [
+    778
+   ],
+   "note": "[V] Builder accounts exist (`scripts/builders.ts`, one per eval persona, #281; no commit since 2026-10-23) but no Settled or Newcomer persona anywhere in scripts, src, evals, supabase or the workflows (grep). No PR cites F114 except #1004, the doc inventory, which only lists this report"
   },
   {
    "id": "2",
    "text": "Settled's home zip is in the Sacramento market, in a home town with unclaimed Pages",
-   "kind": ["behavior"],
+   "kind": [
+    "behavior"
+   ],
    "status": "active",
    "built": "no",
    "checked": "no",
@@ -33,13 +39,17 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [778],
-   "note": "[V] Not built; members.home_town exists (F103.5, migration 20261012060000) and the daily unclaimed seeds keep adding Pages per town (#810 to #995), so the inputs are there"
+   "issues": [
+    778
+   ],
+   "note": "[V] Not built; members.home_town exists (F103.5, migration 20261012060000) and the daily unclaimed seeds keep adding Pages per town (#1022 to #1111 this week), so the inputs are there"
   },
   {
    "id": "3",
    "text": "`scripts/test-profile.ts` (dry run unless --apply, re-runnable) writes 6 interests, 15 follows, 10 RSVPs and 8 saves over 42 days on real Pages",
-   "kind": ["behavior"],
+   "kind": [
+    "behavior"
+   ],
    "status": "active",
    "built": "no",
    "checked": "no",
@@ -47,13 +57,18 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [778],
-   "note": "[V] `scripts/test-profile.ts` does not exist. Interests (#911, My interests) and follows (#966, Following) now exist as member signals to write"
+   "issues": [
+    778
+   ],
+   "note": "[V] `scripts/test-profile.ts` does not exist (ls). The signals it would write exist: interests (010_member_interests_follows, #911 My interests), follows (#966 Following), RSVPs and saves"
   },
   {
    "id": "4",
    "text": "Neither account's activity appears in any staff count, report, F109 report or Page number; a test proves it for every count and log",
-   "kind": ["invariant", "coverage"],
+   "kind": [
+    "invariant",
+    "coverage"
+   ],
    "status": "active",
    "built": "no",
    "checked": "no",
@@ -61,13 +76,17 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [778],
-   "note": "[V] `is_builder()` exclusion exists in waitlist-join.ts, report/create.ts (reporter_is_builder) and admin reports, but not for these accounts and not in the newest logs: search demand (#923, migration 20261018210000) and push (#930, 20261019004000) name no builder exclusion. No test covers every count"
+   "issues": [
+    778
+   ],
+   "note": "[V] `is_builder()` exclusion exists in waitlist-join.ts, report/create.ts, admin reports-queue.ts, the push audience (sender.ts) and, new this week, the town counts (open_your_town.sql 20261026160000: makers and supporters skip builders, #1093), but not for these accounts and not in search demand (20261018210000) or the Wonder in-count (wonders.sql 20261025120000, #1081). No test covers every count"
   },
   {
    "id": "5",
    "text": "`test-profile.ts --wipe` removes both accounts' history and no other account's content, other builders' included",
-   "kind": ["behavior"],
+   "kind": [
+    "behavior"
+   ],
    "status": "active",
    "built": "no",
    "checked": "no",
@@ -75,13 +94,17 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [778],
-   "note": "[V] `delete_builder_content()` (migration 20261005160000) wipes every builder's content, so a wipe scoped to two accounts is new; #778 asks for an architecture note first"
+   "issues": [
+    778
+   ],
+   "note": "[V] `delete_builder_content()` (migration 20261005160000, scripts/builder-content.ts) wipes every builder's content, so a wipe scoped to two accounts is new; #778 asks for an architecture note first and has no comments"
   },
   {
    "id": "6",
    "text": "A phone checklist in the Issue says what to try and what to expect",
-   "kind": ["behavior"],
+   "kind": [
+    "behavior"
+   ],
    "status": "active",
    "built": "no",
    "checked": "no",
@@ -89,7 +112,9 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [778],
+   "issues": [
+    778
+   ],
    "note": "[V] #778 holds a one-line checklist item and no comments; the full checklist is written when the script lands"
   }
  ]

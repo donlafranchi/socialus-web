@@ -49,12 +49,14 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S012', 'S013'],
     path: () => '/explore',
     act: async (page) => {
-      // Under 1024px the bottom dock opens to the map switch; wider, the map is already beside the list.
-      const dock = page.getByTestId('explore-dock-toggle')
-      if (await dock.isVisible().catch(() => false)) {
-        await dock.click()
-        await page.getByTestId('view-pill').click()
-      }
+      // The ➕ menu carries the map switch where the layout shows one at a time; wide and signed in, the map is already beside the list.
+      // Signed out there is no ➕ and no map (Don, 2026-11-01).
+      const plus = page.getByTestId('create-menu')
+      if (!(await plus.isVisible().catch(() => false))) return
+      await plus.click()
+      const view = page.getByTestId('create-menu-view')
+      if (await view.isVisible().catch(() => false)) await view.click()
+      else await page.keyboard.press('Escape')
     },
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },

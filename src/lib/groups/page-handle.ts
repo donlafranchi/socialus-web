@@ -27,12 +27,31 @@ export const PUBLIC_ID_LENGTH = 6
 
 const ID_CHARS = new Set(PUBLIC_ID_ALPHABET)
 
-/** The only Page address: /g/<id> (#411; the PM, 2026-10-06). One segment,
- *  no geography, no name, so a rename cannot move it. Older forms are not
- *  forwarded while there are no members to protect; they are not found. */
+/** The id address, /g/<id>: what resolves inside, and the fallback for a Page with no readable address yet (a
+ *  draft). #1139 (Don, 2026-11-01) replaced it as the shared address; the proxy forwards it to `pagePath`. */
 export function canonicalPagePath(publicId: string): string {
   return `/g/${publicId}`
 }
+
+export interface PageAddressParts {
+  publicId: string
+  placeUrlSlug?: string | null
+  pageUrlSlug?: string | null
+  /** #625 — a report hid the Page's words; the slug is made of them, so it is shared by its id until they are back. */
+  wordsHidden?: boolean
+}
+
+/** #1139 (Don, 2026-11-01) — a Page's address: /<place>-<st>/<page-slug>, e.g. /sacramento-ca/plant-foundry, frozen
+ *  at first publish. The id address only while the Page has none. */
+export function pagePath(p: PageAddressParts): string {
+  return p.placeUrlSlug && p.pageUrlSlug && !p.wordsHidden ? `/${p.placeUrlSlug}/${p.pageUrlSlug}` : canonicalPagePath(p.publicId)
+}
+
+/** A place segment: a slug with its state on the end (sacramento-ca, lakeside-san-diego-ca). */
+export const isPlaceSegment = (s: string): boolean => s.length <= 100 && /^[a-z0-9]+(-[a-z0-9]+)*-[a-z]{2}$/.test(s)
+
+/** A Page or post slug as the database mints it. */
+export const isSlugSegment = (s: string): boolean => s.length <= 80 && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s)
 
 /** Whether a route segment is a Page id exactly as minted: lower case, the
  *  right length, every character from the alphabet. Anything else is no Page. */

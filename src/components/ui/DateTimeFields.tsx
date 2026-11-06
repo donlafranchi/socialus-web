@@ -37,7 +37,7 @@ interface FieldProps {
   testId?: string
 }
 
-export function DateField({ label, value, min, onChange, testId }: FieldProps & { min?: string }) {
+export function DateField({ label, value, min, max, onChange, testId }: FieldProps & { min?: string; max?: string }) {
   const desktop = useMediaQuery(DESKTOP)
   const id = useId()
   const [open, setOpen] = useState(false)
@@ -68,6 +68,7 @@ export function DateField({ label, value, min, onChange, testId }: FieldProps & 
           type="date"
           data-testid={testId}
           min={min}
+          max={max}
           className={FIELD}
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -107,7 +108,7 @@ export function DateField({ label, value, min, onChange, testId }: FieldProps & 
                 mode="single"
                 selected={value ? toDate(value) : undefined}
                 defaultMonth={value ? toDate(value) : min ? toDate(min) : undefined}
-                disabled={min ? { before: toDate(min) } : undefined}
+                disabled={[...(min ? [{ before: toDate(min) }] : []), ...(max ? [{ after: toDate(max) }] : [])]}
                 onSelect={(d) => {
                   if (!d) return
                   onChange(toYmd(d))

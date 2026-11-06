@@ -37,7 +37,7 @@ export default async function YouPage() {
     return (
       <AuthCard testId="you-signed-out">
         <h1 className="text-title-1 text-[var(--color-fg)]">You</h1>
-        <p className="mt-2 text-body-sm text-[var(--color-fg-muted)]">Sign in to see your Pages and the Pages you follow.</p>
+        <p className="mt-2 text-body-sm text-[var(--color-fg-muted)]">Sign in to see your Pages, what you saved, and the Pages you get updates from.</p>
         <Button href="/auth/login?next=/you" className="mt-5 w-full">
           Sign in
         </Button>
@@ -45,13 +45,15 @@ export default async function YouPage() {
     )
   }
 
-  const [{ data: me }, { data: notices }, { data: interests }, following] = await Promise.all([
+  const [{ data: me }, { data: notices }, { data: interests }, following, saved] = await Promise.all([
     supabase.from('members').select('display_name, zip, home_market_key, search_sharing').eq('id', user.id).maybeSingle(),
     supabase.from('member_notices').select('id, message, created_at, kind, subject_kind, page:groups(public_id), report_answers(kind)').order('created_at', { ascending: false }).limit(10),
     // #892 — owner-only RLS: only ever this member's own.
     supabase.from('member_interests').select('tag').eq('member_id', user.id),
     // F065.5 — the one reader; null when it can't be read.
     getMemberFollows(supabase, user.id).then((all) => all.filter((e) => e.kind === 'group').length, () => null),
+    // #1171 — saves are this member's own rows.
+    Promise.resolve(supabase.from('saves').select('post_id', { count: 'exact', head: true })).then((r) => r.count ?? null, () => null),
   ])
   const row = me as { display_name: string | null; zip: string | null; home_market_key: string | null; search_sharing?: boolean | null } | null
   // #568: the area the zip decided, in plain words; the home town stays in the database.
@@ -59,7 +61,7 @@ export default async function YouPage() {
   const name = row?.display_name ?? null
 
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="you-page">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="you-page">
       <header>
         <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">{name || 'You'}</h1>
         <p className="mt-0.5 text-body-sm text-[var(--color-fg-muted)]">{user.email}</p>
@@ -72,8 +74,19 @@ export default async function YouPage() {
         data-testid="you-following-row"
         className="press mt-5 flex min-h-tap items-center gap-3 rounded-lg border border-[var(--color-border)] px-4 py-3"
       >
-        <span className="flex-1 text-body font-semibold text-[var(--color-fg)]">Following</span>
+        <span className="flex-1 text-body font-semibold text-[var(--color-fg)]">Getting updates</span>
         <span className="text-body-sm text-[var(--color-fg-muted)]">{followingCount(following)}</span>
+        <ChevronRight size={18} aria-hidden="true" className="text-[var(--color-fg-muted)]" />
+      </Link>
+
+      {/* #1171 (plan #269, Don 2026-11-02) — what the member saved for later, upcoming first. */}
+      <Link
+        href="/you/saved"
+        data-testid="you-saved-row"
+        className="press mt-3 flex min-h-tap items-center gap-3 rounded-lg border border-[var(--color-border)] px-4 py-3"
+      >
+        <span className="flex-1 text-body font-semibold text-[var(--color-fg)]">Saved</span>
+        <span className="text-body-sm text-[var(--color-fg-muted)]">{savedCount(saved)}</span>
         <ChevronRight size={18} aria-hidden="true" className="text-[var(--color-fg-muted)]" />
       </Link>
 
@@ -116,13 +129,6 @@ export default async function YouPage() {
             wrap
             action={<Link href="/report?from=%2Fyou" className={LINK}>Report a problem with the app</Link>}
           />
-          <Row
-            label="Rules"
-            value="What every Page agrees to"
-            testId="settings-rules"
-            wrap
-            action={<Link href="/rules" className={LINK}>Read</Link>}
-          />
         </ul>
         <div className="mt-4">
           <SignOutButton />
@@ -132,7 +138,8 @@ export default async function YouPage() {
   )
 }
 
-const followingCount = (n: number | null) => (n === null ? 'Pages you follow' : n === 0 ? 'None yet' : n === 1 ? '1 Page' : `${n} Pages`)
+const followingCount = (n: number | null) => (n === null ? 'Pages you get updates from' : n === 0 ? 'None yet' : n === 1 ? '1 Page' : `${n} Pages`)
+const savedCount = (n: number | null) => (n === null ? 'Posts you saved' : n === 0 ? 'None yet' : n === 1 ? '1 post' : `${n} posts`)
 
 const LINK = 'press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-accent)]'
 

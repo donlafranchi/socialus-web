@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
@@ -16,7 +16,7 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
@@ -24,7 +24,7 @@
    "issues": [
     841
    ],
-   "note": "Built: `post_series` table and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control and bounds [V post.ts, AnnouncementFields.tsx]. It is OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`), unset per #753 and still 'behind the series switch' per #952 [A]. #956 (10-18) restyled the weekday chips as underlined text. #753 is review-skipped; deploy-health green on 685f5d1 and 546f086. Checked: every marker says `partial` (wording, shape, bounds, first-occurrence rule) [V grep]; no check claims all of it (#841)."
+   "note": "Built: `post_series` and `page_posts.series_id` (migration 20261012040000), `group.post_create` takes a strict `series`, the composer's 'Repeat weekly' control with weekday chips and two optional dates (#753) [V post.ts, AnnouncementFields.tsx]. OFF in production: the control shows only with `NEXT_PUBLIC_SERIES_COMPOSER=1` (`SERIES_COMPOSER_ON`) [V AnnouncementFields.tsx:80], unset per #753 [A]. Checked: `[guards F074.1]` whole in `AnnouncementFields.series-whole.test.tsx` (#1070, merged 10-26): seven chips and nothing else, no date field, no other pattern word, what it records passes `seriesSchema`, and an empty weekday list, an interval, individual dates or 'monthly' are refused; seen failing with strict mode off and a Monthly pattern added, per the PR body [V]. The older `partial` markers stand beside it. Reviewed: #753 and #1070 are both `review-skipped`. Shipped: Deploy health green on 685f5d1 and ac7377c [V]. Smoked: the flag hides the control, so no run exercises it. #841 is still open although #1070 did its work ('Refs', not 'Closes')."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     593
    ],
-   "note": "Half built, for loader-managed market Pages only: #963 (10-19) `syncMarketDays` writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and #952's reminders compute a series' dates from its weekdays at send time rather than from rows ('future dates aren't stored as rows yet (#593)') [V post.ts, reminder-sender.ts]. Ticket #593."
+   "note": "Half built, for loader-managed market Pages only: `syncMarketDays` (#963) writes a `post_series` under the system member and real `page_posts` rows with `series_id` for its next dates [V src/lib/unclaimed/market-days.ts]. A member's series from the composer still gets no occurrence rows: `group.post_create` inserts the first post only, and the reminders (#952) compute a series' dates from its weekdays at send time [V post.ts, reminder-sender.ts]. No commit since 10-23 touched this [V git log]. Ticket #593."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     594
    ],
-   "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Ticket #594."
+   "note": "No job keeps a three-month window for any series. The market path keeps `MARKET_DAYS_AHEAD = 3` dates ahead, rolled on Mondays by `unclaimed-roll` (#963), for market Pages only [V market-days.ts, .github/workflows/unclaimed-roll.yml]. Unchanged since 10-23 [V git log]. Ticket #594."
   },
   {
    "id": "4",
@@ -97,7 +97,7 @@
     173,
     597
    ],
-   "note": "The arithmetic exists: `metroWallTimeToInstant` is two-pass and DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back (`reminders.test.ts`), and market days are computed in `METRO_TIME_ZONE` (#963) [V]. But nothing expands a member's series into occurrences, and the metro still carries no zone of its own in code (#173 open; `markets.timezone` exists and nothing reads it) [V grep]. Daylight saving ends 2026-11-01. Ticket #597."
+   "note": "The arithmetic exists: `metroWallTimeToInstant` is DST-aware, #952's `seriesOccurrences` keeps a series' wall-clock time across the clocks going back, and market days are computed in `METRO_TIME_ZONE` (a constant, `America/Los_Angeles`) [V src/lib/metro/metro-time.ts]. But nothing expands a member's series into occurrences, and the metro carries no zone of its own in code: nothing in `src` reads `markets.timezone` (#173 open) [V grep]. Daylight saving ends 2026-11-01, two days from now. Ticket #597."
   },
   {
    "id": "6",
@@ -115,7 +115,7 @@
    "issues": [
     600
    ],
-   "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct or grouping by series or parent [V grep]. Market Pages now have three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion."
+   "note": "`browse_feed` (last redefined in migration 20261018170000) has no distinct and no grouping by series or parent [V grep]. Market Pages carry three dated rows on one series (#963), so a week window on one of them returns each row. Ticket #600; it must land with the expansion."
   },
   {
    "id": "7",

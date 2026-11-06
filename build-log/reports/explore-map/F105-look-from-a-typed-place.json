@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     698
    ],
-   "note": "The place control is `AreaPicker` (a metro list and a neighbourhood search), plain text with a pin since #956; no typed town, county or market, no suggestions over the place tree [V src/components/explore/AreaPicker.tsx]. #932's `explore_vantage` starts the rings from the member's home town but names it only as 'you' and offers no control [V]. Open #698, deferred."
+   "note": "The place control is still `AreaPicker`: a metro list (open first, waiting ordered by the cached count since #1031) and a type-to-search over neighbourhoods in the current metro; no typed town, county or market, no suggestions over the place tree [V src/components/explore/AreaPicker.tsx]. #1038 (2026-10-24, F103.4) changed its words from 'metro' to 'area' and nothing else [V PR body]. `explore_vantage` (#932) starts the rings from the member's home town but names it 'you' and offers no control [V]. Open #698, deferred."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     698
    ],
-   "note": "No vantage model in the repo; today `?metro=`, `?area=` and a metro cookie (#479) [V]. #932's rings rebuild only from the home town or the market's principal city, never from a chosen place [V]. Open #698."
+   "note": "No vantage model in the repo; today `?metro=`, `?area=` and a metro cookie (#479), and `member.default_metro.set` still remembers the last area (#1038 kept it) [V]. The rings rebuild only from the home town or the market's principal city, never from a chosen place [V]. Open #698."
   },
   {
    "id": "3",
@@ -61,7 +61,7 @@
    "issues": [
     698
    ],
-   "note": "Not built; today the metro is a cookie and `default_metro_id` on the member, and the area pick is saved as the member's default (#479) [V]. `?reach=` already travels in the link (#932). A guard is in #698's checklist. Open #698."
+   "note": "Not built; the metro is a cookie and `default_metro_id` on the member, and the area pick is saved as the member's default (#479) [V]. `?reach=` already travels in the link (#932). A guard is in #698's checklist. Open #698."
   },
   {
    "id": "4",
@@ -79,7 +79,7 @@
    "issues": [
     699
    ],
-   "note": "The waitlist count and tell-me panel exist for a metro (`MetroNotCoveredPanel`, F076) but no vantage reaches them, and the cached count still throws for the signed-out join (#686) [V]. Open #699."
+   "note": "The waiting count and tell-me panel exist for a metro (`MetroNotCoveredPanel`, F076) and the cached count now loads (#1031 fixed #686 on 2026-10-24), but no vantage reaches them: the panel opens only from the picker [V]. Open #699, deferred."
   },
   {
    "id": "5",
@@ -98,7 +98,7 @@
     699,
     588
    ],
-   "note": "Not built: `resolveFeedMetro` still picks Sacramento for a visitor, and #932 starts a signed-out visitor's rings from the market's principal city [V]. Ruled 2026-10-12 (F105 Rulings). Prompt copy goes to the PM before production; #588 is needs-pm and #699 carries the open question. Open #699, #588."
+   "note": "Not built: `resolveFeedMetro` still falls back to `DEFAULT_METRO_SLUG` (Sacramento) for a visitor, and a signed-out visitor's rings start from the market's principal city (#932) [V src/lib/feed/feed-metro.ts line 116]. Ruled 2026-10-12 (F105 Rulings); #699 records on 2026-10-25 that the ruling answers #588's question by newer-wins, so what is left for the PM is the prompt's words. Open #699 (deferred), #588 (needs-pm)."
   }
  ]
 }

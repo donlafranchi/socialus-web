@@ -40,7 +40,7 @@ export function QuickLinks({
   return (
     <div data-testid="quick-links" className="-ml-2 flex items-center">
       {items.map((i) => (
-        <a key={i.key} href={i.href} target="_blank" rel="noopener noreferrer" data-testid={`quick-link-${i.key}`} className={LINK}>
+        <a key={i.key} href={i.href} target="_blank" rel="noopener noreferrer" data-testid={`quick-link-${i.key}`} {...(i.key === 'directions' ? { 'data-map-tap': 'directions' } : {})} className={LINK}>
           {i.icon}
           <span className="sr-only">{i.label}</span>
         </a>

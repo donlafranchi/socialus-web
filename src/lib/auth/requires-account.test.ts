@@ -14,9 +14,9 @@ import {
 } from './requires-account'
 
 describe('everything that touches another person is gated', () => {
-  it('names follow, get-updates, support, report, respond, message and map', () => {
+  it('names follow, get-updates, support, report, respond, message, map, heart and save', () => {
     expect([...GATED_ACTIONS].sort()).toEqual(
-      ['follow', 'get-updates', 'map', 'message', 'report', 'respond', 'support'].sort(),
+      ['follow', 'get-updates', 'map', 'message', 'report', 'respond', 'support', 'heart', 'save'].sort(),
     )
   })
 

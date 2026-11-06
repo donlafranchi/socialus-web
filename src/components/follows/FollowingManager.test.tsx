@@ -52,9 +52,9 @@ describe('FollowingManager — sections + labels', () => {
       'section-venues',
     ])
     // People + Venues say "Unfollow"; Groups say "Leave".
-    expect(within(screen.getByTestId('section-people')).getByRole('button')).toHaveTextContent('Unfollow')
+    expect(within(screen.getByTestId('section-people')).getByRole('button')).toHaveTextContent('Stop updates')
     expect(within(screen.getByTestId('section-groups')).getByRole('button')).toHaveTextContent('Leave')
-    expect(within(screen.getByTestId('section-venues')).getByRole('button')).toHaveTextContent('Unfollow')
+    expect(within(screen.getByTestId('section-venues')).getByRole('button')).toHaveTextContent('Stop updates')
   })
 
   it('shows the listed-member count on a Group row', () => {
@@ -115,7 +115,7 @@ describe('FollowingManager — empty state + tombstone', () => {
   it('renders the empty state with an explore CTA when there are no follows', () => {
     render(<FollowingManager entries={[]} groupCounts={{}} />)
     const empty = screen.getByTestId('following-empty')
-    expect(empty).toHaveTextContent('Nothing followed yet')
+    expect(empty).toHaveTextContent('Nothing here yet')
     expect(within(empty).getByRole('link')).toHaveAttribute('href', '/explore')
   })
 

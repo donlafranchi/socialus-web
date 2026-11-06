@@ -79,8 +79,29 @@ describe('WithheldPagePosts', () => {
   it('says nothing about what the announcements say, when, or where', () => {
     const { container } = render(<WithheldPagePosts posts={[PAGE]} />)
     expect(container.textContent).toBe(
-      "Posts3 posts this weekThe details are for members and followers of this Page.Sign in to see what's happening",
+      "Posts3 posts this weekThe details are for this Page’s members and people who get its updates.Sign in to see what's happening",
     )
+  })
+})
+
+// Don, 2026-10-31 (B, #1126): a shared post's own address shows a stranger its headline, lead line and photo, and the
+// ask in place of the details.
+describe('landed on a shared post', () => {
+  const PREVIEW = { title: 'Pizza night in the garden', leadLine: 'Event · Sat 5–8pm · Midtown', photoUrl: 'https://cdn.example/pizza.webp' }
+
+  it('shows its headline, lead line and photo above the ask', () => {
+    render(<WithheldPagePosts posts={[PAGE]} focusPostId="p-2" preview={PREVIEW} />)
+    const card = screen.getByTestId('page-post-preview')
+    expect(card).toHaveTextContent('Pizza night in the garden')
+    expect(card).toHaveTextContent('Event · Sat 5–8pm · Midtown')
+    expect(card.querySelector('img')?.getAttribute('src')).toBe('https://cdn.example/pizza.webp')
+    expect(card).toHaveTextContent('The details are for this Page’s members and people who get its updates.')
+    expect(card.contains(screen.getByTestId('withheld-cta'))).toBe(true)
+  })
+
+  it('shows no picture when the post has none', () => {
+    render(<WithheldPagePosts posts={[PAGE]} focusPostId="p-2" preview={{ ...PREVIEW, photoUrl: null }} />)
+    expect(screen.getByTestId('page-post-preview').querySelector('img')).toBeNull()
   })
 })
 

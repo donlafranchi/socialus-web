@@ -285,13 +285,22 @@ describe('T156 — the parameters getBrowseFeed sends', () => {
 describe('resultHref', () => {
   const row = (over: Record<string, unknown> = {}) =>
     ({ slug: 'sacriver-floaters', result_kind: 'post', result_id: 'p-1', ...over }) as never
+  const byId = { publicId: 'abc123' }
+  const readable = { publicId: 'abc123', placeUrlSlug: 'sacramento-ca', pageUrlSlug: 'sacriver-floaters' }
 
-  it('sends an announcement to its own fragment on the Page', () => {
-    expect(resultHref(row(), 'abc123')).toBe('/g/abc123#announcement-p-1')
+  it('sends an announcement to its own fragment on the Page while either has no readable address', () => {
+    expect(resultHref(row(), byId)).toBe('/g/abc123#announcement-p-1')
+    expect(resultHref(row(), readable)).toBe('/sacramento-ca/sacriver-floaters#announcement-p-1')
+  })
+
+  // #1139 — a post with its own readable address goes there.
+  it('sends a post to its own readable address when it has one', () => {
+    expect(resultHref(row(), readable, 'float-day')).toBe('/sacramento-ca/sacriver-floaters/float-day')
   })
 
   it('sends a Page to its Page, with no fragment', () => {
-    expect(resultHref(row({ result_kind: 'page' }), 'abc123')).toBe('/g/abc123')
+    expect(resultHref(row({ result_kind: 'page' }), byId)).toBe('/g/abc123')
+    expect(resultHref(row({ result_kind: 'page' }), readable)).toBe('/sacramento-ca/sacriver-floaters')
   })
 
   it('is null when the Page has no address — never a bare fragment', () => {
@@ -299,7 +308,7 @@ describe('resultHref', () => {
     // which is worse than the card having no link at all.
     expect(resultHref(row(), null)).toBeNull()
     // #411 — the id alone is the address, so a Page with no slug still has one.
-    expect(resultHref(row({ slug: null }), 'abc123')).toBe('/g/abc123#announcement-p-1')
+    expect(resultHref(row({ slug: null }), byId)).toBe('/g/abc123#announcement-p-1')
   })
 })
 

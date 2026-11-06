@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { OPEN_YOUR_TOWN } from '@/lib/features'
 import { createClient } from '@/lib/supabase-server'
 import { getPool } from '@/actions/_lib/db'
+import { pagePath } from '@/lib/groups/page-handle'
 import { cachedBoard, cachedContributors } from '@/lib/open/board'
 import { KIND_LABELS, MAKER_KINDS, placesLeft, ROUND_SIZE } from '@/lib/open/towns'
 import { GoalBar } from '@/components/open/GoalBar'
@@ -31,7 +32,7 @@ const inList = (names: string[]) =>
 interface Mine {
   counted: boolean
   hidden: boolean
-  adds: { name: string; public_id: string; claimed: boolean }[]
+  adds: { name: string; public_id: string; place_url_slug: string | null; page_url_slug: string | null; claimed: boolean }[]
 }
 
 async function mine(memberId: string, slug: string): Promise<Mine> {
@@ -41,8 +42,8 @@ async function mine(memberId: string, slug: string): Promise<Mine> {
       `select m.home_market_key = t.market_key as counted, m.open_credit_hidden from public.members m, public.towns t where m.id = $1 and t.slug = $2`,
       [memberId, slug],
     ),
-    pool.query<{ name: string; public_id: string; claimed: boolean }>(
-      `select g.name, g.public_id, g.claimed_at is not null as claimed from public.town_adds a join public.groups g on g.id = a.group_id
+    pool.query<{ name: string; public_id: string; place_url_slug: string | null; page_url_slug: string | null; claimed: boolean }>(
+      `select g.name, g.public_id, g.place_url_slug, g.page_url_slug, g.claimed_at is not null as claimed from public.town_adds a join public.groups g on g.id = a.group_id
         where a.member_id = $1 and a.town_slug = $2 and g.unclaimed_hidden_at is null order by a.created_at desc limit 50`,
       [memberId, slug],
     ),
@@ -64,7 +65,7 @@ export default async function TownPage({ params }: Props) {
   const here = `/open/${t.slug}`
 
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="town-page">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="town-page">
       <Link href="/open" className="text-body-sm text-[var(--color-accent-text)]">All towns</Link>
       <h1 className="mt-2 text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Help open {t.name}</h1>
       {t.place_names.length > 0 && <p className="mt-1 text-body-sm text-[var(--color-fg-muted)]">{inList(t.place_names)}</p>}
@@ -113,7 +114,7 @@ export default async function TownPage({ params }: Props) {
           <ul className="mt-2 divide-y divide-[var(--color-border)]">
             {me.adds.map((a) => (
               <li key={a.public_id} className="flex items-center justify-between gap-3 py-3">
-                <Link href={`/g/${a.public_id}`} className="min-w-0 truncate text-body text-[var(--color-fg)]">{a.name}</Link>
+                <Link href={pagePath({ publicId: a.public_id, placeUrlSlug: a.place_url_slug, pageUrlSlug: a.page_url_slug })} className="min-w-0 truncate text-body text-[var(--color-fg)]">{a.name}</Link>
                 <span className="shrink-0 text-body-sm text-[var(--color-fg-muted)]">{a.claimed ? 'Claimed' : 'Not claimed yet'}</span>
               </li>
             ))}

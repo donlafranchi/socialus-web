@@ -21,7 +21,7 @@ export default async function OpenPage() {
   if (!OPEN_YOUR_TOWN) notFound()
   const towns = await cachedBoard()
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="open-page">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="open-page">
       <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Help open your town</h1>
       <p className="mt-2 text-body text-[var(--color-fg-muted)]">
         SocialUs is open in Sacramento. These towns are next. A town opens when 100 makers and 1,000 neighbours sign up.

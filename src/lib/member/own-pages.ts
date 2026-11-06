@@ -19,7 +19,7 @@
 // fixes.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import type { CardLocation } from '@/components/cards'
 
@@ -47,6 +47,8 @@ interface Row {
   name: string | null
   slug: string | null
   public_id: string
+  place_url_slug?: string | null
+  page_url_slug?: string | null
   kind: string
   category: string | null
   description: string | null
@@ -58,7 +60,7 @@ interface Row {
 }
 
 const SELECT =
-  'id, name, slug, public_id, kind, category, description, photo_url, photo_hidden_at, lifecycle_state, delete_after,' +
+  'id, name, slug, public_id, place_url_slug, page_url_slug, kind, category, description, photo_url, photo_hidden_at, lifecycle_state, delete_after,' +
   ' anchor:locations!groups_anchor_location_id_fkey(label, kind)'
 
 /**
@@ -143,7 +145,7 @@ export async function getOwnPages(
       location: scaleFor(r.anchor),
       lifecycleState: r.lifecycle_state,
       deleteAfter: r.delete_after ?? null,
-      href: r.lifecycle_state === 'dissolved' ? null : canonicalPagePath(r.public_id),
+      href: r.lifecycle_state === 'dissolved' ? null : pagePath({ publicId: r.public_id, placeUrlSlug: r.place_url_slug, pageUrlSlug: r.page_url_slug }),
     }
   })
 }

@@ -1,0 +1,159 @@
+{
+ "schema": 1,
+ "feature": "F119",
+ "title": "A member asks a question, and the app opens the page that answers it",
+ "area": "explore-map",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-30",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Ask bar: one text box on every signed-in page that takes a question in plain words",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built: no ask bar anywhere in src [V grep]. Unplanned, horizon next; no Issue."
+  },
+  {
+   "id": "2",
+   "text": "Routing: one cheap model call turns the question into one page plus its filters, and the app opens it",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Unplanned, horizon next."
+  },
+  {
+   "id": "3",
+   "text": "Fallback: if the call fails, times out or finds no page, the question runs as an ordinary search",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Unplanned, horizon next."
+  },
+  {
+   "id": "4",
+   "text": "Deep links: every page and every filter it supports can be reached by URL",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]. Unplanned, horizon next."
+  },
+  {
+   "id": "5",
+   "text": "One page registry: a single list in the code describes each page, its URL and its filters; the router reads only that list",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built: no page registry in src [V grep]. Unplanned, horizon next."
+  },
+  {
+   "id": "6",
+   "text": "Nothing is done for the member: the router only opens pages; a prefilled draft is not posted until the member posts it",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built; needs a standing guard once the router exists. Unplanned, horizon next."
+  },
+  {
+   "id": "7",
+   "text": "Questions logged by the search-demand rules (F089): anonymous, aggregated with a floor of ten members in one metro, raw rows deleted after 30 days, never tied to a member",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Unplanned, horizon next."
+  },
+  {
+   "id": "8",
+   "text": "Opt-out: one setting stops a member's questions being logged; routing still works for them",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built. Unplanned, horizon next."
+  },
+  {
+   "id": "9",
+   "text": "Cost cap: a per-member daily limit on model calls, after which the bar falls back to search",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built. Unplanned, horizon next."
+  }
+ ]
+}

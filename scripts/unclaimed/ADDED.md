@@ -325,3 +325,19 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-28 | Elk Grove Fine Arts Center | Art association (nonprofit) | Elk Grove | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
 | 2026-10-28 | Davis Musical Theatre Company | Community theatre (nonprofit) | Davis | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
 | 2026-10-28 | Symphony d'Oro | Symphony orchestra (nonprofit) | Rancho Cordova | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-29 | Mahon Ranch | Ranch | Elk Grove | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: Explore Elk Grove, then own site |
+| 2026-10-29 | Lillards Lavenders | Farm | Lincoln | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: PlacerGROWN, then own site |
+| 2026-10-29 | Galt Lions Club | Service club | Galt | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-29 | Woodland Host Lions Club | Service club | Woodland | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-29 | Davis Bike Club | Sports club | Davis | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: SABA club list, then own site |
+| 2026-10-29 | Golden Valley Harriers | Sports club | Davis | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: SRA club list, then own site |
+| 2026-10-29 | Lodi Garden Club | Garden club | Lodi | Gardening, Sustainability | Clubs and service; stock photos only; lead: Visit Lodi, then own site |
+| 2026-10-29 | Sacramento Valley Astronomical Society | Astronomy club | Sacramento | Arts & culture, Neighborhood life | Clubs and service; stock photos only; lead: NASA Night Sky Network, then own site |
+| 2026-10-29 | Little Bear Tree Farm | Farm | Alta | Farmers markets, Sustainability | Clubs and service (farms); holiday (Christmas trees); stock photos only; lead: PlacerGROWN, then own site |
+| 2026-10-29 | Loomis Lions Club | Service club | Loomis | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-30 | Truckee Trails Foundation | Trail group (nonprofit) | Truckee | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Cache Creek Conservancy | Creek conservancy (nonprofit) | Woodland | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Sierra Streams Institute | Watershed group (nonprofit) | Nevada City | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | American River Conservancy | Land trust (nonprofit) | Coloma | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Solano Resource Conservation District | Conservation district (nonprofit) | Dixon | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Restore the Delta | Delta conservation group (nonprofit) | Stockton | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |

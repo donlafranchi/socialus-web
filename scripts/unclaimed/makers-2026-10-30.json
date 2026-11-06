@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Truckee Trails Foundation",
+    "category": "Trail group (nonprofit)",
+    "makes": "Truckee nonprofit that builds, maintains and advocates for a network of non-motorized trails and bikeways: nearly 35 miles built in seven years, a trail crew covering 100+ miles each summer, volunteer days and an adopt-a-trail program",
+    "area": "Truckee (Nevada)",
+    "site": "https://www.truckeetrails.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/truckeetrails",
+      "facebook": "https://www.facebook.com/truckeetrails"
+    },
+    "confidence": "High; own site checked 2026-10-30 (ok): footer 2026, volunteer, adopt and donate pages live; PO Box 1751. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Cache Creek Conservancy",
+    "category": "Creek conservancy (nonprofit)",
+    "makes": "Woodland nonprofit restoring and protecting the Cache Creek watershed and managing the Cache Creek Nature Preserve; monthly volunteer day on the first Sunday, Sunset Fridays and Wintun cultural stewardship programs",
+    "area": "Woodland (Yolo)",
+    "address": "34199 County Road 20, Woodland, CA 95695",
+    "site": "https://cachecreekconservancy.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/cachecreekconservancy",
+      "facebook": "https://www.facebook.com/cachecreeknaturepreserve"
+    },
+    "confidence": "High; own site checked 2026-10-30 (ok): footer 2022-2026, volunteer day and Leok Po workshop Nov 13-15 2026 listed. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Sierra Streams Institute",
+    "category": "Watershed group (nonprofit)",
+    "makes": "Nevada City nonprofit (founded 1995 as Friends of Deer Creek) doing watershed monitoring, restoration, community science and outdoor education across Sierra Nevada watersheds, with volunteer and internship pages",
+    "area": "Nevada City (Nevada)",
+    "address": "117 New Mohawk Road, Suite H, Nevada City, CA 95959",
+    "site": "https://sierrastreamsinstitute.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/SierraStreams/"
+    },
+    "confidence": "Medium; own site checked 2026-10-30 (ok): page modified 2026-09-22, volunteer and ways-to-give pages live; no footer year. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "American River Conservancy",
+    "category": "Land trust (nonprofit)",
+    "makes": "Coloma land trust protecting the upper American and upper Cosumnes River watersheds (30,000+ acres since 1989) through land conservation, stewardship workdays, river cleanups, hikes and education",
+    "area": "Coloma (El Dorado)",
+    "address": "348 Highway 49, Coloma, CA 95613",
+    "site": "https://www.arconservancy.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/arconservancy",
+      "facebook": "https://www.facebook.com/AmericanRiverConservancy"
+    },
+    "confidence": "High; own site checked 2026-10-30 (ok): footer 2026, membership, volunteer and El Dorado Ranch campaign pages live. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Solano Resource Conservation District",
+    "category": "Conservation district (nonprofit)",
+    "makes": "Dixon-based conservation district serving Solano County since 1956: watershed restoration, landowner help, cleanups, volunteer events and a native plant sale",
+    "area": "Dixon (Solano)",
+    "address": "1170 N Lincoln, Ste. 110, Dixon, CA 95620",
+    "site": "https://www.solanorcd.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/solanorcd",
+      "facebook": "https://www.facebook.com/thesolanorcd"
+    },
+    "confidence": "Medium; own site checked 2026-10-30 (ok): address, cleanup and volunteer links live; no footer year; native plant sale listed as returning Fall 2025. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Restore the Delta",
+    "category": "Delta conservation group (nonprofit)",
+    "makes": "Stockton-based nonprofit working for a healthy San Francisco Bay-Delta estuary and Delta communities: policy and advocacy, water quality, sustainable agriculture, Mormon Slough restoration, action alerts and a podcast",
+    "area": "Stockton (San Joaquin)",
+    "site": "https://www.restorethedelta.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/restorethedelta/",
+      "facebook": "https://www.facebook.com/RestoretheDelta/"
+    },
+    "confidence": "Medium; own site checked 2026-10-30 (ok): contact page lists a mail-only Stockton address (2616 Pacific Ave); no footer year; no dedicated volunteer page, so how-to-help is action alerts, newsletter and donate. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]

@@ -22,11 +22,11 @@ const result = (over: Partial<BrowseResult> = {}): BrowseResult =>
   }) as BrowseResult
 
 describe('Explore cards', () => {
-  it('a post carries a megaphone and says "Post" to a screen reader', () => {
+  // plan #230 (Don, 2026-10-31) — a post card says what it is in its lead line (its kind), not with a mark.
+  it('a post says its kind first, in words', () => {
     render(<BrowseResultCard result={result()} />)
-    const mark = screen.getByTestId('card-type')
-    expect(mark).toHaveAttribute('data-type', 'post')
-    expect(mark).toHaveTextContent('Post')
+    expect(screen.queryByTestId('card-type')).not.toBeInTheDocument()
+    expect(screen.getByTestId('browse-post-lead').textContent).toMatch(/^(Event|News)\b/)
   })
   it('a Page carries a page icon and says "Page"', () => {
     render(<BrowseResultCard result={result({ resultKind: 'page', resultId: 'g-1', body: null, startsAt: null })} />)
@@ -34,8 +34,15 @@ describe('Explore cards', () => {
     expect(mark).toHaveAttribute('data-type', 'page')
     expect(mark).toHaveTextContent('Page')
   })
-  it('a sample post shows the Sample label and an aria-hidden, non-interactive watermark', () => {
+  // plan #230 — on an Explore card a sample says Sample once, in the lead line; the Page keeps its marks.
+  it('a sample post says Sample once, in its lead line, with no label or watermark', () => {
     render(<BrowseResultCard result={result({ sampleKind: 'event' })} />)
+    expect(screen.getByTestId('browse-post-lead').textContent).toMatch(/^Sample event\b/)
+    expect(screen.queryByTestId('sample-label')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sample-watermark')).not.toBeInTheDocument()
+  })
+  it('a sample Page card keeps the Sample label and an aria-hidden, non-interactive watermark', () => {
+    render(<BrowseResultCard result={result({ resultKind: 'page', resultId: 'g-1', body: null, startsAt: null, sampleKind: 'event' })} />)
     expect(screen.getByTestId('sample-label')).toHaveTextContent('Sample')
     const wm = screen.getByTestId('sample-watermark')
     expect(wm).toHaveAttribute('aria-hidden', 'true')
@@ -51,11 +58,12 @@ describe('Explore cards', () => {
 const POST = { id: 'pp-1', body: 'Sample · Deal this week.', createdAt: '2026-10-16T00:00:00Z', updatedAt: '2026-10-16T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }
 
 describe('the Page’s post card', () => {
-  it('a sample shows the label, the watermark and the not-a-real-offer line', () => {
+  // #1127 (plan #230): Sample once, in the lead line; no label, no watermark. The disclaimer is the body's own.
+  it('a sample says Sample in its lead line, with no label and no watermark', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, sampleKind: 'deal' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)
-    expect(screen.getByTestId('sample-label')).toBeInTheDocument()
-    expect(screen.getByTestId('sample-watermark')).toHaveAttribute('aria-hidden', 'true')
-    expect(screen.getByText(/not a real offer/i)).toBeInTheDocument()
+    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Sample offer\b/)
+    expect(screen.queryByTestId('sample-label')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('sample-watermark')).not.toBeInTheDocument()
   })
   it('a real post shows none of them', () => {
     render(<PagePosts groupId="g1" posts={[{ ...POST, body: 'Bread is back.' }]} canPost={false} followerCount={0} onPost={vi.fn()} onEdit={vi.fn()} />)

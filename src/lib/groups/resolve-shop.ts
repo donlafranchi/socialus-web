@@ -40,6 +40,9 @@ export interface ResolvedShop {
   /** Issue #175 — what the canonical address resolves by. The slug beside it
    *  in that address is cosmetic and may change; this does not. */
   publicId: string
+  /** #1139 (Don, 2026-11-01) — the readable address, /<place>/<page>: null on a draft, frozen once set. */
+  placeUrlSlug?: string | null
+  pageUrlSlug?: string | null
   /** The Page kind. Always 'business' while this resolver filters on it, but
    *  carried rather than assumed — the managing role is derived from it, and a
    *  wrong assumption here hides the owner's own controls from them. */
@@ -136,6 +139,8 @@ interface ShopRow {
   id: string
   slug: string
   public_id: string
+  place_url_slug?: string | null
+  page_url_slug?: string | null
   kind: string
   purpose: string | null
   /** The Page's own name. What every kind but `business` is known by. */
@@ -192,12 +197,12 @@ export interface ResolveShopOptions {
    * default because every address shared before the ruling of 2026-09-21 is
    * slug-shaped, and those redirect rather than breaking.
    */
-  by?: 'slug' | 'publicId'
+  by?: 'slug' | 'publicId' | 'address'
 }
 
 export async function resolveShop(
   supabase: SupabaseClient,
-  /** A slug, or a `public_id` when `opts.by` says so. */
+  /** A slug, a `public_id`, or `<place>/<page>` when `opts.by` says so. */
   key: string,
   opts: ResolveShopOptions = {},
 ): Promise<ResolvedShop | null> {
@@ -208,12 +213,15 @@ export async function resolveShop(
   let query = supabase
     .from('groups')
     .select(
-      'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
+      'id, slug, public_id, place_url_slug, page_url_slug, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, picture_url, picture_hidden_at, picture_removed_at, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
         'unclaimed_at, public_info_url, photo_credit, photo_source_url, words_hidden_at, words_removed_at, ' +
         'group_businesses(display_name, public_description)',
     )
-    .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
+  if (opts.by === 'address') {
+    const [place, page] = key.split('/')
+    query = query.eq('place_url_slug', place).eq('page_url_slug', page)
+  } else query = query.eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
   if (opts.kinds && opts.kinds.length > 0) query = query.in('kind', [...opts.kinds])
 
   const { data, error } = await query.limit(1).maybeSingle()
@@ -265,6 +273,8 @@ export async function resolveShop(
     kind: row.kind,
     slug: row.slug,
     publicId: row.public_id,
+    placeUrlSlug: row.place_url_slug ?? null,
+    pageUrlSlug: row.page_url_slug ?? null,
     // #410 — the groups row is the one source of a Page's name and
     // description; the database keeps a business's group_businesses copy equal
     // to it. Reading the copy first is what left a renamed Page on its old name.
