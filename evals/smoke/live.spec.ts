@@ -51,12 +51,17 @@ test.skip(!SEED || routes.length === 0, 'BUILDER_SEED or SMOKE_ROUTES is not set
 
 async function signIn(page: Page, persona: PersonaKey) {
   // #1166 — the document, not `load`: the signed-in screen's map and pictures can hold `load` open past the timeout on a two-core runner.
-  await page.goto('/auth/password', { waitUntil: 'domcontentloaded' })
-  await page.getByTestId('email-input').fill(builderEmail(persona, TEMPLATE))
-  await page.getByTestId('submit-button').click()
-  await page.getByTestId('password-input').fill(builderPassword(SEED, persona))
-  await page.getByTestId('submit-button').click()
-  await page.waitForURL((u) => !u.pathname.startsWith('/auth/'), { waitUntil: 'domcontentloaded', timeout: 30_000 })
+  try {
+    await page.goto('/auth/password', { waitUntil: 'domcontentloaded' })
+    await page.getByTestId('email-input').fill(builderEmail(persona, TEMPLATE))
+    await page.getByTestId('submit-button').click()
+    await page.getByTestId('password-input').fill(builderPassword(SEED, persona))
+    await page.getByTestId('submit-button').click()
+    await page.waitForURL((u) => !u.pathname.startsWith('/auth/'), { waitUntil: 'domcontentloaded', timeout: 30_000 })
+  } catch (e) {
+    const seen = await page.locator('body').innerText({ timeout: 2_000 }).catch(() => '(no page text)')
+    throw new Error(`sign-in as ${persona} stalled at ${page.url()}: ${(e as Error).message.split('\n')[0]}. The page showed: ${seen.replace(/\s+/g, ' ').slice(0, 200)}`)
+  }
 }
 
 for (const who of personas) {

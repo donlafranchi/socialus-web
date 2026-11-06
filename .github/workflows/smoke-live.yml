@@ -92,6 +92,7 @@ jobs:
           path: |
             smoke-out/
             smoke.log
+            test-results/
           retention-days: 14
           if-no-files-found: ignore
 
