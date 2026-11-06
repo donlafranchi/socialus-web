@@ -23,6 +23,8 @@ export const GATED_ACTIONS = [
   'respond',
   'message',
   'map',
+  'heart',
+  'save',
 ] as const
 
 export type GatedAction = (typeof GATED_ACTIONS)[number]
@@ -42,13 +44,15 @@ interface Prompt {
 const PROMPTS: Record<GatedAction, Prompt> = {
   follow: {
     // Don, 2026-10-04: signed out, nobody can follow — the button leads to sign-up.
-    title: 'Sign up to follow',
-    why: 'Following is kept with your account, so you can find it again and undo it.',
+    title: 'Sign up to join',
+    why: 'Joining is kept with your account, so you can find it again and leave.',
     signUp: true,
   },
   'get-updates': {
-    title: 'Sign in to get updates',
-    why: 'Updates arrive in the app, on your account — never in your inbox.',
+    // #1171 — Follow is Get updates now; Don, 2026-10-04: signed out, it leads to sign-up.
+    title: 'Sign up to get updates',
+    why: 'Updates arrive in the app, on your account, never in your inbox.',
+    signUp: true,
   },
   support: {
     title: 'Sign in to support',
@@ -63,6 +67,15 @@ const PROMPTS: Record<GatedAction, Prompt> = {
     why: 'The organizer needs a count they can trust.',
   },
   // #334 (ruling 2026-10-01): signed out, Explore is list only. Copy is a placeholder ([public-is-draft]).
+  // #1171 — the buttons are hidden signed out; these show only when a session has ended mid-visit.
+  heart: {
+    title: 'Sign in to heart this',
+    why: 'Your hearts are kept with your account, so you can take one back.',
+  },
+  save: {
+    title: 'Sign in to save this',
+    why: 'Saved posts are kept with your account, on your You page.',
+  },
   map: {
     title: 'Sign up to see the map',
     why: 'The map is for members, so what is on it stays with the people here.',

@@ -7,10 +7,10 @@ export const NOTIFY_COPY = {
   rowAction: 'Choose',
   title: 'Notifications',
   intro: 'Nothing is on until you turn it on. Turn anything off at any time.',
-  followPosts: 'New posts from Pages I follow',
+  followPosts: 'New posts from Pages I get updates from',
   followPostsHint: 'At most 3 a day, grouped together.',
   weekend: 'This weekend near me',
-  weekendHint: 'Thursday evening, what’s on this weekend from Pages you follow and the things you like.',
+  weekendHint: 'Thursday evening, what’s on this weekend from Pages you get updates from and the things you like.',
   quietHours: 'Quiet hours',
   quietHint: 'Nothing arrives between these times. It waits until they end.',
   quietFrom: 'From',
@@ -26,18 +26,18 @@ export const NOTIFY_COPY = {
   failed: 'That didn’t save. Mind trying again?',
   signedOut: 'Sign in to choose your notifications.',
   // The landing bar, on the screen a notification opens.
-  landingFollow: 'You get these when Pages you follow post.',
+  landingFollow: 'You get these when Pages you get updates from post.',
   landingWeekend: 'You get this every Thursday.',
   landingOff: 'Turn these off',
   landingDone: 'Turned off. You can turn them back on under You.',
   // The notifications themselves.
   followOneTitle: (page: string) => page,
-  followManyTitle: (n: number) => `${n} new posts from Pages you follow`,
+  followManyTitle: (n: number) => `${n} new posts from Pages you get updates from`,
   followManyBody: (pages: string[]) =>
     pages.length <= 2 ? pages.join(' and ') : `${pages.slice(0, 2).join(', ')} and ${pages.length - 2} more`,
   weekendTitle: 'This weekend near you',
   weekendBody: (n: number, followed: number) =>
-    `${n} ${n === 1 ? 'thing' : 'things'} on${followed > 0 ? `, ${followed} from Pages you follow` : ''}.`,
+    `${n} ${n === 1 ? 'thing' : 'things'} on${followed > 0 ? `, ${followed} from Pages you get updates from` : ''}.`,
   // #945 — Remind me.
   remindMe: 'Remind me',
   reminderOn: 'Reminder on',

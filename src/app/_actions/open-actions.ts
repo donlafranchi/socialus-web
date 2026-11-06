@@ -8,6 +8,7 @@ import { resolveActionContext } from '@/lib/action-context'
 import { townMakerAdd, townCreditSet } from '@/actions/town'
 import { ActionError, ConflictError, NotFoundError } from '@/actions/_lib/errors'
 import type { MakerKind } from '@/lib/open/towns'
+import { pagePath } from '@/lib/groups/page-handle'
 
 async function memberId(): Promise<string | null> {
   const supabase = await createClient()
@@ -16,7 +17,7 @@ async function memberId(): Promise<string | null> {
 }
 
 export type AddMakerResult =
-  | { ok: true; kind: 'added' | 'exists'; publicId: string }
+  | { ok: true; kind: 'added' | 'exists'; publicId: string; path: string }
   | { ok: false; reason: 'signed_out' | 'link' | 'limit' | 'failed' }
 
 export async function addMakerAction(input: { townSlug: string; place?: string; name: string; link: string; kind: MakerKind }): Promise<AddMakerResult> {
@@ -25,7 +26,10 @@ export async function addMakerAction(input: { townSlug: string; place?: string; 
   try {
     const r = await townMakerAdd(resolveActionContext({ actingMemberId: me }), input)
     revalidatePath(`/open/${input.townSlug}`)
-    return { ok: true, ...r }
+    // #1139 — the link they send is the Page's readable address.
+    const { data } = await (await createClient()).from('groups').select('place_url_slug, page_url_slug').eq('public_id', r.publicId).maybeSingle()
+    const a = data as { place_url_slug: string | null; page_url_slug: string | null } | null
+    return { ok: true, ...r, path: pagePath({ publicId: r.publicId, placeUrlSlug: a?.place_url_slug, pageUrlSlug: a?.page_url_slug }) }
   } catch (err) {
     if (!(err instanceof ActionError)) throw err
     if (err instanceof ConflictError) return { ok: false, reason: 'limit' }

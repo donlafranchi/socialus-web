@@ -155,7 +155,7 @@ describe.skipIf(!RUNNABLE)('#904 — new posts from Pages I follow', () => {
     await post(3, 'One'); await post(4, 'Two', PAGE2); await post(5, 'Three')
     const { sent, push } = fakePush()
     await runFollow(client, new Date(), push)
-    expect(new Set(sent.map((s) => s.m.title))).toEqual(new Set(['3 new posts from Pages you follow']))
+    expect(new Set(sent.map((s) => s.m.title))).toEqual(new Set(['3 new posts from Pages you get updates from']))
     expect((await q(`select count(*)::int as n from public.notification_queue where member_id = $1`, [FAN])).rows[0].n).toBe(0)
   })
   it('after 3 today, the next waits in the queue', async () => {
@@ -212,7 +212,7 @@ describe.skipIf(!RUNNABLE)('#904 — this weekend near me', () => {
     await post(23, 'Saturday market', PAGE, { starts: SATURDAY })
     const { sent, push } = fakePush()
     expect(await runWeekend(client, THURSDAY, push)).toMatchObject({ sent: 1 })
-    expect(sent[0]!.m).toMatchObject({ kind: 'weekend', title: 'This weekend near you', body: '1 thing on, 1 from Pages you follow.' })
+    expect(sent[0]!.m).toMatchObject({ kind: 'weekend', title: 'This weekend near you', body: '1 thing on, 1 from Pages you get updates from.' })
     expect(await runWeekend(client, THURSDAY, push)).toMatchObject({ members: 0, sent: 0 })
   })
 })

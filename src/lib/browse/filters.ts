@@ -35,12 +35,13 @@ import { happeningWindows } from '@/lib/metro/happening'
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { shiftDays } from '@/lib/metro/metro-week'
 import { INTEREST_VOCAB } from '@/lib/onboarding/interest-vocab'
+import { SAMPLE_POST_KIND, type PostKind } from '@/lib/posts/kinds'
 
 // #876 (Don, 2026-10-16, on #796): "Target by type or category or date." Explore mixes everything by
 // default; three opt-in groups narrow it, combine with each other and with search, and are pushed into
 // the feed read (feedOptsFor). The old Updates view is the posts-only Type.
 export type ResultType = 'all' | 'pages' | 'posts'
-export type PostKind = 'event' | 'deal' | 'last_minute'
+export type { PostKind } from '@/lib/posts/kinds'
 /** 'any' | 'today' | 'weekend' | 'week' | a picked day as YYYY-MM-DD (in the metro). */
 export type DateFilter = 'any' | 'today' | 'weekend' | 'week' | string
 
@@ -50,10 +51,15 @@ export const TYPE_OPTIONS = [
   { value: 'posts', label: 'Posts' },
 ] as const satisfies readonly { value: ResultType; label: string }[]
 
+// plan #230 — the seven post kinds. Draft copy (human-review).
 export const POST_KIND_OPTIONS = [
   { value: 'event', label: 'Events' },
-  { value: 'deal', label: 'Deals' },
-  { value: 'last_minute', label: 'Last-minute' },
+  { value: 'sale', label: 'Offers' },
+  { value: 'limited', label: 'Limited' },
+  { value: 'reminder', label: 'Reminders' },
+  { value: 'news', label: 'Updates' },
+  { value: 'wonder', label: 'Proposals' },
+  { value: 'hiring', label: 'Hiring' },
 ] as const satisfies readonly { value: PostKind; label: string }[]
 
 export const DATE_OPTIONS = [
@@ -137,10 +143,12 @@ export function togglePostKind(f: BrowseFilters, k: PostKind): BrowseFilters {
   return { ...f, postKinds: f.postKinds.includes(k) ? f.postKinds.filter((x) => x !== k) : [...f.postKinds, k] }
 }
 
-/** A sample says its own kind; a real post has no kind field, so a dated one is an event (the feed's rule too). */
-export function postKindOf(r: Pick<BrowseResult, 'resultKind' | 'sampleKind' | 'startsAt'>): PostKind | null {
+/** plan #230 — every post has a kind; a row read before the column existed falls back as the backfill did. */
+export function postKindOf(r: Pick<BrowseResult, 'resultKind' | 'postKind' | 'sampleKind' | 'startsAt'>): PostKind | null {
   if (r.resultKind !== 'post') return null
-  return r.sampleKind ?? (r.startsAt ? 'event' : null)
+  if (r.postKind) return r.postKind
+  if (r.sampleKind) return SAMPLE_POST_KIND[r.sampleKind]
+  return r.startsAt ? 'event' : 'news'
 }
 
 export interface DateRange {

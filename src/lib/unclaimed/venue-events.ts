@@ -3,7 +3,7 @@
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
 import { metroDate } from '../metro/metro-week'
 import { SYSTEM_MEMBER_ID } from '../system-member'
-import { classifyEvent, EVENT_INTERESTS, type EventType } from './event-type'
+import { CALENDAR_LINE, classifyEvent, EVENT_INTERESTS, type EventType } from './event-type'
 
 export interface VenueShow {
   title: string
@@ -409,7 +409,7 @@ const clock = (d: Date) =>
 /** The post's words; its date sits on the post's own when line, and its ticket link on its own Tickets link. */
 export function showBody(venue: string, s: VenueShow, source: string, photoCredit?: string): string {
   const times = [...(s.doorsAt ? [`Doors ${clock(s.doorsAt)}`] : []), `Show ${clock(s.startsAt)}`].join(' · ')
-  return [`${s.title} at ${venue}`, times, `From ${venue}'s own calendar: ${source}`, ...(photoCredit ? [`Photo: ${photoCredit}`] : [])].join('\n\n')
+  return [`${s.title} at ${venue}`, times, `${CALENDAR_LINE(venue)}${source}`, ...(photoCredit ? [`Photo: ${photoCredit}`] : [])].join('\n\n')
 }
 
 /** The shows to post: ahead of now, within the horizon, not cancelled, one per key, ticket links off aggregators kept (a venue's own pick). */
@@ -459,8 +459,8 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
     const body = showBody(venue, s, source, fresh?.credit ?? (old && old.photo_url !== photoUrl ? /\n\nPhoto: (.+)$/.exec(old.body)?.[1] : undefined))
     if (!old) {
       await db.query(
-        `insert into public.page_posts (group_id, body, starts_at, photo_url, lifecycle_state, discoverability, event_key, ticket_url, created_at, updated_at)
-         values ($1, $2, $3, $4, 'active', 'listed', $5, $7, $6, $6)
+        `insert into public.page_posts (group_id, kind, body, starts_at, photo_url, lifecycle_state, discoverability, event_key, ticket_url, created_at, updated_at)
+         values ($1, 'event', $2, $3, $4, 'active', 'listed', $5, $7, $6, $6)
          on conflict (group_id, event_key) where event_key is not null do nothing`,
         [groupId, body, s.startsAt, photo, key, now, s.ticketUrl ?? null],
       )
@@ -473,7 +473,8 @@ export async function syncVenueShows(db: Db, groupId: string, venue: string, sou
   // #1045 — each show carries the interests of its kind, so My interests and the Category filter find it (the Page's own tags never say "a game").
   for (const [label, keys] of tagged) {
     const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
-    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    // #1180 — list labels, so safe on arrival.
+    await db.query(`insert into public.tags (label, normalized, created_by, review) values ($1, $2, $3, 'safe') on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
     await db.query(
       `insert into public.post_tags (post_id, tag_id)
        select p.id, t.id from public.page_posts p, public.tags t

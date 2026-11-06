@@ -43,7 +43,7 @@ export function PageMap({ view, caption, publicId }: { view: PageMapView; captio
         </p>
       )}
       {directions && (
-        <a href={directions} target="_blank" rel="noopener noreferrer" data-testid="page-map-directions" className={`${LINK} self-start`}>
+        <a href={directions} target="_blank" rel="noopener noreferrer" data-testid="page-map-directions" data-map-tap="directions" className={`${LINK} self-start`}>
           <Navigation size={16} aria-hidden="true" />
           Directions
         </a>

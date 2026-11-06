@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { HappeningRows } from './HappeningRows'
 import { COPY } from '@/lib/copy'
@@ -35,15 +35,15 @@ describe('HappeningRows', () => {
   it('reads as a sentence: the stem, then each row completing it, soonest row first', () => {
     render(<HappeningRows rows={{ today: [post('a')], thisWeek: [post('b')], thisWeekend: [post('c')] }} />)
     expect(screen.getByText(COPY.happeningStem)).toBeInTheDocument()
-    const labels = screen.getAllByTestId('happening-row').map((r) => r.getAttribute('aria-label'))
-    expect(labels).toEqual([COPY.happeningToday, COPY.happeningThisWeek, COPY.happeningThisWeekend].map((l) => `${COPY.happeningStem} ${l}`))
+    const labels = screen.getAllByTestId('shelf-row').map((r) => r.getAttribute('aria-label'))
+    expect(labels).toEqual([COPY.happeningToday, COPY.happeningThisWeek, COPY.happeningThisWeekend])
   })
 
   // [guards F091.3]
   it('leaves an empty row out, rather than rendering it empty', () => {
     render(<HappeningRows rows={{ today: [], thisWeek: [post('b')], thisWeekend: [] }} />)
-    expect(screen.getAllByTestId('happening-row')).toHaveLength(1)
-    expect(screen.queryByText(COPY.happeningToday)).toBeNull()
+    expect(screen.getAllByTestId('shelf-row')).toHaveLength(1)
+    expect(screen.queryByRole('heading', { name: COPY.happeningToday })).toBeNull()
   })
 
   // [guards F091.4]
@@ -58,5 +58,15 @@ describe('HappeningRows — list structure', () => {
   it('nests no list item inside another', () => {
     const { container } = render(<HappeningRows rows={{ today: [post('a')], thisWeek: [post('b')], thisWeekend: [] }} />)
     expect(container.querySelectorAll('li li')).toHaveLength(0)
+  })
+})
+
+// Review of #1155 — the search's "Today" and this row's must not answer to the same ?shelf=.
+describe('HappeningRows — its own shelf addresses', () => {
+  it('See all names the happening row, not a search row', () => {
+    window.history.replaceState(null, '', '/explore')
+    render(<HappeningRows rows={{ today: [post('a')], thisWeek: [], thisWeekend: [] }} />)
+    fireEvent.click(screen.getByRole('button', { name: `See all ${COPY.happeningToday}` }))
+    expect(new URL(window.location.href).searchParams.get('shelf')).toBe('happening-today')
   })
 })

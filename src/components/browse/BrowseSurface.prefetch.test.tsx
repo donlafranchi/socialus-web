@@ -3,10 +3,13 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }), useSearchParams: () => new URLSearchParams() }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn() }), useSearchParams: () => new URLSearchParams(), usePathname: () => '/explore' }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 vi.mock('@/app/explore/actions', () => ({ browseMapAction: vi.fn(), browseFeedAction: vi.fn(), searchAreasAction: async () => [] }))
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
 vi.mock('next/link', () => ({
@@ -14,7 +17,10 @@ vi.mock('next/link', () => ({
     <a href={href} data-prefetch={prefetch === undefined ? 'default' : String(prefetch)} {...rest}>{children}</a>
   ),
   useLinkStatus: () => ({ pending: false }),
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const SAC = { id: 'm1', slug: 'sacramento-roseville-ca', name: 'Sacramento-Roseville, CA', isOpen: true }
 const result = (i: number): BrowseResult => ({
@@ -32,7 +38,7 @@ afterEach(cleanup)
 
 describe('Explore cards prefetch their Page (#555)', () => {
   it('the first three read ahead; the rest use the default', () => {
-    render(<BrowseSurface initial={snapshot(6)} />)
+    renderExplore(<BrowseSurface initial={snapshot(6)} />)
     const links = [0, 1, 2, 3, 4, 5].map((i) => screen.getByText(`Page ${i}`).closest('a')!)
     expect(links.map((a) => a.getAttribute('data-prefetch'))).toEqual(['true', 'true', 'true', 'default', 'default', 'default'])
   })

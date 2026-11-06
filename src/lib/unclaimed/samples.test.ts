@@ -28,6 +28,26 @@ describe('samplePosts (#556)', () => {
     for (const p of posts) expect(p.endsAt.getTime()).toBeGreaterThan(now.getTime())
     expect(posts[0]!.startsAt.getTime()).toBeGreaterThan(now.getTime())
   })
+  // plan #230 — a sample carries a post kind and a short headline, and stays marked by sample_kind.
+  it('carries the post kind: event, sale, limited', () => {
+    expect(posts.map((p) => p.postKind)).toEqual(['event', 'sale', 'limited'])
+  })
+  it('a volunteer group’s ask for help is news, not a sale (#786)', () => {
+    const fb = samplePosts({ ...subject, name: 'Yolo Food Bank', slug: 'fb-1', pool: 'Community & volunteer' }, now)
+    expect(fb.map((p) => p.postKind)).toEqual(['event', 'news', 'limited'])
+  })
+  it('a headline of at most 60 characters, without the Page name or the Sample label', () => {
+    for (const pool of ['Food & drink', 'Goods & crafts', 'Repair & trades', 'Farm', 'Farm stay & agritourism', 'Community & volunteer', 'Shop']) {
+      for (let i = 0; i < 6; i++) {
+        for (const p of samplePosts({ ...subject, slug: `h-${i}`, pool }, now)) {
+          expect(p.headline.length).toBeGreaterThan(0)
+          expect(p.headline.length).toBeLessThanOrEqual(60)
+          expect(p.headline).not.toContain('Temple Coffee Roasters')
+          expect(p.headline).not.toMatch(/sample|neighbou?r/i)
+        }
+      }
+    }
+  })
   it('does not read the same on every Page', () => {
     const bodies = new Set(Array.from({ length: 12 }, (_, i) => samplePosts({ ...subject, slug: `s-${i}` }, now)[0]!.body))
     expect(bodies.size).toBeGreaterThan(1)

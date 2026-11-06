@@ -14,8 +14,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // `/` only ever forwarded to Explore (src/app/page.tsx, Home paused 2026-09-17). Answered at the edge it skips a server render, about a second.
-      { source: '/', destination: '/explore', permanent: false },
+      // Don, 2026-10-31: the Rules page is gone; its rules live in the Terms.
+      { source: '/rules', destination: '/terms', statusCode: 301 },
+      // The old /landing preview is gone; `/` is the front door.
+      { source: '/landing/:path*', destination: '/', permanent: false },
+      // `/` is the signed-out front door now; the proxy sends a signed-in member to Explore.
       // `/following` is the pre-rebuild duplicate of the shipped `/you/following`.
       // The route file is still on disk; this shadows it, so the address answers
       // with the real surface instead of a second, broken copy.

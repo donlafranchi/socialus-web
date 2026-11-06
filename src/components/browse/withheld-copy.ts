@@ -12,7 +12,7 @@ export function withheldCountLabel(count: number): string {
   return `${count} post${count === 1 ? '' : 's'} ${METRO_WEEK_LABEL}`
 }
 
-export const WITHHELD_DETAILS = 'The details are for members and followers of this Page.'
+export const WITHHELD_DETAILS = 'The details are for this Page’s members and people who get its updates.'
 
 export const WITHHELD_CTA = COPY.withheldCta
 

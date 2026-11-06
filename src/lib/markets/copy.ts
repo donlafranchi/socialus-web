@@ -9,7 +9,7 @@ export const MARKET_COPY = {
   noVendorsYet: 'No vendors have added themselves for this day yet.',
   // Vendor settings
   sellAtMarkets: 'I sell at markets',
-  sellAtMarketsHint: 'Pick the market and when you are there. People who follow you get a reminder the day before.',
+  sellAtMarketsHint: 'Pick the market and when you are there. People who get your updates get a reminder the day before.',
   findMarket: 'Find a market',
   noMarketFound: 'No market by that name yet.',
   everyMarketDay: (weekdays: string) => `Every ${weekdays.replace(/s$/, '')}`,

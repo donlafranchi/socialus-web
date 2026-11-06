@@ -50,3 +50,12 @@ describe('#409 — a published Page previews when shared', () => {
     expect(m.robots).toMatchObject({ index: false })
   })
 })
+
+// #1139 — a Page with a readable address previews with it; no code in a shared link.
+describe('a shared Page previews with its readable address', () => {
+  it('canonical and og:url are /<place>/<page>', () => {
+    const m = shareMetadata({ ...PAGE, placeUrlSlug: 'sacramento-ca', pageUrlSlug: 'oak-park-sourdough' })
+    expect(m.alternates?.canonical).toBe('https://www.socialus.org/sacramento-ca/oak-park-sourdough')
+    expect(m.openGraph).toMatchObject({ url: 'https://www.socialus.org/sacramento-ca/oak-park-sourdough' })
+  })
+})

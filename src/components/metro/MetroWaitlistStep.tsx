@@ -17,6 +17,7 @@
 import { useId, useState } from 'react'
 import type { JoinMetroWaitlistResult } from '@/app/_actions/metro-waitlist-actions'
 import { MetroStandingDialog } from './MetroStandingDialog'
+import { SIGNUP_ROLE_COPY } from '@/lib/signup/waiting-copy'
 
 export interface MetroOption {
   id: string
@@ -51,8 +52,9 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
     setError(null)
     try {
       const result = await onJoin({ metroId, role })
-      // An open metro has nothing to wait for, so there is nothing to show.
-      if (result.open) {
+      // An open metro has nothing to wait for, so there is nothing to show. #1090 — nor does a
+      // named market: the screen above already said it isn't open there yet, with no count.
+      if (result.open || market) {
         onDone()
         return
       }
@@ -116,23 +118,25 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
 
         <fieldset>
           <legend className="text-sm font-medium text-[var(--color-charcoal-900)]">
-            What brings you here?
+            {SIGNUP_ROLE_COPY.legend}
           </legend>
           <div className="mt-2 flex flex-col gap-2">
             <RoleChoice
               name={roleName}
-              label="I make things"
+              label={SIGNUP_ROLE_COPY.maker}
+              hint={SIGNUP_ROLE_COPY.makerHint}
               checked={role === 'creator'}
               onChange={() => setRole('creator')}
             />
             <RoleChoice
               name={roleName}
-              label="I'm here to find things"
+              label={SIGNUP_ROLE_COPY.supporter}
               checked={role === 'patron'}
               onChange={() => setRole('patron')}
             />
           </div>
         </fieldset>
+
 
         {error && (
           <p role="alert" className="text-sm text-[var(--color-charcoal-900)]">
@@ -169,11 +173,13 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
 function RoleChoice({
   name,
   label,
+  hint,
   checked,
   onChange,
 }: {
   name: string
   label: string
+  hint?: string
   checked: boolean
   onChange: () => void
 }) {
@@ -186,7 +192,10 @@ function RoleChoice({
       }`}
     >
       <input type="radio" name={name} className="sr-only" checked={checked} onChange={onChange} />
-      {label}
+      <span className="py-2">
+        {label}
+        {hint && <span className={`block text-xs ${checked ? 'text-white/80' : 'text-[var(--color-fg-muted)]'}`}>{hint}</span>}
+      </span>
     </label>
   )
 }

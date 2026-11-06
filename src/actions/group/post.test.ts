@@ -433,42 +433,75 @@ describe('#450 — an email address in a Page post is refused', () => {
   })
 })
 
-describe('#286 — tags on posts', () => {
+describe('#1180 — Listed under: a post is listed under labels from the shared list', () => {
   const calls = (re: RegExp) => (query.mock.calls as [string, unknown[]][]).filter(([q]) => re.test(q))
 
-  it('a new post carries the tags it was given', async () => {
+  it('a new post carries its labels, a finer one with its top label', async () => {
     install()
-    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Concert Friday', tags: ['Concert', 'live music'] })
-    expect(calls(/insert into public\.tags/).map(([, p]) => p[1])).toEqual(['concert', 'live music'])
-    expect(calls(/insert into public\.post_tags/)).toHaveLength(2)
-    expect(calls(/insert into public\.post_tags/)[0]![1]).toEqual([POST, 'concert'])
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves Friday', tags: ['Bakery'] })
+    expect(calls(/insert into public\.tags/).map(([, p]) => p[1])).toEqual(['food & drink', 'bakery'])
+    expect(calls(/insert into public\.post_tags/).map(([, p]) => p[1])).toEqual(['food & drink', 'bakery'])
   })
 
-  it('a post with no tags writes none, and so carries its Page\'s', async () => {
+  it('a list label is safe on arrival: it never waits in the tag review queue', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves Friday', tags: ['Bakery'] })
+    expect(calls(/insert into public\.tags/)[0]![0]).toMatch(/'safe'/)
+  })
+
+  it('refuses more than 3 picks; Free does not count', async () => {
+    install()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['Bakery', 'Pottery', 'Gardening', 'Concerts'] })).rejects.toThrow(/up to 3/)
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['Bakery', 'Pottery', 'Gardening', 'Free'] })
+    expect(calls(/insert into public\.post_tags/)).toHaveLength(6)
+  })
+
+  it('refuses a free-typed tag: only the list', async () => {
+    install()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves', tags: ['sourdough'] })).rejects.toBeInstanceOf(ValidationError)
+    expect(calls(/post_tags|insert into public\.page_posts/)).toHaveLength(0)
+  })
+
+  it("the poster's own pick is pinned on the row", async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves', tags: ['Bakery'], labelsPinned: true })
+    const [q, p] = calls(/insert into public\.page_posts/)[0]!
+    expect(q).toMatch(/labels_pinned/)
+    expect(p).toContain(true)
+  })
+
+  it('a suggestion the poster kept is not pinned', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves', tags: ['Bakery'] })
+    const [, p] = calls(/insert into public\.page_posts/)[0]!
+    expect(p).not.toContain(true)
+  })
+
+  it('an edit can pin or unpin', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Loaves', tags: ['Bakery'], labelsPinned: true })
+    expect(calls(/update public\.page_posts set/)[0]![0]).toMatch(/labels_pinned = \$/)
+  })
+
+  it('a post with no labels writes none, and so carries its Page\'s', async () => {
     install()
     await groupPostCreate(ctx(), { groupId: GROUP, body: 'Loaves are in' })
     expect(calls(/post_tags/)).toHaveLength(0)
   })
 
-  it('an edit replaces the set, and an empty set clears the post\'s own', async () => {
+  it('an edit replaces the set, and one that does not mention labels leaves them alone', async () => {
     install()
-    await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday', tags: ['concert'] })
-    expect(calls(/delete from public\.post_tags/)[0]![1]).toEqual([POST, ['concert']])
-    install()
-    await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday', tags: [] })
-    expect(calls(/delete from public\.post_tags/)[0]![1]).toEqual([POST, []])
-    expect(calls(/insert into public\.post_tags/)).toHaveLength(0)
-  })
-
-  it('an edit that does not mention tags leaves them alone', async () => {
+    await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday', tags: ['Concerts'] })
+    expect(calls(/delete from public\.post_tags/)[0]![1]).toEqual([POST, ['live music', 'concerts']])
     install()
     await groupPostEdit(ctx(), { postId: POST, body: 'Concert Saturday' })
     expect(calls(/post_tags/)).toHaveLength(0)
   })
 
-  it('only the managing role can tag', async () => {
+  it('only the managing role can label', async () => {
     install({ roles: {} })
-    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['y'] })).rejects.toThrow()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', tags: ['Bakery'] })).rejects.toThrow()
     expect(calls(/post_tags/)).toHaveLength(0)
   })
 })
@@ -664,5 +697,88 @@ describe('group.post_create — a weekly series', () => {
     install({ roles: { [OWNER]: 'owner', [OTHER]: 'member' } })
     await expect(groupPostCreate(ctx(OTHER), { groupId: GROUP, body: 'x', startsAt: THURSDAY_7PM, series: { weekdays: [4] } } as never)).rejects.toBeInstanceOf(AuthorizationError)
     expect(calls(/insert into public\.post_series/i)).toHaveLength(0)
+  })
+})
+
+// plan #230 (Don, 2026-10-31) — a post's kind is picked first, and it has a one-line headline.
+describe('group.post — kind and headline', () => {
+  const insertParams = () => calls(/insert into public\.page_posts/i)[0]!
+  const START = '2026-09-20T02:00:00.000Z'
+
+  it('writes the kind and headline it was given', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'All bulbs half off.', kind: 'sale', headline: '  Half off fall bulbs  ', startsAt: NOW.toISOString(), endsAt: START })
+    const [sql, params] = insertParams()
+    expect(sql).toMatch(/\bkind\b/)
+    expect(sql).toMatch(/\bheadline\b/)
+    expect(params).toContain('sale')
+    expect(params).toContain('Half off fall bulbs')
+  })
+
+  it('without a kind, a dated post is an event and an undated one is news', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Class.', startsAt: START })
+    expect(insertParams()[1]).toContain('event')
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Plants on the porch.' })
+    expect(insertParams()[1]).toContain('news')
+    expect(insertParams()[1]).not.toContain('announcement')
+  })
+
+  it('a Wonder is written as one', async () => {
+    install()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'Bulk olive oil?', wonder: { threshold: 10 } })
+    expect(insertParams()[1]).toContain('wonder')
+  })
+
+  for (const kind of ['event', 'sale', 'reminder'] as const) {
+    it(`refuses a ${kind} with no date`, async () => {
+      install()
+      await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', kind })).rejects.toThrow(ValidationError)
+      expect(calls(/insert into public\.page_posts/i)).toHaveLength(0)
+    })
+  }
+
+  it('lets news, limited and hiring go undated', async () => {
+    for (const kind of ['news', 'limited', 'hiring'] as const) {
+      install()
+      await groupPostCreate(ctx(), { groupId: GROUP, body: 'x', kind })
+      expect(insertParams()[1]).toContain(kind)
+    }
+  })
+
+  it('refuses an empty or over-long headline', async () => {
+    install()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', headline: '   ' })).rejects.toThrow()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', headline: 'x'.repeat(61) })).rejects.toThrow()
+    await groupPostCreate(ctx(), { groupId: GROUP, body: 'x', headline: 'x'.repeat(60) })
+    expect(insertParams()[1]).toContain('x'.repeat(60))
+  })
+
+  it('refuses a sale that runs past 30 days from posting', async () => {
+    install()
+    const late = new Date(NOW.getTime() + 31 * 86_400_000).toISOString()
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', kind: 'sale', startsAt: NOW.toISOString(), endsAt: late })).rejects.toThrow(ValidationError)
+    await expect(groupPostCreate(ctx(), { groupId: GROUP, body: 'x', kind: 'sale', startsAt: late })).rejects.toThrow(ValidationError)
+  })
+
+  it('an edit can change the headline and the kind', async () => {
+    install()
+    await groupPostEdit(ctx(), { postId: POST, body: 'Still here.', headline: 'New line', kind: 'limited' })
+    const [sql, params] = calls(/update public\.page_posts/i)[0]!
+    expect(sql).toMatch(/headline = \$\d/)
+    expect(sql).toMatch(/kind = \$\d/)
+    expect(params).toContain('New line')
+    expect(params).toContain('limited')
+  })
+
+  it('an edit refuses to make a post an event while taking its date away', async () => {
+    install()
+    await expect(groupPostEdit(ctx(), { postId: POST, body: 'x', kind: 'event', startsAt: null })).rejects.toThrow(ValidationError)
+  })
+
+  it('an edit refuses to make an undated post an event without giving it a date', async () => {
+    install()
+    await expect(groupPostEdit(ctx(), { postId: POST, body: 'x', kind: 'reminder' })).rejects.toThrow(ValidationError)
   })
 })

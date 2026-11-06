@@ -10,7 +10,6 @@ import { SiteFooter } from './SiteFooter'
 import { EmptyState } from './EmptyState'
 import { TextPage } from './TextPage'
 import { TEXT_PAGES } from '@/lib/text-pages'
-import { CREATOR_RULES } from '@/lib/creator-rules'
 
 afterEach(() => {
   cleanup()
@@ -37,7 +36,7 @@ describe('#296 — the footer', () => {
     const link = within(phone).getByRole('link', { name: 'Report a problem with the app' })
     expect(link).toHaveAttribute('href', '/report')
     expect(link.className).toMatch(/min-h-11/)
-    expect(screen.getByRole('contentinfo').className).toMatch(/nav-height/)
+    expect(screen.getByRole('contentinfo').className).toMatch(/dock-clearance/)
   })
 
   it('is not on sign-in, onboarding or admin', () => {
@@ -47,20 +46,17 @@ describe('#296 — the footer', () => {
   })
 })
 
-// F082 criterion 7 — the rules are one click away whether or not the member is publishing.
-describe('F082 — the rules page', () => {
-  // [guards F082.7]
-  it('is linked from the footer', () => {
+// Don, 2026-10-31 — the Rules page is gone; /rules redirects to the Terms and the footer no longer links it.
+describe('the Rules page is gone', () => {
+  it('the footer has no Rules link', () => {
     render(<SiteFooter />)
-    expect(screen.getByRole('link', { name: 'Rules' })).toHaveAttribute('href', '/rules')
+    expect(screen.queryByRole('link', { name: 'Rules' })).toBeNull()
   })
 
-  // [guards F082.7]
-  it('sets out every rule (the lines alone; the reasons stay in the publish step, the PM 2026-10-27)', async () => {
-    const { default: RulesPage } = await import('@/app/rules/page')
-    render(<RulesPage />)
-    expect(screen.getByRole('heading', { level: 1, name: 'The rules' })).toBeInTheDocument()
-    for (const { rule } of CREATOR_RULES) expect(screen.getByText(rule)).toBeInTheDocument()
+  it('/rules answers 301 to /terms', async () => {
+    const { default: config } = await import('../../../next.config')
+    const rules = (await config.redirects!()).find((r) => r.source === '/rules')
+    expect(rules).toMatchObject({ destination: '/terms', statusCode: 301 })
   })
 })
 

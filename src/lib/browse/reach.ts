@@ -17,21 +17,7 @@ export function parseReach(v: string | null | undefined): Reach | null {
   return (REACH_RINGS as readonly number[]).includes(n) ? n : null
 }
 
-/** "Show more nearby": the next ring out, then the whole area; null once there. */
-export function widerReach(r: Reach): Reach | null {
-  if (r === 'all') return null
-  return REACH_RINGS.find((n) => n > r) ?? 'all'
-}
-
 export const REACH_OPTIONS: { value: Reach; label: string }[] = [
   ...REACH_RINGS.map((n) => ({ value: n as Reach, label: n === 60 ? '1 hour' : `${n} minutes` })),
   { value: 'all', label: 'Whole area' },
 ]
-
-/** The quiet line at the top of Explore. `from` is a town's name, or null for the member's own town. */
-export function reachLine(reach: Reach, from: string | null, signedIn: boolean): string {
-  if (reach === 'all') return 'Across the whole area'
-  const span = reach === 60 ? 'an hour' : `${reach} minutes`
-  if (from) return `Within ${span} of ${from}`
-  return signedIn ? `Within ${span} of you` : `Within ${span}`
-}

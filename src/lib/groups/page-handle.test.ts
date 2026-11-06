@@ -6,6 +6,9 @@ import {
   PUBLIC_ID_LENGTH,
   canonicalPagePath,
   isPageId,
+  pagePath,
+  isPlaceSegment,
+  isSlugSegment,
 } from './page-handle'
 
 // Issue #175 — a Page a member created has no reachable URL.
@@ -75,5 +78,27 @@ describe('the generator in SQL and the alphabet in TypeScript', () => {
     // fail the file for saying so. What is checked is the executable half.
     const code = sql.replace(/^\s*--.*$/gm, '').replace(/'(?:[^']|'')*'/g, "''")
     expect(code).not.toMatch(/\bsequence\b|\bserial\b|nextval|clock_timestamp|founder_member_id|\bid\b\s*::\s*text/)
+  })
+})
+
+// #1139 (Don, 2026-11-01) — the readable address replaces the id-only ruling above; the id still resolves inside.
+describe('a Page\'s readable address', () => {
+  it('is its home town and its name: /sacramento-ca/plant-foundry', () => {
+    expect(pagePath({ publicId: '81bjk0', placeUrlSlug: 'sacramento-ca', pageUrlSlug: 'plant-foundry' })).toBe('/sacramento-ca/plant-foundry')
+  })
+  it('falls back to the id only while a Page has no address (a draft, or no place found)', () => {
+    expect(pagePath({ publicId: '81bjk0', placeUrlSlug: null, pageUrlSlug: null })).toBe('/g/81bjk0')
+    expect(pagePath({ publicId: '81bjk0' })).toBe('/g/81bjk0')
+  })
+  // Review of #1146 — the slug is made of the name, so a Page whose words a report hid is shared by its id.
+  it('is the id address while a report hides the Page\'s words', () => {
+    expect(pagePath({ publicId: '81bjk0', placeUrlSlug: 'sacramento-ca', pageUrlSlug: 'plant-foundry', wordsHidden: true })).toBe('/g/81bjk0')
+  })
+  it('takes a place only with its state on the end, and a slug only as minted', () => {
+    expect(isPlaceSegment('sacramento-ca')).toBe(true)
+    expect(isPlaceSegment('lakeside-san-diego-ca')).toBe(true)
+    for (const bad of ['sacramento', 'explore', 'Sacramento-CA', 'sacramento-cal', '-ca', 'sacramento--ca']) expect(isPlaceSegment(bad)).toBe(false)
+    expect(isSlugSegment('plant-foundry')).toBe(true)
+    for (const bad of ['Plant-Foundry', 'plant_foundry', '-x', 'x-', 'a'.repeat(81), '']) expect(isSlugSegment(bad)).toBe(false)
   })
 })

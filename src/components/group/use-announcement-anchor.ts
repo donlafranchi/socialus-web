@@ -20,13 +20,14 @@ import { announcementAnchor, announcementIdFromHash } from './announcement-ancho
  *
  * Returns the id to mark, or null.
  */
-export function useAnnouncementAnchor(key?: unknown): string | null {
+/** `focusId` — the post a post's own address names (Don, 2026-10-31); a fragment still wins. */
+export function useAnnouncementAnchor(key?: unknown, focusId?: string | null): string | null {
   const [highlighted, setHighlighted] = useState<string | null>(null)
   const arrived = useRef(false)
 
   useEffect(() => {
     if (arrived.current) return
-    const id = announcementIdFromHash(window.location.hash)
+    const id = announcementIdFromHash(window.location.hash) ?? focusId ?? null
     if (!id) return
     const el = document.getElementById(announcementAnchor(id))
     if (!el) return
@@ -54,7 +55,7 @@ export function useAnnouncementAnchor(key?: unknown): string | null {
     })
     return () => cancelAnimationFrame(frame)
     // `key` re-looks once a list that was folded away opens (#462).
-  }, [key])
+  }, [key, focusId])
 
   return highlighted
 }

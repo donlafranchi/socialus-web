@@ -52,7 +52,7 @@ async function requireWonder(client: Client, verb: string, id: string, memberId:
     [id, memberId],
   )
   const w = found.rows[0]
-  if (!w) throw new NotFoundError(`${verb}: no such Wonder`)
+  if (!w) throw new NotFoundError(`${verb}: no such Proposal`)
   return w
 }
 

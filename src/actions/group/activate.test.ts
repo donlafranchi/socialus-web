@@ -87,7 +87,7 @@ function installQueryRouter(opts: {
     if (/insert into public\.tags/i.test(sql)) {
       return { rows: [] }
     }
-    if (/insert into public\.page_tags/i.test(sql)) {
+    if (/insert into public\.page_tags|delete from public\.page_tags/i.test(sql)) {
       return { rows: [] }
     }
     throw new Error(`unexpected query in test: ${sql}`)
@@ -108,17 +108,23 @@ describe('group.activate — what publishing needs', () => {
     expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
   })
 
-  it('refuses a Page with no tags, saved or given, for every kind', async () => {
-    for (const kind of ['business', 'group']) {
-      installQueryRouter({ kind, savedTags: 0 })
-      await expect(groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })).rejects.toThrow(/tag/i)
-      expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
-    }
+  // #1180 — a Page always carries a label: none saved, it is listed under what its name and description say.
+  it('a Page with no labels saved is listed under its own words at publish', async () => {
+    installQueryRouter({ savedTags: 0, description: 'Sourdough, daily.' })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
+    expect(callsMatching(/insert into public\.page_tags/i).map((c) => c[1]![1])).toEqual(['food & drink', 'bakery'])
   })
 
-  it('a tag given at publish counts', async () => {
+  it('and under Neighborhood life when its words match nothing', async () => {
+    installQueryRouter({ savedTags: 0, description: 'Hello.' })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION })
+    expect(callsMatching(/insert into public\.page_tags/i).map((c) => c[1]![1])).toEqual(['neighborhood life'])
+  })
+
+  it('a label given at publish counts', async () => {
     installQueryRouter({ savedTags: 0 })
-    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['Bakery'] })
     expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(1)
   })
 
@@ -145,57 +151,37 @@ describe('group.activate — what publishing needs', () => {
   })
 })
 
-describe('group.activate — tags, when given', () => {
-  it('creates the tag and attaches it to the Page', async () => {
+describe('#1180 — group.activate — labels, when given', () => {
+  it('writes the label with its top label, safe, and attaches both', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['Sourdough'] })
-
-    const [tagCall] = callsMatching(/insert into public\.tags/i)
-    expect(tagCall).toBeDefined()
-    // Label preserved as typed; normalized form is the uniqueness key.
-    expect(tagCall![1]).toEqual(['Sourdough', 'sourdough', FOUNDER_ID])
-
-    const [attachCall] = callsMatching(/insert into public\.page_tags/i)
-    expect(attachCall).toBeDefined()
-    expect(attachCall![1]).toEqual([GROUP_ID, 'sourdough'])
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['Bakery'] })
+    const tagCalls = callsMatching(/insert into public\.tags/i)
+    expect(tagCalls.map((c) => c[1])).toEqual([
+      ['Food & drink', 'food & drink', FOUNDER_ID],
+      ['Bakery', 'bakery', FOUNDER_ID],
+    ])
+    expect(tagCalls[0]![0]).toMatch(/'safe'/)
+    expect(callsMatching(/insert into public\.page_tags/i).map((c) => c[1])).toEqual([
+      [GROUP_ID, 'food & drink'],
+      [GROUP_ID, 'bakery'],
+    ])
   })
 
-  it('attaches a tag another creator already made, rather than failing on the conflict', async () => {
-    // The insert returns no row when the tag exists, which is why the attach
-    // selects by normalized form instead of relying on `returning`.
+  it('refuses a free-typed tag', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })
-    expect(callsMatching(/insert into public\.tags/i)[0]![0]).toMatch(/on conflict \(normalized\) do nothing/i)
-    expect(callsMatching(/insert into public\.page_tags/i)).toHaveLength(1)
+    await expect(groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })).rejects.toThrow(/list/i)
+    expect(callsMatching(/set lifecycle_state = 'active'/i)).toHaveLength(0)
   })
 
-  it('writes one tag when the same word is sent twice in different shapes', async () => {
+  it('writes one label when the same one is sent in different shapes', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), {
-      rulesVersion: RULES_VERSION,
-      groupId: GROUP_ID,
-      tags: ['Sourdough', ' sour dough ', 'SOURDOUGH'],
-    })
-    const normalized = callsMatching(/insert into public\.tags/i).map((c) => c[1]![1])
-    expect(normalized).toEqual(['sourdough', 'sour dough'])
-  })
-
-  it('writes every distinct tag', async () => {
-    installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['bread', 'pastry', 'cake'] })
-    expect(callsMatching(/insert into public\.page_tags/i)).toHaveLength(3)
-  })
-
-  it('drops an over-long tag rather than truncating it', async () => {
-    installQueryRouter()
-    await expect(
-      groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['a'.repeat(41)] }),
-    ).rejects.toThrow()
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['Bakery', ' bakery ', 'BAKERY'] })
+    expect(callsMatching(/insert into public\.tags/i).map((c) => c[1]![1])).toEqual(['food & drink', 'bakery'])
   })
 
   it('never writes a category or a suggestion — both are retired', async () => {
     installQueryRouter()
-    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['sourdough'] })
+    await groupActivate(ctx(), { groupId: GROUP_ID, rulesVersion: RULES_VERSION, tags: ['Bakery'] })
     expect(callsMatching(/set category = /i)).toHaveLength(0)
     expect(callsMatching(/group_category_suggestions/i)).toHaveLength(0)
   })

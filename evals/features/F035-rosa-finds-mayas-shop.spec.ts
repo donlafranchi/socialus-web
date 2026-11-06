@@ -92,7 +92,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
       // the visitor here is signed in.
       await signIn(page, ROSA.email, ROSA.password);
       await page.goto(SHOP.url);
-      await expect(page.getByRole("heading", { name: "About" })).toBeVisible();
+      await expect(page.getByTestId("shop-name")).toBeVisible();
       await expect(page.getByTestId("page-section-products")).toHaveCount(0);
     });
   });

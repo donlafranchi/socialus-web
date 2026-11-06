@@ -90,7 +90,7 @@ describe.skipIf(!RUNNABLE)('A venue Page\'s imported shows', () => {
     expect(rows.map((r) => [r.event_key, r.photo_url])).toEqual([['2026-10-25|grizzlies vs kings', 'https://media.test/arena.webp'], ['2026-10-26|karan aujla', 'https://media.test/promo.webp']])
     expect(rows[0].body).toMatch(/\n\nPhoto: Unsplash \(stock photo, not this business\)$/)
     const tags = async () => (await q(`select p.event_key, array_agg(t.label order by t.label) labels from public.post_tags pt join public.page_posts p on p.id = pt.post_id join public.tags t on t.id = pt.tag_id where p.group_id = $1 group by 1 order by 1`, [PAGE])).rows
-    expect(await tags()).toEqual([{ event_key: '2026-10-25|grizzlies vs kings', labels: ['Fitness & outdoors', 'Sports'] }, { event_key: '2026-10-26|karan aujla', labels: ['Live music'] }])
+    expect(await tags()).toEqual([{ event_key: '2026-10-25|grizzlies vs kings', labels: ['Fitness & outdoors', 'Team sports'] }, { event_key: '2026-10-26|karan aujla', labels: ['Live music'] }])
     const again = vi.fn(photoFor)
     expect(await syncVenueShows(client, PAGE, 'M997 Venue', SRC, shows, 'https://media.test/page-cover.webp', now, { venueInterests: ['Live music'], photoFor: again })).toEqual({ added: 0, updated: 0, removed: 0, kept: 2 })
     expect(again).not.toHaveBeenCalled()

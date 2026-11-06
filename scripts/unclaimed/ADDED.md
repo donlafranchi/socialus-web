@@ -318,6 +318,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-27 | Food Bank of Contra Costa and Solano | Food bank (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Upper Room Dining Hall | Meal program (nonprofit) | Placerville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
 | 2026-10-27 | Rancho Cordova Food Locker | Food bank (nonprofit) | Rancho Cordova | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-28 | Stockton Symphony | Symphony orchestra (nonprofit) | Stockton | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Vacaville Museum | Museum (nonprofit) | Vacaville | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Rio Vista Museum | Historical museum (nonprofit) | Rio Vista | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Amador County Arts Council (AmadorArts) | Art association (nonprofit) | Jackson | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Elk Grove Fine Arts Center | Art association (nonprofit) | Elk Grove | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Davis Musical Theatre Company | Community theatre (nonprofit) | Davis | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Symphony d'Oro | Symphony orchestra (nonprofit) | Rancho Cordova | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
 | 2026-10-29 | Mahon Ranch | Ranch | Elk Grove | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: Explore Elk Grove, then own site |
 | 2026-10-29 | Lillards Lavenders | Farm | Lincoln | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: PlacerGROWN, then own site |
 | 2026-10-29 | Galt Lions Club | Service club | Galt | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
@@ -336,6 +343,3 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-30 | Restore the Delta | Delta conservation group (nonprofit) | Stockton | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-31 | Indian Rock Tree Farm | Farm | Camino | Farmers markets, Sustainability | Shops and repair (farms); holiday (Christmas trees); stock photos only; lead: county ag-tourism listing, then own site |
 | 2026-10-31 | Hillside Tree Farm | Farm | Camino | Farmers markets, Sustainability | Shops and repair (farms); holiday (Christmas trees); stock photos only; lead: Visit El Dorado, then own site |
-| 2026-10-31 | Sinclair Family Farm | Farm | Newcastle | Farmers markets, Sustainability | Shops and repair (farms); stock photos only; lead: CalAgTour listing, then own site |
-| 2026-10-31 | Hardy Books | Goods & crafts | Nevada City | Local business, Crafts & makers | Shops and repair; stock photos only; lead: Go Nevada County, then own site |
-| 2026-10-31 | Word After Word Books | Goods & crafts | Truckee | Local business, Crafts & makers | Shops and repair; stock photos only; lead: Go Nevada County, then own site |

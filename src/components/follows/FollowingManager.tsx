@@ -24,9 +24,9 @@ import { restoreVenueAction, unfollowVenueAction } from '@/app/_actions/saved-se
 const UNDO_WINDOW_MS = 6000
 
 const AFFORDANCE_LABEL: Record<FollowKind, string> = {
-  person: 'Unfollow',
+  person: 'Stop updates',
   group: 'Leave',
-  venue: 'Unfollow',
+  venue: 'Stop updates',
 }
 
 const SECTIONS: { kind: FollowKind; testid: string; heading: string }[] = [
@@ -135,7 +135,7 @@ function FollowRow({
         <button
           type="button"
           data-testid={`undo-${entry.kind}-${entry.entityId}`}
-          aria-label={`Undo — keep following ${entry.displayName}`}
+          aria-label={`Undo, keep getting updates from ${entry.displayName}`}
           className="shrink-0 text-sm font-medium text-[var(--color-accent)] hover:underline"
           onClick={onUndo}
         >
@@ -169,7 +169,7 @@ export function FollowingManager({
         data-testid="following-empty"
         className="rounded-md border border-dashed border-neutral-300 px-6 py-10 text-center"
       >
-        <p className="text-sm text-neutral-600">Nothing followed yet — start exploring.</p>
+        <p className="text-sm text-neutral-600">Nothing here yet. Start exploring.</p>
         <Link
           href="/explore"
           className="mt-4 inline-flex items-center justify-center rounded-full bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white"

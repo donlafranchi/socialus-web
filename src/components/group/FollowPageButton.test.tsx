@@ -38,31 +38,31 @@ function renderBtn(over: Partial<Parameters<typeof FollowPageButton>[0]> = {}) {
 describe('an open Page is followed', () => {
   it('offers Follow', () => {
     renderBtn()
-    expect(screen.getByRole('button', { name: /^Follow$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Get updates$/i })).toBeInTheDocument()
   })
 
   it('reads Following once you do', () => {
     renderBtn({ following: true })
-    expect(screen.getByRole('button', { name: /^Following$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Getting updates$/i })).toBeInTheDocument()
   })
 
   it('calls follow with the Page', async () => {
     renderBtn()
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Get updates$/i }))
     await waitFor(() => expect(follow).toHaveBeenCalledWith({ groupId: 'g1' }))
   })
 
   it('flips to Following without a reload', async () => {
     renderBtn()
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
-    expect(await screen.findByRole('button', { name: /^Following$/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /^Get updates$/i }))
+    expect(await screen.findByRole('button', { name: /^Getting updates$/i })).toBeInTheDocument()
   })
 
   it('unfollows from the Following state', async () => {
     renderBtn({ following: true })
-    fireEvent.click(screen.getByRole('button', { name: /^Following$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Getting updates$/i }))
     await waitFor(() => expect(unfollow).toHaveBeenCalledWith({ groupId: 'g1' }))
-    expect(await screen.findByRole('button', { name: /^Follow$/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^Get updates$/i })).toBeInTheDocument()
   })
 })
 
@@ -70,7 +70,7 @@ describe('a private Page is joined', () => {
   it('offers Join, never Follow', () => {
     renderBtn({ isPrivate: true })
     expect(screen.getByRole('button', { name: /^Join$/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^Follow$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Get updates$/i })).not.toBeInTheDocument()
   })
 
   it('reads Joined once you have', () => {
@@ -90,14 +90,14 @@ describe('signed out', () => {
   // says they can: the button leads to sign-up.
   it('says sign up to follow, never plain Follow', () => {
     renderBtn({ loggedIn: false })
-    expect(screen.getByRole('button', { name: 'Sign up to follow' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^Follow$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Sign up to get updates' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Get updates$/i })).toBeNull()
   })
 
   // Don, 2026-10-04: secondary; the front door's main button is "Sign in to see what's happening".
   it('is the secondary button, not the primary', () => {
     renderBtn({ loggedIn: false })
-    const btn = screen.getByRole('button', { name: 'Sign up to follow' })
+    const btn = screen.getByRole('button', { name: 'Sign up to get updates' })
     expect(btn.className).not.toContain('bg-[var(--color-accent)]')
     expect(btn.className).toContain('border')
   })
@@ -109,8 +109,8 @@ describe('signed out', () => {
 
   it('opens a sign-up sheet that leads to sign-up', () => {
     renderBtn({ loggedIn: false })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign up to follow' }))
-    expect(screen.getByRole('dialog', { name: /sign up to follow/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up to get updates' }))
+    expect(screen.getByRole('dialog', { name: /sign up to get updates/i })).toBeInTheDocument()
     const cta = screen.getByTestId('sign-in-prompt-continue')
     expect(cta).toHaveTextContent('Sign up')
     // #531 — straight to the one flow; /auth/signup only forwards there, and a hop costs a server round trip.
@@ -120,14 +120,14 @@ describe('signed out', () => {
 
   it('comes back to the Page afterwards', () => {
     renderBtn({ loggedIn: false, returnTo: '/p/ca/sacramento/g/the-good-loaf' })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign up to follow' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up to get updates' }))
     const href = screen.getByTestId('sign-in-prompt-continue').getAttribute('href')!
     expect(decodeURIComponent(href)).toContain('/p/ca/sacramento/g/the-good-loaf')
   })
 
   it('never reaches the action', () => {
     renderBtn({ loggedIn: false })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign up to follow' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sign up to get updates' }))
     expect(follow).not.toHaveBeenCalled()
   })
 })
@@ -135,7 +135,7 @@ describe('signed out', () => {
 describe('#297 — the done state carries a check', () => {
   it('Following and Joined show one, without it entering the name', () => {
     renderBtn({ following: true })
-    const btn = screen.getByRole('button', { name: /^Following$/i })
+    const btn = screen.getByRole('button', { name: /^Getting updates$/i })
     expect(btn.querySelector('svg[aria-hidden="true"]')).not.toBeNull()
   })
 })
@@ -144,9 +144,9 @@ describe('failure', () => {
   it('says so and stays put', async () => {
     follow.mockRejectedValue(new Error('nope'))
     renderBtn()
-    fireEvent.click(screen.getByRole('button', { name: /^Follow$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Get updates$/i }))
     expect(await screen.findByRole('alert')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Follow$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Get updates$/i })).toBeInTheDocument()
   })
 })
 

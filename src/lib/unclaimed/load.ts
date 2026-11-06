@@ -189,9 +189,9 @@ export async function enrichPage(
         for (const [i, post] of posts.entries()) {
           const photo = rest[i] ?? cover
           await db.query(
-            `insert into public.page_posts (group_id, body, starts_at, ends_at, how_to_find, photo_url, lifecycle_state, discoverability, sample_kind, created_at, updated_at)
-             values ($1, $2, $3, $4, $5, $6, 'active', 'listed', $7, $8, $8)`,
-            [g.id, `${post.body}\n\nPhoto: ${photo.credit}`, post.startsAt, post.endsAt, post.howToFind, photo.url, post.kind, new Date(now.getTime() - (posts.length - i) * 3600_000)],
+            `insert into public.page_posts (group_id, body, starts_at, ends_at, how_to_find, photo_url, lifecycle_state, discoverability, sample_kind, created_at, updated_at, kind, headline)
+             values ($1, $2, $3, $4, $5, $6, 'active', 'listed', $7, $8, $8, $9, $10)`,
+            [g.id, `${post.body}\n\nPhoto: ${photo.credit}`, post.startsAt, post.endsAt, post.howToFind, photo.url, post.kind, new Date(now.getTime() - (posts.length - i) * 3600_000), post.postKind, post.headline],
           )
         }
       }
@@ -252,7 +252,8 @@ async function tagInterests(db: Db, groupId: string, labels: string[]): Promise<
   let added = 0
   for (const label of labels) {
     const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
-    await db.query(`insert into public.tags (label, normalized, created_by) values ($1, $2, $3) on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
+    // #1180 — the interest labels are list labels, so safe on arrival.
+    await db.query(`insert into public.tags (label, normalized, created_by, review) values ($1, $2, $3, 'safe') on conflict (normalized) do nothing`, [label, normalized, SYSTEM_MEMBER_ID])
     const { rows } = await db.query(`select id from public.tags where normalized = $1`, [normalized])
     const tagId = (rows[0] as { id: string }).id
     added += (await db.query(`insert into public.page_tags (group_id, tag_id) values ($1, $2) on conflict do nothing returning 1`, [groupId, tagId])).rows.length

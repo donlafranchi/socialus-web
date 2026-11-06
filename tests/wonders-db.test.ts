@@ -5,7 +5,7 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { resolveActionContext } from '@/lib/action-context'
-import { groupPostCreate, reportCreate, wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from '@/actions'
+import { groupPostCreate, groupPostEdit, reportCreate, wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from '@/actions'
 
 // F117 — Wonders v1 against a real database: a Wonder is a post kind, "I'm in" with a size, the count and bar,
 // who sees the size split and the names, helper offers in the eight roles, the poster accepting, reports, no money.
@@ -42,12 +42,13 @@ async function as<T>(sub: string | null, sql: string, params: unknown[] = []) {
 
 type View = {
   total: number
-  threshold: number
+  threshold: number | null
   options: string[]
   mine: { option: string | null } | null
   myOffers: { id: string; role: string; status: string }[]
   helpers: { name: string; role: string }[]
   byOption?: { option: string; count: number }[]
+  inNames: string[]
   people?: { name: string; option: string | null }[]
   offers?: { id: string; name: string; role: string; note: string | null; status: string }[]
 }
@@ -117,7 +118,17 @@ describe.skipIf(!RUNNABLE)('F117 — a Wonder', () => {
     await expect(groupPostCreate(ctx(DANA), { groupId: PAGE, body: 'Mine now', wonder: { threshold: 5 } })).rejects.toThrow(/manage/i)
     await expect(groupPostCreate(ctx(POSTER), { groupId: PAGE, body: 'Half', wonder: { threshold: 2.5 } })).rejects.toThrow()
     await expect(groupPostCreate(ctx(POSTER), { groupId: PAGE, body: 'None', wonder: { threshold: 0 } })).rejects.toThrow()
-    await expect(q(`insert into public.page_posts (group_id, body, kind) values ($1, 'x', 'wonder')`, [PAGE])).rejects.toThrow()
+    await expect(q(`insert into public.page_posts (group_id, body, kind, wonder_threshold) values ($1, 'x', 'news', 3)`, [PAGE])).rejects.toThrow()
+  })
+
+  // [guards F117.1 partial: the goal number is optional (plan #218, 2026-11-01)]
+  it('takes no goal number: the post is still a Proposal, and its view counts who is in with no threshold', async () => {
+    const open = (await groupPostCreate(ctx(POSTER), { groupId: PAGE, body: 'Weekday dog walking?', kind: 'wonder' })).postId
+    expect((await q(`select kind, wonder_threshold from public.page_posts where id = $1`, [open])).rows[0]).toEqual({ kind: 'wonder', wonder_threshold: null })
+    expect(await wonderJoin(ctx(DANA), { postId: open })).toEqual({ inCount: 1 })
+    expect(await view(EVE, open)).toMatchObject({ total: 1, threshold: null })
+    await expect(groupPostEdit(ctx(POSTER), { postId: open, body: 'Weekday dog walking?', kind: 'news' })).rejects.toThrow(/stays a Proposal/)
+    expect((await q(`select kind from public.page_posts where id = $1`, [open])).rows[0]).toEqual({ kind: 'wonder' })
   })
 
   // [guards F117.2]
@@ -192,14 +203,20 @@ describe.skipIf(!RUNNABLE)('F117 — a Wonder', () => {
   })
 
   // [guards F117.7]
-  it("nobody sees who is in except the poster, who sees names and sizes; a member sees their own", async () => {
+  it("anyone who can see it sees who is in by name; only the poster sees each size; a member sees their own", async () => {
     await wonderJoin(ctx(DANA), { postId: WONDER, option: 'S' })
+    await q(`update public.wonder_interest set created_at = now() - interval '1 minute' where post_id = $1 and member_id = $2`, [WONDER, DANA])
     await wonderJoin(ctx(EVE), { postId: WONDER, option: 'M' })
     expect((await view(POSTER, WONDER))!.people!.map((p) => [p.name, p.option]).sort()).toEqual([['Dana', 'S'], ['Eve', 'M']])
     const dana = (await view(DANA, WONDER))!
     expect(dana.mine).toEqual({ option: 'S' })
     expect(dana.people).toBeUndefined()
-    expect((await view(FRAN, WONDER))!.mine).toBeNull()
+    const fran = (await view(FRAN, WONDER))!
+    expect(fran.mine).toBeNull()
+    expect(fran.inNames).toEqual(['Eve', 'Dana'])
+    expect(fran.people).toBeUndefined()
+    expect((await view(POSTER, WONDER))!.inNames).toEqual(['Eve', 'Dana'])
+    expect((await view(FRAN, PLAIN_WONDER))!.inNames).toEqual([])
     expect(await as(DANA, `select member_id, option from public.wonder_interest where post_id = $1`, [WONDER])).toEqual([{ member_id: DANA, option: 'S' }])
     expect(await as(FRAN, `select member_id from public.wonder_interest where post_id = $1`, [WONDER])).toEqual([])
     expect(await as(POSTER, `select count(*)::int as n from public.wonder_interest where post_id = $1`, [WONDER])).toEqual([{ n: 2 }])

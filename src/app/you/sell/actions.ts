@@ -15,7 +15,7 @@
 //      the client can use to surface inline / toast messages.
 
 import { createClient } from '@/lib/supabase-server'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { resolveActionContext } from '@/lib/action-context'
 import { succeeded, failed, type ActionResult } from './action-result'
 import { withTransaction } from '@/actions/_lib/db'
@@ -154,8 +154,8 @@ export async function sellActivateAction(input: {
   // A Page's address is now a cosmetic slug plus its own id (ruled 2026-09-21),
   // which is on the row already. No geography, no joins, nothing to fail.
   const { destinationUrl } = await withTransaction(async (client) => {
-    const groupRes = await client.query<{ slug: string; public_id: string }>(
-      `select slug, public_id from public.groups where id = $1`,
+    const groupRes = await client.query<{ slug: string; public_id: string; place_url_slug: string | null; page_url_slug: string | null }>(
+      `select slug, public_id, place_url_slug, page_url_slug from public.groups where id = $1`,
       [input.groupId],
     )
     const group = groupRes.rows[0]
@@ -165,7 +165,7 @@ export async function sellActivateAction(input: {
         'shop_url_unresolved',
       )
     }
-    return { destinationUrl: canonicalPagePath(group.public_id) }
+    return { destinationUrl: pagePath({ publicId: group.public_id, placeUrlSlug: group.place_url_slug, pageUrlSlug: group.page_url_slug }) }
   })
   return { destinationUrl }
   })

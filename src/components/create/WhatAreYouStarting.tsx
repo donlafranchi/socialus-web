@@ -56,7 +56,7 @@ export function WhatAreYouStarting({ onStart }: { onStart: (kind: StartKind) => 
   }
 
   return (
-    <main className="mx-auto w-full max-w-form gutter py-8 pb-nav">
+    <main className="mx-auto w-full max-w-form gutter py-8 pb-dock">
       <form onSubmit={start} className="flex flex-col gap-4">
         <h1 className="text-title-1 text-[var(--color-fg)]">What are you starting?</h1>
         <p className="text-body-sm text-[var(--color-fg-muted)]">

@@ -236,21 +236,27 @@ describe('#293 — business phone and opening hours', () => {
 })
 
 describe('#285 — tags on a live Page can be edited any time (Don, 2026-10-01)', () => {
-  it('replaces the Page\'s tags with the new set, in the same transaction', async () => {
+  it('#1180 — replaces the Page\'s labels with the new set, in the same transaction', async () => {
     install()
-    const out = await groupUpdate(ctx(), { groupId: GROUP, tags: ['Sourdough', 'rye'] })
+    const out = await groupUpdate(ctx(), { groupId: GROUP, tags: ['Bakery', 'Gardening'] })
     expect(out.patched).toContain('tags')
     const upserts = sql(/insert into public\.tags/)
-    expect(upserts.map(([, p]) => p![1])).toEqual(['sourdough', 'rye'])
+    expect(upserts.map(([, p]) => p![1])).toEqual(['food & drink', 'bakery', 'gardening'])
     const [drop] = sql(/delete from public\.page_tags/)
-    expect(drop![1]).toEqual([GROUP, ['sourdough', 'rye']])
-    expect(sql(/insert into public\.page_tags/)).toHaveLength(2)
+    expect(drop![1]).toEqual([GROUP, ['food & drink', 'bakery', 'gardening']])
+    expect(sql(/insert into public\.page_tags/)).toHaveLength(3)
   })
 
-  it('treats two spellings of one tag as one', async () => {
+  it('#1180 — refuses a free-typed tag', async () => {
     install()
-    await groupUpdate(ctx(), { groupId: GROUP, tags: ['Sour Dough', 'sour  dough'] })
-    expect(sql(/insert into public\.tags/)).toHaveLength(1)
+    await expect(groupUpdate(ctx(), { groupId: GROUP, tags: ['sourdough'] })).rejects.toThrow(/list/i)
+    expect(sql(/page_tags/)).toHaveLength(0)
+  })
+
+  it('#1180 — the owner\'s own pick is pinned', async () => {
+    install()
+    await groupUpdate(ctx(), { groupId: GROUP, tags: ['Bakery'], labelsPinned: true })
+    expect(sql(/labels_pinned/)[0]![1]).toEqual([GROUP, true])
   })
 
   it('refuses to leave a Page with no tags — search matches tags', async () => {
@@ -262,13 +268,13 @@ describe('#285 — tags on a live Page can be edited any time (Don, 2026-10-01)'
 
   it('a stranger cannot change them', async () => {
     install({ isManager: false })
-    await expect(groupUpdate(ctx(STRANGER), { groupId: GROUP, tags: ['x'] })).rejects.toThrow()
+    await expect(groupUpdate(ctx(STRANGER), { groupId: GROUP, tags: ['Bakery'] })).rejects.toThrow()
     expect(sql(/page_tags/)).toHaveLength(0)
   })
 
   it('tags alone touch no column on the Page', async () => {
     install()
-    await groupUpdate(ctx(), { groupId: GROUP, tags: ['bread'] })
+    await groupUpdate(ctx(), { groupId: GROUP, tags: ['Bakery'] })
     expect(sql(/update public\.groups/)).toHaveLength(0)
     expect(appendEvent).toHaveBeenCalledTimes(1)
   })

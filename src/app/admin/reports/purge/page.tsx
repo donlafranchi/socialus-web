@@ -13,7 +13,7 @@ export default async function AdminPurgePage() {
   await requirePagePermission('reports.review')
   const candidates = await fetchPurgeCandidates()
   return (
-    <main className="mx-auto w-full max-w-read gutter py-6 pb-nav" data-testid="admin-purge">
+    <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="admin-purge">
       <p className="text-body-sm">
         <Link href="/admin/reports" className="underline">
           Back to reports
