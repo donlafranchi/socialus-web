@@ -23,10 +23,26 @@
       "facebook": "https://www.facebook.com/nevadacountyhabitat/"
     },
     "products": [
-      {"name": "Homeownership", "url": "https://nchabitat.org/home-buyer/", "kind": "service"},
-      {"name": "Building Homes", "url": "https://nchabitat.org/home-builder/", "kind": "service"},
-      {"name": "ReStore", "url": "https://nchabitat.org/habitat-restore/", "kind": "service"},
-      {"name": "Housing Advocacy", "url": "https://nchabitat.org/advocacy/", "kind": "service"}
+      {
+        "name": "Homeownership",
+        "url": "https://nchabitat.org/home-buyer/",
+        "kind": "service"
+      },
+      {
+        "name": "Building Homes",
+        "url": "https://nchabitat.org/home-builder/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore",
+        "url": "https://nchabitat.org/habitat-restore/",
+        "kind": "service"
+      },
+      {
+        "name": "Housing Advocacy",
+        "url": "https://nchabitat.org/advocacy/",
+        "kind": "service"
+      }
     ],
     "confidence": "Medium-high; own site checked 2026-11-03 (ok): Street of Dreams 2026 listed, volunteer page https://nchabitat.org/get-involved/ live. Street address taken from Habitat's affiliate locator, not the home page. Photos not viewed: stock only. Lead: Habitat affiliate locator, then own site."
   },
@@ -38,10 +54,26 @@
     "address": "8292 Industrial Ave., Roseville, CA 95678",
     "site": "https://foothillshabitat.org/",
     "products": [
-      {"name": "Homeownership", "url": "https://foothillshabitat.org/homeownership/", "kind": "service"},
-      {"name": "Home Repairs", "url": "https://foothillshabitat.org/home-repairs/", "kind": "service"},
-      {"name": "ReStore", "url": "https://foothillshabitat.org/restore/", "kind": "service"},
-      {"name": "ReStore Donations", "url": "https://foothillshabitat.org/restore-donations/", "kind": "service"}
+      {
+        "name": "Homeownership",
+        "url": "https://foothillshabitat.org/homeownership/",
+        "kind": "service"
+      },
+      {
+        "name": "Home Repairs",
+        "url": "https://foothillshabitat.org/home-repairs/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore",
+        "url": "https://foothillshabitat.org/restore/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore Donations",
+        "url": "https://foothillshabitat.org/restore-donations/",
+        "kind": "service"
+      }
     ],
     "confidence": "High; own site checked 2026-11-03 (ok): footer 2026, address and ReStore hours (Wed-Sat 10-4:30) live. Only a Facebook redirect link on the site, so no social field. Photos not viewed: stock only. Lead: Habitat affiliate locator, then own site."
   },

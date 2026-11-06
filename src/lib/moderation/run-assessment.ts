@@ -48,13 +48,14 @@ export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): 
   // photo. Each kind's columns are written out; none is built from input.
   const res = await db.query(
     `select r.category, r.subject_kind,
-            coalesce(g.name, pg.name) as name,
+            coalesce(g.name, pg.name, case when mp.id is not null then 'a post from a member' end) as name,
             case r.subject_kind
               when 'group' then g.description
               when 'page_words' then g.description
               when 'post' then p.body
               when 'post_photo' then p.body
               when 'page_item' then it.title || E'\\n' || coalesce(it.description, '')
+              when 'member_post' then mp.body
             end as content_text,
             case r.subject_kind
               when 'group' then g.photo_url
@@ -67,6 +68,7 @@ export async function runAssessment(reportId: string, db: Db, deps: Deps = {}): 
        left join public.groups g     on r.subject_kind in ('group', 'page_picture', 'page_words') and g.id = r.subject_id
        left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
        left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
+       left join public.member_posts mp on r.subject_kind = 'member_post' and mp.id = r.subject_id
        left join public.groups pg    on pg.id = coalesce(p.group_id, it.group_id)
       where r.id = $1`,
     [reportId],

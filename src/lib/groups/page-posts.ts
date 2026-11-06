@@ -34,6 +34,8 @@ export interface PagePost {
   howToFind?: string | null
   /** #286 — the post's own tags; empty means it carries its Page's. */
   tags?: string[]
+  /** #1180 — the poster picked what it is listed under. */
+  labelsPinned?: boolean
   /** F099 — the post's own photo, only when it is neither hidden nor removed.
    *  Resolved here, on the server, so a hidden URL never reaches a browser. */
   photoUrl?: string | null
@@ -97,7 +99,7 @@ export async function resolvePagePosts(
 ): Promise<PagePost[]> {
   let query = supabase
     .from('page_posts')
-    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, kind, headline, url_slug, wonder_threshold, wonder_options, location:locations(label), post_tags(tags(label))')
+    .select('id, body, created_at, updated_at, starts_at, ends_at, show_until, how_to_find, photo_url, photo_hidden_at, photo_removed_at, hidden_at, sample_kind, series_id, event_key, ticket_url, current_until, kind, headline, url_slug, wonder_threshold, wonder_options, labels_pinned, location:locations(label), post_tags(tags(label))')
     .eq('group_id', groupId)
     // #461 — deleted is gone, for the owner too (page_posts_select_own reads it).
     .is('dissolved_at', null)

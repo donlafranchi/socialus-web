@@ -25,7 +25,7 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 interface Props {
   subjectId: string
   /** F099 — which image: the Page's photo when omitted. */
-  subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_item'
+  subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_item' | 'member_post'
   subjectLabel: string
   /** #625 — on a Page: its own words (name, description) are a report of their own, beside its photo. */
   wordsReportable?: boolean
@@ -38,7 +38,7 @@ interface Props {
   leadItems?: OverflowItem[]
   onSend: (input: {
     subjectId: string
-    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post'
     category: ReportCategory
     body: string
   }) => Promise<{ ok: true } | { ok: false; message: string }>
@@ -46,7 +46,7 @@ interface Props {
 
 export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel, leadItems = [] }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | undefined>(subjectKind)
+  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post' | undefined>(subjectKind)
   const open = (kind: typeof reporting) => {
     setReporting(kind)
     if (loggedIn) setSheetOpen(true)

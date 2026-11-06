@@ -97,11 +97,11 @@ export interface QueuedReport {
   /** Non-null means the photo is currently removed. Reversible. */
   removedAt: Date | null
   /** What was reported: the Page's photo, a post body, the Page picture, or one post's photo. */
-  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post'
   /** The id of the thing reported: a Page for 'group' and 'page_picture', a post for 'post' and 'post_photo'. */
   subjectId: string
-  /** The Page it belongs to, for the name and owner. */
-  groupId: string
+  /** The Page it belongs to, for the name and owner. Null for a member's own post (#1183): the name is the poster's. */
+  groupId: string | null
   groupName: string
   groupSlug: string | null
   /** The hidden photo. Rendered only behind a deliberate tap. */
@@ -207,17 +207,17 @@ export async function fetchReviewQueue(
        -- branch is written out in full: the table and columns differ.
        select r.id as report_id, r.subject_kind, r.subject_id, g.id as group_id,
               g.photo_url as url, g.photo_hidden_at as hidden_at, g.photo_removed_at as removed_at,
-              g.description as content_text
+              g.description as content_text, null::uuid as poster_id
          from public.reports r join public.groups g on g.id = r.subject_id
         where r.subject_kind = 'group'
        union all
        select r.id, r.subject_kind, r.subject_id, g.id,
-              g.picture_url, g.picture_hidden_at, g.picture_removed_at, null::text
+              g.picture_url, g.picture_hidden_at, g.picture_removed_at, null::text, null::uuid
          from public.reports r join public.groups g on g.id = r.subject_id
         where r.subject_kind = 'page_picture'
        union all
        select r.id, r.subject_kind, r.subject_id, g.id,
-              pp.photo_url, pp.photo_hidden_at, pp.photo_removed_at, null::text
+              pp.photo_url, pp.photo_hidden_at, pp.photo_removed_at, null::text, null::uuid
          from public.reports r
          join public.page_posts pp on pp.id = r.subject_id
          join public.groups g on g.id = pp.group_id
@@ -225,13 +225,13 @@ export async function fetchReviewQueue(
        union all
        -- #625 — a Page's own words: its name and description, hidden or removed together.
        select r.id, r.subject_kind, r.subject_id, g.id,
-              null::text, g.words_hidden_at, g.words_removed_at, g.name || E'\n' || coalesce(g.description, '')
+              null::text, g.words_hidden_at, g.words_removed_at, g.name || E'\n' || coalesce(g.description, ''), null::uuid
          from public.reports r join public.groups g on g.id = r.subject_id
         where r.subject_kind = 'page_words'
        union all
        -- #909 — one featured product or service: its photo, and its name and details.
        select r.id, r.subject_kind, r.subject_id, g.id,
-              it.photo_url, it.hidden_at, it.removed_at, it.title || E'\\n' || coalesce(it.description, '')
+              it.photo_url, it.hidden_at, it.removed_at, it.title || E'\\n' || coalesce(it.description, ''), null::uuid
          from public.reports r
          join public.items it on it.id = r.subject_id
          join public.groups g on g.id = it.group_id
@@ -239,11 +239,18 @@ export async function fetchReviewQueue(
        union all
        -- A post body is hidden or removed on its own, and has no image to show.
        select r.id, r.subject_kind, r.subject_id, g.id,
-              null::text, p.hidden_at, p.removed_at, p.body
+              null::text, p.hidden_at, p.removed_at, p.body, null::uuid
          from public.reports r
          join public.page_posts p on p.id = r.subject_id
          join public.groups g on g.id = p.group_id
         where r.subject_kind = 'post'
+       union all
+       -- #1183 — a member's own post: its words, and no Page; the poster stands in for the owner.
+       select r.id, r.subject_kind, r.subject_id, null::uuid,
+              null::text, mp.hidden_at, mp.removed_at, mp.body, mp.member_id
+         from public.reports r
+         join public.member_posts mp on mp.id = r.subject_id
+        where r.subject_kind = 'member_post'
      )
      select r.id              as report_id,
             r.body            as body,
@@ -255,13 +262,13 @@ export async function fetchReviewQueue(
             s.subject_id      as subject_id,
             case when s.subject_kind = 'post' then s.subject_id end as post_id,
             pg.id             as group_id,
-            pg.name           as group_name,
+            coalesce(pg.name, m.display_name) as group_name,
             pg.slug           as group_slug,
             s.url             as photo_url,
             s.content_text    as content_text,
             m.display_name    as owner_display_name,
             m.handle          as owner_handle,
-            pg.founder_member_id as poster_id,
+            coalesce(s.poster_id, pg.founder_member_id) as poster_id,
             (select json_build_object('category', a.category, 'severity', a.severity, 'confidence', a.confidence, 'outcome', a.outcome, 'reason', a.reason, 'skipped', a.skipped_reason)
                from public.report_assessments a where a.report_id = r.id order by a.created_at desc limit 1) as ai,
             (select json_build_object('kind', a.kind, 'reason', a.wrong_reason, 'note', a.note, 'at', a.created_at)
@@ -279,11 +286,12 @@ export async function fetchReviewQueue(
        from public.reports r
        left join public.members rm on rm.id = r.reporter_member_id
        join subjects s on s.report_id = r.id
-       join public.groups  pg on pg.id = s.group_id
-       left join public.members m on m.id = pg.founder_member_id
+       left join public.groups  pg on pg.id = s.group_id
+       left join public.members m on m.id = coalesce(s.poster_id, pg.founder_member_id)
       where true
         -- #280 — builder reports and builder Pages reach only the builder operator.
         and ($2 or (not public.is_builder(r.reporter_member_id) and not public.is_builder(pg.founder_member_id)))
+        and ($2 or not coalesce(public.is_builder(s.poster_id), false))
         -- #626 — a first report only sent the owner a courtesy notice; it is staff work once the item hides or is decided.
         and (s.hidden_at is not null or r.reviewed_at is not null
              or not exists (select 1 from public.member_notices n where n.report_id = r.id and n.kind = 'courtesy'))
@@ -315,7 +323,7 @@ export async function fetchReviewQueue(
     removedAt: (r.removed_at as Date | null) ?? null,
     subjectKind: r.subject_kind as QueuedReport['subjectKind'],
     subjectId: r.subject_id as string,
-    groupId: r.group_id as string,
+    groupId: (r.group_id as string | null) ?? null,
     groupName: r.group_name as string,
     groupSlug: (r.group_slug as string | null) ?? null,
     photoUrl: (r.photo_url as string | null) ?? null,

@@ -105,6 +105,35 @@ export const RESOURCES: Resource[] = [
     rest: NONE,
   },
   {
+    name: 'Posts without a Page (member_posts), by table: only your own',
+    sql: 'select count(*)::int n from public.member_posts',
+    total: 1,
+    cells: { follower: own(1) },
+    rest: NONE,
+  },
+  {
+    name: 'Answers to posts without a Page (member_post_responses), by table: only your own',
+    sql: 'select count(*)::int n from public.member_post_responses',
+    total: 1,
+    cells: { member: own(1) },
+    rest: NONE,
+  },
+  {
+    name: 'A post without a Page, through member_posts_read: every signed-in member, never a visitor',
+    sql: "select jsonb_array_length(public.member_posts_read(p_post_id => '0e000000-0000-4000-8000-000000009901'))::int n",
+    total: 1,
+    cells: { signedOut: NONE },
+    rest: all(1),
+  },
+  {
+    name: 'Who answered a post without a Page, through member_posts_read: its poster only',
+    // Anyone else gets answers as JSON null, so it is read as an empty list.
+    sql: "select count(*)::int n from jsonb_array_elements(coalesce(nullif(public.member_posts_read(p_post_id => '0e000000-0000-4000-8000-000000009901') -> 0 -> 'answers', 'null'::jsonb), '[]'::jsonb))",
+    total: 1,
+    cells: { follower: own(1) },
+    rest: NONE,
+  },
+  {
     name: 'Members (members): only yourself',
     sql: 'select count(*)::int n from public.members',
     total: 13,

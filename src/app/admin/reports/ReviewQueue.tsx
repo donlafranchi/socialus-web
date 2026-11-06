@@ -58,7 +58,7 @@ const underAppeal = (s: ReviewSubject) => s.status === 'hidden' && s.answer !== 
 const matches = (s: ReviewSubject, show: Show) =>
   show === 'all' || (show === 'appeal' ? underAppeal(s) : s.status === show)
 
-const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Page name and description', page_item: 'Product or service' } as const
+const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Page name and description', page_item: 'Product or service', member_post: 'Post from a member' } as const
 
 export function ReviewQueue({
   subjects,
