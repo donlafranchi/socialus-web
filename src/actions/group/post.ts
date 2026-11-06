@@ -30,7 +30,7 @@ import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/con
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
-import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
+import { ensureLabelRows, labelsInput, labelsPinnedInput, storedLabels } from './labels'
 import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { seriesSchema, isoWeekdayOf } from '../../lib/posts/series'
@@ -39,10 +39,10 @@ import { METRO_TIME_ZONE } from '../../lib/metro/metro-time'
 import { WONDER_OPTION_MAX, WONDER_OPTIONS_MAX } from '../../lib/wonders/roles'
 import { DATE_NEEDED, POST_KINDS, HEADLINE_MAX, SALE_MAX_DAYS, inferKind, needsDate, type PostKind } from '../../lib/posts/kinds'
 
-/** F117 criterion 1 — a Wonder: a whole-number threshold and an optional list of sizes the poster names. */
+/** F117 criterion 1 — a Proposal (internally a wonder): an optional whole-number goal (plan #218, 2026-11-01) and optional sizes. */
 const wonder = z
   .object({
-    threshold: z.number().int().min(1).max(1_000_000),
+    threshold: z.number().int().min(1).max(1_000_000).optional(),
     options: z.array(z.string().trim().min(1).max(WONDER_OPTION_MAX)).max(WONDER_OPTIONS_MAX).optional(),
   })
   .optional()
@@ -82,8 +82,9 @@ const PHOTO_MESSAGE = 'That photo didn’t come from your uploads.'
 const kind = z.enum(POST_KINDS).optional()
 /** plan #230 — the card's one line, matching the column's check. */
 const headline = z.string().trim().min(1).max(HEADLINE_MAX).optional()
-const SALE_TOO_LONG = `A sale can run up to ${SALE_MAX_DAYS} days from today.`
-const WONDER_NEEDS_THRESHOLD = 'Count me in needs how many people it takes.'
+const SALE_TOO_LONG = `An offer can run up to ${SALE_MAX_DAYS} days from today.`
+const PROPOSAL_ONLY_NEW = 'A post can’t become a Proposal once it’s up. Start a new one to propose something.'
+const PROPOSAL_STAYS = 'A Proposal stays a Proposal. Start a new post for something else.'
 
 function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: string | null | undefined, now: Date) {
   if (needsDate(k) && !startsAt) throw new ValidationError(DATE_NEEDED[k as keyof typeof DATE_NEEDED])
@@ -93,36 +94,24 @@ function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: str
   }
 }
 
-/** #286 — a post's own tags (Don, 2026-10-01). None means it carries its
- *  Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
-const tags = z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional()
+/** #286 — a post's own tags (Don, 2026-10-01); since #1180, labels from the shared list. None means it carries
+ *  its Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
+const tags = labelsInput
 
 type Client = { query: (sql: string, params: unknown[]) => Promise<unknown> }
 
-/** Replaces a post's tags with this set, in the caller's transaction. */
+/** Replaces a post's labels with this set, in the caller's transaction. */
 async function writePostTags(client: Client, postId: string, labels: string[], memberId: string) {
-  const set = new Map<string, string>()
-  for (const label of labels.filter(isValidTagLabel)) {
-    const n = normalizeTag(label)
-    if (!set.has(n)) set.set(n, label.trim())
-  }
-  for (const [normalized, label] of set) {
-    await client.query(
-      `insert into public.tags (label, normalized, created_by)
-       values ($1, $2, $3)
-       on conflict (normalized) do nothing`,
-      [label, normalized, memberId],
-    )
-  }
+  const keys = await ensureLabelRows(client, labels, memberId)
   await client.query(
     `delete from public.post_tags ptg
       using public.tags t
       where ptg.tag_id = t.id
         and ptg.post_id = $1
         and t.normalized <> all($2)`,
-    [postId, [...set.keys()]],
+    [postId, keys],
   )
-  for (const normalized of set.keys()) {
+  for (const normalized of keys) {
     await client.query(
       `insert into public.post_tags (post_id, tag_id)
        select $1, t.id from public.tags t where t.normalized = $2
@@ -142,6 +131,7 @@ export const groupPostCreateInput = z
     locationId,
     howToFind,
     tags,
+    labelsPinned: labelsPinnedInput,
     photoUrl,
     /** F074.1 — weekly on chosen weekdays, optional start and end. This post is the first occurrence. */
     series: seriesSchema.optional(),
@@ -161,6 +151,7 @@ export const groupPostEditInput = z.object({
   locationId,
   howToFind,
   tags,
+  labelsPinned: labelsPinnedInput,
   photoUrl,
   kind,
   headline,
@@ -189,7 +180,7 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $' | 'kind = $' | 'headline = $'
+type PostSetClause = 'labels_pinned = $' | 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $' | 'kind = $' | 'headline = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
@@ -253,9 +244,9 @@ export const groupPostCreate = defineHandler(
     const memberId = requireMember(ctx, 'group.post_create')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
     checkShowUntil(input, ctx.now())
-    if (input.kind === 'wonder' && !input.wonder) throw new ValidationError(WONDER_NEEDS_THRESHOLD)
-    const postKind: PostKind = input.wonder ? 'wonder' : (input.kind ?? inferKind(input))
+    const postKind: PostKind = input.wonder || input.kind === 'wonder' ? 'wonder' : (input.kind ?? inferKind(input))
     checkKind(postKind, input.startsAt, input.endsAt, ctx.now())
+    const labels = input.tags === undefined ? undefined : storedLabels(input.tags)
 
     // F074.1: the series repeats at its first post's time of day, and that post stands on one of the
     // chosen weekdays, in the metro's zone and inside the start and end dates — so the creator never
@@ -291,8 +282,8 @@ export const groupPostCreate = defineHandler(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
             lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until,
-            kind, wonder_threshold, wonder_options, headline)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+            kind, wonder_threshold, wonder_options, headline, labels_pinned)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
          returning id, created_at`,
         [
           input.groupId,
@@ -317,11 +308,12 @@ export const groupPostCreate = defineHandler(
           input.wonder?.threshold ?? null,
           wonderOptions(input.wonder?.options),
           input.headline ?? null,
+          input.labelsPinned ?? false,
         ],
       )
       const postId = inserted.rows[0]!.id
       const createdAt = new Date(inserted.rows[0]!.created_at).toISOString()
-      if (input.tags?.length) await writePostTags(client, postId, input.tags, memberId)
+      if (labels?.length) await writePostTags(client, postId, labels, memberId)
 
       const txCtx: ActionContext = { ...ctx, db: client }
       await appendEvent(txCtx, 'group_events', {
@@ -344,6 +336,7 @@ export const groupPostEdit = defineHandler(
     const memberId = requireMember(ctx, 'group.post_edit')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
     checkShowUntil(input, ctx.now())
+    const labels = input.tags === undefined ? undefined : storedLabels(input.tags)
 
     return withTransaction(async (client) => {
       const found = await client.query<{
@@ -372,7 +365,9 @@ export const groupPostEdit = defineHandler(
 
       await requireManagingRole(client, 'group.post_edit', post.group_id, memberId)
       // plan #230 — the kind and the date are checked together: a dated kind keeps a date.
-      if (input.kind === 'wonder' && post.kind !== 'wonder') throw new ValidationError(WONDER_NEEDS_THRESHOLD)
+      if (input.kind === 'wonder' && post.kind !== 'wonder') throw new ValidationError(PROPOSAL_ONLY_NEW)
+      // Its in and helper rows belong to it; the database no longer stops a goal-less one changing kind.
+      if (post.kind === 'wonder' && input.kind !== undefined && input.kind !== 'wonder') throw new ValidationError(PROPOSAL_STAYS)
       if (input.kind !== undefined || input.startsAt !== undefined) {
         const k = (input.kind ?? post.kind ?? 'news') as PostKind
         const start = input.startsAt !== undefined ? input.startsAt : post.starts_at ? new Date(post.starts_at).toISOString() : null
@@ -411,6 +406,7 @@ export const groupPostEdit = defineHandler(
       }
       if (input.kind !== undefined) patch.push({ clause: 'kind = $', value: input.kind })
       if (input.headline !== undefined) patch.push({ clause: 'headline = $', value: input.headline })
+      if (input.labelsPinned !== undefined) patch.push({ clause: 'labels_pinned = $', value: input.labelsPinned })
       for (const f of patch) {
         params.push(f.value)
         sets.push(`${f.clause}${params.length}`)
@@ -428,7 +424,7 @@ export const groupPostEdit = defineHandler(
         `update public.page_posts set ${sets.join(', ')} where id = $1`,
         params,
       )
-      if (input.tags !== undefined) await writePostTags(client, input.postId, input.tags, memberId)
+      if (labels !== undefined) await writePostTags(client, input.postId, labels, memberId)
 
       // F102 criterion 2 — fix and repost. Editing a post a report hid shows it
       // again at once, once; its reports stay on the row for review. Never after

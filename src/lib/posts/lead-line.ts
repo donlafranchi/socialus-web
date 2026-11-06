@@ -1,6 +1,7 @@
 // plan #230 (Don, 2026-10-31): "I need people to see exactly what's being offered or described." A post card
 // opens with KIND · WHEN · WHERE, built from fields and never from the body, then a one-line headline.
 import { METRO_TIME_ZONE } from '@/lib/metro/metro-time'
+import { classifyEvent, type EventType } from '@/lib/unclaimed/event-type'
 import { POST_KIND_WORD, type PostKind } from './kinds'
 
 const DAY = 86_400_000
@@ -12,7 +13,18 @@ export interface LeadLineInput {
   postedAt?: string | null
   where?: string | null
   sample?: boolean
-  wonder?: { in: number; threshold: number } | null
+  wonder?: { in: number; threshold: number | null } | null
+  /** #1127 — an imported venue show: the lead line names the kind of show and the venue is its where. */
+  show?: { type: EventType; venue: string } | null
+}
+
+/** #1127 — the kind word for a venue show. Draft copy (human-review). */
+export const SHOW_WORD: Partial<Record<EventType, string>> = {
+  music: 'Live music',
+  comedy: 'Comedy',
+  theater: 'Theater',
+  sports: 'Sports',
+  family: 'Family',
 }
 
 const parts = (d: Date, tz: string) =>
@@ -60,27 +72,53 @@ function when(p: LeadLineInput, now: Date, tz: string): string | null {
     case 'event':
     case 'reminder':
       return start ? `${dayLabel(start, now, tz)} ${timeRange(start, end, tz)}` : null
+    case 'limited':
+      return start ? `${dayLabel(start, now, tz)} ${clock(start, tz)}` : posted(p, now, tz)
     case 'sale': {
       const through = end ?? (start ? new Date(start.getTime() + 7 * DAY) : null)
       return through ? `Through ${dayLabel(through, now, tz)}` : null
     }
     case 'wonder':
-      return p.wonder && p.wonder.threshold > 0 ? `${p.wonder.in} of ${p.wonder.threshold}` : null
-    default: {
-      const posted = valid(p.postedAt)
-      return posted ? dayLabel(posted, now, tz) : null
-    }
+      if (!p.wonder) return null
+      return p.wonder.threshold ? `${p.wonder.in} of ${p.wonder.threshold}` : `${p.wonder.in} in`
+    default:
+      return posted(p, now, tz)
   }
 }
 
-/** "Event · Sat 5–8pm · Midtown". The card sets it in small caps; samples read "Sample sale · …". */
-export function leadLine(p: LeadLineInput, now: Date = new Date(), tz: string = METRO_TIME_ZONE): string {
-  const word = POST_KIND_WORD[p.kind]
-  const kind = p.sample ? `Sample ${word.toLowerCase()}` : word
-  return [kind, when(p, now, tz), p.where?.trim() || null].filter(Boolean).join(' · ')
+function posted(p: LeadLineInput, now: Date, tz: string): string | null {
+  const at = valid(p.postedAt)
+  return at ? dayLabel(at, now, tz) : null
 }
 
-const SAMPLE_PREFIX = /^sample\s*[·:\-–—]\s*/i
+/** "Event · Sat 5–8pm · Midtown". The card sets it in small caps; samples read "Sample offer · …". */
+export function leadLine(p: LeadLineInput, now: Date = new Date(), tz: string = METRO_TIME_ZONE): string {
+  const { head, where } = leadLineParts(p, now, tz)
+  return where ? `${head} · ${where}` : head
+}
+
+/** #1127 — the lead line as what · when (kept whole) and where (the part a narrow card cuts short). */
+export function leadLineParts(p: LeadLineInput, now: Date = new Date(), tz: string = METRO_TIME_ZONE): { head: string; where: string | null } {
+  const word = (p.show && SHOW_WORD[p.show.type]) || POST_KIND_WORD[p.kind]
+  const kind = p.sample ? `Sample ${word.toLowerCase()}` : word
+  return { head: [kind, when(p, now, tz)].filter(Boolean).join(' · '), where: (p.show?.venue ?? p.where)?.trim() || null }
+}
+
+/** #1127 — an imported venue show (venue-events showBody), known by its calendar line; null for anything a member wrote. */
+export function venueShow(p: { body: string | null | undefined; tags: readonly string[] }): { type: EventType; venue: string } | null {
+  const venue = p.body ? CALENDAR_RE.exec(p.body)?.[1]?.trim() : null
+  if (!venue) return null
+  const title = p.body!.split('\n')[0]!.replace(new RegExp(` at ${escapeRe(venue)}$`), '')
+  return { type: classifyEvent(title, p.tags), venue }
+}
+
+// CALENDAR_LINE as a pattern; the test builds its body with CALENDAR_LINE, so the two cannot drift apart unseen.
+const CALENDAR_RE = /\n\nFrom (.+?)'s own calendar: /
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** A sample body's opening "Sample · ": the lead line says it, so the card and the Page drop it from the words below. */
+export const SAMPLE_PREFIX = /^sample\s*[·:\-–—]\s*/i
 
 /** The card's one line: the headline, else (an older post) the first sentence of the body without a leading
  *  "Sample · " or the Page's own name. The card truncates it to one line. */
@@ -94,6 +132,33 @@ export function cardHeadline(p: { headline?: string | null; body: string | null;
     const rest = s.slice(name.length).replace(/^\s*[:·,\-–—]\s*/, '')
     if (rest) s = rest.charAt(0).toUpperCase() + rest.slice(1)
   }
+  if (name) s = s.replace(new RegExp(`\\s+at\\s+${escapeRe(name)}\\.?$`, 'i'), '')
   const sentence = /^(.+?[.!?])(\s|$)/.exec(s)
   return (sentence ? sentence[1]! : s).trim()
 }
+
+// Don, 2026-11-02: "Also should show a line or two about the post". Paragraphs a card never shows: a sample's disclaimer
+// (the lead line says Sample), and an imported show's calendar and photo-credit lines.
+const NOT_PREVIEW = /^(This is a sample post\b|From .+'s own calendar: |Photo: )/
+
+/** The card's line or two under the headline: the body without what the headline already says. Null when nothing is left. */
+export function cardPreview(p: { headline?: string | null; body: string | null; pageName: string }): string | null {
+  const paras = (p.body ?? '').trim().replace(SAMPLE_PREFIX, '').split(/\n+/).map((l) => l.trim()).filter((l) => l && !NOT_PREVIEW.test(l))
+  if (paras.length === 0) return null
+  const h = p.headline?.trim()
+  if (h) {
+    // Only a whole repeated line or clause: "Open mic: sign up" drops "Open mic", "Open mic night" keeps it.
+    const rest = paras[0]!.slice(h.length)
+    if (paras[0]!.toLowerCase().startsWith(h.toLowerCase()) && /^(\s*[.:·,!?\-–—]|$)/.test(rest)) paras[0] = rest.replace(/^[\s.:·,!?\-–—]+/, '')
+  } else {
+    // The headline came from the first line's first sentence; the rest of that line stays.
+    const sentence = /^(.+?[.!?])(\s|$)/.exec(paras[0]!)
+    paras[0] = sentence ? paras[0]!.slice(sentence[1]!.length).trim() : ''
+  }
+  const text = paras.filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()
+  if (!text) return null
+  // About two lines' worth: the clamp is visual, and a screen reader reads the card's link whole.
+  return text.length <= PREVIEW_MAX ? text : `${text.slice(0, PREVIEW_MAX + 1).replace(/\s+\S*$/, '').replace(/[\s.,;:·\-–—]+$/, '')}…`
+}
+
+const PREVIEW_MAX = 200

@@ -2,12 +2,13 @@ import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AppHeader } from "@/components/shell/AppHeader"
-import { CreateDock } from "@/components/create/CreateDock"
-import { NavVisibilityProvider } from "@/components/NavVisibilityProvider"
+import { ExploreSearchProvider } from "@/components/shell/explore-search"
 import { SiteFooter } from "@/components/shell/SiteFooter"
 import { ServiceWorkerRegister } from "@/components/shell/ServiceWorkerRegister"
 import { NewVersionNotice } from "@/components/shell/NewVersionNotice"
 import { PushLandingBar } from "@/components/notify/PushLandingBar"
+import { ShelfSaveCredit } from "@/components/browse/ShelfLogging"
+import { MapTapCounter } from "@/components/map/MapTapCounter"
 import { siteMetadataBase } from "@/lib/site-url"
 
 const inter = Inter({
@@ -62,9 +63,13 @@ export default function RootLayout({
     >
       <body className="h-full font-sans">
         <ServiceWorkerRegister />
+        {/* F121 — a save on a card tapped from a shelf counts for that shelf. */}
+        <ShelfSaveCredit />
+        {/* plan #258 — Show on map and Directions taps, counted per day. */}
+        <MapTapCounter />
         {/* #958 — the build this page came from; empty on a dev server, which never checks. */}
         <NewVersionNotice buildId={process.env.VERCEL_GIT_COMMIT_SHA ?? ""} />
-        <NavVisibilityProvider>
+        <ExploreSearchProvider>
           <div className="flex min-h-full flex-col">
             <AppHeader />
             {/* #296 — content stops growing at 1680 and centres above it. */}
@@ -72,8 +77,7 @@ export default function RootLayout({
             <div className="mx-auto w-full max-w-shell flex-1">{children}</div>
             <SiteFooter />
           </div>
-          <CreateDock />
-        </NavVisibilityProvider>
+        </ExploreSearchProvider>
       </body>
     </html>
   )

@@ -50,6 +50,7 @@ export async function autoRestoreAfterAssessment(reportId: string, reads: Read[]
           for update of r`,
       [reportId],
     )
+    // A member's own post (#1183) has no Page and is not joined above: a person decides it.
     const subject = subjectRes.rows[0]
     if (!subject) return 'skipped'
 

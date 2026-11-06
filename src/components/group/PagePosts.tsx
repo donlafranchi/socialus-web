@@ -24,18 +24,19 @@
 // handler re-checks. Acceptance 4: there is no delete control, and no handler
 // behind one.
 
+import { HeartButton, SaveButton } from '@/components/hearts/HeartSave'
+import { HeartedBy } from '@/components/hearts/HeartedBy'
+import type { HeartView } from '@/lib/hearts/heart-view'
 import { pinLabel, DROPPED_PIN } from '@/lib/places/pin-label'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ReportControl } from './ReportControl'
 import type { ReportCategory } from '@/lib/reports/categories'
 import type { PagePost } from '@/lib/groups/page-posts'
-import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
-import { isValidTagLabel } from '@/lib/groups/tags'
+import { ListedUnder, currentLabels, labelsToSend, savedValue, UNPINNED, type ListedValue } from '@/components/labels/ListedUnder'
 import { ANNOUNCE_ANCHOR } from './announce-anchor'
 import { announcementAnchor, announcementIdFromHash } from './announcement-anchor'
 import { useAnnouncementAnchor } from './use-announcement-anchor'
 import { SharePageButton } from './SharePageButton'
-import { TypeMark, SampleLabel, SampleWatermark, SampleNote } from '@/components/cards/CardMarks'
 import { METRO_TIME_ZONE, formatMetroDateTime, formatPostedDate, metroWallTimeToInstant } from '@/lib/metro/metro-time'
 import { metroDate } from '@/lib/metro/metro-week'
 import { firstOccurrenceDate } from '@/lib/posts/series'
@@ -53,9 +54,11 @@ import {
   type AnnouncementWhenWhere,
 } from './AnnouncementFields'
 import { PostKindPicker } from './PostKindPicker'
-import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, isPostKind, needsDate, type PostKind } from '@/lib/posts/kinds'
-import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
+import { DATE_NEEDED, HEADLINE_MAX, POST_KINDS, SAMPLE_POST_KIND, needsDate, type PostKind } from '@/lib/posts/kinds'
+import { kindFromComposeParam } from '@/lib/create/create-targets'
+import { cardHeadline, leadLine, venueShow, SAMPLE_PREFIX } from '@/lib/posts/lead-line'
 import { postPath } from '@/lib/posts/post-path'
+import { pageTimeline } from '@/lib/posts/timeline'
 import { Sheet } from '@/components/ui/Sheet'
 import { HiddenPhotoNotice } from '@/components/group/HiddenPhotoNotice'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
@@ -71,11 +74,10 @@ import type { WonderView } from '@/lib/wonders/wonder-view'
 import { WONDER_OPTIONS_MAX, WONDER_OPTION_MAX } from '@/lib/wonders/roles'
 
 const BODY_LIMIT = 5000
-const LATEST = 3
-/** #913 — an undated post past its window (the database's post_current_until) sits under Earlier. */
-const isEarlier = (p: PagePost) => !p.startsAt && p.current === false
-const latestIds = (posts: PagePost[]) =>
-  [...posts].filter((p) => !isEarlier(p)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, LATEST).map((p) => p.id)
+
+/** The lead line's kind: the post's own, else (a sample read without one) its sample kind's, so a sample always says Sample. */
+const leadKind = (post: Pick<PagePost, 'kind' | 'sampleKind'>): PostKind | undefined =>
+  post.kind ?? (post.sampleKind ? SAMPLE_POST_KIND[post.sampleKind] : undefined)
 const TRY_AGAIN = "That didn't go through. Mind trying again?"
 /** F072 § Not this rules out all-day announcements, so a date with no time has
  *  nothing to become. Said as a sentence rather than refused silently. */
@@ -97,12 +99,13 @@ interface PostInput {
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
+  labelsPinned?: boolean
   /** F099 — one photo of its own, or none. */
   photoUrl?: string | null
   /** F074.1 — weekly on chosen weekdays; this post is the first occurrence. */
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
   /** F117 — a Wonder: a threshold and optional sizes. */
-  wonder?: { threshold: number; options?: string[] }
+  wonder?: { threshold?: number; options?: string[] }
   /** plan #230 — what it is, and its one line. */
   kind?: PostKind
   headline?: string
@@ -123,9 +126,9 @@ const EDIT_KINDS = POST_KINDS.filter((k) => k !== 'wonder')
 const splitOptions = (raw: string) => [...new Set(raw.split(',').map((o) => o.trim().slice(0, WONDER_OPTION_MAX)).filter(Boolean))].slice(0, WONDER_OPTIONS_MAX)
 
 /** F117 — what a Wonder shows before the server has a view of it: nobody in yet. */
-const freshWonder = (w: { threshold: number; options: string[] }, manages: boolean): WonderView => ({
+const freshWonder = (w: { threshold?: number | null; options: string[] }, manages: boolean): WonderView => ({
   total: 0,
-  threshold: w.threshold,
+  threshold: w.threshold ?? null,
   options: w.options,
   mine: null,
   myOffers: [],
@@ -141,6 +144,7 @@ interface EditInput {
   showUntil?: string | null
   locationId?: string | null
   tags?: string[]
+  labelsPinned?: boolean
   /** F099 — absent leaves the photo alone; null removes it. */
   photoUrl?: string | null
   kind?: PostKind
@@ -164,6 +168,8 @@ interface Props {
   memberId?: string | null
   /** F099 — the Page's name, and its kind's placeholder: what a post without a photo of its own shows. */
   pageName?: string
+  /** #1180 — the Page's own labels: what a post is listed under when its words match nothing. */
+  pageTags?: string[]
   /** F099 — the Page picture, resolved (null when none, hidden or removed). */
   pictureUrl?: string | null
   artKind?: ArtKind | null
@@ -184,6 +190,8 @@ interface Props {
   reminders?: { viewer: ViewerReminders } & RemindActions
   /** F117 — each Wonder's view for this viewer, and what its controls call. */
   wonders?: { views: Record<string, WonderView> } & WonderActions
+  /** #1171 — hearts on this Page's posts: counts, and names for its managers (heart_view). */
+  hearts?: HeartView | null
   onPost: (input: PostInput) => Promise<
     { ok: true; data: { postId: string; createdAt: string } } | { ok: false; message: string; code: string }
   >
@@ -258,6 +266,7 @@ export function PagePosts({
   isPrivate = false,
   memberId = null,
   pageName = '',
+  pageTags = [],
   pictureUrl = null,
   artKind = null,
   report,
@@ -269,12 +278,13 @@ export function PagePosts({
   seriesComposer = SERIES_COMPOSER_ON,
   reminders,
   wonders,
+  hearts,
   pagePath = null,
   focusPostId = null,
 }: Props) {
   const [items, setItems] = useState<PagePost[]>(posts)
   const [draft, setDraft] = useState('')
-  // plan #230 — the kind, picked first (News to start, as Google Business Profile's "Add update" does), and the headline.
+  // plan #230 — the kind, picked first (Update to start, as Google Business Profile's "Add update" does), and the headline.
   const [kind, setKind] = useState<PostKind>('news')
   const [headline, setHeadline] = useState('')
   const [editKind, setEditKind] = useState<PostKind>('news')
@@ -282,7 +292,7 @@ export function PagePosts({
   const [when, setWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
   const [audience, setAudience] = useState<Audience>('anyone')
   const [photo, setPhoto] = useState<string | null>(null)
-  // F117 — the composer's Wonder (the Count me in kind): how many, and the sizes.
+  // F117 — the composer's Proposal (internally a wonder): an optional goal, and the sizes.
   const asWonder = kind === 'wonder'
   const [threshold, setThreshold] = useState('')
   const [options, setOptions] = useState('')
@@ -293,28 +303,45 @@ export function PagePosts({
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editWhen, setEditWhen] = useState<AnnouncementWhenWhere>(emptyWhenWhere)
-  // #286 — a post's own tags; none means it carries its Page's.
-  const [tags, setTags] = useState<TagInputValue>({ tags: [], draft: '' })
-  const [editTags, setEditTags] = useState<TagInputValue>({ tags: [], draft: '' })
-  const tagSet = (v: TagInputValue) => [...v.tags, v.draft].filter(isValidTagLabel)
+  // #1180 — what a post is listed under: the word match on what it says, else the Page's, until the poster picks.
+  const [listed, setListed] = useState<ListedValue>(UNPINNED)
+  const [editListed, setEditListed] = useState<ListedValue>(UNPINNED)
+  const words = (line: string, body: string) => ({ text: `${line} ${body}`, pageTags })
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
   // with a compose box where you expected it. Shared with the signed-out list
   // (F093), because an `#announcement-<id>` link has to land the same way on
   // both and two copies of the effect is how they stop doing that.
-  // #462 — newest first; the latest three in a row, the rest a tap away.
-  const newest = [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  const sorted = newest.filter((p) => !isEarlier(p))
-  const earlier = newest.filter(isEarlier)
-  const [showAll, setShowAll] = useState(false)
-  // A link to an older post opens the list, so the post it names is there to land on.
+  // plan #230 (Don, 10-31) — a timeline anchored at now: the past a tap away above, coming up below.
+  const { past, latest, upcoming } = pageTimeline(items)
+  const [showEarlier, setShowEarlier] = useState(false)
+  const nowRef = useRef<HTMLDivElement>(null)
+  const nowTop = useRef<number | null>(null)
+  // Opening the past grows the column upward: the now marker stays where it was, and the past is a scroll up.
+  useLayoutEffect(() => {
+    if (nowTop.current === null || !nowRef.current) return
+    window.scrollBy(0, nowRef.current.getBoundingClientRect().top - nowTop.current)
+    nowTop.current = null
+  }, [showEarlier])
+  const toggleEarlier = () => {
+    nowTop.current = nowRef.current?.getBoundingClientRect().top ?? null
+    setShowEarlier(!showEarlier)
+  }
+  // A link to a past post opens Earlier, so the post it names is there to land on.
   useEffect(() => {
     const id = announcementIdFromHash(window.location.hash) ?? focusPostId
-    if (!id || !posts.some((p) => p.id === id) || latestIds(posts).includes(id)) return
-    const frame = requestAnimationFrame(() => setShowAll(true))
+    if (!id || !pageTimeline(posts).past.some((p) => p.id === id)) return
+    const frame = requestAnimationFrame(() => setShowEarlier(true))
     return () => cancelAnimationFrame(frame)
   }, [posts, focusPostId])
-  const highlighted = useAnnouncementAnchor(showAll, focusPostId)
+  const highlighted = useAnnouncementAnchor(showEarlier, focusPostId)
+  // #1139 — an old #announcement-<id> link, once it has landed, takes the post's own readable address.
+  useEffect(() => {
+    const id = announcementIdFromHash(window.location.hash)
+    const post = id && id === highlighted ? posts.find((p) => p.id === id) : undefined
+    if (!pagePath || !post?.urlSlug || pagePath.startsWith('/g/')) return
+    window.history.replaceState(window.history.state, '', postPath(pagePath, post))
+  }, [posts, pagePath, highlighted])
   // #472 first pass — the form is rarely used, so it waits for Announce
   // (Google Business Profile's "Add update" opens on request).
   const [composing, setComposing] = useState(startComposing)
@@ -325,10 +352,10 @@ export function PagePosts({
     const open = () => {
       if (window.location.hash !== `#${ANNOUNCE_ANCHOR}`) return
       // #1094 — the ➕ sheet arrives with the chosen kind already picked.
-      const composeKind = new URLSearchParams(window.location.search).get('compose')
+      const composeKind = kindFromComposeParam(new URLSearchParams(window.location.search).get('compose'))
       requestAnimationFrame(() => {
         setComposing(true)
-        if (isPostKind(composeKind)) {
+        if (composeKind) {
           setWhen((w) => whenForKind('news', composeKind, w, new Date()))
           setKind(composeKind)
         }
@@ -466,12 +493,13 @@ export function PagePosts({
       setError(FOLLOWERS_NOT_YET)
       return
     }
-    const goal = Number(threshold)
-    if (asWonder && !(Number.isInteger(goal) && goal >= 1)) {
+    // plan #218 (2026-11-01) — the goal number is optional; blank means a count with no bar.
+    const goal = threshold.trim() === '' ? null : Number(threshold)
+    if (asWonder && goal !== null && !(Number.isInteger(goal) && goal >= 1)) {
       setError(COPY.wonderThresholdInvalid)
       return
     }
-    const wonder = asWonder ? { threshold: goal, options: splitOptions(options) } : null
+    const wonder = asWonder ? { ...(goal !== null ? { threshold: goal } : {}), options: splitOptions(options) } : null
     setBusy(true)
     setError(null)
 
@@ -493,7 +521,7 @@ export function PagePosts({
       showUntil: resolved.showUntil,
       locationId: resolved.locationId,
       ...(when.addingPlace ? { howToFind: when.howToFind } : {}),
-      tags: tagSet(tags),
+      ...labelsToSend(listed, words(line, body)),
       ...(photo ? { photoUrl: photo } : {}),
       ...(resolved.series ? { series: resolved.series } : {}),
     })
@@ -513,11 +541,12 @@ export function PagePosts({
         showUntil: resolved.showUntil,
         locationLabel: resolved.locationLabel,
         howToFind: when.addingPlace && when.howToFind.trim() ? when.howToFind.trim() : null,
-        tags: tagSet(tags),
+        tags: currentLabels(listed, words(line, body)),
+        labelsPinned: listed.pinned,
         photoUrl: photo,
         kind,
         headline: line || null,
-        ...(wonder ? { wonder } : {}),
+        ...(wonder ? { wonder: { threshold: wonder.threshold ?? null, options: wonder.options } } : {}),
       },
       ...items,
     ])
@@ -528,7 +557,7 @@ export function PagePosts({
     setPhoto(null)
     setDraft('')
     setWhen(emptyWhenWhere)
-    setTags({ tags: [], draft: '' })
+    setListed(UNPINNED)
     setPostedToast(true)
   }
 
@@ -559,7 +588,7 @@ export function PagePosts({
       // An edit that did not open the address control leaves the address
       // alone. `undefined` is "don't touch"; `null` would be "remove".
       ...(editWhen.addingPlace ? { locationId: resolved.locationId } : {}),
-      tags: tagSet(editTags),
+      ...labelsToSend(editListed, words(line, body)),
       // Only a changed photo is sent: absent leaves it, null removes it.
       ...(editPhoto !== (items.find((p) => p.id === postId)?.photoUrl ?? null) ? { photoUrl: editPhoto } : {}),
     })
@@ -579,7 +608,8 @@ export function PagePosts({
               startsAt: resolved.startsAt,
               endsAt: resolved.endsAt,
               showUntil: resolved.startsAt ? null : resolved.showUntil,
-              tags: tagSet(editTags),
+              tags: currentLabels(editListed, words(line, body)),
+              labelsPinned: editListed.pinned,
               kind: p.kind === 'wonder' ? p.kind : editKind,
               headline: line || p.headline,
               // F102: a hidden post the edit reposted shows again at once.
@@ -593,16 +623,15 @@ export function PagePosts({
     setEditingId(null)
   }
 
-  const renderPost = (post: PagePost, compact: boolean) => (
+  const renderPost = (post: PagePost) => (
             <li
               key={post.id}
               id={announcementAnchor(post.id)}
               data-testid="page-post"
               // #796 — the tapped post is scrolled into view; no ring (it was clipped to two sides in the strip).
               data-highlighted={highlighted === post.id ? 'true' : undefined}
-              className={`card border border-[var(--color-border)] p-3 scroll-mt-24${compact ? ' w-64 shrink-0 snap-start' : ''}${post.sampleKind ? ' relative overflow-hidden' : ''}`}
+              className="card border border-[var(--color-border)] p-3 scroll-mt-24"
             >
-              {post.sampleKind && editingId !== post.id ? <SampleWatermark /> : null}
               {editingId === post.id ? (
                 <div className="flex flex-col gap-3">
                   {post.kind !== 'wonder' && <PostKindPicker value={editKind} onChange={chooseEditKind} idPrefix={`page-post-edit-${post.id}`} kinds={EDIT_KINDS} />}
@@ -627,7 +656,7 @@ export function PagePosts({
                     postedAt={new Date(post.createdAt)}
                     kind={post.kind === 'wonder' ? 'wonder' : editKind}
                   />
-                  <TagInput idPrefix="announce-edit-tag" label="Tags (optional)" value={editTags} onChange={setEditTags} />
+                  <ListedUnder idPrefix="announce-edit-listed" value={editListed} onChange={setEditListed} text={`${editHeadline} ${editDraft}`} pageTags={pageTags} />
                   {memberId && (
                     <PagePhotoPicker
                       memberId={memberId}
@@ -663,7 +692,8 @@ export function PagePosts({
                       its own photo, else the Page picture,
                       else the kind's placeholder. Alt: the owner's words (the
                       post's first line); the placeholder's is the Page's name. */}
-                  <div className="relative mb-2 h-32 w-full overflow-hidden rounded-md">
+                  {/* Don, 2026-11-02: "a little bit larger" — Eventbrite's 2:1 at the card's full width, not a 128px strip. */}
+                  <div data-testid="page-post-image" className="relative mb-2 aspect-[2/1] w-full overflow-hidden rounded-md">
                     {post.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -700,16 +730,11 @@ export function PagePosts({
                       <HiddenPhotoNotice which="post" />
                     </div>
                   )}
-                  {post.sampleKind ? (
-                    <p className="mb-1 flex items-center gap-1.5">
-                      <TypeMark type="post" />
-                      <SampleLabel />
-                    </p>
-                  ) : null}
-                  {/* plan #230 — what it is first: the lead line from its fields, then its one line. */}
-                  {post.kind && (
+                  {/* plan #230 — what it is first: the lead line from its fields, then its one line. #1127: a sample says
+                      Sample once, here; no watermark or extra label, and its body keeps the disclaimer. */}
+                  {leadKind(post) && (
                     <p data-testid="page-post-lead" className="text-micro font-bold uppercase tracking-wider text-[var(--color-fg)]">
-                      {leadLine({ kind: post.kind, startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel })}
+                      {leadLine({ kind: leadKind(post)!, startsAt: post.startsAt, endsAt: post.endsAt, postedAt: post.createdAt, where: post.locationLabel, sample: Boolean(post.sampleKind), show: venueShow({ body: post.body, tags: post.tags ?? [] }) })}
                     </p>
                   )}
                   {post.headline && (
@@ -717,8 +742,7 @@ export function PagePosts({
                       {post.headline}
                     </p>
                   )}
-                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${post.kind || post.headline ? ' mt-1' : ''}${compact ? ' line-clamp-4' : ''}`}>{post.body}</p>
-                  {post.sampleKind ? <SampleNote /> : null}
+                  <p className={`whitespace-pre-wrap text-sm text-[var(--color-charcoal-900)]${leadKind(post) || post.headline ? ' mt-1' : ''}`}>{post.sampleKind && leadKind(post) ? post.body.replace(SAMPLE_PREFIX, '') : post.body}</p>
                   {post.wonder && wonders && (
                     <WonderPanel
                       postId={post.id}
@@ -782,8 +806,15 @@ export function PagePosts({
 
                   <div className="mt-2 flex items-center gap-3">
                     <span data-testid="page-post-posted" className="text-xs text-gray-500">{formatPostedDate(post.createdAt)}</span>
+                    {/* #1171 — ♡ and Save beside Share for everyone but the Page's managers; a sample has neither. */}
+                    {!canPost && !post.sampleKind && !post.hiddenAt && (
+                      <span className="-mx-2 inline-flex items-center">
+                        <HeartButton target={{ postId: post.id }} returnTo={returnTo} />
+                        <SaveButton postId={post.id} returnTo={returnTo} />
+                      </span>
+                    )}
                     {pagePath && !post.hiddenAt && (
-                      <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post.id)} />
+                      <SharePageButton quiet testId="page-post-share" title={cardHeadline({ headline: post.headline, body: post.body, pageName })} path={postPath(pagePath, post)} />
                     )}
                     {!canPost && onReport && (
                       <ReportControl subjectId={post.id} subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} returnTo={returnTo} onSend={onReport} />
@@ -793,13 +824,12 @@ export function PagePosts({
                         type="button"
                         data-testid="page-post-edit"
                         onClick={() => {
-                          setShowAll(true)
                           setEditingId(post.id)
                           setEditDraft(post.body)
                           setEditKind(post.kind ?? 'news')
                           setEditHeadline(post.headline ?? '')
                           setEditWhen(whenWhereFrom(post))
-                          setEditTags({ tags: post.tags ?? [], draft: '' })
+                          setEditListed(post.labelsPinned ? savedValue(post.tags ?? [], true) : UNPINNED)
                           setEditPhoto(post.photoUrl ?? null)
                           setError(null)
                         }}
@@ -813,7 +843,6 @@ export function PagePosts({
                         type="button"
                         data-testid="page-post-delete"
                         onClick={() => {
-                          setShowAll(true)
                           setConfirmingDelete(post.id)
                         }}
                         className="inline-flex min-h-tap items-center px-1 text-xs underline"
@@ -822,6 +851,7 @@ export function PagePosts({
                       </button>
                     )}
                   </div>
+                  <HeartedBy tally={hearts?.posts[post.id]} testId="page-post-hearted-by" />
                   <Sheet
                     open={confirmingDelete === post.id && !!onDelete}
                     title="Delete this post?"
@@ -859,6 +889,8 @@ export function PagePosts({
                   </Sheet>
                 </>
               )}
+              {/* plan #230 — room under each post for what comes later (comments); empty for now. */}
+              <div data-testid="page-post-after" />
             </li>
   )
 
@@ -916,7 +948,7 @@ export function PagePosts({
 
           <AnnouncementFields value={when} onChange={setWhen} idPrefix="announce" repeats={seriesComposer && kind !== 'sale'} kind={kind} />
 
-          <TagInput idPrefix="announce-tag" label="Tags (optional)" value={tags} onChange={setTags} />
+          <ListedUnder idPrefix="announce-listed" value={listed} onChange={setListed} text={`${headline} ${draft}`} pageTags={pageTags} />
           {memberId && (
             <PagePhotoPicker
               memberId={memberId}
@@ -965,32 +997,42 @@ export function PagePosts({
         >
           <p>Nothing here yet. Tell people what&apos;s going on.</p>
         </div>
-      ) : sorted.length === 0 ? null : showAll ? (
-        <ul data-testid="page-posts-all" className="mt-4 flex flex-col gap-3">
-          {sorted.map((post) => renderPost(post, false))}
-        </ul>
       ) : (
-        // A row that scrolls inside its own section, never the page.
-        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling region must take focus to scroll by keyboard (WCAG 2.1.1)
-        <ul data-testid="page-posts-latest" tabIndex={0} aria-label="Latest posts" className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
-          {sorted.slice(0, LATEST).map((post) => renderPost(post, true))}
-        </ul>
-      )}
-      {sorted.length > LATEST && (
-        <button
-          type="button"
-          aria-expanded={showAll}
-                    onClick={() => setShowAll(!showAll)}
-          className="press mt-3 inline-flex min-h-tap items-center text-body-sm font-semibold text-[var(--color-accent)] underline"
-        >
-          {showAll ? 'Show the latest' : 'See all posts'}
-        </button>
-      )}
-      {earlier.length > 0 && (
-        <section data-testid="page-posts-earlier" aria-labelledby="page-posts-earlier-title" className="mt-6">
-          <h3 id="page-posts-earlier-title" className="text-body-sm font-semibold text-[var(--color-fg-muted)]">Earlier</h3>
-          <ul className="mt-2 flex flex-col gap-3">{earlier.map((post) => renderPost(post, false))}</ul>
-        </section>
+        <>
+          {past.length > 0 && (
+            <section data-testid="page-posts-earlier" aria-label="Earlier posts" className="mt-3">
+              <button
+                type="button"
+                aria-expanded={showEarlier}
+                onClick={toggleEarlier}
+                className="press inline-flex min-h-tap items-center text-body-sm font-semibold text-[var(--color-fg-muted)] underline"
+              >
+                {showEarlier ? 'Hide earlier posts' : `Earlier posts (${past.length})`}
+              </button>
+              {showEarlier && <ul className="mt-2 flex flex-col gap-3">{past.map((post) => renderPost(post))}</ul>}
+            </section>
+          )}
+          {(past.length > 0 || upcoming.length > 0) && (
+            <div ref={nowRef} data-testid="page-posts-now" className="mt-4 flex items-center gap-3 text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
+              <span aria-hidden="true" className="h-px flex-1 bg-[var(--color-border)]" />
+              Now
+              <span aria-hidden="true" className="h-px flex-1 bg-[var(--color-border)]" />
+            </div>
+          )}
+          {latest.length > 0 && (
+            <ul data-testid="page-posts-latest" aria-label="Latest posts" className="mt-3 flex flex-col gap-3">
+              {latest.map((post) => renderPost(post))}
+            </ul>
+          )}
+          {upcoming.length > 0 && (
+            <section data-testid="page-posts-upcoming" aria-labelledby="page-posts-upcoming-title" className="mt-6">
+              <h3 id="page-posts-upcoming-title" data-testid="page-posts-upcoming-title" className="text-micro font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]">
+                Coming up
+              </h3>
+              <ul className="mt-2 flex flex-col gap-3">{upcoming.map((post) => renderPost(post))}</ul>
+            </section>
+          )}
+        </>
       )}
       <Toast message={COPY.posted} visible={postedToast} onHide={hidePostedToast} />
     </section>

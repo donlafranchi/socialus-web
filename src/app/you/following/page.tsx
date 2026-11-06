@@ -12,7 +12,7 @@ import { followPageAction, unfollowPageAction } from '@/app/_actions/page-follow
 import { remindEveryTimeForPageAction } from '@/app/_actions/reminder-actions'
 
 export const metadata = {
-  title: 'Following — SocialUs',
+  title: 'Getting updates — SocialUs',
 }
 
 export const dynamic = 'force-dynamic'
@@ -30,7 +30,7 @@ export default async function FollowingPage() {
 
   return (
     <main className="mx-auto w-full max-w-read gutter py-6 pb-dock" data-testid="following-page">
-      <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Following</h1>
+      <h1 className="text-title-1 md:text-title-1-lg text-[var(--color-fg)]">Getting updates</h1>
       <section className="mt-4" data-testid="section-pages">
         <h2 className="sr-only">Pages</h2>
         <FollowedPagesList

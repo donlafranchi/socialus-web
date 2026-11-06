@@ -15,7 +15,7 @@ export interface Notice {
   createdAt: string
   /** A courtesy notice leaves the content up; a hide takes it down. */
   kind: 'content_hidden' | 'courtesy'
-  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+  subjectKind: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post'
   /** The Page's address id (not its row id), where "Fix it" leads. */
   pageHandle: string | null
   /** What the owner did about it, if anything. */

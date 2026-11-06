@@ -42,6 +42,8 @@ export interface EditPageInput {
   productsComponent?: boolean
   /** #285 — the Page's whole tag set. */
   tags?: string[]
+  /** #1180 — the owner picked what it is listed under. */
+  labelsPinned?: boolean
 }
 
 export type EditPageResult = { ok: true } | { ok: false; message: string }
@@ -78,6 +80,7 @@ export async function editPageAction(input: EditPageInput): Promise<EditPageResu
       ...(input.openingHours !== undefined ? { openingHours: input.openingHours } : {}),
       ...(input.contactComponent !== undefined ? { contactComponent: input.contactComponent } : {}),
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
+      ...(input.labelsPinned !== undefined ? { labelsPinned: input.labelsPinned } : {}),
       ...(input.pageKind !== undefined ? { pageKind: input.pageKind } : {}),
       ...(input.purpose !== undefined ? { purpose: input.purpose } : {}),
       ...(input.productsComponent !== undefined ? { productsComponent: input.productsComponent } : {}),

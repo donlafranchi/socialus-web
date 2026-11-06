@@ -40,7 +40,13 @@ beforeEach(() => {
 
 describe('a post has its own address', () => {
   it('lives under its Page', () => {
-    expect(postPath('/g/7k3x8m', ID)).toBe(`/g/7k3x8m/posts/${ID}`)
+    expect(postPath('/g/7k3x8m', { id: ID })).toBe(`/g/7k3x8m/posts/${ID}`)
+  })
+  // #1139 — under a readable Page address, by the slug from its headline; the id form only while either lacks one.
+  it('under a readable Page, is the Page address and the post slug', () => {
+    expect(postPath('/sacramento-ca/plant-foundry', { id: ID, urlSlug: 'fall-plant-sale' })).toBe('/sacramento-ca/plant-foundry/fall-plant-sale')
+    expect(postPath('/sacramento-ca/plant-foundry#announcement-x', { id: ID, urlSlug: 'fall-plant-sale' })).toBe('/sacramento-ca/plant-foundry/fall-plant-sale')
+    expect(postPath('/g/7k3x8m', { id: ID, urlSlug: 'fall-plant-sale' })).toBe(`/g/7k3x8m/posts/${ID}`)
   })
   it('takes only a post id as minted', () => {
     expect(isPostId(ID)).toBe(true)
@@ -61,6 +67,11 @@ describe('a published post previews when shared', () => {
       images: [{ url: 'https://cdn.example/pizza.webp' }],
     })
     expect(m.twitter).toMatchObject({ card: 'summary_large_image', title: 'Pizza night in the garden', images: ['https://cdn.example/pizza.webp'] })
+  })
+
+  it('#1127 — a venue show previews with the kind of show and the venue, as the card does', () => {
+    const show = { ...POST, headline: null, locationLabel: '1901 10th St', body: "Emo Night at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test", tags: ['Live music'] }
+    expect(postShareMetadata({ page: PAGE, post: show, now: NOW }).openGraph).toMatchObject({ description: 'Live music · Sat 5–8pm · The Old Ironsides' })
   })
 
   it('falls back to the card headline, then the Page picture, as the card does', () => {
@@ -116,5 +127,15 @@ describe('a post this reader may not read previews without its words', () => {
     expect(m.openGraph).toBeUndefined()
     expect(m.robots).toMatchObject({ index: false })
     expect(words(m)).not.toMatch(/Pizza|chair|Midtown/)
+  })
+})
+
+// #1139 — the preview names the readable address when the Page and the post have one.
+describe('a shared post\'s preview points at its readable address', () => {
+  it('canonical and og:url are /<place>/<page>/<post>', () => {
+    const m = postShareMetadata({ page: { ...PAGE, placeUrlSlug: 'sacramento-ca', pageUrlSlug: 'oak-park-sourdough' }, post: POST, postUrlSlug: 'pizza-night-in-the-garden', now: NOW })
+    const url = 'https://www.socialus.org/sacramento-ca/oak-park-sourdough/pizza-night-in-the-garden'
+    expect(m.alternates?.canonical).toBe(url)
+    expect(m.openGraph).toMatchObject({ url })
   })
 })

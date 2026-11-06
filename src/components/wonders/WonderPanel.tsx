@@ -1,6 +1,6 @@
 'use client'
 
-// F117 — a Wonder on its post card. Everyone who can see the post sees the bar and the accepted helpers;
+// F117 — a Wonder on its post card. Everyone who can see the post sees the bar, who is in by name and the accepted helpers;
 // a visitor says I'm in (with a size) or offers to help; the Page's managers see the split, who is in and
 // every offer, and accept or decline. What reaches this component is already only what the viewer may see.
 
@@ -53,7 +53,8 @@ export function WonderPanel({
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
 
-  const pct = Math.min(100, Math.round((view.total / Math.max(1, view.threshold)) * 100))
+  const goal = view.threshold
+  const pct = goal ? Math.min(100, Math.round((view.total / goal) * 100)) : 0
   const hasSizes = view.options.length > 0
 
   async function run<T extends { ok: boolean }>(fn: () => Promise<T>): Promise<T | null> {
@@ -111,22 +112,29 @@ export function WonderPanel({
   return (
     <div className="mt-3 flex flex-col gap-3" data-testid="wonder-panel">
       <div>
-        <div
-          role="progressbar"
-          aria-label={COPY.wonderBarLabel}
-          aria-valuemin={0}
-          aria-valuemax={view.threshold}
-          aria-valuenow={view.total}
-          className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--color-charcoal-100)]"
-        >
-          <div data-testid="wonder-bar-fill" className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${pct}%` }} />
-        </div>
+        {goal !== null && (
+          <div
+            role="progressbar"
+            aria-label={COPY.wonderBarLabel}
+            aria-valuemin={0}
+            aria-valuemax={goal}
+            aria-valuenow={view.total}
+            className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--color-charcoal-100)]"
+          >
+            <div data-testid="wonder-bar-fill" className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${pct}%` }} />
+          </div>
+        )}
         <p className="mt-1 flex flex-wrap gap-x-2 text-body-sm">
           <span data-testid="wonder-count" className="font-semibold text-[var(--color-fg)]">
-            {COPY.wonderCount(view.total, view.threshold)}
+            {goal !== null ? COPY.wonderCount(view.total, goal) : COPY.wonderCountNoGoal(view.total)}
           </span>
-          {view.total >= view.threshold && <span className="text-[var(--color-fg-muted)]">{COPY.wonderReached}</span>}
+          {goal !== null && view.total >= goal && <span className="text-[var(--color-fg-muted)]">{COPY.wonderReached}</span>}
         </p>
+        {view.inNames && view.inNames.length > 0 && (
+          <p data-testid="wonder-in-names" className="mt-1 text-body-sm text-[var(--color-fg-muted)]">
+            {COPY.wonderInNames(view.inNames, view.total)}
+          </p>
+        )}
       </div>
 
       {view.helpers.length > 0 && (

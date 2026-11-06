@@ -15,6 +15,9 @@
 // KIND · WHEN · WHERE in small caps, built from fields and never the body, then a one-line headline without the
 // Page's name, then the Page's avatar and name. A sample says Sample once, in that lead line: no watermark, no
 // label, no disclaimer on the card (the Page keeps its disclaimer).
+//
+// Don (2026-11-02): "our posts should be a little bit larger." A post card sets its photo on top at the card's full
+// width, 3:2 (between Eventbrite's 2:1 and Airbnb's near-square), with the words beneath it, at every width.
 
 import { sizedMediaUrl, sizedMediaSrcSet } from '@/lib/media/served-url'
 import { kindLine } from '@/lib/groups/page-kind'
@@ -26,7 +29,7 @@ import { QuickLinks } from '@/components/cards/QuickLinks'
 import { TypeMark, SampleLabel, SampleWatermark } from '@/components/cards/CardMarks'
 import { WithheldAnnouncementCard } from './WithheldAnnouncementCard'
 import { formatCardWhen } from '@/lib/metro/metro-time'
-import { cardHeadline, leadLine } from '@/lib/posts/lead-line'
+import { cardHeadline, cardPreview, leadLineParts, venueShow } from '@/lib/posts/lead-line'
 import { postKindOf } from '@/lib/browse/filters'
 import { cardImageAlt } from '@/lib/calendar/ics'
 import { browseCardLocation } from '@/lib/browse/card'
@@ -34,6 +37,7 @@ import type { BrowseResult } from '@/lib/feed/browse-feed'
 import type { ReactNode } from 'react'
 import { SharePageButton } from '@/components/group/SharePageButton'
 import { postPath } from '@/lib/posts/post-path'
+import { HeartButton, SaveButton } from '@/components/hearts/HeartSave'
 
 /** Small caps for labels and the date line: typography, never a pill. */
 const SMALL_CAPS = 'text-micro font-semibold uppercase tracking-wider'
@@ -71,7 +75,7 @@ function Shell({ result, as, prefetch, kind, imageUrl, children, after }: CardPr
       interactive={Boolean(result.href)}
       data-testid="tile-card"
       data-card={kind}
-      className={`group/tile flex flex-col${watermark ? ' relative overflow-hidden' : ''}`}
+      className={`group/tile flex flex-col${watermark ? ' relative overflow-hidden' : kind === 'post' ? ' @container relative' : ''}`}
     >
       {result.href ? (
         // #555 — on the press the card hands the Page its name, kind and photo, so the Page opens on its own shell.
@@ -149,7 +153,9 @@ export function splitPost(body: string | null): { title: string; rest: string } 
 function PostCard(props: CardProps) {
   const { result, now } = props
   const headline = cardHeadline({ headline: result.headline, body: result.body, pageName: result.name })
-  const lead = leadLine(
+  const marks = !result.sampleKind
+  const preview = cardPreview({ headline: result.headline, body: result.body, pageName: result.name })
+  const lead = leadLineParts(
     {
       kind: postKindOf(result) ?? 'news',
       startsAt: result.startsAt,
@@ -157,10 +163,11 @@ function PostCard(props: CardProps) {
       postedAt: result.postedAt,
       where: result.locationLabel,
       sample: Boolean(result.sampleKind),
+      show: venueShow({ body: result.body, tags: result.tags }),
     },
     now,
   )
-  // F099 — the card's ONE image, smaller here: the post's own photo, else the Page picture, else the kind's art.
+  // F099 — the card's ONE image: the post's own photo, else the Page picture, else the kind's art.
   const photo = result.photoUrl
   const avatar = result.pageAvatarUrl ?? (result.photoSource === 'page' ? result.photoUrl : null)
   // F099 criterion 10: the owner's words for a post's own photo, the Page's name for the Page picture.
@@ -178,20 +185,42 @@ function PostCard(props: CardProps) {
       {...props}
       kind="post"
       imageUrl={photo}
-      // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card.
-      after={result.href ? <div className="-mt-5 flex justify-end px-1"><SharePageButton quiet testId="browse-post-share" title={headline} path={postPath(result.href, result.resultId)} /></div> : null}
+      // Don, 2026-10-31 — Share, outside the card's link so a tap on it never opens the card. #1127: in the card's
+      // bottom corner, level with the Page's name, rather than on a row of its own.
+      after={
+        <>
+          {result.href ? <div className="absolute bottom-1.5 right-1.5"><SharePageButton quiet testId="browse-post-share" title={headline} path={result.href.startsWith('/g/') ? postPath(result.href, { id: result.resultId }) : result.href} /></div> : null}
+          {/* #1171 — ♡ and Save under the picture, Instagram's place: the heart at the left, the save at the right. Outside the
+              card's link, so a tap never opens the card; the spacer below keeps their row. A sample has neither. */}
+          {marks && (
+            <div data-testid="post-marks" className="absolute inset-x-1 top-[calc(100cqw*2/3)] flex items-center justify-between">
+              <HeartButton target={{ postId: result.resultId }} />
+              <SaveButton postId={result.resultId} />
+            </div>
+          )}
+        </>
+      }
     >
-      <div className="flex gap-3 p-3">
-        <div data-testid="tile-text" className="min-w-0 flex-1">
-          <p data-testid="browse-post-lead" className={`${SMALL_CAPS} line-clamp-2 font-bold text-[var(--color-fg)]`}>
-            {lead}
+      <div data-testid="browse-post-body" className="flex flex-col-reverse">
+        <div data-testid="tile-text" className={`min-w-0 flex-1 px-3 pb-3${marks ? '' : ' pt-2.5'}`}>
+          {/* #1127 — one line. A long where is cut short; with too little room for it (under 4.5rem, basis-18) it wraps onto a
+              second line the fixed height hides, so a lead never ends in a bare "· …". */}
+          <p data-testid="browse-post-lead" className={`${SMALL_CAPS} flex h-4 min-w-0 flex-wrap overflow-hidden whitespace-nowrap font-bold leading-4 text-[var(--color-fg)]`}>
+            <span data-testid="browse-post-lead-head" className="max-w-full shrink-0 truncate">{lead.head}</span>
+            {lead.where && <span data-testid="browse-post-lead-where" className="min-w-0 grow basis-18 truncate">&nbsp;· {lead.where}</span>}
           </p>
           {headline && (
             <p data-testid="tile-title" className="mt-1 line-clamp-1 text-body font-semibold leading-5 text-[var(--color-fg)] transition-colors group-hover/tile:text-[var(--color-accent)]">
               {headline}
             </p>
           )}
-          <p data-testid="tile-kind-row" className="mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]">
+          {/* Don, 2026-11-02: "a line or two about the post". Two lines, cut short; the whole card opens the post, so no See more. */}
+          {preview && (
+            <p data-testid="browse-post-preview" className="mt-0.5 line-clamp-2 text-sm leading-5 text-[var(--color-fg-muted)]">
+              {preview}
+            </p>
+          )}
+          <p data-testid="tile-kind-row" className={`mt-2 flex items-center gap-2 text-caption text-[var(--color-fg-muted)]${result.href ? ' pr-10' : ''}`}>
             <span aria-hidden className="inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-surface)] text-micro font-semibold text-[var(--color-fg)]">
               {avatar ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -203,10 +232,11 @@ function PostCard(props: CardProps) {
             <span data-testid="post-page-name" className="line-clamp-1 font-medium text-[var(--color-fg)]">{result.name}</span>
           </p>
         </div>
-        <div data-testid="tile-image" className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
+        {marks && <div aria-hidden="true" className="h-tap shrink-0" />}
+        <div data-testid="tile-image" className="flex aspect-[3/2] w-full shrink-0 items-center justify-center overflow-hidden rounded-md bg-[var(--color-surface)]">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={sizedMediaUrl(photo, 320)} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            <img src={sizedMediaUrl(photo, 480)} srcSet={sizedMediaSrcSet(photo, 480)} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
           ) : (
             <DefaultArt kind={artKindFor(result.groupKind)} />
           )}

@@ -55,7 +55,7 @@ describe('/g/[handle]/posts/[postId]', () => {
     resolveSharedPost.mockResolvedValue({ access: 'withheld', preview: PREVIEW })
     const el = await PostAtItsAddress({ params })
     const props = (el.props as { children: { props: Record<string, unknown> } }).children.props
-    expect(props.preview).toMatchObject({ title: 'Bread is back', leadLine: expect.stringMatching(/^News/), photoUrl: null })
+    expect(props.preview).toMatchObject({ title: 'Bread is back', leadLine: expect.stringMatching(/^Update/), photoUrl: null })
     expect(JSON.stringify(props.preview)).not.toMatch(/Rye/)
   })
 
@@ -65,7 +65,7 @@ describe('/g/[handle]/posts/[postId]', () => {
     expect((await generateMetadata({ params })).openGraph).toMatchObject({ title: 'Bread is back', url: `https://www.socialus.org/g/7k3x8m/posts/${ID}` })
     resolveSharedPost.mockResolvedValue({ access: 'withheld', preview: PREVIEW })
     const m = await generateMetadata({ params })
-    expect(m.openGraph).toMatchObject({ title: 'Bread is back', description: expect.stringMatching(/^News/), url: `https://www.socialus.org/g/7k3x8m/posts/${ID}` })
+    expect(m.openGraph).toMatchObject({ title: 'Bread is back', description: expect.stringMatching(/^Update/), url: `https://www.socialus.org/g/7k3x8m/posts/${ID}` })
     expect(JSON.stringify(m)).not.toMatch(/Rye/)
   })
 })

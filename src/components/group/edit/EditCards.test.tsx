@@ -52,15 +52,15 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-// #452 — the PM, 2026-10-06: fewer groups. Basics, Location, Contact, Tags & links, then Page settings.
+// #452 — the PM, 2026-10-06: fewer groups. Basics, Location, Contact, Listed under & links, then Page settings.
 describe('#452 — fewer groups', () => {
   const order = () => [...screen.getByTestId('edit-cards').querySelectorAll('[data-testid^="edit-card-"]')].map((c) => c.getAttribute('data-testid')!.slice('edit-card-'.length))
 
-  it('Basics, Location, Contact, Tags & links, Values & badges, then Page settings', () => {
+  it('Basics, Location, Contact, Listed under & links, Values & badges, then Page settings', () => {
     renderCards()
     expect(order()).toEqual(['basics', 'where', 'contact', 'found', 'values', 'kind', 'components'])
     expect(within(card('where')).getByRole('heading')).toHaveTextContent('Location')
-    expect(within(card('found')).getByRole('heading')).toHaveTextContent('Tags & links')
+    expect(within(card('found')).getByRole('heading')).toHaveTextContent('Listed under & links')
     expect(screen.getByRole('heading', { level: 2, name: 'Page settings' })).toBeInTheDocument()
   })
 
@@ -98,18 +98,18 @@ describe('#452 — fewer groups', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 
-  it('Tags & links folds in the link, which has no edit of its own', () => {
+  it('Listed under & links folds in the link, which has no edit of its own', () => {
     renderCards()
     expect(card('found')).toHaveTextContent('socialus.org/g/7k3x8m')
     expect(card('found')).toHaveTextContent('The name can change; this link can’t.')
     expect(within(card('found')).getAllByRole('button')).toHaveLength(1)
   })
 
-  it('Tags & links edits tags and links in one sheet', async () => {
+  it('Listed under & links edits both in one sheet', async () => {
     renderCards()
-    fireEvent.click(screen.getByRole('button', { name: 'Edit Tags & links' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Listed under & links' }))
     fireEvent.click(screen.getByTestId('sheet-save'))
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['bread', 'coffee', 'pastry'], socialLinks: expect.any(Object) })))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Food & drink', 'Bakery'], socialLinks: expect.any(Object) })))
   })
 })
 
@@ -150,12 +150,12 @@ describe('#412 — each card says what is set now', () => {
     expect(within(card('basics')).getByTestId('edit-summary')).toHaveTextContent(/^Not set yet · .* · No photo$/)
   })
 
-  it('Tags & links: how many tags, the first of them, and which links', () => {
-    renderCards()
-    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('3 tags: bread, coffee, … · Instagram, Facebook')
+  it('Listed under & links: what it is listed under, and which links', () => {
+    renderCards({ tags: ['Food & drink', 'Bakery'] })
+    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('Listed under Food & drink · Bakery · Instagram, Facebook')
     cleanup()
-    renderCards({ tags: ['bread'], socialLinks: {} })
-    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('1 tag: bread · No links')
+    renderCards({ tags: ['Gardening'], socialLinks: {} })
+    expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('Listed under Gardening · No links')
     cleanup()
     renderCards({ tags: [], socialLinks: {} })
     expect(within(card('found')).getByTestId('edit-summary')).toHaveTextContent('Not set yet')
@@ -187,7 +187,7 @@ describe('#412 — each card says what is set now', () => {
 describe('#453 — one pencil per card, in its header', () => {
   it('each editable card has exactly one pencil, named "Edit <section>", 44px, no visible word', () => {
     renderCards()
-    for (const [s, title] of [['basics', 'Basics'], ['where', 'Location'], ['contact', 'Contact'], ['found', 'Tags & links'], ['kind', 'What your Page is for'], ['components', 'What your Page shows']]) {
+    for (const [s, title] of [['basics', 'Basics'], ['where', 'Location'], ['contact', 'Contact'], ['found', 'Listed under & links'], ['kind', 'What your Page is for'], ['components', 'What your Page shows']]) {
       const buttons = within(card(s!)).getAllByRole('button')
       expect(buttons).toHaveLength(1)
       expect(buttons[0]).toHaveAccessibleName(`Edit ${title}`)

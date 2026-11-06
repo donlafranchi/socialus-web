@@ -2,10 +2,11 @@
 // cards only; no chips or pills anywhere [always].
 
 import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, cleanup, within } from '@testing-library/react'
+import { render, screen, cleanup, within, act } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseResultCard, splitPost } from './BrowseResultCard'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
+import { resetMarks } from '@/lib/hearts/marks-store'
 
 afterEach(cleanup)
 
@@ -53,6 +54,8 @@ describe('quick links: Page cards only', () => {
     const row = screen.getByTestId('quick-links')
     const links = within(row).getAllByRole('link')
     expect(links.map((a) => a.textContent)).toEqual(['Directions to Corner Bakery', 'Corner Bakery website', 'Corner Bakery on Instagram'])
+    // plan #258 — a Directions tap is counted per day.
+    expect(links[0]).toHaveAttribute('data-map-tap', 'directions')
     for (const a of links) {
       expect(a).toHaveAttribute('target', '_blank')
       expect(a).toHaveAttribute('rel', 'noopener noreferrer')
@@ -90,7 +93,7 @@ describe('the post card: what it is, first', () => {
     expect(title).toHaveTextContent(/^Pumpkin bread is back$/)
     expect(title.className).toMatch(/line-clamp-1/)
     expect(screen.queryByTestId('tile-tagline')).toBeNull()
-    expect(screen.getByTestId('tile-image').className).toMatch(/size-20/)
+    expect(screen.getByTestId('tile-image').className).toMatch(/aspect-\[3\/2\]/)
     expect(screen.getByTestId('post-page-name')).toHaveTextContent('Corner Bakery')
     const order = ['browse-post-lead', 'tile-title', 'post-page-name'].map((id) => screen.getByTestId(id))
     expect(order[0]!.compareDocumentPosition(order[1]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -99,11 +102,11 @@ describe('the post card: what it is, first', () => {
 
   it('never builds the lead line from the body, and never puts the Page name in the headline', () => {
     render(<BrowseResultCard result={post({ postKind: 'news', headline: null, startsAt: null, postedAt: '2026-10-20T17:00:00Z', body: 'Corner Bakery: new rye loaves.\nDetails here.' })} now={NOW} />)
-    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^News · Tue · Midtown$/)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Update · Tue · Midtown$/)
     expect(screen.getByTestId('tile-title')).toHaveTextContent(/^New rye loaves\.$/)
   })
 
-  for (const [kind, word] of [['event', 'Event'], ['sale', 'Sale'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'News'], ['wonder', 'Count me in'], ['hiring', 'Hiring']] as const) {
+  for (const [kind, word] of [['event', 'Event'], ['sale', 'Offer'], ['limited', 'Limited'], ['reminder', 'Reminder'], ['news', 'Update'], ['wonder', 'Proposal'], ['hiring', 'Hiring']] as const) {
     it(`leads a ${kind} post with ${word}`, () => {
       render(<BrowseResultCard result={post({ postKind: kind, headline: 'One line' })} now={NOW} />)
       expect(screen.getByTestId('browse-post-lead').textContent!.startsWith(word)).toBe(true)
@@ -117,7 +120,7 @@ describe('the post card: what it is, first', () => {
         now={NOW}
       />,
     )
-    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Sample sale · Through Sun · Midtown$/)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Sample offer · Through Sun · Midtown$/)
     expect(screen.queryByTestId('sample-watermark')).toBeNull()
     expect(screen.queryByTestId('sample-label')).toBeNull()
     expect(screen.queryByText(/This is a sample post/)).toBeNull()
@@ -134,5 +137,124 @@ describe('the post card: what it is, first', () => {
     expect(splitPost('One line')).toEqual({ title: 'One line', rest: '' })
     expect(splitPost(' Title \n body\nmore ')).toEqual({ title: 'Title', rest: 'body\nmore' })
     expect(splitPost(null)).toEqual({ title: '', rest: '' })
+  })
+})
+
+// Don, 2026-11-02: "Also should show a line or two about the post or how does Fb do it?" Facebook's feed shows 3–5
+// lines and See more; Airbnb and Eventbrite one short line. Two lines, cut short, under the headline; the card opens the post.
+describe('the post card: a line or two about the post', () => {
+  it('shows up to two lines of the post’s own words under the headline, before the Page name', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} />)
+    const preview = screen.getByTestId('browse-post-preview')
+    expect(preview).toHaveTextContent(/^Fresh from the oven every Saturday morning while it lasts\. Come early\.$/)
+    expect(preview.className).toMatch(/line-clamp-2/)
+    const [title, name] = [screen.getByTestId('tile-title'), screen.getByTestId('post-page-name')]
+    expect(title.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(preview.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByText(/see more/i)).toBeNull()
+  })
+
+  it('shows nothing extra when the post has no words beyond its headline', () => {
+    render(<BrowseResultCard result={post({ headline: 'Open mic tonight', body: 'Open mic tonight' })} />)
+    expect(screen.queryByTestId('browse-post-preview')).toBeNull()
+  })
+
+  it('keeps a sample’s one Sample in the lead line, first', () => {
+    render(<BrowseResultCard result={post({ postKind: 'sale', sampleKind: 'deal', headline: 'Two for one', body: 'Sample · Two pastries for one this weekend.\nThis is a sample post showing what Corner Bakery’s Page could look like.' })} />)
+    expect(screen.getByTestId('browse-post-lead').textContent!.startsWith('Sample')).toBe(true)
+    expect(screen.getByTestId('browse-post-preview')).toHaveTextContent(/^Two pastries for one this weekend\.$/)
+    expect(screen.getByTestId('tile-card').textContent!.match(/sample/gi)).toHaveLength(1)
+  })
+})
+
+describe('#1127 — the post card reads cleanly at a phone’s width and in a desktop grid tile', () => {
+  const NOW = new Date('2026-10-22T17:00:00Z') // Thu
+
+  it('keeps the lead line to one line: a long where is the part cut short first', () => {
+    render(<BrowseResultCard result={post({ postKind: 'sale', sampleKind: 'deal', headline: 'Two for one', endsAt: '2026-10-25T23:00:00Z', locationLabel: 'East Sacramento near the river' })} now={NOW} />)
+    const lead = screen.getByTestId('browse-post-lead')
+    expect(lead.className).not.toMatch(/line-clamp-2/)
+    expect(lead.className).toMatch(/whitespace-nowrap/)
+    expect(lead.className).toMatch(/\bh-4\b/)
+    expect(lead.className).toMatch(/overflow-hidden/)
+    expect(within(lead).getByTestId('browse-post-lead-head')).toHaveTextContent(/^Sample offer · Through Sun$/)
+    const where = within(lead).getByTestId('browse-post-lead-where')
+    expect(where).toHaveTextContent(/^· East Sacramento near the river$/)
+    expect(where.className).toMatch(/truncate/)
+    expect(within(lead).getByTestId('browse-post-lead-head').className).toMatch(/shrink-0/)
+    expect(where.className).toMatch(/basis-18/)
+  })
+
+  // Don, 2026-11-02: "our posts should be a little bit larger." Eventbrite's and Airbnb's cards: the picture on top,
+  // the card's full width, the words beneath it, at every width.
+  it('puts a large photo above the words at every width, never a thumbnail beside them', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const body = screen.getByTestId('browse-post-body')
+    expect(body.className).toMatch(/flex-col-reverse/)
+    expect(body.className).not.toMatch(/flex-row/)
+    const img = screen.getByTestId('tile-image')
+    expect(img.className).toMatch(/aspect-\[3\/2\]/)
+    expect(img.className).toMatch(/\bw-full\b/)
+    expect(img.className).not.toMatch(/size-20/)
+    // Edge to edge, as the Page card's photo is: the card's padding is the words', not the photo's.
+    expect(body.className).not.toMatch(/\bp-\d/)
+    expect(screen.getByTestId('tile-text').className).toMatch(/\bpx-3\b/)
+  })
+
+  it('asks for a photo big enough for a wide card on a sharp screen', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back', photoUrl: 'https://x.supabase.co/storage/v1/object/public/media/a.jpg', photoSource: 'post' })} now={NOW} />)
+    const img = screen.getByTestId('tile-image').querySelector('img')!
+    expect(img.getAttribute('src')).toMatch(/width=480/)
+    expect(img.getAttribute('srcset')).toMatch(/width=960\S* 2x/)
+  })
+
+  it('puts Share in the card’s bottom corner, beside the Page name, not on a row of its own', () => {
+    render(<BrowseResultCard result={post({ postKind: 'event', headline: 'Pumpkin bread is back' })} now={NOW} />)
+    const share = screen.getByTestId('browse-post-share').parentElement!
+    expect(share.className).toMatch(/absolute/)
+    expect(share.className).toMatch(/bottom-/)
+    expect(share.className).not.toMatch(/-mt-/)
+    expect(share.className).toMatch(/\bright-1\.5\b/)
+    expect(share.className).not.toMatch(/@\[/)
+    // The Page name's row leaves room for the 44px button (padding 12 + 40 ≥ 6 + 44).
+    expect(screen.getByTestId('tile-kind-row').className).toMatch(/\bpr-10\b/)
+    expect(screen.getByTestId('tile-card').className).toMatch(/relative/)
+  })
+
+  it('a venue show says what kind of show and where, and its headline is the act', () => {
+    render(
+      <BrowseResultCard
+        result={post({ name: 'The Old Ironsides', postKind: 'event', headline: null, tags: ['Live music'], startsAt: '2026-10-25T04:00:00Z', locationLabel: '1901 10th St', body: "Emo Night with DJ Somebody at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test" })}
+        now={NOW}
+      />,
+    )
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Live music · Sat 9pm · The Old Ironsides$/)
+    expect(screen.getByTestId('tile-title')).toHaveTextContent(/^Emo Night with DJ Somebody$/)
+  })
+})
+
+// #1171 (plan #269, Don 2026-11-02) — ♡ and Save on every post card, under the picture (Instagram's place), outside the
+// card's link so a tap never opens the post. A sample has neither; signed out shows neither.
+describe('the post card: heart and save', () => {
+  it('sits the heart and the save together under the picture, outside the card’s link', () => {
+    act(() => resetMarks({ signedIn: true }))
+    render(<BrowseResultCard result={post({ headline: 'Pumpkin bread is back' })} />)
+    const marks = screen.getByTestId('post-marks')
+    const heart = within(marks).getByRole('button', { name: 'Heart this post' })
+    const save = within(marks).getByRole('button', { name: 'Save this post' })
+    expect(heart.closest('a')).toBeNull()
+    expect(save.closest('a')).toBeNull()
+    expect(marks.className).toMatch(/top-\[calc\(100cqw\*2\/3\)\]/)
+    expect(screen.getByTestId('tile-card').className).toMatch(/@container/)
+  })
+
+  it('shows neither on a sample, and neither signed out', () => {
+    act(() => resetMarks({ signedIn: true }))
+    render(<BrowseResultCard result={post({ sampleKind: 'deal', headline: 'Two for one' })} />)
+    expect(screen.queryByTestId('post-marks')).toBeNull()
+    cleanup()
+    act(() => resetMarks({ signedIn: false }))
+    render(<BrowseResultCard result={post({ headline: 'Pumpkin bread is back' })} />)
+    expect(screen.queryByRole('button', { name: /heart|save/i })).toBeNull()
   })
 })

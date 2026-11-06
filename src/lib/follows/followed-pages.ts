@@ -3,7 +3,7 @@
 // (F065.5); this adds what a row shows. Runs as the member.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { loadViewerReminders } from '@/lib/reminders/viewer-reminders'
 
@@ -24,6 +24,8 @@ type Anchor = { label: string; places: { display_name: string } | null } | null
 interface GroupRow {
   id: string
   public_id: string
+  place_url_slug?: string | null
+  page_url_slug?: string | null
   name: string
   photo_url: string | null
   photo_hidden_at: string | null
@@ -64,7 +66,7 @@ export async function loadFollowedPages(supabase: SupabaseClient, groupIds: read
   const [{ data: groups }, { data: posts }, reminders] = await Promise.all([
     supabase
       .from('groups')
-      .select('id, public_id, name, photo_url, photo_hidden_at, photo_removed_at, anchor:locations!anchor_location_id(label, places(display_name))')
+      .select('id, public_id, place_url_slug, page_url_slug, name, photo_url, photo_hidden_at, photo_removed_at, anchor:locations!anchor_location_id(label, places(display_name))')
       .in('id', ids)
       .is('dissolved_at', null),
     supabase
@@ -90,7 +92,7 @@ export async function loadFollowedPages(supabase: SupabaseClient, groupIds: read
     const repeatingSeries = [...new Set(upcoming.flatMap((p) => (p.series_id ? [p.series_id] : [])))]
     return {
       groupId: g.id,
-      href: canonicalPagePath(g.public_id),
+      href: pagePath({ publicId: g.public_id, placeUrlSlug: g.place_url_slug, pageUrlSlug: g.page_url_slug }),
       name: g.name,
       photoUrl: visiblePhotoUrl(g),
       town: townOf(g.anchor),

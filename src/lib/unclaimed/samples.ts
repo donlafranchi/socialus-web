@@ -191,7 +191,7 @@ export function samplePosts(s: SampleSubject, now: Date): SamplePost[] {
   return KINDS.map((kind, i) => {
     const which = pick(s.slug, i)
     const text = COPY[voice][kind][which].replaceAll('{name}', s.name)
-    const body = `${SAMPLE_LABEL} · ${text}\n\nThis is a sample post showing what ${s.name}'s Page could look like. It is not a real offer. Locals will find posts like this on the Page and in Explore, and can follow the Page to see them first.`
+    const body = `${SAMPLE_LABEL} · ${text}\n\nThis is a sample post showing what ${s.name}'s Page could look like. It is not a real offer. Locals will find posts like this on the Page and in Explore, and can choose Get updates on the Page to see them first.`
     const how = `${s.area}: look for ${s.name} on SocialUs.`.slice(0, 140)
     return { kind, postKind: postKindFor(voice, kind), headline: HEADLINE[voice][kind][which], body, howToFind: how, ...when[kind] }
   })

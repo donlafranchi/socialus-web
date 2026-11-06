@@ -166,23 +166,35 @@ describe('F070 — group.update_draft accepts social links', () => {
 describe('#301 — group.update_draft saves the tags', () => {
   const calls = (re: RegExp) => (query.mock.calls as QueryCall[]).filter(([sql]) => re.test(sql))
 
-  it('replaces the draft\'s tags with the set sent, one per word however it was typed', async () => {
-    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['Sourdough', ' SOURDOUGH ', 'rye'] })
+  it('#1180 — replaces the draft\'s labels with the set sent, each finer one with its top label', async () => {
+    const out = await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['Bakery', ' bakery ', 'Gardening'] })
     expect(out.patchedFields).toContain('tags')
-    expect(calls(/insert into public\.tags/).map(([, p]) => p![1])).toEqual(['sourdough', 'rye'])
+    expect(calls(/insert into public\.tags/).map(([, p]) => p![1])).toEqual(['food & drink', 'bakery', 'gardening'])
     const [drop] = calls(/delete from public\.page_tags/)
-    expect(drop![1]).toEqual([GROUP, ['sourdough', 'rye']])
-    expect(calls(/insert into public\.page_tags/)).toHaveLength(2)
+    expect(drop![1]).toEqual([GROUP, ['food & drink', 'bakery', 'gardening']])
+    expect(calls(/insert into public\.page_tags/)).toHaveLength(3)
   })
 
-  it('tags alone touch no column on the Page', async () => {
-    await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['bread'] })
+  it('#1180 — refuses a free-typed tag', async () => {
+    await expect(groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['sourdough'] })).rejects.toThrow(/list/i)
+    expect(calls(/page_tags/)).toHaveLength(0)
+  })
+
+  it('#1180 — the owner\'s own pick is pinned', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['Bakery'], labelsPinned: true })
+    const pin = calls(/labels_pinned/)
+    expect(pin).toHaveLength(1)
+    expect(pin[0]![1]).toEqual([GROUP, true])
+  })
+
+  it('labels alone touch no other column on the Page', async () => {
+    await groupUpdateDraft(ctx(), { groupId: GROUP, tags: ['Bakery'] })
     expect(updateCall()).toBeUndefined()
   })
 
   it('a stranger cannot set them', async () => {
     happyPath({ owned: false })
-    await expect(groupUpdateDraft(ctx(OTHER), { groupId: GROUP, tags: ['x'] })).rejects.toThrow()
+    await expect(groupUpdateDraft(ctx(OTHER), { groupId: GROUP, tags: ['Bakery'] })).rejects.toThrow()
     expect(calls(/page_tags/)).toHaveLength(0)
   })
 

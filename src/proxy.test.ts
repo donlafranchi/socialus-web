@@ -13,10 +13,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // `getUser` holds the session each test sets up. #791 — the proxy reads it from the
 // token's verified claims; `authServer` counts the round trips to the auth server.
-const { getUser, authServer, legalNameRow } = vi.hoisted(() => {
+const { getUser, authServer, legalNameRow, pageAddress } = vi.hoisted(() => {
   const getUser = vi.fn()
   return {
     getUser,
+    // #1139 — where an old /g/ address now lives.
+    pageAddress: vi.fn(async (..._a: unknown[]): Promise<{ data: unknown[] | null; error: unknown }> => ({ data: [], error: null })),
     authServer: vi.fn((...a: unknown[]) => getUser(...a)),
     // F077.1 — what `members.legal_name` holds for the signed-in member.
     legalNameRow: vi.fn(async (): Promise<{ data: { legal_name: string | null } | null; error: unknown }> => ({
@@ -29,6 +31,7 @@ const { getUser, authServer, legalNameRow } = vi.hoisted(() => {
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({
     from: () => ({ select: () => ({ eq: () => ({ maybeSingle: legalNameRow }) }) }),
+    rpc: (...a: unknown[]) => pageAddress(...a),
     auth: {
       getUser: authServer,
       getClaims: async () => {
@@ -247,5 +250,45 @@ describe('proxy — the front door at /', () => {
   it('shows a signed-out visitor the landing page', async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null })
     expect((await proxy(request('/'))).status).toBe(200)
+  })
+})
+
+// #1139 (Don, 2026-11-01) — old /g/ links forward, permanently, to the readable address.
+describe('proxy — an old /g/ address forwards to the readable one', () => {
+  const POST = '0b6c1e9a-4a3f-4f7e-9d6b-2c1a5e8f7d10'
+  beforeEach(() => getUser.mockResolvedValue({ data: { user: null }, error: null }))
+
+  it('sends /g/<id> to /<place>/<page> with a 301, keeping the query', async () => {
+    pageAddress.mockResolvedValueOnce({ data: [{ place_url_slug: 'sacramento-ca', page_url_slug: 'plant-foundry', post_url_slug: null }], error: null })
+    const res = await proxy(request('/g/81bjk0?via=reminder'))
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe('https://example.test/sacramento-ca/plant-foundry?via=reminder')
+    expect(pageAddress).toHaveBeenCalledWith('page_address', { p_public_id: '81bjk0', p_post_id: null })
+  })
+
+  it('sends /g/<id>/posts/<post id> to /<place>/<page>/<post>', async () => {
+    pageAddress.mockResolvedValueOnce({ data: [{ place_url_slug: 'sacramento-ca', page_url_slug: 'plant-foundry', post_url_slug: 'fall-plant-sale' }], error: null })
+    const res = await proxy(request(`/g/81bjk0/posts/${POST}`))
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe('https://example.test/sacramento-ca/plant-foundry/fall-plant-sale')
+    expect(pageAddress).toHaveBeenCalledWith('page_address', { p_public_id: '81bjk0', p_post_id: POST })
+  })
+
+  // A link checker or crawler asks with HEAD; it is told the same.
+  it('forwards a HEAD request too', async () => {
+    pageAddress.mockResolvedValueOnce({ data: [{ place_url_slug: 'sacramento-ca', page_url_slug: 'plant-foundry', post_url_slug: null }], error: null })
+    expect((await proxy(request('/g/81bjk0', 'HEAD'))).status).toBe(301)
+  })
+
+  it('leaves the old route to answer when there is no readable address (a draft), or the read fails', async () => {
+    expect((await proxy(request('/g/81bjk0'))).status).toBe(200)
+    pageAddress.mockResolvedValueOnce({ data: null, error: { message: 'down' } })
+    expect((await proxy(request('/g/81bjk0'))).status).toBe(200)
+  })
+
+  it('never asks for the edit screen, a post write, or anything that is not an id', async () => {
+    for (const p of ['/g/81bjk0/edit', '/g/NOPE', '/g/81bjk0/posts/not-a-uuid', '/explore']) await proxy(request(p))
+    await proxy(request('/g/81bjk0', 'POST'))
+    expect(pageAddress).not.toHaveBeenCalled()
   })
 })

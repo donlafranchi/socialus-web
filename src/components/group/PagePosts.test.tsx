@@ -58,7 +58,9 @@ function renderPosts(over: Partial<Parameters<typeof PagePosts>[0]> = {}) {
   )
 }
 
+// plan #230 — the list depends on now; the fixtures are dated September 2026, so the clock sits before them.
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-09-01T12:00:00Z') })
   onPost.mockClear()
   onEdit.mockClear()
   onCreateLocation.mockClear()
@@ -68,7 +70,10 @@ beforeEach(() => {
     data: [{ id: 'pl-oak-park', name: 'Oak Park', kind: 'neighborhood', parentName: 'Sacramento' }],
   })
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 async function pickAPlace(prefix = 'announce') {
   fireEvent.click(screen.getByTestId(`${prefix}-add-place`))
@@ -118,53 +123,72 @@ describe('the composer opens from Announce', () => {
   })
 })
 
-// #462 — the PM, 2026-10-06: the latest three as cards in a row, newest on the
-// left; See all posts opens the rest as a list, newest first (Google Business
-// Profile's updates; Facebook Pages and Instagram keep the rest a tap away).
-describe('#462 — the latest three in a row, then See all posts', () => {
-  const five = ['2026-09-21', '2026-09-25', '2026-09-23', '2026-09-24', '2026-09-22'].map((d, i) =>
-    postFixture({ id: `p-${d}`, body: `Post ${i}`, createdAt: `${d}T12:00:00.000Z`, updatedAt: `${d}T12:00:00.000Z` }),
-  )
+// plan #230 (Don, 10-31) — a timeline anchored at now: Earlier above (a tap away, newest nearest now),
+// the latest at now, Coming up below, soonest first. Facebook Page's single column of posts.
+describe('plan #230 — the posts as a timeline anchored at now', () => {
+  const NOW = new Date('2026-11-01T20:00:00.000Z')
+  beforeEach(() => vi.useFakeTimers({ now: NOW, toFake: ['Date'] }))
+  afterEach(() => vi.useRealTimers())
+  const news = postFixture({ id: 'news', body: 'Fresh loaves', createdAt: '2026-10-31T12:00:00.000Z' })
+  const older = postFixture({ id: 'news2', body: 'New hours', createdAt: '2026-10-29T12:00:00.000Z' })
+  const soon = postFixture({ id: 'soon', body: 'Bread class', createdAt: '2026-10-20T12:00:00.000Z', startsAt: '2026-11-03T02:00:00.000Z' })
+  const far = postFixture({ id: 'far', body: 'Harvest fair', createdAt: '2026-10-21T12:00:00.000Z', startsAt: '2026-11-20T02:00:00.000Z' })
+  const ended = postFixture({ id: 'ended', body: 'Pie night', createdAt: '2026-10-01T12:00:00.000Z', startsAt: '2026-10-25T02:00:00.000Z' })
+  const stale = { ...postFixture({ id: 'stale', body: 'Summer jam', createdAt: '2026-09-01T12:00:00.000Z' }), current: false }
   const ids = (el: HTMLElement) => [...el.querySelectorAll('[data-testid="page-post"]')].map((li) => li.id.replace('announcement-', ''))
+  const all = [stale, far, news, ended, soon, older]
 
-  it('shows the newest three in a row that scrolls inside its own section', () => {
-    renderPosts({ canPost: false, posts: five })
-    const row = screen.getByTestId('page-posts-latest')
-    expect(ids(row)).toEqual(['p-2026-09-25', 'p-2026-09-24', 'p-2026-09-23'])
-    expect(row.className).toMatch(/\boverflow-x-auto\b/)
-    expect(row.className).toMatch(/\bflex\b/)
-    expect(screen.queryByTestId('page-posts-all')).toBeNull()
+  it('one column, in order: Earlier, Now, the latest, Coming up', () => {
+    renderPosts({ canPost: false, posts: all })
+    const order = [...document.querySelectorAll('[data-testid^="page-posts-"]:not([data-testid$="-title"])')].map((e) => e.getAttribute('data-testid'))
+    expect(order).toEqual(['page-posts-earlier', 'page-posts-now', 'page-posts-latest', 'page-posts-upcoming'])
+    expect(ids(screen.getByTestId('page-posts-latest'))).toEqual(['news', 'news2'])
+    expect(ids(screen.getByTestId('page-posts-upcoming'))).toEqual(['soon', 'far'])
+    expect(screen.getByTestId('page-posts-latest').className).not.toMatch(/overflow-x-auto/)
   })
 
-  it('See all posts opens every post as a list, newest first', () => {
-    renderPosts({ canPost: false, posts: five })
-    const more = screen.getByRole('button', { name: 'See all posts' })
+  it('the now marker is quiet type, not a control', () => {
+    renderPosts({ canPost: false, posts: all })
+    const marker = screen.getByTestId('page-posts-now')
+    expect(marker).toHaveTextContent(/^Now$/)
+    expect(within(marker).queryByRole('button')).toBeNull()
+    expect(screen.getByTestId('page-posts-upcoming-title')).toHaveTextContent('Coming up')
+  })
+
+  it('opens at now: the past waits above, and opens oldest first so the newest sits nearest now', () => {
+    renderPosts({ canPost: false, posts: all })
+    expect(screen.getByTestId('page-posts-earlier')).not.toHaveTextContent('Summer jam')
+    const more = screen.getByRole('button', { name: 'Earlier posts (2)' })
     expect(more).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(more)
-    const all = screen.getByTestId('page-posts-all')
-    expect(ids(all)).toEqual(['p-2026-09-25', 'p-2026-09-24', 'p-2026-09-23', 'p-2026-09-22', 'p-2026-09-21'])
-    expect(all.className).toMatch(/\bflex-col\b/)
-    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
+    expect(ids(screen.getByTestId('page-posts-earlier'))).toEqual(['stale', 'ended'])
+    expect(screen.getByRole('button', { name: 'Hide earlier posts' })).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('three or fewer: the row, and nothing to see all of', () => {
-    renderPosts({ canPost: false, posts: five.slice(0, 3) })
-    expect(screen.getByTestId('page-posts-latest')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
+  it('nothing past and nothing coming up: just the posts, no markers', () => {
+    renderPosts({ canPost: false, posts: [news, older] })
+    expect(screen.queryByTestId('page-posts-now')).toBeNull()
+    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
+    expect(screen.queryByTestId('page-posts-upcoming')).toBeNull()
+    expect(ids(screen.getByTestId('page-posts-latest'))).toEqual(['news', 'news2'])
   })
 
-  it('a link to an older post still lands on it', async () => {
-    window.history.replaceState(null, '', '/g/x-abc#announcement-p-2026-09-21')
-    renderPosts({ canPost: false, posts: five })
-    await waitFor(() => expect(document.getElementById('announcement-p-2026-09-21')).toHaveAttribute('data-highlighted', 'true'))
+  it('only past posts: Earlier, and no empty note', () => {
+    renderPosts({ canPost: true, posts: [stale] })
+    expect(screen.getByTestId('page-posts-earlier')).toBeInTheDocument()
+    expect(screen.queryByTestId('page-posts-empty')).toBeNull()
+  })
+
+  it('a link to a past post opens Earlier and lands on it', async () => {
+    window.history.replaceState(null, '', '/g/x-abc#announcement-stale')
+    renderPosts({ canPost: false, posts: all })
+    await waitFor(() => expect(document.getElementById('announcement-stale')).toHaveAttribute('data-highlighted', 'true'))
     window.history.replaceState(null, '', '/')
   })
 
-  it('the owner edits in the list: Edit on a card opens it there', () => {
-    renderPosts({ canPost: true, posts: five })
-    fireEvent.click(screen.getAllByTestId('page-post-edit')[1]!)
-    expect(screen.getByTestId('page-posts-all')).toBeInTheDocument()
-    expect(screen.getByTestId('page-post-edit-body')).toHaveValue('Post 3')
+  it('each post leaves room for what comes under it later', () => {
+    renderPosts({ canPost: false, posts: [news] })
+    expect(within(screen.getAllByTestId('page-post')[0]!).getByTestId('page-post-after')).toBeEmptyDOMElement()
   })
 })
 
@@ -609,21 +633,27 @@ describe('#348 — an event at a dropped pin', () => {
   })
 })
 
-describe('#286 — tags on posts', () => {
-  it('a new post carries the tags typed into it', async () => {
+describe('#1180 — Listed under, on a post', () => {
+  it('a new post is listed under what it says, unpinned', async () => {
     renderPosts()
-    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Concert Friday' } })
-    fireEvent.change(screen.getByTestId('announce-tag-input'), { target: { value: 'concert,' } })
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'Jazz concert Friday' } })
+    expect(screen.getByTestId('announce-listed-listed')).toHaveTextContent('Listed under: Live music · Concerts · Jazz & blues')
     fireEvent.click(screen.getByTestId('page-post-send'))
-    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Live music', 'Concerts', 'Jazz & blues'], labelsPinned: false })))
   })
 
-  it('an edit starts from the post\'s own tags and sends the new set', async () => {
-    renderPosts({ posts: [postFixture({ tags: ['concert', 'jazz'] } as never)] })
+  it("words that match nothing take the Page's labels", async () => {
+    renderPosts({ pageTags: ['Gardening'] })
+    fireEvent.change(screen.getByPlaceholderText('What do you want people to know?'), { target: { value: 'See you Friday' } })
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Gardening'] })))
+  })
+
+  it("an edit keeps a poster's pinned pick, whatever the words now say", async () => {
+    renderPosts({ posts: [postFixture({ tags: ['Crafts & makers', 'Pottery'], labelsPinned: true } as never)] })
     fireEvent.click(screen.getByTestId('page-post-edit'))
-    fireEvent.click(screen.getByTestId('announce-edit-tag-remove-jazz'))
     fireEvent.click(screen.getByTestId('page-post-edit-save'))
-    await waitFor(() => expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ tags: ['concert'] })))
+    await waitFor(() => expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Crafts & makers', 'Pottery'], labelsPinned: true })))
   })
 })
 
@@ -638,6 +668,16 @@ describe('F099 — a post photo', () => {
     expect(post.querySelectorAll('img')).toHaveLength(1)
     expect(post.querySelector('img')).toHaveAttribute('src', PHOTO)
     expect(screen.queryByTestId('default-art')).toBeNull()
+  })
+
+  // Don, 2026-11-02: "our posts should be a little bit larger." The timeline's picture keeps Eventbrite's 2:1 shape
+  // at the card's full width, so it grows with the screen instead of a fixed 128px strip.
+  it('gives the photo a 2:1 area at the card’s full width, not a fixed short strip', () => {
+    renderPosts({ posts: [postFixture({ photoUrl: PHOTO } as never)] })
+    const area = screen.getByTestId('page-post-image')
+    expect(area.className).toMatch(/aspect-\[2\/1\]/)
+    expect(area.className).toMatch(/\bw-full\b/)
+    expect(area.className).not.toMatch(/\bh-32\b/)
   })
 
   // [guards F099.6]
@@ -922,41 +962,6 @@ describe('#913 — Earlier, and Posted <date>', () => {
     current: false,
   }
 
-  it('shows current posts first, then undated ones past their window under Earlier', () => {
-    renderPosts({ canPost: false, posts: [stale, current] })
-    const earlier = screen.getByTestId('page-posts-earlier')
-    expect(earlier).toHaveTextContent(/^Earlier/)
-    expect(earlier).toHaveTextContent('Summer jam')
-    expect(earlier).not.toHaveTextContent('Fresh loaves')
-    expect(screen.getByTestId('page-posts-latest')).toHaveTextContent('Fresh loaves')
-    expect(screen.getByTestId('page-posts-latest')).not.toHaveTextContent('Summer jam')
-    const order = [...document.querySelectorAll('[data-testid="page-posts-latest"], [data-testid="page-posts-earlier"]')]
-    expect(order.map((e) => e.getAttribute('data-testid'))).toEqual(['page-posts-latest', 'page-posts-earlier'])
-  })
-
-  it('a dated post is never under Earlier', () => {
-    renderPosts({ canPost: false, posts: [pastEvent, current] })
-    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
-  })
-
-  it('no Earlier heading when nothing has passed', () => {
-    renderPosts({ canPost: false, posts: [current] })
-    expect(screen.queryByTestId('page-posts-earlier')).toBeNull()
-  })
-
-  it('only earlier posts: Earlier, and no empty note', () => {
-    renderPosts({ canPost: true, posts: [stale] })
-    expect(screen.getByTestId('page-posts-earlier')).toHaveTextContent('Summer jam')
-    expect(screen.queryByTestId('page-posts-empty')).toBeNull()
-    expect(screen.queryByTestId('page-posts-latest')).toBeNull()
-  })
-
-  it('See all posts counts current posts only', () => {
-    const olds = [1, 2, 3, 4].map((d) => ({ ...postFixture({ id: `o${d}`, createdAt: `2026-09-0${d}T12:00:00.000Z` }), current: false }))
-    renderPosts({ canPost: false, posts: [current, ...olds] })
-    expect(screen.queryByRole('button', { name: 'See all posts' })).toBeNull()
-  })
-
   it('says Posted <date> in the metro’s clock, not UTC', () => {
     // 8pm Sep 20 in Sacramento is Sep 21 in UTC.
     renderPosts({ canPost: false, posts: [postFixture({ createdAt: '2026-09-21T03:00:00.000Z' })] })
@@ -965,7 +970,8 @@ describe('#913 — Earlier, and Posted <date>', () => {
 
   it('every undated post carries it, under Earlier too', () => {
     renderPosts({ canPost: false, posts: [stale, current] })
-    expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Oct 15', 'Posted Sep 1'])
+    fireEvent.click(screen.getByRole('button', { name: 'Earlier posts (1)' }))
+    expect(screen.getAllByTestId('page-post-posted').map((e) => e.textContent)).toEqual(['Posted Sep 1', 'Posted Oct 15'])
   })
 })
 
@@ -974,7 +980,7 @@ describe('F117 — posting a Wonder', () => {
   it('the composer posts a Wonder with a threshold and the sizes the poster names', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Clothes that fit, bought in bulk at cost.' } })
-    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '500' } })
     fireEvent.change(screen.getByLabelText(COPY.wonderOptionsLabel), { target: { value: 'S, M, L, M' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
@@ -984,11 +990,23 @@ describe('F117 — posting a Wonder', () => {
   it('refuses a threshold that is not a whole number', async () => {
     renderPosts()
     fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'A tool library?' } })
-    fireEvent.click(screen.getByRole('radio', { name: 'Count me in' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
     fireEvent.change(screen.getByLabelText(COPY.wonderThreshold), { target: { value: '2.5' } })
     fireEvent.click(screen.getByTestId('page-post-send'))
     expect(await screen.findByText(COPY.wonderThresholdInvalid)).toBeInTheDocument()
     expect(onPost).not.toHaveBeenCalled()
+  })
+  // [guards F117.1 partial: the goal number is optional (plan #218, 2026-11-01)]
+  it('posts a Proposal with no goal number', async () => {
+    renderPosts()
+    fireEvent.change(screen.getByTestId('page-post-body'), { target: { value: 'Dog walking on weekday mornings?' } })
+    fireEvent.click(screen.getByRole('radio', { name: 'Proposal' }))
+    expect(screen.getByTestId('page-post-send')).toHaveTextContent(COPY.wonderPost)
+    fireEvent.click(screen.getByTestId('page-post-send'))
+    await waitFor(() => expect(onPost).toHaveBeenCalled())
+    const sent = onPost.mock.calls[0]![0] as { kind: string; wonder: unknown }
+    expect(sent.kind).toBe('wonder')
+    expect(sent.wonder).toEqual({ options: [] })
   })
 })
 
@@ -997,12 +1015,12 @@ describe('plan #230 — the composer: kind, headline, details', () => {
   afterEach(() => vi.useRealTimers())
   const kindRadio = (name: string) => screen.getByRole('radio', { name })
 
-  it('offers the seven kinds first, News picked to start', () => {
+  it('offers the seven kinds first, Update picked to start', () => {
     renderPosts()
     const group = screen.getByRole('radiogroup', { name: 'What is it?' })
     expect(group).toBeInTheDocument()
-    for (const k of ['Event', 'Sale', 'Limited', 'Reminder', 'News', 'Count me in', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
-    expect(kindRadio('News')).toBeChecked()
+    for (const k of ['Event', 'Offer', 'Limited', 'Reminder', 'Update', 'Proposal', 'Hiring']) expect(kindRadio(k)).toBeInTheDocument()
+    expect(kindRadio('Update')).toBeChecked()
     // The kind comes before the headline, which comes before the details.
     const order = [group, screen.getByTestId('page-post-headline'), screen.getByTestId('page-post-body')]
     for (let i = 1; i < order.length; i++) expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -1049,7 +1067,7 @@ describe('plan #230 — the composer: kind, headline, details', () => {
   it('a sale asks for the day it ends, at most 30 days out, and sends it as its end', async () => {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-12T19:00:00Z') })
     renderPosts()
-    fireEvent.click(kindRadio('Sale'))
+    fireEvent.click(kindRadio('Offer'))
     const through = screen.getByTestId('announce-sale-through')
     expect(through).toHaveAttribute('max', '2026-11-11')
     expect(screen.queryByTestId('announce-time')).toBeNull()
@@ -1113,5 +1131,37 @@ describe('Share on a post', () => {
     const five = ['p-5', 'p-4', 'p-3', 'p-2', 'p-1'].map((id, i) => postFixture({ id, createdAt: `2026-09-2${5 - i}T12:00:00.000Z` }))
     renderPosts({ canPost: false, posts: five, focusPostId: 'p-1' })
     await waitFor(() => expect(document.getElementById('announcement-p-1')).toHaveAttribute('data-highlighted', 'true'))
+  })
+})
+
+describe('#1127 — a sample post on its Page says Sample once in the lead line; the disclaimer stays in the body', () => {
+  const sample = {
+    ...postFixture({ id: 'pp-s', startsAt: '2026-09-05T17:00:00.000Z', endsAt: '2026-09-07T04:00:00.000Z', locationLabel: 'Midtown' }),
+    kind: 'sale' as const,
+    sampleKind: 'deal' as const,
+    headline: '15% off your first order',
+    body: "Sample · This week only at Corner Bakery: 15% off.\n\nThis is a sample post showing what Corner Bakery's Page could look like. It is not a real offer.",
+  }
+
+  it('leads "Sample offer", with no watermark, no extra Sample label and no extra note', () => {
+    renderPosts({ posts: [sample] as never, canPost: false, pageName: 'Corner Bakery' })
+    const card = screen.getByTestId('page-post')
+    expect(within(card).getByTestId('page-post-lead').textContent).toMatch(/^Sample offer · /)
+    expect(within(card).queryByTestId('sample-watermark')).toBeNull()
+    expect(within(card).queryByTestId('sample-label')).toBeNull()
+    expect(within(card).queryByTestId('sample-note')).toBeNull()
+    expect(within(card).getByText(/This is a sample post showing what Corner Bakery's Page could look like/)).toBeInTheDocument()
+    expect(card.textContent!.match(/\bSample\b/g)).toHaveLength(1)
+  })
+
+  it('a venue show on its Page leads with the kind of show and the venue', () => {
+    const show = {
+      ...postFixture({ id: 'pp-v', startsAt: '2026-09-05T04:00:00.000Z', locationLabel: '1901 10th St' }),
+      kind: 'event' as const,
+      tags: ['Live music'],
+      body: "Emo Night at The Old Ironsides\n\nShow 9pm\n\nFrom The Old Ironsides's own calendar: https://example.test",
+    }
+    renderPosts({ posts: [show] as never, canPost: false, pageName: 'The Old Ironsides' })
+    expect(screen.getByTestId('page-post-lead').textContent).toMatch(/^Live music · .+ · The Old Ironsides$/)
   })
 })

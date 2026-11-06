@@ -18,7 +18,7 @@ import { createClient } from '@/lib/supabase-server'
 import { viewerId } from '@/lib/auth/viewer'
 import { viewerOwnsPage } from '@/lib/groups/resolve-shop'
 import { resolvePageById } from '@/lib/groups/resolve-page-address'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath as addressOf } from '@/lib/groups/page-handle'
 import { EditCards } from '@/components/group/edit/EditCards'
 import { fixedPlacement, resolvePageWhere, whereNow } from '@/lib/groups/page-where'
 import { savedPinFrom, whereValueFrom } from '@/components/locations/where-save'
@@ -49,7 +49,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
       kind: shop.kind,
     }),
     resolvePageContact(supabase, shop.groupId),
-    supabase.from('groups').select('metadata').eq('id', shop.groupId).maybeSingle(),
+    supabase.from('groups').select('metadata, labels_pinned').eq('id', shop.groupId).maybeSingle(),
     // #285 — the Page's tags, as the owner reads them. A tag taken down is not offered back; saving leaves it off.
     supabase.from('page_tags').select('tags(label)').eq('group_id', shop.groupId),
     // #348 — start the question from what's saved; #455 — the map opens on the saved pin.
@@ -57,7 +57,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
   ])
   if (!owns) notFound()
 
-  const pagePath = canonicalPagePath(shop.publicId)
+  const pagePath = addressOf(shop)
   const isDraft = shop.lifecycleState === 'draft'
   const contact = contactRow ?? { phone: null, hours: null }
   // Don, 2026-10-04 — hours and phone: on for shops and services, off for a
@@ -96,6 +96,7 @@ export default async function EditPage({ params }: { params: Promise<{ handle: s
           pictureUrl: shop.pictureUrl,
           socialLinks: shop.socialLinks,
           tags: initialTags,
+          labelsPinned: Boolean((meta as { labels_pinned?: boolean } | null)?.labels_pinned),
           contact,
           contactOn,
           // Issue #180 — where the Page is, in the words it was saved with.
