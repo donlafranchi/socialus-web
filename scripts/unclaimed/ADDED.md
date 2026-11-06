@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-05** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-06** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -366,3 +366,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-05 | Placerville Lions Club | Service club | Placerville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
 | 2026-11-05 | Folsom Lake Lions Club | Service club | Folsom | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
 | 2026-11-05 | Roseville Host Lions Club | Service club | Roseville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-06 | Sacramento Audubon Society | Birding club (nonprofit) | Sacramento | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-06 | Foothill Conservancy | Creek conservancy (nonprofit) | Sutter Creek | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-06 | California Native Plant Society, Redbud Chapter | Native plant society (nonprofit) | Auburn | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-06 | Downtown Vacaville Farmers' Market | Farm | Vacaville | Farmers markets, Sustainability | Green and outdoors (market with dated events); stock photos only; lead: search, then own site |
