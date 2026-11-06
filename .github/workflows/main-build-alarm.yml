@@ -4,6 +4,8 @@ name: Main build alarm
 # Two PRs green on their own can break main together (#911 + #944, 2026-10-18: a duplicate import);
 # requiring up-to-date branches (#426) is on hold for Actions minutes, so catch it within minutes instead.
 # Reads Vercel's deployment status: no build runs here.
+# The next production deploy that succeeds closes the Issue again, with the deploy as the evidence (#1121 stayed open
+# for five days after main built cleanly).
 
 on:
   deployment_status:
@@ -45,3 +47,21 @@ jobs:
           else
             gh issue create -R "$REPO" --title "$title" --body "$body" --label bug --label launch-blocking
           fi
+
+  recovered:
+    if: github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Production')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Close the Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.deployment.sha }}
+          LOG: ${{ github.event.deployment_status.target_url }}
+        run: |
+          set -euo pipefail
+          title="bug · main fails to build on Vercel"
+          existing="$(gh issue list -R "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          [ -n "$existing" ] || exit 0
+          gh issue close "$existing" -R "$REPO" --reason completed --comment "Main builds again: production deploy \`${SHA:0:7}\` succeeded — ${LOG}"
