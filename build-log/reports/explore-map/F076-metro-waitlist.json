@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -22,7 +22,7 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905) [V migrations]. Checked: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907), seen failing on main (CT missing) and against three mutants [V PR body]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #709 review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: Deploy health green on 4f571f5c, 4f691c01, 8659ee4a [V]. Smoked: run 39291029395 (2026-10-19, main cd913c7d, after #959) opened join and onboarding, green; the daily runs since cover root and explore only [V smoke-live.yml]. #843 closed 2026-10-18."
+   "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905) [V migrations]. Checked: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907), seen failing on main (CT missing) and against three mutants [V PR body]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #709 review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: Deploy health green on 4f571f5c, 4f691c01, 8659ee4a [V]. Smoked: run 39291029395 (2026-10-19, main cd913c7d, after #959) opened join and onboarding, green; run 41328585318 (2026-11-01, main 3df92600, 51 passed) opened join and onboarding again, green, and the daily runs since cover root and explore [V smoke-live.yml]. #843 closed 2026-10-18."
   },
   {
    "id": "2",
@@ -38,7 +38,7 @@
    "smoked": "yes",
    "pm_looked": "no",
    "issues": [],
-   "note": "`[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls [V]. No IP guess in src; `explore_vantage` reads the member's own zip inside the database (#932) [V]. Reviewed no (#709 review-skipped). Shipped yes (4f571f5c). Smoked: explore green daily 10-24 to 10-30 (run 41093000135 on 09ffba30, 2026-10-30); join and onboarding on 2026-10-19 [V]."
+   "note": "`[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls [V]. No IP guess in src; `explore_vantage` reads the member's own zip inside the database (#932) [V]. Reviewed no (#709 review-skipped). Shipped yes (4f571f5c). Smoked: join and onboarding green on 2026-11-01 (run 41328585318, main 3df92600), explore green on 2026-11-04 (run 41884400137, main 49f942f0); main was red on 11-05 and 11-06 on explore personas [V]."
   },
   {
    "id": "3a",
@@ -158,7 +158,7 @@
    "issues": [
     1118
    ],
-   "note": "Built since 2026-10-23: one cached read (`waitingCountByMetro`) serves the popup and the area picker, which Explore now receives instead of an empty map (#1031; `load.ts` lines 95 and 123) [V]. The target is `COMBINED_TARGET = 300` (50 + 250) [V waitlist-standing.ts]; the 2026-10-26 ruling (F118) moved the thresholds to 100 makers and 1,000 supporters, so the target moves with #1101 item 4 (change, `area:sign-in-you`, Beta) and the scenario's 300 reads as the combined threshold. Checked no: `[guards F076.8 partial]` covers the signed-in popup; the picker's ordering tests in `feed-metro-sort.test.ts` carry no marker [V]. Reviewed no (#217, #764, #1031 as 7). Shipped: a3faf37c, 88724880, 0dbf6d8a green [V]. Smoked: explore green daily 10-24 to 10-30 (run 41093000135); it loads the route, it does not open the picker [V]. A waiting vantage (F105.4, #699) is the other surface, unbuilt. Filed #1118 (check, launch-blocking, Beta)."
+   "note": "Built since 2026-10-23: one cached read (`waitingCountByMetro`) serves the popup and the area picker, which Explore now receives instead of an empty map (#1031; `load.ts` lines 95 and 123) [V]. The target is `COMBINED_TARGET = 300` (50 + 250) [V waitlist-standing.ts]; the 2026-10-26 ruling (F118) moved the thresholds to 100 makers and 1,000 supporters, so the target moves with #1101 item 4 (change, `area:sign-in-you`, Beta) and the scenario's 300 reads as the combined threshold. Checked no: `[guards F076.8 partial]` covers the signed-in popup; the picker's ordering tests in `feed-metro-sort.test.ts` carry no marker [V]. Reviewed no (#217, #764, #1031 as 7). Shipped: a3faf37c, 88724880, 0dbf6d8a green [V]. Smoked: explore green on 2026-11-04 (run 41884400137, main 49f942f0); red on 11-05 and 11-06; it loads the route, it does not open the picker [V]. The picker is now opened from the header search's Where (#1161, 2026-11-02) and still reads the cached figure (`load.ts` line 95) [V]. A waiting vantage (F105.4, #699) is the other surface, unbuilt. Filed #1118 (check, launch-blocking, Beta)."
   },
   {
    "id": "9",

@@ -8,11 +8,11 @@
 |---|---|---|---|---|---|---|---|---|
 | builders-seed | 6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0/6 | 0 |
 | create-posts | 60 | 44/60 | 26/60 | 15/60 | 41/60 (3?) | 0/60 (44?) | 0/60 | 2 |
-| explore-map | 99 | 59/99 | 32/99 | 3/99 | 45/99 (14?) | 35/99 (24?) | 0/99 | 1 |
+| explore-map | 116 | 73/116 | 44/116 | 17/116 | 59/116 (14?) | 44/116 (29?) | 0/116 | 1 |
 | moderation | 64 | 61/64 | 61/64 | 6/64 | 47/64 (14?) | 34/64 (27?) | 0/64 | 3 |
 | page-editing | 20 | 10/20 | 3/20 | 3/20 | 9/20 (1?) | 0/20 (10?) | 0/20 | 0 |
 | sign-in-you | 33 | 24/33 | 14/33 | 0/33 | 20/33 (4?) | 6/33 (18?) | 0/33 | 2 |
-| **All** | 282 | 198/282 | 136/282 | 27/282 | 162/282 (36?) | 75/282 (123?) | 0/282 | 8 |
+| **All** | 299 | 212/299 | 148/299 | 41/299 | 176/299 (36?) | 84/299 (128?) | 0/299 | 8 |
 
 ## By feature
 
@@ -41,6 +41,7 @@
 | explore-map | [F105 A member looks from a typed place, and home stays the default](explore-map/F105-look-from-a-typed-place.md) | none | 5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0/5 | 0 |
 | explore-map | [F118 Open your town: neighbours bring in the makers they love until their market opens](explore-map/F118-neighbours-open-their-town.md) | none | 12 | 3/12 | 0/12 | 3/12 | 3/12 | 0/12 (3?) | 0/12 | 0 |
 | explore-map | [F119 A member asks a question, and the app opens the page that answers it](explore-map/F119-ask-bar-opens-the-page.md) | none | 9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0/9 | 0 |
+| explore-map | [F121 shelves are data, and we try several to learn which ones help](explore-map/F121-shelves-are-data.md) | none | 17 | 14/17 | 12/17 | 14/17 | 14/17 | 9/17 (5?) | 0/17 | 0 |
 | moderation | [F058 a member reports something, and the operator can take a photo down](moderation/F058-report-and-remove-a-photo.md) | launch | 5 | 5/5 | 5/5 | 0/5 | 4/5 (1?) | 5/5 | 0/5 | 0 |
 | moderation | [F078 flagged content hides itself, and the poster is told why](moderation/F078-flagged-content-hides-itself.md) | launch | 12 | 12/12 | 12/12 | 0/12 | 12/12 | 4/12 (8?) | 0/12 | 0 |
 | moderation | [F080 no sensitive content in photos; the uploader confirms, a report hides](moderation/F080-no-sensitive-photos.md) | launch | 5 | 5/5 | 5/5 | 0/5 | 5/5 | 2/5 (3?) | 0/5 | 0 |
@@ -61,13 +62,13 @@
 | Gap | Count | Criteria | Next skill |
 |---|---|---|---|
 | SPEC-CONFLICT | 10 | F060.4, F082.2b, F099.11b, F059.5a, F091.1b, F102.7, F056.1b, F056.3, F057.4b, F065.2b | `scope-scenario`; `Path: new territory` goes to the PM as A/B/C |
-| NOT-BUILT | 76 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3, F105.4, … (36 more) | `write-tickets` then `build-ticket` |
+| NOT-BUILT | 79 | F114.1, F114.2, F114.3, F114.4, F114.5, F114.6, F060.5, F064.1, F064.2, F064.3, F064.4, F064.5, F072.6, F074.2, F074.3, F074.4, F074.5, F074.6, F074.7, F074.8, F059.2, F059.4a, F059.5c, F059.6, F059.7, F063.1, F063.2, F063.3, F063.4, F091.6, F092.5, F104.1, F104.2, F104.3a, F104.4, F104.5, F105.1, F105.2, F105.3, F105.4, … (39 more) | `write-tickets` then `build-ticket` |
 | INVARIANT-UNPROVEN | 23 | F060.1, F060.2, F060.3, F061.3, F072.1a, F072.2a, F072.4, F072.5, F082.5, F099.11a, F059.2c, F059.3, F059.4b, F059.5e, F070.2, F076.15, F092.1a, F118.11, F056.7a, F056.8, F057.1, F065.2a, F077.3 | `write-tickets` (guard) then `build-ticket` |
-| NO-CHECK | 37 | F061.1, F061.2, F072.3, F082.2a, F082.7, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3b, F076.7, F076.8, F091.1a, F091.7, F118.8, F118.9, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.1, F081.1, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
+| NO-CHECK | 39 | F061.1, F061.2, F072.3, F082.2a, F082.7, F099.2, F099.9, F059.1, F059.2b, F059.5b, F059.5d, F059.8, F059.9, F059.10, F070.1, F070.3, F070.4, F070.5b, F076.3b, F076.7, F076.8, F091.1a, F091.7, F118.8, F118.9, F121.1a, F121.3b, F056.2, F056.6, F056.9a, F069.1, F069.3, F057.5, F065.1, F065.3, F065.4, F077.1, F081.1, F081.8 | `write-tickets` (check) then `build-ticket`, tests seen failing |
 | NOT-REVIEWED | 169 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.5, F082.7, F082.9, F099.8, F099.11a, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, F117.7, F117.8, F117.9, F059.1, F059.2b, F059.2c, F059.3, F059.4b, F059.5b, F059.5d, F059.5e, F059.8, F059.9, F059.10, F070.1, … (129 more) | `review-pr-bundle` |
 | NOT-SHIPPED | 36 | F061.3, F072.1a, F072.2a, F059.10, F070.1, F070.2, F070.3, F076.3a, F076.4, F076.5, F076.6, F076.9, F076.10a, F076.11, F076.12, F093.8, F093.12, F058.1, F101.1, F101.2, F101.3, F101.4, F101.5, F101.6, F101.7, F101.8, F101.9, F101.10, F101.11, F101.14, F102.14, F069.3, F057.5, F065.1, F065.2a, F065.4 | CI: `deploy-health` green on the merge commit |
-| NOT-SMOKED | 121 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (81 more) | CI: a `smoke-live` run that covers the route |
-| NOT-LOOKED | 196 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (156 more) | `record-pm-review` (UAT Issue), after the rows above |
+| NOT-SMOKED | 126 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (86 more) | CI: a `smoke-live` run that covers the route |
+| NOT-LOOKED | 210 | F060.1, F060.2, F060.3, F061.1, F061.2, F061.3, F072.1a, F072.2a, F072.3, F072.4, F072.5, F074.1, F082.1, F082.2a, F082.3, F082.4, F082.5, F082.6, F082.7, F082.8, F082.9, F099.1, F099.2, F099.3, F099.4, F099.5, F099.6, F099.7, F099.8, F099.9, F099.10, F099.11a, F099.12, F099.13, F117.1, F117.2, F117.3, F117.4, F117.5, F117.6, … (170 more) | `record-pm-review` (UAT Issue), after the rows above |
 
 ## Data problems
 
@@ -78,7 +79,6 @@
 - F046: scenario retired; shown, not counted
 - F063: area 'explore-map' is a guess; no Issue carries an area: label
 - F118: area 'explore-map' is a guess; no Issue carries an area: label
-- F119: area 'explore-map' is a guess; no Issue carries an area: label
 - F060: unknown cells: Smoked 4
 - F061: unknown cells: Shipped 1, Smoked 3
 - F072: unknown cells: Shipped 2, Smoked 5
@@ -92,6 +92,7 @@
 - F091: unknown cells: Smoked 1
 - F093: unknown cells: Shipped 2, Smoked 4
 - F118: unknown cells: Smoked 3
+- F121: unknown cells: Smoked 5
 - F058: unknown cells: Shipped 1
 - F078: unknown cells: Smoked 8
 - F080: unknown cells: Smoked 3
