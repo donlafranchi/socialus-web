@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-02** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-03** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -350,3 +350,7 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-01 | Gold Trail Grange | Grange (community hall) | Coloma | Volunteering, Neighborhood life | Neighbourhood life; stock photos only; centennial year; lead: search, then own site |
 | 2026-11-02 | Chill Krew Run Club | Sports club | Rancho Cordova | Fitness & outdoors, Neighborhood life | Run and walk (meet-up, #1102); stock photos only; lead: Sacramento Running Association club list, then own site |
 | 2026-11-02 | Sacramento FrontRunners & FrontWalkers | Sports club | Sacramento | Fitness & outdoors, Neighborhood life | Run and walk (meet-up, #1102); stock photos only; lead: Sacramento Running Association club list, then own site |
+| 2026-11-03 | Habitat for Humanity Yuba/Sutter | Volunteer building and ReStore (nonprofit) | Marysville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-03 | Nevada County Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Grass Valley | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-03 | Foothills Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Roseville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-03 | Community Harvest of Davis | Fruit gleaning (nonprofit) | Davis | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
