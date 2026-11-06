@@ -1,0 +1,70 @@
+[
+  {
+    "name": "Sacramento Audubon Society",
+    "category": "Birding club (nonprofit)",
+    "makes": "Volunteer-run birding and conservation chapter with monthly speaker meetings on the third Thursday at 7 p.m. (September to May) at Effie Yeaw Nature Center in Carmichael, field trips, and volunteer workdays at its Bobelaine Audubon Sanctuary; a campus bioblitz is set for Saturday, November 14, 2026",
+    "area": "Sacramento (Sacramento)",
+    "site": "https://www.sacramentoaudubon.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/sacaudubon/",
+      "facebook": "https://www.facebook.com/SacramentoAudubon/"
+    },
+    "confidence": "High; own site read 2026-11-06 (ok): volunteer and join/donate pages live, bioblitz Nov 14 2026 posted; no footer year, mailing address is a PO Box. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Foothill Conservancy",
+    "category": "Creek conservancy (nonprofit)",
+    "makes": "Volunteer-supported Sutter Creek group protecting the Mokelumne River, other streams and the rural character of the Sierra foothills, with volunteer teams for outings, cleanups and tree planting; a free community cleanup at Kennedy Mine Dam is set for Saturday, November 14, 2026, 9 a.m. to noon (RSVP required)",
+    "area": "Sutter Creek (Amador)",
+    "address": "11 Randolph Street, Sutter Creek, CA 95685",
+    "site": "https://foothillconservancy.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/Foothill-Conservancy-163247278842"
+    },
+    "confidence": "High; own site read 2026-11-06 (ok): events, volunteer application, membership and donate links live; no footer year. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "California Native Plant Society, Redbud Chapter",
+    "category": "Native plant society (nonprofit)",
+    "makes": "Chapter of the California Native Plant Society serving Placer and Nevada counties with talks, field trips and a nursery; its next program, Homegrown Habitat and Keystone Species, is Wednesday, November 18, 2026 with a plant sale at 4:30 p.m. and talk at 5:30 p.m. at General Gomez Arts in Auburn",
+    "area": "Auburn (Placer)",
+    "site": "https://chapters.cnps.org/redbud/",
+    "social": {
+      "instagram": "https://www.instagram.com/redbudcnps/",
+      "facebook": "https://www.facebook.com/pages/Redbud-Chapter-California-Native-Plant-Society/687124977965846"
+    },
+    "confidence": "Medium; own chapter pages read 2026-11-06 (ok): volunteer and donate pages live, Nov 18 2026 event posted; chapter section of the statewide CNPS site, no street address of its own (town taken from the event venue, 808 Lincoln Way, Auburn). Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "American River Natural History Association (Effie Yeaw Nature Center)",
+    "category": "Nature center (nonprofit)",
+    "makes": "Nonprofit that has run Effie Yeaw Nature Center since 1981 in a 100-acre American River nature preserve in Carmichael; habitat restoration work days are held the 4th Saturday of each month, 9 a.m. to noon, with advance sign-up, and docent and trail steward volunteers are welcome",
+    "area": "Carmichael (Sacramento)",
+    "site": "https://www.sacnaturecenter.net/",
+    "confidence": "Medium; own site read 2026-11-06 (ok): volunteer and membership pages live; footer reads 2017; street address not on the pages read, so none given. No social links found. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Downtown Vacaville Farmers' Market",
+    "category": "Farm",
+    "makes": "Saturday farmers' market at Creekwalk Plaza, Andrews Park, 9 a.m. to 1 p.m. in fall hours (closes November 28, reopens March 6), run by the Downtown Vacaville Business Improvement District with separate vendor applications for farmers, food and artisans; Holly Days Craft & Vendor Fair is Saturday, November 14",
+    "area": "Vacaville (Solano)",
+    "address": "614 E. Monte Vista Ave, Vacaville, CA 95688",
+    "site": "https://downtownvacaville.com/farmers-market/",
+    "social": {
+      "instagram": "https://instagram.com/downtownvacavillefarmersmarket",
+      "facebook": "https://facebook.com/VacavilleFarmersMarket"
+    },
+    "confidence": "Medium; own site read 2026-11-06 (ok): market day, hours, season gap and vendor links live; footer 2025; operator is a business improvement district, not a nonprofit; November event dates come from the site's own notes. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Indian Rock Tree Farm",
+    "category": "Farm",
+    "makes": "Apple Hill choose-and-cut Christmas tree farm (Silver Tip, White Fir, Incense Cedar, Douglas Fir, Blue Spruce, Nordmann Fir) opening Friday, November 27, 2026, Thursday to Monday 8 a.m. to 5 p.m. (last entry 4:30), with parking tickets required November 27 to 29",
+    "area": "Camino (El Dorado)",
+    "site": "https://indianrocktreefarm.com/",
+    "social": {
+      "facebook": "https://www.facebook.com/Indian-Rock-Tree-Farm-and-Ranch-191649302163/"
+    },
+    "confidence": "High; own site read 2026-11-06 (ok): 2026 season dates and ticket pages live; footer 2026. No street address shown, no Instagram profile linked. Fewer than 3 own-site product pages, so none. Photos not viewed: stock only. Lead: Apple Hill Growers, then own site."
+  }
+]
