@@ -1,0 +1,29 @@
+name: Main build recovered
+
+# The other half of main-build-alarm.yml: the first successful Production deploy after a failure closes the alarm Issue
+# with the deploy as the evidence (#1121 stayed open for five days after main built cleanly).
+
+on:
+  deployment_status:
+
+permissions:
+  issues: write
+
+jobs:
+  recovered:
+    if: github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Production')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Close the alarm Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.deployment.sha }}
+          LOG: ${{ github.event.deployment_status.target_url }}
+        run: |
+          set -euo pipefail
+          title="bug · main fails to build on Vercel"
+          existing="$(gh issue list -R "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          [ -n "$existing" ] || exit 0
+          gh issue close "$existing" -R "$REPO" --reason completed --comment "Main builds again: production deploy \`${SHA:0:7}\` succeeded — ${LOG}"
