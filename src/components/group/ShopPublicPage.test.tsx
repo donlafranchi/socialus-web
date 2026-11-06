@@ -476,13 +476,15 @@ describe('#300 — the front door, signed out (F093 criterion 8)', () => {
   })
 })
 
-describe('#316 — a Page shows its tags as #hashtags, signed in only', () => {
-  it('signed in, each tag is a chip', () => {
-    renderShop({ loggedIn: true, tags: ['Sourdough'] })
-    expect(screen.getByRole('link', { name: '#Sourdough' })).toBeInTheDocument()
+describe('#1180 — a Page shows what it is listed under, as plain words, signed in only', () => {
+  it('signed in, each label links to Explore under it, with no #', () => {
+    renderShop({ loggedIn: true, tags: ['Bakery', 'Food & drink'] })
+    expect(screen.getByRole('link', { name: 'Bakery' })).toHaveAttribute('href', '/explore?category=bakery')
+    expect(screen.getAllByRole('link', { name: /Bakery|Food & drink/ }).map((a) => a.textContent)).toEqual(['Food & drink', 'Bakery'])
+    expect(screen.getByTestId('tag-chips')).not.toHaveTextContent('#')
   })
-  it('sit under the description, like hashtags under a post', () => {
-    renderShop({ loggedIn: true, tags: ['Sourdough'] })
+  it('sit under the description', () => {
+    renderShop({ loggedIn: true, tags: ['Bakery'] })
     const desc = screen.getByText('Real bread, baked local.')
     expect(desc.compareDocumentPosition(screen.getByTestId('tag-chips')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
@@ -667,7 +669,7 @@ describe('#458 — a header block, then contained sections', () => {
     loggedIn: true,
     pagePath: '/g/7k3x8m',
     where,
-    tags: ['sourdough'],
+    tags: ['Bakery'],
     contact: { phone: '+19165550142', hours: null } as never,
     shop: { ...SHOP, placements: [{ source: 'anchor' as const, kind: 'point' as const, label: '3117 Broadway', lng: -121.47, lat: 38.55 }], socialLinks: { instagram: 'https://instagram.com/oakpark' } },
     items: [LOAF],
@@ -683,7 +685,7 @@ describe('#458 — a header block, then contained sections', () => {
     expect(within(header).getByRole('button', { name: 'More options' })).toBeInTheDocument()
   })
 
-  it('then Posts first, and About, Location, Contact, Tags and Products beside them, each titled and contained', () => {
+  it('then Posts first, and About, Location, Contact, Listed under and Products beside them, each titled and contained', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
     renderShop(full)
     expect(sections()).toEqual(['posts', 'about', 'location', 'contact', 'found', 'products'])
@@ -691,7 +693,7 @@ describe('#458 — a header block, then contained sections', () => {
       expect(el.querySelector('h2')).not.toBeNull()
       expect(el.className).toMatch(/\bcard\b/)
     }
-    expect(screen.getByRole('heading', { level: 2, name: 'Tags' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Listed under' })).toBeInTheDocument()
     vi.unstubAllEnvs()
   })
 
@@ -892,11 +894,11 @@ describe('#896 — Contact holds website, phone and socials', () => {
     expect(within(contact).getByRole('link', { name: 'TikTok: @claras' })).toBeInTheDocument()
   })
 
-  it('tags stay for interests only: no links out beside them', () => {
-    renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: true, tags: ['Sourdough'] })
+  it('labels stay for interests only: no links out beside them', () => {
+    renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: true, tags: ['Bakery'] })
     const tags = screen.getByTestId('page-section-found')
     expect(within(tags).queryAllByRole('link').map((a) => a.getAttribute('href'))).not.toContain(socialLinks.instagram)
-    expect(within(tags).getByRole('heading')).toHaveTextContent('Tags')
+    expect(within(tags).getByRole('heading')).toHaveTextContent('Listed under')
   })
 
   it("an unclaimed Page's source site is credited in About and listed in Contact", () => {
@@ -928,7 +930,7 @@ describe('#896 — Location, Contact and Tags carry no chips or pills', () => {
     renderShop({
       shop: { ...SHOP, socialLinks: { instagram: 'https://instagram.com/claras', website: 'https://claras.example/' }, placements: [{ source: 'anchor', kind: 'point', label: '1 Main St', lng: -121.5, lat: 38.5 }] },
       loggedIn: true,
-      tags: ['Sourdough'],
+      tags: ['Bakery'],
       contact: { phone: '+19165550142', hours: null },
     })
     for (const id of ['location', 'contact', 'found']) {

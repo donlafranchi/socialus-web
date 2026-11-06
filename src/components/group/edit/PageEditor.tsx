@@ -16,12 +16,12 @@ import { PostingSafetyNote } from '@/components/PostingSafetyNote'
 import { SocialHandleFields } from '@/components/group/SocialHandleFields'
 import { PagePhotoPicker } from '@/components/media/PagePhotoPicker'
 import { HoursEditor } from '@/components/group/HoursEditor'
-import { TagInput, type TagInputValue } from '@/components/tags/TagInput'
+import { ListedUnder, labelsToSend, savedValue, UNPINNED, type ListedValue } from '@/components/labels/ListedUnder'
+import { picksFromTags } from '@/lib/labels/match'
 import { WhereFields, type WhereValue } from '@/components/locations/WhereFields'
 import { wherePatch } from '@/components/locations/where-save'
 import { createLocationAction, metroAnchorPlaceAction } from '@/app/_actions/location-actions'
 import { handlesFromLinks, linksFromHandles } from '@/lib/groups/social-handles'
-import { isValidTagLabel } from '@/lib/groups/tags'
 import { formatUsPhone } from '@/lib/phone'
 import type { SocialLinks, SocialPlatform } from '@/lib/groups/social-links'
 import type { OpeningHours } from '@/lib/groups/opening-hours'
@@ -34,7 +34,7 @@ export type Section = 'basics' | 'found' | 'kind' | 'about' | 'name' | 'descript
 
 export const SECTION_TITLE: Record<Section, string> = {
   basics: 'Basics',
-  found: 'Tags & links',
+  found: 'Listed under & links',
   kind: 'What your Page is for',
   about: 'About',
   name: 'Name',
@@ -42,7 +42,7 @@ export const SECTION_TITLE: Record<Section, string> = {
   photo: 'Photo',
   where: 'Location',
   contact: 'Contact',
-  tags: 'Tags',
+  tags: 'Listed under',
   links: 'Links',
   components: 'What your Page shows',
 }
@@ -58,6 +58,8 @@ export interface EditorInitial {
   pictureUrl?: string | null
   socialLinks: SocialLinks
   tags: string[]
+  /** #1180 — the owner picked what it is listed under. */
+  labelsPinned?: boolean
   contact: { phone: string | null; hours: OpeningHours | null }
   contactOn: boolean
   addressLabel: string | null
@@ -94,7 +96,10 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [photoUrl, setPhotoUrl] = useState(initial.photoUrl)
   const [pictureUrl, setPictureUrl] = useState(initial.pictureUrl ?? null)
   const [handles, setHandles] = useState<Partial<Record<SocialPlatform, string>>>(() => handlesFromLinks(initial.socialLinks))
-  const [tags, setTags] = useState<TagInputValue>({ tags: initial.tags, draft: '' })
+  const [listed, setListed] = useState<ListedValue>(() => (initial.labelsPinned ? savedValue(initial.tags, true) : UNPINNED))
+  // A Page already listed shows what it's listed under; one that isn't yet follows its name and description.
+  const savedLabels = picksFromTags(initial.tags)
+  const listedWords = { text: savedLabels.length > 0 ? '' : `${name} ${description}`, pageTags: savedLabels }
   const [phone, setPhone] = useState(initial.contact.phone ? formatUsPhone(initial.contact.phone) : '')
   const [hours, setHours] = useState(initial.contact.hours)
   const [contactOn, setContactOn] = useState(initial.contactOn)
@@ -106,7 +111,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
 
-  const snapshot = () => JSON.stringify({ kind, purpose, productsOn, name, description, photoUrl, pictureUrl, handles, tags: tags.tags, draft: tags.draft, phone, hours, contactOn, where })
+  const snapshot = () => JSON.stringify({ kind, purpose, productsOn, name, description, photoUrl, pictureUrl, handles, listed, phone, hours, contactOn, where })
   const [start] = useState(snapshot)
   const dirty = snapshot() !== start
 
@@ -137,11 +142,8 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
       if (bad) return setError(`${bad[0]}: ${bad[1]}`)
       patch = { socialLinks: links }
     }
-    if (section === 'tags' || section === 'found') {
-      const set = [...tags.tags, tags.draft].filter(isValidTagLabel)
-      if (set.length === 0) return setError('Add at least one word that describes what you do.')
-      patch = { ...patch, tags: set }
-    }
+    // #1180 — saved labels stay unless the owner picks: editing links never re-matches them.
+    if ((section === 'tags' || section === 'found') && (listed.pinned || savedLabels.length === 0)) patch = { ...patch, ...labelsToSend(listed, listedWords) }
     setBusy(true)
     if (section === 'where') {
       const w = await wherePatch(where, initial.where.mode, { createLocation: createLocationAction, metroAnchor: metroAnchorPlaceAction, savedPin: initial.savedPin ?? null })
@@ -265,7 +267,7 @@ function SectionSheet({ section, initial, onSave, onClose }: { section: Section;
             {SHOW_OPENING_HOURS && <HoursEditor value={hours} onChange={setHours} />}
           </>
         )}
-        {(section === 'tags' || section === 'found') && <TagInput idPrefix="edit-tag" value={tags} onChange={setTags} />}
+        {(section === 'tags' || section === 'found') && <ListedUnder idPrefix="edit-listed" value={listed} onChange={setListed} text={listedWords.text} pageTags={savedLabels} />}
         {(section === 'links' || section === 'found') && <SocialHandleFields compact value={handles} onChange={setHandles} />}
         {section === 'components' && (
           <>

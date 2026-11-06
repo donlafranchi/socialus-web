@@ -36,6 +36,8 @@ const POSTERS: Record<string, readonly Kind[]> = {
   'group.create': ['group', 'page_picture', 'page_words'],
   // F118 — a neighbour adds a maker: an unclaimed Page, reportable and removable like any.
   'town.maker_add': ['group', 'page_words'],
+  // #1183 — a post without a Page: its words, reportable on the courtesy-first path.
+  'member_post.create': ['member_post'],
   'group.update_draft': ['group', 'page_picture', 'page_words'],
   'group.update': ['group', 'page_picture', 'page_words'],
   'group.activate': ['group', 'page_picture', 'page_words'],
@@ -65,6 +67,8 @@ const POSTS_NOTHING: Record<string, string> = {
   'member.notifications.opened': 'private read receipt',
   'member.reminder.set': 'private reminder',
   'member.heart.set': 'a heart, no words',
+  'member_post.answer': 'an answer, no words',
+  'member_post.withdraw': 'takes a post down',
   'member.save.set': 'private save',
   'member.reminder.remove': 'private reminder',
   'member.reminder.every_for_page': 'private reminder',
@@ -129,6 +133,7 @@ const SHOWN: Record<Kind, { words: boolean; photo: boolean }> = {
   post: { words: true, photo: false },
   post_photo: { words: true, photo: true },
   page_item: { words: true, photo: true },
+  member_post: { words: true, photo: false },
 }
 
 const GROUP = '11111111-1111-1111-1111-111111111111'
@@ -141,7 +146,7 @@ const ctx = { actingMemberId: REPORTER, viaDelegationId: null, traceId: 't', db:
 
 // One row that satisfies every kind's subject query; the SQL decides which table it comes from.
 const SUBJECT_ROW = {
-  id: SUBJECT, group_id: GROUP, founder_member_id: FOUNDER, name: 'Oak Park Bakery', hide_bar: 0,
+  id: SUBJECT, group_id: GROUP, founder_member_id: FOUNDER, member_id: FOUNDER, display_name: 'Rosa P', name: 'Oak Park Bakery', hide_bar: 0,
   builder_on_real: false, reporter_is_builder: false,
   photo_url: 'https://cdn.test/p.jpg', photo_hidden_at: null, photo_hide_locked_url: null,
   description: 'Bread.', words_hidden_at: null, words_hide_locked_text: null,
@@ -155,7 +160,7 @@ beforeEach(() => {
     if (/insert into public\.reports/i.test(sql)) return { rows: [{ id: REPORT }] }
     if (/count\(\*\)/i.test(sql)) return { rows: [{ count: '0' }] }
     if (/from public\.report_decisions/i.test(sql)) return { rows: [] }
-    if (/^\s*select/i.test(sql) && /from public\.(groups|page_posts|items)/i.test(sql)) return { rows: [SUBJECT_ROW] }
+    if (/^\s*select/i.test(sql) && /from public\.(groups|page_posts|items|member_posts)/i.test(sql)) return { rows: [SUBJECT_ROW] }
     if (/^\s*(insert|update)/i.test(sql)) return { rows: [{ id: SUBJECT }] }
     throw new Error(`unexpected query in test: ${sql}`)
   })

@@ -4,7 +4,7 @@
 export const RESERVED_WORDS: readonly string[] = [
   'about', 'add-entity-demo', 'admin', 'api', 'apple-icon', 'auth', 'business', 'card-gallery', 'composer-demo',
   'create', 'edit', 'explore', 'favicon', 'following', 'fonts', 'g', 'icons', 'join', 'landing', 'm', 'manifest',
-  'map', 'offline', 'og-default', 'onboarding', 'open', 'p', 'playground', 'posts', 'privacy', 'push-sw', 'qr',
+  'map', 'neighbors', 'offline', 'og-default', 'onboarding', 'open', 'p', 'playground', 'posts', 'privacy', 'push-sw', 'qr',
   'register-business', 'report', 'robots', 'rules', 'sitemap', 'storage', 'sw', 'terms', 'unclaimed-demo',
   'welcome', 'you',
 ]

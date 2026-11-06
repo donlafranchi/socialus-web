@@ -35,7 +35,7 @@ const one = async <T,>(sql: string, args: unknown[] = []) => (await client.query
 async function publish(name: string): Promise<{ id: string; place_url_slug: string | null; page_url_slug: string | null }> {
   const { groupId } = await groupCreate(ctx(), { kind: 'group', founderMemberId: OWNER, name, anchorLocationId: LOCATION, description: 'Kites on Sundays.' })
   made.push(groupId)
-  await groupActivate(ctx(), { groupId, tags: ['readable kites'], rulesVersion: RULES_VERSION })
+  await groupActivate(ctx(), { groupId, tags: ['Crafts & makers'], rulesVersion: RULES_VERSION })
   return one(`select id, place_url_slug, page_url_slug from public.groups where id = $1`, [groupId])
 }
 
@@ -132,7 +132,7 @@ describe.skipIf(!RUNNABLE)('#1139 — readable addresses, for real', () => {
     const draft = await groupCreate(ctx(), { kind: 'group', founderMemberId: OWNER, name: NAME, anchorLocationId: LOCATION, description: 'Kites.' })
     made.push(draft.groupId)
     expect(await one(`select place_url_slug, page_url_slug from public.groups where id = $1`, [draft.groupId])).toEqual({ place_url_slug: null, page_url_slug: null })
-    await groupActivate(ctx(), { groupId: draft.groupId, tags: ['readable kites'], rulesVersion: RULES_VERSION })
+    await groupActivate(ctx(), { groupId: draft.groupId, tags: ['Crafts & makers'], rulesVersion: RULES_VERSION })
     const g = await one<{ place_url_slug: string; page_url_slug: string; public_id: string }>(
       `select place_url_slug, page_url_slug, public_id from public.groups where id = $1`, [draft.groupId])
     expect(g).toMatchObject({ place_url_slug: 'sacramento-ca', page_url_slug: 'readable-kite-club-1139' })

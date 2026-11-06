@@ -50,7 +50,8 @@ const NO_PLACE = 'c8000000-0000-4000-8000-000000000005'
 const NO_DESCRIPTION = 'c8000000-0000-4000-8000-000000000006'
 const NO_TAG = 'c8000000-0000-4000-8000-000000000007'
 const PAGES = [FIRST, SECOND, NO_PHOTO, NO_NAME, NO_PLACE, NO_DESCRIPTION, NO_TAG]
-const TAG = 'f082 kites'
+// #1180 — a label from the shared list; free-typed tags are gone.
+const TAG = 'Crafts & makers'
 
 let pool: Pool
 let client: PoolClient
@@ -141,7 +142,7 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     expect(await agreements(SECOND)).toEqual([{ member_id: OWNER, rules_version: RULES_VERSION }])
 
     // The publish step carries the one Terms line, and Publish needs no tick (Don, 2026-10-31).
-    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={async () => {}} />)
+    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasPhoto={false} onPublish={async () => {}} />)
     expect(screen.queryByRole('checkbox')).toBeNull()
     expect(screen.getByTestId('publish-terms')).toHaveTextContent('By posting you agree to the Terms.')
     expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled()
@@ -200,18 +201,24 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
   })
 
   // [guards F082.8]
-  it('publishing needs a name, a place, a description, the agreement and a tag; a Page with no photo publishes and shows its kind’s default art', async () => {
+  it('publishing needs a name, a place, a description and the agreement; a Page with no photo publishes and shows its kind’s default art', async () => {
     const refused: [string, Parameters<typeof groupActivate>[1], RegExp][] = [
       [NO_NAME, { groupId: NO_NAME, tags: [TAG], rulesVersion: RULES_VERSION }, /requires name/],
       [NO_PLACE, { groupId: NO_PLACE, tags: [TAG], rulesVersion: RULES_VERSION }, /requires where it is/],
       [NO_DESCRIPTION, { groupId: NO_DESCRIPTION, tags: [TAG], rulesVersion: RULES_VERSION }, /requires a description/],
-      [NO_TAG, { groupId: NO_TAG, rulesVersion: RULES_VERSION }, /at least one tag/],
       [NO_PHOTO, { groupId: NO_PHOTO, tags: [TAG] }, /agreement to the current rules/],
     ]
     for (const [id, input, reason] of refused) {
       await expect(groupActivate(ctx(), input), id).rejects.toThrow(reason)
       expect(await state(id)).toBe('draft')
     }
+
+    // #1180 — nothing picked: it publishes listed under what its words say, else Neighborhood life.
+    await groupActivate(ctx(), { groupId: NO_TAG, rulesVersion: RULES_VERSION })
+    expect(await state(NO_TAG)).toBe('active')
+    // "Kite Club": a club is a meetup.
+    const listed = await client.query(`select t.label from public.page_tags pt join public.tags t on t.id = pt.tag_id where pt.group_id = $1 order by t.label`, [NO_TAG])
+    expect(listed.rows.map((r) => r.label)).toEqual(['Meetups & socials', 'Neighborhood life'])
 
     // The same draft, agreed: no photo, and it publishes.
     expect((await client.query(`select photo_url from public.groups where id = $1`, [NO_PHOTO])).rows[0].photo_url).toBeNull()
@@ -228,7 +235,7 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     cleanup()
 
     // The publish step says the photo is optional and lets a photoless Page through.
-    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={async () => {}} />)
+    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasPhoto={false} onPublish={async () => {}} />)
     expect(screen.getByTestId('publish-item-photo').textContent).toMatch(/optional/i)
     await waitFor(() => expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled())
   })

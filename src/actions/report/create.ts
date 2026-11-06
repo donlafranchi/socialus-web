@@ -102,7 +102,8 @@ export const reportCreateInput = z.object({
   // body ('post'), the Page picture, or one post's photo (F099 criterion 8: each
   // image reportable on its own, and a report hides that one image only), and
   // one of a Page's featured products or services ('page_item', #909).
-  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo', 'page_words', 'page_item']),
+  // #1183: and a post from a member, with no Page behind it ('member_post').
+  subjectKind: z.enum(['group', 'post', 'page_picture', 'post_photo', 'page_words', 'page_item', 'member_post']),
   // F078 criterion 9 — no report without a reason the reporter chose.
   category: z.enum(REPORT_CATEGORY_VALUES),
   subjectId: z.string().uuid(),
@@ -127,7 +128,8 @@ export interface ReportCreateResult {
 }
 
 interface Subject {
-  groupId: string
+  /** Null for a member's own post: its events are the poster's. */
+  groupId: string | null
   founderId: string
   pageName: string
   hideBar: string | number
@@ -140,7 +142,7 @@ interface Subject {
   alreadyHidden: boolean
   /** A restore is sticky for what was reviewed. */
   locked: boolean
-  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden' | 'group.words_hidden' | 'group.item_hidden'
+  hiddenEventKind: 'group.photo_hidden' | 'group.post_hidden' | 'group.words_hidden' | 'group.item_hidden' | 'member.post_hidden'
   /** False when a concurrent report got there first. */
   hide: (client: Queryable, now: Date) => Promise<boolean>
 }
@@ -337,6 +339,49 @@ async function loadSubject(
     }
   }
 
+  // #1183 — a member's own post: its words, hidden while it is looked at. No Page, so no Page's bar: 0.
+  if (kind === 'member_post') {
+    const res = await client.query<{
+      member_id: string
+      display_name: string
+      body: string
+      hidden_at: Date | null
+      hide_locked_body: string | null
+      builder_on_real: boolean
+      reporter_is_builder: boolean
+    }>(
+      `select p.member_id, m.display_name, p.body, p.hidden_at, p.hide_locked_body,
+              public.is_builder($2) and not public.is_builder(p.member_id) as builder_on_real,
+              public.is_builder($2) as reporter_is_builder
+         from public.member_posts p
+         join public.members m on m.id = p.member_id
+        where p.id = $1 and p.removed_at is null and p.withdrawn_at is null`,
+      [id, reporterId],
+    )
+    const p = res.rows[0]
+    if (!p) return null
+    return {
+      groupId: null,
+      founderId: p.member_id,
+      pageName: p.display_name,
+      hideBar: 0,
+      builderOnReal: p.builder_on_real,
+      reporterIsBuilder: p.reporter_is_builder,
+      preserve: { mediaUrl: null, text: p.body },
+      hideable: true,
+      alreadyHidden: p.hidden_at !== null,
+      locked: p.hide_locked_body !== null && p.hide_locked_body === p.body,
+      hiddenEventKind: 'member.post_hidden',
+      hide: async (c, now) => {
+        const r = await c.query<{ id: string }>(
+          `update public.member_posts set hidden_at = $2 where id = $1 and hidden_at is null returning id`,
+          [id, now],
+        )
+        return r.rows.length > 0
+      },
+    }
+  }
+
   if (kind === 'post_photo') {
     const res = await client.query<ImageRow>(
       `select g.id as group_id, pp.photo_url, pp.photo_hidden_at, pp.photo_hide_locked_url,
@@ -408,6 +453,13 @@ async function loadSubject(
       return r.rows.length > 0
     },
   }
+}
+
+/** A Page's event, or for a member's own post (no Page) the poster's. */
+function subjectEvent(ctx: ActionContext, subject: Subject, kind: string, payload: Record<string, unknown>) {
+  return subject.groupId === null
+    ? appendEvent(ctx, 'member_events', { member_id: subject.founderId, event_kind: kind, payload })
+    : appendEvent(ctx, 'group_events', { group_id: subject.groupId, event_kind: kind, payload })
 }
 
 export const reportCreate = defineHandler(
@@ -507,10 +559,9 @@ export const reportCreate = defineHandler(
       // already carries the reporter for the operator's server-side read, and
       // the migration that accompanies this ticket keeps that column out of
       // every browser read path.
-      await appendEvent(txCtx, 'group_events', {
-        group_id: subject.groupId,
-        event_kind: 'group.reported',
-        payload: { report_id: reportId, subject_kind: input.subjectKind },
+      await subjectEvent(txCtx, subject, subject.groupId === null ? 'member.post_reported' : 'group.reported', {
+        report_id: reportId,
+        subject_kind: input.subjectKind,
       })
 
       // #648 — apparent child-safety content (Sensitive content) is kept, not only hidden: a snapshot of the
@@ -604,11 +655,7 @@ export const reportCreate = defineHandler(
         return { reportId, photoHidden: false }
       }
 
-      await appendEvent(txCtx, 'group_events', {
-        group_id: subject.groupId,
-        event_kind: subject.hiddenEventKind,
-        payload: { report_id: reportId, reason: 'reported', subject_kind: input.subjectKind },
-      })
+      await subjectEvent(txCtx, subject, subject.hiddenEventKind, { report_id: reportId, reason: 'reported', subject_kind: input.subjectKind })
 
       // F078 criterion 3 — the poster is told, in-app, the reporter's chosen
       // reason. Sensitive content stays operator-only until the NCMEC plan is
@@ -642,7 +689,7 @@ export const reportCreate = defineHandler(
     if (textAfterCommit) {
       const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.socialus.org'
       await alertOperator(
-        `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? (input.subjectKind === 'post' ? ' and hid a Post' : ' and hid a Page photo') : ''}. Review: ${site}/admin/reports`,
+        `SocialUs: a "${categoryLabel(input.category)}" report came in${result.photoHidden ? (input.subjectKind === 'post' || input.subjectKind === 'member_post' ? ' and hid a Post' : ' and hid a Page photo') : ''}. Review: ${site}/admin/reports`,
       )
     }
     return result

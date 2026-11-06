@@ -130,13 +130,33 @@ describe('#302 — a section opens a sheet with only its own fields', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 
-  it('tags refuse to save empty, as at publish', async () => {
+  // #1180 — no tag box: Listed under follows the Page's words until the owner picks, and a pick is pinned.
+  it('Listed under saves what the words suggest, unpinned', async () => {
     render(<Page />)
     fireEvent.click(screen.getByRole('button', { name: 'open tags' }))
-    fireEvent.click(screen.getByTestId('edit-tag-remove-sourdough'))
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(/at least one/i)
-    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Food & drink', 'Bakery'], labelsPinned: false })))
+  })
+
+  it('a Page already listed keeps its labels when only something else is saved', async () => {
+    render(<Page init={{ ...initial, tags: ['Gardening'] }} sections={['found']} />)
+    fireEvent.click(screen.getByRole('button', { name: 'open found' }))
+    expect(screen.getByTestId('edit-listed-listed')).toHaveTextContent('Listed under: Gardening')
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalled())
+    expect(onSave.mock.calls.at(-1)![0]).not.toHaveProperty('tags')
+  })
+
+  it('a pick under Change is saved pinned', async () => {
+    render(<Page />)
+    fireEvent.click(screen.getByRole('button', { name: 'open tags' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Change' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Bakery' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Coffee & tea' }))
+    fireEvent.click(screen.getByTestId('edit-listed-save'))
+    fireEvent.click(screen.getByTestId('sheet-save'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: ['Food & drink', 'Coffee & tea'], labelsPinned: true })))
   })
 })
 

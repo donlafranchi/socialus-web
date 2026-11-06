@@ -63,37 +63,5 @@
       "facebook": "https://www.facebook.com/Lodi-Community-Band-81018941738/"
     },
     "confidence": "Medium; own site read 2026-11-04 (dated 2026-27 concert list); the page was read on a staging host, so the lodicommunityband.com address needs the link check. Photos not viewed: stock only. Lead: search, then own site."
-  },
-  {
-    "name": "Amber Oaks Berry Farm",
-    "category": "Farm",
-    "makes": "Auburn family farm with U-pick and pick-to-order berries, tomatoes and pumpkins, nursery stock, year-round orders on available items, farmers' market sales and school and family visits",
-    "area": "Auburn (Placer)",
-    "site": "https://amberoaksberryfarm.com/",
-    "social": {
-      "facebook": "https://www.facebook.com/AmberOaksRaspberries"
-    },
-    "confidence": "Medium; own site read 2026-11-04: U-pick, markets, harvest calendar and contact pages live; no street address or footer year on the page. No prices, so no products. Photos not viewed: stock only. Lead: Windermere local guide, then own site."
-  },
-  {
-    "name": "24 Carrot Farm",
-    "category": "Farm",
-    "makes": "Organic farm in Placerville with a year-round farm stand open Thursday to Sunday 10 am-5 pm, seasonal produce, U-pick in summer and gift cards",
-    "area": "Placerville (El Dorado)",
-    "address": "2731 Jacquier Road, Placerville, CA 95667",
-    "site": "https://www.24carrotfarms.com/",
-    "social": {
-      "instagram": "http://instagram.com/24carrotfarm",
-      "facebook": "https://www.facebook.com/24carrot/"
-    },
-    "confidence": "Medium; own site read 2026-11-04: stand hours posted, U-pick closed for the season; no footer year. Fewer than 3 priced items, so no products. Photos not viewed: stock only. Lead: Windermere local guide, then own site."
-  },
-  {
-    "name": "Salle Orchards",
-    "category": "Farm",
-    "makes": "70-acre family farm near Wheatland with a weekday farm stand 10 am-4 pm selling Chandler walnuts (natural and flavored, holiday flavors November to February), tree fruit, berries and sun-dried fruit, plus weekly farmers' markets in Sacramento, Roseville, Auburn and more",
-    "area": "Wheatland (Yuba)",
-    "site": "https://www.salleorchards.com/",
-    "confidence": "Medium; own site read 2026-11-04: stand hours and market list posted; no street address, footer year or social links on the page. No product URLs, so no products. Photos not viewed: stock only. Lead: Visit Yuba Sutter, then own site."
   }
 ]
