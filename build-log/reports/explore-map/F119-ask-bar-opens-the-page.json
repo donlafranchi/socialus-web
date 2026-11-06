@@ -3,10 +3,10 @@
  "feature": "F119",
  "title": "A member asks a question, and the app opens the page that answers it",
  "area": "explore-map",
- "area_source": "guess",
+ "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -21,8 +21,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built: no ask bar anywhere in src [V grep]. Unplanned, horizon next; no Issue."
+   "issues": [
+    1192
+   ],
+   "note": "Not built: no ask bar anywhere in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1192."
   },
   {
    "id": "2",
@@ -38,8 +40,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Unplanned, horizon next."
+   "issues": [
+    1193
+   ],
+   "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Rechecked 2026-11-06 [V grep]. Filed #1193."
   },
   {
    "id": "3",
@@ -54,8 +58,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Unplanned, horizon next."
+   "issues": [
+    1194
+   ],
+   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Rechecked 2026-11-06 [V grep]. Filed #1194."
   },
   {
    "id": "4",
@@ -70,8 +76,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]. Unplanned, horizon next."
+   "issues": [
+    1195
+   ],
+   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]; Explore's header search now writes its words to the one box in the URL (#1161), which is one more deep link but not a registry [V]. Rechecked 2026-11-06 [V grep]. Filed #1195."
   },
   {
    "id": "5",
@@ -87,8 +95,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built: no page registry in src [V grep]. Unplanned, horizon next."
+   "issues": [
+    1196
+   ],
+   "note": "Not built: no page registry in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1196."
   },
   {
    "id": "6",
@@ -103,8 +113,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built; needs a standing guard once the router exists. Unplanned, horizon next."
+   "issues": [
+    1197
+   ],
+   "note": "Not built; needs a standing guard once the router exists. Rechecked 2026-11-06 [V grep]. Filed #1197."
   },
   {
    "id": "7",
@@ -120,8 +132,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Unplanned, horizon next."
+   "issues": [
+    1198
+   ],
+   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Search-demand logging itself exists (`search-demand-actions.ts`, shown on /admin/metrics) [V grep]; F089 stays a draft scenario. Rechecked 2026-11-06 [V grep]. Filed #1198."
   },
   {
    "id": "8",
@@ -136,8 +150,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built. Unplanned, horizon next."
+   "issues": [
+    1199
+   ],
+   "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1199."
   },
   {
    "id": "9",
@@ -152,8 +168,10 @@
    "shipped": "no",
    "smoked": "no",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Not built. Unplanned, horizon next."
+   "issues": [
+    1200
+   ],
+   "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1200."
   }
  ]
 }

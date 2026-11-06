@@ -51,6 +51,7 @@ npm run eval       # Playwright evals
 | F042 | `features/F042-member-follows-producer-group-venue.spec.ts` | member follows producer group venue |
 | F059 | `features/F059-explore-list-and-map-by-width.spec.ts` | explore list and map by width |
 | F101 | `features/F101-report-decisions-at-375.spec.ts` | report decisions at 375 |
+| readable-urls.spec.ts | `features/readable-urls.spec.ts` | readable urls.spec.ts |
 
 ### Substrate floor
 

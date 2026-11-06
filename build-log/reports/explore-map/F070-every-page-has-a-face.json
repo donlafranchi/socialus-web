@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -78,7 +78,7 @@
    "issues": [
     598
    ],
-   "note": "`DefaultArt` by kind (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]. #335 closed 2026-10-19."
+   "note": "`DefaultArt` by kind (still rendered by `ShopPublicPage`, `BrowseResultCard`, `PagePosts`, `WithheldAnnouncementCard` on 2026-11-06 [V grep]) (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 41328585318 on main 3df92600 (2026-11-01, 51 passed) opened explore and page routes at 390 and 1280, after #969; it loads the route, it does not tap [V]. Main runs since (11-02, 11-05, 11-06) were red on other personas, see the report notes. #335 closed 2026-10-19."
   },
   {
    "id": "5a",
@@ -112,7 +112,7 @@
    "issues": [
     842
    ],
-   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 39805278303 (2026-10-22) opened admin-reports as the operator, green; it loads the queue, it does not purge [V]. Open #842."
+   "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 41328585318 (2026-11-01, main 3df92600) opened admin-reports as the operator, green, after #508; it loads the queue, it does not purge [V]. Open #842."
   }
  ]
 }

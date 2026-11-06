@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-30",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -18,28 +18,46 @@
    "status": "active",
    "built": "yes",
    "checked": "yes",
-   "reviewed": "yes",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and inserts one `creator_rules_agreements` row per Page; `members.maker_mode_enabled` is dropped (migration 20261018160000, #908) [V]. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): a second Page is refused without a fresh agreement and records its own; the step starts unticked; a standing scan that `members` and `groups` carry no role, account-type, creator, tier, badge or mode column, seen failing against planted columns per the PR body [V]. Reviewed: #326, #493 and #908 carry `Reviewed by:`, none review-skipped. Shipped: Deploy health green on f89b294 [V]. Smoked: smoke-live has no route for the draft Page publish card [V evals/smoke/live.spec.ts LIVE_PATHS]. Unchanged since 10-23 [V git log]."
+   "note": "`group.activate` refuses without `rulesVersion === RULES_VERSION` on every publish and writes one `creator_rules_agreements` row per Page (member, Page, version, time); `members.maker_mode_enabled` is gone (#908) [V]. Since #1135 (10-31) the agreement is the one line 'By posting you agree to the Terms' with no tick; the publish action still sends the version. Checked: `[guards F082.1]` in `tests/f082-rules-before-publish-db.test.tsx`, updated in #1135: a second Page is refused without a fresh agreement, no checkbox, and a standing scan that `members` and `groups` carry no role, type, mode or badge column [V]. Reviewed: #326, #493, #908 carry `Reviewed by:`, but #1135 (which rewrote the step and the guard) says 'second session pending' and carries `needs-fix`, so no. Shipped: Deploy health green on f89b294 and 3df9260. Smoked: no route for the publish card."
   },
   {
-   "id": "2",
-   "text": "The step is fixed statements presented as rules with the reason for each, agreed to; nothing typed, no free text stored; no document upload, ID, selfie, photo, lookup, automated check or approval queue",
+   "id": "2a",
+   "text": "Agreeing is the attestation; nothing is typed and no free text is stored. Self-attestation only: no document upload, no ID, no selfie, no photo, no third-party lookup, no automated check, no human approval queue",
    "kind": [
     "behavior"
    ],
    "status": "active",
    "built": "yes",
-   "checked": "yes",
-   "reviewed": "yes",
+   "checked": "no",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
+   "issues": [
+    1203
+   ],
+   "note": "Publish has no input, upload or tick, only Publish and the Terms line; the agreements table has no free-text column; `group.activate` calls no lookup, approval or queue [V BeforeYouPublish.tsx, migration 20261007190000]. Reviewed: rewritten in #1135 ('second session pending'), so no. Checked: the old `[guards F082.2]` sat on the removed rules block; no marker names this half now (#1203). Shipped: green on 3df9260. Smoked: no route for the publish card."
+  },
+  {
+   "id": "2b",
+   "text": "The step is fixed statements, presented as rules with the reason for each, which the member agrees to abide by",
+   "kind": [
+    "behavior"
+   ],
+   "status": "spec-conflict",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
    "issues": [],
-   "note": "Four fixed rules with a reason each in `creator-rules.ts` (`RULES_VERSION = 1`), a checkbox 'I agree to these rules', no input and no upload in `BeforeYouPublish.tsx` [V]. Kind: the 'no upload, no check, no queue' clauses describe this one step, so they are part of its behavior (skill: a 'no' clause about one screen is not an invariant). Checked: `BeforeYouPublish.test.tsx` `[guards F082.2]` sets out each rule with its reason; `[guards F082.8]` (#908) shows an agreed draft publishing at once and reaching Explore with nothing else asked, so no upload, check or queue sits in the path [V]. Reviewed: #493 (and #326) `Reviewed by:`. Shipped: 96b0ea6 and f89b294 green. The reasons stay on the step after #1096 moved the rules page to rule lines alone [V page.tsx]. Smoked: no route for the publish card."
+   "note": "Spec conflict. There is no rules list with a reason each any more: Don, 2026-10-31 (#1135): 'drop the Rules page; one line at publish', 'By posting you agree to the Terms' [V BeforeYouPublish.tsx, creator-rules.ts, next.config.ts]. The scenario has no dated `## Rulings` line for it (the PR says 'Scenario F082 ... needs updating'), so this cannot be marked retired here. Routed to `scope-scenario`: record the ruling and retire or restate criteria 2b and 6's 'rules'."
   },
   {
    "id": "3",
@@ -55,7 +73,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`creator_rules_agreements` is named only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): RLS on, no policy, no grant, both roles refused a select, no view or function reads it, only `group.activate` names it in `src`, no peer surface reads a rules version or agreement; seen failing against a planted policy and a component that reads the table per the PR body [V]. Reviewed: #326, #493, #908. Shipped: f89b294 green. Unchanged since 10-23."
+   "note": "`creator_rules_agreements` is named only by `group.activate`; RLS on, zero policies, grants revoked from anon and authenticated [V migration 20261007190000, grep src]. Checked: `[guards F082.3]` in `tests/f082-rules-before-publish-db.test.tsx` (RLS, no policy or grant, both roles refused, no view or function reads it, only `group.activate` names it, no peer surface reads a version) [V]. Reviewed: #326, #493, #908. Shipped: green on f89b294. Unchanged since 10-23 [V git log]."
   },
   {
    "id": "4",
@@ -71,7 +89,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `activate.test.ts` and `BeforeYouPublish.test.tsx` `[guards F082.4]` [V]. Reviewed: #326 and #493. Shipped: 96b0ea6 green. Smoked: no route for the publish card."
+   "note": "`group.activate` is the only gate; `group.create` and `update_draft` never ask [V]. Checked: `[guards F082.4]` in `activate.test.ts` [V]. Reviewed: #326 and #493. Shipped: green on 96b0ea6. Unchanged since 10-23 [V]. Smoked: no route for the publish card."
   },
   {
    "id": "5",
@@ -81,13 +99,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "yes",
-   "reviewed": "yes",
+   "checked": "no",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "Rule text and the agree line read clean [V creator-rules.ts]. Checked: `BeforeYouPublish.test.tsx` `[guards F082.5]` scans the step's rules block for business, legal, tax, licence, entity, incorporat and llc, seen failing with 'business' injected per #493 [V]. The new rules-page headline from #1087 ('Be cool. Don't be a jerk.') is outside the step and carries none of those words [V copy]. Reviewed: #493. Shipped: 96b0ea6 green."
+   "issues": [
+    1202
+   ],
+   "note": "The only step strings are the checklist labels, the missing-parts line and 'By posting you agree to the Terms'; none classifies the member, uses legal or tax language, or asks for entity information [V BeforeYouPublish.tsx]. #1135 deleted the old `[guards F082.5]` scan with the rules block, so no guard stands (#1202; #581 is the F060 sibling). Reviewed: #493 did; #1135 rewrote the step and is 'pending', so no. Shipped: green on 3df9260."
   },
   {
    "id": "6",
@@ -103,7 +123,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`RULES_VERSION` (still 1: #1087 and #1096 changed the page around the rules, not the rules) is compared on every publish; the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` `[guards F082.6]` x2 (earlier version refused, row recorded) and `create/actions.test.ts` `[guards F082.6]`; the 'only operators read it' half is asserted by F082.3's guard [V]. Reviewed: #493. Shipped: 96b0ea6 green. Smoked: no route for the publish card."
+   "note": "`RULES_VERSION` (still 1; #1135 changed the surface, not the version) is compared on every publish and the agreement row is written in the publish transaction; the table has RLS on and no client policy [V]. Checked: `activate.test.ts` `[guards F082.6]` x2 (earlier version refused, row recorded) and `create/actions.test.ts` `[guards F082.6]`; 'only operators read it' is F082.3's guard [V]. Reviewed: #493. Shipped: green on 96b0ea6. Note the word 'rules' now means the Terms (see 2b)."
   },
   {
    "id": "7",
@@ -113,13 +133,15 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "yes",
+   "checked": "no",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
-   "issues": [],
-   "note": "`/rules` is linked from the Publish card, the desktop footer and a Rules row in You → Settings [V]. Since 10-23 the page itself changed: #1087 (10-26) added the headline 'Be cool. Don't be a jerk.' and a thanks line, #1096 (10-27) left the four rule lines alone on it, the reasons staying on the publish step [V src/app/rules/page.tsx]. Checked: `you-rules-row.test.tsx`, `shell.test.tsx`, `BeforeYouPublish.test.tsx` `[guards F082.7]` [V]. Reviewed: #772, which built the row, is `review-skipped` ('Reviewed by: lane B'); #1087 and #1096 carry `Reviewed by:` a second session, but they changed the page, not the doors. Shipped: Deploy health green on edb6bcb, 8b313b0 and 0dc430f [V]. Smoked: smoke-live opened `you` green for every persona on 10-25, 10-26 and 10-27 (the last after #1096), a load check only; `/rules` has no LIVE_PATHS entry [V]. #573 closed; PR #882 (a second branch for #573) is still open and stale."
+   "issues": [
+    1204
+   ],
+   "note": "Since #1135 the rules live in the Terms: `/rules` answers 301 to `/terms` (`next.config.ts`), and `/terms` is one click from the Publish card, signup, onboarding, the desktop footer and the landing page [V grep]; the You > Rules row (#772) is gone. Treating the Terms as 'the rules' follows Don's 10-31 change (see 2b). Checked: `BeforeYouPublish.test.tsx` and `shell.test.tsx` assert the link and the redirect, unmarked; the old `[guards F082.7]` checks were deleted (#1204). Reviewed: #772 was review-skipped and #1135 is pending. Shipped: green on 3df9260. Smoked: `/terms` has no LIVE_PATHS entry."
   },
   {
    "id": "8",
@@ -135,7 +157,7 @@
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "`group.activate` requires name (or business display name), anchor location, description and one tag for every kind; the checklist marks the photo optional; `DefaultArt` stands in without one [V]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx` (#908): each missing part refused and the draft stays a draft; a photoless draft publishes, reaches Explore and its card shows the kind's default art; seen failing against a publish without a description and a required photo per the PR body [V]. Reviewed: #326, #493, #908. Shipped: f89b294 green. Smoked: no route for the publish card."
+   "note": "`group.activate` requires name (or business display name), anchor location and description for every kind; a tag is no longer asked of the member but 'Listed under' is filled from the Page's words, else Neighborhood life, so a Page is never published unlisted (#1181, plan #273 B, `Reviewed by:` second session); the checklist marks the photo optional; `DefaultArt` stands in without one [V activate.ts, BeforeYouPublish.tsx]. Checked: `[guards F082.8]` in `tests/f082-rules-before-publish-db.test.tsx`, which now also asserts the suggested listing [V]. Reviewed: #326, #493, #908, #1181. Shipped: green on f89b294 and 591ab70."
   },
   {
    "id": "9",
@@ -146,12 +168,12 @@
    "status": "active",
    "built": "yes",
    "checked": "yes",
-   "reviewed": "yes",
+   "reviewed": "no",
    "shipped": "yes",
    "smoked": "unknown",
    "pm_looked": "no",
    "issues": [],
-   "note": "Rule 4 'No pictures of children.' with the scenario's reason sentence word for word, on the publish step; since #1096 (10-27) the rules page shows the rule line alone [V creator-rules.ts, page.tsx]. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx`, rewritten in #1096: the rule and its reason match the scenario on the step, the rule line is on the rules page [V]. Reviewed: #493, #908 and #1096 all carry `Reviewed by:`. Shipped: f89b294 and 0dc430f green. Wording is draft ([public-is-draft]); the PM chose on 10-26 (#1078) to ship copy and edit live. Smoked: no route for the publish card."
+   "note": "The photo rule is in the Terms: 'No photos of kids, ever. Nothing involving kids, pets or anyone who can't speak up for themselves.' (`src/lib/text-pages.ts`), agreed with the Terms line at publish [V]. Draft wording ([public-is-draft]); the scenario's draft sentence and 'with its reason' form are gone. Checked: `[guards F082.9]` in `tests/f082-rules-before-publish-db.test.tsx` (rewritten in #1135 to match the Terms) and `text-pages.test.ts` [V]. Reviewed: the text moved with #1135 ('second session pending'), so no. Shipped: green on 3df9260."
   }
  ]
 }
