@@ -6164,7 +6164,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "moderation/F058-report-and-remove-a-photo.md",
    "n": 5,
    "totals": {
@@ -6189,9 +6189,9 @@
      "unknown": 1
     },
     "smoked": {
-     "yes": 5,
+     "yes": 0,
      "no": 0,
-     "unknown": 0
+     "unknown": 5
     },
     "pm_looked": {
      "yes": 0,
@@ -6212,18 +6212,19 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       578
      ],
-     "note": "`ReportControl` on the Page and post cards, its entries now labelled \"Report this Page\", \"Report this Page's photo\", \"Report this post\" (#938, 647eccb); `sendReportAction` refuses signed-out callers (#81, #82) [V] Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V] Reviewed: #81, #82 carry no `Reviewed by:`; #938 does [V] Shipped: deploy-health began 2026-09-16, after #81 and #82 merged on 14 Sep, so no run exists for them; #938 green [V] Smoked: `page` and `page-business` green 2026-10-23 (cb892a7) as member and stranger; the route loads, no report is sent [A]",
+     "note": "`ReportControl` on the Page and post cards, its entries labelled \"Report this Page\", \"Report this Page's photo\", \"Report this post\" (#938, 647eccb); `sendReportAction` refuses signed-out callers (#81, #82); #1184 added a third subject, a member's own post, to the same control (`subjectKind` `member_post`) [V reread 2026-11-06]. Checked: `[guards F058.1]` in `f058-criteria.test.tsx` [V]. Reviewed: #81, #82 carry no `Reviewed by:`; #938 does [V]. Shipped: deploy-health began 2026-09-16, after #81 and #82 merged on 14 Sep, so no run exists for them; #938 green [V]. Smoked: unknown. The last green run covering `page` is `smoke-live` 2026-11-01 (3df9260); #1169, #1172 and #1184 changed the Page's report entries after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 2,
      "red": false
     },
     {
@@ -6243,7 +6244,7 @@
       62,
       220
      ],
-     "note": "RETIRED. Overtaken by F078 criteria 2 and 3 and the 2026-10-11 courtesy-notice ruling in F078 `## Rulings`: a second report hides the item and the owner is told why (`create.test.ts`: \"F078 criterion 3 amends F058 acceptance 2\"). What still holds: the reporter is never named to the owner (`tests/report-privacy-db.test.ts`) [V]. The scenario still carries the old text; `sync-roadmap` amends it [V].",
+     "note": "RETIRED. Overtaken by F078 criteria 2 and 3 and the 2026-10-11 courtesy-notice ruling in F078 `## Rulings`: a first report leaves the item up and sends a courtesy notice, a second hides it and the owner is told why (`create.test.ts`: \"F078 criterion 3 amends F058 acceptance 2\"). What still holds: the reporter is never named to the owner (`tests/report-privacy-db.test.ts`) [V]. The scenario still carries the old text; `sync-roadmap` amends it [V].",
      "gaps": [],
      "score": 0,
      "red": false
@@ -6259,17 +6260,18 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       578
      ],
-     "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373, 2026-09-17) [V] Smoked: `admin-reports` green as operator 2026-10-22 (e0bdaf1) [V]",
+     "note": "`report.remove` and `report.reverse` refuse a member, an owner and an unset operator before the database; `/admin/reports` is 404 to others [V] reread 2026-11-06. Checked: `[guards F058.3]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373, 2026-09-17) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -6283,18 +6285,19 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       577,
       833
      ],
-     "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards, Browse and the map read it (#779) [V] Checked: `[guards F058.4]` in `tests/f058-remove-every-surface-db.test.ts`, seen failing against five mutants (#912, closed #833); the map marker in `useMapPages.test.ts:82` stays partial [V] Reviewed: #151, #152, #779 carry no `Reviewed by:`; #912 does [V] Shipped: deploy-health green on #151 (311a373), #152 (1c1b0c9), #779 (a265d7c) and #912 (99c10e5) [V] Smoked: `explore` and `page` green 2026-10-23 [A]",
+     "note": "`report.remove` sets `photo_removed_at`, keeps the URL, writes `report_decisions`; Page, share cards, Browse and the map read it (#779) [V] reread 2026-11-06. Checked: `[guards F058.4]` in `tests/f058-remove-every-surface-db.test.ts`, seen failing against five mutants (#912, closed #833); the map marker in `useMapPages.test.ts:82` stays partial [V] Reviewed: #151, #152, #779 carry no `Reviewed by:`; #912 does [V] Shipped: deploy-health green on #151 (311a373), #152 (1c1b0c9), #779 (a265d7c) and #912 (99c10e5) [V] Smoked: unknown. The last green runs covering `explore` and `page` are `smoke-live` 2026-11-01 (3df9260); #1172 and #1181 changed both after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -6309,17 +6312,18 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       578
      ],
-     "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS once the Twilio values are set (#707 still open) [V] Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373) and #751 (ebce891) [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "Every report lands in the `/admin/reports` queue; urgent categories also alert the operator, by email through Resend until Twilio exists (#751), by SMS once the Twilio values are set (#707 still open) [V] reread 2026-11-06. Checked: `[guards F058.5]` in `f058-criteria.test.tsx` [V] Reviewed: #151 no `Reviewed by:` [V] Shipped: deploy-health green on #151 (311a373) and #751 (ebce891) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -6333,17 +6337,18 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       578
      ],
-     "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: deploy-health green on #152 (1c1b0c9, 2026-09-18) [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "`report_decisions` append-only, `reverses_decision_id`, history on the card, one reversal per decision [V] reread 2026-11-06. Checked: `[guards F058.6]` in `f058-criteria.test.tsx` [V] Reviewed: #152 no `Reviewed by:` [V] Shipped: deploy-health green on #152 (1c1b0c9, 2026-09-18) [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     }
    ]
@@ -6722,42 +6727,42 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-30",
+   "as_of": "2026-11-06",
    "path": "moderation/F080-no-sensitive-photos.md",
-   "n": 5,
+   "n": 6,
    "totals": {
     "built": {
      "yes": 5,
-     "no": 0,
+     "no": 1,
      "unknown": 0
     },
     "checked": {
      "yes": 5,
-     "no": 0,
+     "no": 1,
      "unknown": 0
     },
     "reviewed": {
      "yes": 0,
-     "no": 5,
+     "no": 6,
      "unknown": 0
     },
     "shipped": {
      "yes": 5,
-     "no": 0,
+     "no": 1,
      "unknown": 0
     },
     "smoked": {
-     "yes": 2,
-     "no": 0,
-     "unknown": 3
+     "yes": 0,
+     "no": 1,
+     "unknown": 5
     },
     "pm_looked": {
      "yes": 0,
-     "no": 5,
+     "no": 6,
      "unknown": 0
     }
    },
-   "red": 0,
+   "red": 1,
    "criteria": [
     {
      "id": "1",
@@ -6770,17 +6775,18 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       835
      ],
-     "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483); its label is now \"No kids in this photo.\" (#1087) [V]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload; the daily seeds keep applying it (#1001 this week: youth programs go stock-only) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Shipped: #483 (0b26c0d) and #1087 (8b313b0) green [V] Smoked: `page-edit` green 2026-10-27 (dccf21c); the editor loads, no upload is made [A]",
+     "note": "`PagePhotoPicker` waits for the tick and clears it after every upload; Page photo, Page picture and post photo all use it; the tick is client-side as ruled (#483); its label is now \"No kids in this photo.\" (#1087) [V reread 2026-11-06]. Unclaimed-Page photos are staff-loaded under the stock-only rule, not a member upload; the daily seeds keep applying it (#1001 this week: youth programs go stock-only) [V] Checked: `[guards F080.1]` in `PagePhotoPicker.test.tsx:179`: every member photo surface goes through the one picker and the upload path imports no classifier, seen failing against four mutants (#901, closed #835) [V] Reviewed: #483 `review-skipped` [V] Shipped: #483 (0b26c0d) and #1087 (8b313b0) green [V] Smoked: unknown. The last green run covering `page-edit` is `smoke-live` 2026-11-01 (3df9260); #1172 and #1181 (2026-11-05, \"Listed under\") changed the editor after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -6799,7 +6805,7 @@
      "issues": [
       637
      ],
-     "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts:34` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V] Smoked: an absence, no screen shows it [V]",
+     "note": "Standing guard that no text or topic rule exists in `src` (#781) [V] Checked: `[guards F080.2]` in `f080-guards.test.ts:34` [V] Reviewed: #781 no `Reviewed by:` [V] Shipped: #781 (55e23a2) green [V] Smoked: an absence, no screen shows it [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -6824,7 +6830,7 @@
      "issues": [
       637
      ],
-     "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts:57` [V] Reviewed: #781 no `Reviewed by:` [V] Smoked: an absence, no screen shows it [V]",
+     "note": "Standing guard that nothing lifts the photo rule (#781) [V] Checked: `[guards F080.3]` in `f080-guards.test.ts:57` [V] Reviewed: #781 no `Reviewed by:` [V] Smoked: an absence, no screen shows it [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -6850,7 +6856,7 @@
      "issues": [
       835
      ],
-     "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751; #707 open, unchanged this week) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V] Smoked: no run sends a report [V]",
+     "note": "Sensitive content hides a Page picture or post photo past the limits and alerts the operator (#483); email through Resend until Twilio exists (#751; #707 open, unchanged this week) [V] Checked: `[guards F080.4]` in `f078-criteria.test.ts:358`: hides on the first report at a 0.99 bar from a struck-out reporter, alerts by email without Twilio and by SMS with it, seen failing against three mutants (#901) [V] Reviewed: #483 `review-skipped` [V] Smoked: unknown. No run sends a report [V]. Since 2026-11-05 a member's own post (#1184) is reportable on the same path and a sensitive-content report hides it at once (`create.ts` `member_post`, `hideBar: 0`) [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -6861,7 +6867,7 @@
     },
     {
      "id": "5a",
-     "text": "Wherever a member posts, the app asks not to post sensitive content; each photo upload asks to confirm",
+     "text": "On every Page and post surface (composers, Page editor, announce) the app asks not to post sensitive content; each photo upload asks to confirm it shows no children",
      "kind": [
       "behavior"
      ],
@@ -6870,16 +6876,40 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V]. #1087 (2026-10-26, under #1078) cut the line to \"Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.\" and the tick to \"No kids in this photo.\"; #1096 (2026-10-27) deleted the unused long paragraph [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx:73`: the line on every posting surface, pinned word for word; the per-photo tick is `PagePhotoPicker.test.tsx:66` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped`; #1087, #1096 carry `Reviewed by:` [V] Shipped: green on #250 (e737db1), #251 (399f8fe), #483, #1087 (8b313b0), #1096 (0dc430f) [V] Smoked: `page-edit` green 2026-10-27 (dccf21c), after both copy merges; the note renders on the editor [A] PM looked: #1087 and #1096 opened with Review blocks for his look on socialus.org; nothing ticked [V]",
+     "note": "`PostingSafetyNote` on the composers, Page editor and announce; `COPY.photoConfirm` per photo (#250, #251, #483) [V reread 2026-11-06]. #1087 (2026-10-26, under #1078) cut the line to \"Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.\" and the tick to \"No kids in this photo.\"; #1096 (2026-10-27) deleted the unused long paragraph [V] Checked: `[guards F080.5]` in `posting-safety.test.tsx:73`: the line on every posting surface, pinned word for word; the per-photo tick is `PagePhotoPicker.test.tsx:66` [V] Reviewed: #250, #251 no `Reviewed by:`; #483 `review-skipped`; #1087, #1096 carry `Reviewed by:` [V] Shipped: green on #250 (e737db1), #251 (399f8fe), #483, #1087 (8b313b0), #1096 (0dc430f) [V] Smoked: unknown. The last green run covering `page-edit` is `smoke-live` 2026-11-01 (3df9260); #1172 and #1181 (2026-11-05, \"Listed under\") changed the editor after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]. PM looked: #1087 and #1096 opened with Review blocks for his look on socialus.org; nothing ticked [V] Not covered: the post-without-a-Page composer (see 5c).",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
+    },
+    {
+     "id": "5c",
+     "text": "The post-without-a-Page composer (#1183) asks too: wherever a member posts",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1207
+     ],
+     "note": "[V 2026-11-06] `MemberPostComposer` (`src/components/member-posts/MemberPostComposer.tsx`, opened from `/neighbors/new`, merged 2026-11-05 in #1184) shows no safety line: `PostingSafetyNote` is imported by the Page composers, `PageEditor` and `PagePosts` only. It takes no photo, so the per-photo tick does not apply. `[guards F080.5]` pins the older surfaces and cannot see this one. The line itself is the PM's wording and Lost & found is a place to post a lost pet, so the question goes to the PM (#1207, needs-pm).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": true
     },
     {
      "id": "5b",
@@ -6909,7 +6939,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "moderation/F100-ai-first-pass-review.md",
    "n": 13,
    "totals": {
@@ -6934,9 +6964,9 @@
      "unknown": 0
     },
     "smoked": {
-     "yes": 1,
+     "yes": 0,
      "no": 2,
-     "unknown": 10
+     "unknown": 11
     },
     "pm_looked": {
      "yes": 0,
@@ -6962,7 +6992,7 @@
      "issues": [
       642
      ],
-     "note": "`assessAfterReport` via `after()` from `create.ts`; the rebuttal triggers a read from `report-actions.ts`; a failed call leaves the report as is (#495, #513); the words and item kinds are joined in `run-assessment.ts` (#820, #920) [V] Checked: `[guards F100.1]` in `moderation/criteria.test.ts` [V] Reviewed: #756 `review-skipped` [V]. On production `report_assessments` had 0 rows on 2026-10-20: no non-builder report has been filed since shadow opened (#486) [V]",
+     "note": "`assessAfterReport` via `after()` from `create.ts`; the rebuttal triggers a read from `report-actions.ts`; a failed call leaves the report as is (#495, #513); the words and item kinds are joined in `run-assessment.ts` (#820, #920), and since 2026-11-05 so is a member's own post (`member_posts.body`, #1184) [V reread 2026-11-06]. Checked: `[guards F100.1]` in `moderation/criteria.test.ts`; `f078-reportable-everything.test.ts` (#1036) walks every postable kind [V]. Reviewed: #756 `review-skipped` [V]. On production `report_assessments` had 0 rows on 2026-10-20 and the shadow window was extended on 2026-10-25 (#486 comments): no non-builder report has been filed since shadow opened [V from Issue comments, not re-queried today].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -6987,7 +7017,7 @@
      "issues": [
       642
      ],
-     "note": "`assess.ts`: Haiku, forced tool, zod, reason cut to 140; category, severity 1-4, confidence, outcome [V] Checked: `[guards F100.2]` in `moderation/criteria.test.ts` [V] Reviewed: #540, #756 `review-skipped` [V]",
+     "note": "`assess.ts`: Haiku, forced tool, zod, reason cut to 140; category, severity 1-4, confidence, outcome [V reread 2026-11-06] Checked: `[guards F100.2]` in `moderation/criteria.test.ts` [V] Reviewed: #540, #756 `review-skipped` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -7010,7 +7040,7 @@
      "smoked": "unknown",
      "pm_looked": "no",
      "issues": [],
-     "note": "`ESCALATION_THRESHOLD`; `run-assessment.ts` inserts each read [V] Checked: `[guards F100.3]` in `assess.test.ts` [V] Reviewed: #540 `review-skipped` [V]",
+     "note": "`ESCALATION_THRESHOLD`; `run-assessment.ts` inserts each read [V reread 2026-11-06] Checked: `[guards F100.3]` in `assess.test.ts` [V] Reviewed: #540 `review-skipped` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -7035,7 +7065,7 @@
      "issues": [
       643
      ],
-     "note": "Payload built in `assess.ts` from `AssessInput`; `RULES_VERSION` in the system prompt [V] Checked: `[guards F100.4]` in `assess.test.ts` and `guards.test.ts` [V] Reviewed: #540, #755, #756 `review-skipped` or no `Reviewed by:` [V]",
+     "note": "Payload built in `assess.ts` from `AssessInput`; `RULES_VERSION` in the system prompt [V reread 2026-11-06] Checked: `[guards F100.4]` in `assess.test.ts` and `guards.test.ts` [V] Reviewed: #540, #755, #756 `review-skipped` or no `Reviewed by:` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -7085,7 +7115,7 @@
      "issues": [
       643
      ],
-     "note": "Only `report_assessments` is written in `runAssessment`; the restore step is the ruled exception; `ai_mode` reads `shadow` on production (2026-10-20, #486) [V] Checked: `[guards F100.6]` in `run-assessment.test.ts` [V] Reviewed: #540 `review-skipped` [V]",
+     "note": "Only `report_assessments` is written in `runAssessment`; the restore step is the ruled exception; `ai_mode` reads `shadow` on production (2026-10-20, #486) [V reread 2026-11-06] Checked: `[guards F100.6]` in `run-assessment.test.ts` [V] Reviewed: #540 `review-skipped` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -7157,7 +7187,7 @@
       638,
       836
      ],
-     "note": "`npm run moderation:eval`; `moderation-eval.yml` runs on changes to the prompt, models, metrics and set (last run green 2026-10-20 on 81c7635); the full run needs the repo secret, which is not set, so CI only validates the set (#486, 2026-10-20) [V] Checked: `[guards F100.9]` in `tests/moderation-eval-workflow.test.ts:56`: the triggers and all five printed numbers, seen failing against five mutants (#899) [V] Reviewed: #762, #767 no `Reviewed by:`; #522, #899 `review-skipped` [V]",
+     "note": "`npm run moderation:eval`; `moderation-eval.yml` runs on changes to the prompt, models, metrics and set (last run green 2026-10-23 on 27e13ab); the full run needs the repo secret, which is not set, so CI only validates the set (#486, 2026-10-20) [V] Checked: `[guards F100.9]` in `tests/moderation-eval-workflow.test.ts:56`: the triggers and all five printed numbers, seen failing against five mutants (#899) [V] Reviewed: #762, #767 no `Reviewed by:`; #522, #899 `review-skipped` [V]",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -7203,18 +7233,19 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       640,
       836
      ],
-     "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, green/amber/red per number (#754, ruled option C 2026-10-11); shadow days now count from the first person's decision in `report_ai_agreement`, per the ruling (#899 fix) [V] Checked: `AiReadiness.test.tsx:77` renders both pages through the real data layer, seen failing against four mutants (#899); its marker leaves out only 11b, so it claims 11a whole [V] Reviewed: #754, #756, #899 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]",
+     "note": "AI readiness panel on `/admin/reports` and the light on `/admin/metrics`, green/amber/red per number (#754, ruled option C 2026-10-11); shadow days now count from the first person's decision in `report_ai_agreement`, per the ruling (#899 fix) [V] Checked: `AiReadiness.test.tsx:77` renders both pages through the real data layer, seen failing against four mutants (#899); its marker leaves out only 11b, so it claims 11a whole [V] Reviewed: #754, #756, #899 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -7258,7 +7289,7 @@
       641,
       643
      ],
-     "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (`served-url.ts`, #784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641 open, `needs the PM`) [V] Checked: `[guards F100.12]` in `run-assessment.test.ts:50` covers the skip half only [V]",
+     "note": "Built half: a `sensitive_content` report gets a skipped row, no model call and no image fetch (`run-assessment.ts`) [V], and photos can be served through the site for Cloudflare's scan, off until `NEXT_PUBLIC_MEDIA_VIA_SITE=1` (`served-url.ts`, #784) [V]. Missing: the zone on Cloudflare and the CSAM Scanning Tool, the PM's setup (#641 open, `needs the PM`) [V] Checked: `[guards F100.12]` in `run-assessment.test.ts:50` covers the skip half only [V] #641 is still open on the PM's Cloudflare steps (last comment 2026-10-13) and carries no `needs-pm` label [V].",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -7693,42 +7724,42 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "moderation/F102-poster-answers-first.md",
-   "n": 14,
+   "n": 15,
    "totals": {
     "built": {
      "yes": 13,
-     "no": 1,
+     "no": 2,
      "unknown": 0
     },
     "checked": {
      "yes": 13,
-     "no": 1,
+     "no": 2,
      "unknown": 0
     },
     "reviewed": {
      "yes": 3,
-     "no": 11,
+     "no": 12,
      "unknown": 0
     },
     "shipped": {
      "yes": 12,
-     "no": 1,
+     "no": 2,
      "unknown": 1
     },
     "smoked": {
-     "yes": 8,
-     "no": 1,
-     "unknown": 5
+     "yes": 0,
+     "no": 2,
+     "unknown": 13
     },
     "pm_looked": {
      "yes": 0,
-     "no": 14,
+     "no": 15,
      "unknown": 0
     }
    },
-   "red": 1,
+   "red": 2,
    "criteria": [
     {
      "id": "1",
@@ -7741,17 +7772,18 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       649
      ],
-     "note": "`member_notices` row on the hide; `YouNotices` on `/you` (#506, #706); the words and item kinds have their own notice text (#820, #920) [V] Checked: `[guards F102.1]` in `f102-criteria.test.tsx` [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-23 (cb892a7) [A]",
+     "note": "`member_notices` row on the hide; `YouNotices` on `/you` (#506, #706); the words and item kinds have their own notice text (#820, #920); a member's own post has its own notice text (#1184) [V reread 2026-11-06] Checked: `[guards F102.1]` in `f102-criteria.test.tsx` [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -7770,7 +7802,7 @@
      "issues": [
       649
      ],
-     "note": "`page_posts.repost_used`; severity 1 never reposts (#506, #773); an owner's edit of hidden Page words or an item clears that hide too (#820, #920) [V] Checked: `[guards F102.2]` in `tests/f102-fix-and-repost-db.test.ts` [V] Reviewed: #773 `review-skipped` [V]",
+     "note": "`page_posts.repost_used`; severity 1 never reposts (#506, #773); an owner's edit of hidden Page words or an item clears that hide too (#820, #920) [V] Checked: `[guards F102.2]` in `tests/f102-fix-and-repost-db.test.ts` [V] Reviewed: #773 `review-skipped` [V] A member's own post (#1184) cannot be edited, only taken down and posted again, and its courtesy notice says so [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -7790,18 +7822,19 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       649,
       838
      ],
-     "note": "`report_answers` unique per notice; the rebuttal reaches `run-assessment`; one \"This is a mistake\" button (#506, #513, #706) [V] Checked: `[guards F102.3]` in `tests/f102-answer-db.test.ts:76` through the real action against the local database, seen failing against four mutants (#912, closed #838) [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-23 [A]",
+     "note": "`report_answers` unique per notice; the rebuttal reaches `run-assessment`; one \"This is a mistake\" button (#506, #513, #706) [V] Checked: `[guards F102.3]` in `tests/f102-answer-db.test.ts:76` through the real action against the local database, seen failing against four mutants (#912, closed #838) [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -7836,18 +7869,19 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       645,
       649
      ],
-     "note": "`ANSWER_WINDOW_DAYS = 14`; a lapsed hide leaves the batch unless severity 1 (#773) [V] Checked: `[guards F102.4]` in `ReviewQueue.test.tsx`; its clock is pinned since #900, after the fixtures crossed the 14-day window on 17 Oct and went red [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]",
+     "note": "`ANSWER_WINDOW_DAYS = 14`; a lapsed hide leaves the batch unless severity 1 (#773) [V] Checked: `[guards F102.4]` in `ReviewQueue.test.tsx`; its clock is pinned since #900, after the fixtures crossed the 14-day window on 17 Oct and went red [V] Reviewed: #773 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -7861,16 +7895,17 @@
      "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       650
      ],
-     "note": "Counters in `reports-queue.ts`, shown on the row (#506); the \"never a score on a person\" comment was dropped after the 2026-10-16 ruling, the counters unchanged (#819) [V] Checked: `[guards F102.5]` in `f102-criteria.test.tsx` [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "Counters in `reports-queue.ts`, shown on the row (#506); the \"never a score on a person\" comment was dropped after the 2026-10-16 ruling, the counters unchanged (#819) [V] Checked: `[guards F102.5]` in `f102-criteria.test.tsx` [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 5,
+     "score": 4,
      "red": false
     },
     {
@@ -7927,16 +7962,17 @@
      "checked": "yes",
      "reviewed": "yes",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       838
      ],
-     "note": "`coordinatedPosters` and the sort tier in `review-subjects.ts`; the flag in `ReviewQueue.tsx` (#506) [V] Checked: `[guards F102.8]` in `f102-whole-criteria.test.tsx:39`: both thresholds each side, the flag, the one-tier lift, seen failing against three mutants (#912) [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "`coordinatedPosters` and the sort tier in `review-subjects.ts`; the flag in `ReviewQueue.tsx` (#506) [V] Checked: `[guards F102.8]` in `f102-whole-criteria.test.tsx:39`: both thresholds each side, the flag, the one-tier lift, seen failing against three mutants (#912) [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 5,
+     "score": 4,
      "red": false
     },
     {
@@ -7981,7 +8017,7 @@
       627,
       649
      ],
-     "note": "`COPY.report911` shown in `ReportSheet` before sending (placeholder copy, #627) [V] Checked: `[guards F102.10]` in `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet-threat` route exists in `evals/screens/routes.ts` but no run has included it; `page` alone does not open the sheet [V]",
+     "note": "`COPY.report911` shown in `ReportSheet` before sending (placeholder copy, #627) [V] Checked: `[guards F102.10]` in `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: unknown. The `report-sheet-threat` route exists in `evals/screens/routes.ts` but no run has included it; `page` alone does not open the sheet [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8001,18 +8037,19 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       646,
       649
      ],
-     "note": "`ReviewQueue.tsx` shows the summary on Fridays in the metro time zone (#773) [V] Checked: `[guards F102.11]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "`ReviewQueue.tsx` shows the summary on Fridays in the metro time zone (#773) [V] Checked: `[guards F102.11]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
@@ -8026,22 +8063,23 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       838
      ],
-     "note": "`restore-gate.ts`, `ai-restore.ts`, \"Restored by AI\" on the row (#540); dormant until the harness clears the slice and `ai_mode` is live [V] Checked: `[guards F102.12]` in `f102-whole-criteria.test.tsx:96`: every condition, the log, the AI attribution, Confirm and Undo, severities 1-3 never, seen failing against four mutants (#912) [V] Reviewed: #540 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "`restore-gate.ts`, `ai-restore.ts`, \"Restored by AI\" on the row (#540); dormant until the harness clears the slice and `ai_mode` is live [V] Checked: `[guards F102.12]` in `f102-whole-criteria.test.tsx:96`: every condition, the log, the AI attribution, Confirm and Undo, severities 1-3 never, seen failing against four mutants (#912) [V] Reviewed: #540 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]. A member's own post is never auto-restored: the restore gate joins a Page and a member post has none (`ai-restore.ts` comment, #1184), so a person decides it [V].",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     },
     {
-     "id": "13",
-     "text": "Every upload and post records its IP and time, operator-only, kept a year then deleted",
+     "id": "13a",
+     "text": "Every upload and every Page post records its IP and time, operator-only, kept a year then deleted",
      "kind": [
       "invariant",
       "coverage"
@@ -8058,7 +8096,7 @@
       650,
       838
      ],
-     "note": "Every member upload and post path calls the recorder; RLS on, no policy (#509, #774) [V]. The daily purge workflow still skips itself each day (runs 2026-10-21 to 10-23 `skipped`) until the repository variable `CONTENT_ORIGINS_PURGE_ENABLED` is set; nothing is due before October 2027 [V] Checked: standing guard `[guards F102.13]` in `tests/content-origins-db.test.ts:120`: every path calls the recorder, no member reads the table, only the recorder and the report path name it, seen failing against three mutants (#912) [V] Reviewed: #509 `review-skipped`; #774 no `Reviewed by:` [V]",
+     "note": "Every member upload and Page post path calls the recorder (`recordOrigin` in `page-post-actions.ts`, `recordUploadAction` in `PagePhotoPicker`); `content_origins` has RLS on and no policy (#509, #774) [V reread 2026-11-06]. The daily purge workflow still skips itself each day (runs 2026-11-02 to 11-05 `skipped`) until the repository variable `CONTENT_ORIGINS_PURGE_ENABLED` is set (the variable list does not hold it); nothing is due before October 2027 [V]. Checked: standing guard `[guards F102.13]` in `tests/content-origins-db.test.ts:120`, seen failing against three mutants (#912); it walks `page_posts` and upload writers only [V]. Reviewed: #509 `review-skipped`; #774 no `Reviewed by:` [V]. Shipped: green on #509 and #774 [V]. Smoked: an absence, no screen shows it [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SMOKED",
@@ -8066,6 +8104,30 @@
      ],
      "score": 3,
      "red": false
+    },
+    {
+     "id": "13b",
+     "text": "Every post a member makes without a Page records its IP and time",
+     "kind": [
+      "invariant",
+      "coverage"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1206
+     ],
+     "note": "[V 2026-11-06] Posts from members without a Page (#1183, merged 2026-11-05 in #1184) are a new post path: `memberPostCreate` inserts into `public.member_posts` and neither it nor `createMemberPostAction` calls `recordOrigin`; no migration records an origin either (grep `recordOrigin|content_origins` across src and supabase). The standing guard names the `page_posts` writers only, so it stays green while this path records nothing. Filed as #1206, launch-blocking.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": true
     },
     {
      "id": "14",
@@ -8078,20 +8140,21 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       648,
       650,
       838
      ],
-     "note": "No poster notice, the AI skips it, the restore gate is severity 4 only; a one-year legal hold (#783) and a field for NCMEC's report number after the manual CyberTipline form (#785), runbook link (#782); `legal_holds` takes the words and item kinds too (#820, #920) [V]. #648 stays open for the PM's member-facing statement and the parked phone check [V] Checked: standing guard `[guards F102.14]` in `tests/legal-holds-db.test.ts:151`: no notice, no AI, no restore, no repost, the year's hold and the NCMEC number, seen failing against six mutants (#912) [V] Reviewed: #785 `review-skipped`; #783 carries `Reviewed by:` [V] Shipped: #783 (0272c62) has no deploy-health run; #785 green [V] Smoked: `admin-reports` green 2026-10-22 [V]",
+     "note": "No poster notice, the AI skips it, the restore gate is severity 4 only; a one-year legal hold (#783) and a field for NCMEC's report number after the manual CyberTipline form (#785), runbook link (#782); `legal_holds` takes the words and item kinds too (#820, #920) [V]. #648 stays open for the PM's member-facing statement and the parked phone check [V reread 2026-11-06] Checked: standing guard `[guards F102.14]` in `tests/legal-holds-db.test.ts:151`: no notice, no AI, no restore, no repost, the year's hold and the NCMEC number, seen failing against six mutants (#912) [V] Reviewed: #785 `review-skipped`; #783 carries `Reviewed by:` [V] Shipped: #783 (0272c62) has no deploy-health run; #785 green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260), before #1184 changed the queue; no run has reached a signed-in screen since [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-SHIPPED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 2,
      "red": false
     }
    ]
@@ -8587,46 +8650,71 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "page-editing/F106-page-says-where-giveback-goes.md",
-   "n": 5,
+   "n": 6,
    "totals": {
     "built": {
-     "yes": 0,
+     "yes": 1,
      "no": 5,
      "unknown": 0
     },
     "checked": {
      "yes": 0,
-     "no": 5,
+     "no": 6,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 0,
+     "yes": 1,
      "no": 5,
      "unknown": 0
     },
     "shipped": {
-     "yes": 0,
+     "yes": 1,
      "no": 5,
      "unknown": 0
     },
     "smoked": {
      "yes": 0,
      "no": 5,
-     "unknown": 0
+     "unknown": 1
     },
     "pm_looked": {
      "yes": 0,
-     "no": 5,
+     "no": 6,
      "unknown": 0
     }
    },
    "red": 0,
    "criteria": [
     {
-     "id": "1",
-     "text": "A Page has a home town: its anchor Location's town, else its owner's home town",
+     "id": "1a",
+     "text": "A Page has a home town: the town of its anchor Location's place",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [
+      700
+     ],
+     "note": "[V 2026-11-06] #1146 (8a9fb51, 2026-11-01) freezes a Page's home town at first publish: `groups.place_url_slug` from `page_home_place_slug(anchor_location_id)` (migration 20261101120000; the column comment calls it \"the Page's home town in its address\"); city polygon first, then the Location's own place, postal city, county. Checked: no test claims criterion 1 and no `[guards F106` marker exists. Reviewed: #1146 carries `Reviewed by:` a second session, no `review-skipped`. Shipped: deploy-health green on 8a9fb51. Smoked: no run covers the address, and nothing shows it as a home town. Comment added to #700.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 3,
+     "red": false
+    },
+    {
+     "id": "1b",
+     "text": "With no Location, the Page's home town is its owner's home town",
      "kind": [
       "behavior"
      ],
@@ -8640,7 +8728,7 @@
      "issues": [
       700
      ],
-     "note": "[V] Member home town exists (F103.5, migrations 20261012060000 and 20261018191800) but no Page-level home town in src or supabase/migrations. Deferred, not beta (#700)",
+     "note": "[V 2026-11-06] `page_home_place_slug` returns null for a Page with no anchor Location and the trigger then leaves the address unset (`if place is null then return new`); the member's `home_town` exists (F103.5, migrations 20261012060000 and 20261018191800) but nothing falls back to it for a Page. Deferred, not beta (#700).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8664,7 +8752,7 @@
      "issues": [
       700
      ],
-     "note": "[V] No give-back field, column or setting anywhere in src, scripts or supabase/migrations (grep give_back, giveBack, give-back)",
+     "note": "[V 2026-11-06] No give-back field, column or setting anywhere in src, scripts, supabase or tests (grep give_back, giveBack, give-back finds nothing). Deferred (#700).",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8687,7 +8775,7 @@
      "issues": [
       701
      ],
-     "note": "[V] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)",
+     "note": "[V reread 2026-11-06] Not built as written: no give-back town exists to key a badge to. What exists instead: #875 (2026-10-16, review-skipped) shows 'Claimed local owner' whenever the owner has made the Locally Owned claim, with no distance or town test, on Don's words that day ('Local will be solely determined by if money comes back to where it was generated'; for now 'Yes claim'). That badge is the interim, not this criterion. Badge wording is the PM's (#701)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8710,7 +8798,7 @@
      "issues": [
       701
      ],
-     "note": "[V] Not built; depends on F105 vantage and on criterion 3 (#701)",
+     "note": "[V reread 2026-11-06] Not built; depends on F105 vantage and on criterion 3 (#701)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8733,7 +8821,7 @@
      "issues": [
       700
      ],
-     "note": "[V] Not built; no declaration exists to change (#700)",
+     "note": "[V reread 2026-11-06] Not built; no declaration exists to change (#700)",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8749,7 +8837,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "sign-in-you/F057-you-shows-the-way-in.md",
    "n": 6,
    "totals": {
@@ -8774,9 +8862,9 @@
      "unknown": 1
     },
     "smoked": {
-     "yes": 2,
+     "yes": 0,
      "no": 4,
-     "unknown": 0
+     "unknown": 2
     },
     "pm_looked": {
      "yes": 0,
@@ -8797,18 +8885,19 @@
      "checked": "no",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       582
      ],
-     "note": "[V] src/app/you/page.tsx and what it renders (OwnPages, YouNotices, ZipChange, YouInterests, SearchSharingSwitch, SignOutButton, the Following row) contain none of the three words and query only members, member_notices, member_interests, the market_name function and the follows reader (grep 2026-10-23); #895 removed the Default metro row and #911 and #966 added rows, none bringing a word or a dead table back. Built in #379 (review-skipped); deploy-health green on 9ff415f and on every later /you merge (4b9558a, 43bcf96). Smoked: /you opened green by smoke-live on 2026-10-19, 21, 22 and 23 (cb892a7). No standing guard, ticket #582",
+     "note": "[V reread 2026-11-06] `src/app/you/page.tsx` and what it renders (OwnPages, YouNotices, ZipChange, YouInterests, SearchSharingSwitch, SignOutButton, the Getting updates and Saved rows) show none of the three words and read only `members`, `member_notices`, `member_interests`, `saves` (new in #1172, this member's own rows), the `market_name` function and the follows reader; the only \"market\" in the files is the identifier `home_market_key` and the function name, never shown. Built in #379 (review-skipped); deploy-health green on 9ff415f and every later /you merge (#1172 on 49f942f). No standing guard, ticket #582. Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 3,
+     "score": 2,
      "red": false
     },
     {
@@ -8827,7 +8916,7 @@
      "issues": [
       1011
      ],
-     "note": "[V] built half: no shop controls on /you (OwnPages shows a card per Page, the Zip row shows the area, nothing says shop). Missing: the invitation; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.', and 'Start something' is a link in the Your Pages header (OwnPages.tsx, you/page.tsx). #15 (T125) was closed on 2026-10-18 as 'nothing left to build' because the Start something row exists; the invitation it names was never built, so it is refiled. The copy is Don's",
+     "note": "[V reread 2026-11-06] built half: no shop controls on /you (OwnPages shows a card per Page, the Zip row shows the area, nothing says shop). Missing: the invitation; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.' (Create is now the ➕ in the header row, #1095), and 'Start something' is a link in the Your Pages header (OwnPages.tsx, you/page.tsx). #15 (T125) was closed on 2026-10-18 as 'nothing left to build' because the Start something row exists; the invitation it names was never built, so it is refiled. The copy is Don's",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -8894,7 +8983,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] 'listings' is the vendor-era Items noun (#177: /you/sell still writes Items); the 2026-10-01 ruling on You (#303: private, for the Pages you manage, the Pages you follow, your name and area) names what You holds and listings are not in it, and a Page's products and services now live on the Page itself (#909, #920). Cannot tell what the criterion asks for on today's model: routed to scope-scenario",
+     "note": "[V reread 2026-11-06] 'listings' is the vendor-era Items noun (#177: /you/sell still writes Items); the 2026-10-01 ruling on You (#303: private, for the Pages you manage, the Pages you follow, your name and area) names what You holds and listings are not in it, and a Page's products and services now live on the Page itself (#909, #920). Cannot tell what the criterion asks for on today's model: routed to scope-scenario",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -8912,19 +9001,20 @@
      "checked": "no",
      "reviewed": "no",
      "shipped": "unknown",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       583
      ],
-     "note": "[V] redirect in next.config.ts (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); the follow list was rebuilt in #966 (2026-10-19, Reviewed by: Claude, deploy-health green on 43bcf96): /you/following lists Pages with Unfollow and Undo, people and venues below, all through getMemberFollows; the old src/app/following page is deleted, so the redirect is the only path. SignOutButton on /you. Smoked: /following, /you and /you/following opened green by smoke-live on 2026-10-19 (cd913c7, after #966). unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'), you-following-row.test.tsx, FollowedPagesList.test.tsx ('unfollows with Undo'); no test of sign-out",
+     "note": "[V reread 2026-11-06] redirect in next.config.ts line 25 (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); the follow list was rebuilt in #966 (2026-10-19, Reviewed by: Claude, deploy-health green on 43bcf96) and relabelled \"Getting updates\" in #1172 (2026-11-02, Reviewed by: a second session, green on 49f942f): /you/following lists Pages with Unfollow and Undo, people and venues below, all through getMemberFollows; the old src/app/following page is deleted, so the redirect is the only path. SignOutButton on /you. unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'), you-following-row.test.tsx, FollowedPagesList.test.tsx ('unfollows with Undo'); no test of sign-out. Smoked: unknown. The last green run covering `you-following` and `you` is `smoke-live` 2026-11-01 (3df9260); #1172 changed both after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
       "NOT-SHIPPED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 2,
+     "score": 1,
      "red": false
     }
    ]
@@ -8936,7 +9026,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "sign-in-you/F065-someone-follows-something.md",
    "n": 6,
    "totals": {
@@ -8961,9 +9051,9 @@
      "unknown": 3
     },
     "smoked": {
-     "yes": 1,
+     "yes": 0,
      "no": 1,
-     "unknown": 4
+     "unknown": 5
     },
     "pm_looked": {
      "yes": 0,
@@ -8989,7 +9079,7 @@
      "issues": [
       606
      ],
-     "note": "[V] person: member_follows + member.followed in withTransaction (actions/member/follow.ts); Page: group_memberships + group.member_joined (actions/group/follow.ts, #104 merged 2026-09-15, no Reviewed by, before deploy-health runs began); venue: member_saved_searches + member.saved_search.created in withTransaction (saved-search-create.ts). #966 changed only the reader, not the writes (reread 2026-10-23). unmarked: group/follow.test.ts ('writes an event', mock only); the person and venue tests only read the source text. Ticket #606",
+     "note": "[V reread 2026-11-06] person: member_follows + member.followed in withTransaction (actions/member/follow.ts); Page: group_memberships + group.member_joined (actions/group/follow.ts, #104 merged 2026-09-15, no Reviewed by, before deploy-health runs began); venue: member_saved_searches + member.saved_search.created in withTransaction (saved-search-create.ts). #966 changed only the reader, not the writes (reread 2026-10-23). unmarked: group/follow.test.ts ('writes an event', mock only); the person and venue tests only read the source text. Ticket #606 #1172 renamed the button and the lists \"Get updates\" and kept the same handlers, rows and events (`src/actions/group/follow.ts` and `src/actions/member/follow.ts` unchanged since 2026-10-22) [V]. Smoked: unknown. No screen shows a follow's rows; the Follow button became \"Get updates\" in #1172 (2026-11-02) and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -9016,7 +9106,7 @@
      "issues": [
       607
      ],
-     "note": "[V] follower rows are role='member', source='soft_via_follow', relationship='follower'; manager checks key on role; owner and steward rows are untouched by follow and unfollow (#268). Partial proofs only: group/follow.test.ts ('grants no role beyond the plain one'), tests/follower-privacy-db.test.ts, tests/page-owner-follow-db.test.ts. No standing guard walks every roster and authorization path, ticket #607",
+     "note": "[V reread 2026-11-06] follower rows are role='member', source='soft_via_follow', relationship='follower'; manager checks key on role; owner and steward rows are untouched by follow and unfollow (#268). Partial proofs only: group/follow.test.ts ('grants no role beyond the plain one'), tests/follower-privacy-db.test.ts, tests/page-owner-follow-db.test.ts. No standing guard walks every roster and authorization path, ticket #607",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -9041,7 +9131,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "[V] group.follow on a private Page writes relationship='member', source='explicit' at once (follow.ts, reread 2026-10-23): the follower becomes a member and reads the Page. That follows F067 and the 2026-09-15 ruling ('private means membership, not following') and contradicts this criterion's 'never grants membership … or read access to anything unlisted'; the 2026-09-29 ruling adds that the two relationships no longer carry identical rights. No newer ruling in F065 since 2026-10-16. Two live rulings disagree on one surface: routed to scope-scenario",
+     "note": "[V reread 2026-11-06] group.follow on a private Page writes relationship='member', source='explicit' at once (follow.ts, reread 2026-10-23): the follower becomes a member and reads the Page. That follows F067 and the 2026-09-15 ruling ('private means membership, not following') and contradicts this criterion's 'never grants membership … or read access to anything unlisted'; the 2026-09-29 ruling adds that the two relationships no longer carry identical rights. No newer ruling in F065 since 2026-10-16. Two live rulings disagree on one surface: routed to scope-scenario",
      "gaps": [
       "SPEC-CONFLICT"
      ],
@@ -9064,7 +9154,7 @@
      "issues": [
       604
      ],
-     "note": "[V] there is no Sell control any more (/you/sell retired to Create, Don 2026-10-05, #336): Create sits in the bottom nav for everyone (BottomNav.tsx, #326) and /you shows 'Start something' in the Your Pages header with no look at follows (#379, review-skipped; deploy-health green on 9ff415f and every later /you merge). SellCta and hasActiveBusinessGroup, which #604 is about, reach no routed surface, so #604 is stale and the criterion text still names the Sell control. Smoked: /you opened green 2026-10-23, but no smoke account is follower-only: unknown. No test with a follower-only member",
+     "note": "[V reread 2026-11-06] there is no Sell control any more (/you/sell retired to Create, Don 2026-10-05, #336): since #1095 (2026-11-01) the ➕ in the header row opens a sheet whose first choice is \"Start a Page\" for every signed-in member (`create-targets.ts`), and /you shows \"Start something\" in the Your Pages header with no look at follows (#379, review-skipped; deploy-health green on 9ff415f and every later /you merge). SellCta and hasActiveBusinessGroup, which #604 is about, reach no routed surface (only `HomeFeed`, which no route renders), so #604 is stale and the criterion text still names the Sell control. Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]. No smoke account is follower-only. No test with a follower-only member.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -9090,7 +9180,7 @@
      "issues": [
       606
      ],
-     "note": "[V] person: on conflict unfollowed_at = null; Page: on conflict left_at = null, role kept (follow.ts); venue: saved-search-restore clears removed_at. Page half merged in #104 (no Reviewed by; before deploy-health runs). #966 adds Unfollow with Undo on /you/following, which re-follows through the same handler. unmarked: group/follow.test.ts ('is idempotent', mock), FollowedPagesList.test.tsx ('unfollows with Undo', mock); the person and venue tests only read the source text. Ticket #606",
+     "note": "[V reread 2026-11-06] person: on conflict unfollowed_at = null; Page: on conflict left_at = null, role kept (follow.ts); venue: saved-search-restore clears removed_at. Page half merged in #104 (no Reviewed by; before deploy-health runs). #966 adds Unfollow with Undo on /you/following, which re-follows through the same handler. unmarked: group/follow.test.ts ('is idempotent', mock), FollowedPagesList.test.tsx ('unfollows with Undo', mock); the person and venue tests only read the source text. Ticket #606 Smoked: unknown. No screen shows a follow's rows; the Follow button became \"Get updates\" in #1172 (2026-11-02) and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V].",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -9112,17 +9202,18 @@
      "checked": "yes",
      "reviewed": "no",
      "shipped": "yes",
-     "smoked": "yes",
+     "smoked": "unknown",
      "pm_looked": "no",
      "issues": [
       605
      ],
-     "note": "[V] src/lib/follows/one-reader.test.ts [guards F065.5] checks that /you, /you/following and the followed-pages loader read through getMemberFollows and query none of the three tables, with a self-test that the guard sees a bad surface (#752, no Reviewed by, deploy-health green on 3308e09; #966 widened it to the new surfaces, Reviewed by: Claude, green on 43bcf96). The reader now takes Pages by relationship, not source, so followed open Pages show (#962). Ticket #605 closed on the PM's option B. Smoked: /you and /you/following opened green by smoke-live on 2026-10-19 (cd913c7, after #966); /you again on 10-21, 22 and 23",
+     "note": "[V reread 2026-11-06] src/lib/follows/one-reader.test.ts [guards F065.5] checks that /you, /you/following and the followed-pages loader read through getMemberFollows and query none of the three tables, with a self-test that the guard sees a bad surface (#752, no Reviewed by, deploy-health green on 3308e09; #966 widened it to the new surfaces, Reviewed by: Claude, green on 43bcf96). The reader now takes Pages by relationship, not source, so followed open Pages show (#962). Ticket #605 closed on the PM's option B. Smoked: unknown. The last green run covering `you` and `you-following` is `smoke-live` 2026-11-01 (3df9260); #1172 changed both after it and no run has reached a signed-in screen since",
      "gaps": [
       "NOT-REVIEWED",
+      "NOT-SMOKED",
       "NOT-LOOKED"
      ],
-     "score": 4,
+     "score": 3,
      "red": false
     }
    ]
@@ -9971,74 +10062,74 @@
   },
   "moderation": {
    "features": 6,
-   "n": 64,
-   "red": 3,
+   "n": 66,
+   "red": 5,
    "totals": {
     "built": {
      "yes": 61,
-     "no": 3,
+     "no": 5,
      "unknown": 0
     },
     "checked": {
      "yes": 61,
-     "no": 3,
+     "no": 5,
      "unknown": 0
     },
     "reviewed": {
      "yes": 6,
-     "no": 58,
+     "no": 60,
      "unknown": 0
     },
     "shipped": {
      "yes": 47,
-     "no": 3,
+     "no": 5,
      "unknown": 14
     },
     "smoked": {
-     "yes": 34,
-     "no": 3,
-     "unknown": 27
+     "yes": 18,
+     "no": 5,
+     "unknown": 43
     },
     "pm_looked": {
      "yes": 0,
-     "no": 64,
+     "no": 66,
      "unknown": 0
     }
    }
   },
   "page-editing": {
    "features": 3,
-   "n": 20,
+   "n": 21,
    "red": 0,
    "totals": {
     "built": {
-     "yes": 10,
+     "yes": 11,
      "no": 10,
      "unknown": 0
     },
     "checked": {
      "yes": 3,
-     "no": 17,
+     "no": 18,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 3,
+     "yes": 4,
      "no": 17,
      "unknown": 0
     },
     "shipped": {
-     "yes": 9,
+     "yes": 10,
      "no": 10,
      "unknown": 1
     },
     "smoked": {
      "yes": 0,
      "no": 10,
-     "unknown": 10
+     "unknown": 11
     },
     "pm_looked": {
      "yes": 0,
-     "no": 20,
+     "no": 21,
      "unknown": 0
     }
    }
@@ -10069,9 +10160,9 @@
      "unknown": 4
     },
     "smoked": {
-     "yes": 6,
+     "yes": 3,
      "no": 9,
-     "unknown": 18
+     "unknown": 21
     },
     "pm_looked": {
      "yes": 0,
@@ -10083,37 +10174,37 @@
  },
  "all": {
   "features": 35,
-  "n": 299,
-  "red": 8,
+  "n": 302,
+  "red": 10,
   "totals": {
    "built": {
-    "yes": 212,
-    "no": 87,
+    "yes": 213,
+    "no": 89,
     "unknown": 0
    },
    "checked": {
     "yes": 148,
-    "no": 151,
+    "no": 154,
     "unknown": 0
    },
    "reviewed": {
-    "yes": 41,
-    "no": 258,
+    "yes": 42,
+    "no": 260,
     "unknown": 0
    },
    "shipped": {
-    "yes": 176,
-    "no": 87,
+    "yes": 177,
+    "no": 89,
     "unknown": 36
    },
    "smoked": {
-    "yes": 84,
-    "no": 87,
-    "unknown": 128
+    "yes": 65,
+    "no": 89,
+    "unknown": 148
    },
    "pm_looked": {
     "yes": 0,
-    "no": 299,
+    "no": 302,
     "unknown": 0
    }
   }
@@ -10194,12 +10285,14 @@
    "F121.1b",
    "F121.5b",
    "F121.9",
+   "F080.5c",
    "F100.11b",
    "F100.12",
+   "F102.13b",
    "F056.4",
    "F056.9b",
    "F069.2",
-   "F106.1",
+   "F106.1b",
    "F106.2",
    "F106.3",
    "F106.4",
@@ -10270,6 +10363,7 @@
    "F056.9a",
    "F069.1",
    "F069.3",
+   "F106.1a",
    "F057.5",
    "F065.1",
    "F065.3",
@@ -10415,7 +10509,7 @@
    "F102.10",
    "F102.11",
    "F102.12",
-   "F102.13",
+   "F102.13a",
    "F102.14",
    "F056.1a",
    "F056.2",
@@ -10559,6 +10653,11 @@
    "F121.12",
    "F121.13",
    "F121.14",
+   "F058.1",
+   "F058.3",
+   "F058.4",
+   "F058.5",
+   "F058.6",
    "F078.2",
    "F078.4a",
    "F078.7",
@@ -10567,9 +10666,11 @@
    "F078.10",
    "F078.11",
    "F078.12",
+   "F080.1",
    "F080.2",
    "F080.3",
    "F080.4",
+   "F080.5a",
    "F100.1",
    "F100.2",
    "F100.3",
@@ -10580,12 +10681,21 @@
    "F100.8",
    "F100.9",
    "F100.10",
+   "F100.11a",
    "F101.15",
+   "F102.1",
    "F102.2",
+   "F102.3a",
+   "F102.4",
+   "F102.5",
    "F102.6",
+   "F102.8",
    "F102.9",
    "F102.10",
-   "F102.13",
+   "F102.11",
+   "F102.12",
+   "F102.13a",
+   "F102.14",
    "F056.1a",
    "F056.2",
    "F056.5",
@@ -10596,10 +10706,14 @@
    "F069.1",
    "F069.3",
    "F069.4",
+   "F106.1a",
+   "F057.1",
+   "F057.5",
    "F065.1",
    "F065.2a",
    "F065.3",
    "F065.4",
+   "F065.5",
    "F077.1",
    "F081.1",
    "F081.2",
@@ -10790,7 +10904,7 @@
    "F102.10",
    "F102.11",
    "F102.12",
-   "F102.13",
+   "F102.13a",
    "F102.14",
    "F056.1a",
    "F056.2",
@@ -10802,6 +10916,7 @@
    "F069.1",
    "F069.3",
    "F069.4",
+   "F106.1a",
    "F057.1",
    "F057.5",
    "F065.1",
@@ -10850,16 +10965,17 @@
   "F093: unknown cells: Shipped 2, Smoked 4",
   "F118: unknown cells: Smoked 3",
   "F121: unknown cells: Smoked 5",
-  "F058: unknown cells: Shipped 1",
+  "F058: unknown cells: Shipped 1, Smoked 5",
   "F078: unknown cells: Smoked 8",
-  "F080: unknown cells: Smoked 3",
-  "F100: unknown cells: Smoked 10",
+  "F080: unknown cells: Smoked 5",
+  "F100: unknown cells: Smoked 11",
   "F101: unknown cells: Shipped 12, Smoked 1",
-  "F102: unknown cells: Shipped 1, Smoked 5",
+  "F102: unknown cells: Shipped 1, Smoked 13",
   "F056: unknown cells: Smoked 7",
   "F069: unknown cells: Shipped 1, Smoked 3",
-  "F057: unknown cells: Shipped 1",
-  "F065: unknown cells: Shipped 3, Smoked 4",
+  "F106: unknown cells: Smoked 1",
+  "F057: unknown cells: Shipped 1, Smoked 2",
+  "F065: unknown cells: Shipped 3, Smoked 5",
   "F077: unknown cells: Smoked 1",
   "F081: unknown cells: Smoked 9",
   "F103: unknown cells: Smoked 4"
