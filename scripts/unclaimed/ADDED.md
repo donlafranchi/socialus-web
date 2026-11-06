@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-30** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-10-31** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -341,3 +341,5 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-30 | American River Conservancy | Land trust (nonprofit) | Coloma | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-30 | Solano Resource Conservation District | Conservation district (nonprofit) | Dixon | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-30 | Restore the Delta | Delta conservation group (nonprofit) | Stockton | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-31 | Indian Rock Tree Farm | Farm | Camino | Farmers markets, Sustainability | Shops and repair (farms); holiday (Christmas trees); stock photos only; lead: county ag-tourism listing, then own site |
+| 2026-10-31 | Hillside Tree Farm | Farm | Camino | Farmers markets, Sustainability | Shops and repair (farms); holiday (Christmas trees); stock photos only; lead: Visit El Dorado, then own site |
