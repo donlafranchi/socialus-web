@@ -8,7 +8,7 @@
   "smoked",
   "pm_looked"
  ],
- "as_of": "2026-10-30",
+ "as_of": "2026-11-06",
  "features": [
   {
    "feature": "F114",
@@ -3232,7 +3232,7 @@
    "area_source": "guess",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "explore-map/F063-someone-says-theyre-coming.md",
    "n": 4,
    "totals": {
@@ -3285,7 +3285,7 @@
      "issues": [
       34
      ],
-     "note": "Not built [V]: `item_responses` and `response_count` exist only in `016_discoverable_items.sql` (and a comment in 20261019060000_post_reminders.sql saying reminders are not responses); no action, RPC or button writes a response; `src/actions` has no response handler [V grep]. The smoke's `rsvp` persona is a seeded account, not a feature. Open #34.",
+     "note": "Not built [V]: `item_responses` and `response_count` exist only in `016_discoverable_items.sql` (a delete of builders' rows in 20261105180000_member_posts.sql, and a comment in 20261019060000_post_reminders.sql saying reminders are not responses); no action, RPC or button writes a response; `src/actions` has no response handler [V grep]. The smoke's `rsvp` persona is a seeded account, not a feature. Rechecked 2026-11-06, unchanged: no PR since 2026-10-16 touches responses [V git log]. Open #34.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3309,7 +3309,7 @@
      "issues": [
       34
      ],
-     "note": "Not built [V]: `withdrawn_at` column exists; no unique constraint on (item_id, responder_member_id, kind) in any migration [V grep]. Open #34.",
+     "note": "Not built [V]: `withdrawn_at` column exists; no unique constraint on (item_id, responder_member_id, kind) in any migration [V grep]. Rechecked 2026-11-06, unchanged: no PR since 2026-10-16 touches responses [V git log]. Open #34.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3332,7 +3332,7 @@
      "issues": [
       34
      ],
-     "note": "Not built [V]: the generic `/auth/login?next=` return exists (and the sign-in flow changed to a 6-digit code, #946); nothing carries a pending response through it. Open #34.",
+     "note": "Not built [V]: the generic `/auth/login?next=` return exists (and the sign-in flow changed to a 6-digit code, #946); nothing carries a pending response through it. Rechecked 2026-11-06, unchanged: no PR since 2026-10-16 touches responses [V git log]. Open #34.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3355,7 +3355,7 @@
      "issues": [
       34
      ],
-     "note": "Not built [V]: the count is `count(*)` over rows, not distinct responders, and with no unique constraint duplicates are possible (`016_discoverable_items.sql`, `20261007020000_archived_pages_every_path.sql`); builder responses are excluded in the newer one. Open #34.",
+     "note": "Not built [V]: the count is `count(*)` over rows, not distinct responders, and with no unique constraint duplicates are possible (`016_discoverable_items.sql`, `20261007020000_archived_pages_every_path.sql`); builder responses are excluded in the newer one. Rechecked 2026-11-06, unchanged: no PR since 2026-10-16 touches responses [V git log]. Open #34.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -3371,7 +3371,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "explore-map/F070-every-page-has-a-face.md",
    "n": 5,
    "totals": {
@@ -3505,7 +3505,7 @@
      "issues": [
       598
      ],
-     "note": "`DefaultArt` by kind (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and page at 390 and 1280 signed out and as members; it loads the route, it does not tap [V]. #335 closed 2026-10-19.",
+     "note": "`DefaultArt` by kind (still rendered by `ShopPublicPage`, `BrowseResultCard`, `PagePosts`, `WithheldAnnouncementCard` on 2026-11-06 [V grep]) (shop, service, group) on the Page (`ShopPublicPage`), the browse card (`BrowseResultCard`, now photo-led, #931) and the post card, with the Page-picture-then-placeholder fallback in `PagePosts` (marked F099.6) [V]. Since #969 (change #335, 2026-10-19) the signed-out withheld card gets the kind too: `announcements_withheld` returns `kind` and `mapWithheldRow` passes it as `groupKind`, so a no-photo or hidden-photo card draws the kind's art rather than a plain tile, the same for every anonymous reader [V src/lib/feed/withheld-announcements.ts, WithheldAnnouncementCard.tsx]. Checked no: `[guards F093.4]` in `tests/f093-withheld-card-criteria.test.tsx` asserts the withheld card's kind (red before the migration, #969 body); `DefaultArt.test.tsx` and the Page and card tests are unmarked; nothing marks F070.4 (#598). Reviewed no: #312 and #364 carry no `Reviewed by:`; #969 has `Reviewed by: Claude (Explore lane)` [V]. Shipped: deploy-health green on 19e90a05, c006495f, bfbbd619 [V]. Smoked: smoke-live run 41328585318 on main 3df92600 (2026-11-01, 51 passed) opened explore and page routes at 390 and 1280, after #969; it loads the route, it does not tap [V]. Main runs since (11-02, 11-05, 11-06) were red on other personas, see the report notes. #335 closed 2026-10-19.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -3549,7 +3549,7 @@
      "issues": [
       842
      ],
-     "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 39805278303 (2026-10-22) opened admin-reports as the operator, green; it loads the queue, it does not purge [V]. Open #842.",
+     "note": "Purge is the deliberate second act after removal: `report.purge_target` then `report.purge` delete the object (operator's own session, bucket delete policy `20261007250000_photo_purge.sql`) and write a `photo_purges` row with who, why and the path; a photo held under the F102 child-safety hold is refused [V src/actions/report/purge.ts]. Built by #508 (#491): `review-skipped`; deploy-health success on 89bc02ca [V]. Checked no: `purge.test.ts` covers the handlers, unmarked, and nothing deletes a real object. Smoked: run 41328585318 (2026-11-01, main 3df92600) opened admin-reports as the operator, green, after #508; it loads the queue, it does not purge [V]. Open #842.",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -3567,7 +3567,7 @@
    "area_source": "label",
    "gates": "launch",
    "retired": false,
-   "as_of": "2026-10-30",
+   "as_of": "2026-11-06",
    "path": "explore-map/F076-metro-waitlist.md",
    "n": 16,
    "totals": {
@@ -3618,7 +3618,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905) [V migrations]. Checked: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907), seen failing on main (CT missing) and against three mutants [V PR body]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #709 review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: Deploy health green on 4f571f5c, 4f691c01, 8659ee4a [V]. Smoked: run 39291029395 (2026-10-19, main cd913c7d, after #959) opened join and onboarding, green; the daily runs since cover root and explore only [V smoke-live.yml]. #843 closed 2026-10-18.",
+     "note": "Restated 2026-10-11 (F103). `zip_county` and `counties` hold the national Census ZCTA table; `zip_market_key()` resolves a zip, a county no market names is its own waiting market; Connecticut's 288 zips landed in #959 (#905) [V migrations]. Checked: `[guards F076.1]` in `tests/f076-every-zip-market-db.test.ts` (#907), seen failing on main (CT missing) and against three mutants [V PR body]. Nothing merged for it since 2026-10-23 [V git log]. Reviewed no: #709 review-skipped, #907 and #959 carry no first-pass `Reviewed by:` [V]. Shipped: Deploy health green on 4f571f5c, 4f691c01, 8659ee4a [V]. Smoked: run 39291029395 (2026-10-19, main cd913c7d, after #959) opened join and onboarding, green; run 41328585318 (2026-11-01, main 3df92600, 51 passed) opened join and onboarding again, green, and the daily runs since cover root and explore [V smoke-live.yml]. #843 closed 2026-10-18.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -3640,7 +3640,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "`[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls [V]. No IP guess in src; `explore_vantage` reads the member's own zip inside the database (#932) [V]. Reviewed no (#709 review-skipped). Shipped yes (4f571f5c). Smoked: explore green daily 10-24 to 10-30 (run 41093000135 on 09ffba30, 2026-10-30); join and onboarding on 2026-10-19 [V].",
+     "note": "`[guards F076.2]` in `tests/f076-never-rules.test.ts` scans the waitlist, onboarding and explore surfaces for IP, geolocation, distance and pre-checked controls [V]. No IP guess in src; `explore_vantage` reads the member's own zip inside the database (#932) [V]. Reviewed no (#709 review-skipped). Shipped yes (4f571f5c). Smoked: join and onboarding green on 2026-11-01 (run 41328585318, main 3df92600), explore green on 2026-11-04 (run 41884400137, main 49f942f0); main was red on 11-05 and 11-06 on explore personas [V].",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -3814,7 +3814,7 @@
      "issues": [
       1118
      ],
-     "note": "Built since 2026-10-23: one cached read (`waitingCountByMetro`) serves the popup and the area picker, which Explore now receives instead of an empty map (#1031; `load.ts` lines 95 and 123) [V]. The target is `COMBINED_TARGET = 300` (50 + 250) [V waitlist-standing.ts]; the 2026-10-26 ruling (F118) moved the thresholds to 100 makers and 1,000 supporters, so the target moves with #1101 item 4 (change, `area:sign-in-you`, Beta) and the scenario's 300 reads as the combined threshold. Checked no: `[guards F076.8 partial]` covers the signed-in popup; the picker's ordering tests in `feed-metro-sort.test.ts` carry no marker [V]. Reviewed no (#217, #764, #1031 as 7). Shipped: a3faf37c, 88724880, 0dbf6d8a green [V]. Smoked: explore green daily 10-24 to 10-30 (run 41093000135); it loads the route, it does not open the picker [V]. A waiting vantage (F105.4, #699) is the other surface, unbuilt. Filed #1118 (check, launch-blocking, Beta).",
+     "note": "Built since 2026-10-23: one cached read (`waitingCountByMetro`) serves the popup and the area picker, which Explore now receives instead of an empty map (#1031; `load.ts` lines 95 and 123) [V]. The target is `COMBINED_TARGET = 300` (50 + 250) [V waitlist-standing.ts]; the 2026-10-26 ruling (F118) moved the thresholds to 100 makers and 1,000 supporters, so the target moves with #1101 item 4 (change, `area:sign-in-you`, Beta) and the scenario's 300 reads as the combined threshold. Checked no: `[guards F076.8 partial]` covers the signed-in popup; the picker's ordering tests in `feed-metro-sort.test.ts` carry no marker [V]. Reviewed no (#217, #764, #1031 as 7). Shipped: a3faf37c, 88724880, 0dbf6d8a green [V]. Smoked: explore green on 2026-11-04 (run 41884400137, main 49f942f0); red on 11-05 and 11-06; it loads the route, it does not open the picker [V]. The picker is now opened from the header search's Where (#1161, 2026-11-02) and still reads the cached figure (`load.ts` line 95) [V]. A waiting vantage (F105.4, #699) is the other surface, unbuilt. Filed #1118 (check, launch-blocking, Beta).",
      "gaps": [
       "NO-CHECK",
       "NOT-REVIEWED",
@@ -4274,7 +4274,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-30",
+   "as_of": "2026-11-06",
    "path": "explore-map/F092-narrowing-in-a-modal.md",
    "n": 6,
    "totals": {
@@ -4327,7 +4327,7 @@
      "issues": [
       624
      ],
-     "note": "`ActiveFilterChips` and `KindFilterPills` were deleted in #174; `BrowseSurface.tsx` renders the search row (one 'Open filters' control, the place as text, the docked List/Map tabs only with the owner panel) and the dock; the sheet opens only from those two filter buttons (`setSheetOpen(true)` at lines 376 and 601) [V]. #956 (Don, 2026-10-18 [always]) removed the last chips and pills app-wide [V]. Checked no: `tests/no-chips.test.ts` (#956) scans `src/components` and `src/app` for `*Chip`/`*Pill` names, the `.chip` class and rounded-full chip shapes, but carries no `[guards F092.1]` marker and does not catch a plain-text filter row (#624) [V grep]. Reviewed no (#174 no `Reviewed by:`; #956 reviewed). Shipped: deploy-health green on 9dde664f, 546f0862 [V]. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V].",
+     "note": "`ActiveFilterChips` and `KindFilterPills` were deleted in #174; since #1161 (2026-11-02, Don's 11-01 asks) the one header row holds the search pill and Explore carries no bottom bar, List|Map tabs or reach line; the sheet opens only through the header search's 'More filters' (`onOpenFilters`, `BrowseSurface.tsx:397`) [V]. #956 (Don, 2026-10-18 [always]) removed the last chips and pills app-wide [V]. Open question: #1161's full-screen Search panel also holds Type and When choices that write the same box, which sits close to the scenario's Not-this line 'a second entry point to the panel'; its PR says every choice writes the one box and no chip returns [A, for the PM's eye in a look]. Checked no: `tests/no-chips.test.ts` (#956) scans for `*Chip`/`*Pill` names, the `.chip` class and rounded-full chip shapes but carries no `[guards F092.1]` marker and does not catch a plain-text filter row (#624) [V grep]. Reviewed no (#174 no `Reviewed by:`; #956 and #1161 reviewed). Shipped: deploy-health green on 9dde664f, 546f0862, d1267059 [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after every merge here; the main runs of 2026-11-05 and 2026-11-06 (4a632e8a) were red, the 11-06 one on member at explore 1280px ('did not open in time (twice)') and owner personas timing out, so this rests on the 11-04 run [V gh run view]; it loads the route, it does not tap.",
      "gaps": [
       "INVARIANT-UNPROVEN",
       "NOT-REVIEWED",
@@ -4350,7 +4350,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Retired: Don's 2026-10-18 ruling on #796 and #922 (built in #932) puts a reach line under the search bar, above the results: 'Within 15 minutes of you · Show more nearby', a plain text link that widens the reach one ring, which the sheet's How far group also sets; it hides while a search or filter narrows the list [V `ReachLine`, `BrowseSurface.tsx:640`]. That is a narrowing control on the results surface, which the 2026-09-19 ruling and this criterion forbid; the newer ruling wins. `sync-roadmap` should amend the scenario; `tests/no-chips.test.ts` keeps it a text link.",
+     "note": "Retired: Don's 2026-10-18 ruling on #796 and #922 (built in #932) puts a reach line under the search bar, above the results: 'Within 15 minutes of you · Show more nearby', a plain text link that widens the reach one ring, which the sheet's How far group also sets; it hides while a search or filter narrows the list [V, 2026-10-30]. Since #1161 (2026-11-02) the line is gone from Explore; the How far group stays in the sheet [V `ExploreFilterSheet.tsx`]. That is a narrowing control on the results surface, which the 2026-09-19 ruling and this criterion forbid; the newer ruling wins. `sync-roadmap` should amend the scenario; `tests/no-chips.test.ts` keeps it a text link.",
      "gaps": [],
      "score": 0,
      "red": false
@@ -4369,7 +4369,7 @@
      "smoked": "yes",
      "pm_looked": "no",
      "issues": [],
-     "note": "#750, extended by #881 and #911: the sheet closes and the box reads e.g. 'food & drink this weekend' or 'my interests', plain lowercase words, no hashtag; typed words are kept in front (PM, 2026-10-11) [V]. Checked: `[guards F092.2]` in `BrowseSurface.test.tsx:374` plus `box-text.test.ts:16` (partial); red before green per #750 [V]. Reviewed no (#750 review-skipped; #881, #911 reviewed). Shipped: green on c16c86a7, 3da54545, afcb9111. #619 closed by #750. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V].",
+     "note": "#750, extended by #881 and #911: the sheet closes and the box reads e.g. 'food & drink this weekend' or 'my interests', plain lowercase words, no hashtag; typed words are kept in front (PM, 2026-10-11) [V]. Checked: `[guards F092.2]` in `BrowseSurface.test.tsx:370` plus `box-text.test.ts:16` (partial); red before green per #750 [V]. Reviewed no (#750 review-skipped; #881, #911 reviewed). Shipped: green on c16c86a7, 3da54545, afcb9111; #1161 (d1267059) and the labelled rows of #1155 (316aa1db) also green, and they keep the box the one state [V]. #619 closed by #750. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after every merge here; the main runs of 2026-11-05 and 2026-11-06 (4a632e8a) were red, the 11-06 one on member at explore 1280px ('did not open in time (twice)') and owner personas timing out, so this rests on the 11-04 run [V gh run view]; it loads the route, it does not tap.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -4393,7 +4393,7 @@
      "issues": [
       620
      ],
-     "note": "`readBox` takes the Type, Category, Date and 'my interests' words out of the box and the rest is the free search; a filter is one targeted `browse_feed` read and search is server-side (#881, #924), so the words and the results come from one state [V]. The reach (`?reach=`, #932) and the area are scope, outside the box, like `?metro=` before them; read here as 'where', not narrowing, per F105's where/what split [A]. Checked: #1064 (2026-10-26, closed #830) added `[guards F092.3]` in `BrowseSurface.test.tsx:438` ('text written by the panel and the same text typed by hand give the same results and the same sheet'), seen failing with tags dropped from the box read [V]. Reviewed no (#750 review-skipped; #881, #924 reviewed; #1064 tests only). Shipped: green on c16c86a7, 3da54545, bc919743, 7f97937e. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. #620 is open but stale: built and checked; close it.",
+     "note": "`readBox` takes the Type, Category, Date and 'my interests' words out of the box and the rest is the free search; a filter is one targeted `browse_feed` read and search is server-side (#881, #924), so the words and the results come from one state [V]. The reach (`?reach=`, #932) and the area are scope, outside the box, like `?metro=` before them; read here as 'where', not narrowing, per F105's where/what split [A]. Checked: #1064 (2026-10-26, closed #830) added `[guards F092.3]` in `BrowseSurface.test.tsx:431` ('text written by the panel and the same text typed by hand give the same results and the same sheet'), seen failing with tags dropped from the box read [V]. Reviewed no (#750 review-skipped; #881, #924 reviewed; #1064 tests only). Shipped: green on c16c86a7, 3da54545, bc919743, 7f97937e. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after every merge here; the main runs of 2026-11-05 and 2026-11-06 (4a632e8a) were red, the 11-06 one on member at explore 1280px ('did not open in time (twice)') and owner personas timing out, so this rests on the 11-04 run [V gh run view]; it loads the route, it does not tap. #620 is open but stale: built and checked; close it.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -4417,7 +4417,7 @@
      "issues": [
       621
      ],
-     "note": "One grammar read both ways in `box-text.ts` (#750, extended for Type, Date and My interests by #881 and #911) [V]. Checked: `[guards F092.4]` in `box-text.test.ts:74`, a round trip over the selections, seen red first per #750; `BrowseSurface.test.tsx:398` carries a partial [V]. Reviewed no (#750 review-skipped). Shipped: green on c16c86a7, 3da54545, afcb9111. #621 stays open though built (the PR's 'Closes #619, #621' closed only #619); close it. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V].",
+     "note": "One grammar read both ways in `box-text.ts` (#750, extended for Type, Date and My interests by #881 and #911) [V]. Checked: `[guards F092.4]` in `box-text.test.ts:74`, a round trip over the selections, seen red first per #750; `BrowseSurface.test.tsx:393` carries a partial [V]. Reviewed no (#750 review-skipped). Shipped: green on c16c86a7, 3da54545, afcb9111. #621 stays open though built (the PR's 'Closes #619, #621' closed only #619); close it. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after every merge here; the main runs of 2026-11-05 and 2026-11-06 (4a632e8a) were red, the 11-06 one on member at explore 1280px ('did not open in time (twice)') and owner personas timing out, so this rests on the 11-04 run [V gh run view]; it loads the route, it does not tap.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -4441,7 +4441,7 @@
      "issues": [
       622
      ],
-     "note": "Free text never errors: unknown words stay as the free search and go to the server (#924), a pending search says 'Searching…' and a failed one says so with Try again (#953), never a false zero; an empty result reads 'Nothing matches … yet' with Clear filters [V `BrowseSurface.tsx:438-483`]. Nothing opens the sheet on text it does not understand: `setSheetOpen(true)` is called only from the two filter buttons [V]. Replaces #57's chips fallback. Open #622.",
+     "note": "Free text never errors: unknown words stay as the free search and go to the server (#924), a pending search says 'Searching…' and a failed one says so with Try again (#953), never a false zero; an empty result reads 'Nothing matches … yet' with Clear filters [V `BrowseSurface.tsx` lines 468, 525, 541, 563]. Nothing opens the sheet on text it does not understand: `setSheetOpen(true)` is reached only through the header search's 'More filters' [V]. Replaces #57's chips fallback. Still not built, unchanged since 2026-10-30. Open #622.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -4464,7 +4464,7 @@
      "issues": [
       623
      ],
-     "note": "The box is the narrowing state, so emptying it clears Type, Category, Date and My interests; the search bar's close also clears (`BrowseSurface.tsx`) [V]. The reach and area stay, as scope [A, see 3]. Checked: #1064 (2026-10-26, closed #830) added `[guards F092.6]` in `BrowseSurface.test.tsx:419` ('clearing the box clears the narrowing: category, schedule and the sheet's own state'), seen failing with the schedule parse removed and with tags dropped from the box read [V]. Reviewed no (#750 review-skipped; #1064 tests only). Shipped: green on c16c86a7, 3da54545, 7f97937e. Smoked: smoke-live scheduled run 41093000135 on main 09ffba30 (2026-10-30) was green and opened explore at 390 and 1280 for signed-out, stranger, member, owner and operator personas, after every merge here (runs 10-24 to 10-29 green too); it loads the route, it does not tap [V]. #623 is open but stale: built and checked; close it.",
+     "note": "The box is the narrowing state, so emptying it clears Type, Category, Date and My interests; the search bar's close also clears (`BrowseSurface.tsx`) [V]. The reach and area stay, as scope [A, see 3]. Checked: #1064 (2026-10-26, closed #830) added `[guards F092.6]` in `BrowseSurface.test.tsx:413` ('clearing the box clears the narrowing: category, schedule and the sheet's own state'), seen failing with the schedule parse removed and with tags dropped from the box read [V]. Reviewed no (#750 review-skipped; #1064 tests only). Shipped: green on c16c86a7, 3da54545, 7f97937e. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after every merge here; the main runs of 2026-11-05 and 2026-11-06 (4a632e8a) were red, the 11-06 one on member at explore 1280px ('did not open in time (twice)') and owner personas timing out, so this rests on the 11-04 run [V gh run view]; it loads the route, it does not tap. #623 is open but stale: built and checked; close it.",
      "gaps": [
       "NOT-REVIEWED",
       "NOT-LOOKED"
@@ -4800,7 +4800,7 @@
    "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-23",
+   "as_of": "2026-11-06",
    "path": "explore-map/F104-explore-ordered-by-towns.md",
    "n": 5,
    "totals": {
@@ -4854,7 +4854,7 @@
      "issues": [
       696
      ],
-     "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`); search covers 'the whole market' in #924's words but reads the metro scope [V]. No market scope on any surface. #932's rings start from the member's home town (`explore_vantage`), inside the metro. Open #696, deferred to the fortnight after beta.",
+     "note": "Scoping is by metro (`resolveFeedMetro` falls back to Sacramento, `src/lib/feed/feed-metro.ts`); search covers 'the whole market' in #924's words but reads the metro scope [V]. No market scope on any surface (rechecked 2026-11-06; #1038 only removed the word metro from copy) [V]. #932's rings start from the member's home town (`explore_vantage`), inside the metro. Open #696, deferred to the fortnight after beta.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -4877,7 +4877,7 @@
      "issues": [
       697
      ],
-     "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. What exists instead is #932 (Don, 2026-10-18 [for now, beta]): rings of about 15 minutes' drive as straight-line kilometres from the home town's centroid, widened until a screen is full, capped at an hour; order inside is recency and `mixRuns` (#902). Open #697.",
+     "note": "No adjacency table, no `ST_Touches`, no bridge table, no town or hood band in the repo [V grep]. What exists instead is #932 (Don, 2026-10-18 [for now, beta]): rings of about 15 minutes' drive as straight-line kilometres from the home town's centroid, widened until a screen is full, capped at an hour; order inside is recency and `mixRuns` (#902). Rechecked 2026-11-06: still no adjacency table or `ST_Touches` use in src or migrations [V grep]. Open #697.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -4900,7 +4900,7 @@
      "issues": [
       697
      ],
-     "note": "Explore cards show no distance [V `BrowseResultCard.tsx`], but distance still shows elsewhere: `venueDistanceMeters` on the place pages `/p/[...slug]`, 'No matches near you yet.' in `FeedEmptyState.tsx`, 'near you' in the site description (`layout.tsx`) and landing copy; `MarketSelector.tsx` still prints miles but nothing imports it [V grep]. No guard scans for them (#697's checklist). Open #697.",
+     "note": "Explore cards show no distance [V `BrowseResultCard.tsx`], but distance still shows elsewhere: `venueDistanceMeters` on the place pages `/p/[...slug]`, 'No matches near you yet.' in `FeedEmptyState.tsx`, 'near you' in the site description (`layout.tsx`) and landing copy; `MarketSelector.tsx` still prints miles but nothing imports it; rechecked 2026-11-06: `venueDistanceMeters` on `/p/[...slug]`, 'No matches near you yet.', 'What's happening near you' in `HomeFeed.tsx` and 'near you' in the site, manifest and push copy remain [V grep]. No guard scans for them (#697's checklist). Open #697.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -4921,7 +4921,7 @@
      "smoked": "no",
      "pm_looked": "no",
      "issues": [],
-     "note": "Retired: Don's 2026-10-18 ruling on #796 and #922, built in #932, 'supersedes, for Explore's reach line only, F104 criterion 3 and its Not this line': the top-of-page line may say minutes ('Within 15 minutes of you · Show more nearby') and the filter sheet's How far group sets the ring (15 / 30 / 45 / 60 / Whole area); cards still show no miles or minutes [V #796 comment, #932 body]. The ruling asks socialus-plan to amend F104; `sync-roadmap` does that. Shown, not counted.",
+     "note": "Retired: Don's 2026-10-18 ruling on #796 and #922, built in #932, 'supersedes, for Explore's reach line only, F104 criterion 3 and its Not this line': the top-of-page line may say minutes ('Within 15 minutes of you · Show more nearby') and the filter sheet's How far group sets the ring (15 / 30 / 45 / 60 / Whole area); cards still show no miles or minutes [V #796 comment, #932 body]. The ruling asks socialus-plan to amend F104; `sync-roadmap` does that. Since #1161 (2026-11-02) the reach line itself is gone from Explore; the How far group stays in the filter sheet [V]. Shown, not counted.",
      "gaps": [],
      "score": 0,
      "red": false
@@ -5447,10 +5447,10 @@
    "feature": "F119",
    "title": "A member asks a question, and the app opens the page that answers it",
    "area": "explore-map",
-   "area_source": "guess",
+   "area_source": "label",
    "gates": "none",
    "retired": false,
-   "as_of": "2026-10-30",
+   "as_of": "2026-11-06",
    "path": "explore-map/F119-ask-bar-opens-the-page.md",
    "n": 9,
    "totals": {
@@ -5500,8 +5500,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built: no ask bar anywhere in src [V grep]. Unplanned, horizon next; no Issue.",
+     "issues": [
+      1192
+     ],
+     "note": "Not built: no ask bar anywhere in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1192.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5522,8 +5524,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Unplanned, horizon next.",
+     "issues": [
+      1193
+     ],
+     "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Rechecked 2026-11-06 [V grep]. Filed #1193.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5543,8 +5547,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Unplanned, horizon next.",
+     "issues": [
+      1194
+     ],
+     "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Rechecked 2026-11-06 [V grep]. Filed #1194.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5564,8 +5570,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]. Unplanned, horizon next.",
+     "issues": [
+      1195
+     ],
+     "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]; Explore's header search now writes its words to the one box in the URL (#1161), which is one more deep link but not a registry [V]. Rechecked 2026-11-06 [V grep]. Filed #1195.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5586,8 +5594,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built: no page registry in src [V grep]. Unplanned, horizon next.",
+     "issues": [
+      1196
+     ],
+     "note": "Not built: no page registry in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1196.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5607,8 +5617,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built; needs a standing guard once the router exists. Unplanned, horizon next.",
+     "issues": [
+      1197
+     ],
+     "note": "Not built; needs a standing guard once the router exists. Rechecked 2026-11-06 [V grep]. Filed #1197.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5629,8 +5641,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Unplanned, horizon next.",
+     "issues": [
+      1198
+     ],
+     "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Search-demand logging itself exists (`search-demand-actions.ts`, shown on /admin/metrics) [V grep]; F089 stays a draft scenario. Rechecked 2026-11-06 [V grep]. Filed #1198.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5650,8 +5664,10 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built. Unplanned, horizon next.",
+     "issues": [
+      1199
+     ],
+     "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1199.",
      "gaps": [
       "NOT-BUILT"
      ],
@@ -5671,12 +5687,435 @@
      "shipped": "no",
      "smoked": "no",
      "pm_looked": "no",
-     "issues": [],
-     "note": "Not built. Unplanned, horizon next.",
+     "issues": [
+      1200
+     ],
+     "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1200.",
      "gaps": [
       "NOT-BUILT"
      ],
      "score": 0,
+     "red": false
+    }
+   ]
+  },
+  {
+   "feature": "F121",
+   "title": "shelves are data, and we try several to learn which ones help",
+   "area": "explore-map",
+   "area_source": "label",
+   "gates": "none",
+   "retired": false,
+   "as_of": "2026-11-06",
+   "path": "explore-map/F121-shelves-are-data.md",
+   "n": 17,
+   "totals": {
+    "built": {
+     "yes": 14,
+     "no": 3,
+     "unknown": 0
+    },
+    "checked": {
+     "yes": 12,
+     "no": 5,
+     "unknown": 0
+    },
+    "reviewed": {
+     "yes": 14,
+     "no": 3,
+     "unknown": 0
+    },
+    "shipped": {
+     "yes": 14,
+     "no": 3,
+     "unknown": 0
+    },
+    "smoked": {
+     "yes": 9,
+     "no": 3,
+     "unknown": 5
+    },
+    "pm_looked": {
+     "yes": 0,
+     "no": 17,
+     "unknown": 0
+    }
+   },
+   "red": 0,
+   "criteria": [
+    {
+     "id": "1a",
+     "text": "Explore's default view opens with the timely items from the Pages the member follows",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      1201
+     ],
+     "note": "Built [V]: the followed shelf ('Updates from your Pages' since #1172) is the first fixed shelf (`from-who-you-follow`, `20261101200000_shelves.sql`), signed in only (`arrangeShelves`). Checked no: `shelves.test.ts` ('followed shelf and Next 7 days come first') is marked F121.10, not 1; nothing asserts that a member's followed Page's upcoming post lands in it. Filed #1201 (check). Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "1b",
+     "text": "Every other view (a search, an ask) opens the same way, then one quiet end line, then everything else; no end line when the block is empty",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1158
+     ],
+     "note": "Not built [V grep]: no 'caught up' end line anywhere in src; a search, filter or the map view neither shows nor reads shelves (#1159 body); the ask is F119. PR #1159 left it out on purpose ('Not built here: criterion 1'). Open #1158 (it carries no `Kind:` line, so issue-lint labels it `needs-fix`).",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "2",
+     "text": "A shelf is a row of data: name, query, lead time, order, place (fixed or rotating), season dates, on/off; changing one needs no deploy",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`public.shelves` carries id, name, query, lead_days, place, fixed_order, season_start/end, kind and enabled; anyone reads the enabled rows, nobody writes through the API, so a change is a row edit [V migration 20261101200000]. Checked: `[guards F121.2]` in `tests/shelves-db.test.ts:84` asserts the columns, the on/off read and the write refusal; also `:174` reads each seeded query through the real `browse_feed`. `tests/shelves-db.test.ts` and the unit suites run in CI against local Supabase [A ci.yml, as other reports]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked unknown: a data property, not a route.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "3a",
+     "text": "A dated item qualifies only once it starts within its shelf's lead time",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`feedArgs` turns the lead time into the read window (`startsFrom`, `startsBefore`); Pages never sit on a post shelf [V `src/lib/shelves/shelves.ts`]. Checked: `[guards F121.3]` x2 in `shelves.test.ts` (lines 72, 107) and `tests/shelves-db.test.ts:174` (Next 7 days holds what starts this week, not next month) [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "3b",
+     "text": "A dated item leaves when it ends; an undated post leaves at its shelf life, by kind",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "no",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [
+      1201
+     ],
+     "note": "`browse_feed` keeps a post only while `post_current_until(created_at, starts_at, ends_at, show_until, kind) >= now`, the kind's shelf life from #1126 (change #314, plan #230) [V `20261031120000_post_kinds.sql:471`]. Checked no: `tests/undated-posts-expire-db.test.ts` (#314) asserts Explore keeps an undated post for 14 days, but is unmarked and says nothing of each kind's life or of a shelf [V]. Built by #1126: `Reviewed by:` second-session review [V]. Shipped: deploy-health green on 738c9492 [V]. Filed #1201 (check). Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NO-CHECK",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "4",
+     "text": "Each item shows once per screen: shelves fill top to bottom and an item goes in the first shelf it qualifies for",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`fillShelves` gives an item to the first shelf that reads it [V]. Checked: `[guards F121.4]` in `shelves.test.ts:98` ('an item goes in the first shelf it qualifies for') [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "5a",
+     "text": "An empty shelf is absent, and a shelf shows about 10 to 12 items",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Empty shelves are dropped in `fillShelves` and `ExploreShelves` renders nothing when none remain; a shelf holds at most 12 [V]. Checked: `[guards F121.5]` in `shelves.test.ts:98` (at most 12), `ExploreShelves.test.tsx:28` (no shelves, no section) and `load.test.ts:34` [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "5b",
+     "text": "Each shelf has a quiet 'See all' link to its full list (a deep link from the F119 registry)",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1158
+     ],
+     "note": "Half built, so no [V]: See all opens the shelf's loaded items, at most 12 (#1154 rows with See all, used by #1159). The full list behind it, as an F119 registry deep link, is not built: there is no registry (F119.5). Open #1158.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "6",
+     "text": "The starting shelves: Next 7 days; at least three things-to-buy shelves; the current seasonal shelf; up to three interest shelves",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Seeded: the followed shelf, Next 7 days, the interest template, 17 query shelves of plan #243 including Bakers and sweets, Plants and gardens and Fresh from the farm as things to buy, and Getting ready for Thanksgiving [V migration]. Checked: `[guards F121.6]` in `tests/shelves-db.test.ts:95` asserts the names, the fixed pair, 17 query shelves and the three buy shelves [V]. The names are drafts for the PM to rule on (#1159 'Shelf names: the catalog's drafts'); PM looked stays no. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "7",
+     "text": "Interest shelves come from the interests a member declared on You, one shelf per interest, three at most; none signed out; on Home, the wide-open ask and Explore",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "Explore only: `arrangeShelves` expands 'Because you like {interest}' per declared interest, three at most, none signed out [V]. The criterion says the shelves 'may' appear on Home and the ask; neither is built (Home is F098, the ask F119) and neither is required here [A]. Checked: `[guards F121.7]` in `shelves.test.ts:57` and `load.test.ts:34` [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "8",
+     "text": "Seasonal shelves run by date and turn themselves on and off",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "A shelf with season dates shows only inside them; Thanksgiving is seeded Nov 2 to 28, 2026 [V]. The holiday shelf of Nov 29 to Dec 24 is not seeded yet; it belongs to the calendar agent (criterion 9) [V migration]. Checked: `[guards F121.8]` in `shelves.test.ts:30` (shows only inside its dates) and `tests/shelves-db.test.ts:118` (the seeded dates) [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "9",
+     "text": "A scheduled agent keeps the season list six weeks ahead; a season not on the PM's list is drafted for him and does not go live without his yes",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "no",
+     "checked": "no",
+     "reviewed": "no",
+     "shipped": "no",
+     "smoked": "no",
+     "pm_looked": "no",
+     "issues": [
+      1158
+     ],
+     "note": "Not built [V grep]: no workflow, script or table for a season calendar; a season is a hand-seeded row. Left out of #1159 on purpose. Open #1158. Needs the PM when built: the approved season-name list.",
+     "gaps": [
+      "NOT-BUILT"
+     ],
+     "score": 0,
+     "red": false
+    },
+    {
+     "id": "10",
+     "text": "The followed shelf and Next 7 days stay first; the rest rotate per member per day, each spending about equal time in each position; the order holds within a day",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "yes",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`arrangeShelves` rotates cyclically by a member-and-day seed [V]. Checked: `[guards F121.10]` x2 in `shelves.test.ts` (lines 40, 49): the first two fixed, the rest hold still within a day, and over n days each shelf takes each slot exactly once [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked: smoke-live run 41884400137 on main 49f942f0 (2026-11-04, root and explore, 10 passed) was green after #1159, #1163 and #1172; main runs of 11-05 and 11-06 were red on member explore at 1280px and owner personas (timeouts) [V gh run view]; it loads the route signed in, it does not scroll to a shelf or tap.",
+     "gaps": [
+      "NOT-LOOKED"
+     ],
+     "score": 5,
+     "red": false
+    },
+    {
+     "id": "11",
+     "text": "Shelf-level counts per week: impressions (half on screen for a second), taps and saves",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`ShelfLogging` (impression at half on screen for 1s, tap) and `ShelfSaveCredit` (a heart, save, add to calendar, remind me or follow within 30 minutes of the tap, `data-shelf-save`) call `shelf.log`; #1172 re-pointed the credit to hearts and saves and Get updates [V src/components/browse/ShelfLogging.tsx, hearts/HeartSave.tsx]. Checked: `[guards F121.11]` in `tests/shelves-db.test.ts:127` asserts the week's impressions, members, taps and saves; the on-screen rule is in the unmarked `ShelfLogging.test.tsx` [V]. Reviewed: #1159 and #1172 both `Reviewed by:` [V]. Shipped: green on 9ef8bb23 and 49f942f0 [V]. Smoked unknown: logging needs a scroll and a tap, which no smoke does.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "12",
+     "text": "Logging follows F089: no member id stored with a count, the You opt-out stops it, raw rows deleted after 30 days, test and builder accounts never count",
+     "kind": [
+      "behavior",
+      "invariant"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`shelf.log` stores counts and hashed dedupe keys, no member id; skips a member who opted out and every builder; deletes dedupe keys after 8 days [V `src/actions/shelf/log.ts`, migration]. Checked: two `[guards F121.12]` tests in `tests/shelves-db.test.ts` (141, 156), the first scans `information_schema` for any member-id or uuid column on `shelf%` tables, a standing guard for the invariant, and skips an opted-out member and a builder; the second asserts the key purge [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked unknown: not a route.",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "13",
+     "text": "A weekly shelf scoreboard on the PM's dashboard: impressions, tap rate, save rate and a verdict per shelf",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "'Explore shelves' on /admin/metrics (metrics.view), from `admin_shelf_scoreboard` [V `ShelfScoreboardView.tsx`, `page.tsx`]. Checked: `[guards F121.13]` in `ShelfScoreboardView.test.tsx:13`, `page.test.tsx:45`, `verdict.test.ts:26` and `tests/shelves-db.test.ts:164` (staff read, members refused) [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked unknown: the smoke opens `admin-reports` for the operator, not /admin/metrics. The heading and verdict words are draft copy for the PM (#1159).",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
+     "red": false
+    },
+    {
+     "id": "14",
+     "text": "Promote and retire rules: judged only at 200+ impressions from 10+ members in 14 days; two weeks at the top save rate move up; two under half the median retire; seasonal shelves are not retired",
+     "kind": [
+      "behavior"
+     ],
+     "status": "active",
+     "built": "yes",
+     "checked": "yes",
+     "reviewed": "yes",
+     "shipped": "yes",
+     "smoked": "unknown",
+     "pm_looked": "no",
+     "issues": [],
+     "note": "`verdict.ts` implements the thresholds and the seasonal exemption; verdicts are proposals on the scoreboard, the PM rules on the list [V]. Checked: `[guards F121.14]` x2 in `verdict.test.ts` (lines 19, 26): too little data under 200 impressions or 10 members, two weeks at the top move up, two under half the median retire, otherwise keep [V]. Reviewed: #1159 `Reviewed by: a second session`, no review-skipped [V]. Shipped: deploy-health green on 9ef8bb23 [V]; the migration applied to production first (Apply migrations run on branch f121-shelves, 2026-11-01, success) [V]. Smoked unknown (as 13).",
+     "gaps": [
+      "NOT-SMOKED",
+      "NOT-LOOKED"
+     ],
+     "score": 4,
      "red": false
     }
    ]
@@ -9457,38 +9896,38 @@
    }
   },
   "explore-map": {
-   "features": 11,
-   "n": 99,
+   "features": 12,
+   "n": 116,
    "red": 1,
    "totals": {
     "built": {
-     "yes": 59,
-     "no": 40,
+     "yes": 73,
+     "no": 43,
      "unknown": 0
     },
     "checked": {
-     "yes": 32,
-     "no": 67,
+     "yes": 44,
+     "no": 72,
      "unknown": 0
     },
     "reviewed": {
-     "yes": 3,
-     "no": 96,
+     "yes": 17,
+     "no": 99,
      "unknown": 0
     },
     "shipped": {
-     "yes": 45,
-     "no": 40,
+     "yes": 59,
+     "no": 43,
      "unknown": 14
     },
     "smoked": {
-     "yes": 35,
-     "no": 40,
-     "unknown": 24
+     "yes": 44,
+     "no": 43,
+     "unknown": 29
     },
     "pm_looked": {
      "yes": 0,
-     "no": 99,
+     "no": 116,
      "unknown": 0
     }
    }
@@ -9606,38 +10045,38 @@
   }
  },
  "all": {
-  "features": 34,
-  "n": 283,
+  "features": 35,
+  "n": 300,
   "red": 6,
   "totals": {
    "built": {
-    "yes": 200,
-    "no": 83,
+    "yes": 214,
+    "no": 86,
     "unknown": 0
    },
    "checked": {
-    "yes": 139,
-    "no": 144,
+    "yes": 151,
+    "no": 149,
     "unknown": 0
    },
    "reviewed": {
-    "yes": 31,
-    "no": 252,
+    "yes": 45,
+    "no": 255,
     "unknown": 0
    },
    "shipped": {
-    "yes": 163,
-    "no": 83,
+    "yes": 177,
+    "no": 86,
     "unknown": 37
    },
    "smoked": {
-    "yes": 91,
-    "no": 83,
-    "unknown": 109
+    "yes": 100,
+    "no": 86,
+    "unknown": 114
    },
    "pm_looked": {
     "yes": 0,
-    "no": 283,
+    "no": 300,
     "unknown": 0
    }
   }
@@ -9714,6 +10153,9 @@
    "F119.7",
    "F119.8",
    "F119.9",
+   "F121.1b",
+   "F121.5b",
+   "F121.9",
    "F100.11b",
    "F100.12",
    "F056.4",
@@ -9782,6 +10224,8 @@
    "F091.7",
    "F118.8",
    "F118.9",
+   "F121.1a",
+   "F121.3b",
    "F056.2",
    "F056.6",
    "F056.9a",
@@ -10056,6 +10500,11 @@
    "F118.8",
    "F118.9",
    "F118.11",
+   "F121.2",
+   "F121.11",
+   "F121.12",
+   "F121.13",
+   "F121.14",
    "F078.2",
    "F078.4a",
    "F078.7",
@@ -10216,6 +10665,20 @@
    "F118.8",
    "F118.9",
    "F118.11",
+   "F121.1a",
+   "F121.2",
+   "F121.3a",
+   "F121.3b",
+   "F121.4",
+   "F121.5a",
+   "F121.6",
+   "F121.7",
+   "F121.8",
+   "F121.10",
+   "F121.11",
+   "F121.12",
+   "F121.13",
+   "F121.14",
    "F058.1",
    "F058.3",
    "F058.4",
@@ -10321,7 +10784,6 @@
   "F046: scenario retired; shown, not counted",
   "F063: area 'explore-map' is a guess; no Issue carries an area: label",
   "F118: area 'explore-map' is a guess; no Issue carries an area: label",
-  "F119: area 'explore-map' is a guess; no Issue carries an area: label",
   "F060: unknown cells: Shipped 1, Smoked 4",
   "F061: unknown cells: Shipped 1, Smoked 3",
   "F072: unknown cells: Shipped 2, Smoked 4",
@@ -10334,6 +10796,7 @@
   "F091: unknown cells: Smoked 1",
   "F093: unknown cells: Shipped 2, Smoked 4",
   "F118: unknown cells: Smoked 3",
+  "F121: unknown cells: Smoked 5",
   "F058: unknown cells: Shipped 1",
   "F078: unknown cells: Smoked 8",
   "F080: unknown cells: Smoked 3",
