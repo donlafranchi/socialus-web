@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Assistance League Thrift Shop (Greater Placer)",
+    "category": "Nonprofit thrift store",
+    "makes": "Auburn thrift shop of Assistance League of Greater Placer selling antiques and collectibles, apparel, shoes, housewares, linens, home decor, seasonal items, jewelry and furniture",
+    "area": "Auburn (Placer)",
+    "address": "1263 Grass Valley Highway, Auburn, CA 95603",
+    "site": "https://www.assistanceleague.org/chapter/greaterplacer/thrift-shop",
+    "social": {
+      "instagram": "https://instagram.com/al.greaterplacer",
+      "facebook": "https://www.facebook.com/AL.GreaterPlacer/"
+    },
+    "confidence": "High; own site checked 2026-11-07 (ok): shop Tue-Sat 11-4, donations Tue, Wed, Sat 11-3; closed Thanksgiving, Dec 25 and Jan 1 (year not stated). Fewer than 3 own-site products, so none. Photos not viewed: stock only. Lead: search, then own site."
+  },
+  {
+    "name": "Yolo County SPCA Thrift Store",
+    "category": "Nonprofit thrift store",
+    "makes": "Davis thrift store that takes donations and brings in new items daily; purchases support the Yolo County SPCA's services and programs",
+    "area": "Davis (Yolo)",
+    "address": "920 Third Street, Davis, CA 95617",
+    "site": "https://www.yolospca.org/thrift-store.html",
+    "social": {
+      "instagram": "https://www.instagram.com/yolo_spca/",
+      "facebook": "https://www.facebook.com/YoloCountySPCA"
+    },
+    "confidence": "Medium; own site checked 2026-11-07 (ok): shopping Sun-Mon 12-5 and Tue-Sat 11-6, donations Wed-Sat 11-4. Fewer than 3 own-site products, so none. Photos not viewed: stock only. Lead: search, then own site."
+  }
+]
