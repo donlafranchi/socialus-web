@@ -24,7 +24,7 @@
 //      repository is public); any other record is named by its id alone.
 //
 // Writes only through the store's functions, as its own login, holding a key
-// minted for this run and revoked at its end, as the import does (#1218).
+// minted for this run and revoked at its end, with the import's own helpers (#1218).
 //
 // Run: tsx scripts/knowledge/conditions.ts [--commit] [--mark ID --status S --reason R]
 // with DATABASE_URL set; GITHUB_TOKEN and GITHUB_REPOSITORY to open Issues.
@@ -33,8 +33,9 @@
 import { Client, type ClientBase } from 'pg'
 import { spawnSync } from 'node:child_process'
 import { appendFileSync } from 'node:fs'
+import { enterStore, leaveStore, PERSON } from './import'
 
-export const PERSON = 'the PM'
+export { PERSON }
 
 export type Status = 'not started' | 'partial' | 'met' | 'withdrawn'
 export const STATUSES: Status[] = ['not started', 'partial', 'met', 'withdrawn']
@@ -174,22 +175,8 @@ export function composeIssue(
 // ---------------------------------------------------------------------------
 // The store.
 
-export async function enterStore(db: ClientBase, agent: string, person = PERSON): Promise<void> {
-  const { rows } = await db.query<{ key: string }>(`select knowledge.add_agent($1, $2, '{}', true) as key`, [
-    agent,
-    person,
-  ])
-  await db.query('grant knowledge_store to current_user')
-  await db.query('set local role knowledge_store')
-  await db.query(`select set_config('knowledge.key', $1, true)`, [rows[0].key])
-}
-
-export async function leaveStore(db: ClientBase, agent: string): Promise<void> {
-  await db.query(`select set_config('knowledge.key', '', true)`)
-  await db.query('reset role')
-  await db.query('revoke knowledge_store from current_user')
-  await db.query('select knowledge.revoke_agent($1)', [agent])
-}
+// Entering and leaving the store's login: the import's (#1218), shared.
+export { enterStore, leaveStore }
 
 async function readConditions(db: ClientBase): Promise<Map<string, ConditionRow>> {
   const { rows } = await db.query<ConditionRow>(
