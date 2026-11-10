@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-11-06** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-10** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -370,3 +370,13 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-06 | Foothill Conservancy | Creek conservancy (nonprofit) | Sutter Creek | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-11-06 | California Native Plant Society, Redbud Chapter | Native plant society (nonprofit) | Auburn | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-11-06 | Downtown Vacaville Farmers' Market | Farm | Vacaville | Farmers markets, Sustainability | Green and outdoors (market with dated events); stock photos only; lead: search, then own site |
+| 2026-11-10 | Boarding On The Lake | Ranch | Granite Bay | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | PT Ranch | Farm stay & agritourism | Ione | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | Long Dream Farm | Farm stay & agritourism | Lincoln | Farmers markets, Sustainability | Volunteer and mutual aid (farms); stock photos only; lead: search, then own site |
+| 2026-11-10 | Pine Valley Ranch | Farm | Auburn | Farmers markets, Sustainability | Volunteer and mutual aid (farms; holiday (Christmas trees)); stock photos only; lead: search, then own site |
+| 2026-11-10 | Twin Lakes Food Bank | Food bank (nonprofit) | Folsom | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Seniors First (Meals on Wheels Placer County) | Meal program (nonprofit) | Rocklin | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Sierra Senior Services (Meals on Wheels Tahoe-Truckee) | Meal program (nonprofit) | Truckee | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Sustainable Solano | Community garden (nonprofit) | Benicia | Gardening, Sustainability | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | Solano-Napa Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-10 | The Salvation Army Lodi Corps | Meal program (nonprofit) | Lodi | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
