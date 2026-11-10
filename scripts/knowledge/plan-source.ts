@@ -143,9 +143,13 @@ export function ruleFiles(root: string): string[] {
   return [...(existsSync(join(root, PRINCIPLES)) ? [PRINCIPLES] : []), ...scenarios, ...product]
 }
 
+// Built from pieces, as markers.py does, so this file never holds a tag of its own
+// (scripts/check-markers.sh fails one outside socialus-plan's rulings).
+const BINDS_TAG = new RegExp('\\[' + 'binds [^\\]]*\\]', 'g')
+
 function liftTags(text: string): string {
   return text
-    .replace(/\[binds [^\]]*\]/g, '')
+    .replace(BINDS_TAG, '')
     .replace(/[ \t]+/g, ' ')
     .trim()
 }
