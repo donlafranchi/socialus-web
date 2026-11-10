@@ -93,10 +93,9 @@ describe('the Issue for a met condition', () => {
 })
 
 describe('the scheduled workflow', () => {
-  const yml = readFileSync(resolve(__dirname, '..', '.github', 'workflows', 'knowledge-conditions.yml'), 'utf8')
-
   // [guards F126.8 partial: marking through the lookup tool is #1219's]
   it('runs on a schedule, and from the Actions tab with a condition and a status to mark', () => {
+    const yml = readFileSync(resolve(__dirname, '..', '.github', 'workflows', 'knowledge-conditions.yml'), 'utf8')
     expect(yml).toMatch(/schedule:\n\s+- cron: '[^']+'/)
     expect(yml).toMatch(/workflow_dispatch:/)
     expect(yml).toMatch(/condition:/)
