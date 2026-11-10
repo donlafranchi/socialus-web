@@ -2,7 +2,7 @@
 // Static: reads src/ and the registry, never the database, so it runs in
 // `npm test` and on any laptop.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, resolve, dirname } from 'node:path'
+import { join, relative, resolve, dirname, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FLAGS, type FlagDeclaration } from '../src/lib/flags/registry'
 
@@ -10,24 +10,33 @@ export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 export type Reference = { key: string | null; file: string; line: number }
 
-// flagOn('key') with a literal key. A call with anything else is reported as
-// unreadable, because a key the check cannot see is a flag nobody can find.
-const CALL = /\bflagOn\(\s*(?:(['"`])([^'"`]*)\1)?/g
+// flagOn('key') or flagOnFor('key', ...) with a literal key and nothing else
+// in that argument. Anything else is reported as unreadable, because a key the
+// check cannot see is a flag nobody can find. So is an aliased import.
+const CALL = /\bflagOn(?:For)?\(\s*(?:(['"`])([^'"`$]*)\1\s*(?=[,)]))?/g
+const ALIAS = /\bflagOn(?:For)?\s+as\b/g
 
-export function referencesIn(text: string, file: string): Reference[] {
+/** Comments blanked, line breaks kept, so a commented-out read is not a read. */
+export function stripComments(text: string): string {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ' '))
+    .replace(/(^|[^:\\])\/\/.*$/gm, '$1')
+}
+
+export function referencesIn(raw: string, file: string): Reference[] {
+  const text = stripComments(raw)
+  const lineOf = (i: number) => text.slice(0, i).split('\n').length
   const out: Reference[] = []
-  for (const m of text.matchAll(CALL)) {
-    const line = text.slice(0, m.index).split('\n').length
-    out.push({ key: m[2] ?? null, file, line })
-  }
-  return out
+  for (const m of text.matchAll(CALL)) out.push({ key: m[2] ?? null, file, line: lineOf(m.index) })
+  for (const m of text.matchAll(ALIAS)) out.push({ key: null, file, line: lineOf(m.index) })
+  return out.sort((a, b) => a.line - b.line)
 }
 
 function walk(dir: string, files: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
     if (statSync(p).isDirectory()) walk(p, files)
-    else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) files.push(p)
+    else if (/\.(ts|tsx|js|jsx|mjs)$/.test(name) && !/\.(test|spec)\.[jt]sx?$/.test(name)) files.push(p)
   }
   return files
 }
@@ -35,7 +44,7 @@ function walk(dir: string, files: string[] = []): string[] {
 /** Every flagOn call under src/, except the flag module itself. */
 export function codeReferences(root = ROOT): Reference[] {
   const src = join(root, 'src')
-  const own = join(src, 'lib', 'flags')
+  const own = join(src, 'lib', 'flags') + sep
   return walk(src)
     .filter((f) => !f.startsWith(own))
     .flatMap((f) => referencesIn(readFileSync(f, 'utf8'), relative(root, f)))

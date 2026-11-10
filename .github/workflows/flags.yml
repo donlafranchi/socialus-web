@@ -2,7 +2,9 @@ name: Feature flags
 
 # #1227 Feature flags of our own (PM, 2026-11-10). Manual only. Lists every
 # flag with who it is on for and any past its removal date, or switches one:
-# off, builders (builder accounts and the operator), or everyone.
+# off, builders (builder accounts and the operator), or everyone. Runs the
+# scripts from whichever branch it is dispatched on, with the production
+# database, the same trust as Apply migrations: dispatch it on main.
 
 on:
   workflow_dispatch:

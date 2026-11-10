@@ -4,7 +4,7 @@
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase-server'
 import { getPool } from '@/actions/_lib/db'
-import { isOperator } from '@/actions/_lib/operator'
+import { operatorMemberId } from '@/actions/_lib/operator'
 import type { FlagKey } from './registry'
 import { resolveFlag } from './resolve'
 
@@ -22,7 +22,9 @@ export async function flagOnFor(key: string, memberId: string | null, query: Que
     const row = rows[0] ?? {}
     return resolveFlag(row.audience as string | null, {
       builder: row.builder === true,
-      operator: isOperator(memberId),
+      // The real operator only. The operator builder persona counts through its
+      // builders row, so disabling it takes its flags away like any builder's.
+      operator: memberId !== null && memberId === operatorMemberId(),
     })
   } catch {
     return false

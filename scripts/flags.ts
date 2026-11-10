@@ -58,7 +58,7 @@ async function main() {
       `insert into public.feature_flags (key, audience) values ($1, $2)
        on conflict (key) do update set audience = excluded.audience, updated_at = now()`,
       [flag, audience]))
-    console.log(`${flag} is now on for ${audience}.`)
+    console.log(`${flag} is now set to ${audience}.`)
   } else {
     console.error('Usage: flags.ts check | list | set <flag> <off|builders|everyone>')
     process.exitCode = 2

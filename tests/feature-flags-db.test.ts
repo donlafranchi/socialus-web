@@ -25,6 +25,7 @@ const RUNNABLE = requireRunnable({
 
 const BUILDER = 'a4000000-0000-4000-8000-000000001227'
 const MEMBER = 'b4000000-0000-4000-8000-000000001227'
+const OPERATOR_BUILDER = 'c4000000-0000-4000-8000-000000001227'
 
 let pool: Pool
 let client: PoolClient
@@ -65,6 +66,24 @@ describe.skipIf(!RUNNABLE)('#1227 feature flags', () => {
       await client.query(`update public.feature_flags set audience = 'builders' where key = 'f1227'`)
       await client.query(`update public.builders set disabled_at = now() where member_id = $1`, [BUILDER])
       expect(await who()).toEqual([false, false, false])
+
+      // The operator builder persona counts through its builders row, so
+      // disabling it takes its flags away even while its variable is set.
+      await client.query(
+        `insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at)
+         values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','f1227-op@test.invalid','x',now(),now(),now())`,
+        [OPERATOR_BUILDER],
+      )
+      await client.query(`insert into public.members (id, handle, display_name) values ($1,'f1227-op','f1227-op')`, [OPERATOR_BUILDER])
+      await client.query(`insert into public.builders (member_id, persona, disabled_at) values ($1,'f1227-op',now())`, [OPERATOR_BUILDER])
+      const prev = process.env.BUILDER_OPERATOR_MEMBER_ID
+      process.env.BUILDER_OPERATOR_MEMBER_ID = OPERATOR_BUILDER
+      try {
+        expect(await flagOnFor('f1227', OPERATOR_BUILDER, q)).toBe(false)
+      } finally {
+        if (prev === undefined) delete process.env.BUILDER_OPERATOR_MEMBER_ID
+        else process.env.BUILDER_OPERATOR_MEMBER_ID = prev
+      }
     } finally {
       await client.query('rollback')
     }
@@ -85,6 +104,13 @@ describe.skipIf(!RUNNABLE)('#1227 feature flags', () => {
       try {
         await client.query(`set local role ${role}`)
         await expect(client.query('select * from public.feature_flags')).rejects.toThrow(/permission denied/)
+      } finally {
+        await client.query('rollback')
+      }
+      await client.query('begin')
+      try {
+        await client.query(`set local role ${role}`)
+        await expect(client.query(`insert into public.feature_flags (key, audience) values ('f1227','everyone')`)).rejects.toThrow(/permission denied/)
       } finally {
         await client.query('rollback')
       }

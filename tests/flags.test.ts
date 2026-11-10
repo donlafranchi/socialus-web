@@ -64,6 +64,23 @@ describe('finding flags in code', () => {
     ])
   })
 
+  it('a commented-out read is not a read; an alias, flagOnFor and a built key are caught', () => {
+    const text = [
+      `// if (await flagOn('dead')) x`,
+      `/* flagOn('dead2')\n */ ok`,
+      `const u = 'https://x'; flagOn('live')`,
+      `import { flagOn as on } from '@/lib/flags/check'`,
+      `flagOnFor('direct', id, q)`,
+      `flagOn('a' + x)`,
+    ].join('\n')
+    expect(referencesIn(text, 'f.ts')).toEqual([
+      { key: 'live', file: 'f.ts', line: 4 },
+      { key: null, file: 'f.ts', line: 5 },
+      { key: 'direct', file: 'f.ts', line: 6 },
+      { key: null, file: 'f.ts', line: 7 },
+    ])
+  })
+
   const flags = {
     'new-map': { hides: 'the new map', issue: 1, removeBy: '2026-12-01' },
     'old-thing': { hides: 'an old thing', issue: 2, removeBy: '2026-11-01' },
