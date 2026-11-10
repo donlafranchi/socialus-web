@@ -59,11 +59,10 @@ export async function addAgentWithKey(
 }
 
 export async function revokeAgent(db: ClientBase, agent: string): Promise<boolean> {
-  const { rowCount } = await db.query(
-    'update knowledge.agents set revoked_at = now() where name = $1 and revoked_at is null',
-    [agent],
-  )
-  return (rowCount ?? 0) > 0
+  const { rowCount } = await db.query('select 1 from knowledge.agents where name = $1 and revoked_at is null', [agent])
+  if (!rowCount) return false
+  await db.query('select knowledge.revoke_agent($1)', [agent])
+  return true
 }
 
 /** As the store's own login: who this key is, or null. */

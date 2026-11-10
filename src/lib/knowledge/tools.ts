@@ -242,7 +242,7 @@ export const TOOLS: KnowledgeTool[] = [
       } else {
         parts.push('Rests on: no principle linked yet.')
       }
-      parts.push(w.platform ? `The platform's why: ${w.platform.why ?? w.platform.answer}` : "The platform's why: not recorded yet.")
+      parts.push(w.platform ? `The platform's why: ${w.platform.why ?? w.platform.answer}` : "The platform's why: not recorded, or not readable with this key.")
       if (w.current) {
         const c = w.current
         parts.push(

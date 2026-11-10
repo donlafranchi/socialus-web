@@ -27,6 +27,9 @@ describe('the connection the tool uses', () => {
     expect(
       knowledgeDatabaseUrl({ KNOWLEDGE_DATABASE_URL: 'postgresql://postgres:x@db.example/postgres' }),
     ).toBeNull()
+    expect(
+      knowledgeDatabaseUrl({ KNOWLEDGE_DATABASE_URL: 'postgresql://knowledge_store:x@db.example/postgres?user=postgres' }),
+    ).toBeNull()
   })
 
   it('takes a whole address for the store login when one is given', () => {
@@ -107,6 +110,16 @@ describe.skipIf(!E2E)('the route, end to end', () => {
     const { POST } = await import('@/app/api/knowledge/[transport]/route')
     const res = await POST(mcp({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, 'ks_not_a_real_key'))
     expect(res.status).toBe(401)
+    const gone = `${agent}-revoked`
+    const { rows } = await admin.query<{ key: string }>(
+      `select knowledge.add_agent($1, 'a tester', '{building}', false) as key`,
+      [gone],
+    )
+    const before = await POST(mcp({ jsonrpc: '2.0', id: 2, method: 'tools/list' }, rows[0].key))
+    expect(before.status).not.toBe(401)
+    await admin.query('select knowledge.revoke_agent($1)', [gone])
+    const after = await POST(mcp({ jsonrpc: '2.0', id: 3, method: 'tools/list' }, rows[0].key))
+    expect(after.status).toBe(401)
   })
 
   it('lists the tools and answers a search, logging the one it cannot answer as this agent', async () => {

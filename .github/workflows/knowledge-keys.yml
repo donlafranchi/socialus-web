@@ -28,15 +28,15 @@ on:
         type: string
         default: cloud-sessions
       departments:
-        description: 'Departments, comma separated (building, finance, telemetry-and-bugs, communications, trust-and-safety, legal). Leave empty for the PM''s own key.'
+        description: 'Departments, comma separated (building, finance, telemetry-and-bugs, communications, trust-and-safety, legal). Ignored for the PM''s own key.'
         required: false
         type: string
-        default: ''
+        default: 'building,finance,telemetry-and-bugs,communications,trust-and-safety,legal'
       operator:
-        description: 'The PM''s own key: sees and decides everything.'
+        description: 'The PM''s own key: sees and decides everything. Only for a key the PM alone holds, never one shared by sessions.'
         required: false
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read

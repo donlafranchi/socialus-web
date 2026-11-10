@@ -31,7 +31,10 @@ export function knowledgeDatabaseUrl(env: Env = process.env): string | null {
   const whole = env.KNOWLEDGE_DATABASE_URL?.trim()
   if (whole) {
     try {
-      const user = decodeURIComponent(new URL(whole).username)
+      const url = new URL(whole)
+      // A user given as a parameter would override the one in the address.
+      if (url.searchParams.has('user')) return null
+      const user = decodeURIComponent(url.username)
       return user === LOGIN || user.startsWith(`${LOGIN}.`) ? whole : null
     } catch {
       return null
