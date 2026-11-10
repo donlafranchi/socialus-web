@@ -134,13 +134,48 @@ comment on table knowledge.agents is
   'One key per agent, acting for one person. The agent sees what its departments see; an operator (the PM''s agents) sees everything. A key names no model.';
 
 -- ---------------------------------------------------------------------------
+-- Kinds and link types are rows, not hard-coded lists: a later kind (a
+-- condition decisions wait on, say) or link type is an insert in a later
+-- migration, never a rewrite of the tables.
+
+create table knowledge.kinds (
+  slug        text primary key check (slug ~ '^[a-z][a-z-]*[a-z]$'),
+  statuses    text[] not null check (cardinality(statuses) > 0),
+  needs_why   boolean not null default false,
+  id_prefix   text unique check (id_prefix ~ '^[A-Z]{1,3}$'),
+  last_number integer not null default 0
+);
+comment on table knowledge.kinds is
+  'Every kind of record: its statuses, whether it needs a why, and its id prefix (none: the record keeps its own id, as features do). A new kind is a new row.';
+
+insert into knowledge.kinds (slug, statuses, needs_why, id_prefix) values
+  ('philosophy', '{proposed,live,retired}',                     true,  'PH'),
+  ('pattern',    '{proposed,live,retired}',                     true,  'PT'),
+  ('decision',   '{proposed,live,retired}',                     true,  'D'),
+  ('correction', '{proposed,live,retired}',                     true,  'C'),
+  ('feature',    '{draft,approved,building,shipped,dropped}',   false, null),
+  ('criterion',  '{proposed,live,retired}',                     false, null),
+  ('question',   '{open,answered}',                             false, 'Q'),
+  ('risk',       '{open,accepted,closed}',                      false, 'R'),
+  ('noun',       '{live,coming,refused,retired}',               false, 'N'),
+  ('verb',       '{live,coming,refused,retired}',               false, 'V'),
+  ('link',       '{live,coming,refused,retired}',               false, 'L');
+
+create table knowledge.link_types (
+  slug text primary key check (slug ~ '^[a-z][a-z_]*[a-z]$')
+);
+comment on table knowledge.link_types is 'Every way two records relate. A new link type is a new row.';
+
+insert into knowledge.link_types (slug) values
+  ('replaces'), ('implements'), ('governs'), ('depends_on'), ('guards'),
+  ('relates'), ('applies'), ('departs_from'), ('corrects'), ('explains');
+
+-- ---------------------------------------------------------------------------
 -- Records: one table for every kind (the brief § The record).
 
 create table knowledge.records (
   id              text primary key check (id ~ '^[A-Za-z0-9][A-Za-z0-9._-]*$'),
-  kind            text not null check (kind in ('philosophy', 'pattern', 'decision', 'correction',
-                                                'feature', 'criterion', 'question', 'risk',
-                                                'noun', 'verb', 'link')),
+  kind            text not null references knowledge.kinds (slug),
   concern         text references knowledge.concerns (slug),
   answer          text not null check (btrim(answer) <> ''),
   why             text,
@@ -165,14 +200,6 @@ create table knowledge.records (
   version         integer not null default 1,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
-  constraint records_needs_a_why check (
-    kind not in ('philosophy', 'pattern', 'decision', 'correction') or coalesce(btrim(why), '') <> ''),
-  constraint records_status_fits_kind check (case
-    when kind in ('philosophy', 'pattern', 'decision', 'correction', 'criterion') then status in ('proposed', 'live', 'retired')
-    when kind = 'feature'  then status in ('draft', 'approved', 'building', 'shipped', 'dropped')
-    when kind = 'question' then status in ('open', 'answered')
-    when kind = 'risk'     then status in ('open', 'accepted', 'closed')
-    else status in ('live', 'coming', 'refused', 'retired') end),
   constraint records_department_audience_names_one check (audience <> 'department' or cardinality(departments) > 0),
   constraint records_until_only_for_now check (until is null or holds = 'for now')
 );
@@ -186,17 +213,6 @@ comment on column knowledge.records.settled is
 create index records_concern_status on knowledge.records (concern, status);
 create index records_kind_status on knowledge.records (kind, status);
 
--- Per-kind id sequences: D-0001 for decisions and so on. Features and
--- criteria keep the ids they already have (F094, F094.3).
-create sequence knowledge.seq_ph;
-create sequence knowledge.seq_pt;
-create sequence knowledge.seq_d;
-create sequence knowledge.seq_c;
-create sequence knowledge.seq_q;
-create sequence knowledge.seq_r;
-create sequence knowledge.seq_n;
-create sequence knowledge.seq_v;
-create sequence knowledge.seq_l;
 
 -- ---------------------------------------------------------------------------
 -- History: a full copy of the record at every version. Append-only: a row is
@@ -228,8 +244,7 @@ create table knowledge.links (
   id         bigint generated always as identity primary key,
   from_id    text not null references knowledge.records (id),
   to_id      text not null references knowledge.records (id),
-  type       text not null check (type in ('replaces', 'implements', 'governs', 'depends_on', 'guards',
-                                           'relates', 'applies', 'departs_from', 'corrects', 'explains')),
+  type       text not null references knowledge.link_types (slug),
   basis      text not null default 'stated' check (basis in ('stated', 'inferred')),
   reason     text,
   person     text not null,
@@ -395,17 +410,17 @@ end $$;
 create function knowledge._next_id(p_kind text) returns text
 language plpgsql security definer set search_path = '' as $$
 declare
-  prefix text := case p_kind
-    when 'philosophy' then 'PH' when 'pattern' then 'PT' when 'decision' then 'D'
-    when 'correction' then 'C'  when 'question' then 'Q' when 'risk' then 'R'
-    when 'noun' then 'N' when 'verb' then 'V' when 'link' then 'L' end;
+  prefix text;
+  n integer;
   candidate text;
 begin
+  select id_prefix into prefix from knowledge.kinds where slug = p_kind;
   if prefix is null then
     raise exception 'A % keeps its own id; give one.', p_kind using errcode = 'not_null_violation';
   end if;
   loop
-    candidate := prefix || '-' || lpad(nextval(format('knowledge.seq_%s', lower(prefix)))::text, 4, '0');
+    update knowledge.kinds set last_number = last_number + 1 where slug = p_kind returning last_number into n;
+    candidate := prefix || '-' || lpad(n::text, 4, '0');
     exit when not exists (select 1 from knowledge.records where id = candidate);
   end loop;
   return candidate;
@@ -417,6 +432,8 @@ end $$;
 
 create function knowledge._records_before() returns trigger
 language plpgsql set search_path = '' as $$
+declare
+  k knowledge.kinds;
 begin
   if tg_op = 'DELETE' then
     raise exception 'A record is never deleted; retire it instead.' using errcode = 'restrict_violation';
@@ -432,6 +449,14 @@ begin
   end if;
   new.updated_at := now();
   perform knowledge._check_departments(new.departments);
+  select * into k from knowledge.kinds where slug = new.kind;
+  if not new.status = any (k.statuses) then
+    raise exception 'A % takes a status from: %; not %.', new.kind, array_to_string(k.statuses, ', '), new.status
+      using errcode = 'check_violation';
+  end if;
+  if k.needs_why and coalesce(btrim(new.why), '') = '' then
+    raise exception 'A % needs a why.', new.kind using errcode = 'check_violation';
+  end if;
   return new;
 end $$;
 
@@ -570,16 +595,21 @@ begin
   if extra is not null then
     raise exception 'A record has no field %.', extra using errcode = 'undefined_column';
   end if;
-  if k in ('philosophy', 'pattern', 'decision', 'correction') and coalesce(btrim(p->>'why'), '') = '' then
+  if not exists (select 1 from knowledge.kinds x where x.slug = k) then
+    raise exception 'No such kind: %. A new kind is a new row in knowledge.kinds.', k using errcode = 'foreign_key_violation';
+  end if;
+  if (select needs_why from knowledge.kinds x where x.slug = k) and coalesce(btrim(p->>'why'), '') = '' then
     raise exception 'A % needs a why.', k using errcode = 'check_violation';
   end if;
 
-  the_status := coalesce(p->>'status', case
-    when k = 'feature' then 'draft'
-    when k in ('question', 'risk') then 'open'
-    when k in ('noun', 'verb', 'link') then 'live'
-    when pm_only and not w.operator then 'proposed'
-    else 'live' end);
+  -- Default: proposed where the kind has it and the PM must decide, else live
+  -- where the kind has it, else the kind's first status.
+  the_status := coalesce(p->>'status', (
+    select case
+             when pm_only and not w.operator and 'proposed' = any (x.statuses) then 'proposed'
+             when 'live' = any (x.statuses) then 'live'
+             else x.statuses[1] end
+      from knowledge.kinds x where x.slug = k));
   if the_status = 'retired' then
     raise exception 'A record is retired through knowledge.retire, with what replaced it.' using errcode = 'check_violation';
   end if;
@@ -646,10 +676,11 @@ begin
   if extra is not null then
     raise exception 'A revise cannot change %.', extra using errcode = 'check_violation';
   end if;
-  if p_changes ? 'status' and r.kind in ('philosophy', 'pattern', 'decision', 'correction', 'criterion', 'noun', 'verb', 'link') then
+  if p_changes ? 'status' and (p_changes->>'status' in ('live', 'retired')
+                               or (select 'retired' = any (x.statuses) from knowledge.kinds x where x.slug = r.kind)) then
     raise exception 'A % changes status through knowledge.decide or knowledge.retire.', r.kind using errcode = 'check_violation';
   end if;
-  if p_changes ? 'why' and r.kind in ('philosophy', 'pattern', 'decision', 'correction')
+  if p_changes ? 'why' and (select x.needs_why from knowledge.kinds x where x.slug = r.kind)
      and coalesce(btrim(p_changes->>'why'), '') = '' then
     raise exception 'A % needs a why.', r.kind using errcode = 'check_violation';
   end if;
@@ -739,7 +770,7 @@ begin
   if r.settled then
     return knowledge._refuse(w, p_id, 'retire', 'This record is settled: the PM has said do not re-raise it.');
   end if;
-  if r.kind not in ('philosophy', 'pattern', 'decision', 'correction', 'criterion', 'noun', 'verb', 'link') then
+  if not (select 'retired' = any (x.statuses) from knowledge.kinds x where x.slug = r.kind) then
     raise exception 'A % changes status through knowledge.revise.', r.kind using errcode = 'check_violation';
   end if;
   if r.status = 'retired' then
@@ -805,6 +836,10 @@ begin
   end if;
   if b.id is null or not knowledge.can_see(b.audience, b.departments) then
     raise exception 'No record %.', p_to using errcode = 'no_data_found';
+  end if;
+  if not exists (select 1 from knowledge.link_types t where t.slug = p_type) then
+    raise exception 'No such link type: %. A new link type is a new row in knowledge.link_types.', p_type
+      using errcode = 'foreign_key_violation';
   end if;
   if p_type = 'departs_from' and coalesce(btrim(p_reason), '') = '' then
     raise exception 'A departure names its reason.' using errcode = 'check_violation';
@@ -968,6 +1003,8 @@ comment on function knowledge.precedents_of(text) is
 -- Row-level security: what each key reads. The login has no write grant on
 -- any table; writes go through the functions above.
 
+alter table knowledge.kinds       enable row level security;
+alter table knowledge.link_types  enable row level security;
 alter table knowledge.departments enable row level security;
 alter table knowledge.concerns    enable row level security;
 alter table knowledge.agents      enable row level security;
@@ -979,6 +1016,10 @@ alter table knowledge.unanswered  enable row level security;
 alter table knowledge.sightings   enable row level security;
 alter table knowledge.refusals    enable row level security;
 
+create policy kinds_with_a_key on knowledge.kinds for select to knowledge_store
+  using (knowledge.has_key());
+create policy link_types_with_a_key on knowledge.link_types for select to knowledge_store
+  using (knowledge.has_key());
 create policy departments_with_a_key on knowledge.departments for select to knowledge_store
   using (knowledge.has_key());
 create policy concerns_with_a_key on knowledge.concerns for select to knowledge_store
@@ -1015,7 +1056,7 @@ alter default privileges in schema knowledge revoke all on tables    from public
 alter default privileges in schema knowledge revoke all on sequences from public, anon, authenticated, service_role;
 alter default privileges in schema knowledge revoke all on functions from public, anon, authenticated, service_role;
 
-grant select on knowledge.departments, knowledge.concerns, knowledge.records, knowledge.history, knowledge.links,
+grant select on knowledge.kinds, knowledge.link_types, knowledge.departments, knowledge.concerns, knowledge.records, knowledge.history, knowledge.links,
                 knowledge.refs, knowledge.unanswered, knowledge.sightings, knowledge.refusals
   to knowledge_store;
 grant select (name, person, departments, operator, created_at, revoked_at) on knowledge.agents to knowledge_store;

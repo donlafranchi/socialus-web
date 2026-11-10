@@ -596,3 +596,26 @@ begin
      and not (has_schema_privilege('anon', s.oid, 'USAGE') and has_function_privilege('anon', p.oid, 'EXECUTE'));
   assert extra is null, 'the store''s login can run what the public key cannot: ' || extra;
 end $$;
+
+-- test: a later kind or link type is a new row, not a redesign
+-- [guards F125.5 partial: kinds and link types extend without rewriting the tables]
+reset role;
+insert into knowledge.kinds (slug, statuses, needs_why, id_prefix) values ('t-condition', '{waiting,started,ended}', false, 'TC');
+insert into knowledge.link_types (slug) values ('t_starts_when');
+set local role knowledge_store;
+do $$
+declare
+  c text;
+begin
+  c := knowledge.record('{"kind":"t-condition","answer":"A second metro opens.","status":"waiting","audience":"public"}', 't');
+  assert c ~ '^TC-', 'a new kind did not get its own id prefix: ' || c;
+  perform set_config('t.d', knowledge.record(
+    '{"kind":"decision","concern":"explore-and-map","answer":"\"Near you\" comes back.","why":"Two metros make nearness mean something.","audience":"public"}', 't'), true);
+  perform knowledge.link(current_setting('t.d'), c, 't_starts_when');
+  assert exists (select 1 from knowledge.links where from_id = current_setting('t.d') and to_id = c and type = 't_starts_when'),
+    'a new link type could not be used';
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"t-condition","answer":"x","status":"live","audience":"public"}', 't')$q$) ~ 'status',
+    'a new kind took a status outside its own list';
+  assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', current_setting('t.d'), c, 'not_a_link_type')) ~ 'link type',
+    'an unknown link type was accepted';
+end $$;
