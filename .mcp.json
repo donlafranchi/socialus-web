@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "knowledge": {
+      "type": "http",
+      "url": "https://socialus.org/api/knowledge/mcp",
+      "headers": {
+        "Authorization": "Bearer ${KNOWLEDGE_KEY:-saved-for-this-host}"
+      }
+    }
+  }
+}
