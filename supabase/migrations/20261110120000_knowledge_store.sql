@@ -37,6 +37,12 @@
 --     department or operators; the model a correction was seen in is kept in
 --     `sightings`, as evidence, and filters nothing.
 --
+-- Reach outside the schema. The login holds no grant on any table, view or
+-- sequence outside `knowledge`. Postgres still gives every role what it
+-- gives PUBLIC: the `public` and `net` functions anyone may run. The suite
+-- proves that is never more than the public anon key reaches; closing it
+-- entirely is the move to the store's own project (F125 ruling, 2026-11-10).
+--
 -- Not here: the import (#1218), the lookup tool (#1219), the nightly export
 -- (#1220).
 
@@ -518,6 +524,22 @@ create trigger sightings_append_only before update or delete on knowledge.sighti
 create trigger unanswered_append_only before update or delete on knowledge.unanswered
   for each row execute function knowledge._append_only();
 
+-- A department agent changes only its own person's well-worn calls: the
+-- brief's role table lets it record well-worn decisions and propose the rest;
+-- only an operator decides anything.
+create function knowledge._own_call(w knowledge.agents, r knowledge.records) returns void
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if r.kind in ('philosophy', 'pattern') then
+    raise exception 'Philosophies and patterns change only when the PM decides; record a proposal instead.'
+      using errcode = 'insufficient_privilege';
+  end if;
+  if r.decided_by is distinct from w.person or r.path is distinct from 'well-worn' or r.strength = 'absolute' then
+    raise exception 'An agent changes only its own person''s well-worn calls; propose a newer record instead.'
+      using errcode = 'insufficient_privilege';
+  end if;
+end $$;
+
 -- ---------------------------------------------------------------------------
 -- Writes. Each is the only way in, checks the key, and leaves the history row
 -- to the trigger.
@@ -535,7 +557,10 @@ declare
   the_status text;
   the_audience text := coalesce(p->>'audience', 'operators');
   the_departments text[] := coalesce((select array_agg(x) from jsonb_array_elements_text(p->'departments') x), '{}');
-  pm_only boolean := k in ('philosophy', 'pattern') or p->>'path' = 'new territory';
+  -- A non-operator's decision that does not say it is well-worn is treated as
+  -- new territory: it starts proposed.
+  pm_only boolean := k in ('philosophy', 'pattern') or p->>'path' = 'new territory'
+                     or (k = 'decision' and p->>'path' is null and not w.operator);
   -- Typed from the column, so the cast finds pgvector whichever schema holds it.
   the_embedding knowledge.records.embedding%type := p->>'embedding';
 begin
@@ -563,15 +588,16 @@ begin
       raise exception 'Philosophies, patterns and new-territory decisions go live only when the PM decides.'
         using errcode = 'insufficient_privilege';
     end if;
-    if p ? 'decided_by' then
+    if p ? 'decided_by' or p ? 'decided_on' then
       raise exception 'Only an operator records a decision in someone else''s name; an agent''s decision names its own person.'
         using errcode = 'insufficient_privilege';
     end if;
     if coalesce((p->>'settled')::boolean, false) then
       raise exception 'Only an operator settles a record.' using errcode = 'insufficient_privilege';
     end if;
-    if not knowledge.can_see(the_audience, the_departments) then
-      raise exception 'An agent writes only records its key can read.' using errcode = 'insufficient_privilege';
+    if not knowledge.can_see(the_audience, the_departments) or not the_departments <@ w.departments then
+      raise exception 'An agent writes only records its key can read, filed under its own departments.'
+        using errcode = 'insufficient_privilege';
     end if;
   end if;
 
@@ -637,12 +663,10 @@ begin
     then coalesce((select array_agg(x) from jsonb_array_elements_text(p_changes->'departments') x), '{}')
     else r.departments end;
   if not w.operator then
-    if r.kind in ('philosophy', 'pattern') then
-      raise exception 'Philosophies and patterns change only when the PM decides; record a proposal instead.'
+    perform knowledge._own_call(w, r);
+    if p_changes ?| array['strength', 'path', 'audience', 'departments'] then
+      raise exception 'Only an operator changes how strict a record is, its path, or who may read it.'
         using errcode = 'insufficient_privilege';
-    end if;
-    if not knowledge.can_see(new_audience, new_departments) then
-      raise exception 'An agent writes only records its key can read.' using errcode = 'insufficient_privilege';
     end if;
   end if;
 
@@ -721,15 +745,15 @@ begin
   if r.status = 'retired' then
     raise exception '% is already retired.', p_id using errcode = 'check_violation';
   end if;
-  if not w.operator and r.kind in ('philosophy', 'pattern') then
-    raise exception 'Philosophies and patterns are retired only when the PM decides.' using errcode = 'insufficient_privilege';
+  if not w.operator then
+    perform knowledge._own_call(w, r);
   end if;
 
   if p_replaced_by is not null then
     select * into newer from knowledge.records where id = p_replaced_by;
   end if;
   if r.kind = 'decision'
-     and (p_replaced_by is null or p_replaced_by = p_id or newer.id is null or newer.status = 'retired'
+     and (p_replaced_by is null or p_replaced_by = p_id or newer.id is null or newer.status <> 'live'
           or not knowledge.can_see(newer.audience, newer.departments)) then
     raise exception 'A decision is retired only with a link to the newer record that replaces it.'
       using errcode = 'check_violation';
@@ -963,8 +987,12 @@ create policy agents_self_or_operator on knowledge.agents for select to knowledg
   using (name = knowledge.whoami()->>'agent' or knowledge.is_operator());
 create policy records_by_audience on knowledge.records for select to knowledge_store
   using (knowledge.can_see(audience, departments));
+-- A version is read as private as it was when written, and only while the
+-- record itself is still readable.
 create policy history_of_visible_records on knowledge.history for select to knowledge_store
-  using (exists (select 1 from knowledge.records r where r.id = record_id));
+  using (knowledge.can_see(snapshot->>'audience',
+                           array(select jsonb_array_elements_text(snapshot->'departments')))
+         and exists (select 1 from knowledge.records r where r.id = record_id));
 create policy links_between_visible_records on knowledge.links for select to knowledge_store
   using (exists (select 1 from knowledge.records r where r.id = from_id)
      and exists (select 1 from knowledge.records r where r.id = to_id));

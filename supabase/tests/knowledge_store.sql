@@ -519,3 +519,80 @@ do $$ begin
   perform knowledge.decide(current_setting('t.nt'), 'the PM approved');
   assert (select status from knowledge.records where id = current_setting('t.nt')) = 'live', 'the PM could not decide a proposal';
 end $$;
+
+-- test: a department agent changes only its own person's well-worn decisions
+-- [guards F125.8 partial: what a department key may change, not what it may read]
+select set_config('t.pm', knowledge.record(
+  '{"kind":"decision","concern":"pages","answer":"A Page has one owner.","why":"One person answers for it.","audience":"public","path":"new territory","strength":"absolute"}', 't'), true);
+select pg_temp.act('build');
+select set_config('t.mine', knowledge.record(
+  '{"kind":"decision","concern":"pages","answer":"A Page shows its owner.","why":"People ask who runs it.","audience":"public","path":"well-worn"}', 'well-worn'), true);
+select set_config('t.prop2', knowledge.record(
+  '{"kind":"decision","concern":"pages","answer":"A Page has many owners.","why":"Committees.","audience":"department","departments":["building"],"path":"new territory"}', 'proposing'), true);
+do $$ begin
+  assert pg_temp.refused(format('select knowledge.revise(%L, %L, %L)', current_setting('t.pm'), '{"answer":"A Page has many owners."}', 'x')) is not null,
+    'a building agent rewrote the PM''s decision';
+  assert pg_temp.refused(format('select knowledge.retire(%L, %L, %L)', current_setting('t.pm'), current_setting('t.mine'), 'x')) is not null,
+    'a building agent retired the PM''s decision';
+  assert pg_temp.refused(format('select knowledge.revise(%L, %L, %L)', current_setting('t.mine'), '{"strength":"absolute"}', 'x')) is not null,
+    'a building agent changed how strict a decision is';
+  assert pg_temp.refused(format('select knowledge.revise(%L, %L, %L)', current_setting('t.mine'), '{"path":"new territory"}', 'x')) is not null,
+    'a building agent changed a decision''s path';
+  perform knowledge.revise(current_setting('t.mine'), '{"answer":"A Page shows who runs it."}', 'clearer');
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"decision","concern":"pages","answer":"x","why":"y","audience":"public","decided_on":"2026-01-01","path":"well-worn"}', 't')$q$) is not null,
+    'a building agent back-dated a decision';
+  perform set_config('t.nopath', knowledge.record(
+      '{"kind":"decision","concern":"pages","answer":"No path given.","why":"y","audience":"public"}', 't'), true);
+  assert (select status from knowledge.records where id = current_setting('t.nopath')) = 'proposed',
+    'a building agent''s decision with no path went live';
+  perform pg_temp.act('ops');
+  assert pg_temp.refused(format('select knowledge.retire(%L, %L, %L)', current_setting('t.pm'), current_setting('t.prop2'), 'x')) ~ 'newer record',
+    'a decision was retired in favour of a proposal that is not live';
+end $$;
+
+-- test: a department agent cannot move a record out of another department's sight
+-- [guards F125.8 partial: what a department key may change, not what it may read]
+select set_config('t.shared', knowledge.record(
+  '{"kind":"decision","concern":"posts","answer":"Reported posts are hidden at three reports.","why":"Three is not one grudge.","audience":"department","departments":["building","trust-and-safety"]}', 't'), true);
+select pg_temp.act('build');
+do $$ begin
+  assert pg_temp.refused(format('select knowledge.revise(%L, %L, %L)', current_setting('t.shared'), '{"departments":["building"]}', 'x')) is not null,
+    'a building agent cut trust-and-safety off from a shared record';
+  assert pg_temp.refused(format('select knowledge.revise(%L, %L, %L)', current_setting('t.shared'), '{"audience":"public"}', 'x')) is not null,
+    'a building agent changed who may read a record';
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"decision","concern":"posts","answer":"x","why":"y","audience":"department","departments":["building","legal"],"path":"well-worn"}', 't')$q$) is not null,
+    'a building agent filed a record under legal';
+end $$;
+
+-- test: an old version stays as private as it was when written
+-- [guards F125.8 partial: history, not the record itself]
+select pg_temp.act('tns');
+select set_config('t.was_secret', knowledge.record(
+  '{"kind":"decision","concern":"moderation-and-reports","answer":"Internal: the review threshold is two reports.","why":"Detail for moderators.","audience":"department","departments":["trust-and-safety"],"path":"well-worn"}', 't'), true);
+select pg_temp.act('ops');
+select knowledge.revise(current_setting('t.was_secret'), '{"answer":"Reports are reviewed.","audience":"public","departments":[]}', 'made public, detail removed');
+do $$ begin
+  perform pg_temp.act('build');
+  assert exists (select 1 from knowledge.records where id = current_setting('t.was_secret')), 'the now-public record is hidden';
+  assert not exists (select 1 from knowledge.history where record_id = current_setting('t.was_secret') and snapshot->>'answer' ~ 'two reports'),
+    'a building key read the department-only version';
+  assert knowledge.record_as_of(current_setting('t.was_secret'), now() - interval '1 microsecond') is null
+     or knowledge.record_as_of(current_setting('t.was_secret'), now() - interval '1 microsecond')->>'answer' !~ 'two reports',
+    'record_as_of served the department-only version';
+end $$;
+
+-- test: the store's own login can run no function the public key cannot
+-- [guards F125.8 partial: functions every role can run stay runnable until the store moves to its own project]
+reset role;
+do $$
+declare
+  extra text;
+begin
+  select string_agg(p.oid::regprocedure::text, ', ') into extra
+    from pg_proc p join pg_namespace s on s.oid = p.pronamespace
+   where s.nspname not in ('knowledge', 'pg_catalog', 'information_schema') and s.nspname not like 'pg_temp%'
+     and has_schema_privilege('knowledge_store', s.oid, 'USAGE')
+     and has_function_privilege('knowledge_store', p.oid, 'EXECUTE')
+     and not (has_schema_privilege('anon', s.oid, 'USAGE') and has_function_privilege('anon', p.oid, 'EXECUTE'));
+  assert extra is null, 'the store''s login can run what the public key cannot: ' || extra;
+end $$;
