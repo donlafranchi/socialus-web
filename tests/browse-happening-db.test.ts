@@ -78,7 +78,11 @@ afterAll(async () => {
 })
 
 async function asVisitor<T>(fn: () => Promise<T>): Promise<T> {
-  await client.query('begin')
+  // One snapshot for all three reads: the feed is metro-wide, and other suites
+  // insert posts in the same metro while this runs, so under read committed a
+  // post committed between the reads made the two calls disagree (CI, 2026-11-07
+  // and 2026-11-10).
+  await client.query('begin isolation level repeatable read')
   try {
     await client.query(`select set_config('request.jwt.claims', $1, true)`, [JSON.stringify({ sub: VISITOR, role: 'authenticated' })])
     await client.query('set local role authenticated')
