@@ -1,8 +1,9 @@
+// @vitest-environment node
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Client } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
-import { knowledgeDatabaseUrl } from '@/lib/knowledge/connection'
+import { knowledgeDatabaseUrl } from '@/actions/_lib/knowledge-db'
 
 // F125 / T1018 (#1219) — the lookup tool's route: who it lets in, and that it
 // speaks MCP end to end as the store's own login. The end-to-end half sets a
@@ -98,7 +99,7 @@ describe.skipIf(!E2E)('the route, end to end', () => {
     await admin?.end()
     if (saved === undefined) delete process.env.KNOWLEDGE_DATABASE_URL
     else process.env.KNOWLEDGE_DATABASE_URL = saved
-    const { closeKnowledgePool } = await import('@/lib/knowledge/connection')
+    const { closeKnowledgePool } = await import('@/actions/_lib/knowledge-db')
     await closeKnowledgePool()
   })
 

@@ -122,12 +122,12 @@ describe.skipIf(!RUNNABLE)('F125 — the lookup tool', () => {
   // [guards F125.12]
   it('keeps every search that finds nothing, with who asked', async () => {
     await as('building')
-    const q = 'Can a stall take payment in seashells?'
+    const q = 'Are seashells accepted as currency on Tuesdays?'
     const out = await call('search', { question: q })
-    expect(out.text).toMatch(/nothing/i)
+    expect(out.text).toMatch(/^Nothing found/)
     await as('operator')
     const found = await call('search', { question: 'report hides a post' })
-    expect(found.text).not.toMatch(/nothing/i)
+    expect(found.text).not.toMatch(/^Nothing found/)
     const { rows } = await db.query<{ question: string; agent: string }>(
       `select question, agent from knowledge.unanswered where question in ($1, 'report hides a post')`,
       [q],
