@@ -30,7 +30,8 @@ end $$;
 create function pg_temp.act(p_agent text) returns text language sql as $$
   select set_config('knowledge.key', coalesce(current_setting('t.' || p_agent, true), ''), true)
 $$;
-grant usage on schema pg_temp to knowledge_store;
+do $$ begin execute format('grant usage on schema %s to knowledge_store', pg_my_temp_schema()::regnamespace); end $$;
+grant knowledge_store to current_user;  -- rolled back with the test; lets this session act as the login
 set local role knowledge_store;
 select pg_temp.act('ops');
 
@@ -45,6 +46,10 @@ begin
     from pg_class c join pg_namespace s on s.oid = c.relnamespace
    where s.nspname not in ('knowledge', 'pg_catalog', 'information_schema')
      and s.nspname not like 'pg_temp%' and s.nspname not like 'pg_toast%'
+     -- An extension's own catalogs (PostGIS's spatial_ref_sys, pg_stat_statements)
+     -- are granted to every role by the extension's owner, not by the app.
+     and not exists (select 1 from pg_depend d where d.classid = 'pg_class'::regclass and d.objid = c.oid and d.deptype = 'e')
+     and has_schema_privilege('knowledge_store', s.oid, 'USAGE')
      and (
        (c.relkind in ('r', 'v', 'm', 'p', 'f')
          and (has_table_privilege('knowledge_store', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
@@ -132,6 +137,7 @@ do $$ begin
     'the login deleted a link';
 end $$;
 reset role;
+select set_config('knowledge.key', '', true);
 do $$ begin
   assert pg_temp.refused(format('delete from knowledge.records where id = %L', current_setting('t.d'))) ~ 'never deleted',
     'the schema owner deleted a record';
@@ -141,6 +147,9 @@ do $$ begin
     'the schema owner deleted a history row';
   assert pg_temp.refused(format('update knowledge.records set answer = %L where id = %L', 'x', current_setting('t.d'))) ~ 'person and an agent',
     'the schema owner changed a record without naming a person and an agent';
+  perform set_config('knowledge.key', current_setting('t.ops'), true);
+  assert pg_temp.refused(format('update knowledge.records set answer = %L where id = %L', 'x', current_setting('t.d'))) ~ 'reason',
+    'a change went through on the reason an earlier change gave';
 end $$;
 
 -- test: every change writes a history row naming the person and the agent
@@ -290,7 +299,7 @@ end $$;
 select set_config('t.pat', knowledge.record(
   '{"kind":"pattern","answer":"No promises: state things as fact.","why":"A promise is a debt; a fact is a description.","audience":"public"}', 't'), true);
 select set_config('t.cor', knowledge.record(
-  '{"kind":"correction","concern":"words-and-voice","answer":"Write what we do, not what we will never do: not \"we will never sell your data\" but \"your data stays here\".","why":"\"won'"'"'t\" has been written as \"we will never\", which is a promise.","strength":"rule","audience":"public"}', 't'), true);
+  '{"kind":"correction","concern":"words-and-voice","answer":"Write what we do, not what we will never do: not \"we will never sell your data\" but \"your data stays here\".","why":"\"won''t\" has been written as \"we will never\", which is a promise.","strength":"rule","audience":"public"}', 't'), true);
 select knowledge.link(current_setting('t.cor'), current_setting('t.pat'), 'corrects');
 do $$
 declare
@@ -504,6 +513,8 @@ do $$ begin
     'a building agent decided its own new-territory proposal';
   assert pg_temp.refused($q$select knowledge.record('{"kind":"philosophy","answer":"x","why":"y","status":"live","audience":"public"}', 't')$q$) ~ 'PM',
     'a building agent made a philosophy live';
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"decision","concern":"pages","answer":"x","why":"y","audience":"public","decided_by":"the PM"}', 't')$q$) ~ 'operator',
+    'a building agent recorded a decision in the PM''s name';
   perform pg_temp.act('ops');
   perform knowledge.decide(current_setting('t.nt'), 'the PM approved');
   assert (select status from knowledge.records where id = current_setting('t.nt')) = 'live', 'the PM could not decide a proposal';
