@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "knowledge-probe-local": {
+      "command": "node",
+      "args": ["scripts/knowledge/mcp-probe.mjs"]
+    },
+    "knowledge-probe-remote": {
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/mcp"
+    },
+    "knowledge-probe-socialus": {
+      "type": "http",
+      "url": "https://socialus.org/api/knowledge/mcp"
+    }
+  }
+}
