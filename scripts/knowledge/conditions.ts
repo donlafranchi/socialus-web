@@ -6,15 +6,22 @@
 //   1. Marks a condition by hand, when the run was asked to (the PM, from his
 //      phone: Actions → Knowledge conditions → Run workflow).
 //   2. Runs every check: a query (a number crossing a line, or true/false) or
-//      a named test file. Queries run on a READ-ONLY connection with a
-//      timeout; only an operator can have written them (the store refuses
-//      anyone else). A check that errors changes nothing and is reported.
+//      a named test file. A query runs as ONE statement (the extended
+//      protocol refuses a second, so a check cannot `commit;` its way out),
+//      in a read-only transaction with a timeout, on its own connection; only
+//      an operator can have written it (the store refuses anyone else). It
+//      must return one number or true/false. A check that errors changes
+//      nothing, and only its error code reaches the public run summary.
 //   3. Records each change of status through knowledge.set_condition, with
-//      the number and the line as evidence, so history holds it.
-//   4. For each condition or part whose status (computed, for a parent) is
-//      now met and was not last announced as met: opens ONE Issue listing
-//      what it starts, what it ends, and what still waits and on which part.
-//      Then records the announcement, so nothing is sent twice.
+//      the number and the line as evidence, so history holds it, and records
+//      "met" as announced for each condition or part that became met.
+//      That commits before any Issue is opened.
+//   4. Then, one transaction per Issue: opens ONE Issue for each condition
+//      announced met with no Issue yet, and records the Issue's address. When
+//      a part's becoming met also makes its parent met, the parent's Issue
+//      carries both. The Issue lists what starts, what ends, and what still
+//      waits and on which part, naming only PUBLIC records in words (this
+//      repository is public); any other record is named by its id alone.
 //
 // Writes only through the store's functions, as its own login, holding a key
 // minted for this run and revoked at its end, as the import does (#1218).
@@ -42,18 +49,21 @@ export interface Check {
 export interface ConditionRow {
   id: string
   answer: string
+  audience: string
   status: Status
   own_status: Status
   checked_by: Check | null
   parts: string[]
   part_of: string[]
   announced: Status | null
+  announced_issue: string | null
 }
 
 export interface Waiter {
   id: string
   kind: string
   answer: string
+  audience: string
   link: 'starts_when' | 'ends_when'
   condition: string
   parked: boolean
@@ -111,8 +121,13 @@ export function unmetLeaves(id: string, byId: Map<string, ConditionRow>, seen = 
   return c.parts.flatMap((p) => unmetLeaves(p, byId, seen)).sort()
 }
 
+/** A record's words go into the public Issue only when the record is public. */
+function words(r: { id: string; answer: string; audience: string } | undefined, id: string): string {
+  return r && r.audience === 'public' ? `${id} "${r.answer}"` : `${id} (not public)`
+}
+
 function describe(id: string, byId: Map<string, ConditionRow>): string {
-  return `${id} "${byId.get(id)?.answer ?? id}"`
+  return words(byId.get(id), id)
 }
 
 /** The one Issue for a condition that became met. */
@@ -120,12 +135,16 @@ export function composeIssue(
   cond: ConditionRow,
   byId: Map<string, ConditionRow>,
   waiters: Waiter[],
+  alsoMet: string[] = [],
 ): { title: string; body: string } {
-  const item = (w: Waiter) => `- ${w.id} · ${w.kind} · ${w.answer}`
-  const here = waiters.filter((w) => w.condition === cond.id)
+  const item = (w: Waiter) =>
+    w.audience === 'public' ? `- ${w.id} · ${w.kind} · ${w.answer}` : `- ${w.id} · ${w.kind} (not public)`
+  const group = new Set([cond.id, ...alsoMet])
+  const here = waiters.filter((w) => group.has(w.condition))
   const starts = here.filter((w) => w.link === 'starts_when' && !w.parked)
   const ends = here.filter((w) => w.link === 'ends_when')
   const waiting = waiters.filter((w) => w.link === 'starts_when' && w.parked)
+  const name = cond.audience === 'public' ? cond.answer : `${cond.id} (not public)`
   const still = waiting.map((w) => {
     const on = unmetLeaves(w.condition, byId)
     const names = (on.length ? on : [w.condition]).map((x) => describe(x, byId)).join(', ')
@@ -137,7 +156,8 @@ export function composeIssue(
     '**Scenario:** F126',
     '**Path:** well-worn. Precedents: [Stripe account capabilities](https://docs.stripe.com/connect/account-capabilities), [LaunchDarkly prerequisite flags](https://docs.launchdarkly.com/home/flags/prerequisites).',
     '',
-    `**${cond.answer}** (${cond.id}) is met.` +
+    `**${name}** (${cond.id}) is met.` +
+      (alsoMet.length ? ` So are its parts ${alsoMet.map((p) => describe(p, byId)).join(', ')}.` : '') +
       (cond.part_of.length ? ` It is part of ${cond.part_of.map((p) => describe(p, byId)).join(', ')}.` : ''),
     '',
     '## Starts now',
@@ -148,7 +168,7 @@ export function composeIssue(
   ]
   if (still.length) lines.push('', '## Still waiting', ...still)
   lines.push('', 'Opened by the scheduled conditions check (knowledge-conditions workflow).')
-  return { title: `chore · met: ${cond.answer}`, body: lines.join('\n') }
+  return { title: `chore · met: ${name}`, body: lines.join('\n') }
 }
 
 // ---------------------------------------------------------------------------
@@ -173,14 +193,15 @@ export async function leaveStore(db: ClientBase, agent: string): Promise<void> {
 
 async function readConditions(db: ClientBase): Promise<Map<string, ConditionRow>> {
   const { rows } = await db.query<ConditionRow>(
-    `select id, answer, status, own_status, checked_by, parts, part_of, announced from knowledge.conditions order by id`,
+    `select id, answer, audience, status, own_status, checked_by, parts, part_of, announced, announced_issue
+       from knowledge.conditions order by id`,
   )
   return new Map(rows.map((r) => [r.id, r]))
 }
 
 async function readWaiters(db: ClientBase): Promise<Waiter[]> {
   const { rows } = await db.query<Waiter>(
-    `select r.id, r.kind, r.answer, l.type as link, l.to_id as condition, knowledge.is_parked(r.id) as parked
+    `select r.id, r.kind, r.answer, r.audience, l.type as link, l.to_id as condition, knowledge.is_parked(r.id) as parked
        from knowledge.links l join knowledge.records r on r.id = l.from_id
       where l.type in ('starts_when', 'ends_when')
       order by r.id`,
@@ -205,8 +226,38 @@ function reasonFor(check: Check, value: unknown, met: boolean): string {
   return `the scheduled check: ${check.line ?? 'its query'} is ${met ? 'true' : 'not true'}`
 }
 
-/** One run, inside the caller's transaction, already in the store (enterStore). */
-export async function runConditions(db: ClientBase, opts: RunOptions): Promise<RunSummary> {
+/** A check's value: one number or true/false, nothing else (no text reaches the run's summary). */
+export function coerceValue(value: unknown): number | boolean | null {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'boolean' || typeof value === 'number') return value
+  if (typeof value === 'bigint') return Number(value)
+  if (typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value)) return Number(value)
+  throw new Error('a check returns one number or true/false')
+}
+
+/** An error, reduced to what may be shown in public: its code, never its text. */
+export function redact(e: unknown): string {
+  const code = (e as { code?: unknown })?.code
+  return typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)
+    ? `the check failed to run (SQLSTATE ${code})`
+    : 'the check failed to run'
+}
+
+/** Runs one check query on its own connection: one statement, read-only, with a timeout. */
+export async function readOnlyQuery(reader: ClientBase, sql: string): Promise<unknown> {
+  await reader.query('begin transaction read only')
+  try {
+    await reader.query(`set local statement_timeout = '20s'`)
+    // The extended protocol takes exactly one statement: `commit; …` is refused.
+    const { rows } = await reader.query({ text: sql, queryMode: 'extended' } as unknown as string)
+    return rows[0] ? Object.values(rows[0])[0] : null
+  } finally {
+    await reader.query('rollback')
+  }
+}
+
+/** Steps 1 to 3: inside the caller's transaction, already in the store (enterStore). */
+export async function recordChanges(db: ClientBase, opts: RunOptions): Promise<RunSummary> {
   const summary: RunSummary = { checked: [], changed: [], issues: [] }
 
   if (opts.mark) {
@@ -226,12 +277,11 @@ export async function runConditions(db: ClientBase, opts: RunOptions): Promise<R
         met = await opts.runTest(check.test)
         value = met
       } else {
-        value = await opts.runQuery(check.query!)
-        if (typeof value === 'string' && check.at_least !== undefined) value = Number(value)
+        value = coerceValue(await opts.runQuery(check.query!))
         met = verdict(check, value)
       }
     } catch (e) {
-      summary.checked.push({ id: c.id, value: null, met: false, error: (e as Error).message })
+      summary.checked.push({ id: c.id, value: null, met: false, error: redact(e) })
       continue
     }
     summary.checked.push({ id: c.id, value, met })
@@ -246,24 +296,52 @@ export async function runConditions(db: ClientBase, opts: RunOptions): Promise<R
     }
   }
 
-  // Announce: one Issue per condition or part newly met, however it got there.
-  const byId = await readConditions(db)
-  const waiters = await readWaiters(db)
-  for (const c of byId.values()) {
-    const last = c.announced ?? 'not started'
-    if (c.status === last) continue
-    let url: string | null = null
-    if (c.status === 'met') {
-      const above = new Set(ancestors(c.id, byId))
-      const relevant = waiters.filter(
-        (w) => w.condition === c.id || (above.has(w.condition) && w.link === 'starts_when' && w.parked),
-      )
-      const issue = composeIssue(c, byId, relevant)
-      url = await opts.openIssue(issue.title, issue.body)
-      summary.issues.push({ id: c.id, title: issue.title, url })
+  // Record every change of status, however it came about; "met" with no
+  // Issue yet is what openPending picks up.
+  for (const c of (await readConditions(db)).values()) {
+    if (c.status !== (c.announced ?? 'not started')) {
+      await db.query('select knowledge.announce($1, $2, null)', [c.id, c.status])
     }
-    await db.query('select knowledge.announce($1, $2, $3)', [c.id, c.status, url])
   }
+  return summary
+}
+
+/**
+ * Step 4: opens Issues for conditions announced met with no Issue yet, at most
+ * `limit` of them, recording each Issue's address. A part met together with
+ * its parent goes in the parent's Issue. Returns what it opened.
+ */
+export async function openPending(
+  db: ClientBase,
+  openIssue: RunOptions['openIssue'],
+  limit = Infinity,
+): Promise<RunSummary['issues']> {
+  const byId = await readConditions(db)
+  const pending = new Set(
+    [...byId.values()].filter((c) => c.announced === 'met' && !c.announced_issue && c.status === 'met').map((c) => c.id),
+  )
+  const tops = [...pending].filter((id) => !ancestors(id, byId).some((a) => pending.has(a)))
+  const waiters = await readWaiters(db)
+  const opened: RunSummary['issues'] = []
+  for (const top of tops.slice(0, limit)) {
+    const group = [...pending].filter((id) => id !== top && ancestors(id, byId).includes(top)).sort()
+    const inGroup = new Set([top, ...group])
+    const above = new Set(ancestors(top, byId))
+    const relevant = waiters.filter(
+      (w) => inGroup.has(w.condition) || (above.has(w.condition) && w.link === 'starts_when' && w.parked),
+    )
+    const issue = composeIssue(byId.get(top)!, byId, relevant, group)
+    const url = await openIssue(issue.title, issue.body)
+    for (const id of inGroup) await db.query(`select knowledge.announce($1, 'met', $2)`, [id, url])
+    opened.push({ id: top, title: issue.title, url })
+  }
+  return opened
+}
+
+/** One whole run in the caller's transaction (the tests; the CLI splits it). */
+export async function runConditions(db: ClientBase, opts: RunOptions): Promise<RunSummary> {
+  const summary = await recordChanges(db, opts)
+  summary.issues = await openPending(db, opts.openIssue)
   return summary
 }
 
@@ -280,11 +358,12 @@ async function main(): Promise<void> {
   if (!url) throw new Error('DATABASE_URL is not set.')
   const commit = process.argv.includes('--commit')
   const markId = arg('--mark')?.trim()
+  const by = process.env.GITHUB_ACTOR ? ` (marked by ${process.env.GITHUB_ACTOR} from an Actions run)` : ''
   const mark: Mark | undefined = markId
     ? {
         id: markId,
         status: (arg('--status') ?? 'met') as Status,
-        reason: arg('--reason')?.trim() || 'marked by the PM from an Actions run',
+        reason: (arg('--reason')?.trim() || 'marked by hand') + by,
       }
     : undefined
   if (mark && !STATUSES.includes(mark.status)) throw new Error(`Not a status: ${mark.status}`)
@@ -309,28 +388,35 @@ async function main(): Promise<void> {
   // Checks read on their own connection, read-only, one transaction each.
   const reader = new Client({ connectionString: url })
   await reader.connect()
-  const runQuery = async (sql: string): Promise<unknown> => {
-    await reader.query('begin transaction read only')
-    try {
-      await reader.query(`set local statement_timeout = '20s'`)
-      const { rows } = await reader.query(sql)
-      return rows[0] ? Object.values(rows[0])[0] : null
-    } finally {
-      await reader.query('rollback')
-    }
-  }
+  const runQuery = (sql: string) => readOnlyQuery(reader, sql)
+  // A named test runs without the database's address or the GitHub token.
+  const { DATABASE_URL: _db, GITHUB_TOKEN: _gh, ...childEnv } = process.env
+  void _db
+  void _gh
   const runTest = async (file: string): Promise<boolean> =>
-    spawnSync('npx', ['vitest', 'run', file], { stdio: 'inherit', shell: false }).status === 0
+    spawnSync('npx', ['vitest', 'run', file], { stdio: 'inherit', shell: false, env: childEnv }).status === 0
 
   const db = new Client({ connectionString: url })
   await db.connect()
   const agent = `conditions-${process.env.GITHUB_RUN_ID ?? Date.now()}`
   try {
+    // Statuses and "met" announcements commit before any Issue is opened.
     await db.query('begin')
     await enterStore(db, agent)
-    const summary = await runConditions(db, { mark, runQuery, runTest, openIssue })
+    const summary = await recordChanges(db, { mark, runQuery, runTest, openIssue })
+    if (!commit) summary.issues = await openPending(db, openIssue)
     await leaveStore(db, agent)
     await db.query(commit ? 'commit' : 'rollback')
+    // Then one transaction per Issue, recording its address straight after.
+    for (let n = 1; commit; n++) {
+      await db.query('begin')
+      await enterStore(db, `${agent}-issue-${n}`)
+      const opened = await openPending(db, openIssue, 1)
+      await leaveStore(db, `${agent}-issue-${n}`)
+      await db.query('commit')
+      if (opened.length === 0) break
+      summary.issues.push(...opened)
+    }
     report(summary, commit)
   } catch (e) {
     await db.query('rollback').catch(() => {})

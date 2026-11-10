@@ -76,6 +76,8 @@ begin
     'a named test that is not a test file was accepted';
   assert pg_temp.refused($q$select knowledge.record('{"kind":"condition","answer":"x","why":"y","owner":"the PM","status":"met"}', 't')$q$) ~ 'set_condition',
     'a condition was recorded already met, around set_condition';
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"condition","answer":"x","why":"y","owner":"the PM","checked_by":"select count(*) from public.members"}', 't')$q$) ~ 'object',
+    'a check that is not an object was dropped instead of refused';
   -- A condition with no check is fine: the PM decides it by hand.
   perform knowledge.record('{"kind":"condition","answer":"Counsel signs off the seller terms","why":"Selling needs terms.","owner":"counsel","audience":"public"}', 'F126 test');
 
@@ -132,6 +134,28 @@ do $$ begin
   perform set_config('t.feat', knowledge.record('{"kind":"feature","id":"F990","answer":"Card pre-orders","audience":"public"}', 'F126 test'), true);
   assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', current_setting('t.feat'), current_setting('t.pay'), 'part_of')) ~ 'condition',
     'a feature was made a part of a condition';
+end $$;
+
+-- test: only an operator makes a part, and withdrawing every part does not withdraw the parent
+-- [guards F126.2 partial: who may change a parent through its parts; the computation is the test above]
+select set_config('t.gate', knowledge.record(
+  '{"kind":"condition","concern":"payments","answer":"Seller payouts are ready","why":"t","owner":"the PM","audience":"public"}', 'F126 test'), true);
+select set_config('t.cash', knowledge.record(
+  '{"kind":"decision","concern":"payments","answer":"Payouts wait.","why":"t","audience":"public"}', 'F126 test'), true);
+select knowledge.link(current_setting('t.cash'), current_setting('t.pay'), 'starts_when');
+select knowledge.set_condition(current_setting('t.card'), 'met', 'met');
+do $$ begin
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format('select knowledge.link(%L, %L, %L)', current_setting('t.card'), current_setting('t.gate'), 'part_of')) ~ 'operator',
+    'a department key made a met condition a part of a gate, unparking what waits on it';
+  perform pg_temp.act('ops');
+  assert knowledge.condition_status(current_setting('t.gate')) = 'not started', 'the gate changed status';
+
+  perform knowledge.set_condition(current_setting('t.card'), 'withdrawn', 'provider changed');
+  perform knowledge.set_condition(current_setting('t.payout'), 'withdrawn', 'provider changed');
+  assert knowledge.condition_status(current_setting('t.pay')) = 'not started',
+    'withdrawing every part withdrew the parent: ' || knowledge.condition_status(current_setting('t.pay'));
+  assert knowledge.is_parked(current_setting('t.cash')), 'withdrawing every part released what waits on the parent';
 end $$;
 
 -- test: a status change is recorded in history and only an operator makes it

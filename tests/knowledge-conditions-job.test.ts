@@ -9,6 +9,10 @@ import {
   composeIssue,
   enterStore,
   leaveStore,
+  openPending,
+  readOnlyQuery,
+  recordChanges,
+  redact,
   runConditions,
   unmetLeaves,
   verdict,
@@ -26,12 +30,14 @@ const { checkPath } = require('../scripts/check-path-line.cjs') as { checkPath: 
 const row = (id: string, over: Partial<ConditionRow> = {}): ConditionRow => ({
   id,
   answer: id,
+  audience: 'public',
   status: 'not started',
   own_status: 'not started',
   checked_by: null,
   parts: [],
   part_of: [],
   announced: null,
+  announced_issue: null,
   ...over,
 })
 
@@ -72,9 +78,10 @@ describe('the Issue for a met condition', () => {
     ].map((r) => [r.id, r]),
   )
   const issue = composeIssue(byId.get('CN-0002')!, byId, [
-    { id: 'F991', kind: 'feature', answer: 'Card pre-orders', link: 'starts_when', condition: 'CN-0002', parked: false },
-    { id: 'D-0012', kind: 'decision', answer: 'Trades are cash in person, for now.', link: 'ends_when', condition: 'CN-0002', parked: false },
-    { id: 'F992', kind: 'feature', answer: 'Sellers paid on the app', link: 'starts_when', condition: 'CN-0001', parked: true },
+    { id: 'F991', kind: 'feature', answer: 'Card pre-orders', audience: 'public', link: 'starts_when', condition: 'CN-0002', parked: false },
+    { id: 'D-0012', kind: 'decision', answer: 'Trades are cash in person, for now.', audience: 'public', link: 'ends_when', condition: 'CN-0002', parked: false },
+    { id: 'F992', kind: 'feature', answer: 'Sellers paid on the app', audience: 'public', link: 'starts_when', condition: 'CN-0001', parked: true },
+    { id: 'D-0013', kind: 'decision', answer: 'Hold seller funds 7 days pending the bank review', audience: 'department', link: 'starts_when', condition: 'CN-0002', parked: false },
   ])
 
   it('lists what it starts, what it ends, and what still waits, naming the part', () => {
@@ -82,6 +89,20 @@ describe('the Issue for a met condition', () => {
     expect(issue.body).toMatch(/## Starts now\n- F991 · feature · Card pre-orders/)
     expect(issue.body).toMatch(/## Ends now\n- D-0012 · decision · Trades are cash in person, for now\./)
     expect(issue.body).toMatch(/## Still waiting\n- F992 · feature · Sellers paid on the app: waits on CN-0003 "Pay out to a seller"/)
+  })
+
+  it('names only public records in words, because the repository is public', () => {
+    expect(issue.body).toContain('- D-0013 · decision (not public)')
+    expect(issue.body).not.toContain('Hold seller funds')
+    const secret = composeIssue(row('CN-0009', { answer: 'Bank review passes', audience: 'operators', status: 'met' }), byId, [])
+    expect(secret.title).toBe('chore · met: CN-0009 (not public)')
+    expect(secret.body).not.toContain('Bank review passes')
+  })
+
+  it('shows a failed check only by its error code', () => {
+    expect(redact(Object.assign(new Error('invalid input syntax: "alice@example.com"'), { code: '22P02' })))
+      .toBe('the check failed to run (SQLSTATE 22P02)')
+    expect(redact(new Error('alice@example.com'))).toBe('the check failed to run')
   })
 
   it('passes the repo\'s own Issue checks', () => {
@@ -102,6 +123,8 @@ describe('the scheduled workflow', () => {
     expect(yml).toMatch(/options:\s*\[met, withdrawn, partial, not started\]/)
     expect(yml).toMatch(/issues: write/)
     expect(yml).toMatch(/npx tsx scripts\/knowledge\/conditions\.ts/)
+    // Only the PM marks by hand; anyone else's run only runs the checks.
+    expect(yml).toMatch(/github\.actor != 'donlafranchi'/)
   })
 })
 
@@ -220,14 +243,59 @@ describe.skipIf(!RUNNABLE)('F126 — the scheduled check, against the store', ()
       const marked = await runConditions(db, { ...opts, mark: { id: payout, status: 'met', reason: 'payouts live, from the phone' } })
       expect(marked.marked).toMatchObject({ id: payout, status: 'met' })
       expect(await status(pay)).toBe('met')
-      expect(opened.slice(2).map((i) => i.title).sort()).toEqual(
-        ['chore · met: Pay out to a seller', 'chore · met: Payments work'])
-      expect(opened.find((i) => i.title === 'chore · met: Payments work')!.body)
-        .toContain(`- ${sellerpay} · feature · Sellers paid on the app`)
+      // The part and the parent it completes go out as one Issue.
+      expect(opened.slice(2).map((i) => i.title)).toEqual(['chore · met: Payments work'])
+      expect(opened[2].body).toContain(`- ${sellerpay} · feature · Sellers paid on the app`)
+      expect(opened[2].body).toContain(`So are its parts ${payout} "Pay out to a seller"`)
 
       await leaveStore(db, agent)
     } finally {
       await db.query('rollback')
+    }
+  })
+
+  // [guards F126.6 partial: the one-Issue rule when opening fails part way; the batch itself is the test above]
+  it('never opens an Issue twice when a run fails part way', async () => {
+    await db.query('begin')
+    try {
+      await enterStore(db, `${agent}-twice`)
+      const a = await record({ kind: 'condition', answer: 'Part A', why: 't', owner: 'the PM', audience: 'public' })
+      const b = await record({ kind: 'condition', answer: 'Part B', why: 't', owner: 'the PM', audience: 'public' })
+      await db.query(`select knowledge.set_condition($1, 'met', 't'), knowledge.set_condition($2, 'met', 't')`, [a, b])
+      const titles: string[] = []
+      const opts = {
+        runQuery,
+        runTest: async () => true,
+        openIssue: async (t: string) => (titles.push(t), `u/${titles.length}`),
+      }
+      await recordChanges(db, opts)
+      let calls = 0
+      await expect(
+        openPending(db, async (t) => {
+          if (++calls === 2) throw new Error('502 from GitHub')
+          titles.push(t)
+          return 'u/first'
+        }),
+      ).rejects.toThrow('502')
+      await openPending(db, opts.openIssue)
+      expect(titles.filter((t) => t === 'chore · met: Part A')).toHaveLength(1)
+      expect(titles.filter((t) => t === 'chore · met: Part B')).toHaveLength(1)
+      await leaveStore(db, `${agent}-twice`)
+    } finally {
+      await db.query('rollback')
+    }
+  })
+
+  it('runs a check query as one read-only statement that cannot commit its way out', async () => {
+    const reader = await pool.connect()
+    try {
+      await expect(
+        readOnlyQuery(reader, "commit; select current_setting('transaction_read_only')"),
+      ).rejects.toThrow(/multiple commands/)
+      expect(await readOnlyQuery(reader, "select current_setting('transaction_read_only')")).toBe('on')
+      await expect(readOnlyQuery(reader, 'create temp table t_nope (x int)')).rejects.toThrow(/read-only/)
+    } finally {
+      reader.release()
     }
   })
 })

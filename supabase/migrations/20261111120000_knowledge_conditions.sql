@@ -32,7 +32,11 @@
 --     path raises.
 --   · knowledge.announcements: what the scheduled job last announced for each
 --     condition, so one Issue goes out each time a condition or part becomes
---     met, however it became met.
+--     met, however it became met. The job records "met" first and the Issue's
+--     address after opening it, so a failed run never opens one twice.
+--   · Only an operator links a part (part_of): a part changes its parent's
+--     computed status, and links are never removed. Any key may record that
+--     something starts_when or ends_when a condition.
 --
 -- record() and revise() are replaced whole (same signatures) to take
 -- `checked_by` and to route a condition's status through set_condition; every
@@ -126,7 +130,9 @@ begin
     return own;
   end if;
   return case
-    when n_parts = 0 then 'withdrawn'
+    -- Every part withdrawn: the parent keeps its own status. Withdrawing a
+    -- parent stays a decision made by hand.
+    when n_parts = 0 then own
     when n_met = n_parts then 'met'
     when n_started > 0 then 'partial'
     else 'not started'
@@ -260,6 +266,12 @@ begin
       using errcode = 'check_violation';
   end if;
   if new.type = 'part_of' then
+    -- A part changes its parent's computed status, and links are never
+    -- removed: only an operator adds one.
+    if not knowledge.is_operator() then
+      raise exception 'Only an operator makes one condition a part of another: it changes the parent''s status.'
+        using errcode = 'insufficient_privilege';
+    end if;
     if from_kind is distinct from 'condition' then
       raise exception 'Only a condition is a part of a condition; % is a %.', new.from_id, from_kind
         using errcode = 'check_violation';
@@ -358,7 +370,8 @@ create view knowledge.conditions with (security_invoker = true) as
          r.checked_by,
          array(select l.from_id from knowledge.links l where l.to_id = r.id and l.type = 'part_of' order by l.from_id) as parts,
          array(select l.to_id from knowledge.links l where l.from_id = r.id and l.type = 'part_of' order by l.to_id) as part_of,
-         (select a.status from knowledge.announcements a where a.record_id = r.id order by a.id desc limit 1) as announced
+         (select a.status from knowledge.announcements a where a.record_id = r.id order by a.id desc limit 1) as announced,
+         (select a.issue_url from knowledge.announcements a where a.record_id = r.id order by a.id desc limit 1) as announced_issue
     from knowledge.records r
    where r.kind = 'condition';
 comment on view knowledge.conditions is
@@ -445,7 +458,7 @@ begin
           coalesce((p->>'settled')::boolean, false), (p->>'as_of')::date, p->>'source',
           coalesce((select array_agg(x) from jsonb_array_elements_text(p->'tags') x), '{}'),
           the_embedding,
-          case when jsonb_typeof(p->'checked_by') = 'object' then p->'checked_by' end);  -- F126
+          case when jsonb_typeof(p->'checked_by') <> 'null' then p->'checked_by' end);  -- F126
   return the_id;
 end $$;
 
@@ -536,7 +549,7 @@ begin
                     else tags end,
     embedding   = case when p_changes ? 'embedding'   then the_embedding else embedding end,
     checked_by  = case when p_changes ? 'checked_by'                                       -- F126
-                    then case when jsonb_typeof(p_changes->'checked_by') = 'object' then p_changes->'checked_by' end
+                    then case when jsonb_typeof(p_changes->'checked_by') <> 'null' then p_changes->'checked_by' end
                     else checked_by end
   where id = p_id
   returning version into v;

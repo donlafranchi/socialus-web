@@ -6,7 +6,7 @@ name: Knowledge conditions
 #
 # Daily on a schedule, and from the Actions tab: leave the condition empty to
 # just run the checks, or name one (CN-0001) and pick met or withdrawn to mark
-# it by hand, from a phone. Writes only through the store's functions, as its
+# it by hand, from a phone. Only the PM's own runs may mark one. Writes only through the store's functions, as its
 # own login, with a key minted for this run and revoked at its end.
 
 on:
@@ -69,6 +69,14 @@ jobs:
           url="$(bash scripts/supabase-db-url.sh)"
           echo "::add-mask::$url"
           echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Marking by hand is the PM's: anyone else's run only runs the checks,
+      # and the history row names who ran it (GITHUB_ACTOR).
+      - name: Only the PM marks a condition by hand
+        if: inputs.condition != '' && github.actor != 'donlafranchi'
+        run: |
+          echo "::error::Only the PM marks a condition by hand. Run again with the condition left empty to just run the checks."
+          exit 1
 
       - name: Run the checks
         env:
