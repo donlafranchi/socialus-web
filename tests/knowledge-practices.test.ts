@@ -252,6 +252,18 @@ describe.skipIf(!RUNNABLE)('F128: how we work loaded into the store', () => {
     expect(await load(later)).toMatchObject({ revised: 1 })
     expect((await db.query(`select ring from knowledge.records where id = 'practice.t-second-review'`)).rows[0].ring).toBe('trial')
     await load(judged) // back to the seed's adopt, for the tests after this one
+
+    // A move in the store survives a later import that changes another field, and the import after that.
+    await db.query(`select knowledge.revise('practice.t-push-once', '{"ring":"hold"}', 'The PM paused it.')`)
+    const reworded = structuredClone(judged)
+    reworded.practices[1].statement = 'Push once, when the change is ready for review.'
+    expect(await load(reworded)).toMatchObject({ revised: 1 })
+    expect(await load(reworded)).toMatchObject({ revised: 0 })
+    const { rows } = await db.query(
+      `select r.ring, r.answer from knowledge.records r where r.id = 'practice.t-push-once'`,
+    )
+    expect(rows[0]).toEqual({ ring: 'hold', answer: 'Push once, when the change is ready for review.' })
+    await db.query(`select knowledge.revise('practice.t-push-once', '{"ring":"adopt"}', 'Back to the seed, for the tests after this one.')`)
   })
 
   // [guards F128.6 partial: that the real seed's first experiments are the single-loop plan's is the seed's, checked when it lands]

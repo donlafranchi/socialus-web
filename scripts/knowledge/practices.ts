@@ -14,9 +14,10 @@
 //
 // THE STORE'S OWN CHANGES STAND. A ring moved, a strength changed or a
 // verdict given in the store is not undone by the next import: a field is
-// revised only when the seed's value changed since the last import wrote it
-// (read from that import's version in history), never when only the store's
-// value moved. A seed with no verdict never sets one back to running.
+// revised only when the seed's value changed since the last import (each
+// import write keeps the seed's own values in its evidence, as `seed`, and
+// the next import compares with those), never when only the store's value
+// moved. A seed with no verdict never sets one back to running.
 //
 // RE-RUNNABLE. A seeded practice is `practice.<slug>`, an experiment
 // `experiment.<slug>`: a second run on an unchanged seed records nothing, and
@@ -189,15 +190,19 @@ export function wantedPractice(p: SeedPractice): Record<string, unknown> {
   }
 }
 
-/** The record as the last import of the seed left it: the newest version an import of this loader wrote. */
+/**
+ * What the seed said at the last import: the `seed` an import of this loader
+ * kept in the evidence of its newest write. Not that version's snapshot,
+ * which carries the store's own values for every field the write left alone.
+ */
 async function lastImported(db: ClientBase, id: string): Promise<Record<string, unknown> | null> {
-  const { rows } = await db.query<{ snapshot: Record<string, unknown> }>(
-    `select snapshot from knowledge.history
-      where record_id = $1 and (reason like 'Imported from %' or reason like 'Re-imported:%' or reason like 'Imported verdict %')
+  const { rows } = await db.query<{ seed: Record<string, unknown> | null }>(
+    `select evidence->'seed' as seed from knowledge.history
+      where record_id = $1 and evidence ? 'seed'
       order by version desc limit 1`,
     [id],
   )
-  return rows[0]?.snapshot ?? null
+  return rows[0]?.seed ?? null
 }
 
 async function upsert(
@@ -222,7 +227,7 @@ async function upsert(
         ...want,
       }),
       `Imported from ${String(want.source)} (F128).`,
-      JSON.stringify(evidence),
+      JSON.stringify({ ...evidence, seed: want }),
     ])
     sum.recorded++
     return
@@ -245,7 +250,7 @@ async function upsert(
     id,
     JSON.stringify(changes),
     `Re-imported: ${Object.keys(changes).join(', ')} changed in ${String(want.source)}.`,
-    JSON.stringify(evidence),
+    JSON.stringify({ ...evidence, seed: want }),
   ])
   if (r.refused) sum.problems.push(`${id}: ${r.refused}`)
   else sum.revised++
@@ -363,7 +368,7 @@ export async function loadPractices(db: ClientBase, src: PracticeSources): Promi
           ...AUDIENCE,
         }),
         `Imported from ${e.source} (F128).`,
-        JSON.stringify(seedFile),
+        JSON.stringify({ ...seedFile, seed: { status: 'running' } }),
       ])
       sum.experiments++
     } else if (have.kind !== 'experiment') {
@@ -389,10 +394,11 @@ export async function loadPractices(db: ClientBase, src: PracticeSources): Promi
     const last = have ? ((await lastImported(db, id))?.status ?? 'running') : 'running'
     const current = have?.status ?? 'running'
     if (e.verdict && e.verdict !== last && e.verdict !== current) {
-      const r = await q<{ refused?: string }>(db, 'select knowledge.revise($1, $2::jsonb, $3) as r', [
+      const r = await q<{ refused?: string }>(db, 'select knowledge.revise($1, $2::jsonb, $3, $4::jsonb) as r', [
         id,
         JSON.stringify({ status: e.verdict }),
         `Imported verdict ${e.verdict}, from ${e.source}.`,
+        JSON.stringify({ ...seedFile, seed: { status: e.verdict } }),
       ])
       if (r.refused) sum.problems.push(`${id}: ${r.refused}`)
       else sum.verdicts++
