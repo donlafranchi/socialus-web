@@ -1,0 +1,110 @@
+name: Knowledge pack
+
+# F128 (#1237): writes the pack of how we work (how-we-work.md, under 10,000
+# tokens) and the review-a-method steps beside it into socialus-ops
+# process/pack/, ready to add to a Claude Project (scripts/knowledge/pack.ts).
+#
+# When: after every Knowledge import, which is how a practice, its ring or its
+# strength changes, and on the 1st of each month regardless (F128 ruling,
+# 2026-11-10: rewritten when a practice changes and once a month, not
+# nightly). After an import it writes only if the pack's words changed.
+#
+# Writing to socialus-ops: a direct commit to its main, with the secret
+# OPS_PACK_TOKEN (a fine-grained token with contents write on socialus-ops
+# only). The pack is generated, so a pull request per change would only ask
+# for a look at nothing. Without the secret, the pack goes in the run's
+# summary and as an artifact, and nothing is pushed.
+#
+# The monthly run also opens one Issue listing practices not confirmed in 90
+# days and experiments past their verdict date, for the PM (F128.7).
+#
+# Reads only from the store: a key is minted for the run and rolled back.
+
+on:
+  workflow_run:
+    workflows: ['Knowledge import']
+    types: [completed]
+  schedule:
+    - cron: '17 15 1 * *'   # the 1st of each month, 15:17 UTC
+  workflow_dispatch:
+    inputs:
+      monthly:
+        description: 'Write the pack even if nothing changed, and list the upkeep.'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: knowledge-pack
+  cancel-in-progress: false
+
+jobs:
+  pack:
+    name: Write the how-we-work pack
+    # After an import that succeeded. A dry run changes nothing in the store,
+    # so its pack comes out the same and nothing is written.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      HAS_OPS_TOKEN: ${{ secrets.OPS_PACK_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-ops
+          path: .knowledge/socialus-ops
+          token: ${{ secrets.OPS_PACK_TOKEN || github.token }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # The same connection apply.yml uses (scripts/supabase-db-url.sh).
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Write the pack
+        id: pack
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MONTHLY: ${{ github.event_name == 'schedule' || inputs.monthly == true }}
+        run: |
+          flags=""
+          if [ "$MONTHLY" = "true" ]; then flags="--monthly --open-issue"; fi
+          npx tsx scripts/knowledge/pack.ts --ops .knowledge/socialus-ops $flags
+
+      - uses: actions/upload-artifact@v6
+        if: steps.pack.outputs.written == 'true'
+        with:
+          name: how-we-work-pack
+          path: .knowledge/socialus-ops/process/pack/
+
+      - name: Commit the pack to socialus-ops
+        if: steps.pack.outputs.written == 'true' && env.HAS_OPS_TOKEN == 'true'
+        working-directory: .knowledge/socialus-ops
+        run: |
+          git config user.name "socialus-knowledge-pack"
+          git config user.email "socialus-knowledge-pack@users.noreply.github.com"
+          git add process/pack
+          if git diff --cached --quiet; then echo "Nothing to commit."; exit 0; fi
+          git commit -m "chore: how-we-work pack, written from the knowledge store (F128)" -m "By the Knowledge pack workflow in socialus-web, run ${{ github.run_id }}."
+          git push origin HEAD
+
+      - name: Say why nothing was pushed
+        if: steps.pack.outputs.written == 'true' && env.HAS_OPS_TOKEN != 'true'
+        run: echo "OPS_PACK_TOKEN is not set, so the pack is only in this run's summary and artifact." | tee -a "$GITHUB_STEP_SUMMARY"
