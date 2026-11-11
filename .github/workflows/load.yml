@@ -46,7 +46,14 @@ jobs:
         with:
           version: 2.117.0
 
-      - uses: grafana/setup-k6-action@v1
+      # The official release binary, pinned: no third-party action to keep on a supported Node.
+      - name: Install k6
+        env:
+          K6_VERSION: v1.0.0
+        run: |
+          curl -fsSL "https://github.com/grafana/k6/releases/download/$K6_VERSION/k6-$K6_VERSION-linux-amd64.tar.gz" | tar xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64/k6" version
 
       - uses: actions/setup-node@v5
         with:
