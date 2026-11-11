@@ -34,7 +34,7 @@ const tokens = (text: string) => getEncoding('o200k_base').encode(text).length
 describe('the tool list', () => {
   it('offers the lookups and the internal writes, and nothing names a model', () => {
     expect(TOOLS.map((t) => t.name).sort()).toEqual(
-      ['as_of', 'concept', 'decide', 'get', 'history', 'live', 'plan', 'plan_changes', 'precedents', 'propose', 'related', 'roadmap', 'search', 'why',
+      ['as_of', 'concept', 'decide', 'get', 'history', 'how', 'live', 'plan', 'plan_changes', 'precedents', 'propose', 'related', 'review_method', 'roadmap', 'search', 'upkeep', 'why',
        // F132: story maps
        'story_map', 'fits', 'place_on_map', 'propose_map_change', 'decide_map_change'].sort(),
     )

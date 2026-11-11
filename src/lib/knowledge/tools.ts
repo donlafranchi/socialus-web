@@ -15,6 +15,7 @@ import { z, type ZodRawShape } from 'zod'
 import type { ClientBase } from 'pg'
 import * as k from './lookups'
 import { PLAN_TOOLS } from './plans' // F127
+import { renderPack, REVIEW_METHOD_ID } from './pack'
 import { MAP_TOOLS } from './maps' // F132
 
 export interface ToolResult {
@@ -309,6 +310,91 @@ export const TOOLS: KnowledgeTool[] = [
 
   ...PLAN_TOOLS, // F127: plan, plan_changes, roadmap
   ...MAP_TOOLS, // F132: story_map, fits, place_on_map, propose_map_change, decide_map_change
+
+  define({
+    name: 'how',
+    description:
+      'How something in our way of working runs, from the live practices: give a question ("how does our DevOps work") or an area ' +
+      '(deciding, planning, building, reviewing, shipping, words, agents, docs). DevOps reads building, reviewing and shipping. ' +
+      'One line per practice, strictest first: its id, strength, ring (adopt, trial, assess, hold), its words, the check that enforces it ' +
+      'and the philosophies it applies. Ask why(id) for the reason behind one.',
+    input: { question: z.string().min(1).describe('A question or an area, such as "how does our DevOps work" or "review".') },
+    run: async (db, { question }) => {
+      const out = await k.how(db, question)
+      if (out.areas.length === 0) {
+        await db.query('select knowledge.log_unanswered($1, null, $2)', [question, 'practice'])
+        const areas = await k.howAreas(db)
+        return {
+          text:
+            `"${question}" names no area of how we work. The areas, and words that reach them:\n` +
+            areas.map((a) => `- ${a.slug.replace(/^how-/, '')} (${a.name}): ${a.words.join(', ')}`).join('\n'),
+          isError: true,
+        }
+      }
+      const parts: string[] = []
+      if (out.lines.length === 0) {
+        parts.push(`No live practice for ${out.areas.map((a) => a.name.toLowerCase()).join(', ')} that this key can read.`)
+      }
+      if (out.absolutes.length && out.lines.length) {
+        parts.push(`Absolutes, which bind every area:\n${out.absolutes.map((x) => `- ${x.id}: ${x.answer}`).join('\n')}`)
+      }
+      for (const a of out.areas) {
+        const lines = out.lines.filter((l) => l.concern === a.slug)
+        if (!lines.length) continue
+        parts.push(
+          `${a.name}:\n` +
+            lines
+              .map((l) => {
+                const meta = [l.strength, l.ring, l.holds === 'for now' ? 'for now' : null].filter(Boolean).join(', ')
+                const applies = l.applies.length ? ` [applies ${l.applies.join(', ')}]` : ''
+                return `- ${l.id} · ${meta}: ${l.answer} Enforced by: ${l.enforced_by ?? 'nothing yet'}.${applies}`
+              })
+              .join('\n'),
+        )
+      }
+      // The review-a-method steps are a procedure, not a line: point at the verb that returns them.
+      if (out.areas.some((a) => a.slug === 'how-agents')) {
+        parts.push(`To review a new method against all of this: call review_method (${REVIEW_METHOD_ID}).`)
+      }
+      return { text: parts.join('\n\n') }
+    },
+  }),
+
+  define({
+    name: 'review_method',
+    description:
+      'Review a new tool, process or method against how we work, in one call and with no research: returns the review-a-method steps ' +
+      'and the pack of every live practice by area (its why, strictness and ring). Read only the material you were given and this; ' +
+      'list at most 15 claims, place each as we do this, we do the opposite on purpose, a gap, or a clash with a philosophy, citing ' +
+      'the record id, and end with one experiment at most and how it would be measured.',
+    input: {
+      material: z
+        .string()
+        .optional()
+        .describe('The link or a short label for the material under review; it is not fetched, only kept if the steps are missing.'),
+    },
+    run: async (db, { material }) => {
+      const rows = await k.packRows(db)
+      if (!rows.steps) {
+        if (material) await db.query('select knowledge.log_unanswered($1, null, $2)', [`review a method: ${material}`, 'practice'])
+        return { text: `The review-a-method steps (${REVIEW_METHOD_ID}) are not in the store yet, or this key cannot read them.`, isError: true }
+      }
+      const pack = renderPack(rows.practices, rows.philosophies, new Date().toISOString().slice(0, 10))
+      return { text: `${rows.steps.trim()}\n\n---\n\n${pack.text}` }
+    },
+  }),
+
+  define({
+    name: 'upkeep',
+    description:
+      'For the monthly upkeep: live practices not confirmed in 90 days, and running experiments past their verdict date, one line each.',
+    input: { today: date.optional() },
+    run: async (db, { today }) => {
+      const rows = await k.upkeep(db, today)
+      if (rows.length === 0) return { text: 'Nothing due: every practice confirmed in the last 90 days, no experiment past its verdict date.' }
+      return { text: rows.map((r) => `- ${r.id} (${r.kind}): ${r.problem}. ${r.answer}`).join('\n') }
+    },
+  }),
 
   define({
     name: 'propose',
