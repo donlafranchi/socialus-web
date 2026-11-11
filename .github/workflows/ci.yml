@@ -140,13 +140,13 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: donlafranchi/socialus-plan
-          ref: 66342f9ff542177e874aa3511f4aa4115f1aba01
+          ref: b348a928a5cebffe49de277722c41e537ab5c6e4
           path: .knowledge/socialus-plan
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
           repository: donlafranchi/socialus-ops
-          ref: 909fcad293ee01f62284158991d12e80358be216
+          ref: 53585b73fb01d0c596f27b26141215508e7a6752
           path: .knowledge/socialus-ops
           persist-credentials: false
 
