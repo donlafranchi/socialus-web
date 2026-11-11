@@ -14,6 +14,7 @@
 import { z, type ZodRawShape } from 'zod'
 import type { ClientBase } from 'pg'
 import * as k from './lookups'
+import { PLAN_TOOLS } from './plans' // F127
 import { renderPack, REVIEW_METHOD_ID } from './pack'
 
 export interface ToolResult {
@@ -305,6 +306,8 @@ export const TOOLS: KnowledgeTool[] = [
       return { text: lines.join('\n') }
     },
   }),
+
+  ...PLAN_TOOLS, // F127: plan, plan_changes, roadmap
 
   define({
     name: 'how',

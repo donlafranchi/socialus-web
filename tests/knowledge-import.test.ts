@@ -132,9 +132,12 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     // F130: the concepts the import loads (the traced timelines, IMAGINE.md's
     // ideas, and the scenarios that name them) are recorded by the same run.
     const c = first.concepts!
+    // F127: and every scenario as a feature with its first slice.
+    const p = first.plans!
     // F128: so are the practices and experiments, and each verdict.
     const pr = first.practices
     const all = first.recorded + c.conceptsRecorded + c.conceptsRevised + c.ideasRecorded + c.features +
+      p.features + p.slices + p.moved + p.statusChanged +
       (pr ? pr.recorded + pr.revised + pr.experiments + pr.verdicts : 0)
     expect(Number(rows[0].n)).toBe(all)
     expect(Number(rows[0].named)).toBe(all)
@@ -144,6 +147,8 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     expect(first.recorded).toBeGreaterThan(0)
     expect(second).toMatchObject({ recorded: 0, revised: 0, retired: 0, links: 0, unchanged: first.recorded })
     expect(second.goneWithoutReplacement).toEqual([])
+    // F127: the second run makes and moves no slice.
+    expect(second.plans).toMatchObject({ features: 0, slices: 0, moved: 0, statusChanged: 0, depends: 0 })
   })
 
   // [guards F125.10 partial: departs_from, since the rulings state no departures for the import to bring in]

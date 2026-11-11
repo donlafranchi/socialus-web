@@ -38,6 +38,7 @@ import {
 import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
+import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 
 export interface Sources {
@@ -67,6 +68,8 @@ export interface Summary {
   blocked: string[]
   /** F130: concepts, ideas and the scenarios that name them. */
   concepts?: ConceptSummary
+  /** F127: each scenario as a feature with one slice, its horizon and rank. */
+  plans?: PlanSummary
   /** F128: practices and experiments. */
   practices?: PracticeSummary
 }
@@ -415,7 +418,10 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     ideas: readImagine(resolve(src.planDir, 'IMAGINE.md')),
     scenarios: readScenarios(src.planDir),
     commits: { plan: src.commits?.plan, web: src.commits?.web },
+    today,
   })
+  // F127: today's plan, after concepts so a scenario they made is not made twice.
+  summary.plans = await loadPlans(db, readPlannedScenarios(src.planDir), src.commits?.plan)
 
   // F128: how we work. The practices and experiments seed, and the
   // review-a-method steps from socialus-ops.
@@ -477,6 +483,7 @@ async function main(): Promise<void> {
       `- New links: ${summary.links}`,
       `- The store's constraints/code.md matches socialus-plan's: ${matches ? 'yes' : 'NO'}`,
       ...(summary.concepts ? conceptReport(summary.concepts) : []),
+      ...(summary.plans ? planReport(summary.plans) : []),
       ...(summary.practices ? practiceReport(summary.practices) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
