@@ -74,7 +74,7 @@ export function sliceStatus(scenarioStatus: string | null): 'planned' | 'buildin
   return 'planned'
 }
 
-/** Scenarios with no horizon go last in their lane: rank defaults below every ranked one. */
+/** A scenario with a horizon and no rank goes last in its lane. */
 const UNRANKED = 999
 
 export interface PlanSummary {
@@ -121,11 +121,23 @@ export async function loadPlans(
     }
     known.add(s.id)
 
+    const sliceId = `${s.id}-S1`
     if (!s.horizon) {
-      sum.skipped.push(`${s.id}: no horizon in its frontmatter, so no place on Now / Next / Later`)
+      const { rows: had } = await db.query<{ horizon: string; status: string }>(
+        `select horizon, status from knowledge.records where id = $1 and kind = 'slice'`,
+        [sliceId],
+      )
+      if (had[0] && !['shipped', 'withdrawn'].includes(had[0].status)) {
+        // Never guessed: a horizon taken away is the PM's to explain, so the run says so.
+        sum.problems.push(
+          `${s.id}: its frontmatter no longer has a horizon, but its slice ${sliceId} is still on ${had[0].horizon}; ` +
+            'give it a horizon again, or withdraw the slice',
+        )
+      } else {
+        sum.skipped.push(`${s.id}: no horizon in its frontmatter, so no place on Now / Next / Later`)
+      }
       continue
     }
-    const sliceId = `${s.id}-S1`
     const rank = s.rank ?? UNRANKED
     const want = sliceStatus(s.status)
     const { rows: slice } = await db.query<{ horizon: string; rank: number; status: string }>(

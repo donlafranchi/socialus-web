@@ -34,6 +34,8 @@ const TODAY = {
   F914: 'status: draft\n',
 }
 
+const MOVED = { ...TODAY, F913: 'status: approved\nhorizon: next\nrank: 2\n', F911: 'status: shipped\nhorizon: now\nrank: 1\n' }
+
 describe('reading the frontmatter', () => {
   it('reads status, horizon, rank and depends, in both list shapes', () => {
     const dir = mkdtempSync(join(tmpdir(), 'f127-'))
@@ -78,7 +80,7 @@ describe.skipIf(!RUNNABLE)('F127: plans in the store', () => {
     writePlan(dir, TODAY)
     first = await loadPlans(db, readPlannedScenarios(dir), 'abcdef1')
     second = await loadPlans(db, readPlannedScenarios(dir), 'abcdef1')
-    writePlan(dir, { ...TODAY, F913: 'status: approved\nhorizon: next\nrank: 2\n', F911: 'status: shipped\nhorizon: now\nrank: 1\n' })
+    writePlan(dir, MOVED)
     moved = await loadPlans(db, readPlannedScenarios(dir), 'abcdef2')
   })
 
@@ -105,6 +107,12 @@ describe.skipIf(!RUNNABLE)('F127: plans in the store', () => {
       `select to_id from knowledge.links where from_id = 'F912' and type = 'depends_on' order by to_id`,
     )
     expect(links.map((l) => l.to_id)).toEqual(['F910', 'F911'])
+    // A horizon taken away is reported, never guessed.
+    writePlan(dir, { ...MOVED, F910: 'status: approved\n' })
+    const gone = await loadPlans(db, readPlannedScenarios(dir), 'abcdef3')
+    expect(gone.problems).toEqual([
+      'F910: its frontmatter no longer has a horizon, but its slice F910-S1 is still on now; give it a horizon again, or withdraw the slice',
+    ])
     expect(await tool('roadmap', {})).toBe('Now (1):\n- 2 F910-S1 F910 title\nNext (2):\n- 1 F912-S1 F912 title\n- 2 F913-S1 F913 title\nLater (0):')
   })
 

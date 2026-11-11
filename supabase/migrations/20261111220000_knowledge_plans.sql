@@ -11,8 +11,9 @@
 --   · `slice`, a new kind: one cut of a feature, smallest to full. Statuses
 --     planned, building, shipped, withdrawn. A slice carries a horizon (now,
 --     next, later) and a rank, and waits on conditions through F126's
---     `starts_when` link, so F126's refusal to mark parked work building
---     already covers it. Its id is its feature's plus -S and a number.
+--     `starts_when` link; F126's refusal to mark parked work building
+--     covers it through revise(), and add_slice refuses a parked slice made
+--     as building. Its id is its feature's plus -S and a number.
 --   · `version`, a new kind, ids VN-0001 on: a plan. Statuses planned,
 --     current, done, dropped. Its `plan` holds the outcomes it is for, an
 --     appetite, the slices it includes, and the slices it leaves out, each
@@ -234,6 +235,12 @@ begin
   else
     the_id := p_id;
   end if;
+  -- F126: parked work is never marked building, here as in revise().
+  if p_status = 'building' and exists (
+       select 1 from unnest(coalesce(p_waits_on, '{}')) cw
+        where coalesce(knowledge.condition_status(cw), '') not in ('met', 'withdrawn')) then
+    raise exception 'A slice that waits on an unmet condition is not started as building.' using errcode = 'check_violation';
+  end if;
   perform knowledge._context(w, p_reason, p_evidence, p_effective);
   insert into knowledge.records (id, kind, concern, answer, status, audience, departments, decided_by, decided_through,
                                  decided_on, source, horizon, rank)
@@ -295,6 +302,16 @@ language sql stable set search_path = '' as $$
         from jsonb_array_elements(coalesce(p_new->'leaves_out', '[]')) with ordinality as t(x, ord)), '[]'))
 $$;
 
+-- A new plan does not include a withdrawn slice. Checked when a plan is
+-- written, not by the trigger, so a slice withdrawn later never blocks a
+-- change to its version's status.
+create function knowledge._withdrawn_included(p jsonb) returns text
+language sql stable security definer set search_path = '' as $$
+  select string_agg(r.id, ', ' order by r.id)
+    from jsonb_array_elements_text(coalesce(p->'includes', '[]')) i
+    join knowledge.records r on r.id = i and r.status = 'withdrawn'
+$$;
+
 create function knowledge.plan_version(p jsonb, p_reason text, p_evidence jsonb default null,
                                        p_effective timestamptz default null)
 returns text language plpgsql security definer set search_path = '' as $$
@@ -311,6 +328,9 @@ begin
   problem := knowledge._plan_problem(p - 'id' - 'answer' - 'why' - 'status' - 'concern' - 'due_on');
   if problem is not null then
     raise exception 'A version is a plan: %.', problem using errcode = 'check_violation';
+  end if;
+  if knowledge._withdrawn_included(p) is not null then
+    raise exception 'A plan does not include a withdrawn slice: %.', knowledge._withdrawn_included(p) using errcode = 'check_violation';
   end if;
   perform knowledge._context(w, p_reason, p_evidence, p_effective);
   the_id := coalesce(p->>'id', knowledge._next_id('version'));
@@ -346,6 +366,9 @@ begin
   if coalesce(btrim(p_why), '') = '' then
     raise exception 'A change of plan gives its why.' using errcode = 'check_violation';
   end if;
+  if knowledge._withdrawn_included(p_plan) is not null then
+    raise exception 'A plan does not include a withdrawn slice: %.', knowledge._withdrawn_included(p_plan) using errcode = 'check_violation';
+  end if;
   if coalesce(btrim(p_outcome), '') = ''
      or not (btrim(p_outcome) = any (knowledge._outcomes(r.plan) || knowledge._outcomes(p_plan))) then
     raise exception 'A change of plan names the outcome that changed, one of: %.',
@@ -370,14 +393,17 @@ comment on function knowledge.replan(text, jsonb, text, text, jsonb, timestamptz
 -- Reads. Security invoker: row-level security decides what each key sees.
 
 -- A slice's words, feature and status, for a plan's lines.
-create function knowledge._slice_line(p_id text) returns jsonb
+-- A slice's words, feature and status as they read at a given time, for a
+-- plan's lines: a plan read as of a past day shows its slices as they were.
+create function knowledge._slice_line(p_id text, p_at timestamptz) returns jsonb
 language sql stable set search_path = '' as $$
-  select jsonb_build_object('slice', s.id, 'answer', s.answer, 'status', s.status, 'horizon', s.horizon, 'rank', s.rank,
+  select jsonb_build_object('slice', h.record_id, 'answer', h.snapshot->>'answer', 'status', h.snapshot->>'status',
+                            'horizon', h.snapshot->>'horizon', 'rank', (h.snapshot->>'rank')::integer,
                             'feature', l.to_id, 'feature_answer', f.answer)
-    from knowledge.records s
-    left join knowledge.links l on l.from_id = s.id and l.type = 'slice_of'
+    from knowledge.history h
+    left join knowledge.links l on l.from_id = h.record_id and l.type = 'slice_of'
     left join knowledge.records f on f.id = l.to_id
-   where s.id = p_id
+   where h.record_id = p_id and h.valid_from <= p_at and (h.valid_to is null or h.valid_to > p_at)
 $$;
 
 create function knowledge.plan_as_of(p_version text, p_at timestamptz default now()) returns jsonb
@@ -387,9 +413,9 @@ language sql stable set search_path = '' as $$
     'due_on', h.snapshot->'due_on', 'version', h.version, 'since', h.valid_from, 'because', h.reason,
     'outcome', h.evidence->>'outcome',
     'outcomes', h.snapshot->'plan'->'outcomes', 'appetite', h.snapshot->'plan'->'appetite',
-    'includes', coalesce((select jsonb_agg(coalesce(knowledge._slice_line(i), jsonb_build_object('slice', i)) order by ord)
+    'includes', coalesce((select jsonb_agg(coalesce(knowledge._slice_line(i, p_at), jsonb_build_object('slice', i)) order by ord)
                             from jsonb_array_elements_text(h.snapshot->'plan'->'includes') with ordinality t(i, ord)), '[]'),
-    'leaves_out', coalesce((select jsonb_agg(coalesce(knowledge._slice_line(x->>'slice'), jsonb_build_object('slice', x->>'slice'))
+    'leaves_out', coalesce((select jsonb_agg(coalesce(knowledge._slice_line(x->>'slice', p_at), jsonb_build_object('slice', x->>'slice'))
                                              || jsonb_build_object('reason', x->>'reason', 'condition', x->>'condition',
                                                                    'condition_status', knowledge.condition_status(x->>'condition'))
                                              order by ord)
@@ -438,6 +464,8 @@ language sql stable set search_path = '' as $$
          case
            when knowledge.condition_status(x->>'condition') = 'met'
              then format('its condition %s is met', x->>'condition')
+           when knowledge.condition_status(x->>'condition') = 'withdrawn'
+             then format('its condition %s was withdrawn, so nothing brings it back on its own', x->>'condition')
            else format('the outcomes changed since it was left out: then %s, now %s',
                        array_to_string(array(select jsonb_array_elements_text(x->'outcomes_then')), '; '),
                        array_to_string(knowledge._outcomes(v.plan), '; '))
@@ -448,12 +476,12 @@ language sql stable set search_path = '' as $$
    where v.kind = 'version' and v.status in ('planned', 'current')
      and (p_version is null or v.id = p_version)
      and coalesce(s.status, '') not in ('shipped', 'withdrawn')
-     and (knowledge.condition_status(x->>'condition') = 'met'
+     and (knowledge.condition_status(x->>'condition') in ('met', 'withdrawn')
           or array(select jsonb_array_elements_text(x->'outcomes_then') o order by 1) <> knowledge._outcomes(v.plan))
    order by v.id, x->>'slice'
 $$;
 comment on function knowledge.left_out_due(text) is
-  'Left out is not forgotten: every slice a planned or current version leaves out whose condition is now met, or whose version''s outcomes are no longer the ones it was left out under.';
+  'Left out is not forgotten: every slice a planned or current version leaves out whose condition is now met or withdrawn, or whose version''s outcomes are no longer the ones it was left out under.';
 
 create function knowledge.roadmap()
 returns table (horizon text, rank integer, slice text, answer text, status text, feature text, feature_answer text,
@@ -477,8 +505,9 @@ comment on function knowledge.roadmap() is
 -- records, which the store's login already reads under row-level security.
 
 revoke all on function
+  knowledge._plans_before(), knowledge._plan_links(), knowledge._withdrawn_included(jsonb),
   knowledge._plan_problem(jsonb), knowledge._outcomes(jsonb), knowledge._plan_writer(),
-  knowledge._stamp(jsonb, jsonb), knowledge._slice_line(text),
+  knowledge._stamp(jsonb, jsonb), knowledge._slice_line(text, timestamptz),
   knowledge.add_slice(text, text, text, integer, text, text[], text, text, jsonb, timestamptz),
   knowledge.move_slice(text, text, integer, text, jsonb, timestamptz),
   knowledge.plan_version(jsonb, text, jsonb, timestamptz),
@@ -490,7 +519,7 @@ revoke all on function
   from public, anon, authenticated, service_role;
 
 grant execute on function
-  knowledge._outcomes(jsonb), knowledge._slice_line(text),
+  knowledge._outcomes(jsonb), knowledge._slice_line(text, timestamptz),
   knowledge.add_slice(text, text, text, integer, text, text[], text, text, jsonb, timestamptz),
   knowledge.move_slice(text, text, integer, text, jsonb, timestamptz),
   knowledge.plan_version(jsonb, text, jsonb, timestamptz),
