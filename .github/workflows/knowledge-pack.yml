@@ -2,7 +2,7 @@ name: Knowledge pack
 
 # F128 (#1237): writes the pack of how we work (how-we-work.md, under 10,000
 # tokens) and the review-a-method steps beside it into socialus-ops
-# process/pack/, ready to add to a Claude Project (scripts/knowledge/pack.ts).
+# packs/ (exempt from socialus-ops doc budgets, #177), ready to add to a Claude Project (scripts/knowledge/pack.ts).
 #
 # When: after every Knowledge import, which is how a practice, its ring or its
 # strength changes, and on the 1st of each month regardless (F128 ruling,
@@ -10,8 +10,8 @@ name: Knowledge pack
 # nightly). After an import it writes only if the pack's words changed.
 #
 # Writing to socialus-ops: a direct commit to its main, with the secret
-# OPS_PACK_TOKEN (a fine-grained token with contents write on socialus-ops
-# only). The pack is generated, so a pull request per change would only ask
+# KNOWLEDGE_WRITE_TOKEN (one fine-grained token with contents write on
+# socialus-ops and socialus-plan only, shared with F129's socialus-plan write). The pack is generated, so a pull request per change would only ask
 # for a look at nothing. Without the secret, the pack goes in the run's
 # summary and as an artifact, and nothing is pushed.
 #
@@ -51,14 +51,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
-      HAS_OPS_TOKEN: ${{ secrets.OPS_PACK_TOKEN != '' }}
+      HAS_WRITE_TOKEN: ${{ secrets.KNOWLEDGE_WRITE_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/checkout@v5
         with:
           repository: donlafranchi/socialus-ops
           path: .knowledge/socialus-ops
-          token: ${{ secrets.OPS_PACK_TOKEN || github.token }}
+          token: ${{ secrets.KNOWLEDGE_WRITE_TOKEN || github.token }}
 
       - uses: actions/setup-node@v5
         with:
@@ -92,19 +92,19 @@ jobs:
         if: steps.pack.outputs.written == 'true'
         with:
           name: how-we-work-pack
-          path: .knowledge/socialus-ops/process/pack/
+          path: .knowledge/socialus-ops/packs/
 
       - name: Commit the pack to socialus-ops
-        if: steps.pack.outputs.written == 'true' && env.HAS_OPS_TOKEN == 'true'
+        if: steps.pack.outputs.written == 'true' && env.HAS_WRITE_TOKEN == 'true'
         working-directory: .knowledge/socialus-ops
         run: |
           git config user.name "socialus-knowledge-pack"
           git config user.email "socialus-knowledge-pack@users.noreply.github.com"
-          git add process/pack
+          git add packs
           if git diff --cached --quiet; then echo "Nothing to commit."; exit 0; fi
           git commit -m "chore: how-we-work pack, written from the knowledge store (F128)" -m "By the Knowledge pack workflow in socialus-web, run ${{ github.run_id }}."
           git push origin HEAD
 
       - name: Say why nothing was pushed
-        if: steps.pack.outputs.written == 'true' && env.HAS_OPS_TOKEN != 'true'
-        run: echo "OPS_PACK_TOKEN is not set, so the pack is only in this run's summary and artifact." | tee -a "$GITHUB_STEP_SUMMARY"
+        if: steps.pack.outputs.written == 'true' && env.HAS_WRITE_TOKEN != 'true'
+        run: echo "KNOWLEDGE_WRITE_TOKEN is not set, so the pack is only in this run's summary and artifact." | tee -a "$GITHUB_STEP_SUMMARY"

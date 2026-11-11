@@ -2189,7 +2189,7 @@
    "change": "A loop reads only the rulings tagged to the area it touches",
    "baseline": "constraints/code.md 10.5k and web CLAUDE.md 3.1k of about 20.1k tokens before the Issue",
    "measure": "(e) tokens before the Issue, with (a) to (g) unchanged or better",
-   "verdict_date": null,
+   "verdict_date": "2026-12-01",
    "verdict": null,
    "source": "socialus-ops:process/research/single-loop/PLAN.md#Evals"
   },
@@ -2199,7 +2199,7 @@
    "change": "Flags of our own, on for builder accounts first, so unfinished work merges dark",
    "baseline": "unfinished work held by not merging",
    "measure": "time from a feature's first merge to the PM's first live look; human-review PRs waiting unmerged",
-   "verdict_date": null,
+   "verdict_date": "2026-12-11",
    "verdict": null,
    "source": "socialus-ops:process/research/2026-11-10-review-launchdarkly.md#Recommendation"
   },
@@ -2209,7 +2209,7 @@
    "change": "Haiku against Sonnet on 10 seeded sample reports",
    "baseline": "none recorded",
    "measure": "label and dedupe accuracy, reproduction success, cost",
-   "verdict_date": null,
+   "verdict_date": "2026-12-01",
    "verdict": null,
    "source": "socialus-ops:process/PIPELINE.md#Rulings"
   }

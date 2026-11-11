@@ -28,7 +28,7 @@ import { packRows, upkeep, type UpkeepRow } from '../../src/lib/knowledge/lookup
 import { renderPack, renderSteps, packBody, PACK_TOKEN_LIMIT } from '../../src/lib/knowledge/pack'
 
 /** Where in socialus-ops the pack goes. */
-export const PACK_DIR = 'process/pack'
+export const PACK_DIR = 'packs'
 export const PACK_FILE = 'how-we-work.md'
 export const STEPS_FILE = 'review-a-method.md'
 
