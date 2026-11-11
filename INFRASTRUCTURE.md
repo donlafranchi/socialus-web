@@ -529,7 +529,14 @@ real page loads.
 **Why Vercel and Supabase do not cover it.** Both report on themselves. Neither
 tells you the signup form throws on submit while both status pages stay green.
 
-**Wire-up.** No code. Create a **keyword** monitor, not a plain HTTP one: point
+**Built (2026-11-11, #1260): `.github/workflows/uptime.yml`, no account.** Every
+10 minutes it keyword-checks the home page, the login page and `/api/health/db`
+(`scripts/uptime-check.sh`, three tries a minute apart). Down opens one
+`bug · socialus.org is down` Issue that pings Don; recovery closes it. GitHub's
+scheduler can start late, so detection is ~10–20 minutes. UptimeRobot, below,
+stays the upgrade if that is too slow.
+
+**Wire-up (UptimeRobot, if ever needed).** Create a **keyword** monitor, not a plain HTTP one: point
 it at a page that renders database-backed content and have it check for a string
 that only appears when that query succeeded. An HTTP 200 monitor stays green
 while the page renders an error state.
