@@ -53,6 +53,7 @@ build_env=(NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL" NEXT_PUBLIC_SUPABASE_PUBLISH
 [ "${LOAD_SKIP_BUILD:-}" = 1 ] || (cd "$APP" && env "${build_env[@]}" npm run build)
 
 rm -rf "$OUT"; mkdir -p "$OUT"
+OUT="$(cd "$OUT" && pwd)" # absolute: k6 resolves open() against the script's folder
 APP_PID=""; WATCH_PID=""
 cleanup() {
   [ -n "$WATCH_PID" ] && kill "$WATCH_PID" 2>/dev/null || true
@@ -92,4 +93,6 @@ for s in $SCENARIOS; do
 done
 
 DB_POOL_MAX="${DB_POOL_MAX:-3}" npx tsx evals/load/summarize.ts "$OUT"
+# A level k6 could not run (any exit but 0, or 99 for a broken threshold) is the harness failing: always red.
+if grep -qvE '"exit":(0|99)}' "$OUT/marks.jsonl"; then echo "A level did not run; see above." >&2; exit 1; fi
 if [ "${LOAD_GATE:-}" = 1 ] && grep -q '"firstBroken": {' "$OUT/result.json"; then exit 1; fi

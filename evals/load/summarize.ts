@@ -55,7 +55,7 @@ const levels = marks.map((m) => {
   }
 })
 
-const firstBroken = levels.find((l) => l.broke)
+const firstBroken = levels.find((l) => l.broke && l.r)
 const firstSaturated = levels.flatMap((l) => l.layers.map((x) => ({ ...x, level: l.level }))).sort((a, b) => a.at - b.at)[0]
 const cold = fx.cold as Record<string, { ms: number; status: number }> & { warmMedianMs?: number } | undefined
 const coldMs = cold?.pageSignedOut?.ms
@@ -74,7 +74,7 @@ const out = [
   '',
   '| Level | Load | req/s | p50 | p95 | failed | handled | Result | App CPU peak | App DB conns (pool) | Longest query | Lock waits | Saturated |',
   '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...levels.map((l) => `| ${l.level} | ${l.r?.load ?? '—'} | ${l.r?.rps ?? '—'} | ${ms(l.r?.p50)} | ${ms(l.r?.p95)} | ${pct(l.r?.failed)} | ${pct(l.r?.handled)} | ${l.broke ? '🔴 broke' : '🟢'} | ${l.peaks.appCpu}% | ${l.peaks.appConns} (${POOL}${l.poolTimeouts ? `, ${l.poolTimeouts} timeouts` : ''}) | ${ms(l.peaks.longest)} | ${l.peaks.locks} | ${l.layers.map((x) => x.layer).join(', ') || '—'} |`),
+  ...levels.map((l) => `| ${l.level} | ${l.r?.load ?? '—'} | ${l.r?.rps ?? '—'} | ${ms(l.r?.p50)} | ${ms(l.r?.p95)} | ${pct(l.r?.failed)} | ${pct(l.r?.handled)} | ${!l.r ? '⚪ did not run' : l.broke ? '🔴 broke' : '🟢'} | ${l.peaks.appCpu}% | ${l.peaks.appConns} (${POOL}${l.poolTimeouts ? `, ${l.poolTimeouts} timeouts` : ''}) | ${ms(l.peaks.longest)} | ${l.peaks.locks} | ${l.layers.map((x) => x.layer).join(', ') || '—'} |`),
   '',
   `Cold start: the first request to a fresh server took ${ms(coldMs)} for the Page signed out, ${ms(cold?.pageSignedIn?.ms)} signed in, ${ms(cold?.heart?.ms)} for the first ♡ and ${ms(cold?.report?.ms)} for the first report; a warm Page takes ${ms(warm)} (median of 10).`,
   ...levels.filter((l) => l.r?.refused).map((l) => `\n${l.level}: ${l.r.refused} reports were refused by the report caps (the handler answering, counted as handled).`),
