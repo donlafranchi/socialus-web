@@ -137,10 +137,12 @@ async function wordsOf(db: ClientBase, ids: string[]): Promise<string[]> {
     [ids],
   )
   const byId = new Map(rows.map((r) => [r.id, r]))
-  return ids.map((i) => {
+  // An id this key cannot read is left out, never shown bare; words stay.
+  const looksLikeId = (i: string) => /^[A-Z]{1,3}-?[A-Za-z0-9]*\d[\w.-]*$/.test(i) && !/\s/.test(i)
+  return ids.flatMap((i) => {
     const r = byId.get(i)
-    if (!r) return i
-    return r.kind === 'feature' ? featureWords({ id: r.id, answer: r.answer, status: r.status, on: '' }) : r.answer
+    if (!r) return looksLikeId(i) ? [] : [i]
+    return [r.kind === 'feature' ? featureWords({ id: r.id, answer: r.answer, status: r.status, on: '' }) : r.answer]
   })
 }
 
@@ -175,13 +177,19 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
     'select answer, strength from knowledge.fit_rules($1, 2)',
     [idea],
   )
-  const ruleLine = rules.length ? `Rules that share its words, to read it against: ${rules.map((r) => r.answer).join('; ')}` : null
+  const ruleWords = rules.map((r) => r.answer)
+  // A clash is judged by whoever places the idea; until then the answer names
+  // the live rules it may clash with, and says it is not judged yet.
+  const clashLine = (judged: string[] | null) =>
+    judged
+      ? `Clashes with: ${list(judged, 'nothing, as judged when it was placed')}`
+      : `Clashes with: not judged yet; ${ruleWords.length ? `may clash with: ${ruleWords.join('; ')}` : 'no live rule shares its words'}`
 
   if (!on) {
     return phone([
       `${q(named)}: no journey yet${placement ? ', as placed by hand' : ': nothing on the maps shares its words'}.`,
       placement && placement.needs_first.length ? `Must be built first: ${list(await wordsOf(db, placement.needs_first))}` : null,
-      ruleLine,
+      clashLine(placement ? await wordsOf(db, placement.clashes) : null),
       'A new journey would hold it; propose one with propose_map_change or place it with place_on_map.',
     ])
   }
@@ -194,14 +202,12 @@ export async function fitText(db: ClientBase, idea: string): Promise<string> {
   const notBuilt = (taskView?.made_of ?? []).filter((d) => d.built === 'not').map((d) => d.answer)
   const standsOn = placement?.stands_on.length ? await wordsOf(db, placement.stands_on) : [...featuresHere, ...builtHere]
   const needs = placement?.needs_first.length ? await wordsOf(db, placement.needs_first) : []
-  const clashes = placement?.clashes.length ? await wordsOf(db, placement.clashes) : []
   return phone([
     `${q(named)} fits under ${q(p.place.activity?.answer ?? '')} in the journey ${q(p.place.journey?.answer ?? '')}, ` +
       `next to ${q(p.item.kind === 'detail' ? p.item.answer : task.answer)}.`,
     `Stands on: ${list(standsOn, 'nothing built there yet')}`,
     `Must be built first: ${list(needs, notBuilt.length ? `nothing named; not built there yet: ${notBuilt.slice(0, 3).join('; ')}` : 'nothing named')}`,
-    `Clashes with: ${list(clashes, 'nothing on record')}`,
-    ruleLine,
+    clashLine(placement ? await wordsOf(db, placement.clashes) : null),
     (taskView?.slices ?? []).length ? `Slices across it: ${taskView!.slices.map((s) => q(s.outcome)).join('; ')}` : null,
     placement ? null : 'A guess from its words: place it with place_on_map to keep it.',
   ])

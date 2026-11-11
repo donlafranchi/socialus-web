@@ -167,6 +167,7 @@ create table knowledge.placements (
   clashes     text[] not null default '{}',
   note        text,
   reason      text not null check (btrim(reason) <> ''),
+  by_operator boolean not null default false,
   person      text not null,
   agent       text not null,
   placed_at   timestamptz not null default clock_timestamp()
@@ -193,6 +194,7 @@ create view knowledge.current_placements with (security_invoker = true) as
 create table knowledge.map_proposals (
   id          bigint generated always as identity primary key,
   item_id     text not null references knowledge.records (id),
+  item_version integer not null,
   changes     jsonb not null,
   reason      text not null check (btrim(reason) <> ''),
   person      text not null,
@@ -275,24 +277,58 @@ end $$;
 comment on function knowledge.map_item(jsonb, text, jsonb, timestamptz) is
   'Records a journey, activity, task or detail under its parent, at a place (last if not given). Any key may propose one; only an operator records one live.';
 
+-- Puts an item at a place under its parent and renumbers its siblings 1..n in
+-- story order, the moved item first among any at that place. Each sibling
+-- whose place changes is a new version, with the same reason. The caller has
+-- already checked the writer and the item.
+create function knowledge._map_reorder(w knowledge.agents, p_id text, p_parent text, p_place integer,
+                                       p_reason text, p_evidence jsonb, p_effective timestamptz)
+returns integer language plpgsql security definer set search_path = '' as $$
+declare
+  k text := (select kind from knowledge.records where id = p_id);
+  target integer := coalesce(p_place, knowledge._next_place(p_parent, k));
+  v integer;
+  sib record;
+begin
+  perform knowledge._context(w, p_reason, p_evidence, p_effective);
+  update knowledge.records set parent = p_parent, place = target
+   where id = p_id and (parent, place) is distinct from (p_parent, target)
+  returning version into v;
+  for sib in
+    select x.id, x.place, row_number() over (order by x.place, (x.id <> p_id), x.id)::integer as n
+      from knowledge.records x
+     where x.kind = k and x.parent is not distinct from p_parent and x.status <> 'retired'
+  loop
+    if sib.place is distinct from sib.n then
+      perform knowledge._context(w, p_reason, p_evidence, p_effective);
+      update knowledge.records set place = sib.n where id = sib.id;
+      if sib.id = p_id then
+        v := (select version from knowledge.records where id = p_id);
+      end if;
+    end if;
+  end loop;
+  return v;
+end $$;
+
 create function knowledge.map_move(p_id text, p_parent text, p_place integer, p_reason text,
                                    p_evidence jsonb default null, p_effective timestamptz default null)
 returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._map_writer();
-  v integer;
+  r knowledge.records;
 begin
-  if not exists (select 1 from knowledge.records r where r.id = p_id and knowledge._is_map_kind(r.kind)) then
+  select * into r from knowledge.records where id = p_id;
+  if r.id is null or not knowledge._is_map_kind(r.kind) then
     raise exception 'No map item %.', p_id using errcode = 'no_data_found';
   end if;
-  perform knowledge._context(w, p_reason, p_evidence, p_effective);
-  update knowledge.records set parent = p_parent, place = p_place
-   where id = p_id and (parent, place) is distinct from (p_parent, p_place)
-  returning version into v;
-  return jsonb_build_object('id', p_id, 'version', v);
+  if r.settled then
+    return knowledge._refuse(w, p_id, 'map_move', 'This record is settled: the PM has said do not re-raise it.');
+  end if;
+  return jsonb_build_object('id', p_id, 'version',
+    knowledge._map_reorder(w, p_id, p_parent, p_place, p_reason, p_evidence, p_effective));
 end $$;
 comment on function knowledge.map_move(text, text, integer, text, jsonb, timestamptz) is
-  'Moves a map item to a parent and place, with a reason: a new version of it. Operators only; no change, no version.';
+  'Moves a map item to a parent and place, with a reason: a new version of it, and its siblings renumbered in order. Operators only; a settled item is refused.';
 
 -- A line's items must be tasks or details of the slice's journey.
 create function knowledge._takes_problem(p_journey text, p_takes text[]) returns text
@@ -380,6 +416,9 @@ begin
   if j is null then
     raise exception 'No slice across a journey %.', p_slice using errcode = 'no_data_found';
   end if;
+  if (select settled from knowledge.records where id = p_slice) then
+    return knowledge._refuse(w, p_slice, 'map_retake', 'This record is settled: the PM has said do not re-raise it.');
+  end if;
   bad := knowledge._takes_problem(j, p_takes);
   if bad is not null then
     raise exception 'A slice takes tasks and details of its own journey; not %.', bad using errcode = 'check_violation';
@@ -433,21 +472,35 @@ begin
                                coalesce(p_clashes, '{}'), p_note) then
     return jsonb_build_object('item', p_item, 'on', p_on, 'unchanged', true);
   end if;
-  -- A stated place is not undone by a guess.
+  -- A stated place is not undone by a guess, and one an operator made is
+  -- changed only by an operator: built is derived from it.
   if cur.id is not null and cur.basis = 'stated' and coalesce(p_basis, 'stated') = 'inferred' then
     return jsonb_build_object('item', p_item, 'on', cur.on_id, 'kept', 'a stated place is not replaced by an inferred one');
   end if;
-  insert into knowledge.placements (item_id, on_id, basis, stands_on, needs_first, clashes, note, reason, person, agent)
+  if cur.id is not null and cur.by_operator and cur.basis = 'stated' and not w.operator then
+    return jsonb_build_object('item', p_item, 'on', cur.on_id,
+                              'kept', 'the PM placed it; only an operator moves it, so raise it with the PM');
+  end if;
+  insert into knowledge.placements (item_id, on_id, basis, stands_on, needs_first, clashes, note, reason, by_operator, person, agent)
   values (p_item, p_on, coalesce(p_basis, 'stated'), coalesce(p_stands_on, '{}'), coalesce(p_needs_first, '{}'),
-          coalesce(p_clashes, '{}'), p_note, p_reason, w.person, w.name)
+          coalesce(p_clashes, '{}'), p_note, p_reason, w.operator, w.person, w.name)
   returning id into new_id;
   return jsonb_build_object('item', p_item, 'on', p_on, 'placement', new_id);
 end $$;
 comment on function knowledge.place(text, text, text, text[], text[], text[], text, text) is
-  'Places a feature or an idea on a task or detail, or nowhere yet (null: "no journey yet"), with what it stands on, what must be built first and what it clashes with. Any key; a stated place is not replaced by an inferred one. The same place twice is one row.';
+  'Places a feature or an idea on a task or detail, or nowhere yet (null: "no journey yet"), with what it stands on, what must be built first and what it clashes with. Any key; a stated place is not replaced by an inferred one, and one an operator made only by an operator. The same place twice is one row.';
 
 -- ---------------------------------------------------------------------------
 -- Reads. Security invoker: row-level security decides what each key sees.
+
+-- What sits on a map item now: placements onto it that are still their
+-- item's latest. Read by the on_id index, not by scanning every placement.
+create function knowledge._placed_on(p_on text) returns setof knowledge.placements
+language sql stable set search_path = '' as $$
+  select p.* from knowledge.placements p
+   where p.on_id = p_on
+     and p.id = (select max(p2.id) from knowledge.placements p2 where p2.item_id = p.item_id)
+$$;
 
 -- Built, derived: 'built', 'partly' or 'not'. A detail or task is built when
 -- a shipped slice takes it or a shipped feature is placed on it, partly when a
@@ -468,12 +521,12 @@ begin
   if r.kind in ('task', 'detail') then
     own := case
       when exists (select 1 from knowledge.records s where s.kind = 'slice' and s.status = 'shipped' and p_id = any (s.takes))
-        or exists (select 1 from knowledge.current_placements p join knowledge.records f on f.id = p.item_id
-                    where p.on_id = p_id and f.kind = 'feature' and f.status = 'shipped')
+        or exists (select 1 from knowledge._placed_on(p_id) p join knowledge.records f on f.id = p.item_id
+                    where f.kind = 'feature' and f.status = 'shipped')
         then 'built'
       when exists (select 1 from knowledge.records s where s.kind = 'slice' and s.status = 'building' and p_id = any (s.takes))
-        or exists (select 1 from knowledge.current_placements p join knowledge.records f on f.id = p.item_id
-                    where p.on_id = p_id and f.kind = 'feature' and f.status = 'building')
+        or exists (select 1 from knowledge._placed_on(p_id) p join knowledge.records f on f.id = p.item_id
+                    where f.kind = 'feature' and f.status = 'building')
         then 'partly'
       else 'not' end;
     if r.kind = 'detail' or own = 'built' then
@@ -491,7 +544,8 @@ begin
                     from knowledge.records t
                    where t.status <> 'retired' and t.kind = 'task'
                      and (t.parent = p_id
-                          or (r.kind = 'journey' and t.parent in (select a.id from knowledge.records a where a.parent = p_id))));
+                          or (r.kind = 'journey' and t.parent in (select a.id from knowledge.records a
+                                                                    where a.parent = p_id and a.status <> 'retired'))));
     if cardinality(kids) = 0 then
       return 'not';
     end if;
@@ -545,7 +599,7 @@ language sql stable set search_path = '' as $$
       join me on s.kind = me.kind and s.status <> 'retired'
       left join knowledge.records a on me.kind = 'task' and a.id = s.parent
      where case when me.kind = 'task'
-                then a.parent = (select x.parent from knowledge.records x where x.id = me.parent)
+                then a.parent = (select x.parent from knowledge.records x where x.id = me.parent) and a.status <> 'retired'
                 else s.parent is not distinct from me.parent end
         or s.id = me.id
   )
@@ -573,12 +627,14 @@ language sql stable set search_path = '' as $$
     'features', coalesce((
       select jsonb_agg(jsonb_build_object('id', f.id, 'answer', f.answer, 'status', f.status, 'on', p.on_id, 'basis', p.basis)
                        order by f.id)
-        from knowledge.current_placements p join knowledge.records f on f.id = p.item_id
-       where f.kind = 'feature' and p.on_id in (select knowledge._map_below(r.id))), '[]'),
+        from knowledge._map_below(r.id) b cross join lateral knowledge._placed_on(b) p
+        join knowledge.records f on f.id = p.item_id
+       where f.kind = 'feature'), '[]'),
     'ideas', coalesce((
       select jsonb_agg(jsonb_build_object('id', c.id, 'answer', c.answer, 'status', c.status, 'on', p.on_id) order by c.id)
-        from knowledge.current_placements p join knowledge.records c on c.id = p.item_id
-       where c.kind = 'concept' and p.on_id in (select knowledge._map_below(r.id))), '[]'))
+        from knowledge._map_below(r.id) b cross join lateral knowledge._placed_on(b) p
+        join knowledge.records c on c.id = p.item_id
+       where c.kind = 'concept'), '[]'))
     from knowledge.records r
    where r.id = p_id and knowledge._is_map_kind(r.kind)
 $$;
@@ -632,7 +688,7 @@ language sql stable set search_path = '' as $$
   select s.id, s.kind, s.answer, s.matched, s.total
     from scored s
    where s.total > 0 and s.matched > 0 and s.matched * 2 >= s.total
-   order by s.matched desc, (s.kind = 'task') desc, s.id
+   order by s.matched desc, (s.kind = 'detail') desc, s.id
    limit greatest(1, least(coalesce(p_limit, 3), 10))
 $$;
 comment on function knowledge.fit(text, integer) is
@@ -662,28 +718,42 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Proposing a change shows the picture first.
 
-create function knowledge.map_propose(p_id text, p_changes jsonb, p_reason text) returns jsonb
+-- The proposal itself, written as the owner: every check here reads through
+-- can_see, so a key proposes only against what it can read.
+create function knowledge._map_propose(p_id text, p_changes jsonb, p_reason text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._writer();
   r knowledge.records;
-  pk text;
+  par knowledge.records;
   new_id bigint;
 begin
   select * into r from knowledge.records where id = p_id;
   if r.id is null or not knowledge._is_map_kind(r.kind) or not knowledge.can_see(r.audience, r.departments) then
     raise exception 'No map item %.', p_id using errcode = 'no_data_found';
   end if;
+  if r.settled then
+    return knowledge._refuse(w, p_id, 'map_propose', 'This record is settled: the PM has said do not re-raise it.');
+  end if;
   if p_changes is null or jsonb_typeof(p_changes) <> 'object' or p_changes = '{}'::jsonb
      or exists (select 1 from jsonb_object_keys(p_changes) x where x not in ('answer', 'why', 'parent', 'place', 'status')) then
     raise exception 'A change to a map item names answer, why, parent, place or status.' using errcode = 'undefined_column';
   end if;
   if p_changes ? 'parent' then
-    select kind into pk from knowledge.records where id = p_changes->>'parent';
-    if pk is distinct from knowledge._map_parent_kind(r.kind) then
-      raise exception 'A % sits under a %: % is not one.', r.kind, knowledge._map_parent_kind(r.kind), p_changes->>'parent'
-        using errcode = 'check_violation';
+    select * into par from knowledge.records where id = p_changes->>'parent';
+    if par.id is null or not knowledge.can_see(par.audience, par.departments)
+       or par.kind is distinct from knowledge._map_parent_kind(r.kind) then
+      raise exception 'A % sits under a %: % is not one.', r.kind, coalesce(knowledge._map_parent_kind(r.kind), 'nothing'),
+        p_changes->>'parent' using errcode = 'check_violation';
     end if;
+  end if;
+  if p_changes ? 'place' and (jsonb_typeof(p_changes->'place') <> 'number'
+                              or (p_changes->>'place')::numeric <> floor((p_changes->>'place')::numeric)
+                              or (p_changes->>'place')::numeric < 1) then
+    raise exception 'A place is a whole number, 1 or more.' using errcode = 'check_violation';
+  end if;
+  if p_changes ? 'answer' and coalesce(btrim(p_changes->>'answer'), '') = '' then
+    raise exception 'A map item has words.' using errcode = 'check_violation';
   end if;
   if p_changes ? 'status' and not (p_changes->>'status' = any (array['proposed', 'live', 'retired'])) then
     raise exception 'A map item is proposed, live or retired.' using errcode = 'check_violation';
@@ -691,21 +761,36 @@ begin
   if coalesce(btrim(p_reason), '') = '' then
     raise exception 'Every proposal gives a reason.' using errcode = 'check_violation';
   end if;
-  insert into knowledge.map_proposals (item_id, changes, reason, person, agent)
-  values (p_id, p_changes, p_reason, w.person, w.name) returning id into new_id;
-  return jsonb_build_object('proposal', new_id, 'changes', p_changes,
-                            'picture', knowledge.map_place(p_id),
-                            'moving_to', case when p_changes ? 'parent' then knowledge.map_place(p_changes->>'parent') end);
+  insert into knowledge.map_proposals (item_id, item_version, changes, reason, person, agent)
+  values (p_id, r.version, p_changes, p_reason, w.person, w.name) returning id into new_id;
+  return jsonb_build_object('proposal', new_id);
+end $$;
+
+-- The picture is drawn as the caller, so row-level security decides what it
+-- shows: a key never sees, through a proposal, what it could not read.
+create function knowledge.map_propose(p_id text, p_changes jsonb, p_reason text) returns jsonb
+language plpgsql security invoker set search_path = '' as $$
+declare
+  out jsonb := knowledge._map_propose(p_id, p_changes, p_reason);
+begin
+  if out ? 'refused' then
+    return out;
+  end if;
+  return out || jsonb_build_object('changes', p_changes,
+                                   'picture', knowledge.map_place(p_id),
+                                   'moving_to', case when p_changes ? 'parent' then knowledge.map_place(p_changes->>'parent') end);
 end $$;
 comment on function knowledge.map_propose(text, jsonb, text) is
-  'Proposes a change to a map item and answers with the picture before it is decided: the journey around it, the slices and features it touches, and what is built around it (and where it would move to). Any key.';
+  'Proposes a change to a map item and answers with the picture before it is decided, drawn as the caller: the journey around it, the slices and features it touches, and what is built around it (and where it would move to). Any key; a settled item is refused.';
 
 create function knowledge.map_decide(p_proposal bigint, p_accept boolean, p_reason text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
   w knowledge.agents := knowledge._map_writer();
   pr knowledge.map_proposals;
+  r knowledge.records;
   v integer;
+  ev jsonb;
 begin
   select * into pr from knowledge.map_proposals where id = p_proposal;
   if pr.id is null then
@@ -714,23 +799,40 @@ begin
   if exists (select 1 from knowledge.map_decisions d where d.proposal_id = p_proposal) then
     raise exception 'Proposal % is already decided.', p_proposal using errcode = 'unique_violation';
   end if;
+  select * into r from knowledge.records where id = pr.item_id for update;
+  if p_accept and r.settled then
+    return knowledge._refuse(w, pr.item_id, 'map_decide', 'This record is settled: the PM has said do not re-raise it.');
+  end if;
+  if p_accept and r.version <> pr.item_version then
+    raise exception '% has changed since proposal % was made (version % then, % now): propose it again against the picture as it is.',
+      pr.item_id, p_proposal, pr.item_version, r.version using errcode = 'serialization_failure';
+  end if;
   insert into knowledge.map_decisions (proposal_id, accepted, reason, person, agent)
   values (p_proposal, p_accept, p_reason, w.person, w.name);
   if p_accept then
-    perform knowledge._context(w, p_reason, jsonb_build_object('proposal', p_proposal, 'proposed_because', pr.reason), null);
-    update knowledge.records set
-      answer = coalesce(pr.changes->>'answer', answer),
-      why    = case when pr.changes ? 'why' then pr.changes->>'why' else why end,
-      parent = coalesce(pr.changes->>'parent', parent),
-      place  = coalesce((pr.changes->>'place')::integer, place),
-      status = coalesce(pr.changes->>'status', status)
-     where id = pr.item_id
-    returning version into v;
+    ev := jsonb_build_object('proposal', p_proposal, 'proposed_because', pr.reason);
+    if pr.changes ?| array['answer', 'why', 'status'] then
+      perform knowledge._context(w, p_reason, ev, null);
+      update knowledge.records set
+        answer = coalesce(pr.changes->>'answer', answer),
+        why    = case when pr.changes ? 'why' then pr.changes->>'why' else why end,
+        status = coalesce(pr.changes->>'status', status)
+       where id = pr.item_id
+      returning version into v;
+    end if;
+    if pr.changes ?| array['parent', 'place'] then
+      v := coalesce(knowledge._map_reorder(w, pr.item_id, coalesce(pr.changes->>'parent', r.parent),
+                                            case when pr.changes ? 'place' then (pr.changes->>'place')::integer
+                                                 when pr.changes ? 'parent' and pr.changes->>'parent' is distinct from r.parent then null
+                                                 else r.place end,
+                                            p_reason, ev, null), v);
+    end if;
   end if;
-  return jsonb_build_object('proposal', p_proposal, 'accepted', p_accept, 'id', pr.item_id, 'version', v);
+  return jsonb_build_object('proposal', p_proposal, 'accepted', p_accept, 'id', pr.item_id,
+                            'version', (select version from knowledge.records where id = pr.item_id));
 end $$;
 comment on function knowledge.map_decide(bigint, boolean, text) is
-  'Accepts or declines a proposed change to a map item, with a reason; accepting makes it a new version of the item. Operators only; once per proposal.';
+  'Accepts or declines a proposed change to a map item, with a reason; accepting makes it a new version of the item (a move renumbers its siblings). Operators only; once per proposal; refused for a settled item, and for one changed since the proposal.';
 
 -- ---------------------------------------------------------------------------
 -- Row-level security and grants.
@@ -738,8 +840,12 @@ comment on function knowledge.map_decide(bigint, boolean, text) is
 alter table knowledge.placements    enable row level security;
 alter table knowledge.map_proposals enable row level security;
 alter table knowledge.map_decisions enable row level security;
+-- Both ends visible, as links are. The lists (stands_on, needs_first,
+-- clashes) may name records too: the lookup verbs show only those the key
+-- can read.
 create policy placements_of_visible_records on knowledge.placements for select to knowledge_store
-  using (exists (select 1 from knowledge.records r where r.id = item_id));
+  using (exists (select 1 from knowledge.records r where r.id = item_id)
+         and (on_id is null or exists (select 1 from knowledge.records r where r.id = on_id)));
 create policy map_proposals_of_visible_records on knowledge.map_proposals for select to knowledge_store
   using (exists (select 1 from knowledge.records r where r.id = item_id));
 create policy map_decisions_of_visible_proposals on knowledge.map_decisions for select to knowledge_store
@@ -753,14 +859,16 @@ grant select on knowledge.placements, knowledge.map_proposals, knowledge.map_dec
 revoke all on function
   knowledge._map_parent_kind(text), knowledge._is_map_kind(text), knowledge._maps_before(),
   knowledge._map_writer(), knowledge._next_place(text, text), knowledge._takes_problem(text, text[]),
+  knowledge._map_reorder(knowledge.agents, text, text, integer, text, jsonb, timestamptz),
   knowledge.map_item(jsonb, text, jsonb, timestamptz),
   knowledge.map_move(text, text, integer, text, jsonb, timestamptz),
   knowledge.map_slice(text, text, text[], text, integer, text, text, text, text[], jsonb, timestamptz),
   knowledge.map_retake(text, text[], text, jsonb, timestamptz),
   knowledge.place(text, text, text, text[], text[], text[], text, text),
   knowledge.built(text), knowledge._map_line(knowledge.records), knowledge._map_path(text), knowledge._map_below(text),
-  knowledge._map_beside(text, integer),
+  knowledge._map_beside(text, integer), knowledge._placed_on(text),
   knowledge.map_place(text), knowledge.map_of(text), knowledge.fit(text, integer), knowledge.fit_rules(text, integer),
+  knowledge._map_propose(text, jsonb, text),
   knowledge.map_propose(text, jsonb, text), knowledge.map_decide(bigint, boolean, text)
   from public, anon, authenticated, service_role;
 
@@ -772,7 +880,8 @@ grant execute on function
   knowledge.map_retake(text, text[], text, jsonb, timestamptz),
   knowledge.place(text, text, text, text[], text[], text[], text, text),
   knowledge.built(text), knowledge._map_line(knowledge.records), knowledge._map_path(text), knowledge._map_below(text),
-  knowledge._map_beside(text, integer),
+  knowledge._map_beside(text, integer), knowledge._placed_on(text),
   knowledge.map_place(text), knowledge.map_of(text), knowledge.fit(text, integer), knowledge.fit_rules(text, integer),
+  knowledge._map_propose(text, jsonb, text),
   knowledge.map_propose(text, jsonb, text), knowledge.map_decide(bigint, boolean, text)
   to knowledge_store;

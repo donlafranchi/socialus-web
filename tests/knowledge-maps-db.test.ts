@@ -7,5 +7,7 @@ runSqlSuite({
   file: 'knowledge_maps.sql',
   title: 'F132: story maps in the store',
   claim: 'a journey, its activities, tasks and details are records that know their place, slices cross them and new ideas find where they fit',
-  atLeast: 7,
+  atLeast: 8,
+  // The preamble's role grant waits while the import test holds its transaction.
+  timeout: 30_000,
 })

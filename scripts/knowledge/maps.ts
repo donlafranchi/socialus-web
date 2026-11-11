@@ -183,6 +183,9 @@ export interface MapSources {
 /** As the store's login, holding an operator key: bring the story maps in. */
 export async function loadMaps(db: ClientBase, src: MapSources): Promise<MapSummary> {
   const sum: MapSummary = { items: 0, slices: 0, features: 0, placed: 0, noJourneyYet: 0, unplaced: [], problems: [] }
+  // An empty source is a wrong path, not an empty plan: say so.
+  if (!src.walkthroughs.length) sum.problems.push('no walk-throughs found (planning/uat-journeys.json): none became journeys')
+  if (!src.rollup.length) sum.problems.push('no built features found (build-log/reports/rollup.json): none were recorded')
 
   for (const j of src.seed.journeys) await loadJourney(db, j, SEED_SOURCE, sum)
   for (const w of src.walkthroughs) await loadJourney(db, walkthroughJourney(w), WALK_SOURCE, sum)

@@ -82,6 +82,14 @@ begin
   assert v = 2, format('a move is not a new version: %s', v);
   assert (select reason from knowledge.history where record_id = 'JT.A1.T1.D2' and version = 2) = 'Members asked for the map first',
     'a move does not keep its why';
+  -- Moved to the top, it reads first, and the one it passed moves down.
+  assert (select array_agg(d->>'id') from jsonb_array_elements(knowledge.map_of('JT')->'activities'->0->'tasks'->0->'details') d)
+         = array['JT.A1.T1.D2', 'JT.A1.T1.D1'], 'a move to the top did not change the order';
+  assert (select place from knowledge.records where id = 'JT.A1.T1.D1') = 2, 'the sibling it passed did not move down';
+  -- A settled item is not moved, and the attempt is kept.
+  perform knowledge.set_settled('JT.A1.T1.D1', true, 'F132 test: do not re-raise');
+  assert knowledge.map_move('JT.A1.T1.D1', 'JT.A1.T1', 1, 't') ? 'refused', 'a settled item was moved';
+  assert exists (select 1 from knowledge.refusals where record_id = 'JT.A1.T1.D1' and action = 'map_move'), 'the refusal was not kept';
   perform pg_temp.act('build');
   assert pg_temp.refused($q$select knowledge.map_item('{"kind":"task","parent":"JT.A1","answer":"x","status":"live"}', 't')$q$) like 'Any key may propose%',
     'a builder recorded a live task';
@@ -158,10 +166,27 @@ begin
   perform knowledge.map_decide(pid, true, 'Yes');
   assert (select answer from knowledge.records where id = 'JT.A1.T1.D1') like '%with a time', 'an accepted proposal was not applied';
   assert pg_temp.refused(format('select knowledge.map_decide(%s, false, %L)', pid, 't')) like '%already decided%', 'a proposal was decided twice';
-  -- A move proposal also shows where it would go.
+  -- A move proposal also shows where it would go, and lands last there.
   out := knowledge.map_propose('JT.A1.T2', '{"parent":"JT.A2"}', 'Narrowing is part of committing');
   assert out->'moving_to'->'item'->>'id' = 'JT.A2', 'a move proposal does not show where it would go';
+  perform knowledge.map_decide((out->>'proposal')::bigint, true, 'Yes');
+  assert (select (parent, place) = ('JT.A2', 2) from knowledge.records where id = 'JT.A1.T2'), 'a moved task did not land last under its new parent';
   assert pg_temp.refused($q$select knowledge.map_propose('JT.A1.T2', '{"parent":"JT"}', 't')$q$) is not null, 'a task was proposed under a journey';
+  assert pg_temp.refused($q$select knowledge.map_propose('JT.A1.T1', '{"place":"first"}', 't')$q$) like 'A place is a whole number%', 'a place in words was proposed';
+  assert pg_temp.refused($q$select knowledge.map_propose('JT.A1.T1', '{"place":0}', 't')$q$) like 'A place is a whole number%', 'place 0 was proposed';
+  -- A proposal accepted after the item changed is refused, not applied over the change.
+  out := knowledge.map_propose('JT.A2.T1', '{"answer":"Say I am in"}', 'Shorter');
+  perform knowledge.revise('JT.A2.T1', '{"answer":"Say I will be there"}', 'meanwhile');
+  assert pg_temp.refused(format('select knowledge.map_decide(%s, true, %L)', out->>'proposal', 't')) like '%has changed since%',
+    'a stale proposal was applied';
+  -- A settled item is not re-raised by a proposal, nor changed by one accepted.
+  out := knowledge.map_propose('JT.A2.T1.D2', '{"answer":"Calendar"}', 'Shorter');
+  perform knowledge.set_settled('JT.A2.T1.D2', true, 'do not re-raise');
+  assert knowledge.map_decide((out->>'proposal')::bigint, true, 'Yes') ? 'refused', 'a settled item was changed by a proposal';
+  assert knowledge.map_propose('JT.A2.T1.D2', '{"answer":"x"}', 't') ? 'refused', 'a settled item was proposed against';
+  assert knowledge.map_retake('JT-S1', '{}', 't') is not null, 'retake';
+  perform knowledge.set_settled('JT-S2', true, 'do not re-raise');
+  assert knowledge.map_retake('JT-S2', '{}', 't') ? 'refused', 'a settled slice''s line moved';
 end $$;
 
 -- test: a new idea in plain words names the task it would sit under, or no journey yet
@@ -188,6 +213,32 @@ begin
   perform knowledge.place('F990', 'JT.A2.T1', 'a guess', '{}', '{}', '{}', 'inferred');
   assert (select on_id from knowledge.current_placements where item_id = 'F990') = 'JT.A1.T1.D1', 'a guess replaced a stated place';
   assert pg_temp.refused($q$select knowledge.place('F990', 'JT.A1', 'x')$q$) like '%sits on a task or a detail%', 'a feature sat on an activity';
+end $$;
+
+-- test: a proposal's picture, and a placement, show a key only what it can read; the PM's place moves only by an operator
+do $$
+declare
+  out jsonb;
+begin
+  perform knowledge.record('{"id":"F980","kind":"feature","answer":"Secret ops feature","status":"shipped","audience":"operators"}', 't');
+  perform knowledge.place('F980', 'JT.A2.T1.D2', 'ops only');
+  perform knowledge.map_item('{"id":"JH","kind":"journey","answer":"Hidden journey","status":"live"}', 't');
+  perform knowledge.revise('JH', '{"audience":"operators","departments":[]}', 'ops only');
+  perform knowledge.map_item('{"id":"JH.A1","kind":"activity","parent":"JH","answer":"Hidden","status":"live"}', 't');
+  perform knowledge.revise('JH.A1', '{"audience":"operators","departments":[]}', 'ops only');
+  perform knowledge.map_item('{"id":"JH.A1.T1","kind":"task","parent":"JH.A1","answer":"Hidden task","status":"live"}', 't');
+  perform knowledge.revise('JH.A1.T1', '{"audience":"operators","departments":[]}', 'ops only');
+  perform knowledge.place('F991', 'JH.A1.T1', 'ops place on a hidden task');
+  perform pg_temp.act('build');
+  out := knowledge.map_propose('JT.A2.T1', '{"answer":"x"}', 'x');
+  assert not (out->'picture'->'features') @> '[{"id":"F980"}]', format('a proposal showed a builder a hidden feature: %s', out->'picture'->'features');
+  assert jsonb_array_length(out->'picture'->'features') = 1, 'the visible feature is missing from the picture';
+  assert pg_temp.refused($q$select knowledge.map_propose('JT.A1.T2', '{"parent":"JH.A1"}', 'x')$q$) is not null,
+    'a move under a hidden activity was proposed';
+  assert not exists (select 1 from knowledge.placements where on_id = 'JH.A1.T1'), 'a placement named a hidden task';
+  -- The PM's stated place is kept against a builder's.
+  assert knowledge.place('F990', null, 'builder says no journey') ? 'kept', 'a builder moved the PM''s placement';
+  assert knowledge.built('JT.A1.T1') = 'built', 'a builder''s placement flipped built';
 end $$;
 
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map

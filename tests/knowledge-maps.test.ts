@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { Pool, type PoolClient } from 'pg'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { enterStore } from '../scripts/knowledge/import'
 import {
-  readMapSeed, readRollup, rollupStatus, walkthroughJourney, inferPlace, loadMaps,
+  readMapSeed, readRollup, readWalkthroughs, rollupStatus, walkthroughJourney, inferPlace, loadMaps,
   type Walkthrough, type MapSummary, type RollupFeature,
 } from '../scripts/knowledge/maps'
 import { runTool } from '@/lib/knowledge/tools'
@@ -88,11 +90,21 @@ const RUNNABLE = requireRunnable({
   remedy: `${safety.reason} Recipe in .env.local.example`,
 })
 
-describe.skipIf(!RUNNABLE)('F132: story maps in the store', () => {
+
+// The real walk-throughs too, from socialus-plan (pinned in CI, the sibling
+// repo locally), so a wrong path or a changed file shape goes red. Loaded in
+// the same transaction as the fixture: one held transaction, not two, since
+// every suite's role grant waits on it.
+const PLAN = resolve(process.env.KNOWLEDGE_PLAN_DIR ?? '../socialus-plan')
+const HAVE_WALKS = existsSync(resolve(PLAN, 'planning/uat-journeys.json'))
+const walks = HAVE_WALKS ? readWalkthroughs(PLAN) : []
+
+describe.skipIf(!RUNNABLE)('F132: story maps in the store', { timeout: 30_000 }, () => {
   let pool: Pool
   let db: PoolClient
   let first: MapSummary
   let second: MapSummary
+  let real: MapSummary
   const tool = async (name: string, args: Record<string, unknown>) => (await runTool(db, name, args)).text
 
   beforeAll(async () => {
@@ -101,9 +113,10 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', () => {
     await db.query('begin')
     await enterStore(db, 'maps-test')
     // The ideas, as the concepts import records them: by name, in order.
-    for (const idea of Object.values(seed.ideas)) {
+    // Given ids, so no id is drawn from the shared counter while other suites run.
+    for (const [n, idea] of Object.values(seed.ideas).entries()) {
       await db.query('select knowledge.record($1::jsonb, $2)', [
-        JSON.stringify({ kind: 'concept', answer: idea.name, status: 'idea', audience: 'department', departments: ['building'] }),
+        JSON.stringify({ id: `CO-${9000 + n}`, kind: 'concept', answer: idea.name, status: 'idea', audience: 'department', departments: ['building'] }),
         'F132 test',
       ])
     }
@@ -111,7 +124,8 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', () => {
     await db.query(`select knowledge.record('{"id":"F995","kind":"feature","answer":"Something planned","status":"approved","audience":"department","departments":["building"]}', 't')`)
     first = await loadMaps(db, { seed, walkthroughs: WALKS, rollup })
     second = await loadMaps(db, { seed, walkthroughs: WALKS, rollup })
-  })
+    if (HAVE_WALKS) real = await loadMaps(db, { seed, walkthroughs: walks, rollup })
+  }, 60_000)
 
   afterAll(async () => {
     await db?.query('rollback').catch(() => {})
@@ -137,9 +151,11 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', () => {
     expect(m.slices[0].takes).toEqual(['JY-WEEKEND.A1.T1.D1', 'JY-WEEKEND.A2.T1.D1', 'JY-WEEKEND.A3.T1.D1', 'JY-WEEKEND.A4.T1.D1', 'JY-WEEKEND.A5.T1.D1'])
   })
 
-  // [guards F132.6 partial: the walk-throughs are a fixture here; the real file is read by the import job]
   it('brings today in: walk-throughs become journeys, every built feature and every idea is placed', async () => {
     expect(first.problems).toEqual([])
+    expect(await loadMaps(db, { seed, walkthroughs: [], rollup })).toMatchObject({
+      problems: ['no walk-throughs found (planning/uat-journeys.json): none became journeys'],
+    })
     const { rows: walks } = await db.query<{ id: string; tasks: number }>(
       `select j.id, (select count(*) from knowledge.records t where t.parent = j.id || '.A1')::int as tasks
          from knowledge.records j where j.id in ('JY-J90', 'JY-J91') order by j.id`,
@@ -200,11 +216,16 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', () => {
     expect(lines[0]).toBe('"Holiday specials up front" fits under "Find out" in the journey "A neighbour finds something happening this weekend and goes", next to "Open the app and see this weekend nearby".')
     expect(lines[1]).toMatch(/^Stands on: a Page owner announces something, with a time on it \(/)
     expect(lines[2]).toBe('Must be built first: A "special" kind of post')
-    expect(lines[3]).toBe('Clashes with: nothing on record')
+    expect(lines[3]).toBe('Clashes with: nothing, as judged when it was placed')
     const none = await tool('fits', { idea: 'a chess ladder for retirees' })
     expect(none).toMatch(/^"a chess ladder for retirees": no journey yet/)
-    const guessed = await tool('fits', { idea: 'add to calendar' })
-    expect(guessed).toMatch(/fits under "Commit"/)
+    // A new idea nobody placed: where it fits, what is built there, what is not, and the live rules it may clash with.
+    await db.query(`select knowledge.record('{"id":"PH-9001","kind":"philosophy","answer":"A calendar belongs to the member: nothing is added to it without asking","why":"Trust.","status":"live","audience":"department","departments":["building"]}', 'F132 test')`)
+    const guessed = (await tool('fits', { idea: 'add to calendar' })).split('\n')
+    expect(guessed[0]).toBe('"add to calendar" fits under "Commit" in the journey "A neighbour finds something happening this weekend and goes", next to "Add to calendar".')
+    expect(guessed[1]).toMatch(/^Stands on: /)
+    expect(guessed[2]).toMatch(/^Must be built first: nothing named; not built there yet: /)
+    expect(guessed[3]).toBe('Clashes with: not judged yet; may clash with: A calendar belongs to the member: nothing is added to it without asking')
   })
 
   // [guards F132.8]
@@ -218,4 +239,26 @@ describe.skipIf(!RUNNABLE)('F132: story maps in the store', () => {
       expect(t, `${name} ${JSON.stringify(args)}`).not.toMatch(/\bF\d{3}\b|CO-\d{4}|#\d+/)
     }
   })
+
+  // [guards F132.6]
+  it('each walk-through is a journey, each built feature sits on a task or says no journey yet, each idea is placed', async () => {
+    expect(HAVE_WALKS, `planning/uat-journeys.json in a socialus-plan checkout at ${PLAN} (set KNOWLEDGE_PLAN_DIR)`).toBe(true)
+    expect(walks.length).toBeGreaterThan(0)
+    expect(real.problems).toEqual([])
+    const { rows } = await db.query<{ id: string; tasks: number }>(
+      `select j.id, (select count(*) from knowledge.records t where t.parent = j.id || '.A1' and t.kind = 'task')::int as tasks
+         from knowledge.records j where j.kind = 'journey' and j.id = any($1::text[]) order by j.id`,
+      [walks.map((w) => `JY-${w.id}`)],
+    )
+    expect(rows).toEqual(walks.map((w) => ({ id: `JY-${w.id}`, tasks: w.look.length })).sort((a, b) => a.id.localeCompare(b.id)))
+    const { rows: unplaced } = await db.query<{ f: string }>(
+      `select f from unnest($1::text[]) f where not exists (select 1 from knowledge.current_placements p where p.item_id = f) order by f`,
+      [rollup.map((f) => f.feature)],
+    )
+    expect(unplaced).toEqual([])
+    const { rows: ideas } = await db.query<{ n: number }>(
+      `select count(*)::int as n from knowledge.current_placements p join knowledge.records c on c.id = p.item_id where c.kind = 'concept'`,
+    )
+    expect(ideas[0].n).toBe(Object.keys(seed.ideas).length)
+  }, 30_000)
 })
