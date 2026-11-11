@@ -4,7 +4,7 @@
   "concepts": [
     {
       "id": "CO-0001",
-      "title": "Bulletins, then Announcement, then Post (one id, three names)",
+      "title": "**Bulletins, then Announcement, then Post** (one id, three names)",
       "status": "built",
       "concern": "posts",
       "why": "A Page reaching its followers. What survived: the intent, a Page reaching its followers, came back as push. The word, the table and the tracking did not. Two needs docs still say \"Bulletins, cut\".",
@@ -74,7 +74,7 @@
     },
     {
       "id": "CO-0002",
-      "title": "Open your town (one id, three names: market unlock, metro waitlist, Open your town)",
+      "title": "**Open your town** (one id, three names)",
       "status": "deferred",
       "concern": null,
       "why": "Communities open their own town by meeting public thresholds. What survived: most of the June idea came back, with the numbers ten times larger and no organizer role. F118 does not link back to June.",

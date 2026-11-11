@@ -370,7 +370,7 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
       await q(db, 'select knowledge.record($1::jsonb, $2, $3::jsonb, $4::timestamptz) as r', [
         JSON.stringify({ id: c.id, kind: 'concept', concern: c.concern ?? undefined, answer, why: c.why, status: c.status,
                          source: SEED_SOURCE, ...AUDIENCE }),
-        `Imported: ${c.title}, as traced in ${src.seed.brief}.`,
+        `Imported: ${c.title.replace(/\*\*/g, '')}, as traced in ${src.seed.brief}.`,
         JSON.stringify({ repo: 'socialus-web', commit: src.commits?.web ?? null, file: 'scripts/knowledge/concepts-seed.json' }),
         firstOn,
       ])
