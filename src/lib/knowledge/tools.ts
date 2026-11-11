@@ -326,11 +326,11 @@ export const TOOLS: KnowledgeTool[] = [
           isError: true,
         }
       }
-      if (out.lines.length === 0) {
-        return { text: `No live practice for ${out.areas.map((a) => a.name.toLowerCase()).join(', ')} that this key can read.` }
-      }
       const parts: string[] = []
-      if (out.absolutes.length) {
+      if (out.lines.length === 0) {
+        parts.push(`No live practice for ${out.areas.map((a) => a.name.toLowerCase()).join(', ')} that this key can read.`)
+      }
+      if (out.absolutes.length && out.lines.length) {
         parts.push(`Absolutes, which bind every area:\n${out.absolutes.map((x) => `- ${x.id}: ${x.answer}`).join('\n')}`)
       }
       for (const a of out.areas) {
@@ -346,6 +346,10 @@ export const TOOLS: KnowledgeTool[] = [
               })
               .join('\n'),
         )
+      }
+      // The review-a-method steps are a procedure, not a line: point at the verb that returns them.
+      if (out.areas.some((a) => a.slug === 'how-agents')) {
+        parts.push(`To review a new method against all of this: call review_method (${REVIEW_METHOD_ID}).`)
       }
       return { text: parts.join('\n\n') }
     },

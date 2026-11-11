@@ -147,6 +147,12 @@ begin
   if p.id is null or p.kind <> 'practice' or not knowledge.can_see(p.audience, p.departments) then
     raise exception 'An experiment changes a practice; % is not one.', p_practice using errcode = 'check_violation';
   end if;
+  -- Terms are set once, so only whoever may judge the experiment sets them:
+  -- an operator, or the person whose experiment it is.
+  if not w.operator and e.decided_by is distinct from w.person then
+    raise exception 'Only an operator, or whoever recorded %, sets its terms: they are set once.', p_experiment
+      using errcode = 'insufficient_privilege';
+  end if;
   select * into t from knowledge.experiment_terms where experiment_id = p_experiment;
   if t.experiment_id is not null then
     if (t.practice_id, t.baseline, t.measure, t.verdict_on)
@@ -165,6 +171,24 @@ begin
 end $$;
 comment on function knowledge.set_experiment_terms(text, text, text, text, date) is
   'Sets an experiment''s terms once: the practice it changes (and the changes link), its baseline, its measure and its verdict date. The same terms again change nothing; different ones are refused.';
+
+-- `changes` runs from an experiment to the practice its terms name, and
+-- nothing else: set_experiment_terms writes the terms first, then the link.
+create function knowledge._changes_link() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if new.type <> 'changes' then
+    return new;
+  end if;
+  if not exists (select 1 from knowledge.experiment_terms t
+                  where t.experiment_id = new.from_id and t.practice_id = new.to_id) then
+    raise exception 'A changes link runs from an experiment to the practice its terms name; set it with knowledge.set_experiment_terms.'
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end $$;
+create trigger links_changes before insert on knowledge.links
+  for each row execute function knowledge._changes_link();
 
 -- ---------------------------------------------------------------------------
 -- Confirming a practice: the monthly upkeep reads how long since.
@@ -217,6 +241,7 @@ language sql stable set search_path = '' as $$
                 where l.from_id = r.id and l.type = 'applies' order by l.to_id)
     from knowledge.records r
    where r.kind = 'practice' and r.status = 'live'
+     and r.id <> 'practice.review-a-method'  -- the steps, not a line: the review_method verb returns them
      and r.concern = any (knowledge.areas_for(p_question))
    order by r.concern,
             array_position(array['absolute','rule','guideline'], r.strength),
@@ -305,7 +330,7 @@ begin
   end if;
   if not w.operator then
     if pm_only and the_status = 'live' then
-      raise exception 'Philosophies, patterns and new-territory decisions go live only when the PM decides.'
+      raise exception 'Philosophies, patterns, practices and new-territory decisions go live only when the PM decides.'  -- F128: practices
         using errcode = 'insufficient_privilege';
     end if;
     if p ? 'decided_by' or p ? 'decided_on' then
@@ -447,7 +472,7 @@ create policy experiment_terms_of_visible_experiments on knowledge.experiment_te
 
 revoke all on knowledge.area_words, knowledge.experiment_terms from public, anon, authenticated, service_role;
 revoke all on function
-  knowledge._practices_before(),
+  knowledge._practices_before(), knowledge._changes_link(),
   knowledge.set_experiment_terms(text, text, text, text, date),
   knowledge.confirm(text, text),
   knowledge.areas_for(text), knowledge.how(text), knowledge.practice_upkeep(date)

@@ -40,6 +40,12 @@ select knowledge.record(
   '{"id":"practice.t-words","kind":"practice","concern":"how-words","scope":"process","answer":"No em dashes.","why":"The PM reads them as machine voice.","strength":"absolute","ring":"adopt","enforced_by":"socialus-ops:process/WORDS.md","audience":"members","as_of":"2026-11-01"}',
   'F128 test', null, null);
 select knowledge.link('practice.t-review', 't-ph', 'applies');
+select knowledge.record(
+  '{"id":"practice.review-a-method","kind":"practice","concern":"how-agents","scope":"process","answer":"1. List the claims. 2. Place each. 3. Weigh. 4. One experiment. 5. Say what was not read.","why":"One session, no research.","strength":"rule","ring":"trial","audience":"members","as_of":"2026-11-10"}',
+  'F128 test', null, null);
+select knowledge.record(
+  '{"id":"practice.t-loop","kind":"practice","concern":"how-agents","scope":"process","answer":"One loop per Issue.","why":"Lanes cost hand-offs.","strength":"rule","ring":"adopt","audience":"members","as_of":"2026-11-01"}',
+  'F128 test', null, null);
 
 -- test: a practice comes in with scope process, its why, its dated failure as evidence, its strength, its enforcing check and a ring
 -- [guards F128.1 partial: reading each rule out of socialus-ops and the CLAUDE.md files, tested in tests/knowledge-practices.test.ts]
@@ -94,6 +100,8 @@ begin
     'an area answers to its own name';
   assert (select count(*) from knowledge.how('the weather')) = 0, 'a question naming no area returns nothing';
   assert knowledge.areas_for('the agent loop') = array['how-agents'], 'the agent loop points at how the agents run';
+  select array_agg(h.id order by h.id) into ids from knowledge.how('the agent loop') h;
+  assert ids = array['practice.t-loop'], format('the review steps are not a line of the answer, got %s', ids);
 end $$;
 
 -- test: moving a ring writes a new version with its why, and only the PM moves one
@@ -134,6 +142,15 @@ begin
     like '%set once%', 'the terms do not move';
   assert pg_temp.refused(format($q$select knowledge.set_experiment_terms(%L, 't-ph', 'b', 'm', '2027-01-01')$q$, e))
     is not null, 'an experiment changes a practice, not a philosophy';
+  assert pg_temp.refused(format($q$select knowledge.link(%L, 'practice.t-review', 'changes')$q$, e))
+    like '%practice its terms name%', 'a second changes link, to a practice the terms do not name, is refused';
+  assert pg_temp.refused($q$select knowledge.link('t-ph', 'practice.t-review', 'changes')$q$)
+    like '%practice its terms name%', 'a changes link from anything but an experiment is refused';
+  perform knowledge.record('{"id":"experiment.t-pms","kind":"experiment","scope":"process","answer":"The PM''s.","audience":"members"}', 'F128 test', null, null);
+  perform pg_temp.act('build');
+  assert pg_temp.refused($q$select knowledge.set_experiment_terms('experiment.t-pms', 'practice.t-push', 'b', 'm', '2027-01-01')$q$)
+    like '%Only an operator, or whoever recorded%', 'a builder cannot set the terms of the PM''s experiment';
+  perform pg_temp.act('ops');
   perform knowledge.revise(e, '{"status":"keep"}', 'Green to merge fell to one day.', null, null);
   assert (select status from knowledge.records where id = e) = 'keep', 'the verdict is the status';
   assert pg_temp.refused(format($q$select knowledge.revise(%L, '{"status":"maybe"}', 'why', null, null)$q$, e))
@@ -154,7 +171,8 @@ begin
   assert found = array['experiment.t-late', 'experiment.t-undated'],
     format('the late experiment and the one with no verdict date on 2026-11-20, got %s', found);
   select array_agg(u.id order by u.id) into found from knowledge.practice_upkeep('2027-02-15') u;
-  assert found = array['experiment.t-late', 'experiment.t-undated', 'practice.t-push', 'practice.t-review', 'practice.t-words'],
+  assert found = array['experiment.t-late', 'experiment.t-undated', 'practice.review-a-method', 'practice.t-loop', 'practice.t-push',
+                       'practice.t-review', 'practice.t-words'],
     format('every practice 90 days unconfirmed by 2027-02-15, got %s', found);
   perform knowledge.confirm('practice.t-words', 'Still how we write.');
   assert (select as_of from knowledge.records where id = 'practice.t-words') = current_date, 'confirming dates it today';

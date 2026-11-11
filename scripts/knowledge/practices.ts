@@ -12,6 +12,12 @@
 // (a decision whose id is its slug): it is counted and left to that record,
 // which the how verb and the pack show above every area.
 //
+// THE STORE'S OWN CHANGES STAND. A ring moved, a strength changed or a
+// verdict given in the store is not undone by the next import: a field is
+// revised only when the seed's value changed since the last import wrote it
+// (read from that import's version in history), never when only the store's
+// value moved. A seed with no verdict never sets one back to running.
+//
 // RE-RUNNABLE. A seeded practice is `practice.<slug>`, an experiment
 // `experiment.<slug>`: a second run on an unchanged seed records nothing, and
 // a changed field is revised in place as a new version. A practice gone from
@@ -126,6 +132,8 @@ export interface PracticeSummary {
   unchanged: number
   experiments: number
   verdicts: number
+  /** Experiments whose terms were set by this run. */
+  terms: number
   /** Absolutes in the seed, already in the store as absolute decisions: not copied. */
   absolutes: string[]
   links: number
@@ -181,6 +189,17 @@ export function wantedPractice(p: SeedPractice): Record<string, unknown> {
   }
 }
 
+/** The record as the last import of the seed left it: the newest version an import of this loader wrote. */
+async function lastImported(db: ClientBase, id: string): Promise<Record<string, unknown> | null> {
+  const { rows } = await db.query<{ snapshot: Record<string, unknown> }>(
+    `select snapshot from knowledge.history
+      where record_id = $1 and (reason like 'Imported from %' or reason like 'Re-imported:%' or reason like 'Imported verdict %')
+      order by version desc limit 1`,
+    [id],
+  )
+  return rows[0]?.snapshot ?? null
+}
+
 async function upsert(
   db: ClientBase,
   id: string,
@@ -212,8 +231,12 @@ async function upsert(
     sum.problems.push(`${id} is already in the store as a ${have.kind}; it is left as it is`)
     return
   }
+  // Only what the seed changed since the last import; a change made in the store stands.
+  const last = (await lastImported(db, id)) ?? (have as unknown as Record<string, unknown>)
   const changes: Record<string, unknown> = {}
-  for (const [k, v] of Object.entries(want)) if ((have as unknown as Record<string, unknown>)[k] !== v) changes[k] = v
+  for (const [k, v] of Object.entries(want)) {
+    if ((last[k] ?? null) !== v && (have as unknown as Record<string, unknown>)[k] !== v) changes[k] = v
+  }
   if (!Object.keys(changes).length) {
     sum.unchanged++
     return
@@ -243,6 +266,7 @@ export async function loadPractices(db: ClientBase, src: PracticeSources): Promi
     unchanged: 0,
     experiments: 0,
     verdicts: 0,
+    terms: 0,
     absolutes: [],
     links: 0,
     goneFromSeed: [],
@@ -358,15 +382,17 @@ export async function loadPractices(db: ClientBase, src: PracticeSources): Promi
       ]).catch((err: Error) => {
         throw new Error(`${id}: ${err.message}`)
       })
-      if (!terms.unchanged && have) sum.problems.push(`${id}: its terms were set for the first time on a re-import`)
+      if (!terms.unchanged) sum.terms++
     }
-    const status = e.verdict ?? 'running'
+    // A verdict comes in only when the seed gives a new one; a verdict given
+    // in the store stands, and no verdict never means back to running.
+    const last = have ? ((await lastImported(db, id))?.status ?? 'running') : 'running'
     const current = have?.status ?? 'running'
-    if (status !== current) {
+    if (e.verdict && e.verdict !== last && e.verdict !== current) {
       const r = await q<{ refused?: string }>(db, 'select knowledge.revise($1, $2::jsonb, $3) as r', [
         id,
-        JSON.stringify({ status }),
-        `Verdict ${status}, from ${e.source}.`,
+        JSON.stringify({ status: e.verdict }),
+        `Imported verdict ${e.verdict}, from ${e.source}.`,
       ])
       if (r.refused) sum.problems.push(`${id}: ${r.refused}`)
       else sum.verdicts++
@@ -389,8 +415,8 @@ export function practiceReport(s: PracticeSummary): string[] {
     '',
     '### How we work (F128)',
     `- Practices recorded: ${s.recorded}, revised: ${s.revised}, unchanged: ${s.unchanged}`,
-    `- Experiments recorded: ${s.experiments}, verdicts recorded: ${s.verdicts}`,
-    `- Absolutes linked, not copied: ${s.absolutes.length}`,
+    `- Experiments recorded: ${s.experiments}, verdicts recorded: ${s.verdicts}, terms set: ${s.terms}`,
+    `- Absolutes left to their own records, not copied: ${s.absolutes.length}`,
     `- Links to philosophies: ${s.links}`,
     ...(s.goneFromSeed.length
       ? ['- Gone from the seed, left live for the PM to retire or keep:', ...s.goneFromSeed.map((g) => `  - ${g}`)]

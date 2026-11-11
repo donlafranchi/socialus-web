@@ -163,7 +163,7 @@ describe.skipIf(!existsSync(PRACTICE_SEED_PATH))('the real seed', () => {
 })
 
 describe('drift', () => {
-  // [guards F128.3]
+  // [guards F128.3 partial: the weekly schedule and the Issue it opens, which only the workflow does]
   it('flags a practice whose enforcing check is gone, and never one in a repo it cannot see', () => {
     const web = mkdtempSync(join(tmpdir(), 'f128-web-'))
     writeFileSync(join(web, 'REVIEW.md'), '# Review\n')
@@ -239,6 +239,21 @@ describe.skipIf(!RUNNABLE)('F128: how we work loaded into the store', () => {
     expect(rows[1].reason).toMatch(/ring changed/)
   })
 
+  // [guards F128.5 partial: the store's refusals, in supabase/tests/knowledge_practices.sql]
+  it('a ring moved or a verdict given in the store stands through the next import of an unchanged seed', async () => {
+    await db.query(`select knowledge.revise('practice.t-second-review', '{"ring":"hold"}', 'Paused while the reviewer has no identity of its own.')`)
+    const judged = structuredClone(fixture)
+    judged.practices[1].ring = 'adopt' // as the seed now reads, after the move above
+    expect(await load(judged)).toMatchObject({ revised: 0, verdicts: 0 })
+    expect((await db.query(`select ring from knowledge.records where id = 'practice.t-second-review'`)).rows[0].ring).toBe('hold')
+    // The seed changing the same field later still comes through.
+    const later = structuredClone(judged)
+    later.practices[0].ring = 'trial'
+    expect(await load(later)).toMatchObject({ revised: 1 })
+    expect((await db.query(`select ring from knowledge.records where id = 'practice.t-second-review'`)).rows[0].ring).toBe('trial')
+    await load(judged) // back to the seed's adopt, for the tests after this one
+  })
+
   // [guards F128.6 partial: that the real seed's first experiments are the single-loop plan's is the seed's, checked when it lands]
   it('an experiment comes in with its practice, baseline, measure and verdict date, and its verdict later', async () => {
     const { rows } = await db.query(`select * from knowledge.experiment_terms where experiment_id = 'experiment.t-merge-on-green'`)
@@ -247,6 +262,14 @@ describe.skipIf(!RUNNABLE)('F128: how we work loaded into the store', () => {
     judged.experiments[0].verdict = 'keep'
     expect(await load(judged)).toMatchObject({ verdicts: 1 })
     expect((await db.query(`select status from knowledge.records where id = 'experiment.t-merge-on-green'`)).rows[0].status).toBe('keep')
+    // A verdict given in the store stands when the seed gives none.
+    await db.query(`select knowledge.record('{"id":"experiment.t-store-verdict","kind":"experiment","scope":"process","answer":"x","audience":"members"}', 't')`)
+    const withIt = structuredClone(judged)
+    withIt.experiments.push({ ...judged.experiments[0], slug: 't-store-verdict', verdict: null })
+    await load(withIt)
+    await db.query(`select knowledge.revise('experiment.t-store-verdict', '{"status":"revert"}', 'The PM: it cost more than it saved.')`)
+    expect(await load(withIt)).toMatchObject({ verdicts: 0 })
+    expect((await db.query(`select status from knowledge.records where id = 'experiment.t-store-verdict'`)).rows[0].status).toBe('revert')
   })
 
   // [guards F128.2]
@@ -258,6 +281,10 @@ describe.skipIf(!RUNNABLE)('F128: how we work loaded into the store', () => {
     expect(out.text.startsWith('Absolutes, which bind every area:\n- t-production-asks: Production asks the PM.')).toBe(true)
     expect(out.text).not.toContain('No em dashes')
     expect((await runTool(db, 'how', { question: 'words' })).text).toContain('practice.t-no-em-dash · rule, adopt')
+    // The agents' area points at the review steps rather than printing them.
+    const agents = (await runTool(db, 'how', { question: 'how does the agent loop work' })).text
+    expect(agents).toContain(`To review a new method against all of this: call review_method (${REVIEW_METHOD_ID}).`)
+    expect(agents).not.toContain('1. List the claims.')
     const none = await runTool(db, 'how', { question: 'the weather' })
     expect(none.isError).toBe(true)
     expect(none.text).toMatch(/agents \(How the agents run\)/)
