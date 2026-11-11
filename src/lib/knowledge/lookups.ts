@@ -12,6 +12,7 @@
 // nothing here acts on what they say.
 
 import type { ClientBase } from 'pg'
+import type { PackPractice, PackPhilosophy } from './pack'
 
 export interface RecordRow {
   id: string
@@ -525,4 +526,106 @@ export async function findConcept(db: ClientBase, idOrName: string): Promise<{ i
 export async function conceptTimeline(db: ClientBase, id: string): Promise<ConceptTimeline | null> {
   const { rows } = await db.query<{ t: ConceptTimeline | null }>('select knowledge.concept_timeline($1) as t', [id])
   return rows[0]?.t ?? null
+}
+
+// ---------------------------------------------------------------------------
+// F128 (#1237): how we work.
+
+export interface HowLine {
+  concern: string
+  area: string
+  id: string
+  answer: string
+  why: string | null
+  strength: string
+  ring: string
+  holds: string | null
+  enforced_by: string | null
+  applies: string[]
+}
+
+/** The live practices for the areas a question points at, strictest first; and which areas those were. */
+export async function how(
+  db: ClientBase,
+  question: string,
+): Promise<{ areas: { slug: string; name: string }[]; lines: HowLine[]; absolutes: PackPhilosophy[] }> {
+  const { rows: areas } = await db.query<{ slug: string; name: string }>(
+    `select c.slug, c.name from knowledge.concerns c where c.slug = any (knowledge.areas_for($1)) order by c.slug`,
+    [question],
+  )
+  const { rows: lines } = await db.query<HowLine>(
+    `select h.*, c.name as area from knowledge.how($1) h join knowledge.concerns c on c.slug = h.concern`,
+    [question],
+  )
+  const absolutes = areas.length ? await processAbsolutes(db) : []
+  return { areas, lines, absolutes }
+}
+
+/** The absolutes of how we work: they bind every area, so every answer about one carries them. */
+export async function processAbsolutes(db: ClientBase): Promise<PackPhilosophy[]> {
+  const { rows } = await db.query<PackPhilosophy>(
+    `select id, answer from knowledge.records
+      where strength = 'absolute' and 'absolute' = any (tags) and scope = 'process' and status = 'live'
+      order by id`,
+  )
+  return rows
+}
+
+/** The areas of how we work, for an answer that names none. */
+export async function howAreas(db: ClientBase): Promise<{ slug: string; name: string; words: string[] }[]> {
+  const { rows } = await db.query<{ slug: string; name: string; words: string[] }>(
+    `select c.slug, c.name, array(select w.word from knowledge.area_words w where w.concern = c.slug order by w.word) as words
+       from knowledge.concerns c where c.department = 'how-we-work' order by c.slug`,
+  )
+  return rows
+}
+
+export interface UpkeepRow {
+  id: string
+  kind: string
+  answer: string
+  problem: string
+  since: string | null
+}
+
+/** For the monthly upkeep: practices not confirmed in 90 days, experiments past their verdict date. */
+export async function upkeep(db: ClientBase, today?: string): Promise<UpkeepRow[]> {
+  const { rows } = await db.query<UpkeepRow>(
+    `select id, kind, answer, problem, to_char(since, 'YYYY-MM-DD') as since
+       from knowledge.practice_upkeep(coalesce($1::date, current_date))`,
+    [today ?? null],
+  )
+  return rows
+}
+
+/** Everything the pack holds: live practices with their area's name, and the live philosophies they apply. */
+export async function packRows(db: ClientBase): Promise<{
+  practices: PackPractice[]
+  philosophies: PackPhilosophy[]
+  steps: string | null
+}> {
+  const { rows: practices } = await db.query<PackPractice>(
+    `select r.id, r.concern, c.name as area, r.answer, r.why, r.strength, r.ring, r.holds
+       from knowledge.records r join knowledge.concerns c on c.slug = r.concern
+      where r.kind = 'practice' and r.status = 'live'
+      order by r.concern,
+               array_position(array['absolute','rule','guideline'], r.strength),
+               array_position(array['adopt','trial','assess','hold'], r.ring), r.id`,
+  )
+  // The absolutes of how we work, and any philosophy a live practice applies.
+  const { rows: philosophies } = await db.query<PackPhilosophy>(
+    `select id, answer from knowledge.records
+      where strength = 'absolute' and 'absolute' = any (tags) and scope = 'process' and status = 'live'
+     union
+     select p.id, p.answer
+       from knowledge.links l
+       join knowledge.records r on r.id = l.from_id and r.kind = 'practice' and r.status = 'live'
+       join knowledge.records p on p.id = l.to_id and p.kind = 'philosophy' and p.status = 'live'
+      where l.type = 'applies'
+      order by 1`,
+  )
+  const { rows: steps } = await db.query<{ answer: string }>(
+    `select answer from knowledge.records where id = 'practice.review-a-method' and status = 'live'`,
+  )
+  return { practices, philosophies, steps: steps[0]?.answer ?? null }
 }

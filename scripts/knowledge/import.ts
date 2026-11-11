@@ -39,6 +39,7 @@ import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
+import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -51,6 +52,8 @@ export interface Sources {
   commits?: { plan?: string; ops?: string; web?: string }
   /** F130: the traced concept timelines; scripts/knowledge/concepts-seed.json unless given. */
   seed?: Seed
+  /** F128: how we work; scripts/knowledge/practices-seed.json unless given (null: skip). */
+  practices?: PracticeSeed | null
 }
 
 export interface Summary {
@@ -67,6 +70,8 @@ export interface Summary {
   concepts?: ConceptSummary
   /** F127: each scenario as a feature with one slice, its horizon and rank. */
   plans?: PlanSummary
+  /** F128: practices and experiments. */
+  practices?: PracticeSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -417,6 +422,18 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   })
   // F127: today's plan, after concepts so a scenario they made is not made twice.
   summary.plans = await loadPlans(db, readPlannedScenarios(src.planDir), src.commits?.plan)
+
+  // F128: how we work. The practices and experiments seed, and the
+  // review-a-method steps from socialus-ops.
+  const practices = src.practices === undefined ? readPracticeSeed() : src.practices
+  if (practices) {
+    summary.practices = await loadPractices(db, {
+      seed: practices,
+      steps: readReviewSteps(src.opsDir),
+      commits: { ops: src.commits?.ops, web: src.commits?.web },
+      today,
+    })
+  }
   return summary
 }
 
@@ -467,6 +484,7 @@ async function main(): Promise<void> {
       `- The store's constraints/code.md matches socialus-plan's: ${matches ? 'yes' : 'NO'}`,
       ...(summary.concepts ? conceptReport(summary.concepts) : []),
       ...(summary.plans ? planReport(summary.plans) : []),
+      ...(summary.practices ? practiceReport(summary.practices) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
