@@ -2,7 +2,7 @@ name: Knowledge capabilities
 
 # F129 (#1239): keeps "what SocialUs can and can't do" true in the knowledge
 # store, nightly after the live smoke, and writes the same answer as one
-# Markdown pack into socialus-plan (handoff/what-socialus-can-do.md) for a
+# Markdown pack into socialus-plan (packs/what-socialus-can-do.md) for a
 # chat project (scripts/knowledge/capabilities.ts).
 #
 # A line is "can" only when its criteria are shipped and checked in
@@ -35,6 +35,7 @@ on:
 permissions:
   contents: read
   issues: read
+  actions: read   # the last green live-smoke run, which clears a line
 
 concurrency:
   group: knowledge-capabilities
@@ -56,6 +57,7 @@ jobs:
         with:
           repository: donlafranchi/socialus-plan
           path: .knowledge/socialus-plan
+          fetch-depth: 0   # the pack branch is merged with main, which needs history
           token: ${{ secrets.KNOWLEDGE_WRITE_TOKEN || github.token }}
           persist-credentials: ${{ secrets.KNOWLEDGE_WRITE_TOKEN != '' }}
 
@@ -83,8 +85,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          mkdir -p .knowledge/socialus-plan/handoff
-          args=(--out .knowledge/socialus-plan/handoff/what-socialus-can-do.md)
+          mkdir -p .knowledge/socialus-plan/packs
+          args=(--out .knowledge/socialus-plan/packs/what-socialus-can-do.md)
           if [ "$DRY_RUN" != "true" ]; then args+=(--commit); else echo "Dry run: nothing will be written."; fi
           npx tsx scripts/knowledge/capabilities.ts "${args[@]}"
 
@@ -96,7 +98,7 @@ jobs:
           CHANGED: ${{ steps.lines.outputs.pack_changed }}
           PLAN: donlafranchi/socialus-plan
           BRANCH: knowledge/what-socialus-can-do
-          FILE: handoff/what-socialus-can-do.md
+          FILE: packs/what-socialus-can-do.md
         working-directory: .knowledge/socialus-plan
         run: |
           monthly=$([ "$(date -u +%d)" = "01" ] && echo true || echo false)

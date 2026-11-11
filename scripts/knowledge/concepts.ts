@@ -216,6 +216,17 @@ export function frontmatter(text: string): Record<string, string> {
 
 export const CONCEPT_ID = /^CO-\d{4}$/
 
+/**
+ * #1250: a scenario with no concept yet names `concept: new`, and the import
+ * mints one from the scenario's title. Found again by this source, so a second
+ * run mints nothing; the report names the id to put in place of `new`.
+ */
+export const NEW_CONCEPT = /^new$/i
+
+export function scenarioConceptSource(file: string): string {
+  return `socialus-plan:${file}#concept`
+}
+
 export function readScenarios(planDir: string): Scenario[] {
   const dir = join(planDir, 'planning')
   if (!existsSync(dir)) return []
@@ -259,6 +270,8 @@ export interface ConceptSummary {
   links: number
   /** Ideas loaded this run or earlier, by name, with the id each has. */
   ideaIds: { name: string; id: string }[]
+  /** Concepts minted for scenarios that name `concept: new`, this run or earlier. */
+  minted: { scenario: string; file: string; id: string; fresh: boolean }[]
   problems: string[]
 }
 
@@ -352,13 +365,15 @@ export interface ConceptSources {
   ideas: Idea[]
   scenarios: Scenario[]
   commits?: { plan?: string; web?: string }
+  /** The import's date, for a concept minted for a scenario; today unless given. */
+  today?: string
 }
 
 /** As the store's login, holding an operator key: bring concepts in line with the seed, IMAGINE.md and the scenarios. */
 export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise<ConceptSummary> {
   const sum: ConceptSummary = {
     conceptsRecorded: 0, conceptsRevised: 0, ideasRecorded: 0, features: 0, names: 0, events: 0, links: 0,
-    ideaIds: [], problems: [],
+    ideaIds: [], minted: [], problems: [],
   }
 
   // The traced timelines, first: their ids are fixed (CO-0001, CO-0002).
@@ -465,8 +480,15 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
   // Scenarios that name their concept.
   for (const s of src.scenarios) {
     if (!s.concept) continue
+    if (NEW_CONCEPT.test(s.concept)) {
+      const id = await mintForScenario(db, s, sum, src.today ?? new Date().toISOString().slice(0, 10), src.commits?.plan)
+      if (id && (await ensureFeature(db, s, sum, src.commits?.plan))) {
+        await link(db, s.id, id, 'scopes', `${s.file} names \`concept: new\`; ${id} was minted for it.`, sum)
+      }
+      continue
+    }
     if (!CONCEPT_ID.test(s.concept)) {
-      sum.problems.push(`${s.file}: concept "${s.concept}" is not a concept id (CO-0001)`)
+      sum.problems.push(`${s.file}: concept "${s.concept}" is not a concept id (CO-0001) or \`new\``)
       continue
     }
     const target = await recordOf(db, s.concept)
@@ -481,11 +503,46 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
   return sum
 }
 
+/** The concept a scenario that names `concept: new` scopes: found by its source, else minted, scoped, from its title. */
+async function mintForScenario(db: ClientBase, s: Scenario, sum: ConceptSummary, on: string, commit?: string): Promise<string | null> {
+  const source = scenarioConceptSource(s.file)
+  const { rows } = await db.query<{ id: string; kind: string }>('select id, kind from knowledge.records where source = $1', [source])
+  if (rows[0]) {
+    sum.minted.push({ scenario: s.id, file: s.file, id: rows[0].id, fresh: false })
+    return rows[0].id
+  }
+  const evidence: Evidence[] = [
+    { kind: 'scenario', ref: s.id },
+    ...(commit ? [{ kind: 'plan_commit' as const, ref: commit.slice(0, 7) }] : []),
+  ]
+  const id = await q<string>(db, 'select knowledge.record($1::jsonb, $2, $3::jsonb) as r', [
+    JSON.stringify({
+      kind: 'concept',
+      answer: s.title,
+      why: `Started by ${s.id}, which had no concept to name: ${s.title}.`,
+      status: 'scoped',
+      source,
+      ...AUDIENCE,
+    }),
+    `Imported: ${s.file} names \`concept: new\`, so the scenario starts its own concept.`,
+    JSON.stringify({ repo: 'socialus-plan', commit: commit ?? null, file: s.file }),
+  ])
+  sum.conceptsRecorded++
+  await name(db, id, { name: s.title, on, state: 'used', evidence }, sum)
+  await event(db, id, on, { type: 'scoped', what: `${s.id} starts this concept: ${s.title}.`, evidence }, sum)
+  sum.minted.push({ scenario: s.id, file: s.file, id, fresh: true })
+  return id
+}
+
 export function conceptReport(sum: ConceptSummary): string[] {
   return [
     `- Concepts recorded: ${sum.conceptsRecorded}, revised: ${sum.conceptsRevised}; ideas recorded: ${sum.ideasRecorded}`,
     `- Scenario records made: ${sum.features}; new names: ${sum.names}; new events: ${sum.events}; new concept links: ${sum.links}`,
     ...(sum.ideaIds.length ? ['', 'Ideas in the store, from IMAGINE.md:', ...sum.ideaIds.map((i) => `- ${i.id}: ${i.name}`)] : []),
+    ...(sum.minted.length
+      ? ['', 'Scenarios that started their own concept (put the id in place of `concept: new`):',
+         ...sum.minted.map((m) => `- ${m.file}: \`concept: ${m.id}\`${m.fresh ? ' (minted this run)' : ''}`)]
+      : []),
     ...(sum.problems.length ? ['', 'Concepts not linked:', ...sum.problems.map((p) => `- ${p}`)] : []),
   ]
 }

@@ -134,8 +134,11 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     const c = first.concepts!
     // F127: and every scenario as a feature with its first slice.
     const p = first.plans!
+    // F128: so are the practices and experiments, and each verdict.
+    const pr = first.practices
     const all = first.recorded + c.conceptsRecorded + c.conceptsRevised + c.ideasRecorded + c.features +
-      p.features + p.slices + p.moved + p.statusChanged
+      p.features + p.slices + p.moved + p.statusChanged +
+      (pr ? pr.recorded + pr.revised + pr.experiments + pr.verdicts : 0)
     expect(Number(rows[0].n)).toBe(all)
     expect(Number(rows[0].named)).toBe(all)
   })
@@ -151,7 +154,8 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
   // [guards F125.10 partial: departs_from, since the rulings state no departures for the import to bring in]
   it('marks every applies link it guessed as inferred, and one call lists them per principle', async () => {
     const { rows } = await db.query<{ basis: string; reason: string }>(
-      `select basis, reason from knowledge.links where type = 'applies'`,
+      // F128: a practice's applies links are stated in its seed, not guessed from a ruling.
+      `select basis, reason from knowledge.links where type = 'applies' and from_id not like 'practice.%'`,
     )
     expect(rows.length).toBeGreaterThan(0)
     for (const r of rows) {

@@ -313,6 +313,7 @@ async function openLiveBug(repo: string, token: string): Promise<{ url: string; 
   ]
   // A smoke run that passed after the last report clears it: the smoke files nothing on a pass.
   const runs = await fetch(`${api}/actions/workflows/smoke-live.yml/runs?status=success&per_page=1`, { headers: h })
+  if (!runs.ok) console.log(`::warning::Could not read the live smoke's runs (${runs.status}), so a green run cannot clear tonight's failures.`)
   const green = runs.ok ? ((await runs.json()) as { workflow_runs: { updated_at: string }[] }).workflow_runs[0]?.updated_at ?? null : null
   const t = tonightsFailures(reports, green)
   return t ? { url: issue.html_url, text: t.body } : null
