@@ -183,7 +183,7 @@ language sql stable security definer set search_path = '' as $$
   -- returned, and a condition it cannot read is named only as "something not
   -- yet public". The condition named is the latest unmet one the line waits on.
   select c.id, c.who, c.answer, c.status, c.why, l.to_id,
-         case when c.status = 'cant_yet' then w.id end,
+         case when c.status = 'cant_yet' and knowledge.can_see(w.audience, w.departments) then w.id end,
          case when c.status <> 'cant_yet' or w.id is null then null
               when knowledge.can_see(w.audience, w.departments) then w.answer
               else 'something not yet public' end,

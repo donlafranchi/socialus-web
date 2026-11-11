@@ -106,6 +106,8 @@ begin
   perform pg_temp.act('none');
   assert (select c.waits_on_words from knowledge.capabilities('runner') c where c.id = current_setting('t.pre')) = 'something not yet public',
     'a condition this key cannot read was named to it';
+  assert (select c.waits_on from knowledge.capabilities('runner') c where c.id = current_setting('t.pre')) is null,
+    'the id of a condition this key cannot read was given to it';
   perform pg_temp.act('ops');
   assert exists (select 1 from knowledge.links l where l.from_id = current_setting('t.post') and l.to_id = 'F950' and l.type = 'capability_of'),
     'the feature link is not a capability_of link';
