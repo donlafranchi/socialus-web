@@ -39,6 +39,7 @@ import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
+import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -51,6 +52,8 @@ export interface Sources {
   commits?: { plan?: string; ops?: string; web?: string }
   /** F130: the traced concept timelines; scripts/knowledge/concepts-seed.json unless given. */
   seed?: Seed
+  /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
+  maps?: MapSources
 }
 
 export interface Summary {
@@ -67,6 +70,8 @@ export interface Summary {
   concepts?: ConceptSummary
   /** F127: each scenario as a feature with one slice, its horizon and rank. */
   plans?: PlanSummary
+  /** F132: journeys, slices across them, and where features and ideas sit. */
+  maps?: MapSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -417,6 +422,8 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   })
   // F127: today's plan, after concepts so a scenario they made is not made twice.
   summary.plans = await loadPlans(db, readPlannedScenarios(src.planDir), src.commits?.plan)
+  // F132: story maps, after plans and concepts, whose features and ideas they place.
+  if (src.maps) summary.maps = await loadMaps(db, src.maps)
   return summary
 }
 
@@ -440,6 +447,7 @@ async function main(): Promise<void> {
     opsDir,
     registryPath: resolve(__dirname, '..', '..', 'src', 'ontology', 'registry.json'),
     commits: { plan: process.env.PLAN_COMMIT, ops: process.env.OPS_COMMIT, web: process.env.GITHUB_SHA },
+    maps: { seed: readMapSeed(), walkthroughs: readWalkthroughs(planDir), rollup: readRollup() },
   }
   const { exportConstraints } = await import('./export')
   const { readFileSync } = await import('node:fs')
@@ -467,6 +475,7 @@ async function main(): Promise<void> {
       `- The store's constraints/code.md matches socialus-plan's: ${matches ? 'yes' : 'NO'}`,
       ...(summary.concepts ? conceptReport(summary.concepts) : []),
       ...(summary.plans ? planReport(summary.plans) : []),
+      ...(summary.maps ? mapReport(summary.maps) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
