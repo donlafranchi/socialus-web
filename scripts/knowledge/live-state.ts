@@ -13,7 +13,8 @@
 //     Vercel") or the live smoke ("the overnight smoke found a problem"), the
 //     latest Production deployment failing, or checks failing on main's head.
 //   · slow: an open bug from tap-speed ("taps are slower than budget").
-//   · blocker: an open Issue labelled launch-blocking.
+//   · blocker: an open Issue labelled launch-blocking, unless it is an alarm
+//     above (they carry the label too, and are already broken or slow).
 //   · waiting: an open Issue labelled needs-pm, or an open PR labelled
 //     human-review or needs-don (socialus-plan scripts/waiting.py's rule, for
 //     this repo).
@@ -79,17 +80,22 @@ export function classify(s: GhSnapshot): LiveRowIn[] {
   let buildAlarm = false
   for (const i of issues) {
     const row = { key: `issue:${i.number}`, words: i.title, url: i.html_url, since: i.created_at }
+    let alarm = false
     if (has(i, 'bug') && MAIN_BUILD.test(i.title)) {
-      buildAlarm = true
+      buildAlarm = alarm = true
       rows.push({ kind: 'broken', ...row, source: 'vercel' })
     } else if (has(i, 'bug') && LIVE_SMOKE.test(i.title)) {
+      alarm = true
       rows.push({ kind: 'broken', ...row, source: 'github' })
     } else if (has(i, 'bug') && TAP_SPEED.test(i.title)) {
+      alarm = true
       rows.push({ kind: 'slow', ...row, source: 'github' })
     } else if (has(i, 'bug')) {
       rows.push({ kind: 'bug', ...row, source: 'github' })
     }
-    if (has(i, 'launch-blocking')) rows.push({ kind: 'blocker', ...row, source: 'github' })
+    // The alarms file themselves launch-blocking too; one already said as
+    // broken or slow is not said again as a blocker.
+    if (has(i, 'launch-blocking') && !alarm) rows.push({ kind: 'blocker', ...row, source: 'github' })
     if (has(i, 'needs-pm')) rows.push({ kind: 'waiting', ...row, source: 'github' })
   }
   // A failed deploy the build alarm has already filed is one thing, not two.

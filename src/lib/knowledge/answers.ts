@@ -50,7 +50,10 @@ export function plain(s: string): string {
     .replace(/#\d+\b/g, '')
     .replace(/\b(?:F\d{2,4}(?:-S\d+)?|T\d{2,4}|CO-\d{4}|CN-\d{4}|VN-\d{4}|CA-\d{4}|D-\d{4}|PH-\d{4}|PT-\d{4}|C-\d{4})(?:\.\d+)?\b/g, '')
     .replace(/\(\s*[,;·]?\s*\)/g, '')
+    // A word left pointing at a removed id ("see #77", "for CO-0002") goes with it.
+    .replace(/\b(?:see|for|in|of|on|to|from|by|via|per)\s*(?=[,.;:)]|$)/gi, '')
     .replace(/\s+([,.;:)])/g, '$1')
+    .replace(/[,;:]+(?=[.,;:)]|$)/g, '')
     .replace(/\(\s+/g, '(')
     .replace(/\s*·\s*$/g, '')
     .replace(/\s{2,}/g, ' ')
@@ -105,6 +108,14 @@ export interface LiveRow {
 export async function readLive(db: ClientBase): Promise<LiveRow[]> {
   const { rows } = await db.query<LiveRow>('select * from knowledge.live_state()')
   return rows
+}
+
+/** Whether this key may read the live state at all (building, telemetry-and-bugs, operators). */
+export async function canSeeLive(db: ClientBase): Promise<boolean> {
+  const { rows } = await db.query<{ ok: boolean }>(
+    `select knowledge.can_see('department', array['building', 'telemetry-and-bugs']) as ok`,
+  )
+  return rows[0]?.ok ?? false
 }
 
 export async function liveTakenAt(db: ClientBase): Promise<Date | null> {
@@ -184,9 +195,13 @@ export async function whereLines(db: ClientBase): Promise<Line[]> {
   const of = (k: LiveRow['kind']) => live.filter((r) => r.kind === k)
   const src = (rs: LiveRow[]): Source => (rs.every((r) => r.source === 'vercel') ? 'vercel' : rs.some((r) => r.source === 'vercel') ? 'both' : 'github')
 
-  if (!taken) {
+  // A key that may not read the live state is told nothing about it: "not
+  // read yet" would be a line nothing backs (F131.6) for a key that simply
+  // cannot see it.
+  const visible = await canSeeLive(db)
+  if (!taken && visible) {
     lines.push({ text: "GitHub's state has not been read into the store yet, so broken, slow and waiting are not known.", source: 'store' })
-  } else {
+  } else if (taken) {
     const broken = of('broken')
     if (broken.length) lines.push({ text: `Broken: ${some(broken.map((r) => plain(r.words)))}.`, source: src(broken) })
     const slow = of('slow')
@@ -329,8 +344,13 @@ export function renderPage(a: { built: string; where: string; next: string }, on
   ].join('\n')
 }
 
-/** The page without its times (generated, GitHub read), for telling whether anything changed. */
-export const pageBody = (page: string) => page.replace(/^Generated .*$/m, '').replace(/^- GitHub read .*$/m, '')
+/**
+ * The page without what moves on every merge (when it was generated, when GitHub
+ * was read, how many changes are open), for telling whether anything changed:
+ * so a merge to main sends no page unless a line that matters changed.
+ */
+export const pageBody = (page: string) =>
+  page.replace(/^Generated .*$/m, '').replace(/^- GitHub read .*$/m, '').replace(/\d+ changes? open/g, 'changes open')
 
 const define = <S extends import('zod').ZodRawShape>(t: KnowledgeTool<S>) => t as unknown as KnowledgeTool
 

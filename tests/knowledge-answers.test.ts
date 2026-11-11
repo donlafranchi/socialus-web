@@ -22,7 +22,8 @@ describe('plain words', () => {
     expect(plain('F060 · T142 · Groups are groups')).toBe('Groups are groups')
     expect(plain('bug · live: the overnight smoke found a problem')).toBe('the overnight smoke found a problem')
     expect(plain('change · a new scenario can start its own concept (#1250)')).toBe('a new scenario can start its own concept')
-    expect(plain('Finish F118-S2 for CO-0002, see PR #77.')).toBe('Finish for, see.')
+    expect(plain('Finish F118-S2 for CO-0002, see PR #77.')).toBe('Finish.')
+    expect(plain('Read the notes in F120.')).toBe('Read the notes.')
     expect(plain('Set up Twilio')).toBe('Set up Twilio')
   })
 
@@ -32,7 +33,6 @@ describe('plain words', () => {
     expect(firstSentence('  ')).toBeNull()
   })
 
-  // [guards F131.1 partial: the three verbs' own lengths are checked against the store below]
   it('never shows more than ten lines, and says how many more', () => {
     const lines = Array.from({ length: 14 }, (_, i) => ({ text: `Line ${i + 1}.`, source: 'store' as const }))
     const out = render(lines).split('\n')
@@ -75,12 +75,11 @@ describe("reading GitHub's state", () => {
   }
 
   // [guards F131.5 partial: the job's run against GitHub itself, and its schedule, are .github/workflows/knowledge-answers.yml]
-  it('sorts the alarms, blockers, waiting items and open work into their kinds', () => {
+  it('sorts the alarms, blockers, waiting items and open work into their kinds, each alarm once', () => {
     const rows = classify(base)
     const kinds = rows.map((r) => `${r.kind} ${r.key} ${r.source}`)
     expect(kinds).toEqual([
       'broken issue:1 vercel',
-      'blocker issue:1 github',
       'broken issue:2 github',
       'slow issue:3 github',
       'bug issue:4 github',
@@ -158,8 +157,9 @@ describe.skipIf(!RUNNABLE)('F131: the three answers, from the store', () => {
     // GitHub, as the job would leave it.
     const rows = classify({
       issues: [
-        issue(1, 'bug · main fails to build on Vercel', ['bug']),
-        issue(2, 'bug · live: the overnight smoke found a problem', ['bug']),
+        // The labels the alarms really file (main-build-alarm.yml, smoke-live.yml).
+        issue(1, 'bug · main fails to build on Vercel', ['bug', 'launch-blocking']),
+        issue(2, 'bug · live: the overnight smoke found a problem', ['bug', 'launch-blocking', 'area:ops']),
         issue(3, 'bug · live: taps are slower than budget', ['bug']),
         issue(4, 'bug · a typo on Explore', ['bug']),
         issue(5, 'F120 · Run the three-account report test', ['needs-pm']),
@@ -187,6 +187,14 @@ describe.skipIf(!RUNNABLE)('F131: the three answers, from the store', () => {
     }
     return lines
   }
+
+  // [guards F131.1]
+  it('answers built, where and next as three calls, each ten lines or fewer, in plain words with no ticket numbers', async () => {
+    for (const name of ['built', 'where', 'next']) {
+      const lines = checkLines(await tool(name))
+      expect(lines.length, name).toBeGreaterThan(0)
+    }
+  })
 
   // [guards F131.2]
   it('says what we built, one line per live area, each with its point', async () => {
@@ -234,7 +242,20 @@ describe.skipIf(!RUNNABLE)('F131: the three answers, from the store', () => {
     const next = await nextText(db)
     expect(next).not.toMatch(/Fix:/)
     expect(next.split('\n')[0]).toBe('1. Set up Twilio for the phone check; it unblocks Post without a Page. You. (store)')
+    // Every line that is shown names its source.
+    for (const text of [await builtText(db), where, next]) checkLines(text)
     await db.query(`rollback to savepoint empty`)
+
+    // A key that may not read GitHub's state is told nothing about it, not that it was never read.
+    await db.query(`savepoint outsider`)
+    await db.query('reset role')
+    const { rows } = await db.query(`select knowledge.add_agent('answers-outsider', 'a chat project', '{}', false) as key`)
+    await db.query('set local role knowledge_store')
+    await db.query(`select set_config('knowledge.key', $1, true)`, [rows[0].key])
+    const theirs = await whereText(db)
+    expect(theirs).not.toMatch(/GitHub|Broken|Waiting on you/)
+    for (const l of theirs.split('\n').filter(Boolean)) expect(l).toMatch(SOURCED)
+    await db.query(`rollback to savepoint outsider`)
   })
 
   // [guards F131.7]
