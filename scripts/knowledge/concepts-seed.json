@@ -10,9 +10,9 @@
       "why": "A Page reaching its followers. What survived: the intent, a Page reaching its followers, came back as push. The word, the table and the tracking did not. Two needs docs still say \"Bulletins, cut\".",
       "names": [
         { "name": "Bulletins", "on": "2026-04-25", "state": "used", "evidence": [{ "kind": "web_commit", "ref": "91fdacb2" }] },
-        { "name": "Bulletin", "on": "2026-09-21", "state": "refused", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }], "note": "Refused as a noun." },
-        { "name": "Announcement", "on": "2026-09-21", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }] },
-        { "name": "Post", "on": "2026-10-01", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "3277f66" }] }
+        { "name": "Bulletin", "on": "2026-09-21", "state": "refused", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }, { "kind": "doc", "ref": "product/foundation/nouns.md" }], "note": "Refused as a noun.", "ruling": { "on": "2026-09-21", "words": "`Bulletin` is refused as a noun: it named a delivery mode, not a thing." } },
+        { "name": "Announcement", "on": "2026-09-21", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }], "note": "Its ruling (\"Announcement is the word everywhere\") was replaced on 2026-10-01 and lives only in git." },
+        { "name": "Post", "on": "2026-10-01", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "3277f66" }, { "kind": "doc", "ref": "product/foundation/nouns.md" }], "ruling": { "on": "2026-10-01", "words": "Post is the noun for what a Page says to the metro; an announcement is a kind of post." } }
       ],
       "entries": [
         {
@@ -80,8 +80,8 @@
       "why": "Communities open their own town by meeting public thresholds. What survived: most of the June idea came back, with the numbers ten times larger and no organizer role. F118 does not link back to June.",
       "names": [
         { "name": "market unlock", "on": "2026-06-22", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "20b2c4d" }] },
-        { "name": "metro waitlist", "on": "2026-09-14", "state": "used", "evidence": [{ "kind": "scenario", "ref": "F076" }], "note": "The brief names it; dated to F076, where a metro first opens on sign-ups." },
-        { "name": "Open your town", "on": "2026-10-26", "state": "used", "evidence": [{ "kind": "scenario", "ref": "F118" }] }
+        { "name": "metro waitlist", "on": "2026-09-14", "state": "used", "evidence": [{ "kind": "scenario", "ref": "F076" }], "note": "No ruling names it; dated to F076 (plan 322e4bc), where a person outside an open market joins its waitlist." },
+        { "name": "Open your town", "on": "2026-10-26", "state": "used", "evidence": [{ "kind": "scenario", "ref": "F118" }], "ruling": { "on": "2026-10-26", "words": "Open your town comes after the soft launch and before the hard launch; only the landing page is in scope now." } }
       ],
       "entries": [
         {

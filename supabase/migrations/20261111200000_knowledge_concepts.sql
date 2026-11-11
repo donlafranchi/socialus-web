@@ -26,6 +26,11 @@
 --     concepts, scenarios and ideas) and scopes (a scenario scopes its
 --     concept). Records are never deleted, so a link still resolves after the
 --     file it was read from is gone.
+--   · Who rules a concept: any key may record a new idea; a concept with any
+--     other status, any change to a concept, and every lineage link are an
+--     operator's, because the drift check reads the status as the ruling and
+--     a link is never removed. CO-0001 and CO-0002 are kept for the traced
+--     timelines.
 --   · knowledge.name_concept and knowledge.concept_event: the only writes to
 --     the two tables, by an operator (they date things in the past, which
 --     only an operator does), re-runnable: the same name or event twice is
@@ -43,6 +48,10 @@
 
 insert into knowledge.kinds (slug, statuses, needs_why, id_prefix) values
   ('concept', '{idea,scoped,built,deferred,cut,merged}', false, 'CO');
+-- CO-0001 (Posts) and CO-0002 (Open your town) are the traced timelines'
+-- fixed ids (scripts/knowledge/concepts-seed.json): numbering starts after
+-- them, so no concept recorded before the first import can take one.
+update knowledge.kinds set last_number = 2 where slug = 'concept';
 
 insert into knowledge.link_types (slug) values ('split_from'), ('merged_into'), ('became'), ('scopes');
 
@@ -104,9 +113,11 @@ create table knowledge.concept_events (
   ruling_id   text references knowledge.records (id),
   person      text not null,
   agent       text not null,
-  recorded_at timestamptz not null default clock_timestamp(),
-  unique (concept_id, type, happened_on, what)
+  recorded_at timestamptz not null default clock_timestamp()
 );
+-- One row per event however often it is sent. Keyed on a hash of the words,
+-- so a long description never overflows the index.
+create unique index concept_events_once on knowledge.concept_events (concept_id, type, happened_on, md5(what));
 create index concept_events_concept on knowledge.concept_events (concept_id, happened_on, id);
 comment on table knowledge.concept_events is
   'Each change to a concept, one row: its type, the date, what happened, its evidence, and the PM''s words in their own field. Append-only.';
@@ -141,6 +152,29 @@ create trigger concept_names_check before insert on knowledge.concept_names
 create trigger concept_events_check before insert on knowledge.concept_events
   for each row execute function knowledge._concept_rows_check();
 
+-- What a concept is ruled to be is the PM's, so only an operator writes it:
+-- any key may record a new idea, but a concept with any other status, and any
+-- change to an existing concept, is an operator's. The drift check reads the
+-- status as the ruling.
+create function knowledge._concepts_before() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if new.kind <> 'concept' or knowledge.is_operator() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' and new.status <> 'idea' then
+    raise exception 'Only an operator records a concept as %: any key may record an idea.', new.status
+      using errcode = 'insufficient_privilege';
+  end if;
+  if tg_op = 'UPDATE' then
+    raise exception 'Only an operator changes a concept: its name and status are the PM''s rulings.'
+      using errcode = 'insufficient_privilege';
+  end if;
+  return new;
+end $$;
+create trigger records_concepts before insert or update on knowledge.records
+  for each row execute function knowledge._concepts_before();
+
 -- Lineage links join what a concept can be related to: concepts, scenarios
 -- (features) and nothing else; `scopes` runs from a scenario to a concept.
 create function knowledge._concept_links() returns trigger
@@ -151,6 +185,11 @@ declare
 begin
   if new.type not in ('split_from', 'merged_into', 'became', 'scopes') then
     return new;
+  end if;
+  -- Links are never removed, so a wrong lineage link would be history for good.
+  if not knowledge.is_operator() then
+    raise exception 'Only an operator links a concept''s lineage (%): a link is never removed.', new.type
+      using errcode = 'insufficient_privilege';
   end if;
   select kind into from_kind from knowledge.records where id = new.from_id;
   select kind into to_kind from knowledge.records where id = new.to_id;
@@ -225,7 +264,7 @@ begin
   end if;
   insert into knowledge.concept_events (concept_id, type, happened_on, what, evidence, pm_words, ruling_id, person, agent)
   values (p_concept, p_type, p_on, btrim(p_what), p_evidence, nullif(btrim(p_pm_words), ''), p_ruling, w.person, w.name)
-  on conflict (concept_id, type, happened_on, what) do nothing
+  on conflict (concept_id, type, happened_on, md5(what)) do nothing
   returning id into new_id;
   return new_id;
 end $$;
@@ -254,12 +293,14 @@ language sql stable set search_path = '' as $$
     'concept', jsonb_build_object('id', r.id, 'name', r.answer, 'status', r.status, 'why', r.why,
                                   'concern', r.concern, 'source', r.source),
     'names', coalesce((
-      select jsonb_agg(jsonb_build_object('name', n.name, 'on', n.named_on, 'state', n.state, 'ruling', n.ruling_id,
+      select jsonb_agg(jsonb_build_object('name', n.name, 'on', n.named_on, 'state', n.state,
+                                          'ruling', (select x.id from knowledge.records x where x.id = n.ruling_id),
                                           'evidence', n.evidence, 'note', n.note) order by n.named_on, n.id)
         from knowledge.concept_names n where n.concept_id = r.id), '[]'::jsonb),
     'events', coalesce((
       select jsonb_agg(jsonb_build_object('on', e.happened_on, 'type', e.type, 'what', e.what, 'evidence', e.evidence,
-                                          'pm_words', e.pm_words, 'ruling', e.ruling_id) order by e.happened_on, e.id)
+                                          'pm_words', e.pm_words,
+                                          'ruling', (select x.id from knowledge.records x where x.id = e.ruling_id)) order by e.happened_on, e.id)
         from knowledge.concept_events e where e.concept_id = r.id), '[]'::jsonb),
     'lineage', coalesce((
       select jsonb_agg(jsonb_build_object('from', l.from_id, 'type', l.type, 'to', l.to_id,

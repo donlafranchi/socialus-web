@@ -37,6 +37,7 @@ Distilled ${IDEAS_DISTILLED_ON}.
 
 - **Bulletin intelligence.** Tell a Page which of its posts its followers act on. [lane: later]
 - **Tool library.** Neighbours lend tools through a shared shelf. [lane: considering]
+- **Tool Library!** The same name twice, by mistake. [lane: later]
 
 ## Added under the house rules
 
@@ -60,7 +61,11 @@ function writePlan(dir: string, imagine: string | null) {
   writeFileSync(join(dir, 'planning', 'scenario-F130.md'), scenario('F130', ''))
   writeFileSync(join(dir, 'planning', 'scenario-F131.md'), scenario('F131', 'concept: CO-0001\n'))
   writeFileSync(join(dir, 'planning', 'scenario-F132.md'), scenario('F132', 'concept: Posts\n'))
-  writeFileSync(join(dir, 'product', 'needs', 'vendors.md'), '# Vendors\n\n- Bulletins, cut: vendors reach followers another way.\n- Posts are live.\n')
+  writeFileSync(
+    join(dir, 'product', 'needs', 'vendors.md'),
+    '# Vendors\n\n- Bulletins, cut: vendors reach followers another way.\n- Posts are live.\n' +
+      '- Post replies are a separate idea, and the vendor feed idea from the spring was cut in May.\n',
+  )
   writeFileSync(join(dir, 'planning', 'briefs', 'old.md'), '- Bulletins, cut on 2026-05-11.\n')
 }
 
@@ -70,10 +75,10 @@ describe('reading the plan side', () => {
 
   it("reads IMAGINE.md's ideas in both shapes, and nothing else", () => {
     const ideas = readImagine(join(dir, 'IMAGINE.md'))
-    expect(ideas.map((i) => i.name)).toEqual(['Bulletin intelligence', 'Tool library', 'Skill swaps'])
+    expect(ideas.map((i) => i.name)).toEqual(['Bulletin intelligence', 'Tool library', 'Tool Library!', 'Skill swaps'])
     expect(ideas[0]).toMatchObject({ slug: 'bulletin-intelligence', on: IDEAS_DISTILLED_ON, lane: 'later', pmWords: null })
     expect(ideas[0].description).toBe('Tell a Page which of its posts its followers act on.')
-    const swaps = ideas[2]
+    const swaps = ideas[3]
     expect(swaps.on).toBe('2026-10-02')
     expect(swaps.pmWords).toBe('I teach guitar, you fix my bike.')
     expect(swaps.analysis).toBe('Barter of time; needs no money to move.')
@@ -100,7 +105,6 @@ const BRIEF = resolve(PLAN, seed.brief)
 
 // Runs wherever socialus-plan is checked out at or after the brief's commit.
 describe.skipIf(!existsSync(BRIEF))('the seed against the brief', () => {
-  // [guards F130.4 partial: that the loaded store matches, tested below]
   it("holds every timeline entry of the brief, in the brief's own words and order", () => {
     const brief = readFileSync(BRIEF, 'utf8')
     for (const c of seed.concepts) {
@@ -146,6 +150,17 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
     db = await pool.connect()
     await db.query('begin')
     await enterStore(db, 'concepts-test')
+    // The rulings behind the traced names, as the import would hold them.
+    for (const c of seed.concepts) {
+      for (const n of c.names) {
+        if (!n.ruling) continue
+        await db.query('select knowledge.record($1::jsonb, $2)', [
+          JSON.stringify({ kind: 'decision', concern: 'ontology', answer: n.ruling.words, why: 'test', decided_on: n.ruling.on,
+                           audience: 'department', departments: ['building'] }),
+          'F130 test',
+        ])
+      }
+    }
     first = await load(IMAGINE)
     second = await load(IMAGINE)
     // The ideas have left IMAGINE.md once loaded (the plan side's half of F130.5).
@@ -160,6 +175,16 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
 
   // [guards F130.4]
   it('loads Posts and Open your town with the timelines in the brief, entry for entry', async () => {
+    // The brief, entry for entry: the seed holds each of its lines, in order.
+    expect(existsSync(BRIEF), `the brief, in a socialus-plan checkout at ${PLAN} (set KNOWLEDGE_PLAN_DIR)`).toBe(true)
+    const brief = readFileSync(BRIEF, 'utf8')
+    for (const c of seed.concepts) {
+      const lines = brief.slice(brief.indexOf(c.title)).split('\n').slice(1)
+      const entries = lines.slice(0, lines.findIndex((l) => !l.startsWith('- '))).filter((l) => /^- \d{4}-\d{2}-\d{2} /.test(l))
+      expect(brief.indexOf(c.title), c.title).toBeGreaterThanOrEqual(0)
+      expect(entries, c.title).toEqual(c.entries.map((e) => `- ${e.on} ${e.text}`))
+    }
+    // The store, entry for entry: the seed's every event, name and the ruling behind each name.
     for (const c of seed.concepts) {
       const t = await timeline(c.id)
       expect(t.concept).toMatchObject({ id: c.id, name: currentName(c), status: c.status, why: c.why })
@@ -170,6 +195,10 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
       )
       const got = t.events.map((e: Record<string, unknown>) => ({ on: e.on, type: e.type, what: e.what, evidence: e.evidence, pm_words: e.pm_words }))
       expect(got).toEqual(want)
+      for (const n of c.names.filter((x) => x.ruling)) {
+        const loaded = t.names.find((x: { name: string; state: string }) => x.name === n.name && x.state === n.state)
+        expect(loaded.ruling, `${c.id} "${n.name}" carries its ruling`).toMatch(/^D-\d{4}$/)
+      }
     }
     const posts = await timeline('CO-0001')
     expect(posts.events.find((e: { pm_words: string | null }) => e.pm_words)?.pm_words).toBe('an announcement is a post')
@@ -178,6 +207,7 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
   // [guards F130.5 partial: removing each idea from IMAGINE.md is socialus-plan's]
   it("makes each of IMAGINE.md's ideas a concept with status idea, and keeps it once the idea has left the file", async () => {
     expect(first.ideasRecorded).toBe(3)
+    expect(first.problems).toContainEqual(expect.stringContaining('"Tool Library!" (line'))
     expect(second.ideasRecorded).toBe(0)
     expect(afterRemoval.ideasRecorded).toBe(0)
     const { rows } = await db.query(

@@ -76,10 +76,14 @@ export function staleDocs(planDir: string, returned: Returned[]): StaleDoc[] {
   const out: StaleDoc[] = []
   const files = markdownFiles(planDir)
   for (const c of returned) {
-    const patterns = c.names.map((n) => ({ n, re: new RegExp(`(^|[^A-Za-z0-9])${escapeRe(n)}([^A-Za-z0-9]|$)`, 'i') }))
+    // The name and "cut" close together, in one clause, so a short name such
+    // as Post is not flagged on every line that mentions both apart.
+    const patterns = c.names.map((n) => {
+      const name = `(?<![A-Za-z0-9])${escapeRe(n)}(?![A-Za-z0-9])`
+      return { n, re: new RegExp(`${name}[^.;\\n]{0,25}\\bcut\\b|\\bcut\\b[^.;\\n]{0,25}${name}`, 'i') }
+    })
     for (const file of files) {
       splitLines(readFileSync(join(planDir, file), 'utf8')).forEach((text, i) => {
-        if (!/\bcut\b/i.test(text)) return
         const hit = patterns.find((p) => p.re.test(text))
         if (hit) out.push({ concept: c.id, name: hit.n, file, line: i + 1, text: text.trim().slice(0, 200) })
       })
@@ -145,7 +149,9 @@ async function main(): Promise<void> {
   const token = process.env.GITHUB_TOKEN
   if (!repo || !token) throw new Error('GITHUB_REPOSITORY and GITHUB_TOKEN are needed to open an Issue.')
   const headers = { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' }
-  const list = await fetch(`https://api.github.com/repos/${repo}/issues?state=open&per_page=100`, { headers })
+  // Only Issues this check opens carry area:ops and this title; filtering by
+  // the label keeps last week's within the first page.
+  const list = await fetch(`https://api.github.com/repos/${repo}/issues?state=open&labels=area:ops&per_page=100`, { headers })
   if (!list.ok) throw new Error(`Listing Issues failed: ${list.status}`)
   const open = ((await list.json()) as { title: string; html_url: string }[]).find((i) => i.title === TITLE)
   if (open) {

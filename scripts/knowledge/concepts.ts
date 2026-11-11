@@ -35,7 +35,15 @@ export interface SeedConcept {
   status: string
   concern: string | null
   why: string
-  names: { name: string; on: string; state: 'used' | 'refused'; evidence: Evidence[]; note?: string }[]
+  names: {
+    name: string
+    on: string
+    state: 'used' | 'refused'
+    evidence: Evidence[]
+    note?: string
+    /** The dated ruling behind the name, by its date and bold words, as socialus-plan writes it. */
+    ruling?: { on: string; words: string }
+  }[]
   entries: {
     on: string
     text: string
@@ -263,8 +271,8 @@ async function q<T>(db: ClientBase, sql: string, params: unknown[]): Promise<T> 
 }
 
 async function recordOf(db: ClientBase, id: string) {
-  const { rows } = await db.query<{ id: string; kind: string; status: string; answer: string; why: string | null; concern: string | null }>(
-    'select id, kind, status, answer, why, concern from knowledge.records where id = $1',
+  const { rows } = await db.query<{ id: string; kind: string; status: string; answer: string; why: string | null; concern: string | null; source: string | null }>(
+    'select id, kind, status, answer, why, concern, source from knowledge.records where id = $1',
     [id],
   )
   return rows[0] ?? null
@@ -302,9 +310,26 @@ async function link(db: ClientBase, from: string, to: string, type: string, reas
   if (r.id) sum.links++
 }
 
+/** A ruling in the store, by the date and words the import keys rulings on. */
+async function rulingId(db: ClientBase, r: { on: string; words: string }): Promise<string | null> {
+  const { rows } = await db.query<{ id: string }>(
+    `select id from knowledge.records
+      where kind in ('decision', 'philosophy') and decided_on = $1::date
+        and answer in ($2, rtrim($2, '.'))
+      order by id limit 1`,
+    [r.on, r.words],
+  )
+  return rows[0]?.id ?? null
+}
+
 async function name(db: ClientBase, concept: string, n: SeedConcept['names'][number], sum: ConceptSummary) {
-  const id = await q<number | null>(db, 'select knowledge.name_concept($1, $2, $3::date, $4, $5::jsonb, null, $6) as r', [
-    concept, n.name, n.on, n.state, JSON.stringify(n.evidence), n.note ?? null,
+  let ruling: string | null = null
+  if (n.ruling) {
+    ruling = await rulingId(db, n.ruling)
+    if (!ruling) sum.problems.push(`${concept} "${n.name}": no ruling ${n.ruling.on} "${n.ruling.words}" in the store, so the name is recorded without it`)
+  }
+  const id = await q<number | null>(db, 'select knowledge.name_concept($1, $2, $3::date, $4, $5::jsonb, $6, $7) as r', [
+    concept, n.name, n.on, n.state, JSON.stringify(n.evidence), ruling, n.note ?? null,
   ])
   if (id) sum.names++
 }
@@ -350,8 +375,10 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
         firstOn,
       ])
       sum.conceptsRecorded++
-    } else if (have.kind !== 'concept') {
-      sum.problems.push(`${c.id} is a ${have.kind} in the store, not a concept`)
+    } else if (have.kind !== 'concept' || have.source !== SEED_SOURCE) {
+      // Never turn another record into a traced concept: the migration keeps
+      // these ids free, so this is a record someone made by hand.
+      sum.problems.push(`${c.id} is already in the store and did not come from the traced timelines; it is left as it is`)
       continue
     } else {
       const changes: Record<string, unknown> = {}
@@ -377,8 +404,14 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
     `select id, source from knowledge.records where kind = 'concept' and source like 'socialus-plan:IMAGINE.md#%'`,
   )
   const ideaId = new Map(bySource.map((r) => [r.source, r.id]))
+  const seen = new Map<string, string>()
   for (const idea of src.ideas) {
     const source = ideaSource(idea.slug)
+    if (seen.has(idea.slug)) {
+      sum.problems.push(`IMAGINE.md: "${idea.name}" (line ${idea.line}) has the same slug as "${seen.get(idea.slug)}"; rename one, it was not loaded`)
+      continue
+    }
+    seen.set(idea.slug, idea.name)
     let id = ideaId.get(source)
     if (!id) {
       id = await q<string>(db, 'select knowledge.record($1::jsonb, $2, $3::jsonb, $4::timestamptz) as r', [
@@ -397,13 +430,15 @@ export async function loadConcepts(db: ClientBase, src: ConceptSources): Promise
       ])
       ideaId.set(source, id)
       sum.ideasRecorded++
+      // Its name and idea event come with it, once: an idea is found again by
+      // its source, so words edited while it waits in IMAGINE.md add nothing.
+      const evidence: Evidence[] = [
+        { kind: 'doc', ref: `IMAGINE.md#${idea.slug}` },
+        ...(src.commits?.plan ? [{ kind: 'plan_commit' as const, ref: src.commits.plan.slice(0, 7) }] : []),
+      ]
+      await name(db, id, { name: idea.name, on: idea.on, state: 'used', evidence }, sum)
+      await event(db, id, idea.on, { type: 'idea', what: idea.description, evidence, pm_words: idea.pmWords }, sum)
     }
-    const evidence: Evidence[] = [
-      { kind: 'doc', ref: `IMAGINE.md#${idea.slug}` },
-      ...(src.commits?.plan ? [{ kind: 'plan_commit' as const, ref: src.commits.plan.slice(0, 7) }] : []),
-    ]
-    await name(db, id, { name: idea.name, on: idea.on, state: 'used', evidence }, sum)
-    await event(db, id, idea.on, { type: 'idea', what: idea.description, evidence, pm_words: idea.pmWords }, sum)
     sum.ideaIds.push({ name: idea.name, id })
   }
 

@@ -41,7 +41,8 @@ declare
   rid text;
   t jsonb;
 begin
-  assert c ~ '^CO-\d{4}$', format('a concept id is CO-nnnn, not %s', c);
+  assert c ~ '^CO-\d{4}$' and c not in ('CO-0001', 'CO-0002'),
+    format('a concept id is CO-nnnn after the two seeded ones, not %s', c);
   rid := knowledge.record('{"kind":"decision","concern":"posts","answer":"Bulletin is not a noun; it is an Announcement","why":"One word per thing.","audience":"department","departments":["building"]}',
                           'F130 test');
   perform knowledge.name_concept(c, 'Bulletins', '2026-04-25', 'used', '[{"kind":"web_commit","ref":"91fdacb2"}]');
@@ -63,6 +64,12 @@ begin
     'a refused name does not find its concept';
   assert (select array_agg(c2.id) from knowledge.find_concept('Bulletins') c2) = array[c],
     'a former name does not find its concept';
+  -- A ruling the reader cannot see is not named to it, not even by id.
+  perform knowledge.revise(rid, '{"audience":"operators","departments":[]}', 'F130 test: hide the ruling');
+  perform pg_temp.act('build');
+  assert (select count(*) from jsonb_array_elements(knowledge.concept_timeline(c)->'names') n where n->>'ruling' is not null) = 0,
+    'a building key read the id of a ruling it cannot see';
+  perform pg_temp.act('ops');
   assert pg_temp.refused(format($q$update knowledge.concept_names set state = 'used' where concept_id = %L and name = 'Bulletin'$q$, c)) is not null,
     'a refused name was turned into a used one';
   assert pg_temp.refused(format($q$delete from knowledge.concept_names where concept_id = %L$q$, c)) is not null,
@@ -154,6 +161,14 @@ begin
   assert pg_temp.refused($q$delete from knowledge.records where id = 'F072'$q$) is not null, 'a scenario''s record was deleted';
   assert pg_temp.refused(format($q$delete from knowledge.links where to_id = %L$q$, c)) is not null, 'a lineage link was deleted';
 
+  -- Lineage is permanent, so it is an operator's to write.
+  perform pg_temp.act('build');
+  assert pg_temp.refused(format($q$select knowledge.link(%L, %L, 'merged_into')$q$, idea, c)) like 'Only an operator links%',
+    'a building key wrote a permanent lineage link';
+  assert pg_temp.refused(format($q$select knowledge.link('F072', %L, 'scopes')$q$, c)) like 'Only an operator links%',
+    'a building key linked a scenario to a concept';
+  perform pg_temp.act('ops');
+
   t := knowledge.concept_timeline(c);
   assert jsonb_array_length(t->'lineage') = 3, format('expected 3 lineage links, got %s', t->'lineage');
   assert (select count(*) from jsonb_array_elements(t->'lineage') l
@@ -187,6 +202,7 @@ declare
   ghost text;
   zombie text;
   back text;
+  mine text;
 begin
   -- Built, cut, built again, ruled built: agrees.
   perform knowledge.concept_event(ok, 'built', '2026-04-25', 'a', '[{"kind":"web_commit","ref":"a"}]');
@@ -205,6 +221,22 @@ begin
   perform knowledge.name_concept(back, 'market unlock', '2026-06-22', 'used', '[{"kind":"plan_commit","ref":"20b2c4d"}]');
   perform knowledge.concept_event(back, 'cut', '2026-09-07', 'archived', '[{"kind":"doc","ref":"brief"}]');
   perform knowledge.concept_event(back, 'scoped', '2026-09-14', 'a metro opens', '[{"kind":"scenario","ref":"F076"}]');
+
+  -- The status drift reads is the ruling: a department key may record an
+  -- idea, never rule a concept built or cut, nor change one.
+  perform pg_temp.act('build');
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"concept","answer":"Rogue","status":"cut","path":"well-worn","audience":"department","departments":["building"]}', 'x')$q$)
+         like 'Only an operator records a concept as cut%', 'a building key recorded a concept as cut';
+  assert pg_temp.refused($q$select knowledge.record('{"kind":"concept","answer":"Rogue","status":"built","audience":"department","departments":["building"]}', 'x')$q$)
+         like 'Only an operator records a concept as built%', 'a building key recorded a concept as built';
+  -- Its own well-worn idea is the one record an agent may otherwise revise.
+  mine := knowledge.record('{"kind":"concept","answer":"A building idea","path":"well-worn","audience":"department","departments":["building"]}', 'x');
+  assert mine ~ '^CO-', 'a building key could not record an idea';
+  assert pg_temp.refused(format($q$select knowledge.revise(%L, '{"status":"built"}', 'x')$q$, mine)) like 'Only an operator changes a concept%',
+    'a building key ruled its own idea built';
+  assert pg_temp.refused(format($q$select knowledge.revise(%L, '{"answer":"Renamed"}', 'x')$q$, mine)) like 'Only an operator changes a concept%',
+    'a building key renamed a concept without an event';
+  perform pg_temp.act('ops');
 
   assert (select array_agg(d.id order by d.id) from knowledge.concept_drift() d) = array[ghost, zombie],
     format('drift should list exactly the ghost and the zombie, got %s', (select array_agg(d.id) from knowledge.concept_drift() d));
