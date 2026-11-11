@@ -128,7 +128,13 @@ export function rulingKey(date: string, words: string): string {
 }
 
 export function wantedFromRuling(r: Ruling, today: string, commit?: string): Wanted {
-  const { concern, departments } = placeOf(r.binds?.surfaces ?? [])
+  const placed = placeOf(r.binds?.surfaces ?? [])
+  const { concern } = placed
+  // A ruling that binds the code tier is handed to every build session by
+  // constraints/code.md; when its surfaces reach no department (the method,
+  // the soul), building reads it rather than operators alone (bug #1230).
+  const departments =
+    placed.departments.length === 0 && r.binds?.tiers.includes('code') ? ['building'] : placed.departments
   const principle = r.principle
   const neverExtractive = r.anchor === 'never-extractive'
   return {
