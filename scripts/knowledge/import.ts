@@ -410,6 +410,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     ideas: readImagine(resolve(src.planDir, 'IMAGINE.md')),
     scenarios: readScenarios(src.planDir),
     commits: { plan: src.commits?.plan, web: src.commits?.web },
+    today,
   })
   return summary
 }

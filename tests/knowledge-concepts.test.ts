@@ -8,7 +8,7 @@ import { databaseWriteSafety } from './support/write-safe'
 import { enterStore } from '../scripts/knowledge/import'
 import {
   readSeed, readImagine, readScenarios, frontmatter, loadConcepts, currentName, ideaSource, IDEAS_DISTILLED_ON,
-  type ConceptSummary,
+  conceptReport, scenarioConceptSource, type ConceptSummary,
 } from '../scripts/knowledge/concepts'
 import { readDrift, staleDocs } from '../scripts/knowledge/drift'
 import { runTool } from '@/lib/knowledge/tools'
@@ -61,6 +61,7 @@ function writePlan(dir: string, imagine: string | null) {
   writeFileSync(join(dir, 'planning', 'scenario-F130.md'), scenario('F130', ''))
   writeFileSync(join(dir, 'planning', 'scenario-F131.md'), scenario('F131', 'concept: CO-0001\n'))
   writeFileSync(join(dir, 'planning', 'scenario-F132.md'), scenario('F132', 'concept: Posts\n'))
+  writeFileSync(join(dir, 'planning', 'scenario-F133.md'), scenario('F133', 'concept: new\n'))
   writeFileSync(
     join(dir, 'product', 'needs', 'vendors.md'),
     '# Vendors\n\n- Bulletins, cut: vendors reach followers another way.\n- Posts are live.\n' +
@@ -90,7 +91,7 @@ describe('reading the plan side', () => {
     expect(frontmatter(scenario('F118', 'concept: CO-0002\n'))).toMatchObject({ id: 'F118', concept: 'CO-0002' })
     expect(frontmatter('# no frontmatter\nconcept: CO-0001\n')).toEqual({})
     expect(readScenarios(dir).map((s) => [s.id, s.concept])).toEqual([
-      ['F118', 'CO-0002'], ['F130', null], ['F131', 'CO-0001'], ['F132', 'Posts'],
+      ['F118', 'CO-0002'], ['F130', null], ['F131', 'CO-0001'], ['F132', 'Posts'], ['F133', 'new'],
     ])
   })
 
@@ -140,6 +141,7 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
       ideas: readImagine(join(dir, 'IMAGINE.md')),
       scenarios: readScenarios(dir),
       commits: { plan: 'abcdef1234567', web: 'fedcba7654321' },
+      today: '2026-11-11',
     })
   }
   const timeline = async (id: string) =>
@@ -239,15 +241,31 @@ describe.skipIf(!RUNNABLE)('F130: concepts loaded into the store', () => {
     // F131 is in no traced timeline: only its frontmatter links it.
     const posts = await timeline('CO-0001')
     expect(posts.lineage).toContainEqual(expect.objectContaining({ from: 'F131', type: 'scopes', to: 'CO-0001', other: 'F131 title' }))
-    expect(first.problems).toContain('planning/scenario-F132.md: concept "Posts" is not a concept id (CO-0001)')
+    expect(first.problems).toContain('planning/scenario-F132.md: concept "Posts" is not a concept id (CO-0001) or `new`')
     expect((await db.query(`select 1 from knowledge.records where id = 'F132'`)).rowCount).toBe(0)
     const f130 = await db.query(`select 1 from knowledge.records where id = 'F130'`)
     expect(f130.rowCount).toBe(0)
   })
 
+  // #1250: a scenario written before it has a concept starts its own.
+  it('mints a concept for a scenario that names `concept: new`, once, and reports the id to put in its place', async () => {
+    const minted = first.minted.find((m) => m.scenario === 'F133')
+    expect(minted).toMatchObject({ file: 'planning/scenario-F133.md', fresh: true })
+    expect(minted!.id).toMatch(/^CO-\d{4}$/)
+    expect(second.minted).toEqual([{ ...minted, fresh: false }])
+    const t = await timeline(minted!.id)
+    expect(t.concept).toMatchObject({ id: minted!.id, name: 'F133 title', status: 'scoped' })
+    expect(t.names.map((n: { name: string; on: string; state: string }) => [n.on, n.name, n.state])).toEqual([['2026-11-11', 'F133 title', 'used']])
+    expect(t.events).toEqual([expect.objectContaining({ on: '2026-11-11', type: 'scoped' })])
+    expect(t.lineage).toContainEqual(expect.objectContaining({ from: 'F133', type: 'scopes', to: minted!.id }))
+    const bySource = await db.query('select id from knowledge.records where source = $1', [scenarioConceptSource('planning/scenario-F133.md')])
+    expect(bySource.rows).toEqual([{ id: minted!.id }])
+    expect(conceptReport(first)).toContain(`- planning/scenario-F133.md: \`concept: ${minted!.id}\` (minted this run)`)
+  })
+
   it('records nothing twice on a second run', () => {
     expect(second).toMatchObject({ conceptsRecorded: 0, conceptsRevised: 0, ideasRecorded: 0, features: 0, names: 0, events: 0, links: 0 })
-    expect(first.conceptsRecorded).toBe(2)
+    expect(first.conceptsRecorded).toBe(3)
   })
 
   // [guards F130.7]
