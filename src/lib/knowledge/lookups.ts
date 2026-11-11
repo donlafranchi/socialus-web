@@ -502,3 +502,27 @@ export async function decide(db: ClientBase, id: string, reason: string): Promis
   )
   return rows[0].out
 }
+
+// ---------------------------------------------------------------------------
+// F130 (#1232): a concept's timeline, by its id or any name it ever had.
+
+export interface ConceptTimeline {
+  concept: { id: string; name: string; status: string; why: string | null; concern: string | null; source: string | null }
+  names: { name: string; on: string; state: 'used' | 'refused'; ruling: string | null; evidence: { kind: string; ref: string }[]; note: string | null }[]
+  events: { on: string; type: string; what: string; evidence: { kind: string; ref: string; note?: string }[]; pm_words: string | null; ruling: string | null }[]
+  lineage: { from: string; type: string; to: string; other: string; other_kind: string; other_status: string; reason: string | null }[]
+}
+
+/** The concepts an id or a name points at: one, several (a name two concepts shared), or none. */
+export async function findConcept(db: ClientBase, idOrName: string): Promise<{ id: string; matched: string; state: string }[]> {
+  const { rows } = await db.query<{ id: string; matched: string; state: string }>(
+    'select id, matched, state from knowledge.find_concept($1) order by id',
+    [idOrName],
+  )
+  return rows
+}
+
+export async function conceptTimeline(db: ClientBase, id: string): Promise<ConceptTimeline | null> {
+  const { rows } = await db.query<{ t: ConceptTimeline | null }>('select knowledge.concept_timeline($1) as t', [id])
+  return rows[0]?.t ?? null
+}

@@ -1,0 +1,58 @@
+name: Knowledge drift
+
+# F130 (#1232): weekly: lists concepts in the knowledge store whose built and
+# ruled states disagree, and socialus-plan docs that still call a concept cut
+# after it came back, by any name it ever had (scripts/knowledge/drift.ts).
+# Opens one Issue when it finds something, unless last week's is still open.
+#
+# Reads only. A key is minted for the run and the transaction is rolled back,
+# so the run leaves nothing in the store.
+
+on:
+  schedule:
+    - cron: '41 16 * * 1'   # Mondays 16:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: knowledge-drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    name: Find concept drift
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-plan
+          path: .knowledge/socialus-plan
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # The same connection apply.yml uses (scripts/supabase-db-url.sh).
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Find drift
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx scripts/knowledge/drift.ts --plan .knowledge/socialus-plan --open-issue

@@ -267,6 +267,45 @@ export const TOOLS: KnowledgeTool[] = [
   }),
 
   define({
+    name: 'concept',
+    description:
+      'How a concept changed and why, in one call. Give a concept id (CO-0001) or any name it ever had, refused names included. ' +
+      'Returns its current name and status, every name with its date and whether it was used or refused, every change by date ' +
+      '(idea, scoped, ruling, renamed, split, merged, cut, deferred, built, reversed) with its evidence and the PM\'s own words, ' +
+      'and its lineage: what it split from, merged into or became, and the scenarios that scope it.',
+    input: { concept: z.string().min(1).describe('A concept id, such as CO-0001, or a name it has had, such as Bulletins.') },
+    run: async (db, { concept }) => {
+      const found = await k.findConcept(db, concept)
+      const ids = [...new Set(found.map((f) => f.id))]
+      if (ids.length === 0) {
+        await db.query('select knowledge.log_unanswered($1, null, $2)', [concept, 'concept'])
+        return { text: `No concept called or numbered "${concept}" that this key can read. The question is kept as unanswered.`, isError: true }
+      }
+      if (ids.length > 1) {
+        return { text: `"${concept}" names more than one concept: ${found.map((f) => `${f.id} (${f.state} "${f.matched}")`).join(', ')}. Ask by id.` }
+      }
+      const t = await k.conceptTimeline(db, ids[0])
+      if (!t) return notFound(ids[0])
+      const ev = (e: { kind: string; ref: string }[]) => e.map((x) => `${x.kind.replace('_', ' ')} ${x.ref}`).join(', ')
+      const lines = [
+        `${t.concept.id} · ${t.concept.status}: ${t.concept.name}${t.concept.concern ? ` (${t.concept.concern})` : ''}`,
+        t.concept.why ? `Why: ${t.concept.why}` : null,
+        'Names:',
+        ...t.names.map((n) => `- ${n.on} ${n.state === 'refused' ? 'REFUSED ' : ''}"${n.name}"${n.ruling ? ` [ruling ${n.ruling}]` : ''} (${ev(n.evidence)})${n.note ? ` ${n.note}` : ''}`),
+        'Changes:',
+        ...(t.events.length
+          ? t.events.map((e) => `- ${e.on} ${e.type}: ${e.what} (${ev(e.evidence)})${e.pm_words ? ` The PM: "${e.pm_words}"` : ''}${e.ruling ? ` [ruling ${e.ruling}]` : ''}`)
+          : ['- none recorded']),
+        'Lineage:',
+        ...(t.lineage.length
+          ? t.lineage.map((l) => `- ${l.from} ${l.type} ${l.to}: ${l.other} (${l.other_kind}, ${l.other_status})`)
+          : ['- none']),
+      ].filter((x): x is string => x !== null)
+      return { text: lines.join('\n') }
+    },
+  }),
+
+  define({
     name: 'propose',
     description:
       'Internal. Record a new decision, pattern, philosophy or correction, or propose a change to an existing record, with a reason. ' +
