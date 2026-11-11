@@ -241,6 +241,20 @@ begin
   assert knowledge.built('JT.A1.T1') = 'built', 'a builder''s placement flipped built';
 end $$;
 
+-- test: every internal department reads the maps, and nothing on them is public
+do $$
+begin
+  assert (select audience = 'department' and departments @> array['building', 'communications', 'finance', 'legal', 'trust-and-safety']
+            from knowledge.records where id = 'JT.A1.T1'), 'a map item is not visible to every department';
+  assert (select departments from knowledge.records where id = 'JT-S1') = (select departments from knowledge.records where id = 'JT'),
+    'a journey''s slice is not seen by the journey''s readers';
+  reset role;
+  perform set_config('t.ts', knowledge.add_agent('t-ts', 'a moderator', '{trust-and-safety}', false), true);
+  set local role knowledge_store;
+  perform pg_temp.act('ts');
+  assert knowledge.map_of('JT') is not null, 'a trust and safety key cannot read the map';
+end $$;
+
 -- test: placements and proposals are append-only, and a key that cannot see a record sees none of its map
 do $$
 begin

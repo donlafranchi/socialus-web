@@ -29,6 +29,11 @@
 --   · Built is derived, never typed: a task or detail is built when a shipped
 --     slice takes it or a shipped feature is placed on it.
 --
+-- Who reads them. Every internal department (a map item's audience is
+-- department, naming them all): the whole team plans against the journeys,
+-- nothing on a map is sensitive, and none of it is public (agents' call,
+-- 2026-11-11, on #1257).
+--
 -- Who writes what. The PM rules on journeys and slices: only an operator
 -- records a map item as live, changes one, or draws a slice. Any key may
 -- propose an item, place a feature or idea, or propose a change.
@@ -269,7 +274,9 @@ begin
   insert into knowledge.records (id, kind, concern, answer, why, status, audience, departments, decided_by,
                                  decided_through, decided_on, source, parent, place)
   values (the_id, k, coalesce(p->>'concern', parent_rec.concern), p->>'answer', p->>'why',
-          coalesce(p->>'status', 'proposed'), 'department', '{building}', w.person, w.name,
+          coalesce(p->>'status', 'proposed'), 'department',
+          -- Every internal department plans against the maps; none is public.
+          array(select d.slug from knowledge.departments d order by d.slug), w.person, w.name,
           coalesce(p_effective, now())::date, p->>'source', p->>'parent',
           coalesce((p->>'place')::integer, knowledge._next_place(p->>'parent', k)));
   return the_id;
@@ -280,7 +287,9 @@ comment on function knowledge.map_item(jsonb, text, jsonb, timestamptz) is
 -- Puts an item at a place under its parent and renumbers its siblings 1..n in
 -- story order, the moved item first among any at that place. Each sibling
 -- whose place changes is a new version, with the same reason. The caller has
--- already checked the writer and the item.
+-- already checked the writer and the item. A settled sibling is renumbered
+-- too: its place is bookkeeping for the order around it, not its content,
+-- and its words, why and status are never touched here.
 create function knowledge._map_reorder(w knowledge.agents, p_id text, p_parent text, p_place integer,
                                        p_reason text, p_evidence jsonb, p_effective timestamptz)
 returns integer language plpgsql security definer set search_path = '' as $$
