@@ -1,0 +1,117 @@
+name: Backup restore test
+
+# Once a month, prove the newest backup restores (#1259, INFRASTRUCTURE.md §10:
+# "A backup you have never restored is a hypothesis").
+#
+# Downloads the newest backup.yml artifact, decrypts it with BACKUP_AGE_KEY,
+# starts a throwaway local Supabase Postgres on this runner (same roles and
+# extensions as production), restores the dump into a fresh database, and
+# passes only if every table has exactly the row count recorded at dump time
+# and every saved photo is in the bundle. Nothing here touches production.
+#
+# What it does not do: point the app at the restored copy. That is the manual
+# half of §10's check, for a real disaster drill.
+
+on:
+  schedule:
+    - cron: '43 11 3 * *'   # the 3rd, after two nights of backups since the 1st
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read   # to download the backup artifact
+  issues: write
+
+concurrency:
+  group: backup-restore-test
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    name: Restore the newest backup into a scratch Postgres
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: The encryption key is set
+        env:
+          BACKUP_AGE_KEY: ${{ secrets.BACKUP_AGE_KEY }}
+        run: |
+          [ -n "$BACKUP_AGE_KEY" ] || { echo "::error::BACKUP_AGE_KEY is not set; see backup.yml."; exit 1; }
+
+      - uses: actions/checkout@v5
+
+      - name: Install age and the Postgres 17 client
+        run: bash scripts/backup/install-tools.sh
+
+      - name: Download and decrypt the newest backup
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BACKUP_AGE_KEY: ${{ secrets.BACKUP_AGE_KEY }}
+        run: |
+          set -euo pipefail
+          run_id="$(gh run list -R "$REPO" --workflow backup.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          [ -n "$run_id" ] || { echo "::error::No successful backup.yml run to test."; exit 1; }
+          echo "Testing the backup from run $run_id" | tee -a "$GITHUB_STEP_SUMMARY"
+          gh run download "$run_id" -R "$REPO" -D "$RUNNER_TEMP/dl"
+          file="$(find "$RUNNER_TEMP/dl" -name 'socialus-backup-*.tar.age' | head -1)"
+          [ -n "$file" ] || { echo "::error::That run has no backup artifact (expired?)."; exit 1; }
+          umask 077
+          printf '%s\n' "$BACKUP_AGE_KEY" > "$RUNNER_TEMP/age.key"
+          mkdir -p "$RUNNER_TEMP/bundle"
+          age -d -i "$RUNNER_TEMP/age.key" "$file" | tar -C "$RUNNER_TEMP/bundle" -xf -
+          rm -f "$RUNNER_TEMP/age.key"
+
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      # Only Postgres: everything else is excluded.
+      - name: Start a throwaway local Postgres
+        run: bash scripts/supabase-start.sh -x gotrue,realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Restore and compare
+        env:
+          ADMIN_URL: postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres
+          BUNDLE_DIR: ${{ runner.temp }}/bundle
+          PG_BIN: /usr/lib/postgresql/17/bin
+        run: bash scripts/backup/verify-restore.sh
+
+      # [guard-proves-itself]: the same bundle with one count off by one must
+      # fail, or the green step above proves nothing.
+      - name: The comparison can fail (self-test)
+        env:
+          ADMIN_URL: postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres
+          PG_BIN: /usr/lib/postgresql/17/bin
+          RESTORE_DB: restore_selftest
+        run: |
+          cp -r "$RUNNER_TEMP/bundle" "$RUNNER_TEMP/tampered"
+          awk 'BEGIN{FS=OFS="\t"} NR==1{$2=$2+1} {print}' "$RUNNER_TEMP/bundle/counts.tsv" > "$RUNNER_TEMP/tampered/counts.tsv"
+          if BUNDLE_DIR="$RUNNER_TEMP/tampered" bash scripts/backup/verify-restore.sh > /dev/null 2>&1; then
+            echo "::error::verify-restore passed a bundle whose counts were wrong. It is not checking anything."
+            exit 1
+          fi
+          echo "Self-test: a wrong count failed the comparison, as it must."
+
+      - name: Open or update the Issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="bug · backup restore test failed"
+          existing="$(gh issue list -R "$REPO" --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" -R "$REPO" --body "Failed again: $RUN"
+          else
+            gh issue create -R "$REPO" --title "$title" --label bug --label area:ops --body "This month's restore test could not bring the newest backup back whole: $RUN
+
+          Until it passes, assume our own backups would not save us; Supabase's 7-day snapshot still covers the database.
+
+          Kind: bug
+          Scenario: none
+          Path: well-worn. Precedent: post-run alarm Issues (main-build-alarm.yml, smoke-live.yml).
+
+          @donlafranchi"
+          fi
