@@ -80,6 +80,9 @@ begin
     'a parked slice was marked building';
   assert pg_temp.refused($q$select knowledge.record('{"id":"F900-S9","kind":"slice","answer":"no horizon","status":"planned","audience":"department","departments":["building"]}', 'F127 test')$q$) is not null,
     'a slice was recorded with no horizon or rank';
+  assert pg_temp.refused($q$select knowledge.add_slice('F901', 'Card pre-orders, started', 'later', 2, 'F127 test', array[current_setting('t.card')], 'building')$q$)
+         like 'A slice that waits on an unmet condition is not started as building%',
+    'a parked slice was made as building';
   assert pg_temp.refused($q$select knowledge.add_slice('F900', 'x', 'soon', 1, 'F127 test')$q$) is not null,
     'a slice took a horizon other than now, next or later';
   assert pg_temp.refused($q$select knowledge.add_slice('F900', 'x', 'now', 0, 'F127 test')$q$) is not null,
@@ -130,6 +133,11 @@ begin
     'a slice was both included and left out';
   assert pg_temp.refused($q$select knowledge.plan_version('{"answer":"x","why":"y","outcomes":["a"],"appetite":"b","leaves_out":[{"slice":"F900-S1","reason":"r","condition":"F900"}]}', 'F127 test')$q$) is not null,
     'a leave-out was brought back by something that is not a condition';
+  perform knowledge.revise('F902-S1', '{"status":"withdrawn"}', 'Not doing it.');
+  assert pg_temp.refused($q$select knowledge.plan_version('{"answer":"x","why":"y","outcomes":["a"],"appetite":"b","includes":["F902-S1"]}', 'F127 test')$q$)
+         like 'A plan does not include a withdrawn slice%',
+    'a new plan included a withdrawn slice';
+  perform knowledge.revise(v, '{"status":"current"}', 'A version whose slice was withdrawn later still changes status.');
   perform pg_temp.act('build');
   assert pg_temp.refused($q$select knowledge.plan_version('{"answer":"x","why":"y","outcomes":["a"],"appetite":"b"}', 'F127 test')$q$) is not null,
     'a building key recorded a version';
@@ -205,6 +213,12 @@ begin
   assert knowledge.plan_as_of(v, '2026-11-02')->'outcomes' = '["More Pages"]', 'the plan on a past day is not as it was';
   assert knowledge.plan_as_of(v, '2026-11-11')->'outcomes' = '["First sales"]', 'the plan today is not the new one';
   assert knowledge.plan_as_of(v, '2026-10-01') is null, 'a plan read before it existed';
+  -- A past plan shows its slices as they were that day, not as they are now.
+  perform knowledge.revise('F900-S1', '{"status":"shipped"}', 'Shipped.', null, '2026-11-08');
+  assert (select i->>'status' from jsonb_array_elements(knowledge.plan_as_of(v, '2026-11-05')->'includes') i where i->>'slice' = 'F900-S1') = 'planned',
+    'a past plan shows a slice''s status from after that day';
+  assert (select i->>'status' from jsonb_array_elements(knowledge.plan_as_of(v, now())->'includes') i where i->>'slice' = 'F900-S1') = 'shipped',
+    'today''s plan does not show the slice as shipped';
 
   select count(*) into n from knowledge.plan_changes('2026-11-05', '2026-11-11');
   assert n = 1, format('expected one change between the two dates, got %s', n);
@@ -256,6 +270,10 @@ begin
   select array_agg(d.slice) into due from knowledge.left_out_due(v) d;
   assert due = array['F901-S2'], format('a leave-out whose condition is met is not listed again: %s', due);
   assert (select d.due from knowledge.left_out_due(v) d) like '%is met%', 'the listing does not say why it is back';
+  -- A condition withdrawn brings nothing back on its own: the slice is listed again too.
+  perform knowledge.set_condition(current_setting('t.card'), 'withdrawn', 'Cards are off the table.');
+  assert (select d.due from knowledge.left_out_due(v) d where d.slice = 'F901-S2') like '%was withdrawn%',
+    'a leave-out whose condition was withdrawn is not listed again';
 end $$;
 
 -- test: today's plan reads as Now, Next and Later from the store, by rank, with what each slice waits on

@@ -14,8 +14,13 @@ const define = <S extends z.ZodRawShape>(t: KnowledgeTool<S>) => t as unknown as
 
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'A date as YYYY-MM-DD.')
 
-/** The end of a day, so "on 2026-11-10" includes everything that happened that day. */
-const endOf = (d: string) => `${d}T23:59:59.999Z`
+/**
+ * The end of a day in the market's time (Pacific), so "on 2026-11-10" includes
+ * everything that happened that day there. Worked out by Postgres from the
+ * date, so daylight saving is right.
+ */
+const END_OF = `((%s::date + 1)::timestamp at time zone 'America/Los_Angeles' - interval '1 microsecond')`
+const endOf = (param: string) => END_OF.replace('%s', param)
 
 interface SliceLine {
   slice: string
@@ -62,10 +67,10 @@ const sliceWords = (s: SliceLine) =>
   `${s.status && s.status !== 'planned' ? `, ${s.status}` : ''}`
 
 export async function planText(db: ClientBase, id: string, on?: string): Promise<string | null> {
-  const { rows } = await db.query<{ p: Plan | null }>('select knowledge.plan_as_of($1, $2::timestamptz) as p', [
-    id,
-    on ? endOf(on) : new Date().toISOString(),
-  ])
+  const { rows } = await db.query<{ p: Plan | null }>(
+    `select knowledge.plan_as_of($1, case when $2::text is null then now() else ${endOf('$2')} end) as p`,
+    [id, on ?? null],
+  )
   const p = rows[0]?.p
   if (!p) return null
   const lines = [
@@ -139,9 +144,9 @@ export const PLAN_TOOLS: KnowledgeTool[] = [
         version_id: string; name: string; version: number; at: Date; why: string; outcome: string | null
         outcomes_before: string[] | null; outcomes_after: string[]; appetite_before: string | null; appetite_after: string
         included: string[]; dropped: string[]; left_out: string[]; brought_back: string[]
-      }>('select * from knowledge.plan_changes($1::timestamptz, $2::timestamptz, $3)', [
-        endOf(from),
-        to ? endOf(to) : new Date().toISOString(),
+      }>(`select * from knowledge.plan_changes(${endOf('$1')}, case when $2::text is null then now() else ${endOf('$2')} end, $3)`, [
+        from,
+        to ?? null,
         id,
       ])
       if (rows.length === 0) return { text: `No change of plan after ${from}${to ? ` up to ${to}` : ''}.` }
