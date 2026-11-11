@@ -5,6 +5,10 @@ name: Knowledge drift
 # after it came back, by any name it ever had (scripts/knowledge/drift.ts).
 # Opens one Issue when it finds something, unless last week's is still open.
 #
+# F128 (#1237): a second step lists live practices whose enforcing check or
+# workflow no longer exists in socialus-web, socialus-plan or socialus-ops
+# (scripts/knowledge/practice-drift.ts), with its own Issue.
+#
 # Reads only. A key is minted for the run and the transaction is rolled back,
 # so the run leaves nothing in the store.
 
@@ -33,6 +37,11 @@ jobs:
           repository: donlafranchi/socialus-plan
           path: .knowledge/socialus-plan
           persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-ops
+          path: .knowledge/socialus-ops
+          persist-credentials: false
 
       - uses: actions/setup-node@v5
         with:
@@ -56,3 +65,10 @@ jobs:
           DATABASE_URL: ${{ steps.dburl.outputs.url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx tsx scripts/knowledge/drift.ts --plan .knowledge/socialus-plan --open-issue
+
+      - name: Find practices whose enforcing check is gone
+        if: ${{ !cancelled() }}
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx scripts/knowledge/practice-drift.ts --web . --plan .knowledge/socialus-plan --ops .knowledge/socialus-ops --open-issue
