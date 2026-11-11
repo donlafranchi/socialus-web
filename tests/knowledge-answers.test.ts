@@ -268,5 +268,9 @@ describe.skipIf(!RUNNABLE)('F131: the three answers, from the store', () => {
     // A run that only read GitHub again at a later time is no change to send.
     const later = renderPage({ ...a, where: a.where.replace(/GitHub read .* UTC/, 'GitHub read 2026-11-12 12:00 UTC') }, new Date())
     expect(pageBody(later)).toBe(pageBody(page))
+    // Nor is one where only the number of open changes moved.
+    const busier = renderPage({ ...a, where: a.where.replace(/1 change open/, '4 changes open') }, new Date())
+    expect(busier).not.toBe(page)
+    expect(pageBody(busier)).toBe(pageBody(page))
   })
 })
