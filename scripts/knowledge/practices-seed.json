@@ -1,0 +1,2217 @@
+{
+ "generated": "2026-11-11",
+ "sources": {
+  "socialus-ops": "8558e18ea366b7496337a2791fa08760c5b9551f (Mac rules patched to #176, 2026-11-11)",
+  "socialus-plan": "eb08a84dc6751326545c795691e7fe52b2bc3b81",
+  "socialus-web": "42f683411d17372c99d0bdeab49a5c40e9d35726"
+ },
+ "practices": [
+  {
+   "slug": "look-first-precedents",
+   "area": "deciding",
+   "statement": "Before deciding anything, name 2 to 3 established precedents with links.",
+   "why": "Most decisions were already made well elsewhere.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/issue-lint.yml",
+     "what": "Issue and PR lint"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "scripts/check-path-line.cjs",
+     "what": "Path line check"
+    }
+   ],
+   "source": "socialus-ops:CLAUDE.md#Decision rule; socialus-ops:process/PIPELINE.md#Decision rule",
+   "holds": "always"
+  },
+  {
+   "slug": "path-line-on-every-issue-pr",
+   "area": "deciding",
+   "statement": "Every Issue and PR in the code repo carries a Path line, well-worn or new territory, with its precedents beside it.",
+   "why": "It says who decides.",
+   "evidence": [
+    {
+     "date": "2026-10-04",
+     "what": "decision rule: issue-lint requires the Path line",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/issue-lint.yml",
+     "what": "Issue and PR lint"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "scripts/check-path-line.cjs",
+     "what": "Path line check"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Decision rule; socialus-ops:process/PIPELINE-build.md#3 · Research and precedents",
+   "holds": "always"
+  },
+  {
+   "slug": "well-worn-decide-and-build",
+   "area": "deciding",
+   "statement": "On a well-worn path agents build the simplest fitting option; when unsure, lean toward deciding.",
+   "why": "The PM's time is the scarcest resource.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Decision rule; socialus-web:CLAUDE.md#DECISION RULE",
+   "holds": "always"
+  },
+  {
+   "slug": "new-territory-goes-as-abc",
+   "area": "deciding",
+   "statement": "New territory (a ruling, legal, privacy, money or member trust) goes to the PM as A/B/C before building.",
+   "why": "A wrong guess there costs members or trust.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Decision rule; socialus-web:CLAUDE.md#DECISION RULE",
+   "holds": "always"
+  },
+  {
+   "slug": "don-decides",
+   "area": "deciding",
+   "statement": "The PM decides ideas, version scope, and words and look; agents decide the rest and report it.",
+   "why": "The soul already answers most questions.",
+   "evidence": [
+    {
+     "date": "2026-10-25",
+     "what": "decision rights ruling",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "absolute",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/ABSOLUTES.md#don-decides; socialus-ops:process/PIPELINE.md#Decision rights",
+   "holds": "always"
+  },
+  {
+   "slug": "direction-then-options",
+   "area": "deciding",
+   "statement": "The PM gives direction; agents research it into options; the PM decides.",
+   "why": "Don's model for building the app.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#How decisions flow; socialus-web:CLAUDE.md#How decisions flow (2026-11-01)",
+   "holds": "always"
+  },
+  {
+   "slug": "ruling-is-dated-line",
+   "area": "deciding",
+   "statement": "A ruling is one dated line in the doc it governs, at the scope the PM gave.",
+   "why": "A wider reading once retired four rules.",
+   "evidence": [
+    {
+     "date": "2026-09-14",
+     "what": "shorthand recorded as a rule retired four others",
+     "ref": "socialus-ops:process/ABSOLUTES.md"
+    }
+   ],
+   "strength": "absolute",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/ABSOLUTES.md#ruling-is-dated-line; socialus-plan:CLAUDE.md#Where truth lives",
+   "holds": "always"
+  },
+  {
+   "slug": "newer-decision-wins",
+   "area": "deciding",
+   "statement": "The newer decision wins and work continues; a real live conflict becomes a marker, never split.",
+   "why": "Stop-and-ask cost the PM repeatedly.",
+   "evidence": [
+    {
+     "date": "2026-09-26",
+     "what": "#220 asked Don which ruling held",
+     "ref": "socialus-ops:process/ABSOLUTES.md"
+    }
+   ],
+   "strength": "absolute",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/ABSOLUTES.md#newer-decision-wins; socialus-ops:process/LIVING-DOCS.md#Newer decision wins",
+   "holds": "always"
+  },
+  {
+   "slug": "prune-with-replaces-tag",
+   "area": "docs",
+   "statement": "A superseded ruling is deleted, and its replacement names it in a [replaces] tag.",
+   "why": "Annotated docs hid which half was current.",
+   "evidence": [
+    {
+     "date": "2026-09-23",
+     "what": "a reversed ruling kept beside its reversal",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Prune, don't annotate; socialus-ops:process/ABSOLUTES.md#newer-decision-wins",
+   "holds": "always"
+  },
+  {
+   "slug": "binds-tags-per-tier",
+   "area": "deciding",
+   "statement": "Each ruling carries a [binds] tag, and each tier reads only its generated constraints file.",
+   "why": "Rulings did not reach the agents they bound.",
+   "evidence": [
+    {
+     "date": "2026-09-14",
+     "what": "ruling never reached code (#205)",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Per-tier constraints; socialus-web:CLAUDE.md#Rulings that bind this repo",
+   "holds": "always"
+  },
+  {
+   "slug": "always-or-for-now",
+   "area": "words",
+   "statement": "Rulings cover current concerns, and 'never' or 'always' carries [always] or [for now].",
+   "why": "Absolute words outlive their reason.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/WHERE-THINGS-GO.md#Maintained: agent docs",
+   "holds": "always"
+  },
+  {
+   "slug": "evidence-tag-on-member-driven-rulings",
+   "area": "deciding",
+   "statement": "A ruling changed by member action carries an [evidence] tag; a judgement ruling carries none.",
+   "why": "Feedback's effect should be a scan.",
+   "evidence": [
+    {
+     "date": "2026-09-27",
+     "what": "Don's ruling; the view is deferred until the first tag lands",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "assess",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Evidence behind a change; socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "always"
+  },
+  {
+   "slug": "settled-not-reraised",
+   "area": "deciding",
+   "statement": "Settled ground (members are the investors and only payees) is not re-raised; legal goes to counsel.",
+   "why": "Re-arguing spends PM time.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#SETTLED banner; socialus-plan:CLAUDE.md#SETTLED banner",
+   "holds": "always"
+  },
+  {
+   "slug": "council-three-roles",
+   "area": "deciding",
+   "statement": "A council of three cheap members and a strong chair, briefed with the PM's limits, returns one A/B/C.",
+   "why": "Nine overlapping roles were trimmed.",
+   "evidence": [
+    {
+     "date": "2026-11-02",
+     "what": "nine roles trimmed to three in the single-loop rewrite",
+     "ref": "socialus-ops:process/council-roles.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/council-roles.md; socialus-ops:process/research/single-loop/PLAN.md#Worklist",
+   "holds": "always"
+  },
+  {
+   "slug": "knowledge-store",
+   "area": "deciding",
+   "statement": "Decisions and patterns live in one database with history, queried instead of read as files.",
+   "why": "Hundreds of files went stale.",
+   "evidence": [
+    {
+     "date": "2026-11-10",
+     "what": "stage 1 of the knowledge store built",
+     "ref": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "trial",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/knowledge-import.yml",
+     "what": "imports rulings"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/knowledge-drift.yml",
+     "what": "weekly drift"
+    }
+   ],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Deciding",
+   "holds": "always"
+  },
+  {
+   "slug": "conditions-with-parts",
+   "area": "planning",
+   "statement": "Work waits on conditions with parts, so part of a capability can unlock part of the work.",
+   "why": "A single blocker hid which piece was actually ready.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "trial",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/knowledge-conditions.yml",
+     "what": "runs condition checks"
+    }
+   ],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Deciding",
+   "holds": "always"
+  },
+  {
+   "slug": "pm-queue-one-at-a-time",
+   "area": "deciding",
+   "statement": "PM items go one per message, the most unblocking first, batched for Friday to Monday; never a list.",
+   "why": "One clear ask gets answered; a list stalls.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "the PM's working-with guidelines",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Working with the PM; socialus-ops:process/PIPELINE-build.md#15 · PM review",
+   "holds": "always"
+  },
+  {
+   "slug": "five-kinds-of-work",
+   "area": "planning",
+   "statement": "Work is classed as scenario, change, bug, process or chore first; a misfit takes the nearest path.",
+   "why": "Non-scenario work fell outside the pipeline.",
+   "evidence": [
+    {
+     "date": "2026-09-10",
+     "what": "non-scenario work forced through the scenario pipeline",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/issue-lint.yml",
+     "what": "Issue and PR lint"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md; socialus-web:CLAUDE.md#Before opening a ticket",
+   "holds": "always"
+  },
+  {
+   "slug": "acceptance-checks-mean-scenario",
+   "area": "planning",
+   "statement": "A change or bug that needs acceptance checks is a scenario, written before it is ticketed.",
+   "why": "Otherwise it ships unapproved.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/issue-lint.yml",
+     "what": "Issue and PR lint"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#Before opening a ticket; socialus-ops:process/PIPELINE.md#Rules of the road",
+   "holds": "always"
+  },
+  {
+   "slug": "scenario-spec-40-lines",
+   "area": "planning",
+   "statement": "A scenario spec is at most 40 lines of Story, Acceptance and Not this; more is two scenarios.",
+   "why": "A spec must fit in one head.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Rules of the road; socialus-ops:process/PIPELINE-build.md#5 · Scenario",
+   "holds": "always"
+  },
+  {
+   "slug": "value-test",
+   "area": "planning",
+   "statement": "Every scenario from F103 on answers six value questions in its Why.",
+   "why": "Should it exist here at all?",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "business hours built, cluttered, hidden",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Rules of the road",
+   "holds": "always"
+  },
+  {
+   "slug": "platform-marker",
+   "area": "planning",
+   "statement": "A scenario marks its native platform needs, or [platform none]; store views are generated.",
+   "why": "Hand-kept inventories would drift.",
+   "evidence": [
+    {
+     "date": "2026-09-29",
+     "what": "required on scenarios approved from this date",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Platform readiness; socialus-ops:process/PIPELINE.md#Rules of the road",
+   "holds": "always"
+  },
+  {
+   "slug": "gates-launch-frontmatter",
+   "area": "planning",
+   "statement": "A beta-gating scenario says gates: launch, and a code-binding ruling names its Issue or build=none.",
+   "why": "Gating work sat with no Issue.",
+   "evidence": [
+    {
+     "date": "2026-09-26",
+     "what": "five gating scenarios had no Issue",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Gating claims; socialus-plan:CLAUDE.md#State",
+   "holds": "always"
+  },
+  {
+   "slug": "concept-in-one-place",
+   "area": "planning",
+   "statement": "A concept lives once, in the product spine with its status; systems docs never say what ships.",
+   "why": "Two descriptions failed before.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-plan:CLAUDE.md#Where truth lives; socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "always"
+  },
+  {
+   "slug": "imagine-is-waiting-room",
+   "area": "planning",
+   "statement": "Ideas with no noun, verb or surface wait in IMAGINE.md and move out, never copied.",
+   "why": "A parallel library becomes a second description.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/budgets.py",
+     "what": "doc budgets"
+    }
+   ],
+   "source": "socialus-plan:CLAUDE.md#Where truth lives; socialus-ops:process/WHERE-THINGS-GO.md#Maintained: agent docs",
+   "holds": "always"
+  },
+  {
+   "slug": "model-md-is-authority",
+   "area": "planning",
+   "statement": "Don's model.md says what the product is; product docs that disagree are fixed that session.",
+   "why": "Docs drift without one authority.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-plan:CLAUDE.md#Where truth lives",
+   "holds": "always"
+  },
+  {
+   "slug": "state-in-frontmatter-and-labels",
+   "area": "planning",
+   "statement": "Scenario state is frontmatter, ticket state an Issue label; no bridge document.",
+   "why": "A bridge doc went wrong.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-plan:CLAUDE.md#State; socialus-ops:CLAUDE.md#Changing the method",
+   "holds": "always"
+  },
+  {
+   "slug": "now-next-later-no-dates",
+   "area": "planning",
+   "statement": "Features are ranked now, next, later with no dates; version plans change with a why.",
+   "why": "Dates become false promises.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Planning",
+   "holds": "always"
+  },
+  {
+   "slug": "issue-is-hypothesis",
+   "area": "planning",
+   "statement": "An Issue is a hypothesis: a loop may end by saying the Issue is wrong.",
+   "why": "Agents otherwise guess confidently.",
+   "evidence": [
+    {
+     "date": "2026-11-01",
+     "what": "PM filed the design-not-factory reading todo",
+     "ref": "socialus-ops:process/research/2026-11-01-design-not-factory.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/DISPATCH.md#Intake and the Code loop",
+   "holds": "always"
+  },
+  {
+   "slug": "architecture-note-first",
+   "area": "planning",
+   "statement": "A ticket touching schema, RLS or routes opens with a short architecture note and its visibility rows.",
+   "why": "Code is the architect.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-plan:CLAUDE.md#Who does what; socialus-ops:process/PIPELINE-build.md#6 · Tickets",
+   "holds": "always"
+  },
+  {
+   "slug": "ethos-and-pitch-test",
+   "area": "planning",
+   "statement": "A scenario names the soul line and pitch capability it serves, and when we step out of the loop.",
+   "why": "Extracting from members fails the soul.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE-build.md#5 · Scenario",
+   "holds": "always"
+  },
+  {
+   "slug": "pitch-derived-docs",
+   "area": "docs",
+   "statement": "A doc derived from the pitch carries [derives pitch@date]; the lint fails it once the pitch moves.",
+   "why": "The pitch was copied into five docs.",
+   "evidence": [
+    {
+     "date": "2026-10-15",
+     "what": "pitch audit found the pitch copied into five docs",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Docs derived from the pitch",
+   "holds": "always"
+  },
+  {
+   "slug": "scenario-names-concept",
+   "area": "planning",
+   "statement": "A scenario changed after 2026-11-11 names its concept in frontmatter.",
+   "why": "Links it to the idea it grew from.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "trial",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-plan:scripts/lint.sh#1d",
+   "holds": "always"
+  },
+  {
+   "slug": "intake-files-not-acts",
+   "area": "planning",
+   "statement": "Every PM ask is filed as an Issue with area and milestone; only launch blockers jump the line.",
+   "why": "Asks acted on from chat get lost.",
+   "evidence": [
+    {
+     "date": "2026-11-02",
+     "what": "area lanes folded in the single-loop rewrite",
+     "ref": "socialus-ops:process/DISPATCH.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/issue-lint.yml",
+     "what": "Issue and PR lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/dashboard.py",
+     "what": "shows unfiled as ?"
+    }
+   ],
+   "source": "socialus-ops:process/DISPATCH.md#Intake and the Code loop; socialus-ops:process/PIPELINE-build.md#1 · Intake",
+   "holds": "always"
+  },
+  {
+   "slug": "issue-and-commit-naming",
+   "area": "planning",
+   "statement": "Issues, branches and commits use fixed names that carry the scenario or Issue number.",
+   "why": "git finds everything.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "Don: Issue number plus readable slug in the code repo",
+     "ref": "socialus-web:CLAUDE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/issue-lint.yml",
+     "what": "Issue and PR lint"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#Naming; socialus-plan:CLAUDE.md#Naming",
+   "holds": "always"
+  },
+  {
+   "slug": "staging-before-production",
+   "area": "shipping",
+   "statement": "Before production in 2027, a staging site with its own database takes migrations first.",
+   "why": "Nothing is built for beta.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "the PM chose C",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "hold",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "for now"
+  },
+  {
+   "slug": "one-loop-per-issue",
+   "area": "building",
+   "statement": "One build session takes one Issue from ticket to merge and ends with its PR.",
+   "why": "Lanes existed only to share one machine.",
+   "evidence": [
+    {
+     "date": "2026-11-02",
+     "what": "lanes folded (rewrite-1)",
+     "ref": "socialus-ops:process/research/single-loop/PLAN.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/DISPATCH.md#Intake and the Code loop; socialus-ops:process/PIPELINE.md#Economy",
+   "holds": "always"
+  },
+  {
+   "slug": "tests-first-red",
+   "area": "building",
+   "statement": "Tests come first: a failing test per criterion, and a failing regression test for every bug.",
+   "why": "A test that never failed proves nothing.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE-build.md#7 · Tests first (red)",
+   "holds": "always"
+  },
+  {
+   "slug": "guard-proves-itself",
+   "area": "building",
+   "statement": "A check is not relied on until seen rejecting bad input, by a bad fixture in the same job.",
+   "why": "Green is not evidence.",
+   "evidence": [
+    {
+     "date": "2026-09-21",
+     "what": "an inert migrations check let a merge land ahead of its migration and took production down",
+     "ref": "socialus-ops:process/ABSOLUTES.md"
+    },
+    {
+     "date": "2026-09-27",
+     "what": "the open-question lint printed errors and reported clean (pipefail)",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "absolute",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "scripts/check-path-line.cjs",
+     "what": "Path line check"
+    }
+   ],
+   "source": "socialus-ops:process/ABSOLUTES.md#guard-proves-itself; socialus-ops:process/LIVING-DOCS.md#Guard coverage",
+   "holds": "always"
+  },
+  {
+   "slug": "guards-marker-coverage",
+   "area": "building",
+   "statement": "A test discharging a criterion carries [guards F###.N]; covered means one check claims all of it.",
+   "why": "An unmarked scenario is unverified, not verified.",
+   "evidence": [
+    {
+     "date": "2026-09-29",
+     "what": "21 of 22 approved and building scenarios had no marked check",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": "scripts/check-markers.sh",
+     "what": "marker check"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#Which check discharges which criterion; socialus-ops:process/LIVING-DOCS.md#Guard coverage",
+   "holds": "always"
+  },
+  {
+   "slug": "verify-on-handler-rows",
+   "area": "building",
+   "statement": "Verify against a row a handler created from a form, not against seed data.",
+   "why": "Seeds look right while member rows break (bug #175).",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-web:CLAUDE.md#The seeds are privileged",
+   "holds": "always"
+  },
+  {
+   "slug": "pr-states-how-verified",
+   "area": "building",
+   "statement": "Every PR states how it was verified; unverified work is a draft; shipped means something calls it.",
+   "why": "A security PR passed only on a laptop and could not say so.",
+   "evidence": [
+    {
+     "date": "2026-09-09",
+     "what": "security PR verified only on a laptop",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Verified or not; socialus-ops:process/PIPELINE-build.md#8 · Build",
+   "holds": "always"
+  },
+  {
+   "slug": "divergence-stops-and-asks",
+   "area": "building",
+   "statement": "A PR that differs from its scenario stops and asks for a scenario change first.",
+   "why": "Otherwise it ships what was not approved.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-web:CLAUDE.md#When a PR diverges from its scenario; socialus-ops:process/PIPELINE-build.md#8 · Build",
+   "holds": "always"
+  },
+  {
+   "slug": "push-once-when-ready",
+   "area": "building",
+   "statement": "Push once when ready, not per commit, and keep PR stacks at most two deep.",
+   "why": "Every push runs CI.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "CI minutes and deployments ran out in one day",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-web:CLAUDE.md#BUILD RULES; socialus-ops:process/PIPELINE.md#Economy",
+   "holds": "always"
+  },
+  {
+   "slug": "generated-files-not-in-feature-prs",
+   "area": "docs",
+   "statement": "Feature PRs never commit generated files, and a branch behind main merges main in.",
+   "why": "Avoids conflicts and stale views.",
+   "evidence": [
+    {
+     "date": "2026-10-11",
+     "what": "ruled well-worn after trunk-based and lockfile precedents",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Generated files; socialus-plan:CLAUDE.md#Generated files",
+   "holds": "always"
+  },
+  {
+   "slug": "mac-build-limits",
+   "area": "building",
+   "statement": "On the Mac at most 4 builds at once, 4 Playwright workers, one dev port each, Docker Desktop only; cloud sessions are not capped.",
+   "why": "One machine is shared.",
+   "evidence": [
+    {
+     "date": "2026-11-11",
+     "what": "The PM replaced the Mac with a much more powerful one; the 2-at-once cap was the old Mac's and is raised to 4, cloud uncapped",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    },
+    {
+     "date": "2026-10-04",
+     "what": "Don's build rules for one machine",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Build rules; socialus-web:CLAUDE.md#BUILD RULES",
+   "holds": "for now"
+  },
+  {
+   "slug": "worktree-per-session",
+   "area": "building",
+   "statement": "Each session works in its own worktree beside the repo and reads status without taking the lock.",
+   "why": "Sessions at the root wedged index.lock.",
+   "evidence": [
+    {
+     "date": "2026-09-09",
+     "what": "sessions wedged index.lock",
+     "ref": "socialus-ops:CLAUDE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Changing the method; socialus-plan:CLAUDE.md#Sessions",
+   "holds": "always"
+  },
+  {
+   "slug": "mac-disk-hygiene",
+   "area": "building",
+   "statement": "Worktrees are removed the day their branch merges, at most 10 per repo, with a weekly disk sweep.",
+   "why": "Stale worktrees filled the disk.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "136 stale worktrees used 78GB and filled the disk",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Build rules; socialus-ops:process/PIPELINE-build.md#13 · Merge, migrate, deploy",
+   "holds": "for now"
+  },
+  {
+   "slug": "flag-before-breaking-rule",
+   "area": "building",
+   "statement": "If a rule would slow a deadline, tell the PM which one before breaking it.",
+   "why": "A silent break hides a trade-off the PM owns.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Build rules; socialus-web:CLAUDE.md#BUILD RULES",
+   "holds": "always"
+  },
+  {
+   "slug": "match-model-to-work",
+   "area": "agents",
+   "statement": "Use a light or mid model for routine work and the top model for design, money, RLS and tricky builds.",
+   "why": "Most work is routine.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Economy; socialus-ops:process/PIPELINE-build.md#Model tiers",
+   "holds": "always"
+  },
+  {
+   "slug": "no-new-paid-tools",
+   "area": "shipping",
+   "statement": "Assume no outside capital, and no new paid tool before beta unless it replaces PM time.",
+   "why": "Bootstrapped and member-funded.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Economy",
+   "holds": "for now"
+  },
+  {
+   "slug": "ontology-in-code",
+   "area": "building",
+   "statement": "Links between nouns live in code with their ruled date, updated in the ruling's PR.",
+   "why": "Relationships lived implicitly in foreign keys, and a hand document called REGISTRY died.",
+   "evidence": [
+    {
+     "date": "2026-09-19",
+     "what": "object deferral retired unused",
+     "ref": "socialus-web:CLAUDE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": "scripts/check-action-layer-conformance.ts",
+     "what": "link conformance"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "scripts/ontology-registry.ts",
+     "what": "registry"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#The ontology",
+   "holds": "always"
+  },
+  {
+   "slug": "flags-of-our-own",
+   "area": "shipping",
+   "statement": "Unfinished work merges dark behind our own database flags, builders first, each with a removal date.",
+   "why": "The flag rule had no flags behind it.",
+   "evidence": [
+    {
+     "date": "2026-11-10",
+     "what": "LaunchDarkly review found the stated flag rule unbacked",
+     "ref": "socialus-ops:process/research/2026-11-10-review-launchdarkly.md"
+    },
+    {
+     "date": "2026-11-11",
+     "what": "flags of our own built (socialus-web #1228)",
+     "ref": "socialus-web:pull/1228"
+    }
+   ],
+   "strength": "rule",
+   "ring": "trial",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/flags.yml",
+     "what": "flag switch"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "src/lib/flags/registry.ts",
+     "what": "flag registry"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#Who checks what; socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "always"
+  },
+  {
+   "slug": "roles-and-firewall",
+   "area": "agents",
+   "statement": "The PM rules; the planning agent never commits code; only the build agent commits code.",
+   "why": "Each tier reads only its own constraints and files.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Roles; socialus-plan:CLAUDE.md#Who does what",
+   "holds": "always"
+  },
+  {
+   "slug": "builder-accounts",
+   "area": "building",
+   "statement": "Build agents use per-persona builder accounts that never count in numbers, seed the app daily, and one switch hides or deletes their content.",
+   "why": "Agents must see every view as a persona.",
+   "evidence": [
+    {
+     "date": "2026-10-01",
+     "what": "Don ruled builder accounts per persona",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/builders-daily.yml",
+     "what": "daily seed"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/builder-content.yml",
+     "what": "hide or delete"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Rulings; socialus-ops:process/DISPATCH.md",
+   "holds": "always"
+  },
+  {
+   "slug": "second-session-review",
+   "area": "reviewing",
+   "statement": "A UI, action or schema PR gets a GitHub review from a second session; a skipped one is labelled.",
+   "why": "A gate judged by the party it constrains is waived.",
+   "evidence": [
+    {
+     "date": "2026-10-21",
+     "what": "#990 passed with its builder as reviewer",
+     "ref": "socialus-web:CLAUDE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-web:CLAUDE.md#Who checks what; socialus-ops:process/PIPELINE.md#A reviewer's first pass",
+   "holds": "always"
+  },
+  {
+   "slug": "reviewer-checks-rules-pm-gets-judgement",
+   "area": "reviewing",
+   "statement": "The reviewer fixes rule violations in at most two loops; only judgement calls reach the PM.",
+   "why": "A broken rule that reaches the PM is a missed review.",
+   "evidence": [
+    {
+     "date": "2026-10-04",
+     "what": "rule violations reached the PM",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#A reviewer's first pass; socialus-ops:process/PIPELINE-build.md#12 · Fix loop",
+   "holds": "always"
+  },
+  {
+   "slug": "screenshots-on-demand",
+   "area": "reviewing",
+   "statement": "No screenshots per PR; the full screenshot matrix runs on demand for a UX redesign.",
+   "why": "Per-PR pictures were looked at once.",
+   "evidence": [
+    {
+     "date": "2026-10-27",
+     "what": "the PM ended per-PR screenshots",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci.yml",
+     "what": "PR checks"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#A reviewer's first pass; socialus-ops:process/PIPELINE-build.md#(d) Speed plan",
+   "holds": "always"
+  },
+  {
+   "slug": "visibility-matrix",
+   "area": "reviewing",
+   "statement": "Who sees what is tested in CI per resource and persona, and the test proves itself on an open policy.",
+   "why": "Leaks are invisible to screen tests.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci.yml",
+     "what": "PR checks"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "tests/visibility.test.ts",
+     "what": "matrix test"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE-build.md#10 · Visibility review; socialus-web:CLAUDE.md#Who checks what",
+   "holds": "always"
+  },
+  {
+   "slug": "journeys-in-ci",
+   "area": "reviewing",
+   "statement": "Builder journeys run end to end in CI; a halt or new friction is a finding.",
+   "why": "Unit tests miss whole flows.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci.yml",
+     "what": "PR checks"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE-build.md#9 · Journey check; socialus-web:CLAUDE.md#Who checks what",
+   "holds": "always"
+  },
+  {
+   "slug": "pm-looks-at-running-app",
+   "area": "reviewing",
+   "statement": "The PM never reads code; he looks at the live app after merge, only for words, look, scope or trade-offs.",
+   "why": "Agents own correct; the PM owns right.",
+   "evidence": [
+    {
+     "date": "2026-09-12",
+     "what": "agents own correct, Don owns right",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-web:CLAUDE.md#Who checks what; socialus-ops:process/PIPELINE.md#Who checks what",
+   "holds": "always"
+  },
+  {
+   "slug": "pr-opens-look-or-not",
+   "area": "reviewing",
+   "statement": "Every PR opens with 'Don doesn't need to look' and why, or three phone steps and human-review.",
+   "why": "The PM reads from a phone and has not read the ticket.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-web:CLAUDE.md#Who checks what; socialus-ops:process/PIPELINE.md#The mechanism",
+   "holds": "always"
+  },
+  {
+   "slug": "merge-on-green-self",
+   "area": "reviewing",
+   "statement": "Whoever does the work merges it on green; the PM is held only for what he must judge.",
+   "why": "Waiting on him parks finished work.",
+   "evidence": [
+    {
+     "date": "2026-09-16",
+     "what": "Don ruled he is not in the merge path",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": ".github/workflows/lint.yml",
+     "what": "required lint"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci.yml",
+     "what": "PR checks"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#Who checks what; socialus-plan:CLAUDE.md#Commits",
+   "holds": "always"
+  },
+  {
+   "slug": "meta-change-needs-pm-approved",
+   "area": "reviewing",
+   "statement": "A PR changing what the reviewer checks needs the PM's pm-approved label; bookkeeping merges.",
+   "why": "The review must not loosen itself.",
+   "evidence": [
+    {
+     "date": "2026-10-11",
+     "what": "pipeline guard trimmed to option A",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-ops",
+     "path": ".github/workflows/pm-approved-guard.yml",
+     "what": "meta PR tripwire"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "always"
+  },
+  {
+   "slug": "production-asks-don",
+   "area": "shipping",
+   "statement": "Anything reaching production or not undoable (deploy, destructive migration, deletion, history) asks the PM.",
+   "why": "Its harm cannot be undone.",
+   "evidence": [],
+   "strength": "absolute",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/ABSOLUTES.md#production-asks-don; socialus-plan:CLAUDE.md#Commits",
+   "holds": "always"
+  },
+  {
+   "slug": "agents-apply-migrations-until-first-member",
+   "area": "shipping",
+   "statement": "Until the first real member signs up, agents apply migrations themselves, in order, confirming each.",
+   "why": "No member data at risk; it saves PM time.",
+   "evidence": [
+    {
+     "date": "2026-10-06",
+     "what": "the PM's time-boxed exception",
+     "ref": "socialus-ops:process/ABSOLUTES.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/ABSOLUTES.md#production-asks-don; socialus-ops:process/PIPELINE.md#Working with the PM",
+   "holds": "for now"
+  },
+  {
+   "slug": "migrations-manual-in-order",
+   "area": "shipping",
+   "statement": "Migrations are batched and applied one at a time from a manual workflow, in order, before merge.",
+   "why": "A merge ahead of its migration broke production.",
+   "evidence": [
+    {
+     "date": "2026-09-21",
+     "what": "merge ahead of its migration took production down",
+     "ref": "socialus-ops:process/ABSOLUTES.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/apply.yml",
+     "what": "manual apply"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/migrations.yml",
+     "what": "drift check"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#Who checks what; socialus-ops:process/PIPELINE-build.md#13 · Merge, migrate, deploy",
+   "holds": "always"
+  },
+  {
+   "slug": "branch-and-pr-always",
+   "area": "shipping",
+   "statement": "Every change goes by branch and PR, history is never rewritten, and main deploys to production.",
+   "why": "main requires its checks, and rewritten history cannot be undone.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "ruleset 'main: merges when green' required lint",
+     "ref": "socialus-plan:CLAUDE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": ".github/workflows/lint.yml",
+     "what": "required lint"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci.yml",
+     "what": "PR checks"
+    }
+   ],
+   "source": "socialus-plan:CLAUDE.md#Commits; socialus-web:CLAUDE.md#Commits",
+   "holds": "always"
+  },
+  {
+   "slug": "previews-off",
+   "area": "shipping",
+   "statement": "Previews are off and only main builds; one variable switches to previews for PRs labelled human-review.",
+   "why": "The Hobby plan's 100 deployments a day ran out.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "deploy limit ran out; previews off until the freeze",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": "scripts/vercel-ignore.mjs",
+     "what": "build filter"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/preview-on-label.yml",
+     "what": "labelled preview"
+    }
+   ],
+   "source": "socialus-web:CLAUDE.md#BUILD RULES; socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "for now"
+  },
+  {
+   "slug": "ci-gates-every-pr",
+   "area": "shipping",
+   "statement": "CI gates every ready PR (lint, types, build, unit, browser, migrations); heavy suites run nightly.",
+   "why": "Merges were once green with no test executing.",
+   "evidence": [
+    {
+     "date": "2026-09-16",
+     "what": "every merge that day was green without a single test running",
+     "ref": "socialus-web:.github/workflows/ci.yml"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci.yml",
+     "what": "PR checks"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/ci-docs-only.yml",
+     "what": "docs-only twin"
+    }
+   ],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Shipping and operations",
+   "holds": "always"
+  },
+  {
+   "slug": "deploy-health-check",
+   "area": "shipping",
+   "statement": "Each deploy checks the database connection, and a failed main build opens an Issue within minutes.",
+   "why": "Writes were down for months unnoticed.",
+   "evidence": [
+    {
+     "date": "2026-09-16",
+     "what": "DATABASE_URL never set; writes down since May",
+     "ref": "socialus-web:.github/workflows/deploy-health.yml"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/deploy-health.yml",
+     "what": "health check"
+    },
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/main-build-alarm.yml",
+     "what": "build alarm"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE-build.md#13 · Merge, migrate, deploy",
+   "holds": "always"
+  },
+  {
+   "slug": "live-smoke-read-only",
+   "area": "shipping",
+   "statement": "After deploy a read-only smoke opens changed screens per persona and files bugs.",
+   "why": "What passed locally can fail live.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/smoke-live.yml",
+     "what": "live smoke"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE-build.md#14 · Live smoke check",
+   "holds": "always"
+  },
+  {
+   "slug": "tap-speed-budgets",
+   "area": "shipping",
+   "statement": "Nightly, a mid-range phone on 4G taps production against budgets; a red night is a bug.",
+   "why": "Checks tested content, not tap time.",
+   "evidence": [
+    {
+     "date": "2026-10-08",
+     "what": "a Page took 2.2s to open",
+     "ref": "socialus-ops:process/PERFORMANCE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/tap-speed.yml",
+     "what": "tap speed"
+    },
+    {
+     "repo": "socialus-web",
+     "path": "evals/speed/budgets.json",
+     "what": "budgets"
+    }
+   ],
+   "source": "socialus-ops:process/PERFORMANCE.md",
+   "holds": "always"
+  },
+  {
+   "slug": "load-sim-and-checkpoints",
+   "area": "shipping",
+   "statement": "Re-benchmark at member checkpoints and load-test with free tools locally, never on production.",
+   "why": "Production holds real members.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "assess",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PERFORMANCE.md#Load simulation (phase 2)",
+   "holds": "always"
+  },
+  {
+   "slug": "rollback-by-revert",
+   "area": "shipping",
+   "statement": "Rollback is a revert merged forward or Vercel's rollback by hand, asking the PM.",
+   "why": "Auto rollback needs traffic.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE-build.md#13 · Merge, migrate, deploy",
+   "holds": "always"
+  },
+  {
+   "slug": "public-repo-secrets",
+   "area": "shipping",
+   "statement": "The code repo is public: secrets only in Actions and Vercel, no pull_request_target, no personal names.",
+   "why": "A fork's PR must never see a secret.",
+   "evidence": [
+    {
+     "date": "2026-10-05",
+     "what": "web made public after a full history secret scan",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Rulings; socialus-ops:process/PIPELINE.md#Working with the PM",
+   "holds": "for now"
+  },
+  {
+   "slug": "accepted-risk-expires",
+   "area": "shipping",
+   "statement": "An accepted lint finding is one file with an owner and review-by date, and the lint fails when it lapses.",
+   "why": "Accepted risks were re-argued, then forgotten.",
+   "evidence": [
+    {
+     "date": "2026-09-09",
+     "what": "definer views re-triaged",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Accepted risk; socialus-ops:process/LIVING-DOCS.md#Expiring risks",
+   "holds": "always"
+  },
+  {
+   "slug": "bug-triage-agent",
+   "area": "shipping",
+   "statement": "Member problem reports are triaged by a cheap model in Actions under a hard spend cap.",
+   "why": "Takes triage off the PM.",
+   "evidence": [
+    {
+     "date": "2026-10-06",
+     "what": "the PM chose to test a cheaper model",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "trial",
+   "enforced_by": [
+    {
+     "repo": "socialus-web",
+     "path": ".github/workflows/problem-reports.yml",
+     "what": "triage"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "always"
+  },
+  {
+   "slug": "public-is-draft",
+   "area": "words",
+   "statement": "Anything public (copy, a page, a claim) is a draft until the PM approves it.",
+   "why": "A public act cannot be unpublished.",
+   "evidence": [],
+   "strength": "absolute",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/ABSOLUTES.md#public-is-draft; socialus-ops:process/PIPELINE-build.md#11 · UX/UI review",
+   "holds": "always"
+  },
+  {
+   "slug": "say-only-what-is-true-now",
+   "area": "words",
+   "statement": "Say only what is true now, no promises; 'never' only where the PM said it holds always.",
+   "why": "Promises go stale and mislead members.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Words",
+   "holds": "always"
+  },
+  {
+   "slug": "pro-competition-language",
+   "area": "words",
+   "statement": "Language is pro-competition and for all Americans, and UI labels translate durable schema names.",
+   "why": "The product's voice is part of what it is.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-plan:CLAUDE.md#Naming",
+   "holds": "always"
+  },
+  {
+   "slug": "talk-to-don-format",
+   "area": "words",
+   "statement": "Messages to the PM are plain one-line bullets, Status first, next ask last, commands inline.",
+   "why": "He reads on a phone with little time.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-plan:CLAUDE.md#How to talk to Don; socialus-ops:process/DISPATCH.md",
+   "holds": "always"
+  },
+  {
+   "slug": "pm-directs-agents-edit",
+   "area": "agents",
+   "statement": "The PM directs; agents do the mechanical work and open PRs with gh pr create.",
+   "why": "Only judgement should cost PM time.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/PIPELINE.md#Working with the PM; socialus-ops:process/DISPATCH.md",
+   "holds": "for now"
+  },
+  {
+   "slug": "events-not-timers",
+   "area": "agents",
+   "statement": "Dispatch messages the PM on events, not timers; handoffs run when he asks.",
+   "why": "Scheduled handoffs found little new.",
+   "evidence": [
+    {
+     "date": "2026-10-27",
+     "what": "5am/5pm handoff and 9pm merge pass retired",
+     "ref": "socialus-ops:process/DISPATCH.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:process/DISPATCH.md#Working with the PM through Dispatch",
+   "holds": "always"
+  },
+  {
+   "slug": "rule-carries-dated-failure",
+   "area": "agents",
+   "statement": "A rule names the dated failure that earned it as its 'because'; no fixes for imagined failures.",
+   "why": "Git carries the history.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Changing the method; socialus-ops:process/PIPELINE.md#Paths",
+   "holds": "always"
+  },
+  {
+   "slug": "absolute-needs-four-harms",
+   "area": "agents",
+   "statement": "A new absolute needs a dated failure a guideline missed and one of four harms.",
+   "why": "Absolutes multiply: live docs held 1,650 must/never words by 2026-09.",
+   "evidence": [
+    {
+     "date": "2026-09-09",
+     "what": "a broad ban broke its first session",
+     "ref": "socialus-ops:process/ABSOLUTES.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/ABSOLUTES.md#The test; socialus-ops:process/ABSOLUTES.md#Adding an absolute",
+   "holds": "always"
+  },
+  {
+   "slug": "standard-exists-when-checked",
+   "area": "agents",
+   "statement": "A standard exists when lint or CI checks it; a rule with no hook is a wish.",
+   "why": "F044 and F045 shipped unreviewed under a 'mandatory' rule.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Changing the method; socialus-ops:process/LIVING-DOCS.md#Hooks, what actually fires",
+   "holds": "always"
+  },
+  {
+   "slug": "prefer-delete-and-check-code",
+   "area": "agents",
+   "statement": "Prefer deleting a doc to adding a rule, and a check against code to one against a doc.",
+   "why": "Doc-to-doc gates missed real drift.",
+   "evidence": [
+    {
+     "date": "2026-09-03",
+     "what": "two Explore tickets built after Explore was retired",
+     "ref": "socialus-ops:CLAUDE.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Changing the method; socialus-ops:process/PIPELINE.md#Paths",
+   "holds": "always"
+  },
+  {
+   "slug": "improvised-procedure-becomes-skill",
+   "area": "agents",
+   "statement": "A procedure improvised once goes into a skill that same session.",
+   "why": "The next session could repeat none.",
+   "evidence": [
+    {
+     "date": "2026-09-09",
+     "what": "five improvised procedures lost",
+     "ref": "socialus-ops:CLAUDE.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Changing the method",
+   "holds": "always"
+  },
+  {
+   "slug": "current-docs-get-workflow",
+   "area": "docs",
+   "statement": "A doc that must stay current is regenerated by a workflow, committing only on change.",
+   "why": "A generator whose trigger is a person remembering has no trigger.",
+   "evidence": [
+    {
+     "date": "2026-09-19",
+     "what": "uninstalled skill left STATUS stale",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": ".github/workflows/status.yml",
+     "what": "STATUS regen"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": ".github/workflows/dashboard.yml",
+     "what": "dashboard regen"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Rulings; socialus-ops:process/LIVING-DOCS.md#Hooks, what actually fires",
+   "holds": "always"
+  },
+  {
+   "slug": "process-work-dated-branch",
+   "area": "agents",
+   "statement": "Method changes go on a dated process branch, merge on green lint, and are vendored the same session.",
+   "why": "Every branch needs a unique name without a central counter.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-ops",
+     "path": ".github/workflows/lint.yml",
+     "what": "method lint"
+    }
+   ],
+   "source": "socialus-ops:CLAUDE.md#Changing the method; socialus-ops:process/PIPELINE.md#Paths",
+   "holds": "always"
+  },
+  {
+   "slug": "single-loop-separate-context",
+   "area": "agents",
+   "statement": "One loop does the work; a separate context only for independent review or exploration.",
+   "why": "Routing added glue, not judgement.",
+   "evidence": [
+    {
+     "date": "2026-11-02",
+     "what": "rewrite-1 landed; kept 2026-11-09",
+     "ref": "socialus-ops:process/research/single-loop/PLAN.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Verdicts",
+   "holds": "always"
+  },
+  {
+   "slug": "hard-limits-in-checks",
+   "area": "agents",
+   "statement": "Hard limits live in checks or deny rules, not prose, and skills carry no 'Act as' persona lines.",
+   "why": "A remembered limit can be forgotten.",
+   "evidence": [
+    {
+     "date": "2026-11-06",
+     "what": "score-* skills ran despite a written freeze (ops #163)",
+     "ref": "socialus-ops:process/research/single-loop/PLAN.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Prompt notes",
+   "holds": "always"
+  },
+  {
+   "slug": "one-regen-skill",
+   "area": "agents",
+   "statement": "One regen skill lists the generator scripts; a weekly tend-docs pass is the runner.",
+   "why": "Wrapper skills tended the method.",
+   "evidence": [
+    {
+     "date": "2026-11-02",
+     "what": "ten wrappers deleted (skills #45); kept 2026-11-09",
+     "ref": "socialus-ops:process/research/single-loop/PLAN.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [
+    {
+     "repo": "socialus-ops",
+     "path": "scripts/tend_docs.py",
+     "what": "refine pass"
+    }
+   ],
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Worklist",
+   "holds": "always"
+  },
+  {
+   "slug": "correction-names-failure-not-model",
+   "area": "agents",
+   "statement": "A correction names a seen failure, never a model, and is retired when it stops.",
+   "why": "Many models will build.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Agents and the method itself",
+   "holds": "always"
+  },
+  {
+   "slug": "measure-cost-and-learning",
+   "area": "agents",
+   "statement": "Measure the method by cost and learning: Issue to merge, pushes, PM looks, bugs, Issues rejected.",
+   "why": "Line metrics miss learning.",
+   "evidence": [
+    {
+     "date": "2026-11-02",
+     "what": "baseline read for 2026-10-19 to 2026-11-01",
+     "ref": "socialus-ops:process/research/single-loop/PLAN.md"
+    }
+   ],
+   "strength": "guideline",
+   "ring": "trial",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Evals",
+   "holds": "always"
+  },
+  {
+   "slug": "agent-identity-separate",
+   "area": "agents",
+   "statement": "Agent and PM work should be distinguishable on GitHub; the review gate returns with a reviewer identity.",
+   "why": "Every agent posts as the PM.",
+   "evidence": [],
+   "strength": "guideline",
+   "ring": "assess",
+   "enforced_by": [],
+   "source": "socialus-ops:process/research/2026-11-10-how-we-work-pack-draft.md#Agents and the method itself",
+   "holds": "always"
+  },
+  {
+   "slug": "files-only-in-repos",
+   "area": "docs",
+   "statement": "Files and deliverables live only in the PM's repos, as markdown by PR.",
+   "why": "Files elsewhere are lost or leak.",
+   "evidence": [
+    {
+     "date": "2026-11-01",
+     "what": "Don's ruling, until he says otherwise",
+     "ref": "socialus-ops:CLAUDE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-ops:CLAUDE.md#Where files go; socialus-web:CLAUDE.md#Where files go",
+   "holds": "for now"
+  },
+  {
+   "slug": "generated-from-markers",
+   "area": "docs",
+   "statement": "Anything spanning the project is generated from inline markers and never hand-edited.",
+   "why": "Hand-kept indexes went stale at once.",
+   "evidence": [
+    {
+     "date": "2026-09-15",
+     "what": "WHERE-IT-IS.md, kept by hand, went stale at once",
+     "ref": "socialus-ops:process/LIVING-DOCS.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": ".github/workflows/status.yml",
+     "what": "STATUS regen"
+    }
+   ],
+   "source": "socialus-ops:process/LIVING-DOCS.md#Living documents; socialus-plan:CLAUDE.md#Where truth lives",
+   "holds": "always"
+  },
+  {
+   "slug": "no-hand-maintained-indexes",
+   "area": "docs",
+   "statement": "No hand-kept index people read for truth; a script-compared data file is fine.",
+   "why": "Five hand-kept registers rotted.",
+   "evidence": [
+    {
+     "date": "2026-09-09",
+     "what": "Don amended 'no registers' to this test",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [],
+   "source": "socialus-plan:CLAUDE.md#Naming; socialus-ops:process/LIVING-DOCS.md#Living documents",
+   "holds": "always"
+  },
+  {
+   "slug": "open-question-marker",
+   "area": "docs",
+   "statement": "An unanswered question is an [open-question] marker where its answer lands, removed when answered.",
+   "why": "One question stood in three places at once.",
+   "evidence": [
+    {
+     "date": "2026-09-27",
+     "what": "one question stood in an old file, its scenario and an Issue",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/markers.py",
+     "what": "markers lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/PIPELINE.md#Open questions; socialus-ops:process/LIVING-DOCS.md#Open questions inline",
+   "holds": "always"
+  },
+  {
+   "slug": "one-home-per-kind",
+   "area": "docs",
+   "statement": "Each kind of thing has one home; with none, a dated line in UNPLACED.md, drained in 14 days.",
+   "why": "Two homes become two descriptions.",
+   "evidence": [
+    {
+     "date": "2026-10-12",
+     "what": "ruled in the planning repo",
+     "ref": "socialus-ops:process/WHERE-THINGS-GO.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/budgets.py",
+     "what": "doc budgets"
+    }
+   ],
+   "source": "socialus-ops:process/WHERE-THINGS-GO.md; socialus-web:CLAUDE.md",
+   "holds": "always"
+  },
+  {
+   "slug": "doc-budgets",
+   "area": "docs",
+   "statement": "Docs hold current understanding and why within a size budget, refined weekly; history is git.",
+   "why": "Docs that only grew buried what was true.",
+   "evidence": [
+    {
+     "date": "2026-10-12",
+     "what": "the rulings file reached 273k in weeks",
+     "ref": "socialus-ops:process/PIPELINE.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/budgets.py",
+     "what": "doc budgets"
+    },
+    {
+     "repo": "socialus-ops",
+     "path": "scripts/tend_docs.py",
+     "what": "refine pass"
+    }
+   ],
+   "source": "socialus-ops:process/WHERE-THINGS-GO.md#Refinement; socialus-ops:process/PIPELINE.md#Rulings",
+   "holds": "always"
+  },
+  {
+   "slug": "nothing-gets-lost",
+   "area": "docs",
+   "statement": "Everything the PM approved stays on the dashboard with its test; anything lost is shown to him.",
+   "why": "Features can vanish under fast changes.",
+   "evidence": [],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lost.py",
+     "what": "lost view"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/lint.sh",
+     "what": "plan lint"
+    }
+   ],
+   "source": "socialus-ops:process/PM-AND-AGENTS.md#The one safety view",
+   "holds": "always"
+  },
+  {
+   "slug": "dashboard-plain-and-honest",
+   "area": "docs",
+   "statement": "The PM reads generated what-and-why views, a daily phone-text dashboard with ? for missing data.",
+   "why": "A guess on the dashboard is a false claim.",
+   "evidence": [
+    {
+     "date": "2026-10-07",
+     "what": "per-area last-day log added",
+     "ref": "socialus-ops:process/DISPATCH.md"
+    }
+   ],
+   "strength": "rule",
+   "ring": "adopt",
+   "enforced_by": [
+    {
+     "repo": "socialus-plan",
+     "path": ".github/workflows/dashboard.yml",
+     "what": "daily regeneration"
+    },
+    {
+     "repo": "socialus-plan",
+     "path": "scripts/dashboard.py",
+     "what": "dashboard"
+    }
+   ],
+   "source": "socialus-ops:process/DISPATCH.md#Intake and the Code loop; socialus-plan:CLAUDE.md#Generated files",
+   "holds": "for now"
+  }
+ ],
+ "experiments": [
+  {
+   "slug": "rewrite-1-fold-lanes",
+   "practice": "one-loop-per-issue",
+   "change": "Area lanes and shifts folded into one Code loop per Issue (worklist 5)",
+   "baseline": "2026-10-19 to 11-01: Issue to merge median 39h, pushes after first CI mean 0.74, 20% human-review, about 20k tokens before the Issue",
+   "measure": "(a) PM touches, (b) Issue to merge hours, (c) pushes after first CI, (d) found-by-pm per 10 PRs, (e) tokens before the Issue, (f) bugs per 10 PRs, (g) Issues closed as wrong",
+   "verdict_date": "2026-11-09",
+   "verdict": "keep",
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Worklist"
+  },
+  {
+   "slug": "rewrite-1-fold-role-skills",
+   "practice": "issue-is-hypothesis",
+   "change": "Role skills folded: Act-as lines dropped, write-tickets joined to build-ticket, the Issue as hypothesis (worklist 6)",
+   "baseline": "2026-10-19 to 11-01: Issue to merge median 39h, pushes after first CI mean 0.74, 20% human-review, about 20k tokens before the Issue",
+   "measure": "(a) PM touches, (b) Issue to merge hours, (c) pushes after first CI, (d) found-by-pm per 10 PRs, (e) tokens before the Issue, (f) bugs per 10 PRs, (g) Issues closed as wrong",
+   "verdict_date": "2026-11-09",
+   "verdict": "keep",
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Worklist"
+  },
+  {
+   "slug": "rewrite-1-merge-regen",
+   "practice": "one-regen-skill",
+   "change": "Sixteen regen/score/tend skills merged into one regen skill; score-* frozen (worklist 1)",
+   "baseline": "2026-10-19 to 11-01: Issue to merge median 39h, pushes after first CI mean 0.74, 20% human-review, about 20k tokens before the Issue",
+   "measure": "(a) PM touches, (b) Issue to merge hours, (c) pushes after first CI, (d) found-by-pm per 10 PRs, (e) tokens before the Issue, (f) bugs per 10 PRs, (g) Issues closed as wrong",
+   "verdict_date": "2026-11-09",
+   "verdict": "keep",
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Worklist"
+  },
+  {
+   "slug": "rewrite-1-council-trim",
+   "practice": "council-three-roles",
+   "change": "Council trimmed from nine roles to three with one fixed result shape (worklist 7)",
+   "baseline": "nine roles; ran about three times in two weeks",
+   "measure": "unread until a council runs",
+   "verdict_date": "2026-11-09",
+   "verdict": "keep",
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Worklist"
+  },
+  {
+   "slug": "score-trial",
+   "practice": "measure-cost-and-learning",
+   "change": "Trial score-* skills (ci-health, gap-leakage, doc-drift) scoring the method's health",
+   "baseline": "started with the meta-layer trial 2026-10-10",
+   "measure": "whether red scores were real; their tuning notes called most false, and the freeze did not hold (ops #163)",
+   "verdict_date": "2026-11-11",
+   "verdict": "revert",
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Open questions for owners; socialus-ops:process/research/single-loop/PLAN.md#Evals"
+  },
+  {
+   "slug": "area-scoped-rulings",
+   "practice": "binds-tags-per-tier",
+   "change": "A loop reads only the rulings tagged to the area it touches",
+   "baseline": "constraints/code.md 10.5k and web CLAUDE.md 3.1k of about 20.1k tokens before the Issue",
+   "measure": "(e) tokens before the Issue, with (a) to (g) unchanged or better",
+   "verdict_date": null,
+   "verdict": null,
+   "source": "socialus-ops:process/research/single-loop/PLAN.md#Evals"
+  },
+  {
+   "slug": "flags-builders-first",
+   "practice": "flags-of-our-own",
+   "change": "Flags of our own, on for builder accounts first, so unfinished work merges dark",
+   "baseline": "unfinished work held by not merging",
+   "measure": "time from a feature's first merge to the PM's first live look; human-review PRs waiting unmerged",
+   "verdict_date": null,
+   "verdict": null,
+   "source": "socialus-ops:process/research/2026-11-10-review-launchdarkly.md#Recommendation"
+  },
+  {
+   "slug": "triage-model-bakeoff",
+   "practice": "bug-triage-agent",
+   "change": "Haiku against Sonnet on 10 seeded sample reports",
+   "baseline": "none recorded",
+   "measure": "label and dedupe accuracy, reproduction success, cost",
+   "verdict_date": null,
+   "verdict": null,
+   "source": "socialus-ops:process/PIPELINE.md#Rulings"
+  }
+ ]
+}
