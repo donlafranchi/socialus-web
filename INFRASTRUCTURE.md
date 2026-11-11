@@ -319,8 +319,9 @@ sends, cleanup.
 on frequency. Vercel Cron is the alternative but Hobby caps at two jobs at daily
 frequency, and Pro lifts that to unlimited.
 
-**Current state.** `CRON_SECRET` is declared in `.env.local.example`, there is
-no `vercel.json`, and nothing is scheduled.
+**Current state.** Many GitHub Actions schedules exist (`.github/workflows/`),
+including the nightly backup (#1259). `CRON_SECRET` is declared in
+`.env.local.example`; there is no `vercel.json`, so no Vercel Cron.
 
 **Wire-up.** Choose by what the job touches.
 
@@ -450,10 +451,23 @@ times the price of the plan it sits on, and not worth it at this stage. Your own
 dump additionally survives losing the Supabase account, which their backup
 cannot, and outlives the 7-day window.
 
-**Open question, resolve before relying on either.** Confirm against current
-Supabase docs whether the daily backup covers Storage objects or only Postgres.
-If Storage is excluded, add the `media` bucket to the same nightly job. The
-difference is whether a restore gives you working photos or broken images.
+**Storage: resolved 2026-11-11.** Supabase's daily backup does **not** include
+Storage objects ([Database Backups](https://supabase.com/docs/guides/platform/backups):
+"Database backups do not include objects you store via the Storage API"). So
+the nightly job below also copies the `media` bucket.
+
+**Built (2026-11-11, #1259).** `.github/workflows/backup.yml` runs nightly:
+`pg_dump -Fc` plus every `media` object plus exact row counts, all from one
+snapshot (`scripts/backup/dump.sh`), **encrypted with `age` on the runner**
+(the repo and its artifacts are public) and kept as an Actions artifact, 30
+days, or 90 for the one taken on the 1st. Key: the `BACKUP_AGE_KEY` secret,
+held by the PM. `.github/workflows/backup-restore-test.yml` restores the newest
+one into a throwaway local Supabase Postgres on the 3rd of each month and fails
+unless every row count matches. It connects through the session pooler, not
+the direct host (IPv6-only; runners are IPv4-only). To restore by hand: download
+the artifact, `age -d -i socialus-backup.key <file> | tar -x`, then
+`pg_restore --no-owner --no-privileges -d <target> dump.pgc`; photos are in
+`media/`, by object name.
 
 **Wire-up.** A GitHub Actions job on the item 7 pattern.
 
