@@ -38,12 +38,12 @@ describe('which lines are "can"', () => {
     expect(decide(line({}), ROLLUP, null, none, p).status).toBe('can')
     // Shipped but not checked: not possible yet.
     expect(decide(line({ feature: 'F961', criteria: ['1'] }), ROLLUP, null, none, p)).toEqual({
-      status: 'cant_yet', why: 'Live, but not yet proven by its checks.', waitsOn: null,
+      status: 'cant_yet', why: 'Built, waiting on its checks.', waitsOn: null,
     })
     // Not shipped.
     expect(decide(line({ feature: 'F961', criteria: ['2'] }), ROLLUP, null, none, p).why).toBe('Not built yet.')
     const builtNotLive: Rollup = { ...ROLLUP, features: [{ ...ROLLUP.features[1], criteria: [{ ...crit('2', 'no', 'no', 'no'), built: 'yes' }] }] }
-    expect(decide(line({ feature: 'F961', criteria: ['2'] }), builtNotLive, null, none, p).why).toBe('Built, not live yet.')
+    expect(decide(line({ feature: 'F961', criteria: ['2'] }), builtNotLive, null, none, p).why).toBe('Built, waiting on its checks.')
     // A smoke marked "no" for a criterion keeps it off "can".
     const smokedNo: Rollup = { ...ROLLUP, features: [{ ...ROLLUP.features[0], criteria: [crit('1', 'yes', 'yes', 'no')] }] }
     expect(decide(line({ criteria: ['1'] }), smokedNo, null, none, p).status).toBe('cant_yet')
@@ -111,7 +111,7 @@ describe('the words', () => {
     // Every line at its longest: can't yet with a long reason, for all three kinds of person.
     const worst: CapabilityLine[] = words.map((l, i) => ({
       id: `CA-${i}`, who: l.who, words: l.words, status: 'cant_yet', feature: l.feature,
-      why: 'Live, but not yet proven by its checks.', waits_on: null, waits_on_words: null,
+      why: 'Built, waiting on its checks.', waits_on: null, waits_on_words: null,
     }))
     const answer = renderAnswer(worst)
     expect(wordCount(answer)).toBeLessThan(1500)
@@ -191,7 +191,7 @@ describe.skipIf(!RUNNABLE)('F129: what SocialUs can do, in the store', () => {
 
     const runner = (await runTool(db, 'can_do', { who: 'runner' })).text
     expect(runner).toContain('Someone who runs a Page or an event can:\n- Post an event from your Page [F960]')
-    expect(runner).toContain("Can't yet:\n- Make an event repeat every week (Live, but not yet proven by its checks) [F961]")
+    expect(runner).toContain("Can't yet:\n- Make an event repeat every week (built, waiting on its checks) [F961]")
     expect(runner).toContain('- Take card pre-orders (waiting on: Card payments work) [F971]')
     expect(runner).not.toContain('See what is on near you')
     const visitor = (await runTool(db, 'can_do', { who: 'visitor' })).text
@@ -216,7 +216,7 @@ describe.skipIf(!RUNNABLE)('F129: what SocialUs can do, in the store', () => {
   it("moves a line to can't right now on a failing smoke, back when it passes, and withdraws a line no longer listed", async () => {
     let sum = await loadCapabilities(db, { words: WORDS, rollup: ROLLUP, failing: new Set(['page']) })
     expect(sum.changed.map((c) => c.status)).toEqual(['cant_now'])
-    expect((await runTool(db, 'can_do', { who: 'runner' })).text).toContain("Can't right now:\n- Post an event from your Page: The overnight check")
+    expect((await runTool(db, 'can_do', { who: 'runner' })).text).toContain("Can't right now:\n- Post an event from your Page: the overnight check")
     sum = await loadCapabilities(db, { words: WORDS.slice(0, 4), rollup: ROLLUP, failing: new Set() })
     expect(sum.changed.map((c) => c.status)).toEqual(['can'])
     expect(sum.withdrawn).toBe(1)

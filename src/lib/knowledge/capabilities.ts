@@ -45,7 +45,8 @@ export async function readCapabilities(db: ClientBase, who?: Who): Promise<Capab
 function because(l: CapabilityLine): string {
   if (l.status === 'not_planned') return 'not planned'
   if (l.status === 'cant_yet' && l.waits_on_words) return `waiting on: ${l.waits_on_words.replace(/\.$/, '')}`
-  return (l.why ?? 'not built yet').replace(/\.$/, '')
+  const why = (l.why ?? 'Not built yet.').replace(/\.$/, '')
+  return why[0].toLowerCase() + why.slice(1)
 }
 
 const tag = (l: CapabilityLine) => (l.feature ? ` [${l.feature}]` : '')

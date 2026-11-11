@@ -119,9 +119,12 @@ begin
      and not exists (select 1 from knowledge.records c where c.id = p->>'waits_on' and c.kind = 'condition') then
     raise exception '% is not a condition.', p->>'waits_on' using errcode = 'check_violation';
   end if;
-  -- Can't yet says why (F129.4): the condition it waits on, or what is missing.
-  if the_status = 'cant_yet' and coalesce(btrim(p->>'why'), '') = '' and jsonb_typeof(p->'waits_on') is distinct from 'string' then
-    raise exception 'A can''t-yet line says why: the condition it waits on, or what is missing.' using errcode = 'check_violation';
+  -- Can't yet says why (F129.4, as amended in socialus-plan #311): the
+  -- condition it waits on, or "not built yet" or "built, waiting on its checks".
+  if the_status = 'cant_yet' and jsonb_typeof(p->'waits_on') is distinct from 'string'
+     and coalesce(btrim(p->>'why'), '') not in ('Not built yet.', 'Built, waiting on its checks.') then
+    raise exception 'A can''t-yet line names the condition it waits on, or says "Not built yet." or "Built, waiting on its checks."'
+      using errcode = 'check_violation';
   end if;
 
   select * into r from knowledge.records where kind = 'capability' and source = p->>'source' for update;

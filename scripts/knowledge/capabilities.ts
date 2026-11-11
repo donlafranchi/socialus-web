@@ -82,6 +82,9 @@ export function failingRoutes(text: string, known: Set<string>): Set<string> {
   return out
 }
 
+export const NOT_BUILT = 'Not built yet.'
+export const BUILT_WAITING = 'Built, waiting on its checks.'
+
 export interface StoreFeature {
   status: string
   slices: { id: string; status: string }[]
@@ -142,7 +145,9 @@ export function decide(
   if (store?.waitsOn) return { status: 'cant_yet', why: null, waitsOn: store.waitsOn.id }
   return {
     status: 'cant_yet',
-    why: live ? 'Live, but not yet proven by its checks.' : built ? 'Built, not live yet.' : 'Not built yet.',
+    // F129.4 as amended (socialus-plan #311): a can't-yet line names its
+    // condition, or says not planned, not built yet, or built, waiting on its checks.
+    why: live || built ? BUILT_WAITING : NOT_BUILT,
     waitsOn: null,
   }
 }

@@ -76,6 +76,10 @@ begin
     format('a can''t-yet line does not name its condition in words: %s', to_jsonb(r));
   assert pg_temp.refused($q$select knowledge.set_capability('{"source":"words#F951:2","answer":"Refunds","who":["runner"],"status":"cant_yet","feature":"F951"}', 'F129 test')$q$) is not null,
     'a can''t-yet line was recorded with no why and no condition';
+  assert pg_temp.refused($q$select knowledge.set_capability('{"source":"words#F951:2","answer":"Refunds","who":["runner"],"status":"cant_yet","why":"Soon.","feature":"F951"}', 'F129 test')$q$)
+         like 'A can''t-yet line names the condition it waits on%',
+    'a can''t-yet line was recorded with a reason that is neither a condition, not built yet, nor built and waiting on its checks';
+  perform knowledge.set_capability('{"source":"words#F951:4","answer":"Refunds","who":["runner"],"status":"cant_yet","why":"Built, waiting on its checks.","feature":"F951"}', 'F129 test');
   perform knowledge.set_capability('{"source":"words#F951:3","answer":"Barter","who":["member"],"status":"not_planned","feature":"F951"}', 'F129 test');
   assert (select c.status from knowledge.capabilities('member') c where c.words = 'Barter') = 'not_planned',
     'a not-planned line is not listed as not planned';
