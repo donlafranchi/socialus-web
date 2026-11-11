@@ -37,6 +37,7 @@ import {
 } from './plan-source'
 import { placeOf, ABSOLUTE_CONCERN, CONCERN_DEPARTMENT } from './concerns'
 import { inferApplies } from './infer'
+import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -47,6 +48,8 @@ export interface Sources {
   registryPath: string
   /** The commits read, for each change's evidence. */
   commits?: { plan?: string; ops?: string; web?: string }
+  /** F130: the traced concept timelines; scripts/knowledge/concepts-seed.json unless given. */
+  seed?: Seed
 }
 
 export interface Summary {
@@ -59,6 +62,8 @@ export interface Summary {
   goneWithoutReplacement: string[]
   /** Changes the store's functions do not offer (an ontology entry's status moving to live). */
   blocked: string[]
+  /** F130: concepts, ideas and the scenarios that name them. */
+  concepts?: ConceptSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -397,6 +402,15 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     )
     if (rows[0].r.id) summary.links++
   }
+
+  // F130: concepts. The traced timelines, IMAGINE.md's ideas, and each
+  // scenario's `concept:` frontmatter.
+  summary.concepts = await loadConcepts(db, {
+    seed: src.seed ?? readSeed(),
+    ideas: readImagine(resolve(src.planDir, 'IMAGINE.md')),
+    scenarios: readScenarios(src.planDir),
+    commits: { plan: src.commits?.plan, web: src.commits?.web },
+  })
   return summary
 }
 
@@ -445,6 +459,7 @@ async function main(): Promise<void> {
       `- Retired: ${summary.retired}`,
       `- New links: ${summary.links}`,
       `- The store's constraints/code.md matches socialus-plan's: ${matches ? 'yes' : 'NO'}`,
+      ...(summary.concepts ? conceptReport(summary.concepts) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
