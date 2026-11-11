@@ -169,25 +169,37 @@ comment on function knowledge.set_capability(jsonb, text, jsonb) is
 -- capabilities are public, so every key reads them.
 
 create function knowledge.capabilities(p_who text default null)
-returns table (id text, who text[], words text, status text, why text, feature text, feature_answer text,
+returns table (id text, who text[], words text, status text, why text, feature text,
                waits_on text, waits_on_words text, changed_at timestamptz)
-language sql stable set search_path = '' as $$
-  select c.id, c.who, c.answer, c.status, c.why, l.to_id, f.answer,
-         w.id, w.answer, c.updated_at
+language sql stable security definer set search_path = '' as $$
+  -- Security definer, so every key reads the same answer: a line's feature id
+  -- is not secret, and the lines are public on purpose, but the features they
+  -- link to are filed under building, which row-level security would hide from
+  -- a chat project's key (and drop the feature from every line). What a key may
+  -- read is still checked here, by can_see: a line it cannot read is not
+  -- returned, and a condition it cannot read is named only as "something not
+  -- yet public". The condition named is the latest unmet one the line waits on.
+  select c.id, c.who, c.answer, c.status, c.why, l.to_id,
+         case when c.status = 'cant_yet' then w.id end,
+         case when c.status <> 'cant_yet' or w.id is null then null
+              when knowledge.can_see(w.audience, w.departments) then w.answer
+              else 'something not yet public' end,
+         c.updated_at
     from knowledge.records c
     left join knowledge.links l on l.from_id = c.id and l.type = 'capability_of'
-    left join knowledge.records f on f.id = l.to_id
     left join lateral (
-      select x.id, x.answer from knowledge.links s join knowledge.records x on x.id = s.to_id
+      select x.id, x.answer, x.audience, x.departments
+        from knowledge.links s join knowledge.records x on x.id = s.to_id
        where s.from_id = c.id and s.type = 'starts_when'
          and coalesce(knowledge.condition_status(x.id), '') not in ('met', 'withdrawn')
-       order by x.id limit 1) w on true
+       order by s.id desc limit 1) w on true
    where c.kind = 'capability' and c.status <> 'withdrawn'
+     and knowledge.has_key() and knowledge.can_see(c.audience, c.departments)
      and (p_who is null or p_who = any (c.who))
    order by array_position(array['can', 'cant_now', 'cant_yet', 'not_planned'], c.status), l.to_id, c.id
 $$;
 comment on function knowledge.capabilities(text) is
-  'What SocialUs can and can''t do, for one kind of person (visitor, member, runner) or all: each line''s words, status, why, feature, and the unmet condition a can''t-yet line waits on.';
+  'What SocialUs can and can''t do, for one kind of person (visitor, member, runner) or all: each line''s words, status, why, feature id, and for a can''t-yet line the latest unmet condition it waits on, in its own words where this key may read it. The same for every key.';
 
 revoke all on function
   knowledge.set_capability(jsonb, text, jsonb), knowledge.capabilities(text)

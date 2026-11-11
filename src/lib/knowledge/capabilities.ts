@@ -44,7 +44,7 @@ export async function readCapabilities(db: ClientBase, who?: Who): Promise<Capab
 /** Why a line can't be done yet, in plain words: its condition, or what is missing. */
 function because(l: CapabilityLine): string {
   if (l.status === 'not_planned') return 'not planned'
-  if (l.waits_on_words) return `waiting on: ${l.waits_on_words.replace(/\.$/, '')}`
+  if (l.status === 'cant_yet' && l.waits_on_words) return `waiting on: ${l.waits_on_words.replace(/\.$/, '')}`
   return (l.why ?? 'not built yet').replace(/\.$/, '')
 }
 

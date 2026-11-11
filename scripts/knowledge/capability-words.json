@@ -27,7 +27,7 @@
     { "feature": "F061", "criteria": ["1", "2"], "who": ["runner"], "words": "Start a Page by answering one question, what kind it is", "routes": ["you-sell"] },
     { "feature": "F082", "criteria": ["1", "3", "4", "6", "8", "9"], "who": ["runner"], "words": "Agree to the house rules once, then publish your Page", "routes": ["page-edit"] },
     { "feature": "F056", "criteria": ["1a", "5"], "who": ["runner"], "words": "Edit your Page's picture, name and description from one page", "routes": ["page-edit"] },
-    { "feature": "F056", "criteria": ["6", "7a"], "who": ["runner"], "words": "Put your Page on the map by address or by neighbourhood", "routes": ["page-edit"] },
+    { "feature": "F056", "criteria": ["6", "7a"], "who": ["runner"], "words": "Put your Page on the map by address or by neighborhood", "routes": ["page-edit"] },
     { "feature": "F056", "criteria": ["8"], "who": ["runner"], "words": "Tag your Page in your own words", "routes": ["page-edit"] },
     { "feature": "F099", "criteria": ["1", "3", "4", "5", "6", "10", "12"], "who": ["runner"], "words": "Give your Page a picture and add one photo to each post", "routes": ["page", "page-edit"] },
     { "feature": "F072", "criteria": ["1a", "2a", "3", "4", "5"], "who": ["runner"], "words": "Post an event or news from your Page, with a time and place", "routes": ["page"] },

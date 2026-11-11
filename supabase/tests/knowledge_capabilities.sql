@@ -13,6 +13,7 @@
 -- preamble
 select set_config('t.ops',   knowledge.add_agent('t-ops',   'the PM',    '{}',         true),  true);
 select set_config('t.build', knowledge.add_agent('t-build', 'a builder', '{building}', false), true);
+select set_config('t.none',  knowledge.add_agent('t-none',  'a chat project', '{}',     false), true);
 create function pg_temp.refused(p_sql text) returns text language plpgsql as $$
 begin
   execute p_sql;
@@ -58,9 +59,10 @@ begin
     'a capability was for a kind of person that is not visitor, member or runner';
   assert pg_temp.refused($q$select knowledge.record('{"kind":"capability","answer":"x","status":"can"}', 'F129 test')$q$) like 'A capability says who it is for%',
     'a capability was recorded with no one it is for';
-  -- Capabilities are public: a key with no department reads them.
-  perform pg_temp.act('build');
-  assert (select count(*) from knowledge.capabilities()) = 3, 'a building key cannot read the answer';
+  -- Capabilities are public: a key with no department reads them, each with its feature.
+  perform pg_temp.act('none');
+  assert (select count(*) from knowledge.capabilities()) = 3, 'a key with no department cannot read the answer';
+  perform pg_temp.act('ops');
 end $$;
 
 -- test: a can't-yet line names the condition it waits on, in that condition's words, or says why
@@ -89,6 +91,18 @@ do $$
 begin
   assert (select array_agg(distinct c.feature) from knowledge.capabilities('runner') c) = array['F950', 'F951'],
     'a line is not linked to its feature';
+  -- The same for a key with no department, though the features are filed under building.
+  perform pg_temp.act('none');
+  assert (select array_agg(distinct c.feature) from knowledge.capabilities('runner') c) = array['F950', 'F951'],
+    'a key with no department reads the lines without their features';
+  assert (select c.waits_on_words from knowledge.capabilities('runner') c where c.id = current_setting('t.pre')) = 'Card payments work',
+    'a key with no department does not read a public condition''s words';
+  perform pg_temp.act('ops');
+  perform knowledge.revise(current_setting('t.card'), '{"audience":"operators"}', 'F129 test: hide the condition');
+  perform pg_temp.act('none');
+  assert (select c.waits_on_words from knowledge.capabilities('runner') c where c.id = current_setting('t.pre')) = 'something not yet public',
+    'a condition this key cannot read was named to it';
+  perform pg_temp.act('ops');
   assert exists (select 1 from knowledge.links l where l.from_id = current_setting('t.post') and l.to_id = 'F950' and l.type = 'capability_of'),
     'the feature link is not a capability_of link';
   assert pg_temp.refused(format($q$select knowledge.link(%L, 'F951', 'capability_of')$q$, current_setting('t.post'))) is not null,

@@ -4,7 +4,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 import { enterStore } from '../scripts/knowledge/import'
 import {
-  readWords, readRollup, decide, failingRoutes, routeNames, loadCapabilities, renderPack, packBody, sourceOf,
+  readWords, readRollup, decide, failingRoutes, routeNames, loadCapabilities, renderPack, packBody, sourceOf, tonightsFailures,
   type Rollup, type WordLine, type StoreFeature,
 } from '../scripts/knowledge/capabilities'
 import { renderAnswer, wordCount, type CapabilityLine } from '@/lib/knowledge/capabilities'
@@ -69,6 +69,18 @@ describe('which lines are "can"', () => {
     expect(decide(line({}), ROLLUP, null, none, []).status).toBe('can')
   })
 
+  it("reads tonight's failures from the smoke's own newest report, and a green run after it clears them", () => {
+    const body = { at: '2026-11-09T10:50:00Z', body: 'The overnight live smoke failed:\n```\nmember › explore: x\n```' }
+    const again = { at: '2026-11-10T10:50:00Z', body: 'Again: run\n```\nmember › page: y\n```' }
+    expect(tonightsFailures([again, body], null)).toBe(again)
+    expect(tonightsFailures([body], null)).toBe(body)
+    // A pass after the newest report: nothing is failing tonight.
+    expect(tonightsFailures([body, again], '2026-11-11T10:55:00Z')).toBeNull()
+    // A pass before it changes nothing.
+    expect(tonightsFailures([body, again], '2026-11-09T11:00:00Z')).toBe(again)
+    expect(tonightsFailures([], null)).toBeNull()
+  })
+
   // [guards F129.4 partial: the condition's own words in the answer are checked against the store below]
   it("says why a line can't be done yet: the condition it waits on, or not planned", () => {
     const parked: StoreFeature = { status: 'approved', slices: [{ id: 'F970-S1', status: 'planned' }], waitsOn: { id: 'CN-0009', answer: 'Card payments work' } }
@@ -121,13 +133,12 @@ describe('the pack', () => {
     const lines: CapabilityLine[] = [
       { id: 'CA-1', who: ['runner'], words: 'Post an event', status: 'can', why: null, feature: 'F960', waits_on: null, waits_on_words: null },
     ]
-    const answer = renderAnswer(lines)
-    const a = renderPack(answer, '2026-11-11')
-    const b = renderPack(answer, '2026-11-12')
+    const a = renderPack(lines, '2026-11-11')
+    const b = renderPack(lines, '2026-11-12')
     expect(a.startsWith("# What SocialUs can and can't do\n")).toBe(true)
     expect(a).toContain('- Post an event [F960]')
     expect(packBody(a)).toBe(packBody(b))
-    const c = renderPack(renderAnswer([{ ...lines[0], status: 'cant_now', why: 'The overnight check found a problem.' }]), '2026-11-12')
+    const c = renderPack([{ ...lines[0], status: 'cant_now', why: 'The overnight check found a problem.' }], '2026-11-12')
     expect(packBody(c)).not.toBe(packBody(a))
   })
 })

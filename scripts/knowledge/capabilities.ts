@@ -27,7 +27,7 @@ import { Client, type ClientBase } from 'pg'
 import { existsSync, readFileSync, writeFileSync, appendFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { enterStore, leaveStore } from './import'
-import { readCapabilities, renderAnswer, wordCount, type Who } from '../../src/lib/knowledge/capabilities'
+import { readCapabilities, renderAnswer, wordCount, type CapabilityLine, type Who } from '../../src/lib/knowledge/capabilities'
 
 export const WORDS_PATH = join(__dirname, 'capability-words.json')
 export const ROLLUP_PATH = resolve(__dirname, '..', '..', 'build-log', 'reports', 'rollup.json')
@@ -192,7 +192,7 @@ export async function loadCapabilities(
     seen.add(source)
     let store = await storeFeature(db, l.feature)
     if (!store) {
-      const f = src.rollup.features.find((x) => x.feature === l.feature)
+      const f = src.rollup.features.find((x) => x.feature === l.feature && !x.retired)
       if (!f) {
         sum.problems.push(`${l.feature} "${l.words}": neither the roll-up nor the store holds this feature`)
         continue
@@ -245,7 +245,7 @@ export async function loadCapabilities(
 }
 
 /** The pack: one Markdown file for a chat project, dated, with where each part comes from. */
-export function renderPack(answer: string, asOf: string): string {
+export function renderPack(lines: CapabilityLine[], asOf: string): string {
   return [
     '# What SocialUs can and can\'t do',
     '',
@@ -253,7 +253,7 @@ export function renderPack(answer: string, asOf: string): string {
       'A line says "can" only when it is live on socialus.org, checked, and passing the overnight live check. ' +
       'The id in brackets is the feature behind the line.',
     '',
-    answer.split('\n').slice(4).join('\n').trimEnd(),
+    renderAnswer(lines, undefined, false).trimEnd(),
     '',
   ].join('\n')
 }
@@ -263,23 +263,54 @@ export function packBody(pack: string): string {
   return pack.split('\n').filter((l) => !l.startsWith('*As of ')).join('\n')
 }
 
+export interface SmokeReport {
+  /** When this report was written. */
+  at: string
+  body: string
+}
+
+/**
+ * Tonight's failures: the newest of the smoke's own reports on its open bug
+ * (its "Again:" comments, else the Issue body), unless a smoke run that passed
+ * finished after it. Pure, so it is tested without GitHub.
+ */
+export function tonightsFailures(reports: SmokeReport[], lastGreenRunAt: string | null): SmokeReport | null {
+  const newest = [...reports].sort((x, y) => x.at.localeCompare(y.at)).pop() ?? null
+  if (!newest) return null
+  if (lastGreenRunAt && lastGreenRunAt > newest.at) return null
+  return newest
+}
+
+async function getAll<T>(url: string, h: Record<string, string>): Promise<T[]> {
+  const out: T[] = []
+  for (let page = 1; page <= 20; page++) {
+    const res = await fetch(`${url}${url.includes('?') ? '&' : '?'}per_page=100&page=${page}`, { headers: h })
+    if (!res.ok) throw new Error(`GitHub read failed: ${res.status} ${url}`)
+    const rows = (await res.json()) as T[]
+    out.push(...rows)
+    if (rows.length < 100) break
+  }
+  return out
+}
+
 async function openLiveBug(repo: string, token: string): Promise<{ url: string; text: string } | null> {
   const h = { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' }
-  const res = await fetch(`https://api.github.com/repos/${repo}/issues?state=open&labels=bug&per_page=100`, { headers: h })
-  if (!res.ok) throw new Error(`Reading open bugs failed: ${res.status}`)
-  const issue = ((await res.json()) as { number: number; title: string; body: string | null; html_url: string; comments: number }[])
-    .find((i) => i.title === LIVE_BUG_TITLE)
+  const api = `https://api.github.com/repos/${repo}`
+  const issue = (await getAll<{ number: number; title: string; body: string | null; html_url: string; created_at: string }>(
+    `${api}/issues?state=open&labels=bug`, h,
+  )).find((i) => i.title === LIVE_BUG_TITLE)
   if (!issue) return null
-  let text = issue.body ?? ''
-  if (issue.comments > 0) {
-    // The latest "Again:" comment is tonight's failures; the body was the first night's.
-    const c = await fetch(`https://api.github.com/repos/${repo}/issues/${issue.number}/comments?per_page=100`, { headers: h })
-    if (c.ok) {
-      const all = (await c.json()) as { body: string }[]
-      if (all.length) text = all[all.length - 1].body
-    }
-  }
-  return { url: issue.html_url, text }
+  // Only the smoke's own reports count, never a person's comment or a cross-reference.
+  const comments = await getAll<{ body: string; created_at: string }>(`${api}/issues/${issue.number}/comments`, h)
+  const reports: SmokeReport[] = [
+    { at: issue.created_at, body: issue.body ?? '' },
+    ...comments.filter((c) => c.body.startsWith('Again:')).map((c) => ({ at: c.created_at, body: c.body })),
+  ]
+  // A smoke run that passed after the last report clears it: the smoke files nothing on a pass.
+  const runs = await fetch(`${api}/actions/workflows/smoke-live.yml/runs?status=success&per_page=1`, { headers: h })
+  const green = runs.ok ? ((await runs.json()) as { workflow_runs: { updated_at: string }[] }).workflow_runs[0]?.updated_at ?? null : null
+  const t = tonightsFailures(reports, green)
+  return t ? { url: issue.html_url, text: t.body } : null
 }
 
 export const ROUTES_PATH = resolve(__dirname, '..', '..', 'evals', 'screens', 'routes.ts')
@@ -312,11 +343,12 @@ async function main(): Promise<void> {
     await db.query('begin')
     await enterStore(db, agent)
     const sum = await loadCapabilities(db, { words: readWords(), rollup: readRollup(), failing, smokeEvidence: bug?.url ?? null })
-    const answer = renderAnswer(await readCapabilities(db))
+    const lines = await readCapabilities(db)
+    const answer = renderAnswer(lines)
     await leaveStore(db, agent)
     await db.query(commit ? 'commit' : 'rollback')
 
-    const pack = renderPack(answer, new Date().toISOString().slice(0, 10))
+    const pack = renderPack(lines, new Date().toISOString().slice(0, 10))
     if (out) {
       const before = existsSync(out) ? readFileSync(out, 'utf8') : ''
       writeFileSync(out, pack)
@@ -330,7 +362,7 @@ async function main(): Promise<void> {
       ...sum.changed.map((c) => `- ${c.id} now ${c.status}: ${c.words}`),
       `- Live smoke: ${bug ? `failing routes ${[...failing].join(', ') || '(none named)'} (${bug.url})` : 'no open live bug'}.`,
       `- Answer: ${wordCount(answer)} words.`,
-      ...sum.problems.map((p) => `- Problem: ${p}`),
+      ...sum.problems.map((p) => `- Problem (the pack is still pushed): ${p}`),
     ].join('\n')
     console.log(report)
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, report + '\n')
