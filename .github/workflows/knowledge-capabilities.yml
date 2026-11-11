@@ -10,8 +10,9 @@ name: Knowledge capabilities
 # `bug · live:` Issue from the overnight smoke names none of its routes.
 #
 # The pack is pushed when any line changed, and on the 1st of each month
-# regardless. Pushing to socialus-plan needs the PLAN_PACK_TOKEN secret: a
-# fine-grained token with contents write on socialus-plan only. Without it
+# regardless. Pushing to socialus-plan needs the KNOWLEDGE_WRITE_TOKEN secret: a
+# fine-grained token with contents write on socialus-plan and socialus-ops only,
+# shared with the practices pack (F128). Without it
 # the store is still kept true and the run says the pack was not pushed.
 #
 # Writes to the store only through its functions, as its own login, with a
@@ -49,8 +50,8 @@ jobs:
         with:
           repository: donlafranchi/socialus-plan
           path: .knowledge/socialus-plan
-          token: ${{ secrets.PLAN_PACK_TOKEN || github.token }}
-          persist-credentials: ${{ secrets.PLAN_PACK_TOKEN != '' }}
+          token: ${{ secrets.KNOWLEDGE_WRITE_TOKEN || github.token }}
+          persist-credentials: ${{ secrets.KNOWLEDGE_WRITE_TOKEN != '' }}
 
       - uses: actions/setup-node@v5
         with:
@@ -84,7 +85,7 @@ jobs:
       - name: Push the pack to socialus-plan
         if: inputs.dry_run != true
         env:
-          HAS_TOKEN: ${{ secrets.PLAN_PACK_TOKEN != '' }}
+          HAS_TOKEN: ${{ secrets.KNOWLEDGE_WRITE_TOKEN != '' }}
           CHANGED: ${{ steps.lines.outputs.pack_changed }}
         working-directory: .knowledge/socialus-plan
         run: |
@@ -94,8 +95,8 @@ jobs:
             exit 0
           fi
           if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::warning::The pack changed but PLAN_PACK_TOKEN is not set, so it was not pushed to socialus-plan."
-            echo "- Pack: changed, NOT pushed (no PLAN_PACK_TOKEN secret)." >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::The pack changed but KNOWLEDGE_WRITE_TOKEN is not set, so it was not pushed to socialus-plan."
+            echo "- Pack: changed, NOT pushed (no KNOWLEDGE_WRITE_TOKEN secret)." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git config user.name "socialus-web knowledge capabilities"
