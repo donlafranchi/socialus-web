@@ -15,6 +15,7 @@ import { z, type ZodRawShape } from 'zod'
 import type { ClientBase } from 'pg'
 import * as k from './lookups'
 import { PLAN_TOOLS } from './plans' // F127
+import { CAPABILITY_TOOLS } from './capabilities' // F129
 
 export interface ToolResult {
   text: string
@@ -307,6 +308,7 @@ export const TOOLS: KnowledgeTool[] = [
   }),
 
   ...PLAN_TOOLS, // F127: plan, plan_changes, roadmap
+  ...CAPABILITY_TOOLS, // F129: can_do
 
   define({
     name: 'propose',
