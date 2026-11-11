@@ -20,7 +20,7 @@ import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { Client } from 'pg'
-import { getHandler, groupCreate, groupActivate } from '../../src/actions'
+import { getHandler, groupCreate, groupActivate, memberSignupProfileSet } from '../../src/actions'
 import { resolveActionContext } from '../../src/lib/action-context'
 import { RULES_VERSION } from '../../src/lib/creator-rules'
 
@@ -60,6 +60,10 @@ async function member(i: number): Promise<string> {
   for (let t = 0; t < 3 && !(await one(`select 1 from public.members where id = $1`, [id])); t++) await new Promise((r) => setTimeout(r, 1000))
   if (!(await one(`select 1 from public.members where id = $1`, [id]))) {
     await getHandler('member.create')!(ctx('self-bootstrap'), { authUserId: id, email: email(i), handleSuggestion: `load-member-${pad(i)}`, displayName: `Load ${pad(i)}` })
+  }
+  // Onboarding, as /onboarding saves it: without a legal name every page sends a member there first.
+  if (!(await one(`select 1 from public.members where id = $1 and legal_name is not null`, [id]))) {
+    await memberSignupProfileSet(ctx(id), { legalName: `Load Member ${pad(i)}`, displayName: `Load ${pad(i)}`, zip: '95817', adultConfirmed: true, metroId: null })
   }
   return id
 }
@@ -112,7 +116,7 @@ const timed = async (init: () => Promise<Response>) => {
   const t = performance.now()
   const res = await init()
   const body = await res.text()
-  return { ms: Math.round(performance.now() - t), status: res.status, body }
+  return { ms: Math.round(performance.now() - t), status: res.status, body, to: res.headers.get('location') }
 }
 const action = (path: string, id: string, cookie: string, input: unknown) =>
   fetch(BASE + path, { method: 'POST', headers: { 'Next-Action': id, 'Content-Type': 'text/plain;charset=UTF-8', Accept: 'text/x-component', Origin: BASE, Cookie: cookie }, body: JSON.stringify([input]) })
@@ -128,8 +132,8 @@ async function main() {
 
   // The first hit on each kind of request against a server nothing has touched, then warm ones.
   const cold = {
-    pageSignedOut: await timed(() => fetch(BASE + path)),
-    pageSignedIn: await timed(() => fetch(BASE + path, { headers: { Cookie: cookies[1]! } })),
+    pageSignedOut: await timed(() => fetch(BASE + path, { redirect: 'manual' })),
+    pageSignedIn: await timed(() => fetch(BASE + path, { headers: { Cookie: cookies[1]! }, redirect: 'manual' })),
     heart: await timed(() => action(path, actions.heart, cookies[1]!, { groupId, on: true })),
     report: await timed(() => action(path, actions.report, cookies[1]!, { subjectKind: 'group', subjectId: groupId, category: 'spam', body: 'Load simulation report (local stack).' })),
   }
@@ -139,8 +143,8 @@ async function main() {
 
   // Self-check: nothing below is believed unless each request did what a member's would.
   const problems: string[] = []
-  if (cold.pageSignedOut.status !== 200 || !cold.pageSignedOut.body.includes(PAGE_NAME)) problems.push(`signed-out Page: HTTP ${cold.pageSignedOut.status}, name ${cold.pageSignedOut.body.includes(PAGE_NAME) ? 'shown' : 'missing'}`)
-  if (cold.pageSignedIn.status !== 200 || !cold.pageSignedIn.body.includes(PAGE_NAME)) problems.push(`signed-in Page: HTTP ${cold.pageSignedIn.status}`)
+  if (cold.pageSignedOut.status !== 200 || !cold.pageSignedOut.body.includes(PAGE_NAME)) problems.push(`signed-out Page: HTTP ${cold.pageSignedOut.status}${cold.pageSignedOut.to ? ` to ${cold.pageSignedOut.to}` : ''}, name ${cold.pageSignedOut.body.includes(PAGE_NAME) ? 'shown' : 'missing'}`)
+  if (cold.pageSignedIn.status !== 200 || !cold.pageSignedIn.body.includes(PAGE_NAME)) problems.push(`signed-in Page: HTTP ${cold.pageSignedIn.status}${cold.pageSignedIn.to ? ` to ${cold.pageSignedIn.to}` : ''}, name ${cold.pageSignedIn.body.includes(PAGE_NAME) ? 'shown' : 'missing'}`)
   if (cold.heart.status !== 200 || !cold.heart.body.includes('"ok":true')) problems.push(`♡: HTTP ${cold.heart.status} ${cold.heart.body.slice(0, 300)}`)
   if (cold.report.status !== 200 || !reportHandled(cold.report.body)) problems.push(`report: HTTP ${cold.report.status} ${cold.report.body.slice(0, 300)}`)
   const strip = (r: { ms: number; status: number }) => ({ ms: r.ms, status: r.status })
