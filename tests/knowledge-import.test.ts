@@ -129,8 +129,12 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
       `select count(*) as n, count(*) filter (where person = 'the PM' and agent = $1) as named from knowledge.history`,
       [agent],
     )
-    expect(Number(rows[0].n)).toBe(first.recorded)
-    expect(Number(rows[0].named)).toBe(first.recorded)
+    // F130: the concepts the import loads (the traced timelines, IMAGINE.md's
+    // ideas, and the scenarios that name them) are recorded by the same run.
+    const c = first.concepts!
+    const all = first.recorded + c.conceptsRecorded + c.conceptsRevised + c.ideasRecorded + c.features
+    expect(Number(rows[0].n)).toBe(all)
+    expect(Number(rows[0].named)).toBe(all)
   })
 
   it('changes nothing when run again on the same files', () => {
