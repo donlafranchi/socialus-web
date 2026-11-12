@@ -11,10 +11,10 @@ name: Uptime
 # an outage is one email, not one every ten minutes. Back up: a comment, and the
 # Issue closes. Same open-or-update shape as main-build-alarm.yml.
 #
-# Why not UptimeRobot (what §12 first named): it needs a new account, and this
-# needs none. Precedent: Upptime runs uptime monitoring on scheduled Actions.
-# The cost: GitHub's scheduler can start a run late when it is busy, so this
-# notices within ~10–20 minutes, not 5. Fine for beta; revisit if it is not.
+# A BACKSTOP, not the alarm. GitHub throttles this repo's schedules hard:
+# notify.yml, set to every 15 minutes, ran three times on 2026-11-11, hours
+# apart. The real monitor is UptimeRobot (INFRASTRUCTURE.md §12); this one
+# still files the Issue whenever GitHub does let it run.
 #
 # deploy-health.yml is the deeper, once-a-day check (schema current, etc.); this
 # one is shallow and frequent on purpose.

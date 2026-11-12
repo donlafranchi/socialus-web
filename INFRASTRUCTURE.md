@@ -543,20 +543,29 @@ real page loads.
 **Why Vercel and Supabase do not cover it.** Both report on themselves. Neither
 tells you the signup form throws on submit while both status pages stay green.
 
-**Built (2026-11-11, #1260): `.github/workflows/uptime.yml`, no account.** Every
-10 minutes it keyword-checks the home page, the login page and `/api/health/db`
-(`scripts/uptime-check.sh`, three tries a minute apart). Down opens one
-`bug · socialus.org is down` Issue that pings Don; recovery closes it. GitHub's
-scheduler can start late, so detection is ~10–20 minutes. UptimeRobot, below,
-stays the upgrade if that is too slow.
+**Built (2026-11-11, #1260): `.github/workflows/uptime.yml`, a backstop only.**
+It keyword-checks the home page, the login page and `/api/health/db`
+(`scripts/uptime-check.sh`) and opens one `bug · socialus.org is down` Issue on
+an outage. **It cannot be the alarm:** GitHub throttles this repo's schedules
+hard (notify.yml, set to every 15 minutes, ran at 06:09, 14:15 and 21:28 UTC on
+2026-11-11; uptime.yml's first hour produced no run). So the real monitor is
+UptimeRobot, below, which needs a free account only the PM can open.
 
-**Wire-up (UptimeRobot, if ever needed).** Create a **keyword** monitor, not a plain HTTP one: point
+**Wire-up (UptimeRobot, free).** Create a **keyword** monitor, not a plain HTTP one: point
 it at a page that renders database-backed content and have it check for a string
 that only appears when that query succeeded. An HTTP 200 monitor stays green
 while the page renders an error state.
 
 Add a second monitor on `/auth` or whichever route the login form lives at,
 since that is the path whose failure costs you the most.
+
+Concretely, the same checks the workflow makes, every 5 minutes, alerting the
+PM's email:
+
+| Monitor | URL | Keyword exists |
+|---|---|---|
+| Database, from the app | `https://socialus.org/api/health/db` | `"ok":true` |
+| Login page | `https://socialus.org/auth/login` | `name="email"` |
 
 **Note.** On the Supabase free tier this also served as the keep-alive against
 the 7-day pause. After item 2's Pro upgrade that purpose disappears, but the
