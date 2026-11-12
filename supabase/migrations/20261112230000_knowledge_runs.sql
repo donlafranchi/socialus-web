@@ -87,6 +87,11 @@ create trigger run_terms_no_truncate before truncate on knowledge.run_terms
 create function knowledge._runs_before() returns trigger
 language plpgsql set search_path = '' as $$
 begin
+  -- Runs and ideas are written by the routines (record_run), for the PM: an
+  -- operator's key. record() takes any kind, so the kind is held here.
+  if tg_op = 'INSERT' and new.kind in ('run', 'idea') and not knowledge.is_operator() then
+    raise exception 'Only an operator writes a run or an idea (knowledge.record_run); this % was refused.', new.kind using errcode = 'insufficient_privilege';
+  end if;
   if new.kind in ('run', 'idea') and new.scope is distinct from 'process' then
     raise exception 'A % is scope process.', new.kind using errcode = 'check_violation';
   end if;
@@ -122,9 +127,9 @@ create trigger links_runs before insert on knowledge.links
 -- Helpers.
 
 -- The practice a run or idea belongs to: a run's from its terms, an idea's
--- from the first run that suggested it.
+-- from the first run that suggested it. Security invoker, as the reads are.
 create function knowledge._practice_of(p_id text) returns text
-language sql stable security definer set search_path = '' as $$
+language sql stable set search_path = '' as $$
   select coalesce(
     (select t.practice_id from knowledge.run_terms t where t.run_id = p_id),
     (select t.practice_id
@@ -239,7 +244,6 @@ begin
   values (the_run, pr.id, 'run_of', 'stated', 'The practice this run is a run of.', w.person, w.name);
 
   -- Ideas a merged PR acted on since they were suggested: this run tried them.
-  perform knowledge._context(w, format('Tried by %s, after a merged pull request named it.', the_run), null, p_effective);
   for idea_id in
     select i.id
       from knowledge.records i
@@ -248,6 +252,8 @@ begin
        and exists (select 1 from knowledge.refs f where f.record_id = i.id and f.kind = 'pr')
      order by i.id
   loop
+    -- One reason per change: the history trigger spends it on each write.
+    perform knowledge._context(w, format('Tried by %s, after a merged pull request named it.', the_run), null, p_effective);
     perform knowledge._move(idea_id, 'tried');
     insert into knowledge.links (from_id, to_id, type, basis, reason, person, agent)
     values (the_run, idea_id, 'tried', 'stated', 'A pull request merged since it was suggested named it.', w.person, w.name)

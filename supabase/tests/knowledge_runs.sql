@@ -74,6 +74,11 @@ begin
   perform pg_temp.act('build');
   err := pg_temp.refused($q$select knowledge.record_run('{"practice":"practice.t-load","key":"gh:4","ran_on":"2026-11-13","commit":"abcdef1","outcome":"passed","summary":"x"}')$q$);
   assert err like 'Only an operator records a run%', format('a builder: %s', err);
+  -- nor around record_run, through record() itself
+  err := pg_temp.refused($q$select knowledge.record('{"kind":"run","concern":"how-shipping","answer":"a fake run","status":"passed","scope":"process","audience":"members","departments":["building"]}', 'x')$q$);
+  assert err like 'Only an operator writes a run or an idea%', format('a builder through record(): %s', err);
+  err := pg_temp.refused($q$select knowledge.record('{"kind":"idea","concern":"how-shipping","answer":"born tried","status":"tried","scope":"process","audience":"members","departments":["building"]}', 'x')$q$);
+  assert err like 'Only an operator writes a run or an idea%', format('an idea through record(): %s', err);
   err := pg_temp.refused($q$select knowledge.revise((select run_id from knowledge.run_terms where run_key = 'gh:1'), '{"status":"failed"}', 'x')$q$);
   assert err is not null, 'a run keeps how it ended';
 end $$;
@@ -130,6 +135,15 @@ begin
   assert out->'tried' = to_jsonb(array[pool]), format('tried: %s', out);
   assert (select status from knowledge.records where id = pool) = 'tried', 'the pool idea left the open list';
   assert exists (select 1 from knowledge.links where from_id = out->>'id' and to_id = pool and type = 'tried'), 'linked to the run that tried it';
+  -- two PRs between runs, one per idea: the next run tries both
+  perform knowledge.link_pr(cache, 'https://github.com/x/y/pull/16', '#16', '2026-11-16T12:00:00Z');
+  perform knowledge.link_pr((select l.to_id from knowledge.links l join knowledge.records i on i.id = l.to_id
+                               where l.type = 'suggests' and i.answer like 'Split%'), 'https://github.com/x/y/pull/17', '#17', '2026-11-16T12:00:00Z');
+  out := knowledge.record_run('{"practice":"practice.t-load","key":"gh:10","ran_on":"2026-11-17","commit":"abcdef6","outcome":"passed","summary":"after two fixes"}');
+  assert jsonb_array_length(out->'tried') = 2, format('both tried by one run: %s', out);
+  -- a fresh open idea, for the PM to drop below
+  out := knowledge.record_run('{"practice":"practice.t-load","key":"gh:11","ran_on":"2026-11-18","commit":"abcdef7","outcome":"passed","summary":"s","ideas":["Cache the signed-out Page."]}');
+  cache := out->'ideas'->>0;
   -- nobody else moves an idea
   assert pg_temp.refused(format($q$select knowledge.revise(%L, '{"status":"dropped"}', 'x')$q$, cache)) is not null, 'revise cannot drop';
   perform pg_temp.act('build');

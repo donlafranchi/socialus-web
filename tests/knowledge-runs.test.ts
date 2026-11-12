@@ -201,6 +201,11 @@ describe.skipIf(!RUNNABLE)('F135: runs loaded into the store and read back', () 
                             broke_first: 'rendering at 200 viewers (view-out-200)', status: 'passed', decided_on: '2026-11-11' },
                           { ran_on: '2026-11-12', commit: 'e3fbc20715fb0e15c14732b91d5beedb84726519', members: 1000,
                             broke_first: 'rendering at 200 viewers (view-out-200)', status: 'passed', decided_on: '2026-11-12' }])
+    // #1270 is what changed after run one, and run two, on that fix, tried the two ideas it acted on.
+    const h = (await db.query(`select knowledge.run_history('load') as h`)).rows[0].h
+    expect(h.runs[0].changed_after).toEqual([{ url: 'https://github.com/donlafranchi/socialus-web/pull/1270', label: expect.stringMatching(/^#1270 /) }])
+    expect(h.runs[1].tried).toHaveLength(2)
+    expect(h.closed.map((i: { status: string }) => i.status)).toEqual(['tried', 'tried'])
     // Run two's rendering idea joins run one's, still open, rather than adding a second.
     const { rows: open } = await db.query(`select count(*)::int as n from knowledge.records where kind = 'idea' and answer like 'Cut the server render%'`)
     expect(open[0].n).toBe(1)

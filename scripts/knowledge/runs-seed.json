@@ -114,7 +114,17 @@
         "Run the tap burst on the blue dot once it is built (this run used the Page's ♡).",
         "Add a handful of real browsers timing a Page while k6 holds the crowd."
       ],
-      "changed_after": []
+      "changed_after": [
+        {
+          "url": "https://github.com/donlafranchi/socialus-web/pull/1270",
+          "label": "#1270 bug · taps fail under load and the database pool is too small",
+          "merged_at": "2026-11-12T16:55:40Z",
+          "ideas": [
+            "Give the app more database connections at once: a bigger pool per instance, through the transaction pooler.",
+            "Stop asking the auth server who the member is on every tap: read it from the verified session token."
+          ]
+        }
+      ]
     },
     {
       "practice": "practice.load-sim-and-checkpoints",
