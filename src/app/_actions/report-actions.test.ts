@@ -18,7 +18,7 @@ const { getUser, create } = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser } })),
+  createClient: vi.fn(async () => ({ auth: { getUser, getClaims: async () => { const r = await getUser(); return { data: r?.data?.user ? { claims: { sub: r.data.user.id } } : null, error: r?.error ?? null } } } })),
 }))
 
 vi.mock('@/actions', async (importActual) => {

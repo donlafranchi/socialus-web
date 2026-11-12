@@ -14,7 +14,7 @@ type K6 = { scenario: string; load: string; requests: number; rps: number; p50: 
 type Sample = { t: number; level: string; appCpu: number | null; active?: number; lock_waits?: number; app_conns?: number; rest_conns?: number; total?: number; longest_ms?: number; max_connections?: number; dbError?: string }
 type Mark = { level: string; start: number; end?: number; logFrom: number; logTo?: number; exit?: number }
 
-const POOL = Number(process.env.DB_POOL_MAX || 3)
+const POOL = Number(process.env.DB_POOL_MAX || 10)
 const marks = lines<Mark>('marks.jsonl')
 const samples = lines<Sample>('samples.jsonl')
 const log = existsSync(join(dir, 'server.log')) ? readFileSync(join(dir, 'server.log'), 'utf8').split('\n') : []
