@@ -17,7 +17,7 @@ export default async function MemberPostPage({ params }: { params: Promise<{ id:
   const [post] = await readMemberPosts(supabase, { postId: id })
   if (!post) notFound()
   // F133 — an Ask a neighbor post is its own part; any other is posts. Counted after the response.
-  await countUse({ part: post.kind === 'ask' ? 'ask' : 'posts' }, data.user.id)
+  await countUse({ part: post.kind === 'ask' ? 'ask' : 'posts' }, data.user?.id ?? null)
   return (
     <main className="mx-auto w-full max-w-form gutter py-8 pb-dock">
       <MemberPostScreen post={post} loggedIn={Boolean(data.user)} />
