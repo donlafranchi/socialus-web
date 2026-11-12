@@ -1,0 +1,206 @@
+{
+ "schema": 1,
+ "feature": "F118",
+ "title": "Open your town: neighbours bring in the makers they love until their market opens",
+ "area": "explore-map",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-10-30",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "One form asks a role, neither choice pre-selected: make, sell or organize, or find and support",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built. The v1 form (the ruled MVP, 2026-10-26) does not exist: the town page's 'Count me in' is a link to sign-in, and nothing on `/open` asks a role [V src/app/open/[town]/page.tsx line 87, grep]. Unplanned, horizon next."
+  },
+  {
+   "id": "2",
+   "text": "It asks for an email",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built: no form of its own; the email asked today is the signup's (F081) or the waitlist panel's (F076.13) [V]. Unplanned, horizon next."
+  },
+  {
+   "id": "3",
+   "text": "A maker also gives their website or social profile URLs",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "smoked": "no",
+   "shipped": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built as a maker's own sign-up. The only URL field is the add-a-maker form, where a supporter gives someone else's site or social (`town.maker_add`, #1093) [V]. Unplanned, horizon next."
+  },
+  {
+   "id": "4",
+   "text": "Everyone gives their town or towns: where they live, and where they play",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built; the home town comes from the signup zip, and nothing asks where a person plays (an open question in the scenario) [V]. Unplanned, horizon next."
+  },
+  {
+   "id": "5",
+   "text": "Privacy: the answers go to staff only, the email is never shown to another member, opting out is one step and removes the answers",
+   "kind": [
+    "invariant",
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Not built: there are no form answers to protect yet. What exists is the first-name credit on a town page with a one-tap opt-out (`members.open_credit_hidden`, `town.credit_set`, #1093), which is a different thing [V migration 20261026160000]. Unplanned, horizon next."
+  },
+  {
+   "id": "6",
+   "text": "One page per market at /open/<market>, no index: maker or supporter, then email, then a progress graphic of makers of 100 and supporters of 1,000, with room for later data points",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Half built, behind a flag that is off. #1093 built `/open/<town>` with two bars (makers of 100, supporters of 1,000, '{n} to go'), cached an hour (F076.14), per county 'town' in the ring around Sacramento plus Lake Tahoe [V src/lib/open/board.ts, towns.ts, migration 20261026160000]. Missing against the 2026-10-27 ruling: the unit is the market (#1101 says the Solano and Yuba-Sutter regions go away), there is an `/open` index, and no maker-or-supporter-then-email step precedes the page. `OPEN_YOUR_TOWN = false` makes both routes 404 (#1100) [V src/lib/features.ts, flag.test.ts]. Unplanned, horizon next."
+  },
+  {
+   "id": "7",
+   "text": "Soft sign-up: a supporter account tied to a market, which can add makers and invite people, and gets the full app when the market opens",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Half built, flagged off. With the flag on, onboarding sends a ring-county zip to its town page instead of the waiting screen, a member counts as a supporter where their zip is, can add makers and share 'Help open {town}' (#1093) [V src/app/onboarding/actions.ts line 87, PR body]. Missing: invites are not credited (PR body 'Not done'), the account is tied to a county town, not the ruled market, and the flag is off so a ring-county zip takes the ordinary waiting screen (#1100) [V]. Unplanned, horizon next."
+  },
+  {
+   "id": "8",
+   "text": "Add a maker you love: an unclaimed Page under the seeder rules, matched against existing Pages first; the supporter shares the claim link; a claim counts toward makers and credits the inviter",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built by #1093, reachable only with the flag on. `town.maker_add` makes an unclaimed Page owned by the system member from the maker's own site or social profile only (a review site or map is refused), no photo (so credited photos, no children and Samples labels do not arise), deduped by site however it was typed or by name in the town, offering the existing Page instead; the share is 'Claim your free Page on SocialUs' into the existing self-serve claim; a claim counts the maker and credits the adder [V src/actions/town/maker-add.ts, PR body]. Checked no: `maker-add.test.ts` (10 cases) and `tests/open-your-town-db.test.ts` (the claim counts and credits, against a database) exist but carry no `[guards F118.8]` marker [V grep]. Reviewed yes: #1093 names a second session, which posted a GitHub review (2026-10-26) [V]. Shipped: Deploy health 40392132524 green on 55fb92f2, 40566148895 on dca80800 (#1100) [V]. Smoked unknown: `/open` is not a smoke route and is 404 while the flag is off."
+  },
+  {
+   "id": "9",
+   "text": "Variety: a market shows its makers by kind (food, shops, makers, services, groups and events)",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built by #1093, flagged off: the town page lists maker counts by the five kinds from `town_board()`; a supporter picks one of the five when adding [V src/lib/open/towns.ts, maker-add.ts]. Per county town, not per ruled market (as 6). Checked no: no marked test [V]. Reviewed yes (#1093). Shipped yes (55fb92f2, dca80800 green). Smoked unknown (as 8)."
+  },
+  {
+   "id": "10",
+   "text": "First 3 open: the first 3 markets to reach both goals open this round; each is told with the ruled message and opened by a person",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Half built, flagged off. The daily round (`town-round.yml`, `town_mark_ready()`) marks a town that reached both goals ready with a rank of 1 to 3, never a fourth, and logs an Issue; `open-market.ts` tells the town's supporters and makers once with the ruled words; opening stays a person's act (F076.12) [V scripts/market/town-round.ts, open-market.ts]. Missing: a county market has no `markets` row, so opening one needs that row and its feed area first (#1093 'Not done'); the round does nothing while the flag is off [V]. Unplanned, horizon next."
+  },
+  {
+   "id": "11",
+   "text": "Spam and abuse: anyone signed in may add a maker, with a daily limit, the report and remove-my-Page paths; test and builder accounts never count, each person counts once",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "no",
+   "reviewed": "yes",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "Built by #1093, flagged off: signed in only, `DAILY_ADDS = 10` under a member lock, the Page is reportable and removable like any unclaimed Page; `town_board()` counts distinct people and excludes builders and the system member [V maker-add.ts, migration lines 111-147]. Checked no: `maker-add.test.ts` covers the limit and the lock without a marker; no standing guard for the never-counts [V]. Reviewed yes (#1093). Shipped yes (55fb92f2, dca80800). Smoked unknown (as 8)."
+  },
+  {
+   "id": "12",
+   "text": "Funding, a note only: opening markets needs money, donations or investment first, then transaction income",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "A note in the scenario, not something to build; no payments for now (2026-10-27 ruling). Counted as not built because the sidecar has no other state for it; nothing to file."
+  }
+ ]
+}

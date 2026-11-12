@@ -14,7 +14,11 @@ vi.mock('pg', () => ({
   },
 }))
 
+const attached: unknown[] = []
+vi.mock('@vercel/functions', () => ({ attachDatabasePool: (p: unknown) => attached.push(p) }))
+
 beforeEach(() => {
+  attached.length = 0
   made.length = 0
   ;(globalThis as { __socialusPool?: unknown }).__socialusPool = null
   vi.resetModules()
@@ -32,9 +36,14 @@ describe('getPool', () => {
   it('keeps the pool small and lets an idle function exit', async () => {
     const { getPool } = await import('./db')
     getPool()
-    expect(Number(made[0]!.opts.max)).toBeLessThanOrEqual(3)
+    // #1269 — 10, through the transaction pooler; never a pool sized for one request at a time per connection.
+    expect(Number(made[0]!.opts.max)).toBeLessThanOrEqual(10)
     expect(made[0]!.opts.allowExitOnIdle).toBe(true)
     expect(Number(made[0]!.opts.idleTimeoutMillis)).toBeLessThanOrEqual(10_000)
+  })
+  it('hands the pool to Vercel, which closes idle clients before an instance is suspended (#1269)', async () => {
+    const { getPool } = await import('./db')
+    expect(attached).toEqual([getPool()])
   })
   it('can be tuned with DB_POOL_MAX', async () => {
     process.env.DB_POOL_MAX = '2'

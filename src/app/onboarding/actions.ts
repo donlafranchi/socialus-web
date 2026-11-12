@@ -13,11 +13,15 @@
 // invoke) exactly like createProductAction (T078).
 
 import { createClient } from '@/lib/supabase-server'
+import { OPEN_YOUR_TOWN } from '@/lib/features'
 import { resolveActionContext } from '@/lib/action-context'
 import { memberInterestsAdd, memberSignupProfileSet, ActionError } from '@/actions'
 import { NotFoundError } from '@/actions/_lib/errors'
 import { validateSignupProfile, type SignupProfileInput, type SignupProfileField } from '@/lib/signup/profile'
 import { marketForZip } from '@/lib/signup/zip-market'
+import { redirect } from 'next/navigation'
+import { countUse } from '@/lib/usage/count-use'
+import { safeNext } from '@/lib/safe-next'
 
 async function requireMemberId(): Promise<string> {
   const supabase = await createClient()
@@ -34,7 +38,7 @@ export type SaveProfileResult =
       /** The open market the zip decided, shown to the person; null when it is waiting. */
       metro: { name: string } | null
       /** The waiting market the zip decided, and the row it waits on; null when it is open. */
-      waiting: { metroId: string; name: string } | null
+      waiting: { metroId: string; name: string; town: string | null } | null
     }
   | { ok: false; field: SignupProfileField; message: string }
 
@@ -79,11 +83,13 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
     }
     throw err
   }
+  // F133 — the profile step of sign-up, counted after the response.
+  await countUse({ step: 'profile' }, user.id)
 
-  await supabase.auth.updateUser({ data: { onboarded: true } })
-  return market.open
-    ? { ok: true, metro: { name: market.name }, waiting: null }
-    : { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name } }
+  if (market.open) return { ok: true, metro: { name: market.name }, waiting: null }
+  // F118 — a town neighbours are opening: the person is its supporter now, and goes to its page.
+  const town = OPEN_YOUR_TOWN ? await supabase.from('towns').select('slug').eq('market_key', market.key).maybeSingle() : null
+  return { ok: true, metro: null, waiting: { metroId: market.metroId, name: market.name, town: (town?.data as { slug: string } | null)?.slug ?? null } }
 }
 
 export async function addInterestsAction(input: {
@@ -100,4 +106,16 @@ export async function addInterestsAction(input: {
     if (err instanceof ActionError) throw new Error(err.message)
     throw err
   }
+}
+
+/**
+ * #1090 — the last step: the login marked onboarded, then the one-time welcome (/welcome), which
+ * carries on to where the flow ends. Marked here and
+ * not with the profile, because the mark refreshes the page and its gate sends an onboarded
+ * member home before the screens after the profile can show.
+ */
+export async function finishOnboardingAction(next: string): Promise<void> {
+  const supabase = await createClient()
+  await supabase.auth.updateUser({ data: { onboarded: true } })
+  redirect(`/welcome?next=${encodeURIComponent(safeNext(next, '/'))}`)
 }

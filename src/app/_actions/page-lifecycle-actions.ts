@@ -17,7 +17,7 @@ const DIDNT_GO_THROUGH = "That didn't go through. Mind trying again?"
 async function run(fn: (memberId: string) => Promise<unknown>, paths: string[]): Promise<PageLifecycleResult> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) return { ok: false, message: 'You must be signed in.' }
+  if (error || !data.user) return { ok: false, message: 'Sign in first.' }
   try {
     await fn(data.user.id)
   } catch (err) {

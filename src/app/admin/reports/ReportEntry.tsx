@@ -42,7 +42,7 @@ interface Props {
 }
 
 /** F099 — which image a report is about. 'Photo' is the Page's own, as it always was. */
-const IMAGE_LABEL = { group: 'Photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Name and description', page_item: 'Product or service' } as const
+const IMAGE_LABEL = { group: 'Photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Name and description', page_item: 'Product or service', member_post: 'Post from a member' } as const
 
 export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
   const [shown, setShown] = useState(false)
@@ -64,7 +64,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
         setReversing(null)
         setNote('')
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'That did not go through.')
+        setError(e instanceof Error ? e.message : "That didn't go through.")
       }
     })
   }
@@ -127,7 +127,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
         · reported {report.reportedAt.toISOString().slice(0, 10)}
       </p>
 
-      {report.subjectKind === 'post' || report.subjectKind === 'page_words' || report.subjectKind === 'page_item' ? (
+      {report.subjectKind === 'post' || report.subjectKind === 'page_words' || report.subjectKind === 'page_item' || report.subjectKind === 'member_post' ? (
         <p data-testid="reported-post" className="whitespace-pre-wrap rounded-md bg-[var(--color-surface)] p-3 text-sm text-[var(--color-fg)]">
           {report.contentText}
         </p>
@@ -198,7 +198,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
       {reversing ? (
         <ReasonPicker
           testId="reverse-reasons"
-          title={`Undo the ${reversing.outcome === 'removed' ? 'removal' : 'restore'} — why?`}
+          title={`Undo the ${reversing.outcome === 'removed' ? 'removal' : 'restore'}. Why?`}
           outcome={reversing.outcome === 'removed' ? 'restored' : 'removed'}
           note={note}
           onNote={setNote}
@@ -221,7 +221,7 @@ export function ReportEntry({ report, hiddenFor, onDecide, onReverse }: Props) {
       ) : picking ? (
         <ReasonPicker
           testId={`reasons-${picking}`}
-          title={picking === 'restored' ? 'Approve — why?' : 'Reject — why?'}
+          title={picking === 'restored' ? 'Approve. Why?' : 'Reject. Why?'}
           outcome={picking}
           note={note}
           onNote={setNote}

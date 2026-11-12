@@ -23,13 +23,14 @@ SCREENS_WIDTHS=390,1280`. If another local Supabase stack already holds ports
 **What CI runs:** a PR or a merge runs the smoke slice (`SCREENS_SCOPE=smoke`,
 `SMOKE` in `routes.ts`): every route signed out, and every route not marked
 `same` as a member and a business owner, at 390px. It gates on errors and saves
-no pictures; the `screenshots` artifact comes from the nightly run. The whole
-matrix runs nightly and from Actions → CI → Run workflow (#375).
+no pictures. The whole matrix runs on demand only, from Actions → CI → Run
+workflow → full, for a UX redesign (the PM, 2026-10-27; #375 began it nightly).
 
 **The app storyboard:** `npm run storyboard:app` turns `screenshots/390/**` into
 `screenshots/storyboard.html`: every screen by area, one strip per persona. Add
 `--base <sha>` for only the routes that diff changes (a copy PR's storyboard), or
-`--dir review-bundle` for a review bundle. CI adds it to the `screenshots` artifact.
+`--dir <folder>` for another capture folder with the same layout. CI adds it to
+the `screenshots` artifact.
 
 A run fails on a server error or an uncaught page error, never on looks: the
 review happens on the pictures.

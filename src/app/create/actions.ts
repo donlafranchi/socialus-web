@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
 import { groupActivate, groupCreate, ActionError } from '@/actions'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { canonicalPagePath, pagePath } from '@/lib/groups/page-handle'
 import { PURPOSES, TYPE_FOR_PURPOSE, type Purpose } from '@/lib/groups/page-kind'
 
 // #363 — Create's answer is the Page's purpose; its type follows (Don, 2026-10-05).
@@ -30,7 +30,7 @@ export async function startDraftAction(purpose: Purpose): Promise<void> {
   // The founder reads their own draft (groups_select_active_or_own_draft).
   const { data: row } = await supabase.from('groups').select('slug, public_id').eq('id', groupId).single()
   const r = row as { slug: string; public_id: string } | null
-  if (!r) throw new Error("That didn't go through. Try again?")
+  if (!r) throw new Error("That didn't go through. Mind trying again?")
   redirect(canonicalPagePath(r.public_id))
 }
 
@@ -46,7 +46,8 @@ export async function publishDraftAction(groupId: string, rulesVersion: number):
   } catch (err) {
     throw err instanceof ActionError ? new Error(err.message) : err
   }
-  const { data: row } = await supabase.from('groups').select('slug, public_id').eq('id', groupId).single()
-  const r = row as { slug: string; public_id: string } | null
-  redirect(r ? canonicalPagePath(r.public_id) : '/you')
+  const { data: row } = await supabase.from('groups').select('slug, public_id, place_url_slug, page_url_slug').eq('id', groupId).single()
+  const r = row as { public_id: string; place_url_slug: string | null; page_url_slug: string | null } | null
+  // #1139 — published, it has its readable address.
+  redirect(r ? pagePath({ publicId: r.public_id, placeUrlSlug: r.place_url_slug, pageUrlSlug: r.page_url_slug }) : '/you')
 }

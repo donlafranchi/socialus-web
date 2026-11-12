@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { marketDayBody, marketDays, type MarketSchedule } from './market-days'
+import { marketDayBody, marketDays, syncMarketDays, type MarketSchedule } from './market-days'
 
 const maidu: MarketSchedule = { weekday: 7, start: '09:00', end: '13:00', hours: 'Sundays 9 AM–1 PM, year-round', source: 'https://www.bemoneysmartusa.org/copy-of-mahany-park-roseville' }
 const pt = (d: Date) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(d)
@@ -24,5 +24,22 @@ describe('marketDayBody', () => {
     expect(b).toContain('Sundays 9 AM–1 PM, year-round')
     expect(b).toContain(maidu.source)
     expect(b.length).toBeLessThanOrEqual(500)
+  })
+})
+
+// plan #230 — a market day is a recurring reminder, so a new one is written with that kind (the column defaults to news).
+describe('syncMarketDays kind', () => {
+  it('writes each new market day as a reminder', async () => {
+    const sql: string[] = []
+    const db = {
+      query: async (q: string) => {
+        sql.push(q)
+        return { rows: q.includes('post_series') ? [{ id: 'series-1' }] : [] }
+      },
+    }
+    await syncMarketDays(db as never, 'g1', 'Maidu', maidu, null, new Date('2026-11-02T12:00:00Z'))
+    const inserts = sql.filter((q) => q.includes('insert into public.page_posts'))
+    expect(inserts.length).toBeGreaterThan(0)
+    for (const q of inserts) expect(q).toMatch(/'reminder'/)
   })
 })

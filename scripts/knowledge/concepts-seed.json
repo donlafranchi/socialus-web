@@ -1,0 +1,137 @@
+{
+  "about": "F130 criterion 4: the two traced timelines from socialus-plan planning/briefs/concepts-in-the-store-2026-11-11.md, transcribed entry for entry. Each entry keeps the brief's date and words; an entry naming two changes (built, reversed) is two events on one date. Loaded by scripts/knowledge/concepts.ts.",
+  "brief": "planning/briefs/concepts-in-the-store-2026-11-11.md",
+  "concepts": [
+    {
+      "id": "CO-0001",
+      "title": "**Bulletins, then Announcement, then Post** (one id, three names)",
+      "status": "built",
+      "concern": "posts",
+      "why": "A Page reaching its followers. What survived: the intent, a Page reaching its followers, came back as push. The word, the table and the tracking did not. Two needs docs still say \"Bulletins, cut\".",
+      "names": [
+        { "name": "Bulletins", "on": "2026-04-25", "state": "used", "evidence": [{ "kind": "web_commit", "ref": "91fdacb2" }] },
+        { "name": "Bulletin", "on": "2026-09-21", "state": "refused", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }, { "kind": "doc", "ref": "product/foundation/nouns.md" }], "note": "Refused as a noun.", "ruling": { "on": "2026-09-21", "words": "`Bulletin` is refused as a noun: it named a delivery mode, not a thing." } },
+        { "name": "Announcement", "on": "2026-09-21", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }], "note": "Its ruling (\"Announcement is the word everywhere\") was replaced on 2026-10-01 and lives only in git." },
+        { "name": "Post", "on": "2026-10-01", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "3277f66" }, { "kind": "doc", "ref": "product/foundation/nouns.md" }], "ruling": { "on": "2026-10-01", "words": "Post is the noun for what a Page says to the metro; an announcement is a kind of post." } }
+      ],
+      "entries": [
+        {
+          "on": "2026-04-25",
+          "text": "built: vendor bulletins with tracking (web 91fdacb2), before any plan doc.",
+          "events": [{ "type": "built", "what": "vendor bulletins with tracking, before any plan doc", "evidence": [{ "kind": "web_commit", "ref": "91fdacb2" }] }]
+        },
+        {
+          "on": "2026-05-11",
+          "text": "cut: the migrations were wiped (plan 993e447).",
+          "events": [{ "type": "cut", "what": "the migrations were wiped", "evidence": [{ "kind": "plan_commit", "ref": "993e447" }] }]
+        },
+        {
+          "on": "2026-06-29",
+          "text": "split: \"bulletin intelligence\" spun off; still in IMAGINE.",
+          "events": [{ "type": "split", "what": "\"bulletin intelligence\" spun off; still in IMAGINE", "evidence": [{ "kind": "doc", "ref": "IMAGINE.md", "note": "as traced in the 2026-11-11 brief" }] }]
+        },
+        {
+          "on": "2026-09-09",
+          "text": "ruling: the table is `page_posts`, not `bulletins` (plan ff620da).",
+          "events": [{ "type": "ruling", "what": "the table is `page_posts`, not `bulletins`", "evidence": [{ "kind": "plan_commit", "ref": "ff620da" }] }]
+        },
+        {
+          "on": "2026-09-13",
+          "text": "split: one scenario became four, F072 to F075 (plan 348bc1e).",
+          "events": [{ "type": "split", "what": "one scenario became four, F072 to F075", "evidence": [{ "kind": "plan_commit", "ref": "348bc1e" }, { "kind": "scenario", "ref": "F072" }, { "kind": "scenario", "ref": "F073" }, { "kind": "scenario", "ref": "F074" }, { "kind": "scenario", "ref": "F075" }] }]
+        },
+        {
+          "on": "2026-09-20",
+          "text": "cut: delivery to followers' feeds, to pay for recurrence (plan cd98014).",
+          "events": [{ "type": "cut", "what": "delivery to followers' feeds, to pay for recurrence", "evidence": [{ "kind": "plan_commit", "ref": "cd98014" }] }]
+        },
+        {
+          "on": "2026-09-21",
+          "text": "renamed: Announcement; Bulletin refused as a noun (plan 3152305).",
+          "events": [{ "type": "renamed", "what": "Announcement; Bulletin refused as a noun", "evidence": [{ "kind": "plan_commit", "ref": "3152305" }] }]
+        },
+        {
+          "on": "2026-10-01",
+          "text": "renamed: Post (plan 3277f66). The PM: \"an announcement is a post\".",
+          "events": [{ "type": "renamed", "what": "Post", "evidence": [{ "kind": "plan_commit", "ref": "3277f66" }], "pm_words": "an announcement is a post" }]
+        },
+        {
+          "on": "2026-10-18",
+          "text": "built, reversed: push for followed Pages' new posts (web #930), ruled a week later.",
+          "events": [
+            { "type": "built", "what": "push for followed Pages' new posts", "evidence": [{ "kind": "web_pr", "ref": "#930" }] },
+            { "type": "reversed", "what": "the cut of delivery to followers reversed: push for followed Pages' new posts, ruled a week later", "evidence": [{ "kind": "web_pr", "ref": "#930" }] }
+          ]
+        }
+      ],
+      "lineage": [
+        { "imagine": "Bulletin intelligence", "type": "split_from" },
+        { "from": "F072", "type": "scopes" },
+        { "from": "F073", "type": "scopes" },
+        { "from": "F074", "type": "scopes" },
+        { "from": "F075", "type": "scopes" }
+      ]
+    },
+    {
+      "id": "CO-0002",
+      "title": "**Open your town** (one id, three names)",
+      "status": "deferred",
+      "concern": null,
+      "why": "Communities open their own town by meeting public thresholds. What survived: most of the June idea came back, with the numbers ten times larger and no organizer role. F118 does not link back to June.",
+      "names": [
+        { "name": "market unlock", "on": "2026-06-22", "state": "used", "evidence": [{ "kind": "plan_commit", "ref": "20b2c4d" }] },
+        { "name": "metro waitlist", "on": "2026-09-14", "state": "used", "evidence": [{ "kind": "scenario", "ref": "F076" }], "note": "No ruling names it; dated to F076 (plan 322e4bc), where a person outside an open market joins its waitlist." },
+        { "name": "Open your town", "on": "2026-10-26", "state": "used", "evidence": [{ "kind": "scenario", "ref": "F118" }], "ruling": { "on": "2026-10-26", "words": "Open your town comes after the soft launch and before the hard launch; only the landing page is in scope now." } }
+      ],
+      "entries": [
+        {
+          "on": "2026-06-22",
+          "text": "idea: communities unlock a market by meeting public thresholds, 50, 10 and 3 (plan 20b2c4d).",
+          "events": [{ "type": "idea", "what": "communities unlock a market by meeting public thresholds, 50, 10 and 3", "evidence": [{ "kind": "plan_commit", "ref": "20b2c4d" }] }]
+        },
+        {
+          "on": "2026-09-07",
+          "text": "cut: archived with the markets mechanic.",
+          "events": [{ "type": "cut", "what": "archived with the markets mechanic", "evidence": [{ "kind": "doc", "ref": "planning/briefs/concepts-in-the-store-2026-11-11.md" }] }]
+        },
+        {
+          "on": "2026-09-14",
+          "text": "scoped and built: a metro opens on 50 creators and 250 patrons (F076; web #86).",
+          "events": [
+            { "type": "scoped", "what": "a metro opens on 50 creators and 250 patrons", "evidence": [{ "kind": "scenario", "ref": "F076" }] },
+            { "type": "built", "what": "a metro opens on 50 creators and 250 patrons", "evidence": [{ "kind": "web_pr", "ref": "#86" }] }
+          ]
+        },
+        {
+          "on": "2026-10-11",
+          "text": "scoped: a market opens on sign-ups, counties as the unit (F103).",
+          "events": [{ "type": "scoped", "what": "a market opens on sign-ups, counties as the unit", "evidence": [{ "kind": "scenario", "ref": "F103" }] }]
+        },
+        {
+          "on": "2026-10-26",
+          "text": "renamed and scoped: \"Open your town\", 100 and 1000 and three towns (F118); built early by mistake (web #1093).",
+          "events": [
+            { "type": "renamed", "what": "\"Open your town\"", "evidence": [{ "kind": "scenario", "ref": "F118" }] },
+            { "type": "scoped", "what": "100 and 1000 and three towns", "evidence": [{ "kind": "scenario", "ref": "F118" }] },
+            { "type": "built", "what": "built early by mistake", "evidence": [{ "kind": "web_pr", "ref": "#1093" }] }
+          ]
+        },
+        {
+          "on": "2026-10-27",
+          "text": "deferred: behind a flag until after soft launch.",
+          "events": [{ "type": "deferred", "what": "behind a flag until after soft launch", "evidence": [{ "kind": "doc", "ref": "planning/briefs/concepts-in-the-store-2026-11-11.md" }] }]
+        },
+        {
+          "on": "2026-10-31",
+          "text": "ruling: recognition only, no cash or perks.",
+          "events": [{ "type": "ruling", "what": "recognition only, no cash or perks", "evidence": [{ "kind": "doc", "ref": "planning/briefs/concepts-in-the-store-2026-11-11.md" }] }]
+        }
+      ],
+      "lineage": [
+        { "from": "F076", "type": "scopes" },
+        { "from": "F103", "type": "scopes" },
+        { "from": "F118", "type": "scopes" }
+      ]
+    }
+  ]
+}

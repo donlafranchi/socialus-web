@@ -15,7 +15,7 @@
 // nothing visible to anyone, and the reporter is part of "anyone".
 
 import { useRef, useState } from 'react'
-import { PageOverflowMenu } from './PageOverflowMenu'
+import { PageOverflowMenu, type OverflowItem } from './PageOverflowMenu'
 import { ReportSheet, PlainError } from './ReportSheet'
 import type { ReportCategory } from '@/lib/reports/categories'
 import { COPY } from '@/lib/copy'
@@ -25,7 +25,7 @@ import { SignInPrompt } from '@/components/auth/SignInPrompt'
 interface Props {
   subjectId: string
   /** F099 — which image: the Page's photo when omitted. */
-  subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_item'
+  subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_item' | 'member_post'
   subjectLabel: string
   /** #625 — on a Page: its own words (name, description) are a report of their own, beside its photo. */
   wordsReportable?: boolean
@@ -34,17 +34,19 @@ interface Props {
   loggedIn: boolean
   /** Path to come back to after signing in. */
   returnTo?: string
+  /** #1171 — items before Report in the same ⋯ (a Page's Get updates). */
+  leadItems?: OverflowItem[]
   onSend: (input: {
     subjectId: string
-    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+    subjectKind?: 'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post'
     category: ReportCategory
     body: string
   }) => Promise<{ ok: true } | { ok: false; message: string }>
 }
 
-export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel }: Props) {
+export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, returnTo, onSend, wordsReportable = false, itemLabel, leadItems = [] }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | undefined>(subjectKind)
+  const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post' | undefined>(subjectKind)
   const open = (kind: typeof reporting) => {
     setReporting(kind)
     if (loggedIn) setSheetOpen(true)
@@ -76,14 +78,15 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
     <>
       <PageOverflowMenu
         triggerRef={triggerRef}
-        items={
-          wordsReportable
+        items={[
+          ...leadItems,
+          ...(wordsReportable
             ? [
                 { label: COPY.reportPageWords, onSelect: () => open('page_words') },
                 { label: COPY.reportPagePhoto, onSelect: () => open(subjectKind) },
               ]
-            : [{ label: itemLabel ?? COPY.reportPageWords, onSelect: () => open(subjectKind) }]
-        }
+            : [{ label: itemLabel ?? COPY.reportPageWords, onSelect: () => open(subjectKind) }]),
+        ]}
       />
 
       {promptOpen && <SignInPrompt action="report" currentPath={returnTo ?? '/'} onClose={() => setPromptOpen(false)} />}

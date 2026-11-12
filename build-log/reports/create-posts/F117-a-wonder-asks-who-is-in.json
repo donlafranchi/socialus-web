@@ -1,0 +1,157 @@
+{
+ "schema": 1,
+ "feature": "F117",
+ "title": "a member posts a Proposal; others say they're in or offer to help",
+ "area": "create-posts",
+ "area_source": "guess",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-06",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "A Wonder is a post kind on a Page the member manages: words, a threshold (a whole number), and an optional list of sizes or options the poster names",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "A Proposal (internally `wonder`) is a post kind on a Page the member manages: words, an optional whole-number goal, optional sizes; Create's + menu has 'Propose something' (#1094, plan #218). Since 10-30: renamed and the goal made optional (#1150, `Reviewed by:` second session). Checked: `[guards F117.1]` and the optional-goal partial in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 (v1) is review-skipped with 'Reviewed by: Code agent (build)', so no. Shipped: Deploy health green on dc65fac and 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "2",
+   "text": "I'm in: any signed-in member can join once, picking one size when the Wonder has sizes; they can change their size or leave",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`wonderJoin` once per member, one size when it has sizes, change or leave [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.2]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "3",
+   "text": "Progress bar: the Wonder shows the count of members in and the threshold as a bar, to anyone who can see the post; it reads full at the threshold and keeps counting past it",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "the count to anyone who can see the post, with the goal bar only when a goal is set, counting past it [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.3]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "4",
+   "text": "Size split: the poster sees the count per size; others see only the total",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "per-size counts for the poster only [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.4]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "5",
+   "text": "I can help as: any signed-in member can offer one or more of the eight roles (lead, designer, pattern-maker or sampler, sourcing, quality, logistics, support, treasurer), with an optional one-line note",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "`wonderOffer` with one or more of the eight roles and an optional note [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.5]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "6",
+   "text": "Accepting a helper: the poster accepts or declines each offer; accepted helpers show on the Wonder by display name and role; pending and declined offers are seen only by the poster and the person who offered",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "accept or decline by the poster; accepted helpers by name and role [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.6]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "7",
+   "text": "Privacy: nobody sees who is in except the poster, who sees names and sizes; a member's own state is visible to them",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "who is in and who helps by name to anyone who can see it, sizes to the poster, own state to oneself (#1142) [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.7]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "8",
+   "text": "Reports: a Wonder is reportable like any post",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "a Proposal is reportable like any post [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.8]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  },
+  {
+   "id": "9",
+   "text": "No money: nothing on a Wonder takes, holds or promises payment",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "yes",
+   "checked": "yes",
+   "reviewed": "no",
+   "shipped": "yes",
+   "smoked": "unknown",
+   "pm_looked": "no",
+   "issues": [],
+   "note": "no money column or call in the Proposal schema [V src/actions/wonder/, migrations *_wonders.sql]. Checked: `[guards F117.9]` in `tests/wonders-db.test.ts` (whole, DB-gated) [V]. Reviewed: #1081 is review-skipped and #1142 says 'none yet'; #1150 was reviewed, so no. Shipped: Deploy health green on dc65fac, 45f0c40, 844b8fa. Smoked: no green smoke-live run covers this route after the last merge (root and explore green at 16:20 and 16:52 on 11-06, red on the same commits later; page last opened 11-03, red) [V gh run]"
+  }
+ ]
+}

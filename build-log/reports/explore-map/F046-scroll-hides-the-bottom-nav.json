@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": true,
- "as_of": "2026-10-23",
+ "as_of": "2026-10-30",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     651
    ],
-   "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out`, `motion-reduce:transition-none` [V]. Checked: unmarked: `useScrollDirection.test.ts`, `BottomNav.test.tsx` ('slides fully off-screen when the nav is hidden', 'transitions the transform over ~200ms ease-out'). Reviewed: landed as direct commits ac179c1 (T113) and 238cef7 (T112), no PR [V]. Shipped: no deploy-health run for a direct commit [V]; nothing in `BottomNav.tsx`, `useScrollDirection.ts` or `NavVisibilityProvider.tsx` has changed since 2026-10-16 [V git log]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and you at 390, where the bottom nav renders, signed out and as members; it loads the route, it does not scroll [V]. Open #651."
+   "note": "`useScrollDirection` (20px threshold, rAF-throttled) feeds `NavVisibilityProvider`, mounted in `layout.tsx`; `BottomNav` uses `translate-y-full`, `duration-200 ease-out`, `motion-reduce:transition-none` [V]. Checked: unmarked: `useScrollDirection.test.ts` ('hides once downward travel passes the threshold', 'ignores micro-scrolls below the threshold'), `BottomNav.test.tsx` ('slides fully off-screen when the nav is hidden', 'transitions the transform over ~200ms ease-out') [V]. #651 asks for `[guards F046.N]` markers, which the plan lint rejects since #1069; a named test per criterion, seen failing, is what remains. Reviewed: landed as direct commits ac179c1 (T113) and 238cef7 (T112), no PR [V]. Shipped: no deploy-health run for a direct commit [V]; nothing in `BottomNav.tsx`, `useScrollDirection.ts` or `NavVisibilityProvider.tsx` has changed since 2026-10-16; only `BottomNav.test.tsx` changed since 10-23 (#1059, #1069, both deploy-health green) [V git log]. Smoked: smoke-live run 40536171902 on main dccf21c3 (2026-10-27) was green on explore and you at 390, where the bottom nav renders, signed out and as members, and run 41093000135 on 09ffba30 (2026-10-30) on explore; it loads the route, it does not scroll [V]. Open #651."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     651
    ],
-   "note": "Same hook, `travel < -threshold` sets visible [V]. Checked: unmarked: `useScrollDirection.test.ts` ('reappears once upward travel passes the threshold'). Reviewed, Shipped, Smoked: as criterion 1. Open #651."
+   "note": "Same hook, `travel < -threshold` sets visible [V]. Checked: unmarked: `useScrollDirection.test.ts` ('reappears once upward travel passes the threshold') [V]. Reviewed, Shipped, Smoked: as criterion 1. Open #651."
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     651
    ],
-   "note": "`if (y <= 0) { setVisible(true) }` [V]. Checked: unmarked: `useScrollDirection.test.ts` ('is visible again at the top of the page'). Reviewed, Shipped, Smoked: as criterion 1. Open #651."
+   "note": "`if (y <= 0) { setVisible(true) }` [V]. Checked: unmarked: `useScrollDirection.test.ts` ('is visible again at the top of the page') [V]. Reviewed, Shipped, Smoked: as criterion 1. Open #651."
   },
   {
    "id": "4",
@@ -78,7 +78,7 @@
    "issues": [
     651
    ],
-   "note": "`useState(true)`, context default `true`, route change resets to visible [V]. Checked: unmarked: `BottomNav.test.tsx` ('is visible by default with no provider — no flash of hidden nav on load'). Reviewed, Shipped, Smoked: as criterion 1 (the smoke's first paint shows the nav, unasserted). Open #651."
+   "note": "`useState(true)`, context default `true`, route change resets to visible [V]. Checked: unmarked: `useScrollDirection.test.ts` ('is visible on first render'), `BottomNav.test.tsx` ('is visible by default with no provider — no flash of hidden nav on load') [V]. Reviewed, Shipped, Smoked: as criterion 1 (the smoke's first paint shows the nav, unasserted). Open #651."
   },
   {
    "id": "5",
@@ -96,7 +96,7 @@
    "issues": [
     651
    ],
-   "note": "The bar is `fixed bottom-0`, out of flow; pages pad with `--nav-clearance`, a constant, not by visibility [V]. Checked: unmarked: `BottomNav.test.tsx` ('stays out of the document flow so content never jumps'); nothing measures layout shift. Reviewed, Shipped, Smoked: as criterion 1. Open #651."
+   "note": "The bar is `fixed bottom-0`, out of flow; pages pad with `--nav-clearance`, a constant, not by visibility [V]. Checked: unmarked: `BottomNav.test.tsx` ('stays out of the document flow so content never jumps'); nothing measures layout shift [V]. Reviewed, Shipped, Smoked: as criterion 1. Open #651."
   },
   {
    "id": "6",
@@ -114,7 +114,7 @@
    "issues": [
     651
    ],
-   "note": "One global provider in `layout.tsx` covers every route that shows the nav [V]. Tabs today are Explore and You with Create between them; Home is paused (#138) [V]. The nav is deliberately absent on auth, onboarding, admin and the full-height Edit Page, matching the 2026-10-01 'nav is hidden in wizards and full-height sheets' ruling [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route sits under the provider. Reviewed, Shipped: as criterion 1. Smoked: explore and you (2026-10-23) [V]. Open #651."
+   "note": "One global provider in `layout.tsx` covers every route that shows the nav [V]. Tabs today are Explore and You with Create between them; Home is paused (#138) [V]. The nav is deliberately absent on auth, onboarding, admin and the full-height Edit Page, matching the 2026-10-01 'nav is hidden in wizards and full-height sheets' ruling [V]. Checked: unmarked: `NavVisibilityProvider.test.tsx` (route reset); nothing asserts every nav route sits under the provider [V]. Reviewed, Shipped: as criterion 1. Smoked: explore and you (10-27), explore (10-30) [V]. Open #651."
   },
   {
    "id": "7a",
@@ -124,15 +124,13 @@
    ],
    "status": "active",
    "built": "yes",
-   "checked": "no",
+   "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
    "smoked": "yes",
    "pm_looked": "no",
-   "issues": [
-    826
-   ],
-   "note": "`BottomNav.tsx` and `globals.css`: `--color-charcoal` #3c3c3c active, `--color-nav-inactive` #717171, `--color-nav-border` #ebebeb, white background, `env(safe-area-inset-bottom)`, 20px icons at 1.5 stroke, fill when active [V]. Checked: unmarked: `BottomNav.test.tsx` ('icons are 20px at 1.5 stroke weight on every tab', 'active tab renders in charcoal, never in the brand accent', 'background is opaque white with a hairline top border and no blur', 'applies safe-area bottom padding'). Reviewed: landed as direct commits ac179c1 (T113) and 238cef7 (T112), no PR [V]. Shipped: no deploy-health run for a direct commit [V]; nothing in `BottomNav.tsx`, `useScrollDirection.ts` or `NavVisibilityProvider.tsx` has changed since 2026-10-16 [V git log]. Smoked: smoke-live run 39977671049 on main cb892a75 (2026-10-23) was green and opened explore and you at 390, where the bottom nav renders, signed out and as members; it loads the route, it does not scroll [V]. Open #826."
+   "issues": [],
+   "note": "`BottomNav.tsx` and `globals.css`: `--color-charcoal` #3c3c3c active, `--color-nav-inactive` #717171, `--color-nav-border` #ebebeb, white background, `env(safe-area-inset-bottom)`, 20px icons at 1.5 stroke, fill when active [V]. Checked: #1059 (2026-10-26, closed #826) added one test claiming the criterion whole in `BottomNav.test.tsx` ('20px outlined icons at 1.5 stroke (filled when active), charcoal active and gray inactive, hairline top border, opaque white with no blur, safe-area padding'), seen failing with the tab icon stroke changed to 2; #1069 made its `[guards F046.7a]` marker a plain comment (the plan lint rejects markers for a deleted scenario); read as checked [V]. Reviewed: landed as direct commits ac179c1 (T113) and 238cef7 (T112), no PR [V]. Shipped: no deploy-health run for a direct commit [V]; nothing in `BottomNav.tsx`, `useScrollDirection.ts` or `NavVisibilityProvider.tsx` has changed since 2026-10-16; only `BottomNav.test.tsx` changed since 10-23 (#1059, #1069, both deploy-health green) [V git log]. Smoked: smoke-live run 40536171902 on main dccf21c3 (2026-10-27) was green on explore and you at 390, where the bottom nav renders, signed out and as members, and run 41093000135 on 09ffba30 (2026-10-30) on explore; it loads the route, it does not scroll [V]."
   },
   {
    "id": "7b",

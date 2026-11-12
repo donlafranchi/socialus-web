@@ -56,18 +56,23 @@ export type ReportReverseInput = z.infer<typeof reportReverseInput>
 export interface ReportDecisionResult {
   decisionId: string
   reportId: string
-  groupId: string
+  /** Null for a member's own post (#1183), which has no Page. */
+  groupId: string | null
   outcome: Outcome
   /** Set when this decision undid an earlier one. */
   reversedDecisionId: string | null
 }
 
-export type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+export type SubjectKind = 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post'
 
-type SubjectRow = { subject_kind: SubjectKind; subject_id: string; group_id: string }
+type SubjectRow = { subject_kind: SubjectKind; subject_id: string; group_id: string | null; poster_id: string }
 
 const eventKind = (kind: SubjectKind, outcome: Outcome) =>
-  kind === 'page_item'
+  kind === 'member_post'
+    ? outcome === 'restored'
+      ? 'member.post_restored'
+      : 'member.post_removed'
+    : kind === 'page_item'
     ? outcome === 'restored'
       ? 'group.item_restored'
       : 'group.item_removed'
@@ -102,7 +107,7 @@ function requireNote(input: { reasonCode: ReasonCode; reasonNote?: string }, ver
  * and columns differ (the Page's photo, the Page picture, one post's photo), and
  * a name built from input is how an injection gets in.
  */
-export type Subject = { kind: SubjectKind; id: string; groupId: string }
+export type Subject = { kind: SubjectKind; id: string; groupId: string | null }
 
 /** F078 criterion 1 — a hidden Post is private (managers only), so the same two
  *  outcomes apply to it: restoring puts back the audience it had and locks that
@@ -134,6 +139,16 @@ async function projectPost(client: Client, postId: string, outcome: Outcome, now
 
 export async function project(client: Client, subject: Subject, outcome: Outcome, now: Date) {
   if (subject.kind === 'post') return projectPost(client, subject.id, outcome, now)
+  // #1183 — a member's own post. Restored: shown and locked to exactly these words. Removed: down for good.
+  if (subject.kind === 'member_post') {
+    await client.query(
+      outcome === 'restored'
+        ? `update public.member_posts set hidden_at = null, removed_at = null, hide_locked_body = body where id = $1`
+        : `update public.member_posts set removed_at = $2 where id = $1`,
+      outcome === 'restored' ? [subject.id] : [subject.id, now],
+    )
+    return
+  }
   // #625 — a Page's own words. Restored: shown again and locked to exactly these words (an edit un-locks them).
   // Removed: kept hidden until the owner changes them.
   // #909 — one featured product or service. Restored: shown and locked to exactly these words (an edit un-locks
@@ -242,6 +257,18 @@ export async function projectReportRow(
   )
 }
 
+/** A Page's event, or for a member's own post (no Page) the poster's. */
+function subjectEvent(
+  ctx: ActionContext,
+  row: { subject_kind: SubjectKind; group_id: string | null; poster_id: string },
+  kind: string,
+  payload: Record<string, unknown>,
+) {
+  return row.subject_kind === 'member_post'
+    ? appendEvent(ctx, 'member_events', { member_id: row.poster_id, event_kind: kind, payload })
+    : appendEvent(ctx, 'group_events', { group_id: row.group_id ?? undefined, event_kind: kind, payload })
+}
+
 export const reportDecide = defineHandler(
   'report.decide',
   reportDecideInput,
@@ -252,12 +279,14 @@ export const reportDecide = defineHandler(
     return withTransaction(async (client) => {
       const res = await client.query<SubjectRow>(
         `select r.subject_kind, r.subject_id,
-                coalesce(p.group_id, it.group_id, g.id) as group_id
+                coalesce(p.group_id, it.group_id, g.id) as group_id,
+                mp.member_id as poster_id
            from public.reports r
            left join public.groups g on r.subject_kind in ('group', 'page_picture', 'page_words') and g.id = r.subject_id
            left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
            left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
-          where r.id = $1 and coalesce(p.group_id, it.group_id, g.id) is not null
+           left join public.member_posts mp on r.subject_kind = 'member_post' and mp.id = r.subject_id
+          where r.id = $1 and coalesce(p.group_id, it.group_id, g.id, mp.id) is not null
           for update of r`,
         [input.reportId],
       )
@@ -277,15 +306,11 @@ export const reportDecide = defineHandler(
       await project(client, subject, input.outcome, now)
       await projectReportRow(client, input.reportId, input.outcome, operator, now)
 
-      await appendEvent({ ...ctx, db: client }, 'group_events', {
-        group_id: subject.groupId,
-        event_kind: eventKind(subject.kind, input.outcome),
-        payload: {
-          report_id: input.reportId,
-          decision_id: decisionId,
-          reviewed_by: operator,
-          reason_code: input.reasonCode,
-        },
+      await subjectEvent({ ...ctx, db: client }, row, eventKind(subject.kind, input.outcome), {
+        report_id: input.reportId,
+        decision_id: decisionId,
+        reviewed_by: operator,
+        reason_code: input.reasonCode,
       })
 
       return {
@@ -310,7 +335,8 @@ export const reportReverse = defineHandler(
       const res = await client.query<{
         id: string
         report_id: string
-        group_id: string
+        group_id: string | null
+        poster_id: string
         subject_kind: SubjectKind
         subject_id: string
         outcome: Outcome
@@ -318,7 +344,8 @@ export const reportReverse = defineHandler(
       }>(
         `select d.id,
                 d.report_id,
-                coalesce(p.group_id, it.group_id, r.subject_id) as group_id,
+                case when r.subject_kind = 'member_post' then null else coalesce(p.group_id, it.group_id, r.subject_id) end as group_id,
+                mp.member_id as poster_id,
                 r.subject_kind,
                 r.subject_id,
                 d.outcome,
@@ -330,6 +357,7 @@ export const reportReverse = defineHandler(
            join public.reports r on r.id = d.report_id
            left join public.page_posts p on r.subject_kind in ('post', 'post_photo') and p.id = r.subject_id
            left join public.items it on r.subject_kind = 'page_item' and it.id = r.subject_id
+           left join public.member_posts mp on r.subject_kind = 'member_post' and mp.id = r.subject_id
           where d.id = $1
           for update of d`,
         [input.decisionId],
@@ -360,17 +388,13 @@ export const reportReverse = defineHandler(
       await project(client, { kind: prior.subject_kind, id: prior.subject_id, groupId: prior.group_id }, outcome, now)
       await projectReportRow(client, prior.report_id, outcome, operator, now)
 
-      await appendEvent({ ...ctx, db: client }, 'group_events', {
-        group_id: prior.group_id,
-        event_kind: 'group.decision_reversed',
-        payload: {
+      await subjectEvent({ ...ctx, db: client }, prior, prior.subject_kind === 'member_post' ? 'member.decision_reversed' : 'group.decision_reversed', {
           report_id: prior.report_id,
           decision_id: decisionId,
           reverses_decision_id: prior.id,
           reviewed_by: operator,
           reason_code: input.reasonCode,
           now_outcome: outcome,
-        },
       })
 
       return {

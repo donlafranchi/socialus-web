@@ -95,7 +95,7 @@ describe('VenuePublicPage — CTAs', () => {
   it('renders "Follow this venue" as the primary CTA (accent-filled)', () => {
     renderPage()
     const follow = screen.getByTestId('follow-venue')
-    expect(follow).toHaveTextContent('Follow this venue')
+    expect(follow).toHaveTextContent('Get updates')
     expect(follow).toHaveClass('btn-primary')
   })
 

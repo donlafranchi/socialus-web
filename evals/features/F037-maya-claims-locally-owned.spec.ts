@@ -24,6 +24,17 @@ let SEEDED: SeededF037Fixture;
 
 // A save is a server round trip plus a page refresh; the widget is aria-busy until both land, so wait on that rather
 // than on the 5s default, which a slow CI runner outlasted (flaky 2026-10-15/16).
+// plan #230 — on a phone the Page's info (the claim card with it) is behind About.
+const openAbout = async (page: Page) => {
+  const about = page.getByTestId("page-about-open");
+  await expect(page.getByTestId("shop-name")).toBeVisible();
+  if (!(await about.isVisible())) return;
+  // A tap before hydration does nothing; tap until the sheet is open.
+  await expect(async () => {
+    await about.click();
+    await expect(page.getByRole("dialog", { name: /^About / })).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+};
 const settled = (page: Page) => expect(page.getByTestId("claim-widget")).toHaveAttribute("aria-busy", "false", { timeout: 20_000 });
 
 test.beforeAll(async () => {
@@ -42,12 +53,14 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     // Why: per business-jurisdiction.md T1 § Surfaces, claim management is
     // owner-gated — a non-owner must never see edit affordances.
     await page.goto(SHOP.url);
+    await openAbout(page);
     await expect(page.getByTestId("claim-widget")).toHaveCount(0);
     await expect(page.getByTestId("claim-add")).toHaveCount(0);
 
     // Owner viewer: widget renders in its empty state.
     await signIn(page, MAYA.email, MAYA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
     await expect(page.getByTestId("claim-widget")).toBeVisible();
     await expect(page.getByTestId("claim-add")).toBeVisible();
   });
@@ -55,6 +68,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
   test("Beat 2 — Maya adds her ZIP and the badge appears", async ({ page }) => {
     await signIn(page, MAYA.email, MAYA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
 
     // Empty state → no public badge yet.
     await expect(page.getByTestId("local-owner-badge")).toHaveCount(0);
@@ -75,6 +89,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     // Precondition: an existing proximal claim.
     await signIn(page, MAYA.email, MAYA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
@@ -93,6 +108,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
   test("Beat 4 — Maya removes her claim; the badge disappears", async ({ page }) => {
     await signIn(page, MAYA.email, MAYA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
@@ -113,6 +129,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
   }) => {
     await signIn(page, MAYA.email, MAYA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill(NON_PROXIMAL_ZIP);
     await page.getByTestId("claim-submit").click();
@@ -126,6 +143,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
   test("Beat 6 — a non-owner cannot access the management surface", async ({ page }) => {
     await signIn(page, ROSA.email, ROSA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
     await expect(page.getByTestId("shop-name")).toBeVisible();
     await expect(page.getByTestId("claim-widget")).toHaveCount(0);
     await expect(page.getByTestId("claim-add")).toHaveCount(0);
@@ -135,6 +153,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
   test("Edge — a non-5-digit ZIP is rejected inline, no row written", async ({ page }) => {
     await signIn(page, MAYA.email, MAYA.password);
     await page.goto(SHOP.url);
+    await openAbout(page);
     await page.getByTestId("claim-add").click();
     await page.getByTestId("claim-zip-input").fill("999");
     await page.getByTestId("claim-submit").click();
@@ -143,6 +162,7 @@ test.describe("F037 — Maya claims Locally Owned", () => {
     await expect(page.getByTestId("claim-zip-error")).toBeVisible();
     // No claim was persisted — reload shows the empty state, no badge.
     await page.reload();
+    await openAbout(page);
     await expect(page.getByTestId("claim-add")).toBeVisible();
     await expect(page.getByTestId("local-owner-badge")).toHaveCount(0);
   });

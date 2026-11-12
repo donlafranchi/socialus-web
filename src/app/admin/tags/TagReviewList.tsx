@@ -31,7 +31,7 @@ export function TagReviewList({
       await onReview({ tagId, verdict })
       setWaiting((w) => w.filter((t) => t.id !== tagId))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'That did not save. Try again?')
+      setError(err instanceof Error ? err.message : "That didn't save. Mind trying again?")
     }
   }
 

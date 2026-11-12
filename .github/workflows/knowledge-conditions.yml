@@ -1,0 +1,93 @@
+name: Knowledge conditions
+
+# F126 / T1020 (#1223) — runs every condition's check in the knowledge store,
+# records what changed, and opens one Issue for each condition or part that
+# became met, listing what it starts and ends (scripts/knowledge/conditions.ts).
+#
+# Daily on a schedule, and from the Actions tab: leave the condition empty to
+# just run the checks, or name one (CN-0001) and pick met or withdrawn to mark
+# it by hand, from a phone. Only the PM's own runs may mark one. Writes only through the store's functions, as its
+# own login, with a key minted for this run and revoked at its end.
+
+on:
+  schedule:
+    - cron: '17 15 * * *'   # 15:17 UTC daily
+  workflow_dispatch:
+    inputs:
+      condition:
+        description: 'A condition to mark by hand, e.g. CN-0001. Leave empty to just run the checks.'
+        required: false
+        type: string
+        default: ''
+      status:
+        description: 'What to mark it'
+        required: false
+        type: choice
+        options: [met, withdrawn, partial, not started]
+        default: met
+      reason:
+        description: 'Why, in a few words'
+        required: false
+        type: string
+        default: ''
+      dry_run:
+        description: 'Dry run: do everything, write nothing, open no Issue'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+# Never two runs at once, so nothing is announced twice.
+concurrency:
+  group: knowledge-conditions
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Run the conditions' checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      # The same connection apply.yml uses (scripts/supabase-db-url.sh).
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Marking by hand is the PM's: anyone else's run only runs the checks,
+      # and the history row names who ran it (GITHUB_ACTOR).
+      - name: Only the PM marks a condition by hand
+        if: inputs.condition != '' && github.actor != 'donlafranchi'
+        run: |
+          echo "::error::Only the PM marks a condition by hand. Run again with the condition left empty to just run the checks."
+          exit 1
+
+      - name: Run the checks
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONDITION: ${{ inputs.condition }}
+          STATUS: ${{ inputs.status }}
+          REASON: ${{ inputs.reason }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          args=()
+          if [ "$DRY_RUN" != "true" ]; then args+=(--commit); else echo "Dry run: nothing will be written."; fi
+          if [ -n "$CONDITION" ]; then args+=(--mark "$CONDITION" --status "$STATUS" --reason "$REASON"); fi
+          npx tsx scripts/knowledge/conditions.ts "${args[@]}"

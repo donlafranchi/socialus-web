@@ -27,10 +27,9 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
     slug: 'about',
     title: 'About',
     status: 'draft',
-    // F081 criterion 5's line, Don's words (2026-10-01). Placeholder [public-is-draft].
-    body: [
-      'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
-    ],
+    // The dedication alone, the PM's words (socialus-plan voice-and-tone.md ruling 2026-10-26). No name.
+    // The signup line (F081.5) shows at signup and is not repeated here (the PM, 2026-10-27: only the necessary).
+    body: ['An old friend always used to remind us... Be decent. We like that and designed this app around that idea.'],
   },
   terms: {
     slug: 'terms',
@@ -40,7 +39,7 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'SocialUs is a place for good and decent people to find, connect with and support each other. These Terms describe how it works during the beta.',
       'You need to be 18 or older to use SocialUs. By signing up you confirm that you are 18 or older and agree to these Terms.',
       'Use one account, in your own name. Other members see only your display name.',
-      'Be kind and decent. Please don’t post anything sensitive, like content involving children, pets, or anyone who can’t speak up for themselves, and please don’t post pictures with children in them.',
+      'No photos of kids, ever. Nothing involving kids, pets or anyone who can’t speak up for themselves.',
       'Anyone can report a post or a photo. A report can hide it at once while a person looks. If something of yours is hidden, we tell you why and you can answer before anything more happens.',
       'You are responsible for what you post, and for the Pages you run. Pages belong to the people who make them.',
       'We can hide or remove content, and close accounts, that break these Terms.',
@@ -67,6 +66,8 @@ export const TEXT_PAGES: Record<TextPageContent['slug'], TextPageContent> = {
       'Your display name, and the Pages and posts you publish, can be seen by other members. Visitors who are not signed in see a limited list.',
       'Your legal name, your email and your phone number are seen only by operators. Your zip code is never shown to another member or to a visitor; it is used to place you in your area, and you can change it from your account.',
       'A Page shows the area it is in, and an exact address only when the owner has made one public.',
+      'When you heart a post, its poster sees your name. Saves are private.',
+      'A post you make without a Page shows your display name and the neighborhood you pick, to signed-in members only, never your own area; a yard sale’s street shows only until its day is over. It comes down on its own after 7 or 14 days, and when you answer one, only its poster sees your name.',
       'When something is reported, an automated first pass may read the reported post or photo, the reason the reporter gave, and the poster’s reply before a person makes the call. It is run for us by Anthropic, an AI company that processes this only on our behalf and on our instructions. We never send it names, emails or other member details. A person always decides.',
       'You can archive or delete a Page you run. A deleted Page can be restored for 14 days.',
       'When you post or upload, we record the internet address and time it came from, to keep SocialUs safe. Only operators can see it, and it is deleted after one year.',

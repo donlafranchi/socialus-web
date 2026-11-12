@@ -21,7 +21,8 @@ import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from './constants'
 import { RULES_VERSION } from '../../lib/creator-rules'
-import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
+import { labelsInput, storedLabels, writePageLabels } from './labels'
+import { listedUnder } from '../../lib/labels/match'
 
 // T159 — a Page declares at least one tag at publish, and no category.
 // Supersedes T144's twelve-term category and its "Something else" free
@@ -33,7 +34,7 @@ import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from
 
 export const groupActivateInput = z.object({
   groupId: z.string().uuid(),
-  tags: z.array(z.string().min(1).max(TAG_MAX_LENGTH)).min(1).max(MAX_TAGS_PER_PAGE).optional(),
+  tags: labelsInput,
   // F082 — the rules version the member agreed to. Optional in the type so a
   // caller that never asks (the retired sell walkthrough) gets the refusal
   // below, not a type error that invites passing a number nobody agreed to.
@@ -104,26 +105,16 @@ export const groupActivate = defineHandler(
         )
       }
 
-      // T159, kept by the 2026-10-01 Create ruling: at least one tag to
-      // publish ("Tags are set on the draft Page and still required"). They
-      // are usually saved on the draft already; any sent here count too.
-      // Normalized first, then deduped: "Sourdough" and " sour dough " sent
-      // together are one tag, and a creator who does that has not sent two.
-      const tagLabels = (input.tags ?? []).filter(isValidTagLabel)
-      const byNormalized = new Map<string, string>()
-      for (const label of tagLabels) {
-        const n = normalizeTag(label)
-        if (!byNormalized.has(n)) byNormalized.set(n, label.trim())
-      }
-
-      if (byNormalized.size === 0) {
+      // T159, kept by the 2026-10-01 Create ruling ("Tags are set on the draft Page and still required"), and
+      // #1180: what it is listed under is the labels sent, else those saved on the draft, else what its name and
+      // description say (the word match, then Neighborhood life). A Page is never published unlisted.
+      let labels = storedLabels(input.tags ?? [])
+      if (labels.length === 0) {
         const saved = await client.query<{ n: number }>(
           `select count(*)::int as n from public.page_tags where group_id = $1`,
           [input.groupId],
         )
-        if ((saved.rows[0]?.n ?? 0) === 0) {
-          throw new ValidationError(`group.activate: group ${input.groupId} requires at least one tag to publish`)
-        }
+        if ((saved.rows[0]?.n ?? 0) === 0) labels = listedUnder({ text: `${row.name ?? ''} ${row.description ?? ''}` })
       }
 
       // #301 — publishing needs, for every kind: a name, where it is (an
@@ -197,20 +188,7 @@ export const groupActivate = defineHandler(
       // upsert is `on conflict do nothing` + select rather than
       // `returning` alone, because a tag another creator already made
       // returns no row from the insert and must still be attached.
-      for (const [normalized, label] of byNormalized) {
-        await client.query(
-          `insert into public.tags (label, normalized, created_by)
-           values ($1, $2, $3)
-           on conflict (normalized) do nothing`,
-          [label, normalized, ctx.actingMemberId],
-        )
-        await client.query(
-          `insert into public.page_tags (group_id, tag_id)
-           select $1, t.id from public.tags t where t.normalized = $2
-           on conflict (group_id, tag_id) do nothing`,
-          [input.groupId, normalized],
-        )
-      }
+      if (labels.length > 0) await writePageLabels(client, input.groupId, labels, ctx.actingMemberId!)
 
       // Event: group.activated. Same transaction as the UPDATE; per ADR-10.
       const txCtx: ActionContext = { ...ctx, db: client }

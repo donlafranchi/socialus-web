@@ -30,12 +30,22 @@ import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/con
 import { withTransaction } from '../_lib/db'
 import { appendEvent } from '../_lib/event-log'
 import type { ActionContext } from '../_lib/context'
-import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
+import { ensureLabelRows, labelsInput, labelsPinnedInput, storedLabels } from './labels'
 import { isOwnMediaUrl } from '../../lib/media/own-media-url'
 import { managingRoleForKind, type GroupKind } from './constants'
 import { seriesSchema, isoWeekdayOf } from '../../lib/posts/series'
 import { metroDate } from '../../lib/metro/metro-week'
 import { METRO_TIME_ZONE } from '../../lib/metro/metro-time'
+import { WONDER_OPTION_MAX, WONDER_OPTIONS_MAX } from '../../lib/wonders/roles'
+import { DATE_NEEDED, POST_KINDS, HEADLINE_MAX, SALE_MAX_DAYS, inferKind, needsDate, type PostKind } from '../../lib/posts/kinds'
+
+/** F117 criterion 1 — a Proposal (internally a wonder): an optional whole-number goal (plan #218, 2026-11-01) and optional sizes. */
+const wonder = z
+  .object({
+    threshold: z.number().int().min(1).max(1_000_000).optional(),
+    options: z.array(z.string().trim().min(1).max(WONDER_OPTION_MAX)).max(WONDER_OPTIONS_MAX).optional(),
+  })
+  .optional()
 
 /** Matches the column's own CHECK, so a too-long body is refused before the
  *  database has to refuse it and the caller gets a message rather than a
@@ -68,36 +78,40 @@ const endAfterStart = (v: { startsAt?: string | null; endsAt?: string | null }) 
 const END_MESSAGE = 'An end time needs a start time before it.'
 const PHOTO_MESSAGE = 'That photo didn’t come from your uploads.'
 
-/** #286 — a post's own tags (Don, 2026-10-01). None means it carries its
- *  Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
-const tags = z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional()
+/** plan #230 — what the post is, picked first. Absent (an older caller): inferred as the backfill did. */
+const kind = z.enum(POST_KINDS).optional()
+/** plan #230 — the card's one line, matching the column's check. */
+const headline = z.string().trim().min(1).max(HEADLINE_MAX).optional()
+const SALE_TOO_LONG = `An offer can run up to ${SALE_MAX_DAYS} days from today.`
+const PROPOSAL_ONLY_NEW = 'A post can’t become a Proposal once it’s up. Start a new one to propose something.'
+const PROPOSAL_STAYS = 'A Proposal stays a Proposal. Start a new post for something else.'
+
+function checkKind(k: PostKind, startsAt: string | null | undefined, endsAt: string | null | undefined, now: Date) {
+  if (needsDate(k) && !startsAt) throw new ValidationError(DATE_NEEDED[k as keyof typeof DATE_NEEDED])
+  if (k === 'sale') {
+    const last = endsAt ?? startsAt
+    if (last && new Date(last).getTime() > now.getTime() + SALE_MAX_DAYS * 86_400_000) throw new ValidationError(SALE_TOO_LONG)
+  }
+}
+
+/** #286 — a post's own tags (Don, 2026-10-01); since #1180, labels from the shared list. None means it carries
+ *  its Page's. On an edit, `undefined` leaves them alone and `[]` clears them. */
+const tags = labelsInput
 
 type Client = { query: (sql: string, params: unknown[]) => Promise<unknown> }
 
-/** Replaces a post's tags with this set, in the caller's transaction. */
+/** Replaces a post's labels with this set, in the caller's transaction. */
 async function writePostTags(client: Client, postId: string, labels: string[], memberId: string) {
-  const set = new Map<string, string>()
-  for (const label of labels.filter(isValidTagLabel)) {
-    const n = normalizeTag(label)
-    if (!set.has(n)) set.set(n, label.trim())
-  }
-  for (const [normalized, label] of set) {
-    await client.query(
-      `insert into public.tags (label, normalized, created_by)
-       values ($1, $2, $3)
-       on conflict (normalized) do nothing`,
-      [label, normalized, memberId],
-    )
-  }
+  const keys = await ensureLabelRows(client, labels, memberId)
   await client.query(
     `delete from public.post_tags ptg
       using public.tags t
       where ptg.tag_id = t.id
         and ptg.post_id = $1
         and t.normalized <> all($2)`,
-    [postId, [...set.keys()]],
+    [postId, keys],
   )
-  for (const normalized of set.keys()) {
+  for (const normalized of keys) {
     await client.query(
       `insert into public.post_tags (post_id, tag_id)
        select $1, t.id from public.tags t where t.normalized = $2
@@ -117,9 +131,13 @@ export const groupPostCreateInput = z
     locationId,
     howToFind,
     tags,
+    labelsPinned: labelsPinnedInput,
     photoUrl,
     /** F074.1 — weekly on chosen weekdays, optional start and end. This post is the first occurrence. */
     series: seriesSchema.optional(),
+    wonder,
+    kind,
+    headline,
   })
   .refine(endAfterStart, { message: END_MESSAGE, path: ['endsAt'] })
 export type GroupPostCreateInput = z.infer<typeof groupPostCreateInput>
@@ -133,7 +151,10 @@ export const groupPostEditInput = z.object({
   locationId,
   howToFind,
   tags,
+  labelsPinned: labelsPinnedInput,
   photoUrl,
+  kind,
+  headline,
 })
 export type GroupPostEditInput = z.infer<typeof groupPostEditInput>
 
@@ -159,13 +180,19 @@ export interface GroupPostEditResult {
 /** Closed set. The SET clause is built from these literals, never from input —
  *  the same shape `group.update`'s SpineClause has, and what makes the
  *  interpolation below a safe one. */
-type PostSetClause = 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $'
+type PostSetClause = 'labels_pinned = $' | 'starts_at = $' | 'ends_at = $' | 'show_until = $' | 'location_id = $' | 'how_to_find = $' | 'photo_url = $' | 'kind = $' | 'headline = $'
 
 interface Queryable {
   query<T = Record<string, unknown>>(
     sql: string,
     params?: unknown[],
   ): Promise<{ rows: T[]; rowCount: number }>
+}
+
+/** Distinct, in the poster's order; none is null (a Wonder without sizes). */
+function wonderOptions(options: string[] | undefined): string[] | null {
+  const seen = [...new Set((options ?? []).map((o) => o.trim()).filter(Boolean))]
+  return seen.length ? seen : null
 }
 
 function checkShowUntil(input: { startsAt?: string | null; showUntil?: string | null }, now: Date) {
@@ -217,6 +244,9 @@ export const groupPostCreate = defineHandler(
     const memberId = requireMember(ctx, 'group.post_create')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
     checkShowUntil(input, ctx.now())
+    const postKind: PostKind = input.wonder || input.kind === 'wonder' ? 'wonder' : (input.kind ?? inferKind(input))
+    checkKind(postKind, input.startsAt, input.endsAt, ctx.now())
+    const labels = input.tags === undefined ? undefined : storedLabels(input.tags)
 
     // F074.1: the series repeats at its first post's time of day, and that post stands on one of the
     // chosen weekdays, in the metro's zone and inside the start and end dates — so the creator never
@@ -251,8 +281,9 @@ export const groupPostCreate = defineHandler(
       const inserted = await client.query<{ id: string; created_at: string | Date }>(
         `insert into public.page_posts
            (group_id, body, starts_at, location_id,
-            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until)
-         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12)
+            lifecycle_state, discoverability, created_at, updated_at, ends_at, how_to_find, photo_url, series_id, show_until,
+            kind, wonder_threshold, wonder_options, headline, labels_pinned)
+         values ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
          returning id, created_at`,
         [
           input.groupId,
@@ -273,11 +304,16 @@ export const groupPostCreate = defineHandler(
           input.photoUrl ?? null,
           seriesId,
           input.showUntil ?? null,
+          postKind,
+          input.wonder?.threshold ?? null,
+          wonderOptions(input.wonder?.options),
+          input.headline ?? null,
+          input.labelsPinned ?? false,
         ],
       )
       const postId = inserted.rows[0]!.id
       const createdAt = new Date(inserted.rows[0]!.created_at).toISOString()
-      if (input.tags?.length) await writePostTags(client, postId, input.tags, memberId)
+      if (labels?.length) await writePostTags(client, postId, labels, memberId)
 
       const txCtx: ActionContext = { ...ctx, db: client }
       await appendEvent(txCtx, 'group_events', {
@@ -300,6 +336,7 @@ export const groupPostEdit = defineHandler(
     const memberId = requireMember(ctx, 'group.post_edit')
     if (input.photoUrl && !isOwnMediaUrl(input.photoUrl, memberId)) throw new ValidationError(PHOTO_MESSAGE)
     checkShowUntil(input, ctx.now())
+    const labels = input.tags === undefined ? undefined : storedLabels(input.tags)
 
     return withTransaction(async (client) => {
       const found = await client.query<{
@@ -309,9 +346,11 @@ export const groupPostEdit = defineHandler(
         removed_at: Date | null
         repost_used: boolean
         severity_one: boolean
+        starts_at?: Date | string | null
+        kind?: string
       }>(
         // severity_one: a report on this post was filed as Sensitive content (F102.2, F102.14).
-        `select id, group_id, hidden_at, removed_at, repost_used,
+        `select id, group_id, hidden_at, removed_at, repost_used, starts_at, kind,
                 exists (select 1 from public.reports r
                          where r.subject_kind in ('post', 'post_photo') and r.subject_id = page_posts.id
                            and r.category = 'sensitive_content' and r.removed_at is null) as severity_one
@@ -325,6 +364,15 @@ export const groupPostEdit = defineHandler(
       }
 
       await requireManagingRole(client, 'group.post_edit', post.group_id, memberId)
+      // plan #230 — the kind and the date are checked together: a dated kind keeps a date.
+      if (input.kind === 'wonder' && post.kind !== 'wonder') throw new ValidationError(PROPOSAL_ONLY_NEW)
+      // Its in and helper rows belong to it; the database no longer stops a goal-less one changing kind.
+      if (post.kind === 'wonder' && input.kind !== undefined && input.kind !== 'wonder') throw new ValidationError(PROPOSAL_STAYS)
+      if (input.kind !== undefined || input.startsAt !== undefined) {
+        const k = (input.kind ?? post.kind ?? 'news') as PostKind
+        const start = input.startsAt !== undefined ? input.startsAt : post.starts_at ? new Date(post.starts_at).toISOString() : null
+        if (needsDate(k) && !start) throw new ValidationError(DATE_NEEDED[k as keyof typeof DATE_NEEDED])
+      }
 
       // In place, and the row keeps its id (acceptance 4). `updated_at` moves
       // because browse orders on it; nothing else about the row changes, so an
@@ -356,6 +404,9 @@ export const groupPostEdit = defineHandler(
       if (input.photoUrl !== undefined) {
         patch.push({ clause: 'photo_url = $', value: input.photoUrl })
       }
+      if (input.kind !== undefined) patch.push({ clause: 'kind = $', value: input.kind })
+      if (input.headline !== undefined) patch.push({ clause: 'headline = $', value: input.headline })
+      if (input.labelsPinned !== undefined) patch.push({ clause: 'labels_pinned = $', value: input.labelsPinned })
       for (const f of patch) {
         params.push(f.value)
         sets.push(`${f.clause}${params.length}`)
@@ -373,7 +424,7 @@ export const groupPostEdit = defineHandler(
         `update public.page_posts set ${sets.join(', ')} where id = $1`,
         params,
       )
-      if (input.tags !== undefined) await writePostTags(client, input.postId, input.tags, memberId)
+      if (labels !== undefined) await writePostTags(client, input.postId, labels, memberId)
 
       // F102 criterion 2 — fix and repost. Editing a post a report hid shows it
       // again at once, once; its reports stay on the row for review. Never after

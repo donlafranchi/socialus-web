@@ -61,7 +61,7 @@ beforeAll(async () => {
   await client.query(`delete from public.members where id = any($1)`, [PEOPLE]) // a run that died before its afterAll
   await client.query(`delete from auth.users where id = any($1)`, [PEOPLE])
   h.client = client
-  countyMetroExisted = (await client.query(`select 1 from public.metro_polygons where slug = 'county-06101'`)).rowCount === 1
+  countyMetroExisted = (await client.query(`select 1 from public.metro_polygons where slug = 'county-36061'`)).rowCount === 1
   for (const id of PEOPLE) {
     const handle = `s853-${id.slice(0, 2)}`
     await client.query(
@@ -83,7 +83,7 @@ afterAll(async () => {
   await client.query(`delete from auth.users where id = any($1)`, [PEOPLE])
   if (!countyMetroExisted) {
     await client.query(
-      `delete from public.metro_polygons p where p.slug = 'county-06101' and not exists (select 1 from public.metro_waitlist w where w.metro_id = p.id)`,
+      `delete from public.metro_polygons p where p.slug = 'county-36061' and not exists (select 1 from public.metro_waitlist w where w.metro_id = p.id)`,
     )
   }
   client.release()
@@ -142,18 +142,18 @@ describe.skipIf(!RUNNABLE)('F081.3 / F103.3 — the zip decides, nobody picks', 
     cleanup()
 
     const waiting = signUpScreen(WAIT)
-    submit('95991')
-    expect(await screen.findByTestId('waitlist-market', {}, { timeout: 10_000 })).toHaveTextContent('Sutter County, CA')
+    submit('10001')
+    expect(await screen.findByTestId('waitlist-market', {}, { timeout: 10_000 })).toHaveTextContent('New York County, NY')
     expect(screen.queryByTestId('onboarding-metro')).toBeNull()
     expect(waiting.container.querySelectorAll('select, datalist')).toHaveLength(0)
     expect(screen.queryByRole('combobox')).toBeNull()
-    expect(await member(WAIT)).toMatchObject({ zip: '95991', home_market_key: 'county-06101', home_metro_id: null, home_town: null })
+    expect(await member(WAIT)).toMatchObject({ zip: '10001', home_market_key: 'county-36061', home_metro_id: null, home_town: null })
     // The radios here are F076's make-or-find question on the waitlist entry, not a place.
     fireEvent.click(screen.getByRole('radio', { name: /find/i }))
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
-    const sutter = await metroOf('county-06101')
+    const nyc = await metroOf('county-36061')
     await waitFor(async () => {
-      expect((await client.query(`select metro_id from public.metro_waitlist where member_id = $1`, [WAIT])).rows).toEqual([{ metro_id: sutter }])
+      expect((await client.query(`select metro_id from public.metro_waitlist where member_id = $1`, [WAIT])).rows).toEqual([{ metro_id: nyc }])
     }, { timeout: 10_000 })
 
     // Nothing on the signup path reads an IP, a position or a default in place of the zip.
@@ -193,15 +193,15 @@ describe.skipIf(!RUNNABLE)('F081.8 — every US zip resolves; an unknown one is 
 
     // A waiting zip: on the waitlist of the market it named, the zip kept.
     signUpScreen(WAIT2)
-    submit('95991')
+    submit('10001')
     await screen.findByTestId('waitlist-market', {}, { timeout: 10_000 })
     fireEvent.click(screen.getByRole('radio', { name: /find/i }))
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
-    const sutter = await metroOf('county-06101')
+    const nyc = await metroOf('county-36061')
     await waitFor(async () => {
-      expect((await client.query(`select metro_id from public.metro_waitlist where member_id = $1`, [WAIT2])).rows).toEqual([{ metro_id: sutter }])
+      expect((await client.query(`select metro_id from public.metro_waitlist where member_id = $1`, [WAIT2])).rows).toEqual([{ metro_id: nyc }])
     }, { timeout: 10_000 })
-    expect((await member(WAIT2)).zip).toBe('95991')
+    expect((await member(WAIT2)).zip).toBe('10001')
   }, 60_000)
 })
 

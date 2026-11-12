@@ -10,17 +10,18 @@
     "purpose": "PR body template: Don-looks or doesn't-look block, reviewer first pass",
     "origin": "hand",
     "rec": "keep",
-    "note": "revisit after 2026-10-23",
-    "reviewed": "2026-10-11",
-    "stale": "The PREVIEWS_MODE note expires at the 2026-10-23 freeze"
+    "note": "10-30: cut to look/no-look, Path, Verified, Reviewed by, Closes by #1077 (2026-10-25); the PREVIEWS_MODE note is gone; matches CLAUDE.md § Who checks what",
+    "reviewed": "2026-10-30",
+    "stale": ""
   },
   "CLAUDE.md": {
     "purpose": "Rules for agents working in this repo",
     "origin": "hand",
     "duplicate": "DECISION RULE block repeats ~/.claude/CLAUDE.md and socialus-plan/CLAUDE.md",
-    "rec": "keep",
-    "reviewed": "2026-10-16",
-    "note": "beta date and socialus-ops name fixed 2026-10-11 | 10-16: changes since last judgment are routine (key rename, problem-report updates); content still matches code, not re-audited line by line [A]"
+    "rec": "refresh",
+    "reviewed": "2026-10-30",
+    "note": "10-30: decision rights (#1062) and the retired prose gates (#1077, #1097) are in; the dates in the opening line and § Who checks what / § Build rules are the stale part. Judgment for the PM-free refresh: replace the two date claims with the Beta milestone and PREVIEWS_MODE as it is set, nothing else [A]",
+    "stale": "Header says Beta 2026-11-06 (soft target) and 'no previews until the 10-23 feature freeze'; the milestone was renamed Beta with no freeze date on 2026-10-25 (#1048, #1049) and runs to April 2027"
   },
   "INFRASTRUCTURE.md": {
     "purpose": "Runbook: every external service, wire-up steps, env vars, launch checklist",
@@ -34,10 +35,11 @@
   "README.md": {
     "purpose": "Setup, run, test and stack for a new developer",
     "origin": "hand",
-    "stale": "Pitch describes a map to tell independent businesses from PE-owned ones; setup says `cd web` but the repo has no web/ folder",
+    "stale": "",
     "duplicate": "Testing section overlaps TEST-CHECKLIST.md",
-    "rec": "refresh",
-    "reviewed": "2026-10-11"
+    "rec": "keep",
+    "reviewed": "2026-10-30",
+    "note": "10-30: pitch rewritten to locals supporting locals (#1108, 10-29); the `cd web` step and the PE-owned-map pitch are gone; the older duplicate as-of line removed 10-30. Testing section still overlaps TEST-CHECKLIST.md"
   },
   "TEST-CHECKLIST.md": {
     "purpose": "Pre-deploy checks; the eval table is generated from evals/features",
@@ -73,8 +75,8 @@
     "purpose": "How to run the screenshot matrix against a local stack",
     "origin": "hand",
     "rec": "keep",
-    "note": "checked: scripts/seed-personas.ts exists | 10-16: changes since last judgment are routine (key rename, problem-report updates); content still matches code, not re-audited line by line [A]",
-    "reviewed": "2026-10-16"
+    "note": "checked: scripts/seed-personas.ts exists | 10-30: #1097 (10-26) made screenshots on demand only; the README's CI section was updated in the same PR; its own as-of line still says 2026-10-12 (tend-docs sets the standard header) [V]",
+    "reviewed": "2026-10-30"
   },
   "supabase/seeds/README.md": {
     "purpose": "Why the seeds are privileged and how to verify against real rows",
@@ -101,15 +103,15 @@
     "purpose": "Append-only log of every unclaimed Page the daily builder adds",
     "origin": "hand",
     "rec": "generate",
-    "note": "A table of added Pages; derivable from the Builders workflow output / listings data. Generator not built | 10-23: 71 rows added by the daily seeds and #997 venues, still appended by hand",
-    "reviewed": "2026-10-23"
+    "note": "A table of added Pages; derivable from the Builders workflow output / listings data. Generator not built | 10-30: still appended by hand by every daily seed PR (#1099, #1107, #1111 this week); the seed:check step (#1028) reads it, so a generator would read the same makers-*.json files the loader does",
+    "reviewed": "2026-10-30"
   },
   "scripts/unclaimed/THEMES.md": {
     "purpose": "Daily builder's guide to what unclaimed Pages to add, with pitch rules",
     "origin": "hand",
     "rec": "keep",
-    "note": "Carries ruling dates (Don 2026-10-13 #786, 2026-10-18 #909, 2026-10-21 #987, 2026-10-22 #997); header is standard since 10-16 | 10-23: checked: sampleProductsFor, batchCoverage (plan.ts), syncSampleProducts (load.ts), TOWN_SATURATION (saturation.ts), syncVenueShows (venue-events.ts), unclaimed-events.yml and scripts/unclaimed/events.ts all exist",
-    "reviewed": "2026-10-23"
+    "note": "10-30: #1085 (10-26) made the day's theme the weekday's rotation row; the doc's rotation section says so [V]; the checks named on 10-23 still exist",
+    "reviewed": "2026-10-30"
   },
   "evals/moderation/images/README.md": {
     "purpose": "Provenance and licence of the moderation eval pictures (Wikimedia Commons credits, synthetic ones)",
@@ -117,5 +119,12 @@
     "rec": "keep",
     "note": "checked: moderation:eval script, scripts/moderation-make-images.ts, src/lib/moderation/eval-cases.test.ts and LICENCES.json exist; the inventory's generated heuristic trips on its 'generated by' sentence, origin set by hand here",
     "reviewed": "2026-10-23"
+  },
+  "REVIEW.md": {
+    "purpose": "Rules a second-session reviewer applies to a PR: what blocks, the PM's UX checklist, what to skip, what is left for the PM",
+    "origin": "hand",
+    "rec": "keep",
+    "note": "10-30: new with #1077 (2026-10-26); standard header; replaces the retired body-text review check. Cites evals/visibility/matrix.ts and constraints/code.md, both exist [V]",
+    "reviewed": "2026-10-30"
   }
 }

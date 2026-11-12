@@ -1,6 +1,6 @@
 # Unclaimed Pages added
 
-**As of 2026-10-25** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-06** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a name, a kind of organization or a town too often. Read it before choosing; append each run's rows at the end. Rules: `THEMES.md`.
 
@@ -308,3 +308,65 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-10-25 | Yolo Basin Foundation | Wetlands conservancy (nonprofit) | Davis | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-25 | Sierra Foothills Audubon Society | Birding club (nonprofit) | Grass Valley | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
 | 2026-10-25 | San Joaquin Audubon Society | Birding club (nonprofit) | Stockton | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-26 | Soul Food Farm | Farm | Vacaville | Farmers markets, Sustainability | Shops and repair (farms); stock photos only; lead: own site |
+| 2026-10-26 | Taber Ranch Vineyard & Event Center | Farm stay & agritourism | Capay | Farmers markets, Neighborhood life | Shops and repair (farms); stock photos only; lead: own site |
+| 2026-10-26 | Armadillo Music | Goods & crafts | Davis | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
+| 2026-10-26 | Foothill Mercantile | Goods & crafts | Grass Valley | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
+| 2026-10-26 | Anderson's Sierra Pipe Co. | Repair & trades | Auburn | Local business, Sustainability | Shops and repair; stock photos only; lead: own site |
+| 2026-10-26 | The Cave | Goods & crafts | Folsom | Local business, Crafts & makers | Shops and repair; stock photos only; lead: own site |
+| 2026-10-27 | Meals on Wheels Solano County | Meal program (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Food Bank of Contra Costa and Solano | Food bank (nonprofit) | Fairfield | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Upper Room Dining Hall | Meal program (nonprofit) | Placerville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-27 | Rancho Cordova Food Locker | Food bank (nonprofit) | Rancho Cordova | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-10-28 | Stockton Symphony | Symphony orchestra (nonprofit) | Stockton | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Vacaville Museum | Museum (nonprofit) | Vacaville | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Rio Vista Museum | Historical museum (nonprofit) | Rio Vista | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Amador County Arts Council (AmadorArts) | Art association (nonprofit) | Jackson | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Elk Grove Fine Arts Center | Art association (nonprofit) | Elk Grove | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Davis Musical Theatre Company | Community theatre (nonprofit) | Davis | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-28 | Symphony d'Oro | Symphony orchestra (nonprofit) | Rancho Cordova | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-10-29 | Mahon Ranch | Ranch | Elk Grove | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: Explore Elk Grove, then own site |
+| 2026-10-29 | Lillards Lavenders | Farm | Lincoln | Farmers markets, Sustainability | Clubs and service (farms); stock photos only; lead: PlacerGROWN, then own site |
+| 2026-10-29 | Galt Lions Club | Service club | Galt | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-29 | Woodland Host Lions Club | Service club | Woodland | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-29 | Davis Bike Club | Sports club | Davis | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: SABA club list, then own site |
+| 2026-10-29 | Golden Valley Harriers | Sports club | Davis | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: SRA club list, then own site |
+| 2026-10-29 | Lodi Garden Club | Garden club | Lodi | Gardening, Sustainability | Clubs and service; stock photos only; lead: Visit Lodi, then own site |
+| 2026-10-29 | Sacramento Valley Astronomical Society | Astronomy club | Sacramento | Arts & culture, Neighborhood life | Clubs and service; stock photos only; lead: NASA Night Sky Network, then own site |
+| 2026-10-29 | Little Bear Tree Farm | Farm | Alta | Farmers markets, Sustainability | Clubs and service (farms); holiday (Christmas trees); stock photos only; lead: PlacerGROWN, then own site |
+| 2026-10-29 | Loomis Lions Club | Service club | Loomis | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: Sacramento Area Lions Clubs, then own site |
+| 2026-10-30 | Truckee Trails Foundation | Trail group (nonprofit) | Truckee | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Cache Creek Conservancy | Creek conservancy (nonprofit) | Woodland | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Sierra Streams Institute | Watershed group (nonprofit) | Nevada City | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | American River Conservancy | Land trust (nonprofit) | Coloma | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Solano Resource Conservation District | Conservation district (nonprofit) | Dixon | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-30 | Restore the Delta | Delta conservation group (nonprofit) | Stockton | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-10-31 | Indian Rock Tree Farm | Farm | Camino | Farmers markets, Sustainability | Shops and repair (farms); holiday (Christmas trees); stock photos only; lead: county ag-tourism listing, then own site |
+| 2026-10-31 | Hillside Tree Farm | Farm | Camino | Farmers markets, Sustainability | Shops and repair (farms); holiday (Christmas trees); stock photos only; lead: Visit El Dorado, then own site |
+| 2026-11-01 | Friends of the Roseville Public Library | Friends of the library | Roseville | Volunteering, Neighborhood life | Neighbourhood life; stock photos only; lead: search, then own site |
+| 2026-11-01 | Sacramento SPCA | Animal rescue | Sacramento | Volunteering, Neighborhood life | Neighbourhood life; stock photos only; lead: search, then own site |
+| 2026-11-01 | Animal Refugee Response | Animal rescue | Vacaville | Volunteering, Neighborhood life | Neighbourhood life; stock photos only; lead: Visit Vacaville, then own site |
+| 2026-11-01 | Sammie's Friends | Animal rescue | Grass Valley | Volunteering, Neighborhood life | Neighbourhood life; stock photos only; lead: search, then own site |
+| 2026-11-01 | Gold Trail Grange | Grange (community hall) | Coloma | Volunteering, Neighborhood life | Neighbourhood life; stock photos only; centennial year; lead: search, then own site |
+| 2026-11-02 | Chill Krew Run Club | Sports club | Rancho Cordova | Fitness & outdoors, Neighborhood life | Run and walk (meet-up, #1102); stock photos only; lead: Sacramento Running Association club list, then own site |
+| 2026-11-02 | Sacramento FrontRunners & FrontWalkers | Sports club | Sacramento | Fitness & outdoors, Neighborhood life | Run and walk (meet-up, #1102); stock photos only; lead: Sacramento Running Association club list, then own site |
+| 2026-11-03 | Habitat for Humanity Yuba/Sutter | Volunteer building and ReStore (nonprofit) | Marysville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-03 | Nevada County Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Grass Valley | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-03 | Foothills Habitat for Humanity | Volunteer building and ReStore (nonprofit) | Roseville | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-03 | Community Harvest of Davis | Fruit gleaning (nonprofit) | Davis | Volunteering, Neighborhood life | Volunteer and mutual aid; stock photos only; lead: search, then own site |
+| 2026-11-04 | Woodland Opera House | Community theatre (nonprofit) | Woodland | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Music in the Mountains Chorus | Community chorus (nonprofit) | Grass Valley | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Nevada County Historical Society | Historical society | Nevada City | Arts & culture, Neighborhood life | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Elk Grove Community Concert Band | Community band (nonprofit) | Elk Grove | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Sacramento Ballet | Ballet company (nonprofit) | Sacramento | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-04 | Lodi Community Band | Community band (nonprofit) | Lodi | Live music, Arts & culture | Arts and culture; stock photos only; lead: search, then own site |
+| 2026-11-05 | Kiwanis Club of Citrus Heights | Service club | Citrus Heights | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Soroptimist International of Rancho Cordova & Gold River | Service club | Rancho Cordova | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Sacramento Wheelmen Bicycling Club | Sports club | Carmichael | Fitness & outdoors, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Placerville Lions Club | Service club | Placerville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Folsom Lake Lions Club | Service club | Folsom | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-05 | Roseville Host Lions Club | Service club | Roseville | Volunteering, Neighborhood life | Clubs and service; stock photos only; lead: search, then own site |
+| 2026-11-06 | Sacramento Audubon Society | Birding club (nonprofit) | Sacramento | Fitness & outdoors, Neighborhood life | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-06 | Foothill Conservancy | Creek conservancy (nonprofit) | Sutter Creek | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-06 | California Native Plant Society, Redbud Chapter | Native plant society (nonprofit) | Auburn | Gardening, Sustainability | Green and outdoors; stock photos only; lead: search, then own site |
+| 2026-11-06 | Downtown Vacaville Farmers' Market | Farm | Vacaville | Farmers markets, Sustainability | Green and outdoors (market with dated events); stock photos only; lead: search, then own site |

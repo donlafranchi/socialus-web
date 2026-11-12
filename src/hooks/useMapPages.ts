@@ -21,7 +21,7 @@ import { useCallback, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
 import { appearsOnMap } from '@/lib/groups/kind-controls'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { pagePath } from '@/lib/groups/page-handle'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { MAP_DEFAULTS } from '@/lib/map-config'
 
@@ -39,6 +39,8 @@ export interface MapPageRow {
   slug: string | null
   /** Issue #175 — what the Page's canonical address resolves by. */
   public_id: string | null
+  place_url_slug?: string | null
+  page_url_slug?: string | null
   kind: string
   category: string | null
   photo_url: string | null
@@ -114,14 +116,14 @@ export function rowsToMapPages(rows: MapPageRow[]): MapPage[] {
       // Issue #175 — the address is on the row. It used to need a second
       // round trip through `locations.place_id`, which is null for every Page
       // a member made, so every one of those pins was unclickable.
-      href: r.public_id ? canonicalPagePath(r.public_id) : null,
+      href: r.public_id ? pagePath({ publicId: r.public_id, placeUrlSlug: r.place_url_slug, pageUrlSlug: r.page_url_slug }) : null,
     })
   }
   return out
 }
 
 const SELECT =
-  'id, name, slug, public_id, kind, category, photo_url, photo_hidden_at, photo_removed_at, photo_hide_locked_url,' +
+  'id, name, slug, public_id, place_url_slug, page_url_slug, kind, category, photo_url, photo_hidden_at, photo_removed_at, photo_hide_locked_url,' +
   ' anchor:locations!groups_anchor_location_id_fkey(label, geography)'
 
 export function useMapPages() {

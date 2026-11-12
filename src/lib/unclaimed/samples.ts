@@ -5,12 +5,17 @@
 import { createHash } from 'node:crypto'
 import { METRO_TIME_ZONE, metroWallTimeToInstant } from '../metro/metro-time'
 import { metroDate, metroWeekday, shiftDays } from '../metro/metro-week'
+import { SAMPLE_POST_KIND, type PostKind } from '../posts/kinds'
 
 export type SampleKind = 'event' | 'deal' | 'last_minute'
 export const SAMPLE_LABEL = 'Sample'
 
 export interface SamplePost {
   kind: SampleKind
+  /** plan #230 — what the card leads with; sample_kind stays the sample marker. */
+  postKind: PostKind
+  /** plan #230 — the card's one line: no Page name, no Sample label (the lead line says Sample). */
+  headline: string
   body: string
   howToFind: string
   startsAt: Date
@@ -78,6 +83,48 @@ const COPY: Record<Voice, Record<SampleKind, [string, string]>> = {
   },
 }
 
+// plan #230 — the card's one line for each wording above, in the same order. Draft copy (human-review).
+const HEADLINE: Record<Voice, Record<SampleKind, [string, string]>> = {
+  food: {
+    event: ['Free tasting of the seasonal lineup', 'Meet the maker night'],
+    deal: ['15% off your first order', 'Buy two, get a third at half price'],
+    last_minute: ['A few seats left for tomorrow’s tasting', 'Fresh batch: the first 20 get one free'],
+  },
+  makers: {
+    event: ['Open studio: watch the work happen', 'Maker pop-up with a hands-on demo'],
+    deal: ['20% off anything made this month', 'Any three small pieces for the price of two'],
+    last_minute: ['Spots open in tomorrow’s workshop', 'A small run of one-offs, tomorrow only'],
+  },
+  trades: {
+    event: ['Free fix-it clinic', 'Open shop day with a free once-over'],
+    deal: ['10% off your first repair', 'Tune-up special at a flat price this week'],
+    last_minute: ['Same-day slots open tomorrow', 'A gap in the schedule today and tomorrow'],
+  },
+  farm: {
+    event: ['Farm open day: taste what’s in season', 'Pick-your-own harvest morning'],
+    deal: ['A box of what’s in season, this week', 'Buy a half-share, get a second box half price'],
+    last_minute: ['Just picked: a small extra harvest', 'Two spots open on tomorrow’s farm walk'],
+  },
+  stay: {
+    event: ['Open day: tour the property', 'Harvest dinner with a few seats for Locals'],
+    deal: ['15% off a midweek stay for Locals', 'Stay two nights, breakfast on us'],
+    last_minute: ['A room just opened up', 'Tonight only: one night at a reduced rate'],
+  },
+  community: {
+    event: ['Volunteer morning, no experience needed', 'Open house: see where an hour helps'],
+    deal: ['How to help this week', 'What we need most this week'],
+    last_minute: ['Volunteer spots open for tomorrow', 'Extra hands needed tomorrow morning'],
+  },
+  local: {
+    event: ['Open house: meet the owners', 'A casual afternoon to meet Locals'],
+    deal: ['10% off for Locals through the week', 'Bring a friend and you both get a little extra'],
+    last_minute: ['Something new, tomorrow only', 'A few spots open tomorrow'],
+  },
+}
+
+/** A volunteer group's "deal" is an ask for help (#786): news, never a sale. */
+const postKindFor = (voice: Voice, kind: SampleKind): PostKind => (voice === 'community' && kind === 'deal' ? 'news' : SAMPLE_POST_KIND[kind])
+
 const pick = (slug: string, i: number) => parseInt(createHash('sha1').update(`${slug}:${i}`).digest('hex').slice(0, 6), 16) % 2
 
 type Window = { startsAt: Date; endsAt: Date }
@@ -142,9 +189,10 @@ export function samplePosts(s: SampleSubject, now: Date): SamplePost[] {
   const voice = VOICE[s.pool] ?? 'local'
   const when = sampleSchedule(now, s.slug, s.pool)
   return KINDS.map((kind, i) => {
-    const text = COPY[voice][kind][pick(s.slug, i)].replaceAll('{name}', s.name)
-    const body = `${SAMPLE_LABEL} · ${text}\n\nThis is a sample post showing what ${s.name}'s Page could look like. It is not a real offer. Locals will find posts like this on the Page and in Explore, and can follow the Page to see them first.`
+    const which = pick(s.slug, i)
+    const text = COPY[voice][kind][which].replaceAll('{name}', s.name)
+    const body = `${SAMPLE_LABEL} · ${text}\n\nThis is a sample post showing what ${s.name}'s Page could look like. It is not a real offer. Locals will find posts like this on the Page and in Explore, and can choose Get updates on the Page to see them first.`
     const how = `${s.area}: look for ${s.name} on SocialUs.`.slice(0, 140)
-    return { kind, body, howToFind: how, ...when[kind] }
+    return { kind, postKind: postKindFor(voice, kind), headline: HEADLINE[voice][kind][which], body, howToFind: how, ...when[kind] }
   })
 }

@@ -3,7 +3,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const { getUser, answer, schedule } = vi.hoisted(() => ({ getUser: vi.fn(), answer: vi.fn(), schedule: vi.fn() }))
-vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser } })) }))
+vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser, getClaims: async () => { const r = await getUser(); return { data: r?.data?.user ? { claims: { sub: r.data.user.id } } : null, error: r?.error ?? null } } } })) }))
 vi.mock('@/lib/moderation/after-report', () => ({ assessAfterReport: schedule }))
 vi.mock('@/actions', async (importActual) => ({ ...(await importActual<typeof import('@/actions')>()), reportAnswer: answer }))
 

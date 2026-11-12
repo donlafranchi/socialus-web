@@ -4,6 +4,7 @@ import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
 // #796 — browse_feed marks a seeder sample (sample_kind) and filters posts by kind (p_post_kinds).
+// plan #230 — the filter reads page_posts.kind; a seeded deal is a sale, and the row carries post_kind and headline.
 // Built on #791's fixture. browse_happening must return
 // exactly what browse_feed returns for this week and for this weekend: same
 // rows, same visibility, per-bucket limit — more than the limit of posts land
@@ -56,9 +57,12 @@ beforeAll(async () => {
   // Twelve posts before the weekend (more than the limit) and four in it, plus one after.
   const hours = [1, 3, 5, 8, 12, 16, 20, 24, 28, 32, 40, 46, 50, 60, 70, 90, 120]
   for (const h of hours) {
-    await client.query(`insert into public.page_posts (group_id, body, starts_at, lifecycle_state) values ($1,$2,$3,'active')`, [PAGE, `b876 ${h}h`, at(h)])
+    await client.query(`insert into public.page_posts (group_id, body, starts_at, lifecycle_state, kind) values ($1,$2,$3,'active','event')`, [PAGE, `b876 ${h}h`, at(h)])
   }
-  await client.query(`insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state, sample_kind) values ($1,'Sample · deal',$2,$3,'active','deal')`, [PAGE, at(2), at(30)])
+  await client.query(
+    `insert into public.page_posts (group_id, body, starts_at, ends_at, lifecycle_state, sample_kind, kind, headline) values ($1,'Sample · deal',$2,$3,'active','deal','sale','Two for one')`,
+    [PAGE, at(2), at(30)],
+  )
   await client.query(`insert into public.page_posts (group_id, body, lifecycle_state) values ($1,'b876 undated','active')`, [PAGE])
 })
 
@@ -86,8 +90,8 @@ async function asVisitor<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 const kinds = (k: string[] | null) =>
-  client.query<{ body: string; sample_kind: string | null }>(
-    `select body, sample_kind from public.browse_feed(p_metro_id => ${METRO}, p_result_kinds => array['post'], p_post_kinds => $1, p_limit => 100)
+  client.query<{ body: string; sample_kind: string | null; post_kind: string | null; headline: string | null }>(
+    `select body, sample_kind, post_kind, headline from public.browse_feed(p_metro_id => ${METRO}, p_result_kinds => array['post'], p_post_kinds => $1, p_limit => 100)
       where group_id = $2`,
     [k, PAGE],
   )
@@ -100,13 +104,21 @@ describe.skipIf(!RUNNABLE)('browse_feed kinds and samples', () => {
       expect(rows.find((r) => r.body === 'b876 1h')?.sample_kind).toBeNull()
     })
   })
-  it('deal matches the sample deal only; event matches dated real posts; undated posts match no kind', async () => {
+  it('sale matches the sample sale only; event matches the events; an undated post is news', async () => {
     await asVisitor(async () => {
-      expect((await kinds(['deal'])).rows.map((r) => r.body)).toEqual(['Sample · deal'])
+      expect((await kinds(['sale'])).rows.map((r) => r.body)).toEqual(['Sample · deal'])
       const events = (await kinds(['event'])).rows.map((r) => r.body)
       expect(events).toContain('b876 1h')
       expect(events).not.toContain('Sample · deal')
       expect(events).not.toContain('b876 undated')
+      expect((await kinds(['news'])).rows.map((r) => r.body)).toEqual(['b876 undated'])
+    })
+  })
+  it('carries the kind and the headline for the card', async () => {
+    await asVisitor(async () => {
+      const { rows } = await kinds(null)
+      expect(rows.find((r) => r.body === 'Sample · deal')).toMatchObject({ post_kind: 'sale', headline: 'Two for one' })
+      expect(rows.find((r) => r.body === 'b876 undated')).toMatchObject({ post_kind: 'news', headline: null })
     })
   })
 })

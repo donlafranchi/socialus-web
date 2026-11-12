@@ -18,6 +18,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { visiblePhotoUrl } from './visible-photo-url'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
+import { viewerId } from '@/lib/auth/viewer'
 import { maskEmails } from '../text/contact-info'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
@@ -39,6 +40,9 @@ export interface ResolvedShop {
   /** Issue #175 — what the canonical address resolves by. The slug beside it
    *  in that address is cosmetic and may change; this does not. */
   publicId: string
+  /** #1139 (Don, 2026-11-01) — the readable address, /<place>/<page>: null on a draft, frozen once set. */
+  placeUrlSlug?: string | null
+  pageUrlSlug?: string | null
   /** The Page kind. Always 'business' while this resolver filters on it, but
    *  carried rather than assumed — the managing role is derived from it, and a
    *  wrong assumption here hides the owner's own controls from them. */
@@ -135,6 +139,8 @@ interface ShopRow {
   id: string
   slug: string
   public_id: string
+  place_url_slug?: string | null
+  page_url_slug?: string | null
   kind: string
   purpose: string | null
   /** The Page's own name. What every kind but `business` is known by. */
@@ -191,12 +197,12 @@ export interface ResolveShopOptions {
    * default because every address shared before the ruling of 2026-09-21 is
    * slug-shaped, and those redirect rather than breaking.
    */
-  by?: 'slug' | 'publicId'
+  by?: 'slug' | 'publicId' | 'address'
 }
 
 export async function resolveShop(
   supabase: SupabaseClient,
-  /** A slug, or a `public_id` when `opts.by` says so. */
+  /** A slug, a `public_id`, or `<place>/<page>` when `opts.by` says so. */
   key: string,
   opts: ResolveShopOptions = {},
 ): Promise<ResolvedShop | null> {
@@ -207,12 +213,15 @@ export async function resolveShop(
   let query = supabase
     .from('groups')
     .select(
-      'id, slug, public_id, kind, purpose, name, description, lifecycle_state, category, ' +
+      'id, slug, public_id, place_url_slug, page_url_slug, kind, purpose, name, description, lifecycle_state, category, ' +
         'photo_url, picture_url, picture_hidden_at, picture_removed_at, social_links, photo_hidden_at, photo_removed_at, discoverability, ' +
         'unclaimed_at, public_info_url, photo_credit, photo_source_url, words_hidden_at, words_removed_at, ' +
         'group_businesses(display_name, public_description)',
     )
-    .eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
+  if (opts.by === 'address') {
+    const [place, page] = key.split('/')
+    query = query.eq('place_url_slug', place).eq('page_url_slug', page)
+  } else query = query.eq(opts.by === 'publicId' ? 'public_id' : 'slug', key)
   if (opts.kinds && opts.kinds.length > 0) query = query.in('kind', [...opts.kinds])
 
   const { data, error } = await query.limit(1).maybeSingle()
@@ -227,9 +236,13 @@ export async function resolveShop(
   // with it, since that too was keyed by the id.
   // #978 — the founder and the anchor depend only on the row, so they are asked together (the
   // second used to wait for the first, a round before the Page could start to stream).
-  const [{ data: founderData }, { data: anchorRow, error: anchorErr }] = await Promise.all([
+  // The placements ask only for the row's id too, so they ride along; they are dropped below when the
+  // anchor was refused (F093 criterion 8), as before.
+  const [{ data: founderData }, { data: anchorRow, error: anchorErr }, askedPlacements] = await Promise.all([
     supabase.rpc('page_founder_public', { p_group_id: row.id }),
     supabase.from('groups').select('anchor_location_id').eq('id', row.id).maybeSingle(),
+    // Signed out, the address is never read at all (F093 criterion 8): the session is checked locally, no round trip.
+    (await viewerId(supabase)) ? resolvePagePlacements(row.id) : Promise.resolve([] as Placement[]),
   ])
   const founderRow = ((founderData as FounderRow[] | null) ?? [])[0] ?? null
 
@@ -252,7 +265,7 @@ export async function resolveShop(
   const anchorLocationId = anchorErr
     ? null
     : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)
-  const placements = anchorErr ? [] : await resolvePagePlacements(row.id)
+  const placements = anchorErr ? [] : askedPlacements
 
   const wordsHidden = Boolean(row.words_hidden_at || row.words_removed_at)
   return {
@@ -260,6 +273,8 @@ export async function resolveShop(
     kind: row.kind,
     slug: row.slug,
     publicId: row.public_id,
+    placeUrlSlug: row.place_url_slug ?? null,
+    pageUrlSlug: row.page_url_slug ?? null,
     // #410 — the groups row is the one source of a Page's name and
     // description; the database keeps a business's group_businesses copy equal
     // to it. Reading the copy first is what left a renamed Page on its old name.

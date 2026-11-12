@@ -13,6 +13,7 @@
 // nothing visible to anyone.
 
 import { createClient } from '@/lib/supabase-server'
+import { viewerId } from '@/lib/auth/viewer'
 import { resolveActionContext } from '@/lib/action-context'
 import { reportCreate, reportAnswer, ActionError } from '@/actions'
 import { REPORT_REFUSED } from '@/actions/report/create'
@@ -20,10 +21,10 @@ import { assessAfterReport } from '@/lib/moderation/after-report'
 import type { ReportCategory } from '@/lib/reports/categories'
 
 async function requireMemberId(): Promise<string> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) throw new Error('You must be signed in.')
-  return data.user.id
+  // #1269 — from the verified token, as #791 does for reads: no auth-server round trip per report.
+  const memberId = await viewerId(await createClient())
+  if (!memberId) throw new Error('You must be signed in.')
+  return memberId
 }
 
 type SendReportResult = { ok: true } | { ok: false; message: string }
@@ -35,7 +36,7 @@ const PLAIN: Record<string, string> = {
 
 export async function sendReportAction(input: {
   /** The Page's photo when omitted; F099 — or one of the other images. */
-  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item'
+  subjectKind?: 'group' | 'post' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post'
   subjectId: string
   category: ReportCategory
   body: string

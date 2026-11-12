@@ -49,12 +49,14 @@ export const ROUTES: ScreenRoute[] = [
     inventory: ['S012', 'S013'],
     path: () => '/explore',
     act: async (page) => {
-      // Under 1024px the bottom dock opens to the map switch; wider, the map is already beside the list.
-      const dock = page.getByTestId('explore-dock-toggle')
-      if (await dock.isVisible().catch(() => false)) {
-        await dock.click()
-        await page.getByTestId('view-pill').click()
-      }
+      // The ➕ menu carries the map switch where the layout shows one at a time; wide and signed in, the map is already beside the list.
+      // Signed out there is no ➕ and no map (Don, 2026-11-01).
+      const plus = page.getByTestId('create-menu')
+      if (!(await plus.isVisible().catch(() => false))) return
+      await plus.click()
+      const view = page.getByTestId('create-menu-view')
+      if (await view.isVisible().catch(() => false)) await view.click()
+      else await page.keyboard.press('Escape')
     },
   },
   { name: 'following', inventory: ['S022', 'S023', 'S027', 'S095', 'S096'], path: () => '/following' },
@@ -99,6 +101,9 @@ export const ROUTES: ScreenRoute[] = [
   { name: 'page-not-found', inventory: ['S037'], path: () => '/g/no-such-page-zzzzzz', same: true },
   { name: 'page-edit', inventory: ['S097', 'S098', 'S099', 'S100'], path: (who) => `/g/${pageHandle(pageFor(who))}/edit` },
   { name: 'join', inventory: ['S039', 'S040'], path: () => '/join' },
+  // F118 — open your town. Sutter is a ring county every seed has.
+  { name: 'open', inventory: [], path: () => '/open' },
+  { name: 'open-town', inventory: [], path: () => '/open/sutter' },
   { name: 'member-profile', inventory: ['S041', 'S042', 'S043', 'S044', 'S045'], path: (who) => `/m/${who.handle ?? member.handle}` },
   { name: 'member-product', inventory: ['S047'], path: () => `/m/${member.handle}/p/${SOLO.p}` },
   { name: 'member-service', inventory: ['S048'], path: () => `/m/${member.handle}/s/${SOLO.s}` },

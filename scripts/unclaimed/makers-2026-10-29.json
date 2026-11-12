@@ -1,0 +1,119 @@
+[
+  {
+    "name": "Mahon Ranch",
+    "category": "Ranch",
+    "makes": "Working cattle ranch in the Cosumnes River Valley with a cow-calf herd of more than 200 head, hay feed for local farms, and a ranch events calendar including historic days, obstacle course racing and a brewfest",
+    "area": "Elk Grove (Sacramento)",
+    "address": "10171 Grant Line Road, Elk Grove, CA 95624",
+    "site": "https://www.mahonranch.com/",
+    "confidence": "High; own site checked 2026-10-29 (ok): address, operations and events pages live; footer 2026. No social links found. Fewer than 3 own-site products, so none. Photos not viewed: stock only. Lead: Explore Elk Grove, then own site."
+  },
+  {
+    "name": "Lillards Lavenders",
+    "category": "Farm",
+    "makes": "Lincoln lavender farm growing named varieties such as Royal Velvet, Hidcote Giant and Provence; sells lavender products and appears at farmers markets three days a week",
+    "area": "Lincoln (Placer)",
+    "site": "https://lillardslavenders.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/lillards.lavenders/",
+      "facebook": "https://www.facebook.com/people/Lillards-Lavenders/pfbid02PKdiAEKGB5UW4kQFaQ5KrFi7gsxjCP2mHv92baxsxb5gtd3y5hA5Gf2keGbhu5Uyl/"
+    },
+    "confidence": "Medium; own site checked 2026-10-29 (ok): footer 2026, farmers market schedule page live; the farm itself is noted as closed to visits for now. Fewer than 3 own-site product pages, so none. Photos not viewed: stock only. Lead: PlacerGROWN, then own site."
+  },
+  {
+    "name": "Little Bear Tree Farm",
+    "category": "Farm",
+    "makes": "Family Christmas tree farm since 1958 on 60 acres near Alta: choose-and-cut silver tip and white fir trees, vintage Willys Jeep rides up the hill, hot chocolate, ornaments and holiday decor; season opens Saturday, November 21, 2026",
+    "area": "Alta (Placer)",
+    "address": "960 Meadow Road, Alta, CA 95701",
+    "site": "https://www.littlebeartreefarm.com/",
+    "social": {
+      "instagram": "https://www.instagram.com/littlebeartreefarm/",
+      "facebook": "https://www.facebook.com/Littlebeartreefarm"
+    },
+    "products": [
+      {
+        "name": "White Fir Christmas Trees",
+        "url": "https://www.littlebeartreefarm.com/christmas-trees"
+      },
+      {
+        "name": "Unique Ornaments",
+        "url": "https://www.littlebeartreefarm.com/category/unique-ornaments"
+      },
+      {
+        "name": "Holiday Home Decor & Lights",
+        "url": "https://www.littlebeartreefarm.com/category/holiday-lights"
+      }
+    ],
+    "confidence": "High; own site checked 2026-10-29 (ok): 2026 opening date Nov 21 posted, shop pages live; footer 2025. Photos not viewed: stock only. Lead: PlacerGROWN, then own site."
+  },
+  {
+    "name": "Galt Lions Club",
+    "category": "Service club",
+    "makes": "Galt service club raising money for eye exams, glasses and hearing aids, high school scholarships and local groups, with an annual January crab feed; meets 2nd and 4th Thursdays at 6:30 p.m. at Papa's & Wings and invites visitors to stop by",
+    "area": "Galt (Sacramento)",
+    "site": "http://e-clubhouse.org/sites/galtca/",
+    "confidence": "High; own site checked 2026-10-29 (ok): meeting time and contact page live; footer 2026. Photos not viewed: stock only. Lead: Sacramento Area Lions Clubs, then own site."
+  },
+  {
+    "name": "Woodland Host Lions Club",
+    "category": "Service club",
+    "makes": "Woodland Lions chapter hosting lunch meetings with programs (1st, 3rd and 4th Wednesdays, 11:30 a.m.) and an annual lasagna fundraiser dinner for the historic Woodland Scout Cabin; visitors can attend a meeting with no obligation",
+    "area": "Woodland (Yolo)",
+    "site": "http://e-clubhouse.org/sites/woodland_host/",
+    "confidence": "High; own site checked 2026-10-29 (ok): meeting schedule and 16th annual lasagna dinner notice live; footer 2026. Photos not viewed: stock only. Lead: Sacramento Area Lions Clubs, then own site."
+  },
+  {
+    "name": "Davis Bike Club",
+    "category": "Sports club",
+    "makes": "Davis cycling club with group rides nearly every day of the week, a race team, ride maps and cycling tips; non-members may join one ride, helmets required",
+    "area": "Davis (Yolo)",
+    "address": "216 F St #125, Davis, CA 95616",
+    "site": "https://davisbikeclub.org/",
+    "social": {
+      "instagram": "http://www.instagram.com/dbccycling",
+      "facebook": "https://www.facebook.com/davisbikeclub/"
+    },
+    "confidence": "Medium-high; own site checked 2026-10-29 (ok): ride calendar, membership page and 2027 event dates live; footer 2023. Photos not viewed: stock only. Lead: Sacramento Area Bicycle Advocates club list, then own site."
+  },
+  {
+    "name": "Golden Valley Harriers",
+    "category": "Sports club",
+    "makes": "Davis nonprofit running club for beginners to racers: Tuesday, Thursday and Saturday group runs, cross country and road racing, and a Western States 100 aid station; adults can run along without joining",
+    "area": "Davis (Yolo)",
+    "site": "https://www.goldenvalleyharriers.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/gvh_davis/",
+      "facebook": "https://www.facebook.com/GoldenValleyHarriers/"
+    },
+    "confidence": "High; own site checked 2026-10-29 (ok): weekly run schedule, membership and meetings pages live; no footer year. Photos not viewed: stock only. Lead: Sacramento Running Association club list, then own site."
+  },
+  {
+    "name": "Lodi Garden Club",
+    "category": "Garden club",
+    "makes": "Lodi garden club since 1946 promoting amateur gardening, plant and bird life and civic beautification; members volunteer at community gardens including Lodi Lake; meets the first Thursday, September to May, 10 a.m.",
+    "area": "Lodi (San Joaquin)",
+    "site": "https://www.lodigardenclub.com/",
+    "confidence": "Medium; own site checked 2026-10-29 (ok): purpose and meeting schedule live; no footer year, meeting place not listed. Photos not viewed: stock only. Lead: Visit Lodi, then own site."
+  },
+  {
+    "name": "Sacramento Valley Astronomical Society",
+    "category": "Astronomy club",
+    "makes": "Nonprofit astronomy society since 1945: monthly general meetings and Sierra dark-sky star parties, telescope workshops and loaner scopes, imaging classes and public outreach; join with the online membership form",
+    "area": "Sacramento (Sacramento)",
+    "address": "P.O. Box 15274, Sacramento, CA 95851",
+    "site": "http://www.svas.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/groups/86151724960/"
+    },
+    "confidence": "High; own site checked 2026-10-29 (ok): meeting schedule, membership form and star party details live; no footer year. Photos not viewed: stock only. Lead: NASA Night Sky Network, then own site."
+  },
+  {
+    "name": "Loomis Lions Club",
+    "category": "Service club",
+    "makes": "Loomis service club since 1953: eyeglass collection, White Cane Day, scholarships, Student of the Month and the Loomis Christmas Basket Project; meets 1st and 3rd Tuesdays at 12:15 p.m. at Loomis Veterans Memorial Hall",
+    "area": "Loomis (Placer)",
+    "site": "https://e-clubhouse.org/sites/loomis/",
+    "confidence": "High; own site checked 2026-10-29 (ok): meeting schedule and projects live; footer 2026. Photos not viewed: stock only. Lead: Sacramento Area Lions Clubs, then own site."
+  }
+]

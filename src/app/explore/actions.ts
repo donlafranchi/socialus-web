@@ -25,6 +25,8 @@ import { SEEN_COOKIE, SEEN_COOKIE_MAX_AGE, recordSeen } from '@/lib/browse/lead'
 import type { MixedResult } from '@/lib/map/mix'
 import type { BrowseFilters } from '@/lib/browse/filters'
 import { parseReach, type Reach } from '@/lib/browse/reach'
+import { hasBrowseFilters } from '@/lib/browse/filters'
+import { countUse } from '@/lib/usage/count-use'
 
 export async function browseFeedAction(
   metroSlug: string | null,
@@ -41,6 +43,8 @@ export async function browseFeedAction(
     search,
     reach: parseReach(reach === null ? null : String(reach)),
   })
+  // F133 — a search or a filter is a use of search, counted after the response.
+  if ((search ?? '').trim() || (filters && hasBrowseFilters(filters))) await countUse({ part: 'search' })
   if (!filters && !search && metroSlug && snapshot.metro?.slug === metroSlug) {
     try {
       ;(await cookies()).set(METRO_COOKIE, metroSlug, { path: '/', maxAge: METRO_COOKIE_MAX_AGE, sameSite: 'lax' })
@@ -67,6 +71,8 @@ export async function markLeadSeenAction(keys: string[]): Promise<void> {
 
 /** #549 — the pins, fetched by the surface once the list is up. */
 export async function browseMapAction(metroId: string, areaId: string | null): Promise<MixedResult[]> {
+  // F133 — opening the map is a use of the map, counted after the response.
+  await countUse({ part: 'map' })
   return loadMemberMap(metroId, areaId)
 }
 

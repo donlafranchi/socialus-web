@@ -27,8 +27,8 @@ describe('Terms', () => {
   it('states the 18+ requirement the signup checkbox points at', () => {
     expect(text).toMatch(/18 or older/)
   })
-  it('names the no-children-in-photos rule (F080)', () => {
-    expect(text).toMatch(/children/i)
+  it('names the no-kids-in-photos rule (F080)', () => {
+    expect(text).toMatch(/kids/i)
   })
 })
 
@@ -47,6 +47,10 @@ describe('Privacy', () => {
     expect(text).toMatch(/reported/i)
     expect(text).toMatch(/never.*(name|email)/i)
     expect(text).toMatch(/a person always decides/i)
+  })
+  // #1171 (plan #269, Don 2026-11-02): the line, word for word.
+  it('says a heart shows the poster your name, and saves are private', () => {
+    expect(TEXT_PAGES.privacy.body).toContain('When you heart a post, its poster sees your name. Saves are private.')
   })
   it('lists the processor agreement for counsel', () => {
     expect(TEXT_PAGES.privacy.counsel!.join(' ')).toMatch(/Anthropic/)

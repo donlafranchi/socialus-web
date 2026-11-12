@@ -1,0 +1,133 @@
+name: Knowledge answers
+
+# F131 (#1249): three short answers (what we built, where we are, what's
+# next). Reads GitHub's live state (alarms, the Production deploy, failing
+# checks on main, launch blockers, items waiting on the PM, open work) into the
+# knowledge store, so the lookup tool's `where` and `next` are one call each,
+# then writes the three answers, word for word as the tool gives them, to
+# socialus-plan's ANSWERS.md: the PM's phone page (scripts/knowledge/live-state.ts).
+#
+# Runs nightly after the live smoke (10:30) and tap speed (11:00), on every
+# push to main, and by hand. The page goes to socialus-plan as a pull request
+# with auto-merge on, on one reused branch (knowledge/answers), the way the
+# capabilities and practices packs go: it needs the KNOWLEDGE_WRITE_TOKEN
+# secret. Without it the store is still updated and the run says the page was
+# not sent.
+
+on:
+  schedule:
+    - cron: '7 12 * * *'   # 12:07 UTC daily, after the 10:30 smoke and 11:00 tap speed
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: read GitHub, write nothing to the store, send no page'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: read
+  deployments: read
+
+concurrency:
+  group: knowledge-answers
+  cancel-in-progress: true
+
+jobs:
+  answers:
+    name: Three answers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check out socialus-plan, to write the page
+        continue-on-error: true
+        uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-plan
+          path: .knowledge/socialus-plan
+          token: ${{ secrets.KNOWLEDGE_WRITE_TOKEN || github.token }}
+          persist-credentials: ${{ secrets.KNOWLEDGE_WRITE_TOKEN != '' }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Read GitHub into the store and write the three answers
+        id: answers
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          mkdir -p .knowledge/socialus-plan
+          args=(--out .knowledge/socialus-plan/ANSWERS.md)
+          if [ "$DRY_RUN" != "true" ]; then args+=(--commit); else echo "Dry run: nothing will be written."; fi
+          npx tsx scripts/knowledge/live-state.ts "${args[@]}"
+
+      - name: Send the page to socialus-plan as an auto-merging pull request
+        if: ${{ !cancelled() && inputs.dry_run != true }}
+        env:
+          GH_TOKEN: ${{ secrets.KNOWLEDGE_WRITE_TOKEN }}
+          CHANGED: ${{ steps.answers.outputs.page_changed }}
+          PLAN: donlafranchi/socialus-plan
+          BRANCH: knowledge/answers
+          FILE: ANSWERS.md
+        working-directory: .knowledge/socialus-plan
+        run: |
+          if [ "$CHANGED" != "true" ]; then
+            echo "- Page: unchanged, not sent." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::The page changed but KNOWLEDGE_WRITE_TOKEN is not set, so it was not sent to socialus-plan."
+            echo "- Page: changed, NOT sent (no KNOWLEDGE_WRITE_TOKEN secret)." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "socialus-web knowledge answers"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp "$FILE" "$RUNNER_TEMP/page.md"
+          git checkout -- "$FILE" 2>/dev/null || rm -f "$FILE"
+          # The one page branch: brought up to date with main, never rewritten.
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            git fetch --quiet origin "$BRANCH"
+            git checkout --quiet -B "$BRANCH" "origin/$BRANCH"
+            git merge --quiet --no-edit -X theirs origin/main
+          else
+            git checkout --quiet -B "$BRANCH"
+          fi
+          cp "$RUNNER_TEMP/page.md" "$FILE"
+          git add "$FILE"
+          if git diff --cached --quiet "origin/main" -- "$FILE" && git diff --cached --quiet; then
+            echo "- Page: already up to date in socialus-plan." >> "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          git diff --cached --quiet || git commit --quiet \
+            -m "chore: what we built, where we are, what's next, regenerated" \
+            -m "Generated by socialus-web .github/workflows/knowledge-answers.yml, run $GITHUB_RUN_ID."
+          git push --quiet origin "$BRANCH"
+          pr=$(gh pr list --repo "$PLAN" --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -z "$pr" ]; then
+            gh pr create --repo "$PLAN" --head "$BRANCH" --base main \
+              --title "chore: what we built, where we are, what's next, regenerated" \
+              --body "Generated by socialus-web's Knowledge answers workflow from the knowledge store and GitHub (F131). Never hand-edited: it merges itself once this repo's checks pass. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          fi
+          gh pr merge --repo "$PLAN" "$BRANCH" --auto --squash
+          echo "- Page: sent to socialus-plan as a pull request that merges itself on green." >> "$GITHUB_STEP_SUMMARY"

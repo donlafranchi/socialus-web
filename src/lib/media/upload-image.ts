@@ -35,17 +35,17 @@ export class UploadError extends Error {
 // commitment in policy.md § Uploaded images depends on this exact path.
 export async function resizeAndEncode(file: File): Promise<Blob> {
   if (file.size > MAX_SOURCE_BYTES) {
-    throw new UploadError('too-large', 'That file is too large to process.')
+    throw new UploadError('too-large', 'That file is too big.')
   }
   if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') {
-    throw new UploadError('canvas-unavailable', 'This browser cannot process images.')
+    throw new UploadError('canvas-unavailable', "This browser can't work with photos.")
   }
 
   let bitmap: ImageBitmap
   try {
     bitmap = await createImageBitmap(file)
   } catch {
-    throw new UploadError('wrong-type', 'That file is not a readable image.')
+    throw new UploadError('wrong-type', "That file doesn't look like a photo.")
   }
 
   const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height))
@@ -57,7 +57,7 @@ export async function resizeAndEncode(file: File): Promise<Blob> {
   canvas.height = height
   const ctx = canvas.getContext('2d')
   if (!ctx) {
-    throw new UploadError('canvas-unavailable', 'This browser cannot process images.')
+    throw new UploadError('canvas-unavailable', "This browser can't work with photos.")
   }
 
   ctx.drawImage(bitmap as unknown as CanvasImageSource, 0, 0, width, height)
@@ -73,13 +73,13 @@ export async function resizeAndEncode(file: File): Promise<Blob> {
     }),
     new Promise<never>((_, reject) => {
       setTimeout(
-        () => reject(new UploadError('canvas-unavailable', 'Image encoding timed out.')),
+        () => reject(new UploadError('canvas-unavailable', 'That took too long.')),
         ENCODE_TIMEOUT_MS,
       )
     }),
   ])
   if (!blob) {
-    throw new UploadError('canvas-unavailable', 'Could not encode the image.')
+    throw new UploadError('canvas-unavailable', "We couldn't prepare that photo.")
   }
   // Safari's canvas cannot encode WebP and hands back a PNG without saying so
   // (#232). The pixels are already stripped, so encode those in the page
@@ -92,7 +92,7 @@ export async function resizeAndEncode(file: File): Promise<Blob> {
     })
   }
   if (blob.size > MAX_STORED_BYTES) {
-    throw new UploadError('too-large', 'That photo is too large even after resizing.')
+    throw new UploadError('too-large', 'That photo is still too big after shrinking it.')
   }
   return blob
 }
@@ -114,7 +114,7 @@ export async function uploadImage(file: File, memberId: string): Promise<{ url: 
     // The storage server's own words ("mime type image/png is not supported")
     // are for us, not the member (#232).
     console.error('media upload failed', error)
-    throw new UploadError('network', "it didn't reach our storage")
+    throw new UploadError('network', "It didn't reach us.")
   }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)

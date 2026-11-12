@@ -31,6 +31,8 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/explore',
   useSearchParams: () => new URLSearchParams(search),
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 vi.mock('@/hooks/useScrollRestoration', () => ({ useScrollRestoration: () => {} }))
 vi.mock('@/app/explore/actions', async () => {
   const { loadBrowse } = await import('@/app/explore/load')

@@ -3,7 +3,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Suspense } from 'react'
 
-const { resolvePageById, loadPageView, notFound, loadPageSearchDemand } = vi.hoisted(() => ({
+const { resolvePageById, loadPageView, notFound, loadPageSearchDemand, getClaims, loadViewerReminders } = vi.hoisted(() => ({
+  getClaims: vi.fn(async () => ({ data: null, error: null })),
+  loadViewerReminders: vi.fn(async () => ({ byPost: {}, bySeries: {}, byStall: {}, byShows: {} })),
   loadPageSearchDemand: vi.fn(async () => null),
   resolvePageById: vi.fn(),
   loadPageView: vi.fn(),
@@ -11,7 +13,8 @@ const { resolvePageById, loadPageView, notFound, loadPageSearchDemand } = vi.hoi
 }))
 vi.mock('next/navigation', () => ({ notFound }))
 vi.mock('react', async (orig) => ({ ...(await orig<typeof import('react')>()), cache: <T,>(f: T) => f }))
-vi.mock('@/lib/supabase-server', () => ({ createClient: async () => ({}) }))
+vi.mock('@/lib/supabase-server', () => ({ createClient: async () => ({ auth: { getClaims } }) }))
+vi.mock('@/lib/reminders/viewer-reminders', async (orig) => ({ ...(await orig<typeof import('@/lib/reminders/viewer-reminders')>()), loadViewerReminders }))
 vi.mock('@/lib/groups/resolve-page-address', () => ({ resolvePageById }))
 vi.mock('@/lib/groups/load-page-view', () => ({ loadPageView }))
 vi.mock('@/components/group/ShopPublicPage', () => ({ ShopPublicPage: () => null }))
@@ -50,5 +53,18 @@ describe('/g/[handle] (#537)', () => {
     expect(loadPageSearchDemand).not.toHaveBeenCalled()
     await body(true)
     expect(loadPageSearchDemand).toHaveBeenCalledWith(expect.anything(), 'g-1')
+  })
+
+  // #978 — a signed-in viewer's reminders are read alongside the Page's reads, not after them.
+  it('asks for a signed-in viewer\'s reminders while the Page view is still outstanding', async () => {
+    getClaims.mockResolvedValue({ data: { claims: { sub: 'm-1' } } as never, error: null } as never)
+    resolvePageById.mockResolvedValue({ publicId: 'abc123', groupId: 'g-1' })
+    loadPageView.mockReturnValue(new Promise(() => {})) // the view never settles
+    const el = await PageAtCanonicalAddress({ params: Promise.resolve({ handle: 'abc123' }) })
+    const inner = (el.props as { children: { type: (p: unknown) => Promise<unknown>; props: unknown } }).children
+    void inner.type(inner.props)
+    await new Promise((r) => setTimeout(r, 10))
+    expect(loadViewerReminders).toHaveBeenCalledTimes(1)
+    expect(loadPageView).toHaveBeenCalledTimes(1)
   })
 })

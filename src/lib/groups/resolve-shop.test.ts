@@ -64,6 +64,7 @@ function makeSupabaseStub(routes: {
   anchorError?: unknown
 }) {
   return {
+    auth: { getClaims: async () => ({ data: routes.anchorError ? null : { claims: { sub: 'member-1' } }, error: null }) },
     rpc: (name: string) =>
       Promise.resolve({
         data: name === 'page_founder_public' && routes.founder ? [routes.founder] : [],

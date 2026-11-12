@@ -49,21 +49,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      // #428 — the review bundle for the screens a diff changes (screenshots, text, axe).
-      name: 'capture',
-      testMatch: /screens\/capture\.spec\.ts/,
-      dependencies: ['setup'],
-      timeout: 240_000,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
       // #432 — the live smoke: read-only, on production, as builder accounts.
       name: 'smoke-live',
       testMatch: /smoke\/live\.spec\.ts/,
       // One persona's screens run in order on one worker, signed in once; a failure does not skip the rest.
       fullyParallel: false,
       retries: 0,
-      timeout: 120_000,
+      // #1166 — a signed-in screen takes 6 s to answer and can stall for a minute; two widths of two 30 s tries must fit, or the
+      // report says "browser closed" instead of "did not open in time".
+      timeout: 240_000,
       use: { ...devices['Desktop Chrome'], actionTimeout: 15_000, navigationTimeout: 30_000 },
     },
     {

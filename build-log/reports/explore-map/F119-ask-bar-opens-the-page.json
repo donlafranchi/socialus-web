@@ -1,0 +1,177 @@
+{
+ "schema": 1,
+ "feature": "F119",
+ "title": "A member asks a question, and the app opens the page that answers it",
+ "area": "explore-map",
+ "area_source": "label",
+ "gates": "none",
+ "retired": false,
+ "as_of": "2026-11-06",
+ "criteria": [
+  {
+   "id": "1",
+   "text": "Ask bar: one text box on every signed-in page that takes a question in plain words",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1192
+   ],
+   "note": "Not built: no ask bar anywhere in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1192."
+  },
+  {
+   "id": "2",
+   "text": "Routing: one cheap model call turns the question into one page plus its filters, and the app opens it",
+   "kind": [
+    "behavior",
+    "external"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1193
+   ],
+   "note": "Not built. The only model calls in the repo are moderation's (F100) [A]. Rechecked 2026-11-06 [V grep]. Filed #1193."
+  },
+  {
+   "id": "3",
+   "text": "Fallback: if the call fails, times out or finds no page, the question runs as an ordinary search",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1194
+   ],
+   "note": "Not built. Explore search exists (#924, #934) and is the fallback it would use [V]. Rechecked 2026-11-06 [V grep]. Filed #1194."
+  },
+  {
+   "id": "4",
+   "text": "Deep links: every page and every filter it supports can be reached by URL",
+   "kind": [
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1195
+   ],
+   "note": "Not built as a set. Explore carries `?q=`, `?view=`, `?reach=`, `?area=`, `?metro=` and You carries `?tab=` [V smoke LIVE_PATHS, load.ts]; a post draft with prefilled text and a date or category filter by URL do not exist [A]; Explore's header search now writes its words to the one box in the URL (#1161), which is one more deep link but not a registry [V]. Rechecked 2026-11-06 [V grep]. Filed #1195."
+  },
+  {
+   "id": "5",
+   "text": "One page registry: a single list in the code describes each page, its URL and its filters; the router reads only that list",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1196
+   ],
+   "note": "Not built: no page registry in src [V grep]. Rechecked 2026-11-06 [V grep]. Filed #1196."
+  },
+  {
+   "id": "6",
+   "text": "Nothing is done for the member: the router only opens pages; a prefilled draft is not posted until the member posts it",
+   "kind": [
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1197
+   ],
+   "note": "Not built; needs a standing guard once the router exists. Rechecked 2026-11-06 [V grep]. Filed #1197."
+  },
+  {
+   "id": "7",
+   "text": "Questions logged by the search-demand rules (F089): anonymous, aggregated with a floor of ten members in one metro, raw rows deleted after 30 days, never tied to a member",
+   "kind": [
+    "behavior",
+    "invariant"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1198
+   ],
+   "note": "Not built. F089's search-demand log is its own scenario; whether it is built is not this report's claim [A]. Search-demand logging itself exists (`search-demand-actions.ts`, shown on /admin/metrics) [V grep]; F089 stays a draft scenario. Rechecked 2026-11-06 [V grep]. Filed #1198."
+  },
+  {
+   "id": "8",
+   "text": "Opt-out: one setting stops a member's questions being logged; routing still works for them",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1199
+   ],
+   "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1199."
+  },
+  {
+   "id": "9",
+   "text": "Cost cap: a per-member daily limit on model calls, after which the bar falls back to search",
+   "kind": [
+    "behavior"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1200
+   ],
+   "note": "Not built. Rechecked 2026-11-06 [V grep]. Filed #1200."
+  }
+ ]
+}

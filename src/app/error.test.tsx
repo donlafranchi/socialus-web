@@ -20,6 +20,6 @@ describe('the route error state', () => {
     render(<ErrorPage error={err} reset={() => {}} />)
     expect(captureException).toHaveBeenCalledTimes(1)
     expect(captureException).toHaveBeenCalledWith(err)
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+    expect(screen.getByText("That didn't go through")).toBeInTheDocument()
   })
 })

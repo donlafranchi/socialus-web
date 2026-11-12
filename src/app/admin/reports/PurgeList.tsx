@@ -50,7 +50,7 @@ export function PurgeList({ candidates, onPurge }: { candidates: PurgeCandidate[
       setAsking(null)
       setNote('')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.')
+      setError(e instanceof Error ? e.message : "That didn't go through. Mind trying again?")
     } finally {
       setBusy(false)
     }

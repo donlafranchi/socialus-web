@@ -8,8 +8,7 @@
 // answer with no write to the Page, so anything precomputed goes stale
 // with nothing to invalidate it.
 
-import type { PoolClient } from 'pg'
-import { withTransaction } from '@/actions/_lib/db'
+import { getPool } from '@/actions/_lib/db'
 
 export type PlacementKind = 'point' | 'area'
 export type PlacementSource = 'anchor' | 'appearance'
@@ -34,64 +33,46 @@ export interface Placement {
 // rather than rewriting its structure. See T143 notes for the forward
 // design: appearance rows must carry a real time-range column so a
 // btree_gist exclusion constraint can refuse an overlap at creation.
-async function resolveAppearancePlacements(
-  _client: PoolClient,
-  _groupId: string,
-): Promise<Placement[]> {
-  void _client
+async function resolveAppearancePlacements(_groupId: string): Promise<Placement[]> {
   void _groupId
   return []
 }
 
-async function resolveAnchorPlacement(
-  client: PoolClient,
-  groupId: string,
-): Promise<Placement | null> {
-  const groupRes = await client.query<{ anchor_location_id: string | null }>(
-    `select anchor_location_id from public.groups where id = $1`,
-    [groupId],
-  )
-  const anchorLocationId = groupRes.rows[0]?.anchor_location_id
-  if (!anchorLocationId) return null
-
-  const locRes = await client.query<{
+/**
+ * #978 — one statement, no transaction. This used to be BEGIN, four dependent reads and COMMIT through
+ * the pooler (up to six round trips before the Page could start to stream); it is read-only and needs
+ * none of that. The Place name is looked up only for an area anchor.
+ */
+async function resolveAnchorPlacement(groupId: string): Promise<Placement | null> {
+  const res = await getPool().query<{
     kind: string
     description: string | null
     lng: number | null
     lat: number | null
+    place_name: string | null
   }>(
-    `select kind, description,
-            st_x(geography::geometry) as lng,
-            st_y(geography::geometry) as lat
-       from public.locations
-      where id = $1`,
-    [anchorLocationId],
+    `select l.kind, l.description,
+            st_x(l.geography::geometry) as lng,
+            st_y(l.geography::geometry) as lat,
+            case when l.kind = 'area' then
+              (select p.display_name from public.places p
+                where p.id = (select pc.place_id from public.place_for_coords(st_y(l.geography::geometry), st_x(l.geography::geometry)) pc limit 1))
+            end as place_name
+       from public.groups g
+       join public.locations l on l.id = g.anchor_location_id
+      where g.id = $1`,
+    [groupId],
   )
-  const loc = locRes.rows[0]
+  const loc = res.rows[0]
   if (!loc || loc.lng == null || loc.lat == null) return null
 
   if (loc.kind === 'area') {
-    const placeRes = await client.query<{ place_id: string }>(
-      `select place_id from public.place_for_coords($1, $2)`,
-      [loc.lat, loc.lng],
-    )
-    const placeId = placeRes.rows[0]?.place_id
-    let label = 'a nearby neighbourhood'
-    if (placeId) {
-      const nameRes = await client.query<{ display_name: string }>(
-        `select display_name from public.places where id = $1`,
-        [placeId],
-      )
-      label = nameRes.rows[0]?.display_name ?? label
-    }
-    return { source: 'anchor', kind: 'area', label, lng: loc.lng, lat: loc.lat }
+    return { source: 'anchor', kind: 'area', label: loc.place_name ?? 'a nearby neighbourhood', lng: loc.lng, lat: loc.lat }
   }
 
   return {
     source: 'anchor',
     kind: 'point',
-    // The resolved address T142 persists on creation. bug #339: a Location
-    // without one gets no label, and surfaces show no line for it.
     label: loc.description?.trim() || '',
     lng: loc.lng,
     lat: loc.lat,
@@ -102,16 +83,14 @@ async function resolveAnchorPlacement(
  *  a single point. At launch, before appearances exist, this returns
  *  exactly one placement: the Page's own anchor. */
 export async function resolvePagePlacements(groupId: string): Promise<Placement[]> {
-  return withTransaction(async (client) => {
-    const appearances = await resolveAppearancePlacements(client, groupId)
-    if (appearances.length > 0) {
-      // Precedence branch, unreachable today (see above): an appearance
-      // at a Venue wins over the anchor, and for an address anchor it
-      // adds to rather than replaces it. Nothing populates this path yet.
-      return appearances
-    }
+  const appearances = await resolveAppearancePlacements(groupId)
+  if (appearances.length > 0) {
+    // Precedence branch, unreachable today (see above): an appearance
+    // at a Venue wins over the anchor, and for an address anchor it
+    // adds to rather than replaces it. Nothing populates this path yet.
+    return appearances
+  }
 
-    const anchor = await resolveAnchorPlacement(client, groupId)
-    return anchor ? [anchor] : []
-  })
+  const anchor = await resolveAnchorPlacement(groupId)
+  return anchor ? [anchor] : []
 }

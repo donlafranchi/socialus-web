@@ -7,7 +7,7 @@
 // The card formatted in the READER'S DEVICE timezone; the Page formats in the
 // metro's. Both were deliberate and nobody reconciled them.
 
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseResultCard } from './BrowseResultCard'
@@ -55,19 +55,19 @@ describe('the card renders metro time, the same as the Page', () => {
     expect(screen.queryByText(/Sep 24|September 24/i)).not.toBeInTheDocument()
   })
 
-  // #256: the start leads the card, in the metro's words. #922: a strong small-caps date line above the title.
-  it('leads with when it happens, as a strong small-caps date line', () => {
+  // #256: the start leads the card, in the metro's words. plan #230: inside the small-caps lead line.
+  it('leads with when it happens, in a strong small-caps lead line', () => {
     render(<BrowseResultCard result={post()} />)
-    const when = screen.getByTestId('browse-post-when')
-    expect(when).toHaveTextContent(formatCardWhen(INSTANT))
-    expect(when.className).toMatch(/uppercase/)
-    expect(when.className).toMatch(/font-bold/)
+    const lead = screen.getByTestId('browse-post-lead')
+    expect(lead).toHaveTextContent(/^Event · Sep 23 /)
+    expect(lead.className).toMatch(/uppercase/)
+    expect(lead.className).toMatch(/font-bold/)
   })
 
   // #256 (Don, 2026-09-30): an announcement with no time keeps its posted date.
   it('says when an undated announcement was posted', () => {
     render(<BrowseResultCard result={post({ startsAt: null, postedAt: '2026-09-02T18:00:00Z' })} />)
-    expect(screen.getByTestId('browse-post-when')).toHaveTextContent('Posted Sep 2')
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/^Update · Sep 2/)
   })
 })
 
@@ -102,7 +102,7 @@ describe('F093 — the signed-out form', () => {
     // Criterion 6 — a signed-in member sees no change.
     render(<BrowseResultCard result={post()} />)
     expect(screen.queryByTestId('withheld-cta')).not.toBeInTheDocument()
-    expect(screen.getByTestId('browse-post-when')).toBeInTheDocument()
+    expect(screen.getByTestId('browse-post-lead')).toBeInTheDocument()
   })
 })
 
@@ -177,17 +177,40 @@ describe('a card shows no hashtags', () => {
 describe('the card with an end time', () => {
   it('leads with the range', () => {
     render(<BrowseResultCard result={post({ startsAt: '2026-09-11T02:00:00Z', endsAt: '2026-09-11T04:00:00Z' })} />)
-    expect(screen.getByTestId('browse-post-when')).toHaveTextContent(/7–9pm$/)
+    expect(screen.getByTestId('browse-post-lead')).toHaveTextContent(/7–9pm/)
   })
 })
 
-// The kind line under the name, on cards too (ruled 2026-10-05).
+// The kind line under the name, on Page cards (ruled 2026-10-05). plan #230 took it off the post card: the post's
+// own kind leads it instead, and the card names its Page with the avatar.
 describe('the kind line', () => {
   it('says what kind of Page it is', () => {
-    render(<BrowseResultCard result={post({ groupKind: 'group' })} />)
+    render(<BrowseResultCard result={post({ resultKind: 'page', groupKind: 'group' })} />)
     expect(screen.getByTestId('tile-kind')).toHaveTextContent(/^Social group$/)
     cleanup()
-    render(<BrowseResultCard result={post({ groupKind: 'business' })} />)
+    render(<BrowseResultCard result={post({ resultKind: 'page', groupKind: 'business' })} />)
     expect(screen.getByTestId('tile-kind')).toHaveTextContent('Business')
+  })
+})
+
+// Don, 2026-10-31: "I can't share an anouncment?" — a quiet Share on every post card, outside the card's own link.
+describe('Share on a post card', () => {
+  it('offers Share, outside the card’s link, with the post’s own address', async () => {
+    const { fireEvent, waitFor } = await import('@testing-library/react')
+    const share = vi.fn(async () => undefined)
+    Object.assign(navigator, { share })
+    render(<BrowseResultCard result={post({ href: '/g/abc123#announcement-p-1', headline: 'Float day' })} />)
+    const button = screen.getByRole('button', { name: 'Share' })
+    expect(button.closest('a')).toBeNull()
+    fireEvent.click(button)
+    await waitFor(() => expect(share).toHaveBeenCalledWith({ title: 'Float day', url: `${window.location.origin}/g/abc123/posts/p-1` }))
+    Object.assign(navigator, { share: undefined })
+  })
+
+  it('is not on a Page card, a withheld card, or a post with no address', () => {
+    render(<BrowseResultCard result={post({ resultKind: 'page' })} />)
+    render(<BrowseResultCard result={post({ href: null })} />)
+    render(<BrowseResultCard result={post({ withheld: true, announcementIds: ['p-1'], announcementCount: 1 })} />)
+    expect(screen.queryByRole('button', { name: 'Share' })).toBeNull()
   })
 })

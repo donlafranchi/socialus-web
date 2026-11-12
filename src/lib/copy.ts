@@ -4,11 +4,11 @@
 export const COPY = {
   // F080 criterion 5 — shown wherever a member posts. Placeholder, Don's 2026-09-30 short line.
   postingSafety:
-    "Please don't post anything sensitive, like content involving children, pets, or anyone who can't speak up for themselves. We rely on each other to keep this place kind and decent.",
+    "Be cool, don't be a jerk. Leave out kids, pets and anyone who can't speak up for themselves.",
   // F080 criterion 5 — ticked for each photo before it can be chosen. Placeholder ([public-is-draft]).
-  photoConfirm: 'This photo has no children in it.',
+  photoConfirm: 'No kids in this photo.',
   // F102 criterion 10 — shown once "Threat of harm" is picked. Placeholder ([public-is-draft]).
-  report911: "If someone's in danger right now, please call 911 first. We'll look into this too.",
+  report911: "If someone's in danger right now, call 911 first. We'll look into this too.",
   // F100 — the operator's row and detail, when a report was held back from the AI. Placeholder ([public-is-draft]).
   aiNotRead: 'Not read by the AI: a person needs to look.',
   // #627, the PM's calls of 2026-10-11 — the report sheet, before Send, and the line after it.
@@ -21,11 +21,8 @@ export const COPY = {
   reportPagePhoto: "Report this Page's photo",
   reportPageWordsSubject: 'its name or description',
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
-  reportSentCourtesy: "Thanks for looking out for everyone. The page owner is getting a courtesy notice.",
-  reportSentPerson: "Thanks for looking out for everyone. It's being sent to a person from our team.",
-  // The same ask in full, for the rules page (#223). Placeholder, Don's 2026-09-30 line. Not shown yet.
-  postingSafetyFull:
-    "While we grow into a platform with a full team, we're asking for your help. Please don't post anything sensitive: content involving children, pets, or anyone who can't speak up for themselves, or anything unpleasant we'd have to ask a person on our team to look at. We look out for you, and we ask you to look out for us and each other. We rely on each other to keep this place kind and decent. Let's make it an example of the future we want to build together.",
+  reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for looking out.',
+  reportSentPerson: "It's being sent to a person from our team. Thanks for looking out.",
   // F093 criterion 8 — the withheld card's ask, the front door's main button.
   // Don's words, 2026-10-04 ("Sign up to follow" is the secondary). Placeholder.
   withheldCta: "Sign in to see what's happening",
@@ -88,6 +85,81 @@ export const COPY = {
   claimCodeSubject: (page: string) => `Your code to claim ${page} on SocialUs`,
   claimCodeBody: (code: string, page: string) =>
     `Your SocialUs code is ${code}. Enter it on the ${page} Page to claim it. It works for 15 minutes. If you didn't ask for this, ignore it.`,
+  // The ethos's decency lines (2026-10-25), cut to the necessary on the PM's call (2026-10-27).
+  posted: 'Posted.',
+  rulesHeadline: "Be cool. Don't be a jerk.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
+  // F117 — new copy, listed in the PR for review ([public-is-draft]).
+  wonderCount: (n: number, of: number) => `${n.toLocaleString('en-US')} of ${of.toLocaleString('en-US')} in`,
+  wonderCountNoGoal: (n: number) => `${n.toLocaleString('en-US')} in`,
+  wonderBarLabel: 'People in so far',
+  wonderReached: 'Goal reached. Still counting.',
+  // #1127 — who is in, by name, under the bar. Draft copy ([public-is-draft]).
+  wonderInNames: (names: string[], total: number) => {
+    const shown = names.slice(0, 3)
+    const more = Math.max(0, total - shown.length)
+    const people = more > 0 ? [...shown, `${more.toLocaleString('en-US')} more`] : shown
+    const list = people.length > 1 ? `${people.slice(0, -1).join(', ')} and ${people[people.length - 1]}` : (people[0] ?? '')
+    return `${list} ${people.length === 1 && more === 0 ? 'is' : 'are'} in`
+  },
+  wonderImIn: "I'm in",
+  wonderPickSize: 'Pick your size',
+  wonderJoinSave: 'Count me in',
+  wonderPickSizeError: 'Pick one of the sizes.',
+  wonderYoureIn: (option: string | null) => (option ? `You're in, size ${option}.` : "You're in."),
+  wonderChangeSize: 'Change size',
+  wonderLeave: 'Leave',
+  wonderHelp: 'I can help',
+  wonderHelpTitle: 'I can help as…',
+  wonderHelpNote: 'A short note (optional)',
+  wonderHelpSend: 'Offer to help',
+  wonderHelpPickRole: 'Pick at least one role.',
+  wonderHelpSent: 'Thanks. The poster will see your offer.',
+  wonderYourOffers: 'Your offers',
+  wonderWithdraw: 'Take back',
+  wonderStatus: { pending: 'Waiting to hear', accepted: 'Accepted', declined: 'Not this time' },
+  wonderHelpers: 'Helping',
+  wonderRoles: {
+    lead: 'Lead',
+    designer: 'Designer',
+    pattern_maker: 'Pattern-maker or sampler',
+    sourcing: 'Sourcing',
+    quality: 'Quality',
+    logistics: 'Logistics',
+    support: 'Support',
+    treasurer: 'Treasurer',
+  },
+  wonderSizes: 'By size',
+  wonderPeople: "Who's in",
+  wonderNobodyYet: 'Nobody yet.',
+  wonderOffers: 'Offers to help',
+  wonderAccept: 'Accept',
+  wonderDecline: 'Decline',
+  wonderThreshold: 'How many people would make it happen? (optional)',
+  wonderOptionsLabel: 'Sizes or options (optional, commas between)',
+  wonderOptionsPlaceholder: 'S, M, L',
+  wonderComposerNote: "People can say they're in, pick a size, and offer to help. No money changes hands.",
+  wonderThresholdInvalid: 'Enter a whole number, 1 or more, or leave it blank.',
+  wonderPost: 'Propose it',
+} as const
+
+// #1171 (socialus-plan #269, Don 2026-11-02) — ♡ and Save, and Follow as Get updates. Draft copy (human-review).
+export const HEART_COPY = {
+  heartPost: 'Heart this post',
+  heartPage: 'Heart this Page',
+  savePost: 'Save this post',
+  saved: 'Saved',
+  /** What a Page's managers see: who hearted, by name, newest first. */
+  heartedBy: (names: readonly string[], count: number) =>
+    count <= 1 ? `${names[0] ?? 'Someone'} hearted this` : `${names[0] ?? 'Someone'} and ${count - 1} ${count - 1 === 1 ? 'other' : 'others'} hearted this`,
+  heartedByList: 'Who hearted this',
+  getUpdates: 'Get updates',
+  stopUpdates: 'Stop updates',
+  gettingUpdates: (name: string) => `You’ll get updates from ${name}.`,
+  updatesStopped: (name: string) => `You won’t get updates from ${name}.`,
+  savedTitle: 'Saved',
+  savedEmpty: 'Nothing saved yet. Tap the bookmark on a post to keep it here.',
+  savedPast: 'Already happened',
+  unsave: 'Remove',
 } as const

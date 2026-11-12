@@ -28,7 +28,7 @@ export function defineHandler<I, O>(
     const parsed = inputSchema.safeParse(input)
     if (!parsed.success) {
       throw new ValidationError(
-        `Invalid input for ${name}`,
+        "That didn't go through. Mind checking what you entered?",
         parsed.error.flatten(),
       )
     }

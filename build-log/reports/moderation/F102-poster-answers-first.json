@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "launch",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -19,12 +19,12 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     649
    ],
-   "note": "`member_notices` row on the hide; `YouNotices` on `/you` (#506, #706); the words and item kinds have their own notice text (#820, #920) [V] Checked: `[guards F102.1]` in `f102-criteria.test.tsx` [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-23 (cb892a7) [A]"
+   "note": "`member_notices` row on the hide; `YouNotices` on `/you` (#506, #706); the words and item kinds have their own notice text (#820, #920); a member's own post has its own notice text (#1184) [V reread 2026-11-06] Checked: `[guards F102.1]` in `f102-criteria.test.tsx` [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     649
    ],
-   "note": "`page_posts.repost_used`; severity 1 never reposts (#506, #773); an owner's edit of hidden Page words or an item clears that hide too (#820, #920) [V] Checked: `[guards F102.2]` in `tests/f102-fix-and-repost-db.test.ts` [V] Reviewed: #773 `review-skipped` [V]"
+   "note": "`page_posts.repost_used`; severity 1 never reposts (#506, #773); an owner's edit of hidden Page words or an item clears that hide too (#820, #920) [V] Checked: `[guards F102.2]` in `tests/f102-fix-and-repost-db.test.ts` [V] Reviewed: #773 `review-skipped` [V] A member's own post (#1184) cannot be edited, only taken down and posted again, and its courtesy notice says so [V]."
   },
   {
    "id": "3a",
@@ -55,13 +55,13 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     649,
     838
    ],
-   "note": "`report_answers` unique per notice; the rebuttal reaches `run-assessment`; one \"This is a mistake\" button (#506, #513, #706) [V] Checked: `[guards F102.3]` in `tests/f102-answer-db.test.ts:76` through the real action against the local database, seen failing against four mutants (#912, closed #838) [V] Reviewed: #706 `review-skipped` [V] Smoked: `you` green 2026-10-23 [A]"
+   "note": "`report_answers` unique per notice; the rebuttal reaches `run-assessment`; one \"This is a mistake\" button (#506, #513, #706) [V] Checked: `[guards F102.3]` in `tests/f102-answer-db.test.ts:76` through the real action against the local database, seen failing against four mutants (#912, closed #838) [V] Reviewed: #706 `review-skipped` [V] Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "3b",
@@ -92,13 +92,13 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     645,
     649
    ],
-   "note": "`ANSWER_WINDOW_DAYS = 14`; a lapsed hide leaves the batch unless severity 1 (#773) [V] Checked: `[guards F102.4]` in `ReviewQueue.test.tsx`; its clock is pinned since #900, after the fixtures crossed the 14-day window on 17 Oct and went red [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 (e0bdaf1) [V]"
+   "note": "`ANSWER_WINDOW_DAYS = 14`; a lapsed hide leaves the batch unless severity 1 (#773) [V] Checked: `[guards F102.4]` in `ReviewQueue.test.tsx`; its clock is pinned since #900, after the fixtures crossed the 14-day window on 17 Oct and went red [V] Reviewed: #773 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "5",
@@ -111,12 +111,12 @@
    "checked": "yes",
    "reviewed": "yes",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     650
    ],
-   "note": "Counters in `reports-queue.ts`, shown on the row (#506); the \"never a score on a person\" comment was dropped after the 2026-10-16 ruling, the counters unchanged (#819) [V] Checked: `[guards F102.5]` in `f102-criteria.test.tsx` [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "Counters in `reports-queue.ts`, shown on the row (#506); the \"never a score on a person\" comment was dropped after the 2026-10-16 ruling, the counters unchanged (#819) [V] Checked: `[guards F102.5]` in `f102-criteria.test.tsx` [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "6",
@@ -161,12 +161,12 @@
    "checked": "yes",
    "reviewed": "yes",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     838
    ],
-   "note": "`coordinatedPosters` and the sort tier in `review-subjects.ts`; the flag in `ReviewQueue.tsx` (#506) [V] Checked: `[guards F102.8]` in `f102-whole-criteria.test.tsx:39`: both thresholds each side, the flag, the one-tier lift, seen failing against three mutants (#912) [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "`coordinatedPosters` and the sort tier in `review-subjects.ts`; the flag in `ReviewQueue.tsx` (#506) [V] Checked: `[guards F102.8]` in `f102-whole-criteria.test.tsx:39`: both thresholds each side, the flag, the one-tier lift, seen failing against three mutants (#912) [V] Reviewed: #506 carries `Reviewed by:` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "9",
@@ -203,7 +203,7 @@
     627,
     649
    ],
-   "note": "`COPY.report911` shown in `ReportSheet` before sending (placeholder copy, #627) [V] Checked: `[guards F102.10]` in `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: the `report-sheet-threat` route exists in `evals/screens/routes.ts` but no run has included it; `page` alone does not open the sheet [V]"
+   "note": "`COPY.report911` shown in `ReportSheet` before sending (placeholder copy, #627) [V] Checked: `[guards F102.10]` in `ReportControl.test.tsx` [V] Reviewed: #706, #705 `review-skipped` [V] Smoked: unknown. The `report-sheet-threat` route exists in `evals/screens/routes.ts` but no run has included it; `page` alone does not open the sheet [V]."
   },
   {
    "id": "11",
@@ -216,13 +216,13 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     646,
     649
    ],
-   "note": "`ReviewQueue.tsx` shows the summary on Fridays in the metro time zone (#773) [V] Checked: `[guards F102.11]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "`ReviewQueue.tsx` shows the summary on Fridays in the metro time zone (#773) [V] Checked: `[guards F102.11]` in `ReviewQueue.test.tsx` [V] Reviewed: #773 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "12",
@@ -235,16 +235,16 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     838
    ],
-   "note": "`restore-gate.ts`, `ai-restore.ts`, \"Restored by AI\" on the row (#540); dormant until the harness clears the slice and `ai_mode` is live [V] Checked: `[guards F102.12]` in `f102-whole-criteria.test.tsx:96`: every condition, the log, the AI attribution, Confirm and Undo, severities 1-3 never, seen failing against four mutants (#912) [V] Reviewed: #540 `review-skipped` [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "`restore-gate.ts`, `ai-restore.ts`, \"Restored by AI\" on the row (#540); dormant until the harness clears the slice and `ai_mode` is live [V] Checked: `[guards F102.12]` in `f102-whole-criteria.test.tsx:96`: every condition, the log, the AI attribution, Confirm and Undo, severities 1-3 never, seen failing against four mutants (#912) [V] Reviewed: #540 `review-skipped` [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260); #1184 (2026-11-05) changed the review queue after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]. A member's own post is never auto-restored: the restore gate joins a Page and a member post has none (`ai-restore.ts` comment, #1184), so a person decides it [V]."
   },
   {
-   "id": "13",
-   "text": "Every upload and post records its IP and time, operator-only, kept a year then deleted",
+   "id": "13a",
+   "text": "Every upload and every Page post records its IP and time, operator-only, kept a year then deleted",
    "kind": [
     "invariant",
     "coverage"
@@ -261,7 +261,26 @@
     650,
     838
    ],
-   "note": "Every member upload and post path calls the recorder; RLS on, no policy (#509, #774) [V]. The daily purge workflow still skips itself each day (runs 2026-10-21 to 10-23 `skipped`) until the repository variable `CONTENT_ORIGINS_PURGE_ENABLED` is set; nothing is due before October 2027 [V] Checked: standing guard `[guards F102.13]` in `tests/content-origins-db.test.ts:120`: every path calls the recorder, no member reads the table, only the recorder and the report path name it, seen failing against three mutants (#912) [V] Reviewed: #509 `review-skipped`; #774 no `Reviewed by:` [V]"
+   "note": "Every member upload and Page post path calls the recorder (`recordOrigin` in `page-post-actions.ts`, `recordUploadAction` in `PagePhotoPicker`); `content_origins` has RLS on and no policy (#509, #774) [V reread 2026-11-06]. The daily purge workflow still skips itself each day (runs 2026-11-02 to 11-05 `skipped`) until the repository variable `CONTENT_ORIGINS_PURGE_ENABLED` is set (the variable list does not hold it); nothing is due before October 2027 [V]. Checked: standing guard `[guards F102.13]` in `tests/content-origins-db.test.ts:120`, seen failing against three mutants (#912); it walks `page_posts` and upload writers only [V]. Reviewed: #509 `review-skipped`; #774 no `Reviewed by:` [V]. Shipped: green on #509 and #774 [V]. Smoked: an absence, no screen shows it [V]."
+  },
+  {
+   "id": "13b",
+   "text": "Every post a member makes without a Page records its IP and time",
+   "kind": [
+    "invariant",
+    "coverage"
+   ],
+   "status": "active",
+   "built": "no",
+   "checked": "no",
+   "reviewed": "no",
+   "shipped": "no",
+   "smoked": "no",
+   "pm_looked": "no",
+   "issues": [
+    1206
+   ],
+   "note": "[V 2026-11-06] Posts from members without a Page (#1183, merged 2026-11-05 in #1184) are a new post path: `memberPostCreate` inserts into `public.member_posts` and neither it nor `createMemberPostAction` calls `recordOrigin`; no migration records an origin either (grep `recordOrigin|content_origins` across src and supabase). The standing guard names the `page_posts` writers only, so it stays green while this path records nothing. Filed as #1206, launch-blocking."
   },
   {
    "id": "14",
@@ -274,14 +293,14 @@
    "checked": "yes",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     648,
     650,
     838
    ],
-   "note": "No poster notice, the AI skips it, the restore gate is severity 4 only; a one-year legal hold (#783) and a field for NCMEC's report number after the manual CyberTipline form (#785), runbook link (#782); `legal_holds` takes the words and item kinds too (#820, #920) [V]. #648 stays open for the PM's member-facing statement and the parked phone check [V] Checked: standing guard `[guards F102.14]` in `tests/legal-holds-db.test.ts:151`: no notice, no AI, no restore, no repost, the year's hold and the NCMEC number, seen failing against six mutants (#912) [V] Reviewed: #785 `review-skipped`; #783 carries `Reviewed by:` [V] Shipped: #783 (0272c62) has no deploy-health run; #785 green [V] Smoked: `admin-reports` green 2026-10-22 [V]"
+   "note": "No poster notice, the AI skips it, the restore gate is severity 4 only; a one-year legal hold (#783) and a field for NCMEC's report number after the manual CyberTipline form (#785), runbook link (#782); `legal_holds` takes the words and item kinds too (#820, #920) [V]. #648 stays open for the PM's member-facing statement and the parked phone check [V reread 2026-11-06] Checked: standing guard `[guards F102.14]` in `tests/legal-holds-db.test.ts:151`: no notice, no AI, no restore, no repost, the year's hold and the NCMEC number, seen failing against six mutants (#912) [V] Reviewed: #785 `review-skipped`; #783 carries `Reviewed by:` [V] Shipped: #783 (0272c62) has no deploy-health run; #785 green [V] Smoked: unknown. The last green run covering `admin-reports` is `smoke-live` 2026-11-01 (3df9260), before #1184 changed the queue; no run has reached a signed-in screen since [V]."
   }
  ]
 }

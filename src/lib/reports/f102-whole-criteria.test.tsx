@@ -2,7 +2,7 @@
 // Criteria 3, 13 and 14 are claimed in tests/f102-answer-db.test.ts, tests/content-origins-db.test.ts and
 // tests/legal-holds-db.test.ts, where the database is the part that has to hold.
 
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { readFileSync } from 'node:fs'
@@ -19,7 +19,12 @@ const { query } = vi.hoisted(() => ({ query: vi.fn() }))
 vi.mock('@/actions/_lib/db', () => ({ withTransaction: async (fn: (c: unknown) => unknown) => fn({ query }), getPool: () => ({ query }) }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
-afterEach(cleanup)
+// The queue closes rows nobody answered after a while, read against the clock; pin it beside the fixture dates.
+beforeEach(() => vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-13T12:00:00Z') }))
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 const ROOT = resolve(__dirname, '../../..')
 const HOUR = 3_600_000

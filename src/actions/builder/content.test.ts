@@ -13,6 +13,6 @@ describe('builder content handlers', () => {
   })
 
   it('delete needs the word DELETE', async () => {
-    await expect(builderContentDeleteAll(member, { confirm: 'yes' })).rejects.toThrow(/Invalid input/)
+    await expect(builderContentDeleteAll(member, { confirm: 'yes' })).rejects.toThrow(/Mind checking what you entered/)
   })
 })

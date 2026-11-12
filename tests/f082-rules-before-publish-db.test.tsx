@@ -3,7 +3,7 @@
 // publish step and card components. Each check claims its whole criterion.
 
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, cleanup, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { Pool, type PoolClient } from 'pg'
 import { createClient } from '@supabase/supabase-js'
@@ -21,11 +21,11 @@ vi.mock('next/navigation', () => ({
 import { groupActivate } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
 import { DRAFT_NAME_PLACEHOLDER } from '@/actions/group/constants'
-import { CREATOR_RULES, RULES_VERSION } from '@/lib/creator-rules'
+import { RULES_VERSION } from '@/lib/creator-rules'
 import { BeforeYouPublish } from '@/components/create/BeforeYouPublish'
 import { BrowseResultCard } from '@/components/browse/BrowseResultCard'
 import { getBrowseFeed } from '@/lib/feed/browse-feed'
-import RulesPage from '@/app/rules/page'
+import { TEXT_PAGES } from '@/lib/text-pages'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const ANON_KEY = process.env.SUPABASE_ANON_KEY
@@ -50,7 +50,8 @@ const NO_PLACE = 'c8000000-0000-4000-8000-000000000005'
 const NO_DESCRIPTION = 'c8000000-0000-4000-8000-000000000006'
 const NO_TAG = 'c8000000-0000-4000-8000-000000000007'
 const PAGES = [FIRST, SECOND, NO_PHOTO, NO_NAME, NO_PLACE, NO_DESCRIPTION, NO_TAG]
-const TAG = 'f082 kites'
+// #1180 — a label from the shared list; free-typed tags are gone.
+const TAG = 'Crafts & makers'
 
 let pool: Pool
 let client: PoolClient
@@ -127,7 +128,7 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
   afterEach(cleanup)
 
   // [guards F082.1]
-  it('every new Page asks for the agreement again, the publish step always starts unagreed, and creator status is the record, never a role, account type or mode column', async () => {
+  it('every new Page asks for the agreement again, the publish step says the Terms apply, and creator status is the record, never a role, account type or mode column', async () => {
     // The first Page: agreed, published, recorded for that Page.
     await groupActivate(ctx(), { groupId: FIRST, tags: [TAG], rulesVersion: RULES_VERSION })
     expect(await state(FIRST)).toBe('active')
@@ -140,12 +141,10 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     await groupActivate(ctx(), { groupId: SECOND, tags: [TAG], rulesVersion: RULES_VERSION })
     expect(await agreements(SECOND)).toEqual([{ member_id: OWNER, rules_version: RULES_VERSION }])
 
-    // The publish step asks every time: nothing pre-ticks it, and Publish waits for the tick.
-    const onPublish = async () => {}
-    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={onPublish} />)
-    expect(screen.getByRole('checkbox', { name: /i agree/i })).not.toBeChecked()
-    expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled()
-    fireEvent.click(screen.getByRole('checkbox', { name: /i agree/i }))
+    // The publish step carries the one Terms line, and Publish needs no tick (Don, 2026-10-31).
+    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasPhoto={false} onPublish={async () => {}} />)
+    expect(screen.queryByRole('checkbox')).toBeNull()
+    expect(screen.getByTestId('publish-terms')).toHaveTextContent('By posting you agree to the Terms.')
     expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled()
 
     // No stored role, account type or mode flag on a member or a Page.
@@ -202,18 +201,24 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
   })
 
   // [guards F082.8]
-  it('publishing needs a name, a place, a description, the agreement and a tag; a Page with no photo publishes and shows its kind’s default art', async () => {
+  it('publishing needs a name, a place, a description and the agreement; a Page with no photo publishes and shows its kind’s default art', async () => {
     const refused: [string, Parameters<typeof groupActivate>[1], RegExp][] = [
       [NO_NAME, { groupId: NO_NAME, tags: [TAG], rulesVersion: RULES_VERSION }, /requires name/],
       [NO_PLACE, { groupId: NO_PLACE, tags: [TAG], rulesVersion: RULES_VERSION }, /requires where it is/],
       [NO_DESCRIPTION, { groupId: NO_DESCRIPTION, tags: [TAG], rulesVersion: RULES_VERSION }, /requires a description/],
-      [NO_TAG, { groupId: NO_TAG, rulesVersion: RULES_VERSION }, /at least one tag/],
       [NO_PHOTO, { groupId: NO_PHOTO, tags: [TAG] }, /agreement to the current rules/],
     ]
     for (const [id, input, reason] of refused) {
       await expect(groupActivate(ctx(), input), id).rejects.toThrow(reason)
       expect(await state(id)).toBe('draft')
     }
+
+    // #1180 — nothing picked: it publishes listed under what its words say, else Neighborhood life.
+    await groupActivate(ctx(), { groupId: NO_TAG, rulesVersion: RULES_VERSION })
+    expect(await state(NO_TAG)).toBe('active')
+    // "Kite Club": a club is a meetup.
+    const listed = await client.query(`select t.label from public.page_tags pt join public.tags t on t.id = pt.tag_id where pt.group_id = $1 order by t.label`, [NO_TAG])
+    expect(listed.rows.map((r) => r.label)).toEqual(['Meetups & socials', 'Neighborhood life'])
 
     // The same draft, agreed: no photo, and it publishes.
     expect((await client.query(`select photo_url from public.groups where id = $1`, [NO_PHOTO])).rows[0].photo_url).toBeNull()
@@ -230,31 +235,13 @@ describe.skipIf(!RUNNABLE)('F082 — the rules before every Page', () => {
     cleanup()
 
     // The publish step says the photo is optional and lets a photoless Page through.
-    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasTags hasPhoto={false} onPublish={async () => {}} />)
+    render(<BeforeYouPublish editPath="/x" hasName hasPlace hasDescription hasPhoto={false} onPublish={async () => {}} />)
     expect(screen.getByTestId('publish-item-photo').textContent).toMatch(/optional/i)
-    fireEvent.click(screen.getByRole('checkbox', { name: /i agree/i }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled())
   })
 
-  // [guards F082.9]
-  it('one of the rules is the photo rule, with its reason, on the publish step and on the rules page', () => {
-    const plain = (s: string) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim()
-    // The scenario's draft wording (F082 criterion 9).
-    const RULE = 'No pictures of children.'
-    const REASON = "Please don't post a photo that shows a child. We can't check every photo, so we count on you."
-    const photoRule = CREATOR_RULES.find((r) => plain(r.rule) === RULE)
-    expect(photoRule, 'the photo rule').toBeDefined()
-    expect(plain(photoRule!.reason)).toBe(REASON)
-
-    render(<BeforeYouPublish editPath="/x" hasName={false} hasPlace={false} hasDescription={false} hasTags={false} hasPhoto={false} onPublish={async () => {}} />)
-    const step = plain(screen.getByTestId('creator-rules').textContent ?? '')
-    expect(step).toContain(RULE)
-    expect(step).toContain(REASON)
-    cleanup()
-
-    const { container } = render(<RulesPage />)
-    const page = plain(container.textContent ?? '')
-    expect(page).toContain(RULE)
-    expect(page).toContain(REASON)
+  // [guards F082.9] (Don, 2026-10-31: the rules page and the four-rule step are gone; the photo rule is in the Terms.)
+  it('the photo rule is in the Terms', () => {
+    expect(TEXT_PAGES.terms.body.join(' ')).toMatch(/No photos of kids/)
   })
 })

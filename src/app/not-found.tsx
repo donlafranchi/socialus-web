@@ -4,9 +4,9 @@ import { EmptyState } from '@/components/shell/EmptyState'
 
 export default function NotFound() {
   return (
-    <main className="gutter pb-nav">
+    <main className="gutter pb-dock">
       <EmptyState
-        title="We couldn't find that"
+        title="Can't find that one"
         body="It may have moved, or it may not be shared with you."
         action={{ href: '/explore', label: 'Go to Explore' }}
       />

@@ -6,6 +6,10 @@ SocialUs: local discovery, buy/sell/trade/gather. Beta 2026-11-06 (soft target) 
 
 Where each kind of thing goes (one home each, budgets, generated vs maintained): `socialus-ops/process/WHERE-THINGS-GO.md`. Read it before writing any doc.
 
+## Where files go (Don, 2026-11-01) [for now]
+
+Files live only in Don's project repos (socialus-plan, socialus-ops, socialus-web, socialus-legal, socialus-design). Never write anywhere else, even if a tool or prompt suggests it. [for now: until Don says otherwise] Cold-start briefs go in the repo they're about (e.g. socialus-web development/briefs/ or socialus-plan planning/briefs/).
+
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
@@ -16,6 +20,16 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 ## Before opening a ticket
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
+
+## How decisions flow (2026-11-01)
+
+Don, 2026-11-01: "me as the human I set guidelines and desired outcomes or trajectories or concepts of where I'd like to go as the human decision maker and you are there to try to figure out options and choices. Do the research to help guide me make the best decision based on whatever information is available and that's how this app development should work from top to bottom."
+
+1. **Don gives direction:** guidelines, desired outcomes, trajectories, concepts.
+2. **Agents research and turn it into options:** the evidence and precedents, as A/B/C with a recommendation.
+3. **Don decides.**
+
+This sharpens the decision rule and decision rights below, it doesn't replace them: agents still decide well-worn and mechanical calls and report them; what Don decides reaches him as researched options.
 
 ## Decision rights (2026-10-25)
 
@@ -31,7 +45,7 @@ That choice also decides the merge. **"Don doesn't need to look"** means merge i
 
 **A `human-review` PR body opens with `## Review`** (Don, 2026-10-05): "Review on socialus.org after merge" with the page to open, the branch name, and only what he must check, as short bullets in the form `- Item: short description`. When a migration applies first, the apply command goes in its own fenced code block: `gh workflow run apply.yml --ref <branch> -f confirm=apply`.
 
-**A UI PR (touching `src/app` or `src/components`) carries the reviewer's first pass:** a `Reviewed by:` section with the UX checklist from the PR template (the PM, 2026-10-05). If the pass can't run, label it `review-skipped` and say why in the body. The `review` check fails a UI PR with neither, so an unattended merge can't take it. A PR touching `src/app`, `src/actions` or `supabase/` also needs a `## Visibility review` section (`Reviewed by:`, personas, matrix rows, a `Verdict:` line) or the same label and reason (`socialus-ops` `PIPELINE-build.md` step 10).
+**A UI PR (touching `src/app` or `src/components`), and any PR touching `src/actions` or `supabase/`, is reviewed by a second session that did not write the code,** which posts its findings as a GitHub review by the rules in `REVIEW.md` and is named on the body's `Reviewed by:` line. The body-text `review` check (a `Reviewed by:` section with ticked checklist words, the `## Visibility review` and `## Journey check` sections) was retired on 2026-10-26: it verified that words existed, and PR #990 passed it on 2026-10-21 with the builder as its own reviewer. The journeys and the visibility matrix run as CI jobs; they are the gate, not a section about them. A mechanical check returns when the reviewer has its own GitHub identity (socialus-web #1075).
 
 Steps are for someone holding a phone who has not read the ticket. No file paths, no function names, no ticket numbers. A change you cannot describe that way needs his eyes *more* — say so and label it anyway.
 
@@ -82,16 +96,11 @@ Previews
 - `PREVIEWS_MODE` (Vercel environment, and the GitHub repo variable of the same name) is `off` until the 10-23 freeze: only `main` builds. `labelled` builds previews only for PRs labelled `human-review` (`scripts/vercel-ignore.mjs`).
 
 Build concurrency
-- Max 2 changes building or testing at once.
-- Every Playwright run uses `--workers=2`.
+- Cloud sessions each run on their own machine: no cap on how many build at once. Only one branch with a migration waits for the PM's apply at a time, so applies stay in order (the PM, 2026-11-11: the two-at-once limit was the old Mac's).
+- On the Mac (replaced 2026-11-11 with a much more powerful one): at most 4 changes building or testing at once, a starting point to raise or lower after the first busy week.
+- Every Playwright run on the Mac uses `--workers=4`; CI keeps its own setting.
 - Each change gets its own dev server port, and the server is shut down when the change finishes.
 - Close all headless browsers when a run ends; never leave them open between runs.
-
-Persona reviews
-- Run personas one after another as a background queue, never all at once.
-- Run at most 1 build change alongside the queue.
-- Share one dev server and one browser across all personas, with a separate session per persona.
-- Report each persona's findings as it finishes rather than waiting for all five.
 
 Parallelism rule
 - Parallelize work that waits on the network or the model.

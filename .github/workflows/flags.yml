@@ -1,0 +1,69 @@
+name: Feature flags
+
+# #1227 Feature flags of our own (PM, 2026-11-10). Manual only. Lists every
+# flag with who it is on for and any past its removal date, or switches one:
+# off, builders (builder accounts and the operator), or everyone. Runs the
+# scripts from whichever branch it is dispatched on, with the production
+# database, the same trust as Apply migrations: dispatch it on main.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'list, or set one flag'
+        required: true
+        type: choice
+        options: [list, set]
+      flag:
+        description: 'For set: the flag name, as list shows it'
+        required: false
+        type: string
+      audience:
+        description: 'For set: who it is on for'
+        required: false
+        type: choice
+        options: [builders, everyone, 'off']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feature-flags
+  cancel-in-progress: false
+
+jobs:
+  flags:
+    name: Feature flags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the database connection string
+        id: dburl
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Run
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.url }}
+          ACTION: ${{ inputs.action }}
+          FLAG: ${{ inputs.flag }}
+          AUDIENCE: ${{ inputs.audience }}
+        run: |
+          if [ "$ACTION" = set ]; then
+            npx tsx scripts/flags.ts set "$FLAG" "$AUDIENCE"
+          fi
+          npx tsx scripts/flags.ts list

@@ -175,3 +175,34 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ steps.dburl.outputs.url }}
         run: bash scripts/check-migration-drift.sh --strict
+
+  # After a good apply, the branch's "Migrations applied to production" check
+  # is still red from the CI run before the apply, and nothing re-runs it: the
+  # PM had to tap Re-run by hand on every migration PR (#1225, #1228, #1233 and
+  # #1241, 2026-11-10 and 11), because agent sessions get a 403 re-running jobs.
+  # This job does that one tap. It only re-runs failed jobs of the newest CI
+  # run on this branch; it never applies, merges or writes code (#1229).
+  recheck:
+    name: Re-run the branch's migration check
+    needs: apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Re-run failed jobs of the newest CI run on this branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          run=$(gh run list -R "$REPO" --branch "$BRANCH" --workflow ci.yml --limit 1 --json databaseId,conclusion,status \
+            --jq '.[0] | select(.status == "completed" and .conclusion == "failure") | .databaseId')
+          if [ -z "$run" ]; then
+            echo "No failed CI run to re-run on $BRANCH; nothing to do."
+            exit 0
+          fi
+          gh run rerun "$run" --failed -R "$REPO"
+          echo "::notice::Re-ran the failed jobs of CI run $run on $BRANCH."

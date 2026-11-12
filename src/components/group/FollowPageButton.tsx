@@ -44,8 +44,9 @@ export function FollowPageButton({
   const [error, setError] = useState<string | null>(null)
   const [asking, setAsking] = useState(false)
 
-  const idle = isPrivate || join ? 'Join' : 'Follow'
-  const done = isPrivate || join ? 'Joined' : 'Following'
+  // #1171 — an open Page's follow is Get updates (in the Page's ⋯ now); a private or meetup Page is joined.
+  const idle = isPrivate || join ? 'Join' : 'Get updates'
+  const done = isPrivate || join ? 'Joined' : 'Getting updates'
 
   // #297 — signed out, nobody can follow (Don, 2026-10-04): the button says
   // so and opens the sign-up sheet. The tap is kept: sign-up comes back here.
@@ -60,7 +61,7 @@ export function FollowPageButton({
         >
           Sign up to {idle.toLowerCase()}
         </button>
-        {asking && <SignInPrompt action="follow" currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
+        {asking && <SignInPrompt action={isPrivate || join ? 'follow' : 'get-updates'} currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
       </div>
     )
   }
@@ -86,6 +87,7 @@ export function FollowPageButton({
       <button
         type="button"
         data-testid="page-follow"
+        {...(isFollowing ? {} : { 'data-shelf-save': '' })}
         onClick={toggle}
         disabled={busy}
         className={isFollowing ? buttonClass('secondary') : buttonClass('primary')}

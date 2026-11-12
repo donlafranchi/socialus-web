@@ -1,5 +1,5 @@
 // #637 — standing guards for F080 criteria 2 and 3, each seen failing against a mutant
-// (build-log/2026-W42/637-f080-guards.md). Absence of code proves nothing, so these list the places that could
+// (PR #637). Absence of code proves nothing, so these list the places that could
 // break the rule and fail when a new one appears.
 
 import { describe, it, expect, vi } from 'vitest'

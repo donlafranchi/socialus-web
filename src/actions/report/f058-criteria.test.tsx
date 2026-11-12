@@ -1,5 +1,5 @@
 // #578 — F058 criteria 1, 3, 5 and 6: one check each that claims the whole criterion, each seen failing against a
-// mutant (build-log/2026-W42/578-f058-checks.md). Criterion 4 is marked with the map fix (#577).
+// mutant (PR #578). Criterion 4 is marked with the map fix (#577).
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -12,7 +12,7 @@ import type { QueuedReport, PastDecision } from '@/lib/admin/reports-queue'
 const { query, getUser, create } = vi.hoisted(() => ({ query: vi.fn(), getUser: vi.fn(), create: vi.fn() }))
 vi.mock('../_lib/db', () => ({ withTransaction: vi.fn(async (fn: (c: { query: typeof query }) => unknown) => fn({ query })) }))
 vi.mock('../_lib/event-log', () => ({ appendEvent: vi.fn(async () => undefined) }))
-vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser } })) }))
+vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser, getClaims: async () => { const r = await getUser(); return { data: r?.data?.user ? { claims: { sub: r.data.user.id } } : null, error: r?.error ?? null } } } })) }))
 vi.mock('@/actions', async (importActual) => ({ ...(await importActual<typeof import('@/actions')>()), reportCreate: create }))
 
 import { sendReportAction } from '@/app/_actions/report-actions'

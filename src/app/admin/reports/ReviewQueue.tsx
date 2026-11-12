@@ -58,7 +58,7 @@ const underAppeal = (s: ReviewSubject) => s.status === 'hidden' && s.answer !== 
 const matches = (s: ReviewSubject, show: Show) =>
   show === 'all' || (show === 'appeal' ? underAppeal(s) : s.status === show)
 
-const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Page name and description', page_item: 'Product or service' } as const
+const SUBJECT_LABEL = { group: 'Page photo', post: 'Post', page_picture: 'Page picture', post_photo: 'Post photo', page_words: 'Page name and description', page_item: 'Product or service', member_post: 'Post from a member' } as const
 
 export function ReviewQueue({
   subjects,
@@ -106,7 +106,7 @@ export function ReviewQueue({
           n.delete(p.subject.subjectId)
           return n
         })
-        setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+        setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
       }
     },
     [onDecide, router],
@@ -128,7 +128,7 @@ export function ReviewQueue({
         n.delete(s.subjectId)
         return n
       })
-      setError(err instanceof Error ? err.message : "That didn't go through. Try again?")
+      setError(err instanceof Error ? err.message : "That didn't go through. Mind trying again?")
     }
   }
 
@@ -411,7 +411,7 @@ function Row({
               <p data-testid="review-ai" className="mt-0.5 break-words text-caption text-[var(--color-fg)]">
                 {'skipped' in s.ai
                   ? COPY.aiNotRead
-                  : `AI: ${s.ai.outcome} · ${s.ai.confidence.toFixed(2)} · AI severity ${s.ai.severity} — ${s.ai.reason}`}
+                  : `AI: ${s.ai.outcome} · ${s.ai.confidence.toFixed(2)} · AI severity ${s.ai.severity} ${s.ai.reason}`}
               </p>
             )}
             {s.answer && (

@@ -72,10 +72,10 @@ function Row({ page, actions }: { page: FollowedPage; actions: FollowedPagesActi
             type="button"
             disabled={busy}
             onClick={toggle}
-            aria-label={followed ? `Unfollow ${page.name}` : `Undo, keep following ${page.name}`}
+            aria-label={followed ? `Stop updates from ${page.name}` : `Undo, keep getting updates from ${page.name}`}
             className="press inline-flex min-h-tap items-center text-xs font-medium text-[var(--color-fg-muted)] underline disabled:opacity-50"
           >
-            {followed ? 'Unfollow' : 'Unfollowed · Undo'}
+            {followed ? 'Stop updates' : 'Stopped · Undo'}
           </button>
           {failed && (
             <span role="alert" className="text-xs text-[var(--color-danger,#b91c1c)]">
@@ -92,7 +92,7 @@ export function FollowedPagesList({ pages, actions }: { pages: FollowedPage[]; a
   if (pages.length === 0) {
     return (
       <div data-testid="followed-pages-empty" className="py-6">
-        <p className="text-body-sm text-[var(--color-fg-muted)]">You’re not following any Pages yet. Follow one you like and it shows up here.</p>
+        <p className="text-body-sm text-[var(--color-fg-muted)]">You’re not getting updates from any Pages yet. Open a Page you like and choose Get updates from its ⋯ menu.</p>
         <Link href="/explore" className={`${LINK} underline`}>
           Find Pages in Explore
         </Link>
