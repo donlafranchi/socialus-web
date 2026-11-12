@@ -5,6 +5,9 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import '@testing-library/jest-dom/vitest'
 import { PhoneVerifyStep, type PhoneAuth } from './PhoneVerifyStep'
 
+// #1271 — the sign-up card loads the front page's webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
+
 afterEach(cleanup)
 
 const auth = (over: Partial<PhoneAuth> = {}): PhoneAuth => ({

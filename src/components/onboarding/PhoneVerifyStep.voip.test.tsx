@@ -15,6 +15,9 @@ vi.mock('@/lib/supabase-server', () => ({
 
 import { PhoneVerifyStep } from './PhoneVerifyStep'
 
+// #1271 — the sign-up card loads the front page's webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
+
 const lookup = vi.fn()
 const lineType = (type: string) => () => Promise.resolve(new Response(JSON.stringify({ line_type_intelligence: { type } }), { status: 200 }))
 

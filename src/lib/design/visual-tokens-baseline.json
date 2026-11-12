@@ -10,9 +10,6 @@
   "src/app/(dev)/composer-demo/page.tsx": [
     "min-h-[6rem]"
   ],
-  "src/app/join/page.tsx": [
-    "tracking-[0.2em]"
-  ],
   "src/components/RecruitmentGrid.tsx": [
     "text-[11px]",
     "text-[11px]",

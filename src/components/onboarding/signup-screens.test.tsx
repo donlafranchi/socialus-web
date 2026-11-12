@@ -9,6 +9,9 @@ import { COPY } from '@/lib/copy'
 import { SignInForm } from '@/components/auth/SignInForm'
 import { OnboardingFlow, type OnboardingActions } from './OnboardingFlow'
 
+// #1271 — the sign-up card loads the front page's webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
+
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()

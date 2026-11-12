@@ -148,7 +148,8 @@ export async function proxy(request: NextRequest) {
   }
 
   // The front door is for people who aren't members yet; a member goes straight to Explore.
-  if (user && request.nextUrl.pathname === '/') {
+  // #1271 — /join is the same pitch, so a member who follows a shared /join link goes there too.
+  if (user && (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/join')) {
     const redirect = NextResponse.redirect(new URL('/explore', request.url))
     response.cookies.getAll().forEach((c) => redirect.cookies.set(c))
     return redirect

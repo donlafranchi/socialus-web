@@ -6,7 +6,12 @@
 export const HOME_TODO = {
   // Don, 2026-10-26: one sign-up path for everyone; the zip decides what comes after.
   primaryCta: 'Join SocialUs',
+  // The PM, 2026-11-12: a visitor without an account can read everything; only hearting, following,
+  // posting and reporting need one. So the pitch lets them in to look, without asking them to join first.
+  lookAround: 'Look around',
 }
+
+export const LOOK_HREF = '/explore'
 
 // Don, 2026-11-06: "Locals, finding and supporting locals." The landing page, /join and every
 // pitch say that and nothing competing (socialus-plan PRINCIPLES.md#locals-supporting-locals).

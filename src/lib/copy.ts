@@ -28,9 +28,9 @@ export const COPY = {
   withheldCta: "Sign in to see what's happening",
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
-  // F081 criterion 5 — what the app is for, on the signup screen. Don's words, ruled 2026-10-01.
-  signupLine:
-    'This is a community building app. It was made for good and decent people to find, connect with and support other good and decent people. We are here to build a better future together.',
+  // F081 criterion 5 — what the app is for, on the signup screen. The one line (Don, 2026-11-06),
+  // in place of the 2026-10-01 placeholder: the PM's pick, 2026-11-12 (#1271).
+  signupLine: 'Locals, finding and supporting locals.',
   // F081 — the text-message code at signup (2026-10-01). Placeholders ([public-is-draft]).
   phoneTitle: 'Verify your phone',
   phoneWhy: "Everyone here is a real person. We'll text you a code to check. Your number is never shown to anyone.",

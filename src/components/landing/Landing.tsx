@@ -1,9 +1,10 @@
-// The pitch: one line, Don's sentence under it, one way in (2026-11-06, #1271). Served at `/`
+// The pitch: one line, Don's sentence under it, one way in and a way to look around (2026-11-06,
+// 2026-11-12, #1271). Served at `/`
 // and at `/join`, so the front door and the shared link say the same thing.
 
 import Link from 'next/link'
-import { ART, CONSENT_LINE, HOME, HOME_TODO, JOIN_HREF, MESSAGE } from '@/lib/home-landing'
-import { aime, HEAD, Message, PRIMARY, WRAP } from './landing-shared'
+import { ART, CONSENT_LINE, HOME, HOME_TODO, JOIN_HREF, LOOK_HREF, MESSAGE } from '@/lib/home-landing'
+import { aime, HEAD, Message, PRIMARY, SECONDARY, WRAP } from './landing-shared'
 
 const CTA = { href: JOIN_HREF, label: HOME_TODO.primaryCta }
 
@@ -36,9 +37,12 @@ export function Landing() {
           />
           <div className="md:flex-1">
             <Message />
-            <div className="mt-8 flex justify-center md:justify-start">
+            <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center md:justify-start">
               <Link href={CTA.href} className={PRIMARY}>
                 {CTA.label}
+              </Link>
+              <Link href={LOOK_HREF} className={SECONDARY}>
+                {HOME_TODO.lookAround}
               </Link>
             </div>
             {/* TODO(Don): consent line pending its final wording (see CONSENT_LINE). */}

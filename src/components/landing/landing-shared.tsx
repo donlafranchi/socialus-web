@@ -18,6 +18,7 @@ export const HEAD = 'font-normal tracking-tight'
 export const WRAP = 'mx-auto w-full max-w-landing gutter md:px-10'
 export const BTN = 'press inline-flex min-h-tap items-center justify-center rounded-xs px-6 text-body font-semibold hover:no-underline'
 export const PRIMARY = `${BTN} bg-[var(--color-clay)] text-[var(--color-paper)] hover:bg-[var(--color-clay-deep)]`
+export const SECONDARY = `${BTN} border border-[var(--color-ink-muted)] text-[var(--color-ink-muted)] hover:bg-white`
 
 /** The message (Don, 2026-11-06), and his own sentence under it. Nothing else competes. */
 export function Message() {

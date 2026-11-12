@@ -5,6 +5,9 @@ import { WAITING_COPY, SIGNUP_ROLE_COPY } from '@/lib/signup/waiting-copy'
 import '@testing-library/jest-dom/vitest'
 import { OnboardingFlow, type OnboardingActions } from './OnboardingFlow'
 
+// #1271 — the sign-up card loads the front page's webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
+
 // T089 → #222 — onboarding is the F081 signup screen. Real DB writes are the F030 eval's job.
 
 afterEach(() => cleanup())

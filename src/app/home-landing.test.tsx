@@ -31,13 +31,15 @@ describe.each([
       expect(text).not.toContain(gone)
   })
 
-  it('has exactly one action, the standard sign-up (F085.1)', () => {
+  it('has exactly one account action, the standard sign-up (F085.1), and a way to look around', () => {
     const { container } = render(<Page />)
     const ctas = screen.getAllByRole('link', { name: HOME_TODO.primaryCta })
     expect(ctas.length).toBe(2)
     for (const a of ctas) expect(a.getAttribute('href')).toBe('/auth/login')
     const others = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'))
-    expect(new Set(others)).toEqual(new Set(['/', '/auth/login', ...HOME.footer.links.map((l) => l.href)]))
+    // A visitor can read everything (the PM, 2026-11-12): looking around is not an account action.
+    expect(screen.getByRole('link', { name: HOME_TODO.lookAround }).getAttribute('href')).toBe('/explore')
+    expect(new Set(others)).toEqual(new Set(['/', '/auth/login', '/explore', ...HOME.footer.links.map((l) => l.href)]))
   })
 
   it('names no kind of person (F085.6)', () => {

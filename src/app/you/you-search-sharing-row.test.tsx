@@ -19,6 +19,9 @@ vi.mock('@/components/auth/SignOutButton', () => ({ SignOutButton: () => null })
 
 import YouPage from './page'
 
+// #1271 — the sign-in card loads the front page's webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
+
 afterEach(cleanup)
 
 describe('#909 — You → Settings → Searches', () => {

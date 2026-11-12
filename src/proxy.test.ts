@@ -239,17 +239,17 @@ describe('proxy — F077.1, a signed-in member gives a legal name first', () => 
   })
 })
 
-describe('proxy — the front door at /', () => {
+describe.each(['/', '/join'])('proxy — the pitch at %s', (path) => {
   it('sends a signed-in member to Explore', async () => {
     getUser.mockResolvedValue({ data: { user: { id: 'm1' } }, error: null })
-    const res = await proxy(request('/'))
+    const res = await proxy(request(path))
     expect(res.status).toBe(307)
     expect(new URL(res.headers.get('location')!).pathname).toBe('/explore')
   })
 
   it('shows a signed-out visitor the landing page', async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: null })
-    expect((await proxy(request('/'))).status).toBe(200)
+    expect((await proxy(request(path))).status).toBe(200)
   })
 })
 

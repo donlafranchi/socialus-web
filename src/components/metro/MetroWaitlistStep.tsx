@@ -148,7 +148,7 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
           type="button"
           onClick={submit}
           disabled={busy}
-          className="w-full rounded-full bg-[var(--color-charcoal-700)] py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="btn-primary w-full disabled:opacity-50"
         >
           {busy ? 'Just a moment…' : 'Continue'}
         </button>
