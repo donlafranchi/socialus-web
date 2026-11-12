@@ -40,6 +40,7 @@ import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
+import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -54,6 +55,8 @@ export interface Sources {
   seed?: Seed
   /** F128: how we work; scripts/knowledge/practices-seed.json unless given (null: skip). */
   practices?: PracticeSeed | null
+  /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
+  maps?: MapSources
 }
 
 export interface Summary {
@@ -72,6 +75,8 @@ export interface Summary {
   plans?: PlanSummary
   /** F128: practices and experiments. */
   practices?: PracticeSummary
+  /** F132: journeys, slices across them, and where features and ideas sit. */
+  maps?: MapSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -434,6 +439,8 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
       today,
     })
   }
+  // F132: story maps, after plans and concepts, whose features and ideas they place.
+  if (src.maps) summary.maps = await loadMaps(db, src.maps)
   return summary
 }
 
@@ -457,6 +464,7 @@ async function main(): Promise<void> {
     opsDir,
     registryPath: resolve(__dirname, '..', '..', 'src', 'ontology', 'registry.json'),
     commits: { plan: process.env.PLAN_COMMIT, ops: process.env.OPS_COMMIT, web: process.env.GITHUB_SHA },
+    maps: { seed: readMapSeed(), walkthroughs: readWalkthroughs(planDir), rollup: readRollup() },
   }
   const { exportConstraints } = await import('./export')
   const { readFileSync } = await import('node:fs')
@@ -485,6 +493,7 @@ async function main(): Promise<void> {
       ...(summary.concepts ? conceptReport(summary.concepts) : []),
       ...(summary.plans ? planReport(summary.plans) : []),
       ...(summary.practices ? practiceReport(summary.practices) : []),
+      ...(summary.maps ? mapReport(summary.maps) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),
