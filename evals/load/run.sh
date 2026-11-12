@@ -37,13 +37,17 @@ for tool in docker supabase k6; do command -v "$tool" >/dev/null || { echo "$too
 # When this script starts the stack, it starts it from a copy of supabase/ with its own ES256 key, so the
 # run measures production's path. A stack that is already running (the Mac's dev stack) is used as it is.
 SB=(supabase)
+STARTED_STACK=""
 if ! supabase status >/dev/null 2>&1; then
   WORK="${TMPDIR:-/tmp}/socialus-load-stack"
   rm -rf "$WORK"; mkdir -p "$WORK"; cp -R supabase "$WORK/"
-  sed -i.bak 's|^# signing_keys_path = "./signing_keys.json"|signing_keys_path = "./signing_keys.json"|' "$WORK/supabase/config.toml"
+  # Its own project id, so its own containers and volume: never the dev stack's database.
+  sed -i.bak -e 's|^# signing_keys_path = "./signing_keys.json"|signing_keys_path = "./signing_keys.json"|' \
+    -e 's|^project_id = .*|project_id = "web-load"|' "$WORK/supabase/config.toml"
   echo '[]' > "$WORK/supabase/signing_keys.json"
   echo y | supabase gen signing-key --algorithm ES256 --workdir "$WORK" >/dev/null
   SB=(supabase --workdir "$WORK")
+  STARTED_STACK=1
   (cd "$WORK" && bash "$ROOT/scripts/supabase-start.sh" -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor)
 fi
 eval "$("${SB[@]}" status -o env | sed -n 's/^\([A-Z_]*\)=/export \1=/p')"
@@ -71,6 +75,8 @@ cleanup() {
   [ -n "$WATCH_PID" ] && kill "$WATCH_PID" 2>/dev/null || true
   [ -n "$APP_PID" ] && kill "$APP_PID" 2>/dev/null || true
   rm -f "$OUT/current"
+  # The stack this run started goes with it (and its volume); a stack that was already running stays.
+  [ -n "$STARTED_STACK" ] && "${SB[@]}" stop --no-backup >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 # No production key reaches this server: emails, texts and AI moderation stay off.
