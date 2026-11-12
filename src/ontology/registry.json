@@ -544,6 +544,7 @@
     "tag.review",
     "town.credit_set",
     "town.maker_add",
+    "usage.log",
     "wonder.join",
     "wonder.leave",
     "wonder.offer",
