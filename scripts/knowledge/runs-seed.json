@@ -1,5 +1,5 @@
 {
-  "note": "F135.5: runs from before runs recorded themselves, loaded by the knowledge import once (each key once). Run one is the first load simulation (PR #1264, socialus-ops process/PERFORMANCE.md). Later runs record themselves from the workflow; nothing is added here by hand after them.",
+  "note": "F135.5: runs from before runs recorded themselves, loaded by the knowledge import once (each key once). Run one is the first load simulation (PR #1264, socialus-ops process/PERFORMANCE.md); run two is the full run on the taps-under-load fix (PR #1270), as that session reported it. Later runs record themselves from the workflow; nothing is added here by hand after them.",
   "runs": [
     {
       "practice": "practice.load-sim-and-checkpoints",
@@ -12,16 +12,97 @@
       "summary": "First to break: 200 viewers (view-out-200), rendering; p95 1.03 s there.",
       "numbers": {
         "levels": {
-          "view-out-50": { "load": "50 viewers", "rps": 19, "p50_ms": 19, "p95_ms": 44, "failed": 0, "broke": false, "saturated": [] },
-          "view-out-200": { "load": "200 viewers", "rps": 65, "p50_ms": 296, "p95_ms": 1030, "failed": 0, "broke": true, "saturated": ["rendering"] },
-          "view-out-1000": { "load": "1000 viewers", "rps": 84, "p50_ms": 2400, "p95_ms": 30000, "failed": 0.15, "broke": true, "saturated": ["rendering"] },
-          "view-in-50": { "load": "50 viewers", "rps": 19, "p50_ms": 64, "p95_ms": 185, "failed": 0, "broke": false, "saturated": [] },
-          "view-in-200": { "load": "200 viewers", "rps": 33, "p50_ms": 3300, "p95_ms": 4100, "failed": 0, "broke": true, "saturated": ["rendering"] },
-          "view-in-1000": { "load": "1000 viewers", "rps": 48, "p50_ms": 6700, "p95_ms": 30000, "failed": 0.45, "broke": true, "saturated": ["connections", "rendering"], "pool_timeouts": 1146 },
-          "tap": { "load": "100 per second", "rps": 56, "p50_ms": 47, "p95_ms": 30000, "failed": 0.12, "broke": true, "saturated": ["rendering"] },
-          "report": { "load": "30 per second", "rps": 18, "p50_ms": 56, "p95_ms": 20000, "failed": 0, "broke": true, "saturated": [], "refused": 856 }
+          "view-out-50": {
+            "load": "50 viewers",
+            "rps": 19,
+            "p50_ms": 19,
+            "p95_ms": 44,
+            "failed": 0,
+            "broke": false,
+            "saturated": []
+          },
+          "view-out-200": {
+            "load": "200 viewers",
+            "rps": 65,
+            "p50_ms": 296,
+            "p95_ms": 1030,
+            "failed": 0,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "view-out-1000": {
+            "load": "1000 viewers",
+            "rps": 84,
+            "p50_ms": 2400,
+            "p95_ms": 30000,
+            "failed": 0.15,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "view-in-50": {
+            "load": "50 viewers",
+            "rps": 19,
+            "p50_ms": 64,
+            "p95_ms": 185,
+            "failed": 0,
+            "broke": false,
+            "saturated": []
+          },
+          "view-in-200": {
+            "load": "200 viewers",
+            "rps": 33,
+            "p50_ms": 3300,
+            "p95_ms": 4100,
+            "failed": 0,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "view-in-1000": {
+            "load": "1000 viewers",
+            "rps": 48,
+            "p50_ms": 6700,
+            "p95_ms": 30000,
+            "failed": 0.45,
+            "broke": true,
+            "saturated": [
+              "connections",
+              "rendering"
+            ],
+            "pool_timeouts": 1146
+          },
+          "tap": {
+            "load": "100 per second",
+            "rps": 56,
+            "p50_ms": 47,
+            "p95_ms": 30000,
+            "failed": 0.12,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "report": {
+            "load": "30 per second",
+            "rps": 18,
+            "p50_ms": 56,
+            "p95_ms": 20000,
+            "failed": 0,
+            "broke": true,
+            "saturated": [],
+            "refused": 856
+          }
         },
-        "cold": { "pageSignedOut_ms": 377, "pageSignedIn_ms": 148, "warmMedian_ms": 32 },
+        "cold": {
+          "pageSignedOut_ms": 377,
+          "pageSignedIn_ms": 148,
+          "warmMedian_ms": 32
+        },
         "machine": "4-core GitHub runner shared by the app (one Node process, pool of 3), the database and k6"
       },
       "broke_first": "rendering at 200 viewers (view-out-200)",
@@ -32,6 +113,115 @@
         "Stop asking the auth server who the member is on every tap: read it from the verified session token.",
         "Run the tap burst on the blue dot once it is built (this run used the Page's ♡).",
         "Add a handful of real browsers timing a Page while k6 holds the crowd."
+      ],
+      "changed_after": []
+    },
+    {
+      "practice": "practice.load-sim-and-checkpoints",
+      "key": "gh:43260441713:1",
+      "at": "2026-11-12T16:54:30Z",
+      "ran_on": "2026-11-12",
+      "commit": "e3fbc20715fb0e15c14732b91d5beedb84726519",
+      "members": 1000,
+      "outcome": "passed",
+      "summary": "First to break: 200 viewers (view-out-200), rendering; p95 2.3 s there. Taps and reports now hold: the ♡ burst all handled, p95 5.8 s (was 30 s).",
+      "numbers": {
+        "levels": {
+          "view-out-50": {
+            "load": "50 viewers",
+            "rps": null,
+            "p50_ms": 30,
+            "p95_ms": 83,
+            "failed": 0,
+            "broke": false,
+            "saturated": []
+          },
+          "view-out-200": {
+            "load": "200 viewers",
+            "rps": null,
+            "p50_ms": 1050,
+            "p95_ms": 2260,
+            "failed": 0,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "view-out-1000": {
+            "load": "1000 viewers",
+            "rps": null,
+            "p50_ms": 2760,
+            "p95_ms": 30000,
+            "failed": 0.22,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "view-in-50": {
+            "load": "50 viewers",
+            "rps": null,
+            "p50_ms": 153,
+            "p95_ms": 581,
+            "failed": 0,
+            "broke": false,
+            "saturated": []
+          },
+          "view-in-200": {
+            "load": "200 viewers",
+            "rps": null,
+            "p50_ms": 5000,
+            "p95_ms": 6100,
+            "failed": 0,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "view-in-1000": {
+            "load": "1000 viewers",
+            "rps": null,
+            "p50_ms": 5700,
+            "p95_ms": 30000,
+            "failed": 0.4,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ],
+            "pool_timeouts": 0
+          },
+          "tap": {
+            "load": "100 per second",
+            "rps": null,
+            "p50_ms": 6,
+            "p95_ms": 5800,
+            "failed": 0,
+            "broke": true,
+            "saturated": [
+              "rendering"
+            ]
+          },
+          "report": {
+            "load": "30 per second",
+            "rps": null,
+            "p50_ms": 7,
+            "p95_ms": 28,
+            "failed": 0,
+            "broke": false,
+            "saturated": []
+          }
+        },
+        "cold": {
+          "pageSignedOut_ms": 158,
+          "warmMedian_ms": 34
+        },
+        "machine": "4-core GitHub runner with a higher CPU ceiling than run one (380% vs 290%) and an ES256-signed local stack, so page-view levels are not like-for-like with run one; pool of 10",
+        "same_machine_ab": "♡ 100/s p95 11.7 s (40% wrongly signed out) to 20 ms (100% saved); signed-in Page 30/s p95 2.0 s to 1.1 s"
+      },
+      "broke_first": "rendering at 200 viewers (view-out-200)",
+      "url": "https://github.com/donlafranchi/socialus-web/actions/runs/43260441713",
+      "ideas": [
+        "Cut the server render cost of a Page: cache what signed-out visitors see, or render less per view."
       ],
       "changed_after": []
     }

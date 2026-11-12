@@ -153,6 +153,7 @@ describe('the routines and run one, as committed', () => {
       members: 1000, broke_first: 'rendering at 200 viewers (view-out-200)',
     })
     expect(Object.keys((runs[0].numbers as { levels: object }).levels)).toHaveLength(8)
+    expect(runs.map((r) => r.ran_on)).toEqual(['2026-11-11', '2026-11-12']) // run two: the taps-under-load fix (#1270)
   })
 })
 
@@ -186,18 +187,23 @@ describe.skipIf(!RUNNABLE)('F135: runs loaded into the store and read back', () 
   })
 
   // [guards F135.5]
-  it('the import loads the routine and run one from #1264, once', async () => {
+  it('the import loads the routine, run one from #1264 and run two from #1270, once', async () => {
     const first = await loadRuns(db)
     expect(first).toMatchObject({ routines: 1 })
-    expect(first.recorded).toHaveLength(1)
+    expect(first.recorded).toHaveLength(2)
     expect(await loadRuns(db)).toMatchObject({ routines: 1, recorded: [] })
     const { rows } = await db.query(
       `select t.ran_on::text, t.commit, t.members, t.broke_first, x.status, x.decided_on::text
-         from knowledge.run_terms t join knowledge.records x on x.id = t.run_id where t.practice_id = $1`,
+         from knowledge.run_terms t join knowledge.records x on x.id = t.run_id where t.practice_id = $1 order by t.ran_on`,
       [LOAD_PRACTICE],
     )
     expect(rows).toEqual([{ ran_on: '2026-11-11', commit: '6860c49821eee7728958870f4e76ee51bbd8a28c', members: 1000,
-                            broke_first: 'rendering at 200 viewers (view-out-200)', status: 'passed', decided_on: '2026-11-11' }])
+                            broke_first: 'rendering at 200 viewers (view-out-200)', status: 'passed', decided_on: '2026-11-11' },
+                          { ran_on: '2026-11-12', commit: 'e3fbc20715fb0e15c14732b91d5beedb84726519', members: 1000,
+                            broke_first: 'rendering at 200 viewers (view-out-200)', status: 'passed', decided_on: '2026-11-12' }])
+    // Run two's rendering idea joins run one's, still open, rather than adding a second.
+    const { rows: open } = await db.query(`select count(*)::int as n from knowledge.records where kind = 'idea' and answer like 'Cut the server render%'`)
+    expect(open[0].n).toBe(1)
   })
 
   // [guards F135.7]
