@@ -22,7 +22,7 @@ const RUNNABLE = requireRunnable({
 
 const { signedIn } = vi.hoisted(() => ({ signedIn: { id: '' } }))
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: signedIn.id } }, error: null }) } }),
+  createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: signedIn.id } }, error: null }), getClaims: async () => ({ data: { claims: { sub: signedIn.id } }, error: null }) } }),
 }))
 import { answerNoticeAction } from '@/app/_actions/report-actions'
 
