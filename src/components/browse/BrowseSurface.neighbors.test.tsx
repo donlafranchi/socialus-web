@@ -1,7 +1,7 @@
 // #1183 — a search answers with posts from members too: one "From neighbors" group, signed in only.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, cleanup, fireEvent, within } from '@testing-library/react'
+import { screen, cleanup, fireEvent, within, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
 import { renderExplore, searchBox } from './explore-harness'
@@ -52,10 +52,10 @@ describe('#1183 — From neighbors in search', () => {
     expect(searchMemberPostsAction).toHaveBeenCalledWith({ metroId: 'm1' }, 'cat')
   })
 
-  it('signed out, never asked', async () => {
+  // F134 — a visitor searches neighbours' posts too; their names stay hidden in the database (F134.7).
+  it('signed out, asked too', async () => {
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: false })} />)
     fireEvent.change(searchBox(), { target: { value: 'cat' } })
-    await screen.findByTestId('browse-page')
-    expect(searchMemberPostsAction).not.toHaveBeenCalled()
+    await waitFor(() => expect(searchMemberPostsAction).toHaveBeenCalledWith({ metroId: 'm1' }, 'cat'))
   })
 })
