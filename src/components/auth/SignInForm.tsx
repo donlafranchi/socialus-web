@@ -65,7 +65,7 @@ export function SignInForm({ next, initialError = null }: { next?: string | null
   return (
     <>
       <h1 className="mb-2 text-title-1 text-[var(--color-fg)]" data-testid="login-heading">
-        Sign in to SocialUs
+        Join or sign in
       </h1>
       <p className="mb-5 text-body-sm text-[var(--color-fg-muted)]">
         Enter your email and we’ll send you a {CODE_LENGTH}-digit code. New here or not, this is the way in.

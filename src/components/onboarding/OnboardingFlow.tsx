@@ -204,7 +204,7 @@ export function OnboardingFlow({
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
             />
-            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">This is the name your neighbors will see.</p>
+            <p className="mt-1 text-caption text-[var(--color-fg-muted)]">This is the name other members will see.</p>
           </div>
           <div>
             <label htmlFor="onboarding-zip" className="text-body-sm text-[var(--color-fg)]">

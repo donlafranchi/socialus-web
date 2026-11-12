@@ -1,8 +1,8 @@
-// A member's first sign-up ends on a one-time welcome built from the live landing copy (Don, 2026-10-31).
+// A member's first sign-up ends on a one-time welcome that says the front door's one line (Don, 2026-11-06).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { HOME } from '@/lib/home-landing'
+import { HOME, MESSAGE } from '@/lib/home-landing'
 
 const { getUser, updateUser } = vi.hoisted(() => ({ getUser: vi.fn(), updateUser: vi.fn() }))
 vi.mock('@/lib/supabase-server', () => ({ createClient: vi.fn(async () => ({ auth: { getUser, updateUser } })) }))
@@ -26,11 +26,11 @@ afterEach(cleanup)
 const open = (next?: string) => WelcomePage({ searchParams: Promise.resolve(next ? { next } : {}) })
 
 describe('/welcome', () => {
-  it('shows the landing headline, the three blocks and Get started into the app', async () => {
+  it('shows the one line, Don’s sentence under it, and Get started into the app', async () => {
     getUser.mockResolvedValue({ data: { user: { id: 'm1', user_metadata: { onboarded: true } } } })
     render(await open('/g/81bjk0'))
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(HOME.hero.lines.join(''))
-    for (const c of HOME.can) expect(screen.getByRole('heading', { name: c.title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(MESSAGE)
+    expect(screen.getByText(HOME.hero.body)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/g/81bjk0')
   })
 
