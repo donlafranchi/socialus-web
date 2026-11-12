@@ -173,6 +173,20 @@ describe.skipIf(!RUNNABLE)('F134 — signed out, over PostgREST, with the bundle
     await client.query(`delete from public.locations where id = $1`, [LOCATION])
     await client.query(`delete from public.places where id = $1`, [HOOD])
     await client.query(`delete from public.metro_polygons where id = $1`, [METRO])
+    // Publishing and posting made the list labels as tags in this member's name; tags.created_by is required. Like
+    // f082, drop the ones nothing else uses, and hand any another suite now uses to a member who stays.
+    await client.query(
+      `delete from public.tags t where t.created_by = any($1)
+         and not exists (select 1 from public.page_tags x where x.tag_id = t.id)
+         and not exists (select 1 from public.post_tags x where x.tag_id = t.id)
+         and not exists (select 1 from public.member_post_tags x where x.tag_id = t.id)`,
+      [[OWNER, strangerId]],
+    )
+    await client.query(
+      `update public.tags set created_by = (select m.id from public.members m where m.id <> all($1) order by m.created_at limit 1)
+        where created_by = any($1)`,
+      [[OWNER, strangerId]],
+    )
     await client.query(`delete from public.members where id = any($1)`, [[OWNER, strangerId]])
     await client.query(`delete from auth.users where id = any($1)`, [[OWNER, strangerId]])
     client.release()
