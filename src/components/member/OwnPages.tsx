@@ -74,6 +74,22 @@ export function OwnPages({
     router.refresh()
   }
 
+  // F057 criterion 4a (#1012): Edit on each live or archived Page, to its editor.
+  // A deleted Page has no address and no Edit; Restore is its only way back.
+  function editLink(p: OwnPage) {
+    if (!p.href) return null
+    return (
+      <Link
+        href={`${p.href}/edit`}
+        aria-label={`Edit ${p.name}`}
+        data-testid="own-page-edit"
+        className="press inline-flex min-h-tap min-w-tap items-center justify-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
+      >
+        Edit
+      </Link>
+    )
+  }
+
   // Copy is a placeholder ([public-is-draft]).
   function hiddenState(p: OwnPage) {
     const label =
@@ -89,14 +105,17 @@ export function OwnPages({
     return (
       <div className="flex flex-col items-start gap-2">
         {label}
-        <Button
-          variant="secondary"
-          aria-label={`Restore ${p.name}`}
-          disabled={busy === p.groupId}
-          onClick={() => restore(p.groupId)}
-        >
-          Restore
-        </Button>
+        <div className="flex w-full items-center justify-between gap-2">
+          <Button
+            variant="secondary"
+            aria-label={`Restore ${p.name}`}
+            disabled={busy === p.groupId}
+            onClick={() => restore(p.groupId)}
+          >
+            Restore
+          </Button>
+          {p.lifecycleState === 'archived' && editLink(p)}
+        </div>
         {error?.groupId === p.groupId && (
           <p role="alert" className="text-caption text-red-700">
             {error.message}
@@ -149,16 +168,7 @@ export function OwnPages({
                       >
                         Live
                       </span>
-                      {p.href && (
-                        <Link
-                          href={`${p.href}/edit`}
-                          aria-label={`Edit ${p.name}`}
-                          data-testid="own-page-edit"
-                          className="press inline-flex min-h-tap items-center text-body-sm font-medium text-[var(--color-charcoal-900)] underline"
-                        >
-                          Edit
-                        </Link>
-                      )}
+                      {editLink(p)}
                     </div>
                   )
                 }

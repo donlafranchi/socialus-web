@@ -84,7 +84,7 @@ describe('#423 review — Restore is a 44px target', () => {
 })
 
 describe('F057 criterion 4a — an Edit control on each live Page', () => {
-  // [guards F057.4]
+  // [guards F057.4 partial: the listings half (4b), routed to scope-scenario on #1012]
   it('every live Page on You has Edit to its own editor; a draft keeps Continue and has no Edit', async () => {
     getOwnPages.mockResolvedValue([
       page({ groupId: 'a', name: 'Oak Park Sourdough', href: '/g/aaa111' }),
@@ -98,6 +98,19 @@ describe('F057 criterion 4a — an Edit control on each live Page', () => {
     const drafts = screen.getByTestId('own-drafts')
     expect(within(drafts).queryByRole('link', { name: /^edit/i })).toBeNull()
     expect(within(drafts).getByRole('link', { name: /continue/i })).toBeInTheDocument()
+  })
+
+  // [guards F057.4 partial: the listings half (4b), routed to scope-scenario on #1012]
+  it('an archived Page keeps Restore and gets Edit at its readable address; a deleted Page has no Edit', async () => {
+    getOwnPages.mockResolvedValue([
+      page({ groupId: 'r', name: 'Resting Shop', lifecycleState: 'archived', href: '/davis/resting-shop' }),
+      page({ groupId: 'x', name: 'Gone Shop', lifecycleState: 'dissolved', href: null, deleteAfter: '2026-12-01T00:00:00Z' }),
+    ])
+    render(<OwnPages memberId="m1" onRestore={onRestore} onDiscard={vi.fn()} />)
+    const list = await screen.findByTestId('own-pages')
+    expect(within(list).getByRole('link', { name: 'Edit Resting Shop' })).toHaveAttribute('href', '/davis/resting-shop/edit')
+    expect(within(list).getByRole('button', { name: 'Restore Resting Shop' })).toBeInTheDocument()
+    expect(within(list).queryByRole('link', { name: 'Edit Gone Shop' })).toBeNull()
   })
 })
 
