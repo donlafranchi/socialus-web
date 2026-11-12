@@ -47,6 +47,16 @@ const notFound = (id: string): ToolResult => ({
 
 const json = (v: unknown): ToolResult => ({ text: JSON.stringify(v) })
 
+/**
+ * A date as a line shows it: without the year when it is this year, as a
+ * calendar does (#1284: the moderation answer's 25 dates were over 5% of its
+ * 2,000-token budget).
+ */
+export function shortDate(d: string | null, thisYear = new Date().getUTCFullYear()): string | null {
+  if (!d) return d
+  return d.startsWith(`${thisYear}-`) ? d.slice(5) : d
+}
+
 /** One line per record: id, how strict, how long it holds, when, the words, what it applies. */
 function line(r: k.RecordRow & { applies?: { id: string; basis: string }[] }): string {
   const meta = [
@@ -56,7 +66,7 @@ function line(r: k.RecordRow & { applies?: { id: string; basis: string }[] }): s
     r.holds === 'for now' ? `for now${r.until ? ` (until ${r.until})` : ''}` : r.holds,
     r.settled ? 'settled' : null,
     r.status === 'live' ? null : r.status,
-    r.decided_on,
+    shortDate(r.decided_on),
   ].filter(Boolean)
   const applies = r.applies?.length
     ? ` [applies ${r.applies.map((a) => (a.basis === 'inferred' ? `${a.id}~` : a.id)).join(', ')}]`
@@ -76,7 +86,7 @@ export const TOOLS: KnowledgeTool[] = [
     name: 'live',
     description:
       'Every live decision and principle for one concern, strictest first, one line each: id, strength (absolute or rule; unmarked is a guideline), ' +
-      'whether it holds always or for now, its date, its words, and the principles it applies (~ marks a link inferred at import). ' +
+      'whether it holds always or for now, its date (MM-DD this year), its words, and the principles it applies (~ marks a link inferred at import). ' +
       'Start here before building in a concern; ask why(id) for the reason behind one.',
     input: { concern: z.string().describe('A concern slug, such as moderation-and-reports or explore-and-map.') },
     run: async (db, { concern }) => {
