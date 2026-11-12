@@ -74,7 +74,7 @@ export const REASONS: readonly ReasonOption[] = [
   {
     code: 'not_suitable',
     label: 'Not suitable here',
-    memberText: 'We took your photo down — it isn’t suitable for a neighbourhood app.',
+    memberText: 'We took your photo down — it isn’t suitable for a neighborhood app.',
     appliesTo: 'removed',
   },
   {

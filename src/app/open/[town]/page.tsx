@@ -81,7 +81,7 @@ export default async function TownPage({ params }: Props) {
         <GoalBar label="Makers" have={t.makers} goal={t.maker_goal} />
         <GoalBar label="Supporters" have={t.supporters} goal={t.supporter_goal} />
       </section>
-      <p className="mt-3 text-body-sm text-[var(--color-fg-muted)]">Makers are businesses, makers and organizers with a Page here. Supporters are neighbours who signed up. Counts update every hour.</p>
+      <p className="mt-3 text-body-sm text-[var(--color-fg-muted)]">Makers are businesses, makers and organizers with a Page here. Supporters are neighbors who signed up. Counts update every hour.</p>
 
       <section className="mt-6">
         {!me ? (
@@ -95,7 +95,7 @@ export default async function TownPage({ params }: Props) {
           <p className="text-body-sm text-[var(--color-fg-muted)]">You’re counted in the town your zip is in. You can still add makers here.</p>
         )}
         <div className="mt-3">
-          <InviteButton label="Invite neighbours" title={`Help open ${t.name} on SocialUs`} text={`Help open ${t.name} on SocialUs:`} path={here} />
+          <InviteButton label="Invite neighbors" title={`Help open ${t.name} on SocialUs`} text={`Help open ${t.name} on SocialUs:`} path={here} />
         </div>
       </section>
 
@@ -144,7 +144,7 @@ export default async function TownPage({ params }: Props) {
             {people.map((p, i) => (
               <li key={i} className="flex justify-between py-2 text-body">
                 {/* F134.7 — first names stay between members. */}
-                <span className="text-[var(--color-fg)]">{data.user ? p.first_name : COPY.aNeighbour}</span>
+                <span className="text-[var(--color-fg)]">{data.user ? p.first_name : COPY.aNeighbor}</span>
                 <span className="text-body-sm text-[var(--color-fg-muted)]">{p.brought > 0 ? `${p.brought} brought in` : `${p.added} added`}</span>
               </li>
             ))}

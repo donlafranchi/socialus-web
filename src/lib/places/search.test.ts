@@ -16,7 +16,7 @@ const p = (name: string, kind: string, parent?: string): PlaceMatch => ({
 
 describe('what a match is called', () => {
   it('says neighbourhood and city in words a person uses', () => {
-    expect(placeKindLabel('neighborhood')).toBe('Neighbourhood')
+    expect(placeKindLabel('neighborhood')).toBe('Neighborhood')
     expect(placeKindLabel('city')).toBe('City')
   })
 

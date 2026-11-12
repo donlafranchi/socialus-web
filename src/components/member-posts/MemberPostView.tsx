@@ -81,8 +81,8 @@ export function MemberPostView({
         </p>
       )}
       <p className="flex items-center gap-2 text-body-sm">
-        <PersonMark name={post.displayName ?? COPY.aNeighbour} photoUrl={post.avatarUrl} className="size-8 text-caption" />
-        <span data-testid="member-post-name" className="font-medium text-[var(--color-fg)]">{post.displayName ?? COPY.aNeighbour}</span>
+        <PersonMark name={post.displayName ?? COPY.aNeighbor} photoUrl={post.avatarUrl} className="size-8 text-caption" />
+        <span data-testid="member-post-name" className="font-medium text-[var(--color-fg)]">{post.displayName ?? COPY.aNeighbor}</span>
         <span className="text-[var(--color-fg-muted)]">in {post.placeName}</span>
       </p>
 

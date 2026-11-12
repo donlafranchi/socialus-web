@@ -18,8 +18,8 @@ export function MemberPostCard({ post, now }: { post: MemberPost; now: Date }) {
       </p>
       <p className="line-clamp-3 text-sm leading-5 text-[var(--color-fg)] group-hover/tile:text-[var(--color-accent)]">{post.body}</p>
       <p className="mt-auto flex items-center gap-2 text-caption text-[var(--color-fg-muted)]">
-        <PersonMark name={post.displayName ?? COPY.aNeighbour} photoUrl={post.avatarUrl} className="size-6 text-micro" />
-        <span data-testid="member-post-name" className="line-clamp-1 font-medium text-[var(--color-fg)]">{post.displayName ?? COPY.aNeighbour}</span>
+        <PersonMark name={post.displayName ?? COPY.aNeighbor} photoUrl={post.avatarUrl} className="size-6 text-micro" />
+        <span data-testid="member-post-name" className="line-clamp-1 font-medium text-[var(--color-fg)]">{post.displayName ?? COPY.aNeighbor}</span>
       </p>
     </Link>
   )
