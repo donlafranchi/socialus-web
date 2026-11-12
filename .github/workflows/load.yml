@@ -1,0 +1,102 @@
+name: Load simulation
+
+# #1261 — what happens when many people use the same Page at once, and what breaks first
+# (socialus-ops process/PERFORMANCE.md § Load simulation). k6 against a throwaway local stack
+# on the runner: Supabase plus a production build of this commit, never production.
+# 50, 200 and 1,000 viewers of one Page signed out and signed in, a burst of ♡ taps, a burst
+# of reports. The first thing to break, at what load, and p95 per level land in the job summary.
+# MANUAL: Actions → Load simulation → Run workflow, before each checkpoint and launch push.
+# Also runs on a PR that changes the load simulation itself. About 20 minutes.
+# On the Mac: npm run load.
+on:
+  workflow_dispatch:
+    inputs:
+      levels:
+        description: 'Viewer levels'
+        default: '50 200 1000'
+      scenarios:
+        description: 'view-out view-in tap report (any of)'
+        default: 'view-out view-in tap report'
+      gate:
+        description: 'Fail the run when a level breaks'
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - 'evals/load/**'
+      - '.github/workflows/load.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: load-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  load:
+    name: Load simulation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v5
+
+      # Pinned, for the reason ci.yml gives (#164).
+      - uses: supabase/setup-cli@v2
+        with:
+          version: 2.117.0
+
+      # The official release binary, pinned: no third-party action to keep on a supported Node.
+      - name: Install k6
+        env:
+          K6_VERSION: v1.0.0
+        run: |
+          curl -fsSL "https://github.com/grafana/k6/releases/download/$K6_VERSION/k6-$K6_VERSION-linux-amd64.tar.gz" | tar xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/k6-$K6_VERSION-linux-amd64/k6" version
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Cache node_modules
+        id: node-modules
+        uses: actions/cache@v5
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node20-${{ hashFiles('package-lock.json') }}
+
+      - if: steps.node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # The same services the browser job starts (ci.yml); evals/load/run.sh would start it too.
+      - name: Start a throwaway local stack
+        run: bash scripts/supabase-start.sh -x "$SUPABASE_UNUSED"
+        env:
+          SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Load simulation
+        env:
+          LOAD_LEVELS: ${{ inputs.levels || '50 200 1000' }}
+          LOAD_SCENARIOS: ${{ inputs.scenarios || 'view-out view-in tap report' }}
+          LOAD_GATE: ${{ inputs.gate && '1' || '' }}
+        run: npm run load
+
+      - name: Summary
+        if: ${{ !cancelled() }}
+        run: |
+          cat load-out/summary.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No summary - the run stopped before the first level." >> "$GITHUB_STEP_SUMMARY"
+
+      # Everything but fixture.json, which holds the throwaway members' session cookies.
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: load-simulation
+          path: |
+            load-out/*.md
+            load-out/*.json
+            load-out/*.jsonl
+            load-out/server.log
+            !load-out/fixture.json
+          retention-days: 30
+          if-no-files-found: ignore
