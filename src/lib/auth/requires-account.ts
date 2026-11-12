@@ -22,9 +22,9 @@ export const GATED_ACTIONS = [
   'report',
   'respond',
   'message',
-  'map',
   'heart',
   'save',
+  'remind',
 ] as const
 
 export type GatedAction = (typeof GATED_ACTIONS)[number]
@@ -66,8 +66,7 @@ const PROMPTS: Record<GatedAction, Prompt> = {
     title: 'Sign in to respond',
     why: 'The organizer needs a count they can trust.',
   },
-  // #334 (ruling 2026-10-01): signed out, Explore is list only. Copy is a placeholder ([public-is-draft]).
-  // #1171 — the buttons are hidden signed out; these show only when a session has ended mid-visit.
+  // F134 — the buttons show signed out and ask first. Copy is a placeholder ([public-is-draft]).
   heart: {
     title: 'Sign in to heart this',
     why: 'Your hearts are kept with your account, so you can take one back.',
@@ -76,10 +75,9 @@ const PROMPTS: Record<GatedAction, Prompt> = {
     title: 'Sign in to save this',
     why: 'Saved posts are kept with your account, on your You page.',
   },
-  map: {
-    title: 'Sign up to see the map',
-    why: 'The map is for members, so what is on it stays with the people here.',
-    signUp: true,
+  remind: {
+    title: 'Sign in to be reminded',
+    why: 'Reminders come to your account, so they reach you wherever you sign in.',
   },
   message: {
     title: 'Sign in to send this',
@@ -98,19 +96,31 @@ export function promptFor(action: GatedAction): Prompt {
  * were on, and `intent` names what they were doing, so the surface can finish
  * it once they are back rather than making them find the control again.
  */
-export function signInHref(action: GatedAction, currentPath: string): string {
-  const next = `${currentPath}${currentPath.includes('?') ? '&' : '?'}intent=${action}`
-  return `/auth/login?next=${encodeURIComponent(next)}`
+export function signInHref(action: GatedAction, currentPath: string, target?: string | null): string {
+  // F134.4 — the intent names the thing tapped too (`heart:<post id>`), so only that control finishes the tap.
+  const [path, query = ''] = currentPath.split('?')
+  const q = new URLSearchParams(query)
+  q.set('intent', target ? `${action}:${target}` : action)
+  return `/auth/login?next=${encodeURIComponent(`${path}?${q}`)}`
 }
 
 /** The same, through sign-up. Sign-up and sign-in are one flow, so this is the sign-in address:
  *  /auth/signup only forwarded to it, and the forward cost a server round trip (#531). */
-export function signUpHref(action: GatedAction, currentPath: string): string {
-  return signInHref(action, currentPath)
+export function signUpHref(action: GatedAction, currentPath: string, target?: string | null): string {
+  return signInHref(action, currentPath, target)
+}
+
+export interface Intent {
+  action: GatedAction
+  /** The id of what was tapped, when the control names one. */
+  target: string | null
 }
 
 /** The intent carried back from sign-in, if it names a real gated action. */
-export function parseIntent(raw: string | null | undefined): GatedAction | null {
+export function parseIntent(raw: string | null | undefined): Intent | null {
   if (!raw) return null
-  return (GATED_ACTIONS as readonly string[]).includes(raw) ? (raw as GatedAction) : null
+  const at = raw.indexOf(':')
+  const action = at < 0 ? raw : raw.slice(0, at)
+  const target = at < 0 ? null : raw.slice(at + 1) || null
+  return (GATED_ACTIONS as readonly string[]).includes(action) ? { action: action as GatedAction, target } : null
 }

@@ -11,7 +11,7 @@
 
 import { useState, type ReactNode } from 'react'
 import { Check } from 'lucide-react'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { useSignInFirst } from '@/hooks/useSignInFirst'
 import { buttonClass } from '@/components/ui/Button'
 
 interface Props {
@@ -42,26 +42,34 @@ export function FollowPageButton({
   const [isFollowing, setIsFollowing] = useState(following)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [asking, setAsking] = useState(false)
 
   // #1171 — an open Page's follow is Get updates (in the Page's ⋯ now); a private or meetup Page is joined.
   const idle = isPrivate || join ? 'Join' : 'Get updates'
   const done = isPrivate || join ? 'Joined' : 'Getting updates'
 
   // #297 — signed out, nobody can follow (Don, 2026-10-04): the button says
-  // so and opens the sign-up sheet. The tap is kept: sign-up comes back here.
+  // so and opens the sign-up sheet. F134.4: the tap is kept, and back signed in it completes.
+  const gate = useSignInFirst({
+    action: isPrivate || join ? 'follow' : 'get-updates',
+    target: groupId,
+    signedIn: loggedIn,
+    returnTo,
+    onReturn: () => {
+      if (!isFollowing) void toggle()
+    },
+  })
   if (!loggedIn) {
     return (
       <div className="flex flex-col items-start gap-2">
         <button
           type="button"
           data-testid="page-follow-signin"
-          onClick={() => setAsking(true)}
+          onClick={() => gate.ask(() => {})}
           className={buttonClass('secondary')}
         >
           Sign up to {idle.toLowerCase()}
         </button>
-        {asking && <SignInPrompt action={isPrivate || join ? 'follow' : 'get-updates'} currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
+        {gate.sheet}
       </div>
     )
   }

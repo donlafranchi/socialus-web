@@ -2,11 +2,11 @@
 
 // #1171 (socialus-plan #269, Don 2026-11-02): "I kinda like both Heart and Save", "As separate things". Small, calm
 // icons (Instagram's): ♡ is "I like this" and tells the poster who; the bookmark keeps a post on You, privately.
-// Hidden signed out. Optimistic: the icon turns at once and goes back if the server says no.
+// F134.4 — shown signed out too: a tap asks for sign-in first and saves nothing, and the heart is there once they
+// are back. Optimistic: the icon turns at once and goes back if the server says no.
 
-import { useState } from 'react'
 import { Bookmark, Heart } from 'lucide-react'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { useSignInFirst } from '@/hooks/useSignInFirst'
 import { setHeartAction, setSaveAction } from '@/app/_actions/heart-save-actions'
 import { flip, useMarks } from '@/lib/hearts/marks-store'
 import { HEART_COPY } from '@/lib/copy'
@@ -14,24 +14,32 @@ import { HEART_COPY } from '@/lib/copy'
 const ICON_BUTTON =
   'press inline-flex size-tap shrink-0 items-center justify-center rounded-full text-[var(--color-fg)] hover:text-[var(--color-accent)] aria-pressed:text-[var(--color-accent)]'
 
-function useToggle(kind: 'heartedPosts' | 'heartedPages' | 'savedPosts', id: string, send: (on: boolean) => ReturnType<typeof setSaveAction>) {
+function useToggle(
+  kind: 'heartedPosts' | 'heartedPages' | 'savedPosts',
+  id: string,
+  action: 'heart' | 'save',
+  returnTo: string | undefined,
+  send: (on: boolean) => ReturnType<typeof setSaveAction>,
+) {
   const marks = useMarks()
-  const [asking, setAsking] = useState(false)
   const on = marks[kind].has(id)
-  const toggle = async () => {
-    const undo = flip(kind, id, !on)
-    const res = await send(!on).catch(() => ({ ok: false as const }))
+  const set = async (next: boolean) => {
+    const undo = flip(kind, id, next)
+    const res = await send(next).catch(() => ({ ok: false as const }))
     if (res.ok) return
     undo()
-    if ('signedOut' in res && res.signedOut) setAsking(true)
+    // A session that ended mid-visit: ask now, nothing was kept.
+    if ('signedOut' in res && res.signedOut) gate.prompt()
   }
-  return { visible: marks.signedIn === true, on, toggle, asking, stopAsking: () => setAsking(false) }
+  // Back from sign-in: on, whatever it was before, so a second tap never undoes the first.
+  const gate = useSignInFirst({ action, target: id, signedIn: marks.signedIn ?? undefined, returnTo, onReturn: () => void set(true) })
+  return { visible: marks.signedIn !== null, on, toggle: () => gate.ask(() => void set(!on)), sheet: gate.sheet }
 }
 
 export function HeartButton({ target, returnTo }: { target: { postId: string } | { groupId: string }; returnTo?: string }) {
   const isPost = 'postId' in target
   const id = isPost ? target.postId : target.groupId
-  const t = useToggle(isPost ? 'heartedPosts' : 'heartedPages', id, (on) => setHeartAction({ ...target, on }))
+  const t = useToggle(isPost ? 'heartedPosts' : 'heartedPages', id, 'heart', returnTo, (on) => setHeartAction({ ...target, on }))
   if (!t.visible) return null
   return (
     <>
@@ -47,13 +55,13 @@ export function HeartButton({ target, returnTo }: { target: { postId: string } |
       >
         <Heart size={20} aria-hidden="true" fill={t.on ? 'currentColor' : 'none'} />
       </button>
-      {t.asking && <SignInPrompt action="heart" currentPath={returnTo ?? currentPath()} onClose={t.stopAsking} />}
+      {t.sheet}
     </>
   )
 }
 
 export function SaveButton({ postId, returnTo }: { postId: string; returnTo?: string }) {
-  const t = useToggle('savedPosts', postId, (on) => setSaveAction({ postId, on }))
+  const t = useToggle('savedPosts', postId, 'save', returnTo, (on) => setSaveAction({ postId, on }))
   if (!t.visible) return null
   return (
     <>
@@ -69,9 +77,7 @@ export function SaveButton({ postId, returnTo }: { postId: string; returnTo?: st
       >
         <Bookmark size={20} aria-hidden="true" fill={t.on ? 'currentColor' : 'none'} />
       </button>
-      {t.asking && <SignInPrompt action="save" currentPath={returnTo ?? currentPath()} onClose={t.stopAsking} />}
+      {t.sheet}
     </>
   )
 }
-
-const currentPath = () => (typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search)

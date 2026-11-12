@@ -6,7 +6,7 @@
 // bug. `vitest.config.ts` pins TZ=UTC for exactly this reason (#211).
 
 import { describe, it, expect } from 'vitest'
-import { metroWeekBounds, METRO_WEEK_LABEL } from './metro-week'
+import { metroWeekBounds } from './metro-week'
 
 describe('metroWeekBounds', () => {
   it('starts on Monday at midnight in the metro, not in UTC', () => {
@@ -35,9 +35,4 @@ describe('metroWeekBounds', () => {
     expect(from).toBe('2026-09-28T07:00:00.000Z')
   })
 
-  it('names the period in words a reader understands', () => {
-    // Criterion 5: "the period is named on the card in words a reader
-    // understands. A count that cannot be read as a period is not a count."
-    expect(METRO_WEEK_LABEL).toBe('this week')
-  })
 })

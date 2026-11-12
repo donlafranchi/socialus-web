@@ -6,7 +6,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { ReportControl } from './ReportControl'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { useSignInFirst } from '@/hooks/useSignInFirst'
 import { Toast } from '@/components/Toast'
 import { HEART_COPY } from '@/lib/copy'
 
@@ -48,13 +48,13 @@ function Provider({
 }: Props) {
   const [following, setFollowing] = useState(initial)
   const [busy, setBusy] = useState(false)
-  const [asking, setAsking] = useState(false)
   const [told, setTold] = useState<string | null>(null)
-  const toggle = async () => {
-    if (!loggedIn) return setAsking(true)
-    if (busy) return
+  // F134.4 — signed out, ask first; back signed in, Get updates is on.
+  const gate = useSignInFirst({ action: 'get-updates', target: groupId, signedIn: loggedIn, returnTo, onReturn: () => void set(true) })
+  const toggle = async () => gate.ask(() => void set(!following))
+  const set = async (next: boolean) => {
+    if (busy || next === following) return
     setBusy(true)
-    const next = !following
     try {
       await (next ? onFollow : onUnfollow)({ groupId })
       setFollowing(next)
@@ -68,7 +68,7 @@ function Provider({
   return (
     <Ctx.Provider value={{ following, toggle }}>
       {children}
-      {asking && <SignInPrompt action="get-updates" currentPath={returnTo ?? '/'} onClose={() => setAsking(false)} />}
+      {gate.sheet}
       <Toast message={told ?? ''} visible={told !== null} onHide={() => setTold(null)} />
     </Ctx.Provider>
   )

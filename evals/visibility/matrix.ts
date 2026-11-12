@@ -77,7 +77,8 @@ export const RESOURCES: Resource[] = [
     name: 'Posts of listed Pages (page_posts)',
     sql: "select count(*)::int n from public.page_posts p join public.groups g on g.id = p.group_id where g.discoverability = 'listed' and g.slug like 'qa-%'",
     total: 10,
-    cells: { signedOut: NONE },
+    // F134 (the PM, 2026-11-12): a visitor reads what a signed-in stranger reads.
+    cells: {},
     rest: all(10),
   },
   {
@@ -119,8 +120,15 @@ export const RESOURCES: Resource[] = [
     rest: NONE,
   },
   {
-    name: 'A post without a Page, through member_posts_read: every signed-in member, never a visitor',
+    name: 'A post without a Page, through member_posts_read: everyone, a visitor without the name (F134)',
     sql: "select jsonb_array_length(public.member_posts_read(p_post_id => '0e000000-0000-4000-8000-000000009901'))::int n",
+    total: 1,
+    cells: {},
+    rest: all(1),
+  },
+  {
+    name: "A poster's name on a post without a Page, through member_posts_read: members only (F134.7)",
+    sql: "select count(*)::int n from jsonb_array_elements(public.member_posts_read(p_post_id => '0e000000-0000-4000-8000-000000009901')) e where e ->> 'displayName' is not null",
     total: 1,
     cells: { signedOut: NONE },
     rest: all(1),

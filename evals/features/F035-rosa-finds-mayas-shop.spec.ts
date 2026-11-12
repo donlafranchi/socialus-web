@@ -88,8 +88,7 @@ test.describe("F035 — Rosa finds Maya's Shop", () => {
       page,
     }) => {
       // #909 (Don, 2026-10-18) replaces beat 3's visible empty state: an empty section shows only to the
-      // Page's owner, as an "add your first" prompt. F093 criterion 8: signed out never sees listings, so
-      // the visitor here is signed in.
+      // Page's owner, as an "add your first" prompt. The visitor here is signed in; signed out reads the same (F134).
       await signIn(page, ROSA.email, ROSA.password);
       await page.goto(SHOP.url);
       await expect(page.getByTestId("shop-name")).toBeVisible();

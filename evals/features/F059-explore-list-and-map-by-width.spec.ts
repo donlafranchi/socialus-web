@@ -24,12 +24,21 @@ test.describe('F059 — list and map by width', () => {
     await expect(page.getByTestId('browse-map')).toHaveCount(0)
   })
 
-  test('from 1024px a signed-out visitor still gets the list only, with no Map control', async ({ page }) => {
+  test('from 1024px a signed-out visitor gets the list first, with no Map tab', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/explore')
     await expect(page.getByTestId('card-grid')).toBeVisible()
     await expect(page.getByTestId('browse-map-pane')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Hide map' })).toHaveCount(0)
     await expect(page.getByRole('tab', { name: 'Map' })).toHaveCount(0)
+  })
+
+  // F134 (the PM, 2026-11-12) — signed out, the map opens with its pins, not sign-in.
+  test('signed out, Show on map opens the map beside the list, not a sign-in sheet', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/explore')
+    await page.getByRole('link', { name: 'Show on map' }).click()
+    await expect(page.getByTestId('browse-map')).toBeVisible()
+    await expect(page.getByTestId('sign-in-prompt')).toHaveCount(0)
   })
 })

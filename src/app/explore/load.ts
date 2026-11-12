@@ -44,8 +44,6 @@ import { viewerId } from '@/lib/auth/viewer'
 import { METRO_COOKIE } from '@/lib/browse/remembered-metro'
 import { getBrowseFeed, getHappening, getNearbyFeed } from '@/lib/feed/browse-feed'
 import { REACH_CAP, REACH_TARGET, type Reach } from '@/lib/browse/reach'
-import { getWithheldAnnouncements } from '@/lib/feed/withheld-announcements'
-import { metroWeekBounds } from '@/lib/metro/metro-week'
 import { happeningWindows } from '@/lib/metro/happening'
 import { resolveFollowedPageIds } from '@/lib/feed/followed-pages'
 import { withWaitingCounts, type FeedMetro } from '@/lib/feed/feed-metro'
@@ -54,7 +52,7 @@ import { resolveBrowseScope } from '@/lib/browse/scope'
 import { sessionShuffle, seedFromCookie, SEED_COOKIE } from '@/lib/browse/session-shuffle'
 import { mixRuns } from '@/lib/browse/mix-runs'
 import { pickLead, seenBefore, leadKey, LEAD_SIZE, SEEN_COOKIE } from '@/lib/browse/lead'
-import { feedOptsFor, hasBrowseFilters, isPlainPostsView, serverFilters, type BrowseFilters } from '@/lib/browse/filters'
+import { feedOptsFor, hasBrowseFilters, serverFilters, type BrowseFilters } from '@/lib/browse/filters'
 import { interestPageTags } from '@/lib/onboarding/interest-vocab'
 import { lastVisitFrom, VISIT_COOKIE } from '@/lib/browse/visits'
 import { loadMapMix } from '@/lib/map/load-mix'
@@ -133,29 +131,18 @@ export async function loadBrowse(
   const area = await areaPromise
   const feedScope = area ? { placeId: area.id } : { metroId: scope.metro.id }
 
-  // #876 — a filter is one targeted read: no first look, no rows (signed out, posts only reads the withheld cards).
+  // #876 — a filter is one targeted read: no first look, no rows.
   // #892 — "My interests" is not part of the read: the client applies it to the list as it stands.
   const narrowing = filters ? serverFilters(filters) : null
   const searching = Boolean(search?.trim())
   if ((narrowing && hasBrowseFilters(narrowing)) || searching) {
-    // F093 criterion 7 — signed out, posts only is the withheld cards, as on the mix. A narrower
-    // filter (kind, date, following) would say what a withheld post is; browse_feed gives anon no posts.
-    if (!userId && narrowing && isPlainPostsView(narrowing) && !searching) {
-      try {
-        const results = await getWithheldAnnouncements(supabase, { scope: feedScope, period: metroWeekBounds(), limit: BROWSE_LIMIT })
-        return { ...base, results, lead: [], leadFresh: false, following: [], metro: scope.metro, area, chosen: scope.chosen, failed: false }
-      } catch (error) {
-        console.error('[loadBrowse] signed-out posts view failed:', (error as Error).message)
-        return { ...base, results: [], following: [], metro: scope.metro, area, chosen: scope.chosen, failed: true }
-      }
-    }
     const o = narrowing ? feedOptsFor(narrowing, new Date()) : null
     try {
       const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
       const results = await getBrowseFeed(supabase, {
         scope: feedScope,
-        // #916 — signed out, a search reads Pages only: a post's words never answer a stranger (F093).
-        resultKinds: userId ? (o?.resultKinds ?? null) : ['page'],
+        // F134 — signed out reads posts as a signed-in stranger does.
+        resultKinds: o?.resultKinds ?? null,
         ...(searching ? { search } : {}),
         postKinds: o?.postKinds,
         tags: o?.tags,
@@ -180,41 +167,11 @@ export async function loadBrowse(
     ? followedFeed(supabase, followIdsPromise, feedScope)
     : Promise.resolve([] as BrowseResult[])
 
-  // F091 — signed in, the rows are posts. Signed out, only the today row
-  // fills, with the front door's withheld card (Don, 2026-10-01).
-  const happeningPromise = userId
-    ? happeningRows(supabase, feedScope)
-    : signedOutToday(supabase, feedScope)
+  // F091 (F134 restates criterion 7) — the same posts signed in or out.
+  const happeningPromise = happeningRows(supabase, feedScope)
 
-  // F093 — SIGNED OUT, ANNOUNCEMENTS COME FROM THE WITHHELD PATH.
-  //
-  // `browse_feed` is `security invoker` and `page_posts` has no anonymous read
-  // any more, so it would return no post rows to a stranger anyway. Asking it
-  // for Pages only is not what does the withholding — the policy is — it just
-  // says out loud which half of the corpus this call is for, and makes it
-  // impossible for one announcement to arrive down both paths if the policy
-  // is ever loosened.
-  //
-  // Criterion 7: the rows STAY, in withheld form. A signed-out Explore
-  // carrying only Pages leaks nothing and is still wrong — it is the
-  // difference between a directory and a place that is visibly alive, which
-  // is the whole reason this ruling is not "announcements require an account".
-  const signedOut = !userId
-  // #331 — signed out, no pins (the front door, F093).
-  const mapPromise = userId && withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
-  let withheldFailed = false
-  const withheldPromise = signedOut
-    ? getWithheldAnnouncements(supabase, {
-        scope: feedScope,
-        // The period the count on the card is over, in the metro's own week.
-        period: metroWeekBounds(),
-        limit: BROWSE_LIMIT,
-      }).catch((error) => {
-        console.error('[loadBrowse] withheld announcements failed:', (error as Error).message)
-        withheldFailed = true
-        return [] as BrowseResult[]
-      })
-    : Promise.resolve([] as BrowseResult[])
+  // F134 — the pins show signed out too, at the precision the owner chose.
+  const mapPromise = withMap ? loadMap(supabase, scope.metro.id, area?.id) : Promise.resolve([] as MixedResult[])
 
   try {
     // #922 — the whole market only when the member asked for it, or picked a neighbourhood; otherwise a full screen nearby.
@@ -222,7 +179,7 @@ export async function loadBrowse(
     const read = nearby
       ? await getNearbyFeed(supabase, {
           metroId: scope.metro.id,
-          resultKinds: signedOut ? ['page'] : null,
+          resultKinds: null,
           // "This week" as the next seven days, so a Sunday still counts the week ahead.
           weekEnd: new Date(Date.now() + 7 * 86_400_000).toISOString(),
           minutes: typeof reach === 'number' ? reach : null,
@@ -230,20 +187,17 @@ export async function loadBrowse(
           cap: REACH_CAP,
           limit: BROWSE_LIMIT,
         })
-      : { results: await getBrowseFeed(supabase, { scope: feedScope, resultKinds: signedOut ? ['page'] : null, limit: BROWSE_LIMIT }), reach: null }
+      : { results: await getBrowseFeed(supabase, { scope: feedScope, limit: BROWSE_LIMIT }), reach: null }
     const results = read.results
     const reachShown: BrowseSnapshot['reach'] = area ? null : read.reach ?? { minutes: 'all', from: null }
     const following = await followingPromise
-    // Signed out, a withheld card stands for a Page in reach, never one the list left out.
-    const inReach = new Set(results.map((r) => r.groupId))
-    const withheld = (await withheldPromise).filter((r) => !nearby || inReach.has(r.groupId))
     const happening = await happeningPromise
     const now = new Date()
     // #876 (Don, 2026-10-16) — everything mixed: Pages, posts, and the updates of Pages the member
     // follows, each once, in the session's place-and-time order.
     const followIds = (await followIdsPromise?.catch(() => [] as string[])) ?? []
     const mixed = markFollowed(uniqueResults([...results, ...following]), followIds)
-    const shuffled = sessionShuffle(mergeByRecency(mixed, withheld), seed, {
+    const shuffled = sessionShuffle(mixed, seed, {
       id: (r) => `${r.resultKind}:${r.resultId}`,
       at: (r) => r.sortAt,
       now,
@@ -266,7 +220,7 @@ export async function loadBrowse(
       metro: scope.metro,
       area,
       chosen: scope.chosen,
-      failed: withheldFailed,
+      failed: false,
       reach: reachShown,
     }
   } catch (error) {
@@ -288,7 +242,7 @@ export async function loadBrowse(
   }
 }
 
-/** The pins for a signed-in member. A failure costs the pins, never the surface. */
+/** The pins. A failure costs the pins, never the surface. */
 async function loadMap(
   supabase: Awaited<ReturnType<typeof createClient>>,
   metroId: string,
@@ -302,10 +256,9 @@ async function loadMap(
   }
 }
 
-/** #549 — the map's own read, after the list has painted. Empty signed out: no pins there (#331). */
+/** #549 — the map's own read, after the list has painted. F134: signed out too. */
 export async function loadMemberMap(metroId: string, areaId: string | null): Promise<MixedResult[]> {
-  const supabase = await createClient()
-  return (await viewerId(supabase)) ? loadMap(supabase, metroId, areaId) : []
+  return loadMap(await createClient(), metroId, areaId)
 }
 
 /** The first screen: a seen post is moved below it, everything else keeps its place. */
@@ -339,20 +292,6 @@ function markFollowed(rows: BrowseResult[], followIds: readonly string[]): Brows
   if (followIds.length === 0) return rows
   const ids = new Set(followIds)
   return rows.map((r) => (ids.has(r.groupId) ? { ...r, followed: true } : r))
-}
-
-/**
- * Two result sets as one list, newest first.
- *
- * `browse_feed` already ordered its own rows and the withheld read ordered
- * its own; neither knows about the other, so the interleave happens here. One
- * sort key (`sortAt`) rather than two lists on the surface, because F059
- * criterion 2 asks for Pages and posts TOGETHER and a second row would be a
- * second answer to what Browse is.
- */
-function mergeByRecency(a: BrowseResult[], b: BrowseResult[]): BrowseResult[] {
-  if (b.length === 0) return a
-  return [...a, ...b].sort((x, y) => (x.sortAt < y.sortAt ? 1 : x.sortAt > y.sortAt ? -1 : 0))
 }
 
 /**
@@ -403,29 +342,6 @@ async function happeningRows(
     return await getHappening(supabase, scope, happeningWindows(), ROW_LIMIT)
   } catch (error) {
     console.error('[loadBrowse] happening rows failed:', (error as Error).message)
-    return NO_ROWS
-  }
-}
-
-/**
- * Signed out: one "Sign in to see what's happening" card for each Page that
- * posted something today. "Today" is when it was posted, never when it
- * happens — the withheld read counts by created_at so nobody can sweep it to
- * learn when things take place.
- */
-async function signedOutToday(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  scope: FeedScope,
-): Promise<HappeningSnapshot> {
-  try {
-    const rows = await getWithheldAnnouncements(supabase, {
-      scope,
-      period: happeningWindows().postedToday,
-      limit: ROW_LIMIT,
-    })
-    return { ...NO_ROWS, today: rows.filter((r) => (r.announcementCount ?? 0) > 0) }
-  } catch (error) {
-    console.error('[loadBrowse] signed-out today row failed:', (error as Error).message)
     return NO_ROWS
   }
 }

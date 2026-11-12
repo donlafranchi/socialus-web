@@ -68,9 +68,6 @@ function result(i: number): BrowseResult {
     updatedAt: '2026-09-02T00:00:00Z',
     postedAt: null,
     sortAt: '2026-09-02T00:00:00Z',
-    withheld: false,
-    announcementCount: null,
-    announcementIds: null,
   } as BrowseResult
 }
 
@@ -89,7 +86,7 @@ const snapshot: BrowseSnapshot = {
 }
 
 // Layout tests describe a member's Explore (list and map); the signed-out
-// ruling (#334) has its own block below.
+// ruling (F134, which replaced #334) has its own block below.
 const renderAt = (w: number, props: { ownerPanelOpen?: boolean; signedIn?: boolean } = {}) => {
   stubWidth(w)
   const { signedIn = true, ...rest } = props
@@ -227,29 +224,26 @@ describe('#331 — the map shows the tunable mix, narrowed by search and filters
   })
 })
 
-// #334 — ruling 2026-10-01: signed-out Explore is list only, and the Map pill
-// opens sign-up. A signed-out visitor never gets the map, at any width.
-describe('#334 — signed out: list only, Map opens sign-up', () => {
-  for (const w of [390, 744, 1024, 1280, 1440]) {
-    it(`shows the list and no map at ${w}px`, () => {
+// F134 (the PM, 2026-11-12) — replaces #334: signed-out Explore lays out as signed in, and the map opens with pins.
+describe('F134 — signed out, Explore lays out as signed in', () => {
+  for (const w of [390, 1280]) {
+    it(`shows the list by default at ${w}px, as signed in`, () => {
       renderAt(w, { signedIn: false })
       expect(screen.getByTestId('card-grid')).toBeInTheDocument()
       expect(screen.queryByTestId('browse-map')).toBeNull()
-      expect(screen.queryByTestId('browse-map-pane')).toBeNull()
-      expect(screen.queryByTestId('map-collapse-handle')).toBeNull()
     })
   }
 
-  it('signed out there is no ➕, so no Map control (Don, 2026-11-01)', () => {
+  it('signed out there is no ➕ (Don, 2026-11-01)', () => {
     renderAt(390, { signedIn: false })
     expect(screen.queryByTestId('create-menu')).toBeNull()
-    expect(screen.queryByRole('tab', { name: 'Map' })).toBeNull()
   })
 
-  it('a member still gets the map beside the list at 1280, on request', () => {
+  it('?view=map opens on the map signed out, beside the list at 1280', () => {
     params = new URLSearchParams('view=map')
-    renderAt(1280, { signedIn: true })
+    renderAt(1280, { signedIn: false })
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
+    expect(screen.getByTestId('card-grid')).toBeInTheDocument()
   })
 })
 
@@ -292,10 +286,11 @@ describe('plan #230 — the map on request', () => {
     expect(screen.getByTestId('browse-map')).toBeInTheDocument()
   })
 
-  it('signed out, the link opens sign-up instead of the map', () => {
+  // [guards F134.2 partial: the map control opens the map signed out, not sign-in; the pins it shows are guarded over the wire]
+  it('signed out, the link opens the map, not sign-in (F134)', () => {
     renderAt(1280, { signedIn: false })
     fireEvent.click(screen.getByRole('link', { name: 'Show on map' }))
-    expect(screen.getByTestId('sign-in-prompt')).toBeInTheDocument()
-    expect(screen.queryByTestId('browse-map')).toBeNull()
+    expect(screen.queryByTestId('sign-in-prompt')).toBeNull()
+    expect(screen.getByTestId('browse-map')).toBeInTheDocument()
   })
 })

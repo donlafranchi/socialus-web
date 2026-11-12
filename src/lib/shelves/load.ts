@@ -1,6 +1,6 @@
 // F121 — Explore's shelves for one reader: the rows that are on, arranged for this member today, each filled by
-// one browse_feed read in parallel. Signed in only: a stranger's feed carries no posts (F093), so every shelf
-// would be empty. A failed read costs that shelf, never Explore.
+// one browse_feed read in parallel. Signed out there are none: they are arranged from the member's interests and
+// follows, the personal rows F134.2 keeps for members. A failed read costs that shelf, never Explore.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getBrowseFeed, type BrowseResult, type BrowseScope } from '@/lib/feed/browse-feed'

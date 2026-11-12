@@ -79,10 +79,10 @@ describe.skipIf(!RUNNABLE)("#293 — a Page's phone and hours", () => {
     expect(row).toEqual({ contact_phone: '+19165550142', opening_hours: { mon: [{ open: '07:00', close: '15:00' }] } })
   })
 
-  it('never answer a signed-out caller', async () => {
-    for (const col of ['contact_phone', 'opening_hours']) {
-      await expect(as(null, `select ${col} from public.groups where id = '${PAGE}'`)).rejects.toThrow(/permission denied/)
-    }
+  // F134 — the phone is for members (2026-10-07) and never answers a signed-out caller; the hours do, as signed in.
+  it('the phone never answers a signed-out caller; the hours do', async () => {
+    await expect(as(null, `select contact_phone from public.groups where id = '${PAGE}'`)).rejects.toThrow(/permission denied/)
+    expect(await as(null, `select opening_hours from public.groups where id = $1`, [PAGE])).toHaveLength(1)
   })
 
   it('a signed-out caller still reads the front door', async () => {

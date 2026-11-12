@@ -43,8 +43,6 @@ check() {
 for who in anon stranger; do
   check "$who" 'Explore, search, map (browse_feed)' \
     "select 1 from public.browse_feed(p_metro_id => '$metro', p_limit => 100) f where f.group_id in ($pages)"
-  check "$who" 'withheld-post cards' \
-    "select 1 from public.announcements_withheld(p_metro_id => '$metro', p_limit => 100) w where w.group_id in ($pages)"
   check "$who" 'Pages, direct'          "select 1 from public.groups where id in ($pages)"
   check "$who" 'posts, direct'          "select 1 from public.page_posts where group_id in ($pages)"
   check "$who" 'items, direct'          "select 1 from public.items where id in ($items)"

@@ -162,7 +162,8 @@ describe.skipIf(!RUNNABLE)('browse_nearby — a full screen nearby (#922)', () =
     expect(r.names).toEqual(['b922-near-a', 'b922-near-b'])
   })
 
-  it('signed out, starts from the market’s principal city, names it, and carries no location', async () => {
+  // F134 — signed out carries each row's place, as signed in does (the pin at the owner's precision).
+  it('signed out, starts from the market’s principal city, names it, and carries each row’s location', async () => {
     const r = await inTx('anon', async () => {
       await client.query('reset role')
       await boundary('0664000', 'Sacramento', -121.4681605, 38.5676936)
@@ -172,7 +173,8 @@ describe.skipIf(!RUNNABLE)('browse_nearby — a full screen nearby (#922)', () =
     expect(r.from).toBe('Sacramento')
     // Placerville is about 60 km from Sacramento: the member's inner ring is not the visitor's.
     expect(r.names).not.toContain('b922-near-a')
-    expect(r.rows.every((x) => x.location_geography === null)).toBe(true)
+    expect(r.rows.length).toBeGreaterThan(0)
+    expect(r.rows.every((x) => x.location_geography !== null)).toBe(true)
   })
 
   it('a member whose home town lies outside the market starts from its principal city', async () => {

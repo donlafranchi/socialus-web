@@ -18,7 +18,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { visiblePhotoUrl } from './visible-photo-url'
 import { normaliseSocialLinks, type SocialLinks } from './social-links'
 import { resolvePagePlacements, type Placement } from './resolve-page-placement'
-import { viewerId } from '@/lib/auth/viewer'
 import { maskEmails } from '../text/contact-info'
 
 export type GroupLifecycleState = 'draft' | 'active' | 'archived' | 'dissolved'
@@ -237,12 +236,12 @@ export async function resolveShop(
   // #978 — the founder and the anchor depend only on the row, so they are asked together (the
   // second used to wait for the first, a round before the Page could start to stream).
   // The placements ask only for the row's id too, so they ride along; they are dropped below when the
-  // anchor was refused (F093 criterion 8), as before.
+  // anchor read is refused, so the address never outruns what the caller may read.
   const [{ data: founderData }, { data: anchorRow, error: anchorErr }, askedPlacements] = await Promise.all([
     supabase.rpc('page_founder_public', { p_group_id: row.id }),
     supabase.from('groups').select('anchor_location_id').eq('id', row.id).maybeSingle(),
-    // Signed out, the address is never read at all (F093 criterion 8): the session is checked locally, no round trip.
-    (await viewerId(supabase)) ? resolvePagePlacements(row.id) : Promise.resolve([] as Placement[]),
+    // F134 — signed out too, at the precision the owner chose (an area anchor is an area).
+    resolvePagePlacements(row.id),
   ])
   const founderRow = ((founderData as FounderRow[] | null) ?? [])[0] ?? null
 
@@ -259,9 +258,8 @@ export async function resolveShop(
   // (st_x/st_y) — the same reason sellActivateAction's place-path
   // resolution also reaches for the action-layer pool instead of
   // PostgREST. See T143 DEVIATIONS for the two-credential-path note.
-  // F093 criterion 8 — where a Page is never reaches a signed-out caller. The
-  // anchor is asked for as the caller, whom the database refuses signed out,
-  // and the address (read through the pool, past RLS) only once it answered.
+  // The anchor is asked for as the caller, and the address (read through the
+  // pool, past RLS) is kept only once the database answered.
   const anchorLocationId = anchorErr
     ? null
     : ((anchorRow as { anchor_location_id: string | null } | null)?.anchor_location_id ?? null)

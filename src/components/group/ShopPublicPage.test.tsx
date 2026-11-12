@@ -129,10 +129,10 @@ describe('ShopPublicPage — T143 (where this Page currently resolves to)', () =
     expect(screen.getByTestId('shop-placement')).toHaveTextContent('123 Main St, Sacramento, CA')
   })
 
-  // F093 criterion 8 (amended 2026-09-30): signed out sees no location.
-  it('shows none of it signed out', () => {
+  // F134 — signed out sees the location a signed-in stranger sees.
+  it('shows it signed out too', () => {
     renderShop({ shop: { ...SHOP, placements: [{ source: 'anchor', kind: 'point', label: '123 Main St', lng: -121.5, lat: 38.58 }] } })
-    expect(screen.queryByTestId('shop-placement')).toBeNull()
+    expect(screen.getByTestId('shop-placement')).toHaveTextContent('123 Main St')
   })
 
   it('renders an area placement\'s Place name the same way', () => {
@@ -339,33 +339,20 @@ describe('F070 — links out', () => {
   })
 })
 
-// F093 — which announcements list a Page shows depends on who is reading.
-describe('F093 — the Page, signed out', () => {
-  const withheld = [
-    {
-      resultKind: 'post',
-      resultId: 'p-1',
-      withheld: true,
-      announcementCount: 2,
-    },
-  ] as unknown as Parameters<typeof ShopPublicPage>[0]['withheldPosts']
+// F134 — a signed-out visitor reads a Page's posts in the same list a member does; F093's withheld list is gone.
+describe('F134 — the Page, signed out', () => {
+  const posts = [{ id: 'p1', body: 'Thursday at 2, at the river', createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z', startsAt: null, endsAt: null, locationLabel: null }] as never
 
-  it('shows the withheld announcements to a signed-out visitor', () => {
-    renderShop({ loggedIn: false, withheldPosts: withheld })
-    expect(screen.getByTestId('page-posts-withheld')).toBeInTheDocument()
-  })
-
-  it('does not also show the readable list', () => {
-    // Both at once would mean two Announcements headings and two anchors with
-    // the same id — the fragment would land on whichever rendered first.
-    renderShop({ loggedIn: false, withheldPosts: withheld })
-    expect(screen.queryByTestId('page-posts')).not.toBeInTheDocument()
-  })
-
-  it('shows the readable list to a signed-in member — criterion 6', () => {
-    renderShop({ loggedIn: true, posts: [], viewerOwnsPage: true })
-    expect(screen.getByTestId('page-posts')).toBeInTheDocument()
+  it('shows the readable posts to a signed-out visitor, with no withheld card', () => {
+    renderShop({ loggedIn: false, posts })
+    expect(screen.getByTestId('page-posts')).toHaveTextContent('Thursday at 2, at the river')
     expect(screen.queryByTestId('page-posts-withheld')).not.toBeInTheDocument()
+    expect(screen.queryByText(/sign in to see what/i)).not.toBeInTheDocument()
+  })
+
+  it('shows the readable list to a signed-in member, as before', () => {
+    renderShop({ loggedIn: true, posts })
+    expect(screen.getByTestId('page-posts')).toHaveTextContent('Thursday at 2, at the river')
   })
 })
 
@@ -452,15 +439,14 @@ describe('#301 — the draft Page, in the owner view', () => {
   })
 })
 
-describe('#300 — the front door, signed out (F093 criterion 8)', () => {
+describe('#300 — listings and links out (F134: signed out as signed in)', () => {
   const items = [LOAF]
   const socialLinks = { instagram: 'https://instagram.com/claras' }
 
-  it('shows no listings and no links out signed out', () => {
+  it('shows them signed out', () => {
     renderShop({ shop: { ...SHOP, socialLinks }, items, loggedIn: false })
-    expect(screen.queryByText('Products & services')).toBeNull()
-    expect(screen.queryByText('Country Loaf')).toBeNull()
-    expect(screen.queryByTestId('shop-social-links')).toBeNull()
+    expect(screen.getByText('Country Loaf')).toBeInTheDocument()
+    expect(screen.getByTestId('shop-social-links')).toBeInTheDocument()
   })
 
   it('shows both once signed in', () => {
@@ -488,9 +474,9 @@ describe('#1180 — a Page shows what it is listed under, as plain words, signed
     const desc = screen.getByText('Real bread, baked local.')
     expect(desc.compareDocumentPosition(screen.getByTestId('tag-chips')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
-  it('signed out, none, even if handed some', () => {
-    renderShop({ loggedIn: false, tags: ['Sourdough'] })
-    expect(screen.queryByTestId('tag-chips')).toBeNull()
+  it('signed out, the same as signed in (F134)', () => {
+    renderShop({ loggedIn: false, tags: ['Bakery'] })
+    expect(screen.getByTestId('tag-chips')).toBeInTheDocument()
   })
 })
 
@@ -500,9 +486,11 @@ describe('#293 — phone and hours on the Page', () => {
     expect(screen.getByTestId('page-phone')).toHaveAttribute('href', 'tel:+19165550142')
   })
 
-  it('shows nothing signed out, even if handed them', () => {
-    renderShop({ loggedIn: false, contact: { phone: '+19165550142', hours: null } })
-    expect(screen.queryByTestId('page-contact')).toBeNull()
+  // [guards F134.6 partial: the Page does not show a phone signed out even if handed one; the database half is in tests/f134-visitors-read-rest.test.ts]
+  it('shows no phone signed out, even if handed one (the phone is for members)', () => {
+    const { container } = renderShop({ loggedIn: false, contact: { phone: '+19165550142', hours: null } })
+    expect(screen.queryByTestId('page-phone')).toBeNull()
+    expect(container.innerHTML).not.toContain('5550142')
   })
 })
 
@@ -542,9 +530,9 @@ describe('#348 — where it is, under the location', () => {
     renderShop({ loggedIn: true, where })
     expect(screen.getByTestId('shop-where')).toHaveTextContent('How to find us: Trailhead behind the barn')
   })
-  it('signed out, nothing, even if handed it', () => {
+  it('signed out reads it too (F134)', () => {
     renderShop({ loggedIn: false, where })
-    expect(screen.queryByTestId('shop-where')).toBeNull()
+    expect(screen.getByTestId('shop-where')).toHaveTextContent('How to find us: Trailhead behind the barn')
   })
 })
 
@@ -718,13 +706,14 @@ describe('#458 — a header block, then contained sections', () => {
     vi.unstubAllEnvs()
   })
 
-  it('signed out: About and Posts only — no location, map, contact or tags', () => {
+  // [guards F134.1 partial: the Page's rendered sections; the fields themselves are compared in tests/f134-visitors-read-rest.test.ts]
+  it('signed out: the same sections a signed-in stranger gets — location, map, contact and tags — less the phone', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'pk.test')
-    renderShop({ ...full, loggedIn: false, withheldPosts: [] })
-    expect(sections()).not.toContain('location')
-    expect(sections()).not.toContain('contact')
-    expect(sections()).not.toContain('found')
-    expect(document.querySelector('img[src*="mapbox"]')).toBeNull()
+    // The loader hands a visitor the contact without the phone (resolvePageContact, F134).
+    renderShop({ ...full, loggedIn: false, contact: { phone: null, hours: null } as never })
+    expect(sections()).toEqual(['posts', 'about', 'location', 'contact', 'found', 'products'])
+    expect(document.querySelector('img[src*="mapbox"]')).not.toBeNull()
+    expect(screen.queryByText('+19165550142')).toBeNull()
     vi.unstubAllEnvs()
   })
 
@@ -853,11 +842,10 @@ describe('#896 — the Location map', () => {
     vi.unstubAllEnvs()
   })
 
-  it('signed out, no map and no Maps links', () => {
+  it('signed out, the same map and Maps links (F134)', () => {
     vi.stubEnv('NEXT_PUBLIC_MAPBOX_TOKEN', 'tok')
-    const { container } = renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: false, where: visit })
-    expect(screen.queryByRole('link', { name: /on the map|Directions/ })).toBeNull()
-    expect(container.innerHTML).not.toContain('38.57271')
+    renderShop({ shop: { ...SHOP, placements: [point] }, loggedIn: false, where: visit })
+    expect(screen.getAllByRole('link', { name: /on the map|Directions/ }).length).toBeGreaterThan(0)
     vi.unstubAllEnvs()
   })
 })
@@ -915,11 +903,10 @@ describe('#896 — Contact holds website, phone and socials', () => {
     expect(screen.queryByTestId('shop-social-website')).toBeNull()
   })
 
-  it('signed out, no Contact at all, even if handed every field', () => {
+  it('signed out, Contact holds the website and socials but never the phone (F134)', () => {
     const { container } = renderShop({ shop: { ...SHOP, socialLinks }, loggedIn: false, contact: { phone: '+19165550142', hours: null } })
-    expect(screen.queryByTestId('page-section-contact')).toBeNull()
+    expect(screen.getByTestId('page-section-contact')).toBeInTheDocument()
     expect(container.innerHTML).not.toContain('5550142')
-    for (const url of Object.values(socialLinks)) expect(container.innerHTML).not.toContain(url)
   })
 })
 
@@ -1040,10 +1027,10 @@ describe('#896 — the Location card for each answer', () => {
     vi.unstubAllEnvs()
   })
 
-  it('signed out, none of it — not the stops either', () => {
+  it('signed out, the stops as signed in (F134)', () => {
     const stops = [{ label: 'Midtown Farmers Market', whenText: 'Saturdays' }]
     const { container } = renderShop({ shop: { ...SHOP, placements: [anchor] }, loggedIn: false, where: { ...base, mode: 'roaming', stops } })
-    expect(html(container)).not.toContain('Midtown Farmers Market')
+    expect(html(container)).toContain('Midtown Farmers Market')
   })
 })
 

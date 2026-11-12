@@ -59,9 +59,6 @@ function result(over: Partial<BrowseResult> = {}): BrowseResult {
     updatedAt: '2026-09-02T00:00:00Z',
     postedAt: null,
     sortAt: '2026-09-02T00:00:00Z',
-    withheld: false,
-    announcementCount: null,
-    announcementIds: null,
     ...over,
   }
 }
@@ -353,10 +350,10 @@ describe('#549 — the pins come after the list', () => {
     await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
   })
 
-  it('a signed-out visitor never asks: there are no pins there', async () => {
+  // F134 — signed out, the pins come too.
+  it('a signed-out visitor asks too, for the metro on screen', async () => {
     renderExplore(<BrowseSurface initial={snapshot({ signedIn: false, metro: SAC })} />)
-    await new Promise((r) => setTimeout(r, 20))
-    expect(browseMapAction).not.toHaveBeenCalled()
+    await waitFor(() => expect(browseMapAction).toHaveBeenCalledWith(SAC.id, null))
   })
 })
 
