@@ -19,6 +19,7 @@ import { renderPack, REVIEW_METHOD_ID } from './pack'
 import { CAPABILITY_TOOLS } from './capabilities' // F129
 import { ANSWER_TOOLS } from './answers' // F131
 import { MAP_TOOLS } from './maps' // F132
+import { RUN_TOOLS } from './runs' // F135
 
 export interface ToolResult {
   text: string
@@ -46,6 +47,16 @@ const notFound = (id: string): ToolResult => ({
 
 const json = (v: unknown): ToolResult => ({ text: JSON.stringify(v) })
 
+/**
+ * A date as a line shows it: without the year when it is this year, as a
+ * calendar does (#1284: the moderation answer's 25 dates were over 5% of its
+ * 2,000-token budget).
+ */
+export function shortDate(d: string | null, thisYear = new Date().getUTCFullYear()): string | null {
+  if (!d) return d
+  return d.startsWith(`${thisYear}-`) ? d.slice(5) : d
+}
+
 /** One line per record: id, how strict, how long it holds, when, the words, what it applies. */
 function line(r: k.RecordRow & { applies?: { id: string; basis: string }[] }): string {
   const meta = [
@@ -55,7 +66,7 @@ function line(r: k.RecordRow & { applies?: { id: string; basis: string }[] }): s
     r.holds === 'for now' ? `for now${r.until ? ` (until ${r.until})` : ''}` : r.holds,
     r.settled ? 'settled' : null,
     r.status === 'live' ? null : r.status,
-    r.decided_on,
+    shortDate(r.decided_on),
   ].filter(Boolean)
   const applies = r.applies?.length
     ? ` [applies ${r.applies.map((a) => (a.basis === 'inferred' ? `${a.id}~` : a.id)).join(', ')}]`
@@ -75,7 +86,7 @@ export const TOOLS: KnowledgeTool[] = [
     name: 'live',
     description:
       'Every live decision and principle for one concern, strictest first, one line each: id, strength (absolute or rule; unmarked is a guideline), ' +
-      'whether it holds always or for now, its date, its words, and the principles it applies (~ marks a link inferred at import). ' +
+      'whether it holds always or for now, its date (MM-DD this year), its words, and the principles it applies (~ marks a link inferred at import). ' +
       'Start here before building in a concern; ask why(id) for the reason behind one.',
     input: { concern: z.string().describe('A concern slug, such as moderation-and-reports or explore-and-map.') },
     run: async (db, { concern }) => {
@@ -314,6 +325,7 @@ export const TOOLS: KnowledgeTool[] = [
   ...CAPABILITY_TOOLS, // F129: can_do
   ...ANSWER_TOOLS, // F131: built, where, next
   ...MAP_TOOLS, // F132: story_map, fits, place_on_map, propose_map_change, decide_map_change
+  ...RUN_TOOLS, // F135: runs, drop_idea
 
   define({
     name: 'how',
@@ -391,11 +403,15 @@ export const TOOLS: KnowledgeTool[] = [
   define({
     name: 'upkeep',
     description:
-      'For the monthly upkeep: live practices not confirmed in 90 days, and running experiments past their verdict date, one line each.',
+      'For the monthly upkeep: live practices not confirmed in 90 days, running experiments past their verdict date, ' +
+      'routines with no run in their expected interval, and try-next-time ideas open more than 90 days, one line each.',
     input: { today: date.optional() },
     run: async (db, { today }) => {
       const rows = await k.upkeep(db, today)
-      if (rows.length === 0) return { text: 'Nothing due: every practice confirmed in the last 90 days, no experiment past its verdict date.' }
+      if (rows.length === 0)
+        return {
+          text: 'Nothing due: every practice confirmed in the last 90 days, no experiment past its verdict date, every routine run in its interval, no idea open over 90 days.',
+        }
       return { text: rows.map((r) => `- ${r.id} (${r.kind}): ${r.problem}. ${r.answer}`).join('\n') }
     },
   }),

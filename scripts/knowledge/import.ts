@@ -17,7 +17,8 @@
 // "their words are not edited"); so a ruling that moves files, gains a tag or
 // a why is revised in place with a new version, and one that is unchanged is
 // left alone. A ruling gone from socialus-plan is retired against the newer
-// ruling whose `[replaces …]` names it; one with no replacement is left live
+// ruling whose `[replaces …]` names it, by its date or its scenario
+// (replacesTagNames); one with no replacement is left live
 // and listed in the run's summary, because the store refuses to retire a
 // decision without one (F125.2). Ontology entries are matched by name.
 //
@@ -41,6 +42,7 @@ import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
+import { loadRuns, runsReport, type RunsSummary } from './runs'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -57,6 +59,8 @@ export interface Sources {
   practices?: PracticeSeed | null
   /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
   maps?: MapSources
+  /** F135: routines.json and runs-seed.json; false skips them. */
+  runs?: false
 }
 
 export interface Summary {
@@ -77,12 +81,31 @@ export interface Summary {
   practices?: PracticeSummary
   /** F132: journeys, slices across them, and where features and ideas sit. */
   maps?: MapSummary
+  /** F135: routines, and the runs from before runs recorded themselves. */
+  runs?: RunsSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
 export const PERSON = 'the PM'
 
 const PLAN_SOURCE = /^([^:#]+\.md):(\d+)$/
+
+/**
+ * Whether a `[replaces …]` tag names a ruling gone from socialus-plan. The
+ * method (socialus-ops process/ABSOLUTES.md § newer-decision-wins) allows two
+ * forms that name a ruling: `[replaces 2026-09-22: old text]`, by the old
+ * ruling's date, and `[replaces F059: old text]`, by the scenario it sat in.
+ * Either way the old text is the ruling's words, or a clause of them.
+ */
+export function replacesTagNames(tag: string, gone: { decided_on: string | null; source: string | null; answer: string }): boolean {
+  const m = /^\[replaces (\d{4}-\d{2}-\d{2}|F\d{3,}): (.+)\]$/.exec(tag)
+  if (!m) return false
+  const where = m[1].startsWith('F')
+    ? !!gone.source && gone.source.startsWith(`planning/scenario-${m[1]}.md:`)
+    : m[1] === gone.decided_on
+  const words = m[2].trim()
+  return where && (gone.answer.includes(words) || words.includes(gone.answer))
+}
 
 // ---------------------------------------------------------------------------
 // Entering and leaving the store's login.
@@ -366,12 +389,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     if (!fromRulings && !fromRegistry) continue
     let replacedBy: string | null = null
     if (fromRulings) {
-      const newer = rulings.find((r) =>
-        r.replaces.some((t) => {
-          const m = /^\[replaces (\d{4}-\d{2}-\d{2}): (.+)\]$/.exec(t)
-          return !!m && m[1] === gone.decided_on && (gone.answer.includes(m[2].trim()) || m[2].includes(gone.answer))
-        }),
-      )
+      const newer = rulings.find((r) => r.replaces.some((t) => replacesTagNames(t, gone)))
       replacedBy = newer ? idOfKey.get(rulingKey(newer.date, newer.words)) ?? null : null
       if (!replacedBy) {
         summary.goneWithoutReplacement.push(`${gone.id} (${gone.decided_on}): ${gone.answer}`)
@@ -441,6 +459,9 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   }
   // F132: story maps, after plans and concepts, whose features and ideas they place.
   if (src.maps) summary.maps = await loadMaps(db, src.maps)
+  // F135: which practices are routines, and run one (runs-seed.json), after
+  // the practices they belong to. Later runs record themselves.
+  if (src.runs !== false) summary.runs = await loadRuns(db)
   return summary
 }
 
@@ -494,6 +515,7 @@ async function main(): Promise<void> {
       ...(summary.plans ? planReport(summary.plans) : []),
       ...(summary.practices ? practiceReport(summary.practices) : []),
       ...(summary.maps ? mapReport(summary.maps) : []),
+      ...(summary.runs ? runsReport(summary.runs) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),

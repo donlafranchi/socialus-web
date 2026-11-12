@@ -138,7 +138,8 @@ describe.skipIf(!DB_RUNNABLE)('F125 — the knowledge import', () => {
     const pr = first.practices
     const all = first.recorded + c.conceptsRecorded + c.conceptsRevised + c.ideasRecorded + c.features +
       p.features + p.slices + p.moved + p.statusChanged +
-      (pr ? pr.recorded + pr.revised + pr.experiments + pr.verdicts : 0)
+      (pr ? pr.recorded + pr.revised + pr.experiments + pr.verdicts : 0) +
+      (first.runs?.versions ?? 0) // F135: run one and the ideas it left
     expect(Number(rows[0].n)).toBe(all)
     expect(Number(rows[0].named)).toBe(all)
   })
