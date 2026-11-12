@@ -41,7 +41,7 @@ describe('/[place]/[page]/[post]', () => {
   it('shows the Page landed on the post', async () => {
     resolvePageByAddress.mockResolvedValue(SHOP)
     resolvePostIdBySlug.mockResolvedValue(ID)
-    resolveSharedPost.mockResolvedValue({ access: 'full', post: POST })
+    resolveSharedPost.mockResolvedValue(POST)
     const el = await PostAtItsAddress({ params })
     expect(el.type).toBe(Suspense)
     expect((el.props as { children: { props: Record<string, unknown> } }).children.props).toMatchObject({ focusPostId: ID, shop: SHOP })
@@ -51,10 +51,9 @@ describe('/[place]/[page]/[post]', () => {
   it('previews with this address, signed in or out', async () => {
     resolvePageByAddress.mockResolvedValue(SHOP)
     resolvePostIdBySlug.mockResolvedValue(ID)
-    resolveSharedPost.mockResolvedValue({ access: 'withheld', preview: { ...POST, body: undefined } })
+    resolveSharedPost.mockResolvedValue(POST)
     const m = await generateMetadata({ params })
     expect(m.alternates?.canonical).toBe('https://www.socialus.org/sacramento-ca/plant-foundry/fall-plant-sale')
     expect(m.openGraph).toMatchObject({ title: 'Fall plant sale', url: 'https://www.socialus.org/sacramento-ca/plant-foundry/fall-plant-sale' })
-    expect(JSON.stringify(m)).not.toMatch(/perennials/)
   })
 })

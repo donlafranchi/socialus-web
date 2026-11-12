@@ -3,18 +3,16 @@ import { Pool, type PoolClient } from 'pg'
 import { requireRunnable } from './support/runnable'
 import { databaseWriteSafety } from './support/write-safe'
 
-// F093 criterion 8, amended 2026-09-30 (Don): a signed-out visitor sees a
-// Page's front door — name, default photo, description, the withheld card —
-// and no location, tags or founder. The Page keeps its location, which scopes
-// it to the metro and places it on the map without being displayed. Tags show
-// signed in only. Enforced in SQL: a signed-out caller is never sent them.
+// A Page signed out and signed in. F134 (the PM, 2026-11-12) replaced F093 criterion 8: a signed-out visitor reads
+// a Page as a signed-in stranger does — its location, its pin and its tags — with the phone and the founder still
+// held back. Enforced in SQL: the signed-out answer is compared with the signed-in one.
 
 const DATABASE_URL =
   process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL
 
 const safety = databaseWriteSafety(DATABASE_URL, process.env)
 const RUNNABLE = requireRunnable({
-  claim: "a signed-out caller receives a Page's front door and never its location or tags",
+  claim: "a signed-out caller receives a Page as a signed-in stranger does, location and tags included",
   available: safety.safe,
   remedy: `${safety.reason} Recipe in .env.local.example`,
 })
@@ -114,52 +112,54 @@ afterAll(async () => {
   await pool.end()
 })
 
-describe.skipIf(!RUNNABLE)("a Page's front door, signed out", () => {
-  // [guards F093.8 partial: the database half; the Page and card rendering are checked in unit tests]
-  it('Explore returns the Page with its description, and no location, address or tags', async () => {
+describe.skipIf(!RUNNABLE)("a Page signed out (F134: as a signed-in stranger)", () => {
+  it('Explore returns the Page with its description, location and tags, exactly as signed in', async () => {
     const rows = await feed(null)
     expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({ location_id: null, location_label: null, tags: [], description: 'We run.' })
+    expect(rows[0]).toMatchObject({ location_id: LOCATION, location_label: '12 Broadway', tags: ['Running'], description: 'We run.' })
+    expect(rows).toEqual(await feed(VISITOR))
   })
 
-  // Don, 2026-09-30 (answering #252): no pins at all signed out. The stored
-  // location still scopes the Page to the metro, which the row itself proves.
-  it('puts no pin on the map, and still finds the Page by its metro', async () => {
+  it('puts the same pin on the map signed out as signed in', async () => {
     const [row] = await feed(null)
-    expect(row.location_point).toBeNull()
+    expect(row.location_point).toBe(POINT)
   })
 
-  it('a tag filter cannot be used to learn a Page\'s tags', async () => {
+  it('a tag filter narrows signed out, as signed in', async () => {
     expect(await feed(null, ['b252-running'])).toHaveLength(1)
-    expect(await feed(null, ['no-such-tag'])).toHaveLength(1)
+    expect(await feed(null, ['no-such-tag'])).toHaveLength(0)
   })
 
-  it('no location, tag or anchor answers a signed-out caller directly', async () => {
+  it('reads the location, its tags and its anchor directly, as signed in', async () => {
+    expect(await as(null, `select label from public.locations where id = $1`, [LOCATION])).toHaveLength(1)
+    expect(await as(null, `select tag_id from public.page_tags where group_id = $1`, [PAGE])).toHaveLength(1)
+    expect(await as(null, `select label from public.tags where id = $1`, [TAG])).toHaveLength(1)
+    expect(await as(null, `select anchor_location_id from public.groups where id = $1`, [PAGE])).toEqual([{ anchor_location_id: LOCATION }])
+  })
+
+  it('never reads the founder or the phone', async () => {
     for (const sql of [
-      `select label from public.locations where id = '${LOCATION}'`,
-      `select geography from public.locations where id = '${LOCATION}'`,
-      `select tag_id from public.page_tags where group_id = '${PAGE}'`,
-      `select label from public.tags where id = '${TAG}'`,
-      `select anchor_location_id from public.groups where id = '${PAGE}'`,
+      `select founder_member_id from public.groups where id = '${PAGE}'`,
+      `select contact_phone from public.groups where id = '${PAGE}'`,
     ]) {
       await expect(as(null, sql), sql).rejects.toThrow(/permission denied/)
     }
   })
 
-  // #293: a Page's phone and hours are signed in only (tests/page-contact-db.test.ts).
+  // #293: a Page's phone is signed in only (tests/page-contact-db.test.ts); F134 opened the rest.
   it("every other column of a signed-out Page still answers", async () => {
     const { rows } = await client.query<{ column_name: string }>(
       `select column_name from information_schema.columns
         where table_schema = 'public' and table_name = 'groups'
-          and column_name not in ('founder_member_id', 'anchor_location_id', 'contact_phone', 'opening_hours', 'where_mode', 'how_to_find', 'usually_around', 'photo_purged_at')`,
+          and column_name not in ('founder_member_id', 'contact_phone', 'photo_purged_at')`,
     )
     const cols = rows.map((r) => `"${r.column_name}"`).join(', ')
     expect(await as(null, `select ${cols} from public.groups where id = $1`, [PAGE])).toHaveLength(1)
   })
 
-  it("a location's details answer nothing and break nothing", async () => {
+  it("a location's details answer signed out as signed in, and break nothing", async () => {
     for (const t of ['location_permanent', 'location_recurring_temporary', 'location_areas']) {
-      expect(await as(null, `select 1 from public.${t}`), t).toEqual([])
+      expect(await as(null, `select 1 from public.${t}`), t).toEqual(await as(VISITOR, `select 1 from public.${t}`))
     }
   })
 

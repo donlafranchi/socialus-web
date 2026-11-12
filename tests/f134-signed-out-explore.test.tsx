@@ -1,7 +1,7 @@
-// F093 criterion 7 — signed-out Explore still carries post-kind rows, in withheld
-// form, on the screen. Real rows, read as an anonymous caller with the bundle key,
-// through the real loader, rendered by the real surface: the default view (#876,
-// everything mixed) and the posts-only view (?view=updates).
+// F134 criteria 2 and 8 — signed-out Explore lists posts as signed in does, readable, with no withheld card.
+// Real rows, read as an anonymous caller with the bundle key, through the real loader, rendered by the real
+// surface: the default view (#876, everything mixed) and the posts-only view (?view=updates). Replaces the F093
+// suite that asserted the withheld card here.
 
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, waitFor } from '@testing-library/react'
@@ -16,7 +16,7 @@ const DATABASE_URL = process.env.DATABASE_URL ?? process.env.POSTGRES_URL_NON_PO
 
 const safety = writeSafety(process.env)
 const RUNNABLE = requireRunnable({
-  claim: 'a signed-out visitor sees a withheld card for a Page that posted, on Explore and in its posts-only view',
+  claim: 'a signed-out visitor reads a Page\'s post on Explore and in its posts-only view, with no withheld card',
   available: safety.safe && Boolean(DATABASE_URL),
   remedy: `${safety.reason} DATABASE_URL must also be set. Recipe in .env.local.example`,
 })
@@ -55,12 +55,12 @@ const LOCATION = 'd7000000-0000-4000-8000-000000000937'
 const PAGE = 'c7000000-0000-4000-8000-000000000937'
 const POST = 'f7000000-0000-4000-8000-000000000937'
 const PAGE_NAME = 'F937 Kite Club'
-const BODY = 'F937 SECRET BODY kites at the levee Saturday'
+const BODY = 'F937 PUBLIC BODY kites at the levee Saturday'
 
 let pool: Pool
 let client: PoolClient
 
-describe.skipIf(!RUNNABLE)('F093 criterion 7 — signed-out Explore, on the screen', () => {
+describe.skipIf(!RUNNABLE)('F134 — signed-out Explore, on the screen', () => {
   beforeAll(async () => {
     pool = new Pool({ connectionString: DATABASE_URL })
     client = await pool.connect()
@@ -125,22 +125,20 @@ describe.skipIf(!RUNNABLE)('F093 criterion 7 — signed-out Explore, on the scre
     render(<BrowseSurface initial={snapshot} />)
   }
 
-  async function expectWithheldCard() {
+  async function expectReadablePost() {
     // Reachable: in the first look above the list, or in the list itself.
-    await waitFor(() => expect(screen.getAllByTestId('withheld-card').length).toBeGreaterThan(0))
-    const card = screen.getAllByTestId('withheld-card').find((c) => c.textContent?.includes(PAGE_NAME))
-    expect(card, `a withheld card for ${PAGE_NAME}`).toBeDefined()
-    expect(card!.querySelector('[data-testid="withheld-cta"]')).not.toBeNull()
-    expect(document.body.innerHTML).not.toContain(BODY)
+    await waitFor(() => expect(document.body.innerHTML).toContain('kites at the levee Saturday'))
+    expect(screen.queryAllByTestId('withheld-card')).toHaveLength(0)
+    expect(screen.queryByText(/sign in to see what/i)).toBeNull()
   }
 
-  // [guards F093.7]
-  it('the default view and the posts-only view each show the Page that posted as a withheld card, never its body', async () => {
+  // [guards F134.2 partial: the list carries the post signed out; the pins are guarded over the wire in f134-visitors-read-rest] [guards F134.8 partial: Explore and its posts-only view; the Page and a shared post's address are guarded in their own tests]
+  it('the default view and the posts-only view each show the post readable, and no withheld card', async () => {
     await explore('')
-    await expectWithheldCard()
+    await expectReadablePost()
     cleanup()
 
     await explore('view=updates')
-    await expectWithheldCard()
+    await expectReadablePost()
   })
 })

@@ -14,7 +14,6 @@ vi.mock('./resolve-shop', () => ({
 }))
 vi.mock('./page-posts', () => ({ resolvePagePosts: vi.fn(async () => []) }))
 vi.mock('@/lib/follows/follower-count', () => ({ countPageFollowers: vi.fn(async () => 0) }))
-vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements: vi.fn(async () => []) }))
 vi.mock('./page-contact', () => ({ resolvePageContact }))
 
 import { loadPageView } from './load-page-view'
@@ -35,10 +34,10 @@ describe('#293 — the contact block', () => {
     expect(view.contact).toEqual(CONTACT)
   })
 
-  it('signed out, carries neither and never asks', async () => {
+  // F134 — signed out asks too, but never for the phone (it is for members, 2026-10-07).
+  it('signed out, asks without the phone', async () => {
     getUser.mockResolvedValue({ data: { user: null } })
-    const view = await loadPageView(supabase, SHOP as never)
-    expect(view.contact).toBeNull()
-    expect(resolvePageContact).not.toHaveBeenCalled()
+    await loadPageView(supabase, SHOP as never)
+    expect(resolvePageContact).toHaveBeenCalledWith(expect.anything(), SHOP.groupId, false)
   })
 })

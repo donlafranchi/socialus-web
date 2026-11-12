@@ -126,8 +126,10 @@ describe.skipIf(!RUNNABLE)('#286 — tags on posts', () => {
     expect(ids).toEqual([PAGE, TAGGED, UNTAGGED].sort())
   })
 
-  it('signed out, nobody reads a post\'s tags', async () => {
-    await expect(as(null, `select tag_id from public.post_tags`)).rejects.toThrow(/permission denied/)
+  // F134 — a post's tags answer signed out as signed in, with the post.
+  it('signed out, a post\'s tags answer with the post, as signed in', async () => {
+    const q = `select post_id from public.post_tags where post_id = $1`
+    expect(await as(null, q, [TAGGED])).toEqual(await as(READER, q, [TAGGED]))
   })
 
   it('signed in, a post\'s tags answer with the post', async () => {

@@ -25,7 +25,7 @@ beforeEach(() => vi.clearAllMocks())
 describe('/[place]/[page]/posts/[postId]', () => {
   it('goes on to the post\'s readable address', async () => {
     resolvePageByAddress.mockResolvedValue(SHOP)
-    resolveSharedPost.mockResolvedValue({ access: 'full', post: { id: ID, urlSlug: 'fall-plant-sale' } })
+    resolveSharedPost.mockResolvedValue({ id: ID, urlSlug: 'fall-plant-sale' })
     await expect(PostById({ params })).rejects.toThrow('REDIRECT /sacramento-ca/plant-foundry/fall-plant-sale')
   })
   it('is not found when the Page or the post is not there for this reader', async () => {

@@ -8,7 +8,7 @@ afterEach(cleanup)
 beforeEach(() => window.history.replaceState(null, '', '/explore?q=music'))
 
 const r = (id: string): BrowseResult =>
-  ({ resultKind: 'page', resultId: id, groupId: id, groupKind: 'business', slug: id, name: `Page ${id}`, href: `/p/${id}`, tags: [], withheld: false }) as unknown as BrowseResult
+  ({ resultKind: 'page', resultId: id, groupId: id, groupKind: 'business', slug: id, name: `Page ${id}`, href: `/p/${id}`, tags: [] }) as unknown as BrowseResult
 
 const groups = [
   { key: 'pages', label: 'Places & groups', results: [r('a'), r('b')] },

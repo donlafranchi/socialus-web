@@ -44,9 +44,9 @@ export default async function Page({
       <BrowseSurface
         initial={snapshot}
         shelves={
-          // F121 — signed in only (a stranger's feed carries no posts); streamed, so Explore never waits for them.
+          // F121 — streamed, so Explore never waits for them. F134: asked signed out too; the shelves answer only a member.
           // Only the default view shows them, so only it reads them: a search, filter or the map never does.
-          snapshot.signedIn && snapshot.metro && !hasBrowseFilters(filters) && !rest.trim() && sp.view !== 'map' ? (
+          snapshot.metro && !hasBrowseFilters(filters) && !rest.trim() && sp.view !== 'map' ? (
             <>
               <Suspense fallback={null}>
                 <ExploreShelves scope={snapshot.area ? { placeId: snapshot.area.id } : { metroId: snapshot.metro.id }} />

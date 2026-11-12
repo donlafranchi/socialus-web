@@ -30,7 +30,6 @@ import { shelvesFitScope } from '@/lib/shelves/shelves'
 import { mapFocusFrom } from '@/lib/browse/map-focus'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AreaPicker, type AreaOption } from '@/components/explore/AreaPicker'
 import { BrowseResultCard } from './BrowseResultCard'
 import { HappeningRows } from './HappeningRows'
@@ -99,7 +98,7 @@ export function BrowseSurface({
   const [focus] = useState(() => (params.get('view') === 'map' ? mapFocusFrom(params) : null))
   // plan #230 (Don, 2026-10-31): "the map [doesn't help] unless it's requested." A list at every width; the map
   // opens on request and ?view=map carries it, as Yelp, Airbnb and Google Maps carry theirs.
-  const wantsMap = params.get('view') === 'map' && initial.signedIn
+  const wantsMap = params.get('view') === 'map'
   const [view, setView] = useState<ExploreView>(wantsMap ? 'map' : 'list')
   const [mapCollapsed, setMapCollapsed] = useState(!wantsMap)
   // T187 — F059 criterion 5. Under 1024px one view at a time behind a floating
@@ -107,20 +106,15 @@ export function BrowseSurface({
   // panel open, one view at a time behind a switch docked in the search row.
   const wide = useMediaQuery('(min-width: 1024px)')
   const extraWide = useMediaQuery('(min-width: 1440px)')
-  // #334 — signed out is list only at every width: the dock stays, and its Map opens sign-up.
-  const layout = !snapshot.signedIn || !wide ? 'single' : ownerPanelOpen && !extraWide ? 'docked' : 'split'
+  // F134 — signed out lays out as signed in: the map opens with its pins.
+  const layout = !wide ? 'single' : ownerPanelOpen && !extraWide ? 'docked' : 'split'
   const showList = layout === 'split' || view === 'list'
   const showMap = layout === 'split' ? !mapCollapsed : view === 'map'
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
-  const [mapPromptOpen, setMapPromptOpen] = useState(false)
   /** Opens or closes the map, keeping ?view=map in step so the address says what the screen shows. */
   const showMapView = useCallback(
     (open: boolean) => {
-      if (open && !snapshot.signedIn) {
-        setMapPromptOpen(true)
-        return
-      }
       setView(open ? 'map' : 'list')
       setMapCollapsed(!open)
       const u = new URL(window.location.href)
@@ -128,7 +122,7 @@ export function BrowseSurface({
       else if (u.searchParams.get('view') === 'map') u.searchParams.delete('view')
       window.history.replaceState(window.history.state, '', u.toString())
     },
-    [snapshot.signedIn],
+    [],
   )
   const mapHref = (() => {
     const q = new URLSearchParams(params.toString())
@@ -226,7 +220,7 @@ export function BrowseSurface({
   // response (a phone opens on the list) and this fetches them once it has painted.
   const mapMetroId = snapshot.metro?.id ?? null
   const mapAreaId = snapshot.area?.id ?? null
-  const mapWanted = snapshot.signedIn && snapshot.map.length === 0
+  const mapWanted = snapshot.map.length === 0
   useEffect(() => {
     if (!mapWanted || !mapMetroId) return
     let live = true
@@ -321,7 +315,7 @@ export function BrowseSurface({
   // #1183 — posts from members answer a search too, as one group of their own. Signed in only.
   const [neighbors, setNeighbors] = useState<{ key: string; posts: MemberPost[] } | null>(null)
   const neighborScope = snapshot.area ? { placeId: snapshot.area.id } : snapshot.metro ? { metroId: snapshot.metro.id } : null
-  const neighborKey = snapshot.signedIn && settledNeedle && neighborScope ? JSON.stringify([neighborScope, settledNeedle]) : null
+  const neighborKey = settledNeedle && neighborScope ? JSON.stringify([neighborScope, settledNeedle]) : null
   useEffect(() => {
     if (!neighborKey || !neighborScope || neighbors?.key === neighborKey) return
     let live = true
@@ -653,8 +647,6 @@ export function BrowseSurface({
           </div>
         )}
       </div>
-
-      {mapPromptOpen && <SignInPrompt action="map" currentPath="/explore" onClose={() => setMapPromptOpen(false)} />}
 
       <AreaPicker
         open={scopeOpen}

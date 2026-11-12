@@ -103,8 +103,9 @@ describe.skipIf(!RUNNABLE)('#909 — a Page is found by what it carries', () => 
     expect(await search('milkweeed')).toContain(`page:${SHOP}`)
   })
 
-  it('signed out, what a Page carries finds nothing (F093 front door)', async () => {
-    expect(await search('milkweed', 'anon')).not.toContain(`page:${SHOP}`)
+  // F134 — signed out, what a Page carries finds it, as signed in.
+  it('signed out, what a Page carries finds it too', async () => {
+    expect(await search('milkweed', 'anon')).toContain(`page:${SHOP}`)
     expect(await search('wrenfield', 'anon')).toContain(`page:${SHOP}`)
   })
 

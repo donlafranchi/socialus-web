@@ -11,15 +11,16 @@ export interface PageContact {
   hours: OpeningHours | null
 }
 
-export async function resolvePageContact(supabase: SupabaseClient, groupId: string): Promise<PageContact | null> {
+/** F134 — signed out, hours show and the phone does not: the phone is for members (2026-10-07), and `anon` has no grant on it. */
+export async function resolvePageContact(supabase: SupabaseClient, groupId: string, signedIn = true): Promise<PageContact | null> {
   try {
     const { data, error } = await supabase
       .from('groups')
-      .select('kind, metadata, contact_phone, opening_hours')
+      .select(signedIn ? 'kind, metadata, contact_phone, opening_hours' : 'kind, metadata, opening_hours')
       .eq('id', groupId)
       .maybeSingle()
     if (error || !data) return null
-    const row = data as { kind: string; metadata: unknown; contact_phone: string | null; opening_hours: unknown }
+    const row = data as unknown as { kind: string; metadata: unknown; contact_phone?: string | null; opening_hours: unknown }
     // A group shows hours and a phone only once its owner adds them.
     if (!componentOn(row.kind, row.metadata, 'contact')) return null
     let hours: OpeningHours | null = null
@@ -28,7 +29,7 @@ export async function resolvePageContact(supabase: SupabaseClient, groupId: stri
     } catch {
       hours = null
     }
-    return { phone: row.contact_phone, hours }
+    return { phone: row.contact_phone ?? null, hours }
   } catch {
     return null
   }

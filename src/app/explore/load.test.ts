@@ -23,7 +23,7 @@ const {
   resolveFollowedPageIds,
   listFeedMetros,
   waitingCountByMetro,
-  getWithheldAnnouncements,
+  getHappening,
   resolveBrowseScope,
 } =
   vi.hoisted(() => ({
@@ -34,7 +34,7 @@ const {
     resolveFollowedPageIds: vi.fn(),
     listFeedMetros: vi.fn(),
     waitingCountByMetro: vi.fn(),
-    getWithheldAnnouncements: vi.fn(),
+    getHappening: vi.fn(),
     resolveBrowseScope: vi.fn(),
   }))
 
@@ -55,7 +55,7 @@ vi.mock('@/lib/supabase-server', () => ({
 }))
 vi.mock('@/lib/feed/browse-feed', () => ({
   getBrowseFeed,
-  getHappening: async () => ({ today: [], thisWeek: [], thisWeekend: [] }),
+  getHappening,
   getNearbyFeed: async (sb: unknown, o: { metroId: string; resultKinds?: unknown; limit?: number }) => ({
     // #922 — the default mix reads through browse_nearby; these tests are about what it asks for and gets.
     results: await getBrowseFeed(sb, { scope: { metroId: o.metroId }, resultKinds: o.resultKinds ?? null, limit: o.limit }),
@@ -68,11 +68,6 @@ vi.mock('@/lib/feed/followed-pages', () => ({ resolveFollowedPageIds }))
 vi.mock('@/lib/feed/metro-catalog', () => ({ cachedMetros: () => listFeedMetros() }))
 
 vi.mock('@/lib/metro/waitlist-counts', () => ({ waitingCountByMetro }))
-// F093's signed-out read. Stubbed here rather than left real because the real
-// one calls `supabase.rpc` on this file's mock client and throws — which
-// `loadBrowse` catches into `failed`, so an unmocked module quietly turns
-// every signed-out assertion about `failed` into a test of the wrong thing.
-vi.mock('@/lib/feed/withheld-announcements', () => ({ getWithheldAnnouncements }))
 vi.mock('@/lib/browse/scope', () => ({ resolveBrowseScope }))
 const { cookieGet } = vi.hoisted(() => ({ cookieGet: vi.fn() }))
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: cookieGet }) }))
@@ -94,7 +89,7 @@ const followingCalls = () =>
 
 beforeEach(() => {
   vi.clearAllMocks()
-  getWithheldAnnouncements.mockResolvedValue([])
+  getHappening.mockResolvedValue({ today: [], thisWeek: [], thisWeekend: [] })
   listFeedMetros.mockResolvedValue([METRO])
   waitingCountByMetro.mockResolvedValue(new Map([[METRO.id, 12]]))
   cookieGet.mockReturnValue(undefined)
@@ -111,7 +106,7 @@ beforeEach(() => {
 describe('signed out — criterion 2b, the personal half is absent', () => {
   it('never asks for it at all', async () => {
     signedOut()
-    const snap = await loadBrowse(null)
+    const snap = await loadBrowse(null, null, { withMap: false })
     // Not "asks and discards" — does not ask.
     expect(followingCalls()).toHaveLength(0)
     expect(getBrowseFeed).toHaveBeenCalledTimes(1)
@@ -337,19 +332,22 @@ describe('#549 — the map has its own read', () => {
     expect(getBrowseFeed.mock.calls.length).toBeLessThan(withMapCalls)
   })
 
-  it('loadMemberMap reads the pins for a member and returns none signed out', async () => {
+  // [guards F134.2 partial: the map's pins are read signed out as signed in; the screen is guarded in BrowseSurface.layout]
+  it('loadMemberMap reads the pins signed out as it does for a member (F134)', async () => {
     signedOut()
-    expect(await loadMemberMap(METRO.id, null)).toEqual([])
-    expect(getBrowseFeed).not.toHaveBeenCalled()
+    await loadMemberMap(METRO.id, null)
+    const out = getBrowseFeed.mock.calls.length
+    expect(out).toBeGreaterThan(0)
+    getBrowseFeed.mockClear()
     signedIn()
     await loadMemberMap(METRO.id, null)
-    expect(getBrowseFeed).toHaveBeenCalled()
+    expect(getBrowseFeed.mock.calls.length).toBe(out)
   })
 })
 
 // #796 — the first look comes out of rows already read: no extra query, so Explore's tap time does not grow.
 describe('#796 — the first look', () => {
-  const page = (id: string, pageCreatedAt: string) => ({ resultKind: 'page', resultId: id, pageCreatedAt, sortAt: pageCreatedAt, postedAt: null, startsAt: null, withheld: false })
+  const page = (id: string, pageCreatedAt: string) => ({ resultKind: 'page', resultId: id, pageCreatedAt, sortAt: pageCreatedAt, postedAt: null, startsAt: null })
   const cookies = (jar: Record<string, string>) => cookieGet.mockImplementation((name: string) => (jar[name] ? { value: jar[name] } : undefined))
   const last = Date.parse('2026-10-10T00:00:00Z').toString(36)
 
@@ -357,7 +355,7 @@ describe('#796 — the first look', () => {
     signedOut()
     cookies({ su_visit: `${last}.${Date.now().toString(36)}`, su_seed: 'a.aaaaaaaaaaaaaaaa' })
     getBrowseFeed.mockResolvedValue([page('old', '2026-09-01T00:00:00Z'), page('new', new Date(Date.now() - 3600_000).toISOString())])
-    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa' })
+    const snap = await loadBrowse(null, null, { seed: 'aaaaaaaaaaaaaaaa', withMap: false })
     expect(snap.leadFresh).toBe(true)
     expect(snap.lead!.map((r) => r.resultId)).toEqual(['new'])
     expect(getBrowseFeed).toHaveBeenCalledTimes(1)
@@ -379,7 +377,7 @@ describe('#796 — the first look', () => {
 // #876 (Don, 2026-10-16, on #796): "We should mix everything on explore. Even updates from people you follow."
 describe('#876 — the default mixes everything', () => {
   const row = (kind: 'page' | 'post', id: string, groupId = `g-${id}`, at = '2026-10-15T00:00:00Z') =>
-    ({ resultKind: kind, resultId: id, groupId, sortAt: at, postedAt: at, pageCreatedAt: at, startsAt: null, withheld: false, tags: [] })
+    ({ resultKind: kind, resultId: id, groupId, sortAt: at, postedAt: at, pageCreatedAt: at, startsAt: null, tags: [] })
   const cookies = (jar: Record<string, string>) => cookieGet.mockImplementation((name: string) => (jar[name] ? { value: jar[name] } : undefined))
 
   it('Pages, posts and the followed Pages’ updates in one list, each once, the followed ones flagged', async () => {
@@ -438,7 +436,6 @@ describe('#876 — a filter is one targeted read', () => {
     })
     expect(getBrowseFeed.mock.calls[0]![1].startsFrom).toBeTruthy()
     expect(snap.lead ?? []).toEqual([])
-    expect(getWithheldAnnouncements).not.toHaveBeenCalled()
   })
 })
 
@@ -453,12 +450,31 @@ describe('#916 — a search is one targeted read', () => {
     expect(snap.lead ?? []).toEqual([])
   })
 
-  it('signed out, it searches Pages only: post text never answers a stranger', async () => {
+  // [guards F134.2 partial: a signed-out search reads posts as a signed-in one does]
+  it('signed out, it searches posts too, as signed in (F134)', async () => {
     signedOut()
     getBrowseFeed.mockResolvedValue([])
     await loadBrowse(null, null, { search: 'flowers' })
-    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', resultKinds: ['page'] })
-    expect(getWithheldAnnouncements).not.toHaveBeenCalled()
+    expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({ search: 'flowers', resultKinds: null })
+  })
+})
+
+// F091 criterion 7, restated by F134 — the today row signed out is the same read a member gets.
+describe('F134 — the happening rows signed out', () => {
+  // [guards F091.7 partial: the loader asks the same happening read signed out; the rows are the database's, guarded over the wire in f134-visitors-read-rest]
+  it('signed out asks the same happening read as signed in, and gets the posts back as rows', async () => {
+    const today = [{ resultKind: 'post', resultId: 'p-today', body: 'Kites tonight', sortAt: new Date().toISOString() }]
+    getHappening.mockResolvedValue({ today, thisWeek: [], thisWeekend: [] })
+    signedOut()
+    const out = await loadBrowse(null, null, { withMap: false })
+    signedIn()
+    const member = await loadBrowse(null, null, { withMap: false })
+    expect(getHappening).toHaveBeenCalledTimes(2)
+    // Same scope and the same limit; the windows are "now", read a moment apart.
+    expect(getHappening.mock.calls[0]![1]).toEqual(getHappening.mock.calls[1]![1])
+    expect(getHappening.mock.calls[0]![3]).toEqual(getHappening.mock.calls[1]![3])
+    expect(out.happening.today).toEqual(today)
+    expect(member.happening.today).toEqual(today)
   })
 })
 

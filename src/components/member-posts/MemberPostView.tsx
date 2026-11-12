@@ -4,6 +4,8 @@
 // comments: one answer ("I'm interested" / "I saw it"), and only the poster sees who answered, by display name.
 // Reportable on the courtesy-first path. Its poster can take it down. Draft words.
 
+import { useSignInFirst } from '@/hooks/useSignInFirst'
+import { COPY } from '@/lib/copy'
 import { useState } from 'react'
 import { PersonMark } from '@/components/PersonMark'
 import { Button } from '@/components/ui/Button'
@@ -18,12 +20,15 @@ type Done<T = object> = ({ ok: true } & T) | { ok: false; message?: string }
 export function MemberPostView({
   post,
   now = new Date(),
+  loggedIn = true,
   onAnswer,
   onWithdraw,
   onReport,
 }: {
   post: MemberPost
   now?: Date
+  /** F134 — a visitor reads the post; answering asks for sign-in first. */
+  loggedIn?: boolean
   onAnswer: (on: boolean) => Promise<Done<{ on: boolean }>>
   onWithdraw: () => Promise<Done>
   onReport: (input: { subjectId: string; subjectKind?: string; category: ReportCategory; body: string }) => Promise<{ ok: true } | { ok: false; message: string }>
@@ -33,14 +38,17 @@ export function MemberPostView({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const answer = async () => {
+  const send = async (on: boolean) => {
     setBusy(true)
     setError(null)
-    const r = await onAnswer(!answered).catch(() => ({ ok: false as const }))
+    const r = await onAnswer(on).catch(() => ({ ok: false as const }))
     if (r.ok) setAnswered(r.on)
     else setError('That didn’t go through. Try again?')
     setBusy(false)
   }
+  // F134.4 — signed out, the answer asks for sign-in first; back signed in, it is sent.
+  const gate = useSignInFirst({ action: 'respond', target: post.id, signedIn: loggedIn, onReturn: () => void (answered || send(true)) })
+  const answer = () => gate.ask(() => void send(!answered))
   const withdraw = async () => {
     setBusy(true)
     setError(null)
@@ -57,7 +65,7 @@ export function MemberPostView({
           {memberPostLead(post, now)}
         </p>
         {!post.mine && !ended && (
-          <ReportControl subjectId={post.id} subjectKind="member_post" subjectLabel="this post" itemLabel="Report this post" loggedIn onSend={onReport} />
+          <ReportControl subjectId={post.id} subjectKind="member_post" subjectLabel="this post" itemLabel="Report this post" loggedIn={loggedIn} onSend={onReport} />
         )}
       </div>
       <p className="whitespace-pre-line text-body text-[var(--color-fg)]">{post.body}</p>
@@ -73,8 +81,8 @@ export function MemberPostView({
         </p>
       )}
       <p className="flex items-center gap-2 text-body-sm">
-        <PersonMark name={post.displayName} photoUrl={post.avatarUrl} className="size-8 text-caption" />
-        <span data-testid="member-post-name" className="font-medium text-[var(--color-fg)]">{post.displayName}</span>
+        <PersonMark name={post.displayName ?? COPY.aNeighbour} photoUrl={post.avatarUrl} className="size-8 text-caption" />
+        <span data-testid="member-post-name" className="font-medium text-[var(--color-fg)]">{post.displayName ?? COPY.aNeighbour}</span>
         <span className="text-[var(--color-fg-muted)]">in {post.placeName}</span>
       </p>
 
@@ -114,6 +122,7 @@ export function MemberPostView({
           {ANSWER_LABEL[post.kind]}
         </Button>
       )}
+      {gate.sheet}
       {error && (
         <p role="alert" className="text-body-sm text-[var(--color-danger,#b00)]">
           {error}

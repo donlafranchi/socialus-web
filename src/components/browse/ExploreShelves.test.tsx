@@ -10,7 +10,7 @@ vi.mock('@/app/_actions/shelf-actions', () => ({ logShelfAction: async () => {} 
 import { ExploreShelves } from './ExploreShelves'
 
 afterEach(cleanup)
-const post = (id: string) => ({ resultKind: 'post', resultId: id, groupId: 'g', name: 'Page', href: `/p/${id}`, tags: [], withheld: false, body: id, headline: id })
+const post = (id: string) => ({ resultKind: 'post', resultId: id, groupId: 'g', name: 'Page', href: `/p/${id}`, tags: [], body: id, headline: id })
 
 describe('F121 — ExploreShelves', () => {
   it('draws each loaded shelf as a row, in order, counted against its shelf row', async () => {
