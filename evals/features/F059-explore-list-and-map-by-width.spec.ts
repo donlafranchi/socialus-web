@@ -37,8 +37,11 @@ test.describe('F059 — list and map by width', () => {
   test('signed out, Show on map opens the map beside the list, not a sign-in sheet', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/explore')
+    await expect(page.getByTestId('card-grid')).toBeVisible()
     await page.getByRole('link', { name: 'Show on map' }).click()
-    await expect(page.getByTestId('browse-map')).toBeVisible()
+    // The map's code loads on demand, so its first paint can take a few seconds on CI.
+    await expect(page).toHaveURL(/view=map/)
+    await expect(page.getByTestId('browse-map')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('sign-in-prompt')).toHaveCount(0)
   })
 })

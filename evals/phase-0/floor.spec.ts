@@ -441,8 +441,10 @@ test.describe("Phase 0 — AI-native floor", () => {
       await admin.from("members").insert({ id: probeId, handle: `anon-upd-${probeId.slice(0, 6)}`, display_name: "Anon Upd Probe" });
 
       const { data: updated, error: updErr } = await anon.from("members").update({ display_name: "Hijacked" }).eq("id", probeId).select();
-      // RLS rejects via 0 rows updated rather than an error code, depending on policy shape.
-      expect(updErr === null && (updated ?? []).length === 0).toBeTruthy();
+      // Refused outright since F134.5 (anon holds no write privilege); an RLS miss of 0 rows would also be a refusal.
+      expect(updErr !== null || (updated ?? []).length === 0).toBeTruthy();
+      const { data: still } = await admin.from("members").select("display_name").eq("id", probeId).single();
+      expect(still?.display_name).toBe("Anon Upd Probe");
 
       await admin.from("members").delete().eq("id", probeId);
       await cleanupAuthUsers([probeId]);
