@@ -83,6 +83,37 @@ describe('#423 review — Restore is a 44px target', () => {
   })
 })
 
+describe('F057 criterion 4a — an Edit control on each live Page', () => {
+  // [guards F057.4 partial: the listings half (4b), routed to scope-scenario on #1012]
+  it('every live Page on You has Edit to its own editor; a draft keeps Continue and has no Edit', async () => {
+    getOwnPages.mockResolvedValue([
+      page({ groupId: 'a', name: 'Oak Park Sourdough', href: '/g/aaa111' }),
+      page({ groupId: 'b', name: 'Second Shop', href: '/g/bbb222' }),
+      page({ groupId: 'd', name: 'Half-made Bakery', lifecycleState: 'draft', href: '/g/ddd444' }),
+    ])
+    render(<OwnPages memberId="m1" onRestore={onRestore} onDiscard={vi.fn()} />)
+    const live = await screen.findByTestId('own-pages')
+    expect(within(live).getByRole('link', { name: 'Edit Oak Park Sourdough' })).toHaveAttribute('href', '/g/aaa111/edit')
+    expect(within(live).getByRole('link', { name: 'Edit Second Shop' })).toHaveAttribute('href', '/g/bbb222/edit')
+    const drafts = screen.getByTestId('own-drafts')
+    expect(within(drafts).queryByRole('link', { name: /^edit/i })).toBeNull()
+    expect(within(drafts).getByRole('link', { name: /continue/i })).toBeInTheDocument()
+  })
+
+  // [guards F057.4 partial: the listings half (4b), routed to scope-scenario on #1012]
+  it('an archived Page keeps Restore and gets Edit at its readable address; a deleted Page has no Edit', async () => {
+    getOwnPages.mockResolvedValue([
+      page({ groupId: 'r', name: 'Resting Shop', lifecycleState: 'archived', href: '/davis/resting-shop' }),
+      page({ groupId: 'x', name: 'Gone Shop', lifecycleState: 'dissolved', href: null, deleteAfter: '2026-12-01T00:00:00Z' }),
+    ])
+    render(<OwnPages memberId="m1" onRestore={onRestore} onDiscard={vi.fn()} />)
+    const list = await screen.findByTestId('own-pages')
+    expect(within(list).getByRole('link', { name: 'Edit Resting Shop' })).toHaveAttribute('href', '/davis/resting-shop/edit')
+    expect(within(list).getByRole('button', { name: 'Restore Resting Shop' })).toBeInTheDocument()
+    expect(within(list).queryByRole('link', { name: 'Edit Gone Shop' })).toBeNull()
+  })
+})
+
 // #463 — the PM, 2026-10-07: owners must be able to delete unpublished drafts.
 describe('#463 — Unfinished Pages', () => {
   const onDiscard = vi.fn(async (_i: unknown): Promise<{ ok: true } | { ok: false; message: string }> => ({ ok: true }))
