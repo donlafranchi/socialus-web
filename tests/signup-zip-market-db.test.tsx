@@ -34,6 +34,9 @@ import { ZipChange } from '@/components/member/ZipChange'
 import { changeZipAction } from '@/app/_actions/zip-actions'
 import { joinMetroWaitlistAction } from '@/app/_actions/metro-waitlist-actions'
 
+// #1271 — the sign-up card loads the front page's webfont through next/font/local, which needs a Next build.
+vi.mock('next/font/local', () => ({ default: () => ({ variable: '--font-landing', className: 'aime' }) }))
+
 const ROOT = resolve(__dirname, '..')
 const OPEN = 'a1000000-0000-4000-8000-000000000853'
 const WAIT = 'b1000000-0000-4000-8000-000000000853'
