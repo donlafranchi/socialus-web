@@ -17,7 +17,8 @@
 // "their words are not edited"); so a ruling that moves files, gains a tag or
 // a why is revised in place with a new version, and one that is unchanged is
 // left alone. A ruling gone from socialus-plan is retired against the newer
-// ruling whose `[replaces …]` names it; one with no replacement is left live
+// ruling whose `[replaces …]` names it, by its date or its scenario
+// (replacesTagNames); one with no replacement is left live
 // and listed in the run's summary, because the store refuses to retire a
 // decision without one (F125.2). Ontology entries are matched by name.
 //
@@ -88,6 +89,23 @@ export interface Summary {
 export const PERSON = 'the PM'
 
 const PLAN_SOURCE = /^([^:#]+\.md):(\d+)$/
+
+/**
+ * Whether a `[replaces …]` tag names a ruling gone from socialus-plan. The
+ * method (socialus-ops process/ABSOLUTES.md § newer-decision-wins) allows two
+ * forms that name a ruling: `[replaces 2026-09-22: old text]`, by the old
+ * ruling's date, and `[replaces F059: old text]`, by the scenario it sat in.
+ * Either way the old text is the ruling's words, or a clause of them.
+ */
+export function replacesTagNames(tag: string, gone: { decided_on: string | null; source: string | null; answer: string }): boolean {
+  const m = /^\[replaces (\d{4}-\d{2}-\d{2}|F\d{3,}): (.+)\]$/.exec(tag)
+  if (!m) return false
+  const where = m[1].startsWith('F')
+    ? !!gone.source && gone.source.startsWith(`planning/scenario-${m[1]}.md:`)
+    : m[1] === gone.decided_on
+  const words = m[2].trim()
+  return where && (gone.answer.includes(words) || words.includes(gone.answer))
+}
 
 // ---------------------------------------------------------------------------
 // Entering and leaving the store's login.
@@ -371,12 +389,7 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
     if (!fromRulings && !fromRegistry) continue
     let replacedBy: string | null = null
     if (fromRulings) {
-      const newer = rulings.find((r) =>
-        r.replaces.some((t) => {
-          const m = /^\[replaces (\d{4}-\d{2}-\d{2}): (.+)\]$/.exec(t)
-          return !!m && m[1] === gone.decided_on && (gone.answer.includes(m[2].trim()) || m[2].includes(gone.answer))
-        }),
-      )
+      const newer = rulings.find((r) => r.replaces.some((t) => replacesTagNames(t, gone)))
       replacedBy = newer ? idOfKey.get(rulingKey(newer.date, newer.words)) ?? null : null
       if (!replacedBy) {
         summary.goneWithoutReplacement.push(`${gone.id} (${gone.decided_on}): ${gone.answer}`)
