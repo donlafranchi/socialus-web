@@ -20,6 +20,7 @@ import { BrowseSurface } from '@/components/browse/BrowseSurface'
 import { ExploreSkeleton } from '@/components/browse/ExploreSkeleton'
 import { ExploreShelves } from '@/components/browse/ExploreShelves'
 import { ExploreMemberPosts } from '@/components/member-posts/ExploreMemberPosts'
+import { countUse, partsForExplore } from '@/lib/usage/count-use'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,6 +33,8 @@ export default async function Page({
   // #876 — a link that carries filters opens on the targeted read, not on a client cut of the mix.
   const params = new URLSearchParams(Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === 'string'))
   const { filters, rest } = readBox(writeBox(parseBrowseFilters(params), sp.q ?? ''), CATEGORY_TAGS)
+  // F133 — Explore, the map or a search, counted after the response for a signed-in member.
+  for (const part of partsForExplore(sp)) await countUse({ part })
   const snapshot = await loadBrowse(sp.metro ?? null, sp.area ?? null, { withMap: false, seed: await readSessionSeed(), filters, reach: parseReach(sp.reach) })
 
   return (

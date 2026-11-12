@@ -11,6 +11,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
+import { countUse } from '@/lib/usage/count-use'
 import { groupMemberLeave, groupMemberJoin, ActionError } from '@/actions'
 
 async function requireMemberId(): Promise<string> {
@@ -37,6 +38,8 @@ export async function joinGroupAction(input: { groupId: string }): Promise<{ ok:
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
     await groupMemberJoin(ctx, { groupId: input.groupId })
+    // F133 — a first follow (of a person or a Page, or a join), counted once, after the response.
+    await countUse({ step: 'first_follow' }, memberId)
     return { ok: true }
   } catch (err) {
     if (err instanceof ActionError) throw new Error(err.message)
