@@ -13,8 +13,10 @@ export const HOME_TODO = {
 
 export const LOOK_HREF = '/explore'
 
-// Don, 2026-11-06: "Locals, finding and supporting locals." The landing page, /join and every
-// pitch say that and nothing competing (socialus-plan PRINCIPLES.md#locals-supporting-locals).
+// The headline and the subline are two slots, and their words are Don's. The headline holds the
+// 2026-11-06 line ("Locals, finding and supporting locals.": the landing page, /join and every pitch
+// say it and nothing competing) until he picks the words of his 2026-11-12 concept.
+// TODO(Don): headline, the "…for the people" wording he is choosing (2026-11-12).
 export const MESSAGE = 'Locals, finding and supporting locals.'
 
 // TODO(Don): consent line under the last Join button; the copywriter's final wording and its Terms/Privacy links are pending. Null leaves it off.
@@ -34,7 +36,8 @@ export const ART = {
 
 export const HOME = {
   hero: {
-    // Don's own words for the line (PRINCIPLES.md, 2026-11-06), trimmed to the first sentence.
+    // TODO(Don): subline, held until he sends the final words of his 2026-11-12 concept. Until then,
+    // his own words for the line (PRINCIPLES.md, 2026-11-06), trimmed to the first sentence.
     body: 'The people of a town finding and supporting each other: business, trade, teaching, happenings, tips, every kind of local supporting local people.',
   },
   footer: {

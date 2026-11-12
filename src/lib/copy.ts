@@ -29,7 +29,8 @@ export const COPY = {
   // #260 — downloads an .ics. Placeholder ([public-is-draft]).
   addToCalendar: 'Add to calendar',
   // F081 criterion 5 — what the app is for, on the signup screen. The one line (Don, 2026-11-06),
-  // in place of the 2026-10-01 placeholder: the PM's pick, 2026-11-12 (#1271).
+  // in place of the 2026-10-01 placeholder: the PM's pick, 2026-11-12 (#1271; socialus-plan #324).
+  // It follows the landing headline when he picks its new words.
   signupLine: 'Locals, finding and supporting locals.',
   // F081 — the text-message code at signup (2026-10-01). Placeholders ([public-is-draft]).
   phoneTitle: 'Verify your phone',
