@@ -85,15 +85,10 @@ jobs:
           SRC: ${{ runner.temp }}/backup
         run: |
           set -euo pipefail
-          umask 077
-          key="$RUNNER_TEMP/age.key"
-          printf '%s\n' "$BACKUP_AGE_KEY" > "$key"
-          recipient="$(age-keygen -y "$key")"
           day="$(date -u +%F)"
           out="$RUNNER_TEMP/socialus-backup-$day.tar.age"
-          tar -C "$SRC" -cf - . | age -r "$recipient" -o "$out"
-          age -d -i "$key" "$out" | tar -tf - | grep -qx './dump.pgc'
-          rm -rf "$SRC" "$key"
+          KEY_TEXT="$BACKUP_AGE_KEY" OUT="$out" bash scripts/backup/encrypt.sh
+          rm -rf "$SRC"
           if [ "$(date -u +%d)" = 01 ]; then keep=90; else keep=30; fi
           echo "file=$out" >> "$GITHUB_OUTPUT"
           echo "name=socialus-backup-$day" >> "$GITHUB_OUTPUT"
