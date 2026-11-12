@@ -69,12 +69,8 @@ jobs:
       - if: steps.node-modules.outputs.cache-hit != 'true'
         run: npm ci
 
-      # The same services the browser job starts (ci.yml); evals/load/run.sh would start it too.
-      - name: Start a throwaway local stack
-        run: bash scripts/supabase-start.sh -x "$SUPABASE_UNUSED"
-        env:
-          SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
-
+      # evals/load/run.sh starts the throwaway stack itself (the services ci.yml's browser job starts),
+      # with an ES256 signing key as production has (#1269).
       - name: Load simulation
         env:
           LOAD_LEVELS: ${{ inputs.levels || '50 200 1000' }}
