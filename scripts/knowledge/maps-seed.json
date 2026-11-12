@@ -1,0 +1,356 @@
+{
+  "about": "F132 (#1256): the story maps the Knowledge import loads (scripts/knowledge/maps.ts). Hand-kept by agents; the PM rules on journeys and slices in the store. A journey's items get ids from their position here (JY-WEEKEND.A1.T1.D1) when first loaded; after that the store is the truth and a moved item keeps its id. The first map is the 2026-11-11 research note's worked example (socialus-plan planning/research/story-mapping-and-roles-2026-11-11.md). features: where each built feature sits (null: no journey yet). ideas: where each IMAGINE idea would fit, by concept id with its name as a check (null on: no journey yet).",
+  "journeys": [
+    {
+      "id": "JY-WEEKEND",
+      "answer": "A neighbour finds something happening this weekend and goes",
+      "why": "The first map: getting people out to meet. Left to right is the story; higher details matter more.",
+      "activities": [
+        {
+          "answer": "Find out",
+          "tasks": [
+            {
+              "answer": "Open the app and see this weekend nearby",
+              "details": [
+                "List of events near me, soonest first",
+                "Map view",
+                "Filter by kind",
+                "Saved searches"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Choose",
+          "tasks": [
+            {
+              "answer": "Open one and read what, when, where and who",
+              "details": [
+                "Time, place, organizer and who else is going",
+                "Photos",
+                "Price, if any",
+                "Ask the organizer a question"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Commit",
+          "tasks": [
+            {
+              "answer": "Say \"I'm going\"",
+              "details": [
+                "One tap \"going\"",
+                "Add to calendar",
+                "A reminder",
+                "Bring a friend"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "Go",
+          "tasks": [
+            {
+              "answer": "Get there",
+              "details": [
+                "The address opens in maps",
+                "A day-of reminder",
+                "Check in on arrival"
+              ]
+            }
+          ]
+        },
+        {
+          "answer": "After",
+          "tasks": [
+            {
+              "answer": "Say how it went",
+              "details": [
+                "Thumbs up",
+                "Add a photo",
+                "Follow the organizer",
+                "Rate it",
+                "See their next event"
+              ]
+            }
+          ]
+        }
+      ],
+      "slices": [
+        {
+          "id": "JY-WEEKEND-S1",
+          "outcome": "A neighbour finds one thing this weekend and turns up",
+          "horizon": "next",
+          "rank": 1,
+          "why": "The walking skeleton: the top detail under every task, thin but alive.",
+          "takes": [
+            "JY-WEEKEND.A1.T1.D1",
+            "JY-WEEKEND.A2.T1.D1",
+            "JY-WEEKEND.A3.T1.D1",
+            "JY-WEEKEND.A4.T1.D1",
+            "JY-WEEKEND.A5.T1.D1"
+          ]
+        },
+        {
+          "id": "JY-WEEKEND-S2",
+          "outcome": "They come back next weekend, and bring someone",
+          "horizon": "later",
+          "rank": 1,
+          "why": "Adds reminders, calendar, bring a friend and follow the organizer.",
+          "takes": [
+            "JY-WEEKEND.A3.T1.D2",
+            "JY-WEEKEND.A3.T1.D3",
+            "JY-WEEKEND.A3.T1.D4",
+            "JY-WEEKEND.A4.T1.D2",
+            "JY-WEEKEND.A5.T1.D3"
+          ]
+        }
+      ]
+    }
+  ],
+  "features": {
+    "F044": "JY-WEEKEND.A1.T1.D2",
+    "F045": "JY-WEEKEND.A1.T1.D3",
+    "F048": "JY-WEEKEND.A4.T1.D1",
+    "F049": "JY-J08.A1.T1",
+    "F055": null,
+    "F059": "JY-WEEKEND.A1.T1",
+    "F063": "JY-WEEKEND.A3.T1.D1",
+    "F064": null,
+    "F065": "JY-WEEKEND.A5.T1.D3",
+    "F067": "JY-WEEKEND.A5.T1.D3",
+    "F068": null,
+    "F070": "JY-WEEKEND.A2.T1",
+    "F071": "JY-WEEKEND.A1.T1",
+    "F072": "JY-WEEKEND.A2.T1.D1",
+    "F074": "JY-WEEKEND.A5.T1.D5",
+    "F075": "JY-WEEKEND.A4.T1",
+    "F079": "JY-J04.A1.T1",
+    "F083": null,
+    "F084": null,
+    "F085": null,
+    "F086": null,
+    "F087": "JY-J13.A1.T1",
+    "F088": "JY-WEEKEND.A1.T1",
+    "F089": "JY-WEEKEND.A1.T1",
+    "F090": null,
+    "F091": "JY-WEEKEND.A1.T1.D1",
+    "F092": "JY-WEEKEND.A1.T1.D3",
+    "F093": "JY-WEEKEND.A1.T1",
+    "F095": null,
+    "F096": "JY-WEEKEND.A1.T1.D1",
+    "F097": "JY-WEEKEND.A1.T1",
+    "F098": "JY-WEEKEND.A1.T1.D1",
+    "F099": "JY-WEEKEND.A2.T1.D2",
+    "F104": "JY-WEEKEND.A1.T1",
+    "F105": "JY-WEEKEND.A1.T1",
+    "F107": "JY-WEEKEND.A1.T1",
+    "F108": "JY-J15.A1.T1",
+    "F109": "JY-WEEKEND.A1.T1.D1",
+    "F110": null,
+    "F111": null,
+    "F112": "JY-WEEKEND.A1.T1.D1",
+    "F113": "JY-WEEKEND.A1.T1.D3",
+    "F114": null,
+    "F115": null,
+    "F116": null,
+    "F119": "JY-WEEKEND.A1.T1",
+    "F120": "JY-WEEKEND.A1.T1",
+    "F121": "JY-WEEKEND.A1.T1",
+    "F122": null,
+    "F123": "JY-J25.A1.T1",
+    "F124": null,
+    "F125": null,
+    "F126": null,
+    "F127": null,
+    "F128": null,
+    "F129": null,
+    "F130": null,
+    "F131": null,
+    "F132": null
+  },
+  "ideas": {
+    "CO-0003": {
+      "name": "Affinity-derived Group suggestions",
+      "on": "JY-WEEKEND.A1.T1",
+      "needs_first": [
+        "Knowing what a member has gone to before"
+      ]
+    },
+    "CO-0004": {
+      "name": "Apple platform integration",
+      "on": null
+    },
+    "CO-0005": {
+      "name": "Brand strategy & naming",
+      "on": null
+    },
+    "CO-0006": {
+      "name": "Bulletin intelligence",
+      "on": "JY-WEEKEND.A1.T1"
+    },
+    "CO-0007": {
+      "name": "Local stays",
+      "on": null
+    },
+    "CO-0008": {
+      "name": "Locally Made badge",
+      "on": "JY-WEEKEND.A2.T1"
+    },
+    "CO-0009": {
+      "name": "MEHKO home kitchens",
+      "on": null
+    },
+    "CO-0010": {
+      "name": "The mighty oak",
+      "on": null
+    },
+    "CO-0011": {
+      "name": "Missing pets",
+      "on": null
+    },
+    "CO-0012": {
+      "name": "Project arc overview",
+      "on": null
+    },
+    "CO-0013": {
+      "name": "Reciprocity & goodwill",
+      "on": "JY-WEEKEND.A5.T1"
+    },
+    "CO-0014": {
+      "name": "Recruitment plan",
+      "on": null
+    },
+    "CO-0015": {
+      "name": "Rising tide",
+      "on": null
+    },
+    "CO-0016": {
+      "name": "Social capital",
+      "on": null
+    },
+    "CO-0017": {
+      "name": "A scored community-health rubric",
+      "on": null
+    },
+    "CO-0018": {
+      "name": "The cooperative engine",
+      "on": null
+    },
+    "CO-0019": {
+      "name": "Short video and photos on Pages",
+      "on": "JY-WEEKEND.A2.T1.D2"
+    },
+    "CO-0020": {
+      "name": "Artist collaborations on Pages",
+      "on": null
+    },
+    "CO-0021": {
+      "name": "Follow an artist across venues",
+      "on": "JY-WEEKEND.A5.T1.D3"
+    },
+    "CO-0022": {
+      "name": "Local scouts",
+      "on": "JY-WEEKEND.A1.T1"
+    },
+    "CO-0023": {
+      "name": "Ticketing",
+      "on": "JY-WEEKEND.A3.T1.D1",
+      "needs_first": [
+        "Taking a card payment"
+      ]
+    },
+    "CO-0024": {
+      "name": "Blog posts and emails that explain what's what",
+      "on": null
+    },
+    "CO-0025": {
+      "name": "Discovery that knows what a person is optimizing for",
+      "on": "JY-WEEKEND.A1.T1"
+    },
+    "CO-0026": {
+      "name": "The occasion",
+      "on": null
+    },
+    "CO-0027": {
+      "name": "Places compete to keep spending local",
+      "on": null
+    },
+    "CO-0028": {
+      "name": "Civic voice",
+      "on": null
+    },
+    "CO-0029": {
+      "name": "Badges vs values",
+      "on": null
+    },
+    "CO-0030": {
+      "name": "Tone adapted by region, or per person",
+      "on": null
+    },
+    "CO-0031": {
+      "name": "Community funds a seller designates",
+      "on": null
+    },
+    "CO-0032": {
+      "name": "Evidence of deceit, submitted by members",
+      "on": null
+    },
+    "CO-0033": {
+      "name": "Market shopper",
+      "on": null
+    },
+    "CO-0034": {
+      "name": "Market meal plans",
+      "on": null
+    },
+    "CO-0035": {
+      "name": "Two sides: Find and Discover",
+      "on": "JY-WEEKEND.A1.T1"
+    },
+    "CO-0036": {
+      "name": "Two-way ratings between members and Pages",
+      "on": "JY-WEEKEND.A5.T1.D4"
+    },
+    "CO-0037": {
+      "name": "Member-facing names for Find and Discover",
+      "on": "JY-WEEKEND.A1.T1"
+    },
+    "CO-0038": {
+      "name": "Holiday specials up front",
+      "on": "JY-WEEKEND.A1.T1",
+      "stands_on": [
+        "F072",
+        "F091"
+      ],
+      "needs_first": [
+        "A \"special\" kind of post"
+      ],
+      "clashes": []
+    },
+    "CO-0039": {
+      "name": "Local is where the money returns",
+      "on": null
+    },
+    "CO-0040": {
+      "name": "Inventory: import, then our own tool",
+      "on": null
+    },
+    "CO-0041": {
+      "name": "Chat-first SocialUs",
+      "on": null
+    },
+    "CO-0042": {
+      "name": "Vouching",
+      "on": "JY-WEEKEND.A5.T1"
+    },
+    "CO-0043": {
+      "name": "Asked for, not here yet",
+      "on": "JY-WEEKEND.A1.T1",
+      "stands_on": [
+        "F119"
+      ]
+    }
+  }
+}

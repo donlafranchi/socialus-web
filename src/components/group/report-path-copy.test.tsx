@@ -8,7 +8,7 @@ import '@testing-library/jest-dom/vitest'
 
 const { create } = vi.hoisted(() => ({ create: vi.fn() }))
 vi.mock('@/lib/supabase-server', () => ({
-  createClient: vi.fn(async () => ({ auth: { getUser: async () => ({ data: { user: { id: '11111111-1111-1111-1111-111111111111' } }, error: null }) } })),
+  createClient: vi.fn(async () => ({ auth: { getUser: async () => ({ data: { user: { id: '11111111-1111-1111-1111-111111111111' } }, error: null }), getClaims: async () => ({ data: { claims: { sub: '11111111-1111-1111-1111-111111111111' } }, error: null }) } })),
 }))
 vi.mock('@/actions', async (importActual) => ({ ...(await importActual<typeof import('@/actions')>()), reportCreate: create }))
 

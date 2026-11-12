@@ -90,11 +90,8 @@ export function MetroWaitlistStep({ metros = [], market, onJoin, onDone }: Props
   return (
     <>
       <div className="flex flex-col gap-5">
-        {market ? (
-          <p data-testid="waitlist-market" className="text-sm font-medium text-[var(--color-charcoal-900)]">
-            You&rsquo;re waiting for {market.name}.
-          </p>
-        ) : (
+        {/* #1271 — a named market is already named by the screen's own heading; saying it twice reads as an echo. */}
+        {market ? null : (
         <div>
           <label htmlFor={selectId} className="block text-sm font-medium text-[var(--color-charcoal-900)]">
             Where are you?

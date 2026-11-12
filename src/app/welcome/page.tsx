@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase-server'
 import { safeNext } from '@/lib/safe-next'
 import { aime, HEAD, Message, PRIMARY, WRAP } from '@/components/landing/landing-shared'
 import { MarkWelcomed } from './MarkWelcomed'
+import { countUse } from '@/lib/usage/count-use'
 
 export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams
@@ -18,6 +19,8 @@ export default async function WelcomePage({ searchParams }: { searchParams: Prom
   } = await supabase.auth.getUser()
   if (!user) redirect('/')
   if (user.user_metadata?.welcomed === true) redirect(dest)
+  // F133 — the last sign-up step: the welcome, reached once per member.
+  await countUse({ step: 'welcomed' }, user.id)
 
   return (
     <div className={`landing ${aime.variable} min-h-full font-[family-name:var(--font-landing)] text-body`}>

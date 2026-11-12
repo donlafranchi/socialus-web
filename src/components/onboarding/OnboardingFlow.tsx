@@ -154,7 +154,7 @@ export function OnboardingFlow({
       <AuthCard>
         <div className="space-y-4">
           <div className="space-y-1">
-            <h1 className="text-title-1 text-[var(--color-fg)]">{WAITING_COPY.notOpen(waiting.name)}</h1>
+            <h1 data-testid="waitlist-market" className="text-title-1 text-[var(--color-fg)]">{WAITING_COPY.notOpen(waiting.name)}</h1>
             <p className="text-body-sm text-[var(--color-fg-muted)]">{WAITING_COPY.notOpenBody}</p>
           </div>
           <MetroWaitlistStep market={waiting} onJoin={onJoinWaitlist} onDone={() => navigate('/')} />

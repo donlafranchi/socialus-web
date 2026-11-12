@@ -9,14 +9,16 @@
 // so a client cannot ask to be a member of an open Page.
 
 import { createClient } from '@/lib/supabase-server'
+import { viewerId } from '@/lib/auth/viewer'
 import { resolveActionContext } from '@/lib/action-context'
+import { countUse } from '@/lib/usage/count-use'
 import { groupFollow, groupUnfollow, ActionError, type Relationship } from '@/actions'
 
 async function requireMemberId(): Promise<string> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) throw new Error('You must be signed in.')
-  return data.user.id
+  // #1269 — from the verified token, as #791 does for reads: no auth-server round trip per tap.
+  const memberId = await viewerId(await createClient())
+  if (!memberId) throw new Error('You must be signed in.')
+  return memberId
 }
 
 export async function followPageAction(input: {
@@ -26,6 +28,8 @@ export async function followPageAction(input: {
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
     const { relationship } = await groupFollow(ctx, { groupId: input.groupId })
+    // F133 — a first follow (of a person or a Page, or a join), counted once, after the response.
+    await countUse({ step: 'first_follow' }, memberId)
     return { ok: true, relationship }
   } catch (err) {
     if (err instanceof ActionError) throw new Error(err.message)

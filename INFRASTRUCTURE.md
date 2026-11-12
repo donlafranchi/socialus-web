@@ -76,7 +76,7 @@ changes with no code. Item 9 is blocked on a scenario.
 |---|---|---|---|
 | 1 | 6 Transactional email | chore | Domain DNS access |
 | 2 | 11 Error tracking | chore | Nothing |
-| 3 | 13 Product analytics | change | Event names agreed |
+| 3 | 13 Product analytics | scenario (F133) | Built in our own database |
 | 4 | 8 Turnstile | change | Nothing |
 | 5 | 10 Backups | chore | Nothing |
 | 6 | 7 Scheduled jobs | chore | Item 10 defines the first job |
@@ -575,45 +575,20 @@ monitoring reason stands on its own.
 
 ### 13. Product analytics
 
-**What it is.** Which of buy, sell, trade and gather people actually return for.
+**What it is.** Who comes back, what they use, and where they drop off.
 
-**Who provides it.** PostHog Cloud free tier, 1M events/month.
+**Who provides it.** Our own database (F133; the PM, 2026-11-12, "A A"). No
+outside tool: PostHog, the earlier plan here, keeps a history of each person on
+its servers, which the 2026-10-25 data principle refuses. Vercel Web Analytics
+may be added later as its own decision.
 
-**Why not Vercel Web Analytics.** Pro includes roughly 25k events/month of
-page-level counts. Finding a market is a question about funnels and retention,
-and pageviews cannot answer it.
-
-**Wire-up.**
-
-```bash
-npm install posthog-js
-```
-
-Env: `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST`
-(`https://us.i.posthog.com`, or the EU host if you pick that region; choose
-before launch, since it is not switchable later without losing history).
-
-Initialize in a client provider mounted in the root layout. In the App Router,
-autocapture does not record client-side route changes on its own, so capture
-`$pageview` manually on pathname change.
-
-**The part that matters more than the install.** Agree the event names before
-writing them, because renaming later orphans the history:
-
-| Event | Fires when |
-|---|---|
-| `item_created` | A member posts an item, property for its one category |
-| `item_viewed` | An item detail page renders |
-| `contact_initiated` | A member reaches out about an item |
-| `group_joined` | A membership row is created |
-| `page_followed` | The T018 follow that triggers item 6's email |
-
-Instrument these **before** launch. Retrofitting analytics onto a live product
-costs you the first cohort, which is the one cohort whose behavior you most need.
-
-**Privacy.** Disable session recording and set `person_profiles: 'identified_only'`.
-A marketplace holding location data should not also be shipping full session
-replays to a third party.
+**How it works.** Server-side counts through one handler, `usage.log`
+(`src/actions/usage/log.ts`), called after the response by `countUse`
+(`src/lib/usage/count-use.ts`) from page loads and server actions. Three count
+tables with no member id (`usage_daily`, `usage_weekly`, `funnel_weekly`),
+sha256 dedupe keys in `usage_seen` deleted after 8 days, a member who turned
+sharing off on You and every builder never counted, read only by staff with
+`metrics.view` on the Metrics page. No client script, no env, $0.
 
 ---
 
