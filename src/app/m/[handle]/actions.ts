@@ -8,6 +8,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
+import { countUse } from '@/lib/usage/count-use'
 import { memberFollow, memberUnfollow, ActionError } from '@/actions'
 
 async function requireMemberId(): Promise<string> {
@@ -24,6 +25,8 @@ export async function followMemberAction(input: {
   const ctx = resolveActionContext({ actingMemberId: memberId })
   try {
     const result = await memberFollow(ctx, { followedMemberId: input.followedMemberId })
+    // F133 — a first follow (of a person or a Page, or a join), counted once, after the response.
+    await countUse({ step: 'first_follow' }, memberId)
     return { ok: true, following: result.following }
   } catch (err) {
     if (err instanceof ActionError) throw new Error(err.message)

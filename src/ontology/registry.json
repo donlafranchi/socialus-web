@@ -177,6 +177,67 @@
       "note": "This IS the existing follow — \"get updates\" names what it is for rather than adding a second mechanism. Its stated purpose is to replace promotional email: updates arrive in the app and a Page owner never holds a contact address. The row carries source = 'soft_via_follow', which is what keeps an open Page's follower list unreadable. Unbuilt alongside it: nothing yet READS these rows to show a subscriber their updates."
     },
     {
+      "name": "a Member hearts an Announcement or a Page",
+      "from": "Member",
+      "to": "Announcement",
+      "via": {
+        "table": "hearts",
+        "column": "member_id"
+      },
+      "writtenBy": [
+        "member.heart.set"
+      ],
+      "ruled": "2026-11-02",
+      "built": true,
+      "note": "\"I like this\" (socialus-plan #269). A row names a post or a Page, never both. The Page's managers see who, by display name, through heart_view; the member sees their own; no one else. It subscribes no one and sends nothing. Kept with its time as a declared interest signal for the taste scale. A public count is one database switch (heart_counts_public), off by default: public counts are open for review."
+    },
+    {
+      "name": "a Member saves an Announcement",
+      "from": "Member",
+      "to": "Announcement",
+      "via": {
+        "table": "saves",
+        "column": "member_id"
+      },
+      "writtenBy": [
+        "member.save.set"
+      ],
+      "ruled": "2026-11-02",
+      "built": true,
+      "note": "\"Keep this for later\" (socialus-plan #269). Private: only its member reads it. Listed on You, upcoming first."
+    },
+    {
+      "name": "a Member posts an Announcement without a Page",
+      "from": "Member",
+      "to": "Announcement",
+      "via": {
+        "table": "member_posts",
+        "column": "member_id"
+      },
+      "writtenBy": [
+        "member_post.create",
+        "member_post.withdraw"
+      ],
+      "ruled": "2026-11-05",
+      "built": true,
+      "note": "Plan #270, Don ruled B: Lost & found, Free / for sale, Ask a neighbor. Signed with display name, avatar and neighborhood to signed-in members only, through member_posts_read(); never a profile, never the member's own area. It comes down on its own (7 or 14 days, or a yard sale's day) and a member has 3 up at once."
+    },
+    {
+      "name": "a Member answers an Announcement made without a Page",
+      "from": "Member",
+      "to": "Announcement",
+      "via": {
+        "table": "member_post_responses",
+        "column": "member_id"
+      },
+      "writtenBy": [
+        "member_post.answer"
+      ],
+      "ruled": "2026-11-05",
+      "built": true,
+      "note": "\"I'm interested\" / \"I saw it\", in place of comments (plan #270). Only the poster sees who, by display name."
+    },
+    {
       "name": "a Member supports a Page",
       "from": "Member",
       "to": "Page",
@@ -283,6 +344,36 @@
       "note": "Tags go on posts as well as Pages, editable any time (2026-10-01). A post with none of its own carries its Page's, so a lens never finds a Page and misses its posts. Signed in only, like a Page's. Post is now the noun and an announcement a kind of post; the object keeps its nouns.md name until that file changes it."
     },
     {
+      "name": "an Announcement made without a Page carries a Tag",
+      "from": "Announcement",
+      "to": "Tag",
+      "via": {
+        "table": "member_post_tags",
+        "column": "tag_id"
+      },
+      "writtenBy": [
+        "member_post.create"
+      ],
+      "ruled": "2026-11-05",
+      "built": true,
+      "note": "Listed under labels from the shared list only (#1180), as a Page's post is, so Explore and search read one vocabulary."
+    },
+    {
+      "name": "an Announcement made without a Page is in a Place",
+      "from": "Announcement",
+      "to": "Place",
+      "via": {
+        "table": "member_posts",
+        "column": "place_id"
+      },
+      "writtenBy": [
+        "member_post.create"
+      ],
+      "ruled": "2026-11-05",
+      "built": true,
+      "note": "A neighborhood the poster picks, shown on the post and used to scope Explore; never the member's own area."
+    },
+    {
       "name": "a Location is in a Place",
       "from": "Location",
       "to": "Place",
@@ -294,6 +385,21 @@
       "ruled": null,
       "built": true,
       "note": "The join two SQL functions walk: place_url_path() for a Page's URL, and zip_is_proximal_to_location() for the local-owner badge (T075). NOTHING IN THE ACTION LAYER WRITES IT, and that is the fact worth declaring rather than a gap to close here — Places are platform-curated with no member-facing create surface, so the column is populated by seed data. The one member-facing location insert omits it, which means those Locations have a null place_path in browse until a backfill gives them one."
+    },
+    {
+      "name": "a Page's address names its home Place",
+      "from": "Page",
+      "to": "Place",
+      "via": {
+        "table": "groups",
+        "column": "place_url_slug"
+      },
+      "writtenBy": [
+        "group.activate"
+      ],
+      "ruled": "2026-11-01",
+      "built": true,
+      "note": "Its home town, set once when the Page is first published (the groups_url_address trigger, which also covers the unclaimed loader and anything else that inserts a live Page) and then frozen with the Page slug: a move across town changes nothing in the URL, and the real address shows on the Page. Chosen from the anchor Location's city polygon, then its place, then the postal city, then the county; never the founder's home."
     },
     {
       "name": "a Member runs a Page",
@@ -328,7 +434,7 @@
       "note": "A vendor with no place of its own is found where it sells: on the market's days, every week or on listed dates, minus the ones it skips. The vendor's managers make and change the link; a market Page's organiser, once claimed, confirms or removes it. A Page to a Page, so neither becomes a kind of Page: being a market is having market days, being a vendor is this link (#955, Don: \"Go\")."
     },
     {
-      "name": "a Member is in on a Wonder",
+      "name": "a Member is in on a Proposal",
       "from": "Member",
       "to": "Announcement",
       "via": {
@@ -341,10 +447,10 @@
       ],
       "ruled": "2026-10-25",
       "built": true,
-      "note": "F117 option B. A Wonder is a post kind, not a noun of its own: one row per member per Wonder, with the size they picked. Who is in is the poster's to see (names and sizes) and the member's own; everyone else gets the count on the post. No money moves."
+      "note": "F117 option B. A Proposal (schema wonder) is a post kind, not a noun of its own: one row per member per Proposal, with the size they picked. Who is in is the poster's to see (names and sizes) and the member's own; everyone else gets the count on the post. No money moves."
     },
     {
-      "name": "a Member offers to help on a Wonder in a role",
+      "name": "a Member offers to help on a Proposal in a role",
       "from": "Member",
       "to": "Announcement",
       "via": {
@@ -358,7 +464,7 @@
       ],
       "ruled": "2026-10-25",
       "built": true,
-      "note": "F117 option B. One of the eight playbook roles per row; the Page's managers accept or decline. An accepted helper shows with the Wonder by display name and role, never by member id; a pending or declined offer is seen only by the poster and the offerer. A role here is a relation to one Wonder, never a kind of person."
+      "note": "F117 option B. One of the eight playbook roles per row; the Page's managers accept or decline. An accepted helper shows with the Proposal by display name and role, never by member id; a pending or declined offer is seen only by the poster and the offerer. A role here is a relation to one Proposal, never a kind of person."
     }
   ],
   "handlers": [
@@ -394,11 +500,13 @@
     "item.featured_remove",
     "item.featured_save",
     "item.publish",
+    "map.log",
     "member.business_jurisdiction.remove",
     "member.business_jurisdiction.set",
     "member.create",
     "member.default_metro.set",
     "member.follow",
+    "member.heart.set",
     "member.interests.add",
     "member.interests.remove",
     "member.notifications.opened",
@@ -410,12 +518,16 @@
     "member.reminder.every_for_page",
     "member.reminder.remove",
     "member.reminder.set",
+    "member.save.set",
     "member.saved_search.remove",
     "member.saved_search.restore",
     "member.search_sharing.set",
     "member.signup_profile.set",
     "member.unfollow",
     "member.zip.set",
+    "member_post.answer",
+    "member_post.create",
+    "member_post.withdraw",
     "metro.waitlist_join",
     "metro.waitlist_join_anonymous",
     "origin.record",
@@ -428,9 +540,11 @@
     "report.purge_target",
     "report.reverse",
     "search.demand_log",
+    "shelf.log",
     "tag.review",
     "town.credit_set",
     "town.maker_add",
+    "usage.log",
     "wonder.join",
     "wonder.leave",
     "wonder.offer",

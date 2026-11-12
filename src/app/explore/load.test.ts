@@ -430,10 +430,10 @@ describe('#876 — a filter is one targeted read', () => {
     resolveFollowedPageIds.mockResolvedValue(['g-f'])
     getBrowseFeed.mockResolvedValue([])
     const { DEFAULT_BROWSE_FILTERS } = await import('@/lib/browse/filters')
-    const snap = await loadBrowse(null, null, { filters: { ...DEFAULT_BROWSE_FILTERS, postKinds: ['deal'], following: true, tags: ['farmers markets'], date: 'weekend' } })
+    const snap = await loadBrowse(null, null, { filters: { ...DEFAULT_BROWSE_FILTERS, postKinds: ['sale'], following: true, tags: ['farmers markets'], date: 'weekend' } })
     expect(getBrowseFeed).toHaveBeenCalledTimes(1)
     expect(getBrowseFeed.mock.calls[0]![1]).toMatchObject({
-      resultKinds: ['post'], postKinds: ['deal'], tags: ['farmers markets'], sort: 'soonest',
+      resultKinds: ['post'], postKinds: ['sale'], tags: ['farmers markets'], sort: 'soonest',
       audience: { audience: 'following', following: ['g-f'] }, scope: { metroId: METRO.id },
     })
     expect(getBrowseFeed.mock.calls[0]![1].startsFrom).toBeTruthy()

@@ -47,16 +47,16 @@ describe('FollowedPagesList', () => {
   it('unfollows with Undo', async () => {
     const a = actions()
     render(<FollowedPagesList pages={[BAKERY]} actions={a} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Unfollow Zest Bakery' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Stop updates from Zest Bakery' }))
     await waitFor(() => expect(a.unfollow).toHaveBeenCalledWith({ groupId: 'g1' }))
     fireEvent.click(screen.getByRole('button', { name: /Undo/ }))
     await waitFor(() => expect(a.follow).toHaveBeenCalledWith({ groupId: 'g1' }))
-    expect(screen.getByRole('button', { name: 'Unfollow Zest Bakery' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Stop updates from Zest Bakery' })).toBeTruthy()
   })
 
   it('says so, and points to Explore, when nothing is followed', () => {
     render(<FollowedPagesList pages={[]} actions={actions()} />)
-    expect(screen.getByTestId('followed-pages-empty').textContent).toMatch(/not following any Pages yet/i)
+    expect(screen.getByTestId('followed-pages-empty').textContent).toMatch(/not getting updates from any Pages yet/i)
     expect(screen.getByRole('link', { name: /Explore/ }).getAttribute('href')).toBe('/explore')
   })
 })

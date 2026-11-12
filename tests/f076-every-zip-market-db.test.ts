@@ -77,8 +77,8 @@ describe.skipIf(!RUNNABLE)('#843 — F076.1 every US zip resolves to a market', 
     )
     expect(doubled.rows, 'places in two markets').toEqual([])
 
-    // Nothing is selected from a list: both ways in take a zip, and the market comes only from it.
-    for (const file of ['src/app/onboarding/actions.ts', 'src/app/landing/actions.ts']) {
+    // Nothing is selected from a list: the way in takes a zip, and the market comes only from it.
+    for (const file of ['src/app/onboarding/actions.ts']) {
       const src = readFileSync(resolve(__dirname, '..', file), 'utf8')
       expect(src, file).toMatch(/marketForZip\(supabase, [\w.]*zip\)/)
       expect(src, file).not.toMatch(/input\.(metro|market)/i)

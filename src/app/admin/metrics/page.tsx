@@ -8,16 +8,40 @@ import { createClient } from '@/lib/supabase-server'
 import { fetchAiReadiness } from '@/lib/admin/ai-readiness'
 import { MetricsView, type WeekRow } from './MetricsView'
 import { SearchDemandView, type DemandRow } from './SearchDemandView'
+import { ShelfScoreboardView } from './ShelfScoreboardView'
+import { MapTapsView, type MapTapRow } from './MapTapsView'
+import { ComingBackView, WhatTheyUseView, DropOffView, type UsageWeekRow, type UsageDayRow, type FunnelRow } from './UsageView'
+import { scoreboard } from '@/lib/shelves/verdict'
 
 export const dynamic = 'force-dynamic'
+
+type ShelfWeekRow = { shelf_id: string; name: string; season_end: string | null; week_start: string; impressions: number; members: number; taps: number; saves: number }
+const toScoreRow = (r: ShelfWeekRow) => ({
+  shelfId: r.shelf_id,
+  name: r.name,
+  seasonal: r.season_end !== null,
+  weekStart: r.week_start,
+  impressions: r.impressions,
+  members: r.members,
+  taps: r.taps,
+  saves: r.saves,
+})
 
 export default async function AdminMetricsPage() {
   await requirePagePermission('metrics.view')
   const supabase = await createClient()
-  const [{ data }, demand] = await Promise.all([
+  const [{ data }, demand, shelves, mapTaps, usageWeekly, usageDaily, funnel] = await Promise.all([
     supabase.rpc('admin_metrics_weekly', { p_weeks: 2 }),
     // #909 — what locals searched; a failed read shows the empty state, never takes the page down.
     supabase.rpc('admin_search_demand', { p_weeks: 4, p_limit: 10 }),
+    // F121 — the shelf scoreboard; weeks back so a verdict can see two judged weeks.
+    supabase.rpc('admin_shelf_scoreboard', { p_weeks: 8 }),
+    // plan #258 — map taps per day, for the 2026-11-15 map review.
+    supabase.rpc('admin_map_taps', { p_days: 14 }),
+    // F133 — who comes back, what they use, where they drop off. A failed read shows the empty state.
+    supabase.rpc('admin_usage_weekly', { p_weeks: 12 }),
+    supabase.rpc('admin_usage_daily', { p_days: 14 }),
+    supabase.rpc('admin_funnel_weekly', { p_weeks: 12 }),
   ])
   // #640 — the same light as /admin/reports; a failed read leaves it out, never the metrics.
   const readiness = await fetchAiReadiness().catch(() => null)
@@ -36,6 +60,21 @@ export default async function AdminMetricsPage() {
       <MetricsView rows={(data ?? []) as WeekRow[]} />
       <div className="mt-3">
         <SearchDemandView rows={(demand?.data ?? []) as DemandRow[]} />
+      </div>
+      <div className="mt-3">
+        <ShelfScoreboardView lines={scoreboard(((shelves?.data ?? []) as ShelfWeekRow[]).map(toScoreRow))} />
+      </div>
+      <div className="mt-3">
+        <MapTapsView rows={(mapTaps?.data ?? []) as MapTapRow[]} />
+      </div>
+      <div className="mt-3">
+        <ComingBackView rows={(usageWeekly?.data ?? []) as UsageWeekRow[]} />
+      </div>
+      <div className="mt-3">
+        <WhatTheyUseView rows={(usageDaily?.data ?? []) as UsageDayRow[]} />
+      </div>
+      <div className="mt-3">
+        <DropOffView rows={(funnel?.data ?? []) as FunnelRow[]} />
       </div>
     </main>
   )

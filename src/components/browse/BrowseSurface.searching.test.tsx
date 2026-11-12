@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
 import { BrowseSurface } from './BrowseSurface'
+import { renderExplore, searchBox } from './explore-harness'
 import type { BrowseSnapshot } from '@/app/explore/load'
 import type { BrowseResult } from '@/lib/feed/browse-feed'
 
@@ -15,7 +16,10 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
   useSearchParams: () => new URLSearchParams(search),
   unstable_isUnrecognizedActionError: (e: unknown) => e instanceof Error && e.name === 'UnrecognizedActionError',
+  usePathname: () => '/explore',
 }))
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
+vi.mock('@/lib/supabase', () => ({ createClient: () => ({}) }))
 
 const browseFeedAction = vi.fn()
 const browseMapAction = vi.fn()
@@ -84,15 +88,14 @@ beforeEach(() => {
 afterEach(cleanup)
 
 const type = (value: string) => {
-  fireEvent.click(screen.getByRole('button', { name: 'Search' }))
-  fireEvent.change(screen.getByTestId('search-input'), { target: { value } })
+  fireEvent.change(searchBox(), { target: { value } })
 }
 const stale = () => Object.assign(new Error('Server Action "abc" was not found on the server.'), { name: 'UnrecognizedActionError' })
 
 describe('#947 — searching, not a false zero', () => {
   it('while the answer is out, it says it is searching, not "0 results" or "Nothing matches"', async () => {
     browseFeedAction.mockReturnValue(new Promise(() => {}))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('flowers')
     await waitFor(() => expect(browseFeedAction).toHaveBeenCalled())
     expect(screen.getByTestId('result-count')).toHaveTextContent('Searching…')
@@ -102,7 +105,7 @@ describe('#947 — searching, not a false zero', () => {
 
   it('once the answer lands, its rows and count show', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [result({ resultId: 'f1', name: 'Park Winters Flower Farm' })] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('flowers')
     expect(await screen.findByText('Park Winters Flower Farm')).toBeInTheDocument()
     expect(screen.getByTestId('result-count')).toHaveTextContent('1 result match')
@@ -110,14 +113,14 @@ describe('#947 — searching, not a false zero', () => {
 
   it('a real zero from the server still says nothing matches', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('qqqzzz')
     expect(await screen.findByTestId('browse-empty')).toBeInTheDocument()
   })
 
   it('a failed search says so and offers Try again, which asks again', async () => {
     browseFeedAction.mockRejectedValueOnce(new Error('network')).mockResolvedValue(snapshot({ results: [result({ resultId: 'f1', name: 'Park Winters Flower Farm' })] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('flowers')
     const failed = await screen.findByTestId('browse-search-failed')
     expect(screen.queryByText(/0 results/)).toBeNull()
@@ -128,7 +131,7 @@ describe('#947 — searching, not a false zero', () => {
 
   it('a server answer marked failed is a failure too, not an empty list', async () => {
     browseFeedAction.mockResolvedValue(snapshot({ results: [], failed: true }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('flowers')
     expect(await screen.findByTestId('browse-search-failed')).toBeInTheDocument()
     expect(screen.queryByTestId('browse-empty')).toBeNull()
@@ -136,7 +139,7 @@ describe('#947 — searching, not a false zero', () => {
 
   it('a newer deploy than the page: it retries once, then offers a reload', async () => {
     browseFeedAction.mockRejectedValue(stale())
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('flowers')
     const failed = await screen.findByTestId('browse-search-failed')
     expect(browseFeedAction).toHaveBeenCalledTimes(2)
@@ -145,7 +148,7 @@ describe('#947 — searching, not a false zero', () => {
 
   it('a newer deploy that answers on the retry just shows the rows', async () => {
     browseFeedAction.mockRejectedValueOnce(stale()).mockResolvedValue(snapshot({ results: [result({ resultId: 'v1', name: 'Vino Tahoe' })] }))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('vino')
     expect(await screen.findByText('Vino Tahoe')).toBeInTheDocument()
     expect(screen.queryByTestId('browse-search-failed')).toBeNull()
@@ -155,7 +158,7 @@ describe('#947 — searching, not a false zero', () => {
 describe('#947 — what else waits for the answer', () => {
   it('the screen reader count and the search-demand count wait too', async () => {
     browseFeedAction.mockReturnValue(new Promise(() => {}))
-    render(<BrowseSurface initial={snapshot()} />)
+    renderExplore(<BrowseSurface initial={snapshot()} />)
     type('flowers')
     await new Promise((ok) => setTimeout(ok, 900))
     expect(screen.getByTestId('browse-announcement')).not.toHaveTextContent(/0 results/)

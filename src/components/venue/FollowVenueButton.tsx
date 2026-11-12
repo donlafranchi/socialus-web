@@ -39,7 +39,7 @@ export function FollowVenueButton({
         href={`/auth/login?next=${pathname ?? '/'}`}
         className="btn-primary"
       >
-        Sign up to follow this venue
+        Sign up to get updates from this venue
       </a>
     )
   }
@@ -74,7 +74,7 @@ export function FollowVenueButton({
         disabled={pending}
         onClick={toggle}
       >
-        {following ? 'Following' : 'Follow this venue'}
+        {following ? 'Getting updates' : 'Get updates'}
       </button>
       {error && (
         <p role="alert" className="text-sm text-red-600">

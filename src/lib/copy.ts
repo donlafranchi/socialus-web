@@ -21,8 +21,8 @@ export const COPY = {
   reportPagePhoto: "Report this Page's photo",
   reportPageWordsSubject: 'its name or description',
   pageWordsHiddenNote: "Your Page's name and description are hidden from others after a report. Edit either one to show them again.",
-  reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for being decent.',
-  reportSentPerson: "It's being sent to a person from our team. Thanks for being decent.",
+  reportSentCourtesy: 'The Page owner gets a courtesy notice first. Thanks for looking out.',
+  reportSentPerson: "It's being sent to a person from our team. Thanks for looking out.",
   // F093 criterion 8 — the withheld card's ask, the front door's main button.
   // Don's words, 2026-10-04 ("Sign up to follow" is the secondary). Placeholder.
   withheldCta: "Sign in to see what's happening",
@@ -86,15 +86,23 @@ export const COPY = {
   claimCodeBody: (code: string, page: string) =>
     `Your SocialUs code is ${code}. Enter it on the ${page} Page to claim it. It works for 15 minutes. If you didn't ask for this, ignore it.`,
   // The ethos's decency lines (2026-10-25), cut to the necessary on the PM's call (2026-10-27).
-  decencyThanks: 'Thanks for being decent.',
   posted: 'Posted.',
   rulesHeadline: "Be cool. Don't be a jerk.",
   unclaimedLimit: "You've sent several requests today. Please try again tomorrow.",
   unclaimedFailed: "That didn't go through. Please try again.",
   // F117 — new copy, listed in the PR for review ([public-is-draft]).
   wonderCount: (n: number, of: number) => `${n.toLocaleString('en-US')} of ${of.toLocaleString('en-US')} in`,
+  wonderCountNoGoal: (n: number) => `${n.toLocaleString('en-US')} in`,
   wonderBarLabel: 'People in so far',
   wonderReached: 'Goal reached. Still counting.',
+  // #1127 — who is in, by name, under the bar. Draft copy ([public-is-draft]).
+  wonderInNames: (names: string[], total: number) => {
+    const shown = names.slice(0, 3)
+    const more = Math.max(0, total - shown.length)
+    const people = more > 0 ? [...shown, `${more.toLocaleString('en-US')} more`] : shown
+    const list = people.length > 1 ? `${people.slice(0, -1).join(', ')} and ${people[people.length - 1]}` : (people[0] ?? '')
+    return `${list} ${people.length === 1 && more === 0 ? 'is' : 'are'} in`
+  },
   wonderImIn: "I'm in",
   wonderPickSize: 'Pick your size',
   wonderJoinSave: 'Count me in',
@@ -128,11 +136,30 @@ export const COPY = {
   wonderOffers: 'Offers to help',
   wonderAccept: 'Accept',
   wonderDecline: 'Decline',
-  wonderToggle: "Make it a Wonder: ask who's in",
-  wonderThreshold: 'How many people would make it happen?',
+  wonderThreshold: 'How many people would make it happen? (optional)',
   wonderOptionsLabel: 'Sizes or options (optional, commas between)',
   wonderOptionsPlaceholder: 'S, M, L',
   wonderComposerNote: "People can say they're in, pick a size, and offer to help. No money changes hands.",
-  wonderThresholdInvalid: 'Enter a whole number, 1 or more.',
-  wonderPost: 'Post Wonder',
+  wonderThresholdInvalid: 'Enter a whole number, 1 or more, or leave it blank.',
+  wonderPost: 'Propose it',
+} as const
+
+// #1171 (socialus-plan #269, Don 2026-11-02) — ♡ and Save, and Follow as Get updates. Draft copy (human-review).
+export const HEART_COPY = {
+  heartPost: 'Heart this post',
+  heartPage: 'Heart this Page',
+  savePost: 'Save this post',
+  saved: 'Saved',
+  /** What a Page's managers see: who hearted, by name, newest first. */
+  heartedBy: (names: readonly string[], count: number) =>
+    count <= 1 ? `${names[0] ?? 'Someone'} hearted this` : `${names[0] ?? 'Someone'} and ${count - 1} ${count - 1 === 1 ? 'other' : 'others'} hearted this`,
+  heartedByList: 'Who hearted this',
+  getUpdates: 'Get updates',
+  stopUpdates: 'Stop updates',
+  gettingUpdates: (name: string) => `You’ll get updates from ${name}.`,
+  updatesStopped: (name: string) => `You won’t get updates from ${name}.`,
+  savedTitle: 'Saved',
+  savedEmpty: 'Nothing saved yet. Tap the bookmark on a post to keep it here.',
+  savedPast: 'Already happened',
+  unsave: 'Remove',
 } as const

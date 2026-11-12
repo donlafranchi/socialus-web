@@ -132,6 +132,24 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # F125 (#1218): the knowledge import's test reads socialus-plan's rulings
+      # and the two absolutes files, imports them into the store, and checks the
+      # store's constraints/code.md against the hand-built one. PINNED to one
+      # commit of each, so a change in another repo cannot turn this PR red; the
+      # import workflow itself reads main. Bump them together, deliberately.
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-plan
+          ref: b348a928a5cebffe49de277722c41e537ab5c6e4
+          path: .knowledge/socialus-plan
+          persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          repository: donlafranchi/socialus-ops
+          ref: 53585b73fb01d0c596f27b26141215508e7a6752
+          path: .knowledge/socialus-ops
+          persist-credentials: false
+
       - uses: actions/setup-node@v5
         with:
           node-version: 20
@@ -190,6 +208,8 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
           SUPABASE_URL: http://127.0.0.1:54321
           SUPABASE_TEST_EPHEMERAL: '1'
+          KNOWLEDGE_PLAN_DIR: .knowledge/socialus-plan
+          KNOWLEDGE_OPS_DIR: .knowledge/socialus-ops
         run: |
           export SUPABASE_ANON_KEY="${ANON_KEY:?supabase status did not export ANON_KEY}"
           export SUPABASE_SERVICE_ROLE_KEY="${SERVICE_ROLE_KEY:?supabase status did not export SERVICE_ROLE_KEY}"
@@ -308,8 +328,10 @@ jobs:
         uses: actions/cache@v5
         with:
           path: .next/cache
-          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          # v2 (2026-11-12, PR #1268): the cache main saved at d85e906 failed every build that restored it
+          # ("next/font/google queries have exactly one entry"); a cold build of the same code passes. Bump to start clean.
+          key: next-v2-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: next-v2-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
 
       - name: Build against the local stack
         run: npm run build

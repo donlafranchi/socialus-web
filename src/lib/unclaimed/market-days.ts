@@ -54,8 +54,8 @@ export async function syncMarketDays(db: Db, groupId: string, name: string, s: M
     if (old) await db.query(`update public.page_posts set starts_at = $2, ends_at = $3, body = $4, updated_at = $5 where id = $1`, [old.id, w.startsAt, w.endsAt, body, now])
     else
       await db.query(
-        `insert into public.page_posts (group_id, body, starts_at, ends_at, photo_url, lifecycle_state, discoverability, series_id, created_at, updated_at)
-         values ($1, $2, $3, $4, $5, 'active', 'listed', $6, $7, $7)`,
+        `insert into public.page_posts (group_id, kind, body, starts_at, ends_at, photo_url, lifecycle_state, discoverability, series_id, created_at, updated_at)
+         values ($1, 'reminder', $2, $3, $4, $5, 'active', 'listed', $6, $7, $7)`,
         [groupId, body, w.startsAt, w.endsAt, photoUrl, seriesId, now],
       )
     wrote++

@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -19,12 +19,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "yes",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     582
    ],
-   "note": "[V] src/app/you/page.tsx and what it renders (OwnPages, YouNotices, ZipChange, YouInterests, SearchSharingSwitch, SignOutButton, the Following row) contain none of the three words and query only members, member_notices, member_interests, the market_name function and the follows reader (grep 2026-10-23); #895 removed the Default metro row and #911 and #966 added rows, none bringing a word or a dead table back. Built in #379 (review-skipped); deploy-health green on 9ff415f and on every later /you merge (4b9558a, 43bcf96). Smoked: /you opened green by smoke-live on 2026-10-19, 21, 22 and 23 (cb892a7). No standing guard, ticket #582"
+   "note": "[V reread 2026-11-06] `src/app/you/page.tsx` and what it renders (OwnPages, YouNotices, ZipChange, YouInterests, SearchSharingSwitch, SignOutButton, the Getting updates and Saved rows) show none of the three words and read only `members`, `member_notices`, `member_interests`, `saves` (new in #1172, this member's own rows), the `market_name` function and the follows reader; the only \"market\" in the files is the identifier `home_market_key` and the function name, never shown. Built in #379 (review-skipped); deploy-health green on 9ff415f and every later /you merge (#1172 on 49f942f). No standing guard, ticket #582. Smoked: unknown. The last green run covering `you` is `smoke-live` 2026-11-01 (3df9260); #1172 (2026-11-02) changed `/you` after it (Saved row, \"Getting updates\"), and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     1011
    ],
-   "note": "[V] built half: no shop controls on /you (OwnPages shows a card per Page, the Zip row shows the area, nothing says shop). Missing: the invitation; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.', and 'Start something' is a link in the Your Pages header (OwnPages.tsx, you/page.tsx). #15 (T125) was closed on 2026-10-18 as 'nothing left to build' because the Start something row exists; the invitation it names was never built, so it is refiled. The copy is Don's"
+   "note": "[V reread 2026-11-06] built half: no shop controls on /you (OwnPages shows a card per Page, the Zip row shows the area, nothing says shop). Missing: the invitation; with no Page the empty state is one line, 'You haven't made a Page yet. Tap Create to start one.' (Create is now the ➕ in the header row, #1095), and 'Start something' is a link in the Your Pages header (OwnPages.tsx, you/page.tsx). #15 (T125) was closed on 2026-10-18 as 'nothing left to build' because the Start something row exists; the invitation it names was never built, so it is refiled. The copy is Don's"
   },
   {
    "id": "3",
@@ -94,7 +94,7 @@
    "smoked": "no",
    "pm_looked": "no",
    "issues": [],
-   "note": "[V] 'listings' is the vendor-era Items noun (#177: /you/sell still writes Items); the 2026-10-01 ruling on You (#303: private, for the Pages you manage, the Pages you follow, your name and area) names what You holds and listings are not in it, and a Page's products and services now live on the Page itself (#909, #920). Cannot tell what the criterion asks for on today's model: routed to scope-scenario"
+   "note": "[V reread 2026-11-06] 'listings' is the vendor-era Items noun (#177: /you/sell still writes Items); the 2026-10-01 ruling on You (#303: private, for the Pages you manage, the Pages you follow, your name and area) names what You holds and listings are not in it, and a Page's products and services now live on the Page itself (#909, #920). Cannot tell what the criterion asks for on today's model: routed to scope-scenario"
   },
   {
    "id": "5",
@@ -107,12 +107,12 @@
    "checked": "no",
    "reviewed": "no",
    "shipped": "unknown",
-   "smoked": "yes",
+   "smoked": "unknown",
    "pm_looked": "no",
    "issues": [
     583
    ],
-   "note": "[V] redirect in next.config.ts (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); the follow list was rebuilt in #966 (2026-10-19, Reviewed by: Claude, deploy-health green on 43bcf96): /you/following lists Pages with Unfollow and Undo, people and venues below, all through getMemberFollows; the old src/app/following page is deleted, so the redirect is the only path. SignOutButton on /you. Smoked: /following, /you and /you/following opened green by smoke-live on 2026-10-19 (cd913c7, after #966). unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'), you-following-row.test.tsx, FollowedPagesList.test.tsx ('unfollows with Undo'); no test of sign-out"
+   "note": "[V reread 2026-11-06] redirect in next.config.ts line 25 (direct commit f6b84e0, 2026-09-10, no PR and no deploy-health run); the follow list was rebuilt in #966 (2026-10-19, Reviewed by: Claude, deploy-health green on 43bcf96) and relabelled \"Getting updates\" in #1172 (2026-11-02, Reviewed by: a second session, green on 49f942f): /you/following lists Pages with Unfollow and Undo, people and venues below, all through getMemberFollows; the old src/app/following page is deleted, so the redirect is the only path. SignOutButton on /you. unmarked: tests/retired-routes.test.ts ('/following redirects to the shipped /you/following'), you-following-row.test.tsx, FollowedPagesList.test.tsx ('unfollows with Undo'); no test of sign-out. Smoked: unknown. The last green run covering `you-following` and `you` is `smoke-live` 2026-11-01 (3df9260); #1172 changed both after it, and no run has reached a signed-in screen since (11-02 red, 11-03 and 11-05 stalled at sign-in, fix #1190 merged 11-06) [V]."
   }
  ]
 }

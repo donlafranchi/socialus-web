@@ -3,7 +3,7 @@
 
 export function ExploreSkeleton() {
   return (
-    <main className="pb-nav" aria-busy="true">
+    <main className="pb-dock" aria-busy="true">
       <p role="status" className="sr-only">
         Loading Explore
       </p>

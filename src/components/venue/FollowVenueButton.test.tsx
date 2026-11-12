@@ -35,7 +35,7 @@ describe('FollowVenueButton', () => {
     )
     const link = screen.getByTestId('follow-venue-signin')
     expect(link).toHaveAttribute('href', '/auth/login?next=/p/sf/ferry-building/l/blue-bottle')
-    expect(link).toHaveTextContent('Sign up to follow this venue')
+    expect(link).toHaveTextContent('Sign up to get updates from this venue')
   })
 
   it("auth'd, not following → renders 'Follow this venue' button", () => {
@@ -48,7 +48,7 @@ describe('FollowVenueButton', () => {
       />,
     )
     const btn = screen.getByTestId('follow-venue')
-    expect(btn).toHaveTextContent('Follow this venue')
+    expect(btn).toHaveTextContent('Get updates')
     expect(btn).toHaveAttribute('aria-pressed', 'false')
   })
 
@@ -62,7 +62,7 @@ describe('FollowVenueButton', () => {
       />,
     )
     const btn = screen.getByTestId('following-venue')
-    expect(btn).toHaveTextContent('Following')
+    expect(btn).toHaveTextContent('Getting updates')
     expect(btn).toHaveAttribute('aria-pressed', 'true')
   })
 

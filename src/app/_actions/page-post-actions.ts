@@ -9,8 +9,10 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { resolveActionContext } from '@/lib/action-context'
+import type { PostKind } from '@/lib/posts/kinds'
 import { groupPostCreate, groupPostEdit, groupPostDelete, ActionError } from '@/actions'
 import { recordOrigin } from './origin-actions'
+import { countUse } from '@/lib/usage/count-use'
 import { succeeded, failed, type ActionResult } from '@/app/you/sell/action-result'
 
 async function currentMemberId(): Promise<string | null> {
@@ -34,15 +36,21 @@ export async function postToPageAction(input: {
   locationId?: string | null
   howToFind?: string | null
   tags?: string[]
+  labelsPinned?: boolean
   photoUrl?: string | null
   series?: { weekdays: number[]; startsOn: string | null; endsOn: string | null }
-  wonder?: { threshold: number; options?: string[] }
+  wonder?: { threshold?: number; options?: string[] }
+  kind?: PostKind
+  headline?: string
 }): Promise<ActionResult<{ postId: string; createdAt: string }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')
   try {
     const r = await groupPostCreate(resolveActionContext({ actingMemberId: memberId }), input)
     await recordOrigin(memberId, 'post', r.postId)
+    // F133 — writing a post and, once, a first post; counted after the response.
+    await countUse({ part: 'posts' }, memberId)
+    await countUse({ step: 'first_post' }, memberId)
     return succeeded({ postId: r.postId, createdAt: r.createdAt })
   } catch (err) {
     return asFailure(err)
@@ -57,7 +65,11 @@ export async function editPagePostAction(input: {
   showUntil?: string | null
   locationId?: string | null
   howToFind?: string | null
+  tags?: string[]
+  labelsPinned?: boolean
   photoUrl?: string | null
+  kind?: PostKind
+  headline?: string
 }): Promise<ActionResult<{ postId: string; reposted: boolean }>> {
   const memberId = await currentMemberId()
   if (!memberId) return failed('Sign in first, then tell people.', 'authorization')

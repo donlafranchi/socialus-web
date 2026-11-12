@@ -1,7 +1,10 @@
 // #527 — turns speed-out/rows.jsonl into the run summary, the history record and the dashboard feed.
 //   npx tsx evals/speed/summarize.ts [speed-out]
 // Writes summary.md and perf-latest.json (the nightly appends the latter to the
-// perf-history branch). MEMBER_COUNT, when set, says whether a re-benchmark is due.
+// perf-history branch). MEMBER_COUNT, when set, says whether a re-benchmark is due;
+// DONE_CHECKPOINTS (space-separated) names the checkpoints already re-run. Nothing
+// sets either yet. Each load run's member count now lives in its run record in the
+// knowledge store (F135), which replaced evals/speed/checkpoints.json (never filled).
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { slowest, type Flag, type TapMeasure } from '../../src/lib/speed/judge'
@@ -13,7 +16,7 @@ if (!existsSync(file)) { console.log('no rows'); process.exit(0) }
 type R = TapMeasure & { mode: string; flags: Flag[]; status: Status; regressed: boolean; waived: boolean; requests: number; waterfall: number; longTaskMs: number; slowReqs: string[]; afterNetworkMs?: number | null; prefetched: boolean | null; note?: string }
 const rows = readFileSync(file, 'utf8').trim().split('\n').map((l) => JSON.parse(l) as R)
 const baseline: Baseline = JSON.parse(readFileSync(join(__dirname, 'baseline.json'), 'utf8'))
-const done: number[] = existsSync(join(__dirname, 'checkpoints.json')) ? JSON.parse(readFileSync(join(__dirname, 'checkpoints.json'), 'utf8')).benchmarked : []
+const done: number[] = (process.env.DONE_CHECKPOINTS ?? '').split(/\s+/).map(Number).filter((n) => n > 0)
 const f = (v: number | null) => (v === null ? '—' : String(v))
 const dot = { green: '🟢', amber: '🟠', red: '🔴' } as const
 const key = (r: R) => `${r.name} [${r.mode}]`
@@ -27,7 +30,7 @@ const worst = slowest(rows.filter((r) => !r.note), 10)
 const md = [
   `### Tap speed: ${reds.length ? `🔴 ${reds.length} red` : '🟢 no red'} (Pixel 7, 4x CPU, 4G, production)`,
   '',
-  ...(due ? [`**Re-benchmark due:** membership passed ${due}. Run the suite and the load simulation, then record ${due} in evals/speed/checkpoints.json.`, ''] : []),
+  ...(due ? [`**Re-benchmark due:** membership passed ${due}. Run the suite and the load simulation at ${due} members; the load run records itself in the knowledge store.`, ''] : []),
   '| | Tap | feedback ms | URL ms | content ms | requests / waterfall | long tasks ms | flags |',
   '|---|---|---|---|---|---|---|---|',
   ...rows.map((r) => `| ${dot[r.status] ?? '🔴'} | ${key(r)} | ${f(r.feedbackMs)} | ${f(r.urlMs)} | ${f(r.readyMs)} | ${r.requests} / ${r.waterfall} | ${r.longTaskMs} | ${r.note ?? [...r.flags, r.regressed ? 'slower than baseline' : '', r.waived ? 'known' : ''].filter(Boolean).join(', ')} |`),

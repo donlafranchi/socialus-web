@@ -85,7 +85,7 @@ describe('batching', () => {
   })
   it('several posts become one notification naming the Pages, opening the updates', () => {
     const m = followMessage([post(1, 'A'), post(2, 'B'), post(3, 'B'), post(4, 'C'), post(5, 'D')])
-    expect(m.title).toBe('5 new posts from Pages you follow')
+    expect(m.title).toBe('5 new posts from Pages you get updates from')
     expect(m.body).toBe('A, B and 2 more')
     expect(m.url).toBe('/explore?view=updates&via=push-follow_posts')
   })
@@ -102,7 +102,7 @@ describe('the weekly this-weekend', () => {
     expect(weekendMessage(0, 0)).toBeNull()
   })
   it('counts what is on, and how much is from followed Pages', () => {
-    expect(weekendMessage(5, 2)).toMatchObject({ title: 'This weekend near you', body: '5 things on, 2 from Pages you follow.', url: '/explore?schedule=weekend&via=push-weekend' })
+    expect(weekendMessage(5, 2)).toMatchObject({ title: 'This weekend near you', body: '5 things on, 2 from Pages you get updates from.', url: '/explore?schedule=weekend&via=push-weekend' })
     expect(weekendMessage(1, 0)!.body).toBe('1 thing on.')
   })
   it('from a Thursday, the window is Friday 00:00 to Monday 00:00 Pacific', () => {

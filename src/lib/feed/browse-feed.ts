@@ -37,11 +37,13 @@
 // (F059 criterion 3). Community response may in principle order it and does
 // not today — no Page or post carries a response count.
 
-import { searchRaw, searchTsQuery } from '@/lib/search/query'
+import { anyWordTsQuery, searchRaw, searchTsQuery } from '@/lib/search/query'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { decodeEwkbPoint } from '@/lib/explore/ewkb'
-import { canonicalPagePath } from '@/lib/groups/page-handle'
+import { canonicalPagePath, pagePath, type PageAddressParts } from '@/lib/groups/page-handle'
+import { postPath } from '@/lib/posts/post-path'
 import { announcementAnchor } from '@/components/group/announcement-anchor'
+import { isPostKind, type PostKind } from '@/lib/posts/kinds'
 import { visiblePhotoUrl } from '@/lib/groups/visible-photo-url'
 import { normalizeTag } from '@/lib/groups/tags'
 import { clampLimit } from './locality-feed'
@@ -101,9 +103,11 @@ export interface BrowseFeedOpts {
    */
   tags?: readonly string[] | null
   /** #876 — the Type filter's post kinds; a dated real post counts as an event. */
-  postKinds?: readonly ('event' | 'deal' | 'last_minute')[] | null
+  postKinds?: readonly PostKind[] | null
   /** #916 — the search box's words; searched on the server over every row in scope, widened by synonyms. */
   search?: string | null
+  /** F121 — a shelf's words: any one of them matches. Ignored when `search` is set. */
+  anyOf?: readonly string[] | null
   /** The time lens window. Both ends optional and independent. */
   startsFrom?: string | null
   startsBefore?: string | null
@@ -146,6 +150,9 @@ export interface BrowseFeedRow {
   ends_at?: string | null
   /** #796 — set only on a seeder sample (#556). */
   sample_kind?: 'event' | 'deal' | 'last_minute' | null
+  /** plan #230 — what the post is, and its one-line headline. Null on a Page row. */
+  post_kind?: PostKind | null
+  headline?: string | null
   sort_at: string
 }
 
@@ -187,6 +194,10 @@ export interface BrowseResult {
   endsAt?: string | null
   /** #796 — a seeder sample (#556): every surface marks it as one. Null on real posts and Pages. */
   sampleKind?: 'event' | 'deal' | 'last_minute' | null
+  /** plan #230 — what the post is (null on a Page row, or a row read before the column existed). */
+  postKind?: PostKind | null
+  /** plan #230 — the card's one line; null on an older post, which falls back to its body. */
+  headline?: string | null
   /** #876 — from a Page the member follows: the Following filter's field. Set by Explore's loader. */
   followed?: boolean
   /** Whatever key the chosen sort ordered on, so nothing re-sorts downstream. */
@@ -230,6 +241,9 @@ export interface QuickLinks {
 /** What a card needs from the Page beyond the feed row, read in the one lookup that finds its public id. */
 interface PageExtras {
   publicId: string | null
+  /** #1139 — the Page's readable address, when it has one. */
+  placeUrlSlug?: string | null
+  pageUrlSlug?: string | null
   socialLinks: Record<string, unknown> | null
   whereMode: string | null
   anchorKind: string | null
@@ -251,15 +265,7 @@ function pointOf(ewkb: string | null): { longitude: number | null; latitude: num
   }
 }
 
-/**
- * The canonical Page address — `/g/<id>` (#411), or null with no id to resolve by.
- *
- * Issue #175. This used to be `/p/<place_path>/g/<slug>`, and `place_path` is
- * null for every Page a member created, so every one of those cards rendered
- * without a link. The address no longer depends on geography at all (ruled
- * 2026-09-21), which is what fixes it — and `place_path` stays in the row
- * because breadcrumbs and scoping still want it.
- */
+/** The id address, `/g/<id>`, for a row that carries only the id (the proxy forwards it, #1139); null with none. */
 export function browseHref(publicId: string | null): string | null {
   const id = publicId?.trim()
   return id ? canonicalPagePath(id) : null
@@ -269,27 +275,23 @@ export function browseHref(publicId: string | null): string | null {
  * Where a result card goes.
  *
  * A Page row goes to its Page. AN ANNOUNCEMENT ROW GOES TO ITS ANNOUNCEMENT —
- * bug #211. Before this both went to the Page, so tapping an announcement
- * landed you at the top of a Page with no indication which one you had tapped,
- * and if you owned the Page you landed on the composer, which renders between
- * the heading and the list.
- *
- * A fragment rather than a route, because an announcement does not have its
- * own address yet. When it does, this is the one place that changes.
+ * bug #211: its own readable address when it has one (#1139), else its fragment
+ * on the Page. No Page to resolve by means no link at all: a bare
+ * '#announcement-…' would be a link that looks live and goes nowhere.
  */
 export function resultHref(
   r: Pick<BrowseFeedRow, 'slug' | 'result_kind' | 'result_id'>,
-  publicId: string | null,
+  page: PageAddressParts | null,
+  postSlug?: string | null,
 ): string | null {
-  const page = browseHref(publicId)
-  // No Page path means no link at all. A bare '#announcement-…' would be a
-  // link that looks live and goes nowhere, which is worse than no link.
-  if (!page) return null
-  if (r.result_kind !== 'post') return page
-  return `${page}#${announcementAnchor(r.result_id)}`
+  if (!page?.publicId?.trim()) return null
+  const path = pagePath(page)
+  if (r.result_kind !== 'post') return path
+  if (postSlug && !path.startsWith('/g/')) return postPath(path, { id: r.result_id, urlSlug: postSlug })
+  return `${path}#${announcementAnchor(r.result_id)}`
 }
 
-export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?: PageExtras): BrowseResult {
+export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?: PageExtras, postSlug?: string | null): BrowseResult {
   const point = pointOf(r.location_geography)
   return {
     resultKind: r.result_kind,
@@ -299,7 +301,7 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?:
     slug: r.slug,
     // #450 — stored Page text may carry an address; a card never shows it.
     name: maskEmails(r.name),
-    href: resultHref(r, publicId),
+    href: resultHref(r, publicId ? { publicId, placeUrlSlug: extras?.placeUrlSlug, pageUrlSlug: extras?.pageUrlSlug } : null, postSlug),
     photoUrl: visiblePhotoUrl({
       photo_url: r.photo_url,
       photo_hidden_at: r.photo_hidden_at,
@@ -318,6 +320,8 @@ export function mapBrowseRow(r: BrowseFeedRow, publicId: string | null, extras?:
     postedAt: r.posted_at ?? null,
     endsAt: r.ends_at ?? null,
     sampleKind: r.sample_kind ?? null,
+    postKind: isPostKind(r.post_kind) ? r.post_kind : null,
+    headline: maskEmailsOrNull(r.headline ?? null),
     sortAt: r.sort_at,
     withheld: false,
     announcementCount: null,
@@ -353,6 +357,11 @@ function searchArgs(text: string | null | undefined) {
   return raw ? { p_search: searchTsQuery(text!), p_search_raw: raw } : {}
 }
 
+function anyOfArgs(terms: readonly string[] | null | undefined) {
+  const q = terms?.length ? anyWordTsQuery(terms) : null
+  return q ? { p_search: q } : {}
+}
+
 export async function getBrowseFeed(
   supabase: RpcClient,
   opts: BrowseFeedOpts,
@@ -373,14 +382,13 @@ export async function getBrowseFeed(
     p_now: opts.now ?? null,
     p_limit: clampLimit(opts.limit),
     ...(opts.postKinds?.length ? { p_post_kinds: [...opts.postKinds] } : {}),
-    ...searchArgs(opts.search),
+    ...(opts.search ? searchArgs(opts.search) : anyOfArgs(opts.anyOf)),
     // A drive minute is a straight-line kilometre, as in browse_nearby.
     ...(opts.reachMinutes ? { p_reach_m: opts.reachMinutes * 1000 } : {}),
   })
   if (error) throw error
   const rows = (data ?? []) as BrowseFeedRow[]
-  const pages = await fetchPageExtras(supabase, rows)
-  return rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
+  return rows.map(await pageAndPostAddresses(supabase, rows))
 }
 
 /**
@@ -406,9 +414,8 @@ export async function getHappening(
   })
   if (error) throw error
   const rows = ((data ?? []) as (BrowseFeedRow & { bucket: 'week' | 'weekend' })[]).slice().sort(soonestFirst)
-  const pages = await fetchPageExtras(supabase, rows)
-  const map = (b: 'week' | 'weekend') =>
-    rows.filter((r) => r.bucket === b).map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id)))
+  const toResult = await pageAndPostAddresses(supabase, rows)
+  const map = (b: 'week' | 'weekend') => rows.filter((r) => r.bucket === b).map(toResult)
   const thisWeek = map('week')
   const tonight = Date.parse(windows.today.to)
   return {
@@ -439,10 +446,10 @@ export async function getNearbyFeed(
   })
   if (error) throw error
   const rows = (data ?? []) as (BrowseFeedRow & { reach_minutes: number; reach_from: string | null })[]
-  const pages = await fetchPageExtras(supabase, rows)
+  const toResult = await pageAndPostAddresses(supabase, rows)
   const first = rows[0]
   return {
-    results: rows.map((r) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id))),
+    results: rows.map(toResult),
     // Nothing within reach still has a reach: the widest it tried, so "Show more nearby" is there to tap.
     reach: first ? { minutes: first.reach_minutes, from: first.reach_from } : { minutes: opts.minutes ?? opts.cap, from: null },
   }
@@ -469,6 +476,25 @@ function soonestFirst(a: BrowseFeedRow, b: BrowseFeedRow): number {
  * `fetchGroupPrefixes` follows, and the same rule that made this bug quiet for
  * so long, so it is worth saying out loud: a missing id is a dead card.
  */
+/** #1139 — each post card's own slug, for its link and its share button. A failed read leaves the fragment link. */
+async function fetchPostSlugs(supabase: RpcClient, rows: readonly Pick<BrowseFeedRow, 'result_kind' | 'result_id'>[]): Promise<Map<string, string>> {
+  const ids = rows.filter((r) => r.result_kind === 'post').map((r) => r.result_id)
+  const out = new Map<string, string>()
+  if (ids.length === 0) return out
+  try {
+    const { data, error } = await supabase.rpc('post_url_slugs', { p_post_ids: ids })
+    if (!error && Array.isArray(data)) for (const r of data as { id: string; url_slug: string }[]) out.set(r.id, r.url_slug)
+  } catch {
+    // The card keeps its fragment link.
+  }
+  return out
+}
+
+async function pageAndPostAddresses(supabase: RpcClient, rows: readonly BrowseFeedRow[]) {
+  const [pages, posts] = await Promise.all([fetchPageExtras(supabase, rows), fetchPostSlugs(supabase, rows)])
+  return (r: BrowseFeedRow) => mapBrowseRow(r, pages.get(r.group_id)?.publicId ?? null, pages.get(r.group_id), posts.get(r.result_id))
+}
+
 async function fetchPageExtras(
   supabase: RpcClient,
   rows: readonly Pick<BrowseFeedRow, 'group_id' | 'result_kind' | 'location_geography'>[],
@@ -480,7 +506,7 @@ async function fetchPageExtras(
   // signed-out reader has neither the point (F093.8) nor the grant on where_mode or the anchor, and asking
   // for them would fail the whole lookup and with it every card's link.
   const withLinks = rows.some((r) => r.result_kind === 'page' && r.location_geography)
-  const base = 'id, public_id, picture_url, picture_hidden_at, picture_removed_at'
+  const base = 'id, public_id, place_url_slug, page_url_slug, picture_url, picture_hidden_at, picture_removed_at'
   const read = (cols: string) => supabase.from('groups').select(cols).in('id', ids)
   let { data, error } = await read(withLinks ? `${base}, social_links, where_mode, anchor:locations!groups_anchor_location_id_fkey(kind)` : base)
   if (error && withLinks) ({ data, error } = await read(base))
@@ -488,6 +514,8 @@ async function fetchPageExtras(
   type Row = {
     id: string
     public_id: string | null
+    place_url_slug?: string | null
+    page_url_slug?: string | null
     social_links: Record<string, unknown> | null
     where_mode: string | null
     picture_url: string | null
@@ -499,6 +527,8 @@ async function fetchPageExtras(
     const anchor = Array.isArray(row.anchor) ? row.anchor[0] : row.anchor
     out.set(row.id, {
       publicId: row.public_id,
+      placeUrlSlug: row.place_url_slug ?? null,
+      pageUrlSlug: row.page_url_slug ?? null,
       socialLinks: row.social_links ?? null,
       whereMode: row.where_mode ?? null,
       anchorKind: anchor?.kind ?? null,

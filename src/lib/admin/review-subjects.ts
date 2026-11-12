@@ -57,7 +57,7 @@ export function groupBySubject(queue: QueuedReport[], { live = false }: { live?:
     // posts never merge.
     const key =
       r.subjectKind === 'group'
-        ? r.groupId
+        ? (r.groupId ?? r.subjectId)
         : r.subjectKind === 'post'
           ? (r.postId ?? r.subjectId)
           : `${r.subjectKind}:${r.subjectId}`

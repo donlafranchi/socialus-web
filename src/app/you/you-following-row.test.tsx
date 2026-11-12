@@ -28,7 +28,8 @@ describe('#962 — Following from You', () => {
     render(await YouPage())
     const row = screen.getByTestId('you-following-row')
     expect(row).toHaveAttribute('href', '/you/following')
-    expect(row).toHaveTextContent('Following')
+    // #1171 — Follow is now Get updates (plan #269).
+    expect(row).toHaveTextContent('Getting updates')
     expect(row).toHaveTextContent('3 Pages')
     expect(row.compareDocumentPosition(screen.getByTestId('your-pages-section')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
@@ -41,5 +42,16 @@ describe('#962 — Following from You', () => {
     follows.mockResolvedValueOnce([])
     render(await YouPage())
     expect(screen.getByTestId('you-following-row')).toHaveTextContent(/None yet/)
+  })
+})
+
+// #1171 (plan #269, Don 2026-11-02) — Saved, on You, under Getting updates.
+describe('#1171 — Saved from You', () => {
+  it('has a Saved row that opens the Saved list', async () => {
+    render(await YouPage())
+    const row = screen.getByTestId('you-saved-row')
+    expect(row).toHaveAttribute('href', '/you/saved')
+    expect(row).toHaveTextContent('Saved')
+    expect(screen.getByTestId('you-following-row').compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

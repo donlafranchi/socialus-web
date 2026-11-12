@@ -30,7 +30,7 @@
 import { normalizeUsPhone } from '../../lib/phone'
 import { parseOpeningHours } from '../../lib/groups/opening-hours'
 import { whereInput, applyWhere, type WhereClause } from './where'
-import { normalizeTag, isValidTagLabel, TAG_MAX_LENGTH, MAX_TAGS_PER_PAGE } from '../../lib/groups/tags'
+import { labelsInput, labelsPinnedInput, storedLabels, writePageLabels, writePagePinned } from './labels'
 import { z } from 'zod'
 import { anyContainsEmail, EMAIL_IN_PAGE_TEXT_MESSAGE } from '../../lib/text/contact-info'
 import { defineHandler } from '../_lib/handler'
@@ -60,7 +60,8 @@ export const groupUpdateInput = z.object({
   contactPhone: z.string().max(40).nullable().optional(),
   openingHours: z.unknown().optional(),
   // #285 — the whole set, replacing the old one (Don, 2026-10-01: editable any time).
-  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(MAX_TAGS_PER_PAGE).optional(),
+  tags: labelsInput,
+  labelsPinned: labelsPinnedInput,
   // Don, 2026-10-04 — hours and phone as a component: on by default for
   // shops and services, off for groups until the owner adds them.
   contactComponent: z.boolean().optional(),
@@ -216,13 +217,9 @@ export const groupUpdate = defineHandler(
 
       // At least one tag, as at publish: search matches tags, and an untagged
       // Page cannot be found by what it does.
-      const tags = new Map<string, string>()
+      const labels = input.tags === undefined ? [] : storedLabels(input.tags)
       if (input.tags !== undefined) {
-        for (const label of input.tags.filter(isValidTagLabel)) {
-          const n = normalizeTag(label)
-          if (!tags.has(n)) tags.set(n, label.trim())
-        }
-        if (tags.size === 0) {
+        if (labels.length === 0) {
           throw new ValidationError('group.update: a Page needs at least one tag')
         }
         patched.push('tags')
@@ -303,32 +300,8 @@ export const groupUpdate = defineHandler(
         // already see belongs in the Page's history.
       }
 
-      if (tags.size > 0) {
-        for (const [normalized, label] of tags) {
-          await client.query(
-            `insert into public.tags (label, normalized, created_by)
-             values ($1, $2, $3)
-             on conflict (normalized) do nothing`,
-            [label, normalized, ctx.actingMemberId],
-          )
-        }
-        await client.query(
-          `delete from public.page_tags pt
-            using public.tags t
-            where pt.tag_id = t.id
-              and pt.group_id = $1
-              and t.normalized <> all($2)`,
-          [input.groupId, [...tags.keys()]],
-        )
-        for (const normalized of tags.keys()) {
-          await client.query(
-            `insert into public.page_tags (group_id, tag_id)
-             select $1, t.id from public.tags t where t.normalized = $2
-             on conflict (group_id, tag_id) do nothing`,
-            [input.groupId, normalized],
-          )
-        }
-      }
+      if (labels.length > 0) await writePageLabels(client, input.groupId, labels, ctx.actingMemberId!)
+      if (input.labelsPinned !== undefined) await writePagePinned(client, input.groupId, input.labelsPinned)
 
       await appendEvent({ ...ctx, db: client }, 'group_events', {
         group_id: input.groupId,

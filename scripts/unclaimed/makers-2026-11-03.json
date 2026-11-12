@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Habitat for Humanity Yuba/Sutter",
+    "category": "Volunteer building and ReStore (nonprofit)",
+    "makes": "Marysville affiliate that builds and repairs homes with families; volunteers help on build sites, in the ReStore, at community events and in the office, and the ReStore sells donated furniture, appliances and building materials",
+    "area": "Marysville (Yuba)",
+    "address": "202 D Street, Marysville, CA 95901",
+    "site": "https://www.yubasutterhabitat.org/",
+    "social": {
+      "instagram": "https://www.instagram.com/yubasutterhabitatforhumanity/",
+      "facebook": "https://www.facebook.com/YubaSutterHabitatForHumanity"
+    },
+    "confidence": "High; own site checked 2026-11-03 (ok): address, ReStore hours Tue-Sat 9-5, volunteer areas listed; page modified Oct 2026. Photos not viewed: stock only. Fewer than 3 own-site products, so none. Lead: Habitat affiliate locator, then own site."
+  },
+  {
+    "name": "Nevada County Habitat for Humanity",
+    "category": "Volunteer building and ReStore (nonprofit)",
+    "makes": "Grass Valley affiliate that builds homes with low-income working families in Nevada County and runs a ReStore whose profits fund the work; volunteers join builds and the store",
+    "area": "Grass Valley (Nevada)",
+    "address": "236 S. Church St., Grass Valley, CA 95945",
+    "site": "https://www.nchabitat.org/",
+    "social": {
+      "facebook": "https://www.facebook.com/nevadacountyhabitat/"
+    },
+    "products": [
+      {
+        "name": "Homeownership",
+        "url": "https://nchabitat.org/home-buyer/",
+        "kind": "service"
+      },
+      {
+        "name": "Building Homes",
+        "url": "https://nchabitat.org/home-builder/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore",
+        "url": "https://nchabitat.org/habitat-restore/",
+        "kind": "service"
+      },
+      {
+        "name": "Housing Advocacy",
+        "url": "https://nchabitat.org/advocacy/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "Medium-high; own site checked 2026-11-03 (ok): Street of Dreams 2026 listed, volunteer page https://nchabitat.org/get-involved/ live. Street address taken from Habitat's affiliate locator, not the home page. Photos not viewed: stock only. Lead: Habitat affiliate locator, then own site."
+  },
+  {
+    "name": "Foothills Habitat for Humanity",
+    "category": "Volunteer building and ReStore (nonprofit)",
+    "makes": "Roseville affiliate providing affordable housing in Placer County through homeownership and home repairs, with a ReStore open for shopping and donations Wednesday to Saturday",
+    "area": "Roseville (Placer)",
+    "address": "8292 Industrial Ave., Roseville, CA 95678",
+    "site": "https://foothillshabitat.org/",
+    "products": [
+      {
+        "name": "Homeownership",
+        "url": "https://foothillshabitat.org/homeownership/",
+        "kind": "service"
+      },
+      {
+        "name": "Home Repairs",
+        "url": "https://foothillshabitat.org/home-repairs/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore",
+        "url": "https://foothillshabitat.org/restore/",
+        "kind": "service"
+      },
+      {
+        "name": "ReStore Donations",
+        "url": "https://foothillshabitat.org/restore-donations/",
+        "kind": "service"
+      }
+    ],
+    "confidence": "High; own site checked 2026-11-03 (ok): footer 2026, address and ReStore hours (Wed-Sat 10-4:30) live. Only a Facebook redirect link on the site, so no social field. Photos not viewed: stock only. Lead: Habitat affiliate locator, then own site."
+  },
+  {
+    "name": "Community Harvest of Davis",
+    "category": "Fruit gleaning (nonprofit)",
+    "makes": "All-volunteer Davis nonprofit that harvests fruit from residential trees and donates it to Davis Community Meals, the women's shelter, local community fridges and the Yolo Food Bank",
+    "area": "Davis (Yolo)",
+    "address": "1227 Fordham Dr., Davis, CA 95616",
+    "site": "http://www.harvestdavis.org/",
+    "confidence": "Medium; own site checked 2026-11-03 (read ok): states over half a million pounds donated as of October 2025; no social links or products found; the Fordham Dr. address is where van-fund checks are mailed. Photos not viewed: stock only. Lead: National Gleaning Project, then own site."
+  }
+]

@@ -11,6 +11,7 @@ export function AddToCalendarLink(props: Omit<CalendarEvent, 'now'>) {
       href={`data:text/calendar;charset=utf-8,${encodeURIComponent(buildIcs(props))}`}
       download={fileName(props.title)}
       data-testid="add-to-calendar"
+      data-shelf-save
       className="text-sm text-[var(--color-accent)] hover:underline"
     >
       {COPY.addToCalendar}

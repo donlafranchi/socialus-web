@@ -6,6 +6,10 @@ SocialUs: local discovery, buy/sell/trade/gather. Beta 2026-11-06 (soft target) 
 
 Where each kind of thing goes (one home each, budgets, generated vs maintained): `socialus-ops/process/WHERE-THINGS-GO.md`. Read it before writing any doc.
 
+## Where files go (Don, 2026-11-01) [for now]
+
+Files live only in Don's project repos (socialus-plan, socialus-ops, socialus-web, socialus-legal, socialus-design). Never write anywhere else, even if a tool or prompt suggests it. [for now: until Don says otherwise] Cold-start briefs go in the repo they're about (e.g. socialus-web development/briefs/ or socialus-plan planning/briefs/).
+
 ## Naming
 
 - **Issue title:** `F060 · T142 · plain name` for scenario work. `bug · plain name` / `change · plain name` / `chore · plain name` otherwise, with `Scenario: F###|none` in the body.
@@ -16,6 +20,16 @@ Where each kind of thing goes (one home each, budgets, generated vs maintained):
 ## Before opening a ticket
 
 Classify it by `socialus-ops/process/PIPELINE.md`'s five kinds first: scenario, change, bug, process, chore. Only a scenario carries acceptance checks. If a change or bug starts needing acceptance checks, it's actually a scenario — stop and ask `socialus-plan` for one before ticketing it as anything else.
+
+## How decisions flow (2026-11-01)
+
+Don, 2026-11-01: "me as the human I set guidelines and desired outcomes or trajectories or concepts of where I'd like to go as the human decision maker and you are there to try to figure out options and choices. Do the research to help guide me make the best decision based on whatever information is available and that's how this app development should work from top to bottom."
+
+1. **Don gives direction:** guidelines, desired outcomes, trajectories, concepts.
+2. **Agents research and turn it into options:** the evidence and precedents, as A/B/C with a recommendation.
+3. **Don decides.**
+
+This sharpens the decision rule and decision rights below, it doesn't replace them: agents still decide well-worn and mechanical calls and report them; what Don decides reaches him as researched options.
 
 ## Decision rights (2026-10-25)
 
@@ -82,8 +96,9 @@ Previews
 - `PREVIEWS_MODE` (Vercel environment, and the GitHub repo variable of the same name) is `off` until the 10-23 freeze: only `main` builds. `labelled` builds previews only for PRs labelled `human-review` (`scripts/vercel-ignore.mjs`).
 
 Build concurrency
-- Max 2 changes building or testing at once.
-- Every Playwright run uses `--workers=2`.
+- Cloud sessions each run on their own machine: no cap on how many build at once. Only one branch with a migration waits for the PM's apply at a time, so applies stay in order (the PM, 2026-11-11: the two-at-once limit was the old Mac's).
+- On the Mac (replaced 2026-11-11 with a much more powerful one): at most 4 changes building or testing at once, a starting point to raise or lower after the first busy week.
+- Every Playwright run on the Mac uses `--workers=4`; CI keeps its own setting.
 - Each change gets its own dev server port, and the server is shut down when the change finishes.
 - Close all headless browsers when a run ends; never leave them open between runs.
 

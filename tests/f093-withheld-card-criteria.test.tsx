@@ -129,7 +129,7 @@ describe.skipIf(!RUNNABLE)('F093 criteria 4, 5, 9, 10 — from the database to t
     // The five things, and only them.
     expect(screen.getByTestId('tile-image').querySelector('img')?.getAttribute('src')).toBe(PHOTO)
     expect(text).toBe(
-      `2 posts ${METRO_WEEK_LABEL}F094 FloatersThe details are for members and followers of this Page.Sign in to see what's happening`,
+      `2 posts ${METRO_WEEK_LABEL}F094 FloatersThe details are for this Page’s members and people who get its updates.Sign in to see what's happening`,
     )
     // Not the body, the time, the place, an excerpt, or the Page's own location.
     for (const secret of [BODY, 'SECRET', 'Thursday', PLACE_LABEL, 'River Bank', STARTS_AT.slice(0, 10), LOCATION]) {

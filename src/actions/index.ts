@@ -28,8 +28,16 @@ import {
   memberReminderSet,
   memberReminderRemove,
   memberReminderEveryForPage,
+  memberHeartSet,
+  memberSaveSet,
+  memberPostCreate,
+  memberPostWithdraw,
+  memberPostAnswer,
 } from './member'
 import { searchDemandLog } from './search'
+import { shelfLog } from './shelf'
+import { mapLog } from './map'
+import { usageLog } from './usage'
 import { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide } from './wonder'
 import {
   groupCreate,
@@ -108,6 +116,11 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   'member.reminder.set': memberReminderSet as unknown as NamedActionHandler<unknown, unknown>,
   'member.reminder.remove': memberReminderRemove as unknown as NamedActionHandler<unknown, unknown>,
   'member.reminder.every_for_page': memberReminderEveryForPage as unknown as NamedActionHandler<unknown, unknown>,
+  'member.heart.set': memberHeartSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member.save.set': memberSaveSet as unknown as NamedActionHandler<unknown, unknown>,
+  'member_post.create': memberPostCreate as unknown as NamedActionHandler<unknown, unknown>,
+  'member_post.withdraw': memberPostWithdraw as unknown as NamedActionHandler<unknown, unknown>,
+  'member_post.answer': memberPostAnswer as unknown as NamedActionHandler<unknown, unknown>,
   'group.market_stall.set': groupMarketStallSet as unknown as NamedActionHandler<unknown, unknown>,
   'group.market_stall.skip': groupMarketStallSkip as unknown as NamedActionHandler<unknown, unknown>,
   'group.market_stall.remove': groupMarketStallRemove as unknown as NamedActionHandler<unknown, unknown>,
@@ -118,6 +131,12 @@ const REGISTRY: Record<string, NamedActionHandler<unknown, unknown>> = {
   // #909 — search demand: the switch on You, and a settled Explore search counted with no member id.
   'member.search_sharing.set': memberSearchSharingSet as unknown as NamedActionHandler<unknown, unknown>,
   'search.demand_log': searchDemandLog as unknown as NamedActionHandler<unknown, unknown>,
+  // F121 — a shelf's weekly impressions, taps and saves, with no member id.
+  'shelf.log': shelfLog as unknown as NamedActionHandler<unknown, unknown>,
+  // plan #258 — Show on map and Directions taps per day, with no member id.
+  'map.log': mapLog as unknown as NamedActionHandler<unknown, unknown>,
+  // F133 — usage counts: a part of the app used, or a step reached, with no member id.
+  'usage.log': usageLog as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_leave': groupMemberLeave as unknown as NamedActionHandler<unknown, unknown>,
   'group.member_join': groupMemberJoin as unknown as NamedActionHandler<unknown, unknown>,
   // F067 — following a Page. Privacy decides follow vs join.
@@ -206,8 +225,18 @@ export {
   memberReminderSet,
   memberReminderRemove,
   memberReminderEveryForPage,
+  memberHeartSet,
+  memberSaveSet,
+  memberPostCreate,
+  memberPostWithdraw,
+  memberPostAnswer,
+  MEMBER_POST_REFUSED,
 } from './member'
+export type { MemberHeartSetInput, MemberPostCreateInput } from './member'
 export { searchDemandLog } from './search'
+export { shelfLog, SHELF_EVENTS } from './shelf'
+export { mapLog, MAP_TAP_KINDS } from './map'
+export { usageLog, USAGE_PARTS, FUNNEL_STEPS, type UsagePart, type FunnelStep } from './usage'
 export { townMakerAdd, townCreditSet, DAILY_ADDS, type TownMakerAddResult } from './town'
 export { wonderJoin, wonderLeave, wonderOffer, wonderOfferWithdraw, wonderOfferDecide, PICK_A_SIZE } from './wonder'
 export { groupCreate, groupUpdateDraft, groupUpdate, groupActivate, groupMemberJoin, groupMemberLeave } from './group'

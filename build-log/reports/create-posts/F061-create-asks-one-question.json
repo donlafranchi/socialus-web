@@ -6,7 +6,7 @@
  "area_source": "label",
  "gates": "none",
  "retired": false,
- "as_of": "2026-10-23",
+ "as_of": "2026-11-06",
  "criteria": [
   {
    "id": "1",
@@ -24,7 +24,7 @@
    "issues": [
     575
    ],
-   "note": "`WhatAreYouStarting.tsx`: 'What are you starting?', four answers each with a one-line purpose, and 'This just gets things started' [V]. The fourth, 'Be creative', is Don's own wording and the one answer that is not a question (ruled 2026-10-05). Built by #326 (Reviewed by), #364 and #382 (both review-skipped); deploy-health green on all three; no PR since 10-16 touches it [V gh]. Checked: unmarked `WhatAreYouStarting.test.tsx`; nothing asserts the 'just gets things started' sentence (#575). Smoked: smoke-live has no route for /create [V evals/screens/routes.ts]"
+   "note": "`/create` asks one question, the kind, as four answers that are questions about the thing (sell, gather, offer, Be creative), with 'This just gets things started' [V WhatAreYouStarting.tsx]. Built by #326 (Reviewed by), #360, #364 and #382 (review-skipped). Checked: no `[guards F061.1]` marker anywhere; `WhatAreYouStarting.test.tsx` is unmarked (#575). Shipped: Deploy health green on a5eefa3, 8958e93, c006495, fae5d98. Smoked: no smoke route for /create"
   },
   {
    "id": "2",
@@ -42,7 +42,7 @@
    "issues": [
     575
    ],
-   "note": "`startDraftAction` makes a draft of the chosen purpose and redirects to `canonicalPagePath` [V create/actions.ts]; the draft Page shows 'Before you publish' (name, where, description, tags, photo) and edits in place (#326, #360). Built by #326 (Reviewed by) and #360 (review-skipped). Checked: unmarked `create/actions.test.ts` ('creates a draft … and lands on it'); nothing asserts the draft offers name, address and tags (#575). Smoked: `page-edit` opens green (10-21 to 10-23) but as a published Page's editor, not a fresh draft."
+   "note": "`startDraftAction` creates the draft and `redirect`s to the draft Page, where the name, place, description, tags and photo are filled in on the Page editor [V src/app/create/actions.ts]. Built by #326, #360, #364. Checked: unmarked `src/app/create/actions.test.ts` (#575). Smoked: no route for a fresh draft Page"
   },
   {
    "id": "3",
@@ -60,7 +60,7 @@
    "issues": [
     576
    ],
-   "note": "`resolvePagePlacements` in `src/lib/groups/resolve-page-placement.ts`, used by `resolveShop`; no placement column or cache in the migrations (the word appears only in comments) [V grep]. Built by T143 (commit f244852, a direct commit with no PR, so no review) with no deploy-health run on it. `resolve-page-placement.test.ts` tests shape, not the absence of stored placement (#576)."
+   "note": "`resolvePagePlacements` in `src/lib/groups/resolve-page-placement.ts`, used by `resolveShop`; no placement column or cache in the migrations [V grep]. Built by T143 (commit f244852, direct, no PR, so no review, no Deploy health run); #1074 (10-26, review-skipped, green) later changed how a Page reads its place. `resolve-page-placement.test.ts` tests shape, not the absence of stored placement (#576)."
   }
  ]
 }
