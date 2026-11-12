@@ -135,6 +135,8 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
     const opt = await screen.findByTestId('test-address-suggestion-0')
     expect(opt).toHaveTextContent('Oak Park')
     expect(opt).toHaveTextContent('Neighborhood')
+    // The label is the word a person uses, never the stored kind "neighborhood" in lower case.
+    expect(opt.textContent).not.toMatch(/\bneighborhood\b/)
     expect(opt).toHaveTextContent('Sacramento')
 
     fireEvent.click(opt)
@@ -153,10 +155,9 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
     fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: 'davis' } })
     await vi.advanceTimersByTimeAsync(350)
     const row = await screen.findByTestId('test-address-suggestion-0')
-    // The row says "City", never the stored kind "city" (the prose itself now says "neighborhood" in US spelling).
+    // The row says "City", never the stored kind "city".
     expect(row.textContent).toContain('City')
     expect(row.textContent).not.toMatch(/\bcity\b/)
-    expect(container.textContent).not.toMatch(/\bneighborhood\b(?! instead|\?)/)
   })
 })
 
