@@ -57,10 +57,18 @@ jobs:
           file="$(find "$RUNNER_TEMP/dl" -name 'socialus-backup-*.tar.age' | head -1)"
           [ -n "$file" ] || { echo "::error::That run has no backup artifact (expired?)."; exit 1; }
           umask 077
-          printf '%s\n' "$BACKUP_AGE_KEY" > "$RUNNER_TEMP/age.key"
+          # Only the AGE-SECRET-KEY-1 line, as encrypt.sh reads it (#1281).
+          printf '%s\n' "$BACKUP_AGE_KEY" | tr -d '\r' | grep -E '^[[:space:]]*AGE-SECRET-KEY-1' | tr -d '[:space:]' > "$RUNNER_TEMP/age.key"
+          echo >> "$RUNNER_TEMP/age.key"
           mkdir -p "$RUNNER_TEMP/bundle"
-          age -d -i "$RUNNER_TEMP/age.key" "$file" | tar -C "$RUNNER_TEMP/bundle" -xf -
+          if ! age -d -i "$RUNNER_TEMP/age.key" -o "$RUNNER_TEMP/backup.tar" "$file" 2> "$RUNNER_TEMP/age.err"; then
+            echo "::error::age could not decrypt the backup: $(cat "$RUNNER_TEMP/age.err")"
+            rm -f "$RUNNER_TEMP/age.key"
+            exit 1
+          fi
           rm -f "$RUNNER_TEMP/age.key"
+          tar -C "$RUNNER_TEMP/bundle" -xf "$RUNNER_TEMP/backup.tar"
+          rm -f "$RUNNER_TEMP/backup.tar"
 
       - uses: supabase/setup-cli@v2
         with:
