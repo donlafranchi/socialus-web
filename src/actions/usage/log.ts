@@ -4,8 +4,8 @@
 // week by join week), what they use (members per part per day) and where they drop off (sign-up steps, first follow,
 // first post per week). A member who turned sharing off on You (search_sharing) and every builder are never counted.
 // A member counts once per part per day, once per week, and once per step, by sha256 keys in usage_seen; keys are
-// deleted after 8 days, here, on every write. A first follow or first post is read from the member's own rows, so
-// it needs no long-lived key.
+// deleted after 8 days, here, on every write. A first follow or first post is read from the member's own rows, and a
+// sign-up step counts only in a member's first 7 days, so no step needs a long-lived key.
 //
 // One statement, one round trip, no transaction: callers run it after the response (countUse), so a page never waits
 // on it and it holds a pooled connection for one query only.
@@ -50,7 +50,10 @@ first_ok as (
           where e.event_kind = 'group.post_created' and e.acting_member_id = $1::uuid
             and e.group_id in (select g.group_id from public.group_memberships g where g.member_id = $1::uuid and g.role in ('owner', 'steward'))) = 1
       and not exists (select 1 from public.member_posts p where p.member_id = $1::uuid and p.created_at < now() - interval '7 days')
-    else true
+    -- A sign-up step counts only in a member's first 7 days, inside its key's 8-day life, so a member who comes back
+    -- to an unfinished step later is never counted twice. A part (no step) always counts.
+    else $3::text is null
+      or (select m.created_at > now() - interval '7 days' from public.members m where m.id = $1::uuid)
   end as ok
 ),
 who as (select cal.* from cal, first_ok where cal.ok and first_ok.ok),

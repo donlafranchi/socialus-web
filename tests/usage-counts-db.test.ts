@@ -160,6 +160,9 @@ describe.skipIf(!RUNNABLE)('F133 — usage counts', () => {
     await usageLog(ctx(EVE), { step: 'first_follow' })
     await q(`insert into public.member_posts (member_id, kind, body, place_id, expires_at) values ($1,'ask','f133 again',$2, now() + interval '7 days')`, [EVE, HOOD])
     await usageLog(ctx(EVE), { step: 'first_post' })
+    // A sign-up step reached again after the member's first week, when its key is gone, is not counted again.
+    await usageLog(ctx(OLD), { step: 'signed_in' })
+    await usageLog(ctx(OLD), { step: 'welcomed' })
     expect((await added()).funnel).toEqual({ signed_in: 1, profile: 1, welcomed: 1, first_follow: 1, first_post: 1 })
   })
 
