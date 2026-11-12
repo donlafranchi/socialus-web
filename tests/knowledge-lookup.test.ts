@@ -32,9 +32,9 @@ const RUNNABLE = requireRunnable({
 const tokens = (text: string) => getEncoding('o200k_base').encode(text).length
 
 describe('the tool list', () => {
-  it('offers the lookups and the two internal writes, and nothing names a model', () => {
+  it('offers the lookups and the three internal writes, and nothing names a model', () => {
     expect(TOOLS.map((t) => t.name).sort()).toEqual(
-      ['as_of', 'built', 'can_do', 'concept', 'decide', 'get', 'history', 'how', 'live', 'next', 'plan', 'plan_changes', 'precedents', 'propose', 'related', 'review_method', 'roadmap', 'search', 'upkeep', 'where', 'why'].sort(),
+      ['as_of', 'built', 'can_do', 'concept', 'decide', 'get', 'history', 'how', 'live', 'next', 'plan', 'plan_changes', 'precedents', 'propose', 'related', 'review_method', 'roadmap', 'runs', 'drop_idea', 'search', 'upkeep', 'where', 'why'].sort(),
     )
     for (const t of TOOLS) {
       expect(t.description, t.name).not.toMatch(/\b(claude|anthropic|openai|gpt|gemini|llama|haiku|sonnet|opus|fable|codex)\b/i)

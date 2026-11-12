@@ -1,0 +1,65 @@
+name: Knowledge run links
+
+# F135 (#1274): what changed after a run links itself. When a PR merges, every
+# run (RN-0001), idea (ID-0001) or practice (practice.<slug>) its body names is
+# linked to it in the knowledge store: a practice means its latest run before
+# the merge, an idea the run that left it (and the idea keeps the PR, so the
+# next run marks it tried). scripts/knowledge/runs.ts link-pr.
+#
+# A body that names none of them reads nothing from the store and passes.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knowledge-run-links-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  link:
+    name: Link a merged PR to the runs it names
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Does the body name a run, an idea or a practice?
+        id: names
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if printf '%s' "$PR_BODY" | grep -qE '\b(RN-[0-9]{4,}|ID-[0-9]{4,}|practice\.[a-z0-9][a-z0-9-]*[a-z0-9])\b'; then
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No run, idea or practice named: nothing to link." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.names.outputs.any == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.names.outputs.any == 'true'
+        with:
+          node-version: 20
+          cache: npm
+      - if: steps.names.outputs.any == 'true'
+        run: npm ci
+
+      - name: Link it in the knowledge store
+        if: steps.names.outputs.any == 'true'
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGED_AT: ${{ github.event.pull_request.merged_at }}
+        run: |
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          DATABASE_URL="$url" npx tsx scripts/knowledge/runs.ts link-pr --commit

@@ -40,6 +40,7 @@ import { inferApplies } from './infer'
 import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type ConceptSummary, type Seed } from './concepts'
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
+import { loadRuns, runsReport, type RunsSummary } from './runs'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -54,6 +55,8 @@ export interface Sources {
   seed?: Seed
   /** F128: how we work; scripts/knowledge/practices-seed.json unless given (null: skip). */
   practices?: PracticeSeed | null
+  /** F135: routines.json and runs-seed.json; false skips them. */
+  runs?: false
 }
 
 export interface Summary {
@@ -72,6 +75,8 @@ export interface Summary {
   plans?: PlanSummary
   /** F128: practices and experiments. */
   practices?: PracticeSummary
+  /** F135: routines, and the runs from before runs recorded themselves. */
+  runs?: RunsSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -434,6 +439,9 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
       today,
     })
   }
+  // F135: which practices are routines, and run one (runs-seed.json), after
+  // the practices they belong to. Later runs record themselves.
+  if (src.runs !== false) summary.runs = await loadRuns(db)
   return summary
 }
 
@@ -485,6 +493,7 @@ async function main(): Promise<void> {
       ...(summary.concepts ? conceptReport(summary.concepts) : []),
       ...(summary.plans ? planReport(summary.plans) : []),
       ...(summary.practices ? practiceReport(summary.practices) : []),
+      ...(summary.runs ? runsReport(summary.runs) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),

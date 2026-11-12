@@ -21,6 +21,9 @@ on:
         description: 'Fail the run when a level breaks'
         type: boolean
         default: false
+      ideas:
+        description: 'Ideas to try next time, separated by ; (optional; the run adds one for the layer that broke first)'
+        default: ''
   pull_request:
     paths:
       - 'evals/load/**'
@@ -76,6 +79,7 @@ jobs:
           SUPABASE_UNUSED: realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Load simulation
+        id: load
         env:
           LOAD_LEVELS: ${{ inputs.levels || '50 200 1000' }}
           LOAD_SCENARIOS: ${{ inputs.scenarios || 'view-out view-in tap report' }}
@@ -86,6 +90,28 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           cat load-out/summary.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "No summary - the run stopped before the first level." >> "$GITHUB_STEP_SUMMARY"
+
+      # F135 (#1274): the run records itself in the knowledge store, pass or fail:
+      # date, commit, members simulated, the numbers, what broke first, ideas
+      # for next time. A run that cannot record fails the job. A PR run tests
+      # the harness, not the platform, so it prints the record and keeps nothing.
+      - name: Record the run in the knowledge store
+        if: ${{ !cancelled() }}
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          LOAD_OUTCOME: ${{ steps.load.outcome }}
+          LOAD_LEVELS: ${{ inputs.levels || '50 200 1000' }}
+          LOAD_SCENARIOS: ${{ inputs.scenarios || 'view-out view-in tap report' }}
+          LOAD_IDEAS: ${{ inputs.ideas }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            npx tsx scripts/knowledge/runs.ts record-load load-out --print
+            exit 0
+          fi
+          url="$(bash scripts/supabase-db-url.sh)"
+          echo "::add-mask::$url"
+          DATABASE_URL="$url" npx tsx scripts/knowledge/runs.ts record-load load-out --commit
 
       # Everything but fixture.json, which holds the throwaway members' session cookies.
       - uses: actions/upload-artifact@v6

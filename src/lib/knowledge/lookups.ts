@@ -588,11 +588,18 @@ export interface UpkeepRow {
   since: string | null
 }
 
-/** For the monthly upkeep: practices not confirmed in 90 days, experiments past their verdict date. */
+/**
+ * For the monthly upkeep: practices not confirmed in 90 days, experiments past
+ * their verdict date; then (F135) routines with no run in their interval and
+ * ideas open more than 90 days.
+ */
 export async function upkeep(db: ClientBase, today?: string): Promise<UpkeepRow[]> {
   const { rows } = await db.query<UpkeepRow>(
     `select id, kind, answer, problem, to_char(since, 'YYYY-MM-DD') as since
-       from knowledge.practice_upkeep(coalesce($1::date, current_date))`,
+       from knowledge.practice_upkeep(coalesce($1::date, current_date))
+     union all
+     select id, kind, answer, problem, to_char(since, 'YYYY-MM-DD') as since
+       from knowledge.run_upkeep(coalesce($1::date, current_date))`,
     [today ?? null],
   )
   return rows
