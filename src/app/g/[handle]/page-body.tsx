@@ -11,13 +11,17 @@ import type { ResolvedShop } from '@/lib/groups/resolve-shop'
 import { loadPageSearchDemand } from '@/lib/search/page-demand'
 import { loadWonderViews } from '@/lib/wonders/wonder-view'
 import { loadHeartView } from '@/lib/hearts/heart-view'
+import { countUse, partForPage } from '@/lib/usage/count-use'
 import type { SharedPostPreview } from '@/components/group/WithheldPagePosts'
 
 export async function PageBody({ shop: resolved, focusPostId = null, preview = null }: { shop: ResolvedShop; focusPostId?: string | null; preview?: SharedPostPreview | null }) {
   let shop = resolved
   const supabase = await createClient()
   // #978 — the viewer's reminders ride along with the Page's reads instead of waiting behind them; an owner's are dropped.
-  const remindersAsked = (await viewerId(supabase)) ? loadViewerReminders(supabase, true).catch(() => NO_REMINDERS) : null
+  const me = await viewerId(supabase)
+  // F133 — a post, a business Page or a group, counted after the response.
+  await countUse({ part: partForPage(shop.kind, focusPostId !== null) }, me)
+  const remindersAsked = me ? loadViewerReminders(supabase, true).catch(() => NO_REMINDERS) : null
   const view = await loadPageView(supabase, shop)
   // #909 — the owner's card; the database answers only a manager of this Page.
   // F117 — each Wonder's bar, helpers and the viewer's own state; the split and names only for its managers (the database decides).

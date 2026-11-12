@@ -12,6 +12,7 @@ import { resolveActionContext } from '@/lib/action-context'
 import type { PostKind } from '@/lib/posts/kinds'
 import { groupPostCreate, groupPostEdit, groupPostDelete, ActionError } from '@/actions'
 import { recordOrigin } from './origin-actions'
+import { countUse } from '@/lib/usage/count-use'
 import { succeeded, failed, type ActionResult } from '@/app/you/sell/action-result'
 
 async function currentMemberId(): Promise<string | null> {
@@ -47,6 +48,9 @@ export async function postToPageAction(input: {
   try {
     const r = await groupPostCreate(resolveActionContext({ actingMemberId: memberId }), input)
     await recordOrigin(memberId, 'post', r.postId)
+    // F133 — writing a post and, once, a first post; counted after the response.
+    await countUse({ part: 'posts' }, memberId)
+    await countUse({ step: 'first_post' }, memberId)
     return succeeded({ postId: r.postId, createdAt: r.createdAt })
   } catch (err) {
     return asFailure(err)

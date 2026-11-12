@@ -20,6 +20,7 @@ import { NotFoundError } from '@/actions/_lib/errors'
 import { validateSignupProfile, type SignupProfileInput, type SignupProfileField } from '@/lib/signup/profile'
 import { marketForZip } from '@/lib/signup/zip-market'
 import { redirect } from 'next/navigation'
+import { countUse } from '@/lib/usage/count-use'
 import { safeNext } from '@/lib/safe-next'
 
 async function requireMemberId(): Promise<string> {
@@ -82,6 +83,8 @@ export async function completeOnboardingAction(input: SaveProfileInput): Promise
     }
     throw err
   }
+  // F133 — the profile step of sign-up, counted after the response.
+  await countUse({ step: 'profile' }, user.id)
 
   if (market.open) return { ok: true, metro: { name: market.name }, waiting: null }
   // F118 — a town neighbours are opening: the person is its supporter now, and goes to its page.
