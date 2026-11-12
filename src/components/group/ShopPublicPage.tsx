@@ -117,11 +117,11 @@ interface Props {
   contactOn?: boolean
   /** #363 — Products & services: on for a business, added by any other Page. */
   productsOn?: boolean
-  /** #316 — the Page's tags; empty signed out. */
+  /** #316 — the Page's tags, signed in or out (F134). */
   tags?: string[]
-  /** #293 — phone and hours. The front door shows neither (F093 criterion 8). */
+  /** #293 — phone and hours. Signed out the phone is never shown (F134; members only, 2026-10-07). */
   contact?: PageContact | null
-  /** #348 — where it is. The front door shows none of it (F093 criterion 8). */
+  /** #348 — where it is, signed in or out (F134). */
   where?: PageWhere | null
   /** #909 — what locals near the Page searched this month (3+ searches). Owner-only. */
   searchDemand?: PageSearchDemand | null
@@ -427,7 +427,7 @@ export function ShopPublicPage({
         </PageSection>
       )}
 
-      {/* F093 criterion 8 — signed out sees no location and no map pin. */}
+      {/* F134 — signed out sees the location and map a signed-in stranger sees, at the owner's precision. */}
       {(mapView || areaLine || how || stops.length > 0) && (
         <PageSection id="location" title="Location">
           {/* T143 — where this Page resolves to, at read time; #896 — the address under the map. */}
@@ -458,7 +458,7 @@ export function ShopPublicPage({
 
       {showFound && (
         <PageSection id="found" title="Listed under">
-          {/* #1180 — what the Page is listed under, signed in only (F093). */}
+          {/* #1180 — what the Page is listed under, signed in or out (F134). */}
           {tags.length > 0 && <TagLinks tags={tags} />}
         </PageSection>
       )}

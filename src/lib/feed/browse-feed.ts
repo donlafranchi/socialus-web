@@ -480,9 +480,8 @@ async function fetchPageExtras(
   const ids = Array.from(new Set(rows.map((r) => r.group_id).filter(Boolean)))
   const out = new Map<string, PageExtras>()
   if (ids.length === 0) return out
-  // #922 — the quick links come in the same read, and only for a reader browse_feed gave a point to: a
-  // signed-out reader has neither the point (F093.8) nor the grant on where_mode or the anchor, and asking
-  // for them would fail the whole lookup and with it every card's link.
+  // #922 — the quick links come in the same read, and only when browse_feed gave a Page a point (F134: signed out
+  // too): a row with no point has nothing for Directions to go to.
   const withLinks = rows.some((r) => r.result_kind === 'page' && r.location_geography)
   const base = 'id, public_id, place_url_slug, page_url_slug, picture_url, picture_hidden_at, picture_removed_at'
   const read = (cols: string) => supabase.from('groups').select(cols).in('id', ids)

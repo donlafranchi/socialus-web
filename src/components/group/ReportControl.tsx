@@ -48,10 +48,20 @@ export function ReportControl({ subjectId, subjectKind, subjectLabel, loggedIn, 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [reporting, setReporting] = useState<'group' | 'page_picture' | 'post_photo' | 'page_words' | 'page_item' | 'member_post' | undefined>(subjectKind)
   // F134.4 — signed out, the sheet asks for sign-in first; back signed in, the report sheet opens on what was tapped.
-  const gate = useSignInFirst({ action: 'report', target: subjectId, signedIn: loggedIn, returnTo, onReturn: () => setSheetOpen(true) })
+  // Back from sign-in, the sheet opens on the same report the visitor picked (its words, its photo…).
+  const gate = useSignInFirst({
+    action: 'report',
+    target: subjectId,
+    signedIn: loggedIn,
+    returnTo,
+    onReturn: (kind) => {
+      if (kind) setReporting(kind as typeof reporting)
+      setSheetOpen(true)
+    },
+  })
   const open = (kind: typeof reporting) => {
     setReporting(kind)
-    gate.ask(() => setSheetOpen(true))
+    gate.ask(() => setSheetOpen(true), kind ?? null)
   }
   const [confirmed, setConfirmed] = useState<'courtesy' | 'person' | null>(null)
   // The sheet is opened from a menu item that unmounts with its menu, so the

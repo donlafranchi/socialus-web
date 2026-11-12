@@ -31,8 +31,13 @@ alter policy location_areas_public_read on public.location_areas to anon, authen
 alter policy "tags select visible" on public.tags to anon, authenticated;
 alter policy "page_tags select with its page" on public.page_tags to anon, authenticated;
 alter policy post_tags_select_with_post on public.post_tags to anon, authenticated;
-alter policy page_stops_select_signed_in on public.page_stops to anon, authenticated;
-alter policy page_service_areas_select_signed_in on public.page_service_areas to anon, authenticated;
+-- Stops and service areas were `using (true)`: any signed-in reader saw every Page's, drafts, private and builder
+-- Pages included. Opened to the internet, they follow their Page instead, as page_tags does (review of #1278):
+-- the `groups` policies, run as the caller, decide which Page's stops and areas exist for them.
+alter policy page_stops_select_signed_in on public.page_stops to anon, authenticated
+  using (exists (select 1 from public.groups g where g.id = page_stops.group_id));
+alter policy page_service_areas_select_signed_in on public.page_service_areas to anon, authenticated
+  using (exists (select 1 from public.groups g where g.id = page_service_areas.group_id));
 alter policy app_settings_select_signed_in on public.app_settings to anon, authenticated;
 
 ------------------------------------------------------------

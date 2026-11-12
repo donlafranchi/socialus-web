@@ -18,7 +18,7 @@ import { Pool, type PoolClient } from 'pg'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { requireRunnable } from './support/runnable'
 import { writeSafety } from './support/write-safe'
-import { groupCreate, groupActivate, groupUpdate, groupPostCreate, memberPostCreate, wonderJoin } from '@/actions'
+import { groupCreate, groupActivate, groupUpdate, groupPostCreate, memberPostCreate, memberHeartSet, wonderJoin } from '@/actions'
 import type { ActionContext } from '@/actions/_lib/context'
 import { RULES_VERSION } from '@/lib/creator-rules'
 
@@ -140,6 +140,8 @@ describe.skipIf(!RUNNABLE)('F134 — signed out, over PostgREST, with the bundle
     await client.query(`update public.page_posts set discoverability = 'unlisted' where id = $1`, [unlistedPost])
     wonder = (await groupPostCreate(ctx(OWNER), { groupId: page, body: 'F134 a kite-building night?', kind: 'wonder', wonder: { threshold: 5 } })).postId
     await wonderJoin(ctx(strangerId), { postId: wonder })
+    // A heart from the stranger, so a heart read has a name it could leak.
+    await memberHeartSet(ctx(strangerId), { postId: post, on: true })
 
     privatePage = await publishPage('F134 Secret Kite Society')
     privatePost = (await groupPostCreate(ctx(OWNER), { groupId: privatePage, body: PRIVATE_BODY })).postId
@@ -157,6 +159,7 @@ describe.skipIf(!RUNNABLE)('F134 — signed out, over PostgREST, with the bundle
     if (!RUNNABLE) return
     const pages = [page, privatePage].filter(Boolean)
     await client.query(`delete from public.wonder_interest where post_id = $1`, [wonder])
+    await client.query(`delete from public.hearts where post_id = $1`, [post])
     await client.query(`delete from public.member_post_tags where post_id = $1`, [neighbourPost])
     await client.query(`delete from public.member_posts where member_id = $1`, [OWNER])
     await client.query(`delete from public.post_tags where post_id in (select id from public.page_posts where group_id = any($1))`, [pages])
@@ -315,11 +318,10 @@ describe.skipIf(!RUNNABLE)('F134 — signed out, over PostgREST, with the bundle
     expect(one(aNeighbour)).toMatchObject({ body: NEIGHBOUR_BODY, displayName: null, avatarUrl: null })
     expect(one(sNeighbour)).toMatchObject({ body: NEIGHBOUR_BODY, displayName: OWNER_NAME })
 
-    const { data: founder } = await anon.rpc('page_founder_public', { p_group_id: page })
-    expect(JSON.stringify(founder ?? [])).not.toContain(OWNER_NAME)
-
-    const { data: hearts } = await anon.rpc('heart_view', { p_group_id: page })
-    expect(JSON.stringify(hearts ?? null)).not.toContain('names')
+    // The stranger's heart is on the post: signed out, no name comes back with it.
+    const { data: hearts, error: heartsError } = await anon.rpc('heart_view', { p_group_id: page })
+    expect(heartsError).toBeNull()
+    expect(JSON.stringify(hearts ?? null)).not.toContain(STRANGER_NAME)
   })
 
   // ---------------------------------------------------------------

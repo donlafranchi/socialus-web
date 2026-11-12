@@ -309,9 +309,7 @@ export function PagePosts({
   const words = (line: string, body: string) => ({ text: `${line} ${body}`, pageTags })
 
   // bug #211 — arrive on the announcement you tapped, not on the top of a Page
-  // with a compose box where you expected it. Shared with the signed-out list
-  // (F093), because an `#announcement-<id>` link has to land the same way on
-  // both and two copies of the effect is how they stop doing that.
+  // with a compose box where you expected it, signed in or out (F134.8).
   // plan #230 (Don, 10-31) — a timeline anchored at now: the past a tap away above, coming up below.
   const { past, latest, upcoming } = pageTimeline(items)
   const [showEarlier, setShowEarlier] = useState(false)
