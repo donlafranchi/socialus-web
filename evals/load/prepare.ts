@@ -23,6 +23,7 @@ import { Client } from 'pg'
 import { getHandler, groupCreate, groupActivate, memberSignupProfileSet } from '../../src/actions'
 import { resolveActionContext } from '../../src/lib/action-context'
 import { RULES_VERSION } from '../../src/lib/creator-rules'
+import { NAMED_COOKIE } from '../../src/lib/auth/legal-name'
 
 const need = (name: string) => {
   const v = process.env[name]?.trim()
@@ -96,7 +97,12 @@ async function cookieFor(i: number): Promise<string> {
   })
   const { error } = await sb.auth.signInWithPassword({ email: email(i), password: password(i) })
   if (error) throw new Error(`sign-in ${email(i)}: ${error.message}`)
-  return [...jar].map(([n, v]) => `${n}=${v}`).join('; ')
+  const session = [...jar].map(([n, v]) => `${n}=${v}`).join('; ')
+  // A browser keeps the cookie the app sets after its legal-name check and skips the check from then on;
+  // without it every signed-in request in the run would pay a lookup no member pays.
+  const res = await fetch(BASE + '/explore', { headers: { Cookie: session }, redirect: 'manual' })
+  const named = res.headers.getSetCookie().map((c) => c.split(';')[0]!).find((c) => c.startsWith(`${NAMED_COOKIE}=`))
+  return named ? `${session}; ${named}` : session
 }
 
 function actionIds(): Record<'heart' | 'report', string> {
