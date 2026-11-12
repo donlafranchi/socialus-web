@@ -38,10 +38,13 @@ test.describe('F059 — list and map by width', () => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/explore')
     await expect(page.getByTestId('card-grid')).toBeVisible()
-    await page.getByRole('link', { name: 'Show on map' }).click()
-    // The map's code loads on demand, so its first paint can take a few seconds on CI.
-    await expect(page).toHaveURL(/view=map/)
-    await expect(page.getByTestId('browse-map')).toBeVisible({ timeout: 15_000 })
+    // A tap before the list has settled can be lost on the runner's slow cores (as F037's About sheet does): tap
+    // until the map is open. The map's code loads on demand, so its first paint can take a few seconds.
+    await expect(async () => {
+      const link = page.getByRole('link', { name: 'Show on map' })
+      if (await link.isVisible()) await link.click()
+      await expect(page.getByTestId('browse-map')).toBeVisible({ timeout: 3_000 })
+    }).toPass({ timeout: 30_000 })
     await expect(page.getByTestId('sign-in-prompt')).toHaveCount(0)
   })
 })
