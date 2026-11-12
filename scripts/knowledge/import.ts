@@ -41,6 +41,7 @@ import { loadConcepts, readSeed, readImagine, readScenarios, conceptReport, type
 import { loadPlans, readPlannedScenarios, planReport, type PlanSummary } from './plans'
 import { loadPractices, readPracticeSeed, readReviewSteps, practiceReport, type PracticeSeed, type PracticeSummary } from './practices'
 import { loadMaps, mapReport, readMapSeed, readWalkthroughs, readRollup, type MapSources, type MapSummary } from './maps'
+import { loadRuns, runsReport, type RunsSummary } from './runs'
 
 export interface Sources {
   /** A checkout of socialus-plan. */
@@ -57,6 +58,8 @@ export interface Sources {
   practices?: PracticeSeed | null
   /** F132: the story maps. Left out, no map is loaded (the fixtures' imports). */
   maps?: MapSources
+  /** F135: routines.json and runs-seed.json; false skips them. */
+  runs?: false
 }
 
 export interface Summary {
@@ -77,6 +80,8 @@ export interface Summary {
   practices?: PracticeSummary
   /** F132: journeys, slices across them, and where features and ideas sit. */
   maps?: MapSummary
+  /** F135: routines, and the runs from before runs recorded themselves. */
+  runs?: RunsSummary
 }
 
 /** Who every change names. Rulings are the PM's; the import records them for him. */
@@ -441,6 +446,9 @@ export async function importAll(db: ClientBase, src: Sources, today = dateOnly(n
   }
   // F132: story maps, after plans and concepts, whose features and ideas they place.
   if (src.maps) summary.maps = await loadMaps(db, src.maps)
+  // F135: which practices are routines, and run one (runs-seed.json), after
+  // the practices they belong to. Later runs record themselves.
+  if (src.runs !== false) summary.runs = await loadRuns(db)
   return summary
 }
 
@@ -494,6 +502,7 @@ async function main(): Promise<void> {
       ...(summary.plans ? planReport(summary.plans) : []),
       ...(summary.practices ? practiceReport(summary.practices) : []),
       ...(summary.maps ? mapReport(summary.maps) : []),
+      ...(summary.runs ? runsReport(summary.runs) : []),
       ...(summary.goneWithoutReplacement.length
         ? ['', 'Gone from socialus-plan with no ruling naming its replacement, so still live in the store:', ...summary.goneWithoutReplacement.map((g) => `- ${g}`)]
         : []),

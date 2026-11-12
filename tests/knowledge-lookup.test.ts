@@ -36,7 +36,9 @@ describe('the tool list', () => {
     expect(TOOLS.map((t) => t.name).sort()).toEqual(
       ['as_of', 'built', 'can_do', 'concept', 'decide', 'get', 'history', 'how', 'live', 'next', 'plan', 'plan_changes', 'precedents', 'propose', 'related', 'review_method', 'roadmap', 'search', 'upkeep', 'where', 'why',
        // F132: story maps
-       'story_map', 'fits', 'place_on_map', 'propose_map_change', 'decide_map_change'].sort(),
+       'story_map', 'fits', 'place_on_map', 'propose_map_change', 'decide_map_change',
+       // F135: run history
+       'runs', 'drop_idea'].sort(),
     )
     for (const t of TOOLS) {
       expect(t.description, t.name).not.toMatch(/\b(claude|anthropic|openai|gpt|gemini|llama|haiku|sonnet|opus|fable|codex)\b/i)

@@ -19,6 +19,7 @@ import { renderPack, REVIEW_METHOD_ID } from './pack'
 import { CAPABILITY_TOOLS } from './capabilities' // F129
 import { ANSWER_TOOLS } from './answers' // F131
 import { MAP_TOOLS } from './maps' // F132
+import { RUN_TOOLS } from './runs' // F135
 
 export interface ToolResult {
   text: string
@@ -314,6 +315,7 @@ export const TOOLS: KnowledgeTool[] = [
   ...CAPABILITY_TOOLS, // F129: can_do
   ...ANSWER_TOOLS, // F131: built, where, next
   ...MAP_TOOLS, // F132: story_map, fits, place_on_map, propose_map_change, decide_map_change
+  ...RUN_TOOLS, // F135: runs, drop_idea
 
   define({
     name: 'how',
@@ -391,11 +393,15 @@ export const TOOLS: KnowledgeTool[] = [
   define({
     name: 'upkeep',
     description:
-      'For the monthly upkeep: live practices not confirmed in 90 days, and running experiments past their verdict date, one line each.',
+      'For the monthly upkeep: live practices not confirmed in 90 days, running experiments past their verdict date, ' +
+      'routines with no run in their expected interval, and try-next-time ideas open more than 90 days, one line each.',
     input: { today: date.optional() },
     run: async (db, { today }) => {
       const rows = await k.upkeep(db, today)
-      if (rows.length === 0) return { text: 'Nothing due: every practice confirmed in the last 90 days, no experiment past its verdict date.' }
+      if (rows.length === 0)
+        return {
+          text: 'Nothing due: every practice confirmed in the last 90 days, no experiment past its verdict date, every routine run in its interval, no idea open over 90 days.',
+        }
       return { text: rows.map((r) => `- ${r.id} (${r.kind}): ${r.problem}. ${r.answer}`).join('\n') }
     },
   }),
