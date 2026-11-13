@@ -24,6 +24,7 @@ export type FlagDeclaration = {
 
 export const FLAGS = {
   // 'new-thing': { hides: 'the new thing', issue: 1234, removeBy: '2026-12-15' },
+  'waitlist-journey': { hides: 'the waitlist landing and its one-question-per-screen join journey', issue: 1299, removeBy: '2027-01-31' },
 } as const satisfies Record<string, FlagDeclaration>
 
 export type FlagKey = keyof typeof FLAGS

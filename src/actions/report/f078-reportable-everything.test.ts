@@ -116,6 +116,7 @@ const POSTS_NOTHING: Record<string, string> = {
   'origin.record': 'operator only',
   'metro.waitlist_join': 'private waitlist',
   'metro.waitlist_join_anonymous': 'private waitlist',
+  'metro.waitlist_journey_join': 'private waitlist',
   'builder.content_set_visible': 'operator only',
   'builder.content_delete_all': 'operator only',
   'group.unclaimed_remove': 'removes',

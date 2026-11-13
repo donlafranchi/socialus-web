@@ -119,6 +119,7 @@ describe('F076 c3 — no role is stored on the member', () => {
     const copied = offenders(['src'], /metro_waitlist/, [
       'src/actions/metro/waitlist-join.ts',
       'src/actions/metro/waitlist-join-anonymous.ts',
+      'src/actions/metro/waitlist-journey-join.ts',
       OPENER,
     ])
     expect({ adds, creates, copied }).toEqual({ adds: [], creates: [], copied: [] })
@@ -153,6 +154,7 @@ describe('F076 c12 — crossing the threshold never opens a metro', () => {
 const LIVE_COUNT_READERS = [
   'src/actions/metro/waitlist-join.ts',
   'src/actions/metro/waitlist-join-anonymous.ts',
+  'src/actions/metro/waitlist-journey-join.ts',
   'src/lib/metro/waitlist-counts.ts',
   'src/lib/metro/waitlist-standing.ts',
 ]
