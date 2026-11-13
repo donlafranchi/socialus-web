@@ -54,8 +54,8 @@ export const metroWaitlistJourneyJoin = defineHandler(
       if (!market?.metro_id || !market.name) throw new ValidationError('We don’t recognize that zip.')
       const result = { metroId: market.metro_id, marketName: market.name }
 
-      const existingRes = await client.query<{ id: string; metro_id: string; role: WaitlistRole }>(
-        `select w.id, w.metro_id, w.role
+      const existingRes = await client.query<{ id: string; metro_id: string; role: WaitlistRole; member_id: string | null }>(
+        `select w.id, w.metro_id, w.role, w.member_id
            from public.metro_waitlist w
            left join auth.users u on u.id = w.member_id
           where lower(w.email) = $1 or lower(u.email) = $1
@@ -64,7 +64,10 @@ export const metroWaitlistJourneyJoin = defineHandler(
       )
       const existing = existingRes.rows[0] ?? null
       const answers = [input.name, input.phone, input.zip, input.plans, input.offers, input.offerName || null, input.offerLink || null]
+      // A member's own row is readable by that member, and anyone can type anyone's email: answers never go on it (F076.3).
+      const onMember = !!existing?.member_id
       if (existing && existing.metro_id === result.metroId && existing.role === input.side) {
+        if (onMember) return result
         // Same place, same side: the answers refresh, the counts do not move.
         await client.query(
           `update public.metro_waitlist set name = $2, phone = $3, zip = $4, plans = $5, offers = $6, offer_name = $7, offer_link = $8, updated_at = $9 where id = $1`,
@@ -84,7 +87,15 @@ export const metroWaitlistJourneyJoin = defineHandler(
         )
       }
 
-      if (existing) {
+      if (existing && onMember) {
+        await client.query(`update public.metro_waitlist set metro_id = $2, role = $3, updated_at = $4 where id = $1`, [
+          existing.id,
+          result.metroId,
+          input.side,
+          ctx.now(),
+        ])
+        await bump(existing.metro_id, existing.role, -1)
+      } else if (existing) {
         await client.query(
           `update public.metro_waitlist
               set metro_id = $2, role = $3, name = $4, phone = $5, zip = $6, plans = $7, offers = $8, offer_name = $9, offer_link = $10, updated_at = $11

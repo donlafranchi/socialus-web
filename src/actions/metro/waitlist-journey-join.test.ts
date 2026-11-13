@@ -26,7 +26,7 @@ function ctx(): ActionContext {
   } as unknown as ActionContext
 }
 
-function db(market: { metro_id: string; name: string } | null, existing: { id: string; metro_id: string; role: string } | null) {
+function db(market: { metro_id: string; name: string } | null, existing: { id: string; metro_id: string; role: string; member_id?: string | null } | null) {
   query.mockReset()
   query.mockImplementation(async (sql: string) => {
     if (sql.includes('zip_market_key')) return { rows: market ? [market] : [] }
@@ -89,5 +89,17 @@ describe('metro.waitlist_journey_join', () => {
     const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator', ...A })
     expect(sqls().some((s) => s.includes('is_open'))).toBe(false)
     expect(Object.keys(r).sort()).toEqual(['marketName', 'metroId'])
+  })
+
+  // [guards F076.3 partial: the column grant that keeps a member from reading the answers]
+  it('never writes answers onto a member’s own row, staying put or moving', async () => {
+    db({ metro_id: SAC, name: 'Sacramento' }, { id: 'w1', metro_id: SAC, role: 'patron', member_id: 'm1' } as never)
+    await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'patron', ...A })
+    db({ metro_id: SAC, name: 'Sacramento' }, { id: 'w1', metro_id: TAHOE, role: 'patron', member_id: 'm1' } as never)
+    await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: 'a@b.co', side: 'creator', ...A })
+    const writes = query.mock.calls.filter((c) => /update public\.metro_waitlist|insert into public\.metro_waitlist/.test(String(c[0])))
+    expect(writes).toHaveLength(1)
+    expect(String(writes[0][0])).not.toMatch(/name|phone|zip|plans/)
+    expect(writes[0][1]).not.toContain('Sam')
   })
 })

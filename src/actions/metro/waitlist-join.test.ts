@@ -177,6 +177,15 @@ describe('metro.waitlist_join — one person counts once across the two paths (c
     expect(bumps[0]![0]).toMatch(/-\s*1/)
   })
 
+  // [guards F076.3 partial: the column grant that keeps a member from reading the answers]
+  it('a folded row keeps none of the waitlist answers: they never sit on a member’s row', async () => {
+    installRouter({ authEmail: EMAIL, pending: { id: 'e1', metro_id: BOISE, role: 'creator' } })
+    await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })
+    const [adopt] = calls(/update public\.metro_waitlist/i)
+    for (const col of ['name', 'phone', 'zip', 'offer_name', 'offer_link']) expect(adopt![0]).toMatch(new RegExp(`\\b${col}\\s*=\\s*null`, 'i'))
+    for (const col of ['plans', 'offers']) expect(adopt![0]).toMatch(new RegExp(`\\b${col}\\s*=\\s*'\\{\\}'`, 'i'))
+  })
+
   it('looks for the address only among rows with no member, and no email lingers after a fold', async () => {
     installRouter({ authEmail: EMAIL, pending: { id: 'e1', metro_id: BOISE, role: 'creator' } })
     await metroWaitlistJoin(ctx(), { metroId: BOISE, role: 'creator' })

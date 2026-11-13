@@ -11,6 +11,13 @@ import { flagOn } from '@/lib/flags/check'
 import { waitingCountFor } from '@/lib/metro/waitlist-counts'
 import { EMAIL_SHAPE, KINDS, PLAN_IDS, ZIP_SHAPE, phoneE164, sideOf } from '@/lib/waitlist/journey'
 
+/** http(s) links only; a bare domain gets https://. Anything else (javascript:, data:, words) is dropped. */
+function webLink(raw: string): string {
+  const t = (raw ?? '').trim()
+  if (/^https?:\/\/[^\s/$.?#][^\s]*$/i.test(t)) return t
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(t) ? `https://${t}` : ''
+}
+
 export type ZipCheck = { ok: true; market: string } | { ok: false }
 
 export async function checkWaitlistZipAction(zip: string): Promise<ZipCheck> {
@@ -61,6 +68,7 @@ export async function joinWaitlistJourneyAction(input: WaitlistAnswers): Promise
   if (!EMAIL_SHAPE.test((a.email ?? '').trim())) return { ok: false, step: 'email' }
   if (!phoneE164(a.phone ?? '')) return { ok: false, step: 'phone' }
 
+  const found = sideOf(plans) === 'creator'
   let joined
   try {
     joined = await metroWaitlistJourneyJoin(resolveAnonymousActionContext(), {
@@ -70,9 +78,9 @@ export async function joinWaitlistJourneyAction(input: WaitlistAnswers): Promise
       name: a.name.trim(),
       phone: phoneE164(a.phone)!,
       plans,
-      offers: (a.kinds ?? []).filter((k) => (KINDS as readonly string[]).includes(k)),
-      offerName: a.offerName ?? '',
-      offerLink: a.offerLink ?? '',
+      offers: found ? (a.kinds ?? []).filter((k) => (KINDS as readonly string[]).includes(k)) : [],
+      offerName: found ? (a.offerName ?? '') : '',
+      offerLink: found ? webLink(a.offerLink) : '',
     })
   } catch (err) {
     if (err instanceof ActionError) return { ok: false, step: 'zip' }

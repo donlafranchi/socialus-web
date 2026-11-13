@@ -19,3 +19,9 @@ comment on column public.metro_waitlist.plans is 'What they plan to do, the jour
 comment on column public.metro_waitlist.offers is 'Being found: the kinds of thing they do. Staff-only; variety per market (F118.9).';
 comment on column public.metro_waitlist.offer_name is 'Being found: the business or group name, optional. Later matched to an unclaimed Page at invite.';
 comment on column public.metro_waitlist.offer_link is 'Being found: a website or social link, optional.';
+
+-- Staff-only by grant, not only by row policy: a member may read their own row (metro_waitlist_select_own), so the
+-- browser roles get the original columns only and never the answers. Nothing in the app reads this table from a
+-- browser; the handlers connect as the owner.
+revoke select on public.metro_waitlist from anon, authenticated;
+grant select (id, member_id, metro_id, role, created_at, updated_at) on public.metro_waitlist to authenticated;
