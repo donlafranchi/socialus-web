@@ -33,14 +33,14 @@ export function WaitlistLanding() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header>
-        <nav aria-label="Primary" className={`${WRAP} max-w-read py-5 text-center`}>
+        <nav aria-label="Primary" className="mx-auto w-full max-w-read gutter py-5 text-center">
           <Link href="/" className={`${HEAD} text-title-1 text-[var(--color-ink)]`}>
             SocialUs
           </Link>
         </nav>
       </header>
 
-      <main className={`${WRAP} flex max-w-read flex-1 flex-col items-center gap-12 pb-16 text-center`}>
+      <main className="mx-auto flex w-full max-w-read flex-1 flex-col items-center gap-12 gutter pb-16 text-center">
         <section className="flex flex-col items-center pt-6">
           <h1 data-testid="landing-headline" className={`${HEAD} text-hero lg:text-hero-lg text-[var(--color-ink)]`}>
             {LANDING_HEADLINE}

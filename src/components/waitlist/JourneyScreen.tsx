@@ -45,7 +45,7 @@ export function JourneyScreen({ step }: { step: Step }) {
   const router = useRouter()
   const { answers: a, set, ready } = useWaitlist()
   const sent = useSearchParams().get('e')
-  const [error, setError] = useState<string | null>(sent && sent in ERRORS ? ERRORS[sent as keyof typeof ERRORS] : null)
+  const [error, setError] = useState<string | null>(sent && Object.hasOwn(ERRORS, sent) ? ERRORS[sent as keyof typeof ERRORS] : null)
   const heading = useRef<HTMLHeadingElement>(null)
   useEffect(() => heading.current?.focus(), [step])
   // A screen not on this person's path (a being-found screen opened directly) goes back to the plans.
@@ -190,11 +190,11 @@ export function JourneyScreen({ step }: { step: Step }) {
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-[var(--color-rule)] bg-[var(--color-paper)] px-4 pb-[calc(--spacing(3)+env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto flex max-w-read flex-col gap-2">
-            {error && (
-              <p id="journey-error" role="alert" className="text-body font-semibold text-[var(--color-danger,#b42318)]">
-                {error}
-              </p>
-            )}
+          {error && (
+            <p id="journey-error" role="alert" className="text-body font-semibold text-[var(--color-danger,#b42318)]">
+              {error}
+            </p>
+          )}
           {step === 'done' ? (
             <Link href={LANDING.lookHref} className={PRIMARY}>
               {LANDING.look}

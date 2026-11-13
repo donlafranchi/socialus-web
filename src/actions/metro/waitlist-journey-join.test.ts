@@ -29,6 +29,8 @@ function db(market: { metro_id: string; name: string } | null, existing: { id: s
   query.mockReset()
   query.mockImplementation(async (sql: string) => {
     if (sql.includes('zip_market_key')) return { rows: market ? [market] : [] }
+    // Every market in these tests is marked open, so a handler that skipped open markets would write nothing.
+    if (sql.includes('is_open')) return { rows: [{ id: market?.metro_id, name: market?.name, is_open: true }] }
     if (sql.includes('from public.metro_waitlist')) return { rows: existing ? [existing] : [] }
     if (sql.includes('insert into public.metro_waitlist')) return { rows: [], rowCount: 1 }
     return { rows: [] }
@@ -39,6 +41,7 @@ const sqls = () => query.mock.calls.map((c) => String(c[0]))
 describe('metro.waitlist_journey_join', () => {
   beforeEach(() => db({ metro_id: SAC, name: 'Sacramento' }, null))
 
+  // [guards F076.17]
   it('joins the zip’s market even when that market is marked open (every zip waits while closed)', async () => {
     const r = await metroWaitlistJourneyJoin(ctx(), { zip: '95814', email: ' A@B.co ', side: 'patron' })
     expect(r).toEqual({ metroId: SAC, marketName: 'Sacramento' })

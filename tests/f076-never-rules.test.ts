@@ -210,3 +210,19 @@ describe.skipIf(!WRITABLE)('F076 c14 — the response is identical whether or no
     expect(afterRows.rows[0].n).toBe(2)
   })
 })
+
+// #1299 — the waitlist journey checks nothing with a carrier: no Twilio, no Lookup, no Verify, no texted code.
+const JOURNEY = [
+  'src/app/join',
+  'src/components/waitlist',
+  'src/lib/waitlist',
+  'src/app/_actions/waitlist-journey-actions.ts',
+  'src/actions/metro/waitlist-journey-join.ts',
+]
+
+describe('F076 c18 — nothing is checked at join', () => {
+  // [guards F076.18]
+  it('no file of the waitlist journey reaches Twilio, Lookup, Verify or a code', () => {
+    expect(offenders(JOURNEY, /twilio|lookups?\.|verify\.|verifications|sendCode|one-time-code|signInWithOtp/i)).toEqual([])
+  })
+})
