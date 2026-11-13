@@ -36,7 +36,12 @@
         "url": "https://www.brainyzootoys.com/shop-by-interest/dolls/calico-critters/"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): About page gives both Folsom addresses, hours and phone, footer 2026, current featured products with Santa items. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): About page gives both Folsom addresses, hours and phone, footer 2026, current featured products with Santa items. Lead: search, then own site.",
+    "carries": [
+      "Toys",
+      "Crafts",
+      "Stickers, Magnets & Pins"
+    ]
   },
   {
     "name": "Wit & Whimsy Toys",
@@ -75,7 +80,17 @@
         "url": "https://www.witandwhimsytoys.com/arts-crafts/"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer lists address, hours Mon-Sat 10-6 and Sun 10-5, Copyright 2026. Its own photos show children or are not usable: stock photos only. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer lists address, hours Mon-Sat 10-6 and Sun 10-5, Copyright 2026. Its own photos show children or are not usable: stock photos only. Lead: search, then own site.",
+    "carries": [
+      "Toys",
+      "Books",
+      "Crafts",
+      "Food & Drink",
+      "Jewelry & Accessories",
+      "Pets",
+      "Stickers, Magnets & Pins",
+      "Apothecary"
+    ]
   },
   {
     "name": "Old City Kites",
@@ -111,7 +126,13 @@
         "url": "https://www.kitesatoldcity.com/collections/talavera-mexican-art-pottery"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): About page gives 1021 Front St and phone, 'Open daily', footer 2026; no social links on the site. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): About page gives 1021 Front St and phone, 'Open daily', footer 2026; no social links on the site. Lead: search, then own site.",
+    "carries": [
+      "Garden",
+      "Toys",
+      "Ceramics",
+      "Stickers, Magnets & Pins"
+    ]
   },
   {
     "name": "Terra Cottage",
@@ -149,7 +170,19 @@
         "url": "https://terracottageshop.com/collections/new-arrivals"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): Shop Hours page lists 722 Sutter St (Folsom) and 1005 Galleria Blvd Ste 120, Roseville 95678, 10-8 daily, holiday collection live. Folsom zip not on site (95630 assumed). Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): Shop Hours page lists 722 Sutter St (Folsom) and 1005 Galleria Blvd Ste 120, Roseville 95678, 10-8 daily, holiday collection live. Folsom zip not on site (95630 assumed). Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Socks & Footwear",
+      "Candles & Home Fragrances",
+      "Food & Drink",
+      "Pets",
+      "Apothecary",
+      "Stickers, Magnets & Pins",
+      "Kitchen",
+      "Kids Apparel",
+      "Accessories"
+    ]
   },
   {
     "name": "Jam Baby",
@@ -187,7 +220,17 @@
         "url": "https://shopjambaby.com/collections/decor"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): site lists 3330 Broadway, hours Wed-Sun, footer 2026. Kids' shop, so toy and gift fit is partial. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): site lists 3330 Broadway, hours Wed-Sun, footer 2026. Kids' shop, so toy and gift fit is partial. Lead: search, then own site.",
+    "carries": [
+      "Kids Apparel",
+      "Hats & Scarves",
+      "Socks & Footwear",
+      "Books",
+      "Toys",
+      "Teethers, Loveys & Swaddles",
+      "Accessories",
+      "Hair Accessories"
+    ]
   },
   {
     "name": "Fast Track Hobbies",
@@ -222,7 +265,11 @@
         "url": "https://www.fasttrackhobbies.com/workbench"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): address, hours, phone listed, 2026 dates in page content. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): address, hours, phone listed, 2026 dates in page content. Lead: search, then own site.",
+    "carries": [
+      "Toys",
+      "Food & Drink"
+    ]
   },
   {
     "name": "Five Star Bricks",
@@ -236,7 +283,10 @@
       "instagram": "https://www.instagram.com/fivestarbrickshobbyshop/",
       "facebook": "https://www.facebook.com/fivestarbrickshobbyshop/"
     },
-    "confidence": "Medium; own site checked 2026-11-13 (ok): home page lists both addresses, hours and phones; no dated content or footer year found. Only an events page exists, so no products. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): home page lists both addresses, hours and phones; no dated content or footer year found. Only an events page exists, so no products. Lead: search, then own site.",
+    "carries": [
+      "Toys"
+    ]
   },
   {
     "name": "Avid & Co.",
@@ -267,7 +317,13 @@
         "url": "https://avidandco.com/collections/in-stock"
       }
     ],
-    "confidence": "Medium; own site checked 2026-11-13 (ok): footer 2026, collections updated 2026-11-13, site says 'located in downtown Davis' but gives no street address; 605 2nd Street comes from the Davis event listing (thedirt.online) and Visit Davis names the shop. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): footer 2026, collections updated 2026-11-13, site says 'located in downtown Davis' but gives no street address; 605 2nd Street comes from the Davis event listing (thedirt.online) and Visit Davis names the shop. Lead: search, then own site.",
+    "carries": [
+      "Toys",
+      "Crafts",
+      "Stickers, Magnets & Pins",
+      "Keychains"
+    ]
   },
   {
     "name": "Creme de la Creme Gifts",
@@ -280,7 +336,10 @@
       "instagram": "https://www.instagram.com/cremedelacremedavis/",
       "facebook": "https://www.facebook.com/cremedelacremedavis/"
     },
-    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with address and hours Tue-Sat 10:30-5:30, theme file updated Jan 2026, no footer year. Lead: search, then own site."
+    "confidence": "Medium; own site checked 2026-11-13 (ok): site loads with address and hours Tue-Sat 10:30-5:30, theme file updated Jan 2026, no footer year. Lead: search, then own site.",
+    "carries": [
+      "Apothecary"
+    ]
   },
   {
     "name": "Haven a Boutique",
@@ -315,7 +374,21 @@
         "url": "https://havenaboutique.com/collections/under-25"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, address 617 Main St with posted hours Mon-Fri 10-6, Sat 10-5, Sun 11-4. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer 2026, address 617 Main St with posted hours Mon-Fri 10-6, Sat 10-5, Sun 11-4. Lead: search, then own site.",
+    "carries": [
+      "Apparel",
+      "Bags",
+      "Hats & Scarves",
+      "Socks & Footwear",
+      "Necklaces",
+      "Earrings",
+      "Bracelets",
+      "Rings",
+      "Candles & Home Fragrances",
+      "Kitchen",
+      "Apothecary",
+      "Greeting Cards"
+    ]
   },
   {
     "name": "Mad Alpaca Games",
@@ -405,7 +478,10 @@
     "address": "320 Spring St, Nevada City, CA 95959",
     "site": "https://mountainpastimes.com",
     "social": {},
-    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, address, phone and hours (Tue-Sun 11-5) on home page. No social links on site. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, address, phone and hours (Tue-Sun 11-5) on home page. No social links on site. Lead: search, then own site.",
+    "carries": [
+      "Toys"
+    ]
   },
   {
     "name": "Two Little Birds Boutique",
@@ -436,7 +512,19 @@
         "url": "https://twolittlebirdsnevadacity.com/collections/costumes"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, store address, phone and hours in footer, collection pages load. Mostly children's clothing, with a toy and gift section. Its own photos show children or are not usable: stock photos only. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, store address, phone and hours in footer, collection pages load. Mostly children's clothing, with a toy and gift section. Its own photos show children or are not usable: stock photos only. Lead: search, then own site.",
+    "carries": [
+      "Kids Apparel",
+      "Hats & Scarves",
+      "Socks & Footwear",
+      "Toys",
+      "Books",
+      "Crafts",
+      "Greeting Cards",
+      "Bags",
+      "Hair Accessories",
+      "Apothecary"
+    ]
   },
   {
     "name": "T.W. Bonkers Toy & Candy Emporium",
@@ -449,7 +537,13 @@
       "instagram": "https://www.instagram.com/bonkerstoys/",
       "facebook": "https://www.facebook.com/BonkersToyStore/"
     },
-    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, address, phone and hours on home page, Instagram and Facebook linked. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, address, phone and hours on home page, Instagram and Facebook linked. Lead: search, then own site.",
+    "carries": [
+      "Toys",
+      "Books",
+      "Crafts",
+      "Food & Drink"
+    ]
   },
   {
     "name": "Mystic Forge Toys",
@@ -515,7 +609,19 @@
         "url": "https://nottooshabbyshop.com/collections/cards"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, About page lists 702 Sutter St, hours and Thanksgiving holiday hours, collection pages load. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): footer Copyright 2026, About page lists 702 Sutter St, hours and Thanksgiving holiday hours, collection pages load. Lead: search, then own site.",
+    "carries": [
+      "Classes & Workshops",
+      "Apparel",
+      "Furniture",
+      "Kitchen",
+      "Candles & Home Fragrances",
+      "Food & Drink",
+      "Jewelry & Accessories",
+      "Greeting Cards",
+      "Apothecary",
+      "Kids & Baby"
+    ]
   },
   {
     "name": "The Rabbit Hole Trading Co",
@@ -549,6 +655,9 @@
         "url": "https://therabbitholetradingco.com/through-the-looking-glass"
       }
     ],
-    "confidence": "High; own site checked 2026-11-13 (ok): address and daily hours on /hours, shop pages load, recent Instagram embeds. Lead: search, then own site."
+    "confidence": "High; own site checked 2026-11-13 (ok): address and daily hours on /hours, shop pages load, recent Instagram embeds. Lead: search, then own site.",
+    "carries": [
+      "Classes & Workshops"
+    ]
   }
 ]
