@@ -1,6 +1,6 @@
 # Unclaimed Pages: who to look for each day
 
-**As of 2026-10-31** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
+**As of 2026-11-12** · Source: hand-written · Maintained by: hand (set by tend-docs from the last commit date; the owner confirms on next edit)
 
 The daily builder's guide to what to add: kinds of organization, the day's theme, the area, and the mix. **Meet-ups first** (Don, 2026-10-31, builds on #1102): the seeder looks for groups and events where people need to show up in person, not for businesses. Rules on sources, photos and links stay in #353, #517, #542 and #556. Don, 2026-10-13 (#786). `derives-from: PRINCIPLES.md#pitch @ 2026-10-15` (the pitch's capabilities `cap-1` … `cap-7`; socialus-plan `planning/research/pitch-audit-2026-10-15.md`).
 
@@ -64,8 +64,6 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 **Native plants and pollinators, recurring** (Don, 2026-10-18): native plant nurseries, seed sellers and seed libraries, vegetable and herb starts, garden centres, community seed swaps, CNPS and Master Gardener plant sales, arboretum nursery sales. It joins any day's theme; fall is the season (natives that need winter cold are sown now). **Native milkweed first** (narrowleaf *Asclepias fascicularis*, showy *A. speciosa*), as seed or plugs; confirm it from the seller's own site, and say what the site says. **Never promote tropical milkweed** (*A. curassavica*): it harms monarchs in California. A seller that carries it can still load, but no sample post features it. Use a category that doesn't say "garden" or "native plant" (those get the volunteer-style samples): `Nursery (natives and seeds)`, `Seed seller`. Sellers get the Farm pictures and the Farm sample voice, which never names a plant.
 
 **Music and events venues, recurring** (Don, 2026-10-22, #997): music clubs, concert halls, theatres with live shows, arenas, bars and cafés with a real music calendar. It joins any day's theme, at most 2 a day. Load one only when its **own site** lists dated shows; give the row `events` (above) and check it reads with `tsx scripts/unclaimed/events.ts --only <name>` before loading. Category `Music venue` (arts pictures and the music interest). Its photos are its own room or stage; a family-show venue whose photos show children goes on `stockOnly`.
-
-**Fitness and dance classes, recurring** (Don, 2026-11-12): trampoline and rebounder workout classes, Zumba and other dance-fitness classes (Latin, hip hop cardio, Soca, K-pop), and hip hop step aerobics. It joins any day's theme, at most 2 a day. Load one only when its **own site** names the class and its days or booking page; drop-in classes first. Category `Dance fitness studio` (arts pictures), `Rebounder fitness studio` or `Gym with dance and step classes` (never a category with "club" in it: that reads as a volunteer group). `interestsFor` gives these `Fitness & outdoors`. A studio with youth classes whose photos show children goes on `stockOnly`. Hip hop *step* is rare here: say so rather than inventing it; plain step aerobics counts.
 
 **Farms (no quota):** a farm, orchard, ranch or animal farm loads only for a dated public event it hosts (u-pick day, harvest festival, farm tour, workshop), at most 2 a day.
 
