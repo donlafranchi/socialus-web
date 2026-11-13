@@ -403,3 +403,23 @@ Every unclaimed Page added, oldest first, so the daily builder doesn't repeat a 
 | 2026-11-13 | Midnight Kin | Makers' shop | Placerville | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
 | 2026-11-13 | Nava & Co. | Makers' shop | Lodi | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
 | 2026-11-13 | The Little Shop on The Mile | Makers' shop | Stockton | Crafts & makers | Toy and gift shops (curated: local makers and unique goods); lead: search, then own site |
+| 2026-11-13 | BrainyZoo Toys | Toy shop | Folsom | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Wit & Whimsy Toys | Toy shop | Granite Bay | Kids & family | Toy and gift shops (toy and gift shops); stock photos only; lead: search, then own site |
+| 2026-11-13 | Old City Kites | Toy shop | Sacramento | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Terra Cottage | Gift shop | Folsom | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Jam Baby | Gift shop | Sacramento | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Fast Track Hobbies | Toy shop | Rocklin | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Five Star Bricks | Toy shop | Orangevale | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Avid & Co. | Toy shop | Davis | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Creme de la Creme Gifts | Gift shop | Davis | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Haven a Boutique | Gift shop | Woodland | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Mad Alpaca Games | Toy shop | Fairfield | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Forgotten Path Games | Toy shop | Vacaville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Ace Hobby Shop | Toy shop | Vacaville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Bizarro World | Toy shop | Davis | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Mountain Pastimes | Toy shop | Nevada City | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Two Little Birds Boutique | Gift shop | Nevada City | Local business | Toy and gift shops (toy and gift shops); stock photos only; lead: search, then own site |
+| 2026-11-13 | T.W. Bonkers Toy & Candy Emporium | Toy shop | Placerville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Mystic Forge Toys | Toy shop | Placerville | Kids & family | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | Not Too Shabby | Gift shop | Folsom | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
+| 2026-11-13 | The Rabbit Hole Trading Co | Gift shop | Lodi | Local business | Toy and gift shops (toy and gift shops); lead: search, then own site |
