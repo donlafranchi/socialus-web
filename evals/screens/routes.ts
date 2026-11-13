@@ -3,7 +3,7 @@
 // resolved to a concrete URL for a given persona against the persona seed.
 //
 // Left out: /api/* (no screen), and the two unrouted components (HomeFeed,
-// LocalityFeed), which no URL reaches. A state that needs a tap (the map view)
+// the old feed, since removed), which no URL reaches. A state that needs a tap (the map view)
 // is its own entry with an `act`.
 
 import type { Page } from '@playwright/test'

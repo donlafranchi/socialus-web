@@ -151,7 +151,7 @@ export function WonderPanel({
       {view.helpers.length > 0 && (
         <p data-testid="wonder-helpers" className="text-body-sm text-[var(--color-fg)]">
           <span className="font-semibold">{COPY.wonderHelpers}: </span>
-          {view.helpers.map((h) => `${h.name ?? COPY.aNeighbour} · ${COPY.wonderRoles[h.role]}`).join(', ')}
+          {view.helpers.map((h) => `${h.name ?? COPY.aNeighbor} · ${COPY.wonderRoles[h.role]}`).join(', ')}
         </p>
       )}
 

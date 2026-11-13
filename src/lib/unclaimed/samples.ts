@@ -48,7 +48,7 @@ const VOICE: Record<string, Voice> = {
 const COPY: Record<Voice, Record<SampleKind, [string, string]>> = {
   food: {
     event: ['Tasting at {name}: free samples, the new seasonal lineup, and a chance to meet the people who make it. Drop in any time.', 'Meet the maker night at {name}: a small tasting, a look behind the counter, and a thank-you for locals who come by.'],
-    deal: ['This week only at {name}: 15% off your first order when you mention SocialUs.', 'Neighbour deal at {name}: buy two, get a third at half price this week.'],
+    deal: ['This week only at {name}: 15% off your first order when you mention SocialUs.', 'Neighbor deal at {name}: buy two, get a third at half price this week.'],
     last_minute: ['Open spots tomorrow morning at {name}: a few seats left for our small-group tasting. Walk-ins welcome while they last.', 'Fresh batch just out at {name}. First 20 people through the door tomorrow get one on the house.'],
   },
   makers: {
@@ -63,22 +63,22 @@ const COPY: Record<Voice, Record<SampleKind, [string, string]>> = {
   },
   farm: {
     event: ['Farm open day at {name}: walk the fields, taste what is in season, and meet the people who grow it.', 'Harvest morning at {name}: pick your own and take it home. Families welcome, boots recommended.'],
-    deal: ['Fresh this week at {name}: a box of what is in season, priced for neighbours who pick it up.', 'Buy a half-share at {name} this week and get a second box at half price.'],
+    deal: ['Fresh this week at {name}: a box of what is in season, priced for neighbors who pick it up.', 'Buy a half-share at {name} this week and get a second box at half price.'],
     last_minute: ['Just picked at {name}: a small extra harvest, available tomorrow morning while it lasts.', 'Late cancellation at {name}: two spots open for tomorrow’s farm walk. First come, first served.'],
   },
   stay: {
-    event: ['Open day at {name}: tour the property, meet the animals, and see the rooms. Free for neighbours.', 'Harvest dinner at {name}: a long table, food from the land, and a few seats for locals.'],
+    event: ['Open day at {name}: tour the property, meet the animals, and see the rooms. Free for neighbors.', 'Harvest dinner at {name}: a long table, food from the land, and a few seats for locals.'],
     deal: ['Locals’ night at {name}: 15% off a midweek stay, for people who live within an hour.', 'Stay deal at {name}: stay two nights, get a farm breakfast on us.'],
     last_minute: ['Last-minute opening at {name}: a cancellation freed up a room. Book it before it goes.', 'Tonight only at {name}: one night’s stay at a reduced rate. Message us today.'],
   },
   community: {
-    event: ['Volunteer morning with {name}: a couple of hours, no experience needed, and a chance to meet neighbours who pitch in.', 'Open house at {name}: see what we do, meet the people behind it, and find out where a spare hour helps most.'],
-    deal: ['How to help {name} this week: drop off what is on our list, or bring a friend to a shift. Every bit goes straight to neighbours.', 'This week at {name}: a short list of what we need most, and a few easy ways to lend a hand.'],
+    event: ['Volunteer morning with {name}: a couple of hours, no experience needed, and a chance to meet neighbors who pitch in.', 'Open house at {name}: see what we do, meet the people behind it, and find out where a spare hour helps most.'],
+    deal: ['How to help {name} this week: drop off what is on our list, or bring a friend to a shift. Every bit goes straight to neighbors.', 'This week at {name}: a short list of what we need most, and a few easy ways to lend a hand.'],
     last_minute: ['A few volunteer spots just opened at {name} for tomorrow. Come as you are; we will show you what to do.', 'Extra hands needed at {name} tomorrow morning. An hour helps, and newcomers are welcome.'],
   },
   local: {
-    event: ['Neighbourhood open house at {name}: come see what we do, meet the owners, and enjoy something local.', 'Meet your neighbours at {name}: a casual afternoon, light refreshments, and a look at what is new.'],
-    deal: ['Local-only offer at {name}: 10% off for anyone in the area through the end of the week.', 'Bring a neighbour to {name} this week and you both get a little something extra.'],
+    event: ['Neighborhood open house at {name}: come see what we do, meet the owners, and enjoy something local.', 'Meet your neighbors at {name}: a casual afternoon, light refreshments, and a look at what is new.'],
+    deal: ['Local-only offer at {name}: 10% off for anyone in the area through the end of the week.', 'Bring a neighbor to {name} this week and you both get a little something extra.'],
     last_minute: ['Something new at {name} tomorrow only: drop in between ten and two and be the first to see it.', 'A few last-minute spots open at {name} tomorrow. Message ahead or just walk in.'],
   },
 }

@@ -102,7 +102,7 @@ describe('LocationPlaceFields — address mode', () => {
       target: { value: 'not a real place at all' },
     })
     await vi.advanceTimersByTimeAsync(350)
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/city or a neighbourhood/i))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/city or a neighborhood/i))
     expect(screen.queryByTestId('test-address-confirmed')).not.toBeInTheDocument()
   })
 
@@ -134,7 +134,9 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
 
     const opt = await screen.findByTestId('test-address-suggestion-0')
     expect(opt).toHaveTextContent('Oak Park')
-    expect(opt).toHaveTextContent('Neighbourhood')
+    expect(opt).toHaveTextContent('Neighborhood')
+    // The label is the word a person uses, never the stored kind "neighborhood" in lower case.
+    expect(opt.textContent).not.toMatch(/\bneighborhood\b/)
     expect(opt).toHaveTextContent('Sacramento')
 
     fireEvent.click(opt)
@@ -152,8 +154,10 @@ describe('LocationPlaceFields — one field, three kinds of answer', () => {
     const { container } = render(<Harness />)
     fireEvent.change(screen.getByTestId('test-address-input'), { target: { value: 'davis' } })
     await vi.advanceTimersByTimeAsync(350)
-    await screen.findByTestId('test-address-suggestion-0')
-    expect(container.textContent).not.toContain('neighborhood')
+    const row = await screen.findByTestId('test-address-suggestion-0')
+    // The row says "City", never the stored kind "city".
+    expect(row.textContent).toContain('City')
+    expect(row.textContent).not.toMatch(/\bcity\b/)
   })
 })
 
@@ -219,7 +223,7 @@ describe('#348 — neighbourhood only', () => {
     let latest: LocationPlaceFieldsState = initialLocationPlaceFieldsState
     render(<Harness onState={(s) => (latest = s)} />)
     toNeighbourhood()
-    fireEvent.change(screen.getByRole('combobox', { name: /neighbourhood or town/i }), { target: { value: 'Curt' } })
+    fireEvent.change(screen.getByRole('combobox', { name: /neighborhood or town/i }), { target: { value: 'Curt' } })
     await vi.advanceTimersByTimeAsync(350)
     fireEvent.click(await screen.findByRole('option', { name: /Curtis Park/ }))
     expect(latest.mode).toBe('neighbourhood')
@@ -230,7 +234,7 @@ describe('#348 — neighbourhood only', () => {
   it('says only the neighbourhood will show', () => {
     render(<Harness />)
     toNeighbourhood()
-    expect(screen.getByText(/only the neighbourhood shows/i)).toBeInTheDocument()
+    expect(screen.getByText(/only the neighborhood shows/i)).toBeInTheDocument()
   })
 
   it('a tap on the map picks it too', () => {

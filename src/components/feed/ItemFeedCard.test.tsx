@@ -2,7 +2,6 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { ItemFeedCard } from './ItemFeedCard'
 import { FeedEmptyState } from './FeedEmptyState'
-import { MakeThisYoursBanner } from './MakeThisYoursBanner'
 import type { FeedItem } from '@/lib/feed/locality-feed'
 
 afterEach(() => cleanup())
@@ -147,20 +146,6 @@ describe('T088 — FeedEmptyState', () => {
   it('falls back to state copy at the root', () => {
     render(<FeedEmptyState parent={null} />)
     expect(screen.getByTestId('widen-locality').textContent).toContain('state')
-  })
-})
-
-describe('T088 — MakeThisYoursBanner', () => {
-  it('shows the signup CTA when anonymous', () => {
-    render(<MakeThisYoursBanner isAuthenticated={false} />)
-    const cta = screen.getByTestId('signup-cta')
-    const link = cta.querySelector('a') as HTMLAnchorElement
-    expect(link.getAttribute('href')).toBe('/auth/login?next=/onboarding')
-  })
-
-  it('hides when authenticated', () => {
-    const { container } = render(<MakeThisYoursBanner isAuthenticated={true} />)
-    expect(container.querySelector('[data-testid="signup-cta"]')).toBeNull()
   })
 })
 

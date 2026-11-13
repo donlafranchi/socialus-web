@@ -67,7 +67,7 @@ async function resolveAnchorPlacement(groupId: string): Promise<Placement | null
   if (!loc || loc.lng == null || loc.lat == null) return null
 
   if (loc.kind === 'area') {
-    return { source: 'anchor', kind: 'area', label: loc.place_name ?? 'a nearby neighbourhood', lng: loc.lng, lat: loc.lat }
+    return { source: 'anchor', kind: 'area', label: loc.place_name ?? 'a nearby neighborhood', lng: loc.lng, lat: loc.lat }
   }
 
   return {

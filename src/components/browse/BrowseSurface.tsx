@@ -21,7 +21,6 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useSearchParams, unstable_isUnrecognizedActionError } from 'next/navigation'
 import { useScrollRestoration } from '@/hooks/useScrollRestoration'
-import { MakeThisYoursBanner } from '@/components/feed/MakeThisYoursBanner'
 import { CardGrid } from '@/components/cards'
 import { ExploreFilterSheet } from '@/components/explore/ExploreFilterSheet'
 import { useLendExploreSearch, type ExploreView } from '@/components/shell/explore-search'
@@ -430,9 +429,6 @@ export function BrowseSurface({
       className="pb-[var(--dock-clearance)]"
       data-testid="browse-page"
     >
-      {/* Above the results, and absent for a signed-in Member. */}
-      {!snapshot.signedIn && <MakeThisYoursBanner isAuthenticated={false} />}
-
       {postsOnlyView && <HappeningRows rows={snapshot.happening} />}
 
       {/* F121 — the shelves, under the first look; a search or a filter is answered by the list instead. */}

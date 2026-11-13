@@ -39,11 +39,6 @@
     "feedbackMs": 100,
     "readyMs": 1000
   },
-  "Explore: sign in / sign up link": {
-    "kind": "consumer",
-    "feedbackMs": 100,
-    "readyMs": 1000
-  },
   "Page: share": {
     "kind": "consumer",
     "feedbackMs": 100,
