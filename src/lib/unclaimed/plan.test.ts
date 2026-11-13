@@ -135,6 +135,8 @@ describe('a2 — interest tags', () => {
     expect(one('Demonstration garden (nonprofit)')).toContain('Gardening')
     expect(one('Trail group (nonprofit)')).toContain('Fitness & outdoors')
     expect(one('Goods & crafts')).toContain('Crafts & makers')
+    expect(one('Dance fitness studio')).toContain('Fitness & outdoors')
+    expect(one('Rebounder fitness studio')).toEqual(['Fitness & outdoors', 'Neighborhood life'])
     expect(planListings([{ key: 'k', name: 'Davis Farmers Market', purpose: 'sell', town: 'Davis', website: 'https://davisfarmersmarket.org/', description: 'A market.' }])[0]!.interests).toContain('Farmers markets')
   })
 })

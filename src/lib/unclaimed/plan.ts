@@ -192,6 +192,7 @@ const INTERESTS_BY_POOL: Record<string, string[]> = {
 export function interestsFor(pool: string, what: string): string[] {
   const base = INTERESTS_BY_POOL[pool] ?? ['Local business']
   if (/band|music|choir|chorale|chorus|orchestra|symphony/i.test(what)) return ['Live music', 'Arts & culture']
+  if (/fitness|zumba|rebound|trampoline|aerobic/i.test(what)) return ['Fitness & outdoors', 'Neighborhood life']
   if (/garden|nursery|plant/i.test(what)) return ['Gardening', 'Sustainability']
   if (/farmers.? market/i.test(what)) return ['Farmers markets', 'Food & drink']
   return base

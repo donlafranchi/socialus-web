@@ -64,6 +64,8 @@ Each rule serves a capability of the pitch; the check that holds it is named.
 
 **Music and events venues, recurring** (Don, 2026-10-22, #997): music clubs, concert halls, theatres with live shows, arenas, bars and cafés with a real music calendar. It joins any day's theme, at most 2 a day. Load one only when its **own site** lists dated shows; give the row `events` (above) and check it reads with `tsx scripts/unclaimed/events.ts --only <name>` before loading. Category `Music venue` (arts pictures and the music interest). Its photos are its own room or stage; a family-show venue whose photos show children goes on `stockOnly`.
 
+**Fitness and dance classes, recurring** (Don, 2026-11-12): trampoline and rebounder workout classes, Zumba and other dance-fitness classes (Latin, hip hop cardio, Soca, K-pop), and hip hop step aerobics. It joins any day's theme, at most 2 a day. Load one only when its **own site** names the class and its days or booking page; drop-in classes first. Category `Dance fitness studio` (arts pictures), `Rebounder fitness studio` or `Gym with dance and step classes` (never a category with "club" in it: that reads as a volunteer group). `interestsFor` gives these `Fitness & outdoors`. A studio with youth classes whose photos show children goes on `stockOnly`. Hip hop *step* is rare here: say so rather than inventing it; plain step aerobics counts.
+
 **Farms (no quota):** a farm, orchard, ranch or animal farm loads only for a dated public event it hosts (u-pick day, harvest festival, farm tour, workshop), at most 2 a day.
 
 **Not for now:** personal-care salons (#517). Organizations whose work centers on children (youth leagues, scouts, schools, PTAs), because their photos would show children (F080).
